@@ -10,7 +10,7 @@ export type KCitymarketStoreOfferProbe = {
   httpStatus: number | null;
   offers: unknown[];
   diagnostic: string;
-  evidence?: { storePageUrl: string; storePageHttp: number; storeIdentitySeen: boolean; offerLinkSeen: boolean; offerLinks: string[] };
+  evidence?: { storePageUrl: string; storePageHttp: number; storeIdentitySeen: boolean; offerLinkSeen: boolean; offerLinks: string[]; embeddedOfferEndpointHints: string[] };
 };
 
 export async function probeKCitymarketStoreOffers(options: {
@@ -68,7 +68,14 @@ export async function probeKCitymarketStoreOffers(options: {
     .filter((href, index, all) => all.indexOf(href) === index)
     .slice(0, 20);
   const offerLinkSeen = offerLinks.length > 0;
-  const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen, offerLinks };
+  // Research-only hints from page markup. Never fetch these automatically: a URL
+  // may require session context or refer to a different store.
+  const embeddedOfferEndpointHints = [...html.matchAll(/(?:https?:\\/\\/[^"'<>\\s]+|\\/api\\/[^"'<>\\s]+)/gi)]
+    .map(match => match[0].replace(/&amp;/g, "&"))
+    .filter(value => /offer|tarjou|etu|campaign/i.test(value))
+    .filter((value, index, all) => all.indexOf(value) === index)
+    .slice(0, 15);
+  const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen, offerLinks, embeddedOfferEndpointHints };
   if (!identitySeen) return {
     ...received, evidence, status: "UNVERIFIED_STORE",
     diagnostic: "Canonical URL responded but selected store identity was not confirmed in HTML.",
