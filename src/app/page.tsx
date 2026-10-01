@@ -12485,20 +12485,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             } else if (selectedKey === "lidl" && selectedLidlStoreV750) {
               storeName = selectedLidlStoreV750.name || storeName;
               const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
-              match =
-                (itemEan
-                  ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
-                  : pickBestSProduct(candidates, itemName, itemEan));
+              match = itemEan
+                ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+                : undefined;
+              if (!match) {
+                const namedCandidates = itemEan
+                  ? await fetchLidlProductsV760(itemName, selectedLidlStoreV750)
+                  : candidates;
+                match = pickBestSProduct(
+                  namedCandidates.filter((product) =>
+                    getProductPrice(product) > 0 &&
+                    isComparisonAttributeCompatible(itemName, String(product.name || ""))
+                  ),
+                  itemName,
+                );
+              }
             } else if (selectedKey === "tokmanni") {
               storeName =
                 selectedTokmanniStoreV756?.name ||
                 selectedEurosparStoreV751?.name ||
                 storeName;
               const candidates = await fetchTokmanniProductsV761(itemEan || itemName);
-              match =
-                (itemEan
-                  ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
-                  : pickBestSProduct(candidates, itemName, itemEan));
+              match = itemEan
+                ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+                : undefined;
+              if (!match) {
+                const namedCandidates = itemEan
+                  ? await fetchTokmanniProductsV761(itemName)
+                  : candidates;
+                match = pickBestSProduct(
+                  namedCandidates.filter((product) =>
+                    getProductPrice(product) > 0 &&
+                    isComparisonAttributeCompatible(itemName, String(product.name || ""))
+                  ),
+                  itemName,
+                );
+              }
             }
           } catch {
             return item;
