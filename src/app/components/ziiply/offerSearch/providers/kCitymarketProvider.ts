@@ -548,12 +548,22 @@ export async function warmKCitymarketOfferCache(now=new Date()){
 }
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const active=getActiveKCitymarketPeriod();
-  // Keep the currently valid leaflet visible through the end of its period.
-  // 40AV may already be published on Sunday afternoon, but 39LV remains the
-  // customer-facing leaflet until Sunday 23:59.
-  const offers=active.week===39 && active.kind==="LV"
-    ? await fetchKCitymarketOffersFresh("https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/index.html")
-    : await fetchKCitymarketOffersFresh(ENTRY);
+
+  // The Wednesday/Sunday background warm-up parses the next leaflet after
+  // 15:00 Europe/Helsinki. Once that period becomes active, serve the exact
+  // validated cached parse instead of re-resolving the generic ENTRY URL.
+  // If warm-up failed (publication late / parser regression), fall back to a
+  // fresh parse so the request still has a recovery path.
+  let offers:CitymarketOffer[];
+  try{
+    const payload=await readCachedPeriod(active);
+    offers=payload.offers;
+  }catch(error){
+    console.warn("[K-Citymarket] active period cache unavailable, parsing fresh",active.key,error);
+    const periodEntry=active.kind==="AV"?AV_ENTRY:LV_ENTRY;
+    offers=await fetchKCitymarketOffersFresh(periodEntry);
+  }
+
   const fallback=kCitymarketDefaultValidityV15(active);
   return offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
 }
