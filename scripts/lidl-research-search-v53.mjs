@@ -9,6 +9,7 @@ const exactStaples=new Set(["maito","voi","pasta","kananmuna","jauheliha","perun
 const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"]),jauheliha:new Set(["jauheliha"]),peruna:new Set(["peruna","perunat"]),banaani:new Set(["banaani","banaanit"]),juusto:new Set(["juusto","juustot"]),leipa:new Set(["leipa","leivat"])};
 const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
+ if(typeof query!=="string")return [];
  const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t==="perunat"?"peruna":t==="banaanit"?"banaani":t==="juustot"?"juusto":t==="leivat"?"leipa":t);if(!q.length||!Array.isArray(rows))return [];
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set();
