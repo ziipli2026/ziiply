@@ -150,6 +150,28 @@ for(const query of ["peruna","banaani","jauheliha"]){
  assert.ok(Array.isArray(hits));
  assert.ok(hits.every(r=>r.ean===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
 }
+
+/* v61: rank exact query tokens before approved morphological alternatives. */
+assert.deepEqual(searchResearch("maito",[
+ {lidlProductId:"alternative",name:"Täysmaito 1 l"},
+ {lidlProductId:"exact",name:"Maito 1 l"},
+ {lidlProductId:"irrelevant",name:"Maitosuklaa"}
+]).map(r=>r.lidlProductId),["exact","alternative"]);
+assert.deepEqual(searchResearch("juusto",[
+ {lidlProductId:"alternative",name:"Tuorejuusto 200 g"},
+ {lidlProductId:"exact",name:"Juusto 400 g"},
+ {lidlProductId:"pastry",name:"Juustokierre"}
+]).map(r=>r.lidlProductId),["exact","alternative"]);
+assert.deepEqual(searchResearch("leipä",[
+ {lidlProductId:"alternative",name:"Kiviuunileipä"},
+ {lidlProductId:"exact",name:"Leipä"},
+ {lidlProductId:"spread",name:"Leipälevite"}
+]).map(r=>r.lidlProductId),["exact","alternative"]);
+assert.deepEqual(searchResearch("pasta carbonara",[
+ {lidlProductId:"prefix",name:"Pastakastike Carbonara"},
+ {lidlProductId:"exact",name:"Pasta Carbonara"}
+]).map(r=>r.lidlProductId),["exact","prefix"]);
+
 const corpusQueries=["peruna","banaani","jauheliha","juusto","leipä"];
 for(const query of corpusQueries){
  const first=searchResearch(query,corpus);
