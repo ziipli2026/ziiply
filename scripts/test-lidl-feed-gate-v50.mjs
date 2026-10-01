@@ -26,6 +26,8 @@ try{
  run("invalid-effective-date",good.map(x=>({...x,priceValidFrom:"today"})),false);
  run("impossible-calendar-date",good.map(x=>({...x,priceValidFrom:"2026-02-30"})),false);
  run("null-ian-and-ean",good.map(x=>({...x,ian:null,ean:null})),true);
+ run("invalid-observation-timestamp",good.map(x=>({...x,observedAt:"nonsense"})),false);
+ run("empty-provenance",good.map(x=>({...x,priceSource:"   "})),false);
  run("invalid-zero-price",good.map(x=>({...x,regularPriceEur:0})),false);
  run("ian-reused-as-ean",good.map(x=>({...x,ean:x.ian})),false);
 }finally{rmSync(dir,{recursive:true,force:true});}
