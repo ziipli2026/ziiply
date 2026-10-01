@@ -18019,14 +18019,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .map(normalizeStoreForPickerV320)
       .filter((store) => String(store.chain || store.type || "").toLowerCase() === "lidl");
 
-    return [...options].sort((a, b) => {
+    const sorted = [...options].sort((a, b) => {
       const da = getGpsDistanceKmForStoreV93(a);
       const db = getGpsDistanceKmForStoreV93(b);
       if (da != null && db != null && da !== db) return da - db;
       if (da != null !== (db != null)) return da != null ? -1 : 1;
       return normalize(a.name || "").localeCompare(normalize(b.name || ""), "fi");
     });
-  }, [foundStores, gpsCoordsV320]);
+    // V790: Lidl follows the same GPS picker radius as Prisma, Citymarket
+    // and Tokmanni/SPAR: stores within 50 km, or nearest if none are nearby.
+    // Manual location search retains its unbounded result list.
+    if (!usingOwnLocation || !gpsCoordsV320) return sorted;
+    const nearby = sorted.filter((store) => {
+      const distance = getGpsDistanceKmForStoreV93(store);
+      return distance != null && Number.isFinite(distance) && distance <= 50;
+    });
+    return nearby.length > 0 ? nearby : sorted.slice(0, 1);
+  }, [foundStores, gpsCoordsV320, usingOwnLocation]);
 
   useEffect(() => {
     if (lidlStoreOptionsV750.length === 0) {
