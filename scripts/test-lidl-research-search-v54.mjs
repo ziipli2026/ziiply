@@ -87,6 +87,10 @@ assert.equal(searchResearch("täysmaito",sample)[0].displayedPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].storeAvailability,"unknown");
 assert.equal(searchResearch("täysmaito",sample)[0].checkoutPriceVerified,false);
 assert.deepEqual(searchResearch("",sample),[]);
+assert.deepEqual(searchResearch(null,sample),[]);
+assert.deepEqual(searchResearch(123,sample),[]);
+assert.deepEqual(searchResearch({toString:()=>"maito"},sample),[]);
+assert.deepEqual(searchResearch(["maito"],sample),[]);
 assert.deepEqual(searchResearch("maito",null),[]);
 assert.deepEqual(searchResearch("maito",{}),[]);
 assert.deepEqual(searchResearch("maito",[
