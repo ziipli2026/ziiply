@@ -5590,14 +5590,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!id && !name) return null;
 
     const normalizedStores = foundStores.map(normalizeStoreForPickerV320);
-    const matched = normalizedStores.find(
-      (store) =>
-        getStoreChainV320(store) === chain &&
-        Boolean(
-          (id && sameStoreIdV93(store.id, id)) ||
-            (name && normalize(store.name || "") === normalize(name)),
-        ),
-    );
+    const normalizedName = normalize(String(name || ""));
+    const matched = normalizedStores.find((store) => {
+      if (getStoreChainV320(store) !== chain) return false;
+
+      const nameMatches =
+        Boolean(normalizedName) && normalize(store.name || "") === normalizedName;
+      const idMatches = Boolean(id) && sameStoreIdV93(store.id, id);
+
+      // V781: activeArea may temporarily contain a stale persisted id paired with
+      // the current visible store name. Never let that stale id select another store.
+      // When a name exists it is authoritative; id-only matching is a fallback.
+      if (normalizedName) return nameMatches;
+      return idMatches;
+    });
 
     const candidate =
       matched ||
