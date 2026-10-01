@@ -150,6 +150,10 @@ for(const query of ["peruna","banaani","jauheliha"]){
  assert.ok(Array.isArray(hits));
  assert.ok(hits.every(r=>r.ean===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
 }
+const cheeseHits=searchResearch("juusto",corpus);
+assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
+assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
+assert.ok(!searchResearch("juusto",[{lidlProductId:"pastry",name:"Juustokierre"},{lidlProductId:"pie",name:"Juustopiirakka"}]).length,"Cheese query must exclude cheese pastries");
 const minceHits=searchResearch("jauheliha",corpus);
 assert.ok(minceHits.some(r=>/Nauta-viljapossujauheliha/i.test(r.name)),"Generic mince query must find the actual mixed-mince candidate");
 assert.ok(!searchResearch("jauheliha",[{lidlProductId:"pie",name:"Jauhelihapiirakka"}]).length);
