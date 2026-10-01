@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const debugVersion = "NUXT-DBG-v2-20261001";
   const category = request.nextUrl.searchParams.get("category") || "lihat";
   const paths: Record<string,string> = { lihat: "/h/lihat/h10095752" };
   if (!paths[category]) return NextResponse.json({ok:false, allowed:Object.keys(paths)},{status:400});
@@ -21,6 +22,6 @@ export async function GET(request: NextRequest) {
       if (typeof entry === "string" && /^(?:\d{8}|\d{12,14})$/.test(entry)) return [{index,value:entry}];
       return [];
     });
-    return NextResponse.json({ok:response.ok,upstreamStatus:response.status,category,nuxtEntries:data.length,matchedEntries:matches.length,matches:matches.slice(0,55),eanLikeCount:eanLike.length,eanLikeSamples:eanLike.slice(0,25),note:"Read-only NUXT payload structure; numeric values in matches are flattened array references, not literal prices or EANs."});
+    return NextResponse.json({debugVersion,ok:response.ok,upstreamStatus:response.status,category,nuxtEntries:data.length,matchedEntries:matches.length,matches:matches.slice(0,55),eanLikeCount:eanLike.length,eanLikeSamples:eanLike.slice(0,25),note:"Read-only NUXT payload structure; numeric values in matches are flattened array references, not literal prices or EANs."});
   } catch(error) {return NextResponse.json({ok:false,error:String(error)},{status:502});}
 }
