@@ -20,6 +20,7 @@ for(const [i,r] of rows.entries()){
  if(!String(r.name??"").trim())errors.push(`record ${i}: missing name`);
  const p=r.regularPriceEur;
  if(p!==null&&p!==undefined&&(!Number.isFinite(p)||p<=0))errors.push(`record ${i}: invalid regular price`);
+ if(r.ean!=null&&typeof r.ean!=="string")errors.push(`record ${i}: EAN must be a string to preserve leading zeros`);
  if(r.ean!=null&&!validGtin(r.ean))errors.push(`record ${i}: invalid EAN/GTIN check digit`);
  if(r.ean!=null&&(!String(r.eanSource??"").trim()||r.eanVerifiedForProduct!==true))errors.push(`record ${i}: EAN needs product-specific verification and source`);
  if(r.ian!=null&&r.ean!=null&&String(r.ian)===String(r.ean))errors.push(`record ${i}: suspicious IAN reused as EAN`);
