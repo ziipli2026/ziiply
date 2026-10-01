@@ -40,3 +40,14 @@ jobs:
           assert.equal(core.pickBestKProduct(candidates,source,'6406300000261'),undefined);
           console.log('PASS: wrong-size and wrong-product variants are not accepted');
           NODE
+      - name: Assert diagnostic distinguishes missing data from matcher rejection
+        run: |
+          set -euo pipefail
+          printf '[]\n' > /tmp/k-empty-candidates.json
+          node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-empty-candidates.json | tee /tmp/k-empty-output.txt
+          grep -q '"status":"NO_CANDIDATES_RETURNED"' /tmp/k-empty-output.txt
+          node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-candidates.json | tee /tmp/k-rejected-output.txt
+          grep -q '"status":"CANDIDATES_REJECTED_OR_BELOW_THRESHOLD"' /tmp/k-rejected-output.txt
+          grep -q '"size-conflict-with-source-ean":1' /tmp/k-rejected-output.txt
+          grep -q '"hard-k-match":1' /tmp/k-rejected-output.txt
+          echo 'PASS: empty candidate feed and matcher rejection are distinguishable'
