@@ -215,6 +215,24 @@ assert.equal(new Set(sameNameHits.map(r=>r.lidlProductId)).size,sameNameHits.len
 assert.deepEqual(searchResearch("oululainen reissumies tosi ohut",corpus),sameNameHits,"Stable tie ordering");
 assert.deepEqual(searchResearch("oululainen reissumies tosi ohut",corpus,1),sameNameHits.slice(0,1),"Limit after deterministic sorting");
 
+
+/* v65: corpus coverage smoke audit across five broad grocery groups. */
+const coverageCases=[
+ ["maito",/maito/i],
+ ["jauheliha",/jauheliha/i],
+ ["peruna",/peruna/i],
+ ["leipä",/leip/i],
+ ["juusto",/juusto/i],
+ ["banaani",/banaani/i]
+];
+for(const [query,re] of coverageCases){
+ const corpusCandidates=corpus.filter(r=>re.test(String(r.name??"")));
+ const hits=searchResearch(query,corpus);
+ assert.ok(corpusCandidates.length>0,"Fixture coverage missing for "+query);
+ assert.ok(hits.length>0,"Research search returned no candidates for "+query);
+ assert.ok(hits.every(r=>r.ean===null&&r.regularPriceEur===null&&r.displayedPriceEur===null&&r.storeAvailability==="unknown"&&r.checkoutPriceVerified===false),"Research-only fields violated for "+query);
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
