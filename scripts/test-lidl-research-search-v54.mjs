@@ -140,4 +140,18 @@ assert.deepEqual(searchResearch("leivät",[
  {lidlProductId:"bread",name:"Leivät"},
  {lidlProductId:"spread",name:"Leipälevite"}
 ]).map(r=>r.lidlProductId),["bread"]);
-console.log("Lidl research name-only search safety and quality v55 tests passed");
+
+/* Real 226-row candidate corpus: audit known discovery gaps without treating names as stock. */
+import {readFileSync} from "node:fs";
+const corpus=JSON.parse(readFileSync(new URL("../data/lidl/official-grocery-candidates-v44-2026-10-01.json",import.meta.url),"utf8")).records;
+assert.equal(corpus.length,226);
+for(const query of ["peruna","banaani","jauheliha"]){
+ const hits=searchResearch(query,corpus);
+ assert.ok(Array.isArray(hits));
+ assert.ok(hits.every(r=>r.ean===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
+}
+const breadCompoundNames=corpus.filter(r=>typeof r.name==="string"&&/leipä/i.test(r.name));
+assert.ok(breadCompoundNames.length>0,"Fixture corpus must contain real compound bread names");
+const breadQueryHits=searchResearch("leipä",corpus);
+console.log(JSON.stringify({audit:"Lidl real-corpus v56",candidateCount:corpus.length,breadCompoundCandidates:breadCompoundNames.length,breadQueryHits:breadQueryHits.length,knownGap:"Bread compounds are not currently expanded for generic leipä query; no production behavior changed."}));
+console.log("Lidl research name-only search safety and quality v56 tests passed");
