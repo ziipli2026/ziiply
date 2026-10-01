@@ -11,6 +11,8 @@ for(const [i,r] of (Array.isArray(data?.records)?data.records:[]).entries()){
  if(r===null||typeof r!=="object"||Array.isArray(r)){errors.push(i+": expected offer object");continue;}
  if(ids.has(r.id))errors.push(i+": duplicate id");ids.add(r.id);
  if(!r.id||!r.name)errors.push(i+": missing id/name");
+ if(typeof r.id!=="string"||!r.id.trim()||typeof r.name!=="string"||!r.name.trim())errors.push(i+": id/name must be nonempty strings");
+ if(r.endDateStatus!==undefined&&!["unknown","confirmed"].includes(r.endDateStatus))errors.push(i+": invalid end-date status");
  const dateOK=s=>{if(typeof s!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const parsed=new Date(s+"T00:00:00Z");return Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===s;};
  if(!dateOK(r.validFrom)||(r.validThrough!==null&&!dateOK(r.validThrough))||(r.validThrough!==null&&r.validFrom>r.validThrough))errors.push(i+": invalid validity dates");
  if(r.validThrough===null&&!String(r.note??"").includes("no confirmed end date"))errors.push(i+": open-ended offer requires explicit unknown-end provenance");
