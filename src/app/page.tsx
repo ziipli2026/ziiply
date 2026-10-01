@@ -12576,10 +12576,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
+      const matchedCount = nextItems.filter((item, index) =>
+        String((item as any).ziiplySingleChainAtAdd || "") === selectedKey &&
+        String((nextCart[index] as any)?.ziiplySingleChainAtAdd || "") !== selectedKey
+      ).length;
       cartRefV124.current = nextItems;
       setCart(nextItems);
       persistCartImmediately(nextItems);
-      showCartToast("Ostoskori päivitetty valitun ketjun tuotteilla ja hinnoilla.");
+      showCartToast(matchedCount > 0
+        ? "Ostoskori päivitetty valitun ketjun tuotteilla ja hinnoilla."
+        : "Valitusta ketjusta ei löytynyt turvallista vastaavaa tuotetta.");
     } finally {
       setComparisonLoading(false);
     }
