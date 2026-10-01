@@ -170,7 +170,7 @@ assert.deepEqual(searchResearch("leipä",[
 assert.deepEqual(searchResearch("pasta carbonara",[
  {lidlProductId:"prefix",name:"Pastakastike Carbonara"},
  {lidlProductId:"exact",name:"Pasta Carbonara"}
-]).map(r=>r.lidlProductId),["exact","prefix"]);
+]).map(r=>r.lidlProductId),["exact"]);
 
 const corpusQueries=["peruna","banaani","jauheliha","juusto","leipä"];
 for(const query of corpusQueries){
