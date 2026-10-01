@@ -2,6 +2,7 @@
 // Usage after compiling ziiplyCore.ts to /tmp/ziiply-core:
 // node scripts/audit-k-comparable-diagnostics-20261001.cjs "source product" EAN candidates.json
 // candidates.json: [{"name":"...","price":1.99,"ean":"..."}]
+// This diagnostic never fetches upstream data: supply store-specific candidate snapshots.
 const fs = require("node:fs");
 const core = require("/tmp/ziiply-core/ziiplyCore.js");
 const [query, ean = "", file] = process.argv.slice(2);
@@ -9,7 +10,12 @@ if (!query || !file) {
   console.error("usage: <query> <ean-or-empty> <candidates.json>");
   process.exit(2);
 }
-const items = JSON.parse(fs.readFileSync(file, "utf8"));
+const payload = JSON.parse(fs.readFileSync(file, "utf8"));
+const items = Array.isArray(payload) ? payload : payload.items;
+if (!Array.isArray(items)) {
+  console.error("INVALID_CANDIDATES: expected an array or an object containing items[]");
+  process.exit(2);
+}
 const sourceSize = core.parseMetricSize(query);
 const rows = items.map((item) => {
   const targetSize = core.parseMetricSize(item.name);
@@ -31,3 +37,17 @@ rows.sort((a,b)=>b.score-a.score);
 console.table(rows);
 const best = core.pickBestKProduct(items,query,ean);
 console.log("BEST",best ? {name:best.name,ean:best.ean,price:best.price} : null);
+const positive = rows.filter(row => Number(row.price) > 0);
+const diagnosticStatus = items.length === 0 ? "NO_CANDIDATES_RETURNED"
+  : positive.length === 0 ? "NO_PRICED_CANDIDATES"
+  : best ? "MATCH_FOUND" : "CANDIDATES_REJECTED_OR_BELOW_THRESHOLD";
+console.log("DIAGNOSTIC_SUMMARY",JSON.stringify({
+  status:diagnosticStatus,
+  totalCandidates:items.length,
+  pricedCandidates:positive.length,
+  bestEan:best?.ean ?? null,
+  rejectionCounts:rows.flatMap(row => row.reasons).reduce((counts, reason) => {
+    counts[reason] = (counts[reason] || 0) + 1;
+    return counts;
+  }, {}),
+}));
