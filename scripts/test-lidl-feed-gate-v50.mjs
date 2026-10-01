@@ -9,9 +9,15 @@ const good=terms.map((name,i)=>({productId:String(1000+i),name,regularPriceEur:1
 function run(label,records,expected){
  const path=join(dir,label+".json");writeFileSync(path,JSON.stringify({records}));
  const result=spawnSync(process.execPath,[new URL("./check-lidl-feed-v48.mjs",import.meta.url).pathname,path],{encoding:"utf8"});
- const passed=(result.status===0)===expected;
- console.log(JSON.stringify({test:label,expectedAccepted:expected,actualAccepted:result.status===0,passed}));
- if(!passed){console.error(result.stdout,result.stderr);process.exitCode=1;}
+ let output=null;
+ try{output=JSON.parse(result.stdout);}catch{}
+ // A failed child process or invalid JSON must never count as a successful negative test.
+ const executed=result.error===undefined&&result.signal===null&&result.stderr.trim()===""&&output!==null&&Array.isArray(output.errors);
+ const actualAccepted=executed&&result.status===0&&output.accepted===true&&output.errors.length===0;
+ const rejectedProperly=executed&&result.status===1&&output.accepted===false&&output.errors.length>0;
+ const passed=expected?actualAccepted:rejectedProperly;
+ console.log(JSON.stringify({test:label,expectedAccepted:expected,actualAccepted,errors:output?.errors??null,passed}));
+ if(!passed){console.error(result.error??"",result.stdout,result.stderr);process.exitCode=1;}
 }
 try{
  run("valid-authorized-store-feed",good,true);
