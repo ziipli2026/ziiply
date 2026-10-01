@@ -5800,11 +5800,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const wantedName = normalize(selected.name);
       const matched = foundStores
         .map(normalizeStoreForPickerV320)
-        .find((store) =>
-          getStoreChainV320(store) === "K" &&
-          (storeMode === "local" ? isKLocalStore(store) : isKCitymarket(store)) &&
-          (sameStoreIdV93(store.id, selected.id) || normalize(store.name || "") === wantedName),
-        );
+        .find((store) => {
+          if (getStoreChainV320(store) !== "K") return false;
+          if (!(storeMode === "local" ? isKLocalStore(store) : isKCitymarket(store))) return false;
+
+          // V782: warmup must obey the same store identity rule as visible Gösta.
+          // If the current selection has a name, never let a stale persisted id
+          // resolve the warm cache to another K store.
+          if (wantedName) return normalize(store.name || "") === wantedName;
+          return Boolean(selected.id) && sameStoreIdV93(store.id, selected.id);
+        });
 
       return {
         id: String(matched?.id ?? selected.id).trim(),
