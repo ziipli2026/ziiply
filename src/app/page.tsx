@@ -2152,6 +2152,63 @@ function KauppiasMobileTopBar({
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
+  const [fuelValueV744, setFuelValueV744] = useState("—");
+  const [fuelTextV744, setFuelTextV744] = useState("Ei hintaa");
+
+  // V744_FUEL_PROVIDER_ISOLATED:
+  // AJOAINE käyttää vain page-tason olemassa olevia GPS-koordinaatteja.
+  // Ulkoinen datalähde on piilotettu /api/fuel-providerin taakse ja voidaan
+  // sammuttaa palvelinpuolen feature flagilla ilman UI- tai GPS-muutoksia.
+  useEffect(() => {
+    if (hidden || !gpsCoords) {
+      setFuelValueV744("—");
+      setFuelTextV744(gpsCoords ? "Ei hintaa" : "GPS");
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadFuelV744() {
+      try {
+        const response = await fetch(
+          `/api/fuel?lat=${encodeURIComponent(gpsCoords!.latitude)}&lon=${encodeURIComponent(gpsCoords!.longitude)}&fuel=diesel`,
+          { cache: "no-store", signal: controller.signal },
+        );
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const price = Number(data?.item?.price);
+        if (!Number.isFinite(price) || price <= 0 || cancelled) throw new Error("ei hintaa");
+
+        const station = String(data?.item?.station || "").trim();
+        const distance = Number(data?.item?.distanceKm);
+        const detail = station
+          ? Number.isFinite(distance)
+            ? `${station} · ${distance.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
+            : station
+          : "Diesel";
+
+        setFuelValueV744(
+          price.toLocaleString("fi-FI", { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+        );
+        setFuelTextV744(detail);
+      } catch (error) {
+        if (cancelled || controller.signal.aborted) return;
+        setFuelValueV744("—");
+        setFuelTextV744("Ei hintaa");
+      }
+    }
+
+    void loadFuelV744();
+    const interval = window.setInterval(loadFuelV744, 10 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      window.clearInterval(interval);
+    };
+  }, [hidden, gpsCoords?.latitude, gpsCoords?.longitude]);
 
   // V482_SINGLE_GPS_OWNER:
   // Topbar/sää EI saa enää kutsua navigator.geolocationia itse.
@@ -2734,9 +2791,9 @@ function KauppiasMobileTopBar({
     {
       id: "fuel" as const,
       title: "AJOAINE",
-      value: "—",
-      unit: "",
-      detail: "Ei hintaa",
+      value: fuelValueV744,
+      unit: fuelValueV744 === "—" ? "" : "€/l",
+      detail: fuelTextV744,
       graphic: <KauppiasFuelGraphic />,
     },
     {
