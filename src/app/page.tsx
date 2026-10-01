@@ -12429,6 +12429,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const eligibleItemsV781 = nextCart.filter((item) => {
       if (isWeightCartItemV738(item)) return false;
+      if (String((item as any).ziiplyUnmatchedChainV783 || "") === selectedKey) return false;
       const addedUnderChain = String((item as any).ziiplySingleChainAtAdd || "");
       return !addedUnderChain || addedUnderChain !== selectedKey;
     });
@@ -12442,6 +12443,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextItems = await Promise.all(
         nextCart.map(async (item) => {
           if (isWeightCartItemV738(item)) return item;
+          // Do not retry an already failed lookup for this same selected chain.
+          // A subsequent chain selection remains eligible for a fresh lookup.
+          if (String((item as any).ziiplyUnmatchedChainV783 || "") === selectedKey) return item;
 
           // V779: Yksi-tilassa Halpuuta on ketjunvaihtotoiminto. Jos käyttäjä on
           // juuri valinnut tuotteen samasta ketjusta, sitä ei haeta uudelleen eikä
