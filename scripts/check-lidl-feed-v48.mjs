@@ -2,8 +2,9 @@
 import fs from "node:fs";
 const path=process.argv[2];
 if(!path){console.error("Usage: node scripts/check-lidl-feed-v48.mjs <feed.json>");process.exit(2);}
-const input=JSON.parse(fs.readFileSync(path,"utf8"));
-const rows=Array.isArray(input)?input:input.records;
+let input;
+try{input=JSON.parse(fs.readFileSync(path,"utf8"));}catch(error){console.error("Unable to read valid feed JSON:",error.message);process.exit(2);}
+const rows=Array.isArray(input)?input:(input!==null&&typeof input==="object"?input.records:null);
 if(!Array.isArray(rows)){console.error("Expected array or {records: array}");process.exit(2);}
 const errors=[], seen=new Set();
 const words=["maito","kananmuna","voi","pasta","jauheliha","banaani","peruna","juusto"];
