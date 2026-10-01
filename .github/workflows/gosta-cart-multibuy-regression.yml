@@ -1,0 +1,21 @@
+name: Gosta cart multi-buy regression
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/audit-gosta-cart-multibuy-20261001.cjs'
+      - '.github/workflows/gosta-cart-multibuy-regression.yml'
+      - 'src/app/page.tsx'
+
+jobs:
+  cart-price-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Audit single and bulk cart prices without dependencies
+        run: node scripts/audit-gosta-cart-multibuy-20261001.cjs
