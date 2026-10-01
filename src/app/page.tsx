@@ -12583,8 +12583,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextItems;
       setCart(nextItems);
       persistCartImmediately(nextItems);
+      const unmatchedCount = nextItems.filter((item) =>
+        String((item as any).ziiplyUnmatchedChainV783 || "") === selectedKey
+      ).length;
       showCartToast(matchedCount > 0
-        ? "Ostoskori päivitetty valitun ketjun tuotteilla ja hinnoilla."
+        ? unmatchedCount > 0
+          ? "Osa tuotteista päivitetty. Kaikille ei löytynyt turvallista vastinetta."
+          : "Ostoskori päivitetty valitun ketjun tuotteilla ja hinnoilla."
         : "Valitusta ketjusta ei löytynyt turvallista vastaavaa tuotetta.");
     } finally {
       setComparisonLoading(false);
