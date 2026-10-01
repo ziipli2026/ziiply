@@ -6198,45 +6198,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 : false
         : Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
 
+  // Map follows the four actual store-selection cards, including Lidl and SPAR/Tokmanni.
   const selectedMapStoresV433 = useMemo(() => {
     const selected = [
+      { key: "s", name: activeStores.sStoreName, chain: "S", id: activeStores.sStoreId, detail: null },
+      { key: "k", name: activeStores.kStoreName, chain: "K", id: activeStores.kStoreId, detail: null },
+      { key: "lidl", name: selectedLidlStoreV750?.name, chain: "Lidl", id: selectedLidlStoreV750?.id, detail: selectedLidlStoreV750 },
       {
-        key: "s",
-        name: activeStores.sStoreName,
-        chain: "S",
-        id: activeStores.sStoreId,
+        key: "spar",
+        name: (storeMode === "hyper" ? selectedTokmanniStoreV756 : selectedEurosparStoreV751)?.name,
+        chain: "SPAR/Tokmanni",
+        id: (storeMode === "hyper" ? selectedTokmanniStoreV756 : selectedEurosparStoreV751)?.id,
+        detail: storeMode === "hyper" ? selectedTokmanniStoreV756 : selectedEurosparStoreV751,
       },
-      {
-        key: "k",
-        name: activeStores.kStoreName,
-        chain: "K",
-        id: activeStores.kStoreId,
-      },
-    ].filter(
-      (store) =>
-        store.name &&
-        !store.name.includes("Valitse ensin") &&
-        !store.name.includes("ei valittu"),
+    ].filter((store) =>
+      store.name &&
+      !store.name.includes("Valitse ensin") &&
+      !store.name.includes("ei valittu"),
     );
 
     const normalizedFound = foundStores.map((store: any, index: number) => {
-      const latitude = Number(
-        store.latitude ??
-          store.lat ??
-          store.location?.lat ??
-          store.coordinates?.latitude,
-      );
-      const longitude = Number(
-        store.longitude ??
-          store.lng ??
-          store.lon ??
-          store.location?.lng ??
-          store.location?.lon ??
-          store.coordinates?.longitude,
-      );
-
+      const latitude = Number(store.latitude ?? store.lat ?? store.location?.lat ?? store.coordinates?.latitude);
+      const longitude = Number(store.longitude ?? store.lng ?? store.lon ?? store.location?.lng ?? store.location?.lon ?? store.coordinates?.longitude);
       return {
-        key: String(store.id ?? store.storeId ?? store.name ?? index),
         id: store.id ?? store.storeId ?? index,
         name: String(store.name ?? store.storeName ?? `Kauppa ${index + 1}`),
         address: String(store.address ?? store.streetAddress ?? ""),
@@ -6246,36 +6230,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
     });
 
-    const withCoords = selected.map((store) => {
+    return selected.map((store) => {
       const targetName = normalize(String(store.name || ""));
       const match = normalizedFound.find((candidate) => {
-        const candidateName = normalize(String(candidate.name || ""));
-        return (
-          String(candidate.id || "") === String(store.id || "") ||
-          (targetName &&
-            candidateName &&
-            (candidateName.includes(targetName) ||
-              targetName.includes(candidateName)))
-        );
+        const candidateName = normalize(candidate.name);
+        return String(candidate.id || "") === String(store.id || "") ||
+          Boolean(targetName && candidateName && (candidateName.includes(targetName) || targetName.includes(candidateName)));
       });
-
+      const detail = store.detail as any;
+      const latitude = Number(detail?.latitude ?? detail?.lat ?? detail?.location?.lat ?? detail?.coordinates?.latitude);
+      const longitude = Number(detail?.longitude ?? detail?.lng ?? detail?.lon ?? detail?.location?.lng ?? detail?.coordinates?.longitude);
       return {
-        ...store,
-        address: match?.address || "",
-        city: match?.city || activeArea.label || "Suomi",
-        latitude: match?.latitude ?? null,
-        longitude: match?.longitude ?? null,
+        key: store.key,
+        id: store.id,
+        name: String(store.name),
+        chain: store.chain,
+        address: String(detail?.address ?? detail?.streetAddress ?? match?.address ?? ""),
+        city: String(detail?.city ?? match?.city ?? activeArea.label ?? "Suomi"),
+        latitude: Number.isFinite(latitude) ? latitude : match?.latitude ?? null,
+        longitude: Number.isFinite(longitude) ? longitude : match?.longitude ?? null,
       };
     });
-
-    return withCoords.length > 0 ? withCoords : normalizedFound.slice(0, 2);
   }, [
-    activeStores.sStoreId,
-    activeStores.sStoreName,
-    activeStores.kStoreId,
-    activeStores.kStoreName,
-    foundStores,
-    activeArea.label,
+    activeStores.sStoreId, activeStores.sStoreName,
+    activeStores.kStoreId, activeStores.kStoreName,
+    selectedLidlStoreV750, selectedEurosparStoreV751, selectedTokmanniStoreV756,
+    storeMode, foundStores, activeArea.label,
   ]);
 
   function getMapStoreQueryV433(store?: {
