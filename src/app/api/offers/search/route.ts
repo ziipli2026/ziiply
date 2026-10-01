@@ -694,18 +694,24 @@ export async function GET(request: Request) {
           : (() => {
               const debug = isKCitymarketV19 ? null : getKruokaOfferPipelineDebugV34();
               const resolver = debug?.kSupermarketPublicationResolverDebug;
-              return resolver
-                ? {
-                    kruokaDebug: {
-                      selectedStoreName: debug?.selectedStoreName ?? rawKStoreName ?? "",
-                      applicationState: debug?.applicationState ?? "OK",
-                      brochureOffers: debug?.brochureOffers ?? null,
-                      activeOffers: debug?.activeOffers ?? null,
-                      error: debug?.error ?? null,
-                      kSupermarketPublicationResolverDebug: resolver,
-                    },
-                  }
-                : {};
+              return {
+                kruokaDebug: {
+                  requestContext: {
+                    rawKStoreId: rawKStoreId ?? null,
+                    rawKStoreName: rawKStoreName ?? null,
+                    kStoreIds: splitMultiValue(rawKStoreId),
+                    kStoreNames: splitMultiValue(rawKStoreName),
+                  },
+                  selectedStoreName: debug?.selectedStoreName ?? rawKStoreName ?? "",
+                  selectedStoreId: debug?.selectedStoreId ?? rawKStoreId ?? "",
+                  resolvedTjekStoreId: debug?.kStoreId ?? null,
+                  applicationState: debug?.applicationState ?? "OK",
+                  brochureOffers: debug?.brochureOffers ?? null,
+                  activeOffers: debug?.activeOffers ?? null,
+                  error: debug?.error ?? null,
+                  ...(resolver ? { kSupermarketPublicationResolverDebug: resolver } : {}),
+                },
+              };
             })()),
       },
       {
