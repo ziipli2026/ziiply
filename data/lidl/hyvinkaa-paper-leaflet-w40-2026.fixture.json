@@ -220,7 +220,7 @@
       "id": "kuljanka-pickles",
       "name": "Kuljanka hapankurkku 400 g",
       "validFrom": "2026-10-01",
-      "validThrough": "2026-10-04",
+      "validThrough": null,
       "printedPriceEur": 2.49,
       "priceBasis": "pack",
       "requiredQuantity": 1,
@@ -229,13 +229,13 @@
       "lidlProductId": null,
       "regularPriceEur": null,
       "checkoutPriceVerified": false,
-      "note": null
+      "note": "Leaflet page states starting Thu 1 Oct; no confirmed end date visible on supplied photograph."
     },
     {
       "id": "kuljanka-goulash",
       "name": "Kuljanka gulassikeitto 400 ml",
       "validFrom": "2026-10-01",
-      "validThrough": "2026-10-04",
+      "validThrough": null,
       "printedPriceEur": 2.49,
       "priceBasis": "pack",
       "requiredQuantity": 1,
@@ -244,7 +244,7 @@
       "lidlProductId": null,
       "regularPriceEur": null,
       "checkoutPriceVerified": false,
-      "note": null
+      "note": "Leaflet page states starting Thu 1 Oct; no confirmed end date visible on supplied photograph."
     }
   ]
 }
