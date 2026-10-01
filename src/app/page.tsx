@@ -2861,6 +2861,59 @@ export default function Page() {
   const storeSelectionPersistenceReadyRefV343 = useRef(false);
   const savedShoppingListsHydratedRefV742 = useRef(false);
   const STORE_SELECTION_STORAGE_KEY_V343 = "ziiply-store-selection-v536";
+  // V786: GPS:n automaattinen lähin kauppa ja käyttäjän käsin valitsema kauppa
+  // ovat eri asioita. Vain valintalistasta tehty käsivalinta lukitaan GPS-päivityksiltä.
+  type ManualStoreOverrideV786 = { id: string | number; name: string };
+  type ManualStoreOverridesV786 = Partial<Record<"sLocal" | "kLocal" | "sHyper" | "kHyper", ManualStoreOverrideV786>>;
+  const MANUAL_STORE_OVERRIDES_STORAGE_KEY_V786 = "ziiply-manual-store-overrides-v786";
+  const manualStoreOverridesRefV786 = useRef<ManualStoreOverridesV786>({});
+
+  function readManualStoreOverridesV786(): ManualStoreOverridesV786 {
+    if (typeof window === "undefined") return manualStoreOverridesRefV786.current;
+    try {
+      const raw = window.localStorage.getItem(MANUAL_STORE_OVERRIDES_STORAGE_KEY_V786);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed as ManualStoreOverridesV786 : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writeManualStoreOverridesV786(next: ManualStoreOverridesV786) {
+    manualStoreOverridesRefV786.current = next;
+    if (typeof window === "undefined") return;
+    try {
+      if (Object.keys(next).length === 0) {
+        window.localStorage.removeItem(MANUAL_STORE_OVERRIDES_STORAGE_KEY_V786);
+      } else {
+        window.localStorage.setItem(MANUAL_STORE_OVERRIDES_STORAGE_KEY_V786, JSON.stringify(next));
+      }
+    } catch {}
+  }
+
+  function setManualStoreOverrideV786(
+    chain: "S" | "K",
+    mode: StoreMode,
+    store: ManualStoreOverrideV786,
+  ) {
+    const key = `${chain === "S" ? "s" : "k"}${mode === "local" ? "Local" : "Hyper"}` as
+      "sLocal" | "kLocal" | "sHyper" | "kHyper";
+    const current = readManualStoreOverridesV786();
+    writeManualStoreOverridesV786({ ...current, [key]: store });
+  }
+
+  function getManualStoreOverrideV786(chain: "S" | "K", mode: StoreMode) {
+    const key = `${chain === "S" ? "s" : "k"}${mode === "local" ? "Local" : "Hyper"}` as
+      "sLocal" | "kLocal" | "sHyper" | "kHyper";
+    const current = readManualStoreOverridesV786();
+    manualStoreOverridesRefV786.current = current;
+    return current[key] ?? null;
+  }
+
+  useEffect(() => {
+    manualStoreOverridesRefV786.current = readManualStoreOverridesV786();
+  }, []);
   const [storeCompareScope, setStoreCompareScope] =
     useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
@@ -9369,6 +9422,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       postalCode: store.postalCode,
     });
 
+    // V786: vain käyttäjän valintalistasta tekemä S/K-kauppavalinta lukitaan.
+    // GPS:n automaattisesti ratkaisema lähin kauppa ei koskaan kirjoita tätä merkintää.
+    if (store.type === "S" || store.type === "K") {
+      setManualStoreOverrideV786(store.type, effectiveStoreMode, {
+        id: store.id,
+        name: store.name,
+      });
+    }
+
     setActiveArea((current) => {
       if (effectiveStoreMode === "local") {
         if (store.type === "S") {
@@ -10130,17 +10192,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         locationCoordsForResolverV32,
       );
 
-      // V783: a silent GPS/boot refresh must not overwrite an explicit store
-      // choice when that exact named store still exists in the fresh result set.
-      // Re-resolve the id from the fresh row so an old id can never stay paired
-      // with the preserved name.
-      const preserveExplicitStoreV783 = (
+      // V786: GPS saa vaihtaa automaattisen oletuskaupan aina uuteen lähimpään.
+      // Vain käyttäjän valintalistasta käsin valitsema kauppa säilytetään GPS-refreshissä.
+      // Käsivalinta re-resolvoidaan tuoreesta kauppalistasta, jotta id/nimi eivät vanhene.
+      const resolveManualStoreOverrideV786 = (
         chain: "S" | "K",
-        mode: "hyper" | "local",
-        selectedName: unknown,
+        mode: StoreMode,
       ) => {
-        const wantedName = normalize(String(selectedName || ""));
-        if (!wantedName) return null;
+        const manual = getManualStoreOverrideV786(chain, mode);
+        if (!manual?.name) return null;
+        const wantedName = normalize(String(manual.name));
         return storesWithDistanceV97
           .map(normalizeStoreForPickerV320)
           .find((store) => {
@@ -10155,20 +10216,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
 
       const preservedS =
-        source === "gps" && silentStatusV137 && storeModeChosenV299
-          ? preserveExplicitStoreV783(
-              "S",
-              effectiveLocationStoreModeV39,
-              effectiveLocationStoreModeV39 === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName,
-            )
+        source === "gps"
+          ? resolveManualStoreOverrideV786("S", effectiveLocationStoreModeV39)
           : null;
       const preservedK =
-        source === "gps" && silentStatusV137 && storeModeChosenV299
-          ? preserveExplicitStoreV783(
-              "K",
-              effectiveLocationStoreModeV39,
-              effectiveLocationStoreModeV39 === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName,
-            )
+        source === "gps"
+          ? resolveManualStoreOverrideV786("K", effectiveLocationStoreModeV39)
           : null;
 
       const nextArea: Area = {
@@ -10369,6 +10422,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function useOwnLocation(source: "boot" | "manual" | "boot_refresh" = "manual") {
+    // V786: käyttäjän uusi "Käytä sijaintia" palauttaa S/K-kaupat AUTO/GPS-tilaan.
+    // Boot- ja taustarefresh eivät poista käyttäjän käsin tekemiä kauppalukkoja.
+    if (source === "manual") {
+      writeManualStoreOverridesV786({});
+    }
     pushGpsDebugLogV492(`useOwnLocation ENTRY using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"} stores=${String(foundStores.length)}`);
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
