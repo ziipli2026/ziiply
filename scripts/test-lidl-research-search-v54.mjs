@@ -36,7 +36,16 @@ assert.deepEqual(searchResearch("perunat",[
  {lidlProductId:"potatoes",name:"Kotimaiset perunat 1 kg"},
  {lidlProductId:"pie",name:"Perunapiirakka"}
 ]).map(r=>r.lidlProductId),["potatoes"]);
-assert.deepEqual(searchResearch("maito 1 l",[
+assert.deepEqual(searchResearch("banaanit",[
+ {lidlProductId:"fruit",name:"Banaanit 1 kg"},
+ {lidlProductId:"cake",name:"Banaanikakku"},
+ {lidlProductId:"milkshake",name:"Banaanipirtelö"}
+]).map(r=>r.lidlProductId),["fruit"]);
+assert.deepEqual(searchResearch("banaani",[
+ {lidlProductId:"fruit",name:"Banaanit 1 kg"},
+ {lidlProductId:"cake",name:"Banaanikakku"}
+]).map(r=>r.lidlProductId),["fruit"]);
+assert.deepEqual(searchResearch("maito 1 l",[ 
  {lidlProductId:"milk-1",name:"Täysmaito 1 l"},
  {lidlProductId:"milk-2",name:"Täysmaito 2 l"},
  {lidlProductId:"milk-no-size",name:"Täysmaito"}
