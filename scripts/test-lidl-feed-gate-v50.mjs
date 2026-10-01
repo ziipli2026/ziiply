@@ -30,6 +30,6 @@ try{
  run("empty-provenance",good.map(x=>({...x,priceSource:"   "})),false);
  run("invalid-zero-price",good.map(x=>({...x,regularPriceEur:0})),false);
  run("ian-reused-as-ean",good.map(x=>({...x,ean:x.ian})),false);
- run("valid-gtin13",good.map(x=>({...x,ean:"6410405082652"})),true);
- run("bad-gtin-check-digit",good.map(x=>({...x,ean:"6410405082653"})),false);
+ run("valid-gtin13",good.map(x=>({...x,ean:"6410405082657"})),true);
+ run("bad-gtin-check-digit",good.map(x=>({...x,ean:"6410405082658"})),false);
 }finally{rmSync(dir,{recursive:true,force:true});}
