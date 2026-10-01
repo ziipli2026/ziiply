@@ -1,0 +1,23 @@
+name: K comparable matcher diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/app/components/ziiply/ziiplyCore.ts'
+      - 'scripts/audit-k-comparable-diagnostics-20261001.cjs'
+      - '.github/workflows/k-comparable-matcher-diagnostic.yml'
+
+jobs:
+  compile-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install TypeScript only
+        run: npm install --no-save --ignore-scripts typescript@^5
+      - name: Compile matcher core for offline diagnostics
+        run: npx tsc src/app/components/ziiply/ziiplyCore.ts --target ES2020 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir /tmp/ziiply-core
