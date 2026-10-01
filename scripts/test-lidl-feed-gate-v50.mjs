@@ -3,12 +3,13 @@ import {mkdtempSync,writeFileSync,rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {spawnSync} from "node:child_process";
+import {fileURLToPath} from "node:url";
 const dir=mkdtempSync(join(tmpdir(),"ziiply-lidl-gate-"));
 const terms=["maito","kananmuna","voi","pasta","jauheliha","banaani","peruna","juusto"];
 const good=terms.map((name,i)=>({productId:String(1000+i),name,regularPriceEur:1.5,storeId:"FI0326",storeScope:"FI0326",observedAt:"2026-10-01T12:00:00+03:00",priceValidFrom:"2026-10-01",priceSource:"authorized-store-feed",checkoutPriceVerified:true,ean:null,ian:String(7000+i)}));
 function run(label,records,expected){
  const path=join(dir,label+".json");writeFileSync(path,JSON.stringify({records}));
- const result=spawnSync(process.execPath,[new URL("./check-lidl-feed-v48.mjs",import.meta.url).pathname,path],{encoding:"utf8"});
+ const result=spawnSync(process.execPath,[fileURLToPath(new URL("./check-lidl-feed-v48.mjs",import.meta.url)),path],{encoding:"utf8"});
  let output=null;
  try{output=JSON.parse(result.stdout);}catch{}
  // A failed child process or invalid JSON must never count as a successful negative test.
