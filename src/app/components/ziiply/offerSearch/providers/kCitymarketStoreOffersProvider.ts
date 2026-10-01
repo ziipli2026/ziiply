@@ -1,9 +1,7 @@
 /**
- * Isolated K-Citymarket store-specific offers research provider.
- *
- * NOT wired to public offer search or the national leaflet parser.
- * No fallback to another store: an unverified store context is an error.
- * Only public, non-personalised offers are in scope.
+ * Isolated K-Citymarket store-offers research probe.
+ * Not imported by public offer search; national leaflet remains untouched.
+ * Never infer store identity from a session-dependent /kauppa/tarjoushaku page.
  */
 export type KCitymarketStoreOfferProbe = {
   storeId: string;
@@ -12,6 +10,7 @@ export type KCitymarketStoreOfferProbe = {
   httpStatus: number | null;
   offers: unknown[];
   diagnostic: string;
+  evidence?: { storePageUrl: string; storePageHttp: number; storeIdentitySeen: boolean; offerLinkSeen: boolean };
 };
 
 export async function probeKCitymarketStoreOffers(options: {
@@ -22,17 +21,47 @@ export async function probeKCitymarketStoreOffers(options: {
   const endpoint = String(options.endpoint ?? "").trim();
   const base = { storeId, sourceUrl: endpoint, httpStatus: null, offers: [] as unknown[] };
   if (!storeId || !endpoint) return {
-    ...base, status: "NOT_CONFIGURED",
-    diagnostic: "Explicit store ID and verified endpoint required; no default store.",
+    ...base, status: "NOT_CONFIGURED" as const,
+    diagnostic: "Explicit store slug and verified store-page URL required; no default store.",
   };
-  const url = new URL(endpoint);
-  if (url.protocol !== "https:" || url.hostname !== "www.k-ruoka.fi") {
-    return { ...base, status: "NOT_CONFIGURED", diagnostic: "Endpoint must be HTTPS www.k-ruoka.fi." };
+  let url: URL;
+  try { url = new URL(endpoint); }
+  catch { return { ...base, status: "NOT_CONFIGURED", diagnostic: "Invalid URL." }; }
+  // The selected store's canonical page is the only acceptable probe entry.
+  // The generic offer-search page may silently show a previously selected OTHER store.
+  if (url.protocol !== "https:" || url.hostname !== "www.k-ruoka.fi" ||
+      url.pathname !== `/kauppa/${storeId}` ||
+      !/^k-citymarket-[a-z0-9-]+$/.test(storeId)) {
+    return { ...base, status: "NOT_CONFIGURED", diagnostic: "Require canonical /kauppa/k-citymarket-<slug> URL matching storeId." };
   }
-  // Do not fetch an assumed endpoint or parse another store's offers as selected-store data.
-  // A verified, store-scoped data contract must be implemented before enabling network reads.
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers: { Accept: "text/html", "User-Agent": "ZiiplyStoreOfferResearch/1.0" },
+      redirect: "follow", cache: "no-store",
+      signal: AbortSignal.timeout(12000),
+    });
+  } catch (error) {
+    return { ...base, status: "HTTP_ERROR", diagnostic: String(error) };
+  }
+  const received = { ...base, sourceUrl: response.url, httpStatus: response.status };
+  if (!response.ok) return { ...received, status: "HTTP_ERROR", diagnostic: `Store page HTTP ${response.status}` };
+  const finalUrl = new URL(response.url);
+  if (finalUrl.hostname !== "www.k-ruoka.fi" || finalUrl.pathname !== url.pathname) {
+    return { ...received, status: "UNVERIFIED_STORE", diagnostic: "Store page redirected to another context." };
+  }
+  const html = await response.text();
+  const identitySeen = html.toLowerCase().includes(storeId.replace(/^k-citymarket-/, "").replace(/-/g, " "));
+  const offerLinkSeen = /tarjoushaku|>Edut<|edut-ja-tarjoukset/i.test(html);
+  const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen };
+  if (!identitySeen) return {
+    ...received, evidence, status: "UNVERIFIED_STORE",
+    diagnostic: "Canonical URL responded but selected store identity was not confirmed in HTML.",
+  };
   return {
-    ...base, status: "UNSUPPORTED_SHAPE",
-    diagnostic: "Research scaffold only: store identity and response contract not yet verified.",
+    ...received, evidence, status: "UNSUPPORTED_SHAPE",
+    diagnostic: offerLinkSeen
+      ? "Store page and offers navigation found. Offer API and store-scoped response still unverified; zero offers intentionally emitted."
+      : "Store page verified, but offers navigation/API not identified; zero offers intentionally emitted.",
   };
 }
