@@ -3290,17 +3290,17 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   const candidateSize = parseMetricSize(candidateName);
   if (sourceSize && (!candidateSize || sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
   const group = (name: string) => {
-    if (/\\bpiim[aä]\\b/.test(name)) return "piima";
-    if (/\\bmaito\\b/.test(name)) return "maito";
-    if (/\\bjogurtti\\b/.test(name)) return "jogurtti";
+    if (/\bpiima\b/.test(name)) return "piima";
+    if (/\bmaito\b/.test(name)) return "maito";
+    if (/\bjogurtti\b/.test(name)) return "jogurtti";
     return "";
   };
   const sourceGroup = group(source);
   if (sourceGroup && group(candidate) !== sourceGroup) return false;
-  for (const attribute of ["laktoositon", "rasvaton", "kevyt", "täys", "luomu"]) {
-    if (new RegExp("\\b" + attribute + "\\b").test(source) !== new RegExp("\\b" + attribute + "\\b").test(candidate)) return false;
+  for (const attribute of ["laktoositon", "rasvaton", "kevyt", "tays", "luomu"]) {
+    if (new RegExp("\b" + attribute + "\b").test(source) !== new RegExp("\b" + attribute + "\b").test(candidate)) return false;
   }
-  if (/\\bab.piim[aä]\\b/.test(source) !== /\\bab.piim[aä]\\b/.test(candidate)) return false;
+  if (/\bab.piima\b/.test(source) !== /\bab.piima\b/.test(candidate)) return false;
   return !isHardRejectedAlternative(sourceName, candidateName);
 }
 
