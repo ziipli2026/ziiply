@@ -12,6 +12,11 @@ if (!query || !file) {
 }
 const payload = JSON.parse(fs.readFileSync(file, "utf8"));
 const items = Array.isArray(payload) ? payload : payload.items;
+const provenance = Array.isArray(payload) ? {kind:"unlabelled-offline-array"} : {
+  kind: typeof payload.provenance === "string" ? payload.provenance : "unlabelled-offline-snapshot",
+  store: typeof payload.store === "string" ? payload.store : null,
+  capturedAt: typeof payload.capturedAt === "string" ? payload.capturedAt : null,
+};
 if (!Array.isArray(items)) {
   console.error("INVALID_CANDIDATES: expected an array or an object containing items[]");
   process.exit(2);
@@ -43,6 +48,7 @@ const diagnosticStatus = items.length === 0 ? "NO_CANDIDATES_RETURNED"
   : best ? "MATCH_FOUND" : "CANDIDATES_REJECTED_OR_BELOW_THRESHOLD";
 console.log("DIAGNOSTIC_SUMMARY",JSON.stringify({
   status:diagnosticStatus,
+  provenance,
   totalCandidates:items.length,
   pricedCandidates:positive.length,
   bestEan:best?.ean ?? null,
