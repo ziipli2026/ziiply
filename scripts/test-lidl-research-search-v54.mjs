@@ -181,6 +181,15 @@ for(const query of corpusQueries){
  assert.ok(first.length<=15,"Default result limit: "+query);
  assert.ok(first.every(r=>r.source==="lidl.fi-public-research"&&r.ean===null&&r.regularPriceEur===null&&r.displayedPriceEur===null&&r.storeAvailability==="unknown"&&r.checkoutPriceVerified===false),"Research feed safety: "+query);
 }
+/* v62: real-corpus multiword brand/product/variant coverage. */
+assert.ok(searchResearch("milbona proteiinivanukas",corpus).some(r=>r.name==="MILBONA Proteiinivanukas"));
+assert.ok(searchResearch("milbona proteiinivanukas kahvi",corpus).some(r=>r.name==="MILBONA Proteiinivanukas"&&/kahvi/.test(r.variant??"")));
+assert.ok(searchResearch("red bull energiajuoma white peach",corpus).some(r=>r.name==="RED BULL Energiajuoma"));
+assert.ok(searchResearch("arla juustoviipale",corpus).some(r=>r.name==="ARLA Juustoviipale"));
+assert.deepEqual(searchResearch("milbona juustoviipale",corpus),[]);
+assert.deepEqual(searchResearch("red bull proteiinivanukas",corpus),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas 999 kg",corpus),[]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
