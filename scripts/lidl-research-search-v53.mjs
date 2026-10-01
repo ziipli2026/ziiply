@@ -2,6 +2,7 @@
 import {readFileSync} from "node:fs";
 const source=new URL("../data/lidl/official-grocery-candidates-v44-2026-10-01.json",import.meta.url);
 const data=JSON.parse(readFileSync(source,"utf8"));
+const quarantinedIds=new Set((data.quarantinedProductIds??[]).map(String));
 const norm=s=>String(s??"").toLocaleLowerCase("fi-FI").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const tokens=s=>norm(s).split(/\s+/).filter(Boolean);
 const exactStaples=new Set(["maito","voi","pasta","kananmuna"]);
@@ -9,7 +10,7 @@ const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmai
 const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
  const q=tokens(query);if(!q.length)return [];
- return rows.map(r=>{
+ return rows.filter(r=>r&&typeof r==="object"&&!quarantinedIds.has(String(r.lidlProductId))).map(r=>{
   const name=tokens([r.name,r.variant].filter(Boolean).join(" "));
   const score=q.reduce((n,t)=>n+(name.includes(t)?10:name.some(w=>matches(w,t))?3:0),0);
   const all=q.every(t=>name.some(w=>matches(w,t)));
