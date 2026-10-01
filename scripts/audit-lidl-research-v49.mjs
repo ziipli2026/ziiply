@@ -1,0 +1,25 @@
+/** Run: node scripts/audit-lidl-research-v49.mjs. Offline, no network or production writes. */
+import {readFileSync} from "node:fs";
+const root=new URL("../data/lidl/",import.meta.url);
+const load=name=>JSON.parse(readFileSync(new URL(name,root),"utf8"));
+const full=load("official-catalog-research-v43-2026-10-01.json").records;
+const grocery=load("official-grocery-candidates-v44-2026-10-01.json").records;
+const id=r=>String(r.lidlProductId);
+const errors=[];
+const unique=rows=>new Set(rows.map(id)).size;
+if(full.length!==325||unique(full)!==full.length)errors.push("Full catalog count/IDs mismatch");
+if(grocery.length!==226||unique(grocery)!==grocery.length)errors.push("Grocery count/IDs mismatch");
+const all=new Set(full.map(id));
+if(grocery.some(r=>!all.has(id(r))))errors.push("Grocery candidate not in full catalog");
+if(grocery.some(r=>["nonfood","food-other"].includes(r.researchCategory)))errors.push("Quarantined category leaked");
+if(grocery.some(r=>r.researchCategory==="bakery-piece"&&r.displayedPriceEur!==null))errors.push("Bakery null-price policy regression");
+if(grocery.some(r=>r.ean!==null&&r.ean!==undefined))errors.push("Unverified EAN inserted");
+if(grocery.some(r=>r.displayedPriceEur!==null&&(!Number.isFinite(r.displayedPriceEur)||r.displayedPriceEur<=0)))errors.push("Invalid observed price");
+const match=(name,q)=>name.toLocaleLowerCase("fi-FI").split(/[^\p{L}\p{N}]+/u).some(t=>q.length<5?t===q:q.length===5?(t===q||t.endsWith(q)):(t===q||t.endsWith(q)||t.includes(q)));
+const terms=["maito","kananmuna","jauheliha","voi","juusto","banaani","peruna","pasta","leipä","sämpylä","ruispala","kaurajuoma"];
+const coverage=terms.map(q=>({query:q,count:grocery.filter(r=>match(r.name,q)).length}));
+if(match("Maitosuklaacookie","maito"))errors.push("Milk false positive");
+if(!match("PÅGEN Hönösaaristolaisrieska","rieska"))errors.push("Compound suffix regression");
+const missing=coverage.filter(r=>!r.count).map(r=>r.query);
+console.log(JSON.stringify({ok:!errors.length,full:full.length,grocery:grocery.length,coverage,missingStaples:missing,errors},null,2));
+if(errors.length)process.exitCode=1;
