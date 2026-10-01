@@ -55,6 +55,8 @@ try{
  run("invalid-observation-timestamp",good.map(x=>({...x,observedAt:"nonsense"})),false,"observation timestamp must be valid ISO 8601");
  run("timestamp-without-timezone",good.map(x=>({...x,observedAt:"2026-10-01T12:00:00"})),false,"observation timestamp must be valid ISO 8601");
  run("date-only-observation",good.map(x=>({...x,observedAt:"2026-10-01"})),false,"observation timestamp must be valid ISO 8601");
+ run("impossible-observation-date",good.map(x=>({...x,observedAt:"2026-02-30T12:00:00+03:00"})),false,"observation timestamp must be valid ISO 8601");
+ run("invalid-observation-hour",good.map(x=>({...x,observedAt:"2026-10-01T25:00:00+03:00"})),false,"observation timestamp must be valid ISO 8601");
  run("empty-provenance",good.map(x=>({...x,priceSource:"   "})),false,"empty verification provenance");
  run("invalid-zero-price",good.map(x=>({...x,regularPriceEur:0})),false,"invalid regular price");
  run("ian-reused-as-ean",good.map(x=>({...x,ean:x.ian})),false,"suspicious IAN reused as EAN");
