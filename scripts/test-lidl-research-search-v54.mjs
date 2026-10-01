@@ -204,6 +204,17 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas 200 g",variantFixture)
 assert.deepEqual(searchResearch("milbona proteiinivanukas",variantFixture,1).map(r=>r.lidlProductId),["coffee"]);
 assert.ok(searchResearch("milbona proteiinivanukas kahvi",variantFixture).every(r=>r.ean===null&&r.regularPriceEur===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
 
+
+/* v64: same display name can legitimately represent distinct source product IDs. */
+const reissumies=corpus.filter(r=>r.name==="OULULAINEN Reissumies Tosi Ohut");
+assert.equal(reissumies.length,2,"Real corpus should retain both distinct Reissumies records");
+assert.equal(new Set(reissumies.map(r=>r.lidlProductId)).size,2);
+const sameNameHits=searchResearch("oululainen reissumies tosi ohut",corpus);
+assert.equal(sameNameHits.filter(r=>r.name==="OULULAINEN Reissumies Tosi Ohut").length,2,"Do not deduplicate by name");
+assert.equal(new Set(sameNameHits.map(r=>r.lidlProductId)).size,sameNameHits.length,"Deduplicate by ID only");
+assert.deepEqual(searchResearch("oululainen reissumies tosi ohut",corpus),sameNameHits,"Stable tie ordering");
+assert.deepEqual(searchResearch("oululainen reissumies tosi ohut",corpus,1),sameNameHits.slice(0,1),"Limit after deterministic sorting");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
