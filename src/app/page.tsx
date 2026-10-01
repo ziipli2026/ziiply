@@ -10865,10 +10865,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             return false;
           }
 
-          return Boolean(
-            (id && sameStoreIdV93(store.id, id)) ||
-              (normalizedName && normalize(store.name || "") === normalizedName),
-          );
+          const nameMatches =
+            Boolean(normalizedName) && normalize(store.name || "") === normalizedName;
+          const idMatches = Boolean(id) && sameStoreIdV93(store.id, id);
+
+          // V780: store id + name must never be allowed to identify different stores.
+          // The visible/current selected name is authoritative when present; an old
+          // persisted id (e.g. Martti 3591) must not override K-Supermarket Jokela.
+          if (normalizedName) return nameMatches;
+          return idMatches;
         }) ?? null;
       };
 
