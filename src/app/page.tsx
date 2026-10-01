@@ -11168,6 +11168,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  // V784: if the selected S/K store changes while Gösta is already open
+  // (for example a boot/GPS refresh finishes after the first request started),
+  // immediately issue a fresh request for the now-visible store. The request
+  // sequence guard above prevents the older store response from winning.
+  useEffect(() => {
+    if (activeResult !== "offers" || searchPanelOpen || !storeModeChosenV299) return;
+    const selectedChain = gostaSelectedOfferChainRefV547.current;
+    if (selectedChain !== "S" && selectedChain !== "K") return;
+
+    void searchOffers();
+  }, [
+    activeResult,
+    searchPanelOpen,
+    storeModeChosenV299,
+    storeMode,
+    activeArea.sStoreId,
+    activeArea.sStoreName,
+    activeArea.sLocalStoreId,
+    activeArea.sLocalStoreName,
+    activeArea.kStoreId,
+    activeArea.kStoreName,
+    activeArea.kLocalStoreId,
+    activeArea.kLocalStoreName,
+  ]);
+
   function handleGostaFilterChangeV136(value: string) {
     const nextValue = String(value || "").trim();
 
