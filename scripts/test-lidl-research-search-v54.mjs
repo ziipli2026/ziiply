@@ -17,4 +17,7 @@ assert.equal(searchResearch("täysmaito",sample)[0].displayedPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].storeAvailability,"unknown");
 assert.equal(searchResearch("täysmaito",sample)[0].checkoutPriceVerified,false);
 assert.deepEqual(searchResearch("",sample),[]);
+assert.deepEqual(searchResearch("olut",[{lidlProductId:"10038275",name:"Olut"},{lidlProductId:"safe-fixture",name:"Olutniminen testituote"}]).map(r=>r.lidlProductId),["safe-fixture"]);
+assert.deepEqual(searchResearch("testi",[{lidlProductId:"10038306",name:"Testi"},{lidlProductId:"10038307",name:"Testi"},{lidlProductId:"10038308",name:"Testi"}]),[]);
+assert.deepEqual(searchResearch("maito",[null,...sample]).map(r=>r.lidlProductId),["2"]);
 console.log("Lidl research name-only search safety tests passed");
