@@ -1067,6 +1067,7 @@ export default function ZiiplyMobileOfferSearchCard({
       hour12: false,
     }),
     generatedAtTimeZone: "Europe/Helsinki",
+    activeDeploy: kruokaDebug?.deploy || null,
     selectedOfferChain: selectedOfferChainV39,
     loading,
     query: shownQuery,
