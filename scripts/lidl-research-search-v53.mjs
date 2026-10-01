@@ -4,13 +4,14 @@ const source=new URL("../data/lidl/official-grocery-candidates-v44-2026-10-01.js
 const data=JSON.parse(readFileSync(source,"utf8"));
 const norm=s=>String(s??"").toLocaleLowerCase("fi-FI").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const tokens=s=>norm(s).split(/\s+/).filter(Boolean);
-const blocked={maito:/^(?:maito|kevytmaito|rasvatonmaito|täysmaito)$/u,voi:/^(?:voi|meijerivoi)$/u};
+const exactStaples=new Set(["maito","voi","pasta","kananmuna"]);
+const matches=(word,term)=>word===term||(!exactStaples.has(term)&&term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
  const q=tokens(query);if(!q.length)return [];
  return rows.map(r=>{
   const name=tokens([r.name,r.variant].filter(Boolean).join(" "));
-  const score=q.reduce((n,t)=>n+(name.includes(t)?10:name.some(w=>w.startsWith(t)&&t.length>=4)?3:0),0);
-  const all=q.every(t=>name.includes(t)||(t.length>=4&&name.some(w=>w.startsWith(t))));
+  const score=q.reduce((n,t)=>n+(name.includes(t)?10:name.some(w=>matches(w,t))?3:0),0);
+  const all=q.every(t=>name.some(w=>matches(w,t)));
   return {r,score:all?score:0};
  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||String(a.r.name).localeCompare(String(b.r.name),"fi-FI")).slice(0,Math.max(0,Math.min(50,limit))).map(({r})=>({
   lidlProductId:String(r.lidlProductId),name:r.name,variant:r.variant??null,
