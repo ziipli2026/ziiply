@@ -12450,7 +12450,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (itemSingleChainAtAddV780 && itemSingleChainAtAddV780 === selectedKey) return item;
 
           const itemEan = normalizeEan(item.ean || item.product?.ean);
-          const itemName = fixText(String(item.product?.name || item.name || "")).trim();
+          const itemName = fixText(String(item.name || item.product?.name || "")).trim();
           if (!itemName) return item;
 
           let match: Product | undefined;
