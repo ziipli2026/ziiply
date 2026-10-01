@@ -21,7 +21,16 @@ function run(label,records,expected,reason=null){
  console.log(JSON.stringify({test:label,expectedAccepted:expected,actualAccepted,errors:output?.errors??null,reasonMatched,passed}));
  if(!passed){console.error(result.error??"",result.stdout,result.stderr);process.exitCode=1;}
 }
+function runMalformedInput(label,raw,expectedMessage){
+ const path=join(dir,label+".json");writeFileSync(path,raw);
+ const result=spawnSync(process.execPath,[fileURLToPath(new URL("./check-lidl-feed-v48.mjs",import.meta.url)),path],{encoding:"utf8"});
+ const passed=result.status===2&&result.stderr.includes(expectedMessage)&&result.stdout.trim()==="";
+ console.log(JSON.stringify({test:label,expectedUsageError:true,passed}));
+ if(!passed){console.error(result.stdout,result.stderr);process.exitCode=1;}
+}
 try{
+ runMalformedInput("top-level-null","null","Expected array or {records: array}");
+ runMalformedInput("malformed-json","{oops","Unable to read valid feed JSON");
  run("valid-authorized-store-feed",good,true);
  run("null-record",[...good,null],false,"expected product object");
  run("string-record",[...good,"not a product"],false,"expected product object");
