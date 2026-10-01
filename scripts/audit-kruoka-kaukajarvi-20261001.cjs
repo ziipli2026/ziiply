@@ -172,6 +172,6 @@ const cases=[
     "Makeiset & keksit"
   ]
 ];
-let wrong=0;for(const [name,expected] of cases){const originalWrong={"HÄRKIS HÄRKÄPAPUMURSKAT":"Kala","ISOT BURGERIT":"Maitotuotteet","SUODATIN- tai PAPUKAHVIT":"Kuivatuotteet","Oreo TÄYTEKEKSIT":"Leipomo"}; const actual=classify({name,department:originalWrong[name]??expected});if(actual!==expected){wrong++;console.error("CATEGORY_FAIL",JSON.stringify({name,expected,actual}));}}
+let wrong=0;for(const [name,expected] of cases){const originalWrong={"HÄRKIS HÄRKÄPAPUMURSKAT":"Kala","ISOT BURGERIT":"Maitotuotteet","SUODATIN- tai PAPUKAHVIT":"Kuivatuotteet","Oreo TÄYTEKEKSIT":"Leipomo"}; const originalCategory=originalWrong[name]??expected; const actual=classify({name,department:originalCategory});if(actual!==expected){wrong++;console.error("CATEGORY_FAIL",JSON.stringify({name,expected,actual}));}}
 console.log("KAUKAJARVI_CATEGORY_AUDIT",JSON.stringify({total:cases.length,wrong,passed:cases.length-wrong}));
 if(wrong)process.exitCode=1;
