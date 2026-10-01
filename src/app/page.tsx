@@ -18508,12 +18508,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
     }
 
-    // V787: Näytä kaikki löydetyt tavaratalot GPS-etäisyysjärjestyksessä.
-    // Älä rajaa listaa vain GPS-kuntaan ja yhteen lähimpään: muuten esimerkiksi
-    // Prisma/K-Citymarket Riihimäki katoaa Hämeenlinnan ja Hyvinkään välistä.
-    // Sama sääntö koskee molempia ketjuja. Ei km- tai kappalemäärärajaa.
+    // V788: GPS-tavaratalovalinta: enintään 50 km säteellä löydetyt
+    // Prisma/K-Citymarket-kaupat. Lähin näytetään aina myös harvaan asutulla
+    // alueella, vaikka se olisi yli 50 km päässä. Ei koko Suomen listaa.
+    const nearestHyperV788 = distanceSortedV321[0]?.store;
+    const nearbyHypersV788 = distanceSortedV321
+      .filter(({ distanceKm }) => distanceKm <= 50)
+      .map(({ store }) => store);
     return sortStoresForPickerV320(
-      uniqueStoresByIdAndName(distanceSortedV321.map(({ store }) => store)),
+      uniqueStoresByIdAndName([
+        ...(nearestHyperV788 ? [nearestHyperV788] : []),
+        ...nearbyHypersV788,
+      ]),
       mode,
       selectedId,
       selectedName,
