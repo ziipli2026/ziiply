@@ -76,7 +76,7 @@ function category(t:string){
   // appliances and other product-specific classes before generic food words.
   if(/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli/.test(s)) return "Koti & vapaa-aika";
   if(/suklaa|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|godispås|patuk|tikkari|crunchy bites/.test(s)) return "Makeiset & keksit";
-  if(/leipä|näkkileip|näkkileiv|sämpyl|pull|croissant|patonki|patongi|karjalanpiirakka|ruisleip|rieska|puikula|reissumies/.test(s)) return "Leipomo";
+  if(/leipä|näkkileip|näkkileiv|näkkäri|sämpyl|pull|croissant|patonki|patongi|karjalanpiirakka|ruisleip|rieska|rinkeli|puikula|reissumies/.test(s)) return "Leipomo";
   // Frozen vegetables must win over the generic "keitto" prepared-food match.
   if(/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if(/pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
@@ -84,7 +84,7 @@ function category(t:string){
   if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if(/maito|juusto|jogur|rahka|kerma|voi\b|margariin|raejuusto|viili|piim|kefir|vanukas|vanukka|mousse|grana padano|creme fraiche|crème fraiche|smetana/.test(s)) return "Maitotuotteet";
   if(/kahvi|espresso|tee\b/.test(s)) return "Kahvi & tee";
-  if(/pinaatti|rucola/.test(s)) return "Hevi";
+  if(/pinaatti|rucola|avokado/.test(s)) return "Hevi";
   // Shelf-stable fruit pieces/slices packed in juice are preserves, not beverages.
   // This must run before the generic "mehu" beverage match (e.g. "mehussa").
   if(/(?:viipale|palat).*(?:mehussa|siirapissa)/.test(s)) return "Kuivatuotteet";
@@ -93,8 +93,8 @@ function category(t:string){
   if(/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastike|ketsupp|hiiva|ruokaöljy|mauste|tortilla/.test(s)) return "Kuivatuotteet";
   if(/omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
   if(/koira|kissa|lemmik/.test(s)) return "Lemmikit";
-  if(/wc-paper|talouspaper|nenäliina|näsdukar|astianpes|pyykin|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
-  if(/shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
+  if(/wc-paper|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietikka|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
+  if(/shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
   if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
   if(/calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|kerä|lanka|asuste/.test(s)) return "Koti & vapaa-aika";
   return "Muut";
@@ -415,8 +415,14 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
-    const normalPrice=Number.isFinite(normalMin)
+    const normalPriceCandidate=Number.isFinite(normalMin)
       ? Number((normalMin*(offerQuantity&&offerQuantity>1?offerQuantity:1)).toFixed(2))
+      : null;
+    // A neighbouring card's normal price can occasionally leak into flattened
+    // leaflet HTML. A genuine normal price must be strictly above the offer
+    // transaction price on the same quantity basis.
+    const normalPrice=normalPriceCandidate!=null && normalPriceCandidate>price
+      ? normalPriceCandidate
       : null;
     const unitMin=Number(row?.unitPrice?.min);
     const unitMax=Number(row?.unitPrice?.max);
