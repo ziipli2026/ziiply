@@ -233,6 +233,16 @@ for(const [query,re] of coverageCases){
  assert.ok(hits.every(r=>r.ean===null&&r.regularPriceEur===null&&r.displayedPriceEur===null&&r.storeAvailability==="unknown"&&r.checkoutPriceVerified===false),"Research-only fields violated for "+query);
 }
 
+
+/* v66: real-corpus branded/compound category searches. */
+assert.ok(searchResearch("kotimainen omena",corpus).some(r=>r.name==="Kotimainen omena"));
+assert.ok(searchResearch("kariniemen kananpojan rintaleike",corpus).some(r=>r.name==="KARINIEMEN Kananpojan rintaleike"));
+assert.ok(searchResearch("atria pizza",corpus).some(r=>r.name==="ATRIA Pizza 2 kpl"));
+assert.ok(searchResearch("marli vital mehujuoma",corpus).some(r=>r.name==="MARLI Vital-mehujuoma"));
+assert.ok(searchResearch("kuljanka savustettu makkara",corpus).some(r=>r.name==="KULJANKA Savustettu makkara"));
+assert.deepEqual(searchResearch("kariniemen pizza",corpus),[],"Brand/product tokens must not cross-match unrelated records");
+assert.deepEqual(searchResearch("kuljanka kana",corpus),[],"Unrelated brand/product combination must not fabricate a match");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
