@@ -39,7 +39,11 @@ for(const [i,r] of rows.entries()){
  if(r.checkoutPriceVerified===true){
  const observed=String(r.observedAt??"");
  const offsetTimestamp=/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$/.test(observed);
- if(!offsetTimestamp||!Number.isFinite(Date.parse(observed)))errors.push(`record ${i}: observation timestamp must be valid ISO 8601 with timezone`);
+ const match=offsetTimestamp?observed.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})/):null;
+ const calendar=match?new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]))):null;
+ const validCalendar=match&&calendar&&calendar.getUTCFullYear()===Number(match[1])&&calendar.getUTCMonth()+1===Number(match[2])&&calendar.getUTCDate()===Number(match[3]);
+ const validClock=match&&Number(match[4])<=23&&Number(match[5])<=59&&Number(match[6])<=59;
+ if(!offsetTimestamp||!validCalendar||!validClock||!Number.isFinite(Date.parse(observed)))errors.push(`record ${i}: observation timestamp must be valid ISO 8601 with timezone`);
 }
  if(r.checkoutPriceVerified===true&&(!String(r.priceSource??"").trim()||!String(r.storeId??"").trim()))errors.push(`record ${i}: empty verification provenance`);
 }
