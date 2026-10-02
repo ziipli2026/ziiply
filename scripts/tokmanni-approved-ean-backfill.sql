@@ -25,5 +25,7 @@ WITH approved(ean, proposed_category) AS (
  RETURNING p.ean, p.name, p.category
 )
 SELECT * FROM updated ORDER BY name;
--- Replace COMMIT with ROLLBACK if the returned rows are unexpected.
-COMMIT;
+-- Safe default: this run makes NO persistent changes.
+-- Inspect the returned EAN/name/category rows. To apply deliberately,
+-- change only the final ROLLBACK to COMMIT and execute the whole script again.
+ROLLBACK;
