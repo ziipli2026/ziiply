@@ -1349,6 +1349,18 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v147Rows,1).map(r=>r.
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v147Rows,2).map(r=>r.lidlProductId),["safe-147-a","safe-147-b"]);
 assert.equal(JSON.stringify(v147Rows),v147Snapshot,"Whitespace quarantine filtering must not mutate source");
 
+/* v148: quarantined rows cannot consume the 50-result maximum. */
+const v148Rows=[
+ {lidlProductId:"10038275",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ ...Array.from({length:51},(_,i)=>({lidlProductId:`safe-148-${String(i).padStart(2,"0")}`,name:"MILBONA Proteiinivanukas",variant:"suklaa"}))
+];
+const v148Snapshot=JSON.stringify(v148Rows);
+const v148Hits=searchResearch("milbona proteiinivanukas",v148Rows,100);
+assert.equal(v148Hits.length,50);
+assert.ok(v148Hits.every(r=>r.lidlProductId!=="10038275"));
+assert.deepEqual(v148Hits.map(r=>r.lidlProductId),Array.from({length:50},(_,i)=>`safe-148-${String(i).padStart(2,"0")}`));
+assert.equal(JSON.stringify(v148Rows),v148Snapshot,"Maximum-limit quarantine filtering must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
