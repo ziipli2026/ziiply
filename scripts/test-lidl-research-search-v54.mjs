@@ -1177,6 +1177,23 @@ assert.equal(v134Again[0].checkoutPriceVerified,false);
 assert.equal(v134Again[0].displayedPriceEur,null);
 assert.equal(JSON.stringify(v134Rows),v134Snapshot,"Result safety-field mutations must not affect source");
 
+/* v135: deduplication state must be isolated across different corpora. */
+const v135RowsA=[
+ {lidlProductId:"shared-135",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"unique-135-a",name:"MILBONA Proteiinivanukas",variant:"suklaa"}
+];
+const v135RowsB=[
+ {lidlProductId:"shared-135",name:"MILBONA Proteiinivanukas",variant:"kookos"},
+ {lidlProductId:"unique-135-b",name:"MILBONA Proteiinivanukas",variant:"kahvi"}
+];
+const v135SnapshotA=JSON.stringify(v135RowsA);
+const v135SnapshotB=JSON.stringify(v135RowsB);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v135RowsA,2).map(r=>r.lidlProductId),["shared-135","unique-135-a"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v135RowsB,2).map(r=>r.lidlProductId),["shared-135","unique-135-b"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v135RowsA,2).map(r=>r.lidlProductId),["shared-135","unique-135-a"]);
+assert.equal(JSON.stringify(v135RowsA),v135SnapshotA);
+assert.equal(JSON.stringify(v135RowsB),v135SnapshotB);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
