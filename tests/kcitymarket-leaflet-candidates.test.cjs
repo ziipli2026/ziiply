@@ -1,17 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 // Historical 40LV/26 excerpts. Research only; never infer store-specific availability.
-function parseStrictPair(lines) {
-  const anchor = lines.findIndex(line => line.startsWith("Ilman Plussa-korttia"));
-  if (anchor < 2) return null;
-  const digits = lines[anchor - 2], unit = lines[anchor - 1];
-  if (anchor < 3 || !lines.slice(0, anchor - 2).some(line => /[A-Za-zÀ-ÿ]{3,}/.test(line))) return null;
-  const normal = lines[anchor].match(/^Ilman Plussa-korttia\s+(\d{1,3}[,.]\d{2})\s*\/\s*(pkt|ps|rs|kpl|kg|tlk|plo|prk|ltk)\b/i);
-  if (!/^\d{3,4}$/.test(digits) || !/^(PKT|PS|RS|KPL|KG|TLK|PLO|PRK|LTK)$/i.test(unit) || !normal || unit.toLowerCase() !== normal[2].toLowerCase()) return null;
-  if (/(?:[–-]\s*\d|\btai\s+\d)/i.test(lines[anchor].slice(normal[0].length))) return null;
-  const offer = Number(digits) / 100, regular = Number(normal[1].replace(",", "."));
-  return offer < regular ? { offer, regular, unit, productContext: lines.slice(0, anchor - 2) } : null;
-}
+const { parseStrictPair } = require("./helpers/kcitymarket-strict-pair.cjs");
 test("40LV/26 Sitkas: correct product and PS prices", () => {
   const result = parseStrictPair(["SITKAS 100 % RUIS tai RUIS- SIEMEN TUORENÄKKÄRI 220 g (11,32/kg)", "249", "PS", "Ilman Plussa-korttia 2,79/ps (12,68/kg)"]);
   assert.deepEqual(result, {offer:2.49, regular:2.79, unit:"PS", productContext:["SITKAS 100 % RUIS tai RUIS- SIEMEN TUORENÄKKÄRI 220 g (11,32/kg)"]});
