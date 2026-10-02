@@ -551,6 +551,19 @@ assert.deepEqual(v88Hits.map(r=>r.lidlProductId).sort(),["name-valid","name-null
 assert.ok(v88Hits.every(r=>typeof r.name==="string"));
 assert.ok(!searchResearch("12345",v88NameFixture).some(r=>r.lidlProductId==="name-number"));
 
+
+/* v89: invalid IDs are excluded; whitespace around valid IDs is normalized. */
+const v89IdFixture=[
+ {lidlProductId:"",name:"Pizza Hawaii"},
+ {lidlProductId:"   ",name:"Pizza Hawaii"},
+ {lidlProductId:null,name:"Pizza Hawaii"},
+ {lidlProductId:123,name:"Pizza Hawaii"},
+ {lidlProductId:" valid-pizza ",name:"Pizza Hawaii"}
+];
+const v89Hits=searchResearch("pizza hawaii",v89IdFixture);
+assert.deepEqual(v89Hits.map(r=>r.lidlProductId),["valid-pizza"]);
+assert.equal(v89IdFixture[4].lidlProductId," valid-pizza ","Source ID must remain unchanged");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
