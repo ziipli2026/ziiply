@@ -1709,7 +1709,7 @@ const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 // valitut kaupat vaihtuvat vasta aivan uuden alueen lähellä.
 const ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92 = 15000;
 const ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92 = 5000;
-const ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 = 250;
+const ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 = 1000;
 const ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92 = 45000;
 
 
@@ -10854,20 +10854,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               longitude: position.coords.longitude,
             };
 
-            gpsCoordsLatestRefV137.current = nextCoords;
-            setGpsCoordsV320(nextCoords);
-
             const previousAppliedCoords = gpsPollLastAppliedCoordsRefV137.current;
             const movedMeters = previousAppliedCoords
               ? getDistanceMetersV391(previousAppliedCoords, nextCoords)
               : Number.POSITIVE_INFINITY;
-            const elapsedMs = Date.now() - gpsPollLastAppliedAtRefV90.current;
-
-            if (
-              previousAppliedCoords &&
-              movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 &&
-              elapsedMs < ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92
-            ) {
+            // All four visible store distances share the same 1 km movement gate.
+            // Do not refresh display coordinates for sub-threshold GPS samples.
+            if (previousAppliedCoords && movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92) {
               return;
             }
 
@@ -10880,6 +10873,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             gpsPollLastAppliedCoordsRefV137.current = nextCoords;
             gpsPollLastAppliedAtRefV90.current = Date.now();
+            gpsCoordsLatestRefV137.current = nextCoords;
+            setGpsCoordsV320(nextCoords);
 
             setUsingOwnLocation(true);
             setGpsErrorMessage("");
