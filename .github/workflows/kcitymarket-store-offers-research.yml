@@ -205,6 +205,9 @@ jobs:
                 summary[sample.researchType] = (summary[sample.researchType] ?? 0) + 1;
                 return summary;
               }, {});
+              result.strictCandidateCount = pages.reduce((n, page) =>
+                n + (page.codeBlockResearch?.strictPairs ?? []).filter(item =>
+                  item.classification === "STRICT_LINE_PAIR_RESEARCH_ONLY").length, 0);
               result.reviewSafety = {
                 total: result.unparsedReferenceExamples.length,
                 rejectedFromStrictCandidates: result.unparsedReferenceExamples.every(sample =>
