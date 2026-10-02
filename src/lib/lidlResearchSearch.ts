@@ -44,8 +44,11 @@ export function searchLidlResearch(query:string,limit=15){
  return [...catalog.records,...independentlyNamed].filter(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantined.has(r.lidlProductId.trim()))
  .map(r=>{
   const words=tokens([r.name,r.variant].filter(v=>typeof v==="string").join(" "));
-  const all=q.every(t=>words.some(w=>matches(w,t)));
   const nameWords=tokens(r.name);
+  // A single staple query must identify the product itself, not just a flavour
+  // in its variant (e.g. coffee-flavoured pudding is not coffee).
+  const all=q.every(t=>(q.length===1 && exactStaples.has(t) ? nameWords : words)
+    .some(w=>matches(w,t)));
   const score=all?q.reduce((n,t)=>n+(nameWords.includes(t)?20:nameWords.some(w=>matches(w,t))?8:words.includes(t)?4:3),0)
     + (norm(r.name)===q.join(" ")?50:0)
     + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"?12:0)
