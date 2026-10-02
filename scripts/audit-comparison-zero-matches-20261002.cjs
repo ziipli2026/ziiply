@@ -1,0 +1,18 @@
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const card=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx","utf8");
+const page=fs.readFileSync("src/app/page.tsx","utf8");
+assert.match(card,/disabled=\{hasNoCounterpart\}/);
+assert.match(card,/if \(!hasNoCounterpart\) onSelectStore\(store\.id\)/);
+assert.match(card,/hasNoCounterpart \? "—" : formatEuro\(store\.totalPrice\)/);
+assert.match(page,/chosenResult\.foundItems <= 0 && chosenResult\.missingItems > 0/);
+assert.match(page,/Tästä kaupasta ei löytynyt ostettavia vastintuotteita/);
+assert.match(page,/typeof result\?\.totalPrice === "number" && \(result\?\.foundItems \|\| 0\) > 0/);
+const noMatches={foundItems:0,missingItems:2,totalPrice:0};
+const canBuy=r=>!(r.foundItems<=0&&r.missingItems>0);
+const shareTotal=r=>typeof r.totalPrice==="number"&&r.foundItems>0?`${r.totalPrice.toFixed(2)} €`:"";
+assert.equal(canBuy(noMatches),false);
+assert.equal(shareTotal(noMatches),"");
+assert.equal(canBuy({foundItems:1,missingItems:1,totalPrice:199}),true);
+assert.equal(shareTotal({foundItems:1,missingItems:1,totalPrice:199}),"199.00 €");
+console.log("PASS no-match comparison cannot open purchase or share a fake zero-price total; partial matches remain accessible");
+console.log("NOTE isolated source guard and simulation, not browser test");
