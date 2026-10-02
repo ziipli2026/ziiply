@@ -10,14 +10,16 @@ const rules=[
 ["Lemmikit",/(?:^|[^a-zåäöA-ZÅÄÖ])(kissanruoka|koiranruoka|kissanhiekka)(?=$|[^a-zåäöA-ZÅÄÖ])/i]];
 const blocked=/lelu|muki|paristo|akku|vaate|kenkä|sukka|auton|pyörän|koriste|lahjapakkaus|kahvinkeitin|teekannu/i;
 const proposals=[],unresolved=[],departmentStore=[];
-const department=/kuulok|tehosekoitin|painekeitin|paistinpannu|wokkipannu|valualumiinipata|imuri|lelu|hahmot|autolelu|valaisin|laturi|puhelin|pistorasia|porakone|sisust|matto|verho|pyyhe|kenkä|sukat|takki|housut|paita|työkalu|polkupyör|grilli|termos|muki|lautanen|aterimet|pentuaitaus/i;
+const department=/kuulok|tehosekoitin|painekeitin|paistinpannu|wokkipannu|valualumiinipata|imuri|lelu|hahmot|autolelu|valaisin|laturi|puhelin|pistorasia|porakone|sisust|matto|verho|pyyhe|kenkä|sukat|takki|housut|paita|työkalu|polkupyör|grilli|termos|muki|lautanen|aterimet|pentuaitaus|auton polttimo|ajoneuvopolttimo|merkkivalopolttimo|polttimo osram|verenpainemittari|ompelukone|pohjallinen|sytytyspala|palakuivike|koivuhiili|talutin|pehmo [0-9]|auto [0-9]/i;
 const additional=[
 ["Hygienia & kosmetiikka",/päivävoide|yövoide|vartalotuoksu|silmänympärysvoide|kosteusvoide|kangasnaamio|silmänalusnaamio|uv-voide|rakkolaastari|huuliherpeslaastari|huulirasva|käsivoide|kasvovoide/i],
 ["Kodinhoito",/tahranpoistaja|pesuaine|puhdistusaine|talouspaperi|wc-paperi|roskapussi/i],
 ["Lemmikit",/pentualusta|kissanruoka|koiranruoka|kissanhiekka/i],
 ["Makeiset & keksit",/suklaa|karkki|makeispussi|täytekeksi/i],
 ["Juomat",/virvoitusjuoma|energiajuoma|kivennäisvesi|mehujuoma/i],
-["Leipomo",/ruisleipä|näkkileipä|paahtoleipä/i]
+["Leipomo",/ruisleipä|näkkileipä|paahtoleipä/i],
+["Hygienia & kosmetiikka",/kasvonaamio|vartaloemulsio|pikkuhousunsuoj|tampon|vaihtoharja|hammasharj|intiimipesu|käsisaippua/i],
+["Kodinhoito",/wc-raikastin|wc-puhdistus|astianpesutabletti|yleispuhdistusaine/i]
 ];
 for(const item of data.items){
  if(item.productClass!=="review"||String(item.existingCategory).toLowerCase()!=="muut")continue;
