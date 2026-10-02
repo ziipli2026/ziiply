@@ -22079,6 +22079,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     ? 0
                     : item.price ?? item.product?.price ?? item.product?.unitPrice ?? item.product?.comparisonPrice,
                 ziiplyPricePendingWeight: Boolean((item.product as any)?.ziiplyPricePendingWeight),
+                ziiplyWeightOffer: Boolean(
+                  (item as any).ziiplyWeightOffer ||
+                  (item.product as any)?.ziiplyWeightOffer,
+                ),
+                comparisonPrice:
+                  (item as any).comparisonPrice ??
+                  (item.product as any)?.comparisonPrice ??
+                  undefined,
+                comparisonPriceUnit:
+                  (item as any).comparisonPriceUnit ??
+                  (item.product as any)?.comparisonPriceUnit ??
+                  undefined,
                 image:
                   item.image ??
                   item.imageUrl ??
