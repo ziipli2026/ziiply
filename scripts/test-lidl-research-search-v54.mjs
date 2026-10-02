@@ -538,6 +538,19 @@ for(const [query,id] of [
 }
 assert.deepEqual(searchResearch("salainen",v87VariantFixture),[],"Object variant must not be stringified into searchable text");
 
+
+/* v88: malformed names must not become invented searchable product names. */
+const v88NameFixture=[
+ {lidlProductId:"name-null",name:null,variant:"Pizza Hawaii"},
+ {lidlProductId:"name-number",name:12345,variant:"Pizza Hawaii"},
+ {lidlProductId:"name-object",name:{text:"Pizza Hawaii"},variant:"Pizza Hawaii"},
+ {lidlProductId:"name-valid",name:"Pizza Hawaii"}
+];
+const v88Hits=searchResearch("pizza hawaii",v88NameFixture);
+assert.deepEqual(v88Hits.map(r=>r.lidlProductId),["name-valid","name-null","name-number","name-object"].slice(0,v88Hits.length));
+assert.ok(v88Hits.every(r=>typeof r.name==="string"));
+assert.ok(!searchResearch("12345",v88NameFixture).some(r=>r.lidlProductId==="name-number"));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
