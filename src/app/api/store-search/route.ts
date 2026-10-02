@@ -63,6 +63,16 @@ export async function GET(request: NextRequest) {
       const seen = new Set<string>();
       const items = batches
         .flat()
+        .map((store) => {
+          // Tuusulan Prisma is newly opened; use its official S-kaupat product-search ID.
+          const name = String(store.name || "");
+          if (/^Prisma Tuusula$/i.test(name.trim())) {
+            return { ...store, id: "726753948", sProductSearchStoreId: "726753948" };
+          }
+          return store;
+        })
+        .filter((store) => {
+        .flat()
         .filter((store) => {
           const name = String(store.name || "");
         if (store.delistedAt) return false;
