@@ -1076,7 +1076,9 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const debugGeneratedAtV56 = new Date();
   const debugPayloadV52 = {
-    revision: "V228-S-API-BOUNDARY",
+    revision: "V229-S-SOURCE-SPLIT",
+    debugPropKeysV229: Object.keys(kruokaDebug || {}),
+    debugPropPresentV229: kruokaDebug !== null && kruokaDebug !== undefined,
     sEvidenceRouteV228: (kruokaDebug as any)?.sEvidenceRouteV228 ?? null,
     sEvidenceAuditV227: selectedOfferChainV39 === "S" ? rawItems.map((item: any) => ({
       ean: item?.ean || item?.id || null,
