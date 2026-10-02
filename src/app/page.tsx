@@ -12424,7 +12424,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Yksi-tilan tuotteen korvaushaku on tarkoitettu vain yhden rivin ostoskorille.
     // Useamman tuotteen vertailu käynnistetään käyttäjän valitsemassa Monta-tilassa.
     if (nextCart.length > 1) {
-      showCartToast("Valitse Monta vertaillaksesi koko ostoskoria.");
+      showCartToast("Useamman tuotteen hintavertailu: vaihda kauppavalinnaksi Monta (vähintään 2 kauppaketjua).");
       return;
     }
 
