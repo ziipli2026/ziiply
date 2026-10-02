@@ -83,6 +83,8 @@ function mapProduct(block: string, index: number) {
   return {
     id: 761000000 + index,
     name,
+    chain: "TOKMANNI",
+    storeName: "Tokmanni / SPAR verkkovalikoima",
     price,
     pictureUrl: absoluteUrl(decodeEntities(imageMatch?.[1] || "")),
     productUrl,
@@ -112,6 +114,8 @@ function mapKlevuProduct(item: any, index: number) {
   return {
     id: Number(item?.id) || 762000000 + index,
     name,
+    chain: "TOKMANNI",
+    storeName: "Tokmanni / SPAR verkkovalikoima",
     price,
     pictureUrl: clean(item?.cloudinary_image),
     productUrl: clean(item?.url),
