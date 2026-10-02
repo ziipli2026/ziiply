@@ -169,3 +169,15 @@ test("reject forged store-scoped evidence despite valid canonical page", () => {
     {evidence:{...evidence,canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa?from=leaflet"}}
   ]) assert.deepEqual(classifyStoreScope({...base,evidence,...changed}), {storeScoped:false,storeId:null});
 });
+
+test("store evidence must not accept an asserted feed identity without independent verification", () => {
+  const storeId = "k-citymarket-hyvinkaa";
+  const base = {kind:"VERIFIED_STORE_OFFERS",storeId,verifiedStoreId:storeId,identityVerified:true};
+  const evidence = {canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/"+storeId,pageHttpStatus:200,pageIdentitySeen:true,offerFeedStoreId:storeId,offerFeedIdentityVerified:true};
+  for (const missing of ["pageHttpStatus","pageIdentitySeen","offerFeedStoreId","offerFeedIdentityVerified","canonicalPageUrl"]) {
+    const incomplete = {...evidence}; delete incomplete[missing];
+    assert.deepEqual(classifyStoreScope({...base,evidence:incomplete}), {storeScoped:false,storeId:null}, missing);
+  }
+  assert.deepEqual(classifyStoreScope({...base,evidence:{...evidence,offerFeedIdentityVerified:"true"}}), {storeScoped:false,storeId:null});
+  assert.deepEqual(classifyStoreScope({...base,evidence:{...evidence,pageHttpStatus:"200"}}), {storeScoped:false,storeId:null});
+});
