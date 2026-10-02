@@ -449,6 +449,18 @@ for(const limit of [0,1,2,3,4,50]){
  assert.deepEqual(searchResearch("pizza",[...limitFixture].reverse(),limit).map(r=>r.lidlProductId),sortedAll.slice(0,limit));
 }
 
+
+/* v82: every query token must match within one record, including its own variant. */
+const crossRecordFixture=[
+ {lidlProductId:"a",name:"MILBONA Proteiinivanukas",variant:"kahvi"},
+ {lidlProductId:"b",name:"MILBONA Proteiinijuoma",variant:"kookos"},
+ {lidlProductId:"c",name:"ARLA Proteiinivanukas",variant:"kookos"}
+];
+assert.deepEqual(searchResearch("milbona proteiinivanukas kookos",crossRecordFixture),[]);
+assert.deepEqual(searchResearch("arla proteiinivanukas kookos",crossRecordFixture).map(r=>r.lidlProductId),["c"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas kahvi",crossRecordFixture).map(r=>r.lidlProductId),["a"]);
+assert.deepEqual(searchResearch("milbona proteiinijuoma kookos",crossRecordFixture).map(r=>r.lidlProductId),["b"]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
