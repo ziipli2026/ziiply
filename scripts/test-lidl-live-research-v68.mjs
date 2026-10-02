@@ -85,6 +85,12 @@ try {
     assert.deepEqual(forty.slice(0, 15), searchLidlResearch(query, 15),
       "Increasing Lidl discovery limit changed the highest-ranked matches: " + query);
   }
+  // Named Myllykivi and Combino products from Lidl's supplier article must be discoverable.
+  for (const [query, expected] of [["pikakaurahiutaleet", "Myllykivi pikakaurahiutaleet"], ["kaurapasta", "Combino kaurapasta"]]) {
+    const rows = searchLidlResearch(query, 50);
+    assert.ok(rows.some(r => r.name === expected && r.price === null && r.ean === null && r.priceVerified === false),
+      "Missing documented Lidl supplier research name: " + expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
