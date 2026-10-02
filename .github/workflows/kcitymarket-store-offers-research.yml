@@ -71,12 +71,14 @@ jobs:
           }
           (async () => {
             const first = await read(entry);
-            const links = [...first.html.matchAll(/(?:href|location(?:\\.href)?\\s*=)\\s*["']([^"'<>]+)["']/gi)]
+            const links = [...first.html.matchAll(/href\s*=\s*["']([^"'<>]+)["']/gi)]
               .map(m => m[1].replace(/&amp;/g, "&"))
               .map(href => { try { return new URL(href, first.response.url); } catch { return null; } })
               .filter(url => url && url.protocol === "https:" && allowed.has(url.hostname));
-            const publication = links.find(url => /\\/index\\.html$/i.test(url.pathname));
-            const result = { entryStatus: first.response.status, publicationUrl: publication?.href ?? null,
+            const publication = links.find(url => /\/index\.html$/i.test(url.pathname));
+            const result = { entryStatus: first.response.status,
+              discoveredLeafletLinks: links.map(url => url.href).slice(0, 10),
+              publicationUrl: publication?.href ?? null,
               publicationStatus: null, basicHtmlStatus: null, issueMarker: null,
               pageLinks: [], note: "Metadata only. No products/prices or store identity inferred." };
             if (publication) {
@@ -85,8 +87,8 @@ jobs:
               const basic = new URL("files/basic-html/index.html", pub.response.url);
               const page = await read(basic.href);
               result.basicHtmlStatus = page.response.status;
-              result.issueMarker = page.html.match(/\\b\\d{1,2}(?:AV|LV)\\/26\\b/i)?.[0] ?? null;
-              result.pageLinks = [...page.html.matchAll(/href=["']([^"'<>]+\\.html)["']/gi)]
+              result.issueMarker = page.html.match(/\b\d{1,2}(?:AV|LV)\/26\b/i)?.[0] ?? null;
+              result.pageLinks = [...page.html.matchAll(/href=["']([^"'<>]+\.html)["']/gi)]
                 .map(m => m[1]).filter(x => !x.startsWith("http")).slice(0, 25);
             }
             console.log(JSON.stringify(result, null, 2));
