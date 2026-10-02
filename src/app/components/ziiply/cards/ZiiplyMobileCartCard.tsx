@@ -210,7 +210,14 @@ function getCartItemQuantityForTotalV8(item: ZiiplyMobileCartItem) {
   return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
 }
 
+function isPendingWeightPriceV794(item: ZiiplyMobileCartItem) {
+  return Boolean(item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) &&
+    !Number.isFinite(Number(item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice));
+}
+
 function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
+  // A quoted €/kg is not a checkout row price until the scale label supplies a final price.
+  if (isPendingWeightPriceV794(item)) return 0;
   const normalizeTotalPrice = (value: number) => {
     if (!Number.isFinite(value)) return 0;
     return Math.abs(value) > 20 ? value / 100 : value;
@@ -738,7 +745,8 @@ export default function ZiiplyMobileCartCard({
                 const name = ledgerName(originalName);
                 // V792: puuttuva / vielä löytymätön hinta näytetään viivana.
                 // Sisäinen 0 säilyy laskentaa varten, mutta sitä ei esitetä käyttäjälle 0,00 € hintana.
-                const numericRowPriceV792 = getNumericPrice(item.price);
+                const pendingWeightV794 = isPendingWeightPriceV794(item);
+                const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(item.price);
                 const price = numericRowPriceV792 > 0 ? normalizePrice(item.price) : "";
                 const checked = Boolean(item.checked);
                 const quantity = Number(item.quantity ?? item.amount ?? 1);
@@ -751,7 +759,8 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={itemKeyV65}
                     className={cx(
-                      "relative block min-h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
+                      "relative block min-h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]", 
+                      pendingWeightV794 && "min-h-[4.05rem]", 
                       checked && "opacity-55",
                     )}
                   >
@@ -767,13 +776,16 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "absolute left-[3.62rem] top-[0.70rem] max-h-[1.92rem] w-[8.25rem] overflow-hidden text-[0.80rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
+                        "relative ml-[3.62rem] mt-[0.45rem] mb-[0.30rem] w-[8.25rem] min-h-[1.9rem] whitespace-normal break-words text-[0.80rem] font-extrabold leading-[1.12] text-[#2f2a1c]", 
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
                       title={originalName}
                     >
                       {name}
+                      {pendingWeightV794 && (
+                        <span className="mt-1 block w-fit rounded-[0.25rem] border border-[#a78948]/65 bg-[#f5e5bd] px-1.5 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-wide text-[#695125]">Punnitse</span>
+                      )}
                     </div>
 
                     <div data-v65-remove-choice={pendingRemoveV65 ? "true" : undefined}>
@@ -801,7 +813,7 @@ export default function ZiiplyMobileCartCard({
                     >
                       {isAlcoholCartItemV8(item)
                         ? "kassa"
-                        : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
+                        : pendingWeightV794 ? "—" : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                           ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
                           : price || "—"}
                     </div>
