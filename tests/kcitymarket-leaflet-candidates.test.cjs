@@ -151,7 +151,7 @@ test("accept standard trailing unit-price evidence in reference line", () => {
 });
 test("reject unsupported trailing units or malformed parenthetical evidence", () => {
   for (const suffix of [
-    " (3,49/l)",
+    " (3,49/m2)",
     " (3,49/kpl) extra",
     " (13,96/kg 12,00/kg)",
     " (13,96)"
