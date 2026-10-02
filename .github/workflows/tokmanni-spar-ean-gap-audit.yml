@@ -33,11 +33,13 @@ jobs:
       - run: node scripts/tokmanni-spar-filter-simulation.mjs
       - run: node scripts/tokmanni-spar-visibility-integration-check.mjs
       - run: node scripts/tokmanni-spar-visibility-behavior-check.mjs
+      - run: node scripts/tokmanni-spar-search-diff-preview.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: tokmanni-spar-ean-gap
           path: |
+            tokmanni-spar-search-diff-preview.json
             tokmanni-spar-filter-simulation.json
             tokmanni-spar-manual-review-sample.csv
             tokmanni-spar-readonly-preview.json
