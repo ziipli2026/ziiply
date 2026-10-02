@@ -11832,19 +11832,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               : activeStores.sStoreName;
 
             if (sPrimaryStoreId) {
-              rawItems = await fetchSProducts(searchQuery, sPrimaryStoreId);
+              try {
+                rawItems = await fetchSProducts(searchQuery, sPrimaryStoreId);
+              } catch (error) {
+                console.error("S-first text search failed; trying selected K fallback", error);
+                rawItems = [];
+              }
             }
 
             // If S is not selected/available, ordinary text search must still use K.
             // In multi-chain mode the old S-first path could return zero for every term.
             if (!withinChainS && rawItems.length === 0 && selectedChains.k && activeStores.kStoreId) {
-              const kItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
-              rawItems = kItems.filter((item) => Number(item.price) > 0).map((item) => ({
-                ...convertKProductToProduct(item),
-                ean: item.ean,
-              }));
-              usedStoreName = activeStores.kStoreName || "K-tavaratalo";
-              fallbackStoreName = usedStoreName;
+              try {
+                const kItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
+                rawItems = kItems.filter((item) => Number(item.price) > 0).map((item) => ({
+                  ...convertKProductToProduct(item),
+                  ean: item.ean,
+                }));
+                if (rawItems.length > 0) {
+                  usedStoreName = activeStores.kStoreName || "K-tavaratalo";
+                  fallbackStoreName = usedStoreName;
+                }
+              } catch (error) {
+                console.error("Selected K text-search fallback failed", error);
+              }
             }
 
             if (!withinChainS && rawItems.length === 0 && selectedChains.s && shouldUseLocalFallback("S")) {
