@@ -198,7 +198,8 @@ jobs:
               }, {});
               result.unparsedReferenceExamples = pages.flatMap(page =>
                 (page.codeBlockResearch?.splitReferenceSamples ?? []).map(sample => ({
-                  page: page.page, ...sample
+                  page: page.page, ...sample,
+                  researchType: sample.current.includes("–") ? "RANGE_REVIEW" : sample.current.includes("/pari") ? "PAIR_REVIEW" : "MANUAL_REVIEW"
                 }))).slice(0, 24);
               result.referenceShapeSummary = pages.reduce((summary, page) => {
                 for (const item of page.codeBlockResearch?.strictPairs ?? []) {
