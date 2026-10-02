@@ -81,6 +81,39 @@
       "eanStatus": "not_verified",
       "source": "https://www.sttinfo.fi/tiedote/71503288/tuotantoelainten-hyvinvointi-kiinnostaa-kunhan-siita-ei-tarvitse-maksaa-ekstraa-lidl-ryhtyi-toimeen?lang=fi",
       "note": "Lidl Ilona product family documented; current pack size, EAN and store price not independently verified."
+    },
+    {
+      "name": "Pohjolan Meijeri Hermanni-kermajuusto",
+      "brand": "Pohjolan Meijeri",
+      "quantity": "450 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/p/pohjolan-meijeri-hermanni-kermajuusto/p10023800",
+      "note": "Individual Lidl product page; historic promotional price excluded. Current availability and EAN unknown."
+    },
+    {
+      "name": "Milbona rasvaton raejuusto",
+      "brand": "Milbona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl test-results page identifies product (01/2026); pack size, current assortment and EAN unknown."
+    },
+    {
+      "name": "Pohjolan Meijeri vaniljakastike",
+      "brand": "Pohjolan Meijeri",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl test-results page identifies product (07/2026); current assortment and EAN unknown."
+    },
+    {
+      "name": "Milbona raejuusto",
+      "brand": "Milbona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Historical test-results page (01/2023); current assortment and EAN unknown."
     }
   ]
 }
