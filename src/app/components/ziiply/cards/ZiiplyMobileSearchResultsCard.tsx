@@ -364,7 +364,14 @@ export default function ZiiplyMobileSearchResultsCard({
                         </div>
                       )}
 
-                      {comparison && (
+                      {researchOnly && product.assortmentEvidence && (
+                        <div className="mt-[0.25rem] text-[0.61rem] font-bold leading-tight text-[#78633a]">
+                          {product.assortmentEvidence === "lidl-national-range-announcement"
+                            ? "Lidlin ilmoittama tuote · myymäläsaatavuus avoin"
+                            : "Julkinen tuotemaininta · saatavuus avoin"}
+                        </div>
+                      )}
+                      {!researchOnly && comparison && (
                         <div className="mt-[0.30rem] truncate text-[0.68rem] font-black leading-none text-[#8a7a55]">
                           {comparison}
                         </div>
