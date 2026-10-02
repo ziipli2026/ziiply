@@ -70,7 +70,7 @@ export async function probeKCitymarketStoreOffers(options: {
     .slice(0, 20);
   // The store page can advertise a separate leaflet host. Record it as provenance only;
   // it is NOT proof of a store-scoped product feed and must not become an offer.
-  const leafletLinks = [...html.matchAll(/<a\\b[^>]*href=["']([^"'<>]+)["'][^>]*>/gi)]
+  const leafletLinks = [...html.matchAll(/<a\b[^>]*href=["']([^"'<>]+)["'][^>]*>/gi)]
     .map(match => match[1].replace(/&amp;/g, "&"))
     .map(href => { try { return new URL(href, response.url); } catch { return null; } })
     .filter((link): link is URL => Boolean(link && link.protocol === "https:" &&
