@@ -605,6 +605,17 @@ for(const oversized of [51,65,100,1000000]){
 assert.deepEqual(searchResearch("pizza",v92Fixture,Infinity),searchResearch("pizza",v92Fixture,15),"Non-finite limit must use default");
 assert.ok(v92Fifty.every(r=>r.ean===null&&r.displayedPriceEur===null));
 
+
+/* v93: negative and fractional limits are clamped/truncated deterministically. */
+const v93Rows=Array.from({length:6},(_,i)=>({lidlProductId:"limit93-"+i,name:"Pizza Test "+i}));
+const v93All=searchResearch("pizza",v93Rows,6);
+for(const limit of [-100,-1,-0.5,0,0.9]){
+ assert.deepEqual(searchResearch("pizza",v93Rows,limit),[],"Expected zero results for limit "+limit);
+}
+for(const [limit,count] of [[1.1,1],[1.9,1],[2.1,2],[2.99,2],[5.9,5]]){
+ assert.deepEqual(searchResearch("pizza",v93Rows,limit),v93All.slice(0,count),"Fractional limit mismatch: "+limit);
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
