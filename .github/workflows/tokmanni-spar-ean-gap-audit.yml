@@ -21,8 +21,10 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: tokmanni-spar-ean-gap
           path: |
             tokmanni-spar-ean-gap.json
             tokmanni-spar-ean-new-daily.csv
+            tokmanni-spar-ean-unverified-daily-candidates.csv
