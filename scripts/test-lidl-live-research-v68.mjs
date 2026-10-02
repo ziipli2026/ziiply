@@ -48,6 +48,16 @@ try {
   }
   assert.ok(searchLidlResearch("kahvipavut", 50).every(r => /kahvipav/i.test(r.name.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, ""))),
     "Coffee beans search must not include ground/filter coffee");
+  // Justiina receives this discovery ordering directly: do not lose relevant
+  // results or accidentally promote observed catalog prices to checkout prices.
+  for (const query of ["maito", "jogurtti", "juusto", "kahvipavut", "tee"]) {
+    const rows = searchLidlResearch(query, 40);
+    assert.ok(rows.every(r => r.source === "lidl.fi-public-research" && r.name.trim()),
+      "Single-chain Lidl discovery source/name contract failed: " + query);
+    assert.ok(rows.every(r => r.price === null && r.ean === null && r.priceVerified === false && r.storeItems.length === 0),
+      "Single-chain Lidl discovery must stay unpriced: " + query);
+    assert.deepEqual(rows, searchLidlResearch(query, 40), "Justiina ordering must be stable: " + query);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
