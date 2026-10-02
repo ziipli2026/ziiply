@@ -97,3 +97,14 @@ test("reject split offer glyphs and multibuy labels", () => {
     ["Example product", "299", "PKT", "Ilman Plussa-korttia 3,99/pkt tai 2 pkt 6,00"]
   ]) assert.equal(parseStrictPair(lines), null);
 });
+
+test("ordinary pack weights are not mistaken for multibuy prices", () => {
+  const result = parseStrictPair(["Example coffee 2 x 250 g", "299", "PKT", "Ilman Plussa-korttia 3,99/pkt"]);
+  assert.equal(result?.offer, 2.99);
+  assert.equal(result?.unit, "PKT");
+});
+test("reject alternative multibuy price punctuation in product context", () => {
+  for (const context of ["Example 2 kpl / 5,00", "Example 2 pkt: 5,00", "Example 2 ps = 5,00", "Example 2 kpl hintaan 5,00"]) {
+    assert.equal(parseStrictPair([context, "250", "KPL", "Ilman Plussa-korttia 3,00/kpl"]), null, context);
+  }
+});
