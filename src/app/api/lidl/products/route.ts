@@ -106,10 +106,7 @@ export async function GET(request: Request) {
   const storeName = String(searchParams.get("storeName") || "").trim();
   const city = String(searchParams.get("city") || "").trim();
   const address = String(searchParams.get("address") || "").trim();
-  const storeId = /^\d+$/.test(requestedStoreId)
-    ? requestedStoreId
-    : await resolveRuoanhintaLidlStoreId(storeName, city, address);
-
+  // Research mode must not depend on, or call, the unrelated Ruoanhinta store resolver.
   // Explicit research mode: public name discovery, not a store price/EAN feed.
   if (search && searchParams.get("mode") === "research") {
     const { searchLidlResearch } = await import("@/lib/lidlResearchSearch");
@@ -120,6 +117,10 @@ export async function GET(request: Request) {
       items: searchLidlResearch(search),
     });
   }
+
+  const storeId = /^\d+$/.test(requestedStoreId)
+    ? requestedStoreId
+    : await resolveRuoanhintaLidlStoreId(storeName, city, address);
 
   if (!search || !/^\d+$/.test(storeId)) {
     return NextResponse.json({
