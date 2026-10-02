@@ -933,6 +933,17 @@
       "recordKind": "coffee-tea-variety-named",
       "assortmentEvidence": "lidl-national-range-announcement",
       "currentStoreStockVerified": false
+    },
+    {
+      "name": "Ilona maustamaton jogurtti",
+      "brand": "Ilona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.sttinfo.fi/tiedote/71503288/tuotantoelainten-hyvinvointi-kiinnostaa-kunhan-siita-ei-tarvitse-maksaa-ekstraa-lidl-ryhtyi-toimeen?lang=fi",
+      "note": "Lidl's 8 Oct 2025 announcement explicitly lists this among six ELVI products. Do not infer lactose-free status, package size, EAN, current price or local stock.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
     }
   ]
 }
