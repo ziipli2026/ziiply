@@ -6,7 +6,7 @@
 export type KCitymarketStoreOfferProbe = {
   storeId: string;
   sourceUrl: string;
-  status: "NOT_CONFIGURED" | "HTTP_ERROR" | "UNVERIFIED_STORE" | "UNSUPPORTED_SHAPE" | "OK";
+  status: "NOT_CONFIGURED" | "HTTP_ERROR" | "BLOCKED_UPSTREAM" | "UNVERIFIED_STORE" | "UNSUPPORTED_SHAPE" | "OK";
   httpStatus: number | null;
   offers: unknown[];
   diagnostic: string;
@@ -45,6 +45,7 @@ export async function probeKCitymarketStoreOffers(options: {
     return { ...base, status: "HTTP_ERROR", diagnostic: String(error) };
   }
   const received = { ...base, sourceUrl: response.url, httpStatus: response.status };
+  if (response.status === 403) return { ...received, status: "BLOCKED_UPSTREAM", diagnostic: "K-Ruoka denied the server request (HTTP 403); offer availability is unknown." };
   if (!response.ok) return { ...received, status: "HTTP_ERROR", diagnostic: `Store page HTTP ${response.status}` };
   const finalUrl = new URL(response.url);
   if (finalUrl.hostname !== "www.k-ruoka.fi" || finalUrl.pathname !== url.pathname) {
@@ -60,7 +61,7 @@ export async function probeKCitymarketStoreOffers(options: {
   const headings = [fold(title), fold(heading)];
   const identitySeen = headings.some(heading => heading.includes("citymarket") && heading.includes(fold(storeName)));
   // Record only links actually present on the verified store page; never invent a store-scoped API.
-  const offerLinks = [...html.matchAll(/<a\\b[^>]*href=["']([^"'<>]+)["'][^>]*>/gi)]
+  const offerLinks = [...html.matchAll(/<a\b[^>]*href=["']([^"'<>]+)["'][^>]*>/gi)]
     .map(match => match[1].replace(/&amp;/g, "&"))
     .filter(href => /tarjous|edut|etuja/i.test(href))
     .map(href => { try { return new URL(href, response.url).href; } catch { return ""; } })
