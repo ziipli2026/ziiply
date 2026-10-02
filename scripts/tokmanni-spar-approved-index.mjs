@@ -11,7 +11,7 @@ const output=new Map();
 for(const row of approvals.items){
  const ean=String(row.ean??"");
  const original=source.get(ean);
- if(!/^\\d{8,14}$/.test(ean)||!original)throw Error("Invalid approval EAN or missing from merged audit: "+ean);
+ if(!/^[0-9]{8,14}$/.test(ean)||!original)throw Error("Invalid approval EAN or missing from merged audit: "+ean);
  if(row.classificationStatus!=="approved"||!allowed.has(row.productClass))throw Error("Unapproved or invalid class: "+ean);
  if(row.productClass==="daily"&&!String(row.ziiplyCategory||"").trim())throw Error("Daily EAN needs Ziiply category: "+ean);
  if(output.has(ean))throw Error("Duplicate approval: "+ean);
