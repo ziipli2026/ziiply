@@ -2375,7 +2375,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
                 pickupName: fallbackIdentityV231.pickupName,
               });
               zeroResultDiagnosticsV208.push(`V231 FALLBACK_STORE_ID_MISMATCH: ${selectedStore.storeName} / ${fallbackStoreId}`);
-              continue;
+              break;
             }
             const fallbackPage = await fetchSKaupatRemoteFilteredProductsPageV170(
               query,
