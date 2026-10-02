@@ -1429,6 +1429,20 @@ for(const v153Limit of [Infinity,-Infinity,NaN]){
 }
 assert.equal(JSON.stringify(v153Rows),v153Snapshot,"Non-finite limits must not mutate source");
 
+/* v154: numeric-looking string limits cannot override the numeric default. */
+const v154Rows=Array.from({length:20},(_,i)=>({
+ lidlProductId:`safe-154-${String(i).padStart(2,"0")}`,
+ name:"MILBONA Proteiinivanukas",
+ variant:"vanilja"
+}));
+const v154Snapshot=JSON.stringify(v154Rows);
+const v154Default=searchResearch("milbona proteiinivanukas",v154Rows).map(r=>r.lidlProductId);
+assert.equal(v154Default.length,15);
+for(const v154Limit of ["0","1","50","100","-1","15.9"]){
+ assert.deepEqual(searchResearch("milbona proteiinivanukas",v154Rows,v154Limit).map(r=>r.lidlProductId),v154Default);
+}
+assert.equal(JSON.stringify(v154Rows),v154Snapshot,"String limits must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
