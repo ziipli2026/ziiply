@@ -1115,6 +1115,19 @@ assert.equal(v130Hits.find(r=>r.lidlProductId==="variant-130").variant,"MILBONA 
 assert.equal(v130Hits.find(r=>r.lidlProductId==="name-130").variant,null);
 assert.equal(JSON.stringify(v130Rows),v130Snapshot,"Malformed fields must not mutate source");
 
+/* v131: whitespace-normalized IDs must deduplicate without mutating source records. */
+const v131Rows=[
+ {lidlProductId:"  safe-131-a  ",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-131-a",name:"MILBONA Proteiinivanukas",variant:"suklaa"},
+ {lidlProductId:"\tsafe-131-b\n",name:"MILBONA Proteiinivanukas",variant:"kookos"},
+ {lidlProductId:"safe-131-b",name:"MILBONA Proteiinivanukas",variant:"kahvi"},
+ {lidlProductId:" safe-131-c ",name:"MILBONA Proteiinivanukas",variant:"mansikka"}
+];
+const v131Snapshot=JSON.stringify(v131Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v131Rows,3).map(r=>r.lidlProductId),["safe-131-a","safe-131-b","safe-131-c"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v131Rows,2).map(r=>r.lidlProductId),["safe-131-a","safe-131-b"]);
+assert.equal(JSON.stringify(v131Rows),v131Snapshot,"ID normalization must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
