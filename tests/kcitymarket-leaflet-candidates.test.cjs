@@ -143,3 +143,17 @@ test("reject reference prices with extra numeric payload after the unit", () => 
     "Ilman Plussa-korttia 3,99/pkt / 2,49"
   ]) assert.equal(parseStrictPair(["Example product 200 g", "249", "PKT", reference]), null, reference);
 });
+
+test("accept standard trailing unit-price evidence in reference line", () => {
+  const result = parseStrictPair(["Example cheese 250 g", "299", "PKT", "Ilman Plussa-korttia 3,49/pkt (13,96/kg)"]);
+  assert.equal(result?.offer, 2.99);
+  assert.equal(result?.regular, 3.49);
+});
+test("reject unsupported trailing units or malformed parenthetical evidence", () => {
+  for (const suffix of [
+    " (3,49/l)",
+    " (3,49/kpl) extra",
+    " (13,96/kg 12,00/kg)",
+    " (13,96)"
+  ]) assert.equal(parseStrictPair(["Example cheese 250 g", "299", "PKT", "Ilman Plussa-korttia 3,49/pkt" + suffix]), null, suffix);
+});
