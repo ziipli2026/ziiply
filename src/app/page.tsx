@@ -4068,7 +4068,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const result = chainResults.find((chainResult) => chainResult.key === storeId);
     const storeName = result?.storeName || result?.chain || "Kauppa";
     const total =
-      typeof result?.totalPrice === "number"
+      typeof result?.totalPrice === "number" && (result?.foundItems || 0) > 0
         ? `${result.totalPrice.toFixed(2).replace(".", ",")} €`
         : "";
 
