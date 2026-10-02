@@ -22,13 +22,13 @@ function normalizeEan(value: unknown) {
 export function classifyTokmanniOffer(name: string): string | null {
   const n = name.toLocaleLowerCase("fi-FI");
   const rules: Array<[string, RegExp]> = [
-    ["Lemmikit", /\\b(kissan|koiran|lemmikin|marsun|jyrsijän|lemmikki|real dog|bestvet)\\b/],
-    ["Hygienia & kosmetiikka", /\\b(deo(?:dorantti)?|body.?spray|hoitoaine|hiuskiinne|hiusnaamio|hiusvaha|hiusöljy|shampoo|suihkugeeli|saippua|pikkuhousunsuoja|hammastahna|aurinkosuojavoide|kasvovoide|edp|edt|eau de parfum|eau de toilette)\\b/],
-    ["Kodinhoito", /\\b(alumiinifolio|foliovuoka|talouspaperi|wc-paperi|jätesäkki|roskapussi|astianpesuaine|pyykinpesuaine|huuhteluaine|leivinpaperi)\\b/],
-    ["Makeiset & keksit", /\\b(aakkoset|aarrearkku|malaco|daim|fisherman.s friend|suklaa|karkki|makeinen|pastilli|keksi)\\b/],
-    ["Leipomo", /\\b(hapankorppu|näkkileipä|ruisleipä|paahtoleipä)\\b/],
-    ["Kuivatuotteet", /\\b(oliiviöljy|chia-siemen|spagetti|makaroni|riisi|jauho)\\b/],
-    ["Ravintolisät", /\\b(vitamiini|biotiini|ashwagandha|heraproteiini|elektrolyyttijauhe|ravintolisä)\\b/],
+    ["Lemmikit", /\b(kissan|koiran|lemmikin|marsun|jyrsijän|lemmikki|real dog|bestvet)\b/],
+    ["Hygienia & kosmetiikka", /\b(deo(?:dorantti)?|body.?spray|hoitoaine|hiuskiinne|hiusnaamio|hiusvaha|hiusöljy|shampoo|suihkugeeli|saippua|pikkuhousunsuoja|hammastahna|aurinkosuojavoide|kasvovoide|edp|edt|eau de parfum|eau de toilette)\b/],
+    ["Kodinhoito", /\b(alumiinifolio|foliovuoka|talouspaperi|wc-paperi|jätesäkki|roskapussi|astianpesuaine|pyykinpesuaine|huuhteluaine|leivinpaperi)\b/],
+    ["Makeiset & keksit", /\b(aakkoset|aarrearkku|malaco|daim|fisherman.s friend|suklaa|karkki|makeinen|pastilli|keksi)\b/],
+    ["Leipomo", /\b(hapankorppu|näkkileipä|ruisleipä|paahtoleipä)\b/],
+    ["Kuivatuotteet", /\b(oliiviöljy|chia-siemen|spagetti|makaroni|riisi|jauho)\b/],
+    ["Ravintolisät", /\b(vitamiini|biotiini|ashwagandha|heraproteiini|elektrolyyttijauhe|ravintolisä)\b/],
   ];
   return rules.find(([, pattern]) => pattern.test(n))?.[0] ?? null;
 }
