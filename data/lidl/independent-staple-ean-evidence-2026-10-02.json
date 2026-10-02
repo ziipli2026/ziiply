@@ -242,6 +242,82 @@
       "source": "https://www.lidl.fi/c/takaisinvedot/s10021744",
       "assortmentEvidence": "lidl-historical-product-mention",
       "currentStoreStockVerified": false
+    },
+    {
+      "name": "Myllykivi kaurahiutaleet",
+      "brand": "Myllykivi",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Myllykivi pikakaurahiutaleet",
+      "brand": "Myllykivi",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Myllykivi Kaurahiutale + kuitu",
+      "brand": "Myllykivi",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Combino kaurapasta",
+      "brand": "Combino",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Sulhaspiirakka",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Lihapasteija",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Jättikorvapuusti",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Pakasteriisipiirakka",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false
     }
   ]
 }
