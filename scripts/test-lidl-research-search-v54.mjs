@@ -1053,6 +1053,19 @@ for(const v125Query of ["","   ","\t\n"]){
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v125Rows,2).map(r=>r.lidlProductId),["safe-125-a","safe-125-b"]);
 assert.equal(JSON.stringify(v125Rows),v125Snapshot,"Blank queries must not mutate source");
 
+/* v126: non-string queries must safely return no results without contaminating later searches. */
+const v126Rows=[
+ {lidlProductId:"safe-126-a",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-126-a",name:"MILBONA Proteiinivanukas",variant:"suklaa"},
+ {lidlProductId:"safe-126-b",name:"MILBONA Proteiinivanukas",variant:"kookos"}
+];
+const v126Snapshot=JSON.stringify(v126Rows);
+for(const v126Query of [null,undefined,126,true,["milbona"],{query:"milbona"}]){
+ assert.deepEqual(searchResearch(v126Query,v126Rows,2),[]);
+}
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v126Rows,2).map(r=>r.lidlProductId),["safe-126-a","safe-126-b"]);
+assert.equal(JSON.stringify(v126Rows),v126Snapshot,"Invalid query types must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
