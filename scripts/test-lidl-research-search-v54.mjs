@@ -520,6 +520,24 @@ assert.equal(internalResult[0].observedDate,"2026-10-01");
 assert.ok(!JSON.stringify(internalResult).includes("secret"));
 assert.ok(!JSON.stringify(internalResult).includes("supplierCost"));
 
+
+/* v87: malformed/missing variants cannot invent data or suppress valid names. */
+const variantFixture=[
+ {lidlProductId:"variant-missing",name:"Pizza Hawaii"},
+ {lidlProductId:"variant-object",name:"Pizza Kebab",variant:{text:"salainen"}},
+ {lidlProductId:"variant-number",name:"Pizza Margherita",variant:123},
+ {lidlProductId:"variant-valid",name:"MILBONA Proteiinivanukas",variant:"kahvi"}
+];
+for(const [query,id] of [
+ ["pizza hawaii","variant-missing"],["pizza kebab","variant-object"],
+ ["pizza margherita","variant-number"],["milbona proteiinivanukas kahvi","variant-valid"]
+]){
+ const hits=searchResearch(query,variantFixture);
+ assert.deepEqual(hits.map(r=>r.lidlProductId),[id]);
+ assert.equal(hits[0].variant,id==="variant-valid"?"kahvi":null);
+}
+assert.deepEqual(searchResearch("salainen",variantFixture),[],"Object variant must not be stringified into searchable text");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
