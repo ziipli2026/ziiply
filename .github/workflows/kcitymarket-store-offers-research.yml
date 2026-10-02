@@ -94,7 +94,7 @@ jobs:
               .map(href => { try { return new URL(href, response.url).href; } catch { return ""; } })
               .filter(href => href.startsWith("https://www.k-ruoka.fi/"))
               .filter((href, i, all) => all.indexOf(href) === i);
-            console.log("CITYMARKET_PUBLIC_LINK_COUNT " + JSON.stringify({ count: links.length, verifiedStoreOffers: false }));
+            console.log("CITYMARKET_PUBLIC_LINK_COUNT " + JSON.stringify({ count: response.ok ? links.length : null, httpStatus: response.status, accessBlocked: response.status === 403, verifiedStoreOffers: false, interpretation: response.ok ? "PUBLIC_NAVIGATION_ONLY" : "LINK_COUNT_UNKNOWN_UPSTREAM_NOT_OK" }));
             const result = { navigationEvidence: "PUBLIC_LINKS_ONLY_NOT_STORE_FEED", storeScopedOfferFeedVerified: false, requestedStore: "k-citymarket-hyvinkaa", status: response.status,
               finalUrl: response.url, title, offerLinks: links.slice(0, 30),
               blocked: response.status === 403,
