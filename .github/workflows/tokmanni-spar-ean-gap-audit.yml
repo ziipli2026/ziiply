@@ -1,6 +1,9 @@
 name: Tokmanni/Spar EAN gap audit
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 jobs:
   audit:
     runs-on: ubuntu-latest
