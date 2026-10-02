@@ -330,7 +330,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 const rawPrice = pickRawPrice(product);
                 const researchOnly = product.priceVerified === false || product.product?.priceVerified === false;
                 const price = researchOnly ? "" : formatMainPrice(rawPrice);
-                const comparison = formatComparisonPrice(product, rawPrice);
+                const comparison = researchOnly ? "" : formatComparisonPrice(product, rawPrice);
 
                 return (
                   <article
@@ -346,7 +346,7 @@ export default function ZiiplyMobileSearchResultsCard({
                           loading="lazy"
                         />
                       ) : (
-                        <span className="text-[3rem]">🛒</span>
+                        <span aria-hidden="true" className="flex h-[3.3rem] w-[3.3rem] items-center justify-center rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9] text-[0.61rem] font-bold uppercase tracking-[0.08em] text-[#aa9b7d]">Ei kuvaa</span>
                       )}
                     </div>
 
@@ -364,13 +364,9 @@ export default function ZiiplyMobileSearchResultsCard({
                         </div>
                       )}
 
-                      {researchOnly && product.assortmentEvidence && (
-                        <div className="mt-[0.25rem] text-[0.61rem] font-bold leading-tight text-[#78633a]">
-                          {product.assortmentEvidence === "lidl-national-range-announcement"
-                            ? "Lidlin valikoimailmoitus"
-                            : product.assortmentEvidence === "lidl-historical-product-mention"
-                              ? "Historiallinen tuotemaininta"
-                              : "Lidlin tuoteluettelosta"}
+                      {researchOnly && (
+                        <div className="mt-[0.25rem] text-[0.65rem] font-bold leading-tight text-[#78633a]">
+                          Hinta ei vahvistettu
                         </div>
                       )}
                       {!researchOnly && comparison && (
@@ -381,11 +377,6 @@ export default function ZiiplyMobileSearchResultsCard({
                     </div>
 
                     <div className="absolute bottom-2 right-2.5 flex items-center justify-end gap-2">
-                      {researchOnly && (
-                        <div className="max-w-[7.8rem] text-right text-[0.61rem] font-bold leading-tight text-[#78633a]">
-                          Ei hintatietoa
-                        </div>
-                      )}
                       {price && (
                         <div className="inline-flex min-w-[4.85rem] items-center justify-center rounded-full border-[2.5px] border-[#347a3f] bg-[#d2f1c8] px-2.5 py-[0.34rem] text-[0.88rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
                           {price}
