@@ -41,6 +41,46 @@
       "eanStatus": "verified_in_authority_recall",
       "source": "https://www.ruokavirasto.fi/elintarvikkeet/ohjeita-kuluttajille/takaisinvedot-2023-/kananmunien-takaisinveto/",
       "note": "Sold in multiple chains; not Lidl-exclusive."
+    },
+    {
+      "name": "Ilona maustamaton laktoositon jogurtti",
+      "brand": "Ilona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.sttinfo.fi/tiedote/71503288/tuotantoelainten-hyvinvointi-kiinnostaa-kunhan-siita-ei-tarvitse-maksaa-ekstraa-lidl-ryhtyi-toimeen?lang=fi",
+      "note": "Lidl Ilona product family documented; current pack size, EAN and store price not independently verified."
+    },
+    {
+      "name": "Ilona mangojogurtti",
+      "brand": "Ilona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.sttinfo.fi/tiedote/71503288/tuotantoelainten-hyvinvointi-kiinnostaa-kunhan-siita-ei-tarvitse-maksaa-ekstraa-lidl-ryhtyi-toimeen?lang=fi",
+      "note": "Lidl Ilona product family documented; current pack size, EAN and store price not independently verified."
+    },
+    {
+      "name": "Ilona päärynäjogurtti",
+      "brand": "Ilona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.sttinfo.fi/tiedote/71503288/tuotantoelainten-hyvinvointi-kiinnostaa-kunhan-siita-ei-tarvitse-maksaa-ekstraa-lidl-ryhtyi-toimeen?lang=fi",
+      "note": "Lidl Ilona product family documented; current pack size, EAN and store price not independently verified."
+    },
+    {
+      "name": "Ilona banaanijogurtti",
+      "brand": "Ilona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.sttinfo.fi/tiedote/71503288/tuotantoelainten-hyvinvointi-kiinnostaa-kunhan-siita-ei-tarvitse-maksaa-ekstraa-lidl-ryhtyi-toimeen?lang=fi",
+      "note": "Lidl Ilona product family documented; current pack size, EAN and store price not independently verified."
+    },
+    {
+      "name": "Ilona raejuusto",
+      "brand": "Ilona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.sttinfo.fi/tiedote/71503288/tuotantoelainten-hyvinvointi-kiinnostaa-kunhan-siita-ei-tarvitse-maksaa-ekstraa-lidl-ryhtyi-toimeen?lang=fi",
+      "note": "Lidl Ilona product family documented; current pack size, EAN and store price not independently verified."
     }
   ]
 }
