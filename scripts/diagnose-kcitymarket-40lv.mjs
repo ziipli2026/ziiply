@@ -15,6 +15,13 @@ const groups=[
 ];
 console.log("Leaflet:",parsed.leaflet,"parsed rows:",parsed.rows.length);
 console.log("PAGE 1 TITLES:",parsed.rows.filter(r=>r.page===1).map(r=>({title:r.title,price:r.spatialResolved?.value,source:r.spatialResolved?.source})));
+for(const row of parsed.rows.filter(r=>r.page===1 && /LOHI|ULKOFILEE/i.test(r.title))){
+ console.log("PAGE1 SPATIAL FOCUS",JSON.stringify({title:row.title,anchor:row.debugAnchor,packageAnchor:row.debugPackageRowAnchor,bestTitleRow:row.debugBestTitleRow,prices:row.spatialPriceBoxes,candidates:row.spatialCandidates,groups:row.spatialGroups,nearbyBoxes:(row.debugNearbyBoxes||[]).filter(b=>/^(?:7|99|6|S6|KG|LOHI|ULKOFILEE)$/i.test(String(b.text).trim()))},null,2));
+}
+const first=await fetch(new URL("files/basic-html/index.html",parsed.leaflet));
+const firstHtml=await first.text();
+const p1=firstHtml.match(/<pre[^>]*><code>([\\s\\S]*?)<\\/code><\\/pre>/i)?.[1]||firstHtml;
+console.log("PAGE1 RAW LINES",p1.split(/\\r?\\n/).map((line,i)=>({i,line:line.trim()})).filter(x=>/LATZ|ANNOSPUSSI|44\\s*[x×]|11\\s*90|LOHI|ULKOFILEE|S6\\s*99|KG/i.test(x.line)).slice(0,45));
 let failed=false;
 for(const g of groups){
  const hits=parsed.rows.filter(r=>g.pattern.test(String(r.title||"")));
