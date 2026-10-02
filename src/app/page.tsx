@@ -12421,6 +12421,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function refreshSingleChainCartPricesV770(nextCart = cart) {
     if (storeCompareScope !== "between_chains" || betweenChainSelectionModeV749 !== "one") return;
+    // Yksi-tilan tuotteen korvaushaku on tarkoitettu vain yhden rivin ostoskorille.
+    // Useamman tuotteen vertailu käynnistetään käyttäjän valitsemassa Monta-tilassa.
+    if (nextCart.length > 1) {
+      showCartToast("Valitse Monta vertaillaksesi koko ostoskoria.");
+      return;
+    }
 
     const selectedKey = (["s", "k", "lidl", "tokmanni"] as const).find(
       (key) => Boolean(selectedChains[key]),
