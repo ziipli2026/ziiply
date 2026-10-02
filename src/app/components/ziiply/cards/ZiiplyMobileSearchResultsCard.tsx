@@ -367,8 +367,10 @@ export default function ZiiplyMobileSearchResultsCard({
                       {researchOnly && product.assortmentEvidence && (
                         <div className="mt-[0.25rem] text-[0.61rem] font-bold leading-tight text-[#78633a]">
                           {product.assortmentEvidence === "lidl-national-range-announcement"
-                            ? "Lidlin ilmoittama tuote · myymäläsaatavuus avoin"
-                            : "Julkinen tuotemaininta · saatavuus avoin"}
+                            ? "Lidlin valikoimailmoitus"
+                            : product.assortmentEvidence === "lidl-historical-product-mention"
+                              ? "Historiallinen tuotemaininta"
+                              : "Lidlin tuoteluettelosta"}
                         </div>
                       )}
                       {!researchOnly && comparison && (
@@ -381,7 +383,7 @@ export default function ZiiplyMobileSearchResultsCard({
                     <div className="absolute bottom-2 right-2.5 flex items-center justify-end gap-2">
                       {researchOnly && (
                         <div className="max-w-[7.8rem] text-right text-[0.61rem] font-bold leading-tight text-[#78633a]">
-                          Hinta ei tiedossa
+                          Ei hintatietoa
                         </div>
                       )}
                       {price && (
