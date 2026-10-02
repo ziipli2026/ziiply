@@ -112,10 +112,16 @@ function numericValue(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function priceToEuros(value: unknown) {
+function usesEuroPrices(product: ZiiplyMobileSearchResultProduct) {
+  const source = [product.chain, product.store, product.storeName, product.source, product.product?.chain, product.product?.source].join(" ").toLowerCase();
+  return /tokmanni|eurospar|\bspar\b/.test(source);
+}
+
+function priceToEuros(value: unknown, product: ZiiplyMobileSearchResultProduct) {
   const n = numericValue(value);
   if (n == null) return null;
-  return Math.abs(n) > 20 ? n / 100 : n;
+  // Legacy S/K integer-cent values start at 100; preserve valid 20+ euro prices.
+  return usesEuroPrices(product) ? n : Math.abs(n) >= 100 ? n / 100 : n;
 }
 
 function pickRawPrice(product: ZiiplyMobileSearchResultProduct) {
@@ -134,8 +140,8 @@ function pickRawPrice(product: ZiiplyMobileSearchResultProduct) {
   return null;
 }
 
-function formatMainPrice(value: unknown) {
-  const euros = priceToEuros(value);
+function formatMainPrice(value: unknown, product: ZiiplyMobileSearchResultProduct) {
+  const euros = priceToEuros(value, product);
   if (euros == null) return "";
 
   return (
@@ -146,9 +152,9 @@ function formatMainPrice(value: unknown) {
   );
 }
 
-function normalizeComparisonValue(value: unknown) {
+function normalizeComparisonValue(value: unknown, product: ZiiplyMobileSearchResultProduct) {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.abs(value) > 20 ? value / 100 : value;
+    return usesEuroPrices(product) ? value : Math.abs(value) >= 100 ? value / 100 : value;
   }
 
   const raw = String(value ?? "").trim();
@@ -158,7 +164,7 @@ function normalizeComparisonValue(value: unknown) {
   const parsed = numericValue(raw);
   if (parsed == null) return null;
 
-  return Math.abs(parsed) > 20 ? parsed / 100 : parsed;
+  return usesEuroPrices(product) ? parsed : Math.abs(parsed) >= 100 ? parsed / 100 : parsed;
 }
 
 function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
@@ -229,7 +235,7 @@ function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct, rawPric
   ];
 
   for (const candidate of candidates) {
-    const value = normalizeComparisonValue(candidate);
+    const value = normalizeComparisonValue(candidate, product);
     if (value == null) continue;
 
     if (typeof value === "string") return value;
@@ -240,7 +246,7 @@ function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct, rawPric
     })} ${inferComparisonUnit(product)}`;
   }
 
-  const euros = priceToEuros(rawPrice);
+  const euros = priceToEuros(rawPrice, product);
   const packageAmount = parsePackageAmount(product);
 
   if (euros != null && packageAmount?.amount && packageAmount.amount > 0) {
@@ -334,7 +340,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 const observedPrice = researchOnly && observedEuros != null && observedEuros >= 0
                   ? `${observedEuros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
                   : "";
-                const price = researchOnly ? "" : formatMainPrice(rawPrice);
+                const price = researchOnly ? "" : formatMainPrice(rawPrice, product);
                 const comparison = researchOnly ? "" : formatComparisonPrice(product, rawPrice);
 
                 return (
