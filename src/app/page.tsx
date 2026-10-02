@@ -22081,6 +22081,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onClearCart={clearCart}
             onCompare={openComparisonView}
             compareNotice={lastCartToast?.startsWith("Korissa olevat tuotteet ovat tarjoushinnoilla") ? lastCartToast : null}
+            compareNotice={lastCartToast?.startsWith("Korissa olevat tuotteet ovat tarjoushinnoilla") ? lastCartToast : null}
             onShareCart={shareMobileCartV729}
             onAddMore={() => {
               setCartModalOpen(false);
