@@ -114,6 +114,53 @@
       "eanStatus": "not_verified",
       "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
       "note": "Historical test-results page (01/2023); current assortment and EAN unknown."
+    },
+    {
+      "name": "Milbona Halloumi",
+      "brand": "Milbona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl testimenestyjät page documents named food product (07/2026); historical mention only, not current store availability, EAN or price."
+    },
+    {
+      "name": "Primadonna ekstra-neitsytoliiviöljy",
+      "brand": "Primadonna",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl testimenestyjät page documents named food product (08/2025); historical mention only, not current store availability, EAN or price."
+    },
+    {
+      "name": "Maribel mansikkahillo",
+      "brand": "Maribel",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl testimenestyjät page documents named food product (08/2025); historical mention only, not current store availability, EAN or price."
+    },
+    {
+      "name": "Bellarom Hieno Mokka",
+      "brand": "Bellarom",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl testimenestyjät page documents named food product (02/2025); historical mention only, not current store availability, EAN or price."
+    },
+    {
+      "name": "Chef Select moniviljakolmioleipä",
+      "brand": "Chef Select",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl testimenestyjät page documents named food product (10/2024); historical mention only, not current store availability, EAN or price."
+    },
+    {
+      "name": "Riisipiirakka",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
+      "note": "Lidl testimenestyjät page documents named food product (04/2024); historical mention only, not current store availability, EAN or price."
     }
   ]
 }
