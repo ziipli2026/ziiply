@@ -1,0 +1,18 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const vm = require("node:vm");
+const source = fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
+const start = source.indexOf("function isPendingWeightPriceV794(");
+const end = source.indexOf("\nfunction ",source.indexOf("function readCartItemPriceForTotalV8(",start)+10);
+assert(start>=0 && end>start,"cart total helper boundaries");
+let code=source.slice(start,end).replaceAll(": ZiiplyMobileCartItem","").replace("const normalizeTotalPrice = (value: number) =>","const normalizeTotalPrice = (value) =>");
+code=code.replace(/: number\b/g,"");
+const context={};vm.runInNewContext(code+"\nthis.check={isPendingWeightPriceV794,readCartItemPriceForTotalV8};",context);
+const {isPendingWeightPriceV794:pending,readCartItemPriceForTotalV8:price}=context.check;
+const base={price:12.90,ziiplyPricePendingWeight:true,comparisonPrice:12.90,comparisonPriceUnit:"kg",product:{}};
+assert.equal(pending(base),true);assert.equal(price(base),0);console.log("PASS unknown weight excludes quoted €/kg from basket");
+assert.equal(price({...base,ziiplyWeightFinalPrice:6.45}),6.45);console.log("PASS confirmed scale row price overrides €/kg quote");
+assert.equal(price({...base,ziiplyWeightFinalPrice:0}),0);console.log("PASS zero confirmed price remains zero");
+assert.equal(price({...base,ziiplyWeightFinalPrice:"bad"}),0);console.log("PASS malformed final price excluded");
+assert.equal(price({...base,product:{ziiplyWeightFinalPrice:6.45}}),6.45);console.log("PASS nested persisted final price restored");
+console.log("NOTE weight in grams to final price conversion is not implemented by this helper");
