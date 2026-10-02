@@ -627,7 +627,8 @@ for(const invalidLimit of [null,undefined,"2","50",true,false,{},[],[2],NaN,-Inf
 
 
 /* v95: invalid row collections fail closed instead of throwing or leaking data. */
-for(const invalidRows of [null,undefined,{},123,"pizza",true,false]){
+assert.deepEqual(searchResearch("pizza",undefined),searchResearch("pizza",corpus),"Undefined rows must select default corpus");
+for(const invalidRows of [null,{},123,"pizza",true,false]){
  assert.deepEqual(searchResearch("pizza",invalidRows),[],"Invalid rows must return empty results: "+String(invalidRows));
 }
 assert.deepEqual(searchResearch("pizza",[]),[]);
