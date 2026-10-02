@@ -17,7 +17,9 @@ function classifyStoreScope(source) {
     source?.verifiedStoreId === source.storeId &&
     source?.evidence?.canonicalPageUrl === `https://www.k-ruoka.fi/kauppa/${source.storeId}` &&
     source?.evidence?.pageHttpStatus === 200 &&
-    source?.evidence?.pageIdentitySeen === true
+    source?.evidence?.pageIdentitySeen === true &&
+    source?.evidence?.offerFeedStoreId === source.storeId &&
+    source?.evidence?.offerFeedIdentityVerified === true
     ? { storeScoped: true, storeId: source.storeId }
     : { storeScoped: false, storeId: null };
 }
