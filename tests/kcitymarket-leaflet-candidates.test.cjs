@@ -157,3 +157,15 @@ test("reject unsupported trailing units or malformed parenthetical evidence", ()
     " (13,96)"
   ]) assert.equal(parseStrictPair(["Example cheese 250 g", "299", "PKT", "Ilman Plussa-korttia 3,49/pkt" + suffix]), null, suffix);
 });
+
+test("reject forged store-scoped evidence despite valid canonical page", () => {
+  const base = {kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-hyvinkaa",identityVerified:true};
+  const evidence = {canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:true,offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:true};
+  for (const changed of [
+    {kind:"NATIONAL_LEAFLET"},
+    {verifiedStoreId:"k-citymarket-iso-omena"},
+    {evidence:{...evidence,offerFeedIdentityVerified:false}},
+    {evidence:{...evidence,offerFeedStoreId:"k-citymarket-iso-omena"}},
+    {evidence:{...evidence,canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa?from=leaflet"}}
+  ]) assert.deepEqual(classifyStoreScope({...base,evidence,...changed}), {storeScoped:false,storeId:null});
+});
