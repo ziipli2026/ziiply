@@ -1,0 +1,18 @@
+name: Comparison zero matches regression
+on:
+  push:
+    paths:
+      - 'src/app/page.tsx'
+      - 'src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx'
+      - 'scripts/audit-comparison-zero-matches-20261002.cjs'
+      - '.github/workflows/comparison-zero-matches.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/audit-comparison-zero-matches-20261002.cjs
