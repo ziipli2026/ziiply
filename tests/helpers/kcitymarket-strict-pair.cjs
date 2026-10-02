@@ -14,7 +14,10 @@ function classifyStoreScope(source) {
   return source?.kind === "VERIFIED_STORE_OFFERS" &&
     /^k-citymarket-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(source?.storeId ?? "") &&
     source?.identityVerified === true &&
-    source?.verifiedStoreId === source.storeId
+    source?.verifiedStoreId === source.storeId &&
+    source?.evidence?.canonicalPageUrl === `https://www.k-ruoka.fi/kauppa/${source.storeId}` &&
+    source?.evidence?.pageHttpStatus === 200 &&
+    source?.evidence?.pageIdentitySeen === true
     ? { storeScoped: true, storeId: source.storeId }
     : { storeScoped: false, storeId: null };
 }
