@@ -214,6 +214,12 @@ jobs:
                 pairPricesKeptForReview: result.unparsedReferenceExamples.filter(sample =>
                   sample.researchType === "PAIR_REVIEW").length
               };
+              if (!result.reviewSafety.rejectedFromStrictCandidates ||
+                  result.reviewSafety.priceRangesKeptForReview !== (result.sampleReviewSummary.RANGE_REVIEW ?? 0) ||
+                  result.reviewSafety.pairPricesKeptForReview !== (result.sampleReviewSummary.PAIR_REVIEW ?? 0) ||
+                  result.reviewSafety.total !== Object.values(result.sampleReviewSummary).reduce((a, b) => a + b, 0)) {
+                throw new Error("Citymarket research review-safety invariant failed");
+              }
               result.referenceShapeSummary = pages.reduce((summary, page) => {
                 for (const item of page.codeBlockResearch?.strictPairs ?? []) {
                   const key = item.referenceShape ?? "UNKNOWN";
