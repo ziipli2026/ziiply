@@ -108,6 +108,16 @@ jobs:
                     priceLikeTokens: [...plain.matchAll(/(?:[0-9]{1,3}[,.][0-9]{2}|[0-9]{1,3}\s*€)/g)].slice(0, 12).map(m => m[0]),
                     imageCount: (page.html.match(/<img\b/gi) || []).length,
                     htmlStructure: {
+                      productTextLocation: (() => {
+                        const at = page.html.indexOf("Savuhovi");
+                        const marker = at >= 0 ? at : page.html.search(/Ilman Plussa-korttia/i);
+                        return marker < 0 ? null : {
+                          htmlOffset: marker,
+                          surroundingHtml: page.html.slice(Math.max(0, marker - 320), marker + 460),
+                          precedingTags: [...page.html.slice(Math.max(0, marker - 700), marker).matchAll(/<([a-z][a-z0-9-]*)\b[^>]*>/gi)]
+                            .slice(-12).map(m => m[0].slice(0, 140))
+                        };
+                      })(),
                       paragraphCount: (page.html.match(/<p\b/gi) || []).length,
                       paragraphSamples: [...page.html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
                         .slice(0, 14).map((m, index) => ({
