@@ -12453,8 +12453,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const itemSingleChainAtAddV780 = String((item as any).ziiplySingleChainAtAdd || "");
           if (itemSingleChainAtAddV780 && itemSingleChainAtAddV780 === selectedKey) return item;
 
-          const itemEan = normalizeEan(item.ean || item.product?.ean);
-          const itemName = fixText(String(item.name || item.product?.name || "")).trim();
+          const originalItemV793 = (item as any).ziiplyOriginalCartItemV793 as CartItem | undefined;
+          const lookupItemV793 = originalItemV793 || item;
+          const itemEan = normalizeEan(lookupItemV793.ean || lookupItemV793.product?.ean);
+          const itemName = fixText(String(lookupItemV793.name || lookupItemV793.product?.name || "")).trim();
           if (!itemName) return item;
 
           let match: Product | undefined;
@@ -12543,6 +12545,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             return {
               ...item,
               ziiplyUnmatchedChainV783: selectedKey,
+              ziiplyOriginalCartItemV793: originalItemV793 || { ...item, ziiplyUnmatchedChainV783: undefined },
               ziiplyOriginalNeedV783: (item as any).ziiplyOriginalNeedV783 || {
                 name: itemName, ean: itemEan, chain: item.chain, storeName: item.storeName,
               },
@@ -12553,6 +12556,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return {
             ...item,
             ziiplyUnmatchedChainV783: undefined,
+            ziiplyOriginalCartItemV793: originalItemV793 || { ...item, ziiplyUnmatchedChainV783: undefined },
             ziiplySingleChainAtAdd: selectedKey,
             name: match.name || item.name,
             price,
@@ -12573,7 +12577,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           String(item.storeName || "") !== String(nextCart[index]?.storeName || "") ||
           String((item as any).ziiplySingleChainAtAdd || "") !== String((nextCart[index] as any)?.ziiplySingleChainAtAdd || "") ||
           String(item.chain || "") !== String(nextCart[index]?.chain || "") ||
-          String((item as any).ziiplyUnmatchedChainV783 || "") !== String((nextCart[index] as any)?.ziiplyUnmatchedChainV783 || ""),
+          String((item as any).ziiplyUnmatchedChainV783 || "") !== String((nextCart[index] as any)?.ziiplyUnmatchedChainV783 || "") ||
+          Boolean((item as any).ziiplyOriginalCartItemV793) !== Boolean((nextCart[index] as any)?.ziiplyOriginalCartItemV793),
       );
       if (!changed) {
         showCartToast("Valitusta ketjusta ei löytynyt turvallista vastaavaa tuotetta.");
@@ -22053,6 +22058,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   item.product?.imageUrl ??
                   item.product?.pictureUrl,
                 checked: Boolean(checkedCartItems[String(key)]),
+                ziiplyOriginalCartItemV793: (item as any).ziiplyOriginalCartItemV793,
+                ziiplyIsSubstituteV793: Boolean((item as any).ziiplyOriginalCartItemV793) &&
+                  (normalizeEan(item.ean) !== normalizeEan((item as any).ziiplyOriginalCartItemV793.ean) ||
+                   normalize(String(item.name || "")) !== normalize(String((item as any).ziiplyOriginalCartItemV793.name || ""))),
               };
             })}
             savedListsCount={savedShoppingLists.length}
@@ -22080,6 +22089,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onBack={() => {
               setCartModalOpen(false);
               setActiveResult("none");
+            }}
+            onRestoreOriginalItem={(item: any) => {
+              const original = item.ziiplyOriginalCartItemV793 as CartItem | undefined;
+              if (!original) return;
+              const restored = cart.map((entry) => String(entry.id) === String(item.id)
+                ? { ...original, quantity: entry.quantity, ziiplyOriginalCartItemV793: undefined, ziiplyUnmatchedChainV783: undefined } as CartItem
+                : entry);
+              cartRefV124.current = restored;
+              setCart(restored);
+              persistCartImmediately(restored);
+              showCartToast("Alkuperäinen tuote palautettu. Tuotteen vertailu lopetettu.");
             }}
             onRemoveItem={(item: any) => {
               const match = cart.find((cartItem: any) => {
