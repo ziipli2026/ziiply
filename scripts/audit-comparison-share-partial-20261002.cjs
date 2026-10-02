@@ -1,0 +1,21 @@
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const src=fs.readFileSync("src/app/page.tsx","utf8");
+const start=src.indexOf("function shareMobileCompareStoreV729(storeId: string)");
+const end=src.indexOf("const [normalResults",start);
+assert.ok(start>=0&&end>start);
+const block=src.slice(start,end);
+assert.match(block,/const missingCount = Math\.max\(0, Number\(result\?\.missingItems \|\| 0\)\)/);
+assert.match(block,/HUOM: \$\{missingCount\} tuotetta puuttuu tästä kaupasta/);
+assert.match(block,/Löytyneiden tuotteiden osasumma/);
+assert.match(block,/const lines = \(result\?\.matches \|\| \[\]\)\.map/);
+function simulate(result){const missingCount=Math.max(0,Number(result.missingItems||0));const lines=(result.matches||[]).map((m,i)=>`${i+1}. ${m.name} (1 kpl)`);const total=result.totalPrice.toFixed(2).replace(".",",")+" €";return [`Ziiply kori: ${result.storeName}`,missingCount>0?`HUOM: ${missingCount} tuotetta puuttuu tästä kaupasta. Alla on vain löytyneet tuotteet.`:"",missingCount>0?`Löytyneiden tuotteiden osasumma ${total}`:`Yhteensä ${total}`,...lines].filter(Boolean).join("\n")}
+const partial=simulate({storeName:"K",totalPrice:1.99,missingItems:1,matches:[{name:"Tuote A"}]});
+assert.match(partial,/HUOM: 1 tuotetta puuttuu/);
+assert.match(partial,/Löytyneiden tuotteiden osasumma 1,99 €/);
+assert.doesNotMatch(partial,/Yhteensä/);
+const full=simulate({storeName:"S",totalPrice:3.99,missingItems:0,matches:[{name:"Tuote A"},{name:"Tuote B"}]});
+assert.match(full,/Yhteensä 3,99 €/);
+assert.doesNotMatch(full,/HUOM|osasumma/);
+console.log("PASS partial share labels missing count and subtotal; complete share retains full total");
+console.log("NOTE source guard plus isolated text simulation, not browser share-sheet test");
