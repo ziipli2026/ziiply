@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
@@ -194,7 +195,7 @@ export async function GET(request: Request) {
     }
   }
 
-  await observeEanProductsBestEffort(
+  after(() => observeEanProductsBestEffort(
     items
       .filter((item) => Boolean(item.ean))
       .map((item) => ({
@@ -205,7 +206,7 @@ export async function GET(request: Request) {
         category: item.category,
         source,
       })),
-  );
+  ));
 
   return NextResponse.json({ source, status: 200, items, klevuError: klevuError || undefined });
 }
