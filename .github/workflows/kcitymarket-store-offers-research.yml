@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/kcitymarket-store-offers-research.yml
+      - tests/kcitymarket-leaflet-candidates.test.cjs
 
 permissions:
   contents: read
