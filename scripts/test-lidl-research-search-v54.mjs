@@ -902,6 +902,19 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v115Rows,1).map(r=>r.
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v115Rows,2).map(r=>r.lidlProductId),["safe-115-a","safe-115-b"]);
 assert.equal(JSON.stringify(v115Rows),v115Snapshot,"Invalid ID filtering must not mutate input");
 
+/* v116: fractional and negative limits must be normalized without changing input. */
+const v116Rows=[
+ {lidlProductId:"safe-116-a",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-116-b",name:"MILBONA Proteiinivanukas",variant:"suklaa"},
+ {lidlProductId:"safe-116-c",name:"MILBONA Proteiinivanukas",variant:"kookos"}
+];
+const v116Snapshot=JSON.stringify(v116Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v116Rows,-2).map(r=>r.lidlProductId),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v116Rows,0.9).map(r=>r.lidlProductId),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v116Rows,1.9).map(r=>r.lidlProductId),["safe-116-a"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v116Rows,2.9).map(r=>r.lidlProductId),["safe-116-a","safe-116-b"]);
+assert.equal(JSON.stringify(v116Rows),v116Snapshot,"Limit normalization must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
