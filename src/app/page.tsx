@@ -3299,6 +3299,9 @@ export default function Page() {
           await cache.put(markerRequest, new Response("1", { headers: { "content-type": "text/plain" } }));
           window.localStorage.removeItem(STORE_SELECTION_STORAGE_KEY_V343);
           window.localStorage.removeItem(STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505);
+          // CacheStorage marker missing: old manual S/K locks must not pin stale stores
+          // after browser cache clear. Ordinary reload preserves these locks.
+          writeManualStoreOverridesV786({});
 
           // Cache-clear = uusi valinta. Älä anna juuri hydratetun localStorage-tilan
           // jäädä ruudulle, vaikka async CacheStorage-tarkistus valmistuu bootin jälkeen.
