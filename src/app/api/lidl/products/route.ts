@@ -110,6 +110,17 @@ export async function GET(request: Request) {
     ? requestedStoreId
     : await resolveRuoanhintaLidlStoreId(storeName, city, address);
 
+  // Explicit research mode: public name discovery, not a store price/EAN feed.
+  if (search && searchParams.get("mode") === "research") {
+    const { searchLidlResearch } = await import("@/lib/lidlResearchSearch");
+    return NextResponse.json({
+      source: "lidl.fi-public-research",
+      storeId: null,
+      priceVerified: false,
+      items: searchLidlResearch(search),
+    });
+  }
+
   if (!search || !/^\d+$/.test(storeId)) {
     return NextResponse.json({
       source: "ruoanhinta-lidl",
