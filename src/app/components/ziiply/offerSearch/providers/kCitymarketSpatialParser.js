@@ -971,6 +971,17 @@ if(/ULKOFILEE|VILJAPORSAAN/i.test(title)&&after.some(x=>/^KG$/i.test(x.text))){
  if(own){const value=Number(own[1]+"."+own[2]);if(value>0&&value<30)spatialResolved={value,quantity:null,unit:"KG",source:"immediate-prefixed-price-with-own-kg",sanity:"pass",confidence:"high"};}
 }
 if(title.toUpperCase().includes("TUORE KOKONAINEN LOHI")&&spatialResolved?.unit==="PS")spatialResolved=null;
+// A large overprinted two-digit glyph can contain the neighbouring card's euro
+// digit followed by this card's euro digit. Require the cents and KG unit to
+// align with its right edge, inside the current product's vertical card.
+if(!spatialResolved&&anchor&&/KOKONAINEN\\s+LOHI/i.test(title)){
+ const big=wordBoxes.filter(b=>/^[1-9][0-9]$/.test(String(b.text).trim())&&b.height>=.09&&b.top<anchor.top&&b.top+b.height>anchor.top);
+ for(const b of big){const cents=wordBoxes.find(c=>/^[0-9]{2}$/.test(String(c.text).trim())&&c.height>=.045&&Math.abs(c.left-(b.left+b.width))<.012&&Math.abs(c.top-b.top)<.045);if(!cents)continue;
+ const unit=wordBoxes.some(u=>/^KG$/i.test(String(u.text).trim())&&Math.abs(u.left-(cents.left+cents.width/2))<.055&&Math.abs(u.top-(cents.top+cents.height))<.045);
+ if(!unit)continue;
+ const value=Number(b.text.slice(-1)+"."+cents.text);if(value>0&&value<30){spatialResolved={value,quantity:null,unit:"KG",source:"overprinted-large-euro-right-digit-with-cents-and-kg",sanity:"pass",confidence:"high"};break;}
+ }
+}
 title=cleanOfferTitle(title);
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}}
 return out;
