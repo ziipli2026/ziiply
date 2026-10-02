@@ -758,7 +758,10 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
   const cleanStoreName = String(storeName || "").trim();
   if (!cleanStoreName) return null;
   const key = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
-  if (sKaupatPickupResolverCacheV215.has(key)) return sKaupatPickupResolverCacheV215.get(key) ?? null;
+  // V222: never persist an unavailable pickup lookup as a permanent negative.
+  // Slots and store availability can change tomorrow; retry on every later request.
+  const cachedPickupIdV222 = sKaupatPickupResolverCacheV215.get(key);
+  if (cachedPickupIdV222) return cachedPickupIdV222;
 
   lastPickupResolverDiagnosticV216 = {
     storeName: cleanStoreName,
@@ -898,7 +901,9 @@ async function getEffectiveSKaupatStoreIdV174(
     // V215/V216 is intentionally fallback only. If this later proves complete,
     // the two older resolver blocks above can be disabled without changing it.
     const resolvedFromPickupSlotsV215 = await resolveSKaupatStoreIdViaPickupSlotsV215(storeName);
-    if (resolvedFromPickupSlotsV215) {
+    if (resolvedFromPickupSlotsV215 &&
+      normalizeSKaupatStoreNameForMatchV198(lastPickupResolverDiagnosticV216?.bestPickupName || "")
+        .includes(getStorePlaceTokenV215(storeName))) {
       console.warn("[GOSTA V217] S-kaupat storeId resolved by remotePickupSlots fallback", {
         inputStoreId: raw || null,
         storeName,
