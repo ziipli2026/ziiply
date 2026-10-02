@@ -117,11 +117,14 @@ jobs:
                         const unit = anchor.previousLines.at(-1) ?? "";
                         const digits = anchor.previousLines.at(-2) ?? "";
                         const normal = anchor.referenceLine.match(/Ilman Plussa-korttia\s+(\d{1,3}[,.]\d{2})\s*\/\s*(pkt|ps|rs|kpl|kg)/i);
+                        const referencePosition = anchor.referenceLine.search(/Ilman Plussa-korttia/i);
+                        const referenceShape = normal ? (referencePosition === 0 ? "START_OF_LINE" : "INLINE") :
+                          /Ilman Plussa-korttia/i.test(anchor.referenceLine) ? "MALFORMED_OR_SPLIT" : "ABSENT";
                         const matched = /^\d{3,4}$/.test(digits) && /^(PKT|PS|RS|KPL|KG)$/i.test(unit) &&
                           normal && unit.toLowerCase() === normal[2].toLowerCase();
                         const offer = matched ? Number(digits) / 100 : null;
                         const regular = normal ? Number(normal[1].replace(",", ".")) : null;
-                        return { line: anchor.index, offer, regular,
+                        return { line: anchor.index, offer, regular, referenceShape,
                           classification: !normal ? "REFERENCE_NOT_PARSED" :
                             !matched ? "INCOMPLETE_OR_NONADJACENT_PRICE" :
                             offer >= regular ? "NOT_DISCOUNTED" : "STRICT_LINE_PAIR_RESEARCH_ONLY" };
