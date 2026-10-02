@@ -1,0 +1,14 @@
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const source=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
+assert.match(source,/function getDisplayCartTotalV8\(items: ZiiplyMobileCartItem\[\]\)/);
+assert.match(source,/const quantity = getCartItemQuantityForTotalV8\(item\);/);
+assert.match(source,/return sum \+ unitPrice \* quantity;/);
+const weight={quantity:2,ziiplyPricePendingWeight:true,ziiplyWeightFinalPrice:6.45};
+const normal={quantity:2,price:2.50};
+const total=items=>items.reduce((sum,item)=>{const price=item.ziiplyPricePendingWeight?item.ziiplyWeightFinalPrice:item.price;const quantity=item.quantity??1;return sum+price*(item.ziiplyPricePendingWeight?1:quantity);},0);
+assert.equal(total([weight]),6.45);
+assert.equal(total([normal]),5);
+assert.equal(total([weight,normal]),11.45);
+assert.match(source,/const quantity = .*ziiplyPricePendingWeight/,"confirmed weight row must not multiply its final price by quantity");
+console.log("PASS confirmed scale total counted once while normal units multiply");
