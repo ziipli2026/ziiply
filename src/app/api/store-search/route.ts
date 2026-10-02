@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 
 type RawStore = Record<string, any>;
 
+const TUUSULA_PRISMA_STORE: RawStore = {
+  id: "726753948",
+  name: "Prisma Tuusula",
+  chain: "S",
+  type: "Prisma",
+  city: "Tuusula",
+  postalCode: "04300",
+  address: "Autoasemankatu 4, 04300 Tuusula",
+  lat: 60.4019,
+  long: 25.0280,
+  country: "FI",
+  sProductSearchStoreId: "726753948",
+};
+
 function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const rad = (value: number) => (value * Math.PI) / 180;
   const dLat = rad(lat2 - lat1);
@@ -60,9 +74,11 @@ export async function GET(request: NextRequest) {
 
       const terms = ["S-market", "Sale", "Alepa", "K-Market", "K-Supermarket", "Prisma", "K-Citymarket"];
       const batches = await Promise.all(terms.map(fetchRuoanhinta));
+      // Ruoanhinta may not yet list the newly opened Tuusulan Prisma.
+      // Keep it in the GPS store directory explicitly until upstream catches up.
+      const gpsStores = [...batches.flat(), TUUSULA_PRISMA_STORE];
       const seen = new Set<string>();
-      const items = batches
-        .flat()
+      const items = gpsStores
         .map((store) => {
           // Tuusulan Prisma is newly opened; use its official S-kaupat product-search ID.
           const name = String(store.name || "");
@@ -132,7 +148,10 @@ export async function GET(request: NextRequest) {
     const query = normalizeText(search);
     const apiSearch = query === "ii" ? search.trim() + " " : search;
     const data = await fetchRuoanhinta(apiSearch);
-    const live = data.filter((store) => !store.delistedAt);
+    const manualStores = normalizeText(search).includes("tuusula")
+      ? [...data, TUUSULA_PRISMA_STORE]
+      : data;
+    const live = manualStores.filter((store) => !store.delistedAt);
     const exactCity = live.filter((store) => normalizeText(store.city) === query);
 
     const nameMatches = live.filter((store) => {
