@@ -230,3 +230,15 @@ test("reject an intervening standalone price glyph even when product name is val
     assert.equal(parseStrictPair(["Example product 200 g",stray,"249","PKT","Ilman Plussa-korttia 3,99/pkt"]), null, stray);
   }
 });
+
+test("HTTP success and store name alone never verify a store offer feed", () => {
+  const base = {kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-hyvinkaa",identityVerified:true};
+  const evidence = {canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:true};
+  for (const feed of [
+    {},
+    {offerFeedStoreId:"k-citymarket-hyvinkaa"},
+    {offerFeedIdentityVerified:true},
+    {offerFeedStoreId:"k-citymarket-iso-omena",offerFeedIdentityVerified:true},
+    {offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:"true"}
+  ]) assert.deepEqual(classifyStoreScope({...base,evidence:{...evidence,...feed}}),{storeScoped:false,storeId:null});
+});
