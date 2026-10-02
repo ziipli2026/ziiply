@@ -72,10 +72,8 @@ export async function GET(request: NextRequest) {
           return store;
         })
         .filter((store) => {
-        .flat()
-        .filter((store) => {
           const name = String(store.name || "");
-        if (store.delistedAt) return false;
+          if (store.delistedAt) return false;
           if (!/^(?:S-market|Sale\b|Alepa\b|K-Market\b|K-Supermarket\b|Prisma\b|K-Citymarket\b)/i.test(name)) return false;
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
           const country = String(store.country || store.countryCode || "").trim().toUpperCase();
