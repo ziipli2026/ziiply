@@ -34,3 +34,24 @@ jobs:
             if (!response.ok || new URL(response.url).pathname !== "/kauppa/k-citymarket-hyvinkaa") process.exitCode = 1;
           })().catch(e => { console.error(String(e)); process.exitCode = 1; });
           NODE
+
+      - name: Probe separately hosted leaflet navigation
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const entry = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
+          (async () => {
+            const response = await fetch(entry, { redirect: "follow", signal: AbortSignal.timeout(15000) });
+            const final = new URL(response.url);
+            const allowed = ["kcm-lehdet.k-ruoka.fi", "kcm-tarjouslehdet.k-ruoka.fi"];
+            console.log(JSON.stringify({
+              source: "separately hosted K-Citymarket leaflet navigation",
+              entry, status: response.status, finalUrl: response.url,
+              trustedLeafletHost: final.protocol === "https:" && allowed.includes(final.hostname),
+              storeScopedOfferFeedVerified: false,
+              note: "Navigation research only; no prices, products, or selected-store identity inferred."
+            }, null, 2));
+            if (!response.ok || final.protocol !== "https:" || !allowed.includes(final.hostname)) process.exitCode = 1;
+          })().catch(error => { console.error(String(error)); process.exitCode = 1; });
+          NODE
