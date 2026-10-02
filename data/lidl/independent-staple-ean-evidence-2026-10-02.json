@@ -510,7 +510,7 @@
       "ean": null,
       "eanStatus": "not_verified",
       "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
-      "note": "Public Lidl listing or historical Lidl report. Name and stated pack size only; EAN, current local stock and current normal price unverified.",
+      "note": "Public Lidl listing or historical Lidl report. Name and stated pack size only; EAN, current local stock and current normal price unverified. Lidl coffee/tea category independently confirms the named variety: https://www.lidl.fi/c/kahvi-ja-tee/s10073273.",
       "assortmentEvidence": "lidl-public-product-mention",
       "currentStoreStockVerified": false,
       "recordKind": "lidl-named-product"
@@ -887,17 +887,6 @@
       "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
       "note": "Lidl coffee category names this coffee type or format. Package size, specific SKU, current local stock and price not verified; research discovery only.",
       "recordKind": "coffee-format-named",
-      "assortmentEvidence": "lidl-national-range-announcement",
-      "currentStoreStockVerified": false
-    },
-    {
-      "name": "Bellarom Hieno Vilhelmiina",
-      "brand": "Bellarom",
-      "ean": null,
-      "eanStatus": "not_verified",
-      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
-      "note": "Lidl official coffee and tea category explicitly names this variety/type; exact SKU, pack size, EAN, current local stock and price not verified. Research discovery only.",
-      "recordKind": "coffee-tea-variety-named",
       "assortmentEvidence": "lidl-national-range-announcement",
       "currentStoreStockVerified": false
     },
