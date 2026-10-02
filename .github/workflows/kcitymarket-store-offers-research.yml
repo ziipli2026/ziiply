@@ -55,3 +55,40 @@ jobs:
             if (!response.ok || final.protocol !== "https:" || !allowed.includes(final.hostname)) process.exitCode = 1;
           })().catch(error => { console.error(String(error)); process.exitCode = 1; });
           NODE
+
+      - name: Inspect leaflet HTML publication metadata
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const entry = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
+          const allowed = new Set(["kcm-lehdet.k-ruoka.fi", "kcm-tarjouslehdet.k-ruoka.fi"]);
+          const read = async url => {
+            const response = await fetch(url, { signal: AbortSignal.timeout(12000), redirect: "follow" });
+            const final = new URL(response.url);
+            if (final.protocol !== "https:" || !allowed.has(final.hostname)) throw Error("Unexpected leaflet host");
+            return { response, html: response.ok ? (await response.text()).slice(0, 300000) : "" };
+          };
+          (async () => {
+            const first = await read(entry);
+            const links = [...first.html.matchAll(/(?:href|location(?:\\.href)?\\s*=)\\s*["']([^"'<>]+)["']/gi)]
+              .map(m => m[1].replace(/&amp;/g, "&"))
+              .map(href => { try { return new URL(href, first.response.url); } catch { return null; } })
+              .filter(url => url && url.protocol === "https:" && allowed.has(url.hostname));
+            const publication = links.find(url => /\\/index\\.html(?:$|\\?)/i.test(url.pathname));
+            const result = { entryStatus: first.response.status, publicationUrl: publication?.href ?? null,
+              publicationStatus: null, basicHtmlStatus: null, issueMarker: null,
+              pageLinks: [], note: "Metadata only. No products/prices or store identity inferred." };
+            if (publication) {
+              const pub = await read(publication.href);
+              result.publicationStatus = pub.response.status;
+              const basic = new URL("files/basic-html/index.html", pub.response.url);
+              const page = await read(basic.href);
+              result.basicHtmlStatus = page.response.status;
+              result.issueMarker = page.html.match(/\\b\\d{1,2}(?:AV|LV)\\/26\\b/i)?.[0] ?? null;
+              result.pageLinks = [...page.html.matchAll(/href=["']([^"'<>]*\\/basic-html\\/[^"'<>]+|\\d{4}\\.html)["']/gi)]
+                .map(m => m[1]).slice(0, 25);
+            }
+            console.log(JSON.stringify(result, null, 2));
+          })().catch(error => { console.error("Leaflet metadata research:", String(error)); process.exitCode = 1; });
+          NODE
