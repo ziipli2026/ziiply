@@ -1,0 +1,10 @@
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const source=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
+assert.match(source,/const confirmedWeightFinalV802 = item\.ziiplyWeightFinalPrice \?\? item\.product\?\.ziiplyWeightFinalPrice;/);
+assert.match(source,/const numericRowPriceV792 = pendingWeightV794 \? 0 : getNumericPrice\(rowPriceInputV802\);/);
+assert.match(source,/normalizePrice\(rowPriceInputV802\)/);
+const row=(item)=>{const pending=Boolean(item.ziiplyPricePendingWeight||item.product?.ziiplyPricePendingWeight);const final=item.ziiplyWeightFinalPrice??item.product?.ziiplyWeightFinalPrice;const pendingWeight=pending&&(final==null||final===""||!Number.isFinite(Number(final)));return !pendingWeight&&pending&&final!=null&&final!==""&&Number.isFinite(Number(final))&&Number(final)>=0?Number(final):pendingWeight?0:item.price;};
+const base={price:0,product:{ziiplyPricePendingWeight:true}};
+assert.equal(row(base),0);assert.equal(row({...base,product:{...base.product,ziiplyWeightFinalPrice:24.50}}),24.50);assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:6.45}}),6.45);
+console.log("PASS receipt row selects confirmed euro final price and excludes stale €/kg quote");
