@@ -50,17 +50,25 @@ test("reject ambiguous reference suffix and oversized compact price", () => {
 test("national leaflet cannot inherit Hyvinkaa store identity", () => {
   assert.deepEqual(classifyStoreScope({kind:"NATIONAL_LEAFLET", storeId:"k-citymarket-hyvinkaa", identityVerified:false}), {storeScoped:false,storeId:null});
   assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS", storeId:"k-citymarket-hyvinkaa", identityVerified:false}), {storeScoped:false,storeId:null});
-  assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS", storeId:"k-citymarket-hyvinkaa", identityVerified:true,verifiedStoreId:"k-citymarket-hyvinkaa"}), {storeScoped:true,storeId:"k-citymarket-hyvinkaa"});
+  assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS", storeId:"k-citymarket-hyvinkaa", identityVerified:true,verifiedStoreId:"k-citymarket-hyvinkaa",evidence:{canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:true}}), {storeScoped:true,storeId:"k-citymarket-hyvinkaa"});
 });
 
 test("reject store-scope identity mismatch and missing independent verification", () => {
   assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",identityVerified:true}), {storeScoped:false,storeId:null});
   assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-iso-omena",identityVerified:true}), {storeScoped:false,storeId:null});
-  assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-hyvinkaa",identityVerified:true}), {storeScoped:true,storeId:"k-citymarket-hyvinkaa"});
+  assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-hyvinkaa",identityVerified:true,evidence:{canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:true}}), {storeScoped:true,storeId:"k-citymarket-hyvinkaa"});
 });
 
 test("reject malformed store slug despite matching asserted identity", () => {
   for (const storeId of ["k-citymarket-", "k-citymarket--hyvinkaa", "k-citymarket-hyvinkaa-", "k-citymarket-hyvinkaa/../iso-omena", "K-Citymarket-Hyvinkaa"]) {
     assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS",storeId,verifiedStoreId:storeId,identityVerified:true}), {storeScoped:false,storeId:null});
   }
+});
+
+test("reject store scope without verified canonical-page evidence", () => {
+  const base = {kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-hyvinkaa",identityVerified:true};
+  assert.equal(classifyStoreScope(base).storeScoped, false);
+  assert.equal(classifyStoreScope({...base,evidence:{canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-iso-omena",pageHttpStatus:200,pageIdentitySeen:true}}).storeScoped, false);
+  assert.equal(classifyStoreScope({...base,evidence:{canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:403,pageIdentitySeen:true}}).storeScoped, false);
+  assert.equal(classifyStoreScope({...base,evidence:{canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:false}}).storeScoped, false);
 });
