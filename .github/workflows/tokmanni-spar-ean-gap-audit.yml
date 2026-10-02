@@ -26,11 +26,13 @@ jobs:
           DATABASE_URL: ${{ secrets.NEON_READONLY_DATABASE_URL }}
       - run: node scripts/tokmanni-spar-merge-classification.mjs
       - run: node scripts/tokmanni-spar-muut-triage.mjs
+      - run: node scripts/tokmanni-spar-quality-gate.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: tokmanni-spar-ean-gap
           path: |
+            tokmanni-spar-quality-gate.json
             tokmanni-spar-muut-triage.json
             tokmanni-spar-merged-classification.json
             tokmanni-spar-historical-neon.json
