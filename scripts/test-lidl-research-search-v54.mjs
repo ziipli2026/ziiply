@@ -1144,6 +1144,21 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v132Rows,2).map(r=>r.
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v132Rows,3).map(r=>r.lidlProductId),["safe-132-a","safe-132-b","safe-132-c"]);
 assert.equal(JSON.stringify(v132Rows),v132Snapshot,"Malformed rows and duplicate IDs must not mutate source");
 
+/* v133: mutating a returned item must not affect source records or subsequent results. */
+const v133Rows=[
+ {lidlProductId:" safe-133-a ",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-133-b",name:"MILBONA Proteiinivanukas",variant:"suklaa"}
+];
+const v133Snapshot=JSON.stringify(v133Rows);
+const v133Before=searchResearch("milbona proteiinivanukas",v133Rows,2);
+const v133Expected=JSON.parse(JSON.stringify(v133Before));
+v133Before[0].name="changed";
+v133Before[0].variant="changed";
+v133Before[0].lidlProductId="changed";
+v133Before[0].source="changed";
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v133Rows,2),v133Expected);
+assert.equal(JSON.stringify(v133Rows),v133Snapshot,"Result mutation must not affect source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
