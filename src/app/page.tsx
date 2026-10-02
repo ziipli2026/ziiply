@@ -11939,7 +11939,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
 
           const finalItems = (betweenSingleLidl
-            ? safeItems.filter((product) => Boolean(product.name?.trim()))
+            ? safeItems.filter((product) => Boolean(product.name?.trim()) && product.source === "lidl.fi-public-research")
             : rankNormalSearchResults(searchQuery, safeItems))
             .slice(0, 40)
             .map((product) => {
