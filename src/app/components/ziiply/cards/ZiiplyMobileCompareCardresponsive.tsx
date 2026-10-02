@@ -445,9 +445,10 @@ export default function ZiiplyMobileCompareCardresponsive({
 
                       <div className="flex -translate-y-[0.18rem] flex-col items-center gap-2">
                           {onShareStore ? (
-                            <button type="button" onClick={(event) => { event.stopPropagation(); onShareStore(store.id); }}
-                              className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
-                              aria-label={`Jaa ${store.name} kori`} title="Jaa kori">
+                            <button type="button" onClick={(event) => { event.stopPropagation(); if (!hasNoCounterpart) onShareStore(store.id); }}
+                              disabled={hasNoCounterpart}
+                              className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-45"
+                              aria-label={hasNoCounterpart ? `${store.name}: jaettavia vastintuotteita ei löytynyt` : `Jaa ${store.name} kori`} title={hasNoCounterpart ? "Jaettavia vastintuotteita ei löytynyt" : "Jaa kori"}>
                               <svg aria-hidden="true" viewBox="0 0 24 18" className="h-[0.94rem] w-[1.12rem]">
                                 <path d="M2.5 3.5h19v11h-19z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                                 <path d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
