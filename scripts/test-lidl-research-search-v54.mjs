@@ -598,10 +598,11 @@ const v92Fixture=Array.from({length:65},(_,i)=>({
 }));
 const v92Fifty=searchResearch("pizza",v92Fixture,50);
 assert.equal(v92Fifty.length,50);
-for(const oversized of [51,65,100,1000000,Infinity]){
+for(const oversized of [51,65,100,1000000]){
  const actual=searchResearch("pizza",v92Fixture,oversized);
  assert.deepEqual(actual,v92Fifty,"Unexpected behavior for limit "+oversized);
 }
+assert.deepEqual(searchResearch("pizza",v92Fixture,Infinity),searchResearch("pizza",v92Fixture,15),"Non-finite limit must use default");
 assert.ok(v92Fifty.every(r=>r.ean===null&&r.displayedPriceEur===null));
 
 const cheeseHits=searchResearch("juusto",corpus);
