@@ -78,6 +78,13 @@ try {
     assert.ok(searchLidlResearch(query, 50).every(r => teaIds.has(r.lidlProductId)),
       "Tea compound search escaped product-name category: " + query);
   }
+  // The API asks for 40 discovery candidates; the helper must preserve its explicit limit.
+  for (const query of ["maito", "juusto", "jogurtti"]) {
+    const forty = searchLidlResearch(query, 40);
+    assert.ok(forty.length <= 40, "Lidl API discovery limit exceeded: " + query);
+    assert.deepEqual(forty.slice(0, 15), searchLidlResearch(query, 15),
+      "Increasing Lidl discovery limit changed the highest-ranked matches: " + query);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
