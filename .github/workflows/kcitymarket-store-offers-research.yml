@@ -19,6 +19,27 @@ jobs:
       - uses: actions/checkout@v4
       - name: Historical leaflet candidate regression tests
         run: node --test tests/kcitymarket-leaflet-candidates.test.cjs
+      - name: Probe store-addressed leaflet route without importing offers
+        shell: bash
+        run: |
+          node <<'NODE'
+          const targets = [
+            ["hyvinkaa", "https://www.k-ruoka.fi/tarjouslehdet/kauppa/k-citymarket-hyvinkaa"],
+            ["jumbo-control", "https://www.k-ruoka.fi/tarjouslehdet/kauppa/k-citymarket-vantaa-jumbo"]
+          ];
+          (async () => {
+            for (const [name, url] of targets) {
+              try {
+                const response = await fetch(url, {redirect:"follow",signal:AbortSignal.timeout(12000)});
+                const contentType = response.headers.get("content-type") || "";
+                const bytes = response.ok ? await response.arrayBuffer() : null;
+                console.log(JSON.stringify({name,requestedUrl:url,status:response.status,finalUrl:response.url,contentType,bytes:bytes?.byteLength ?? 0,verifiedStoreOffers:false}));
+              } catch (error) {
+                console.log(JSON.stringify({name,requestedUrl:url,error:String(error),verifiedStoreOffers:false}));
+              }
+            }
+          })();
+          NODE
       - name: Probe public canonical Hyvinkaa store page
         shell: bash
         run: |
