@@ -1,6 +1,10 @@
 name: Citymarket store offers research
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/kcitymarket-store-offers-research.yml
 
 permissions:
   contents: read
