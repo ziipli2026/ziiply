@@ -590,6 +590,20 @@ assert.equal(v91Second[0].variant,"kahvi");
 assert.notEqual(v91Second[0].observedDate,"2099-01-01");
 assert.deepEqual(searchResearch("milbona proteiinivanukas kookos",v91Fixture),[]);
 
+
+/* v92: large requested limits remain capped at 50 without dropping safety fields. */
+const v92Fixture=Array.from({length:65},(_,i)=>({
+ lidlProductId:"limit92-"+String(i).padStart(2,"0"),name:"Pizza Test "+String(i).padStart(2,"0"),
+ ean:"unverified",displayedPriceEur:0.01
+}));
+const v92Fifty=searchResearch("pizza",v92Fixture,50);
+assert.equal(v92Fifty.length,50);
+for(const oversized of [51,65,100,1000000,Infinity]){
+ const actual=searchResearch("pizza",v92Fixture,oversized);
+ assert.deepEqual(actual,v92Fifty,"Unexpected behavior for limit "+oversized);
+}
+assert.ok(v92Fifty.every(r=>r.ean===null&&r.displayedPriceEur===null));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
