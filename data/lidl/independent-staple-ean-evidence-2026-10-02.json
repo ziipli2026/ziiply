@@ -370,6 +370,106 @@
       "assortmentEvidence": "lidl-historical-product-mention",
       "currentStoreStockVerified": false,
       "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kotimainen tomaatti, irto 1 kg",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kotimainen kurkku, irto 1 kg",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Grillimaisteri Esikeitetty maissi, 450 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kesäkurpitsa, irto 1 kg",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kotimainen jääsalaattipussi, 100 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Grilliherkkusieni, 400 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Munakoiso, 300 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Suippopaprika punainen, 500 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Minivesimeloni, irto 1 kg",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kanamestari kanan sisäfilee maustamaton, 400 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Exact Lidl-side product description in Lidl's public basket comparison; no GTIN, live store stock or live price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
     }
   ]
 }
