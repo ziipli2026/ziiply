@@ -108,3 +108,14 @@ test("reject alternative multibuy price punctuation in product context", () => {
     assert.equal(parseStrictPair([context, "250", "KPL", "Ilman Plussa-korttia 3,00/kpl"]), null, context);
   }
 });
+
+test("allow informational unit price after a verified ordinary reference", () => {
+  const result = parseStrictPair(["Example cereal 300 g (8,30/kg)", "249", "PKT", "Ilman Plussa-korttia 2,99/pkt (9,97/kg)"]);
+  assert.equal(result?.offer, 2.49);
+  assert.equal(result?.regular, 2.99);
+});
+test("reject a second price or multibuy clause after reference price", () => {
+  for (const suffix of [" tai 2 pkt 5,00", " – 2 pkt 5,00", " - 2 pkt 5,00", " tai 4,49/pkt"]) {
+    assert.equal(parseStrictPair(["Example cereal 300 g", "249", "PKT", "Ilman Plussa-korttia 2,99/pkt" + suffix]), null, suffix);
+  }
+});
