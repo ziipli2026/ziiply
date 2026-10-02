@@ -758,6 +758,10 @@ export default function ZiiplyMobileCartCard({
                 const pendingWeightV794 = isPendingWeightPriceV794(item);
                 const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(item.price);
                 const price = numericRowPriceV792 > 0 ? normalizePrice(item.price) : "";
+                const pendingWeightUnitPriceV796 =
+                  pendingWeightV794 && Number.isFinite(Number((item as any).comparisonPrice))
+                    ? normalizePrice((item as any).comparisonPrice)
+                    : "";
                 const checked = Boolean(item.checked);
                 const quantity = Number(item.quantity ?? item.amount ?? 1);
                 const safeQuantity = Number.isFinite(quantity) ? Math.max(1, quantity) : 1;
@@ -819,9 +823,20 @@ export default function ZiiplyMobileCartCard({
                     >
                       {isAlcoholCartItemV8(item)
                         ? "kassa"
-                        : pendingWeightV794 ? <span className="text-[0.66rem] font-black uppercase tracking-[-0.02em] text-[#b42318]">Punnitse</span> : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
-                          ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
-                          : price || "—"}
+                        : pendingWeightV794
+                          ? (
+                            <div className="flex flex-col items-end leading-none">
+                              <span className="text-[0.72rem] font-black tracking-[-0.02em] text-[#473719]">
+                                {pendingWeightUnitPrice ? `${pendingWeightUnitPrice}/kg` : "—"}
+                              </span>
+                              <span className="mt-1 text-[0.60rem] font-black uppercase tracking-[-0.01em] text-[#b42318]">
+                                Punnitse
+                              </span>
+                            </div>
+                          )
+                          : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
+                            ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
+                            : price || "—"}
                     </div>
                     {item.ziiplyIsSubstituteV793 && onRestoreOriginalItem && (
                       <button type="button" onClick={() => onRestoreOriginalItem(item)}
