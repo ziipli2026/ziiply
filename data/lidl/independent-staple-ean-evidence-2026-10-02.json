@@ -161,6 +161,39 @@
       "eanStatus": "not_verified",
       "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
       "note": "Lidl testimenestyjät page documents named food product (04/2024); historical mention only, not current store availability, EAN or price."
+    },
+    {
+      "name": "Dulano Palvi",
+      "brand": "Dulano",
+      "quantity": "400 g",
+      "note": "Lidl recall 25.6.2026 identifies product and package size; historical listing only. Affected batches must not be represented as available.",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/takaisinvedot/s10021744"
+    },
+    {
+      "name": "Kot-Kot-Kotimaiset vapaan kanan kananmuna L15",
+      "brand": "Kot-Kot-Kotimaiset",
+      "note": "Lidl recall 23.6.2026 identifies product; historical listing only. Do not infer current availability or EAN.",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/takaisinvedot/s10021744"
+    },
+    {
+      "name": "Kot-Kot-Kotimaiset vapaan kanan kananmuna M10",
+      "brand": "Kot-Kot-Kotimaiset",
+      "note": "Lidl recalls 23.6 and 18.8.2026 identify product; historical listing only. Do not infer current availability or EAN.",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/takaisinvedot/s10021744"
+    },
+    {
+      "name": "Laitilan Kanatarhan vapaan kanan kananmuna M15",
+      "brand": "Laitilan Kanatarha",
+      "note": "Lidl recall 18.8.2026 identifies product; historical listing only. Do not infer current availability or EAN.",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/takaisinvedot/s10021744"
     }
   ]
 }
