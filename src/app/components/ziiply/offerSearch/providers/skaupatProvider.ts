@@ -881,16 +881,8 @@ async function getEffectiveSKaupatStoreIdV174(
     }
   }
 
-  // V800: caller externalId is fallback only. A store name resolver is safer
-  // and restores the previously working Prisma path (e.g. Prisma Hyvinkää).
-  if (/^\d{9}$/.test(raw) && raw !== DEFAULT_SKAUPAT_STORE_ID_V156) {
-    console.warn("[GOSTA V800] using caller Prisma externalId after name resolvers missed", {
-      storeId: raw,
-      storeName: storeName || null,
-    });
-    return raw;
-  }
-
+  // A public S-kaupat externalId is NOT a verified RemoteFilteredProducts
+  // product-store ID. Never fall back to it when the name resolvers fail.
   const mappedProductSearchStoreId = S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw];
   if (mappedProductSearchStoreId) {
     console.warn("[GOSTA V218] using verified Ruoanhinta -> S-kaupat Prisma fallback", {
@@ -899,15 +891,6 @@ async function getEffectiveSKaupatStoreIdV174(
       resolvedStoreId: mappedProductSearchStoreId,
     });
     return mappedProductSearchStoreId;
-  }
-
-  // Last resort only. Short Ziiply/Ruoanhinta IDs do not pass this check.
-  if (/^\d{5,}$/.test(raw) && raw !== DEFAULT_SKAUPAT_STORE_ID_V156) {
-    console.warn("[GOSTA V204] using caller numeric storeId only after name resolver miss", {
-      storeId: raw,
-      storeName: storeName || null,
-    });
-    return raw;
   }
 
   console.warn("[GOSTA V204] could not resolve selected store to an S-kaupat storeId", {
