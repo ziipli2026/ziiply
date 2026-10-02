@@ -9392,6 +9392,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       showCartToast("Valitun kaupan ostoskoria ei löytynyt");
       return;
     }
+    const chosenResult = chainResults.find((result) => result.key === chosenKey);
+    if (!chosenResult || (chosenResult.foundItems <= 0 && chosenResult.missingItems > 0)) {
+      showCartToast("Tästä kaupasta ei löytynyt ostettavia vastintuotteita");
+      return;
+    }
     setMobileCompareShoppingStoreKeyV732(chosenKey);
     // V733: vertailukorin keräily on täysin oma näkymänsä. Tavallista cartModalOpen-tilaa
     // tai alkuperäistä cart-dataa ei muuteta.
