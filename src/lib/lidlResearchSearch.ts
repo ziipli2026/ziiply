@@ -6,6 +6,7 @@ const quarantined = new Set(catalog.quarantinedProductIds.map(id => String(id).t
 const norm = (s: string) => s.toLocaleLowerCase("fi-FI").normalize("NFKD")
   .replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 const tokens = (s: string) => norm(s).split(/\s+/).filter(Boolean);
+const identity = (s: string) => norm(s).replace(/\\b(\d+)\s+(g|kg|ml|l|kpl)\\b/g, "$1$2");
 const exactStaples = new Set(["maito","voi","pasta","kananmuna","jauheliha","peruna","banaani","juusto","leipa","omena","pizza"]);
 const forms: Record<string,string[]> = {
  maito:["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"],
@@ -42,11 +43,13 @@ export function searchLidlResearch(query:string,limit=15){
   const nameWords=tokens(r.name);
   const score=all?q.reduce((n,t)=>n+(nameWords.includes(t)?20:nameWords.some(w=>matches(w,t))?8:words.includes(t)?4:3),0)
     + (norm(r.name)===q.join(" ")?50:0)
-    + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"?3:0):0;
+    + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"?12:0)
+    + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-historical-product-mention"?-12:0)
+    + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-public-basket-comparison"?4:0):0;
   return {r,score};
  }).filter(x=>x.score>0)
  .sort((a,b)=>b.score-a.score||a.r.name.localeCompare(b.r.name,"fi-FI"))
- .filter(({r})=>{const id=r.lidlProductId.trim();const name=norm([r.name,r.variant].filter(Boolean).join(" "));if(seen.has(id)||seenNames.has(name))return false;seen.add(id);seenNames.add(name);return true;})
+ .filter(({r})=>{const id=r.lidlProductId.trim();const name=identity([r.name,r.variant].filter(Boolean).join(" "));if(seen.has(id)||seenNames.has(name))return false;seen.add(id);seenNames.add(name);return true;})
  .slice(0,safeLimit).map(({r})=>({
   id:-Number(r.lidlProductId),lidlProductId:r.lidlProductId.trim(),name:[r.name,r.variant].filter(Boolean).join(" "),
   ean:null,price:null,storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
