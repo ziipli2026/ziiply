@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/kcitymarket-store-offers-research.yml
       - tests/kcitymarket-leaflet-candidates.test.cjs
+      - tests/helpers/kcitymarket-strict-pair.cjs
 
 permissions:
   contents: read
@@ -117,23 +118,18 @@ jobs:
                       const anchors = lines.flatMap((line, index) => /Ilman Plussa-korttia/i.test(line)
                         ? [{ index, previousLines: lines.slice(Math.max(0, index - 5), index),
                             referenceLine: line.slice(0, 130) }] : []);
+                      const { parseStrictPair } = require("./tests/helpers/kcitymarket-strict-pair.cjs");
                       const strictPairs = anchors.map(anchor => {
-                        const unit = anchor.previousLines.at(-1) ?? "";
-                        const digits = anchor.previousLines.at(-2) ?? "";
+                        const context = lines.slice(Math.max(0, anchor.index - 5), anchor.index + 1);
+                        const parsed = parseStrictPair(context);
                         const normal = anchor.referenceLine.match(/Ilman Plussa-korttia\s+(\d{1,3}[,.]\d{2})\s*\/\s*(pkt|ps|rs|kpl|kg|tlk|plo|prk|ltk)/i);
-                        const referencePosition = anchor.referenceLine.search(/Ilman Plussa-korttia/i);
-                        const referenceShape = normal ? (referencePosition === 0 ? "START_OF_LINE" : "INLINE") :
-                          /Ilman Plussa-korttia/i.test(anchor.referenceLine) ? "MALFORMED_OR_SPLIT" : "ABSENT";
-                        const matched = /^\d{3,4}$/.test(digits) && /^(PKT|PS|RS|KPL|KG|TLK|PLO|PRK|LTK)$/i.test(unit) &&
-                          normal && unit.toLowerCase() === normal[2].toLowerCase();
-                        const offer = matched ? Number(digits) / 100 : null;
-                        const regular = normal ? Number(normal[1].replace(",", ".")) : null;
-                        return { line: anchor.index, offer, regular, referenceShape,
-                          productContext: matched ? lines.slice(Math.max(0, anchor.index - 5), anchor.index - 2) : [],
-                          priceEvidence: matched ? { digits, unit, referenceLine: anchor.referenceLine } : null,
-                          classification: !normal ? "REFERENCE_NOT_PARSED" :
-                            !matched ? "INCOMPLETE_OR_NONADJACENT_PRICE" :
-                            offer >= regular ? "NOT_DISCOUNTED" : "STRICT_LINE_PAIR_RESEARCH_ONLY" };
+                        const referenceShape = normal ? (anchor.referenceLine.search(/Ilman Plussa-korttia/i) === 0 ? "START_OF_LINE" : "INLINE") : "MALFORMED_OR_SPLIT";
+                        return { line: anchor.index, offer: parsed?.offer ?? null,
+                          regular: parsed?.regular ?? (normal ? Number(normal[1].replace(",", ".")) : null),
+                          referenceShape, productContext: parsed?.productContext ?? [],
+                          priceEvidence: parsed ? { digits: anchor.previousLines.at(-2), unit: parsed.unit, referenceLine: anchor.referenceLine } : null,
+                          classification: parsed ? "STRICT_LINE_PAIR_RESEARCH_ONLY" :
+                            !normal ? "REFERENCE_NOT_PARSED" : "INCOMPLETE_OR_NONADJACENT_PRICE" };
                       });
                       return { found: Boolean(block), lineCount: lines.length,
                         strictPairs,
