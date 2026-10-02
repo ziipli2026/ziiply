@@ -24,11 +24,13 @@ jobs:
       - run: node scripts/tokmanni-spar-historical-neon-export.mjs
         env:
           DATABASE_URL: ${{ secrets.NEON_READONLY_DATABASE_URL }}
+      - run: node scripts/tokmanni-spar-merge-classification.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: tokmanni-spar-ean-gap
           path: |
+            tokmanni-spar-merged-classification.json
             tokmanni-spar-historical-neon.json
             tokmanni-spar-ean-gap.json
             tokmanni-spar-ean-new-daily.csv
