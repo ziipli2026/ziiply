@@ -1583,6 +1583,22 @@ v165First[0].variant="modified";
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v165Rows,3).map(r=>r.lidlProductId),["safe-165-a","safe-165-b"]);
 assert.equal(JSON.stringify(v165Rows),v165Snapshot,"Result mutation must not alter normalized deduplication");
 
+/* v166: normalized deduplication yields a stable prefix across limits. */
+const v166Rows=[
+ {lidlProductId:" safe-166-a ",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-166-a",name:"MILBONA Proteiinivanukas",variant:"suklaa"},
+ {lidlProductId:"safe-166-b",name:"MILBONA Proteiinivanukas",variant:"kookos"},
+ {lidlProductId:" safe-166-b ",name:"MILBONA Proteiinivanukas",variant:"kahvi"},
+ {lidlProductId:"safe-166-c",name:"MILBONA Proteiinivanukas",variant:"mansikka"}
+];
+const v166Snapshot=JSON.stringify(v166Rows);
+const v166All=searchResearch("milbona proteiinivanukas",v166Rows,3).map(r=>r.lidlProductId);
+assert.deepEqual(v166All,["safe-166-a","safe-166-b","safe-166-c"]);
+for(const v166Limit of [0,1,2,3,50]){
+ assert.deepEqual(searchResearch("milbona proteiinivanukas",v166Rows,v166Limit).map(r=>r.lidlProductId),v166All.slice(0,v166Limit));
+}
+assert.equal(JSON.stringify(v166Rows),v166Snapshot,"Cross-limit deduplication must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
