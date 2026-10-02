@@ -1,0 +1,13 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const source = fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
+const cell = source.slice(source.indexOf("function QuantityCell("), source.indexOf("export default function ZiiplyMobileCartCard("));
+assert.match(cell,/if \(pendingRemove\)/,"existing delete confirmation must take precedence");
+assert.match(cell,/if \(item\.ziiplyPricePendingWeight \|\| item\.product\?\.ziiplyPricePendingWeight\)/,"weighed row has distinct controls");
+assert.match(cell,/onRequestRemove\?\.\(item\)/,"weighed row opens removal confirmation");
+assert.match(cell,/>kg<\/span>/,"weighed row shows kg rather than a piece count");
+const weighed = cell.slice(cell.indexOf("if (item.ziiplyPricePendingWeight"),cell.indexOf("\n  return (",cell.indexOf("if (item.ziiplyPricePendingWeight")+5));
+assert.doesNotMatch(weighed,/onIncrease\?\.\(item\)|onDecrease\?\.\(item\)/,"weighed row must not expose piece quantity mutations");
+assert.match(cell,/onIncrease\?\.\(item\)/,"ordinary products retain increment control");
+assert.match(cell,/onDecrease\?\.\(item\)/,"ordinary products retain decrement control");
+console.log("PASS weighed row controls, removal confirmation and ordinary quantity controls");
