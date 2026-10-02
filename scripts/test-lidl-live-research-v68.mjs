@@ -38,7 +38,7 @@ try {
     ["jogurtti", "Ilona mangojogurtti"],
     ["jogurtti", "Ilona maustamaton jogurtti"],
     ["juusto", "Ilona raejuusto"],
-    // Historical Milbona mention has no explicit named-product recordKind; keep it excluded until evidence is promoted.
+    ["juusto", "Milbona rasvaton raejuusto"],
   ];
   for (const [query, expectedName] of discoveryCases) {
     const rows = searchLidlResearch(query, 50);
