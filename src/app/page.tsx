@@ -12424,7 +12424,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Yksi-tilan tuotteen korvaushaku on tarkoitettu vain yhden rivin ostoskorille.
     // Useamman tuotteen vertailu käynnistetään käyttäjän valitsemassa Monta-tilassa.
     if (nextCart.length > 1) {
-      // Multiple cart rows are allowed in Yksi mode. Skip only this automatic\n      // single-row replacement search; do not leave a blocking global toast.\n      return;
+      // Multiple cart rows are allowed in Yksi mode. Skip only this automatic
+      // single-row replacement search; do not leave a blocking global toast.
+      return;
     }
 
     const selectedKey = (["s", "k", "lidl", "tokmanni"] as const).find(
@@ -22050,11 +22052,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ...item,
                 id: key,
                 name: item.name ?? item.product?.name ?? item.title ?? item.productName,
-                price:
-                  item.price ??
-                  item.product?.price ??
-                  item.product?.unitPrice ??
-                  item.product?.comparisonPrice,
+                price: (item.product?.ziiplyPricePendingWeight &&
+                  !Number.isFinite(Number((item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice)))
+                    ? 0
+                    : item.price ?? item.product?.price ?? item.product?.unitPrice ?? item.product?.comparisonPrice,
+                ziiplyPricePendingWeight: Boolean((item.product as any)?.ziiplyPricePendingWeight),
                 image:
                   item.image ??
                   item.imageUrl ??
