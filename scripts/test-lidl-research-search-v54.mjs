@@ -1248,6 +1248,18 @@ for(let v139Attempt=0;v139Attempt<3;v139Attempt++){
 }
 assert.equal(JSON.stringify(v139Rows),v139Snapshot,"Deterministic duplicate selection must not mutate source");
 
+/* v140: duplicate IDs remain unique when the first occurrence has missing optional metadata. */
+const v140Rows=[
+ {lidlProductId:"safe-140-a",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-140-a",name:"MILBONA Proteiinivanukas",variant:"suklaa",ean:"6412345678901",source:"B"},
+ {lidlProductId:"safe-140-b",name:"MILBONA Proteiinivanukas",variant:"kookos"}
+];
+const v140Snapshot=JSON.stringify(v140Rows);
+const v140Hits=searchResearch("milbona proteiinivanukas",v140Rows,3);
+assert.deepEqual(v140Hits.map(r=>r.lidlProductId),["safe-140-a","safe-140-b"]);
+assert.equal(v140Hits.filter(r=>r.lidlProductId==="safe-140-a").length,1);
+assert.equal(JSON.stringify(v140Rows),v140Snapshot,"Missing optional metadata must not break deduplication");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
