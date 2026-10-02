@@ -3314,6 +3314,25 @@ export default function Page() {
           setSelectedEurosparStoreV751(null);
           setSelectedTokmanniStoreV756(null);
           setOpenStorePicker(null);
+          // A real browser cache-clear starts a fresh store-selection state.
+          // Clear the displayed store results/area too; ordinary reload never enters this branch.
+          setFoundStores([]);
+          setActiveArea({
+            label: "",
+            sStoreId: "",
+            sStoreName: "",
+            kStoreId: "",
+            kStoreName: "",
+            sLocalStoreId: "",
+            sLocalStoreName: "",
+            kLocalStoreId: "",
+            kLocalStoreName: "",
+          } as Area);
+          setGpsCoordsV320(null);
+          setLocationInput("");
+          setLocationMessage("Valitse sijainti tai käytä omaa sijaintia.");
+          setUsingOwnLocation(false);
+          manualStoreOverridesRefV786.current = {};
         }
       } catch {
         // Jos CacheStorage ei ole käytettävissä, säilytä nykyinen reload-käytös.
