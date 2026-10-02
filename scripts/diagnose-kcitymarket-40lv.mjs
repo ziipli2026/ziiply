@@ -16,8 +16,8 @@ for(const row of parsed.rows.filter(r=>r.page===1 && /LOHI|ULKOFILEE/i.test(r.ti
 }
 const first=await fetch(new URL("files/basic-html/index.html",parsed.leaflet));
 const firstHtml=await first.text();
-const p1=firstHtml.match(/<pre[^>]*><code>([\\s\\S]*?)<\\/code><\\/pre>/i)?.[1]||firstHtml;
-console.log("PAGE1 RAW LINES",p1.split(/\\r?\\n/).map((line,i)=>({i,line:line.trim()})).filter(x=>/LATZ|ANNOSPUSSI|44\\s*[x×]|11\\s*90|LOHI|ULKOFILEE|S6\\s*99|KG/i.test(x.line)).slice(0,45));
+const p1=firstHtml.replaceAll("<br>","\n").replaceAll("</div>","\n");
+console.log("PAGE1 RAW LINES",p1.split("\n").map((line,i)=>({i,line:line.trim()})).filter(x=>["LATZ","ANNOSPUSSI","LOHI","ULKOFILEE","KG","11","90"].some(t=>x.line.toUpperCase().includes(t))).slice(0,45));
 let failed=false;
 for(const g of groups){
  const hits=parsed.rows.filter(r=>g.pattern.test(String(r.title||"")));
