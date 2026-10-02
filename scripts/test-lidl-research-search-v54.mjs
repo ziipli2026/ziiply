@@ -736,6 +736,16 @@ assert.deepEqual(v103Hits.map(r=>r.lidlProductId),["valid-103"],"Blank identitie
 assert.ok(!v103Hits.some(r=>!r.lidlProductId.trim()),"No blank product identity may escape the safety gate");
 assert.equal(JSON.stringify(v103Rows),v103Snapshot,"Blank-ID search must not mutate input");
 
+/* v104: whitespace cannot bypass the quarantined product ID gate. */
+const v104Rows=[
+ {lidlProductId:" 10038275 ",name:"Olut"},
+ {lidlProductId:"10038275",name:"Olut"},
+ {lidlProductId:"safe-104",name:"Olutniminen testituote"}
+];
+const v104Snapshot=JSON.stringify(v104Rows);
+assert.deepEqual(searchResearch("olut",v104Rows).map(r=>r.lidlProductId),["safe-104"]);
+assert.equal(JSON.stringify(v104Rows),v104Snapshot,"Quarantine filtering must not mutate input");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
