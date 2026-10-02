@@ -22260,7 +22260,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const isFreshCounterFishV795 = /\b(?:tuore|kokonainen|fileoitu|kalatiski)\b/i.test(name) &&
                 /\b(?:kirjolohi|lohi|siika|kuha|ahven|taimen|nieriä|silakka|muikku)\b/i.test(name) &&
                 !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || ""));
-              const isWeightedOffer = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct) || isFreshCounterFishV795 ||
+              const fixedHeviPackV796 = /\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test([offer.packageSize, sourceOffer.packageSize, name].filter(Boolean).join(" ")) || /\b(?:rasia|pussi|pakkaus|pkt|pss|verkko|purkki)\b/i.test(name);
+              const looseHeviV796 = !fixedHeviPackV796 && /\b(?:banaani|omena|päärynä|appelsiini|mandariini|sitruuna|lime|avokado|tomaatti|kurkku|paprika|peruna|sipuli|porkkana|kaali|kesäkurpitsa|munakoiso|nektariini|persikka|luumu|kiivi|mango|bataatti|punajuuri|lanttu)\w*/i.test(name) && !/\b(?:mehu|sose|hillo|lastu|sipsi|kuivattu|säilyke|pakaste|jogurtti|jäätelö|keksi|makeinen|smoothie|juoma|kastike)\w*/i.test(name);
+              const isWeightedOffer = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct) || isFreshCounterFishV795 || looseHeviV796 ||
                 (/(?:€\s*\/\s*kg|\/\s*kg\b|\b(?:kg|kilo)(?:hinta|price)?\b|per[- ]?kg)/i.test(offerUnitTextV794) &&
                  !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || "")));
               if (cart.length >= MAX_ITEMS) {
