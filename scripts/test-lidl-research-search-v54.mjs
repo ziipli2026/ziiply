@@ -810,6 +810,20 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v109Rows,1).map(r=>r.
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v109Rows,2).map(r=>r.lidlProductId),v109Expected);
 assert.equal(JSON.stringify(v109Rows),v109Snapshot,"Repeated searches must not mutate input");
 
+/* v110: returned rows must not alias or mutate source candidate records. */
+const v110Rows=[
+ {lidlProductId:" safe-110 ",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"other-110",name:"MILBONA Proteiinivanukas",variant:"suklaa"}
+];
+const v110Snapshot=JSON.stringify(v110Rows);
+const v110Hits=searchResearch("milbona proteiinivanukas",v110Rows,2);
+assert.equal(v110Hits.length,2);
+assert.notStrictEqual(v110Hits[0],v110Rows[0],"Result objects must be separate from source records");
+v110Hits[0].name="Modified result only";
+v110Hits[0].lidlProductId="modified-110";
+assert.equal(JSON.stringify(v110Rows),v110Snapshot,"Editing a result must not change source records");
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v110Rows,2).map(r=>r.lidlProductId),["safe-110","other-110"]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
