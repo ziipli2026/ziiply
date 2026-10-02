@@ -42,3 +42,10 @@ test("reject missing unit and non-discounted price", () => {
   assert.equal(parseStrictPair(["Product","399","PKT","Ilman Plussa-korttia 3,99/pkt"]), null);
   assert.equal(parseStrictPair(["Product","499","PKT","Ilman Plussa-korttia 3,99/pkt"]), null);
 });
+
+test("reject unit-price text, split glyphs and ambiguous adjacent labels", () => {
+  assert.equal(parseStrictPair(["Product 220 g","(11,32/kg)","PS","Ilman Plussa-korttia 2,79/ps"]), null);
+  assert.equal(parseStrictPair(["Product","2","49","PS","Ilman Plussa-korttia 2,79/ps"]), null);
+  assert.equal(parseStrictPair(["Product","249","€/kg","Ilman Plussa-korttia 2,79/kg"]), null);
+  assert.equal(parseStrictPair(["Product","249","PKT","Ilman Plussa-korttia 2,79/ps"]), null);
+});
