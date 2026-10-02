@@ -11,7 +11,10 @@ function parseStrictPair(lines) {
 }
 
 function classifyStoreScope(source) {
-  return source?.kind === "VERIFIED_STORE_OFFERS" && source?.storeId && source?.identityVerified === true
+  return source?.kind === "VERIFIED_STORE_OFFERS" &&
+    /^k-citymarket-[a-z0-9-]+$/.test(source?.storeId ?? "") &&
+    source?.identityVerified === true &&
+    source?.verifiedStoreId === source.storeId
     ? { storeScoped: true, storeId: source.storeId }
     : { storeScoped: false, storeId: null };
 }
