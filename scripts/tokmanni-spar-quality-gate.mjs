@@ -1,0 +1,16 @@
+import {readFileSync,writeFileSync} from "node:fs";
+const merged=JSON.parse(readFileSync("tokmanni-spar-merged-classification.json","utf8"));
+const triage=JSON.parse(readFileSync("tokmanni-spar-muut-triage.json","utf8"));
+const groups=[...triage.proposals,...triage.departmentStore,...triage.unresolved];
+const eans=groups.map(x=>x.ean);
+const errors=[];
+if(new Set(eans).size!==eans.length)errors.push("Duplicate EAN across triage groups");
+const original=merged.items.filter(x=>x.productClass==="review"&&String(x.existingCategory).toLowerCase()==="muut");
+if(original.length!==groups.length)errors.push("Muut triage does not preserve all review rows");
+if(eans.some(x=>!original.some(y=>y.ean===x)))errors.push("Triage includes unexpected EAN");
+if(triage.summary.autoApproved!==0||triage.summary.neonWrites!==0)errors.push("Audit must not approve or write Neon");
+const suspicious=triage.proposals.filter(x=>/pentu|koira|kissa|lemmik/i.test(x.name)&&x.proposedCategory!=="Lemmikit");
+const report={ok:errors.length===0,errors,summary:triage.summary,suspiciousProposals:suspicious,manualApprovalRequired:true};
+writeFileSync("tokmanni-spar-quality-gate.json",JSON.stringify(report,null,2));
+console.log(JSON.stringify(report));
+if(errors.length)process.exitCode=1;
