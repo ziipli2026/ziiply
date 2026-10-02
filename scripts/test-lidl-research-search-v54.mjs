@@ -1078,6 +1078,15 @@ for(const v127Corpus of [null,127,true,"milbona",{records:v127Rows}]){
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v127Rows,2).map(r=>r.lidlProductId),["safe-127-a","safe-127-b"]);
 assert.equal(JSON.stringify(v127Rows),v127Snapshot,"Invalid corpus types must not mutate valid source");
 
+/* v128: undefined corpus selects the default fixture; null explicitly disables results. */
+const v128Default=searchResearch("milbona proteiinivanukas",undefined,2);
+const v128Implicit=searchResearch("milbona proteiinivanukas");
+assert.deepEqual(v128Default,searchResearch("milbona proteiinivanukas",undefined,2));
+assert.deepEqual(v128Default,v128Implicit.slice(0,2));
+assert.ok(v128Default.length>0,"Undefined corpus must use the default research fixture");
+assert.deepEqual(searchResearch("milbona proteiinivanukas",null,2),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",undefined,2),v128Default,"Explicit null must not alter default fixture");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
