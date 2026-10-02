@@ -1361,6 +1361,21 @@ assert.ok(v148Hits.every(r=>r.lidlProductId!=="10038275"));
 assert.deepEqual(v148Hits.map(r=>r.lidlProductId),Array.from({length:50},(_,i)=>`safe-148-${String(i).padStart(2,"0")}`));
 assert.equal(JSON.stringify(v148Rows),v148Snapshot,"Maximum-limit quarantine filtering must not mutate source");
 
+/* v149: quarantined rows and normalized duplicate IDs cannot consume the 50-result cap. */
+const v149Rows=[
+ {lidlProductId:" 10038275 ",name:"MILBONA Proteiinivanukas"},
+ ...Array.from({length:51},(_,i)=>[
+  {lidlProductId:`safe-149-${String(i).padStart(2,"0")}`,name:"MILBONA Proteiinivanukas"},
+  {lidlProductId:` safe-149-${String(i).padStart(2,"0")} `,name:"MILBONA Proteiinivanukas"}
+ ]).flat()
+];
+const v149Snapshot=JSON.stringify(v149Rows);
+const v149Hits=searchResearch("milbona proteiinivanukas",v149Rows,100);
+assert.equal(v149Hits.length,50);
+assert.deepEqual(v149Hits.map(r=>r.lidlProductId),Array.from({length:50},(_,i)=>`safe-149-${String(i).padStart(2,"0")}`));
+assert.equal(new Set(v149Hits.map(r=>r.lidlProductId)).size,50);
+assert.equal(JSON.stringify(v149Rows),v149Snapshot,"Quarantine and duplicate filtering must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
