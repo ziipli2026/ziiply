@@ -8854,9 +8854,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const searchSelectionMode = loadingNormal || visibleNormalResults.length > 0;
 
   const comparableCart = useMemo(() => {
-    // Muistilistarivit ovat keräilyä varten, eivät hintavertailua varten.
-    // Näin pelkkä "maito,kala,cola"-muistilista ei riko huokeinta koria tai ketjuvertailua.
-    return cart.filter((item) => !isManualShoppingItem(item));
+    // Kortin kattavuus ja loppusumma lasketaan vain vertailumoottorin hyväksymistä
+    // tuotteista. €/kg-tarjousta saa verrata yksikköhintana, mutta sen tuntematonta
+    // painoa ei saa laskea yhden kilogramman ostokseksi.
+    return cart.filter((item) => !isManualShoppingItem(item) &&
+      isComparisonEligibleV797(item) && !isComparableWeightOfferV797(item));
   }, [cart]);
 
   const chainResults = useMemo<ChainResult[]>(() => {
