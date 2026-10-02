@@ -687,15 +687,15 @@ assert.deepEqual(searchResearch("pizza",corpus,0),[]);
 
 
 /* v100: duplicate product identity wins once even across differing variants. */
-const v100Rows=[
+const v100VariantRows=[
  {lidlProductId:"same-100",name:"MILBONA Proteiinivanukas",variant:"kahvi"},
  {lidlProductId:" same-100 ",name:"MILBONA Proteiinivanukas",variant:"kookos"},
  {lidlProductId:"other-100",name:"MILBONA Proteiinivanukas",variant:"vanilja"}
 ];
-const v100Snapshot=JSON.stringify(v100Rows);
-const v100Hits=searchResearch("milbona proteiinivanukas",v100Rows,3);
+const v100Snapshot=JSON.stringify(v100VariantRows);
+const v100Hits=searchResearch("milbona proteiinivanukas",v100VariantRows,3);
 assert.deepEqual(v100Hits.map(r=>r.lidlProductId),["same-100","other-100"]);
-assert.equal(JSON.stringify(v100Rows),v100Snapshot,"Duplicate resolution must not mutate source rows");
+assert.equal(JSON.stringify(v100VariantRows),v100Snapshot,"Duplicate resolution must not mutate source rows");
 assert.equal(v100Hits.filter(r=>r.lidlProductId==="same-100").length,1);
 
 const cheeseHits=searchResearch("juusto",corpus);
