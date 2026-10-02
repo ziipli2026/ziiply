@@ -22,7 +22,9 @@ const matches=(word:string,term:string)=>word===term||(exactStaples.has(term)
  ?(forms[term]??[]).some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchLidlResearch(query:string,limit=15){
  if(typeof query!=="string")return [];
- const q=tokens(query).map(t=>({kananmunat:"kananmuna",perunat:"peruna",banaanit:"banaani",juustot:"juusto",leivat:"leipa",makaronit:"makaroni",kahvipavut:"kahvi",kahvijauhe:"kahvi",kevytmaito:"maito"} as Record<string,string>)[t]??t);
+ const q=tokens(query).map(t=>({kananmunat:"kananmuna",perunat:"peruna",banaanit:"banaani",juustot:"juusto",leivat:"leipa",makaronit:"makaroni"} as Record<string,string>)[t]??t);
+ // Keep product qualifiers such as kevytmaito and kahvipavut intact: a broad
+ // category rewrite would silently mix distinct products into exact searches.
  if(!q.length)return [];
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set<string>();
