@@ -29,8 +29,8 @@ for(const item of map.values()){
  const provider=clean(item.providerCategory||item.category).toLocaleLowerCase("fi-FI");
  const productName=clean(item.name).toLocaleLowerCase("fi-FI");
  const definiteNonGrocery=/lannoit|puutarhamulta|kasvualusta/.test(productName);
- const cosmeticMilk=/\\b(?:puhdistusmaito|suihkumaito|kylpymaito|vartalomaito|kasvomaito|aurinkomaito|hiusmaito)\\b/.test(productName);
- const explicitFoodMilk=/\\b(?:kondensoitu maito|maitojauhe|kevytmaitojuoma|rasvaton maitojuoma|annosmaito)\\b/.test(productName);
+ const cosmeticMilk=/\b(?:puhdistusmaito|suihkumaito|kylpymaito|vartalomaito|kasvomaito|aurinkomaito|hiusmaito)\b/.test(productName);
+ const explicitFoodMilk=/\b(?:kondensoitu maito|maitojauhe|kevytmaitojuoma|rasvaton maitojuoma|annosmaito)\b/.test(productName);
  const existing=clean(item.existingInNeon?item.category:"");
  const existingDaily=new Set(rules.map(([label])=>label));
  const categoryIsExistingDaily=item.existingInNeon&&existingDaily.has(existing);
