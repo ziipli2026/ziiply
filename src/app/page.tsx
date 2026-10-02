@@ -16276,10 +16276,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           match = convertKProductToProduct(best);
         }
       } else if (target.key === "lidl" && selectedLidlStoreV750) {
+        // Lidl public catalog currently supplies names only. A research result
+        // must never become a priced match through generic name ranking.
         const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
         match = itemEan
           ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
-          : pickBestSProduct(candidates, itemName, itemEan) || null;
+          : candidates.filter((product) => getProductPrice(product) > 0)
+              .find((product) => isComparisonAttributeCompatible(itemName, String(product.name || ""))) || null;
       } else if (target.key === "tokmanni") {
         const candidates = await fetchTokmanniProductsV761(itemEan || itemName);
         match =
