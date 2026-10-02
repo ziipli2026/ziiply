@@ -422,6 +422,18 @@ firstSearch[0].variant="Changed variant";
 assert.equal(JSON.stringify(immutableFixture),beforeSearch,"Returned result objects must not alias source records");
 assert.deepEqual(searchResearch("pizza",immutableFixture).map(r=>r.name),["Pizza Hawaii","Pizza Kebab"]);
 
+
+/* v80: repeated real-corpus searches are stable, including genuine misses. */
+for(const query of ["pizza","omena","juusto","atria pizza","milbona proteiinivanukas"]){
+ const first=searchResearch(query,corpus);
+ const second=searchResearch(query,corpus);
+ assert.deepEqual(second,first,"Repeated search changed results for "+query);
+ assert.ok(first.every(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&typeof r.name==="string"&&r.name.trim()));
+}
+for(const query of ["ziiplynonexistentproduct","atria pizza nonexistent","milbona pizza"]){
+ assert.deepEqual(searchResearch(query,corpus),[],"Missing product must not receive fallback phantom result: "+query);
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
