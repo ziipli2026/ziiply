@@ -10,6 +10,7 @@ const row=(item)=>{const pending=Boolean(item.ziiplyPricePendingWeight||item.pro
 const base={price:0,product:{ziiplyPricePendingWeight:true}};
 assert.equal(row(base),0);assert.equal(row({...base,product:{...base.product,ziiplyWeightFinalPrice:24.50}}),24.50);assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:6.45}}),6.45);
 assert.equal(row({...base,price:12.9}),0);
+assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:0}}),0,"confirmed zero must not fall back to stale kg quote");
 assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:-1}}),0);
 assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:"bad"}}),0);
 console.log("PASS receipt row selects confirmed euros and hides stale price for missing, invalid and negative final");
