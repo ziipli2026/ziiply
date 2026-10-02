@@ -57,7 +57,7 @@ export default function ZiiplyMobileCompareCheckoutCard({
               <div className="mx-auto mt-5 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-3 text-[1.08rem] font-extrabold italic text-[#7b3215]">Unohtuiko vielä jotain listan ulkopuolelta?</div>
               <div className="mt-5 grid gap-2.5">
                 <button type="button" onClick={onBack} className="rounded-[0.62rem] border-2 border-[#8a6b32] bg-[#f5dfac] px-3 py-3 font-black italic text-[#533819]">Lisää vielä</button>
-                <button type="button" onClick={() => setShowPaymentNotice(true)} className="rounded-[0.62rem] border-2 border-[#496443] bg-[#dfcfaa] px-3 py-3 text-[1.02rem] font-black italic text-[#244525]">Valmis kassalle</button>
+                <button type="button" onClick={() => setShowPaymentNotice(true)} className="rounded-[0.62rem] border-2 border-[#496443] bg-[#dfcfaa] px-3 py-3 text-[1.02rem] font-black italic text-[#244525]">{missingItemCount > 0 ? "Jatka löytyneillä tuotteilla" : "Valmis kassalle"}</button>
               </div>
             </>
           ) : checkoutPhase === "future" ? (
@@ -69,6 +69,7 @@ export default function ZiiplyMobileCompareCheckoutCard({
           ) : purchaseModeDefault === "ask" ? (
             <>
               <h2 className="text-[1.02rem] font-black italic text-[#244525]">Miten haluat ostaa?</h2>
+              {missingItemCount > 0 ? <p role="status" className="mt-2 text-[0.78rem] font-extrabold text-[#7b3215]">{missingItemCount} tuotetta puuttuu. Jatkat vain löytyneillä tuotteilla.</p> : null}
               <p className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#533819]">Sijaintisi perusteella ostotapaa ei voida päätellä. Valitse ostotapa.</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => setPurchaseMode("instore")} className={`rounded-[0.52rem] border-2 px-2 py-[0.58rem] text-[0.78rem] font-black italic ${purchaseMode === "instore" ? "border-[#496443] bg-[#d8e4c4] text-[#244525]" : "border-[#8a6b32] bg-[#f6e5b9] text-[#533819]"}`}>Ostan myymälässä</button>
@@ -81,6 +82,7 @@ export default function ZiiplyMobileCompareCheckoutCard({
           ) : (
             <>
               <h2 className="text-[1.02rem] font-black italic text-[#244525]">{purchaseMode === "instore" ? "Olet nyt ostamassa myymälässä" : "Olet nyt ostamassa verkko-ostoksena"}</h2>
+              {missingItemCount > 0 ? <p role="status" className="mt-2 text-[0.78rem] font-extrabold text-[#7b3215]">Vain löytyneet tuotteet. {missingItemCount} tuotetta puuttuu edelleen.</p> : null}
               <p className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#533819]">Jatketaan automaattisesti {countdown}…</p>
               {purchaseMode === "online" && weightItemCount > 0 ? <p className="mt-3 text-[0.74rem] font-extrabold text-[#7b3215]">{weightItemCount} vaakatuotetta jätetään pois verkkotilauksesta.</p> : null}
               <button type="button" onClick={() => { setPurchaseMode((mode) => mode === "online" ? "instore" : "online"); setCheckoutPhase("future"); }} className="mt-4 rounded-[0.52rem] border-2 border-[#496443] bg-[#dfcfaa] px-4 py-2 font-black italic text-[#244525]">Vaihda ostotapa</button>
