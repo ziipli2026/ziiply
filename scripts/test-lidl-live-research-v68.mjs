@@ -30,6 +30,24 @@ try {
     assert.ok(rows.length <= 15);
     assert.ok(rows.every(r => r.price === null && r.ean === null && r.priceVerified === false && r.storeItems.length === 0), "Unverified price leaked into checkout: " + query);
   }
+  // Regular-food discovery regressions: these are research names, never priced cart rows.
+  const discoveryCases = [
+    ["kahvipavut", "Bellarom Extra Dark Roast kahvipavut"],
+    ["tee", "Lord Nelson Earl Grey tee"],
+    ["maito", "Ilona kevytmaito"],
+    ["jogurtti", "Ilona mangojogurtti"],
+    ["jogurtti", "Ilona maustamaton jogurtti"],
+    ["juusto", "Ilona raejuusto"],
+    ["juusto", "Milbona rasvaton raejuusto"],
+  ];
+  for (const [query, expectedName] of discoveryCases) {
+    const rows = searchLidlResearch(query, 50);
+    assert.ok(rows.some(r => r.name === expectedName), "Missing regular Lidl research result: " + query + " -> " + expectedName);
+    assert.ok(rows.every(r => r.price === null && r.ean === null && r.priceVerified === false && r.storeItems.length === 0),
+      "Research result leaked into priced cart: " + query);
+  }
+  assert.ok(searchLidlResearch("kahvipavut", 50).every(r => /kahvipav/i.test(r.name.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, ""))),
+    "Coffee beans search must not include ground/filter coffee");
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
