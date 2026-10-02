@@ -11837,7 +11837,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             // If S is not selected/available, ordinary text search must still use K.
             // In multi-chain mode the old S-first path could return zero for every term.
-            if (!withinChainS && rawItems.length === 0 && !selectedChains.s && selectedChains.k && activeStores.kStoreId) {
+            if (!withinChainS && rawItems.length === 0 && selectedChains.k && activeStores.kStoreId) {
               const kItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
               rawItems = kItems.filter((item) => Number(item.price) > 0).map((item) => ({
                 ...convertKProductToProduct(item),
