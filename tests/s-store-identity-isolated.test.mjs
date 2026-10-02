@@ -97,3 +97,12 @@ test('normal S-kaupat query keeps the non-discounted provider path', () => {
   assert.match(provider, /return await fetchSKaupatRemoteFilteredProductsV170\(cleanQuery, config, options\)/);
   assert.match(provider, /if \(identityV230\.status === "mismatch"\)/);
 });
+
+test('audit: proven fallback mismatch stops pagination instead of continuing with the rejected fallback', () => {
+  const start = provider.indexOf('if (fallbackIdentityV231.status === "mismatch") {');
+  const end = provider.indexOf('const fallbackPage =', start);
+  assert.ok(start >= 0 && end > start);
+  const block = provider.slice(start, end);
+  assert.match(block, /V231 FALLBACK_STORE_ID_MISMATCH[\\s\\S]*?break;/);
+  assert.doesNotMatch(block, /V231 FALLBACK_STORE_ID_MISMATCH[\\s\\S]*?continue;/);
+});
