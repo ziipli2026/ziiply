@@ -1,0 +1,17 @@
+name: K-Citymarket 40LV isolated diagnostic
+on:
+  push:
+    branches:
+      - fix/kcitymarket-40lv-three-offers
+  workflow_dispatch:
+jobs:
+  leaflet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Diagnose three actual leaflet rows
+        run: node scripts/diagnose-kcitymarket-40lv.mjs
