@@ -118,6 +118,7 @@ jobs:
                         const reference = Number(m[1].replace(",", "."));
                         return { reference, unit: m[2], compact: compact?.[0] ?? null,
                           candidate, classification: !compact ? "NO_ADJACENT_COMPACT_PRICE" :
+                            compact[1].length < 3 ? "INCOMPLETE_PRICE_GLYPHS" :
                             !unitMatches ? "UNIT_MISMATCH" : candidate >= reference ? "NOT_DISCOUNTED" :
                             "RESEARCH_CANDIDATE_NOT_VERIFIED" };
                       }),
