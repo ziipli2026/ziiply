@@ -22314,9 +22314,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
                 const sourceOffer = offer.__sourceOfferSearchResult || {};
                 const offerUnitTextV794 = String(offer.priceUnit || sourceOffer.priceUnit || offer.offerPrice || sourceOffer.priceText || "");
-              const isWeightedOffer = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct) ||
-                (/€\s*\/\s*kg/i.test(offerUnitTextV794) &&
-                 !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || "")));
+                const isWeightedOffer = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct) ||
+                  (/€\s*\/\s*kg/i.test(offerUnitTextV794) &&
+                   !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || "")));
                 if (isWeightedOffer) continue;
                 if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
 
