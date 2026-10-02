@@ -4601,6 +4601,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [savedListName, setSavedListName] = useState("");
   const [lastSavingsToast, setLastSavingsToast] = useState<string | null>(null);
   const [lastCartToast, setLastCartToast] = useState<string | null>(null);
+  const [cartCompareNotice, setCartCompareNotice] = useState<string | null>(null);
 
   const [qualityModesByCart, setQualityModesByCart] = useState<
     Record<string, QualityMode>
@@ -16435,11 +16436,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
 
     if (comparableCartV730.length === 0) {
-      showCartToast(
-        "Korissa olevat tuotteet ovat tarjoushinnoilla, joten niitä ei vertailla Halpuusvertailussa.",
-      );
+      setCartCompareNotice("Korissa olevat tuotteet ovat tarjoushinnoilla, joten niitä ei vertailla Halpuusvertailussa.");
       return;
     }
+
+    setCartCompareNotice(null);
 
     // V547: Vertailu avataan samalla suoralla overlay-logiikalla kuin uudet mobiilikortit.
     suppressHaeReadyBadgeV541();
@@ -22080,7 +22081,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onOpenSavedLists={() => setNotebookOpen(true)}
             onClearCart={clearCart}
             onCompare={openComparisonView}
-            compareNotice={lastCartToast?.startsWith("Korissa olevat tuotteet ovat tarjoushinnoilla") ? lastCartToast : null}
+            compareNotice={cartCompareNotice}
             onShareCart={shareMobileCartV729}
             onAddMore={() => {
               setCartModalOpen(false);
