@@ -11573,13 +11573,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return filtered.length > 0 ? filtered : products;
   }
 
-  function showSearchNotFoundNoticeV471(term: string) {
+  function showSearchNotFoundNoticeV471(term: string, unavailableStoreName?: string) {
     if (typeof window === "undefined") return;
 
     const cleanTerm = fixText(String(term || "")).trim();
     if (!cleanTerm) return;
 
-    const notice = `Hakemaasi "${cleanTerm}" ei löydy.`;
+    const notice = unavailableStoreName
+      ? `${unavailableStoreName}: tuotetiedot eivät ole tällä hetkellä saatavilla. Kokeile toista kauppaa.`
+      : `Hakemaasi "${cleanTerm}" ei löydy.`;
 
     if (searchNotFoundNoticeTimerRefV471.current) {
       window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
@@ -12073,7 +12075,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // V471: ilmoitus tehdään vasta valmiin tuloksen jälkeen.
           // Tämä on erillinen notifikaatiotila, jotta äänihaun päättyminen
           // tai voicePromptTextin nollaus ei piilota "ei löydy" -viestiä.
-          showSearchNotFoundNoticeV471(missingTerm);
+          // If every query to the selected S store returned zero raw rows,
+          // distinguish unavailable store data from a missing individual product.
+          // Applies to all S stores, not a hardcoded Prisma list.
+          const sOnlySearch =
+            (storeCompareScope === "within_chain" && withinChain === "S") ||
+            (storeCompareScope === "between_chains" &&
+              betweenChainSelectionModeV749 === "one" &&
+              selectedChains.s && !selectedChains.k && !selectedChains.lidl && !selectedChains.tokmanni);
+          const sDataUnavailable = sOnlySearch &&
+            debugEntries.length > 0 &&
+            debugEntries.every((entry) => entry.rawCount === 0);
+          const selectedSName = storeCompareScope === "within_chain"
+            ? activeArea.sStoreName || activeStores.sStoreName
+            : activeStores.sStoreName;
+          showSearchNotFoundNoticeV471(missingTerm, sDataUnavailable ? selectedSName : undefined);
         }
 
         const remainingTerms = useTerms.slice(focusedSearchTerms.length);
