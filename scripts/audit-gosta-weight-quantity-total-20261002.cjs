@@ -2,7 +2,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const source=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
 assert.match(source,/function getDisplayCartTotalV8\(items: ZiiplyMobileCartItem\[\]\)/);
-assert.match(source,/const quantity = getCartItemQuantityForTotalV8\(item\);/);
+assert.match(source,/\? 1 : getCartItemQuantityForTotalV8\(item\);/,"ordinary item quantity remains supported");
 assert.match(source,/return sum \+ unitPrice \* quantity;/);
 const weight={quantity:2,ziiplyPricePendingWeight:true,ziiplyWeightFinalPrice:6.45};
 const normal={quantity:2,price:2.50};
