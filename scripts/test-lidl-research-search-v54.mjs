@@ -371,6 +371,22 @@ assert.deepEqual(searchResearch("ATRIA, Pizza!",corpus).map(r=>r.lidlProductId),
 assert.deepEqual(searchResearch("atria / pizza",corpus).map(r=>r.lidlProductId),brandPunctuation);
 assert.deepEqual(searchResearch("atria pizza nonexistent",corpus),[],"All search tokens must belong to one record");
 
+
+/* v76: absent or malformed variants are safe; source metadata cannot override research provenance. */
+const variantSafetyFixture=[
+ {lidlProductId:"none",name:"Pizza Hawaii"},
+ {lidlProductId:"null",name:"Pizza Kebab",variant:null},
+ {lidlProductId:"number",name:"Pizza Margherita",variant:123},
+ {lidlProductId:"source",name:"Pizza Salami",variant:"iso",source:"untrusted",observedDate:"2026-10-01",note:"untrusted",ean:"123",displayedPriceEur:4.99}
+];
+const variantSafetyHits=searchResearch("pizza",variantSafetyFixture);
+assert.equal(variantSafetyHits.length,4);
+assert.ok(variantSafetyHits.every(r=>r.source==="lidl.fi-public-research"&&r.ean===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false));
+assert.equal(variantSafetyHits.find(r=>r.lidlProductId==="none").variant,null);
+assert.equal(variantSafetyHits.find(r=>r.lidlProductId==="null").variant,null);
+assert.equal(variantSafetyHits.find(r=>r.lidlProductId==="number").variant,null);
+assert.equal(variantSafetyHits.find(r=>r.lidlProductId==="source").variant,"iso");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
