@@ -11835,7 +11835,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               rawItems = await fetchSProducts(searchQuery, sPrimaryStoreId);
             }
 
-            if (!withinChainS && rawItems.length === 0 && shouldUseLocalFallback("S")) {
+            // If S is not selected/available, ordinary text search must still use K.
+            // In multi-chain mode the old S-first path could return zero for every term.
+            if (!withinChainS && rawItems.length === 0 && !selectedChains.s && selectedChains.k && activeStores.kStoreId) {
+              const kItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
+              rawItems = kItems.filter((item) => Number(item.price) > 0).map((item) => ({
+                ...convertKProductToProduct(item),
+                ean: item.ean,
+              }));
+              usedStoreName = activeStores.kStoreName || "K-tavaratalo";
+              fallbackStoreName = usedStoreName;
+            }
+
+            if (!withinChainS && rawItems.length === 0 && selectedChains.s && shouldUseLocalFallback("S")) {
               if (activeArea.sStoreId)
                 rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
               fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
@@ -12014,7 +12026,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setNormalResultsStableV441(unique);
       setMobileResultsReadyQueryV537(readyQueryV441);
 
-      rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
+      // Never persist an empty response: transient upstream failures must be retryable.
+      if (unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
         results: unique,
         debug: debugEntries,
         readyQuery: readyQueryV441,
