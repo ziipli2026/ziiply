@@ -57,7 +57,9 @@ export function searchLidlResearch(query:string,limit=15){
  .filter(({r})=>{const id=r.lidlProductId.trim();const name=identity([r.name,r.variant].filter(Boolean).join(" "));if(seen.has(id)||seenNames.has(name))return false;seen.add(id);seenNames.add(name);return true;})
  .slice(0,safeLimit).map(({r})=>({
   id:-Number(r.lidlProductId),lidlProductId:r.lidlProductId.trim(),name:[r.name,r.variant].filter(Boolean).join(" "),
-  ean:null,price:null,storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
+  ean:null,price:null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
+  observedUnitPriceText:"unitPriceText" in r ? r.unitPriceText ?? null : null,
+  storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
   storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:"unverified",
   assortmentEvidence:"assortmentEvidence" in r ? r.assortmentEvidence : "lidl-public-catalog-observation",
   note:"assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"
