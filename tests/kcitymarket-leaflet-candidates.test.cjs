@@ -130,3 +130,16 @@ test("reject zero or malformed reference prices", () => {
     assert.equal(parseStrictPair(["Example product 200 g", "249", "PKT", "Ilman Plussa-korttia " + reference]), null, reference);
   }
 });
+
+test("reject decimal compact offer encodings without exact cents", () => {
+  for (const digits of ["24", "2490", "249.0", "0249", "24900"]) {
+    assert.equal(parseStrictPair(["Example product 200 g", digits, "PKT", "Ilman Plussa-korttia 3,99/pkt"]), null, digits);
+  }
+});
+test("reject reference prices with extra numeric payload after the unit", () => {
+  for (const reference of [
+    "Ilman Plussa-korttia 3,99/pkt 2,49",
+    "Ilman Plussa-korttia 3,99/pkt + 2,49",
+    "Ilman Plussa-korttia 3,99/pkt / 2,49"
+  ]) assert.equal(parseStrictPair(["Example product 200 g", "249", "PKT", reference]), null, reference);
+});
