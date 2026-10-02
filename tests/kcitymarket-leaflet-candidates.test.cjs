@@ -24,3 +24,14 @@ test("reject unit mismatch, truncated glyph and range", () => {
   assert.equal(parseStrictPair(["Product","79","PKT","Ilman Plussa-korttia 4,49/pkt"]), null);
   assert.equal(parseStrictPair(["Product","299","PS","Ilman Plussa-korttia 3,55–3,59/ps"]), null);
 });
+
+test("reject equal or higher offer price and malformed price evidence", () => {
+  assert.equal(parseStrictPair(["Product","279","PS","Ilman Plussa-korttia 2,79/ps"]), null);
+  assert.equal(parseStrictPair(["Product","299","PS","Ilman Plussa-korttia 2,79/ps"]), null);
+  assert.equal(parseStrictPair(["Product","2,49","PS","Ilman Plussa-korttia 2,79/ps"]), null);
+  assert.equal(parseStrictPair(["Product","249","PS","Ilman Plussa-korttia 2,79/kg"]), null);
+});
+test("reject detached price evidence and missing product context", () => {
+  assert.equal(parseStrictPair(["249","PS","Ilman Plussa-korttia 2,79/ps"]), null);
+  assert.equal(parseStrictPair(["Product","249","PS","Other text","Ilman Plussa-korttia 2,79/ps"]), null);
+});
