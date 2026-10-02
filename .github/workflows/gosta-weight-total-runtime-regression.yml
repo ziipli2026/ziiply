@@ -1,0 +1,18 @@
+name: Gosta weight total runtime regression
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/audit-gosta-weight-total-runtime-20261002.cjs'
+      - '.github/workflows/gosta-weight-total-runtime-regression.yml'
+      - 'src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx'
+jobs:
+  runtime-weight-total:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/audit-gosta-weight-total-runtime-20261002.cjs
