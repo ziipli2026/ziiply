@@ -200,7 +200,7 @@ jobs:
                 (page.codeBlockResearch?.splitReferenceSamples ?? []).map(sample => ({
                   page: page.page, ...sample,
                   researchType: sample.current.includes("–") ? "RANGE_REVIEW" : sample.current.includes("/pari") ? "PAIR_REVIEW" : /Ilman Plussa-korttia\s+\d+[,.]\d{2}\s*$/i.test(sample.current) ? "MISSING_UNIT_REVIEW" : "MANUAL_REVIEW"
-                }))).slice(0, 24);
+                })));
               result.sampleReviewSummary = result.unparsedReferenceExamples.reduce((summary, sample) => {
                 summary[sample.researchType] = (summary[sample.researchType] ?? 0) + 1;
                 return summary;
