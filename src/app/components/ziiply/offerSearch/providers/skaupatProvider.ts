@@ -2362,6 +2362,19 @@ async function fetchSKaupatRemoteFilteredProductsV170(
             selectedStore.storeId,
           );
           if (fallbackStoreId && fallbackStoreId !== selectedStore.storeId) {
+            // V231: the first ID was verified before pagination, but a fallback
+            // changes the actual offer source. Verify that new ID independently.
+            const fallbackIdentityV231 = await verifySelectedSOfferStoreV230(
+              selectedStore.storeName, fallbackStoreId,
+            );
+            if (fallbackIdentityV231.status === "mismatch") {
+              console.error("[GOSTA V231] blocked mismatched fallback offer store", {
+                storeName: selectedStore.storeName, fallbackStoreId,
+                pickupName: fallbackIdentityV231.pickupName,
+              });
+              zeroResultDiagnosticsV208.push(`V231 FALLBACK_STORE_ID_MISMATCH: ${selectedStore.storeName} / ${fallbackStoreId}`);
+              continue;
+            }
             const fallbackPage = await fetchSKaupatRemoteFilteredProductsPageV170(
               query,
               config,
