@@ -340,6 +340,17 @@ function QuantityCell({
     );
   }
 
+  if (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) {
+    return (
+      <>
+        <button type="button" onClick={() => onRequestRemove?.(item)}
+          className="absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12]"
+          aria-label="Poista punnittava tuote" title="Poista punnittava tuote">−</button>
+        <span className="absolute left-[13.20rem] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center text-[0.70rem] font-extrabold text-[#3d301a]" title="Punnitusrivi, ei kappalemäärää">kg</span>
+      </>
+    );
+  }
+
   return (
     <>
       <button
