@@ -9,14 +9,24 @@ const rules=[
 ["Kuivatuotteet",/(?:^|[^a-zåäöA-ZÅÄÖ])(makaroni|spagetti|riisi|vehnäjauho|kaurahiutale|ruokaöljy)(?=$|[^a-zåäöA-ZÅÄÖ])/i],
 ["Lemmikit",/(?:^|[^a-zåäöA-ZÅÄÖ])(kissanruoka|koiranruoka|kissanhiekka)(?=$|[^a-zåäöA-ZÅÄÖ])/i]];
 const blocked=/lelu|muki|paristo|akku|vaate|kenkä|sukka|auton|pyörän|koriste|lahjapakkaus|kahvinkeitin|teekannu/i;
-const proposals=[],unresolved=[];
+const proposals=[],unresolved=[],departmentStore=[];
+const department=/kuulok|tehosekoitin|painekeitin|paistinpannu|wokkipannu|valualumiinipata|imuri|lelu|hahmot|autolelu|valaisin|laturi|puhelin|pistorasia|porakone|sisust|matto|verho|pyyhe|kenkä|sukat|takki|housut|paita|työkalu|polkupyör|grilli|termos|muki|lautanen|aterimet|pentuaitaus/i;
+const additional=[
+["Hygienia & kosmetiikka",/päivävoide|yövoide|vartalotuoksu|silmänympärysvoide|kosteusvoide|kangasnaamio|silmänalusnaamio|uv-voide|rakkolaastari|huuliherpeslaastari|huulirasva|käsivoide|kasvovoide/i],
+["Kodinhoito",/tahranpoistaja|pesuaine|puhdistusaine|talouspaperi|wc-paperi|roskapussi/i],
+["Lemmikit",/pentualusta|kissanruoka|koiranruoka|kissanhiekka/i],
+["Makeiset & keksit",/suklaa|karkki|makeispussi|täytekeksi/i],
+["Juomat",/virvoitusjuoma|energiajuoma|kivennäisvesi|mehujuoma/i],
+["Leipomo",/ruisleipä|näkkileipä|paahtoleipä/i]
+];
 for(const item of data.items){
  if(item.productClass!=="review"||String(item.existingCategory).toLowerCase()!=="muut")continue;
  const name=String(item.name||"");
- const matches=rules.filter(([,re])=>re.test(name)).map(([label])=>label);
+ if(department.test(name)){departmentStore.push({ean:item.ean,name,brand:item.brand,proposedClass:"department_store",reason:"non-daily name; review required"});continue;}
+ const matches=[...new Set([...rules,...additional].filter(([,re])=>re.test(name)).map(([label])=>label))];
  const category=matches.length===1&&!blocked.test(name)?matches[0]:"";
  const entry={ean:item.ean,name,brand:item.brand,existingCategory:item.existingCategory,proposedCategory:category,reason:category?"name-based suggestion; manual approval required":"insufficient or ambiguous evidence"};
  (category?proposals:unresolved).push(entry);
 }
-writeFileSync("tokmanni-spar-muut-triage.json",JSON.stringify({summary:{proposals:proposals.length,unresolved:unresolved.length,autoApproved:0,neonWrites:0},proposals,unresolved},null,2));
-console.log(JSON.stringify({proposals:proposals.length,unresolved:unresolved.length,autoApproved:0,neonWrites:0}));
+writeFileSync("tokmanni-spar-muut-triage.json",JSON.stringify({summary:{proposals:proposals.length,departmentStore:departmentStore.length,unresolved:unresolved.length,autoApproved:0,neonWrites:0},proposals,departmentStore,unresolved},null,2));
+console.log(JSON.stringify({proposals:proposals.length,departmentStore:departmentStore.length,unresolved:unresolved.length,autoApproved:0,neonWrites:0}));
