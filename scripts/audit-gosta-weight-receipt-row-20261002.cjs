@@ -4,7 +4,12 @@ const source=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCa
 assert.match(source,/const confirmedWeightFinalV802 = item\.ziiplyWeightFinalPrice \?\? item\.product\?\.ziiplyWeightFinalPrice;/);
 assert.match(source,/const numericRowPriceV792 = pendingWeightV794 \? 0 : getNumericPrice\(rowPriceInputV802\);/);
 assert.match(source,/normalizePrice\(rowPriceInputV802\)/);
-const row=(item)=>{const pending=Boolean(item.ziiplyPricePendingWeight||item.product?.ziiplyPricePendingWeight);const final=item.ziiplyWeightFinalPrice??item.product?.ziiplyWeightFinalPrice;const pendingWeight=pending&&(final==null||final===""||!Number.isFinite(Number(final)));return !pendingWeight&&pending&&final!=null&&final!==""&&Number.isFinite(Number(final))&&Number(final)>=0?Number(final):pendingWeight?0:item.price;};
+assert.match(source,/Number\(final\) < 0/,"negative final remains pending");
+assert.match(source,/: pendingWeightV794 \? 0 : item\.price;/,"pending row must not display stale price");
+const row=(item)=>{const pending=Boolean(item.ziiplyPricePendingWeight||item.product?.ziiplyPricePendingWeight);const final=item.ziiplyWeightFinalPrice??item.product?.ziiplyWeightFinalPrice;const pendingWeight=pending&&(final==null||final===""||!Number.isFinite(Number(final))||Number(final)<0);return !pendingWeight&&pending&&final!=null&&final!==""&&Number.isFinite(Number(final))&&Number(final)>=0?Number(final):pendingWeight?0:item.price;};
 const base={price:0,product:{ziiplyPricePendingWeight:true}};
 assert.equal(row(base),0);assert.equal(row({...base,product:{...base.product,ziiplyWeightFinalPrice:24.50}}),24.50);assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:6.45}}),6.45);
-console.log("PASS receipt row selects confirmed euro final price and excludes stale €/kg quote");
+assert.equal(row({...base,price:12.9}),0);
+assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:-1}}),0);
+assert.equal(row({...base,price:12.9,product:{...base.product,ziiplyWeightFinalPrice:"bad"}}),0);
+console.log("PASS receipt row selects confirmed euros and hides stale price for missing, invalid and negative final");
