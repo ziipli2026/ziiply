@@ -698,6 +698,21 @@ assert.deepEqual(v100Hits.map(r=>r.lidlProductId),["same-100","other-100"]);
 assert.equal(JSON.stringify(v100VariantRows),v100Snapshot,"Duplicate resolution must not mutate source rows");
 assert.equal(v100Hits.filter(r=>r.lidlProductId==="same-100").length,1);
 
+/* v101: duplicate input ordering preserves unique product identities and source rows. */
+const v101Rows=[
+ {lidlProductId:" same-101 ",name:"MILBONA Proteiinivanukas",variant:"kahvi"},
+ {lidlProductId:"other-101",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"same-101",name:"MILBONA Proteiinivanukas",variant:"kookos"}
+];
+const v101Snapshot=JSON.stringify(v101Rows);
+const v101Forward=searchResearch("milbona proteiinivanukas",v101Rows,3);
+const v101Reverse=searchResearch("milbona proteiinivanukas",[...v101Rows].reverse(),3);
+assert.deepEqual(new Set(v101Forward.map(r=>r.lidlProductId)),new Set(["same-101","other-101"]));
+assert.deepEqual(new Set(v101Reverse.map(r=>r.lidlProductId)),new Set(["same-101","other-101"]));
+assert.equal(v101Forward.length,2);
+assert.equal(v101Reverse.length,2);
+assert.equal(JSON.stringify(v101Rows),v101Snapshot,"Input rows must remain unchanged");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
