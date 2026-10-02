@@ -84,7 +84,7 @@ jobs:
               discoveredLeafletLinks: links.map(url => url.href).slice(0, 10),
               publicationUrl: publication?.href ?? null,
               publicationStatus: null, basicHtmlStatus: null, issueMarker: null,
-              pageLinks: [], note: "Metadata only. No products/prices or store identity inferred." };
+              pageLinks: [], pageAudit: [], note: "Metadata only. No products/prices or store identity inferred." };
             if (publication) {
               const pub = await read(publication.href);
               result.publicationStatus = pub.response.status;
@@ -95,6 +95,20 @@ jobs:
               result.pageLinks = [...page.html.matchAll(/href=["']([^"'<>]+\.html)["']/gi)]
                 .map(m => m[1]).filter(x => /^page[0-9]+\.html$/i.test(x))
                 .filter((x, i, all) => all.indexOf(x) === i).slice(0, 80);
+            }
+            if (publication && result.basicHtmlStatus === 200) {
+              const base = new URL("files/basic-html/", publication.href);
+              const pages = await Promise.all(result.pageLinks.map(async name => {
+                try {
+                  const page = await read(new URL(name, base).href);
+                  const plain = page.html.replace(/<script[^>]*>[\\s\\S]*?<\\/script>/gi, " ")
+                    .replace(/<style[^>]*>[\\s\\S]*?<\\/style>/gi, " ")
+                    .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\\s+/g, " ").trim();
+                  return { page: name, status: page.response.status, textLength: plain.length,
+                    hasEuroSymbol: /€|&euro;/.test(page.html) };
+                } catch (error) { return { page: name, error: String(error) }; }
+              }));
+              result.pageAudit = pages;
             }
             console.log(JSON.stringify(result, null, 2));
           })().catch(error => { console.error("Leaflet metadata research:", String(error)); process.exitCode = 1; });
