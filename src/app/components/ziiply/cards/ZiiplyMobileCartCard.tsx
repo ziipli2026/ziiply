@@ -359,6 +359,7 @@ export default function ZiiplyMobileCartCard({
   onOpenSavedLists,
   onClearCart,
   onRemoveItem,
+  onRestoreOriginalItem,
   onToggleItem,
   onIncreaseItem,
   onDecreaseItem,
