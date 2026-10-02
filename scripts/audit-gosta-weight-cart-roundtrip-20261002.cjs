@@ -29,3 +29,5 @@ assert.equal(ctx.price(roundtrip([{...pending,product:{...pending.product,ziiply
 console.log("PASS invalid persisted final price excluded");
 assert.equal(ctx.price(roundtrip([{...pending,price:12.90,product:{...pending.product,ziiplyWeightFinalPrice:-1}}])[0]),0);
 console.log("PASS negative persisted final price and stale quote excluded from basket total");
+assert.equal(ctx.price(roundtrip([{...pending,price:12.90,product:{...pending.product,ziiplyWeightFinalPrice:0}}])[0]),0);
+console.log("PASS confirmed zero remains zero after persistence, never stale €/kg quote");
