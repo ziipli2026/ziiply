@@ -258,6 +258,17 @@ assert.deepEqual(
 assert.ok(searchResearch("tymbark omena-kirsikkamehu",corpus).some(r=>r.name==="TYMBARK Omena-kirsikkamehu"));
 assert.deepEqual(searchResearch("   ",corpus),[],"Whitespace-only query must return no results");
 
+
+/* v67: exact generic term must not leak into unrelated compounds. */
+const appleHits=searchResearch("omena",corpus);
+assert.ok(appleHits.some(r=>r.name==="Kotimainen omena"));
+assert.ok(!appleHits.some(r=>r.name==="Omenatasku"));
+assert.ok(!appleHits.some(r=>r.name==="KARLENS Omenasiideri"));
+assert.ok(searchResearch("omena kirsikkamehu",corpus).some(r=>r.name==="TYMBARK Omena-kirsikkamehu"));
+const pizzaHits=searchResearch("pizza",corpus);
+assert.ok(pizzaHits.some(r=>r.name==="ATRIA Pizza 2 kpl"));
+assert.ok(!pizzaHits.some(r=>r.name==="Pizzadonitsi margherita"));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
