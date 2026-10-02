@@ -455,9 +455,10 @@ export default function ZiiplyMobileCompareCardresponsive({
                             </button>
                           ) : null}
                           {onSelectStore ? (
-                            <button type="button" onClick={(event) => { event.stopPropagation(); onSelectStore(store.id); }}
-                              className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px]"
-                              aria-label={`Osta ${store.name} vertailukori`} title="Osta tämä vertailukori">
+                            <button type="button" onClick={(event) => { event.stopPropagation(); if (!hasNoCounterpart) onSelectStore(store.id); }}
+                              disabled={hasNoCounterpart}
+                              className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-45"
+                              aria-label={hasNoCounterpart ? `${store.name}: ostettavia vastintuotteita ei löytynyt` : `Osta ${store.name} vertailukori`} title={hasNoCounterpart ? "Ostettavia vastintuotteita ei löytynyt" : "Osta tämä vertailukori" }>
                               <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.52rem] w-[1.52rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
                                 <path d="M3 18h18v4H3zM5 10h14l2 8H3zM7 2h10v8H7z"/>
                                 <path d="M9 5h6M8 14h2m4 0h2M11 20h2" strokeLinecap="round"/>
