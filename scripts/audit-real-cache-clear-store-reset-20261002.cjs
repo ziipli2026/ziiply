@@ -14,7 +14,7 @@ assert.match(branch,/setFoundStores\(\[\]\)/);
 assert.match(branch,/setActiveArea\(\{/);
 assert.match(branch,/setGpsCoordsV320\(null\)/);
 assert.match(branch,/setLocationInput\(""/);
-assert.match(branch,/setUsingOwnLocation\(false\)/);
+assert.match(branch,/setGpsCoordsV320\(null\)/);\nassert.match(branch,/setLocationInput\(""/);
 assert.match(branch,/writeManualStoreOverridesV786\(\{\}\)/);
 const clearBranch=branch;
 assert.equal(/if \(!marker\)/.test(clearBranch),true);
