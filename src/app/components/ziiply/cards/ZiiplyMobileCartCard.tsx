@@ -224,6 +224,13 @@ function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
     return Math.abs(value) > 20 ? value / 100 : value;
   };
 
+  // A confirmed scale row price must override the original €/kg quote.
+  if (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) {
+    const final = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
+    if (final == null || final === "" || !Number.isFinite(Number(final)) || Number(final) < 0) return 0;
+    return normalizeTotalPrice(Number(final));
+  }
+
   const candidates = [
     (item as any).price,
     (item as any).unitPrice,
