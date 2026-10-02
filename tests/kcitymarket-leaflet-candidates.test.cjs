@@ -35,3 +35,9 @@ test("reject detached price evidence and missing product context", () => {
   assert.equal(parseStrictPair(["249","PS","Ilman Plussa-korttia 2,79/ps"]), null);
   assert.equal(parseStrictPair(["Product","249","PS","Other text","Ilman Plussa-korttia 2,79/ps"]), null);
 });
+
+test("reject missing unit and non-discounted price", () => {
+  assert.equal(parseStrictPair(["Product","299","PKT","Ilman Plussa-korttia 3,99"]), null);
+  assert.equal(parseStrictPair(["Product","399","PKT","Ilman Plussa-korttia 3,99/pkt"]), null);
+  assert.equal(parseStrictPair(["Product","499","PKT","Ilman Plussa-korttia 3,99/pkt"]), null);
+});
