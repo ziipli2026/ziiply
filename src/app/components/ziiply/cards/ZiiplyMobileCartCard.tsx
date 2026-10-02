@@ -214,7 +214,7 @@ function getCartItemQuantityForTotalV8(item: ZiiplyMobileCartItem) {
 function isPendingWeightPriceV794(item: ZiiplyMobileCartItem) {
   const pending = Boolean(item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight);
   const final = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
-  return pending && (final == null || final === "" || !Number.isFinite(Number(final)));
+  return pending && (final == null || final === "" || !Number.isFinite(Number(final)) || Number(final) < 0);
 }
 
 function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
@@ -764,7 +764,7 @@ export default function ZiiplyMobileCartCard({
                   confirmedWeightFinalV802 != null && confirmedWeightFinalV802 !== "" &&
                   Number.isFinite(Number(confirmedWeightFinalV802)) && Number(confirmedWeightFinalV802) >= 0
                     ? Number(confirmedWeightFinalV802)
-                    : item.price;
+                    : pendingWeightV794 ? 0 : item.price;
                 const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(rowPriceInputV802);
                 const price = numericRowPriceV792 > 0 ? normalizePrice(rowPriceInputV802) : "";
                 const pendingWeightUnitPriceV796 =
