@@ -6,7 +6,7 @@ const gap=JSON.parse(readFileSync("tokmanni-spar-ean-gap.json","utf8")).items;
 const clean=v=>String(v??"").trim();
 const digits=v=>/^[0-9]{8,14}$/.test(v);
 const reject=/auto|vanne|rengas|tuulilas|moottori|työkalu|rakennus|maali|liima|sähkö|elektron|paristo|akku|puhelin|tietokone|urheiluväline|retkeil|kalast|metsäst|puutarha|lannoit|sisustus|verho|valaisin|huonekalu|kodintekni|keittiöväline|astiasto|ruokailuastia|muki|termos|vaate|sukka|kenkä|asuste|laukku|lelu|askartel|koriste|kynttil|pyyhe|lakana|peitto|tyyny|talutin|panta|häkki|akvaario/i;
-const matCategory=/(?:^|[;,\\s])matto(?:$|[;,\\s])/i;
+const matCategory=/(?:^|[;,\s])matto(?:$|[;,\s])/i;
 const knownCategoryConflicts=new Set(["4008429037894","6414505163414"]);
 const rules=[
 ["Lemmikit",/kissan|koiran|lemmik|puruluu/],["Lastenruoat",/lastenruok|vauvanruok|äidinmaidonkorv/],
