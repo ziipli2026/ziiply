@@ -3,7 +3,7 @@ const fs=require("node:fs");
 const src=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx","utf8");
 assert.match(src,/const hasNoCounterpart =[\s\S]*?comparedCount > 0 &&[\s\S]*?Number\(store\.itemCount \|\| 0\)\) === 0/);
 assert.match(src,/const isBest = !hasNoCounterpart &&/);
-assert.match(src,/const diffLabel = hasNoCounterpart \? null : getStorePriceDiff\(store, cheapest\)/);
+assert.match(src,/const diffLabel = hasNoCounterpart \\|\\| Math\\.max/);
 assert.match(src,/hasNoCounterpart\s*\? "Vastinetta ei löytynyt"/);
 assert.match(src,/hasNoCounterpart \? "—" : formatEuro\(store\.totalPrice\)/);
 assert.match(src,/if \(aComplete !== bComplete\) return aComplete \? -1 : 1/);
