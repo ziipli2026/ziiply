@@ -768,7 +768,6 @@ export default function ZiiplyMobileCartCard({
                     key={itemKeyV65}
                     className={cx(
                       "relative block min-h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]", 
-                      pendingWeightV794 && "min-h-[4.05rem]", 
                       checked && "opacity-55",
                     )}
                   >
@@ -791,9 +790,6 @@ export default function ZiiplyMobileCartCard({
                       title={originalName}
                     >
                       {name}
-                      {pendingWeightV794 && (
-                        <span className="mt-1 block w-fit rounded-[0.25rem] border border-[#a78948]/65 bg-[#f5e5bd] px-1.5 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-wide text-[#695125]">Punnitse</span>
-                      )}
                     </div>
 
                     <div data-v65-remove-choice={pendingRemoveV65 ? "true" : undefined}>
@@ -821,7 +817,7 @@ export default function ZiiplyMobileCartCard({
                     >
                       {isAlcoholCartItemV8(item)
                         ? "kassa"
-                        : pendingWeightV794 ? "—" : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
+                        : pendingWeightV794 ? <span className="text-[0.66rem] font-black uppercase tracking-[-0.02em] text-[#b42318]">Punnitse</span> : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                           ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
                           : price || "—"}
                     </div>
