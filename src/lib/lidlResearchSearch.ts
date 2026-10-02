@@ -1,5 +1,6 @@
 /** Public Lidl catalog: read-only name discovery, never a price or EAN feed. */
 import catalog from "../../data/lidl/official-grocery-candidates-v44-2026-10-01.json";
+import stapleEvidence from "../../data/lidl/independent-staple-ean-evidence-2026-10-02.json";
 
 const quarantined = new Set(catalog.quarantinedProductIds.map(id => String(id).trim()));
 const norm = (s: string) => s.toLocaleLowerCase("fi-FI").normalize("NFKD")
@@ -22,7 +23,15 @@ export function searchLidlResearch(query:string,limit=15){
  if(!q.length)return [];
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set<string>();
- return catalog.records.filter(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantined.has(r.lidlProductId.trim()))
+ const independentlyNamed = stapleEvidence.records
+  // Only explicitly Lidl-confirmed products; historical recall entries do not
+  // establish a product is currently carried by Lidl.
+  .filter(r=>r.name==="Ilona kevytmaito" && r.eanStatus==="not_verified")
+  .map((r,i)=>({
+    lidlProductId:String(90000000+i),name:r.name,variant:"",
+    observedDate:stapleEvidence.observedAt,
+  }));
+ return [...catalog.records,...independentlyNamed].filter(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantined.has(r.lidlProductId.trim()))
  .map(r=>{
   const words=tokens([r.name,r.variant].filter(v=>typeof v==="string").join(" "));
   const all=q.every(t=>words.some(w=>matches(w,t)));
