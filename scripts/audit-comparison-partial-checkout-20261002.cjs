@@ -1,0 +1,13 @@
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const checkout=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCheckoutCard.tsx","utf8");
+const page=fs.readFileSync("src/app/page.tsx","utf8");
+assert.match(checkout,/missingItemCount\?: number/);
+assert.match(checkout,/missingItemCount > 0 \? "Lista on vajaa" : "✓ Lista kasassa!"/);
+assert.match(checkout,/missingItemCount > 0 \? "Osasumma " : ""/);
+assert.match(checkout,/\{missingItemCount\} tuotetta puuttuu tästä kaupasta/);
+assert.match(page,/missingItemCount=\{chainResults\.find\(\(result\) => result\.key === mobileCompareShoppingStoreKeyV732\)\?\.missingItems \|\| 0\}/);
+const view=(missing,total)=>({title:missing>0?"Lista on vajaa":"✓ Lista kasassa!",label:(missing>0?"Osasumma ":"")+total.toFixed(2).replace(".",",")+" €",notice:missing>0?`${missing} tuotetta puuttuu tästä kaupasta.`:""});
+assert.deepEqual(view(1,1.99),{title:"Lista on vajaa",label:"Osasumma 1,99 €",notice:"1 tuotetta puuttuu tästä kaupasta."});
+assert.deepEqual(view(0,3.99),{title:"✓ Lista kasassa!",label:"3,99 €",notice:""});
+console.log("PASS incomplete checkout displays missing count and partial sum; complete checkout retains existing heading");
+console.log("NOTE isolated regression, not live browser checkout");
