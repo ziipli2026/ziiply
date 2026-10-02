@@ -434,6 +434,21 @@ for(const query of ["ziiplynonexistentproduct","atria pizza nonexistent","milbon
  assert.deepEqual(searchResearch(query,corpus),[],"Missing product must not receive fallback phantom result: "+query);
 }
 
+
+/* v81: sorting and deduplication precede limit, independent of row order. */
+const limitFixture=[
+ {lidlProductId:"z",name:"Pizza Zeta"},
+ {lidlProductId:"a",name:"Pizza Alfa"},
+ {lidlProductId:"m",name:"Pizza Mokka"},
+ {lidlProductId:"a",name:"Pizza Alfa"}
+];
+const sortedAll=searchResearch("pizza",limitFixture,50).map(r=>r.lidlProductId);
+assert.equal(sortedAll.length,3);
+for(const limit of [0,1,2,3,4,50]){
+ assert.deepEqual(searchResearch("pizza",limitFixture,limit).map(r=>r.lidlProductId),sortedAll.slice(0,limit));
+ assert.deepEqual(searchResearch("pizza",[...limitFixture].reverse(),limit).map(r=>r.lidlProductId),sortedAll.slice(0,limit));
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
