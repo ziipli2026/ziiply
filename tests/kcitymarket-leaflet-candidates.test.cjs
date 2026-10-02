@@ -119,3 +119,14 @@ test("reject a second price or multibuy clause after reference price", () => {
     assert.equal(parseStrictPair(["Example cereal 300 g", "249", "PKT", "Ilman Plussa-korttia 2,99/pkt" + suffix]), null, suffix);
   }
 });
+
+test("reject zero, malformed and non-finite compact offer values", () => {
+  for (const digits of ["000", "0000", "00", "2,49", "NaN", "Infinity", "-249", "249€"]) {
+    assert.equal(parseStrictPair(["Example product 200 g", digits, "PKT", "Ilman Plussa-korttia 3,99/pkt"]), null, digits);
+  }
+});
+test("reject zero or malformed reference prices", () => {
+  for (const reference of ["0,00/pkt", "00,00/pkt", "3,9/pkt", "3.999/pkt", "-3,99/pkt"]) {
+    assert.equal(parseStrictPair(["Example product 200 g", "249", "PKT", "Ilman Plussa-korttia " + reference]), null, reference);
+  }
+});
