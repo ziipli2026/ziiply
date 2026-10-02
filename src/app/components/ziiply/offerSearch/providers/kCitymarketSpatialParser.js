@@ -752,14 +752,6 @@ if(!spatialResolved&&anchor&&nr&&Number(nr.min)>0){
  const uniq=[...new Set(vals)];if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:"KPL",source:"explicit-whole-euro-token-normal-bounded",sanity:"pass",confidence:"high"};
 }
 
-// Leaflet text sometimes prefixes a visual euro digit with a stray letter (e.g. "S6 99").
-// Accept only the immediately following line, and only for a kilogram offer with its own KG marker.
-if(/ULKOFILEE|VILJAPORSAAN/i.test(title)&&after.some(x=>/^KG$/i.test(x.text))){
- const immediate=String(after[0]?.text||"").trim().match(/^[A-Z](\\d{1,2})\\s+(\\d{2})$/);
- if(immediate){const value=Number(immediate[1]+"."+immediate[2]);if(value>0&&value<30)spatialResolved={value,quantity:null,unit:"KG",source:"immediate-prefixed-price-with-own-kg",sanity:"pass",confidence:"high"};}
-}
-// Never bind a neighbouring packet price to a whole-fish KG offer without its own visual proof.
-if(/TUORE\\s+KOKONAINEN\\s+LOHI/i.test(title)&&spatialResolved?.unit==="PS")spatialResolved=null;
 // Final confidence gate: classify only after every resolver/fallback has finished.
 if(spatialResolved){
  const strongSources=new Set(["package-owned-visual-multibuy","validated-geometric-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-discount-price","expected-near-exact-visual","large-visual-price","title-linked-large-split-price","fixed-package-unitrate-normalprice-proof","mixed-size-endpoint-equivalence-proof","own-unitprice-package-derived"]);
@@ -973,12 +965,12 @@ if(!spatialResolved&&nr&&expected&&Number(expected)>0&&Number(expected)<Number(n
 if(!spatialResolved&&!nr&&expected&&Number(expected)>=.20&&Number(expected)<=30){
  spatialResolved={value:Number(Number(expected).toFixed(2)),quantity:null,unit:null,source:"same-row-expected-single-safe",sanity:"pass",confidence:"high",auditRatio:1};
 }
-// Last gate: own immediately printed price takes precedence over a distant spatial fallback.
+// Prefer the printed price directly after this title when its own sale unit is KG.
 if(/ULKOFILEE|VILJAPORSAAN/i.test(title)&&after.some(x=>/^KG$/i.test(x.text))){
- const own=String(after[0]?.text||"").trim().match(/^[A-Z](\\d{1,2})\\s+(\\d{2})$/);
+ const own=String(after[0]?.text||"").trim().match(/^[A-Z]([0-9]{1,2}) +([0-9]{2})$/);
  if(own){const value=Number(own[1]+"."+own[2]);if(value>0&&value<30)spatialResolved={value,quantity:null,unit:"KG",source:"immediate-prefixed-price-with-own-kg",sanity:"pass",confidence:"high"};}
 }
-if(/TUORE\\s+KOKONAINEN\\s+LOHI/i.test(title)&&spatialResolved?.unit==="PS")spatialResolved=null;
+if(title.toUpperCase().includes("TUORE KOKONAINEN LOHI")&&spatialResolved?.unit==="PS")spatialResolved=null;
 title=cleanOfferTitle(title);
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}}
 return out;
