@@ -24,6 +24,7 @@ export function searchLidlResearch(query:string,limit=15){
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set<string>();
  const seenNames=new Set<string>();
+ // Research-only entries are discovery candidates, not verified local stock or prices.
  const independentlyNamed = stapleEvidence.records
   // Research discovery includes Lidl-origin historic references, but excludes
   // generic categories and third-party-only EAN evidence from product cards.
