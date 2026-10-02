@@ -29,11 +29,13 @@ jobs:
       - run: node scripts/tokmanni-spar-quality-gate.mjs
       - run: node scripts/tokmanni-spar-regression-check.mjs
       - run: node scripts/tokmanni-spar-readonly-preview.mjs
+      - run: node scripts/tokmanni-spar-review-sample.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: tokmanni-spar-ean-gap
           path: |
+            tokmanni-spar-manual-review-sample.csv
             tokmanni-spar-readonly-preview.json
             tokmanni-spar-regression-report.json
             tokmanni-spar-quality-gate.json
