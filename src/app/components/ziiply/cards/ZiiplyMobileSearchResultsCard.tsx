@@ -329,8 +329,10 @@ export default function ZiiplyMobileSearchResultsCard({
                 const name = getName(product);
                 const rawPrice = pickRawPrice(product);
                 const researchOnly = product.priceVerified === false || product.product?.priceVerified === false;
-                const observedPrice = researchOnly && product.observedPriceEur != null
-                  ? formatMainPrice(product.observedPriceEur)
+                // observedPriceEur is explicitly stored in euros, never cents.
+                const observedEuros = numericValue(product.observedPriceEur);
+                const observedPrice = researchOnly && observedEuros != null && observedEuros >= 0
+                  ? `${observedEuros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
                   : "";
                 const price = researchOnly ? "" : formatMainPrice(rawPrice);
                 const comparison = researchOnly ? "" : formatComparisonPrice(product, rawPrice);
@@ -369,7 +371,7 @@ export default function ZiiplyMobileSearchResultsCard({
 
                       {researchOnly && (
                         <div className="mt-[0.25rem] text-[0.65rem] font-bold leading-tight text-[#78633a]">
-                          {observedPrice ? `Havaittu ${observedPrice} · ei vahvistettu` : "Hinta ei vahvistettu"}
+                          {observedPrice ? `Havaittu ${observedPrice} (${product.observedDate ?? "päiväys puuttuu"}) · ei vahvistettu` : "Hinta ei vahvistettu"}
                         </div>
                       )}
                       {!researchOnly && comparison && (
