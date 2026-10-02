@@ -207,3 +207,10 @@ test("strict pair rejects empty and whitespace-only product context", () => {
     assert.equal(parseStrictPair([context,"249","PKT","Ilman Plussa-korttia 3,99/pkt"]), null, JSON.stringify(context));
   }
 });
+
+test("strict pair rejects duplicate compact price glyphs before reference", () => {
+  for (const lines of [
+    ["Example product 200 g","249","249","PKT","Ilman Plussa-korttia 3,99/pkt"],
+    ["Example product 200 g","299","249","PKT","Ilman Plussa-korttia 3,99/pkt"]
+  ]) assert.equal(parseStrictPair(lines), null, JSON.stringify(lines));
+});
