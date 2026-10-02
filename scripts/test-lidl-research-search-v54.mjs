@@ -473,6 +473,17 @@ for(const [forward,reverse] of [
  assert.deepEqual(searchResearch(forward,corpus),searchResearch(reverse,corpus),"Query order changed results: "+forward);
 }
 
+
+/* v84: repeating a query token must not create extra matches or reorder results. */
+for(const [plain,repeated] of [
+ ["pizza","pizza pizza"],
+ ["atria pizza","atria atria pizza"],
+ ["milbona proteiinivanukas","milbona proteiinivanukas milbona"],
+ ["kotimainen omena","kotimainen omena omena"]
+]){
+ assert.deepEqual(searchResearch(repeated,corpus),searchResearch(plain,corpus),"Repeated query term changed results: "+repeated);
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
