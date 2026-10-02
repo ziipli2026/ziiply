@@ -1557,6 +1557,18 @@ for(let v163Attempt=0;v163Attempt<3;v163Attempt++){
  assert.equal(JSON.stringify(v163Rows),v163Snapshot,"Unicode deduplication must not mutate source");
 }
 
+/* v164: mutating a normalized result ID cannot contaminate future searches. */
+const v164Rows=[
+ {lidlProductId:"\u00a0safe-164-a\u00a0",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-164-b",name:"MILBONA Proteiinivanukas",variant:"suklaa"}
+];
+const v164Snapshot=JSON.stringify(v164Rows);
+const v164First=searchResearch("milbona proteiinivanukas",v164Rows,2);
+assert.deepEqual(v164First.map(r=>r.lidlProductId),["safe-164-a","safe-164-b"]);
+v164First[0].lidlProductId="changed-164";
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v164Rows,2).map(r=>r.lidlProductId),["safe-164-a","safe-164-b"]);
+assert.equal(JSON.stringify(v164Rows),v164Snapshot,"Mutating returned IDs must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
