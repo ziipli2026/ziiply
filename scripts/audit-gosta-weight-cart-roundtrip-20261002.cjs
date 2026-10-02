@@ -1,0 +1,26 @@
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const vm=require("node:vm");
+const page=fs.readFileSync("src/app/page.tsx","utf8");
+const mobile=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
+const start=mobile.indexOf("function isPendingWeightPriceV794(");
+const end=mobile.indexOf("\nfunction ",mobile.indexOf("function readCartItemPriceForTotalV8(",start)+10);
+assert(start>=0&&end>start);
+let code=mobile.slice(start,end).replaceAll(": ZiiplyMobileCartItem","").replace("const normalizeTotalPrice = (value: number) =>","const normalizeTotalPrice = (value) =>").replace(/: number\b/g,"").replaceAll("(item as any)","item");
+const ctx={};vm.runInNewContext(code+"\nthis.price=readCartItemPriceForTotalV8;",ctx);
+assert.match(page,/const savedCart = window\.localStorage\.getItem\("ziiply-cart-v1"\)/);
+assert.match(page,/Array\.isArray\(parsed\?\.items\)/);
+assert.match(page,/setCart\(restoredItems\)/);
+function roundtrip(items){const storage=JSON.stringify({version:2,savedAt:12345,items});const parsed=JSON.parse(storage);return Array.isArray(parsed)?parsed:parsed.items;}
+const pending={id:"weight-1",name:"Irtomyynti",price:0,source:"offer",product:{ziiplyWeightOffer:true,ziiplyPricePendingWeight:true,comparisonPrice:12.90,comparisonPriceUnit:"kg"}};
+const restoredPending=roundtrip([pending])[0];
+assert.equal(ctx.price(restoredPending),0,"restored pending weight must not use old quote");
+console.log("PASS pending saved cart restores at 0 euros");
+const confirmed={...pending,product:{...pending.product,ziiplyWeightFinalPrice:6.45}};
+assert.equal(ctx.price(roundtrip([confirmed])[0]),6.45);
+console.log("PASS confirmed saved cart restores at 6.45 euros");
+const stale={...pending,price:12.90};
+assert.equal(ctx.price(roundtrip([stale])[0]),0);
+console.log("PASS stale €/kg copied to row price remains excluded after restore");
+assert.equal(ctx.price(roundtrip([{...pending,product:{...pending.product,ziiplyWeightFinalPrice:"invalid"}}])[0]),0);
+console.log("PASS invalid persisted final price excluded");
