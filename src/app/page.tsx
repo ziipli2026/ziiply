@@ -22174,7 +22174,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
           <ZiiplyMobileOfferSearchCardLoose
             open={true}
-            title="Tarjoushaku"
+            title="Tarjous- ja kampanjahaku"
             query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
             offers={gostaOfferCardItemsV163}
             filter={offerCardFilterV106}
