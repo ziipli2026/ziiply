@@ -1194,6 +1194,20 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v135RowsA,2).map(r=>r
 assert.equal(JSON.stringify(v135RowsA),v135SnapshotA);
 assert.equal(JSON.stringify(v135RowsB),v135SnapshotB);
 
+/* v136: equal-score results must remain deterministically ordered across repeated searches. */
+const v136Rows=[
+ {lidlProductId:"safe-136-z",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-136-a",name:"MILBONA Proteiinivanukas",variant:"suklaa"},
+ {lidlProductId:"safe-136-m",name:"MILBONA Proteiinivanukas",variant:"kookos"}
+];
+const v136Snapshot=JSON.stringify(v136Rows);
+const v136Expected=searchResearch("milbona proteiinivanukas",v136Rows,3).map(r=>r.lidlProductId);
+assert.deepEqual(v136Expected,["safe-136-z","safe-136-a","safe-136-m"]);
+for(let v136Attempt=0;v136Attempt<3;v136Attempt++){
+ assert.deepEqual(searchResearch("milbona proteiinivanukas",v136Rows,3).map(r=>r.lidlProductId),v136Expected);
+}
+assert.equal(JSON.stringify(v136Rows),v136Snapshot,"Repeated sorting must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
