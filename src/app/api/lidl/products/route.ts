@@ -106,7 +106,7 @@ export async function GET(request: Request) {
   const storeName = String(searchParams.get("storeName") || "").trim();
   const city = String(searchParams.get("city") || "").trim();
   const address = String(searchParams.get("address") || "").trim();
-  const storeId = /^\\d+$/.test(requestedStoreId)
+  const storeId = /^\d+$/.test(requestedStoreId)
     ? requestedStoreId
     : await resolveRuoanhintaLidlStoreId(storeName, city, address);
 
