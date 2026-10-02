@@ -224,3 +224,9 @@ test("reject product context consisting only of a price-like glyph with label el
     assert.equal(parseStrictPair([...context, "249", "PKT", "Ilman Plussa-korttia 3,99/pkt"]), null, JSON.stringify(context));
   }
 });
+
+test("reject an intervening standalone price glyph even when product name is valid", () => {
+  for (const stray of ["2.49", "3,99", "999", "9999"]) {
+    assert.equal(parseStrictPair(["Example product 200 g",stray,"249","PKT","Ilman Plussa-korttia 3,99/pkt"]), null, stray);
+  }
+});
