@@ -461,6 +461,18 @@ assert.deepEqual(searchResearch("arla proteiinivanukas kookos",crossRecordFixtur
 assert.deepEqual(searchResearch("milbona proteiinivanukas kahvi",crossRecordFixture).map(r=>r.lidlProductId),["a"]);
 assert.deepEqual(searchResearch("milbona proteiinijuoma kookos",crossRecordFixture).map(r=>r.lidlProductId),["b"]);
 
+
+/* v83: multi-token query order must not change matching or ranking. */
+for(const [forward,reverse] of [
+ ["atria pizza","pizza atria"],
+ ["milbona proteiinivanukas","proteiinivanukas milbona"],
+ ["marli vital","vital marli"],
+ ["pizza hawaii","hawaii pizza"],
+ ["kotimainen omena","omena kotimainen"]
+]){
+ assert.deepEqual(searchResearch(forward,corpus),searchResearch(reverse,corpus),"Query order changed results: "+forward);
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
