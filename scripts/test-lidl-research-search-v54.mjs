@@ -724,6 +724,20 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v102Rows,1).map(r=>r.
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v102Rows,2).map(r=>r.lidlProductId),["dup-102","next-102"]);
 assert.equal(JSON.stringify(v102Rows),v102Snapshot,"Tight-limit search must not mutate input");
 
+/* v103: blank identities must not collapse unrelated product rows. */
+const v103Rows=[
+ {lidlProductId:"",name:"MILBONA Proteiinivanukas kahvi"},
+ {lidlProductId:"   ",name:"MILBONA Proteiinivanukas kookos"},
+ {lidlProductId:"valid-103",name:"MILBONA Proteiinivanukas vanilja"}
+];
+const v103Snapshot=JSON.stringify(v103Rows);
+const v103Hits=searchResearch("milbona proteiinivanukas",v103Rows,3);
+assert.equal(v103Hits.length,3,"Blank identities must not merge distinct rows");
+assert.ok(v103Hits.some(r=>r.name==="MILBONA Proteiinivanukas kahvi"));
+assert.ok(v103Hits.some(r=>r.name==="MILBONA Proteiinivanukas kookos"));
+assert.ok(v103Hits.some(r=>r.lidlProductId==="valid-103"));
+assert.equal(JSON.stringify(v103Rows),v103Snapshot,"Blank-ID search must not mutate input");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
