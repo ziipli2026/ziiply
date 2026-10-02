@@ -841,10 +841,27 @@ async function getEffectiveSKaupatStoreIdV174(
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
 
-  // V217: prefer the older store-name/directory resolver path first.
-  // The newer remotePickupSlots resolver is fallback only. This preserves stores
-  // already working with the old method while still covering old-method misses.
+  // V219 experiment: resolve the selected shop via its online pickup point first.
+  // The pickup response contains store.id, unlike the public /myymala URL.
+  // Accept pickup only if its name contains the selected shop's place token;
+  // otherwise preserve the existing official-directory fallback for other stores.
   if (storeName) {
+    const pickupStoreIdV219 = await resolveSKaupatStoreIdViaPickupSlotsV215(storeName);
+    const pickupNameV219 = lastPickupResolverDiagnosticV216?.bestPickupName || "";
+    const placeV219 = getStorePlaceTokenV215(storeName);
+    const pickupMatchesV219 = Boolean(
+      placeV219 &&
+      normalizeSKaupatStoreNameForMatchV198(pickupNameV219).includes(placeV219)
+    );
+    if (pickupStoreIdV219 && pickupMatchesV219) {
+      console.warn("[GOSTA V219] using matching pickup store.id", {
+        storeName, inputStoreId: raw || null,
+        pickupName: pickupNameV219, resolvedStoreId: pickupStoreIdV219,
+      });
+      return pickupStoreIdV219;
+    }
+
+    // Preserve the existing resolver sequence when no exact pickup match exists.
     const resolvedFromOfficialStoreSearchV198 =
       await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName);
 
