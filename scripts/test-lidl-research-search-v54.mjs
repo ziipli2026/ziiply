@@ -361,6 +361,16 @@ assert.deepEqual(searchResearch("ATRIA PIZZA",corpus).map(r=>r.lidlProductId),ba
 assert.deepEqual(searchResearch("  atria---pizza  ",corpus).map(r=>r.lidlProductId),baselineBrand);
 assert.deepEqual(searchResearch("   ",corpus),[]);
 
+
+/* v75: punctuation and malformed query input cannot produce phantom matches. */
+for(const query of ["---","...","!!!","   ", "", null, undefined, 123, {}, []]){
+ assert.deepEqual(searchResearch(query,corpus),[],"Invalid/empty query must return no results");
+}
+const brandPunctuation=searchResearch("atria pizza",corpus).map(r=>r.lidlProductId);
+assert.deepEqual(searchResearch("ATRIA, Pizza!",corpus).map(r=>r.lidlProductId),brandPunctuation);
+assert.deepEqual(searchResearch("atria / pizza",corpus).map(r=>r.lidlProductId),brandPunctuation);
+assert.deepEqual(searchResearch("atria pizza nonexistent",corpus),[],"All search tokens must belong to one record");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
