@@ -187,3 +187,11 @@ test("compact cents retain exact boundaries without silently rounding", () => {
   assert.equal(parseStrictPair(["Example product 200 g","102","PKT","Ilman Plussa-korttia 1,02/pkt"]), null);
   assert.equal(parseStrictPair(["Example product 200 g","103","PKT","Ilman Plussa-korttia 1,02/pkt"]), null);
 });
+
+test("reject detached or repeated reference anchors rather than borrowing a price", () => {
+  for (const lines of [
+    ["Example product 200 g","249","PKT","Ilman Plussa-korttia 3,99/pkt","Ilman Plussa-korttia 4,99/pkt"],
+    ["Example product 200 g","249","PKT","Other product","Ilman Plussa-korttia 3,99/pkt"],
+    ["Example product 200 g","249","PKT","Ilman Plussa-korttia 3,99/pkt","299","PKT","Ilman Plussa-korttia 4,99/pkt"]
+  ]) assert.equal(parseStrictPair(lines), null, JSON.stringify(lines));
+});
