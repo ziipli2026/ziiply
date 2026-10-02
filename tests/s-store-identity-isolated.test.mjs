@@ -27,8 +27,8 @@ function decide({ official, pickup, pickupMatches = true, productIdValidated = f
 test('actual provider has primary identity and fallback verification guards', () => {
   assert.match(provider, /verifySelectedSOfferStoreV230\(selectedStore\.storeName, selectedStore\.storeId\)/);
   assert.match(provider, /verifySelectedSOfferStoreV230\(\s*selectedStore\.storeName, fallbackStoreId/);
-  assert.match(provider, /if \(identityV230\.status === "mismatch"\)/);
-  assert.match(provider, /if \(fallbackIdentityV231\.status === "mismatch"\)/);
+  assert.match(provider, /if \(identityV230\.status !== "verified"\)/);
+  assert.match(provider, /if \(fallbackIdentityV231\.status !== "verified"\)/);
 });
 test('matching selected shop pickup verifies product ID', () => {
   assert.equal(verifyPickup('Prisma Example', 'PRODUCT_A', [{ brand: 'prisma', pickupName: 'Prisma Example pickup', storeId: 'PRODUCT_A' }]), 'verified');
@@ -63,7 +63,7 @@ test('audit: trial V230 blocks unavailable verification rather than labeling it 
   const end = provider.indexOf('const pageStep = 48;', start);
   assert.ok(start >= 0 && end > start);
   const guard = provider.slice(start, end);
-  assert.match(guard, /identityV230\.status === "mismatch"/);
+  assert.match(guard, /identityV230\.status !== "verified"/);
   assert.doesNotMatch(guard, /identityV230\.status === "unavailable"\)\s*\{/);
   // Trial guard is fail-closed; this is not a successful live identity test.
 });
@@ -72,5 +72,5 @@ test('audit: initial unverified identity skips the entire selected store before 
   const fallback = provider.indexOf('resolveSafePrismaFallbackStoreIdV225(', initial);
   assert.ok(initial >= 0 && fallback > initial);
   const block = provider.slice(initial, fallback);
-  assert.match(block, /identityV230\.status === "mismatch"[\s\S]*?continue;/);
+  assert.match(block, /identityV230\.status !== "verified"[\s\S]*?continue;/);
 });
