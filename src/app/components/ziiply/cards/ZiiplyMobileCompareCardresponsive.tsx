@@ -89,6 +89,19 @@ function formatEuroCents(value?: number | null) {
   return `${(value / 100).toFixed(2).replace(".", ",")} €`;
 }
 
+function getMatchedCartItemIds(store: ZiiplyCompareStore) {
+  return (store.matches || [])
+    .map((match: any) => String(match?.cartItemId || "").trim())
+    .filter(Boolean)
+    .sort();
+}
+
+function hasSameMatchedItems(a: ZiiplyCompareStore, b: ZiiplyCompareStore) {
+  const left = getMatchedCartItemIds(a);
+  const right = getMatchedCartItemIds(b);
+  return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
 function getStorePriceDiff(store: ZiiplyCompareStore, cheapest?: ZiiplyCompareStore) {
   if (!cheapest || store.totalPrice == null || cheapest.totalPrice == null) return null;
 
@@ -99,6 +112,7 @@ function getStorePriceDiff(store: ZiiplyCompareStore, cheapest?: ZiiplyCompareSt
   const storeCount = Math.max(0, Number(store.itemCount || 0));
   const cheapestCount = Math.max(0, Number(cheapest.itemCount || 0));
   if (storeMissing !== cheapestMissing || storeCount !== cheapestCount) return null;
+  if (storeMissing > 0 && !hasSameMatchedItems(store, cheapest)) return null;
 
   const diff = store.totalPrice - cheapest.totalPrice;
   if (Math.abs(diff) < 0.001) return "Huokein";
@@ -331,8 +345,10 @@ export default function ZiiplyMobileCompareCardresponsive({
                   comparedCount > 0 &&
                   Math.max(0, Number(store.itemCount || 0)) === 0 &&
                   Math.max(0, Number(store.missingItems || comparedCount)) > 0;
-                const isBest = !hasNoCounterpart && Boolean(store.isBest || cheapest?.id === store.id);
-                const diffLabel = hasNoCounterpart ? null : getStorePriceDiff(store, cheapest);
+                const isBest = !hasNoCounterpart && Boolean(cheapest?.id === store.id) &&
+                  (Math.max(0, Number(store.missingItems || 0)) === 0);
+                const diffLabel = hasNoCounterpart || Math.max(0, Number(store.missingItems || 0)) > 0
+                  ? null : getStorePriceDiff(store, cheapest);
                 const matchedIds = new Set((store.matches || []).map((match: any) => String(match?.cartItemId || "")).filter(Boolean));
                 const sourceItemsById = new Map(
                   (items || []).map((item: any) => [String(item?.id || ""), item]),
