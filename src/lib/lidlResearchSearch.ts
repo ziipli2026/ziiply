@@ -55,7 +55,9 @@ export function searchLidlResearch(query:string,limit=15){
     + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"?12:0)
     + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-historical-product-mention"?-12:0)
     + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-public-basket-comparison"?4:0):0;
-  return {r,score};
+  // A documented historical name may rank below current-range evidence, but a
+  // matching name must not disappear solely because of its provenance penalty.
+  return {r,score:all?Math.max(1,score):0};
  }).filter(x=>x.score>0)
  .sort((a,b)=>b.score-a.score||a.r.name.localeCompare(b.r.name,"fi-FI"))
  .filter(({r})=>{const id=r.lidlProductId.trim();const name=identity([r.name,r.variant].filter(Boolean).join(" "));if(seen.has(id)||seenNames.has(name))return false;seen.add(id);seenNames.add(name);return true;})
