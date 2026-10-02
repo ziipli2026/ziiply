@@ -201,3 +201,9 @@ test("strict pair rejects non-array and non-text input without throwing", () => 
     assert.equal(parseStrictPair(lines), null);
   }
 });
+
+test("strict pair rejects empty and whitespace-only product context", () => {
+  for (const context of ["", " ", "   ", "123", "249"]) {
+    assert.equal(parseStrictPair([context,"249","PKT","Ilman Plussa-korttia 3,99/pkt"]), null, JSON.stringify(context));
+  }
+});
