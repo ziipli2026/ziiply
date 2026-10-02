@@ -1,0 +1,17 @@
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const core=fs.readFileSync("src/app/components/ziiply/ziiplyCore.ts","utf8");
+const card=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx","utf8");
+const checkout=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCheckoutCard.tsx","utf8");
+const page=fs.readFileSync("src/app/page.tsx","utf8");
+assert.match(core,/export function formatEuro\(cents\?: number \| null\)/);
+assert.match(core,/\(cents \/ 100\)\.toFixed\(2\)/);
+assert.match(card,/const euros = value \/ 100;/);
+assert.doesNotMatch(card,/Math\.abs\(value\) > 20/);
+assert.match(checkout,/\(totalPrice \/ 100\)\.toLocaleString/);
+const start=page.indexOf("function shareMobileCompareStoreV729(storeId: string)");
+const end=page.indexOf("const [normalResults",start);
+assert.match(page.slice(start,end),/\? formatEuro\(result\.totalPrice\)/);
+const fmt=c=>(c/100).toFixed(2).replace(".",",")+" €";
+for(const [c,want] of [[0,"0,00 €"],[5,"0,05 €"],[20,"0,20 €"],[21,"0,21 €"],[199,"1,99 €"],[1999,"19,99 €"],[2000,"20,00 €"],[2499,"24,99 €"],[12345,"123,45 €"]]) assert.equal(fmt(c),want);
+console.log("PASS shared, mobile card and checkout totals use cents; boundary values 0, 20, 21, 1999, 2000 and 12345 verified");
+console.log("NOTE isolated source/unit test; not browser test");
