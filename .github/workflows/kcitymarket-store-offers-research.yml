@@ -109,6 +109,11 @@ jobs:
                     imageCount: (page.html.match(/<img\b/gi) || []).length,
                     htmlStructure: {
                       paragraphCount: (page.html.match(/<p\b/gi) || []).length,
+                      paragraphSamples: [...page.html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+                        .slice(0, 14).map((m, index) => ({
+                          index, attributes: m[0].slice(0, Math.min(130, m[0].indexOf(">") + 1)),
+                          text: m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 260)
+                        })),
                       spanCount: (page.html.match(/<span\b/gi) || []).length,
                       divCount: (page.html.match(/<div\b/gi) || []).length,
                       priceBlockSamples: [...page.html.matchAll(/<[^>]+>[^<>]{0,100}(?:Ilman Plussa-korttia|[0-9]{3}\s*(?:PKT|PS|RS))[^<>]{0,100}<\/[^>]+>/gi)]
