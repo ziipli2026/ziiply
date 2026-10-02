@@ -129,6 +129,15 @@ jobs:
                 } catch (error) { return { page: name, error: String(error) }; }
               }));
               result.pageAudit = pages;
+              result.comparisonSummary = pages.reduce((summary, page) => {
+                for (const item of page.comparisonAudit ?? []) {
+                  summary[item.classification] = (summary[item.classification] ?? 0) + 1;
+                }
+                return summary;
+              }, {});
+              result.pageHealth = { total: pages.length,
+                http200: pages.filter(page => page.status === 200).length,
+                errors: pages.filter(page => page.error || page.status !== 200).map(page => page.page) };
             }
             console.log(JSON.stringify(result, null, 2));
           })().catch(error => { console.error("Leaflet metadata research:", String(error)); process.exitCode = 1; });
