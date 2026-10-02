@@ -74,3 +74,19 @@ test('audit: initial unverified identity skips the entire selected store before 
   const block = provider.slice(initial, fallback);
   assert.match(block, /identityV230\.status !== "verified"[\s\S]*?continue;/);
 });
+
+test('audit: cached pickup diagnostic must not be mistaken for independent live identity evidence', () => {
+  const start = provider.indexOf('if (cachedPickupIdV222) {');
+  const end = provider.indexOf('lastPickupResolverDiagnosticV216 = {', start + 10);
+  assert.ok(start >= 0 && end > start);
+  const cachePath = provider.slice(start, provider.indexOf('return cachedPickupIdV222;', start));
+  assert.match(cachePath, /bestPickupName: cleanStoreName/);
+  assert.match(cachePath, /geocodeQueryUsed: "positive-cache"/);
+  // Existing behavior documented: a synthetic name in cache diagnostics cannot prove ownership.
+});
+test('audit: an unresolved identity is never equivalent to local evidence', () => {
+  const start = provider.indexOf('const identityV230 = await verifySelectedSOfferStoreV230(');
+  const end = provider.indexOf('const pageStep = 48;', start);
+  assert.ok(start >= 0 && end > start);
+  assert.match(provider.slice(start, end), /identityV230\.status !== "verified"[\s\S]*?continue;/);
+});
