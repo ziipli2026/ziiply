@@ -677,6 +677,11 @@ export async function GET(request: Request) {
           leafletResultCount: sMarketResults.length,
           combinedResultCount: combinedResultsV20.length,
           baseEvidenceCount: (baseResults as unknown as UnknownRecord[]).filter((offer) => Boolean(offer.debugOfferEvidenceV226)).length,
+          localEvidenceCountV231: (baseResults as unknown as UnknownRecord[]).filter((offer) => Boolean(offer.debugLocalCampaignEvidenceV231)).length,
+          localEvidenceSamplesV231: (baseResults as unknown as UnknownRecord[])
+            .filter((offer) => Boolean(offer.debugLocalCampaignEvidenceV231))
+            .slice(0, 12)
+            .map((offer) => ({ ean: offer.ean ?? null, evidence: offer.debugLocalCampaignEvidenceV231 })),
           leafletEvidenceCount: sMarketResults.filter((offer) => Boolean(offer.debugOfferEvidenceV226)).length,
           baseFirstKeys: Object.keys(baseResults[0] || {}),
           leafletFirstKeys: Object.keys(sMarketResults[0] || {}),
