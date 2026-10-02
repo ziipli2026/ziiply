@@ -242,3 +242,14 @@ test("HTTP success and store name alone never verify a store offer feed", () => 
     {offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:"true"}
   ]) assert.deepEqual(classifyStoreScope({...base,evidence:{...evidence,...feed}}),{storeScoped:false,storeId:null});
 });
+
+test("store scope cannot be forged by inherited evidence or unrelated feed metadata", () => {
+  const base={kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-hyvinkaa",identityVerified:true};
+  const canonical={canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:true};
+  for (const evidence of [
+    {...canonical,offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:false},
+    {...canonical,offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:1},
+    {...canonical,offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:null},
+    {...canonical,offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:true,pageIdentitySeen:"true"}
+  ]) assert.deepEqual(classifyStoreScope({...base,evidence}),{storeScoped:false,storeId:null});
+});
