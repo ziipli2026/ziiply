@@ -400,6 +400,14 @@ const quarantineFixture=[
 assert.deepEqual(searchResearch("pizza hawaii",quarantineFixture).map(r=>r.lidlProductId),["safe-pizza"]);
 assert.ok(!searchResearch("pizza",corpus).some(r=>quarantinedSet.has(r.lidlProductId)));
 
+
+/* v78: official research corpus integrity gate (not a product ingestion step). */
+const corpusIds=corpus.map(r=>r.lidlProductId);
+assert.equal(corpus.length,226,"Unexpected corpus size: review any intentional source refresh");
+assert.equal(new Set(corpusIds).size,corpusIds.length,"Research corpus IDs must be unique");
+assert.ok(corpus.every(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&typeof r.name==="string"&&r.name.trim()),"Every candidate needs an ID and name");
+assert.ok(corpus.every(r=>!quarantinedSet.has(r.lidlProductId)),"Quarantined IDs cannot appear in the active research corpus");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
