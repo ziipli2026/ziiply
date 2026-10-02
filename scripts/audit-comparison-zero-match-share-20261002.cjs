@@ -1,0 +1,16 @@
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const page=fs.readFileSync("src/app/page.tsx","utf8");
+const card=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx","utf8");
+const start=page.indexOf("function shareMobileCompareStoreV729(storeId: string)");
+const end=page.indexOf("const [normalResults",start);
+const share=page.slice(start,end);
+assert.match(share,/if \(!result \|\| \(result\.matches \|\| \[\]\)\.length === 0\)/);
+assert.match(share,/Tästä kaupasta ei löytynyt jaettavia vastintuotteita/);
+assert.match(share,/return;/);
+assert.match(card,/if \(!hasNoCounterpart\) onShareStore\(store\.id\)/);
+assert.match(card,/disabled=\{hasNoCounterpart\}/);
+const canShare=result=>Boolean(result&&(result.matches||[]).length>0);
+assert.equal(canShare({foundItems:0,missingItems:2,matches:[]}),false);
+assert.equal(canShare({foundItems:1,missingItems:1,matches:[{cartItemId:"A"}]}),true);
+console.log("PASS no-match store share disabled and handler guards empty content; partial match can share");
+console.log("NOTE isolated regression, not browser share-sheet test");
