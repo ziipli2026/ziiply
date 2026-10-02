@@ -280,6 +280,20 @@ assert.ok(searchResearch("pizza kebab",corpus).some(r=>r.name==="Pizza Kebab"));
 assert.ok(!searchResearch("omena",corpus).some(r=>r.name==="Omenatasku"||r.name==="KARLENS Omenasiideri"));
 assert.ok(!searchResearch("pizza",corpus).some(r=>r.name==="Pizzadonitsi margherita"||r.name==="Salamipizza"));
 
+
+/* v69: explicit pack quantity must be matched from the same source record. */
+const packFixture=[
+ {lidlProductId:"one",name:"ATRIA Pizza 1 kpl"},
+ {lidlProductId:"two",name:"ATRIA Pizza 2 kpl"},
+ {lidlProductId:"three",name:"ATRIA Pizza 3 kpl"},
+ {lidlProductId:"other",name:"ATRIA Kanan fileesuikale 2 kpl"}
+];
+assert.deepEqual(searchResearch("atria pizza 2 kpl",packFixture).map(r=>r.lidlProductId),["two"]);
+assert.deepEqual(searchResearch("atria pizza 1 kpl",packFixture).map(r=>r.lidlProductId),["one"]);
+assert.deepEqual(searchResearch("atria pizza 4 kpl",packFixture),[]);
+assert.ok(searchResearch("atria pizza 2 kpl",corpus).some(r=>r.name==="ATRIA Pizza 2 kpl"));
+assert.deepEqual(searchResearch("atria pizza 4 kpl",corpus),[]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
