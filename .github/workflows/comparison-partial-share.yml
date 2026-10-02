@@ -1,0 +1,17 @@
+name: Comparison partial share regression
+on:
+  push:
+    paths:
+      - 'src/app/page.tsx'
+      - 'scripts/audit-comparison-share-partial-20261002.cjs'
+      - '.github/workflows/comparison-partial-share.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/audit-comparison-share-partial-20261002.cjs
