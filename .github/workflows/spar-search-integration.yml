@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --legacy-peer-deps --ignore-scripts
+      - run: npm install --no-save --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund
       - run: npx tsc --noEmit
       - run: node scripts/tokmanni-spar-approved-index-contract-check.mjs
       - run: node scripts/tokmanni-spar-runtime-regression-check.mjs
