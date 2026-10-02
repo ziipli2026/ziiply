@@ -58,6 +58,11 @@ try {
       "Single-chain Lidl discovery must stay unpriced: " + query);
     assert.deepEqual(rows, searchLidlResearch(query, 40), "Justiina ordering must be stable: " + query);
   }
+  // Inflected/common singular forms should return the same Lidl research names.
+  for (const [variant, canonical] of [["jogurtit", "jogurtti"], ["kahvipapu", "kahvipavut"]]) {
+    assert.deepEqual(searchLidlResearch(variant, 50), searchLidlResearch(canonical, 50),
+      "Lidl query form mismatch: " + variant + " -> " + canonical);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
