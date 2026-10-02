@@ -1521,6 +1521,18 @@ const v160Snapshot=JSON.stringify(v160Rows);
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v160Rows,2).map(r=>r.lidlProductId),["safe-160-a","safe-160-b"]);
 assert.equal(JSON.stringify(v160Rows),v160Snapshot,"Non-string IDs must not mutate source");
 
+/* v161: Unicode edge whitespace around IDs is normalized before deduplication. */
+const v161Rows=[
+ {lidlProductId:"\u00a0safe-161-a\u00a0",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-161-a",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"\u2003safe-161-b\u2003",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-161-b",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-161-c",name:"MILBONA Proteiinivanukas"}
+];
+const v161Snapshot=JSON.stringify(v161Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v161Rows,3).map(r=>r.lidlProductId),["safe-161-a","safe-161-b","safe-161-c"]);
+assert.equal(JSON.stringify(v161Rows),v161Snapshot,"Unicode whitespace deduplication must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
