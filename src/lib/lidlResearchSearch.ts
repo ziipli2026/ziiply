@@ -6,7 +6,9 @@ const quarantined = new Set(catalog.quarantinedProductIds.map(id => String(id).t
 const norm = (s: string) => s.toLocaleLowerCase("fi-FI").normalize("NFKD")
   .replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 const tokens = (s: string) => norm(s).split(/\s+/).filter(Boolean);
-const identity = (s: string) => norm(s).replace(/\b(\d+)\s+(g|kg|ml|l|kpl)\b/g, "$1$2");
+const identity = (s: string) => norm(s)
+  .replace(/\b(\d+)\s+(g|kg|ml|l|kpl)\b/g, "$1$2")
+  .replace(/\b(\d+)\s*x\s*(\d+)\s*(g|kg|ml|l|kpl)\b/g, "$1x$2$3");
 const exactStaples = new Set(["maito","voi","pasta","makaroni","kananmuna","jauheliha","peruna","banaani","juusto","leipa","omena","pizza","kahvi"]);
 const forms: Record<string,string[]> = {
  maito:["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"],
