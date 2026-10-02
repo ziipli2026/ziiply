@@ -625,6 +625,14 @@ for(const invalidLimit of [null,undefined,"2","50",true,false,{},[],[2],NaN,-Inf
  assert.deepEqual(searchResearch("pizza",v94Rows,invalidLimit),v94Default,"Invalid limit must use default: "+String(invalidLimit));
 }
 
+
+/* v95: invalid row collections fail closed instead of throwing or leaking data. */
+for(const invalidRows of [null,undefined,{},123,"pizza",true,false]){
+ assert.deepEqual(searchResearch("pizza",invalidRows),[],"Invalid rows must return empty results: "+String(invalidRows));
+}
+assert.deepEqual(searchResearch("pizza",[]),[]);
+assert.deepEqual(searchResearch("pizza",[null,undefined,0,false,"pizza",[],{}]),[]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
