@@ -23,6 +23,7 @@ jobs:
       - name: TypeScript integration check
         run: npx tsc --noEmit
       - run: node scripts/tokmanni-spar-approved-index-contract-check.mjs
+      - run: node scripts/tokmanni-spar-runtime-regression-check.mjs
       - run: node scripts/tokmanni-spar-ean-gap-audit.mjs
         env:
           DATABASE_URL: ${{ secrets.NEON_READONLY_DATABASE_URL }}

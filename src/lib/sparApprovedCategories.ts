@@ -3,7 +3,7 @@ import reviewedIndex from "@/data/tokmanni-spar-approved-index.json";
 // The empty index is intentional until reviewed approvals are exported and verified.
 export type SparApprovedCategory = { productClass: "daily" | "department_store"; ziiplyCategory: string; classificationStatus: "approved" };
 type ApprovedRow = { ean: string; productClass: string; ziiplyCategory: string; classificationStatus: string };
-function buildApprovedIndex(rows: ApprovedRow[]): ReadonlyMap<string, SparApprovedCategory> {
+export function buildApprovedIndex(rows: ApprovedRow[]): ReadonlyMap<string, SparApprovedCategory> {
   const result = new Map<string, SparApprovedCategory>();
   for (const row of rows) {
     if (!/^[0-9]{8,14}$/.test(row.ean) || result.has(row.ean)) throw Error("Invalid or duplicate approved SPAR EAN");
