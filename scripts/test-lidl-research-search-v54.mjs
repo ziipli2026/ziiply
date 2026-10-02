@@ -713,6 +713,17 @@ assert.equal(v101Forward.length,2);
 assert.equal(v101Reverse.length,2);
 assert.equal(JSON.stringify(v101Rows),v101Snapshot,"Input rows must remain unchanged");
 
+/* v102: variant duplicates cannot consume result slots at tight limits. */
+const v102Rows=[
+ {lidlProductId:"dup-102",name:"MILBONA Proteiinivanukas",variant:"kahvi"},
+ {lidlProductId:" dup-102 ",name:"MILBONA Proteiinivanukas",variant:"kookos"},
+ {lidlProductId:"next-102",name:"MILBONA Proteiinivanukas",variant:"vanilja"}
+];
+const v102Snapshot=JSON.stringify(v102Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v102Rows,1).map(r=>r.lidlProductId),["dup-102"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v102Rows,2).map(r=>r.lidlProductId),["dup-102","next-102"]);
+assert.equal(JSON.stringify(v102Rows),v102Snapshot,"Tight-limit search must not mutate input");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
