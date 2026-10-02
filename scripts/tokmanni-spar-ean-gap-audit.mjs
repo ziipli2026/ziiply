@@ -64,14 +64,14 @@ for (const q of queries) {
 }
 
 let existing=new Map();
-if (!process.env.DATABASE_URL) throw new Error("Missing read-only Neon connection; delta report cannot be trusted.");
-{
+const comparisonPerformed = Boolean(process.env.DATABASE_URL);
+if (comparisonPerformed) {
   const sql=neon(process.env.DATABASE_URL);
   const rows=await sql`SELECT ean,name,brand,category,source FROM ziiply_ean_products`;
   existing=new Map(rows.map(x=>[String(x.ean),x]));
 }
 const rows=[...found.values()].map(x=>({...x,alreadyInEanBank:existing.has(x.ean),existingCategory:existing.get(x.ean)?.category||"",existingName:existing.get(x.ean)?.name||""}));
-const summary={queried:queries.length,uniqueFound:rows.length,newDaily:rows.filter(x=>!x.alreadyInEanBank&&x.classification==="daily").length,alreadyDaily:rows.filter(x=>x.alreadyInEanBank&&x.classification==="daily").length,newDepartmentStore:rows.filter(x=>!x.alreadyInEanBank&&x.classification==="tavaratalo").length,newUnknown:rows.filter(x=>!x.alreadyInEanBank&&x.classification==="unknown").length,errors};
+const summary={comparisonPerformed,comparisonNote:comparisonPerformed?"Compared against complete EAN bank":"CANDIDATES ONLY: DATABASE_URL unavailable; existing EANs NOT checked",queried:queries.length,uniqueFound:rows.length,newDaily:comparisonPerformed?rows.filter(x=>!x.alreadyInEanBank&&x.classification==="daily").length:null,alreadyDaily:rows.filter(x=>x.alreadyInEanBank&&x.classification==="daily").length,newDepartmentStore:rows.filter(x=>!x.alreadyInEanBank&&x.classification==="tavaratalo").length,newUnknown:rows.filter(x=>!x.alreadyInEanBank&&x.classification==="unknown").length,errors};
 writeFileSync("tokmanni-spar-ean-gap.json",JSON.stringify({summary,items:rows},null,2));
-writeFileSync("tokmanni-spar-ean-new-daily.csv",["ean,name,brand,category,url,query",...rows.filter(x=>!x.alreadyInEanBank&&x.classification==="daily").map(x=>[x.ean,x.name,x.brand,x.category,x.url,x.query].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(","))].join("\n"));
+writeFileSync(comparisonPerformed?"tokmanni-spar-ean-new-daily.csv":"tokmanni-spar-ean-unverified-daily-candidates.csv",["ean,name,brand,category,url,query",...rows.filter(x=>!x.alreadyInEanBank&&x.classification==="daily").map(x=>[x.ean,x.name,x.brand,x.category,x.url,x.query].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(","))].join("\n"));
 console.log(JSON.stringify(summary,null,2));
