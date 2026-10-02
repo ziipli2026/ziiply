@@ -19300,13 +19300,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               (selectedName &&
                 normalize(store.name || "") === normalize(selectedName)),
           ),
-      ) ||
-      options.find(
-        (store) =>
-          getStoreChainV320(store) === chain &&
-          getStoreDistanceLabelV320(store),
       );
 
+    // Never borrow another shop's distance when the selected shop is missing
+    // from the fresh GPS candidate list (e.g. during a cold reload).
     return getStoreDistanceLabelV320(selectedStore);
   }
 
