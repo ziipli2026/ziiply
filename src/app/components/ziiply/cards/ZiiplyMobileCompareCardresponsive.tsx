@@ -56,8 +56,8 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 function formatEuro(value?: number | null) {
   if (value == null || Number.isNaN(value)) return "—";
-  // chainResults.totalPrice tulee yleensä sentteinä. Jos joskus tulee suoraan euroina, alle 20 käsitellään euroina.
-  const euros = Math.abs(value) > 20 ? value / 100 : value;
+  // Vertailun totalPrice on sentteinä kuten ziiplyCore.formatEuro.
+  const euros = value / 100;
   return `${euros.toFixed(2).replace(".", ",")} €`;
 }
 
