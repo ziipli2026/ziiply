@@ -337,6 +337,19 @@ assert.deepEqual(stableForward,stableReverse);
 assert.equal(new Set(stableForward).size,stableForward.length);
 assert.deepEqual(searchResearch("pizza",[...stableFixture].reverse(),2).map(r=>r.lidlProductId),stableForward.slice(0,2));
 
+
+/* v73: duplicate IDs must not inflate search counts or override research-only fields. */
+const repeatedIdFixture=[
+ {lidlProductId:"same",name:"Pizza Hawaii",ean:"123",displayedPriceEur:4.99},
+ {lidlProductId:"same",name:"Pizza Hawaii",ean:"456",displayedPriceEur:1.99},
+ {lidlProductId:"other",name:"Pizza Kebab"}
+];
+const repeatedHits=searchResearch("pizza",repeatedIdFixture);
+assert.equal(repeatedHits.length,2);
+assert.equal(repeatedHits.filter(r=>r.lidlProductId==="same").length,1);
+assert.deepEqual(new Set(repeatedHits.map(r=>r.lidlProductId)).size,2);
+assert.ok(repeatedHits.every(r=>r.ean===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
