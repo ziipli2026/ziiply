@@ -283,7 +283,9 @@ function getDisplayCartTotalV8(items: ZiiplyMobileCartItem[]) {
   return items.reduce((sum, item) => {
     if (isAlcoholCartItemV8(item)) return sum;
 
-    const quantity = getCartItemQuantityForTotalV8(item);
+    // Confirmed scale-label price is already the total for this weighed row.
+    // Do not multiply it by the ordinary piece quantity.
+    const quantity = (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) ? 1 : getCartItemQuantityForTotalV8(item);
     const unitPrice = readCartItemPriceForTotalV8(item);
 
     return sum + unitPrice * quantity;
