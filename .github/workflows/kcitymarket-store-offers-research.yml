@@ -177,6 +177,13 @@ jobs:
                 } catch (error) { return { page: name, error: String(error) }; }
               }));
               result.pageAudit = pages;
+              result.referenceShapeSummary = pages.reduce((summary, page) => {
+                for (const item of page.codeBlockResearch?.strictPairs ?? []) {
+                  const key = item.referenceShape ?? "UNKNOWN";
+                  summary[key] = (summary[key] ?? 0) + 1;
+                }
+                return summary;
+              }, {});
               result.strictLineSummary = pages.reduce((summary, page) => {
                 for (const item of page.codeBlockResearch?.strictPairs ?? []) {
                   summary[item.classification] = (summary[item.classification] ?? 0) + 1;
