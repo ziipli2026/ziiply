@@ -18,6 +18,21 @@ function normalizeEan(value: unknown) {
   return /^\d{8,14}$/.test(ean) ? ean : "";
 }
 
+// Conservative Tokmanni offer-name fallback. Unknown products stay unclassified.
+export function classifyTokmanniOffer(name: string): string | null {
+  const n = name.toLocaleLowerCase("fi-FI");
+  const rules: Array<[string, RegExp]> = [
+    ["Lemmikit", /\\b(kissan|koiran|lemmikin|marsun|jyrsijän|lemmikki|real dog|bestvet)\\b/],
+    ["Hygienia & kosmetiikka", /\\b(deo(?:dorantti)?|body.?spray|hoitoaine|hiuskiinne|hiusnaamio|hiusvaha|hiusöljy|shampoo|suihkugeeli|saippua|pikkuhousunsuoja|hammastahna|aurinkosuojavoide|kasvovoide|edp|edt|eau de parfum|eau de toilette)\\b/],
+    ["Kodinhoito", /\\b(alumiinifolio|foliovuoka|talouspaperi|wc-paperi|jätesäkki|roskapussi|astianpesuaine|pyykinpesuaine|huuhteluaine|leivinpaperi)\\b/],
+    ["Makeiset & keksit", /\\b(aakkoset|aarrearkku|malaco|daim|fisherman.s friend|suklaa|karkki|makeinen|pastilli|keksi)\\b/],
+    ["Leipomo", /\\b(hapankorppu|näkkileipä|ruisleipä|paahtoleipä)\\b/],
+    ["Kuivatuotteet", /\\b(oliiviöljy|chia-siemen|spagetti|makaroni|riisi|jauho)\\b/],
+    ["Ravintolisät", /\\b(vitamiini|biotiini|ashwagandha|heraproteiini|elektrolyyttijauhe|ravintolisä)\\b/],
+  ];
+  return rules.find(([, pattern]) => pattern.test(n))?.[0] ?? null;
+}
+
 export async function observeEanProductsBestEffort(observations: EanObservation[]) {
   const url = process.env.DATABASE_URL;
   if (!url || observations.length === 0) return;
@@ -28,7 +43,7 @@ export async function observeEanProductsBestEffort(observations: EanObservation[
       name: clean(item.name, 300),
       brand: clean(item.brand, 160) || null,
       imageUrl: clean(item.imageUrl, 1000) || null,
-      category: clean(item.category, 160) || null,
+      category: (() => { const supplied = clean(item.category, 160); return supplied && supplied.toLocaleLowerCase("fi-FI") !== "muut" ? supplied : clean(item.source, 120) === "tokmanni-viikkotarjoukset" ? classifyTokmanniOffer(clean(item.name, 300)) : null; })(),
       source: clean(item.source, 120) || null,
     }))
     .filter((item) => item.ean);
@@ -45,7 +60,11 @@ export async function observeEanProductsBestEffort(observations: EanObservation[
           name = CASE WHEN EXCLUDED.name <> '' THEN EXCLUDED.name ELSE ziiply_ean_products.name END,
           brand = COALESCE(EXCLUDED.brand, ziiply_ean_products.brand),
           image_url = COALESCE(EXCLUDED.image_url, ziiply_ean_products.image_url),
-          category = COALESCE(EXCLUDED.category, ziiply_ean_products.category),
+          category = CASE
+            WHEN ziiply_ean_products.category IS NULL OR TRIM(ziiply_ean_products.category) = '' OR LOWER(TRIM(ziiply_ean_products.category)) = 'muut'
+            THEN COALESCE(EXCLUDED.category, ziiply_ean_products.category)
+            ELSE ziiply_ean_products.category
+          END,
           source = COALESCE(EXCLUDED.source, ziiply_ean_products.source),
           last_seen_at = NOW(),
           updated_at = NOW()
