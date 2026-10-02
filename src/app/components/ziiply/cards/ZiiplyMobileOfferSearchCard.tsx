@@ -739,7 +739,7 @@ function LeatherBackButton({ onClick }: { onClick?: () => void }) {
 
 export default function ZiiplyMobileOfferSearchCard({
   open = true,
-  title = "Tarjoushaku",
+  title = "Tarjous- ja kampanjahaku",
   subtitle,
   query = "",
   filter = "",
