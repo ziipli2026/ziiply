@@ -125,6 +125,8 @@ jobs:
                         const offer = matched ? Number(digits) / 100 : null;
                         const regular = normal ? Number(normal[1].replace(",", ".")) : null;
                         return { line: anchor.index, offer, regular, referenceShape,
+    productContext: matched ? lines.slice(Math.max(0, anchor.index - 5), anchor.index - 2) : [],
+    priceEvidence: matched ? { digits, unit, referenceLine: anchor.referenceLine } : null,
                           classification: !normal ? "REFERENCE_NOT_PARSED" :
                             !matched ? "INCOMPLETE_OR_NONADJACENT_PRICE" :
                             offer >= regular ? "NOT_DISCOUNTED" : "STRICT_LINE_PAIR_RESEARCH_ONLY" };
