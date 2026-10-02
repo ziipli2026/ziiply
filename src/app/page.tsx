@@ -8876,11 +8876,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const searchSelectionMode = loadingNormal || visibleNormalResults.length > 0;
 
   const comparableCart = useMemo(() => {
-    // Kortin kattavuus ja loppusumma lasketaan vain vertailumoottorin hyväksymistä
-    // tuotteista. €/kg-tarjousta saa verrata yksikköhintana, mutta sen tuntematonta
-    // painoa ei saa laskea yhden kilogramman ostokseksi.
+    // Kortin kattavuus ja loppusumma lasketaan vain vertailukelpoisista
+    // normaalihintaisista tuotteista. Göstan tarjoukset eivät kuulu vertailuun.
     return cart.filter((item) => !isManualShoppingItem(item) &&
-      isComparisonEligibleV797(item) && !isComparableWeightOfferV797(item));
+      isComparisonEligibleV797(item));
   }, [cart]);
 
   const chainResults = useMemo<ChainResult[]>(() => {
@@ -12449,19 +12448,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   // Göstan irtomyyntitarjous on €/kg-vertailtava, ei vaa'an jo hinnoittelema EAN-tarra.
-  function isComparableWeightOfferV797(item: CartItem) {
-    const productAny = item.product as any;
-    const unit = String((item as any).comparisonPriceUnit || productAny?.comparisonPriceUnit || "").toLowerCase();
-    const quote = Number((item as any).comparisonPrice ?? productAny?.comparisonPrice);
-    const ean = normalizeEan(String(item.ean || productAny?.ean || ""));
-    return String(item.source || "").toLowerCase() === "offer" &&
-      Boolean((item as any).ziiplyWeightOffer || productAny?.ziiplyWeightOffer) &&
-      unit === "kg" && Number.isFinite(quote) && quote > 0 &&
-      !(ean && resolvePriceWeightLabel(ean));
-  }
-
   function isComparisonEligibleV797(item: CartItem) {
-    if (isComparableWeightOfferV797(item)) return true;
+    // Göstan tarjoukset pysyvät tarjoushintaisina korissa, eikä niitä halpuuteta
+    // uudelleen. Tämä koskee myös €/kg-tarjouksia.
     if (String(item.source || "").toLowerCase() === "offer") return false;
     return !isWeightCartItemV738(item);
   }
