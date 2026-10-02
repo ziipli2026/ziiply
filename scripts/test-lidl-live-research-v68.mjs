@@ -63,6 +63,14 @@ try {
     assert.deepEqual(searchLidlResearch(variant, 50), searchLidlResearch(canonical, 50),
       "Lidl query form mismatch: " + variant + " -> " + canonical);
   }
+  // Compound staple queries must match the actual product name, not a flavour-only variant.
+  for (const query of ["kahvi vanilja", "maito suklaa", "jogurtti mansikka"]) {
+    const category = query.split(" ")[0];
+    const rows = searchLidlResearch(query, 50);
+    const singleCategoryNames = new Set(searchLidlResearch(category, 50).map(r => r.lidlProductId));
+    assert.ok(rows.every(r => singleCategoryNames.has(r.lidlProductId)),
+      "Compound Lidl staple query escaped product-name category: " + query);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
