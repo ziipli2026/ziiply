@@ -71,6 +71,13 @@ try {
     assert.ok(rows.every(r => singleCategoryNames.has(r.lidlProductId)),
       "Compound Lidl staple query escaped product-name category: " + query);
   }
+  // Tea must be an actual named product category, not merely a flavour variant.
+  const teaIds = new Set(searchLidlResearch("tee", 50).map(r => r.lidlProductId));
+  assert.ok(teaIds.size > 0, "Named Lidl tea research results missing");
+  for (const query of ["tee vanilja", "tee sitruuna"]) {
+    assert.ok(searchLidlResearch(query, 50).every(r => teaIds.has(r.lidlProductId)),
+      "Tea compound search escaped product-name category: " + query);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
