@@ -15912,8 +15912,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       product,
       ean: product.ean,
     };
-    (newItem as any).ziiplyPriceFetchedAt = Date.now();
-    (newItem as any).ziiplyPriceStoreName = normalSearchStoreName;
+    // A name-only Lidl discovery has no verified price or store-price timestamp.
+    // Timestamp only a genuinely positive price, never an unpriced research row.
+    if (Number(newItem.price || 0) > 0) {
+      (newItem as any).ziiplyPriceFetchedAt = Date.now();
+      (newItem as any).ziiplyPriceStoreName = normalSearchStoreName;
+    }
 
     // V780: Yksi-tilan Halpuuta aktivoituu vasta, kun käyttäjä vaihtaa ketjun
     // tuotteen lisäämisen jälkeen. Tämä on tapahtumahistoriaa, ei tuotteen chain-päätelmä.
