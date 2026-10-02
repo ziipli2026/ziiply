@@ -210,6 +210,18 @@ jobs:
               result.strictCandidateCount = pages.reduce((n, page) =>
                 n + (page.codeBlockResearch?.strictPairs ?? []).filter(item =>
                   item.classification === "STRICT_LINE_PAIR_RESEARCH_ONLY").length, 0);
+              const strictEvidence = pages.flatMap(page =>
+                (page.codeBlockResearch?.strictPairs ?? []).filter(item =>
+                  item.classification === "STRICT_LINE_PAIR_RESEARCH_ONLY"));
+              if (strictEvidence.length !== 2 ||
+                  !strictEvidence.some(item => item.offer === 2.49 && item.regular === 2.79 &&
+                    item.priceEvidence?.digits === "249" && item.priceEvidence?.unit === "PS" &&
+                    item.productContext?.some(line => line.includes("TUORENÄKKÄRI 220 g"))) ||
+                  !strictEvidence.some(item => item.offer === 2.99 && item.regular === 3.99 &&
+                    item.priceEvidence?.digits === "299" && item.priceEvidence?.unit === "PKT" &&
+                    item.productContext?.some(line => line.includes("KANALASTUT 180 g")))) {
+                throw new Error("Citymarket strict candidate evidence regression failed");
+              }
               result.reviewSafety = {
                 total: result.unparsedReferenceExamples.length,
                 rejectedFromStrictCandidates: result.unparsedReferenceExamples.every(sample =>
