@@ -27,11 +27,13 @@ jobs:
       - run: node scripts/tokmanni-spar-merge-classification.mjs
       - run: node scripts/tokmanni-spar-muut-triage.mjs
       - run: node scripts/tokmanni-spar-quality-gate.mjs
+      - run: node scripts/tokmanni-spar-regression-check.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: tokmanni-spar-ean-gap
           path: |
+            tokmanni-spar-regression-report.json
             tokmanni-spar-quality-gate.json
             tokmanni-spar-muut-triage.json
             tokmanni-spar-merged-classification.json
