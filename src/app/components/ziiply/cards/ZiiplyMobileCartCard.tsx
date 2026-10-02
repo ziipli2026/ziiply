@@ -229,7 +229,9 @@ function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
   if (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) {
     const final = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
     if (final == null || final === "" || !Number.isFinite(Number(final)) || Number(final) < 0) return 0;
-    // Scale-label final price is stored in euros, not cents. Do not apply the\n    // generic >20 cent-normalization to this confirmed weight row.\n    return Number(final);
+    // Scale-label final price is stored in euros, not cents. Do not apply the
+    // generic >20 cent-normalization to this confirmed weight row.
+    return Number(final);
   }
 
   const candidates = [
