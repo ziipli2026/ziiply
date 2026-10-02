@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
-import { getSKaupatProtocolConfig } from "@/lib/skaupatProtocol";
-import { resolveSKaupatStoreIdFromDirectoryV1 } from "@/app/components/ziiply/location/ziiplyStoreDirectory";
 
 type RuoanhintaProduct = {
   id: number;
@@ -60,21 +58,7 @@ export async function GET(request: Request) {
 
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "292";
-  const storeName = searchParams.get("storeName") || "";
-  let storeId = resolveSStoreId(store);
-  let resolvedFromOfficialDirectory = false;
-
-  if (storeName.trim()) {
-    try {
-      const officialStoreId = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
-      if (officialStoreId) {
-        storeId = Number(officialStoreId);
-        resolvedFromOfficialDirectory = true;
-      }
-    } catch (error) {
-      console.warn("S-products official store resolver failed", { storeName, error });
-    }
-  }
+  const storeId = resolveSStoreId(store);
 
   if (search.length > 120 || store.length > 32) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
@@ -93,81 +77,6 @@ export async function GET(request: Request) {
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
     search
   )}&storeIds=${storeId}&skip=0&take=80`;
-
-  // Prisma/S-store searches use the same official S-kaupat store resolver
-  // as Gösta. This also covers newly opened stores without a store-specific map.
-  if (resolvedFromOfficialDirectory) {
-    try {
-      const protocol = await getSKaupatProtocolConfig();
-      const date = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Europe/Helsinki",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(new Date());
-      const variables = {
-        availabilityDate: date,
-        facets: [{ key: "brandName", order: "asc" }, { key: "category" }, { key: "labels" }],
-        generatedSessionId: crypto.randomUUID(),
-        fetchSponsoredContent: true,
-        limit: 80,
-        queryString: search,
-        sortForAvailabilityLabelDate: date,
-        storeId: String(storeId),
-        useRandomId: false,
-        marketingId: crypto.randomUUID(),
-        from: 0,
-        offset: 0,
-        skip: 0,
-        page: 1,
-      };
-      const url = new URL("https://api.s-kaupat.fi/");
-      url.searchParams.set("operationName", "RemoteFilteredProducts");
-      url.searchParams.set("variables", JSON.stringify(variables));
-      url.searchParams.set(
-        "extensions",
-        JSON.stringify({
-          clientLibrary: { name: "@apollo/client", version: protocol.apolloVersion },
-          persistedQuery: { version: 1, sha256Hash: protocol.persistedQueryHash },
-        }),
-      );
-      const direct = await fetch(url, {
-        headers: {
-          accept: "application/graphql-response+json,application/json;q=0.9",
-          "content-type": "application/json",
-          "accept-language": "fi-FI,fi;q=0.9,en;q=0.8",
-          origin: "https://www.s-kaupat.fi",
-          referer: "https://www.s-kaupat.fi/",
-          "x-client-name": "skaupat-web",
-          "x-client-version": protocol.clientVersion,
-        },
-        cache: "no-store",
-      });
-      const payload: any = await direct.json().catch(() => null);
-      const sourceItems = payload?.data?.store?.products?.productListItems || [];
-      const items = sourceItems
-        .map((entry: any) => entry?.product || entry)
-        .filter(Boolean)
-        .filter((product: any) => Number(product?.storeItems?.[0]?.price ?? product?.price ?? 0) > 0)
-        .map((product: any) => ({
-          id: product.id,
-          name: fixEncoding(String(product.name || "")),
-          ean: getEan(product),
-          familyKey: product.familyKey,
-          brandName: product.brandName ? fixEncoding(String(product.brandName)) : undefined,
-          pictureUrl: product.pictureUrl,
-          category: product.category,
-          price: Number(product.storeItems?.[0]?.price ?? product.price ?? 0),
-          comparisonPrice: product.storeItems?.[0]?.comparisonPrice ?? undefined,
-          comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
-          storeItems: [{ price: Number(product.storeItems?.[0]?.price ?? product.price ?? 0) }],
-        }));
-      void observeEanProductsBestEffort(items.map((item: any) => ({ ...item, source: "skaupat-official-store-search" }))).catch(() => undefined);
-      return NextResponse.json({ store, storeId, storeName, source: "s-kaupat-official", status: direct.status, items });
-    } catch (error) {
-      console.error("S-kaupat official product search failed", { storeName, storeId, error });
-    }
-  }
 
   try {
     const response = await fetch(endpoint, {
