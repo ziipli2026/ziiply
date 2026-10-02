@@ -40,6 +40,26 @@ jobs:
             }
           })();
           NODE
+      - name: Probe Edut route store identity without importing offers
+        shell: bash
+        run: |
+          node <<'NODE'
+          const targets = [
+            ["hyvinkaa-edut", "https://www.k-ruoka.fi/kauppa/tarjoushaku?storeId=k-citymarket-hyvinkaa"],
+            ["generic-edut", "https://www.k-ruoka.fi/kauppa/tarjoushaku"]
+          ];
+          (async () => {
+            for (const [name,url] of targets) {
+              try {
+                const response = await fetch(url,{redirect:"follow",signal:AbortSignal.timeout(12000)});
+                const html = response.ok ? await response.text() : "";
+                const title = html.match(/<title[^>]*>([^<]*)/i)?.[1] || "";
+                const identity = /K.Citymarket Hyvinkää/i.test(html) ? "HYVINKAA_TEXT_PRESENT" : /Iso Omena/i.test(html) ? "ISO_OMENA_TEXT_PRESENT" : "UNVERIFIED";
+                console.log(JSON.stringify({name,status:response.status,finalUrl:response.url,title,identity,verifiedStoreOffers:false}));
+              } catch(error) { console.log(JSON.stringify({name,error:String(error),verifiedStoreOffers:false})); }
+            }
+          })();
+          NODE
       - name: Probe public canonical Hyvinkaa store page
         shell: bash
         run: |
