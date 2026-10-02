@@ -12389,6 +12389,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, 900);
   }
 
+  // Göstan irtomyyntitarjous on €/kg-vertailtava, ei vaa'an jo hinnoittelema EAN-tarra.
+  function isComparableWeightOfferV797(item: CartItem) {
+    const productAny = item.product as any;
+    const unit = String((item as any).comparisonPriceUnit || productAny?.comparisonPriceUnit || "").toLowerCase();
+    const quote = Number((item as any).comparisonPrice ?? productAny?.comparisonPrice);
+    const ean = normalizeEan(String(item.ean || productAny?.ean || ""));
+    return String(item.source || "").toLowerCase() === "offer" &&
+      Boolean((item as any).ziiplyWeightOffer || productAny?.ziiplyWeightOffer) &&
+      unit === "kg" && Number.isFinite(quote) && quote > 0 &&
+      !(ean && resolvePriceWeightLabel(ean));
+  }
+
+  function isComparisonEligibleV797(item: CartItem) {
+    if (isComparableWeightOfferV797(item)) return true;
+    if (String(item.source || "").toLowerCase() === "offer") return false;
+    return !isWeightCartItemV738(item);
+  }
+
   function isWeightCartItemV738(item: CartItem) {
     const productAny = item.product as any;
     if (productAny?.ziiplyWeightLabel === true) return true;
@@ -12630,7 +12648,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V738: physical scale-label products are never price-comparison candidates.
     // Their label total is authoritative, but store-specific comparable unit price
     // cannot be guaranteed even when product identity is known.
-    const comparisonCartV738 = nextCart.filter((item) => !isWeightCartItemV738(item));
+    const comparisonCartV738 = nextCart.filter(isComparisonEligibleV797);
     const shouldOpenCompare = options.openCompare !== false;
     if (comparisonUpdateTimerRef.current) {
       clearTimeout(comparisonUpdateTimerRef.current);
@@ -12732,7 +12750,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.sStoreName, activeArea.sLocalStoreName, activeArea.kStoreName, activeArea.kLocalStoreName, storeMode, storeCompareScope, withinChain]);
 
   useEffect(() => {
-    const comparisonCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer" && !isWeightCartItemV738(item));
+    const comparisonCart = cart.filter(isComparisonEligibleV797);
     if (comparisonCart.length === 0 || !hasActiveStores) {
       if (cart.length === 0) {
         setSMatches({});
@@ -16422,20 +16440,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V730: Tarjoushaulla valittu tuote kuuluu valittuun tarjoushintaan eikä sitä
     // kilpailuteta uudelleen normaalin Halpuusvertailun kautta.
-    const comparableCartV730 = cart.filter((item: any) => {
-      const isOffer = String(item?.source || "").toLowerCase() === "offer";
-      const isWeightedOffer = Boolean(
-        item?.ziiplyWeightOffer ||
-        item?.product?.ziiplyWeightOffer ||
-        item?.ziiplyPricePendingWeight && (
-          item?.comparisonPrice != null ||
-          item?.product?.comparisonPrice != null
-        ),
-      );
-      // Kiinteähintainen tarjous ei kuulu normaalihintavertailuun.
-      // €/kg-tarjous on kuitenkin aidosti vertailukelpoinen ja saa osallistua.
-      return !isOffer || isWeightedOffer;
-    });
+    const comparableCartV730 = cart.filter(isComparisonEligibleV797);
     const excludedOfferCartCountV730 = cart.length - comparableCartV730.length;
 
     // Tarjousrivit eivät osallistu Halpuusvertailuun. Sekakorissa vain
