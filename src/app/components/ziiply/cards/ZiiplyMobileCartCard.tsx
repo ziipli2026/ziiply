@@ -113,6 +113,7 @@ export type ZiiplyMobileCartCardProps = {
   onOpenSavedLists?: () => void;
   onClearCart?: () => void;
   onRemoveItem?: (item: ZiiplyMobileCartItem) => void;
+  onRestoreOriginalItem?: (item: ZiiplyMobileCartItem) => void;
   onToggleItem?: (item: ZiiplyMobileCartItem) => void;
   onIncreaseItem?: (item: ZiiplyMobileCartItem) => void;
   onDecreaseItem?: (item: ZiiplyMobileCartItem) => void;
@@ -749,7 +750,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={itemKeyV65}
                     className={cx(
-                      "relative block h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
+                      "relative block min-h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
                       checked && "opacity-55",
                     )}
                   >
@@ -803,6 +804,12 @@ export default function ZiiplyMobileCartCard({
                           ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
                           : price || "—"}
                     </div>
+                    {item.ziiplyIsSubstituteV793 && onRestoreOriginalItem && (
+                      <button type="button" onClick={() => onRestoreOriginalItem(item)}
+                        className="relative ml-[3.62rem] mt-[2.58rem] mb-1 text-left text-[0.65rem] font-bold text-[#286443] underline underline-offset-2">
+                        ↶ Palauta alkuperäinen ja lopeta vertailu
+                      </button>
+                    )}
                   </article>
                 );
               })}
