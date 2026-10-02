@@ -827,7 +827,7 @@ export default function ZiiplyMobileCartCard({
                           ? (
                             <div className="flex flex-col items-end leading-none">
                               <span className="text-[0.72rem] font-black tracking-[-0.02em] text-[#473719]">
-                                {pendingWeightUnitPrice ? `${pendingWeightUnitPrice}/kg` : "—"}
+                                {pendingWeightUnitPriceV796 ? `${pendingWeightUnitPriceV796}/kg` : "—"}
                               </span>
                               <span className="mt-1 text-[0.60rem] font-black uppercase tracking-[-0.01em] text-[#b42318]">
                                 Punnitse
