@@ -4,6 +4,10 @@ const source=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCa
 assert.match(source,/const confirmedWeightFinalV802 = item\.ziiplyWeightFinalPrice \?\? item\.product\?\.ziiplyWeightFinalPrice;/);
 assert.match(source,/const numericRowPriceV792 = pendingWeightV794 \? 0 : getNumericPrice\(rowPriceInputV802\);/);
 assert.match(source,/normalizePrice\(rowPriceInputV802\)/);
+assert.match(source,/Number\(rowPriceInputV802\)\.toLocaleString\("fi-FI", \{ minimumFractionDigits: 2, maximumFractionDigits: 2 \}\) \+ " €"/,"confirmed scale receipt bypasses cents heuristic");
+const formatConfirmed = value => Number(value).toLocaleString("fi-FI",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+assert.equal(formatConfirmed(24.50),"24,50 €");
+assert.equal(formatConfirmed(6.45),"6,45 €");
 assert.match(source,/Number\(final\) < 0/,"negative final remains pending");
 assert.match(source,/: pendingWeightV794 \? 0 : item\.price;/,"pending row must not display stale price");
 const row=(item)=>{const pending=Boolean(item.ziiplyPricePendingWeight||item.product?.ziiplyPricePendingWeight);const final=item.ziiplyWeightFinalPrice??item.product?.ziiplyWeightFinalPrice;const pendingWeight=pending&&(final==null||final===""||!Number.isFinite(Number(final))||Number(final)<0);return !pendingWeight&&pending&&final!=null&&final!==""&&Number.isFinite(Number(final))&&Number(final)>=0?Number(final):pendingWeight?0:item.price;};
