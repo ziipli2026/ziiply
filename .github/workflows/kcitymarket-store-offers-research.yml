@@ -207,6 +207,15 @@ jobs:
                 summary[sample.researchType] = (summary[sample.researchType] ?? 0) + 1;
                 return summary;
               }, {});
+              const { classifyStoreScope } = require("./tests/helpers/kcitymarket-strict-pair.cjs");
+              result.sourceScope = classifyStoreScope({
+                kind: "NATIONAL_LEAFLET",
+                storeId: "k-citymarket-hyvinkaa",
+                identityVerified: false
+              });
+              if (result.sourceScope.storeScoped || result.sourceScope.storeId !== null) {
+                throw new Error("National leaflet must never inherit store identity");
+              }
               result.strictCandidateCount = pages.reduce((n, page) =>
                 n + (page.codeBlockResearch?.strictPairs ?? []).filter(item =>
                   item.classification === "STRICT_LINE_PAIR_RESEARCH_ONLY").length, 0);
