@@ -8,7 +8,7 @@ assert.equal(data.neonWrites,0);
 assert(Array.isArray(data.items));
 const seen=new Set();
 for(const row of data.items){
- assert.match(String(row.ean),/^\\d{8,14}$/);
+ assert.match(String(row.ean),/^[0-9]{8,14}$/);
  assert(!seen.has(row.ean),"Duplicate approved EAN: "+row.ean);seen.add(row.ean);
  assert.equal(row.classificationStatus,"approved");
  assert(["daily","department_store"].includes(row.productClass));
