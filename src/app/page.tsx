@@ -6808,7 +6808,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // UI debounce / anti-duplicate protection
     window.setTimeout(() => {
       setLastCartToast((current) => (current === message ? null : current));
-    }, 2600);
+    }, message.startsWith("Useamman tuotteen hintavertailu:") ? 3400 : 2600);
   }
 
   function showScanSuccessFlash() {
