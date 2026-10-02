@@ -547,7 +547,7 @@ const v88NameFixture=[
  {lidlProductId:"name-valid",name:"Pizza Hawaii"}
 ];
 const v88Hits=searchResearch("pizza hawaii",v88NameFixture);
-assert.deepEqual(v88Hits.map(r=>r.lidlProductId),["name-valid","name-null","name-number","name-object"].slice(0,v88Hits.length));
+assert.deepEqual(v88Hits.map(r=>r.lidlProductId).sort(),["name-valid","name-null","name-number","name-object"].sort());
 assert.ok(v88Hits.every(r=>typeof r.name==="string"));
 assert.ok(!searchResearch("12345",v88NameFixture).some(r=>r.lidlProductId==="name-number"));
 
