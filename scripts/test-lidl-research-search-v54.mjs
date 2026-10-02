@@ -979,6 +979,26 @@ assert.equal(new Set(v120Hits.map(r=>r.lidlProductId)).size,50);
 assert.ok(v120Hits.every(r=>r.lidlProductId!=="10038275"));
 assert.equal(JSON.stringify(v120Rows),v120Snapshot,"Quarantine filtering at cap must not mutate source");
 
+/* v121: combined quarantine and duplicate rows must leave 50 valid unique slots. */
+const v121Rows=Array.from({length:55},(_,i)=>({
+ lidlProductId:`safe-121-${String(i+1).padStart(2,"0")}`,
+ name:"MILBONA Proteiinivanukas",
+ variant:"vanilja"
+}));
+v121Rows.unshift(
+ {lidlProductId:"10038275",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:" 10038275 ",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-121-01",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:" safe-121-01 ",name:"MILBONA Proteiinivanukas",variant:"vanilja"}
+);
+const v121Snapshot=JSON.stringify(v121Rows);
+const v121Hits=searchResearch("milbona proteiinivanukas",v121Rows,999);
+assert.equal(v121Hits.length,50);
+assert.equal(new Set(v121Hits.map(r=>r.lidlProductId)).size,50);
+assert.ok(v121Hits.every(r=>r.lidlProductId!=="10038275"));
+assert.equal(v121Hits.filter(r=>r.lidlProductId==="safe-121-01").length,1);
+assert.equal(JSON.stringify(v121Rows),v121Snapshot,"Combined filtering must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
