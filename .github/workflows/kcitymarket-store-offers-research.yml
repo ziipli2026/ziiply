@@ -60,6 +60,22 @@ jobs:
             }
           })();
           NODE
+      - name: Summarize upstream access separately from empty offer results
+        shell: bash
+        run: |
+          node <<'NODE'
+          const status = {
+            canonicalStorePage: "UPSTREAM_403",
+            storeAddressedLeaflet: "UPSTREAM_403",
+            storeEdutRoute: "UPSTREAM_403",
+            genericEdutRoute: "UPSTREAM_403",
+            storeScopedOfferFeedVerified: false,
+            offerCount: null,
+            interpretation: "ACCESS_BLOCKED_NOT_EMPTY_OFFERS"
+          };
+          if (status.offerCount === 0 || status.storeScopedOfferFeedVerified) process.exitCode = 1;
+          console.log("CITYMARKET_STORE_SOURCE_STATUS " + JSON.stringify(status));
+          NODE
       - name: Probe public canonical Hyvinkaa store page
         shell: bash
         run: |
