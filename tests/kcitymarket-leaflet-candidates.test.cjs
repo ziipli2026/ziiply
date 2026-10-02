@@ -72,3 +72,11 @@ test("reject store scope without verified canonical-page evidence", () => {
   assert.equal(classifyStoreScope({...base,evidence:{canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:403,pageIdentitySeen:true}}).storeScoped, false);
   assert.equal(classifyStoreScope({...base,evidence:{canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:false}}).storeScoped, false);
 });
+
+test("generic Edut route cannot inherit identity from originating store page", () => {
+  const base={kind:"VERIFIED_STORE_OFFERS",storeId:"k-citymarket-hyvinkaa",verifiedStoreId:"k-citymarket-hyvinkaa",identityVerified:true};
+  const evidence={canonicalPageUrl:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa",pageHttpStatus:200,pageIdentitySeen:true};
+  assert.equal(classifyStoreScope({...base,evidence}).storeScoped,false);
+  assert.equal(classifyStoreScope({...base,evidence:{...evidence,offerFeedStoreId:"k-citymarket-iso-omena",offerFeedIdentityVerified:true}}).storeScoped,false);
+  assert.equal(classifyStoreScope({...base,evidence:{...evidence,offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:true}}).storeScoped,true);
+});
