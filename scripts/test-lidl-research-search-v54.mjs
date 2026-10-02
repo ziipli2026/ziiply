@@ -634,6 +634,14 @@ for(const invalidRows of [null,{},123,"pizza",true,false]){
 assert.deepEqual(searchResearch("pizza",[]),[]);
 assert.deepEqual(searchResearch("pizza",[null,undefined,0,false,"pizza",[],{}]),[]);
 
+
+/* v96: malformed query types fail closed without invoking string coercion. */
+const v96Rows=[{lidlProductId:"safe-96",name:"Pizza Hawaii"}];
+for(const invalidQuery of [null,undefined,0,123,true,false,[],["pizza"],{}, {toString(){throw Error("must not coerce query");}}]){
+ assert.deepEqual(searchResearch(invalidQuery,v96Rows),[],"Malformed query must return no matches");
+}
+assert.deepEqual(searchResearch("pizza hawaii",v96Rows).map(r=>r.lidlProductId),["safe-96"]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
