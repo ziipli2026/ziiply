@@ -2321,7 +2321,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   for (const selectedStore of selectedStores) {
     const identityV230 = await verifySelectedSOfferStoreV230(selectedStore.storeName, selectedStore.storeId);
     // Isolated trial: do not label unverified data as selected-store offers.
-    if (identityV230.status !== "verified") {
+    if (identityV230.status === "mismatch") {
       console.error("[GOSTA V230] BLOCKED cross-store offers: selected pickup does not match product store ID", {
         selectedStoreName: selectedStore.storeName, productStoreId: selectedStore.storeId,
         pickupName: identityV230.pickupName, pickupCity: identityV230.pickupCity,
@@ -2368,7 +2368,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
             const fallbackIdentityV231 = await verifySelectedSOfferStoreV230(
               selectedStore.storeName, fallbackStoreId,
             );
-            if (fallbackIdentityV231.status !== "verified") {
+            if (fallbackIdentityV231.status === "mismatch") {
               console.error("[GOSTA V231] blocked mismatched fallback offer store", {
                 storeName: selectedStore.storeName, fallbackStoreId,
                 pickupName: fallbackIdentityV231.pickupName,
@@ -2469,7 +2469,17 @@ async function fetchSKaupatRemoteFilteredProductsV170(
       }
     }
 
-    allStoreResults.push(...pages.flat());
+    allStoreResults.push(...pages.flat().map((item) => {
+      const result = { ...item } as ZiiplyOfferSearchResult & Record<string, unknown>;
+      result.sOfferStoreIdentityV232 = identityV230.status;
+      result.sOfferLocalVerifiedV232 = identityV230.status === "verified";
+      if (identityV230.status !== "verified") {
+        result.storeLabel = "S-kaupat (myymälää ei vahvistettu)";
+        result.storeName = "S-kaupat (myymälää ei vahvistettu)";
+        result.shopName = "S-kaupat (myymälää ei vahvistettu)";
+      }
+      return result;
+    }));
   }
 
   const uniqueBeforeFinalV203 = new Set(
