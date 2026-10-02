@@ -318,6 +318,46 @@
       "note": "Lidl's Myllyn Paras supplier article (03/2023) identifies product or product type; exact SKU, package, EAN and current store availability not verified.",
       "assortmentEvidence": "lidl-historical-product-mention",
       "currentStoreStockVerified": false
+    },
+    {
+      "name": "Kotimainen varhaisperuna",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/varhaisperunat",
+      "note": "Lidl supplier article confirms seasonal Finnish early potatoes; generic produce, no SKU or EAN.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false,
+      "recordKind": "generic-product-type-not-sku"
+    },
+    {
+      "name": "Jauhelihamauste",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/vauhtia-vientiin/subitems/condite",
+      "note": "Lidl supplier article names seasoning among popular products; exact brand/SKU unverified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false,
+      "recordKind": "generic-product-type-not-sku"
+    },
+    {
+      "name": "Grillausmauste",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/vauhtia-vientiin/subitems/condite",
+      "note": "Lidl supplier article names seasoning among popular products; exact brand/SKU unverified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false,
+      "recordKind": "generic-product-type-not-sku"
+    },
+    {
+      "name": "Kardemumma",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/vauhtia-vientiin/subitems/condite",
+      "note": "Lidl supplier article discusses baking spice; exact SKU and Lidl assortment status unverified.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false,
+      "recordKind": "generic-product-type-not-sku"
     }
   ]
 }
