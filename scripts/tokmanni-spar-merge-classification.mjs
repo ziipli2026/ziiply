@@ -24,15 +24,18 @@ for(const item of gap){const ean=clean(item.ean);if(!digits(ean))continue;const 
 const counts={daily:0,department_store:0,review:0};
 const result=[];
 for(const item of map.values()){
- const provider=clean(item.providerCategory||(!item.existingInNeon?item.category:"")).toLocaleLowerCase("fi-FI");
+ const provider=clean(item.providerCategory||item.category).toLocaleLowerCase("fi-FI");
  const existing=clean(item.existingInNeon?item.category:"");
+ const existingDaily=new Set(rules.map(([label])=>label));
+ const categoryIsExistingDaily=item.existingInNeon&&existingDaily.has(existing);
  const match=[...new Set(rules.filter(([,re])=>re.test(provider)).map(([name])=>name))];
  let productClass="review",suggestedCategory="";
- if(reject.test(provider))productClass="department_store";
+ if(categoryIsExistingDaily){productClass="daily";suggestedCategory=existing;}
+ else if(reject.test(provider))productClass="department_store";
  else if(match.length===1){productClass="daily";suggestedCategory=match[0];}
  // Historical categories are preserved, but never silently treated as verified.
  counts[productClass]++;
- result.push({...item,productClass,suggestedCategory,existingCategory:existing,classificationEvidence:provider?"provider category":"requires historical review"});
+ result.push({...item,productClass,suggestedCategory,existingCategory:existing,classificationEvidence:categoryIsExistingDaily?"existing Ziiply category":provider?"provider category":"requires historical review"});
 }
 result.sort((a,b)=>a.ean.localeCompare(b.ean));
 writeFileSync("tokmanni-spar-merged-classification.json",JSON.stringify({summary:{historicalRows:history.length,gapRows:gap.length,overlap,uniqueEans:result.length,...counts,neonWrites:0},items:result},null,2));
