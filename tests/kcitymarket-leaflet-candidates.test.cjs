@@ -181,3 +181,9 @@ test("store evidence must not accept an asserted feed identity without independe
   assert.deepEqual(classifyStoreScope({...base,evidence:{...evidence,offerFeedIdentityVerified:"true"}}), {storeScoped:false,storeId:null});
   assert.deepEqual(classifyStoreScope({...base,evidence:{...evidence,pageHttpStatus:"200"}}), {storeScoped:false,storeId:null});
 });
+
+test("compact cents retain exact boundaries without silently rounding", () => {
+  assert.deepEqual(parseStrictPair(["Example product 200 g","101","PKT","Ilman Plussa-korttia 1,02/pkt"]), {offer:1.01,regular:1.02,unit:"PKT",productContext:["Example product 200 g"]});
+  assert.equal(parseStrictPair(["Example product 200 g","102","PKT","Ilman Plussa-korttia 1,02/pkt"]), null);
+  assert.equal(parseStrictPair(["Example product 200 g","103","PKT","Ilman Plussa-korttia 1,02/pkt"]), null);
+});
