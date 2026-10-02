@@ -1,6 +1,8 @@
 import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
+import { filterSparMilkQuery } from "@/lib/sparMilkSearch";
+import { applyApprovedSparCategories, filterApprovedSparGroceryItems, SPAR_APPROVED_INDEX } from "@/lib/sparApprovedCategories";
 
 const TOKMANNI_SEARCH_URL = "https://www.tokmanni.fi/search";
 const clean = (value: unknown) => String(value ?? "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").trim();
@@ -212,5 +214,6 @@ export async function GET(request: Request) {
       })),
   ));
 
-  return NextResponse.json({ source, status: 200, items, klevuError: klevuError || undefined });
+  const categorizedItems = applyApprovedSparCategories(filterApprovedSparGroceryItems(filterSparMilkQuery(items, search), SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX);
+  return NextResponse.json({ source, status: 200, items: categorizedItems, klevuError: klevuError || undefined });
 }
