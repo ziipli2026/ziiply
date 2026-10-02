@@ -6,7 +6,7 @@ const start = source.indexOf("function isPendingWeightPriceV794(");
 const end = source.indexOf("\nfunction ",source.indexOf("function readCartItemPriceForTotalV8(",start)+10);
 assert(start>=0 && end>start,"cart total helper boundaries");
 let code=source.slice(start,end).replaceAll(": ZiiplyMobileCartItem","").replace("const normalizeTotalPrice = (value: number) =>","const normalizeTotalPrice = (value) =>");
-code=code.replace(/: number\b/g,"");
+code=code.replace(/: number\b/g,"").replaceAll("(item as any)","item");
 const context={};vm.runInNewContext(code+"\nthis.check={isPendingWeightPriceV794,readCartItemPriceForTotalV8};",context);
 const {isPendingWeightPriceV794:pending,readCartItemPriceForTotalV8:price}=context.check;
 const base={price:12.90,ziiplyPricePendingWeight:true,comparisonPrice:12.90,comparisonPriceUnit:"kg",product:{}};
