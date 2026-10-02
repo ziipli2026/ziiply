@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 import { applySparVisibility, SPAR_VISIBILITY_ENABLED } from "@/lib/sparVisibility";
+import { filterSparGrocerySearch } from "@/lib/sparGrocerySearchFilter";
 
 const TOKMANNI_SEARCH_URL = "https://www.tokmanni.fi/search";
 const clean = (value: unknown) => String(value ?? "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").trim();
@@ -215,6 +216,6 @@ export async function GET(request: Request) {
 
   // Feature is disabled: no production classification index is connected yet.
   // Observe first; retain original items for EAN-bank observation above.
-  const visibleItems = applySparVisibility(items, new Map(), SPAR_VISIBILITY_ENABLED);
+  const visibleItems = filterSparGrocerySearch(applySparVisibility(items, new Map(), SPAR_VISIBILITY_ENABLED), search);
   return NextResponse.json({ source, status: 200, items: visibleItems, klevuError: klevuError || undefined });
 }
