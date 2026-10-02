@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 import { getSKaupatProtocolConfig } from "@/lib/skaupatProtocol";
+import { resolveSKaupatStoreIdFromDirectoryV1 } from "@/app/components/ziiply/location/ziiplyStoreDirectory";
 
 type RuoanhintaProduct = {
   id: number;
@@ -59,7 +60,21 @@ export async function GET(request: Request) {
 
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "292";
-  const storeId = resolveSStoreId(store);
+  const storeName = searchParams.get("storeName") || "";
+  let storeId = resolveSStoreId(store);
+  let resolvedFromOfficialDirectory = false;
+
+  if (storeName.trim()) {
+    try {
+      const officialStoreId = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
+      if (officialStoreId) {
+        storeId = Number(officialStoreId);
+        resolvedFromOfficialDirectory = true;
+      }
+    } catch (error) {
+      console.warn("S-products official store resolver failed", { storeName, error });
+    }
+  }
 
   if (search.length > 120 || store.length > 32) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
@@ -79,9 +94,9 @@ export async function GET(request: Request) {
     search
   )}&storeIds=${storeId}&skip=0&take=80`;
 
-  // Tuusulan Prisma is new. Its official S-kaupat product-search ID is
-  // 726753948; the legacy Ruoanhinta store route can return no products for it.
-  if (String(storeId) === "726753948") {
+  // Prisma/S-store searches use the same official S-kaupat store resolver
+  // as Gösta. This also covers newly opened stores without a store-specific map.
+  if (resolvedFromOfficialDirectory) {
     try {
       const protocol = await getSKaupatProtocolConfig();
       const date = new Intl.DateTimeFormat("en-CA", {
@@ -98,7 +113,7 @@ export async function GET(request: Request) {
         limit: 80,
         queryString: search,
         sortForAvailabilityLabelDate: date,
-        storeId: "726753948",
+        storeId: String(storeId),
         useRandomId: false,
         marketingId: crypto.randomUUID(),
         from: 0,
@@ -111,7 +126,10 @@ export async function GET(request: Request) {
       url.searchParams.set("variables", JSON.stringify(variables));
       url.searchParams.set(
         "extensions",
-        JSON.stringify({ clientLibrary: { name: "@apollo/client", version: protocol.apolloVersion }, persistedQuery: { version: 1, sha256Hash: protocol.persistedQueryHash } }),
+        JSON.stringify({
+          clientLibrary: { name: "@apollo/client", version: protocol.apolloVersion },
+          persistedQuery: { version: 1, sha256Hash: protocol.persistedQueryHash },
+        }),
       );
       const direct = await fetch(url, {
         headers: {
@@ -144,23 +162,14 @@ export async function GET(request: Request) {
           comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
           storeItems: [{ price: Number(product.storeItems?.[0]?.price ?? product.price ?? 0) }],
         }));
-      void observeEanProductsBestEffort(
-        items.map((item: any) => ({ ...item, source: "skaupat-tuusula-prisma" })),
-      ).catch(() => undefined);
-      return NextResponse.json({
-        store,
-        storeId,
-        source: "s-kaupat-tuusula",
-        status: direct.status,
-        items,
-      });
+      void observeEanProductsBestEffort(items.map((item: any) => ({ ...item, source: "skaupat-official-store-search" }))).catch(() => undefined);
+      return NextResponse.json({ store, storeId, storeName, source: "s-kaupat-official", status: direct.status, items });
     } catch (error) {
-      console.error("Tuusula Prisma direct S-kaupat search failed", error);
+      console.error("S-kaupat official product search failed", { storeName, storeId, error });
     }
   }
 
-  try {
-    const response = await fetch(endpoint, {
+  const response = await fetch(endpoint, {
       method: "GET",
       headers: {
         accept: "application/json",
