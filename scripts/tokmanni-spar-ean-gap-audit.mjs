@@ -25,7 +25,7 @@ const queries = [
 ];
 
 const clean = v => String(v ?? "").trim();
-const ean = v => clean(v).replace(/D/g,"").match(/^\d{8,14}$/)?.[0] || "";
+const ean = v => clean(v).replace(/\D/g,"").match(/^\d{8,14}$/)?.[0] || "";
 const price = v => Number(String(v ?? "").replace(",", ".")) || 0;
 
 function classify(name, category) {
@@ -64,9 +64,10 @@ for (const q of queries) {
 }
 
 let existing=new Map();
-if (process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL) throw new Error("Missing read-only Neon connection; delta report cannot be trusted.");
+{
   const sql=neon(process.env.DATABASE_URL);
-  const rows=await sql`SELECT ean,name,brand,category,source FROM ziiply_ean_products WHERE source ILIKE '%tokmanni%' OR source ILIKE '%spar%' OR source ILIKE '%klevu%' OR category IS NOT NULL`;
+  const rows=await sql`SELECT ean,name,brand,category,source FROM ziiply_ean_products`;
   existing=new Map(rows.map(x=>[String(x.ean),x]));
 }
 const rows=[...found.values()].map(x=>({...x,alreadyInEanBank:existing.has(x.ean),existingCategory:existing.get(x.ean)?.category||"",existingName:existing.get(x.ean)?.name||""}));
