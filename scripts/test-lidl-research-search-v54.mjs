@@ -758,6 +758,18 @@ assert.deepEqual(searchResearch("olut",v105Rows,1).map(r=>r.lidlProductId),["saf
 assert.deepEqual(searchResearch("olut",v105Rows,2).map(r=>r.lidlProductId),["safe-105-a","safe-105-b"]);
 assert.equal(JSON.stringify(v105Rows),v105Snapshot,"Limit and quarantine checks must not mutate input");
 
+/* v106: quarantine filtering and valid-ID deduplication stay independent. */
+const v106Rows=[
+ {lidlProductId:" 10038275 ",name:"Olut"},
+ {lidlProductId:"safe-106",name:"Olutniminen testituote",variant:"A"},
+ {lidlProductId:" safe-106 ",name:"Olutniminen testituote",variant:"B"},
+ {lidlProductId:"other-106",name:"Olutniminen testituote",variant:"C"}
+];
+const v106Snapshot=JSON.stringify(v106Rows);
+const v106Hits=searchResearch("olut",v106Rows,3);
+assert.deepEqual(v106Hits.map(r=>r.lidlProductId),["safe-106","other-106"]);
+assert.equal(JSON.stringify(v106Rows),v106Snapshot,"Mixed quarantine and deduplication must not mutate input");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
