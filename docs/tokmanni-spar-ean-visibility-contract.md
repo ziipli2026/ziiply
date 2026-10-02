@@ -33,3 +33,7 @@ Keep EAN identity and classification separate. Do not overwrite existing `catego
 5. Review the migration and rollback plan; require explicit approval before Neon writes, production wiring, merge or deploy.
 
 Current route `src/app/api/tokmanni/products/route.ts` fetches Klevu with HTML fallback and asynchronously observes EANs. It does **not** currently enforce this proposed classification. Do not claim production filtering is active.
+
+## Reviewed EAN index generation
+
+Run `node scripts/tokmanni-spar-approved-index.mjs <merged-audit.json> <reviewed-approvals.json>` after human review. The approval JSON contains `items` with `ean`, `productClass`, `classificationStatus: "approved"`, `ziiplyCategory` for daily products, and `classificationEvidence`. Output is a deterministic, read-only `tokmanni-spar-approved-index.json`. Unknown/review/proposed EANs cannot silently become approved. Do not write the generated index to Neon or activate it in production until explicitly authorized. A query-specific relevance filter remains separate from persistent EAN classification.
