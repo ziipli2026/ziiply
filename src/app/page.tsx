@@ -4191,7 +4191,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }>();
 
       for (const [key, value] of Array.isArray(parsed) ? parsed : []) {
-        if (!value || !Array.isArray(value.results)) continue;
+        if (!value || !Array.isArray(value.results) || value.results.length === 0) continue;
         if (now - Number(value.savedAt || 0) > NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441) continue;
         next.set(key, value);
       }
@@ -11693,7 +11693,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
     const cachedNormalSearchV441 = normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
 
-    if (cachedNormalSearchV441) {
+    if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
       setNormalResultsStableV441(cachedNormalSearchV441.results);
       setSearchDebug(cachedNormalSearchV441.debug || []);
       setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
@@ -11842,7 +11842,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             // If S is not selected/available, ordinary text search must still use K.
             // In multi-chain mode the old S-first path could return zero for every term.
-            if (!withinChainS && rawItems.length === 0 && selectedChains.k && activeStores.kStoreId) {
+            if (!withinChainS && rawItems.length === 0 && activeStores.kStoreId && (selectedChains.k || (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "many"))) {
               try {
                 const kItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
                 rawItems = kItems.filter((item) => Number(item.price) > 0).map((item) => ({
