@@ -118,6 +118,7 @@ export type ZiiplyMobileCartCardProps = {
   onIncreaseItem?: (item: ZiiplyMobileCartItem) => void;
   onDecreaseItem?: (item: ZiiplyMobileCartItem) => void;
   onCompare?: () => void;
+  compareNotice?: string | null;
   onShareCart?: () => void;
   onAddMore?: () => void;
   onBack?: () => void;
@@ -379,6 +380,7 @@ export default function ZiiplyMobileCartCard({
   onIncreaseItem,
   onDecreaseItem,
   onCompare,
+  compareNotice,
   onShareCart,
   onAddMore,
   onBack,
@@ -835,6 +837,12 @@ export default function ZiiplyMobileCartCard({
         </div>
 
         {!showCompletionCardV58 ? (
+        {compareNotice ? (
+          <div className="mx-5 mb-2 rounded-[0.7rem] border border-[#b42318]/35 bg-[#fff1ef] px-3 py-2 text-center text-[0.72rem] font-black leading-tight text-[#9f1d16]" role="status">
+            {compareNotice}
+          </div>
+        ) : null}
+
         <footer className="sticky bottom-0 z-20 shrink-0 px-5 pb-3 pt-2">
           <div className="relative mb-2 min-h-[1.82rem] border-t-[2px] border-transparent pt-2 text-[#473719]">
             <span
