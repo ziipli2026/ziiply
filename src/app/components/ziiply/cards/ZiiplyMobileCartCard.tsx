@@ -758,8 +758,15 @@ export default function ZiiplyMobileCartCard({
                 // V792: puuttuva / vielä löytymätön hinta näytetään viivana.
                 // Sisäinen 0 säilyy laskentaa varten, mutta sitä ei esitetä käyttäjälle 0,00 € hintana.
                 const pendingWeightV794 = isPendingWeightPriceV794(item);
-                const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(item.price);
-                const price = numericRowPriceV792 > 0 ? normalizePrice(item.price) : "";
+                const confirmedWeightFinalV802 = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
+                const rowPriceInputV802 = !pendingWeightV794 &&
+                  (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) &&
+                  confirmedWeightFinalV802 != null && confirmedWeightFinalV802 !== "" &&
+                  Number.isFinite(Number(confirmedWeightFinalV802)) && Number(confirmedWeightFinalV802) >= 0
+                    ? Number(confirmedWeightFinalV802)
+                    : item.price;
+                const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(rowPriceInputV802);
+                const price = numericRowPriceV792 > 0 ? normalizePrice(rowPriceInputV802) : "";
                 const pendingWeightUnitPriceV796 =
                   pendingWeightV794 &&
                   (item as any).comparisonPrice != null &&
