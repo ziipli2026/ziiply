@@ -115,7 +115,8 @@ function numericValue(value: unknown) {
 function priceToEuros(value: unknown) {
   const n = numericValue(value);
   if (n == null) return null;
-  return Math.abs(n) > 20 ? n / 100 : n;
+  // Legacy S/K integer-cent values start at 100; preserve valid 20+ euro prices.
+  return Math.abs(n) >= 100 ? n / 100 : n;
 }
 
 function pickRawPrice(product: ZiiplyMobileSearchResultProduct) {
@@ -148,7 +149,7 @@ function formatMainPrice(value: unknown) {
 
 function normalizeComparisonValue(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.abs(value) > 20 ? value / 100 : value;
+    return Math.abs(value) >= 100 ? value / 100 : value;
   }
 
   const raw = String(value ?? "").trim();
@@ -158,7 +159,7 @@ function normalizeComparisonValue(value: unknown) {
   const parsed = numericValue(raw);
   if (parsed == null) return null;
 
-  return Math.abs(parsed) > 20 ? parsed / 100 : parsed;
+  return Math.abs(parsed) >= 100 ? parsed / 100 : parsed;
 }
 
 function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
