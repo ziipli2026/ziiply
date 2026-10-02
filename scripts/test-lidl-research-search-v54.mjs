@@ -1389,6 +1389,18 @@ for(let v150Attempt=0;v150Attempt<3;v150Attempt++){
 }
 assert.equal(JSON.stringify(v150Rows),v150Snapshot,"Repeated capped searches must not mutate source");
 
+/* v151: fractional limits are truncated before applying the 50-result cap. */
+const v151Rows=Array.from({length:55},(_,i)=>({
+ lidlProductId:`safe-151-${String(i).padStart(2,"0")}`,
+ name:"MILBONA Proteiinivanukas",
+ variant:"vanilja"
+}));
+const v151Snapshot=JSON.stringify(v151Rows);
+assert.equal(searchResearch("milbona proteiinivanukas",v151Rows,49.9).length,49);
+assert.equal(searchResearch("milbona proteiinivanukas",v151Rows,50.9).length,50);
+assert.equal(searchResearch("milbona proteiinivanukas",v151Rows,100.9).length,50);
+assert.equal(JSON.stringify(v151Rows),v151Snapshot,"Fractional cap checks must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
