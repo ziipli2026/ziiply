@@ -4073,7 +4073,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     const total =
       typeof result?.totalPrice === "number" && (result?.foundItems || 0) > 0
-        ? `${result.totalPrice.toFixed(2).replace(".", ",")} €`
+        ? formatEuro(result.totalPrice)
         : "";
 
     const lines = (result?.matches || []).map((match: Match, index: number) => {
