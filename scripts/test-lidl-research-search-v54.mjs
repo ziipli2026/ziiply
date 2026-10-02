@@ -1101,6 +1101,20 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v129Rows,2).map(r=>r.
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v129Rows,1).map(r=>r.lidlProductId),["safe-129-a"]);
 assert.equal(JSON.stringify(v129Rows),v129Snapshot,"Malformed rows must not mutate the corpus");
 
+/* v130: malformed name and variant fields cannot leak into name-only results. */
+const v130Rows=[
+ {lidlProductId:"bad-130",name:{text:"MILBONA Proteiinivanukas"},variant:130},
+ {lidlProductId:"variant-130",name:{text:"Ignored"},variant:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"name-130",name:"MILBONA Proteiinivanukas",variant:{text:"Ignored"}}
+];
+const v130Snapshot=JSON.stringify(v130Rows);
+const v130Hits=searchResearch("milbona proteiinivanukas",v130Rows,3);
+assert.deepEqual(new Set(v130Hits.map(r=>r.lidlProductId)),new Set(["variant-130","name-130"]));
+assert.equal(v130Hits.find(r=>r.lidlProductId==="variant-130").name,"");
+assert.equal(v130Hits.find(r=>r.lidlProductId==="variant-130").variant,"MILBONA Proteiinivanukas");
+assert.equal(v130Hits.find(r=>r.lidlProductId==="name-130").variant,null);
+assert.equal(JSON.stringify(v130Rows),v130Snapshot,"Malformed fields must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
