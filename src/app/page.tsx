@@ -22107,6 +22107,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             totalPrice={chainResults.find((result) => result.key === mobileCompareShoppingStoreKeyV732)?.totalPrice || 0}
             purchaseModeDefault={getCheckoutPurchaseModeV739()}
             weightItemCount={0}
+            missingItemCount={chainResults.find((result) => result.key === mobileCompareShoppingStoreKeyV732)?.missingItems || 0}
             onBack={() => {
               setMobileComparePickingOpenV733(false);
               setMobileCompareShoppingStoreKeyV732(null);
