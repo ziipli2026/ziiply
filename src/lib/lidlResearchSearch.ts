@@ -30,6 +30,7 @@ export function searchLidlResearch(query:string,limit=15){
   .map((r,i)=>({
     lidlProductId:String(90000000+i),name:r.name,variant:"",
     observedDate:stapleEvidence.observedAt,
+    assortmentEvidence:r.assortmentEvidence,
   }));
  return [...catalog.records,...independentlyNamed].filter(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantined.has(r.lidlProductId.trim()))
  .map(r=>{
@@ -44,6 +45,9 @@ export function searchLidlResearch(query:string,limit=15){
   id:-Number(r.lidlProductId),lidlProductId:r.lidlProductId.trim(),name:[r.name,r.variant].filter(Boolean).join(" "),
   ean:null,price:null,storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
   storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:"unverified",
-  note:"Tuote löytyi Lidlin julkisesta aineistosta. Kauppahinta ja saatavuus eivät ole vahvistettuja."
+  assortmentEvidence:"assortmentEvidence" in r ? r.assortmentEvidence : "lidl-public-catalog-observation",
+  note:"assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"
+   ?"Lidl on ilmoittanut tuotteen valtakunnalliseen Ilona-valikoimaan. Paikallinen saatavuus ja hinta eivät ole vahvistettuja."
+   :"Tuotteesta on Lidlin julkinen tai historiallinen maininta. Nykyinen myymäläsaatavuus ja hinta eivät ole vahvistettuja."
  }));
 }
