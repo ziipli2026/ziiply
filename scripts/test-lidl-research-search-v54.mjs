@@ -661,6 +661,18 @@ const v98Rows=[
 assert.deepEqual(searchResearch("pizza",v98Rows,2).map(r=>r.lidlProductId),["dup-98","other-98"]);
 assert.deepEqual(searchResearch("pizza",v98Rows,3).map(r=>r.lidlProductId),["dup-98","other-98","third-98"]);
 
+
+/* v99: normalized duplicate IDs must not consume result slots. */
+const v99Rows=[
+ {lidlProductId:" same-99 ",name:"Pizza A"},
+ {lidlProductId:"same-99",name:"Pizza A"},
+ {lidlProductId:" next-99 ",name:"Pizza B"},
+ {lidlProductId:"last-99",name:"Pizza C"}
+];
+assert.deepEqual(searchResearch("pizza",v99Rows,2).map(r=>r.lidlProductId),["same-99","next-99"]);
+assert.deepEqual(searchResearch("pizza",v99Rows,3).map(r=>r.lidlProductId),["same-99","next-99","last-99"]);
+assert.equal(v99Rows[0].lidlProductId," same-99 ","Source ID must remain unchanged");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
