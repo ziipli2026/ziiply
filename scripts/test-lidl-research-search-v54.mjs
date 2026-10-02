@@ -1087,6 +1087,20 @@ assert.ok(v128Default.length>0,"Undefined corpus must use the default research f
 assert.deepEqual(searchResearch("milbona proteiinivanukas",null,2),[]);
 assert.deepEqual(searchResearch("milbona proteiinivanukas",undefined,2),v128Default,"Explicit null must not alter default fixture");
 
+/* v129: malformed corpus rows must not consume the valid-result limit. */
+const v129Rows=[
+ null,undefined,129,true,"MILBONA Proteiinivanukas",["MILBONA Proteiinivanukas"],
+ {lidlProductId:"",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"  ",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:129,name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-129-a",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-129-b",name:"MILBONA Proteiinivanukas",variant:"suklaa"}
+];
+const v129Snapshot=JSON.stringify(v129Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v129Rows,2).map(r=>r.lidlProductId),["safe-129-a","safe-129-b"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v129Rows,1).map(r=>r.lidlProductId),["safe-129-a"]);
+assert.equal(JSON.stringify(v129Rows),v129Snapshot,"Malformed rows must not mutate the corpus");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
