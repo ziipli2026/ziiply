@@ -21767,12 +21767,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(voiceNoticeTextV516 || voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed top-[calc(env(safe-area-inset-top)+20.02rem)] z-[9998] inline-block min-h-[1.28rem] w-auto max-w-[72vw] -translate-x-1/2 whitespace-nowrap rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-2.5 py-[0.10rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}
                 style={{
                   fontFamily: '"Cooper Black", Georgia, serif',
                   // V517: keskitetään Äänitä-napin vaakakeskilinjaan.
                   // 50% on ruudun keskikohta; nauhurin keskilinja on noin 4.75rem siitä vasemmalle.
-                  left: 'calc(50% - 4.75rem)',
+                  left: !voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? '50%' : 'calc(50% - 4.75rem)',
                 }}
                 role="status"
                 aria-live="assertive"
