@@ -169,7 +169,8 @@ export async function GET(request: Request) {
     }
   }
 
-  const response = await fetch(endpoint, {
+  try {
+    const response = await fetch(endpoint, {
       method: "GET",
       headers: {
         accept: "application/json",
