@@ -6521,7 +6521,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeId: string | number,
   ): Promise<Product[]> {
     const response = await fetch(
-      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
+      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}&storeName=${encodeURIComponent(String(activeStores?.sStoreName || ""))}`,
       { cache: "no-store" },
     );
 
@@ -6552,7 +6552,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeId: string | number,
   ): Promise<Product[]> {
     const response = await fetch(
-      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
+      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}&storeName=${encodeURIComponent(String(activeStores?.sStoreName || ""))}`,
       { cache: "no-store" },
     );
 
