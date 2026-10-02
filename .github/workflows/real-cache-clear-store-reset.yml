@@ -1,0 +1,18 @@
+name: Real cache clear store reset regression
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/audit-real-cache-clear-store-reset-20261002.cjs'
+      - '.github/workflows/real-cache-clear-store-reset.yml'
+      - 'src/app/page.tsx'
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/audit-real-cache-clear-store-reset-20261002.cjs
