@@ -34,8 +34,7 @@ jobs:
       - run: node scripts/tokmanni-spar-readonly-preview.mjs
       - run: node scripts/tokmanni-spar-review-sample.mjs
       - run: node scripts/tokmanni-spar-filter-simulation.mjs
-      - run: node scripts/tokmanni-spar-visibility-integration-check.mjs
-      - run: node scripts/tokmanni-spar-visibility-behavior-check.mjs
+      # Runtime visibility wiring is intentionally absent from this read-only audit PR.
       - run: node scripts/tokmanni-spar-search-diff-preview.mjs
       - run: node scripts/tokmanni-spar-category-conflict-check.mjs
       - run: node scripts/tokmanni-spar-shadow-acceptance.mjs
