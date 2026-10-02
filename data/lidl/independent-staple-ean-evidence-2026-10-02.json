@@ -358,6 +358,18 @@
       "assortmentEvidence": "lidl-historical-product-mention",
       "currentStoreStockVerified": false,
       "recordKind": "generic-product-type-not-sku"
+    },
+    {
+      "name": "Reilu rotukarjan naudan jauheliha",
+      "brand": "Reilu",
+      "quantity": "350 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/p/reilu-rotukarjan-naudan-jauheliha/p10023557",
+      "note": "Individual Lidl product page records 350 g promotional listing dated 12–15 June; no current price, EAN or local availability inferred.",
+      "assortmentEvidence": "lidl-historical-product-mention",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
     }
   ]
 }
