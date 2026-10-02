@@ -22257,7 +22257,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
               const sourceOffer = offer.__sourceOfferSearchResult || {};
               const offerUnitTextV794 = [offer.priceUnit, sourceOffer.priceUnit, offer.offerPrice, sourceOffer.priceText, offer.unit, sourceOffer.unit, offer.priceBasis, sourceOffer.priceBasis].filter(Boolean).join(" ");
-              const isWeightedOffer = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct) ||
+              const isFreshCounterFishV795 = /\b(?:tuore|kokonainen|fileoitu|kalatiski)\b/i.test(name) &&
+                /\b(?:kirjolohi|lohi|siika|kuha|ahven|taimen|nieriä|silakka|muikku)\b/i.test(name) &&
+                !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || ""));
+              const isWeightedOffer = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct) || isFreshCounterFishV795 ||
                 (/(?:€\s*\/\s*kg|\/\s*kg\b|\b(?:kg|kilo)(?:hinta|price)?\b|per[- ]?kg)/i.test(offerUnitTextV794) &&
                  !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || "")));
               if (cart.length >= MAX_ITEMS) {
