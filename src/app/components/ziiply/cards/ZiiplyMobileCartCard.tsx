@@ -767,7 +767,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={itemKeyV65}
                     className={cx(
-                      "relative block min-h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]", 
+                      "relative block min-h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 pt-[0.22rem] pb-[0.42rem]", 
                       checked && "opacity-55",
                     )}
                   >
