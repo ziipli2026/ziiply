@@ -93,7 +93,8 @@ jobs:
               result.basicHtmlStatus = page.response.status;
               result.issueMarker = page.html.match(/\b\d{1,2}(?:AV|LV)\/26\b/i)?.[0] ?? null;
               result.pageLinks = [...page.html.matchAll(/href=["']([^"'<>]+\.html)["']/gi)]
-                .map(m => m[1]).filter(x => !x.startsWith("http")).slice(0, 25);
+                .map(m => m[1]).filter(x => /^page[0-9]+\.html$/i.test(x))
+                .filter((x, i, all) => all.indexOf(x) === i).slice(0, 80);
             }
             console.log(JSON.stringify(result, null, 2));
           })().catch(error => { console.error("Leaflet metadata research:", String(error)); process.exitCode = 1; });
