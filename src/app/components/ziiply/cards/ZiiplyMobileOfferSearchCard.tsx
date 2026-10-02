@@ -1076,7 +1076,12 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const debugGeneratedAtV56 = new Date();
   const debugPayloadV52 = {
-    revision: "V56-DBG-TIMESTAMP",
+    revision: "V227-S-EVIDENCE-AUDIT",
+    sEvidenceAuditV227: selectedOfferChainV39 === "S" ? rawItems.map((item: any) => ({
+      ean: item?.ean || item?.id || null,
+      evidence: item?.__sourceOfferSearchResult?.debugOfferEvidenceV226 ?? null,
+      sourceKeys: Object.keys(item?.__sourceOfferSearchResult || {}),
+    })) : null,
     generatedAtIso: debugGeneratedAtV56.toISOString(),
     generatedAtLocal: debugGeneratedAtV56.toLocaleString("fi-FI", {
       timeZone: "Europe/Helsinki",
