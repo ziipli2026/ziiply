@@ -27,8 +27,8 @@ function decide({ official, pickup, pickupMatches = true, productIdValidated = f
 test('actual provider has primary identity and fallback verification guards', () => {
   assert.match(provider, /verifySelectedSOfferStoreV230\(selectedStore\.storeName, selectedStore\.storeId\)/);
   assert.match(provider, /verifySelectedSOfferStoreV230\(\s*selectedStore\.storeName, fallbackStoreId/);
-  assert.match(provider, /if \(identityV230\.status !== "verified"\)/);
-  assert.match(provider, /if \(fallbackIdentityV231\.status !== "verified"\)/);
+  assert.match(provider, /if \(identityV230\.status === "mismatch"\)/);
+  assert.match(provider, /if \(fallbackIdentityV231\.status === "mismatch"\)/);
 });
 test('matching selected shop pickup verifies product ID', () => {
   assert.equal(verifyPickup('Prisma Example', 'PRODUCT_A', [{ brand: 'prisma', pickupName: 'Prisma Example pickup', storeId: 'PRODUCT_A' }]), 'verified');
@@ -63,7 +63,7 @@ test('audit: mismatch blocks and unavailable offers are labeled as unverified so
   const end = provider.indexOf('const pageStep = 48;', start);
   assert.ok(start >= 0 && end > start);
   const guard = provider.slice(start, end);
-  assert.match(guard, /identityV230\.status !== "verified"/);
+  assert.match(guard, /identityV230\.status === "mismatch"/);
   assert.doesNotMatch(guard, /identityV230\.status === "unavailable"\)\s*\{/);
   // Trial guard is fail-closed; this is not a successful live identity test.
 });
@@ -72,7 +72,7 @@ test('audit: proven mismatch skips the selected store before fallback', () => {
   const fallback = provider.indexOf('resolveSafePrismaFallbackStoreIdV225(', initial);
   assert.ok(initial >= 0 && fallback > initial);
   const block = provider.slice(initial, fallback);
-  assert.match(block, /identityV230\.status !== "verified"[\s\S]*?continue;/);
+  assert.match(block, /identityV230\.status === "mismatch"[\s\S]*?continue;/);
 });
 
 test('audit: cached pickup diagnostic must not be mistaken for independent live identity evidence', () => {
@@ -88,5 +88,5 @@ test('audit: an unresolved identity is never equivalent to local evidence', () =
   const start = provider.indexOf('const identityV230 = await verifySelectedSOfferStoreV230(');
   const end = provider.indexOf('const pageStep = 48;', start);
   assert.ok(start >= 0 && end > start);
-  assert.match(provider.slice(start, end), /identityV230\.status !== "verified"[\s\S]*?continue;/);
+  assert.match(provider.slice(start, end), /identityV230\.status === "mismatch"[\s\S]*?continue;/);
 });
