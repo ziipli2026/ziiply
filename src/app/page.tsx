@@ -22256,9 +22256,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onAddOffer={(offer: any) => {
               const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
               const sourceOffer = offer.__sourceOfferSearchResult || {};
-              const offerUnitTextV794 = String(offer.priceUnit || sourceOffer.priceUnit || offer.offerPrice || sourceOffer.priceText || "");
-              const isWeightedOffer = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct) ||
-                (/€\s*\/\s*kg/i.test(offerUnitTextV794) &&
+              const offerUnitTextV794 = [offer.priceUnit, sourceOffer.priceUnit, offer.offerPrice, sourceOffer.priceText, offer.unit, sourceOffer.unit, offer.priceBasis, sourceOffer.priceBasis].filter(Boolean).join(" ");
+              const isWeightedOffer = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct) ||
+                (/(?:€\s*\/\s*kg|\/\s*kg\b|\b(?:kg|kilo)(?:hinta|price)?\b|per[- ]?kg)/i.test(offerUnitTextV794) &&
                  !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || "")));
               if (cart.length >= MAX_ITEMS) {
                 alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
