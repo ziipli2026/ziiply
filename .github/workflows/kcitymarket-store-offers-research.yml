@@ -94,7 +94,7 @@ jobs:
               .map(href => { try { return new URL(href, response.url).href; } catch { return ""; } })
               .filter(href => href.startsWith("https://www.k-ruoka.fi/"))
               .filter((href, i, all) => all.indexOf(href) === i);
-            const result = { requestedStore: "k-citymarket-hyvinkaa", status: response.status,
+            const result = { navigationEvidence: "PUBLIC_LINKS_ONLY_NOT_STORE_FEED", storeScopedOfferFeedVerified: false, requestedStore: "k-citymarket-hyvinkaa", status: response.status,
               finalUrl: response.url, title, offerLinks: links.slice(0, 30),
               blocked: response.status === 403,
               note: response.status === 403 ? "K-Ruoka refused GitHub runner; no offer absence inferred." : "Public navigation only; no session-based offer data or inferred prices." };
