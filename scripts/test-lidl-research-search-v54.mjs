@@ -305,6 +305,25 @@ assert.deepEqual(searchResearch("pizza",corpus,0),[]);
 assert.deepEqual(searchResearch("pizza",corpus,-1),[]);
 assert.deepEqual(searchResearch("pizza",corpus,1),searchResearch("pizza",corpus,50).slice(0,1));
 
+
+/* v71: malformed source rows cannot introduce phantom or unsafe results. */
+const malformedFixture=[
+ null,[],{}, {lidlProductId:"",name:"Pizza"},
+ {lidlProductId:"valid",name:"Pizza",ean:"1234567890123",regularPriceEur:9.99,displayedPriceEur:1.99,storeAvailability:"available",checkoutPriceVerified:true},
+ {lidlProductId:"valid",name:"Pizza",ean:"9876543210987"},
+ {lidlProductId:123,name:"Pizza"},
+ {lidlProductId:"wrong",name:"Pizzadonitsi"}
+];
+const malformedHits=searchResearch("pizza",malformedFixture);
+assert.deepEqual(malformedHits.map(r=>r.lidlProductId),["valid"]);
+assert.equal(malformedHits[0].ean,null);
+assert.equal(malformedHits[0].regularPriceEur,null);
+assert.equal(malformedHits[0].displayedPriceEur,null);
+assert.equal(malformedHits[0].storeAvailability,"unknown");
+assert.equal(malformedHits[0].checkoutPriceVerified,false);
+assert.deepEqual(searchResearch("pizza",null),[]);
+assert.deepEqual(searchResearch(null,malformedFixture),[]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
