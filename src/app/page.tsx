@@ -4080,7 +4080,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return `${index + 1}. ${name} (${safeQuantity} kpl)`;
     });
 
-    const text = [`Ziiply kori: ${storeName}`, total ? `Yhteensä ${total}` : "", ...lines]
+    const missingCount = Math.max(0, Number(result?.missingItems || 0));
+    const missingNotice = missingCount > 0
+      ? `HUOM: ${missingCount} tuotetta puuttuu tästä kaupasta. Alla on vain löytyneet tuotteet.`
+      : "";
+    const totalLabel = missingCount > 0 ? `Löytyneiden tuotteiden osasumma ${total}` : `Yhteensä ${total}`;
+    const text = [`Ziiply kori: ${storeName}`, missingNotice, total ? totalLabel : "", ...lines]
       .filter(Boolean)
       .join("\n");
 
