@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
@@ -156,7 +157,7 @@ export async function GET(request: Request) {
         }],
       }));
 
-    await observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, category: item.category, source: "ruoanhinta-lidl" })));
+    after(() => observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, category: item.category, source: "ruoanhinta-lidl" }))));
 
     return NextResponse.json({
       source: "ruoanhinta-lidl",
