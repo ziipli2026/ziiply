@@ -680,10 +680,14 @@ async function geocodeSelectedStoreNameV216(
 }
 
 async function fetchPickupCandidatesV216(latitude: number, longitude: number): Promise<SKaupatPickupCandidateV215[]> {
+  // V221: a pickup point with no slots TODAY still belongs to its store.
+  // Search the coming week so a closed/full day does not hide Tuusula.
   const date = getCurrentLocalDateYYYYMMDDV202();
+  const endDate = new Date(`${date}T12:00:00Z`);
+  endDate.setUTCDate(endDate.getUTCDate() + 7);
   const variables = {
     startDate: date,
-    endDate: date,
+    endDate: endDate.toISOString().slice(0, 10),
     location: { latitude, longitude },
     limit: 20,
   };
@@ -783,8 +787,14 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     }
 
     const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
+    // V221: exact pickup-place match wins over a closer unrelated Prisma.
+    const wantedPlaceV221 = getStorePlaceTokenV215(cleanStoreName);
     const ranked = candidates
-      .map((candidate) => ({ candidate, score: scorePickupCandidateV216(cleanStoreName, candidate) }))
+      .map((candidate) => {
+        const placeMatch = Boolean(wantedPlaceV221 &&
+          normalizeSKaupatStoreNameForMatchV198(candidate.pickupName).includes(wantedPlaceV221));
+        return { candidate, score: scorePickupCandidateV216(cleanStoreName, candidate) + (placeMatch ? 500 : 0) };
+      })
       .sort((a, b) => b.score - a.score || (a.candidate.distance ?? 999999) - (b.candidate.distance ?? 999999));
     const best = ranked[0];
 
