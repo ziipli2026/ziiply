@@ -746,6 +746,18 @@ const v104Snapshot=JSON.stringify(v104Rows);
 assert.deepEqual(searchResearch("olut",v104Rows).map(r=>r.lidlProductId),["safe-104"]);
 assert.equal(JSON.stringify(v104Rows),v104Snapshot,"Quarantine filtering must not mutate input");
 
+/* v105: quarantined matches never consume a limited result slot. */
+const v105Rows=[
+ {lidlProductId:"10038275",name:"Olut"},
+ {lidlProductId:" 10038275 ",name:"Olut"},
+ {lidlProductId:"safe-105-a",name:"Olutniminen testituote A"},
+ {lidlProductId:"safe-105-b",name:"Olutniminen testituote B"}
+];
+const v105Snapshot=JSON.stringify(v105Rows);
+assert.deepEqual(searchResearch("olut",v105Rows,1).map(r=>r.lidlProductId),["safe-105-a"]);
+assert.deepEqual(searchResearch("olut",v105Rows,2).map(r=>r.lidlProductId),["safe-105-a","safe-105-b"]);
+assert.equal(JSON.stringify(v105Rows),v105Snapshot,"Limit and quarantine checks must not mutate input");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
