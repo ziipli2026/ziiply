@@ -642,6 +642,14 @@ for(const invalidQuery of [null,undefined,0,123,true,false,[],["pizza"],{}, {toS
 }
 assert.deepEqual(searchResearch("pizza hawaii",v96Rows).map(r=>r.lidlProductId),["safe-96"]);
 
+
+/* v97: queries without searchable tokens must not return arbitrary products. */
+const v97Rows=[{lidlProductId:"safe-97",name:"Pizza Hawaii"}];
+for(const emptyQuery of [""," ","\t\n","...","---","/ + /","!!!","()[]{}","€ % &"]){
+ assert.deepEqual(searchResearch(emptyQuery,v97Rows),[],"Tokenless query must return no matches: "+JSON.stringify(emptyQuery));
+}
+assert.deepEqual(searchResearch("  pizza   hawaii  ",v97Rows).map(r=>r.lidlProductId),["safe-97"]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
