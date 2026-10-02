@@ -1235,6 +1235,19 @@ assert.deepEqual(v138Hits.map(r=>r.lidlProductId),["safe-138-a","safe-138-b"]);
 assert.equal(v138Hits.filter(r=>r.lidlProductId==="safe-138-a").length,1);
 assert.equal(JSON.stringify(v138Rows),v138Snapshot,"Duplicate metadata must not mutate source");
 
+/* v139: duplicate selection remains deterministic when duplicate rows have different metadata. */
+const v139Rows=[
+ {lidlProductId:"safe-139-a",name:"MILBONA Proteiinivanukas",variant:"vanilja",source:"A"},
+ {lidlProductId:"safe-139-a",name:"MILBONA Proteiinivanukas",variant:"suklaa",source:"B"},
+ {lidlProductId:"safe-139-b",name:"MILBONA Proteiinivanukas",variant:"kookos",source:"C"}
+];
+const v139Snapshot=JSON.stringify(v139Rows);
+const v139Expected=["safe-139-a","safe-139-b"];
+for(let v139Attempt=0;v139Attempt<3;v139Attempt++){
+ assert.deepEqual(searchResearch("milbona proteiinivanukas",v139Rows,2).map(r=>r.lidlProductId),v139Expected);
+}
+assert.equal(JSON.stringify(v139Rows),v139Snapshot,"Deterministic duplicate selection must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
