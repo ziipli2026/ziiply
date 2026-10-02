@@ -17,7 +17,8 @@ for(const row of parsed.rows.filter(r=>r.page===1 && /LOHI|ULKOFILEE/i.test(r.ti
 const first=await fetch(new URL("files/basic-html/index.html",parsed.leaflet));
 const firstHtml=await first.text();
 const p1=firstHtml.replaceAll("<br>","\n").replaceAll("</div>","\n");
-console.log("PAGE1 RAW LINES",p1.split("\n").map((line,i)=>({i,line:line.trim()})).filter(x=>["LATZ","ANNOSPUSSI","LOHI","ULKOFILEE","KG","11","90"].some(t=>x.line.toUpperCase().includes(t))).slice(0,45));
+const lines=p1.split("\n").map((line,i)=>({i,line:line.trim()}));
+for(const term of ["Latz","TUORE KOKONAINEN LOHI","VILJAPORSAAN"]){const hit=lines.findIndex(x=>x.line.includes(term));console.log("PAGE1 EXACT BLOCK",term,hit,hit<0?[]:lines.slice(Math.max(0,hit-5),hit+18));}
 let failed=false;
 for(const g of groups){
  const hits=parsed.rows.filter(r=>g.pattern.test(String(r.title||"")));
