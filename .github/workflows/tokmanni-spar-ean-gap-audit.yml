@@ -20,6 +20,7 @@ jobs:
       - run: node scripts/tokmanni-spar-ean-gap-audit.mjs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: node scripts/tokmanni-spar-filter-candidates.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -27,4 +28,8 @@ jobs:
           path: |
             tokmanni-spar-ean-gap.json
             tokmanni-spar-ean-new-daily.csv
+            tokmanni-spar-filtered-daily-candidates.csv
+            tokmanni-spar-excluded-department-store.csv
+            tokmanni-spar-manual-review.csv
+            tokmanni-spar-filter-summary.json
             tokmanni-spar-ean-unverified-daily-candidates.csv
