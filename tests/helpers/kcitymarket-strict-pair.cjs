@@ -10,4 +10,9 @@ function parseStrictPair(lines) {
   return offer < regular ? { offer, regular, unit, productContext: lines.slice(0, anchor - 2) } : null;
 }
 
-module.exports = { parseStrictPair };
+function classifyStoreScope(source) {
+  return source?.kind === "VERIFIED_STORE_OFFERS" && source?.storeId && source?.identityVerified === true
+    ? { storeScoped: true, storeId: source.storeId }
+    : { storeScoped: false, storeId: null };
+}
+module.exports = { parseStrictPair, classifyStoreScope };
