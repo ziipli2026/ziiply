@@ -974,7 +974,7 @@ if(title.toUpperCase().includes("TUORE KOKONAINEN LOHI")&&spatialResolved?.unit=
 // A large overprinted two-digit glyph can contain the neighbouring card's euro
 // digit followed by this card's euro digit. Require the cents and KG unit to
 // align with its right edge, inside the current product's vertical card.
-if(!spatialResolved&&anchor&&/KOKONAINEN\\s+LOHI/i.test(title)){
+if(!spatialResolved&&anchor&&/KOKONAINEN\s+LOHI/i.test(title)){
  const big=wordBoxes.filter(b=>/^[1-9][0-9]$/.test(String(b.text).trim())&&b.height>=.09&&b.top<anchor.top&&b.top+b.height>anchor.top);
  for(const b of big){const cents=wordBoxes.find(c=>/^[0-9]{2}$/.test(String(c.text).trim())&&c.height>=.045&&Math.abs(c.left-(b.left+b.width))<.012&&Math.abs(c.top-b.top)<.045);if(!cents)continue;
  const unit=wordBoxes.some(u=>/^KG$/i.test(String(u.text).trim())&&Math.abs(u.left-(cents.left+cents.width/2))<.055&&Math.abs(u.top-(cents.top+cents.height))<.045);
