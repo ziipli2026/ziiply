@@ -1,4 +1,5 @@
 function parseStrictPair(lines) {
+  if (!Array.isArray(lines) || lines.some(line => typeof line !== "string")) return null;
   // Strict candidates represent exactly one product/price block, never adjacent offers.
   if (lines.filter(line => line.startsWith("Ilman Plussa-korttia")).length !== 1) return null;
   const anchor = lines.findIndex(line => line.startsWith("Ilman Plussa-korttia"));
