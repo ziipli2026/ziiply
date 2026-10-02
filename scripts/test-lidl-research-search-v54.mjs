@@ -243,6 +243,21 @@ assert.ok(searchResearch("kuljanka savustettu makkara",corpus).some(r=>r.name===
 assert.deepEqual(searchResearch("kariniemen pizza",corpus),[],"Brand/product tokens must not cross-match unrelated records");
 assert.deepEqual(searchResearch("kuljanka kana",corpus),[],"Unrelated brand/product combination must not fabricate a match");
 
+
+/* v67: punctuation, case and whitespace normalization on verified real-corpus products. */
+assert.deepEqual(
+ searchResearch("  MARLI   VITAL-MEHUJUOMA  ",corpus).map(r=>r.lidlProductId),
+ searchResearch("marli vital mehujuoma",corpus).map(r=>r.lidlProductId),
+ "Case, repeated whitespace and hyphenation must normalize identically"
+);
+assert.deepEqual(
+ searchResearch("KARINIEMEN KANANPOJAN RINTALEIKE",corpus).map(r=>r.lidlProductId),
+ searchResearch("kariniemen kananpojan rintaleike",corpus).map(r=>r.lidlProductId),
+ "Search must be case-insensitive"
+);
+assert.ok(searchResearch("tymbark omena-kirsikkamehu",corpus).some(r=>r.name==="TYMBARK Omena-kirsikkamehu"));
+assert.deepEqual(searchResearch("   ",corpus),[],"Whitespace-only query must return no results");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
