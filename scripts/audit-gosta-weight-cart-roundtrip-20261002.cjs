@@ -27,3 +27,5 @@ assert.equal(ctx.price(roundtrip([stale])[0]),0);
 console.log("PASS stale €/kg copied to row price remains excluded after restore");
 assert.equal(ctx.price(roundtrip([{...pending,product:{...pending.product,ziiplyWeightFinalPrice:"invalid"}}])[0]),0);
 console.log("PASS invalid persisted final price excluded");
+assert.equal(ctx.price(roundtrip([{...pending,price:12.90,product:{...pending.product,ziiplyWeightFinalPrice:-1}}])[0]),0);
+console.log("PASS negative persisted final price and stale quote excluded from basket total");
