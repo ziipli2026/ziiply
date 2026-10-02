@@ -11,6 +11,7 @@ on:
       - 'scripts/audit-lidl-research-v49.mjs'
       - 'scripts/lidl-research-search-v53.mjs'
       - 'src/lib/lidlResearchSearch.ts'
+      - 'scripts/test-lidl-live-research-v68.mjs'
       - 'src/app/api/lidl/products/route.ts'
       - 'src/app/components/ziiply/cards/ZiiplyMobileSearchResultsCard.tsx'
       - 'data/lidl/independent-staple-ean-evidence-2026-10-02.json'
@@ -40,3 +41,7 @@ jobs:
         run: node scripts/test-lidl-leaflet-fixture-v52.mjs
       - name: Test isolated Lidl name-only search
         run: node scripts/test-lidl-research-search-v54.mjs
+      - name: Test actual Lidl research route module and price isolation
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts typescript@^5
+          node scripts/test-lidl-live-research-v68.mjs
