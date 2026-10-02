@@ -1,5 +1,8 @@
 function parseStrictPair(lines) {
-  // Strict candidates represent exactly one product/price block, never adjacent offers.\n  if (lines.filter(line => line.startsWith("Ilman Plussa-korttia")).length !== 1) return null;\n  const anchor = lines.findIndex(line => line.startsWith("Ilman Plussa-korttia"));\n  if (anchor !== lines.length - 1) return null;
+  // Strict candidates represent exactly one product/price block, never adjacent offers.
+  if (lines.filter(line => line.startsWith("Ilman Plussa-korttia")).length !== 1) return null;
+  const anchor = lines.findIndex(line => line.startsWith("Ilman Plussa-korttia"));
+  if (anchor !== lines.length - 1) return null;
   if (anchor < 2) return null;
   const digits = lines[anchor - 2], unit = lines[anchor - 1];
   // A multibuy price in product context must never be treated as a single-item price.
