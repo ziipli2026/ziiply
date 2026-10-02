@@ -873,6 +873,21 @@ assert.equal(v113Hits[0].checkoutPriceVerified,false);
 assert.equal(v113Hits[0].source,"lidl.fi-public-research");
 assert.equal(JSON.stringify(v113Rows),v113Snapshot,"Research output filtering must not mutate source");
 
+/* v114: variant-only name discovery must not leak source price or EAN fields. */
+const v114Rows=[
+ {lidlProductId:"10038275",name:"Testituote",variant:"Olut",ean:"1111111111111",displayedPriceEur:0.01},
+ {lidlProductId:" safe-114 ",name:"Testituote",variant:"Olut",ean:"1234567890123",regularPriceEur:0.02,displayedPriceEur:0.01,storeAvailability:"in_stock",checkoutPriceVerified:true}
+];
+const v114Snapshot=JSON.stringify(v114Rows);
+const v114Hits=searchResearch("olut",v114Rows,2);
+assert.deepEqual(v114Hits.map(r=>r.lidlProductId),["safe-114"]);
+assert.equal(v114Hits[0].ean,null);
+assert.equal(v114Hits[0].regularPriceEur,null);
+assert.equal(v114Hits[0].displayedPriceEur,null);
+assert.equal(v114Hits[0].storeAvailability,"unknown");
+assert.equal(v114Hits[0].checkoutPriceVerified,false);
+assert.equal(JSON.stringify(v114Rows),v114Snapshot,"Variant-only matching must leave source intact");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
