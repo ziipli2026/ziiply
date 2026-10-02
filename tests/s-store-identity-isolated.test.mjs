@@ -65,7 +65,9 @@ test('audit: mismatch blocks and unavailable offers are labeled as unverified so
   const guard = provider.slice(start, end);
   assert.match(guard, /identityV230\.status === "mismatch"/);
   assert.doesNotMatch(guard, /identityV230\.status === "unavailable"\)\s*\{/);
-  // Trial guard is fail-closed; this is not a successful live identity test.
+  assert.match(provider, /result\.sOfferStoreIdentityV232 = effectiveIdentityStatusV232/);
+  assert.match(provider, /result\.sOfferLocalVerifiedV232 = effectiveIdentityStatusV232 === "verified"/);
+  assert.match(provider, /myymälää ei vahvistettu/);
 });
 test('audit: proven mismatch skips the selected store before fallback', () => {
   const initial = provider.indexOf('const identityV230 = await verifySelectedSOfferStoreV230(');
@@ -84,9 +86,14 @@ test('audit: cached pickup diagnostic must not be mistaken for independent live 
   assert.match(cachePath, /geocodeQueryUsed: "positive-cache"/);
   // Existing behavior documented: a synthetic name in cache diagnostics cannot prove ownership.
 });
-test('audit: an unresolved identity is never equivalent to local evidence', () => {
+test('audit: only mismatch blocks and local verification is explicit', () => {
   const start = provider.indexOf('const identityV230 = await verifySelectedSOfferStoreV230(');
   const end = provider.indexOf('const pageStep = 48;', start);
   assert.ok(start >= 0 && end > start);
   assert.match(provider.slice(start, end), /identityV230\.status === "mismatch"[\s\S]*?continue;/);
+});
+
+test('normal S-kaupat query keeps the non-discounted provider path', () => {
+  assert.match(provider, /return await fetchSKaupatRemoteFilteredProductsV170\(cleanQuery, config, options\)/);
+  assert.match(provider, /if \(identityV230\.status === "mismatch"\)/);
 });
