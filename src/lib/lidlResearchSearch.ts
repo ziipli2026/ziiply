@@ -19,7 +19,7 @@ const forms: Record<string,string[]> = {
  omena:["omena","omenat"],pizza:["pizza","pizzat"],
  leipa:["leipa","leivat","ruisleipa","kauraleipa","vehnaleipa","hapanjuurileipa","siemenhapanjuurileipa","kiviuunileipa","artesaanileipa","rusticoleipa","myslileipa","herkkumyslileipa","pitaleipa","tomaattimozzarellaleipa","perunasipulileipa"]
 };
-const matches=(word:string,term:string)=>word===term||(exactStaples.has(term)
+const matches=(word:string,term:string)=>word===term||(term==="juusto" && /juusto$/.test(word))||(term==="jogurtti" && /jogurtti$/.test(word))||(exactStaples.has(term)
  ?(forms[term]??[]).some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchLidlResearch(query:string,limit=15){
  if(typeof query!=="string")return [];
