@@ -761,7 +761,20 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
   // V222: never persist an unavailable pickup lookup as a permanent negative.
   // Slots and store availability can change tomorrow; retry on every later request.
   const cachedPickupIdV222 = sKaupatPickupResolverCacheV215.get(key);
-  if (cachedPickupIdV222) return cachedPickupIdV222;
+  // V223: a positive cached ID is already validated for this exact normalized
+  // store name. Returning it must not depend on a stale global diagnostic from
+  // a different store (e.g. Kommila -> Tuusula).
+  if (cachedPickupIdV222) {
+    lastPickupResolverDiagnosticV216 = {
+      storeName: cleanStoreName, geocodeQueries: [], geocodeQueryUsed: "positive-cache",
+      latitude: null, longitude: null, pickupHttpStatus: null,
+      candidateCount: 1, bestStoreId: cachedPickupIdV222,
+      bestBrand: getStoreBrandFromNameV215(cleanStoreName),
+      bestPickupName: cleanStoreName, bestCity: "", bestPostalCode: "",
+      bestDistance: null, bestScore: 999, fetchError: "",
+    };
+    return cachedPickupIdV222;
+  }
 
   lastPickupResolverDiagnosticV216 = {
     storeName: cleanStoreName,
@@ -819,10 +832,11 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     const wantedPlace = getStorePlaceTokenV215(cleanStoreName);
     const bestPickup = best ? normalizeSKaupatStoreNameForMatchV198(best.candidate.pickupName) : "";
     const nameHit = !!(wantedPlace && bestPickup.includes(wantedPlace));
-    const veryNear = best?.candidate.distance != null && best.candidate.distance <= 0.5;
     const brandOk = !!best && (!wantedBrand || best.candidate.brand === wantedBrand);
 
-    if (!best || !brandOk || (!nameHit && !veryNear) || best.score < 100) {
+    // A geographically close pickup point is NOT proof that it belongs to
+    // the selected store. Require matching place and brand for all S stores.
+    if (!best || !brandOk || !nameHit || best.score < 100) {
       console.warn("[GOSTA V216] no safe S-kaupat pickup candidate", {
         storeName: cleanStoreName, coords,
         candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
@@ -860,7 +874,8 @@ async function getEffectiveSKaupatStoreIdV174(
   // otherwise preserve the existing official-directory fallback for other stores.
   if (storeName) {
     const pickupStoreIdV219 = await resolveSKaupatStoreIdViaPickupSlotsV215(storeName);
-    const pickupNameV219 = lastPickupResolverDiagnosticV216?.bestPickupName || "";
+    const pickupNameV219 = lastPickupResolverDiagnosticV216?.bestStoreId === pickupStoreIdV219
+      ? lastPickupResolverDiagnosticV216.bestPickupName : "";
     const placeV219 = getStorePlaceTokenV215(storeName);
     const pickupMatchesV219 = Boolean(
       placeV219 &&
