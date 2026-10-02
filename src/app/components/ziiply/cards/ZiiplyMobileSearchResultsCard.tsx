@@ -328,7 +328,8 @@ export default function ZiiplyMobileSearchResultsCard({
                 const image = getImage(product);
                 const name = getName(product);
                 const rawPrice = pickRawPrice(product);
-                const price = formatMainPrice(rawPrice);
+                const researchOnly = product.priceVerified === false || product.product?.priceVerified === false;
+                const price = researchOnly ? "" : formatMainPrice(rawPrice);
                 const comparison = formatComparisonPrice(product, rawPrice);
 
                 return (
@@ -371,6 +372,11 @@ export default function ZiiplyMobileSearchResultsCard({
                     </div>
 
                     <div className="absolute bottom-2 right-2.5 flex items-center justify-end gap-2">
+                      {researchOnly && (
+                        <div className="max-w-[7.8rem] text-right text-[0.61rem] font-bold leading-tight text-[#78633a]">
+                          Hinta ei tiedossa
+                        </div>
+                      )}
                       {price && (
                         <div className="inline-flex min-w-[4.85rem] items-center justify-center rounded-full border-[2.5px] border-[#347a3f] bg-[#d2f1c8] px-2.5 py-[0.34rem] text-[0.88rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
                           {price}
