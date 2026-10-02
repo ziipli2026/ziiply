@@ -3,6 +3,10 @@
 import { parseKCitymarketSpatialLeaflet } from "../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js";
 const entry="https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/lvtarjouslehti.html";
 const parsed=await parseKCitymarketSpatialLeaflet(entry);
+const pageOneUrl=new URL("files/basic-html/index.html",parsed.leaflet).href;
+const pageOneHtml=await (await fetch(pageOneUrl)).text();
+const pre=pageOneHtml.match(/<pre[^>]*><code>([\\s\\S]*?)<\\/code><\\/pre>/i)?.[1]||"";
+console.log("PAGE 1 RAW RELEVANT LINES:",pre.split(/\\r?\\n/).map((line,i)=>({i,line:line.trim()})).filter(x=>/LATZ|ANNOSPUSSI|11|90|LOHI|VILJAPORSAAN|ULKOFILEE|KG|PKT|S6 99/i.test(x.line)));
 if(!/_40LV_KCM/i.test(String(parsed.leaflet))) throw new Error("Wrong leaflet: "+parsed.leaflet);
 const groups=[
   {key:"Latz",pattern:/latz|annospussilajitelm/i,price:11.90},
