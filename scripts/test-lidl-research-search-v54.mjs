@@ -501,6 +501,25 @@ for(const row of unsafeCommerceResult){
  assert.equal(row.checkoutPriceVerified,false);
 }
 
+
+/* v86: output is an explicit allowlist, not a spread of source internals. */
+const internalFixture=[{
+ lidlProductId:"private-fields",name:"Pizza Hawaii",variant:"iso",
+ observedDate:"2026-10-01",internalToken:"secret",supplierCost:1.23,
+ debugPayload:{raw:"do not expose"},imageUrl:"https://invalid.example/private",
+ source:"untrusted-source"
+}];
+const internalResult=searchResearch("pizza hawaii",internalFixture);
+assert.equal(internalResult.length,1);
+assert.deepEqual(Object.keys(internalResult[0]).sort(),[
+ "lidlProductId","name","variant","source","observedDate","ean",
+ "regularPriceEur","storeAvailability","checkoutPriceVerified","displayedPriceEur","note"
+].sort());
+assert.equal(internalResult[0].source,"lidl.fi-public-research");
+assert.equal(internalResult[0].observedDate,"2026-10-01");
+assert.ok(!JSON.stringify(internalResult).includes("secret"));
+assert.ok(!JSON.stringify(internalResult).includes("supplierCost"));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
