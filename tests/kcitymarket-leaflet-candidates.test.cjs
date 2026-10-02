@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 // Historical 40LV/26 excerpts. Research only; never infer store-specific availability.
-const { parseStrictPair } = require("./helpers/kcitymarket-strict-pair.cjs");
+const { parseStrictPair, classifyStoreScope } = require("./helpers/kcitymarket-strict-pair.cjs");
 test("40LV/26 Sitkas: correct product and PS prices", () => {
   const result = parseStrictPair(["SITKAS 100 % RUIS tai RUIS- SIEMEN TUORENÄKKÄRI 220 g (11,32/kg)", "249", "PS", "Ilman Plussa-korttia 2,79/ps (12,68/kg)"]);
   assert.deepEqual(result, {offer:2.49, regular:2.79, unit:"PS", productContext:["SITKAS 100 % RUIS tai RUIS- SIEMEN TUORENÄKKÄRI 220 g (11,32/kg)"]});
@@ -45,4 +45,10 @@ test("reject ambiguous reference suffix and oversized compact price", () => {
   assert.equal(parseStrictPair(["Product","299","PKT","Ilman Plussa-korttia 3,99/pkt–4,49/pkt"]), null);
   assert.equal(parseStrictPair(["Product","299","PKT","Ilman Plussa-korttia 3,99/pkt tai 4,49/pkt"]), null);
   assert.equal(parseStrictPair(["Product","9999","PKT","Ilman Plussa-korttia 3,99/pkt"]), null);
+});
+
+test("national leaflet cannot inherit Hyvinkaa store identity", () => {
+  assert.deepEqual(classifyStoreScope({kind:"NATIONAL_LEAFLET", storeId:"k-citymarket-hyvinkaa", identityVerified:false}), {storeScoped:false,storeId:null});
+  assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS", storeId:"k-citymarket-hyvinkaa", identityVerified:false}), {storeScoped:false,storeId:null});
+  assert.deepEqual(classifyStoreScope({kind:"VERIFIED_STORE_OFFERS", storeId:"k-citymarket-hyvinkaa", identityVerified:true}), {storeScoped:true,storeId:"k-citymarket-hyvinkaa"});
 });
