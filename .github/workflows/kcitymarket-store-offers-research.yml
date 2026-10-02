@@ -205,6 +205,15 @@ jobs:
                 summary[sample.researchType] = (summary[sample.researchType] ?? 0) + 1;
                 return summary;
               }, {});
+              result.reviewSafety = {
+                total: result.unparsedReferenceExamples.length,
+                rejectedFromStrictCandidates: result.unparsedReferenceExamples.every(sample =>
+                  sample.researchType !== "STRICT_LINE_PAIR_RESEARCH_ONLY"),
+                priceRangesKeptForReview: result.unparsedReferenceExamples.filter(sample =>
+                  sample.researchType === "RANGE_REVIEW").length,
+                pairPricesKeptForReview: result.unparsedReferenceExamples.filter(sample =>
+                  sample.researchType === "PAIR_REVIEW").length
+              };
               result.referenceShapeSummary = pages.reduce((summary, page) => {
                 for (const item of page.codeBlockResearch?.strictPairs ?? []) {
                   const key = item.referenceShape ?? "UNKNOWN";
