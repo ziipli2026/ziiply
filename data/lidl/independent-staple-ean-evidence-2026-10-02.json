@@ -121,7 +121,8 @@
       "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
       "note": "Lidl test-results page identifies product (01/2026); pack size, current assortment and EAN unknown.",
       "assortmentEvidence": "lidl-historical-product-mention",
-      "currentStoreStockVerified": false
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
     },
     {
       "name": "Pohjolan Meijeri vaniljakastike",
@@ -141,7 +142,8 @@
       "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140",
       "note": "Historical test-results page (01/2023); current assortment and EAN unknown.",
       "assortmentEvidence": "lidl-historical-product-mention",
-      "currentStoreStockVerified": false
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
     },
     {
       "name": "Milbona Halloumi",
