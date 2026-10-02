@@ -16495,8 +16495,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // normaalihintaiset tuotteet vertaillaan; pelkästä tarjouskorista näytetään
     // selkeä ilmoitus eikä vertailua käynnistetä.
     if (comparableCartV730.length === 0) {
-      setCartCompareNotice("Kaikki korissa olevat tuotteet ovat tarjoustuotteita.");
-      setCartModalOpen(true);
+      // Pelkkä tarjouskori: pidä kuittikortti päällimmäisenä ja näytä ilmoitus
+      // myös toastina, ettei se jää kortin vieritysalueen/overlayn taakse.
+      setCartCompareNotice("Tarjoustuotteita ei halpuuteta uudelleen. Lisää Justiinasta normaalihintainen tuote vertailua varten.");
+      setActiveResult("none");
+      setComparisonLoading(false);
+      comparisonUserStartedRefV768.current = false;
+      showCart();
+      showCartToast("Tarjoustuotteita ei halpuuteta uudelleen. Lisää Justiinasta normaalihintainen tuote.");
       return;
     }
 
