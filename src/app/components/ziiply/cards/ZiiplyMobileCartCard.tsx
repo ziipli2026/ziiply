@@ -779,7 +779,11 @@ export default function ZiiplyMobileCartCard({
                     ? Number(confirmedWeightFinalV802)
                     : pendingWeightV794 ? 0 : item.price;
                 const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(rowPriceInputV802);
-                const price = numericRowPriceV792 > 0 ? normalizePrice(rowPriceInputV802) : "";
+                const price = numericRowPriceV792 > 0
+                  ? ((item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) && !pendingWeightV794
+                    ? Number(rowPriceInputV802).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
+                    : normalizePrice(rowPriceInputV802))
+                  : "";
                 const pendingWeightUnitPriceV796 =
                   pendingWeightV794 &&
                   (item as any).comparisonPrice != null &&
