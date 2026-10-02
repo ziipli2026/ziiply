@@ -1,0 +1,19 @@
+name: Gosta weight offer regression
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/audit-gosta-weight-offer-20261002.cjs'
+      - '.github/workflows/gosta-weight-offer-regression.yml'
+      - 'src/app/page.tsx'
+jobs:
+  weight-offer-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check production weight-offer guards without network or database
+        run: node scripts/audit-gosta-weight-offer-20261002.cjs
