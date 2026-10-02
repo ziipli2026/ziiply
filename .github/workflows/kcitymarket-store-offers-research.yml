@@ -184,6 +184,18 @@ jobs:
                 } catch (error) { return { page: name, error: String(error) }; }
               }));
               result.pageAudit = pages;
+              result.unparsedReferenceTypeSummary = pages.reduce((summary, page) => {
+                for (const sample of page.codeBlockResearch?.splitReferenceSamples ?? []) {
+                  const line = sample.current;
+                  const type = /\d+[,.]\d{2}\s*[–-]\s*\d+[,.]\d{2}/.test(line) ? "PRICE_RANGE" :
+                    /\/pari\b/i.test(line) ? "PAIR_UNIT" :
+                    /Ilman Plussa-korttia\s+\d+[,.]\d{2}\s*$/i.test(line) ? "NO_UNIT" :
+                    /\b\d+\s*(?:kpl|pkt|ps)\s*\/\s*\d+/i.test(line) ? "MULTIBUY_CONTEXT" :
+                    "OTHER_UNSUPPORTED_SHAPE";
+                  summary[type] = (summary[type] ?? 0) + 1;
+                }
+                return summary;
+              }, {});
               result.unparsedReferenceExamples = pages.flatMap(page =>
                 (page.codeBlockResearch?.splitReferenceSamples ?? []).map(sample => ({
                   page: page.page, ...sample
