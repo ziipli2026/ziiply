@@ -16422,10 +16422,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V730: Tarjoushaulla valittu tuote kuuluu valittuun tarjoushintaan eikä sitä
     // kilpailuteta uudelleen normaalin Halpuusvertailun kautta.
-    const comparableCartV730 = cart.filter(
-      (item: any) => String(item?.source || "").toLowerCase() !== "offer",
-    );
-    const offerCartCountV730 = cart.length - comparableCartV730.length;
+    const comparableCartV730 = cart.filter((item: any) => {
+      const isOffer = String(item?.source || "").toLowerCase() === "offer";
+      const isWeightedOffer = Boolean(
+        item?.ziiplyWeightOffer ||
+        item?.product?.ziiplyWeightOffer ||
+        item?.ziiplyPricePendingWeight && (
+          item?.comparisonPrice != null ||
+          item?.product?.comparisonPrice != null
+        ),
+      );
+      // Kiinteähintainen tarjous ei kuulu normaalihintavertailuun.
+      // €/kg-tarjous on kuitenkin aidosti vertailukelpoinen ja saa osallistua.
+      return !isOffer || isWeightedOffer;
+    });
+    const excludedOfferCartCountV730 = cart.length - comparableCartV730.length;
 
     // Tarjousrivit eivät osallistu Halpuusvertailuun. Sekakorissa vain
     // normaalihintaiset tuotteet vertaillaan; pelkästä tarjouskorista näytetään
@@ -16436,8 +16447,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (offerCartCountV730 > 0) {
-      setCartCompareNotice("Vain normaalihintaiset tuotteet halpuutetaan.");
+    if (excludedOfferCartCountV730 > 0) {
+      setCartCompareNotice("Vain vertailukelpoiset normaalihintaiset tuotteet halpuutetaan.");
     } else {
       setCartCompareNotice(null);
     }
