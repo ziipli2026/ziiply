@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-10-02",
+  "purpose": "Offline Lidl staple research; no production import, no price assertions, no store stock assertions",
+  "records": [
+    {
+      "name": "Ilona kevytmaito",
+      "brand": "Ilona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://corporate.lidl.fi/vastuullisuus/reilu-toiminta/elainten-hyvinvointi/ilona-maito",
+      "note": "Lidl explicitly lists Ilona kevytmaito; pack size and EAN unverified."
+    },
+    {
+      "name": "KotKot Vapaa M10",
+      "quantity": "580 g",
+      "ean": "4056489454960",
+      "eanStatus": "verified_in_authority_recall",
+      "source": "https://www.ruokavirasto.fi/elintarvikkeet/ohjeita-kuluttajille/takaisinvedot-2023-/kananmunien-takaisinveto/",
+      "note": "EAN identifies product packaging, not recalled batch; do not infer current stock."
+    },
+    {
+      "name": "KotKot Vapaa L15",
+      "quantity": "1020 g",
+      "ean": "4056489454977",
+      "eanStatus": "verified_in_authority_recall",
+      "source": "https://www.ruokavirasto.fi/elintarvikkeet/ohjeita-kuluttajille/takaisinvedot-2023-/kananmunien-takaisinveto-varotoimenpiteena/",
+      "note": "Historical product identification; verify current packaging before live EAN-bank import."
+    },
+    {
+      "name": "Laitilan Kanatarha Vapaa M15",
+      "quantity": "870 g",
+      "ean": "6430017901429",
+      "eanStatus": "verified_in_authority_recall",
+      "source": "https://www.ruokavirasto.fi/elintarvikkeet/ohjeita-kuluttajille/takaisinvedot-2023-/kananmunien-takaisinveto/",
+      "note": "Sold in multiple chains; not Lidl-exclusive."
+    },
+    {
+      "name": "Laitilan Kanatarha Vapaa M10",
+      "quantity": "580 g",
+      "ean": "6430017900309",
+      "eanStatus": "verified_in_authority_recall",
+      "source": "https://www.ruokavirasto.fi/elintarvikkeet/ohjeita-kuluttajille/takaisinvedot-2023-/kananmunien-takaisinveto/",
+      "note": "Sold in multiple chains; not Lidl-exclusive."
+    }
+  ]
+}
