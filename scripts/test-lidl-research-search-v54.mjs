@@ -1496,6 +1496,18 @@ const v158Snapshot=JSON.stringify(v158Rows);
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v158Rows,4).map(r=>r.lidlProductId),["__proto__","constructor","toString"]);
 assert.equal(JSON.stringify(v158Rows),v158Snapshot,"Prototype-like IDs must not mutate source");
 
+/* v159: blank product IDs never consume the result limit. */
+const v159Rows=[
+ {lidlProductId:"",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"   ",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"\t\n",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-159-a",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-159-b",name:"MILBONA Proteiinivanukas"}
+];
+const v159Snapshot=JSON.stringify(v159Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v159Rows,2).map(r=>r.lidlProductId),["safe-159-a","safe-159-b"]);
+assert.equal(JSON.stringify(v159Rows),v159Snapshot,"Blank IDs must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
