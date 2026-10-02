@@ -35,7 +35,7 @@ export function searchLidlResearch(query:string,limit=15){
   // another record must not silently renumber existing cart candidates.
   .map((r,i)=>({r,i}))
   .filter(({r})=>r.eanStatus==="not_verified" && r.recordKind!=="generic-product-type-not-sku" &&
-    (r.brand==="Ilona" || r.source.startsWith("https://www.lidl.fi/")))
+    (r.brand==="Ilona" || r.source.startsWith("https://www.lidl.fi/") || r.source.startsWith("https://corporate.lidl.fi/")))
   .map(({r,i})=>({
     lidlProductId:String(90000000+i),name:r.name,variant:"",
     observedDate:stapleEvidence.observedAt,
