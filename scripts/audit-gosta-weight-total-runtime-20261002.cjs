@@ -15,4 +15,5 @@ assert.equal(price({...base,ziiplyWeightFinalPrice:6.45}),6.45);console.log("PAS
 assert.equal(price({...base,ziiplyWeightFinalPrice:0}),0);console.log("PASS zero confirmed price remains zero");
 assert.equal(price({...base,ziiplyWeightFinalPrice:"bad"}),0);console.log("PASS malformed final price excluded");
 assert.equal(price({...base,product:{ziiplyWeightFinalPrice:6.45}}),6.45);console.log("PASS nested persisted final price restored");
+assert.equal(price({...base,ziiplyWeightFinalPrice:24.50}),24.50,"confirmed final price in euros above 20 must remain euros");console.log("PASS confirmed 24.50 euro weight total is not divided by 100");
 console.log("NOTE weight in grams to final price conversion is not implemented by this helper");
