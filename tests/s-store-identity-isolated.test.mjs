@@ -58,16 +58,16 @@ test('wrong-name pickup cannot override official identity', () => {
   assert.deepEqual(decide({ official: { storeId: 'OFFICIAL_A' }, pickup: { storeId: 'PRODUCT_B' }, pickupMatches: false }), { status: 'unverified', productStoreId: null });
 });
 
-test('audit: current V230 allows unavailable verification to continue (NOT proof of shop identity)', () => {
+test('audit: trial V230 blocks unavailable verification rather than labeling it as shop-specific', () => {
   const start = provider.indexOf('const identityV230 = await verifySelectedSOfferStoreV230(');
   const end = provider.indexOf('const pageStep = 48;', start);
   assert.ok(start >= 0 && end > start);
   const guard = provider.slice(start, end);
   assert.match(guard, /identityV230\.status === "mismatch"/);
   assert.doesNotMatch(guard, /identityV230\.status === "unavailable"\)\s*\{/);
-  // This documents the current fail-open path. It is not a successful live identity test.
+  // Trial guard is fail-closed; this is not a successful live identity test.
 });
-test('audit: initial mismatch skips the entire selected store before Prisma fallback', () => {
+test('audit: initial unverified identity skips the entire selected store before Prisma fallback', () => {
   const initial = provider.indexOf('const identityV230 = await verifySelectedSOfferStoreV230(');
   const fallback = provider.indexOf('resolveSafePrismaFallbackStoreIdV225(', initial);
   assert.ok(initial >= 0 && fallback > initial);
