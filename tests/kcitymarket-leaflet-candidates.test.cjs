@@ -214,3 +214,13 @@ test("strict pair rejects duplicate compact price glyphs before reference", () =
     ["Example product 200 g","299","249","PKT","Ilman Plussa-korttia 3,99/pkt"]
   ]) assert.equal(parseStrictPair(lines), null, JSON.stringify(lines));
 });
+
+test("reject product context consisting only of a price-like glyph with label elsewhere", () => {
+  for (const context of [
+    ["Example product", "249"],
+    ["Example product", "299"],
+    ["Example product", "2,49"]
+  ]) {
+    assert.equal(parseStrictPair([...context, "249", "PKT", "Ilman Plussa-korttia 3,99/pkt"]), null, JSON.stringify(context));
+  }
+});
