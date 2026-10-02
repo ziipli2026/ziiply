@@ -1,0 +1,17 @@
+name: Comparison checkout warning continuity
+on:
+  push:
+    paths:
+      - 'src/app/components/ziiply/cards/ZiiplyMobileCompareCheckoutCard.tsx'
+      - 'scripts/audit-comparison-checkout-warning-continuity-20261002.cjs'
+      - '.github/workflows/comparison-checkout-warning-continuity.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/audit-comparison-checkout-warning-continuity-20261002.cjs
