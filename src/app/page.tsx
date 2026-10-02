@@ -6805,10 +6805,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     lastEanToastRef.current = { message, at: now };
     setLastCartToast(message);
 
-    // UI debounce / anti-duplicate protection
+    // Kauppavalinnan ohje pysyy näkyvissä, kunnes käyttäjä kuittaa sen.
+    if (message.startsWith("Useamman tuotteen hintavertailu:")) return;
+
+    // Muut ilmoitukset poistuvat edelleen automaattisesti.
     window.setTimeout(() => {
       setLastCartToast((current) => (current === message ? null : current));
-    }, message.startsWith("Useamman tuotteen hintavertailu:") ? 3400 : 2600);
+    }, 2600);
   }
 
   function showScanSuccessFlash() {
@@ -22545,9 +22548,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeCompareScope === "between_chains" &&
           betweenChainSelectionModeV749 === "one"
         ) && (
-          <div className="pointer-events-none fixed left-3 right-3 top-[16.81rem] z-[10020] mx-auto max-w-md sm:hidden">
-            <div className="animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl">
-              {lastCartToast}
+          <div className={`fixed left-3 right-3 top-[16.81rem] z-[10020] mx-auto max-w-md sm:hidden ${lastCartToast.startsWith("Useamman tuotteen hintavertailu:") ? "pointer-events-auto" : "pointer-events-none"}`}>
+            <div className={`${lastCartToast.startsWith("Useamman tuotteen hintavertailu:") ? "" : "animate-[ziiplyFade_2.6s_ease-in-out]"} rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl`}>
+              <div>{lastCartToast}</div>
+              {lastCartToast.startsWith("Useamman tuotteen hintavertailu:") && (
+                <button type="button" onClick={() => setLastCartToast(null)} className="mt-3 rounded-lg bg-white px-5 py-2 text-sm font-bold text-emerald-800">Selvä ✓</button>
+              )}
             </div>
           </div>
         )}
