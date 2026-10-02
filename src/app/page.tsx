@@ -11304,11 +11304,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      setGostaKruokaDebugV550(
-        gostaSelectedOfferChainRefV547.current === "K"
-          ? getLastZiiplyKruokaDebugV174(gostaOfferSearchContextV172)
-          : null,
-      );
+      // V230: API provenance is needed for S as well as K; never discard S diagnostics.
+      setGostaKruokaDebugV550(getLastZiiplyKruokaDebugV174(gostaOfferSearchContextV172));
 
       trackZiiplyEvent("gosta_offer_api_search_used", {
         query: offerSearchCoreResult.trackingKey,
