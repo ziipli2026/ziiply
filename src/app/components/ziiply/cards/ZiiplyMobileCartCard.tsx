@@ -759,8 +759,14 @@ export default function ZiiplyMobileCartCard({
                 const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(item.price);
                 const price = numericRowPriceV792 > 0 ? normalizePrice(item.price) : "";
                 const pendingWeightUnitPriceV796 =
-                  pendingWeightV794 && Number.isFinite(Number((item as any).comparisonPrice))
-                    ? normalizePrice((item as any).comparisonPrice)
+                  pendingWeightV794 &&
+                  (item as any).comparisonPrice != null &&
+                  Number.isFinite(Number((item as any).comparisonPrice)) &&
+                  Number((item as any).comparisonPrice) > 0
+                    ? Number((item as any).comparisonPrice).toLocaleString("fi-FI", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }) + " €"
                     : "";
                 const checked = Boolean(item.checked);
                 const quantity = Number(item.quantity ?? item.amount ?? 1);
