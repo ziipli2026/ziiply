@@ -1159,6 +1159,24 @@ v133Before[0].source="changed";
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v133Rows,2),v133Expected);
 assert.equal(JSON.stringify(v133Rows),v133Snapshot,"Result mutation must not affect source");
 
+/* v134: returned safety-field mutations cannot persist into a subsequent search. */
+const v134Rows=[{lidlProductId:"safe-134",name:"MILBONA Proteiinivanukas",variant:"vanilja",ean:"1234567890123",regularPriceEur:9.99,storeAvailability:"in-stock",checkoutPriceVerified:true,displayedPriceEur:9.99}];
+const v134Snapshot=JSON.stringify(v134Rows);
+const v134First=searchResearch("milbona proteiinivanukas",v134Rows,1);
+assert.equal(v134First.length,1);
+v134First[0].ean="1234567890123";
+v134First[0].regularPriceEur=9.99;
+v134First[0].storeAvailability="in-stock";
+v134First[0].checkoutPriceVerified=true;
+v134First[0].displayedPriceEur=9.99;
+const v134Again=searchResearch("milbona proteiinivanukas",v134Rows,1);
+assert.equal(v134Again[0].ean,null);
+assert.equal(v134Again[0].regularPriceEur,null);
+assert.equal(v134Again[0].storeAvailability,"unknown");
+assert.equal(v134Again[0].checkoutPriceVerified,false);
+assert.equal(v134Again[0].displayedPriceEur,null);
+assert.equal(JSON.stringify(v134Rows),v134Snapshot,"Result safety-field mutations must not affect source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
