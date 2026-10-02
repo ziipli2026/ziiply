@@ -10,7 +10,7 @@ export type KCitymarketStoreOfferProbe = {
   httpStatus: number | null;
   offers: unknown[];
   diagnostic: string;
-  evidence?: { storePageUrl: string; storePageHttp: number; storeIdentitySeen: boolean; offerLinkSeen: boolean; offerLinks: string[]; embeddedOfferEndpointHints: string[] };
+  evidence?: { storePageUrl: string; storePageHttp: number; storeIdentitySeen: boolean; offerLinkSeen: boolean; offerLinks: string[]; embeddedOfferEndpointHints: string[]; leafletLinks: string[] };
 };
 
 export async function probeKCitymarketStoreOffers(options: {
@@ -68,13 +68,23 @@ export async function probeKCitymarketStoreOffers(options: {
     .filter(href => href.startsWith("https://www.k-ruoka.fi/"))
     .filter((href, index, all) => all.indexOf(href) === index)
     .slice(0, 20);
+  // The store page can advertise a separate leaflet host. Record it as provenance only;
+  // it is NOT proof of a store-scoped product feed and must not become an offer.
+  const leafletLinks = [...html.matchAll(/<a\\b[^>]*href=["']([^"'<>]+)["'][^>]*>/gi)]
+    .map(match => match[1].replace(/&amp;/g, "&"))
+    .map(href => { try { return new URL(href, response.url); } catch { return null; } })
+    .filter((link): link is URL => Boolean(link && link.protocol === "https:" &&
+      (link.hostname === "kcm-lehdet.k-ruoka.fi" || link.hostname === "kcm-tarjouslehdet.k-ruoka.fi")))
+    .map(link => link.href)
+    .filter((href, index, all) => all.indexOf(href) === index)
+    .slice(0, 10);
   const offerLinkSeen = offerLinks.length > 0;
   // Research-only hints from page markup. Never fetch these automatically: a URL
   // may require session context or refer to a different store.
   const embeddedOfferEndpointHints = offerLinks
     .filter(value => /offer|tarjou|etu|campaign/i.test(value))
     .slice(0, 15);
-  const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen, offerLinks, embeddedOfferEndpointHints };
+  const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen, offerLinks, embeddedOfferEndpointHints, leafletLinks };
   if (!identitySeen) return {
     ...received, evidence, status: "UNVERIFIED_STORE",
     diagnostic: "Canonical URL responded but selected store identity was not confirmed in HTML.",
