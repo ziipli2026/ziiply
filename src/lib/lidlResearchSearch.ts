@@ -41,7 +41,7 @@ export function searchLidlResearch(query:string,limit=15){
   const nameWords=tokens(r.name);
   const score=all?q.reduce((n,t)=>n+(nameWords.includes(t)?20:nameWords.some(w=>matches(w,t))?8:words.includes(t)?4:3),0)
     + (norm(r.name)===q.join(" ")?50:0)
-    + (r.assortmentEvidence==="lidl-national-range-announcement"?3:0):0;
+    + ("assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"?3:0):0;
   return {r,score};
  }).filter(x=>x.score>0)
  .sort((a,b)=>b.score-a.score||a.r.name.localeCompare(b.r.name,"fi-FI"))
