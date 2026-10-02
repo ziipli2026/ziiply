@@ -1014,6 +1014,19 @@ assert.deepEqual(searchResearch("milbona proteiinivanukas",v122Rows,2).map(r=>r.
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v122Rows,3).map(r=>r.lidlProductId),["safe-122-a","safe-122-b","safe-122-c"]);
 assert.equal(JSON.stringify(v122Rows),v122Snapshot,"Small-limit filtering must not mutate source");
 
+/* v123: a zero-limit search must not contaminate later deduplication. */
+const v123Rows=[
+ {lidlProductId:" safe-123-a ",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-123-a",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-123-b",name:"MILBONA Proteiinivanukas"}
+];
+const v123Snapshot=JSON.stringify(v123Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v123Rows,0),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v123Rows,2).map(r=>r.lidlProductId),["safe-123-a","safe-123-b"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v123Rows,0),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v123Rows,1).map(r=>r.lidlProductId),["safe-123-a"]);
+assert.equal(JSON.stringify(v123Rows),v123Snapshot,"Zero-limit searches must not mutate source");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
