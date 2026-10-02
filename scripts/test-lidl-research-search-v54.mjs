@@ -732,10 +732,8 @@ const v103Rows=[
 ];
 const v103Snapshot=JSON.stringify(v103Rows);
 const v103Hits=searchResearch("milbona proteiinivanukas",v103Rows,3);
-assert.equal(v103Hits.length,3,"Blank identities must not merge distinct rows");
-assert.ok(v103Hits.some(r=>r.name==="MILBONA Proteiinivanukas kahvi"));
-assert.ok(v103Hits.some(r=>r.name==="MILBONA Proteiinivanukas kookos"));
-assert.ok(v103Hits.some(r=>r.lidlProductId==="valid-103"));
+assert.deepEqual(v103Hits.map(r=>r.lidlProductId),["valid-103"],"Blank identities must be excluded by the existing safety gate");
+assert.ok(!v103Hits.some(r=>!r.lidlProductId.trim()),"No blank product identity may escape the safety gate");
 assert.equal(JSON.stringify(v103Rows),v103Snapshot,"Blank-ID search must not mutate input");
 
 const cheeseHits=searchResearch("juusto",corpus);
