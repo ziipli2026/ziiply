@@ -269,6 +269,17 @@ const pizzaHits=searchResearch("pizza",corpus);
 assert.ok(pizzaHits.some(r=>r.name==="ATRIA Pizza 2 kpl"));
 assert.ok(!pizzaHits.some(r=>r.name==="Pizzadonitsi margherita"));
 
+
+/* v68: explicit compound searches remain discoverable after generic safeguards. */
+assert.ok(searchResearch("omenatasku",corpus).some(r=>r.name==="Omenatasku"));
+assert.ok(searchResearch("omenasiideri",corpus).some(r=>r.name==="KARLENS Omenasiideri"));
+assert.ok(searchResearch("pizzadonitsi",corpus).some(r=>r.name==="Pizzadonitsi margherita"));
+assert.ok(searchResearch("salamipizza",corpus).some(r=>r.name==="Salamipizza"));
+assert.ok(searchResearch("pizza hawaii",corpus).some(r=>r.name==="Pizza Hawaii"));
+assert.ok(searchResearch("pizza kebab",corpus).some(r=>r.name==="Pizza Kebab"));
+assert.ok(!searchResearch("omena",corpus).some(r=>r.name==="Omenatasku"||r.name==="KARLENS Omenasiideri"));
+assert.ok(!searchResearch("pizza",corpus).some(r=>r.name==="Pizzadonitsi margherita"||r.name==="Salamipizza"));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
