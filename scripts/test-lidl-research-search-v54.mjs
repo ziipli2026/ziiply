@@ -770,6 +770,19 @@ const v106Hits=searchResearch("olut",v106Rows,3);
 assert.deepEqual(v106Hits.map(r=>r.lidlProductId),["safe-106","other-106"]);
 assert.equal(JSON.stringify(v106Rows),v106Snapshot,"Mixed quarantine and deduplication must not mutate input");
 
+/* v107: ranking must not expose a repeated valid product identity. */
+const v107Rows=[
+ {lidlProductId:"dup-107",name:"MILBONA Proteiinivanukas vanilja"},
+ {lidlProductId:" dup-107 ",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"other-107",name:"MILBONA Proteiinivanukas suklaa"}
+];
+const v107Snapshot=JSON.stringify(v107Rows);
+const v107Hits=searchResearch("milbona proteiinivanukas",v107Rows,3);
+assert.equal(v107Hits.length,2,"A ranked duplicate must occupy only one result slot");
+assert.deepEqual(new Set(v107Hits.map(r=>r.lidlProductId)),new Set(["dup-107","other-107"]));
+assert.equal(v107Hits.filter(r=>r.lidlProductId==="dup-107").length,1);
+assert.equal(JSON.stringify(v107Rows),v107Snapshot,"Ranked deduplication must not mutate input");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
