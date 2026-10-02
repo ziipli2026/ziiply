@@ -2320,7 +2320,8 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
   for (const selectedStore of selectedStores) {
     const identityV230 = await verifySelectedSOfferStoreV230(selectedStore.storeName, selectedStore.storeId);
-    if (identityV230.status === "mismatch") {
+    // Isolated trial: do not label unverified data as selected-store offers.
+    if (identityV230.status !== "verified") {
       console.error("[GOSTA V230] BLOCKED cross-store offers: selected pickup does not match product store ID", {
         selectedStoreName: selectedStore.storeName, productStoreId: selectedStore.storeId,
         pickupName: identityV230.pickupName, pickupCity: identityV230.pickupCity,
@@ -2367,7 +2368,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
             const fallbackIdentityV231 = await verifySelectedSOfferStoreV230(
               selectedStore.storeName, fallbackStoreId,
             );
-            if (fallbackIdentityV231.status === "mismatch") {
+            if (fallbackIdentityV231.status !== "verified") {
               console.error("[GOSTA V231] blocked mismatched fallback offer store", {
                 storeName: selectedStore.storeName, fallbackStoreId,
                 pickupName: fallbackIdentityV231.pickupName,
