@@ -64,16 +64,19 @@ jobs:
         shell: bash
         run: |
           node <<'NODE'
+          // Never report a hard-coded HTTP status as a live observation.
+          // Route probes above are independent research only; no verified feed is read here.
           const status = {
-            canonicalStorePage: "UPSTREAM_403",
-            storeAddressedLeaflet: "UPSTREAM_403",
-            storeEdutRoute: "UPSTREAM_403",
-            genericEdutRoute: "UPSTREAM_403",
+            canonicalStorePage: "NOT_AGGREGATED",
+            storeAddressedLeaflet: "NOT_AGGREGATED",
+            storeEdutRoute: "NOT_AGGREGATED",
+            genericEdutRoute: "NOT_AGGREGATED",
             storeScopedOfferFeedVerified: false,
             offerCount: null,
-            interpretation: "ACCESS_BLOCKED_NOT_EMPTY_OFFERS"
+            interpretation: "NO_VERIFIED_STORE_OFFER_FEED",
+            note: "Consult individual live probe steps for actual HTTP statuses. Unknown access is not zero offers."
           };
-          if (status.offerCount === 0 || status.storeScopedOfferFeedVerified) process.exitCode = 1;
+          if (status.offerCount !== null || status.storeScopedOfferFeedVerified) process.exitCode = 1;
           console.log("CITYMARKET_STORE_SOURCE_STATUS " + JSON.stringify(status));
           NODE
       - name: Probe public canonical Hyvinkaa store page
