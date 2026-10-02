@@ -23,10 +23,12 @@ export function searchLidlResearch(query:string,limit=15){
  if(!q.length)return [];
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set<string>();
+ const seenNames=new Set<string>();
  const independentlyNamed = stapleEvidence.records
-  // Only explicitly Lidl-confirmed products; historical recall entries do not
-  // establish a product is currently carried by Lidl.
-  .filter(r=>r.eanStatus==="not_verified" && (r.brand==="Ilona" || r.source.startsWith("https://www.lidl.fi/")))
+  // Research discovery includes Lidl-origin historic references, but excludes
+  // generic categories and third-party-only EAN evidence from product cards.
+  .filter(r=>r.eanStatus==="not_verified" && r.recordKind!=="generic-product-type-not-sku" &&
+    (r.brand==="Ilona" || r.source.startsWith("https://www.lidl.fi/")))
   .map((r,i)=>({
     lidlProductId:String(90000000+i),name:r.name,variant:"",
     observedDate:stapleEvidence.observedAt,
@@ -36,11 +38,14 @@ export function searchLidlResearch(query:string,limit=15){
  .map(r=>{
   const words=tokens([r.name,r.variant].filter(v=>typeof v==="string").join(" "));
   const all=q.every(t=>words.some(w=>matches(w,t)));
-  const score=all?q.reduce((n,t)=>n+(words.includes(t)?10:words.some(w=>matches(w,t))?3:0),0):0;
+  const nameWords=tokens(r.name);
+  const score=all?q.reduce((n,t)=>n+(nameWords.includes(t)?20:nameWords.some(w=>matches(w,t))?8:words.includes(t)?4:3),0)
+    + (norm(r.name)===q.join(" ")?50:0)
+    + (r.assortmentEvidence==="lidl-national-range-announcement"?3:0):0;
   return {r,score};
  }).filter(x=>x.score>0)
  .sort((a,b)=>b.score-a.score||a.r.name.localeCompare(b.r.name,"fi-FI"))
- .filter(({r})=>{const id=r.lidlProductId.trim();if(seen.has(id))return false;seen.add(id);return true;})
+ .filter(({r})=>{const id=r.lidlProductId.trim();const name=norm([r.name,r.variant].filter(Boolean).join(" "));if(seen.has(id)||seenNames.has(name))return false;seen.add(id);seenNames.add(name);return true;})
  .slice(0,safeLimit).map(({r})=>({
   id:-Number(r.lidlProductId),lidlProductId:r.lidlProductId.trim(),name:[r.name,r.variant].filter(Boolean).join(" "),
   ean:null,price:null,storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
