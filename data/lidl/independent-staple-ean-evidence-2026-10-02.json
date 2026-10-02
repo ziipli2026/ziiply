@@ -856,6 +856,39 @@
       "assortmentEvidence": "lidl-public-basket-comparison",
       "currentStoreStockVerified": false,
       "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Bellarom Extra Dark Roast suodatinkahvi",
+      "brand": "Bellarom",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+      "note": "Lidl coffee category names this coffee type or format. Package size, specific SKU, current local stock and price not verified; research discovery only.",
+      "recordKind": "coffee-format-named",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Bellarom Extra Dark Roast kahvipavut",
+      "brand": "Bellarom",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+      "note": "Lidl coffee category names this coffee type or format. Package size, specific SKU, current local stock and price not verified; research discovery only.",
+      "recordKind": "coffee-format-named",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Bellarom kofeiiniton suodatinkahvi",
+      "brand": "Bellarom",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+      "note": "Lidl coffee category names this coffee type or format. Package size, specific SKU, current local stock and price not verified; research discovery only.",
+      "recordKind": "coffee-format-named",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
     }
   ]
 }
