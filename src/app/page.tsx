@@ -11938,7 +11938,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             searchQuery,
           );
 
-          const finalItems = rankNormalSearchResults(searchQuery, safeItems)
+          const finalItems = (betweenSingleLidl
+            ? safeItems.filter((product) => Boolean(product.name?.trim()))
+            : rankNormalSearchResults(searchQuery, safeItems))
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
