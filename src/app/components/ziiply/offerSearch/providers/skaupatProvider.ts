@@ -2435,3 +2435,52 @@ export async function fetchSKaupatOffers(
     return [];
   }
 }
+
+/** V220: Normal-price fallback for S stores missing from Ruoanhinta.
+ * Uses the same dynamically resolved pickup/store identity as Gösta, but does
+ * not apply Gösta's offer-only filtering. Never borrows another store's price.
+ */
+export async function fetchSKaupatNormalProductsV220(query: string, storeName: string) {
+  if (!query.trim() || !storeName.trim()) return [];
+  const storeId = await getEffectiveSKaupatStoreIdV174({ storeName });
+  if (!storeId) return [];
+  const protocol = await getSKaupatProtocolConfig();
+  const response = await fetch(
+    buildRemoteFilteredProductsUrl(query, 0, storeId, false, protocol),
+    {
+      method: "GET", cache: "no-store",
+      headers: {
+        accept: "application/json",
+        "accept-language": "fi",
+        origin: "https://www.s-kaupat.fi",
+        referer: "https://www.s-kaupat.fi/",
+        "x-client-name": "skaupat-web",
+        "x-client-version": protocol.clientVersion,
+      },
+    },
+  );
+  if (!response.ok) throw new Error(`S-kaupat normal search HTTP ${response.status}`);
+  const data = await response.json();
+  return getSProductListItems(data).flatMap((item) => {
+    const product = getProductFromListItem(item);
+    if (!product || isSponsoredSProductListItem(item, product)) return [];
+    const pricing = getPricing(product);
+    const price = numberFromUnknown(pricing.campaignPrice ?? pricing.currentPrice ?? product.price);
+    if (price == null || price <= 0) return [];
+    const name = firstString(product.name);
+    if (!name) return [];
+    const comparisonPrice = numberFromUnknown(pricing.comparisonPrice ?? product.comparisonPrice);
+    const comparisonPriceUnit = firstString(pricing.comparisonUnit, product.comparisonUnit);
+    return [{
+      id: firstString(product.ean, product.id, product.sokId, name),
+      name,
+      ean: firstString(product.ean) || undefined,
+      brandName: firstString(product.brandName) || undefined,
+      pictureUrl: getImageDebugV189(product, item).url,
+      price,
+      comparisonPrice: comparisonPrice ?? undefined,
+      comparisonPriceUnit: comparisonPriceUnit || undefined,
+      storeItems: [{ price, comparisonPrice: comparisonPrice ?? undefined, comparisonPriceUnit: comparisonPriceUnit || undefined }],
+    }];
+  });
+}
