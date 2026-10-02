@@ -107,6 +107,15 @@ jobs:
                     sample: plain.slice(0, 420),
                     priceLikeTokens: [...plain.matchAll(/(?:[0-9]{1,3}[,.][0-9]{2}|[0-9]{1,3}\s*€)/g)].slice(0, 12).map(m => m[0]),
                     imageCount: (page.html.match(/<img\b/gi) || []).length,
+                    codeBlockResearch: (() => {
+                      const block = page.html.match(/<pre\b[^>]*>\s*<code\b[^>]*>([\s\S]*?)<\/code>\s*<\/pre>/i)?.[1] ?? "";
+                      const lines = block.replace(/&nbsp;/g, " ").replace(/\r/g, "").split("\n").map(x => x.trim()).filter(Boolean);
+                      const anchors = lines.flatMap((line, index) => /Ilman Plussa-korttia/i.test(line)
+                        ? [{ index, previousLines: lines.slice(Math.max(0, index - 5), index),
+                            referenceLine: line.slice(0, 130) }] : []);
+                      return { found: Boolean(block), lineCount: lines.length,
+                        firstLines: lines.slice(0, 18), comparisonAnchors: anchors.slice(0, 12) };
+                    })(),
                     htmlStructure: {
                       productTextLocation: (() => {
                         const at = page.html.indexOf("Savuhovi");
