@@ -408,6 +408,20 @@ assert.equal(new Set(corpusIds).size,corpusIds.length,"Research corpus IDs must 
 assert.ok(corpus.every(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&typeof r.name==="string"&&r.name.trim()),"Every candidate needs an ID and name");
 assert.ok(corpus.every(r=>!quarantinedSet.has(r.lidlProductId)),"Quarantined IDs cannot appear in the active research corpus");
 
+
+/* v79: searching must not mutate the caller-owned research corpus. */
+const immutableFixture=[
+ {lidlProductId:"first",name:"Pizza Hawaii",variant:"iso"},
+ {lidlProductId:"second",name:"Pizza Kebab",variant:"pieni"}
+];
+const beforeSearch=JSON.stringify(immutableFixture);
+const firstSearch=searchResearch("pizza",immutableFixture);
+assert.equal(JSON.stringify(immutableFixture),beforeSearch,"Search must not mutate source records or ordering");
+firstSearch[0].name="Changed result";
+firstSearch[0].variant="Changed variant";
+assert.equal(JSON.stringify(immutableFixture),beforeSearch,"Returned result objects must not alias source records");
+assert.deepEqual(searchResearch("pizza",immutableFixture).map(r=>r.name),["Pizza Hawaii","Pizza Kebab"]);
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
