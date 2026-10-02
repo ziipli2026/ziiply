@@ -1,0 +1,63 @@
+name: Tokmanni/Spar EAN gap audit
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      # Isolated audit runner: do not change the repository lockfile.
+      - run: npm install --no-save --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+      - name: TypeScript integration check
+        run: npx tsc --noEmit
+      - run: node scripts/tokmanni-spar-ean-gap-audit.mjs
+        env:
+          DATABASE_URL: ${{ secrets.NEON_READONLY_DATABASE_URL }}
+      - run: node scripts/tokmanni-spar-filter-candidates.mjs
+      - run: node scripts/tokmanni-spar-historical-neon-export.mjs
+        env:
+          DATABASE_URL: ${{ secrets.NEON_READONLY_DATABASE_URL }}
+      - run: node scripts/tokmanni-spar-merge-classification.mjs
+      - run: node scripts/tokmanni-spar-normalized-ean-preview.mjs
+      - run: node scripts/tokmanni-spar-muut-triage.mjs
+      - run: node scripts/tokmanni-spar-quality-gate.mjs
+      - run: node scripts/tokmanni-spar-regression-check.mjs
+      - run: node scripts/tokmanni-spar-readonly-preview.mjs
+      - run: node scripts/tokmanni-spar-review-sample.mjs
+      - run: node scripts/tokmanni-spar-filter-simulation.mjs
+      # Runtime visibility wiring is intentionally absent from this read-only audit PR.
+      - run: node scripts/tokmanni-spar-search-diff-preview.mjs
+      - run: node scripts/tokmanni-spar-category-conflict-check.mjs
+      - run: node scripts/tokmanni-spar-shadow-acceptance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tokmanni-spar-ean-gap
+          path: |
+            tokmanni-spar-shadow-acceptance.json
+            tokmanni-spar-search-diff-preview.json
+            tokmanni-spar-filter-simulation.json
+            tokmanni-spar-manual-review-sample.csv
+            tokmanni-spar-readonly-preview.json
+            tokmanni-spar-regression-report.json
+            tokmanni-spar-quality-gate.json
+            tokmanni-spar-muut-triage.json
+            tokmanni-spar-normalized-ean-preview.json
+            tokmanni-spar-merged-classification.json
+            tokmanni-spar-historical-neon.json
+            tokmanni-spar-ean-gap.json
+            tokmanni-spar-ean-new-daily.csv
+            tokmanni-spar-filtered-daily-candidates.csv
+            tokmanni-spar-excluded-department-store.csv
+            tokmanni-spar-manual-review.csv
+            tokmanni-spar-filter-summary.json
+            tokmanni-spar-ean-unverified-daily-candidates.csv
