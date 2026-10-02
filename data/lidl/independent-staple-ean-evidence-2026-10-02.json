@@ -889,6 +889,50 @@
       "recordKind": "coffee-format-named",
       "assortmentEvidence": "lidl-national-range-announcement",
       "currentStoreStockVerified": false
+    },
+    {
+      "name": "Bellarom Hieno Vilhelmiina",
+      "brand": "Bellarom",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+      "note": "Lidl official coffee and tea category explicitly names this variety/type; exact SKU, pack size, EAN, current local stock and price not verified. Research discovery only.",
+      "recordKind": "coffee-tea-variety-named",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Lord Nelson Earl Grey tee",
+      "brand": "Lord Nelson",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+      "note": "Lidl official coffee and tea category explicitly names this variety/type; exact SKU, pack size, EAN, current local stock and price not verified. Research discovery only.",
+      "recordKind": "coffee-tea-variety-named",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Lord Nelson English Breakfast tee",
+      "brand": "Lord Nelson",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+      "note": "Lidl official coffee and tea category explicitly names this variety/type; exact SKU, pack size, EAN, current local stock and price not verified. Research discovery only.",
+      "recordKind": "coffee-tea-variety-named",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Lord Nelson rooibos kofeiiniton tee",
+      "brand": "Lord Nelson",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+      "note": "Lidl official coffee and tea category explicitly names this variety/type; exact SKU, pack size, EAN, current local stock and price not verified. Research discovery only.",
+      "recordKind": "coffee-tea-variety-named",
+      "assortmentEvidence": "lidl-national-range-announcement",
+      "currentStoreStockVerified": false
     }
   ]
 }
