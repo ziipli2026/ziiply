@@ -1,0 +1,24 @@
+name: Tokmanni/Spar EAN gap audit
+on:
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/tokmanni-spar-ean-gap-audit.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tokmanni-spar-ean-gap
+          path: |
+            tokmanni-spar-ean-gap.json
+            tokmanni-spar-ean-new-daily.csv
