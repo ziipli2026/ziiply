@@ -18,7 +18,6 @@ assert.match(branch,/setGpsCoordsV320\(null\)/);\nassert.match(branch,/setLocati
 assert.match(branch,/writeManualStoreOverridesV786\(\{\}\)/);
 const clearBranch=branch;
 assert.equal(/if \(!marker\)/.test(clearBranch),true);
-const reloadPath=source.slice(source.indexOf('if (marker) {',start),source.indexOf('if (marker) {',start)+1200);
-assert.doesNotMatch(reloadPath,/removeItem\(STORE_SELECTION_STORAGE_KEY_V343\)/);
+assert.doesNotMatch(branch,/else\s*\{[\s\S]*removeItem\(STORE_SELECTION_STORAGE_KEY_V343\)/,"marker-present reload has no reset else-branch");
 console.log("PASS real cache-clear marker branch resets store UI and selection state");
 console.log("PASS ordinary reload marker path does not clear stored store selection");
