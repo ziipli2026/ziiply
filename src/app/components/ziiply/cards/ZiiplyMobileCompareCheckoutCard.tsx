@@ -9,6 +9,7 @@ type Props = {
   onBack: () => void;
   purchaseModeDefault?: "instore" | "online" | "ask";
   weightItemCount?: number;
+  missingItemCount?: number;
 };
 
 export default function ZiiplyMobileCompareCheckoutCard({
@@ -18,6 +19,7 @@ export default function ZiiplyMobileCompareCheckoutCard({
   onBack,
   purchaseModeDefault = "ask",
   weightItemCount = 0,
+  missingItemCount = 0,
 }: Props) {
   const [showPaymentNotice, setShowPaymentNotice] = useState(false);
   const [checkoutPhase, setCheckoutPhase] = useState<"mode" | "future">("mode");
@@ -49,8 +51,9 @@ export default function ZiiplyMobileCompareCheckoutCard({
           <div className="mb-3 text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]">{storeName}</div>
           {!showPaymentNotice ? (
             <>
-              <h2 className="text-[2.05rem] font-extrabold italic leading-none text-[#314226]">✓ Lista kasassa!</h2>
-              <div className="mx-auto mt-3 w-fit rounded-[0.58rem] border border-[#8a6b32] bg-[#f8e6b9] px-4 py-2 text-[1.08rem] font-black text-[#3d301a]">{itemCount} tuotetta · {(totalPrice / 100).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</div>
+              <h2 className="text-[2.05rem] font-extrabold italic leading-none text-[#314226]">{missingItemCount > 0 ? "Lista on vajaa" : "✓ Lista kasassa!"}</h2>
+              <div className="mx-auto mt-3 w-fit rounded-[0.58rem] border border-[#8a6b32] bg-[#f8e6b9] px-4 py-2 text-[1.08rem] font-black text-[#3d301a]">{itemCount} tuotetta · {missingItemCount > 0 ? "Osasumma " : ""}{(totalPrice / 100).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</div>
+              {missingItemCount > 0 ? <p role="status" className="mt-3 text-[0.83rem] font-extrabold text-[#7b3215]">{missingItemCount} tuotetta puuttuu tästä kaupasta. Summa sisältää vain löytyneet tuotteet.</p> : null}
               <div className="mx-auto mt-5 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-3 text-[1.08rem] font-extrabold italic text-[#7b3215]">Unohtuiko vielä jotain listan ulkopuolelta?</div>
               <div className="mt-5 grid gap-2.5">
                 <button type="button" onClick={onBack} className="rounded-[0.62rem] border-2 border-[#8a6b32] bg-[#f5dfac] px-3 py-3 font-black italic text-[#533819]">Lisää vielä</button>
