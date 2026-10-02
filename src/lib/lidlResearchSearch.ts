@@ -31,11 +31,12 @@ export function searchLidlResearch(query:string,limit=15){
  const seenNames=new Set<string>();
  // Research-only entries are discovery candidates, not verified local stock or prices.
  const independentlyNamed = stapleEvidence.records
-  // Research discovery includes Lidl-origin historic references, but excludes
-  // generic categories and third-party-only EAN evidence from product cards.
-  .filter(r=>r.eanStatus==="not_verified" && r.recordKind!=="generic-product-type-not-sku" &&
+  // Use the original evidence position for the temporary research ID: filtering
+  // another record must not silently renumber existing cart candidates.
+  .map((r,i)=>({r,i}))
+  .filter(({r})=>r.eanStatus==="not_verified" && r.recordKind!=="generic-product-type-not-sku" &&
     (r.brand==="Ilona" || r.source.startsWith("https://www.lidl.fi/")))
-  .map((r,i)=>({
+  .map(({r,i})=>({
     lidlProductId:String(90000000+i),name:r.name,variant:"",
     observedDate:stapleEvidence.observedAt,
     assortmentEvidence:r.assortmentEvidence,
