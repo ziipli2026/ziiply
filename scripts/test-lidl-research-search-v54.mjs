@@ -484,6 +484,23 @@ for(const [plain,repeated] of [
  assert.deepEqual(searchResearch(repeated,corpus),searchResearch(plain,corpus),"Repeated query term changed results: "+repeated);
 }
 
+
+/* v85: research output must never promote unverified commerce fields. */
+const unsafeCommerceFixture=[{
+ lidlProductId:"unsafe-commerce",name:"Pizza Hawaii",
+ ean:"6412345678901",regularPriceEur:12.34,displayedPriceEur:0.01,
+ storeAvailability:"available",checkoutPriceVerified:true
+}];
+const unsafeCommerceResult=searchResearch("pizza hawaii",unsafeCommerceFixture);
+assert.equal(unsafeCommerceResult.length,1);
+for(const row of unsafeCommerceResult){
+ assert.equal(row.ean,null);
+ assert.equal(row.regularPriceEur,null);
+ assert.equal(row.displayedPriceEur,null);
+ assert.equal(row.storeAvailability,"unknown");
+ assert.equal(row.checkoutPriceVerified,false);
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
