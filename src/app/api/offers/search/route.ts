@@ -671,6 +671,13 @@ export async function GET(request: Request) {
         query: q,
         context,
         results,
+        sEvidenceRouteV228: hasSSelectionV20 ? {
+          resultCount: results.length,
+          evidenceCount: results.filter((offer) => Boolean(offer.debugOfferEvidenceV226)).length,
+          firstResultKeys: Object.keys(results[0] || {}),
+          firstEvidence: results[0]?.debugOfferEvidenceV226 ?? null,
+          firstSource: results[0]?.source ?? null,
+        } : null,
         deploy: {
           gitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
           gitCommitRef: process.env.VERCEL_GIT_COMMIT_REF || null,
