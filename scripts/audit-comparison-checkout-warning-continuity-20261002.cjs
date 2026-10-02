@@ -1,0 +1,11 @@
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const src=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCheckoutCard.tsx","utf8");
+assert.match(src,/missingItemCount > 0 \? "Jatka löytyneillä tuotteilla" : "Valmis kassalle"/);
+assert.match(src,/Jatkat vain löytyneillä tuotteilla/);
+assert.match(src,/Vain löytyneet tuotteet\. \{missingItemCount\} tuotetta puuttuu edelleen/);
+assert.match(src,/missingItemCount > 0 \? "Lista on vajaa" : "✓ Lista kasassa!"/);
+const labels=(missing)=>({heading:missing?"Lista on vajaa":"✓ Lista kasassa!",action:missing?"Jatka löytyneillä tuotteilla":"Valmis kassalle",modeWarning:missing?`${missing} tuotetta puuttuu. Jatkat vain löytyneillä tuotteilla.`:""});
+assert.deepEqual(labels(1),{heading:"Lista on vajaa",action:"Jatka löytyneillä tuotteilla",modeWarning:"1 tuotetta puuttuu. Jatkat vain löytyneillä tuotteilla."});
+assert.deepEqual(labels(0),{heading:"✓ Lista kasassa!",action:"Valmis kassalle",modeWarning:""});
+console.log("PASS incomplete basket warnings persist through checkout mode; full basket unchanged");
+console.log("NOTE isolated source/text regression; no browser checkout performed");
