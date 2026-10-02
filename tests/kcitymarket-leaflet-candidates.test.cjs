@@ -195,3 +195,9 @@ test("reject detached or repeated reference anchors rather than borrowing a pric
     ["Example product 200 g","249","PKT","Ilman Plussa-korttia 3,99/pkt","299","PKT","Ilman Plussa-korttia 4,99/pkt"]
   ]) assert.equal(parseStrictPair(lines), null, JSON.stringify(lines));
 });
+
+test("strict pair rejects non-array and non-text input without throwing", () => {
+  for (const lines of [null, undefined, "", {}, [null], ["Example product", 249, "PKT", "Ilman Plussa-korttia 3,99/pkt"]]) {
+    assert.equal(parseStrictPair(lines), null);
+  }
+});
