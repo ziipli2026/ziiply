@@ -22053,7 +22053,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 id: key,
                 name: item.name ?? item.product?.name ?? item.title ?? item.productName,
                 price: (item.product?.ziiplyPricePendingWeight &&
-                  ((item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice) == null)
+                  (((item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice) == null ||
+                    ((item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice) === ""))
                     ? 0
                     : item.price ?? item.product?.price ?? item.product?.unitPrice ?? item.product?.comparisonPrice,
                 ziiplyPricePendingWeight: Boolean((item.product as any)?.ziiplyPricePendingWeight),
