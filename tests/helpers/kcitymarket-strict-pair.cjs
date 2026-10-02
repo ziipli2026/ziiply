@@ -2,6 +2,8 @@ function parseStrictPair(lines) {
   const anchor = lines.findIndex(line => line.startsWith("Ilman Plussa-korttia"));
   if (anchor < 2) return null;
   const digits = lines[anchor - 2], unit = lines[anchor - 1];
+  // A multibuy price in product context must never be treated as a single-item price.
+  if (lines.slice(0, anchor - 2).some(line => /\b\d+\s*(?:kpl|pkt|ps|rs|tlk|plo|prk|ltk)\s*(?:\/|[=:]|hintaan\s*)?\s*\d+[,.]\d{2}\b/i.test(line))) return null;
   if (anchor < 3 || !lines.slice(0, anchor - 2).some(line => /[A-Za-zÀ-ÿ]{3,}/.test(line))) return null;
   const normal = lines[anchor].match(/^Ilman Plussa-korttia\s+(\d{1,3}[,.]\d{2})\s*\/\s*(pkt|ps|rs|kpl|kg|tlk|plo|prk|ltk)\b/i);
   if (!/^\d{3,4}$/.test(digits) || !/^(PKT|PS|RS|KPL|KG|TLK|PLO|PRK|LTK)$/i.test(unit) || !normal || unit.toLowerCase() !== normal[2].toLowerCase()) return null;
