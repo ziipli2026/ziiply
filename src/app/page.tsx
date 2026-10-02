@@ -12424,8 +12424,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Yksi-tilan tuotteen korvaushaku on tarkoitettu vain yhden rivin ostoskorille.
     // Useamman tuotteen vertailu käynnistetään käyttäjän valitsemassa Monta-tilassa.
     if (nextCart.length > 1) {
-      showCartToast("Useamman tuotteen vertailu: valitse kauppavalinnasta Monta (väh. 2 ketjua).");
-      return;
+      // Multiple cart rows are allowed in Yksi mode. Skip only this automatic\n      // single-row replacement search; do not leave a blocking global toast.\n      return;
     }
 
     const selectedKey = (["s", "k", "lidl", "tokmanni"] as const).find(
