@@ -9,6 +9,7 @@ function parseStrictPair(lines) {
   if (!/^\d{3,4}$/.test(digits) || !/^(PKT|PS|RS|KPL|KG|TLK|PLO|PRK|LTK)$/i.test(unit) || !normal || unit.toLowerCase() !== normal[2].toLowerCase()) return null;
   if (/(?:[–-]\s*\d|\btai\s+\d)/i.test(lines[anchor].slice(normal[0].length))) return null;
   const offer = Number(digits) / 100, regular = Number(normal[1].replace(",", "."));
+  if (!(offer > 0) || !(regular > 0) || !Number.isFinite(offer) || !Number.isFinite(regular)) return null;
   return offer < regular ? { offer, regular, unit, productContext: lines.slice(0, anchor - 2) } : null;
 }
 
