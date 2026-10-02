@@ -756,6 +756,106 @@
       "assortmentEvidence": "lidl-historical-product-mention",
       "currentStoreStockVerified": false,
       "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Reilu porsaan sisäfilee maustamaton, 1 kg",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kania tomaattiketsuppi light, 530 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kania sinappi, 1 kg",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kania herkkumajoneesi, 472 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Snack Day perunalastu sileä, 300 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Tastino hot dog -sämpylä, 250 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Kania paprikamajoneesi, 270 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Tastino patonki esipaistettu, 300 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Milbona halloumi, 225 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
+    },
+    {
+      "name": "Milbona sinihomejuusto, 120 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "note": "Named Lidl basket comparison product, 28 May 2026. No EAN, current local availability or current price inferred.",
+      "assortmentEvidence": "lidl-public-basket-comparison",
+      "currentStoreStockVerified": false,
+      "recordKind": "lidl-named-product"
     }
   ]
 }
