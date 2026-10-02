@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
+import { getSKaupatProtocolConfig } from "@/lib/skaupatProtocol";
 
 type RuoanhintaProduct = {
   id: number;
@@ -82,7 +83,7 @@ export async function GET(request: Request) {
   // 726753948; the legacy Ruoanhinta store route can return no products for it.
   if (String(storeId) === "726753948") {
     try {
-      const protocol = { persistedQueryHash: "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480", clientVersion: "production-45c31f7a746096c6da12e16aba1887e031fbd9de" };
+      const protocol = await getSKaupatProtocolConfig();
       const date = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Helsinki",
         year: "numeric",
@@ -110,7 +111,7 @@ export async function GET(request: Request) {
       url.searchParams.set("variables", JSON.stringify(variables));
       url.searchParams.set(
         "extensions",
-        JSON.stringify({ persistedQuery: { version: 1, sha256Hash: protocol.persistedQueryHash } }),
+        JSON.stringify({ clientLibrary: { name: "@apollo/client", version: protocol.apolloVersion }, persistedQuery: { version: 1, sha256Hash: protocol.persistedQueryHash } }),
       );
       const direct = await fetch(url, {
         headers: {
