@@ -1,13 +1,13 @@
 import {readFileSync,writeFileSync} from "node:fs";
 const data=JSON.parse(readFileSync("tokmanni-spar-merged-classification.json","utf8"));
 const rules=[
-["Maitotuotteet",/\b(maito|jogurtti|rahka|kerma|juusto|kananmuna)\b/i],
-["Kahvi & tee",/\b(kahvi|suodatinkahvi|kahvipapu|teepussi)\b/i],
-["Juomat",/\b(limonadi|virvoitusjuoma|kivennäisvesi|mehujuoma|energiajuoma)\b/i],
-["Kodinhoito",/\b(pyykinpesuaine|astianpesuaine|huuhteluaine|talouspaperi|wc-paperi)\b/i],
-["Hygienia & kosmetiikka",/\b(hammastahna|shampoo|deodorantti|suihkusaippua|terveysside)\b/i],
-["Kuivatuotteet",/\b(makaroni|spagetti|riisi|vehnäjauho|kaurahiutale|ruokaöljy)\b/i],
-["Lemmikit",/\b(kissanruoka|koiranruoka|kissanhiekka)\b/i]];
+["Maitotuotteet",/(?:^|[^a-zåäöA-ZÅÄÖ])(maito|jogurtti|rahka|kerma|juusto|kananmuna)(?=$|[^a-zåäöA-ZÅÄÖ])/i],
+["Kahvi & tee",/(?:^|[^a-zåäöA-ZÅÄÖ])(kahvi|suodatinkahvi|kahvipapu|teepussi)(?=$|[^a-zåäöA-ZÅÄÖ])/i],
+["Juomat",/(?:^|[^a-zåäöA-ZÅÄÖ])(limonadi|virvoitusjuoma|kivennäisvesi|mehujuoma|energiajuoma)(?=$|[^a-zåäöA-ZÅÄÖ])/i],
+["Kodinhoito",/(?:^|[^a-zåäöA-ZÅÄÖ])(pyykinpesuaine|astianpesuaine|huuhteluaine|talouspaperi|wc-paperi)(?=$|[^a-zåäöA-ZÅÄÖ])/i],
+["Hygienia & kosmetiikka",/(?:^|[^a-zåäöA-ZÅÄÖ])(hammastahna|shampoo|deodorantti|suihkusaippua|terveysside)(?=$|[^a-zåäöA-ZÅÄÖ])/i],
+["Kuivatuotteet",/(?:^|[^a-zåäöA-ZÅÄÖ])(makaroni|spagetti|riisi|vehnäjauho|kaurahiutale|ruokaöljy)(?=$|[^a-zåäöA-ZÅÄÖ])/i],
+["Lemmikit",/(?:^|[^a-zåäöA-ZÅÄÖ])(kissanruoka|koiranruoka|kissanhiekka)(?=$|[^a-zåäöA-ZÅÄÖ])/i]];
 const blocked=/lelu|muki|paristo|akku|vaate|kenkä|sukka|auton|pyörän|koriste|lahjapakkaus|kahvinkeitin|teekannu/i;
 const proposals=[],unresolved=[];
 for(const item of data.items){
