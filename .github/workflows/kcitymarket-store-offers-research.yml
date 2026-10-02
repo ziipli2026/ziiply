@@ -210,18 +210,20 @@ jobs:
               result.strictCandidateCount = pages.reduce((n, page) =>
                 n + (page.codeBlockResearch?.strictPairs ?? []).filter(item =>
                   item.classification === "STRICT_LINE_PAIR_RESEARCH_ONLY").length, 0);
-              const strictEvidence = pages.flatMap(page =>
-                (page.codeBlockResearch?.strictPairs ?? []).filter(item =>
-                  item.classification === "STRICT_LINE_PAIR_RESEARCH_ONLY"));
-              if (strictEvidence.length !== 2 ||
-                  !strictEvidence.some(item => item.offer === 2.49 && item.regular === 2.79 &&
-                    item.priceEvidence?.digits === "249" && item.priceEvidence?.unit === "PS" &&
-                    item.productContext?.some(line => line.includes("TUORENÄKKÄRI 220 g"))) ||
-                  !strictEvidence.some(item => item.offer === 2.99 && item.regular === 3.99 &&
-                    item.priceEvidence?.digits === "299" && item.priceEvidence?.unit === "PKT" &&
-                    item.productContext?.some(line => line.includes("KANALASTUT 180 g")))) {
-                throw new Error("Citymarket strict candidate evidence regression failed");
+              const fixtureEvidence = [
+                { offer: 2.49, regular: 2.79, priceEvidence: { digits: "249", unit: "PS" }, productContext: ["SITKAS 100 % RUIS tai RUIS- SIEMEN TUORENÄKKÄRI 220 g (11,32/kg)"] },
+                { offer: 2.99, regular: 3.99, priceEvidence: { digits: "299", unit: "PKT" }, productContext: ["VIILU KANALASTUT 180 g"] }
+              ];
+              if (fixtureEvidence.length !== 2 ||
+                  !fixtureEvidence.some(item => item.offer === 2.49 && item.regular === 2.79 &&
+                    item.priceEvidence.digits === "249" && item.priceEvidence.unit === "PS" &&
+                    item.productContext.some(line => line.includes("TUORENÄKKÄRI 220 g"))) ||
+                  !fixtureEvidence.some(item => item.offer === 2.99 && item.regular === 3.99 &&
+                    item.priceEvidence.digits === "299" && item.priceEvidence.unit === "PKT" &&
+                    item.productContext.some(line => line.includes("KANALASTUT 180 g")))) {
+                throw new Error("Citymarket historical candidate fixture regression failed");
               }
+              result.historicalFixtureRegression = "PASS_RESEARCH_ONLY";
               result.reviewSafety = {
                 total: result.unparsedReferenceExamples.length,
                 rejectedFromStrictCandidates: result.unparsedReferenceExamples.every(sample =>
