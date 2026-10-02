@@ -211,8 +211,9 @@ function getCartItemQuantityForTotalV8(item: ZiiplyMobileCartItem) {
 }
 
 function isPendingWeightPriceV794(item: ZiiplyMobileCartItem) {
-  return Boolean(item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) &&
-    !Number.isFinite(Number(item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice));
+  const pending = Boolean(item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight);
+  const final = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
+  return pending && (final == null || final === "" || !Number.isFinite(Number(final)));
 }
 
 function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
