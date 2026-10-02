@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchSKaupatNormalProductsV220 } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
 type RuoanhintaProduct = {
@@ -58,9 +59,10 @@ export async function GET(request: Request) {
 
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "292";
+  const storeName = (searchParams.get("storeName") || "").trim();
   const storeId = resolveSStoreId(store);
 
-  if (search.length > 120 || store.length > 32) {
+  if (search.length > 120 || store.length > 32 || storeName.length > 120) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
   }
 
@@ -88,7 +90,7 @@ export async function GET(request: Request) {
     });
 
     const data = await response.json();
-    const sourceItems: RuoanhintaProduct[] = data.items || [];
+    const sourceItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
@@ -111,6 +113,25 @@ export async function GET(request: Request) {
           },
         ],
       }));
+
+    // V220: Ruoanhinta has no rows for some selectable S stores (e.g. Tuusula).
+    // Try the selected store's own S-kaupat normal-product feed, not another
+    // Prisma's prices. Preserve the existing path for working stores (Kommila).
+    if (items.length === 0 && storeName && /^(prisma|s[ -]?market)/i.test(storeName)) {
+      try {
+        const fallbackItems = await fetchSKaupatNormalProductsV220(search, storeName);
+        if (fallbackItems.length > 0) {
+          return NextResponse.json({
+            store, storeId, storeName, source: "s-kaupat-normal-v220",
+            status: 200, items: fallbackItems,
+          });
+        }
+      } catch (fallbackError) {
+        console.warn("[S PRODUCTS V220] selected store fallback failed", {
+          storeName, error: String(fallbackError),
+        });
+      }
+    }
 
     // EAN-pankin opetus ei saa blokata käyttäjän hakuvastausta.
     // Tämä on aidosti best-effort: haku palautetaan heti, observointi saa valmistua taustalla.
