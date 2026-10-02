@@ -26,7 +26,7 @@ export function searchLidlResearch(query:string,limit=15){
  const independentlyNamed = stapleEvidence.records
   // Only explicitly Lidl-confirmed products; historical recall entries do not
   // establish a product is currently carried by Lidl.
-  .filter(r=>r.name==="Ilona kevytmaito" && r.eanStatus==="not_verified")
+  .filter(r=>r.brand==="Ilona" && r.eanStatus==="not_verified")
   .map((r,i)=>({
     lidlProductId:String(90000000+i),name:r.name,variant:"",
     observedDate:stapleEvidence.observedAt,
