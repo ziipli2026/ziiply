@@ -1,0 +1,13 @@
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const page=fs.readFileSync("src/app/page.tsx","utf8");
+const mobile=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
+const restore=page.slice(page.indexOf('const savedCart = window.localStorage.getItem("ziiply-cart-v1")'),page.indexOf('cartHasLoadedRef.current = true;',page.indexOf('const savedCart = window.localStorage.getItem("ziiply-cart-v1")')));
+assert.match(restore,/Array\.isArray\(parsed\)/,"legacy cart array supported");
+assert.match(restore,/Array\.isArray\(parsed\?\.items\)/,"versioned cart items supported");
+assert.match(restore,/setCart\(restoredItems\)/,"restored cart preserves pending-weight metadata");
+assert.match(page,/ziiplyPricePendingWeight: Boolean\(\(item\.product as any\)\?\.ziiplyPricePendingWeight\)/,"pending flag reaches mobile cart");
+assert.match(page,/price: \(item\.product\?\.ziiplyPricePendingWeight &&[\s\S]{0,260}\? 0/,"unpriced restored weight row cannot fall back to quoted €/kg");
+assert.match(mobile,/if \(isPendingWeightPriceV794\(item\)\) return 0;/,"pending row contributes zero");
+assert.match(mobile,/const final = item\.ziiplyWeightFinalPrice \?\? item\.product\?\.ziiplyWeightFinalPrice;/,"confirmed row uses persisted final price");
+console.log("PASS persisted cart restoration static regression guards");
