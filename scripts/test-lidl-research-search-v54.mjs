@@ -616,6 +616,15 @@ for(const [limit,count] of [[1.1,1],[1.9,1],[2.1,2],[2.99,2],[5.9,5]]){
  assert.deepEqual(searchResearch("pizza",v93Rows,limit),v93All.slice(0,count),"Fractional limit mismatch: "+limit);
 }
 
+
+/* v94: non-numeric result limits fall back to the safe default of 15. */
+const v94Rows=Array.from({length:25},(_,i)=>({lidlProductId:"limit94-"+i,name:"Pizza Test "+i}));
+const v94Default=searchResearch("pizza",v94Rows,15);
+assert.equal(v94Default.length,15);
+for(const invalidLimit of [null,undefined,"2","50",true,false,{},[],[2],NaN,-Infinity]){
+ assert.deepEqual(searchResearch("pizza",v94Rows,invalidLimit),v94Default,"Invalid limit must use default: "+String(invalidLimit));
+}
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
