@@ -16415,15 +16415,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openComparisonView() {
-    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
-      setActiveResult("none");
-      setComparisonLoading(false);
-      comparisonUserStartedRefV768.current = false;
-      void refreshSingleChainCartPricesV770(cart);
-      setCartModalOpen(true);
-      return;
-    }
-
     if (cart.length === 0) {
       showCartToast("Lisää ensin tuote koriin.");
       return;
@@ -16434,13 +16425,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const comparableCartV730 = cart.filter(
       (item: any) => String(item?.source || "").toLowerCase() !== "offer",
     );
+    const offerCartCountV730 = cart.length - comparableCartV730.length;
 
+    // Tarjousrivit eivät osallistu Halpuusvertailuun. Sekakorissa vain
+    // normaalihintaiset tuotteet vertaillaan; pelkästä tarjouskorista näytetään
+    // selkeä ilmoitus eikä vertailua käynnistetä.
     if (comparableCartV730.length === 0) {
-      setCartCompareNotice("Korissa olevat tuotteet ovat tarjoushinnoilla, joten niitä ei vertailla Halpuusvertailussa.");
+      setCartCompareNotice("Kaikki korissa olevat tuotteet ovat tarjoustuotteita.");
+      setCartModalOpen(true);
       return;
     }
 
-    setCartCompareNotice(null);
+    if (offerCartCountV730 > 0) {
+      setCartCompareNotice("Vain normaalihintaiset tuotteet halpuutetaan.");
+    } else {
+      setCartCompareNotice(null);
+    }
+
+    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+      setActiveResult("none");
+      setComparisonLoading(false);
+      comparisonUserStartedRefV768.current = false;
+      void refreshSingleChainCartPricesV770(comparableCartV730);
+      setCartModalOpen(true);
+      return;
+    }
 
     // V547: Vertailu avataan samalla suoralla overlay-logiikalla kuin uudet mobiilikortit.
     suppressHaeReadyBadgeV541();
