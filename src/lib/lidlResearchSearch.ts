@@ -7,11 +7,11 @@ const norm = (s: string) => s.toLocaleLowerCase("fi-FI").normalize("NFKD")
   .replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 const tokens = (s: string) => norm(s).split(/\s+/).filter(Boolean);
 const identity = (s: string) => norm(s).replace(/\\b(\d+)\s+(g|kg|ml|l|kpl)\\b/g, "$1$2");
-const exactStaples = new Set(["maito","voi","pasta","kananmuna","jauheliha","peruna","banaani","juusto","leipa","omena","pizza"]);
+const exactStaples = new Set(["maito","voi","pasta","makaroni","kananmuna","jauheliha","peruna","banaani","juusto","leipa","omena","pizza","kahvi"]);
 const forms: Record<string,string[]> = {
  maito:["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"],
- voi:["voi","meijerivoi"],pasta:["pasta"],kananmuna:["kananmuna","kananmunat"],
- jauheliha:["jauheliha","viljapossujauheliha"],peruna:["peruna","perunat"],
+ voi:["voi","meijerivoi"],pasta:["pasta"],makaroni:["makaroni","makaronit"],kahvi:["kahvi","kahvijauhe","suodatinkahvi","kahvipavut","kahvipapu"],kananmuna:["kananmuna","kananmunat"],
+ jauheliha:["jauheliha","viljapossujauheliha","fileejauheliha"],peruna:["peruna","perunat"],
  banaani:["banaani","banaanit"],juusto:["juusto","juustot","tuorejuusto","juustoviipale"],
  omena:["omena","omenat"],pizza:["pizza","pizzat"],
  leipa:["leipa","leivat","ruisleipa","kauraleipa","vehnaleipa","hapanjuurileipa","siemenhapanjuurileipa","kiviuunileipa","artesaanileipa","rusticoleipa","myslileipa","herkkumyslileipa","pitaleipa","tomaattimozzarellaleipa","perunasipulileipa"]
