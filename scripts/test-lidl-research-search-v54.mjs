@@ -888,6 +888,20 @@ assert.equal(v114Hits[0].storeAvailability,"unknown");
 assert.equal(v114Hits[0].checkoutPriceVerified,false);
 assert.equal(JSON.stringify(v114Rows),v114Snapshot,"Variant-only matching must leave source intact");
 
+/* v115: invalid product identifiers must not consume limited valid search slots. */
+const v115Rows=[
+ {lidlProductId:"",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"   ",name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:null,name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:115,name:"MILBONA Proteiinivanukas"},
+ {lidlProductId:"safe-115-a",name:"MILBONA Proteiinivanukas",variant:"vanilja"},
+ {lidlProductId:"safe-115-b",name:"MILBONA Proteiinivanukas",variant:"suklaa"}
+];
+const v115Snapshot=JSON.stringify(v115Rows);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v115Rows,1).map(r=>r.lidlProductId),["safe-115-a"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",v115Rows,2).map(r=>r.lidlProductId),["safe-115-a","safe-115-b"]);
+assert.equal(JSON.stringify(v115Rows),v115Snapshot,"Invalid ID filtering must not mutate input");
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
