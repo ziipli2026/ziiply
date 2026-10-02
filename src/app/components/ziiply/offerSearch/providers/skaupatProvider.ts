@@ -1893,6 +1893,18 @@ function mapSProductListItemToOfferResult(
     priceText,
     unitPriceText,
     benefitText,
+    // V226: read-only provenance for copied DBG; does not affect filtering or prices.
+    debugOfferEvidenceV226: {
+      requestMode: options.discountedOnly ? "DISCOUNTED_MASTER" : "QUERY_SEARCH",
+      requestedStoreId: options.selectedStoreId,
+      rawLabels: getLabels(listItem, product),
+      campaignPrice: pricing.campaignPrice ?? null,
+      currentPrice: pricing.currentPrice ?? null,
+      regularPrice: pricing.regularPrice ?? null,
+      campaignPriceValidUntil: pricing.campaignPriceValidUntil ?? null,
+      hasOfferSignal: hasSOfferSignal(listItem, product, pricing),
+      priceBelowRegular: isCampaign,
+    },
     validityText: campaignValidUntil ? `Voimassa ${campaignValidUntil}` : "",
     imageUrl,
     image: imageUrl,
