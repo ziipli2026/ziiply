@@ -114,7 +114,7 @@ export async function GET(request: Request) {
       source: "lidl.fi-public-research",
       storeId: null,
       priceVerified: false,
-      items: searchLidlResearch(search),
+      items: searchLidlResearch(search, 40),
     });
   }
 
