@@ -27,18 +27,21 @@ const counts={daily:0,department_store:0,review:0};
 const result=[];
 for(const item of map.values()){
  const provider=clean(item.providerCategory||item.category).toLocaleLowerCase("fi-FI");
+ const productName=clean(item.name).toLocaleLowerCase("fi-FI");
+ const definiteNonGrocery=/lannoit|puutarhamulta|kasvualusta/.test(productName);
  const existing=clean(item.existingInNeon?item.category:"");
  const existingDaily=new Set(rules.map(([label])=>label));
  const categoryIsExistingDaily=item.existingInNeon&&existingDaily.has(existing);
  const match=[...new Set(rules.filter(([,re])=>re.test(provider)).map(([name])=>name))];
  let productClass="review",suggestedCategory="";
- if(knownCategoryConflicts.has(item.ean)){productClass="review";suggestedCategory="";}
+ if(definiteNonGrocery){productClass="department_store";suggestedCategory="";}
+ else if(knownCategoryConflicts.has(item.ean)){productClass="review";suggestedCategory="";}
  else if(categoryIsExistingDaily){productClass="daily";suggestedCategory=existing;}
  else if(reject.test(provider)||matCategory.test(provider))productClass="department_store";
  else if(match.length===1){productClass="daily";suggestedCategory=match[0];}
  // Historical categories are preserved, but never silently treated as verified.
  counts[productClass]++;
- result.push({...item,productClass,suggestedCategory,existingCategory:existing,classificationEvidence:knownCategoryConflicts.has(item.ean)?"known historical category conflict; manual review":categoryIsExistingDaily?"existing Ziiply category":provider?"provider category":"requires historical review"});
+ result.push({...item,productClass,suggestedCategory,existingCategory:existing,classificationEvidence:definiteNonGrocery?"explicit non-grocery name override; historical category preserved":knownCategoryConflicts.has(item.ean)?"known historical category conflict; manual review":categoryIsExistingDaily?"existing Ziiply category":provider?"provider category":"requires historical review"});
 }
 result.sort((a,b)=>a.ean.localeCompare(b.ean));
 writeFileSync("tokmanni-spar-merged-classification.json",JSON.stringify({summary:{historicalRows:history.length,gapRows:gap.length,overlap,uniqueEans:result.length,...counts,neonWrites:0},items:result},null,2));
