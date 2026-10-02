@@ -294,6 +294,17 @@ assert.deepEqual(searchResearch("atria pizza 4 kpl",packFixture),[]);
 assert.ok(searchResearch("atria pizza 2 kpl",corpus).some(r=>r.name==="ATRIA Pizza 2 kpl"));
 assert.deepEqual(searchResearch("atria pizza 4 kpl",corpus),[]);
 
+
+/* v70: bounded limits and no price/EAN leakage on every returned real-corpus row. */
+for(const limit of [0,1,2,15,50,500,-1,NaN,Infinity]){
+ const hits=searchResearch("pizza",corpus,limit);
+ assert.ok(hits.length<=Math.max(0,Math.min(50,Number.isFinite(limit)?Math.trunc(limit):15)));
+ assert.ok(hits.every(r=>r.ean===null&&r.regularPriceEur===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
+}
+assert.deepEqual(searchResearch("pizza",corpus,0),[]);
+assert.deepEqual(searchResearch("pizza",corpus,-1),[]);
+assert.deepEqual(searchResearch("pizza",corpus,1),searchResearch("pizza",corpus,50).slice(0,1));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
