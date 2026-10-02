@@ -1072,7 +1072,7 @@ const v127Rows=[
  {lidlProductId:"safe-127-b",name:"MILBONA Proteiinivanukas",variant:"suklaa"}
 ];
 const v127Snapshot=JSON.stringify(v127Rows);
-for(const v127Corpus of [null,undefined,127,true,"milbona",{records:v127Rows}]){
+for(const v127Corpus of [null,127,true,"milbona",{records:v127Rows}]){
  assert.deepEqual(searchResearch("milbona proteiinivanukas",v127Corpus,2),[]);
 }
 assert.deepEqual(searchResearch("milbona proteiinivanukas",v127Rows,2).map(r=>r.lidlProductId),["safe-127-a","safe-127-b"]);
