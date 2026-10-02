@@ -80,3 +80,20 @@ test("generic Edut route cannot inherit identity from originating store page", (
   assert.equal(classifyStoreScope({...base,evidence:{...evidence,offerFeedStoreId:"k-citymarket-iso-omena",offerFeedIdentityVerified:true}}).storeScoped,false);
   assert.equal(classifyStoreScope({...base,evidence:{...evidence,offerFeedStoreId:"k-citymarket-hyvinkaa",offerFeedIdentityVerified:true}}).storeScoped,true);
 });
+
+test("reject missing unit and ambiguous multibuy reference", () => {
+  for (const reference of [
+    "Ilman Plussa-korttia 3,99",
+    "Ilman Plussa-korttia 3,99/pari",
+    "Ilman Plussa-korttia 2 kpl / 5,00",
+    "Ilman Plussa-korttia 3,99–4,49/pkt",
+    "Ilman Plussa-korttia 3,99/pkt tai 4,49/pkt"
+  ]) assert.equal(parseStrictPair(["Example product 200 g", "299", "PKT", reference]), null, reference);
+});
+test("reject split offer glyphs and multibuy labels", () => {
+  for (const lines of [
+    ["Example product", "2", "50", "KPL", "Ilman Plussa-korttia 3,00/kpl"],
+    ["Example product 2 kpl 5,00", "250", "KPL", "Ilman Plussa-korttia 3,00/kpl"],
+    ["Example product", "299", "PKT", "Ilman Plussa-korttia 3,99/pkt tai 2 pkt 6,00"]
+  ]) assert.equal(parseStrictPair(lines), null);
+});
