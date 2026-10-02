@@ -6738,6 +6738,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const address = String(store.address || "").trim();
     if (address) params.set("address", address);
 
+    // The public Lidl catalog is discovery-only: no checkout price, no inferred EAN.
+    // Do not silently claim Ruoanhinta store prices for a Lidl.fi storeKey.
+    params.set("mode", "research");
     const response = await fetch(`/api/lidl/products?${params.toString()}`, {
       cache: "no-store",
     });
@@ -11903,9 +11906,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }
           }
 
-          const pricedItems = rawItems.filter(
-            (product: Product) => getProductPrice(product) > 0,
-          );
+          // Research-only Lidl names are selectable without inventing a store price.
+          // Other chains retain the existing verified-price gate.
+          const pricedItems = betweenSingleLidl
+            ? rawItems.filter((product: Product) => Boolean(product.name?.trim()))
+            : rawItems.filter((product: Product) => getProductPrice(product) > 0);
           const eggLockedSearch =
             detectSearchIntent(term).category === "egg" ||
             isEggSearchTerm(term) ||
@@ -15896,7 +15901,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const newItem: CartItem = {
       id: `search-${product.id}`,
       name: fixText(product.name),
-      price: getProductPrice(product),
+      price: (product as Product & { priceVerified?: boolean }).priceVerified === false
+        ? undefined
+        : getProductPrice(product),
       image: product.pictureUrl,
       chain: normalSearchChain,
       storeName: normalSearchStoreName,
