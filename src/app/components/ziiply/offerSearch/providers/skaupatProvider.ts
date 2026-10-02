@@ -2275,6 +2275,34 @@ async function resolveSafePrismaFallbackStoreIdV225(
   return ids.length === 1 ? ids[0] : null;
 }
 
+// V230: Verify offer-source identity against the pickup API, not the UI label.
+// A failed lookup does not substitute another store; a positive mismatch fails closed.
+async function verifySelectedSOfferStoreV230(storeName: string, productStoreId: string):
+  Promise<{ status: "verified" | "unavailable" | "mismatch"; pickupName?: string; pickupCity?: string }> {
+  const coords = await geocodeSelectedStoreNameV216(storeName);
+  if (!coords) return { status: "unavailable" };
+  try {
+    const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
+    if (!candidates.length) return { status: "unavailable" };
+    const brand = getStoreBrandFromNameV215(storeName);
+    const place = getStorePlaceTokenV215(storeName);
+    const matched = candidates.filter((candidate) =>
+      (!brand || candidate.brand === brand) &&
+      Boolean(place && normalizeSKaupatStoreNameForMatchV198(candidate.pickupName).includes(place))
+    );
+    const matchingIds = Array.from(new Set(matched.map((candidate) => candidate.storeId)));
+    if (matchingIds.length !== 1) return { status: "unavailable" };
+    const candidate = matched.find((row) => row.storeId === matchingIds[0])!;
+    return {
+      status: matchingIds[0] === productStoreId ? "verified" : "mismatch",
+      pickupName: candidate.pickupName, pickupCity: candidate.city,
+    };
+  } catch (error) {
+    console.warn("[GOSTA V230] pickup identity verification unavailable", { storeName, error });
+    return { status: "unavailable" };
+  }
+}
+
 async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
@@ -2291,6 +2319,19 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   const zeroResultDiagnosticsV208: string[] = [];
 
   for (const selectedStore of selectedStores) {
+    const identityV230 = await verifySelectedSOfferStoreV230(selectedStore.storeName, selectedStore.storeId);
+    if (identityV230.status === "mismatch") {
+      console.error("[GOSTA V230] BLOCKED cross-store offers: selected pickup does not match product store ID", {
+        selectedStoreName: selectedStore.storeName, productStoreId: selectedStore.storeId,
+        pickupName: identityV230.pickupName, pickupCity: identityV230.pickupCity,
+      });
+      zeroResultDiagnosticsV208.push(`V230 STORE_ID_MISMATCH: ${selectedStore.storeName} / ${selectedStore.storeId} / ${identityV230.pickupName || ""}`);
+      continue;
+    }
+    console.warn("[GOSTA V230] offer source identity", {
+      selectedStoreName: selectedStore.storeName, productStoreId: selectedStore.storeId,
+      verification: identityV230.status, pickupName: identityV230.pickupName || null,
+    });
     const pageStep = 48;
     const maxPages = 25;
     const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
