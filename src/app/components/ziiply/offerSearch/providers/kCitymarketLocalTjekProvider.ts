@@ -139,7 +139,7 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
               const embedded=JSON.parse(html.slice(arrayStart,end)) as Row[];
               for(const p of embedded){
                 const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));
-                if(Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until&&p.id&&!publications.some(existing=>existing.id===p.id))publications.push(p);
+                if(Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until&&p.id&&!publications.some(existing=>existing.id===p.id))publications.unshift(p);
               }
             }
           }
