@@ -20,6 +20,12 @@ const forms: Record<string,string[]> = {
  omena:["omena","omenat"],pizza:["pizza","pizzat"],
  leipa:["leipa","leivat","ruisleipa","kauraleipa","vehnaleipa","hapanjuurileipa","siemenhapanjuurileipa","kiviuunileipa","artesaanileipa","rusticoleipa","myslileipa","herkkumyslileipa","pitaleipa","tomaattimozzarellaleipa","perunasipulileipa"]
 };
+// Only normalize ordinary category plurals; preserve qualifiers (e.g. kevytmaito).
+const queryForms: Record<string,string> = {
+ kananmunat:"kananmuna",perunat:"peruna",banaanit:"banaani",juustot:"juusto",
+ leivat:"leipa",makaronit:"makaroni",jogurtit:"jogurtti",kahvipapu:"kahvipavut",
+ korvapuustit:"korvapuusti",riisipiirakat:"riisipiirakka",kaurahiutale:"kaurahiutaleet",
+};
 // Exact, documented compound-name expansions; keep generic prefix matching separate.
 const compoundNames: Record<string, readonly string[]> = {
  korvapuusti:["jattikorvapuusti"],
@@ -30,7 +36,7 @@ const matches=(word:string,term:string)=>word===term||(compoundNames[term]?.incl
  ?(forms[term]??[]).some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchLidlResearch(query:string,limit=15){
  if(typeof query!=="string")return [];
- const q=tokens(query).map(t=>({kananmunat:"kananmuna",perunat:"peruna",banaanit:"banaani",juustot:"juusto",leivat:"leipa",makaronit:"makaroni",jogurtit:"jogurtti",kahvipapu:"kahvipavut"} as Record<string,string>)[t]??t);
+ const q=tokens(query).map(t=>queryForms[t]??t);
  // Keep product qualifiers such as kevytmaito and kahvipavut intact: a broad
  // category rewrite would silently mix distinct products into exact searches.
  if(!q.length)return [];
