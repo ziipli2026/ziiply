@@ -8950,8 +8950,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const comparableCart = useMemo(() => {
     // Kortin kattavuus ja loppusumma lasketaan vain vertailukelpoisista
     // normaalihintaisista tuotteista. Göstan tarjoukset eivät kuulu vertailuun.
-    return cart.filter((item) => !isManualShoppingItem(item) &&
-      isComparisonEligibleV797(item));
+    return cart.filter((item) =>
+      item.source !== "manual" && isComparisonEligibleV797(item));
   }, [cart]);
 
   const chainResults = useMemo<ChainResult[]>(() => {
