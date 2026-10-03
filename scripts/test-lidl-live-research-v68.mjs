@@ -38,8 +38,10 @@ try {
   for (const record of evidence.records) {
     assert.ok(typeof record.name === "string" && record.name.trim(), "Unnamed Lidl evidence");
     assert.ok(typeof record.source === "string" && record.source.startsWith("https://"), "Missing evidence URL: " + record.name);
-    assert.equal(record.eanStatus, "not_verified", "Unexpected EAN verification: " + record.name);
-    assert.equal(record.ean, null, "Unexpected EAN: " + record.name);
+    // Authority recall EANs are legitimate evidence, but must never be silently
+    // treated as a verified Lidl store SKU or research checkout identifier.
+    assert.ok(["not_verified", "verified_in_authority_recall"].includes(record.eanStatus), "Unexpected EAN status: " + record.name);
+    if (record.eanStatus === "not_verified") assert.equal(record.ean, null, "Unexpected EAN: " + record.name);
     assert.equal(Object.hasOwn(record, "price"), false, "Evidence row contains checkout price: " + record.name);
     const key = record.name.toLocaleLowerCase("fi-FI").trim() + "|" + record.source;
     assert.ok(!sourceKeys.has(key), "Duplicate Lidl source record: " + record.name);
