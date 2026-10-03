@@ -679,13 +679,14 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       return raw;
     };
     const norm=(value:unknown)=>repair(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
-    const packageMatch=(value:string)=>{
-      // Tjek's normalized titles encode decimal commas as spaces:
-      // "0 33 l" = 0.33 l, not 33 l.
-      const raw=repair(value).toLowerCase().replace(/\b0\s+(\d{1,3})\s*(kg|g|ml|cl|dl|l)\b/g,"0.$1 $2");
-      const matches=[...raw.matchAll(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi)];
-      return matches.at(-1)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
+    const packageSizes=(value:string)=>{
+      // Tjek normalizes decimal commas to spaces; composite offers can list several sizes.
+      const raw=repair(value).toLowerCase()
+        .replace(/\b0\s+(\d{1,3})\s*(kg|g|ml|cl|dl|l)\b/g,"0.$1 $2");
+      return [...raw.matchAll(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi)]
+        .map(match=>match[0].replace(/\s+/g,"").replace(",","."));
     };
+    const packageMatch=(value:string)=>packageSizes(value)[0]||"";
     const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma","sis","pantit","pantti"]);
     const tokens=(value:string)=>{
       const cleaned=repair(value)
@@ -701,12 +702,13 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       let url=photos.get(title);
       if(url)exact++;
       if(!url){
-        const wanted=tokens(offer.title);
+        const wanted=tokens(offer.title.replace(/\bUOLATTU\b/i,"SUOLATTU"));
         const wantedSize=packageMatch(offer.packageSize||offer.title);
         if(wanted.size>=1){
           let candidates=[...photos.entries()].filter(([name])=>{
-            const foundSize=packageMatch(name);
-            if(wantedSize && foundSize && foundSize!==wantedSize)return false;
+            const foundSizes=packageSizes(name);
+            const foundSize=foundSizes[0]||"";
+            if(wantedSize && foundSizes.length && !foundSizes.includes(wantedSize))return false;
             const found=tokens(name);
             const comparable=(word:string)=>[...found].some(candidate=>
               candidate===word ||
@@ -726,12 +728,12 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
             // conflicting pack size; unique-image check below remains mandatory.
             const single=wanted.size===1 && [...wanted][0].length>=8 &&
               found.has([...wanted][0]) && found.size<=3 &&
-              (!wantedSize || !foundSize || wantedSize===foundSize);
+              (!wantedSize || !foundSize || packageSizes(name).includes(wantedSize));
             return complete||descriptive||single;
           });
           // Prefer explicitly matching pack sizes over unspecified Tjek sizes.
-          if(wantedSize && candidates.some(([name])=>packageMatch(name)===wantedSize)){
-            candidates=candidates.filter(([name])=>packageMatch(name)===wantedSize);
+          if(wantedSize && candidates.some(([name])=>packageSizes(name).includes(wantedSize))){
+            candidates=candidates.filter(([name])=>packageSizes(name).includes(wantedSize));
           }
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
@@ -752,12 +754,13 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
         const size=packageMatch(offer.packageSize||offer.title);
         const reasons=candidates.map(item=>{
           const found=tokens(item.name);
-          const foundSize=packageMatch(item.name);
+          const foundSizes=packageSizes(item.name);
+          const foundSize=foundSizes.join(",");
           const shared=[...wanted].filter(word=>found.has(word));
           return item.name+" | size="+(foundSize||"none")+" vs "+(size||"none")+
             " | shared="+shared.join(",")+
             " | missing="+[...wanted].filter(word=>!found.has(word)).join(",")+
-            (size&&foundSize&&size!==foundSize?" | SIZE_CONFLICT":"");
+            (size&&foundSizes.length&&!foundSizes.includes(size)?" | SIZE_CONFLICT":"");
         });
         return {leaflet:offer.title,size:offer.packageSize||"",tjekCandidates:candidates.map(item=>item.name),reasons};
       }),
