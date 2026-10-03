@@ -69,7 +69,7 @@ function textOf(src:string){
     )
   ).replace(/ ?\n ?/g,"\n");
 }
-function category(t:string){
+export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
   // K-Citymarket classification is authoritative downstream. Match non-food
