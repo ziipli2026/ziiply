@@ -36,7 +36,8 @@ try {
   for (const record of categoryObservations) {
     const rows = searchLidlResearch(record.name, 50);
     const matching = rows.find(r => r.name === record.name && r.assortmentEvidence === record.assortmentEvidence);
-    if (matching) assert.equal(matching.observedDate, record.observedDate,
+    assert.ok(matching, "Named Lidl source observation is not discoverable: " + record.name);
+    assert.equal(matching.observedDate, record.observedDate,
       "Individual Lidl source date was overwritten: " + record.name);
   }
   const priced = corpus.records.filter(r => typeof r.displayedPriceEur === "number");
