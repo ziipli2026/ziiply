@@ -10732,8 +10732,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         pushGpsDebugLogV492(`WATCHDOG FIRED`);
         const finishedAt = Date.now();
         if (!isBackgroundBootRefreshV736) {
-          setGpsErrorMessage("GPS ei löydy");
-          setLocationMessage("GPS ei löydy");
+          setGpsErrorMessage("Paikannus viivästyy. Yritä uudelleen");
+          setLocationMessage("Paikannus viivästyy. Yritä uudelleen");
           setLocationMessageVisible(true);
           setUsingOwnLocation(false);
         }
@@ -10793,7 +10793,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           setGpsErrorMessage("GPS ei löydy");
           setLocationMessage("GPS ei löydy");
           setLocationMessageVisible(true);
-          gpsUserDisabledRefV306.current = true;
+          gpsUserDisabledRefV306.current = false;
           setUsingOwnLocation(false);
           setGpsCoordsV320(null);
         }
@@ -10867,19 +10867,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // näkyvällä "GPS ei löydy" -virheellä. Manuaalinen GPS näyttää virheen normaalisti.
       if (!isBackgroundBootRefreshV736) {
         if (gpsErrorCode === 1) {
-          setGpsErrorMessage("GPS ei löydy");
+          setGpsErrorMessage("Salli sijainti Safarin asetuksista");
         } else if (gpsErrorCode === 2) {
-          setGpsErrorMessage("GPS ei löydy");
+          setGpsErrorMessage("Sijainti ei saatavilla. Yritä uudelleen");
         } else if (gpsErrorCode === 3) {
-          setGpsErrorMessage("GPS ei löydy");
+          setGpsErrorMessage("Paikannus aikakatkaistiin. Yritä uudelleen");
         } else {
-          setGpsErrorMessage("GPS ei löydy");
+          setGpsErrorMessage("Paikannus epäonnistui. Yritä uudelleen");
         }
       }
       if (!isBackgroundBootRefreshV736) {
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
-        gpsUserDisabledRefV306.current = true;
+        gpsUserDisabledRefV306.current = false; // A failed permission request is not a user GPS-off choice.
         gpsManualSuccessGuardUntilRefV485.current = 0;
         gpsManualSuccessCoordsRefV485.current = null;
         setUsingOwnLocation(false);
@@ -21261,7 +21261,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               // - jos GPS on pois päältä, painallus käynnistää manuaalisen GPS-haun
               onGpsClick={() => {
                 pushGpsDebugLogV492(`GPS BUTTON click using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"}`);
-                if (usingOwnLocation || storeSearchLoading || gpsCoordsV320) {
+                if (storeSearchLoading && !gpsCoordsV320) {
+                  // iOS Safari may still be displaying its first permission prompt.
+                  // A second tap must not turn the default-on GPS off.
+                  return;
+                }
+                if (usingOwnLocation && gpsCoordsV320) {
                   gpsUserDisabledRefV306.current = true;
                   gpsManualSuccessGuardUntilRefV485.current = 0;
                   gpsManualSuccessCoordsRefV485.current = null;
