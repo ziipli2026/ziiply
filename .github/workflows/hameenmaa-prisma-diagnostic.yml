@@ -1,0 +1,21 @@
+name: Hämeenmaa Prisma campaign gap diagnostic
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - diagnostic/hameenmaa-prisma-campaign-gap
+    paths:
+      - scripts/diagnose-hameenmaa-prisma.mts
+      - .github/workflows/hameenmaa-prisma-diagnostic.yml
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Compare banner products against Hämeenlinna normal product lookup
+        run: npx --yes tsx scripts/diagnose-hameenmaa-prisma.mts
