@@ -16061,7 +16061,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function findScannerEquivalentV812(term: string) {
     const selected = (["s", "k", "lidl", "tokmanni"] as const).filter((key) => selectedChains[key]);
     if (loadingNormal) return;
-    setScannerEquivalentNoticeV813("Etsitään vastaavaa tuotetta…");
     if (storeCompareScope !== "between_chains" || selected.length !== 1) {
       setScannerEquivalentNoticeV813("Valitse yksi kauppaketju vastinehakua varten.");
       return;
@@ -22274,9 +22273,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       <p className="text-[15px] font-black leading-snug">
                         {scannerEquivalentNoticeV813 || "Tuote ei kuulu valittuun kauppaketjuun."}
                       </p>
-                      {scannerEquivalentNoticeV813 === "Etsitään vastaavaa tuotetta…" ? (
-                        <p className="text-sm font-bold">Odota hetki…</p>
-                      ) : scannerEquivalentNoticeV813 ? (
+                      {scannerEquivalentNoticeV813 ? (
                         <div className="grid w-full grid-cols-2 gap-2">
                           <button type="button" className="min-h-11 rounded-xl bg-emerald-800 px-2 py-2 text-[13px] font-black text-white" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanScannerMessage(""); }}>Skannaa seuraava</button>
                           <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-[13px] font-black" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(true); }}>Vaihda kauppaa</button>
@@ -22284,7 +22281,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       ) : (
                         <div className="grid w-full grid-cols-1 gap-2 min-[360px]:grid-cols-2">
                           <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-sm font-black" onClick={() => { setEanModalOpen(false); setShopsPanelOpen(true); setScannerStoreMismatchV801(null); }}>Tarkista kauppavalinta</button>
-                          <button type="button" className="min-h-11 rounded-xl bg-emerald-800 px-2 py-2 text-sm font-black text-white" onClick={() => { if (scannerStoreMismatchV801) void findScannerEquivalentV812(scannerStoreMismatchV801.searchTerm); }}>Etsi vastaava</button>
+                          <button type="button" className="min-h-11 rounded-xl bg-emerald-800 px-2 py-2 text-sm font-black text-white" disabled={loadingNormal} onClick={() => { if (scannerStoreMismatchV801) void findScannerEquivalentV812(scannerStoreMismatchV801.searchTerm); }}>Etsi vastaava</button>
                         </div>
                       )}
                     </div>
