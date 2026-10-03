@@ -12371,7 +12371,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
       schema: 14,
-      items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
+      items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
           ? withinChain === "S"
@@ -12860,7 +12860,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     nextCart = cart,
     options: { openCompare?: boolean } = {},
   ) {
-    setComparisonDiagnosticV800(`Haku käynnistyi · kori ${nextCart.length}`);
     // V770: Yksi-tila ei koskaan tuota Halpuusvertailua. Päivitä valitun
     // ketjun löytyvä täsmähinta suoraan käyttäjän ostoskoriin.
     if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
@@ -16901,10 +16900,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? Boolean(activeStores.sStoreId && activeStores.kStoreId)
         : storesReadyForSearch;
     if (selectedComparisonStoresReady) {
-      comparisonCacheKeyRef.current = null;
-      comparisonCompletedKeyRef.current = null;
-      setComparisonLoading(true);
-      void updateChainComparison(comparableCartV730);
+      // Opening an already completed comparison is navigation, not a new search.
+      // Only a changed basket/store cache key may start another request.
+      const nextComparisonKey = getComparisonCacheKey(comparableCartV730);
+      if (comparisonCompletedKeyRef.current === nextComparisonKey) {
+        setComparisonLoading(false);
+      } else if (comparisonCacheKeyRef.current !== nextComparisonKey || !comparisonLoading) {
+        void updateChainComparison(comparableCartV730);
+      }
     } else {
       setComparisonDiagnosticV800(`Kauppatunniste puuttuu · S ${activeStores.sStoreId || "ei ID:tä"} / K ${activeStores.kStoreId || "ei ID:tä"}`);
       setActiveResult("none");
@@ -23199,8 +23202,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 void refreshSingleChainCartPricesV770(cart);
                 setCartModalOpen(true);
               } else {
-                setActiveResult("compare");
-                void updateChainComparison(cart);
+                openComparisonView();
               }
               return;
             }
