@@ -546,6 +546,21 @@ export async function GET(request: Request) {
     }
     const provider = getParam(searchParams, "provider");
 
+    // Aggregate-only image audit. Reuses the real national provider path without
+    // requiring a selected store or exposing product data / internal credentials.
+    if (provider === "citymarket-image-audit") {
+      const offers = await fetchKCitymarketOffers();
+      const debug = getKCitymarketNationalTjekImageDebug();
+      return NextResponse.json({
+        ok: true,
+        provider,
+        checkedAt: new Date().toISOString(),
+        nationalOffers: offers.length,
+        nationalWithImage: offers.filter(offer => Boolean(offer.imageUrl)).length,
+        tjek: debug,
+      }, { headers: { "Cache-Control": "no-store" } });
+    }
+
     if (provider === "eurospar") {
       const storeName = getParam(searchParams, "eurosparStoreName") || "";
       const now = new Intl.DateTimeFormat("en-CA", {
