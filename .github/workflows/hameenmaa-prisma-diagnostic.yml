@@ -6,6 +6,7 @@ on:
       - diagnostic/hameenmaa-prisma-campaign-gap
     paths:
       - scripts/diagnose-hameenmaa-prisma.mts
+      - scripts/diagnose-prisma-campaign-pages.mts
       - .github/workflows/hameenmaa-prisma-diagnostic.yml
 jobs:
   check:
@@ -19,3 +20,5 @@ jobs:
       - run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund
       - name: Compare banner products against Hämeenlinna normal product lookup
         run: npx --yes tsx scripts/diagnose-hameenmaa-prisma.mts
+      - name: Check Prisma campaign page EAN membership
+        run: npx --yes tsx scripts/diagnose-prisma-campaign-pages.mts
