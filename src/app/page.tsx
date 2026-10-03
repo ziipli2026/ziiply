@@ -14235,8 +14235,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             try {
               const storeId = Number(activeStores.kStoreId);
               const requestedKEpochV806 = scannerStoreEpochRefV806.current.k;
-              const genericNameV810 = bankIdentityNameV789.replace(/^(?:pirkka(?: parhaat)?|k-menu)\s+/i, "").trim();
-              const queries = Array.from(new Set([ean, bankIdentityNameV789, ...(ownBrandV801 === "k" && genericNameV810 ? [genericNameV810] : [])].filter(Boolean)));
+              // Ruoanhinta's text search does not reliably index EAN numbers. Strip
+              // package suffixes from bank names and search both brand+name and
+              // generic name; accept ONLY the scanned EAN from returned candidates.
+              const cleanNameV811 = bankIdentityNameV789
+                .replace(/\s+(?:\d+\s*(?:kpl|kpl\/|g|kg|ml|l|pkt|pack|pcs)\b.*|\d+\s*[x×]\s*\d+.*)$/i, "")
+                .trim();
+              const genericNameV810 = cleanNameV811.replace(/^(?:pirkka(?: parhaat)?|k-menu)\s+/i, "").trim();
+              const queries = Array.from(new Set([
+                cleanNameV811, genericNameV810, bankIdentityNameV789, ean,
+              ].filter((query) => query && query.length >= 3)));
               // EAN and name lookups run concurrently: K's EAN index can miss
               // a product whose exact EAN is present in name-search results.
               const candidateBatches = await Promise.all(queries.map((query) =>
