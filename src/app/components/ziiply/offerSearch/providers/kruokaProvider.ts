@@ -544,9 +544,9 @@ export async function fetchKruokaOffers(
         sort: ["score_desc"],
       }, business.slug),
     ]);
-    const publicationOffers = dataArray(publicationValue).map(o => ({ ...o, ziiplySourceTab: "campaign" }));
-    const businessProductOffers = dataArray(businessProductValue).map(o => ({ ...o, ziiplySourceTab: "offer" }));
-    const offers = [...publicationOffers, ...businessProductOffers];
+    const publicationOffers: UnknownRecord[] = dataArray(publicationValue).map(o => ({ ...o, ziiplySourceTab: "campaign" }));
+    const businessProductOffers: UnknownRecord[] = dataArray(businessProductValue).map(o => ({ ...o, ziiplySourceTab: "offer" }));
+    const offers: UnknownRecord[] = [...publicationOffers, ...businessProductOffers];
     const knownOfferIds = new Set(publicationOffers.map(o => String(o.publicId ?? "")).filter(Boolean));
     for (const offer of regionalOffers) {
       const id = String(offer.publicId ?? "");
