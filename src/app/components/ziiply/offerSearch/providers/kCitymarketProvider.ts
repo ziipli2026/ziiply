@@ -654,6 +654,28 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   }
 
   const fallback=kCitymarketDefaultValidityV15(active);
-  return enrichCitymarketFromEanBank(offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to})));
+  const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
+  const enriched=await enrichCitymarketFromEanBank(dated);
+  // The authoritative K-Ruoka parser retains all prices and offer metadata.
+  // Tjek is an optional image-only fallback, with unique exact-name matches.
+  if(enriched.every(offer=>!!offer.imageUrl))return enriched;
+  try{
+    const {fetchKCitymarketNationalTjekImages}=await import("./kCitymarketLocalTjekProvider");
+    const photos=await fetchKCitymarketNationalTjekImages();
+    const norm=(value:unknown)=>String(value??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+    let matched=0;
+    const result=enriched.map(offer=>{
+      if(offer.imageUrl)return offer;
+      const url=photos.get(norm(offer.title));
+      if(!url)return offer;
+      matched++;
+      return {...offer,imageUrl:url};
+    });
+    console.info("[K-Citymarket] national Tjek image-only enrichment",{total:result.length,matched});
+    return result;
+  }catch(error){
+    console.warn("[K-Citymarket] optional national Tjek image enrichment unavailable",error);
+    return enriched;
+  }
 }
 export default fetchKCitymarketOffers;
