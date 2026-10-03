@@ -72,6 +72,12 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Explicit non-food types precede generic matches (e.g. pussilakanasetti contains "kana").
+  if(/pussilakana|lakanasetti|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|\\bsaappaat\\b|\\bkengät\\b|\\bvalaisin\\b|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypussi|rikkasetti|ruusukimppu|terttuneilikka|\\berika\\b|lankaköynnös/.test(s)) return "Koti & vapaa-aika";
+  if(/konetiskitablet|astianpesutablet|\\bfairy\\b/.test(s)) return "Kodinhoito";
+  if(/kangasnaamio|kasvonaamio/.test(s)) return "Hygienia & kosmetiikka";
+  if(/katkarapu|jättikatkarapu/.test(s)) return "Kala";
+  if(/kypsät.*(?:peruna|lohko)|parisiinperuna|pikkuperuna/.test(s)) return "Valmisruoka";
   // K-Citymarket classification is authoritative downstream. Match non-food
   // appliances and other product-specific classes before generic food words.
   if(/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli/.test(s)) return "Koti & vapaa-aika";
