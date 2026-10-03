@@ -50,4 +50,17 @@ assert.equal(candidates.find(p=>p.ean===tortilla && p.price>0)?.price,2.49);
 assert.match(source, /ownBrandV801 !== "k"/);
 assert.match(source, /genericNameV810/);
 console.log("Pirkka tortilla scanner routing simulation: PASS");
+// Real reported Ruoanhinta fixture: numeric EAN query returned [], name query
+// returned the same EAN with a 148-cent price. No substitute-brand match.
+const scannedTortilla = "6410405124517";
+const bankTortilla = "Pirkka täysjyvävehnätortilla 8kpl/320g";
+const shortened = bankTortilla.replace(/\\s+(?:\\d+\\s*(?:kpl|kpl\\/|g|kg|ml|l|pkt|pack|pcs)\\b.*|\\d+\\s*[x×]\\s*\\d+.*)$/i, "").trim();
+const genericShortened = shortened.replace(/^(?:pirkka(?: parhaat)?|k-menu)\\s+/i, "").trim();
+assert.equal(shortened, "Pirkka täysjyvävehnätortilla");
+assert.equal(genericShortened, "täysjyvävehnätortilla");
+const returnedByName = [{ean:scannedTortilla,price:148},{ean:"8410076472458",price:279}];
+assert.equal(returnedByName.find(item=>item.ean===scannedTortilla && item.price>0)?.price,148);
+assert.equal(returnedByName.find(item=>item.ean==="0000000000000"),undefined);
+assert.match(source,/cleanNameV811/);
+console.log("Pirkka tortilla 148-cent name-fallback fixture: PASS");
 console.log("Scanner source-contract and isolated race/order simulations: PASS");
