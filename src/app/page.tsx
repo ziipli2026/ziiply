@@ -5891,6 +5891,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ]);
 
 
+  // Track the current store selection across asynchronous scanner lookups.
+  const scannerActiveStoresRefV805 = useRef(activeStores);
+  scannerActiveStoresRefV805.current = activeStores;
+
   const gostaSelectedStoresSignatureV534 = [
     selectedChains.s ? "S" : "",
     selectedChains.k ? "K" : "",
@@ -14167,6 +14171,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         // Käynnistä hinnan rikastus taustalle. Tämä ei pidätä skannerin kuittausta.
         if (scannerAllowSV785 && Number(activeStores.sStoreId || 0) > 0) {
+          const requestedSStoreIdV805 = Number(activeStores.sStoreId);
           void (async () => {
             try {
               const params = new URLSearchParams({
@@ -14181,7 +14186,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const price = getProductPrice(product);
               if (price <= 0) return;
 
+              if (Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805) return;
               setCart((currentCart) => {
+                if (Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805) return currentCart;
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   return {
@@ -14223,7 +14230,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const product = convertKProductToProduct(exact);
               const price = getProductPrice(product);
               if (price <= 0) return;
+              if (Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId) return;
               setCart((currentCart) => {
+                if (Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId) return currentCart;
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   // The basket displays the S price when both chains are selected;
