@@ -729,7 +729,12 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
             const single=wanted.size===1 && [...wanted][0].length>=8 &&
               found.has([...wanted][0]) && found.size<=3 &&
               (!wantedSize || !foundSize || packageSizes(name).includes(wantedSize));
-            return complete||descriptive||single;
+            // A composite Tjek card may include this exact named item and another
+            // product. Require the item's explicit size to occur in that card.
+            const compositeExact=wanted.size===1 && [...wanted][0].length>=9 &&
+              found.has([...wanted][0]) && !!wantedSize &&
+              packageSizes(name).includes(wantedSize);
+            return complete||descriptive||single||compositeExact;
           });
           // Prefer explicitly matching pack sizes over unspecified Tjek sizes.
           if(wantedSize && candidates.some(([name])=>packageSizes(name).includes(wantedSize))){
