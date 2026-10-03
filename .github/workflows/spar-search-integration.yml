@@ -19,3 +19,4 @@ jobs:
       - run: node scripts/tokmanni-spar-runtime-regression-check.mjs
       - run: node scripts/tokmanni-spar-milk-search-check.mjs
       - run: node scripts/tokmanni-spar-multicategory-batch-check.mjs
+      - run: node scripts/tokmanni-spar-grocery-intent-check.mjs
