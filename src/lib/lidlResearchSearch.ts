@@ -13,7 +13,7 @@ const exactStaples = new Set(["maito","voi","pasta","makaroni","kananmuna","jauh
 const forms: Record<string,string[]> = {
  maito:["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"],
  tee:["tee","teepussi","teepussit","teelehti","teelehdet"],
- voi:["voi","meijerivoi"],pasta:["pasta"],makaroni:["makaroni","makaronit"],kahvi:["kahvi","kahvijauhe","suodatinkahvi","kahvipavut","kahvipapu"],kananmuna:["kananmuna","kananmunat"],
+ voi:["voi","meijerivoi"],pasta:["pasta","kaurapasta"],makaroni:["makaroni","makaronit"],kahvi:["kahvi","kahvijauhe","suodatinkahvi","kahvipavut","kahvipapu"],kananmuna:["kananmuna","kananmunat"],
  jauheliha:["jauheliha","viljapossujauheliha","fileejauheliha"],peruna:["peruna","perunat"],
  banaani:["banaani","banaanit"],juusto:["juusto","juustot","tuorejuusto","juustoviipale","raejuusto","kermajuusto","sinihomejuusto","halloumi","halloumijuusto"],
  jogurtti:["jogurtti","jogurtit","maustamatonjogurtti","laktoositonjogurtti","mangojogurtti","päärynäjogurtti","banaanijogurtti","mansikkajogurtti"],
