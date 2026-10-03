@@ -702,7 +702,13 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
             const foundSize=packageMatch(name);
             if(wantedSize && foundSize && foundSize!==wantedSize)return false;
             const found=tokens(name);
-            const common=[...wanted].filter(word=>found.has(word)).length;
+            const comparable=(word:string)=>[...found].some(candidate=>
+              candidate===word ||
+              (word.length>=7 && candidate.length>=7 &&
+                (candidate.startsWith(word) || word.startsWith(candidate)) &&
+                Math.min(word.length,candidate.length)/Math.max(word.length,candidate.length)>=0.58)
+            );
+            const common=[...wanted].filter(comparable).length;
             // Brand prefixes are fine; a full name match is safest.
             // For long PDF descriptions, require at least two shared distinctive words
             // and a strong overlap with the shorter Tjek title.
