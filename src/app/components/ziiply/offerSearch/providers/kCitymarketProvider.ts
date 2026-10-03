@@ -680,10 +680,10 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     };
     const norm=(value:unknown)=>repair(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
     const packageMatch=(value:string)=>norm(value).match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
-    const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma"]);
+    const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma"]);
     const tokens=(value:string)=>{
       const cleaned=repair(value)
-        .replace(/\b(?:Spannmålsfritt|Portionsaskar|Airfry-produkter|Godisask|Alkoholfri|Träbaserad|Mywear friluftskläder)\b.*$/i," ")
+        .replace(/\b(?:Spannmålsfritt|Portionsask(?:ar|-ar)|Airfry-produkter|Godisask|Alkoholfri|Träbaserad|Mywear friluftskläder)\b.*$/i," ")
         .replace(/\b(?:Suomi|Peru|Kolombia|Marokko|Espanja)(?:\s*\/\s*(?:Peru|Kolombia|Marokko|Espanja))*\b/gi," ")
         .replace(/\([^)]*\/\s*(?:kg|l)[^)]*\)/gi," ").replace(/\([^)]*\)/g," ").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/gi," ");
       return new Set(norm(cleaned).split(" ").filter(word=>word.length>=4&&!stop.has(word)));
