@@ -872,6 +872,29 @@ export async function searchZiiplyOffers(
     : [],
   ]);
 
+  // S-local DISCOUNTED products are independent of local CMS campaigns.
+  // Resolve by the selected store name (provider resolves its S-kaupat pickup ID);
+  // never reuse Prisma's selected store context or mix store IDs.
+  const sLocalDiscountedResults = providerScopeV10.useS && hasSelectedSLocalV32
+    ? await safelySearchSource(
+        isGostaMasterQuery ? "S-local DISCOUNTED master V1" : "S-local DISCOUNTED V1",
+        async () => {
+          const allResults: ZiiplyOfferSearchResult[] = [];
+          for (const store of selectedSLocalStoresV32) {
+            const results = await searchSKaupatOffers(cleanQuery, {
+              ...(normalizeSKaupatProviderOptionsV8(options) as any),
+              storeId: null,
+              sStoreId: null,
+              storeName: store.name,
+              sStoreName: store.name,
+            } as SKaupatOfferProviderOptionsV173);
+            allResults.push(...results);
+          }
+          return allResults;
+        },
+      )
+    : [];
+
   const sLocalCampaignResults = providerScopeV10.useS && hasSelectedSLocalV32
     ? await safelySearchSource(
         isGostaMasterQuery ? "S-local S-kaupat campaigns master V32" : "S-local S-kaupat campaigns V32",
@@ -902,6 +925,7 @@ export async function searchZiiplyOffers(
     ...eTarjouslehdetResults,
     ...sKaupatResults,
     ...prismaCampaignResults,
+    ...sLocalDiscountedResults,
     ...sLocalCampaignResults,
     ...kResults,
   ]);

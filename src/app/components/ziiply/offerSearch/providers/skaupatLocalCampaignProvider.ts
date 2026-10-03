@@ -652,6 +652,8 @@ function mapProductV1(
     storeLabel: storeName,
     storeName,
     shopName: storeName,
+    // This provider returns S-local CMS campaign sections, not DISCOUNTED offers.
+    campaignType: "campaign",
     title,
     priceText,
     unitPriceText,
