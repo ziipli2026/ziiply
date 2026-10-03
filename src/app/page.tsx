@@ -12932,6 +12932,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // for the other rows. Only fully successful results are cached.
         setSMatches(nextSMatches);
         setKMatches(nextKMatches);
+        // Enrich unpriced scanned basket rows only from an exact-EAN match in a selected store.
+        // A name-based substitute belongs to the comparison basket, never to the original product.
+        const enrichedCartV805 = nextCart.map((item) => {
+          if (Number(item.price) > 0 || !isUsableEan(normalizeEan(item.ean || item.product?.ean))) return item;
+          const originalEan = normalizeEan(item.ean || item.product?.ean);
+          const exactMatches = ([nextSMatches[item.id], nextKMatches[item.id]] as Array<Match | undefined>)
+            .filter((match): match is Match => Boolean(match && match.matchType === "ean" &&
+              normalizeEan(match.product.ean) === originalEan && Number(match.price) >= 0.05));
+          const preferred = exactMatches.find((match) =>
+            (item.chain === "S" && match === nextSMatches[item.id]) ||
+            (item.chain === "K" && match === nextKMatches[item.id])) || exactMatches[0];
+          if (!preferred) return item;
+          return { ...item, price: preferred.price, ziiplyPriceFetchedAt: Date.now(),
+            ziiplyPriceStoreName: preferred === nextSMatches[item.id] ? activeStores.sStoreName : activeStores.kStoreName } as CartItem;
+        });
+        if (enrichedCartV805.some((item, index) => item !== nextCart[index])) {
+          cartRefV124.current = enrichedCartV805;
+          setCart(enrichedCartV805);
+          persistCartImmediately(enrichedCartV805);
+        }
         if (!failed) {
           comparisonCompletedKeyRef.current = cacheKey;
         } else {
