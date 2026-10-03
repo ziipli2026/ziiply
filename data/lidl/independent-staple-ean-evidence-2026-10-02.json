@@ -935,6 +935,54 @@
       "recordKind": "lidl-named-product",
       "assortmentEvidence": "lidl-national-range-announcement",
       "currentStoreStockVerified": false
+    },
+    {
+      "name": "Milbona proteiinivanukas",
+      "brand": "Milbona",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+      "observedDate": "2026-10-03",
+      "note": "Named in Lidl public dairy category snapshot. This is research-only evidence; price, exact EAN and local stock are not verified. Promotional display must not be used as a current checkout price.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Pilos vadelmakefir",
+      "brand": "Pilos",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+      "observedDate": "2026-10-03",
+      "note": "Named in Lidl public dairy category snapshot. This is research-only evidence; price, exact EAN and local stock are not verified. Promotional display must not be used as a current checkout price.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Kuljanka höyrytetty juusto",
+      "brand": "Kuljanka",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+      "observedDate": "2026-10-03",
+      "note": "Named in Lidl public dairy category snapshot. This is research-only evidence; price, exact EAN and local stock are not verified. Promotional display must not be used as a current checkout price.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Kuusamon Juusto Eränkävijä-juusto",
+      "brand": "Kuusamon Juusto",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+      "observedDate": "2026-10-03",
+      "note": "Named in Lidl public dairy category snapshot. This is research-only evidence; price, exact EAN and local stock are not verified. Promotional display must not be used as a current checkout price.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
     }
   ]
 }
