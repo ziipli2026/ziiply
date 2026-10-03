@@ -195,7 +195,7 @@ export function StoresResponsiveCard({
                   {meta.label}
                 </div>
 
-                <div className={`mx-auto mt-2 min-h-[46px] max-w-[190px] text-[18px] font-black leading-tight ${disabled ? "text-[#7B8493]" : meta.nameText} lg:text-[21px]`}>
+                <div className={`mx-auto mt-2 min-h-[46px] max-w-full min-w-0 [overflow-wrap:anywhere] whitespace-normal text-[18px] font-black leading-tight ${disabled ? "text-[#7B8493]" : meta.nameText} lg:text-[21px]`}>
                   {getDisplayName(store, disabled)}
                 </div>
 
