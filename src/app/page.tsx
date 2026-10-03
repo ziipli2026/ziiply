@@ -3665,6 +3665,8 @@ export default function Page() {
   const [gostaMasterOfferResultsV528, setGostaMasterOfferResultsV528] = useState<any[]>([]);
   const [gostaContentTabV1, setGostaContentTabV1] = useState<"offers" | "campaigns">("offers");
   const gostaLastSearchContextKeyRefV532 = useRef("");
+  // Keep completed master datasets by exact store/search context across Gösta exits.
+  const gostaMasterByContextRefV802 = useRef<Map<string, any[]>>(new Map());
   const gostaSelectedStoresSignatureRefV534 = useRef("");
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
@@ -11323,14 +11325,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         eurosparStoreChain: selectedEurosparStoreV751?.chain || "",
       });
 
+      const cachedMasterV802 = gostaMasterByContextRefV802.current.get(gostaOfferSearchContextKeyV532);
       if (gostaLastSearchContextKeyRefV532.current !== gostaOfferSearchContextKeyV532) {
         gostaLastSearchContextKeyRefV532.current = gostaOfferSearchContextKeyV532;
-        setOfferSearchResults([]);
-        setGostaMasterOfferResultsV528([]);
+        setOfferSearchResults(cachedMasterV802 || []);
+        setGostaMasterOfferResultsV528(cachedMasterV802 || []);
         setGostaTestedEmptyCategoriesV166({});
         setOfferSearchDoneForQuery("");
         setOfferSearchQuerySnapshot("");
         setOfferCardFilterV106(hasExplicitOverride ? cleanedOverride : "");
+      }
+      // Reopening the same store must not fetch its master again, even after
+      // the chain-selection screen temporarily cleared the visible results.
+      if (cachedMasterV802 && !hasExplicitOverride && !input.trim()) {
+        setOfferSearchResults(cachedMasterV802);
+        setGostaMasterOfferResultsV528(cachedMasterV802);
+        setLoadingOffers(false);
+        return;
       }
 
       const gostaOfferSearchContextV172 = {
@@ -11446,6 +11457,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       if (offerSearchCoreResult.searchAllAreaOffers) {
+        gostaMasterByContextRefV802.current.set(gostaOfferSearchContextKeyV532, offerSearchCoreResult.results);
         setGostaMasterOfferResultsV528(offerSearchCoreResult.results);
       }
 
