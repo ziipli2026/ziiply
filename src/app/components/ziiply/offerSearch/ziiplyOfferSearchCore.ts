@@ -297,7 +297,7 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // Prisma CMS supplies its own hierarchy, unlike DISCOUNTED search results.
   // Resolve its top-level department to the same category buttons as Gösta.
   if (sourceItem?.campaignType === "campaign" && /^prisma/i.test(String(sourceItem?.storeLabel || ""))) {
-    const department = normalizeGostaCoreText(sourceItem?.category || "");
+    const department = normalizeGostaCoreText(sourceItem?.category || "").replace(/-/g, " ").replace(/\s+/g, " ").trim();
     const mapped: Record<string, string> = {
       "hedelmat ja vihannekset": "Hevi", "liha ja kasviproteiinit": "Liha & makkarat",
       "kala ja merenelavat": "Kala", "leivat ja leivonnaiset": "Leipomo",
