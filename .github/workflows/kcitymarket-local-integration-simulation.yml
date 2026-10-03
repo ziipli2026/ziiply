@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
+      - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript compile
         run: npx tsc --noEmit
       - name: Simulate two selected stores and failure isolation
