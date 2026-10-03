@@ -153,6 +153,11 @@ try {
     assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
       "Lidl frozen/vegetable research candidate missing or priced: " + expected);
   }
+  // Names recovered from the exact public category listings, still unpriced research.
+  for (const [query, expected] of [["ramenkeitto","Vitasia ramenkeitto"],["turkkilainen jogurtti","Juustoportti pehmeä turkkilainen jogurtti 4 kpl"]]) {
+    assert.ok(searchLidlResearch(query, 50).some(r=>r.name===expected && r.price===null && r.ean===null && r.priceVerified===false),
+      "Lidl category observation missing or incorrectly priced: "+expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
