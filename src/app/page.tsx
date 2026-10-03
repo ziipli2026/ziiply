@@ -4730,6 +4730,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
+  const [scannerStoreMismatchV801, setScannerStoreMismatchV801] = useState<{ name: string; searchTerm: string; selectedName: string } | null>(null);
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
 
   function pushScannerDebugV493(_message: string) {
@@ -14145,6 +14146,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner),
       );
       if (fastIdentityFromBankV789) {
+        // Warn only for identifiable private labels, never merely for a missing price.
+        const ownBrandV801 = /^(pirkka|k-menu)\b/i.test(bankIdentityNameV789) ? "k"
+          : /^(kotimaista|coop|xtra|rainbow)\b/i.test(bankIdentityNameV789) ? "s"
+          : /^(milbona|cien|chef select|favorina)\b/i.test(bankIdentityNameV789) ? "lidl"
+          : "";
+        const selectedKeysV801 = (["s", "k", "lidl", "tokmanni"] as const).filter((key) => Boolean(selectedChains[key]));
+        const mismatchedV801 = storeCompareScope === "between_chains" && ownBrandV801 && selectedKeysV801.length > 0 && !selectedKeysV801.includes(ownBrandV801 as typeof selectedKeysV801[number]);
+        setScannerStoreMismatchV801(mismatchedV801 ? {
+          name: bankIdentityNameV789,
+          searchTerm: bankIdentityNameV789.replace(/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow|milbona|cien|chef select|favorina)\s+/i, "").trim(),
+          selectedName: selectedKeysV801.map((key) => key === "s" ? (activeStores.sStoreName || "S-kauppa") : key === "k" ? (activeStores.kStoreName || "K-kauppa") : key === "lidl" ? (selectedLidlStoreV750?.name || "Lidl") : (selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR/Tokmanni")).join(" / "),
+        } : null);
         addOpenFoodFactsScannedEanToCartV729({
           ean,
           name: bankIdentityNameV789,
@@ -21944,6 +21957,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               className="flex h-full w-full max-w-[430px] flex-col overflow-hidden"
             >
 
+              {scannerStoreMismatchV801 && (
+                <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-slate-800" role="status">
+                  <p className="font-black">Tarkista tuote ja kauppavalinta</p>
+                  <p className="mt-1">{scannerStoreMismatchV801.name} on toisen ketjun oma tuotemerkki. Valittuna: {scannerStoreMismatchV801.selectedName}. Tuote säilyy korissa; valitun kaupan hintaa ei päätellä toisesta kaupasta.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" className="rounded-xl bg-white px-3 py-2 font-bold ring-1 ring-amber-300" onClick={() => { setEanModalOpen(false); setShopsPanelOpen(true); setScannerStoreMismatchV801(null); }}>Tarkista kauppavalinta</button>
+                    <button type="button" className="rounded-xl bg-emerald-800 px-3 py-2 font-bold text-white" onClick={() => { const term = scannerStoreMismatchV801.searchTerm; setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(false); setSearchPanelOpen(true); setSearchCompareMode("single"); setInput(term); setNormalResults([]); void searchNormalPrices(term); }}>Etsi vastaava: {scannerStoreMismatchV801.selectedName}</button>
+                  </div>
+                </div>
+              )}
               {eanScannerMessage && !eanScannerOpen && (
                 <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700 ziiply-soft-open-fast">
                   {eanScannerMessage}
