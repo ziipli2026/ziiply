@@ -22038,12 +22038,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             >
 
               {scannerStoreMismatchV801 && (
-                <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-slate-800" role="status">
-                  <p className="font-black">Tarkista tuote ja kauppavalinta</p>
-                  <p className="mt-1">{scannerStoreMismatchV801.name} on toisen ketjun oma tuotemerkki. Valittuna: {scannerStoreMismatchV801.selectedName}. Tuote säilyy korissa; valitun kaupan hintaa ei päätellä toisesta kaupasta.</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-slate-800" role="status">
+                  <p className="font-bold">Tuote ei kuulu valittuun kauppaketjuun.</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
                     <button type="button" className="rounded-xl bg-white px-3 py-2 font-bold ring-1 ring-amber-300" onClick={() => { setEanModalOpen(false); setShopsPanelOpen(true); setScannerStoreMismatchV801(null); }}>Tarkista kauppavalinta</button>
-                    <button type="button" className="rounded-xl bg-emerald-800 px-3 py-2 font-bold text-white" onClick={() => { const term = scannerStoreMismatchV801.searchTerm; setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(false); setSearchPanelOpen(true); setSearchCompareMode("single"); setInput(term); setNormalResults([]); void searchNormalPrices(term); }}>Etsi vastaava: {scannerStoreMismatchV801.selectedName}</button>
+                    <button type="button" className="rounded-xl bg-emerald-800 px-3 py-2 font-bold text-white" onClick={() => { const term = scannerStoreMismatchV801.searchTerm; setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(false); setSearchPanelOpen(true); setSearchCompareMode("single"); setInput(term); setNormalResults([]); void searchNormalPrices(term); }}>Etsi vastaava</button>
                   </div>
                 </div>
               )}
