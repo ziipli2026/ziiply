@@ -576,7 +576,7 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   if(!process.env.DATABASE_URL || !offers.length) return offers;
   try{
     const sql=neon(process.env.DATABASE_URL);
-    const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' LIMIT 5000`;
+    const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC LIMIT 5000`;
     const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\\s+/g," ");
     const index=new Map<string,typeof rows>();
     for(const row of rows){
