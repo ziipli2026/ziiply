@@ -154,6 +154,7 @@ import {
 } from "./providers/kruokaProvider";
 import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
 import { fetchSKaupatLocalCampaignOffersV1 } from "./providers/skaupatLocalCampaignProvider";
+import { fetchPrismaCampaignOffersV1 } from "./providers/skaupatPrismaCampaignProvider";
 import {
   getCachedOfferResults,
   setCachedOfferResults,
@@ -853,6 +854,22 @@ export async function searchZiiplyOffers(
       )
     : [];
 
+  // Independent Prisma CMS campaign dataset, kept distinct from DISCOUNTED offers.
+  const prismaCampaignResults = providerScopeV10.useS && hasSelectedPrismaV32
+    ? await safelySearchSource(
+        isGostaMasterQuery ? "Prisma CMS campaigns master V1" : "Prisma CMS campaigns V1",
+        async () => {
+          const names = normalizeOfferStoreListV11(providerOptions?.sStoreNames, providerOptions?.sStoreName ?? providerOptions?.storeName);
+          const results: ZiiplyOfferSearchResult[] = [];
+          for (const name of [...new Set(names)]) {
+            if (!/^prisma(?:\\s|$)/i.test(name)) continue;
+            results.push(...await fetchPrismaCampaignOffersV1(cleanQuery, ZIIPLY_OFFER_SOURCES.skaupat, name));
+          }
+          return results;
+        },
+      )
+    : [];
+
   const sLocalCampaignResults = providerScopeV10.useS && hasSelectedSLocalV32
     ? await safelySearchSource(
         isGostaMasterQuery ? "S-local S-kaupat campaigns master V32" : "S-local S-kaupat campaigns V32",
@@ -882,6 +899,7 @@ export async function searchZiiplyOffers(
   const uniqueAllResults = uniqueOfferResults([
     ...eTarjouslehdetResults,
     ...sKaupatResults,
+    ...prismaCampaignResults,
     ...sLocalCampaignResults,
     ...kResults,
   ]);
