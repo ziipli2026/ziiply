@@ -1208,7 +1208,7 @@ export default function ZiiplyMobileOfferSearchCard({
           </button>
         ) : null}
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[0.9rem] before:pointer-events-none before:absolute before:inset-x-3 before:top-2 before:h-[4.1rem] before:rounded-xl before:bg-[#f4e4bb] before:content-['']">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[0.9rem] before:pointer-events-none before:absolute before:left-[4.05rem] before:right-[4.05rem] before:top-[0.75rem] before:h-[3.55rem] before:rounded-[0.6rem] before:bg-[#f4e4bb]/95 before:content-['']">
           <div className="relative z-10 min-h-[3.3rem] px-[3.15rem] flex flex-col justify-center">
             <div
               className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
@@ -1267,9 +1267,26 @@ export default function ZiiplyMobileOfferSearchCard({
               </div>
             </div>
           ) : null}
+          {selectedOfferChainV39 && showLandingView && !loading ? (
+            <div className="relative z-10 mt-2 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3 py-2.5 text-center">
+              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] items-center gap-1">
+                <button type="button" aria-pressed={contentTab === "offers"} onClick={() => onContentTabChange?.("offers")}
+                  className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "offers" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
+                  Tarjoukset
+                </button>
+                <div className="min-w-0 text-[clamp(0.78rem,3.3vw,1.02rem)] font-black italic leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
+                  Mitä tänään etsitään?
+                </div>
+                <button type="button" aria-pressed={contentTab === "campaigns"} onClick={() => onContentTabChange?.("campaigns")}
+                  className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "campaigns" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
+                  Kampanjat
+                </button>
+              </div>
+            </div>
+          ) : null}
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[0.75rem] pt-[0.18rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-[0.75rem] pt-[0.18rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
@@ -1360,19 +1377,6 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           ) : showLandingView ? (
             <div className="mt-[0.18rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3 py-2.5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] items-center gap-1">
-                <button type="button" aria-pressed={contentTab === "offers"} onClick={() => onContentTabChange?.("offers")}
-                  className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "offers" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
-                  Tarjoukset
-                </button>
-                <div className="min-w-0 text-[clamp(0.78rem,3.3vw,1.02rem)] font-black italic leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
-                  Mitä tänään etsitään?
-                </div>
-                <button type="button" aria-pressed={contentTab === "campaigns"} onClick={() => onContentTabChange?.("campaigns")}
-                  className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "campaigns" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
-                  Kampanjat
-                </button>
-              </div>
               {visibleCategorySuggestions.length > 0 ? (
                 <div className="mt-2 grid grid-cols-2 gap-1.5">
                   {visibleCategorySuggestions.map((category) => (
