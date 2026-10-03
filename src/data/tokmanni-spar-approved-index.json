@@ -72,6 +72,34 @@
       "ziiplyCategory": "Kuivatuotteet",
       "classificationStatus": "approved",
       "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6438565656853",
+      "productClass": "department_store",
+      "ziiplyCategory": "",
+      "classificationStatus": "approved",
+      "classificationEvidence": "User mobile screenshot 2026-10-03: Miny socks 39/42"
+    },
+    {
+      "ean": "6438565656846",
+      "productClass": "department_store",
+      "ziiplyCategory": "",
+      "classificationStatus": "approved",
+      "classificationEvidence": "User mobile screenshot 2026-10-03: Miny socks 35/38"
+    },
+    {
+      "ean": "6412600819939",
+      "productClass": "daily",
+      "ziiplyCategory": "Hygienia & kosmetiikka",
+      "classificationStatus": "approved",
+      "classificationEvidence": "User mobile screenshot 2026-10-03: Lumene cleanser"
+    },
+    {
+      "ean": "9002859056932",
+      "productClass": "daily",
+      "ziiplyCategory": "Makeiset & keksit",
+      "classificationStatus": "approved",
+      "classificationEvidence": "User mobile screenshot 2026-10-03: Woogie caramel sweets"
     }
   ]
 }
