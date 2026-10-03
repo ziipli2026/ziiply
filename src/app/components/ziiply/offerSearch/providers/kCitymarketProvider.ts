@@ -579,26 +579,36 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC LIMIT 5000`;
     const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
     const index=new Map<string,typeof rows>();
+    // A leaflet commonly includes package size in the headline while the
+    // product bank stores it separately. Index both representations.
+    const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
+    const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," "));
     for(const row of rows){
-      const key=norm(row.name);
-      if(!key)continue;
-      const group=index.get(key)||[];
-      group.push(row);
-      index.set(key,group);
+      const keys=new Set([norm(row.name),norm([row.name,row.quantity].filter(Boolean).join(" "))]);
+      for(const key of keys){
+        if(!key)continue;
+        const group=index.get(key)||[];
+        group.push(row);
+        index.set(key,group);
+      }
     }
+    let enriched=0;
     return offers.map(offer=>{
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
       if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title))return offer;
-      const matches=index.get(norm(offer.title))||[];
+      const direct=index.get(norm(offer.title))||[];
+      const offerSize=size(offer.packageSize)||size(offer.title);
+      const candidates=direct.length?direct:rows.filter(row=>offerSize && nameOnly(row.name)===nameOnly(offer.title) && (size(row.quantity)||size(row.name))===offerSize);
+      const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()];
       if(matches.length!==1)return offer;
       const row=matches[0];
-      const pack=norm(offer.packageSize);
-      const bankPack=norm(row.quantity);
-      if(pack && (!bankPack || pack!==bankPack))return offer;
+      const bankSize=size(row.quantity)||size(row.name);
+      if(offerSize && bankSize!==offerSize)return offer;
       const ean=String(row.ean??"");
       const imageUrl=String(row.image_url??"");
       if(!/^\d{8,14}$/.test(ean)||!/^https:\/\//i.test(imageUrl))return offer;
+      enriched++;
       return {...offer,ean,imageUrl};
     });
   }catch(error){
