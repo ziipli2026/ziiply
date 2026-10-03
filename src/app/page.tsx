@@ -12907,9 +12907,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } catch (error) {
       if (comparisonCacheKeyRef.current === cacheKey) {
         comparisonCacheKeyRef.current = null;
+        comparisonCompletedKeyRef.current = null;
         setComparisonLoading(false);
+        setComparisonDiagnosticV800(`Vertailu epäonnistui: ${error instanceof Error ? error.message : String(error)}`);
+        showCartToast("Vertailuhaussa tapahtui virhe. Ostoskorin tuotteet säilyivät.");
       }
-      throw error;
+      console.error("[Ziiply comparison failure]", error);
+      // This function is invoked with void from UI/effects: do not leave an unhandled rejection.
     } finally {
       if (comparisonCacheKeyRef.current === cacheKey) setComparisonLoading(false);
     }
