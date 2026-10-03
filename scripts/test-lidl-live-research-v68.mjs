@@ -41,6 +41,8 @@ try {
     if (matching) {
       assert.equal(matching.observedDate, record.observedDate,
         "Individual Lidl source date was overwritten: " + record.name);
+      assert.equal(matching.evidenceSource, record.source,
+        "Individual Lidl evidence URL was overwritten: " + record.name);
       assert.equal(matching.price, null, "Unverified source gained checkout price: " + record.name);
       assert.equal(matching.ean, null, "Unverified source gained an EAN: " + record.name);
       assert.equal(matching.priceVerified, false);
