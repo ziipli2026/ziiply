@@ -9631,6 +9631,79 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return current;
     });
 
+    // V793_SELECTION_CLICK_WARMUP:
+    // Kaupan käsin valinta käynnistää Göstan master-aineiston lämmityksen
+    // välittömästi. Tämä on tarkoituksella erillinen varmennus warmup-effectille:
+    // selaimen CacheStorage/local cache voi olla juuri tyhjennetty, jolloin
+    // effectin boot-gatet eivät saa viivästyttää valitun kaupan lämmitystä.
+    // Näin esim. Prisma alkaa lämmetä heti valinnan jälkeen, ennen kuin Gösta avataan.
+    try {
+      const warmAreaLabel = String(
+        locationInput ||
+          (storeCompareScope === "within_chain" ? store.name : activeArea.label) ||
+          "",
+      ).trim();
+      const warmCommonContext = {
+        locationInput: locationInput || "",
+        storeMode: effectiveStoreMode,
+        storeCompareScope,
+        withinChain,
+        usingOwnLocation,
+        gpsLat: gpsCoordsV320?.latitude,
+        gpsLon: gpsCoordsV320?.longitude,
+        areaLabel: warmAreaLabel,
+      };
+
+      if (store.type === "S") {
+        let warmStoreId = String(store.id || "").trim();
+        let warmStoreName = String(store.name || "").trim();
+
+        // Prisma's provider uses its external store id. Resolve it from the
+        // same selected-store list when available so the click warmup and the
+        // later visible Gösta request use exactly the same cache key.
+        if (effectiveStoreMode === "hyper") {
+          const matchedPrisma = foundStores
+            .map(normalizeStoreForPickerV320)
+            .find((candidate) =>
+              isPrisma(candidate) &&
+              (sameStoreIdV93(candidate.id, store.id) ||
+                normalize(candidate.name || "") === normalize(store.name || "")),
+            );
+          const externalId = String((matchedPrisma as any)?.externalId || "").trim();
+          if (/^\\d{5,}$/.test(externalId)) warmStoreId = externalId;
+          warmStoreName = matchedPrisma?.name || warmStoreName;
+        }
+
+        void warmZiiplyGostaOfferCacheV182({
+          ...warmCommonContext,
+          sStoreId: warmStoreId || undefined,
+          sStoreName: warmStoreName || undefined,
+          sStoreIds: warmStoreId ? [warmStoreId] : [],
+          sStoreNames: warmStoreName ? [warmStoreName] : [],
+          kStoreIds: [],
+          kStoreNames: [],
+        }).catch((error) => {
+          console.debug("[Ziiply offer warmup] selected S-store warmup failed", error);
+        });
+      } else if (store.type === "K") {
+        const warmStoreId = String(store.id || "").trim();
+        const warmStoreName = String(store.name || "").trim();
+        void warmZiiplyGostaOfferCacheV182({
+          ...warmCommonContext,
+          kStoreId: warmStoreId || undefined,
+          kStoreName: warmStoreName || undefined,
+          kStoreIds: warmStoreId ? [warmStoreId] : [],
+          kStoreNames: warmStoreName ? [warmStoreName] : [],
+          sStoreIds: [],
+          sStoreNames: [],
+        }).catch((error) => {
+          console.debug("[Ziiply offer warmup] selected K-store warmup failed", error);
+        });
+      }
+    } catch (error) {
+      console.debug("[Ziiply offer warmup] selected-store warmup skipped", error);
+    }
+
     // v306_STORE_PICKER_GPS_HARD_LOCK:
     // Kaupan valitseminen EI saa koskaan itsestään aktivoida Tavaratalot/Lähikaupat-nappia.
     // Moodin saa valita vain Hakutapa-napeista. Jos moodi on jo valittu, pidetään se vakaana.
