@@ -4642,6 +4642,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   >({});
   const [comparisonLoading, setComparisonLoading] = useState(false);
   const [comparisonDiagnosticV800, setComparisonDiagnosticV800] = useState<string | null>(null);
+  const [comparisonDiagnosticExpandedV802, setComparisonDiagnosticExpandedV802] = useState(false);
   const comparisonRawCountsV801 = useRef({ s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 });
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
@@ -8953,8 +8954,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const comparableCart = useMemo(() => {
     // Kortin kattavuus ja loppusumma lasketaan vain vertailukelpoisista
     // normaalihintaisista tuotteista. Göstan tarjoukset eivät kuulu vertailuun.
-    return cart.filter((item) =>
-      item.source !== "manual" && isComparisonEligibleV797(item));
+    return cart.filter(isComparisonEligibleV797);
   }, [cart]);
 
   const chainResults = useMemo<ChainResult[]>(() => {
@@ -20502,8 +20502,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   return (
     <>
       {comparisonDiagnosticV800 && (
-        <div role="status" aria-live="polite" className="fixed bottom-20 left-2 right-2 z-[10000] mx-auto max-w-lg rounded-lg border border-amber-500 bg-[#211d15] p-3 text-xs text-white shadow-xl">
-          <div className="flex items-start justify-between gap-3"><span>Vertailun diagnostiikka: {comparisonDiagnosticV800}</span><button type="button" aria-label="Sulje diagnostiikka" onClick={() => setComparisonDiagnosticV800(null)}>✕</button></div>
+        <div role="status" aria-live="polite" className="fixed bottom-[7.2rem] left-2 right-2 z-[10000] mx-auto max-w-lg rounded-lg border border-amber-500 bg-[#211d15] p-2 text-xs text-white shadow-xl">
+          <div className="flex items-center justify-between gap-2">
+            <button type="button" aria-expanded={comparisonDiagnosticExpandedV802} onClick={() => setComparisonDiagnosticExpandedV802((open) => !open)} className="min-w-0 flex-1 text-left font-semibold">Vertailun diagnostiikka {comparisonDiagnosticExpandedV802 ? "▲ Sulje" : "▼ Avaa tiedot"}</button>
+            <button type="button" aria-label="Poista diagnostiikka" onClick={() => setComparisonDiagnosticV800(null)} className="shrink-0 px-2 py-1">✕</button>
+          </div>
+          {comparisonDiagnosticExpandedV802 && <div className="mt-2 max-h-[40dvh] overflow-y-auto whitespace-pre-wrap break-words border-t border-amber-700 pt-2 leading-relaxed">{comparisonDiagnosticV800}</div>}
         </div>
       )}
       {mobileLandscapeBlockedV441 && (
