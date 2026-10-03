@@ -5891,6 +5891,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
 
   const gostaSelectedStoresSignatureV534 = [
+    selectedChains.s ? "S" : "",
+    selectedChains.k ? "K" : "",
+    selectedChains.lidl ? "LIDL" : "",
+    selectedChains.tokmanni ? "TOKMANNI" : "",
+    selectedLidlStoreV750?.id || "",
+    selectedLidlStoreV750?.name || "",
+    selectedEurosparStoreV751?.id || "",
+    selectedEurosparStoreV751?.name || "",
+    selectedTokmanniStoreV756?.id || "",
+    selectedTokmanniStoreV756?.name || "",
     storeCompareScope,
     withinChain || "",
     storeMode || "",
@@ -22385,6 +22395,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               // V549: tallenna S/K-valinta ennen hakua. searchOffers rakentaa
               // eksklusiivisen kontekstin nykyisen storeMode-arvon kaupasta.
               gostaSelectedOfferChainRefV547.current = chain;
+              // Opening any chain starts on Tarjoukset; Lidl has no campaign feed yet.
+              setGostaContentTabV1("offers");
               void searchOffers();
             }}
             showSChain={Boolean(selectedChains.s && Number(activeStores.sStoreId || 0) > 0)}
