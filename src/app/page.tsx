@@ -5948,7 +5948,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       selectedTokmanniStoreV756,
     );
     if (!storeModeChosenV299 && !independentOfferStoreReadyV766) return;
-    if (storeModeChosenV299 && !bootGpsRefreshSettledV785) return;
+    // Manual S/K selections are stable before the boot GPS refresh settles.
+    // Only warm explicitly locked stores early; never warm a stale GPS snapshot.
+    const pendingBootGpsV792 = storeModeChosenV299 && !bootGpsRefreshSettledV785;
+    const manualWarmSStoreV792 = pendingBootGpsV792 ? getManualStoreOverrideV786("S", storeMode) : null;
+    const manualWarmKStoreV792 = pendingBootGpsV792 ? getManualStoreOverrideV786("K", storeMode) : null;
+    if (pendingBootGpsV792 && !manualWarmSStoreV792 && !manualWarmKStoreV792 && !independentOfferStoreReadyV766) return;
 
     const cleanStore = (idValue: unknown, nameValue: unknown) => {
       const id = String(idValue || "").trim();
@@ -5983,7 +5988,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
     };
 
-    const sStore = resolveWarmSStore();
+    const sStore = pendingBootGpsV792 ? cleanStore(manualWarmSStoreV792?.id, manualWarmSStoreV792?.name) : resolveWarmSStore();
 
     // V767_K_LOCAL_WARMUP_MATCH_VISIBLE_GOSTA:
     // K-Market/K-Supermarket warmup must resolve the selected local K store from
@@ -6016,7 +6021,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
     };
 
-    const kStore = resolveWarmKStore();
+    const kStore = pendingBootGpsV792 ? cleanStore(manualWarmKStoreV792?.id, manualWarmKStoreV792?.name) : resolveWarmKStore();
     const baseAreaLabel = String(locationInput || activeArea.label || "").trim();
 
     const commonContext = {
