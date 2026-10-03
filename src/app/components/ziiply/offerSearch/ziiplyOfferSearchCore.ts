@@ -753,15 +753,7 @@ export async function searchZiiplyGostaOffersV146(options: {
         )
       : masterResults;
   } else {
-    // V793: A warmed master already contains the selected store's offers.
-    // Filter it locally instead of launching a cold provider request for
-    // every free-text query. Fall back to direct search only if master fails.
-    try {
-      const masterResults = await fetchGostaMasterOfferResultsV156(options.context);
-      nextResults = filterZiiplyGostaOfferResultsV146(masterResults, offerQuerySnapshot);
-    } catch {
-      nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
-    }
+    nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
 
   const results = searchAllAreaOffers || searchByCategory
