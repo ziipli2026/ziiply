@@ -48,11 +48,15 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       const payload=await response.json() as Row;
       const hotspots=Array.isArray(payload.hotspots)?payload.hotspots:[];
       const ids=[...new Set(hotspots.map(h=>h && typeof h==="object" ? String((h as Row).offer && typeof (h as Row).offer==="object" ? ((h as Row).offer as Row).id??"" : "") : "").filter(Boolean))];
-      for(const id of ids){
-        if(seen.has(id))continue;
-        seen.add(id);
-        let offer: Row;
-        try {const result=await tjek("offer",{publicId:id});if(!result||typeof result!=="object"||Array.isArray(result))continue;offer=result as Row;}catch{continue;}
+      const freshIds=ids.filter(id=>!seen.has(id));
+      freshIds.forEach(id=>seen.add(id));
+      for(let offset=0;offset<freshIds.length;offset+=8){
+      const fetched=await Promise.all(freshIds.slice(offset,offset+8).map(async id=>{
+        try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{return null;}
+      }));
+      for(const entry of fetched){
+        if(!entry)continue;
+        const {id,offer}=entry;
         if(String(offer.publicationPublicId??publicationId)!==publicationId)continue;
         const title=String(offer.name??"").trim();
         const regular=numeric(offer.price),member=numeric(offer.membershipPrice),app=numeric(offer.appPrice);
@@ -76,6 +80,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           isPlussaOffer:member!=null,offerQuantity:quantity,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
           category:"Muut",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
+      }
       }
       if(hotspots.length===0)break;
     }
