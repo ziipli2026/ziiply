@@ -117,11 +117,28 @@ function usesEuroPrices(product: ZiiplyMobileSearchResultProduct) {
   return /tokmanni|eurospar|\bspar\b/.test(source);
 }
 
+function hasMatchingLegacyCentUnitPrice(value: number, product: ZiiplyMobileSearchResultProduct) {
+  if (usesEuroPrices(product) || !Number.isInteger(value) || value < 0 || value >= 100) return false;
+  // Only disambiguate sub-euro integer cents when the independently supplied
+  // numeric comparison price corroborates the same cent amount (e.g. 85 c/l).
+  // A genuine 25-euro item must not become 0.25 euro merely due to magnitude.
+  const unitCandidates = [
+    product.comparisonPrice, product.unitPrice, product.pricePerUnit,
+    product.product?.comparisonPrice, product.product?.unitPrice, product.product?.pricePerUnit,
+  ];
+  return unitCandidates.some((candidate) => {
+    if (typeof candidate === "number") return Number.isInteger(candidate) && candidate === value;
+    const raw = String(candidate ?? "").trim();
+    return /^\\d+$/.test(raw) && Number(raw) === value;
+  }) && parsePackageAmount(product)?.amount === 1;
+}
+
 function priceToEuros(value: unknown, product: ZiiplyMobileSearchResultProduct) {
   const n = numericValue(value);
   if (n == null) return null;
-  // Legacy S/K integer-cent values start at 100; preserve valid 20+ euro prices.
-  return usesEuroPrices(product) ? n : Math.abs(n) >= 100 ? n / 100 : n;
+  // Legacy S/K integer cents: retain the existing >=100 rule and verify
+  // ambiguous 0–99 values against a matching one-unit comparison price.
+  return usesEuroPrices(product) ? n : Math.abs(n) >= 100 || hasMatchingLegacyCentUnitPrice(n, product) ? n / 100 : n;
 }
 
 function pickRawPrice(product: ZiiplyMobileSearchResultProduct) {
@@ -154,7 +171,7 @@ function formatMainPrice(value: unknown, product: ZiiplyMobileSearchResultProduc
 
 function normalizeComparisonValue(value: unknown, product: ZiiplyMobileSearchResultProduct) {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return usesEuroPrices(product) ? value : Math.abs(value) >= 100 ? value / 100 : value;
+    return usesEuroPrices(product) ? value : Math.abs(value) >= 100 || hasMatchingLegacyCentUnitPrice(value, product) ? value / 100 : value;
   }
 
   const raw = String(value ?? "").trim();
@@ -164,7 +181,7 @@ function normalizeComparisonValue(value: unknown, product: ZiiplyMobileSearchRes
   const parsed = numericValue(raw);
   if (parsed == null) return null;
 
-  return usesEuroPrices(product) ? parsed : Math.abs(parsed) >= 100 ? parsed / 100 : parsed;
+  return usesEuroPrices(product) ? parsed : Math.abs(parsed) >= 100 || hasMatchingLegacyCentUnitPrice(parsed, product) ? parsed / 100 : parsed;
 }
 
 function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
