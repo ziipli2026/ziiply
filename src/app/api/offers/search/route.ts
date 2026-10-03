@@ -63,7 +63,7 @@
 
 import { NextResponse } from "next/server";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8 } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
-import { fetchKCitymarketSelectedStoreOffers } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
+import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
@@ -744,6 +744,7 @@ export async function GET(request: Request) {
             ...(isKCitymarketV19 ? {
               localOffers: citymarketLocalCount,
               nationalOffers: citymarketNationalCount,
+              nationalTjekImageDebug: getKCitymarketNationalTjekImageDebug(),
               nationalImageCoverage: {
                 total: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti").length,
                 withImage: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti" && Boolean(String(o.imageUrl || "").trim())).length,
