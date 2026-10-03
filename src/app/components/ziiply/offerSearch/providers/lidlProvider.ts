@@ -64,7 +64,12 @@ function validityText(from: unknown, until: unknown) {
   return "";
 }
 
-export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
+// Store-scoped structured JSON snapshot. Never wait for leaflet parsing in the
+// foreground request. In-flight calls are shared across concurrent warmup/search.
+const LIDL_STRUCTURED_TTL_MS = 5 * 60 * 1000;
+const lidlStructuredCache = new Map<string, { expiresAt: number; promise: Promise<any[]> }>();
+
+async function fetchLidlStructuredUncached(storeKey: string, storeName: string) {
   const key = String(storeKey || "").trim();
   if (!key) return [];
 
@@ -222,4 +227,20 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
   );
 
   return offers;
+}
+
+export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
+  const key = String(storeKey || "").trim();
+  if (!key) return [];
+  const cacheKey = key + ":" + storeName;
+  const now = Date.now();
+  const cached = lidlStructuredCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) return cached.promise;
+  const promise = fetchLidlStructuredUncached(key, storeName).catch((error) => {
+    // Do not retain a failed structured feed; the next request can retry.
+    lidlStructuredCache.delete(cacheKey);
+    throw error;
+  });
+  lidlStructuredCache.set(cacheKey, { expiresAt: now + LIDL_STRUCTURED_TTL_MS, promise });
+  return promise;
 }
