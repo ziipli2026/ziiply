@@ -631,23 +631,19 @@ export async function GET(request: Request) {
     if (isKCitymarketV19) {
       try {
         const fetched = await fetchKCitymarketOffers();
-        citymarketResults = (fetched as unknown as UnknownRecord[]).filter((offer) =>
-          offerMatchesQuery(q, offer),
-        );
-        // Selected-store Tjek publications supplement the national leaflet.
-        // A failed local request never removes national offers.
-        try {
-          const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
-          if (selectedCitymarket) {
-            const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
-            citymarketResults.push(...localOffers.filter(offer => offerMatchesQuery(q, offer)));
-          }
-        } catch (localError) {
-          console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
-        }
+        citymarketResults = (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer));
       } catch (error) {
-        console.warn("[Ziiply offers V19] K-Citymarket fetch failed", error);
-        citymarketResults = [];
+        console.warn("[Ziiply offers V19] K-Citymarket national fetch failed", error);
+      }
+      // Local and national sources must be independently fault-tolerant.
+      try {
+        const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
+        if (selectedCitymarket) {
+          const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
+          citymarketResults.push(...localOffers.filter(offer => offerMatchesQuery(q, offer)));
+        }
+      } catch (localError) {
+        console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
       }
     }
 
