@@ -8,7 +8,7 @@
 // - Hinta ja Lisää-nappi oikeaan alakulmaan samalle linjalle.
 // - Lista on oma scrollialue.
 
-import React from "react";
+import React, { useState } from "react";
 
 export type ZiiplyMobileSearchResultProduct = {
   id?: string | number;
@@ -270,6 +270,7 @@ export default function ZiiplyMobileSearchResultsCard({
   onClose,
   onAddProduct,
 }: ZiiplyMobileSearchResultsCardProps) {
+  const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
   if (!open) return null;
 
   return (
@@ -346,67 +347,74 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="relative grid min-h-[4.95rem] grid-cols-[4.15rem_minmax(0,1fr)] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 pb-1.5 pt-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
+                    className="relative flex items-start gap-3 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2.5 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
                   >
-                    <div className="flex h-full min-h-[3.95rem] items-center justify-center overflow-visible">
-                      {image ? (
-                        <img
-                          src={image}
-                          alt=""
-                          className="h-full max-h-[4.45rem] w-full scale-[1.08] object-contain"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span aria-hidden="true" className="flex h-[3.3rem] w-[3.3rem] items-center justify-center rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9] text-[0.61rem] font-bold uppercase tracking-[0.08em] text-[#aa9b7d]">Ei kuvaa</span>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 pr-[4.9rem] pt-0">
-                      <div
-                        className="line-clamp-2 -translate-y-[3px] text-[0.86rem] font-black leading-[1.02] text-[#123d32] [transform:translateZ(0)]"
-                        style={{ fontFamily: cooper }}
+                    <div className="flex w-[5.8rem] shrink-0 flex-col items-center gap-1.5">
+                      <button type="button" onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className="flex h-[5.15rem] w-[5.15rem] items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]">
+                        {image ? (
+                          <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
+                        ) : (
+                          <span aria-hidden="true" className="text-[0.61rem] font-bold uppercase tracking-[0.08em] text-[#aa9b7d]">Ei kuvaa</span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onAddProduct?.(product)}
+                        disabled={!onAddProduct}
+                        aria-label={`Lisää koriin: ${name}, ${price || "hinta puuttuu"}`}
+                        className="flex min-h-[3.1rem] w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-45"
                       >
-                        {name}
-                      </div>
-
+                        <span className="whitespace-nowrap text-[1.05rem] font-black leading-tight" style={{ fontFamily: cooper }}>{price || "—"}</span>
+                        <span className="whitespace-nowrap text-[0.57rem] font-black leading-tight text-[#244525]">🛒 Lisää koriin</span>
+                      </button>
+                    </div>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <div className="break-words text-[0.86rem] font-black leading-tight text-[#123d32]" style={{ fontFamily: cooper }}>{name}</div>
                       {(product.ean || product.product?.ean) && (
-                        <div className="mt-[0.18rem] truncate text-[0.61rem] font-bold leading-none text-[#8a7a55]">
+                        <div className="mt-1 break-all text-[0.61rem] font-bold text-[#8a7a55]">
                           EAN {String(product.ean || product.product?.ean)}
                         </div>
                       )}
-
                       {researchOnly && (
-                        <div className="mt-[0.25rem] text-[0.65rem] font-bold leading-tight text-[#78633a]">
+                        <div className="mt-1 text-[0.65rem] font-bold leading-tight text-[#78633a]">
                           {observedPrice ? `Havaittu ${observedPrice} (${product.observedDate ?? "päiväys puuttuu"}) · ei vahvistettu` : "Hinta ei vahvistettu"}
                         </div>
                       )}
                       {!researchOnly && comparison && (
-                        <div className="mt-[0.30rem] truncate text-[0.68rem] font-black leading-none text-[#8a7a55]">
-                          {comparison}
-                        </div>
+                        <div className="mt-1 break-words text-[0.68rem] font-black text-[#8a7a55]">{comparison}</div>
                       )}
-                    </div>
-
-                    <div className="absolute bottom-2 right-2.5 flex items-center justify-end gap-2">
-                      {price && (
-                        <div className="inline-flex min-w-[4.85rem] items-center justify-center rounded-full border-[2.5px] border-[#347a3f] bg-[#d2f1c8] px-2.5 py-[0.34rem] text-[0.88rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
-                          {price}
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => onAddProduct?.(product)}
-                        className="pointer-events-auto shrink-0 rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-2.5 py-[0.60rem] text-[0.78rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
-                      >
-                        Lisää
-                      </button>
                     </div>
                   </article>
                 );
               })}
           </div>
         </div>
+        {expandedProduct && (
+          <div className="pointer-events-auto absolute inset-0 z-[80] flex items-center justify-center bg-[#1c251c]/60 p-3" role="dialog" aria-modal="true" aria-label="Suurennettu tuotenäkymä">
+            <div className="max-h-full w-full max-w-[26rem] overflow-y-auto rounded-[1.2rem] border-[3px] border-[#8c6934] bg-[#fffdf8] p-3 shadow-xl">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <strong className="text-[#123d32]">Tuotetiedot</strong>
+                <button type="button" onClick={() => setExpandedProduct(null)} aria-label="Sulje tuotenäkymä" className="rounded-lg border border-[#8c6934] px-3 py-1 font-black">✕</button>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex w-[7.5rem] shrink-0 flex-col gap-2">
+                  <div className="flex h-[7.5rem] items-center justify-center rounded-lg border border-[#e6dcc3] bg-[#faf5e9]">
+                    {getImage(expandedProduct) ? <img src={getImage(expandedProduct)} alt="" className="h-full w-full object-contain" /> : <span className="text-xs text-[#78633a]">Ei kuvaa</span>}
+                  </div>
+                  <button type="button" disabled={!onAddProduct} onClick={() => onAddProduct?.(expandedProduct)} className="flex min-h-[3.4rem] flex-col items-center justify-center rounded-lg border-2 border-[#496443] bg-[#dce8c3] px-1 text-[#087237] disabled:opacity-45">
+                    <strong className="text-lg">{expandedProduct.priceVerified === false || expandedProduct.product?.priceVerified === false ? "—" : formatMainPrice(pickRawPrice(expandedProduct), expandedProduct) || "—"}</strong>
+                    <span className="text-xs font-black text-[#244525]">🛒 Lisää koriin</span>
+                  </button>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="break-words font-black leading-tight text-[#123d32]">{getName(expandedProduct)}</div>
+                  {formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct)) && <div className="mt-2 text-sm text-[#78633a]">{formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct))}</div>}
+                  {(expandedProduct.ean || expandedProduct.product?.ean) && <div className="mt-2 break-all text-xs text-[#78633a]">EAN {String(expandedProduct.ean || expandedProduct.product?.ean)}</div>}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

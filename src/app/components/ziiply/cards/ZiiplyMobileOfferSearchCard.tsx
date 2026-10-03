@@ -774,6 +774,7 @@ export default function ZiiplyMobileOfferSearchCard({
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
   const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   const [debugOpenV52, setDebugOpenV52] = React.useState(false);
+  const [expandedOfferB, setExpandedOfferB] = React.useState<ZiiplyMobileOfferSearchItem | null>(null);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1452,15 +1453,19 @@ export default function ZiiplyMobileOfferSearchCard({
                 return (
                   <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
                     <div className="px-3 py-2.5">
-                      <div className="flex items-start gap-2.5">
-                        <div className="mt-[0.1rem] grid h-[2.45rem] w-[2.45rem] shrink-0 place-items-center overflow-hidden rounded-[0.52rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[1.05rem] font-black text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.18),inset_0_0_0_1px_rgba(255,250,224,0.42)]">
-                          <OfferImageBox src={image} category={category} />
+                      <div className="flex items-start gap-3">
+                        <div className="flex w-[5.8rem] shrink-0 flex-col items-center gap-1.5">
+                          <button type="button" onClick={() => setExpandedOfferB(offer)} aria-label={`Suurenna tuote ${productName}`} className="grid h-[5.15rem] w-[5.15rem] place-items-center overflow-hidden rounded-[0.65rem] border-[1.5px] border-[#7b5c2a] bg-[#fffaf0] text-[1.5rem] shadow-[0_2px_3px_rgba(50,31,13,0.18)]">
+                            <OfferImageBox src={image} category={category} />
+                          </button>
+                          <button type="button" onClick={() => onAddOffer?.(offer)} disabled={!onAddOffer}
+                            aria-label={`Lisää koriin: ${productName}, ${offerPrice || "hinta puuttuu"}`}
+                            className={cx("flex min-h-[3.1rem] w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")}>
+                            <span className="whitespace-nowrap text-[1.05rem] font-black leading-tight" style={{ fontFamily: cooperFont }}>{offerPrice || "—"}</span>
+                            <span className="whitespace-nowrap text-[0.57rem] font-black leading-tight text-[#244525]">🛒 Lisää koriin</span>
+                          </button>
                         </div>
-
                         <div className="min-w-0 flex-1">
-                          <div className="float-right ml-2 mb-0.5 max-w-[7.7rem] whitespace-nowrap text-right text-[clamp(0.88rem,4vw,1.05rem)] font-black italic leading-none text-[#087237]" style={{ fontFamily: cooperFont }}>
-                            {offerPrice || "—"}
-                          </div>
                           <div className="break-words text-[0.92rem] font-black leading-tight text-[#233020]">{productName}</div>
                           {embeddedComparisonPrice ? (
                             <div className="clear-both mt-[0.18rem] text-[0.70rem] font-extrabold leading-tight text-[#74694f]">
@@ -1490,12 +1495,6 @@ export default function ZiiplyMobileOfferSearchCard({
                           ) : null}
                         </div>
                       </div>
-
-                      <div className="mt-2 flex justify-end">
-                        <button type="button" onClick={() => onAddOffer?.(offer)} disabled={!onAddOffer} className={cx("rounded-[0.56rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.34rem] text-[0.64rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")} style={{ fontFamily: cooperFont }}>
-                          Lisää koriin
-                        </button>
-                      </div>
                     </div>
                   </article>
                 );
@@ -1504,6 +1503,34 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           )}
         </main>
+
+        {expandedOfferB && (
+          <div className="absolute inset-0 z-[80] flex items-center justify-center bg-[#1c251c]/60 p-3" role="dialog" aria-modal="true" aria-label="Suurennettu tarjousnäkymä">
+            <div className="max-h-full w-full max-w-[26rem] overflow-y-auto rounded-[1.2rem] border-[3px] border-[#8c6934] bg-[#fff4d8] p-3 shadow-xl">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <strong className="text-[#123d32]">Tuotetiedot</strong>
+                <button type="button" onClick={() => setExpandedOfferB(null)} aria-label="Sulje tuotenäkymä" className="rounded-lg border border-[#8c6934] px-3 py-1 font-black">✕</button>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex w-[7.5rem] shrink-0 flex-col gap-2">
+                  <div className="grid h-[7.5rem] place-items-center overflow-hidden rounded-lg border border-[#e6dcc3] bg-[#fffaf0]">
+                    <OfferImageBox src={getOfferImage(expandedOfferB)} category={String(expandedOfferB.category || "")} />
+                  </div>
+                  <button type="button" disabled={!onAddOffer} onClick={() => onAddOffer?.(expandedOfferB)} className="flex min-h-[3.4rem] flex-col items-center justify-center rounded-lg border-2 border-[#496443] bg-[#dce8c3] px-1 text-[#087237] disabled:opacity-45">
+                    <strong className="text-lg">{getOfferPrice(expandedOfferB) || "—"}</strong>
+                    <span className="text-xs font-black text-[#244525]">🛒 Lisää koriin</span>
+                  </button>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="break-words font-black leading-tight text-[#123d32]">{getOfferName(expandedOfferB)}</div>
+                  <div className="mt-2 break-words text-sm text-[#78633a]">{getOfferComparisonPrice(expandedOfferB)}</div>
+                  <div className="mt-2 break-words text-sm text-[#78633a]">{getOfferValidityTextV59(expandedOfferB)}</div>
+                  {getOfferEan(expandedOfferB) && <div className="mt-2 break-all text-xs text-[#78633a]">EAN {getOfferEan(expandedOfferB)}</div>}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* V7: internal footer buttons removed. Browser/back controls and category buttons handle navigation. */}
 
