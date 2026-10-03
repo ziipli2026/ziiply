@@ -8982,14 +8982,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         !expectedLocalStoreId ||
         (match.storeId != null && String(match.storeId) === expectedLocalStoreId),
       );
-    const sTotal = sList.reduce(
-      (sum, match) => sum + match.price * match.quantity,
-      0,
-    );
-    const kTotal = kList.reduce(
-      (sum, match) => sum + match.price * match.quantity,
-      0,
-    );
+    // Normalize the actual matches BEFORE passing them to either the total or the mobile row renderer.
+    // Otherwise a restored 0.01 placeholder can yield 1.60 € for visible 1.45 € + 1.59 € rows.
+    const normalizeVisibleMatchesV804 = (matches: Match[]) => matches.map((match) => {
+      const productPrice = getProductPrice(match.product);
+      const price = Number(match.price);
+      const resolved = Number.isFinite(productPrice) && productPrice >= 0.05 ? productPrice : price;
+      return { ...match, price: resolved };
+    }).filter((match) => Number.isFinite(match.price) && match.price >= 0.05);
+    const visibleSListV804 = normalizeVisibleMatchesV804(sList);
+    const visibleKListV804 = normalizeVisibleMatchesV804(kList);
+    const sTotal = visibleSListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
+    const kTotal = visibleKListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
 
     const results: ChainResult[] =
       storeCompareScope === "within_chain" && withinChain
@@ -9003,11 +9007,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   : activeArea.kStoreName || "K-tavaratalo",
               detail: "Valittu tavaratalo",
               totalPrice: sTotal,
-              foundItems: sList.length,
-              missingItems: comparableCart.length - sList.length,
+              foundItems: visibleSListV804.length,
+              missingItems: comparableCart.length - visibleSListV804.length,
               offerCount: 0,
               icon: withinChain === "S" ? "🟢" : "🔴",
-              matches: sList,
+              matches: visibleSListV804,
             },
             {
               key: "k",
@@ -9017,17 +9021,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ? activeArea.sLocalStoreName || "S-lähikauppa"
                   : activeArea.kLocalStoreName || "K-lähikauppa",
               detail:
-                kList.length === 0
+                visibleKListV804.length === 0
                   ? "Tuotetta tai vastaavaa tuotetta ei löytynyt tästä kaupasta"
-                  : kList.some((match) => match.matchType === "name")
+                  : visibleKListV804.some((match) => match.matchType === "name")
                     ? "Vastaava tuote"
                     : "Sama tuote (EAN)",
               totalPrice: kTotal,
-              foundItems: kList.length,
-              missingItems: comparableCart.length - kList.length,
+              foundItems: visibleKListV804.length,
+              missingItems: comparableCart.length - visibleKListV804.length,
               offerCount: 0,
               icon: withinChain === "S" ? "🟢" : "🔴",
-              matches: kList,
+              matches: visibleKListV804,
             },
           ]
         : [
@@ -9037,11 +9041,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               storeName: activeStores.sStoreName,
               detail: "Oikea hinta valitusta S-kaupasta",
               totalPrice: sTotal,
-              foundItems: sList.length,
-              missingItems: comparableCart.length - sList.length,
+              foundItems: visibleSListV804.length,
+              missingItems: comparableCart.length - visibleSListV804.length,
               offerCount: 0,
               icon: "🟢",
-              matches: sList,
+              matches: visibleSListV804,
             },
             {
               key: "k",
@@ -9049,11 +9053,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               storeName: activeStores.kStoreName,
               detail: "Tarkka K-hinta: erikoistuotteet suodatetaan",
               totalPrice: kTotal,
-              foundItems: kList.length,
-              missingItems: comparableCart.length - kList.length,
+              foundItems: visibleKListV804.length,
+              missingItems: comparableCart.length - visibleKListV804.length,
               offerCount: 0,
               icon: "🔴",
-              matches: kList,
+              matches: visibleKListV804,
             },
             {
               key: "lidl",
