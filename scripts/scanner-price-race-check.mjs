@@ -54,8 +54,8 @@ console.log("Pirkka tortilla scanner routing simulation: PASS");
 // returned the same EAN with a 148-cent price. No substitute-brand match.
 const scannedTortilla = "6410405124517";
 const bankTortilla = "Pirkka täysjyvävehnätortilla 8kpl/320g";
-const shortened = bankTortilla.replace(/\\s+(?:\\d+\\s*(?:kpl|kpl\\/|g|kg|ml|l|pkt|pack|pcs)\\b.*|\\d+\\s*[x×]\\s*\\d+.*)$/i, "").trim();
-const genericShortened = shortened.replace(/^(?:pirkka(?: parhaat)?|k-menu)\\s+/i, "").trim();
+const shortened = bankTortilla.replace(/\s+(?:\d+\s*(?:kpl|kpl\/|g|kg|ml|l|pkt|pack|pcs)\b.*|\d+\s*[x×]\s*\d+.*)$/i, "").trim();
+const genericShortened = shortened.replace(/^(?:pirkka(?: parhaat)?|k-menu)\s+/i, "").trim();
 assert.equal(shortened, "Pirkka täysjyvävehnätortilla");
 assert.equal(genericShortened, "täysjyvävehnätortilla");
 const returnedByName = [{ean:scannedTortilla,price:148},{ean:"8410076472458",price:279}];
