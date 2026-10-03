@@ -3663,6 +3663,7 @@ export default function Page() {
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
   const [gostaTestedEmptyCategoriesV166, setGostaTestedEmptyCategoriesV166] = useState<Record<string, true>>({});
   const [gostaMasterOfferResultsV528, setGostaMasterOfferResultsV528] = useState<any[]>([]);
+  const [gostaContentTabV1, setGostaContentTabV1] = useState<"offers" | "campaigns">("offers");
   const gostaLastSearchContextKeyRefV532 = useRef("");
   const gostaSelectedStoresSignatureRefV534 = useRef("");
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
@@ -8719,8 +8720,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? gostaMasterOfferResultsV528
         : offerSearchResults;
 
-    return cleanZiiplyGostaOfferResultsV146(visibleSourceResults);
-  }, [offerSearchResults, offerCardFilterV106, gostaMasterOfferResultsV528]);
+    return cleanZiiplyGostaOfferResultsV146(visibleSourceResults.filter((item: any) =>
+      gostaContentTabV1 === "campaigns" ? item?.campaignType === "campaign" : item?.campaignType !== "campaign"
+    ));
+  }, [offerSearchResults, offerCardFilterV106, gostaMasterOfferResultsV528, gostaContentTabV1]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
@@ -8808,7 +8811,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // jolloin kahdesta kaupasta / lähteestä tulleet samat tarjoukset nostivat
     // tuoteryhmän lukemaa suuremmaksi kuin varsinainen avattu lista.
     const countSourceResults = gostaMasterOfferResultsV528.length > 0
-      ? cleanZiiplyGostaOfferResultsV146(gostaMasterOfferResultsV528)
+      ? cleanZiiplyGostaOfferResultsV146(gostaMasterOfferResultsV528.filter((item: any) =>
+          gostaContentTabV1 === "campaigns" ? item?.campaignType === "campaign" : item?.campaignType !== "campaign"
+        ))
       : cleanOfferSearchResultsV106;
 
     const countCardItems = dedupeGostaCardItemsV166(
@@ -8824,7 +8829,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     return counts;
-  }, [cleanOfferSearchResultsV106, gostaMasterOfferResultsV528]);
+  }, [cleanOfferSearchResultsV106, gostaMasterOfferResultsV528, gostaContentTabV1]);
 
   useEffect(() => {
     // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
@@ -22312,6 +22317,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
             showEurosparChain={Boolean(selectedChains.tokmanni && selectedEurosparStoreV751)}
             showTokmanniChain={Boolean(selectedChains.tokmanni && selectedTokmanniStoreV756)}
+            contentTab={gostaContentTabV1}
+            onContentTabChange={(tab: "offers" | "campaigns") => {
+              setGostaContentTabV1(tab);
+              handleGostaFilterChangeV136("");
+            }}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
