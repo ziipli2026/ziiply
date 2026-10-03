@@ -66,6 +66,66 @@ function validityText(from: unknown, until: unknown) {
 
 // Store-scoped structured JSON snapshot. Never wait for leaflet parsing in the
 // foreground request. In-flight calls are shared across concurrent warmup/search.
+// The structured feed is authoritative. Optional verified leaflet enrichment is
+// supplied separately; it must never overwrite an official offer or block it.
+export type LidlLeafletEnrichment = {
+  id: string;
+  name: string;
+  price: number;
+  priceBasis: "unit" | "per-kg" | "multi-buy-total" | "bundle";
+  validFrom: string;
+  validUntil: string;
+  source: "verified-official-leaflet";
+  eligibility: "open" | "lidl-plus" | "limited-batch" | "combination";
+  multiBuyQuantity?: number;
+};
+
+export function mergeLidlStructuredAndLeaflet(
+  structured: Record<string, any>[],
+  leaflet: LidlLeafletEnrichment[],
+  today: string,
+): Record<string, any>[] {
+  const output = [...structured];
+  const normalized = (name: string) => normalizeText(name).replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l)\\b/g, "").trim();
+  const existing = new Set(structured.map((item) => normalized(String(item.name || item.title || ""))));
+  for (const row of leaflet) {
+    if (row.source !== "verified-official-leaflet" || !row.id || !row.name ||
+        !Number.isFinite(row.price) || row.price <= 0 ||
+        !/^\\d{4}-\\d{2}-\\d{2}$/.test(row.validFrom) ||
+        !/^\\d{4}-\\d{2}-\\d{2}$/.test(row.validUntil) ||
+        today < row.validFrom || today > row.validUntil) continue;
+    if ((row.priceBasis === "multi-buy-total" || row.priceBasis === "bundle") &&
+        (!Number.isInteger(row.multiBuyQuantity) || (row.multiBuyQuantity || 0) < 2)) continue;
+    const nameKey = normalized(row.name);
+    if (!nameKey || existing.has(nameKey)) continue;
+    existing.add(nameKey);
+    output.push({
+      id: `lidl-leaflet-${row.id}`,
+      source: row.source,
+      chain: "Lidl",
+      title: row.name,
+      name: row.name,
+      price: row.price,
+      offerPrice: row.price,
+      priceText: formatPrice(row.price),
+      priceBasis: row.priceBasis,
+      isWeightedProduct: row.priceBasis === "per-kg",
+      hasConcretePrice: true,
+      validFrom: row.validFrom,
+      validUntil: row.validUntil,
+      validityText: validityText(row.validFrom, row.validUntil),
+      eligibility: row.eligibility,
+      requiresLidlPlus: row.eligibility === "lidl-plus",
+      ...(row.multiBuyQuantity ? { multiBuyQuantity: row.multiBuyQuantity, multiBuyTotalPrice: row.price } : {}),
+      category: classifyLidlOffer(row.name),
+      rawText: row.name,
+      // No inferred barcode, stock or checkout verification.
+      ean: "",
+    });
+  }
+  return output;
+}
+
 const LIDL_STRUCTURED_TTL_MS = 5 * 60 * 1000;
 const lidlStructuredCache = new Map<string, { expiresAt: number; promise: Promise<any[]> }>();
 
