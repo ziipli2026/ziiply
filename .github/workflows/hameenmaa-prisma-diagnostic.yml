@@ -1,0 +1,34 @@
+name: Hämeenmaa Prisma campaign gap diagnostic
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - diagnostic/hameenmaa-prisma-campaign-gap
+    paths:
+      - scripts/diagnose-hameenmaa-prisma.mts
+      - scripts/diagnose-prisma-campaign-pages.mts
+      - scripts/diagnose-prisma-provider.mts
+      - src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider.ts
+      - src/app/page.tsx
+      - src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx
+      - src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
+      - src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts
+      - .github/workflows/hameenmaa-prisma-diagnostic.yml
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Compare banner products against Hämeenlinna normal product lookup
+        run: npx --yes tsx scripts/diagnose-hameenmaa-prisma.mts
+      - name: Check Prisma campaign page EAN membership
+        run: npx --yes tsx scripts/diagnose-prisma-campaign-pages.mts
+      - name: Verify isolated Prisma campaign provider
+        run: npx --yes tsx scripts/diagnose-prisma-provider.mts
+      - name: Check TypeScript
+        run: npx tsc --noEmit

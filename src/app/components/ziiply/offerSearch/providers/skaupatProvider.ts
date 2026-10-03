@@ -2524,6 +2524,10 @@ export async function fetchSKaupatOffers(
  * Uses the same dynamically resolved pickup/store identity as Gösta, but does
  * not apply Gösta's offer-only filtering. Never borrows another store's price.
  */
+export async function resolvePrismaCampaignStoreIdV1(storeName: string): Promise<string | null> {
+  return getEffectiveSKaupatStoreIdV174({ storeName });
+}
+
 export async function fetchSKaupatNormalProductsV220(query: string, storeName: string) {
   if (!query.trim() || !storeName.trim()) return [];
   const storeId = await getEffectiveSKaupatStoreIdV174({ storeName });
