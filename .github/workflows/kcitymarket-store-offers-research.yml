@@ -118,8 +118,8 @@ jobs:
             throw Error(name+" response key missing");
           }
           (async()=>{
-            const stores=await data("stores",{businessIds:[businessId]});
-            const rows=Array.isArray(stores)?stores:(stores&&Array.isArray(stores.data)?stores.data:[]);
+            const stores=await data("stores",{businessId,pagination:{offset:0,limit:1000}});
+            const rows=stores&&Array.isArray(stores.data)?stores.data:[];
             const selected=rows.filter(s=>/hyvink/i.test([s.name,s.city,s.streetAddress,s.postalCode].join(" ")));
             console.log("CITYMARKET_TJEK_STORES "+JSON.stringify({total:rows.length,hyvinkaa:selected.map(s=>({id:s.id,name:s.name,city:s.city,streetAddress:s.streetAddress,postalCode:s.postalCode,coordinates:s.coordinates})),verifiedLocalOffers:false}));
             for(const store of selected){
