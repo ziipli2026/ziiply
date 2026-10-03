@@ -88,3 +88,52 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   }
   return output;
 }
+
+
+/** Optional national-publication photo index. Never imports Tjek prices or local campaigns. */
+export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,string>> {
+  const images=new Map<string,string>();
+  try {
+    const fronts=await tjek("fronts",{businessIds:[BUSINESS]});
+    const now=Date.now();
+    const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front =>
+      front && typeof front==="object" && Array.isArray((front as Row).publications)
+        ? (front as Row).publications as Row[] : [])
+      .filter(p=>{const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));
+        return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
+    const candidates=new Map<string,Set<string>>();
+    for(const publication of publications.slice(0,3)){
+      const publicationId=String(publication.id??"");
+      if(!publicationId)continue;
+      const seen=new Set<string>();
+      for(let page=1;page<=20;page++){
+        const response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(publicationId)+"/"+page,
+          {cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(12000)});
+        if(!response.ok)break;
+        const payload=await response.json() as Row;
+        const hotspots=Array.isArray(payload.hotspots)?payload.hotspots:[];
+        const ids=[...new Set(hotspots.map(h=>h&&typeof h==="object"&&((h as Row).offer)&&typeof (h as Row).offer==="object"
+          ? String(((h as Row).offer as Row).id??""):"").filter(Boolean))].filter(id=>!seen.has(id));
+        ids.forEach(id=>seen.add(id));
+        for(let offset=0;offset<ids.length;offset+=8){
+          const offers=await Promise.all(ids.slice(offset,offset+8).map(async id=>{
+            try{return await tjek("offer",{publicId:id}) as Row;}catch{return null;}
+          }));
+          for(const offer of offers){
+            if(!offer||String(offer.publicationPublicId??publicationId)!==publicationId)continue;
+            const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
+            const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
+            if(!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now)continue;
+            const key=normalize(offer.name),url=String(offer.imageLarge??offer.image??"");
+            if(!key||!/^https:\/\//i.test(url))continue;
+            const set=candidates.get(key)||new Set<string>();set.add(url);candidates.set(key,set);
+          }
+        }
+        if(!hotspots.length)break;
+      }
+    }
+    for(const [key,urls] of candidates)if(urls.size===1)images.set(key,[...urls][0]);
+    console.info("[K-Citymarket] national Tjek photo candidates",{publications:publications.length,uniqueImages:images.size});
+  }catch(error){console.warn("[K-Citymarket] optional national Tjek photo lookup unavailable",error);}
+  return images;
+}
