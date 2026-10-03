@@ -636,7 +636,10 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   const ean = normalizeGostaCoreText(anyItem?.ean || anyItem?.gtin || anyItem?.barcode || "");
 
-  if (ean) return `ean:${ean}`;
+  // CMS campaigns and discounted-master offers are independent tab datasets.
+  // The same EAN must survive once in each tab, not dedupe across tabs.
+  const sourceTab = anyItem?.campaignType === "campaign" ? "campaign" : "offer";
+  if (ean) return `${sourceTab}:ean:${ean}`;
 
   const title =
     item?.title || item?.name || item?.productName || "";
