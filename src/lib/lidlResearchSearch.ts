@@ -57,6 +57,7 @@ export function searchLidlResearch(query:string,limit=15){
     lidlProductId:String(90000000+i),name:r.name,variant:"",
     observedDate:"observedDate" in r && typeof r.observedDate==="string" ? r.observedDate : stapleEvidence.observedAt,
     assortmentEvidence:r.assortmentEvidence,
+    evidenceSource:r.source,
   }));
  return [...catalog.records,...independentlyNamed].filter(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantined.has(r.lidlProductId.trim()))
  .map(r=>{
@@ -83,6 +84,7 @@ export function searchLidlResearch(query:string,limit=15){
   observedUnitPriceText:"unitPriceText" in r ? r.unitPriceText ?? null : null,
   storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
   storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:"unverified",
+  evidenceSource:"evidenceSource" in r ? r.evidenceSource : null,
   assortmentEvidence:"assortmentEvidence" in r ? r.assortmentEvidence : "lidl-public-catalog-observation",
   note:"assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"
    ?"Lidl on ilmoittanut tuotteen valtakunnalliseen Ilona-valikoimaan. Paikallinen saatavuus ja hinta eivät ole vahvistettuja."
