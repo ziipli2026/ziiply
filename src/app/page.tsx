@@ -22326,7 +22326,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaContentTabV1 === "campaigns" ? {} : gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
-            emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
+            emptyText={gostaContentTabV1 === "campaigns" ? (offerShowingAllAreaOffersV106 ? "Valitun kaupan kampanjoita ei löytynyt vielä." : "Gösta ei löytänyt kampanjoita tälle rajaukselle.") : (offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle.")}
             kruokaDebug={gostaKruokaDebugV550}
             storeTraceV787={{
               storeMode,
