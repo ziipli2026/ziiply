@@ -1,0 +1,34 @@
+name: Gosta local tabs regression
+on:
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/**'
+      - '.github/workflows/gosta-local-tabs-regression.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - name: Check local campaigns and discounted routing
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const root='src/app/components/ziiply/offerSearch/';
+          const s=fs.readFileSync(root+'providers/skaupatLocalCampaignProvider.ts','utf8');
+          const k=fs.readFileSync(root+'providers/kruokaProvider.ts','utf8');
+          const router=fs.readFileSync(root+'ziiplyOfferSearchSources.ts','utf8');
+          const core=fs.readFileSync(root+'ziiplyOfferSearchCore.ts','utf8');
+          const check=(ok,msg)=>{if(!ok)throw Error(msg);console.log('PASS '+msg)};
+          check(/campaignType:\s*"campaign"/.test(s),'S-local CMS campaign marker');
+          check(/campaignType:\s*"campaign"/.test(k),'K-local leaflet campaign marker');
+          check(/sLocalDiscountedResults/.test(router),'S-local discounted source exists');
+          check(/\.\.\.sLocalDiscountedResults,[\s\S]*?\.\.\.sLocalCampaignResults/.test(router),'S-local discounted and CMS merged independently');
+          check(/campaignType === "campaign"/.test(core),'Gösta tab separation retained');
+          NODE
