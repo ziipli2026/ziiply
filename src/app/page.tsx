@@ -14213,7 +14213,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
-                persistCartImmediately(nextCart);
                 scheduleComparisonUpdate(nextCart);
                 return nextCart;
               });
@@ -14256,7 +14255,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
-                persistCartImmediately(nextCart);
                 scheduleComparisonUpdate(nextCart);
                 return nextCart;
               });
