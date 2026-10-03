@@ -98,6 +98,8 @@ try {
   assert.ok(basketCoverage.every(row => row.count <= 50), "Research cap exceeded");
   // These are evidence gaps, not permission to turn a recall or a generic food
   // category into a current Lidl SKU. Keep the distinction visible in CI.
+  // Lidl documents the category or supplier, but not a currently verified
+  // individual research SKU for these three terms.
   for (const query of ["kananmunat","voi","makaroni"]) {
     assert.equal(searchLidlResearch(query, 50).length, 0,
       "Review the source and exact product identity before lifting Lidl evidence gap: " + query);
