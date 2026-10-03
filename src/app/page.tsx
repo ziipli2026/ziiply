@@ -20828,12 +20828,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       </div>
                     </div>
 
-                    {eanScannerMessage && (
-                      <div className="mb-3 rounded-2xl bg-[#f2e3c4] px-4 py-3 text-sm font-black leading-snug text-[#4f4733] ring-1 ring-[#d8bd86]">
-                        {eanScannerMessage}
-                      </div>
-                    )}
-
                     {false && scannerDebugLinesV493.length > 0 && (
                       <pre className="mb-3 max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl bg-black px-4 py-3 text-left text-[11px] font-bold leading-snug text-lime-300 ring-2 ring-lime-500/60">
                         {`SKANNERI DEBUG V493\n${scannerDebugLinesV493.slice(-18).join("\n")}`}
