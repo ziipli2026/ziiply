@@ -15649,7 +15649,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart, { openCompare: false });
         mergedExistingV129 = true;
         return nextCart;
       }
@@ -15678,7 +15677,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextCart = [...baseCart, newItem];
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
-      void updateChainComparison(nextCart, { openCompare: false });
       return nextCart;
     });
 
