@@ -12,6 +12,7 @@ on:
       - src/app/page.tsx
       - src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx
       - src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
+      - src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts
       - .github/workflows/hameenmaa-prisma-diagnostic.yml
 jobs:
   check:
