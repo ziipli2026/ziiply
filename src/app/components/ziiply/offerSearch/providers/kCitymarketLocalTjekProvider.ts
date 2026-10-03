@@ -1,3 +1,4 @@
+import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -79,7 +80,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
           isPlussaOffer:member!=null,offerQuantity:quantity,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
-          category:"Muut",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
+          category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
       }
       }
       if(hotspots.length===0)break;
