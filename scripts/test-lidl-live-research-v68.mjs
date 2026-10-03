@@ -59,7 +59,7 @@ try {
     assert.deepEqual(rows, searchLidlResearch(query, 40), "Justiina ordering must be stable: " + query);
   }
   // Inflected/common singular forms should return the same Lidl research names.
-  for (const [variant, canonical] of [["jogurtit", "jogurtti"], ["kahvipapu", "kahvipavut"]]) {
+  for (const [variant, canonical] of [["kananmunat","kananmuna"],["perunat","peruna"],["banaanit","banaani"],["juustot","juusto"],["leivät","leipä"],["makaronit","makaroni"],["jogurtit", "jogurtti"], ["kahvipapu", "kahvipavut"],["korvapuustit","korvapuusti"],["riisipiirakat","riisipiirakka"],["kaurahiutale","kaurahiutaleet"]]) {
     assert.deepEqual(searchLidlResearch(variant, 50), searchLidlResearch(canonical, 50),
       "Lidl query form mismatch: " + variant + " -> " + canonical);
   }
