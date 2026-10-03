@@ -40,10 +40,10 @@ for(const order of [["S","K"],["K","S"]]){
 // K lookup checks EAN and exact barcode even if the first search is incomplete.
 const tortilla = "6410405124517";
 const bankName = "Pirkka Täysjyvävehnätortilla";
-const ownBrand = /^(pirkka|k-menu)\\b/i.test(bankName) ? "k" : "";
+const ownBrand = /^(pirkka|k-menu)\b/i.test(bankName) ? "k" : "";
 assert.equal(ownBrand, "k");
 assert.equal(ownBrand !== "k", false, "Pirkka must not wait for S enrichment");
-const generic = bankName.replace(/^(?:pirkka(?: parhaat)?|k-menu)\\s+/i, "").trim();
+const generic = bankName.replace(/^(?:pirkka(?: parhaat)?|k-menu)\s+/i, "").trim();
 assert.deepEqual([tortilla, bankName, generic], [tortilla, bankName, "Täysjyvävehnätortilla"]);
 const candidates = [{ean:"0000000000000",price:1.99},{ean:tortilla,price:2.49}];
 assert.equal(candidates.find(p=>p.ean===tortilla && p.price>0)?.price,2.49);
