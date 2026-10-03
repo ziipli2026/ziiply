@@ -1477,6 +1477,32 @@
       "recordKind": "lidl-named-product",
       "assortmentEvidence": "lidl-public-category-observation",
       "currentStoreStockVerified": false
+    },
+    {
+      "name": "Vitasia ramenkeitto",
+      "brand": "Vitasia",
+      "quantity": "400 g",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/kuivatuotteet/h10096095",
+      "observedDate": "2026-09-28",
+      "note": "Exact public category listing name; promotion/multipack does not verify individual SKU, current price or local stock. Research only.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Juustoportti pehmeä turkkilainen jogurtti 4 kpl",
+      "brand": "Juustoportti",
+      "quantity": "90 g (listing unit; multi-buy promotion)",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+      "observedDate": "2026-09-28",
+      "note": "Exact public category listing name; promotion/multipack does not verify individual SKU, current price or local stock. Research only.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
     }
   ]
 }
