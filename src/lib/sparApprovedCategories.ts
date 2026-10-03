@@ -29,3 +29,13 @@ export function filterApprovedSparGroceryItems<T extends { ean?: string }>(items
     return !(match?.classificationStatus === "approved" && match.productClass === "department_store");
   });
 }
+
+export function filterApprovedSparMilkCategory<T extends {ean?:string}>(items:T[],search:string,approved:ReadonlyMap<string,SparApprovedCategory>):T[] {
+  if(!/^(?:maito|maidot|maidon|maitoa)$/u.test(search.toLocaleLowerCase("fi-FI").trim()))return items;
+  return items.filter(item=>{
+    const match=approved.get(String(item.ean??""));
+    if(!match)return true;
+    if(match.productClass==="department_store")return false;
+    return !/^(?:Makeiset & keksit|Hygienia & kosmetiikka|Kodinhoito|Leipomo)$/u.test(match.ziiplyCategory);
+  });
+}
