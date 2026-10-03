@@ -126,6 +126,15 @@ jobs:
               const fronts=await data("fronts",{businessIds:[businessId],localBusinessIds:[store.id],coordinates:store.coordinates});
               const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front=>Array.isArray(front.publications)?front.publications:[]);
               console.log("CITYMARKET_TJEK_LOCAL_PUBLICATIONS "+JSON.stringify({storeId:store.id,storeName:store.name,publications:publications.map(p=>({id:p.id,label:p.label,validFrom:p.validFrom,validUntil:p.validUntil,localBusinessIds:p.localBusinessIds})),verifiedLocalOffers:false,note:"Publication metadata only; verify store membership and distinctness from national leaflet before importing."}));
+              for(const publication of publications){
+                const id=String(publication.id||"");
+                if(!id)continue;
+                const pageResponse=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(id)+"/1",{headers:{Accept:"application/json"},signal:AbortSignal.timeout(15000)});
+                const page=pageResponse.ok?await pageResponse.json():{};
+                const hotspots=Array.isArray(page.hotspots)?page.hotspots:[];
+                const ids=[...new Set(hotspots.map(h=>String(h?.offer?.id||"")).filter(Boolean))];
+                console.log("CITYMARKET_TJEK_PUBLICATION_PAGE "+JSON.stringify({storeId:store.id,publicationId:id,http:pageResponse.status,hotspotCount:hotspots.length,offerCount:ids.length,sampleOfferIds:ids.slice(0,5),verifiedLocalOffers:false}));
+              }
             }
           })().catch(error=>{console.error("CITYMARKET_TJEK_PROBE_ERROR",String(error));process.exitCode=1;});
           NODE
