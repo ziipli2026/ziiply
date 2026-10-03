@@ -57,7 +57,7 @@ jobs:
                 const type = response.headers.get("content-type") || "";
                 const html = response.ok && /html/i.test(type) ? (await response.text()).slice(0,300000) : "";
                 const title = html.match(/<title[^>]*>([^<]*)/i)?.[1] || "";
-                const marker = html.match(/[0-9]{1,2}(?:AV|LV)\\/26/i)?.[0] || null;
+                const marker = html.match(new RegExp("[0-9]{1,2}(?:AV|LV)/26", "i"))?.[0] || null;
                 const final = new URL(response.url);
                 const storeMarker = expectedStore ? new RegExp(expectedStore.replace(/-/g,"[-\\s]*"),"i").test(title + " " + html.slice(0,30000)) : false;
                 console.log("STORE_LEAFLET_EVIDENCE " + JSON.stringify({
