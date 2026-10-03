@@ -8,7 +8,7 @@
 // - Hinta ja Lisää-nappi oikeaan alakulmaan samalle linjalle.
 // - Lista on oma scrollialue.
 
-import React from "react";
+import React, { useState } from "react";
 
 export type ZiiplyMobileSearchResultProduct = {
   id?: string | number;
@@ -270,6 +270,7 @@ export default function ZiiplyMobileSearchResultsCard({
   onClose,
   onAddProduct,
 }: ZiiplyMobileSearchResultsCardProps) {
+  const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
   if (!open) return null;
 
   return (
@@ -349,13 +350,13 @@ export default function ZiiplyMobileSearchResultsCard({
                     className="relative flex items-start gap-3 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2.5 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
                   >
                     <div className="flex w-[5.8rem] shrink-0 flex-col items-center gap-1.5">
-                      <div className="flex h-[5.15rem] w-[5.15rem] items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]">
+                      <button type="button" onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className="flex h-[5.15rem] w-[5.15rem] items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]">
                         {image ? (
                           <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
                         ) : (
                           <span aria-hidden="true" className="text-[0.61rem] font-bold uppercase tracking-[0.08em] text-[#aa9b7d]">Ei kuvaa</span>
                         )}
-                      </div>
+                      </button>
                       <button
                         type="button"
                         onClick={() => onAddProduct?.(product)}
@@ -388,6 +389,32 @@ export default function ZiiplyMobileSearchResultsCard({
               })}
           </div>
         </div>
+        {expandedProduct && (
+          <div className="pointer-events-auto absolute inset-0 z-[80] flex items-center justify-center bg-[#1c251c]/60 p-3" role="dialog" aria-modal="true" aria-label="Suurennettu tuotenäkymä">
+            <div className="max-h-full w-full max-w-[26rem] overflow-y-auto rounded-[1.2rem] border-[3px] border-[#8c6934] bg-[#fffdf8] p-3 shadow-xl">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <strong className="text-[#123d32]">Tuotetiedot</strong>
+                <button type="button" onClick={() => setExpandedProduct(null)} aria-label="Sulje tuotenäkymä" className="rounded-lg border border-[#8c6934] px-3 py-1 font-black">✕</button>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex w-[7.5rem] shrink-0 flex-col gap-2">
+                  <div className="flex h-[7.5rem] items-center justify-center rounded-lg border border-[#e6dcc3] bg-[#faf5e9]">
+                    {getImage(expandedProduct) ? <img src={getImage(expandedProduct)} alt="" className="h-full w-full object-contain" /> : <span className="text-xs text-[#78633a]">Ei kuvaa</span>}
+                  </div>
+                  <button type="button" disabled={!onAddProduct} onClick={() => onAddProduct?.(expandedProduct)} className="flex min-h-[3.4rem] flex-col items-center justify-center rounded-lg border-2 border-[#496443] bg-[#dce8c3] px-1 text-[#087237] disabled:opacity-45">
+                    <strong className="text-lg">{expandedProduct.priceVerified === false || expandedProduct.product?.priceVerified === false ? "—" : formatMainPrice(pickRawPrice(expandedProduct), expandedProduct) || "—"}</strong>
+                    <span className="text-xs font-black text-[#244525]">🛒 Lisää koriin</span>
+                  </button>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="break-words font-black leading-tight text-[#123d32]">{getName(expandedProduct)}</div>
+                  {formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct)) && <div className="mt-2 text-sm text-[#78633a]">{formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct))}</div>}
+                  {(expandedProduct.ean || expandedProduct.product?.ean) && <div className="mt-2 break-all text-xs text-[#78633a]">EAN {String(expandedProduct.ean || expandedProduct.product?.ean)}</div>}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
