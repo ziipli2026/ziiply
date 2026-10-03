@@ -55,7 +55,7 @@ export function searchLidlResearch(query:string,limit=15){
     (((r.brand==="Ilona" || r.brand==="Myllykivi" || r.brand==="Combino" || (r.source==="https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras" && ["Jättikorvapuusti","Pakasteriisipiirakka"].includes(r.name))) && r.source.startsWith("https://corporate.lidl.fi/")) || (r.brand==="Ilona" && r.source.startsWith("https://www.sttinfo.fi/")) || (r.source.startsWith("https://www.lidl.fi/") && ["lidl-named-product","coffee-format-named","coffee-tea-variety-named"].includes(r.recordKind ?? "")) || (r.recordKind==="lidl-named-product" && (r.source.startsWith("https://corporate.lidl.fi/") || r.source.startsWith("https://www.sttinfo.fi/")))))
   .map(({r,i})=>({
     lidlProductId:String(90000000+i),name:r.name,variant:"",
-    observedDate:stapleEvidence.observedAt,
+    observedDate:"observedDate" in r && typeof r.observedDate==="string" ? r.observedDate : stapleEvidence.observedAt,
     assortmentEvidence:r.assortmentEvidence,
   }));
  return [...catalog.records,...independentlyNamed].filter(r=>typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantined.has(r.lidlProductId.trim()))
