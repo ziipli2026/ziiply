@@ -87,7 +87,8 @@ function formatComparePrice(value: unknown) {
   if (value == null || value === "") return "—";
 
   if (typeof value === "number" && Number.isFinite(value)) {
-    const euros = value;
+    // Comparison match prices use cents, just like store totalPrice.
+    const euros = value / 100;
     return `${euros.toFixed(2).replace(".", ",")} €`;
   }
 
@@ -97,7 +98,7 @@ function formatComparePrice(value: unknown) {
 
   const parsed = Number(raw.replace(/\s/g, "").replace(",", "."));
   if (Number.isFinite(parsed)) {
-    const euros = parsed;
+    const euros = parsed / 100;
     return `${euros.toFixed(2).replace(".", ",")} €`;
   }
 
