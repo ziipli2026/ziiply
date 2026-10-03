@@ -577,7 +577,13 @@ export async function warmZiiplyGostaOfferCacheV182(
   // Selection warmup deliberately reuses the exact same master-cache function
   // as the visible Gösta search. This means a later search gets the same
   // promise/data instead of starting a second provider request.
-  await fetchGostaMasterOfferResultsV156(context);
+  // Warm both tabs from the same in-flight master request. The Prisma CMS
+  // campaign provider runs alongside discounted offers in that master request;
+  // do not issue a second network request when preparing the campaign tab.
+  const masterResults = await fetchGostaMasterOfferResultsV156(context);
+  const campaigns = masterResults.filter((item) => (item as any)?.campaignType === "campaign");
+  const offers = masterResults.filter((item) => (item as any)?.campaignType !== "campaign");
+  return { offers, campaigns };
 }
 
 
