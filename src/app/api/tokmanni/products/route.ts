@@ -175,6 +175,8 @@ async function fetchHtmlFallbackProducts(search: string) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = String(searchParams.get("search") || "").trim();
+  // Preserve the user intent when the client expands the provider query into aliases.
+  const intent = String(searchParams.get("intent") || search).trim();
   if (!search) return NextResponse.json({ source: "tokmanni-klevu", items: [] });
 
   let items: any[] = [];
@@ -214,6 +216,6 @@ export async function GET(request: Request) {
       })),
   ));
 
-  const categorizedItems = applyApprovedSparCategories(filterApprovedSparGroceryItems(filterApprovedSparMilkCategory(filterSparMilkQuery(items, search), search, SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX);
+  const categorizedItems = applyApprovedSparCategories(filterApprovedSparGroceryItems(filterApprovedSparMilkCategory(filterSparMilkQuery(items, intent), intent, SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX);
   return NextResponse.json({ source, status: 200, items: categorizedItems, klevuError: klevuError || undefined });
 }

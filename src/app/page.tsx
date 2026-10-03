@@ -6749,9 +6749,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return Array.isArray(data?.items) ? (data.items as Product[]) : [];
   }
 
-  async function fetchTokmanniProductsV761(search: string): Promise<Product[]> {
+  async function fetchTokmanniProductsV761(search: string, originalTerm = search): Promise<Product[]> {
     const response = await fetch(
-      `/api/tokmanni/products?search=${encodeURIComponent(search)}`,
+      `/api/tokmanni/products?search=${encodeURIComponent(search)}&intent=${encodeURIComponent(originalTerm)}`,
       { cache: "no-store" },
     );
     if (!response.ok) return [];
@@ -11850,7 +11850,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             // Tokmanni.fi carries the online SPAR assortment too. For a selected
             // EUROSPAR this is intentionally the online SPAR/Tokmanni subset,
             // not a claim that the whole physical EUROSPAR assortment is indexed.
-            rawItems = await fetchTokmanniProductsV761(searchQuery);
+            rawItems = await fetchTokmanniProductsV761(searchQuery, term);
           } else if (withinChainK || betweenSingleK) {
             const kPrimaryStoreId = withinChainK ? activeArea.kStoreId : activeStores.kStoreId;
             usedStoreName = withinChainK ? activeArea.kStoreName || "K-tavaratalo" : activeStores.kStoreName;
