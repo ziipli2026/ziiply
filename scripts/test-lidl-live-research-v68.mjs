@@ -124,6 +124,20 @@ try {
     assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
       "Dated Lidl dairy research observation missing or priced: " + expected);
   }
+  // One batch covers the fifteen official dry-grocery category observations.
+  for (const [query, expected] of [
+    ["nuudeli", "MAMA Nuudeli 6-pack"], ["snack pot", "KNORR Snack Pot"],
+    ["kuppinuudeli", "NISSIN Kuppinuudeli 4 kpl"], ["sushiriisi", "Vitasia sushiriisi"],
+    ["udonnuudeli", "Vitasia maustettu udonnuudeli"], ["ramen", "Vitasia Udon- tai Ramen-nuudeli"],
+    ["sobanuudelit", "Vitasia sobanuudelit"], ["pankojauho", "SamLip pankojauho"],
+    ["misokeitto", "Vitasia misokeitto"], ["sushi inkivääri", "Vitasia sushi-inkivääri"],
+    ["maustekurkut", "Kuljanka maustekurkut etikkaliemessä"], ["hapankurkku", "Kuljanka hapankurkku"],
+    ["gulassikeitto", "Kuljanka gulassikeitto"], ["ajvar", "Kuljanka ajvar-paprikatahna"],
+    ["hapankaali", "Kuljanka hapankaali"],
+  ]) {
+    assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
+      "Official Lidl dry-grocery research candidate missing or priced: " + expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
