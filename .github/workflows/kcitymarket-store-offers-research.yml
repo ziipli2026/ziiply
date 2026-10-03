@@ -102,6 +102,33 @@ jobs:
             console.log("LEAFLET_PUBLICATION_SCOPE_AUDIT "+JSON.stringify({landingStatus:landing.status,publicationUrl:publication?.href||null,evidence,verifiedStoreIdentity,note:"Text markers and publication URL alone are not proof of selected-store offer scope."}));
           })().catch(error => {console.error("LEAFLET_PUBLICATION_SCOPE_AUDIT_ERROR",String(error));process.exitCode=1;});
           NODE
+      - name: Probe Tjek Citymarket store-scoped publications
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const origin="https://etarjouslehdet.fi/";
+          const businessId="38d088";
+          const stable=value=>JSON.stringify(value,(_key,v)=>v&&Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((out,k)=>(out[k]=v[k],out),{}):v);
+          async function data(name,params){
+            const key=Buffer.from(stable([name,params]),"utf8").toString("base64");
+            const response=await fetch(origin,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:origin+"K-Citymarket"},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(15000)});
+            if(!response.ok)throw Error(name+" HTTP "+response.status);
+            for(const line of (await response.text()).split(/\r?\n/).filter(Boolean)){try{const item=JSON.parse(line);if(item.key===key)return item.value;}catch{}}
+            throw Error(name+" response key missing");
+          }
+          (async()=>{
+            const stores=await data("stores",{businessIds:[businessId]});
+            const rows=Array.isArray(stores)?stores:(stores&&Array.isArray(stores.data)?stores.data:[]);
+            const selected=rows.filter(s=>/hyvink/i.test([s.name,s.city,s.streetAddress,s.postalCode].join(" ")));
+            console.log("CITYMARKET_TJEK_STORES "+JSON.stringify({total:rows.length,hyvinkaa:selected.map(s=>({id:s.id,name:s.name,city:s.city,streetAddress:s.streetAddress,postalCode:s.postalCode,coordinates:s.coordinates})),verifiedLocalOffers:false}));
+            for(const store of selected){
+              const fronts=await data("fronts",{businessIds:[businessId],localBusinessIds:[store.id],coordinates:store.coordinates});
+              const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front=>Array.isArray(front.publications)?front.publications:[]);
+              console.log("CITYMARKET_TJEK_LOCAL_PUBLICATIONS "+JSON.stringify({storeId:store.id,storeName:store.name,publications:publications.map(p=>({id:p.id,label:p.label,validFrom:p.validFrom,validUntil:p.validUntil,localBusinessIds:p.localBusinessIds})),verifiedLocalOffers:false,note:"Publication metadata only; verify store membership and distinctness from national leaflet before importing."}));
+            }
+          })().catch(error=>{console.error("CITYMARKET_TJEK_PROBE_ERROR",String(error));process.exitCode=1;});
+          NODE
       - name: Probe Edut route store identity without importing offers
         shell: bash
         run: |
