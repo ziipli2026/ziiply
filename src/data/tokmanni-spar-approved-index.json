@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "source": "reviewed-approvals",
+  "neonWrites": 0,
+  "items": [
+    {
+      "ean": "6420256016237",
+      "productClass": "daily",
+      "ziiplyCategory": "Makeiset & keksit",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6420256914373",
+      "productClass": "daily",
+      "ziiplyCategory": "Makeiset & keksit",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6410500090014",
+      "productClass": "daily",
+      "ziiplyCategory": "Leipomo",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6411402976802",
+      "productClass": "daily",
+      "ziiplyCategory": "Leipomo",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6411402979902",
+      "productClass": "daily",
+      "ziiplyCategory": "Leipomo",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6430039222342",
+      "productClass": "daily",
+      "ziiplyCategory": "Kuivatuotteet",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6438565137550",
+      "productClass": "daily",
+      "ziiplyCategory": "Kodinhoito",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "8001090131294",
+      "productClass": "daily",
+      "ziiplyCategory": "Hygienia & kosmetiikka",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "8720181027741",
+      "productClass": "daily",
+      "ziiplyCategory": "Hygienia & kosmetiikka",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    },
+    {
+      "ean": "6430039223172",
+      "productClass": "daily",
+      "ziiplyCategory": "Kuivatuotteet",
+      "classificationStatus": "approved",
+      "classificationEvidence": "Existing explicitly reviewed Tokmanni EAN allowlist: scripts/tokmanni-approved-ean-preview.sql"
+    }
+  ]
+}

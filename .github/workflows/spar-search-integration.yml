@@ -1,0 +1,20 @@
+name: SPAR search integration check
+on:
+  push:
+    branches: [fix/spar-search-current-main]
+  pull_request:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install --no-save --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: node scripts/tokmanni-spar-approved-index-contract-check.mjs
+      - run: node scripts/tokmanni-spar-runtime-regression-check.mjs
+      - run: node scripts/tokmanni-spar-milk-search-check.mjs
