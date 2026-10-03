@@ -73,7 +73,7 @@ export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
   // Explicit non-food types precede generic matches (e.g. pussilakanasetti contains "kana").
-  if(/pussilakana|lakanasetti|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|\\bsaappaat\\b|\\bkengät\\b|\\bvalaisin\\b|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypuss|rikkasetti|ruusukimppu|terttuneilikka|\\berika\\b|lankaköynnös/.test(s)) return "Koti & vapaa-aika";
+  if(/pussilakana|lakanasetti|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|saappaat|kengät|valaisin|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypuss|rikkasetti|ruusukimppu|terttuneilikka|erika|lankaköynnös/.test(s)) return "Koti & vapaa-aika";
   if(/konetiskitablet|astianpesutablet|\\bfairy\\b/.test(s)) return "Kodinhoito";
   if(/kangasnaamio|kasvonaamio/.test(s)) return "Hygienia & kosmetiikka";
   if(/katkarav|jättikatkarav/.test(s)) return "Kala";
