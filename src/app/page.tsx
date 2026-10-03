@@ -5950,7 +5950,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!storeModeChosenV299 && !independentOfferStoreReadyV766) return;
     // Manual S/K selections are stable before the boot GPS refresh settles.
     // Only warm explicitly locked stores early; never warm a stale GPS snapshot.
-    const pendingBootGpsV792 = storeModeChosenV299 && !bootGpsRefreshSettledV785;
+    const pendingBootGpsV792 = storeModeChosenV299 && usingOwnLocation && !bootGpsRefreshSettledV785;
     const manualWarmSStoreV792 = pendingBootGpsV792 ? getManualStoreOverrideV786("S", storeMode) : null;
     const manualWarmKStoreV792 = pendingBootGpsV792 ? getManualStoreOverrideV786("K", storeMode) : null;
     if (pendingBootGpsV792 && !manualWarmSStoreV792 && !manualWarmKStoreV792 && !independentOfferStoreReadyV766) return;
