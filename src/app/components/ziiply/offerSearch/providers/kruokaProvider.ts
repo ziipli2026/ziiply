@@ -474,7 +474,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     storeId: displayStoreId, storeName: displayStoreName, storeLabel: displayStoreName,
     chain: "K", source: "etarjouslehdet", provider: "kruoka", offerId,
     // Tjek publication entries belong to the campaign/leaflet tab.
-    campaignType: "campaign",
+    campaignType: offer.ziiplySourceTab === "offer" ? "offer" : "campaign",
     additionalInfo: offer.description ?? null,
     benefitText: isPlussa ? "Plussa-tarjous" : app != null ? "Mobiilitarjous" : undefined,
     validityText: validityText(offer.validUntil),
@@ -527,21 +527,32 @@ export async function fetchKruokaOffers(
       }
     }
 
-    const offersValue = await fetchTjekData("offers", {
-      businessIds: [business.businessId],
-      sources: ["publication", "business_product"],
-      pagination: { limit: 1000, offset: 0 },
-      sort: ["score_desc"],
-    }, business.slug);
-
-    const baseOffers = dataArray(offersValue);
-    const offers = [...baseOffers];
-    const knownOfferIds = new Set(baseOffers.map(o => String(o.publicId ?? "")).filter(Boolean));
+    // Query each Tjek source independently: the mixed request loses provenance.
+    // Publication/leaflet entries are campaigns; business_product entries are
+    // offer candidates, but still pass the existing selected-store publication gate.
+    const [publicationValue, businessProductValue] = await Promise.all([
+      fetchTjekData("offers", {
+        businessIds: [business.businessId],
+        sources: ["publication"],
+        pagination: { limit: 1000, offset: 0 },
+        sort: ["score_desc"],
+      }, business.slug),
+      fetchTjekData("offers", {
+        businessIds: [business.businessId],
+        sources: ["business_product"],
+        pagination: { limit: 1000, offset: 0 },
+        sort: ["score_desc"],
+      }, business.slug),
+    ]);
+    const publicationOffers = dataArray(publicationValue).map(o => ({ ...o, ziiplySourceTab: "campaign" }));
+    const businessProductOffers = dataArray(businessProductValue).map(o => ({ ...o, ziiplySourceTab: "offer" }));
+    const offers = [...publicationOffers, ...businessProductOffers];
+    const knownOfferIds = new Set(publicationOffers.map(o => String(o.publicId ?? "")).filter(Boolean));
     for (const offer of regionalOffers) {
       const id = String(offer.publicId ?? "");
       if (!id || knownOfferIds.has(id)) continue;
       knownOfferIds.add(id);
-      offers.push(offer);
+      offers.push({ ...offer, ziiplySourceTab: "campaign" });
     }
     debug.brochureOffers = offers.length;
     debug.fetchOffersHttp = 200;
@@ -684,7 +695,7 @@ export async function fetchKruokaOffers(
         offer, index, ziiplyStoreId || tjekStoreId, displayStoreName, business.chain, business.slug
       );
       if (!mapped || !matchesQuery(mapped, query)) continue;
-      const key = String((mapped as unknown as UnknownRecord).offerId ?? mapped.id);
+      const key = `${String(offer.ziiplySourceTab ?? "campaign")}|${String((mapped as unknown as UnknownRecord).offerId ?? mapped.id)}`;
       if (seen.has(key)) continue;
       seen.add(key);
       results.push(mapped);
