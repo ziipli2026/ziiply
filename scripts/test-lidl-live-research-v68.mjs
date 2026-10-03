@@ -108,7 +108,7 @@ try {
   for (const [query, expected] of [
     ["salaatti","Chef Select perunasalaatti 1 kg"],
     ["keitto","Kuljanka Lihakeitto"],
-    ["ketsuppi","Kania tomaattiketsuppi light 530 g"],
+    ["ketsuppi","Kania tomaattiketsuppi light, 530 g"],
     ["majoneesi","Kania herkkumajoneesi 472 g"],
     ["öljy","Primadonna extra-neitsytoliiviöljy 750 ml"],
     ["limonadi","Freeway ananaslimonadi sokeriton 1,5 l"],
