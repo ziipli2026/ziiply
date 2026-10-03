@@ -848,15 +848,15 @@ export async function searchZiiplyOffers(
   // V32: S-providerit ovat toisensa poissulkevia valitun kaupan perusteella.
   // Prisma -> vanha V216-polku. S-market/Alepa/Sale -> local campaign -polku.
   // Tärkeää: V216:ta ei kutsuta tyhjällä Prisma-kontekstilla.
-  const sKaupatResults = providerScopeV10.useS && hasSelectedPrismaV32
+  const [sKaupatResults, prismaCampaignResults] = await Promise.all([ 
+     providerScopeV10.useS && hasSelectedPrismaV32
     ? await safelySearchSource(
         isGostaMasterQuery ? "Prisma S-kaupat master V32" : "Prisma S-kaupat V32",
         () => searchSelectedSKaupatOffersV11(cleanQuery, providerOptions),
       )
-    : [];
-
+    : [],
   // Independent Prisma CMS campaign dataset, kept distinct from DISCOUNTED offers.
-  const prismaCampaignResults = providerScopeV10.useS && hasSelectedPrismaV32
+     providerScopeV10.useS && hasSelectedPrismaV32
     ? await safelySearchSource(
         isGostaMasterQuery ? "Prisma CMS campaigns master V1" : "Prisma CMS campaigns V1",
         async () => {
@@ -869,7 +869,8 @@ export async function searchZiiplyOffers(
           return results;
         },
       )
-    : [];
+    : [],
+  ]);
 
   const sLocalCampaignResults = providerScopeV10.useS && hasSelectedSLocalV32
     ? await safelySearchSource(
