@@ -681,7 +681,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
             const found=tokens(name);
             if(found.size<2)return false;
             const common=[...wanted].filter(word=>found.has(word)).length;
-            return common>=2 && common/wanted.size>=0.8 && common/found.size>=0.8;
+            return common>=2 && common===Math.min(wanted.size,found.size) && Math.abs(wanted.size-found.size)<=1;
           });
           // Never attach a guessed photo if more than one distinct product matches.
           const unique=[...new Set(candidates.map(([,image])=>image))];
