@@ -673,7 +673,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
           const decoded=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
           raw=decoded;
         }catch{
-          raw=raw.replace(/Ã„/g,"Ä").replace(/Ã¤/g,"ä").replace(/Ã–/g,"Ö").replace(/Ã¶/g,"ö").replace(/Ã…/g,"Å").replace(/Ã¥/g,"å");
+          raw=raw.replace(/Ã„/g,"Ä").replace(/Ã¤/g,"ä").replace(/Ã–/g,"Ö").replace(/Ã¶/g,"ö").replace(/Ã…/g,"Å").replace(/Ã¥/g,"å").replace(/Ã¼/g,"ü").replace(/Ã¥/g,"å");
         }
       }
       return raw;
@@ -682,7 +682,10 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const packageMatch=(value:string)=>norm(value).match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
     const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma"]);
     const tokens=(value:string)=>{
-      const cleaned=repair(value).replace(/\([^)]*\/\s*(?:kg|l)[^)]*\)/gi," ").replace(/\([^)]*\)/g," ").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/gi," ");
+      const cleaned=repair(value)
+        .replace(/\\b(?:Spannmålsfritt|Portionsaskar|Airfry-produkter|Godisask|Alkoholfri|Träbaserad|Mywear friluftskläder)\\b.*$/i," ")
+        .replace(/\\b(?:Suomi|Peru|Kolombia|Marokko|Espanja)(?:\\s*\\/\\s*(?:Peru|Kolombia|Marokko|Espanja))*\\b/gi," ")
+        .replace(/\([^)]*\/\s*(?:kg|l)[^)]*\)/gi," ").replace(/\([^)]*\)/g," ").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/gi," ");
       return new Set(norm(cleaned).split(" ").filter(word=>word.length>=4&&!stop.has(word)));
     };
     let matched=0,exact=0,similar=0,ambiguous=0,unmatched=0;
