@@ -116,7 +116,7 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
         return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
     // The public Tjek business page embeds its current publication list. It is a
     // fallback when the geography-dependent fronts discovery misses national leaflets.
-    if(!publications.length){
+    {
       try{
         const page=await fetch(ORIGIN+"K-Citymarket",{cache:"no-store",signal:AbortSignal.timeout(12000)});
         if(page.ok){
