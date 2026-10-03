@@ -694,7 +694,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       if(!url){
         const wanted=tokens(offer.title);
         const wantedSize=packageMatch(offer.packageSize||offer.title);
-        if(wanted.size>=2){
+        if(wanted.size>=1){
           const candidates=[...photos.entries()].filter(([name])=>{
             const foundSize=packageMatch(name);
             if(wantedSize && foundSize && foundSize!==wantedSize)return false;
