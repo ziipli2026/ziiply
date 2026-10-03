@@ -73,6 +73,35 @@ jobs:
             }
           })();
           NODE
+      - name: Audit leaflet publication store identity independently
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const allowed = new Set(["kcm-lehdet.k-ruoka.fi", "kcm-tarjouslehdet.k-ruoka.fi"]);
+          async function get(url) {
+            const response = await fetch(url, {redirect:"follow",signal:AbortSignal.timeout(15000)});
+            const final = new URL(response.url);
+            if (final.protocol !== "https:" || !allowed.has(final.hostname)) throw Error("Unexpected publication host");
+            return {url:response.url,status:response.status,html:response.ok ? await response.text() : ""};
+          }
+          (async () => {
+            const landing = await get("https://kcm-lehdet.k-ruoka.fi/tarjouslehti");
+            const hrefs = [...landing.html.matchAll(/href=["']([^"'<>]+)["']/gi)]
+              .map(match => { try {return new URL(match[1].replace(/&amp;/g,"&"),landing.url);} catch {return null;} })
+              .filter(link => link && link.protocol === "https:" && allowed.has(link.hostname));
+            const publication = hrefs.find(link => /\/index[.]html$/i.test(link.pathname));
+            const pages = publication ? [await get(publication.href), await get(new URL("files/basic-html/index.html",publication.href).href)] : [];
+            const evidence = pages.map(page => {
+              const title = page.html.match(/<title[^>]*>([^<]*)/i)?.[1] || "";
+              const storeSlugs = [...new Set([...page.html.matchAll(/k-citymarket-[a-z0-9-]+/gi)].map(match => match[0].toLowerCase()))].slice(0,25);
+              const canonical = page.html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)/i)?.[1] || null;
+              return {url:page.url,status:page.status,title,canonical,storeSlugs,containsHyvinkaa:/citymarket[ -]hyvink/i.test(page.html),containsJumbo:/citymarket[ -](?:vantaa[ -])?jumbo/i.test(page.html)};
+            });
+            const verifiedStoreIdentity = false;
+            console.log("LEAFLET_PUBLICATION_SCOPE_AUDIT "+JSON.stringify({landingStatus:landing.status,publicationUrl:publication?.href||null,evidence,verifiedStoreIdentity,note:"Text markers and publication URL alone are not proof of selected-store offer scope."}));
+          })().catch(error => {console.error("LEAFLET_PUBLICATION_SCOPE_AUDIT_ERROR",String(error));process.exitCode=1;});
+          NODE
       - name: Probe Edut route store identity without importing offers
         shell: bash
         run: |
