@@ -2356,140 +2356,123 @@ async function fetchSKaupatRemoteFilteredProductsV170(
     });
     const pageStep = 48;
     const maxPages = 25;
-    const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
     const pages: ZiiplyOfferSearchResult[][] = [];
 
-    for (const offset of pageOffsets) {
-      try {
-        const page = await fetchSKaupatRemoteFilteredProductsPageV170(
-          query,
-          config,
-          offset,
-          selectedStore.storeId,
-          discountedOnly,
-          selectedStore.storeName,
-        );
+    // V236: page 0 is fetched first to learn the real total. The remaining
+    // independent pages are then fetched in small parallel batches instead of
+    // waiting for up to 25 sequential network round-trips.
+    try {
+      let firstPage = await fetchSKaupatRemoteFilteredProductsPageV170(
+        query, config, 0, selectedStore.storeId, discountedOnly, selectedStore.storeName,
+      );
 
-        // V225: current-first Prisma fallback. Never replace a working current ID.
-        // Only a zero RAW product response on the first DISCOUNTED page may trigger
-        // the separately verified safe pickup resolver.
-        if (
-          offset === 0 &&
-          discountedOnly &&
-          page.rawCount === 0 &&
-          /^prisma\b/i.test(selectedStore.storeName)
-        ) {
-          const fallbackStoreId = await resolveSafePrismaFallbackStoreIdV225(
-            selectedStore.storeName,
-            selectedStore.storeId,
+      if (discountedOnly && firstPage.rawCount === 0 && /^prisma\b/i.test(selectedStore.storeName)) {
+        const fallbackStoreId = await resolveSafePrismaFallbackStoreIdV225(
+          selectedStore.storeName, selectedStore.storeId,
+        );
+        if (fallbackStoreId && fallbackStoreId !== selectedStore.storeId) {
+          const fallbackIdentity = await verifySelectedSOfferStoreV230(
+            selectedStore.storeName, fallbackStoreId,
           );
-          if (fallbackStoreId && fallbackStoreId !== selectedStore.storeId) {
-            // V231: the first ID was verified before pagination, but a fallback
-            // changes the actual offer source. Verify that new ID independently.
-            const fallbackIdentityV231 = await verifySelectedSOfferStoreV230(
-              selectedStore.storeName, fallbackStoreId,
-            );
-            if (fallbackIdentityV231.status === "mismatch") {
-              console.error("[GOSTA V231] blocked mismatched fallback offer store", {
-                storeName: selectedStore.storeName, fallbackStoreId,
-                pickupName: fallbackIdentityV231.pickupName,
-              });
-              zeroResultDiagnosticsV208.push(`V231 FALLBACK_STORE_ID_MISMATCH: ${selectedStore.storeName} / ${fallbackStoreId}`);
-              continue;
-            }
+          if (fallbackIdentity.status !== "mismatch") {
             const fallbackPage = await fetchSKaupatRemoteFilteredProductsPageV170(
-              query,
-              config,
-              offset,
-              fallbackStoreId,
-              discountedOnly,
-              selectedStore.storeName,
+              query, config, 0, fallbackStoreId, discountedOnly, selectedStore.storeName,
             );
             if (fallbackPage.rawCount > 0) {
               selectedStore.storeId = fallbackStoreId;
-              pages.push(fallbackPage.results);
-              zeroResultDiagnosticsV208.push(
-                `V225 current-first fallback activated: current=0 fallbackStoreId=${fallbackStoreId} raw=${fallbackPage.rawCount}`,
-              );
-              if (fallbackPage.total > 0 && pageStep >= fallbackPage.total) break;
-              continue;
+              firstPage = fallbackPage;
             }
           }
         }
-
-        pages.push(page.results);
-
-        if (offset === 0) {
-          zeroResultDiagnosticsV208.push(
-            [
-              `resolvedStoreId=${selectedStore.storeId}`,
-              `resolvedStoreName=${selectedStore.storeName || "-"}`,
-              `httpStatus=${page.httpStatus}`,
-              `raw=${page.rawCount}`,
-              `mapped=${page.results.length}`,
-              `total=${page.total}`,
-              `from=${page.from}`,
-              `limit=${page.limit}`,
-            ].join(" | "),
-          );
-        }
-
-        const pageEansV203 = new Set(
-          page.results
-            .map((item) => firstString((item as any).ean, (item as any).gtin, (item as any).barcode))
-            .filter(Boolean)
-            .map((value) => normalizeText(value)),
-        );
-
-        paginationTraceV203.push(
-          [
-            `store=${selectedStore.storeId}`,
-            `req=${offset}`,
-            `resp=${page.from}`,
-            `raw=${page.rawCount}`,
-            `mapped=${page.results.length}`,
-            `uniqueEAN=${pageEansV203.size}`,
-            `total=${page.total}`,
-            `limit=${page.limit}`,
-          ].join(","),
-        );
-
-        console.warn("[GOSTA PAGINATION V203]", {
-          query,
-          requestedFrom: offset,
-          responseFrom: page.from,
-          rawCount: page.rawCount,
-          mappedOfferCount: page.results.length,
-          uniqueEanCount: pageEansV203.size,
-          total: page.total,
-          limit: page.limit,
-          discountedOnly,
-          selectedStoreId: selectedStore.storeId,
-          selectedStoreName: selectedStore.storeName,
-        });
-
-        if (page.rawCount === 0) break;
-        if (page.total > 0 && offset + pageStep >= page.total) break;
-        if (page.rawCount < pageStep && page.total === 0) break;
-      } catch (error) {
-        if (offset === 0) {
-          zeroResultDiagnosticsV208.push(
-            [
-              `resolvedStoreId=${selectedStore.storeId}`,
-              `resolvedStoreName=${selectedStore.storeName || "-"}`,
-              "httpStatus=ERROR",
-              `error=${error instanceof Error ? error.message : String(error)}`,
-            ].join(" | "),
-          );
-        }
-        paginationTraceV203.push(
-          `store=${selectedStore.storeId},req=${offset},ERROR=${error instanceof Error ? error.message : String(error)}`,
-        );
-        console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
-        break;
       }
-    }
 
+      pages.push(firstPage.results);
+      zeroResultDiagnosticsV208.push([
+        "resolvedStoreId=" + selectedStore.storeId,
+        "resolvedStoreName=" + (selectedStore.storeName || "-"),
+        "httpStatus=" + firstPage.httpStatus,
+        "raw=" + firstPage.rawCount,
+        "mapped=" + firstPage.results.length,
+        "total=" + firstPage.total,
+        "from=" + firstPage.from,
+        "limit=" + firstPage.limit,
+      ].join(" | "));
+
+      const firstPageEans = new Set(
+        firstPage.results
+          .map((item) => firstString((item as any).ean, (item as any).gtin, (item as any).barcode))
+          .filter(Boolean)
+          .map((value) => normalizeText(value)),
+      );
+      paginationTraceV203.push([
+        "store=" + selectedStore.storeId,
+        "req=0",
+        "resp=" + firstPage.from,
+        "raw=" + firstPage.rawCount,
+        "mapped=" + firstPage.results.length,
+        "uniqueEAN=" + firstPageEans.size,
+        "total=" + firstPage.total,
+        "limit=" + firstPage.limit,
+      ].join(","));
+
+      const totalPages = firstPage.total > 0
+        ? Math.min(maxPages, Math.ceil(firstPage.total / pageStep))
+        : (firstPage.rawCount >= pageStep ? maxPages : 1);
+      const offsets = Array.from(
+        { length: Math.max(0, totalPages - 1) },
+        (_, index) => (index + 1) * pageStep,
+      );
+
+      const concurrency = 5;
+      for (let batchStart = 0; batchStart < offsets.length; batchStart += concurrency) {
+        const batch = offsets.slice(batchStart, batchStart + concurrency);
+        const batchPages = await Promise.all(batch.map(async (offset) => {
+          try {
+            const page = await fetchSKaupatRemoteFilteredProductsPageV170(
+              query, config, offset, selectedStore.storeId, discountedOnly, selectedStore.storeName,
+            );
+            const pageEans = new Set(
+              page.results
+                .map((item) => firstString((item as any).ean, (item as any).gtin, (item as any).barcode))
+                .filter(Boolean)
+                .map((value) => normalizeText(value)),
+            );
+            paginationTraceV203.push([
+              "store=" + selectedStore.storeId,
+              "req=" + offset,
+              "resp=" + page.from,
+              "raw=" + page.rawCount,
+              "mapped=" + page.results.length,
+              "uniqueEAN=" + pageEans.size,
+              "total=" + page.total,
+              "limit=" + page.limit,
+            ].join(","));
+            return page;
+          } catch (error) {
+            paginationTraceV203.push(
+              "store=" + selectedStore.storeId + ",req=" + offset + ",ERROR=" +
+              (error instanceof Error ? error.message : String(error)),
+            );
+            return null;
+          }
+        }));
+        for (const page of batchPages) {
+          if (page) pages.push(page.results);
+        }
+      }
+    } catch (error) {
+      zeroResultDiagnosticsV208.push([
+        "resolvedStoreId=" + selectedStore.storeId,
+        "resolvedStoreName=" + (selectedStore.storeName || "-"),
+        "httpStatus=ERROR",
+        "error=" + (error instanceof Error ? error.message : String(error)),
+      ].join(" | "));
+      paginationTraceV203.push(
+        "store=" + selectedStore.storeId + ",req=0,ERROR=" +
+        (error instanceof Error ? error.message : String(error)),
+      );
+      console.warn("[Ziiply offers] S-kaupat master pagination failed", error);
+    }
     allStoreResults.push(...pages.flat());
   }
 
