@@ -54,8 +54,8 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 function formatEuro(value?: number | null) {
   if (value == null || Number.isNaN(value)) return "—";
-  // chainResults.totalPrice tulee yleensä sentteinä. Jos joskus tulee suoraan euroina, alle 20 käsitellään euroina.
-  const euros = Math.abs(value) > 20 ? value / 100 : value;
+  // Page chainResults and Match.price are always euros, regardless of magnitude.
+  const euros = value;
   return `${euros.toFixed(2).replace(".", ",")} €`;
 }
 
@@ -67,15 +67,14 @@ function getCheapestStore(stores: ZiiplyCompareStore[]) {
 
 function formatEuroCents(value?: number | null) {
   if (value == null || Number.isNaN(value)) return "—";
-  return `${(value / 100).toFixed(2).replace(".", ",")} €`;
+  return `${value.toFixed(2).replace(".", ",")} €`;
 }
 
 function getStorePriceDiff(store: ZiiplyCompareStore, cheapest?: ZiiplyCompareStore) {
   if (!cheapest || store.totalPrice == null || cheapest.totalPrice == null) return null;
   const diff = store.totalPrice - cheapest.totalPrice;
   if (Math.abs(diff) < 0.001) return "Huokein";
-  // chainResults.totalPrice ja diff ovat senttejä. Käytä tässä aina senttimuotoilua,
-  // jotta +6 senttiä näkyy +0,06 € eikä +6,00 €.
+  // chainResults.totalPrice and the difference are both in euros.
   return `+${formatEuroCents(diff)} kalliimpi`;
 }
 
