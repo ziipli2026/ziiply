@@ -14197,6 +14197,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 });
                 cartRefV124.current = nextCart;
                 persistCartImmediately(nextCart);
+                scheduleComparisonUpdate(nextCart);
                 return nextCart;
               });
             } catch {}
