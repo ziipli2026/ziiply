@@ -27,6 +27,10 @@ export type CitymarketOffer = {
   resolutionSource?: string | null;
   resolutionSanity?: string | null;
   plussa?: boolean;
+  benefitText?: string;
+  campaignType?: "offer" | "campaign";
+  imageUrl?: string;
+  ean?: string;
   validFrom?: string | null;
   validTo?: string | null;
   category?: string | null;
@@ -437,6 +441,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? unitMin
         : null;
 
+    // Classify only from the offer's own nearby leaflet text. Never infer an EAN
+    // or product image from a broad leaflet heading or a similarly named SKU.
+    const nearbyText=(row?.nearby||[]).map((x:any)=>typeof x==="string"?x:String(x?.text||x?.raw||"")).join(" ");
+    const benefitText=/mobiilietu/i.test(nearbyText)?"Mobiilietu":/plussa(?:-etu|-kortilla)?/i.test(nearbyText)?"Plussa-etu":/erä/i.test(nearbyText)?"Erä":"";
+    const campaignType: "offer" | "campaign" = /kampanja|kaikki .*?(?:tuotteet|vaatteet)|-\\d+\\s*%/i.test(title) && !/\\b\\d+(?:[,.]\\d+)?\\s*(?:g|kg|ml|l)\\b/i.test(title) ? "campaign" : "offer";
     offers.push({
       id:`kcm:spatial:${row?.page??0}:${title.toLowerCase()}:${price}`,
       title,
@@ -449,7 +458,9 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
       resolutionSource:resolved?.source?String(resolved.source):null,
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
-      plussa:/plussa/i.test((row?.nearby||[]).map((x:any)=>x?.text||x?.raw||"").join(" ")),
+      plussa:/plussa/i.test(nearbyText),
+      benefitText,
+      campaignType,
       validFrom:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
       validTo:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
       category:category(title),
