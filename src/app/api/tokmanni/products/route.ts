@@ -217,6 +217,6 @@ export async function GET(request: Request) {
       })),
   ));
 
-  const categorizedItems = applyApprovedSparCategories(filterApprovedSparGroceryItems(filterApprovedSparMilkCategory(filterSparMilkQuery(items, intent), intent, SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX);
+  const categorizedItems = applyApprovedSparCategories(filterApprovedSparGroceryItems(filterApprovedSparMilkCategory(filterSparMilkQuery(filterSparHumanFoodIntent(items, intent), intent), intent, SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX);
   return NextResponse.json({ source, status: 200, items: categorizedItems, klevuError: klevuError || undefined });
 }
