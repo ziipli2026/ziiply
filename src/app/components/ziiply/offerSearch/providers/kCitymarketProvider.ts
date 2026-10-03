@@ -584,8 +584,8 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     const byProductName=new Map<string,typeof rows>();
     // Leaflet headlines and bank names commonly differ only by package notation.
     // Keep both indexes and require a unique EAN and matching package when available.
-    const size=(value:unknown)=>String(value??"").toLowerCase().match(/\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\\b/i)?.[0]?.replace(/\\s+/g,"").replace(",",".")||"";
-    const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\\b/gi," "));
+    const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
+    const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," "));
     for(const row of rows){
       const keys=new Set([norm(row.name),norm([row.name,row.quantity].filter(Boolean).join(" "))]);
       for(const key of keys){
