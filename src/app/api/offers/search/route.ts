@@ -628,10 +628,14 @@ export async function GET(request: Request) {
     const baseResults = isKCitymarketV19 ? [] : await searchZiiplyOffers(q, context);
 
     let citymarketResults: UnknownRecord[] = [];
+    let citymarketNationalCount = 0;
+    let citymarketLocalCount = 0;
+    let citymarketLocalStoreId: string | null = null;
     if (isKCitymarketV19) {
       try {
         const fetched = await fetchKCitymarketOffers();
         citymarketResults = (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer));
+        citymarketNationalCount = citymarketResults.length;
       } catch (error) {
         console.warn("[Ziiply offers V19] K-Citymarket national fetch failed", error);
       }
@@ -640,7 +644,10 @@ export async function GET(request: Request) {
         const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
         if (selectedCitymarket) {
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
-          citymarketResults.push(...localOffers.filter(offer => offerMatchesQuery(q, offer)));
+          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
+          citymarketLocalCount = matchingLocalOffers.length;
+          citymarketLocalStoreId = matchingLocalOffers.length ? String(matchingLocalOffers[0].storeId ?? "") || null : null;
+          citymarketResults.push(...matchingLocalOffers);
         }
       } catch (localError) {
         console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
@@ -730,10 +737,11 @@ export async function GET(request: Request) {
             },
             selectedStoreName: debug?.selectedStoreName ?? rawKStoreName ?? "",
             selectedStoreId: debug?.selectedStoreId ?? rawKStoreId ?? "",
-            resolvedTjekStoreId: debug?.kStoreId ?? null,
-            applicationState: debug?.applicationState ?? "OK",
-            brochureOffers: debug?.brochureOffers ?? null,
-            activeOffers: debug?.activeOffers ?? null,
+            resolvedTjekStoreId: isKCitymarketV19 ? citymarketLocalStoreId : debug?.kStoreId ?? null,
+            applicationState: isKCitymarketV19 ? "KCITYMARKET_SELECTED_STORE" : debug?.applicationState ?? "OK",
+            brochureOffers: isKCitymarketV19 ? citymarketNationalCount : debug?.brochureOffers ?? null,
+            activeOffers: isKCitymarketV19 ? citymarketResults.length : debug?.activeOffers ?? null,
+            ...(isKCitymarketV19 ? { localOffers: citymarketLocalCount, nationalOffers: citymarketNationalCount } : {}),
             error: debug?.error ?? null,
             ...(resolver ? { kSupermarketPublicationResolverDebug: resolver } : {}),
           };
