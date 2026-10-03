@@ -5937,7 +5937,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // täsmälleen samat S-only ja K-only contextit jo kauppavalinnan ratkettua.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!storesReadyForSearch) return;
+    // Independent chains can warm even before the S/K store mode is ready.
+    if (!storesReadyForSearch && !selectedLidlStoreV750 && !selectedEurosparStoreV751 && !selectedTokmanniStoreV756) return;
 
     // V785: a hydrated boot snapshot may contain an obsolete S/K store. GPS is
     // automatically refreshed 650 ms after boot, so do not let that snapshot
@@ -5953,7 +5954,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const pendingBootGpsV792 = storeModeChosenV299 && usingOwnLocation && !bootGpsRefreshSettledV785;
     const manualWarmSStoreV792 = pendingBootGpsV792 ? getManualStoreOverrideV786("S", storeMode) : null;
     const manualWarmKStoreV792 = pendingBootGpsV792 ? getManualStoreOverrideV786("K", storeMode) : null;
-    if (pendingBootGpsV792 && !manualWarmSStoreV792 && !manualWarmKStoreV792 && !independentOfferStoreReadyV766) return;
+    // Do not permanently block warmup if the boot GPS refresh never settles.
+    // A changed GPS store retriggers this effect with its new identity.
 
     const cleanStore = (idValue: unknown, nameValue: unknown) => {
       const id = String(idValue || "").trim();
@@ -5988,7 +5990,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
     };
 
-    const sStore = pendingBootGpsV792 ? cleanStore(manualWarmSStoreV792?.id, manualWarmSStoreV792?.name) : resolveWarmSStore();
+    const sStore = pendingBootGpsV792 && manualWarmSStoreV792
+      ? cleanStore(manualWarmSStoreV792.id, manualWarmSStoreV792.name)
+      : resolveWarmSStore();
 
     // V767_K_LOCAL_WARMUP_MATCH_VISIBLE_GOSTA:
     // K-Market/K-Supermarket warmup must resolve the selected local K store from
@@ -6021,7 +6025,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
     };
 
-    const kStore = pendingBootGpsV792 ? cleanStore(manualWarmKStoreV792?.id, manualWarmKStoreV792?.name) : resolveWarmKStore();
+    const kStore = pendingBootGpsV792 && manualWarmKStoreV792
+      ? cleanStore(manualWarmKStoreV792.id, manualWarmKStoreV792.name)
+      : resolveWarmKStore();
     const baseAreaLabel = String(locationInput || activeArea.label || "").trim();
 
     const commonContext = {
