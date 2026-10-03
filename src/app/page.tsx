@@ -4733,6 +4733,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [scannerStoreMismatchV801, setScannerStoreMismatchV801] = useState<{ name: string; searchTerm: string; selectedName: string } | null>(null);
+  const [scannerEquivalentNoticeV813, setScannerEquivalentNoticeV813] = useState("");
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
 
   function pushScannerDebugV493(_message: string) {
@@ -16049,16 +16050,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // scanned foreign private label. Reuse Justiina's result selection for ties.
   async function findScannerEquivalentV812(term: string) {
     const selected = (["s", "k", "lidl", "tokmanni"] as const).filter((key) => selectedChains[key]);
-    setScannerStoreMismatchV801(null);
-    setEanModalOpen(false);
-    setShopsPanelOpen(false);
-    setSearchPanelOpen(true);
-    setSearchCompareMode("single");
-    setInput(term);
-    setActiveNormalSearchTerm(term);
-    setNormalSearchAttempted(false);
-    setNormalResultsStableV441([]);
+    setScannerEquivalentNoticeV813("");
     if (storeCompareScope !== "between_chains" || selected.length !== 1) {
+      setScannerStoreMismatchV801(null);
+      setEanModalOpen(false);
+      setShopsPanelOpen(false);
+      setSearchPanelOpen(true);
+      setSearchCompareMode("single");
+      setInput(term);
+      setActiveNormalSearchTerm(term);
+      setNormalSearchAttempted(false);
+      setNormalResultsStableV441([]);
       // Multiple selected chains need the existing cross-chain choice flow.
       void searchNormalPrices(term);
       return;
@@ -16084,18 +16086,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         !(chain !== "lidl" && /^(?:milbona|cien|chef select|favorina)\b/i.test(product.name))
       ).map((product) => [String(product.ean || product.id), product])).values());
       if (valid.length === 1) {
+        setScannerStoreMismatchV801(null);
+        setEanModalOpen(false);
         addProductToCart(valid[0]);
       } else if (valid.length > 1) {
+        setScannerStoreMismatchV801(null);
+        setEanModalOpen(false);
+        setShopsPanelOpen(false);
+        setSearchPanelOpen(true);
+        setSearchCompareMode("single");
+        setInput("");
+        setActiveNormalSearchTerm(term);
         setNormalResultsStableV441(valid);
         setMobileResultsReadyQueryV537(term);
         setNormalSearchAttempted(true);
       } else {
-        setNormalSearchAttempted(true);
-        showSearchNotFoundNoticeV471(term);
+        setScannerEquivalentNoticeV813("Vastaavaa tuotetta ei löydy.");
       }
     } catch {
-      setNormalSearchAttempted(true);
-      showSearchNotFoundNoticeV471(term);
+      setScannerEquivalentNoticeV813("Vastaavan tuotteen haku epäonnistui. Yritä uudelleen.");
     } finally {
       setLoadingNormal(false);
     }
@@ -22152,6 +22161,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               className="flex h-full w-full max-w-[430px] flex-col overflow-hidden"
             >
 
+              {scannerEquivalentNoticeV813 && (
+                <div className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-bold text-slate-800" role="status">{scannerEquivalentNoticeV813}</div>
+              )}
               {scannerStoreMismatchV801 && (
                 <div className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-slate-800" role="status">
                   <p className="font-bold">Tuote ei kuulu valittuun kauppaketjuun.</p>
