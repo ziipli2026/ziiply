@@ -16045,7 +16045,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const valid = Array.from(new Map(results.filter((product) =>
         product.name && Number(getProductPrice(product)) > 0 &&
         // Exclude other chains' own labels even if an upstream index leaks them.
-        !/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow)\\b/i.test(product.name)
+        !(chain !== "k" && /^(?:pirkka|k-menu)\b/i.test(product.name)) &&
+        !(chain !== "s" && /^(?:kotimaista|coop|xtra|rainbow)\b/i.test(product.name)) &&
+        !(chain !== "lidl" && /^(?:milbona|cien|chef select|favorina)\b/i.test(product.name))
       ).map((product) => [String(product.ean || product.id), product])).values());
       if (valid.length === 1) {
         addProductToCart(valid[0]);
