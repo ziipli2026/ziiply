@@ -70,6 +70,7 @@ export type ZiiplyMobileScannerCardProps = {
   flashState?: ZiiplyMobileScannerFlashState;
   loading?: boolean;
   scannerMessage?: string;
+  cameraOverlay?: React.ReactNode;
   torchOn?: boolean;
   manualInputOpen?: boolean;
   selectionResults?: ZiiplyMobileScannerSelectionResult[];
@@ -89,6 +90,7 @@ export default function ZiiplyMobileScannerCard({
   flashState = "idle",
   loading = false,
   scannerMessage = "",
+  cameraOverlay,
   torchOn = false,
   manualInputOpen = false,
   selectionResults = [],
@@ -379,7 +381,7 @@ export default function ZiiplyMobileScannerCard({
           {/* V594: kameran käynnistyksen ohjeteksti poistettu kokonaan. */}
 
           {/* Palauteviesti, ei loaderia */}
-          {visibleMessage && (
+          {!cameraOverlay && visibleMessage && (
             <div
               className={[
                 "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] px-4 py-3 text-center text-[15px] font-black uppercase tracking-[0.05em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
@@ -395,6 +397,8 @@ export default function ZiiplyMobileScannerCard({
               {visibleMessage}
             </div>
           )}
+
+          {cameraOverlay && <div className="absolute inset-0 z-[65] flex min-h-0 items-center justify-center overflow-y-auto rounded-[1.05rem] bg-black/75 p-3" onPointerUp={(event) => event.stopPropagation()}>{cameraOverlay}</div>}
 
           {hasSelectionResults && (
             <div className="absolute inset-0 z-[60] flex flex-col rounded-[1.05rem] bg-[#fff5d9]/98 p-2 shadow-[inset_0_0_0_3px_rgba(21,61,50,0.18)]">
