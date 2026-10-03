@@ -749,6 +749,12 @@ export async function GET(request: Request) {
                 withImage: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti" && Boolean(String(o.imageUrl || "").trim())).length,
                 withEan: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti" && Boolean(String(o.ean || "").trim())).length,
                 localWithImage: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket kauppakohtainen julkaisu" && Boolean(String(o.imageUrl || "").trim())).length,
+                // Sample only non-sensitive product metadata; no database or runtime-log access required.
+                samples: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti").slice(0, 8).map(o => ({
+                  title: String(o.title || "").slice(0, 100),
+                  hasEan: Boolean(String(o.ean || "").trim()),
+                  hasImage: Boolean(String(o.imageUrl || "").trim()),
+                })),
               },
             } : {}),
             error: debug?.error ?? null,
