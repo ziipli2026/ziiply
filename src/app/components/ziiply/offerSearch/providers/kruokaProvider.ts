@@ -691,6 +691,14 @@ export async function fetchKruokaOffers(
     for (const [index, offer] of offers.entries()) {
       const publicationId = String(offer.publicationPublicId ?? "");
       if (!allowed.has(publicationId)) continue;
+      // A business_product record is shown under Offers only with numerical
+      // evidence of a reduction against its regular price. Unknown/ordinary
+      // business products must not be advertised as discounted offers.
+      if (offer.ziiplySourceTab === "offer") {
+        const regular = num(offer.price);
+        const reduced = num(offer.appPrice) ?? num(offer.membershipPrice) ?? num(offer.fromPrice);
+        if (regular == null || reduced == null || reduced >= regular) continue;
+      }
       const mapped = mapTjekOffer(
         offer, index, ziiplyStoreId || tjekStoreId, displayStoreName, business.chain, business.slug
       );
