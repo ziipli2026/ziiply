@@ -47,3 +47,30 @@ jobs:
           for (const [title,wanted] of cases) { const actual=category(title); console.log(title,actual,wanted); if(actual!==wanted) process.exitCode=1; }
           NODE
           npx --yes tsx citymarket-test-2.mts
+
+      - name: Simulate Gosta Citymarket tabs and category navigation
+        shell: bash
+        run: |
+          cat > citymarket-test-3.mts <<'NODE'
+          import { fetchKCitymarketSelectedStoreOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts';
+          import { fetchKCitymarketOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
+          const [national, local, jumbo] = await Promise.all([
+            fetchKCitymarketOffers(),
+            fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää'),
+            fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo')
+          ]);
+          const master=[...national,...local];
+          const offers=master.filter(x=>x.campaignType!=='campaign');
+          const campaigns=master.filter(x=>x.campaignType==='campaign');
+          const categories=[...new Set(campaigns.map(x=>x.category))];
+          const visible=categories.flatMap(category=>campaigns.filter(x=>x.category===category));
+          const localIds=new Set(local.map(x=>x.id));
+          const jumboIds=new Set(jumbo.map(x=>x.id));
+          const foreign=campaigns.filter(x=>jumboIds.has(x.id));
+          const missing=local.filter(x=>!visible.some(y=>y.id===x.id));
+          const wrongTab=offers.filter(x=>localIds.has(x.id));
+          const badCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
+          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title)},null,2));
+          if(!national.length||!local.length||!jumbo.length||foreign.length||missing.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length!==local.length)process.exitCode=1;
+          NODE
+          npx --yes tsx citymarket-test-3.mts
