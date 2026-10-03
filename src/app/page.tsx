@@ -20741,7 +20741,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     onClearCart={clearCart}
                     onCompare={() => {
                       if (!cart.length || comparisonLoading) return;
-                      void updateChainComparison(cart, { openCompare: true });
+                      // Route cart's Halpuuta through the same entry point as the
+                      // main comparison button: eligibility, user-started state,
+                      // store readiness and mixed-cart rules must stay identical.
+                      openComparisonView();
                     }}
                     cartSavePanelOpen={cartSavePanelOpen}
                     onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
