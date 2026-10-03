@@ -5919,6 +5919,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (gostaSelectedStoresSignatureRefV534.current === signature) return;
 
     gostaSelectedStoresSignatureRefV534.current = signature;
+    // A newly selected store always opens Gösta on Tarjoukset, not the previous store's tab.
+    setGostaContentTabV1("offers");
     gostaLastSearchContextKeyRefV532.current = "";
     setOfferSearchResults([]);
     setGostaMasterOfferResultsV528([]);
