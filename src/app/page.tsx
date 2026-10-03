@@ -15688,11 +15688,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     triggerHaptic();
     setScanMissFlash(false);
     setScanSuccessFlash(false);
-    showCartToast(
-      mergedExistingV129
-        ? `Määrä +1: ${productName}`
-        : "✓ Lisätty koriin",
-    );
+    // Camera already renders its own success message. Never overlay a second toast.
+    if (!(eanScannerOpen || eanHtml5ScannerRef.current)) {
+      showCartToast(mergedExistingV129 ? `Määrä +1: ${productName}` : "✓ Lisätty koriin");
+    }
     setEanInput("");
     setEanResults([]);
     setEanLoading(false);
