@@ -30,6 +30,7 @@ function getEan(product: RuoanhintaProduct) {
     product.gtin,
     product.eanCode,
     product.barcode,
+    product.externalId,
   ];
 
   return candidates.find((value) => value && /^\d{8,14}$/.test(String(value))) || undefined;
@@ -75,7 +76,7 @@ export async function GET(request: Request) {
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
     search
-  )}&storeIds=${storeId}&skip=0&take=30`;
+  )}&storeIds=${storeId}&skip=0&take=100`;
 
   try {
     const response = await fetch(endpoint, {
