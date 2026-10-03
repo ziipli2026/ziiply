@@ -11310,19 +11310,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const gostaOfferAreaLabelV538 = locationInput || (storeCompareScope === "within_chain" ? [...sOfferNamesV532, ...kOfferNamesV532].join(" / ") : activeArea.label || "");
 
+      // V803: A master dataset belongs to the selected provider and physical
+      // store(s), not to incidental GPS labels, search text or panel navigation.
+      // Use the same rule for every chain, offers and campaigns alike.
       const gostaOfferSearchContextKeyV532 = JSON.stringify({
-        areaLabel: gostaOfferAreaLabelV538,
-        locationInput: locationInput || "",
-        storeMode,
-        storeCompareScope,
-        withinChain,
-        sOfferIds: sOfferIdsV532,
-        sOfferNames: sOfferNamesV532,
-        kOfferIds: kOfferIdsV532,
-        kOfferNames: kOfferNamesV532,
-        eurosparStoreId: selectedEurosparStoreV751?.id || "",
-        eurosparStoreName: selectedEurosparStoreV751?.name || "",
-        eurosparStoreChain: selectedEurosparStoreV751?.chain || "",
+        chain: gostaSelectedOfferChainRefV547.current || "",
+        sStores: sOfferStoresV532.map((store) => store.id || store.name.toLowerCase()),
+        kStores: kOfferStoresV532.map((store) => store.id || store.name.toLowerCase()),
+        eurosparStore: gostaSelectedOfferChainRefV547.current === "EUROSPAR"
+          ? String(selectedEurosparStoreV751?.id || selectedEurosparStoreV751?.name || "") : "",
+        lidlStore: gostaSelectedOfferChainRefV547.current === "LIDL"
+          ? String((selectedLidlStoreV750 as any)?.storeKey || selectedLidlStoreV750?.id || selectedLidlStoreV750?.name || "") : "",
+        tokmanniStore: gostaSelectedOfferChainRefV547.current === "TOKMANNI"
+          ? String(selectedTokmanniStoreV756?.id || selectedTokmanniStoreV756?.name || "") : "",
       });
 
       const cachedMasterV802 = gostaMasterByContextRefV802.current.get(gostaOfferSearchContextKeyV532);
@@ -11337,7 +11337,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       // Reopening the same store must not fetch its master again, even after
       // the chain-selection screen temporarily cleared the visible results.
-      if (cachedMasterV802 && !hasExplicitOverride && !input.trim()) {
+      if (cachedMasterV802 && !hasExplicitOverride) {
         setOfferSearchResults(cachedMasterV802);
         setGostaMasterOfferResultsV528(cachedMasterV802);
         setLoadingOffers(false);
