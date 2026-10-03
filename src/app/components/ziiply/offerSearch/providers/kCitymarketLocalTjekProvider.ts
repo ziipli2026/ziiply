@@ -121,10 +121,10 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
         const page=await fetch(ORIGIN+"K-Citymarket",{cache:"no-store",signal:AbortSignal.timeout(12000)});
         if(page.ok){
           const html=await page.text();
-          const marker='"publications":[';
-          const start=html.indexOf(marker);
-          if(start>=0){
-            const arrayStart=start+marker.length-1;
+          // Embedded JSON may contain whitespace or escaped quotation marks.
+          const match=/"publications"\s*:\s*\[/.exec(html);
+          if(match){
+            const arrayStart=match.index+match[0].lastIndexOf("[");
             let depth=0,quoted=false,escaped=false,end=-1;
             for(let i=arrayStart;i<html.length;i++){
               const char=html[i];
