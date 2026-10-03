@@ -2936,7 +2936,7 @@ export default function Page() {
     "cart",
   );
   const [locationInput, setLocationInput] = useState("");
-  const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
+  const [activeArea, setActiveArea] = useState<Area>({ ...AREAS[0], label: "" });
   const [storeMode, setStoreMode] = useState<StoreMode>("local");
   const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
   const selectedStoreModeRefV302 = useRef<StoreMode>("local");
@@ -10646,7 +10646,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
     const isBootGpsRunV472 = source === "boot";
-    const isBackgroundBootRefreshV736 = source === "boot_refresh";
+    const isBackgroundBootRefreshV736 =
+      source === "boot_refresh" && Boolean(gpsCoordsV320) && foundStores.length > 0;
     let gpsResolvedCityV495 = "";
     let gpsResolvedCoordsV495: { latitude: number; longitude: number } | null = null;
     let gpsApplyLocationDoneV495 = false;
@@ -21159,7 +21160,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
 <KauppiasMobileTopBar
             hidden={searchFullscreenOpenV621}
-            areaLabel={activeArea.label}
+            areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
             weatherEnabled={true}
             onOpenCalendar={() => {
