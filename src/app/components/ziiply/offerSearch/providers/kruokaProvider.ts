@@ -473,6 +473,8 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     imageUrl: image, image, pictureUrl: image,
     storeId: displayStoreId, storeName: displayStoreName, storeLabel: displayStoreName,
     chain: "K", source: "etarjouslehdet", provider: "kruoka", offerId,
+    // Tjek publication entries belong to the campaign/leaflet tab.
+    campaignType: "campaign",
     additionalInfo: offer.description ?? null,
     benefitText: isPlussa ? "Plussa-tarjous" : app != null ? "Mobiilitarjous" : undefined,
     validityText: validityText(offer.validUntil),
