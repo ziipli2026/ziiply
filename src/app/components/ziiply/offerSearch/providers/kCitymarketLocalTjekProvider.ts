@@ -112,6 +112,38 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
         ? (front as Row).publications as Row[] : [])
       .filter(p=>{const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));
         return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
+    // The public Tjek business page embeds its current publication list. It is a
+    // fallback when the geography-dependent fronts discovery misses national leaflets.
+    if(!publications.length){
+      try{
+        const page=await fetch(ORIGIN+"K-Citymarket",{cache:"no-store",signal:AbortSignal.timeout(12000)});
+        if(page.ok){
+          const html=await page.text();
+          const marker='"publications":[';
+          const start=html.indexOf(marker);
+          if(start>=0){
+            const arrayStart=start+marker.length-1;
+            let depth=0,quoted=false,escaped=false,end=-1;
+            for(let i=arrayStart;i<html.length;i++){
+              const char=html[i];
+              if(escaped){escaped=false;continue;}
+              if(char==="\\\\"){if(quoted)escaped=true;continue;}
+              if(char==='"'){quoted=!quoted;continue;}
+              if(quoted)continue;
+              if(char==='[')depth++;
+              if(char===']'&&--depth===0){end=i+1;break;}
+            }
+            if(end>arrayStart){
+              const embedded=JSON.parse(html.slice(arrayStart,end)) as Row[];
+              for(const p of embedded){
+                const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));
+                if(Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until&&p.id&&!publications.some(existing=>existing.id===p.id))publications.push(p);
+              }
+            }
+          }
+        }
+      }catch(error){console.warn("[K-Citymarket] public publication fallback unavailable",error);}
+    }
     stats.publications=publications.length;
     stats.stage=publications.length?"reading-publications":"no-active-publications";
     const candidates=new Map<string,Set<string>>();
