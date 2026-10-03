@@ -8716,7 +8716,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // master-datasetistä kuin tuoteryhmälistan määrät. Näin kategoriapainikkeen
     // lukema ja avattu lista eivät pääse eri lähteisiin / vanhaan K-listaan.
     const visibleSourceResults =
-      offerCardFilterV106 && gostaMasterOfferResultsV528.length > 0
+      gostaMasterOfferResultsV528.length > 0
         ? gostaMasterOfferResultsV528
         : offerSearchResults;
 
