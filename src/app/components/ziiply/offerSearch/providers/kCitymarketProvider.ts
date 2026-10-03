@@ -41,7 +41,7 @@ export type CitymarketOffer = {
   sourceUrl: string;
 };
 
-let nationalPhotoMatchAudit: {matched:number;exact:number;similar:number;ambiguous:number;unmatched:number;examples:Array<{leaflet:string;size:string;tjekCandidates:string[]}>}|null=null;
+let nationalPhotoMatchAudit: {matched:number;exact:number;similar:number;ambiguous:number;unmatched:number;examples:Array<{leaflet:string;size:string;tjekCandidates:string[];reasons:string[]}>}|null=null;
 export function getKCitymarketNationalPhotoMatchAudit(){return nationalPhotoMatchAudit;}
 const ENTRY = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
 const AV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/arkilehti.html";
@@ -739,7 +739,17 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
         const candidates=[...photos.keys()].map(name=>({
           name,common:[...wanted].filter(word=>tokens(name).has(word)).length,
         })).filter(item=>item.common>=1).sort((a,b)=>b.common-a.common).slice(0,3);
-        return {leaflet:offer.title,size:offer.packageSize||"",tjekCandidates:candidates.map(item=>item.name)};
+        const size=packageMatch(offer.packageSize||offer.title);
+        const reasons=candidates.map(item=>{
+          const found=tokens(item.name);
+          const foundSize=packageMatch(item.name);
+          const shared=[...wanted].filter(word=>found.has(word));
+          return item.name+" | size="+(foundSize||"none")+" vs "+(size||"none")+
+            " | shared="+shared.join(",")+
+            " | missing="+[...wanted].filter(word=>!found.has(word)).join(",")+
+            (size&&foundSize&&size!==foundSize?" | SIZE_CONFLICT":"");
+        });
+        return {leaflet:offer.title,size:offer.packageSize||"",tjekCandidates:candidates.map(item=>item.name),reasons};
       }),
     };
     console.info("[K-Citymarket] national Tjek image-only enrichment",{total:result.length,tjekImages:photos.size,matched,exact,similar,ambiguous,unmatched});
