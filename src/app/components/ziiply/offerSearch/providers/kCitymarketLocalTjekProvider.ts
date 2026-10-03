@@ -99,7 +99,12 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
   const images=new Map<string,string>();
   try {
     stats.stage="publication-discovery";
-    const fronts=await tjek("fronts",{businessIds:[BUSINESS]});
+    // The fronts endpoint needs the same location context as the working store flow.
+    // Discover a store solely to resolve publication geography; do not import its local campaigns.
+    const stores=asRows(await tjek("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+    const reference=stores.find(store=>store.coordinates && /citymarket/i.test(String(store.name??"")));
+    if(!reference)throw new Error("No Citymarket coordinates available for national publication discovery");
+    const fronts=await tjek("fronts",{businessIds:[BUSINESS],coordinates:reference.coordinates});
     stats.fronts=Array.isArray(fronts)?fronts.length:0;
     const now=Date.now();
     const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front =>
