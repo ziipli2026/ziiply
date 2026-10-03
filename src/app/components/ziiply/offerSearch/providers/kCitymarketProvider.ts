@@ -41,6 +41,8 @@ export type CitymarketOffer = {
   sourceUrl: string;
 };
 
+let nationalPhotoMatchAudit: {matched:number;exact:number;similar:number;ambiguous:number;unmatched:number;examples:Array<{leaflet:string;size:string;tjekCandidates:string[]}>}|null=null;
+export function getKCitymarketNationalPhotoMatchAudit(){return nationalPhotoMatchAudit;}
 const ENTRY = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
 const AV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/arkilehti.html";
 const LV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/lvtarjouslehti.html";
@@ -693,6 +695,16 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       matched++;
       return {...offer,imageUrl:url};
     });
+    nationalPhotoMatchAudit={
+      matched,exact,similar,ambiguous,unmatched,
+      examples:result.filter(offer=>!offer.imageUrl).slice(0,12).map(offer=>{
+        const wanted=tokens(offer.title);
+        const candidates=[...photos.keys()].map(name=>({
+          name,common:[...wanted].filter(word=>tokens(name).has(word)).length,
+        })).filter(item=>item.common>=1).sort((a,b)=>b.common-a.common).slice(0,3);
+        return {leaflet:offer.title,size:offer.packageSize||"",tjekCandidates:candidates.map(item=>item.name)};
+      }),
+    };
     console.info("[K-Citymarket] national Tjek image-only enrichment",{total:result.length,tjekImages:photos.size,matched,exact,similar,ambiguous,unmatched});
     return result;
   }catch(error){
