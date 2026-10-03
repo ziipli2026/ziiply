@@ -14186,7 +14186,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
 
         // Käynnistä hinnan rikastus taustalle. Tämä ei pidätä skannerin kuittausta.
-        if (scannerAllowSV785 && Number(activeStores.sStoreId || 0) > 0) {
+        if (scannerAllowSV785 && ownBrandV801 !== "k" && Number(activeStores.sStoreId || 0) > 0) {
           const requestedSStoreIdV805 = Number(activeStores.sStoreId);
           const requestedSEpochV806 = scannerStoreEpochRefV806.current.s;
           void (async () => {
@@ -14235,7 +14235,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             try {
               const storeId = Number(activeStores.kStoreId);
               const requestedKEpochV806 = scannerStoreEpochRefV806.current.k;
-              const queries = Array.from(new Set([ean, bankIdentityNameV789].filter(Boolean)));
+              const genericNameV810 = bankIdentityNameV789.replace(/^(?:pirkka(?: parhaat)?|k-menu)\s+/i, "").trim();
+              const queries = Array.from(new Set([ean, bankIdentityNameV789, ...(ownBrandV801 === "k" && genericNameV810 ? [genericNameV810] : [])].filter(Boolean)));
               // EAN and name lookups run concurrently: K's EAN index can miss
               // a product whose exact EAN is present in name-search results.
               const candidateBatches = await Promise.all(queries.map((query) =>
