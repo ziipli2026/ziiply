@@ -412,6 +412,7 @@ export default function ZiiplyMobileCartCard({
   const totalItemsV58 = items.length;
   const isCartCompleteV58 = hasItems && totalItemsV58 > 0 && collectedItemsV58 >= totalItemsV58;
   const [showCompletionCardV58, setShowCompletionCardV58] = React.useState(false);
+  const [clearCartConfirmOpen, setClearCartConfirmOpen] = React.useState(false);
   const [showCheckoutFutureNoticeV62, setShowCheckoutFutureNoticeV62] = React.useState(false);
   const [purchaseModeV739, setPurchaseModeV739] = React.useState<"instore" | "online" | null>(null);
   const [checkoutPhaseV66, setCheckoutPhaseV66] = React.useState<"mode" | "future">("mode");
@@ -551,7 +552,7 @@ export default function ZiiplyMobileCartCard({
             <div className="absolute right-[2.05rem] top-[1.64rem] z-[22]">
               <button
                 type="button"
-                onClick={onClearCart}
+                onClick={() => setClearCartConfirmOpen(true)}
                 title="Tyhjennä ostoskori"
                 aria-label="Tyhjennä ostoskori"
                 className="relative grid h-[2.55rem] w-[2.1rem] place-items-center rounded-b-[0.38rem] rounded-t-[0.22rem] border-[1.5px] border-[#8b3c27] bg-[linear-gradient(180deg,#f3d4a1_0%,#d49a58_100%)] text-[#8d2718] shadow-[0_2px_3px_rgba(50,31,13,0.22),inset_0_0_0_1px_rgba(255,250,224,0.35)] active:translate-y-[1px]"
@@ -998,6 +999,18 @@ export default function ZiiplyMobileCartCard({
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
 
+        {clearCartConfirmOpen && (
+          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="clear-cart-title">
+            <div className="w-full max-w-[23rem] rounded-[1.35rem] border-[3px] border-[#886635] bg-[#fff4d8] p-5 text-[#214b33] shadow-[0_12px_35px_rgba(28,19,8,0.35),inset_0_0_0_2px_#fff9e8]">
+              <h2 id="clear-cart-title" className="text-center text-[1.3rem] font-black" style={{ fontFamily: '"Cooper Black",Georgia,serif' }}>Tyhjennetäänkö ostoskori?</h2>
+              <p className="mt-3 text-center text-[0.92rem] font-bold text-[#655235]">Korissa on {items.length} {items.length === 1 ? "tuote" : "tuotetta"}. Kaikki tuotteet poistetaan.</p>
+              <div className="mt-5 flex gap-3">
+                <button type="button" autoFocus onClick={() => setClearCartConfirmOpen(false)} className="min-h-[2.9rem] flex-1 rounded-[0.75rem] border-2 border-[#8b713e] bg-[#fff9e8] font-black text-[#214b33]">Peruuta</button>
+                <button type="button" onClick={() => { setClearCartConfirmOpen(false); onClearCart?.(); }} className="min-h-[2.9rem] flex-1 rounded-[0.75rem] border-2 border-[#74442c] bg-[linear-gradient(180deg,#e8b888,#c88958)] font-black text-[#422819]">Tyhjennä</button>
+              </div>
+            </div>
+          </div>
+        )}
         <style jsx>{`
           @keyframes ziiplyCartPaperPop {
             0% {
