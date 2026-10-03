@@ -20,6 +20,18 @@ try {
   writeFileSync(join(temp, "evidence.mjs"), "export default " + JSON.stringify(evidence) + ";");
   writeFileSync(join(temp, "research.mjs"), js);
   const { searchLidlResearch } = await import(pathToFileURL(join(temp, "research.mjs")).href);
+  // All dated public category observations are provenance-only, never verified stock or checkout prices.
+  const categoryObservations = evidence.records.filter(r => r.assortmentEvidence === "lidl-public-category-observation");
+  assert.ok(categoryObservations.length >= 37, "Expected sourced Lidl category observations missing");
+  for (const record of categoryObservations) {
+    assert.ok(record.source.startsWith("https://www.lidl.fi/") && /^\\d{4}-\\d{2}-\\d{2}$/.test(record.observedDate),
+      "Category observation needs an official source and dated observation: " + record.name);
+    assert.equal(record.recordKind, "lidl-named-product");
+    assert.equal(record.ean, null);
+    assert.equal(record.eanStatus, "not_verified");
+    assert.equal(record.currentStoreStockVerified, false);
+    assert.equal(Object.hasOwn(record, "price"), false, "Do not persist campaign prices as research prices: " + record.name);
+  }
   const priced = corpus.records.filter(r => typeof r.displayedPriceEur === "number");
   assert.equal(priced.length, 110, "Price observation count changed; review before updating");
   const cases = ["maito", "jauheliha", "makaroni", "kananmunat", "kahvi", "kevytmaito", "kahvipavut", "kaurahiutale"];
