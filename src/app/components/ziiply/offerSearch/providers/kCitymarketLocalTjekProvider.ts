@@ -127,7 +127,7 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
             for(let i=arrayStart;i<html.length;i++){
               const char=html[i];
               if(escaped){escaped=false;continue;}
-              if(char==="\\\\"){if(quoted)escaped=true;continue;}
+              if(char==="\\"){if(quoted)escaped=true;continue;}
               if(char==='"'){quoted=!quoted;continue;}
               if(quoted)continue;
               if(char==='[')depth++;
