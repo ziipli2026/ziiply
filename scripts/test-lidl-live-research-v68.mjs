@@ -35,7 +35,7 @@ try {
   // Search results must retain each source observation date, not the evidence-file date.
   for (const record of categoryObservations) {
     const rows = searchLidlResearch(record.name, 50);
-    const matching = rows.find(r => r.name === record.name);
+    const matching = rows.find(r => r.name === record.name && r.assortmentEvidence === record.assortmentEvidence);
     if (matching) assert.equal(matching.observedDate, record.observedDate,
       "Individual Lidl source date was overwritten: " + record.name);
   }
