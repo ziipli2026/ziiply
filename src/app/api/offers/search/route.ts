@@ -741,7 +741,16 @@ export async function GET(request: Request) {
             applicationState: isKCitymarketV19 ? "KCITYMARKET_SELECTED_STORE" : debug?.applicationState ?? "OK",
             brochureOffers: isKCitymarketV19 ? citymarketNationalCount : debug?.brochureOffers ?? null,
             activeOffers: isKCitymarketV19 ? citymarketResults.length : debug?.activeOffers ?? null,
-            ...(isKCitymarketV19 ? { localOffers: citymarketLocalCount, nationalOffers: citymarketNationalCount } : {}),
+            ...(isKCitymarketV19 ? {
+              localOffers: citymarketLocalCount,
+              nationalOffers: citymarketNationalCount,
+              nationalImageCoverage: {
+                total: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti").length,
+                withImage: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti" && Boolean(String(o.imageUrl || "").trim())).length,
+                withEan: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti" && Boolean(String(o.ean || "").trim())).length,
+                localWithImage: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket kauppakohtainen julkaisu" && Boolean(String(o.imageUrl || "").trim())).length,
+              },
+            } : {}),
             error: debug?.error ?? null,
             ...(resolver ? { kSupermarketPublicationResolverDebug: resolver } : {}),
           };
