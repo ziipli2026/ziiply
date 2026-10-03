@@ -679,8 +679,11 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       return raw;
     };
     const norm=(value:unknown)=>repair(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
-    const packageMatch=(value:string)=>norm(value).match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
-    const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma"]);
+    const packageMatch=(value:string)=>{
+      const match=repair(value).toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i);
+      return match?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
+    };
+    const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma","sis","pantit","pantti"]);
     const tokens=(value:string)=>{
       const cleaned=repair(value)
         .replace(/\b(?:Spannmålsfritt|Portionsask(?:ar|-ar)|Airfry-produkter|Godisask|Alkoholfri|Träbaserad|Mywear friluftskläder)\b.*$/i," ")
@@ -698,7 +701,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
         const wanted=tokens(offer.title);
         const wantedSize=packageMatch(offer.packageSize||offer.title);
         if(wanted.size>=1){
-          const candidates=[...photos.entries()].filter(([name])=>{
+          let candidates=[...photos.entries()].filter(([name])=>{
             const foundSize=packageMatch(name);
             if(wantedSize && foundSize && foundSize!==wantedSize)return false;
             const found=tokens(name);
@@ -706,7 +709,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
               candidate===word ||
               (word.length>=7 && candidate.length>=7 &&
                 (candidate.startsWith(word) || word.startsWith(candidate)) &&
-                Math.min(word.length,candidate.length)/Math.max(word.length,candidate.length)>=0.58)
+                Math.min(word.length,candidate.length)/Math.max(word.length,candidate.length)>=0.43)
             );
             const common=[...wanted].filter(comparable).length;
             // Brand prefixes are fine; a full name match is safest.
@@ -723,6 +726,10 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
               (!wantedSize || !foundSize || wantedSize===foundSize);
             return complete||descriptive||single;
           });
+          // Prefer explicitly matching pack sizes over unspecified Tjek sizes.
+          if(wantedSize && candidates.some(([name])=>packageMatch(name)===wantedSize)){
+            candidates=candidates.filter(([name])=>packageMatch(name)===wantedSize);
+          }
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
           else if(unique.length>1)ambiguous++;
