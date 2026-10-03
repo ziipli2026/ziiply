@@ -680,7 +680,11 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     };
     const norm=(value:unknown)=>repair(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
     const packageMatch=(value:string)=>norm(value).match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
-    const tokens=(value:string)=>new Set(norm(value.replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi," ")).split(" ").filter(word=>word.length>=4));
+    const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma"]);
+    const tokens=(value:string)=>{
+      const cleaned=repair(value).replace(/\([^)]*\/\s*(?:kg|l)[^)]*\)/gi," ").replace(/\([^)]*\)/g," ").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/gi," ");
+      return new Set(norm(cleaned).split(" ").filter(word=>word.length>=4&&!stop.has(word)));
+    };
     let matched=0,exact=0,similar=0,ambiguous=0,unmatched=0;
     const result=enriched.map(offer=>{
       if(offer.imageUrl)return offer;
@@ -693,14 +697,16 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
         if(wanted.size>=2){
           const candidates=[...photos.entries()].filter(([name])=>{
             const foundSize=packageMatch(name);
-            // A missing size in Tjek is not a contradictory size.
             if(wantedSize && foundSize && foundSize!==wantedSize)return false;
             const found=tokens(name);
             const common=[...wanted].filter(word=>found.has(word)).length;
-            // Tjek often prefixes the brand, whereas the leaflet omits it.
-            // Require every meaningful leaflet token, allowing one extra brand token.
-            return common===wanted.size && found.size<=wanted.size+2 &&
-              (wantedSize ? (!foundSize || foundSize===wantedSize) : true);
+            // Brand prefixes are fine; a full name match is safest.
+            // For long PDF descriptions, require at least two shared distinctive words
+            // and a strong overlap with the shorter Tjek title.
+            const complete=common===wanted.size && found.size<=wanted.size+2;
+            const descriptive=common>=2 && common>=Math.ceil(Math.min(wanted.size,found.size)*0.8) &&
+              found.size<=wanted.size+2 && wanted.size<=found.size+5;
+            return complete||descriptive;
           });
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
