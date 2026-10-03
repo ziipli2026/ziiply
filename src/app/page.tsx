@@ -5891,6 +5891,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ]);
 
 
+  // Track the current store selection across asynchronous scanner lookups.
+  const scannerActiveStoresRefV805 = useRef(activeStores);
+  const scannerStoreEpochRefV806 = useRef({ sId: Number(activeStores.sStoreId || 0), kId: Number(activeStores.kStoreId || 0), s: 0, k: 0 });
+  if (scannerStoreEpochRefV806.current.sId !== Number(activeStores.sStoreId || 0)) {
+    scannerStoreEpochRefV806.current.sId = Number(activeStores.sStoreId || 0);
+    scannerStoreEpochRefV806.current.s += 1;
+  }
+  if (scannerStoreEpochRefV806.current.kId !== Number(activeStores.kStoreId || 0)) {
+    scannerStoreEpochRefV806.current.kId = Number(activeStores.kStoreId || 0);
+    scannerStoreEpochRefV806.current.k += 1;
+  }
+  scannerActiveStoresRefV805.current = activeStores;
+
   const gostaSelectedStoresSignatureV534 = [
     selectedChains.s ? "S" : "",
     selectedChains.k ? "K" : "",
@@ -6862,6 +6875,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function showCartToast(message: string) {
+    // The camera owns scan feedback. Never show a second global success pill
+    // over its built-in message, including from fallback/duplicate scan paths.
+    if ((eanScannerOpen || eanHtml5ScannerRef.current) &&
+        (/lisätty|määrä \+1|haetaan hintaa/i.test(message))) {
+      setLastCartToast(null);
+      return;
+    }
     const now = Date.now();
 
     // Sama ilmoitus saa näkyä vain kerran lyhyessä ajassa. Tämä pitää EAN-flow'n rauhallisena,
@@ -14167,6 +14187,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         // Käynnistä hinnan rikastus taustalle. Tämä ei pidätä skannerin kuittausta.
         if (scannerAllowSV785 && Number(activeStores.sStoreId || 0) > 0) {
+          const requestedSStoreIdV805 = Number(activeStores.sStoreId);
+          const requestedSEpochV806 = scannerStoreEpochRefV806.current.s;
           void (async () => {
             try {
               const params = new URLSearchParams({
@@ -14181,7 +14203,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const price = getProductPrice(product);
               if (price <= 0) return;
 
+              if ((Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805 || scannerStoreEpochRefV806.current.s !== requestedSEpochV806)) return;
               setCart((currentCart) => {
+                if ((Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805 || scannerStoreEpochRefV806.current.s !== requestedSEpochV806)) return currentCart;
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   return {
@@ -14196,7 +14220,53 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
-                persistCartImmediately(nextCart);
+                // Do not auto-start Halpuuta before the user's first comparison.
+                if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
+                return nextCart;
+              });
+            } catch {}
+          })();
+        }
+
+        // Selected Citymarket/K-store must receive its own exact-EAN lookup even
+        // when the identity bank takes the fast scanner return above.
+        if (scannerAllowKV785 && Number(activeStores.kStoreId || 0) > 0) {
+          void (async () => {
+            try {
+              const storeId = Number(activeStores.kStoreId);
+              const requestedKEpochV806 = scannerStoreEpochRefV806.current.k;
+              const queries = Array.from(new Set([ean, bankIdentityNameV789].filter(Boolean)));
+              // EAN and name lookups run concurrently: K's EAN index can miss
+              // a product whose exact EAN is present in name-search results.
+              const candidateBatches = await Promise.all(queries.map((query) =>
+                fetchKProducts(query, storeId).catch(() => [] as KProduct[])
+              ));
+              const exact = candidateBatches.flat().find((candidate) =>
+                isSameEan(candidate.ean, getEanSearchVariants(ean)) && Number(candidate.price || 0) > 0
+              );
+              if (!exact) return;
+              const product = convertKProductToProduct(exact);
+              const price = getProductPrice(product);
+              if (price <= 0) return;
+              if ((Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId || scannerStoreEpochRefV806.current.k !== requestedKEpochV806)) return;
+              setCart((currentCart) => {
+                if ((Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId || scannerStoreEpochRefV806.current.k !== requestedKEpochV806)) return currentCart;
+                const nextCart = currentCart.map((item) => {
+                  if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  // The basket displays the S price when both chains are selected;
+                  // K pricing belongs to the independent comparison matcher.
+                  // Preserve a real S price, but do not suppress the K price
+                  // when the S-side has no priced match (e.g. Pirkka own brand).
+                  if (scannerAllowSV785 && selectedChains.s && item.chain === "S" && Number(item.price || 0) > 0) return item;
+                  return {
+                    ...item, price, image: product.pictureUrl || item.image,
+                    chain: "K" as const, storeName: activeStores.kStoreName || item.storeName,
+                    product: { ...product, ean, price } as Product, ean,
+                  } as CartItem;
+                });
+                cartRefV124.current = nextCart;
+                // Do not auto-start Halpuuta before the user's first comparison.
+                if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
               });
             } catch {}
@@ -14725,7 +14795,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
         if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
-          setEanScannerMessage("✓ Tuote lisätty — haetaan hintaa…");
+          setEanScannerMessage("✓ Lisätty koriin");
         }
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
@@ -15588,7 +15658,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart, { openCompare: false });
         mergedExistingV129 = true;
         return nextCart;
       }
@@ -15617,7 +15686,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextCart = [...baseCart, newItem];
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
-      void updateChainComparison(nextCart, { openCompare: false });
       return nextCart;
     });
 
@@ -15629,11 +15697,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     triggerHaptic();
     setScanMissFlash(false);
     setScanSuccessFlash(false);
-    showCartToast(
-      mergedExistingV129
-        ? `Määrä +1: ${productName}`
-        : "✓ Tuote lisätty — haetaan hintaa…",
-    );
+    // Camera already renders its own success message. Never overlay a second toast.
+    if (!(eanScannerOpen || eanHtml5ScannerRef.current)) {
+      showCartToast(mergedExistingV129 ? `Määrä +1: ${productName}` : "✓ Lisätty koriin");
+    }
     setEanInput("");
     setEanResults([]);
     setEanLoading(false);
@@ -15649,7 +15716,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       const scannerMessage = mergedExistingV129
         ? "Määrä +1 — hinta ei saatavilla"
-        : "✓ Tuote lisätty — haetaan hintaa…";
+        : "✓ Lisätty koriin";
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
@@ -15855,7 +15922,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
       const scannerAddMessageV794 =
         result.chain === "S" && getProductPrice(result.product) <= 0
-          ? "✓ Tuote lisätty — haetaan hintaa…"
+          ? "✓ Lisätty koriin"
           : "✓ Lisätty ostoskoriin";
       setEanScannerMessage(scannerAddMessageV794);
       window.setTimeout(() => {
@@ -20765,12 +20832,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         </p>
                       </div>
                     </div>
-
-                    {eanScannerMessage && (
-                      <div className="mb-3 rounded-2xl bg-[#f2e3c4] px-4 py-3 text-sm font-black leading-snug text-[#4f4733] ring-1 ring-[#d8bd86]">
-                        {eanScannerMessage}
-                      </div>
-                    )}
 
                     {false && scannerDebugLinesV493.length > 0 && (
                       <pre className="mb-3 max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl bg-black px-4 py-3 text-left text-[11px] font-bold leading-snug text-lime-300 ring-2 ring-lime-500/60">
