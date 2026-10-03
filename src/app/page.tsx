@@ -12588,7 +12588,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         if (!match) return null;
         const productPrice = getProductPrice(match.product);
         const unitPrice = Number.isFinite(productPrice) && productPrice > 0 ? productPrice : Number(match.price);
-        if (!Number.isFinite(unitPrice) || unitPrice <= 0) return null;
+        // A 0.01 € placeholder must never make an incomplete two-item basket look complete.
+        // Keep the match out of totals until the provider supplies a usable unit price.
+        if (!Number.isFinite(unitPrice) || unitPrice < 0.05) {
+          console.warn("[Ziiply comparison rejected suspicious price]", { product: match.product.name, unitPrice, cartItemId: match.cartItemId });
+          return null;
+        }
         return { ...match, price: unitPrice };
       };
       return { s: normalizeMatchPriceV803(s), k: normalizeMatchPriceV803(k), failed };
