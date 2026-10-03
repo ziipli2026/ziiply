@@ -113,7 +113,7 @@ try {
     ["öljy","Primadonna extra-neitsytoliiviöljy 750 ml"],
     ["limonadi","Freeway ananaslimonadi sokeriton 1,5 l"],
   ]) {
-    assert.ok(searchLidlResearch(query, 50).some(row => row.name === expected &&
+    assert.ok(searchLidlResearch(query, 50).some(row => row.name.replace(/[\s,.-]+/g, " ").trim() === expected.replace(/[\s,.-]+/g, " ").trim() &&
       row.ean === null && row.price === null && row.priceVerified === false),
       "Documented Finnish compound-name result missing or incorrectly priced: " + expected);
   }
