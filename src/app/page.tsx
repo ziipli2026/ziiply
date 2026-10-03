@@ -5893,6 +5893,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   // Track the current store selection across asynchronous scanner lookups.
   const scannerActiveStoresRefV805 = useRef(activeStores);
+  const scannerStoreEpochRefV806 = useRef({ sId: Number(activeStores.sStoreId || 0), kId: Number(activeStores.kStoreId || 0), s: 0, k: 0 });
+  if (scannerStoreEpochRefV806.current.sId !== Number(activeStores.sStoreId || 0)) {
+    scannerStoreEpochRefV806.current.sId = Number(activeStores.sStoreId || 0);
+    scannerStoreEpochRefV806.current.s += 1;
+  }
+  if (scannerStoreEpochRefV806.current.kId !== Number(activeStores.kStoreId || 0)) {
+    scannerStoreEpochRefV806.current.kId = Number(activeStores.kStoreId || 0);
+    scannerStoreEpochRefV806.current.k += 1;
+  }
   scannerActiveStoresRefV805.current = activeStores;
 
   const gostaSelectedStoresSignatureV534 = [
@@ -14172,6 +14181,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Käynnistä hinnan rikastus taustalle. Tämä ei pidätä skannerin kuittausta.
         if (scannerAllowSV785 && Number(activeStores.sStoreId || 0) > 0) {
           const requestedSStoreIdV805 = Number(activeStores.sStoreId);
+          const requestedSEpochV806 = scannerStoreEpochRefV806.current.s;
           void (async () => {
             try {
               const params = new URLSearchParams({
@@ -14186,9 +14196,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const price = getProductPrice(product);
               if (price <= 0) return;
 
-              if (Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805) return;
+              if ((Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805 || scannerStoreEpochRefV806.current.s !== requestedSEpochV806)) return;
               setCart((currentCart) => {
-                if (Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805) return currentCart;
+                if ((Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805 || scannerStoreEpochRefV806.current.s !== requestedSEpochV806)) return currentCart;
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   return {
@@ -14217,6 +14227,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           void (async () => {
             try {
               const storeId = Number(activeStores.kStoreId);
+              const requestedKEpochV806 = scannerStoreEpochRefV806.current.k;
               const queries = Array.from(new Set([ean, bankIdentityNameV789].filter(Boolean)));
               let exact: KProduct | undefined;
               for (const query of queries) {
@@ -14230,9 +14241,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const product = convertKProductToProduct(exact);
               const price = getProductPrice(product);
               if (price <= 0) return;
-              if (Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId) return;
+              if ((Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId || scannerStoreEpochRefV806.current.k !== requestedKEpochV806)) return;
               setCart((currentCart) => {
-                if (Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId) return currentCart;
+                if ((Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId || scannerStoreEpochRefV806.current.k !== requestedKEpochV806)) return currentCart;
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   // The basket displays the S price when both chains are selected;
