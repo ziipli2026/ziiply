@@ -12581,7 +12581,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      return { s, k, failed };
+      // A comparison row and its basket total must use the same actual product price.
+      // Scanner-origin matches can carry an unpriced/placeholder CartItem.price;
+      // never let that placeholder become the comparison total when product data has a real price.
+      const normalizeMatchPriceV803 = (match: Match | null): Match | null => {
+        if (!match) return null;
+        const productPrice = getProductPrice(match.product);
+        const unitPrice = Number.isFinite(productPrice) && productPrice > 0 ? productPrice : Number(match.price);
+        if (!Number.isFinite(unitPrice) || unitPrice <= 0) return null;
+        return { ...match, price: unitPrice };
+      };
+      return { s: normalizeMatchPriceV803(s), k: normalizeMatchPriceV803(k), failed };
     })();
     comparisonItemRequestsRef.current.set(itemKey, request);
 
