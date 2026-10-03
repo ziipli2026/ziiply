@@ -389,30 +389,24 @@ async function parseOfferSearchResponse(response: Response) {
 function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV152) {
   if (!context) return "";
 
-  // V237: S/K master data is store-specific, not GPS/location/mode-specific.
-  // The old key included areaLabel/storeMode/scope, so the click-time warmup
-  // could populate one key while the immediately opened Gösta used another.
-  // That caused the visible search to start the same slow master request again.
-  // For S/K, canonicalize only the selected store identities so warmup and
-  // visible search always share the exact same in-browser in-flight Promise.
-  const sIds = normalizeGostaContextListV164(context.sStoreIds, context.sStoreId)
-    .map((value) => normalizeGostaCoreText(value))
-    .filter(Boolean);
+  // V238: the selected store NAME is the stable identity for the browser-side
+  // master cache. Store IDs can legitimately differ between the location/store
+  // picker (Ruoanhinta ID) and the provider (S-kaupat ID / externalId), while
+  // the name is the same physical store. If the ID participates in this key,
+  // selection warmup can fill one key and the visible Gösta search can open a
+  // second slow master request for the same store.
   const sNames = normalizeGostaContextListV164(context.sStoreNames, context.sStoreName)
-    .map((value) => normalizeGostaCoreText(value))
-    .filter(Boolean);
-  const kIds = normalizeGostaContextListV164(context.kStoreIds, context.kStoreId)
     .map((value) => normalizeGostaCoreText(value))
     .filter(Boolean);
   const kNames = normalizeGostaContextListV164(context.kStoreNames, context.kStoreName)
     .map((value) => normalizeGostaCoreText(value))
     .filter(Boolean);
 
-  if (sIds.length || sNames.length || kIds.length || kNames.length) {
+  if (sNames.length || kNames.length) {
     return [
       "stores",
-      "s", ...sIds, ...sNames,
-      "k", ...kIds, ...kNames,
+      "s", ...sNames,
+      "k", ...kNames,
       context.eurosparStoreId,
       context.eurosparStoreName,
       context.eurosparStoreChain,
