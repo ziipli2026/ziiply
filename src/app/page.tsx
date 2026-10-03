@@ -22267,10 +22267,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       {scannerEquivalentNoticeV813 === "Etsitään vastaavaa tuotetta…" ? (
                         <p className="text-sm font-bold">Odota hetki…</p>
                       ) : scannerEquivalentNoticeV813 ? (
-                        <div className="grid w-full grid-cols-1 gap-2 min-[360px]:grid-cols-2">
-                          <button type="button" disabled={loadingNormal} className="min-h-11 rounded-xl bg-emerald-800 px-2 py-2 text-sm font-black text-white disabled:opacity-50" onClick={() => { if (scannerStoreMismatchV801) void findScannerEquivalentV812(scannerStoreMismatchV801.searchTerm); }}>Yritä uudelleen</button>
-                          <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-sm font-black" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanScannerMessage(""); }}>Skannaa seuraava</button>
-                          <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-sm font-black min-[360px]:col-span-2" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(true); }}>Vaihda kauppaa</button>
+                        <div className="grid w-full grid-cols-2 gap-2">
+                          <button type="button" className="min-h-11 rounded-xl bg-emerald-800 px-2 py-2 text-[13px] font-black text-white" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanScannerMessage(""); }}>Skannaa seuraava</button>
+                          <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-[13px] font-black" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(true); }}>Vaihda kauppaa</button>
                         </div>
                       ) : (
                         <div className="grid w-full grid-cols-1 gap-2 min-[360px]:grid-cols-2">
