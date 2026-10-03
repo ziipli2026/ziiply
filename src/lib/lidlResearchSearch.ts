@@ -39,7 +39,7 @@ const groceryCompounds: Record<string, readonly string[]> = {
  salaatti:["jaasalaattipussi","perunasalaatti","grillikurkkusalaatti"],
  keitto:["mustikkakeitto","misokeitto","gulassikeitto","ramenkeitto","borssikeitto","lihakeitto"],
  ketsuppi:["tomaattiketsuppi"],majoneesi:["herkkumajoneesi","paprikamajoneesi"],
- oljy:["neitsytoliivioljy","ekstraneitsytoliivioljy","extra neitsytoliivioljy"],
+ oljy:["neitsytoliivioljy","ekstraneitsytoliivioljy"],
  limonadi:["ananaslimonadi"],
 };
 const matches=(word:string,term:string)=>word===term||(compoundNames[term]?.includes(word)??false)||(groceryCompounds[term]?.includes(word)??false)||(term==="juusto" && /juusto$/.test(word))||(term==="jogurtti" && /jogurtti$/.test(word))||(exactStaples.has(term)
