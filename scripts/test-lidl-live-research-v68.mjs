@@ -24,7 +24,7 @@ try {
   const categoryObservations = evidence.records.filter(r => r.assortmentEvidence === "lidl-public-category-observation");
   assert.ok(categoryObservations.length >= 37, "Expected sourced Lidl category observations missing");
   for (const record of categoryObservations) {
-    assert.ok(record.source.startsWith("https://www.lidl.fi/") && /^\\d{4}-\\d{2}-\\d{2}$/.test(record.observedDate),
+    assert.ok(record.source.startsWith("https://www.lidl.fi/") && /^\d{4}-\d{2}-\d{2}$/.test(record.observedDate),
       "Category observation needs an official source and dated observation: " + record.name);
     assert.equal(record.recordKind, "lidl-named-product");
     assert.equal(record.ean, null);
