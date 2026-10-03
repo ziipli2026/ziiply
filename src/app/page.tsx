@@ -6875,6 +6875,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function showCartToast(message: string) {
+    // The camera owns scan feedback. Never show a second global success pill
+    // over its built-in message, including from fallback/duplicate scan paths.
+    if ((eanScannerOpen || eanHtml5ScannerRef.current) &&
+        (/lisätty|määrä \+1|haetaan hintaa/i.test(message))) {
+      setLastCartToast(null);
+      return;
+    }
     const now = Date.now();
 
     // Sama ilmoitus saa näkyä vain kerran lyhyessä ajassa. Tämä pitää EAN-flow'n rauhallisena,
