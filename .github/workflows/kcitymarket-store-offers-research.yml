@@ -40,6 +40,39 @@ jobs:
             }
           })();
           NODE
+      - name: Compare store-addressed leaflet evidence with generic publication
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const targets = [
+            ["hyvinkaa", "https://www.k-ruoka.fi/tarjouslehdet/kauppa/k-citymarket-hyvinkaa", "hyvinkaa"],
+            ["jumbo-control", "https://www.k-ruoka.fi/tarjouslehdet/kauppa/k-citymarket-vantaa-jumbo", "vantaa-jumbo"],
+            ["generic-publication", "https://kcm-lehdet.k-ruoka.fi/tarjouslehti", null]
+          ];
+          (async () => {
+            for (const [name, entry, expectedStore] of targets) {
+              try {
+                const response = await fetch(entry, {redirect:"follow", signal:AbortSignal.timeout(15000)});
+                const type = response.headers.get("content-type") || "";
+                const html = response.ok && /html/i.test(type) ? (await response.text()).slice(0,300000) : "";
+                const title = html.match(/<title[^>]*>([^<]*)/i)?.[1] || "";
+                const marker = html.match(/\\b\\d{1,2}(?:AV|LV)\\/26\\b/i)?.[0] || null;
+                const final = new URL(response.url);
+                const storeMarker = expectedStore ? new RegExp(expectedStore.replace(/-/g,"[-\\s]*"),"i").test(title + " " + html.slice(0,30000)) : false;
+                console.log("STORE_LEAFLET_EVIDENCE " + JSON.stringify({
+                  name, entry, status:response.status, finalUrl:response.url, contentType:type,
+                  title, issueMarker:marker, expectedStore, storeMarkerInPage:storeMarker,
+                  redirectedToGeneric:expectedStore !== null && !final.pathname.includes(expectedStore),
+                  verifiedStoreOffers:false,
+                  note:"Store marker is navigation evidence only. Never import prices without independent publication/store scope."
+                }));
+              } catch(error) {
+                console.log("STORE_LEAFLET_EVIDENCE " + JSON.stringify({name,entry,error:String(error),verifiedStoreOffers:false}));
+              }
+            }
+          })();
+          NODE
       - name: Probe Edut route store identity without importing offers
         shell: bash
         run: |
