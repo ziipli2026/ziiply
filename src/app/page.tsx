@@ -12868,6 +12868,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
+        if (comparisonCartV738.length > 0 && !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length) {
+          const diagnosis = failed
+            ? "Hintavertailun tuotehaussa tapahtui virhe. Yritä uudelleen."
+            : `Hintahaku valmistui, mutta kumpikaan kauppa ei palauttanut vastinetta (${comparisonCartV738.length} tuotetta).`;
+          showCartToast(diagnosis);
+          console.warn("[Ziiply zero comparison]", {
+            items: comparisonCartV738.map(item => ({ name: item.name, ean: item.ean, source: item.source })),
+            sStoreId: activeStores.sStoreId, kStoreId: activeStores.kStoreId, failed,
+          });
+        }
         // A failure for one scanner row must not discard successful matches
         // for the other rows. Only fully successful results are cached.
         setSMatches(nextSMatches);
