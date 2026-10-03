@@ -1287,12 +1287,7 @@ export default function ZiiplyMobileOfferSearchCard({
           ) : null}
         </header>
 
-        <main className={cx(
-          "relative z-10 min-h-0 flex flex-1 flex-col px-5 pb-[0.75rem] pt-[0.18rem]",
-          showLandingView
-            ? "overflow-hidden"
-            : "overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        )}>
+        <main className="relative z-10 min-h-0 flex flex-1 flex-col overflow-hidden px-5 pb-[0.75rem] pt-[0.18rem]">
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
@@ -1437,7 +1432,8 @@ export default function ZiiplyMobileOfferSearchCard({
               <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#8a7650]">{emptyText}</div>
             </div>
           ) : (
-            <div className="space-y-3 pt-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="space-y-3 pb-3">
               {visibleItems.map((offer, index) => {
                 const name = getOfferName(offer);
                 const { productName, embeddedComparisonPrice } = splitOfferNameComparisonPrice(name);
@@ -1504,6 +1500,7 @@ export default function ZiiplyMobileOfferSearchCard({
                   </article>
                 );
               })}
+              </div>
             </div>
           )}
         </main>
