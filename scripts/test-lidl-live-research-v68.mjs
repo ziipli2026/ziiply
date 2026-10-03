@@ -32,6 +32,13 @@ try {
     assert.equal(record.currentStoreStockVerified, false);
     assert.equal(Object.hasOwn(record, "price"), false, "Do not persist campaign prices as research prices: " + record.name);
   }
+  // Search results must retain each source observation date, not the evidence-file date.
+  for (const record of categoryObservations) {
+    const rows = searchLidlResearch(record.name, 50);
+    const matching = rows.find(r => r.name === record.name);
+    if (matching) assert.equal(matching.observedDate, record.observedDate,
+      "Individual Lidl source date was overwritten: " + record.name);
+  }
   const priced = corpus.records.filter(r => typeof r.displayedPriceEur === "number");
   assert.equal(priced.length, 110, "Price observation count changed; review before updating");
   const cases = ["maito", "jauheliha", "makaroni", "kananmunat", "kahvi", "kevytmaito", "kahvipavut", "kaurahiutale"];
