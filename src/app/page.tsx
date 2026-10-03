@@ -4641,6 +4641,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     Record<string, QualityMode>
   >({});
   const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [comparisonDiagnosticV800, setComparisonDiagnosticV800] = useState<string | null>(null);
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
   const comparisonCompletedKeyRef = useRef<string | null>(null);
@@ -12563,10 +12564,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Valmista tuotematchia ei saa säilyttää session mittaisena cachena:
     // muuten kerran väärin valittu vastine voi jäädä vertailukortille vaikka
     // matcher/data on jo korjaantunut.
-    void request.finally(() => {
-      if (comparisonItemRequestsRef.current.get(itemKey) === request) {
-        comparisonItemRequestsRef.current.delete(itemKey);
-      }
+    void request.then(() => {
+      if (comparisonItemRequestsRef.current.get(itemKey) === request) comparisonItemRequestsRef.current.delete(itemKey);
+    }, () => {
+      if (comparisonItemRequestsRef.current.get(itemKey) === request) comparisonItemRequestsRef.current.delete(itemKey);
     });
 
     return request;
@@ -12816,6 +12817,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     nextCart = cart,
     options: { openCompare?: boolean } = {},
   ) {
+    setComparisonDiagnosticV800(`Haku käynnistyi · kori ${nextCart.length}`);
     // V770: Yksi-tila ei koskaan tuota Halpuusvertailua. Päivitä valitun
     // ketjun löytyvä täsmähinta suoraan käyttäjän ostoskoriin.
     if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
@@ -12830,6 +12832,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Their label total is authoritative, but store-specific comparable unit price
     // cannot be guaranteed even when product identity is known.
     const comparisonCartV738 = nextCart.filter(isComparisonEligibleV797);
+    setComparisonDiagnosticV800(`Kori ${nextCart.length} · vertailuun ${comparisonCartV738.length} · S ${activeStores.sStoreId || "puuttuu"} / K ${activeStores.kStoreId || "puuttuu"}`);
     const shouldOpenCompare = options.openCompare !== false;
     if (comparisonUpdateTimerRef.current) {
       clearTimeout(comparisonUpdateTimerRef.current);
@@ -12858,6 +12861,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextSMatches: Record<string, Match> = {};
       const nextKMatches: Record<string, Match> = {};
 
+      setComparisonDiagnosticV800(`Rajapintahaku käynnissä · ${comparisonCartV738.length} tuoteriviä`);
       const itemMatches = await Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item)));
       let failed = false;
       comparisonCartV738.forEach((item, index) => {
@@ -12868,6 +12872,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
+        setComparisonDiagnosticV800(`Haku valmis · S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length} · ${failed ? "hakupoikkeus" : "ei poikkeusta"} · koreissa S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length}`);
         if (comparisonCartV738.length > 0 && !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length) {
           const diagnosis = failed
             ? "Hintavertailun tuotehaussa tapahtui virhe. Yritä uudelleen."
@@ -16707,6 +16712,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V730: Tarjoushaulla valittu tuote kuuluu valittuun tarjoushintaan eikä sitä
     // kilpailuteta uudelleen normaalin Halpuusvertailun kautta.
     const comparableCartV730 = cart.filter(isComparisonEligibleV797);
+    setComparisonDiagnosticV800(`Halpuuta painettu · kori ${cart.length} · vertailuun ${comparableCartV730.length}`);
     const excludedOfferCartCountV730 = cart.length - comparableCartV730.length;
 
     // Tarjousrivit eivät osallistu Halpuusvertailuun. Sekakorissa vain
@@ -16770,6 +16776,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setComparisonLoading(true);
       void updateChainComparison(comparableCartV730);
     } else {
+      setComparisonDiagnosticV800(`Kauppatunniste puuttuu · S ${activeStores.sStoreId || "ei ID:tä"} / K ${activeStores.kStoreId || "ei ID:tä"}`);
       setActiveResult("none");
       setComparisonLoading(false);
       setCartModalOpen(true);
@@ -20392,6 +20399,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   return (
     <>
+      {comparisonDiagnosticV800 && (
+        <div role="status" aria-live="polite" className="fixed bottom-20 left-2 right-2 z-[10000] mx-auto max-w-lg rounded-lg border border-amber-500 bg-[#211d15] p-3 text-xs text-white shadow-xl">
+          <div className="flex items-start justify-between gap-3"><span>Vertailun diagnostiikka: {comparisonDiagnosticV800}</span><button type="button" aria-label="Sulje diagnostiikka" onClick={() => setComparisonDiagnosticV800(null)}>✕</button></div>
+        </div>
+      )}
       {mobileLandscapeBlockedV441 && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf] sm:hidden">
           <div className="max-w-[24rem] rounded-[1.6rem] border-[3px] border-[#d8bd75] bg-[#173f2f] px-6 py-7 shadow-[0_8px_0_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.12)]">
