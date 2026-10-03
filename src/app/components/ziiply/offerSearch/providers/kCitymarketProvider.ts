@@ -663,15 +663,37 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const {fetchKCitymarketNationalTjekImages}=await import("./kCitymarketLocalTjekProvider");
     const photos=await fetchKCitymarketNationalTjekImages();
     const norm=(value:unknown)=>String(value??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
-    let matched=0;
+    const packageMatch=(value:string)=>value.match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
+    const tokens=(value:string)=>new Set(norm(value.replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi," ")).split(" ").filter(word=>word.length>=4));
+    let matched=0,exact=0,similar=0,ambiguous=0,unmatched=0;
     const result=enriched.map(offer=>{
       if(offer.imageUrl)return offer;
-      const url=photos.get(norm(offer.title));
-      if(!url)return offer;
+      const title=norm(offer.title);
+      let url=photos.get(title);
+      if(url)exact++;
+      if(!url && !/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai)\b/i.test(offer.title)){
+        const wanted=tokens(offer.title);
+        const wantedSize=packageMatch(offer.packageSize||offer.title);
+        if(wanted.size>=2){
+          const candidates=[...photos.entries()].filter(([name])=>{
+            const foundSize=packageMatch(name);
+            if(wantedSize && foundSize!==wantedSize)return false;
+            const found=tokens(name);
+            if(found.size<2)return false;
+            const common=[...wanted].filter(word=>found.has(word)).length;
+            return common>=2 && common/wanted.size>=0.8 && common/found.size>=0.8;
+          });
+          // Never attach a guessed photo if more than one distinct product matches.
+          const unique=[...new Set(candidates.map(([,image])=>image))];
+          if(unique.length===1){url=unique[0];similar++;}
+          else if(unique.length>1)ambiguous++;
+        }
+      }
+      if(!url){unmatched++;return offer;}
       matched++;
       return {...offer,imageUrl:url};
     });
-    console.info("[K-Citymarket] national Tjek image-only enrichment",{total:result.length,matched});
+    console.info("[K-Citymarket] national Tjek image-only enrichment",{total:result.length,tjekImages:photos.size,matched,exact,similar,ambiguous,unmatched});
     return result;
   }catch(error){
     console.warn("[K-Citymarket] optional national Tjek image enrichment unavailable",error);
