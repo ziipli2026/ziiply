@@ -16,6 +16,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm ci
+      - run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund
       - name: Compare banner products against Hämeenlinna normal product lookup
         run: npx --yes tsx scripts/diagnose-hameenmaa-prisma.mts
