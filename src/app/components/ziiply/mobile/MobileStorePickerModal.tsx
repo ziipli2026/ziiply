@@ -172,7 +172,7 @@ export default function MobileStorePickerModal({
                   className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-[1rem] border px-3 py-2 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${styles.row}`}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className={`block truncate text-[14px] font-black leading-tight ${styles.name}`}>
+                    <span className={`block min-w-0 whitespace-normal [overflow-wrap:anywhere] text-[14px] font-black leading-tight ${styles.name}`}>
                       {store.name || "Kauppa"}
                     </span>
                     <span className={`mt-1 block truncate text-[11.5px] font-black leading-tight ${styles.meta}`}>
