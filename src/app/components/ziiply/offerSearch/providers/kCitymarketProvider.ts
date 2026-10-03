@@ -76,7 +76,7 @@ export function category(t:string){
   if(/pussilakana|lakanasetti|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|\\bsaappaat\\b|\\bkengät\\b|\\bvalaisin\\b|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypussi|rikkasetti|ruusukimppu|terttuneilikka|\\berika\\b|lankaköynnös/.test(s)) return "Koti & vapaa-aika";
   if(/konetiskitablet|astianpesutablet|\\bfairy\\b/.test(s)) return "Kodinhoito";
   if(/kangasnaamio|kasvonaamio/.test(s)) return "Hygienia & kosmetiikka";
-  if(/katkarapu|jättikatkarapu/.test(s)) return "Kala";
+  if(/katkarav|jättikatkarav/.test(s)) return "Kala";
   if(/kypsät.*(?:peruna|lohko)|parisiinperuna|pikkuperuna/.test(s)) return "Valmisruoka";
   // K-Citymarket classification is authoritative downstream. Match non-food
   // appliances and other product-specific classes before generic food words.
