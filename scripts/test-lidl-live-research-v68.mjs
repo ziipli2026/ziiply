@@ -138,6 +138,21 @@ try {
     assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
       "Official Lidl dry-grocery research candidate missing or priced: " + expected);
   }
+  // Dated official frozen-food and vegetable category observations, checked as one batch.
+  for (const [query, expected] of [
+    ["gyoza", "Vitasia Gyoza-taikinanyytti 400 g"], ["kalapihvi", "Leroy Rapea kalapihvi"],
+    ["surimikatkaravut", "Vitasia Surimikatkaravut"], ["edamamepavut", "Vitasia Edamamepavut 200 g"],
+    ["mochijäätelö", "Vitasia Mochijäätelö"], ["juustokakkujäätelö", "Gelatelli Juustokakkujäätelö"],
+    ["minijäätelöpuikko", "Magnum Minijäätelöpuikko 6-pack"],
+    ["pikkutomaatti", "Kotimainen pikkutomaatti"], ["retiisi", "Retiisi"],
+    ["porkkana", "Kotimainen porkkana"], ["hokkaidokurpitsa", "Kotimainen hokkaidokurpitsa"],
+    ["varsiselleri", "Kotimainen varsiselleri"], ["kiinankaali", "Kotimainen kiinankaali"],
+    ["peruna", "Kotimainen peruna"], ["ruusukaali", "Kotimainen ruusukaali"],
+    ["punajuuri", "Kotimainen punajuuri"], ["kirsikkatomaatti", "Kotimainen kirsikkatomaatti"],
+  ]) {
+    assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
+      "Lidl frozen/vegetable research candidate missing or priced: " + expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
