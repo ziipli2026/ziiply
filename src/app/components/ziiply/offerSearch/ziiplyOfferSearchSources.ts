@@ -862,7 +862,7 @@ export async function searchZiiplyOffers(
           const names = normalizeOfferStoreListV11(providerOptions?.sStoreNames, providerOptions?.sStoreName ?? providerOptions?.storeName);
           const results: ZiiplyOfferSearchResult[] = [];
           for (const name of [...new Set(names)]) {
-            if (!/^prisma(?:\\s|$)/i.test(name)) continue;
+            if (!/^prisma(?:\s|$)/i.test(name)) continue;
             results.push(...await fetchPrismaCampaignOffersV1(cleanQuery, ZIIPLY_OFFER_SOURCES.skaupat, name));
           }
           return results;
