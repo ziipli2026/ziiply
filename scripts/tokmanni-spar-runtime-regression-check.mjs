@@ -10,7 +10,7 @@ const source=readFileSync("src/lib/sparApprovedCategories.ts","utf8")
 const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const exports={};
 vm.runInNewContext(js,{exports,require:()=>{throw Error("Unexpected import");}});
-const {buildApprovedIndex,applyApprovedSparCategories,filterApprovedSparGroceryItems}=exports;
+const {buildApprovedIndex,applyApprovedSparCategories,filterApprovedSparGroceryItems,filterApprovedSparMilkCategory}=exports;
 const approved=new Map([
  ["6411111111111",{productClass:"daily",ziiplyCategory:"Maitotuotteet",classificationStatus:"approved"}],
  ["6412222222222",{productClass:"department_store",ziiplyCategory:"",classificationStatus:"approved"}],
@@ -31,3 +31,10 @@ assert.equal(output[2].category,"Tokmanni");
 assert.equal(input[0].category,"Tokmanni","Do not mutate provider result");
 assert.equal(exports.SPAR_APPROVED_INDEX.size,0,"Unreviewed proposals must not be auto-approved");
 console.log("PASS: approved non-grocery excluded, milk categorized, unknown EAN retained, source immutable, zero autoapprovals");
+
+const reviewed=buildApprovedIndex(JSON.parse(readFileSync("src/data/tokmanni-spar-approved-index.json","utf8")).items);
+assert.equal(filterApprovedSparMilkCategory([{ean:"9002859056932"}],"maito",reviewed).length,0);
+assert.equal(filterApprovedSparMilkCategory([{ean:"6412600819939"}],"maito",reviewed).length,0);
+assert.equal(filterApprovedSparMilkCategory([{ean:"6408653127312"}],"maito",reviewed).length,1);
+assert.equal(filterApprovedSparMilkCategory([{ean:"9002859056932"}],"makeiset",reviewed).length,1);
+console.log("PASS: reviewed categories refine milk relevance without affecting other queries");
