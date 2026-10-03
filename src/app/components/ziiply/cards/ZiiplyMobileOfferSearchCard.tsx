@@ -1287,7 +1287,7 @@ export default function ZiiplyMobileOfferSearchCard({
           ) : null}
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-hidden px-5 pb-[0.75rem] pt-[0.18rem]">
+        <main className="relative z-10 min-h-0 flex flex-1 flex-col overflow-hidden px-5 pb-[0.75rem] pt-[0.18rem]">
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
