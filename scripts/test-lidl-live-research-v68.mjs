@@ -102,6 +102,16 @@ try {
     assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.price === null && r.ean === null),
       "Lidl compound-name discovery failed: " + query + " -> " + expected);
   }
+  // Official Lidl dairy category: one batched discovery check for four named records.
+  for (const [query, expected] of [
+    ["proteiinivanukas", "Milbona proteiinivanukas"],
+    ["vadelmakefir", "Pilos vadelmakefir"],
+    ["höyrytetty juusto", "Kuljanka höyrytetty juusto"],
+    ["eränkävijä", "Kuusamon Juusto Eränkävijä-juusto"],
+  ]) {
+    assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
+      "Official dairy research candidate missing or incorrectly priced: " + expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
