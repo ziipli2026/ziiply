@@ -389,15 +389,48 @@ async function parseOfferSearchResponse(response: Response) {
 function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV152) {
   if (!context) return "";
 
+  // V237: S/K master data is store-specific, not GPS/location/mode-specific.
+  // The old key included areaLabel/storeMode/scope, so the click-time warmup
+  // could populate one key while the immediately opened Gösta used another.
+  // That caused the visible search to start the same slow master request again.
+  // For S/K, canonicalize only the selected store identities so warmup and
+  // visible search always share the exact same in-browser in-flight Promise.
+  const sIds = normalizeGostaContextListV164(context.sStoreIds, context.sStoreId)
+    .map((value) => normalizeGostaCoreText(value))
+    .filter(Boolean);
+  const sNames = normalizeGostaContextListV164(context.sStoreNames, context.sStoreName)
+    .map((value) => normalizeGostaCoreText(value))
+    .filter(Boolean);
+  const kIds = normalizeGostaContextListV164(context.kStoreIds, context.kStoreId)
+    .map((value) => normalizeGostaCoreText(value))
+    .filter(Boolean);
+  const kNames = normalizeGostaContextListV164(context.kStoreNames, context.kStoreName)
+    .map((value) => normalizeGostaCoreText(value))
+    .filter(Boolean);
+
+  if (sIds.length || sNames.length || kIds.length || kNames.length) {
+    return [
+      "stores",
+      "s", ...sIds, ...sNames,
+      "k", ...kIds, ...kNames,
+      context.eurosparStoreId,
+      context.eurosparStoreName,
+      context.eurosparStoreChain,
+      context.lidlStoreKey,
+      context.lidlStoreName,
+      context.tokmanniStoreId,
+      context.tokmanniStoreName,
+    ]
+      .map((value) => normalizeGostaCoreText(value))
+      .filter(Boolean)
+      .join("|");
+  }
+
   return [
     context.areaLabel,
     context.storeMode,
     context.storeCompareScope,
     context.withinChain,
-    ...normalizeGostaContextListV164(context.sStoreIds, context.sStoreId),
-    ...normalizeGostaContextListV164(context.sStoreNames, context.sStoreName),
-    ...normalizeGostaContextListV164(context.kStoreIds, context.kStoreId),
-    ...normalizeGostaContextListV164(context.kStoreNames, context.kStoreName),
     context.eurosparStoreId,
     context.eurosparStoreName,
     context.eurosparStoreChain,
