@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 import { filterSparMilkQuery } from "@/lib/sparMilkSearch";
+import { filterSparHumanFoodIntent } from "@/lib/sparGroceryIntent";
 import { applyApprovedSparCategories, filterApprovedSparGroceryItems, filterApprovedSparMilkCategory, SPAR_APPROVED_INDEX } from "@/lib/sparApprovedCategories";
 
 const TOKMANNI_SEARCH_URL = "https://www.tokmanni.fi/search";
