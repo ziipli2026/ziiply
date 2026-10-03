@@ -14203,6 +14203,46 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           })();
         }
 
+        // Selected Citymarket/K-store must receive its own exact-EAN lookup even
+        // when the identity bank takes the fast scanner return above.
+        if (scannerAllowKV785 && Number(activeStores.kStoreId || 0) > 0) {
+          void (async () => {
+            try {
+              const storeId = Number(activeStores.kStoreId);
+              const queries = Array.from(new Set([ean, bankIdentityNameV789].filter(Boolean)));
+              let exact: KProduct | undefined;
+              for (const query of queries) {
+                const candidates = await fetchKProducts(query, storeId).catch(() => [] as KProduct[]);
+                exact = candidates.find((candidate) =>
+                  isSameEan(candidate.ean, getEanSearchVariants(ean)) && Number(candidate.price || 0) > 0
+                );
+                if (exact) break;
+              }
+              if (!exact) return;
+              const product = convertKProductToProduct(exact);
+              const price = getProductPrice(product);
+              if (price <= 0) return;
+              setCart((currentCart) => {
+                const nextCart = currentCart.map((item) => {
+                  if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  // The basket displays the S price when both chains are selected;
+                  // K pricing belongs to the independent comparison matcher.
+                  if (scannerAllowSV785 && selectedChains.s) return item;
+                  return {
+                    ...item, price, image: product.pictureUrl || item.image,
+                    chain: "K" as const, storeName: activeStores.kStoreName || item.storeName,
+                    product: { ...product, ean, price } as Product, ean,
+                  } as CartItem;
+                });
+                cartRefV124.current = nextCart;
+                persistCartImmediately(nextCart);
+                scheduleComparisonUpdate(nextCart);
+                return nextCart;
+              });
+            } catch {}
+          })();
+        }
+
         // V790: Tokmanni/SPAR exact-EAN price enrichment. Identity stays from the
         // scanned EAN; never replace it with a name-only match.
         if (
