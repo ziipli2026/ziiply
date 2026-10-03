@@ -37,7 +37,7 @@ try {
   const sourceKeys = new Set();
   for (const record of evidence.records) {
     assert.ok(typeof record.name === "string" && record.name.trim(), "Unnamed Lidl evidence");
-    assert.ok(typeof record.source === "string" && /^https:\\/\\//.test(record.source), "Missing evidence URL: " + record.name);
+    assert.ok(typeof record.source === "string" && record.source.startsWith("https://"), "Missing evidence URL: " + record.name);
     assert.equal(record.eanStatus, "not_verified", "Unexpected EAN verification: " + record.name);
     assert.equal(record.ean, null, "Unexpected EAN: " + record.name);
     assert.equal(Object.hasOwn(record, "price"), false, "Evidence row contains checkout price: " + record.name);
