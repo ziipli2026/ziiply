@@ -12868,15 +12868,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
+        // A failure for one scanner row must not discard successful matches
+        // for the other rows. Only fully successful results are cached.
+        setSMatches(nextSMatches);
+        setKMatches(nextKMatches);
         if (!failed) {
-          // Myös onnistunut "ei löytynyt" on valmis vertailutulos.
-          // Tyhjät next-match-mapit täytyy kirjoittaa stateen, jotta aiemman
-          // haun vanha vastine (esim. 375 g -> 400 g) ei jää näkyviin.
           comparisonCompletedKeyRef.current = cacheKey;
-          setSMatches(nextSMatches);
-          setKMatches(nextKMatches);
         } else {
-          // Vain oikea hakuhäiriö saa säilyttää edellisen toimivan vertailun.
           comparisonCacheKeyRef.current = null;
           comparisonCompletedKeyRef.current = null;
           setComparisonLoading(false);
