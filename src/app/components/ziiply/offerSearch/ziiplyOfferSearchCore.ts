@@ -647,9 +647,9 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   const store = normalizeGostaCoreText(item?.storeLabel || "");
   const price = normalizeGostaCoreText(item?.priceText || "");
 
-  if (title3) return `title3:${title3}|price:${price}|store:${store}`;
+  if (title3) return `${sourceTab}:title3:${title3}|price:${price}|store:${store}`;
 
-  return normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"));
+  return `${sourceTab}:${normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"))}`;
 }
 
 export function dedupeZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]) {
