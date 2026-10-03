@@ -63,6 +63,7 @@
 
 import { NextResponse } from "next/server";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8 } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { fetchKCitymarketSelectedStoreOffers } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
@@ -633,6 +634,17 @@ export async function GET(request: Request) {
         citymarketResults = (fetched as unknown as UnknownRecord[]).filter((offer) =>
           offerMatchesQuery(q, offer),
         );
+        // Selected-store Tjek publications supplement the national leaflet.
+        // A failed local request never removes national offers.
+        try {
+          const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
+          if (selectedCitymarket) {
+            const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
+            citymarketResults.push(...localOffers.filter(offer => offerMatchesQuery(q, offer)));
+          }
+        } catch (localError) {
+          console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
+        }
       } catch (error) {
         console.warn("[Ziiply offers V19] K-Citymarket fetch failed", error);
         citymarketResults = [];
