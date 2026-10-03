@@ -404,7 +404,7 @@ function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
 
   for (const result of results) {
     // A product may legitimately appear in both tabs. Deduplicate within each dataset only.
-    const key = `${result.campaignType === "campaign" ? "campaign" : "offer"}|${getUniqueOfferKeyV4(result)}`;
+    const key = `${(result as ZiiplyOfferSearchResult & { campaignType?: string }).campaignType === "campaign" ? "campaign" : "offer"}|${getUniqueOfferKeyV4(result)}`;
     if (!key || seen.has(key)) continue;
     seen.add(key);
     unique.push(result);
