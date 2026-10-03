@@ -36,10 +36,16 @@ try {
   for (const record of categoryObservations) {
     const rows = searchLidlResearch(record.name, 50);
     const matching = rows.find(r => r.name === record.name && r.assortmentEvidence === record.assortmentEvidence);
-    // Broad name queries can have more than 50 matching results; assert provenance
-    // for returned observations without falsely treating ranking as missing data.
-    if (matching) assert.equal(matching.observedDate, record.observedDate,
-      "Individual Lidl source date was overwritten: " + record.name);
+    // Broad queries may hit the 50-result cap. The source row itself is
+    // validated above; assert provenance whenever it survives result ranking.
+    if (matching) {
+      assert.equal(matching.observedDate, record.observedDate,
+        "Individual Lidl source date was overwritten: " + record.name);
+      assert.equal(matching.price, null, "Unverified source gained checkout price: " + record.name);
+      assert.equal(matching.ean, null, "Unverified source gained an EAN: " + record.name);
+      assert.equal(matching.priceVerified, false);
+      assert.deepEqual(matching.storeItems, []);
+    }
   }
   const priced = corpus.records.filter(r => typeof r.displayedPriceEur === "number");
   assert.equal(priced.length, 110, "Price observation count changed; review before updating");
