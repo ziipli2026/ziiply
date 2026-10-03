@@ -14229,14 +14229,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const storeId = Number(activeStores.kStoreId);
               const requestedKEpochV806 = scannerStoreEpochRefV806.current.k;
               const queries = Array.from(new Set([ean, bankIdentityNameV789].filter(Boolean)));
-              let exact: KProduct | undefined;
-              for (const query of queries) {
-                const candidates = await fetchKProducts(query, storeId).catch(() => [] as KProduct[]);
-                exact = candidates.find((candidate) =>
-                  isSameEan(candidate.ean, getEanSearchVariants(ean)) && Number(candidate.price || 0) > 0
-                );
-                if (exact) break;
-              }
+              // EAN and name lookups run concurrently: K's EAN index can miss
+              // a product whose exact EAN is present in name-search results.
+              const candidateBatches = await Promise.all(queries.map((query) =>
+                fetchKProducts(query, storeId).catch(() => [] as KProduct[])
+              ));
+              const exact = candidateBatches.flat().find((candidate) =>
+                isSameEan(candidate.ean, getEanSearchVariants(ean)) && Number(candidate.price || 0) > 0
+              );
               if (!exact) return;
               const product = convertKProductToProduct(exact);
               const price = getProductPrice(product);
@@ -14248,7 +14248,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   // The basket displays the S price when both chains are selected;
                   // K pricing belongs to the independent comparison matcher.
-                  if (scannerAllowSV785 && selectedChains.s) return item;
+                  // Preserve a real S price, but do not suppress the K price
+                  // when the S-side has no priced match (e.g. Pirkka own brand).
+                  if (scannerAllowSV785 && selectedChains.s && item.chain === "S" && Number(item.price || 0) > 0) return item;
                   return {
                     ...item, price, image: product.pictureUrl || item.image,
                     chain: "K" as const, storeName: activeStores.kStoreName || item.storeName,
