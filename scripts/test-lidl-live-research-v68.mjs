@@ -81,6 +81,21 @@ try {
     assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.price === null && r.ean === null && r.priceVerified === false),
       "Sourced Lidl category batch result missing or priced: " + expected);
   }
+  // Measure ordinary basket-query coverage in one run; print actionable gaps
+  // rather than multiplying one-off regression scripts or asserting fake SKUs.
+  const basketQueries = [
+    "maito","kevytmaito","kananmunat","voi","juusto","raejuusto","jogurtti",
+    "leipä","riisipiirakka","pasta","makaroni","riisi","kaurahiutaleet",
+    "kahvi","kahvipavut","tee","banaani","omena","peruna","porkkana",
+    "tomaatti","kurkku","paprika","salaatti","jauheliha","kana","pekoni",
+    "nakki","tofu","pizza","keitto","ketsuppi","majoneesi","öljy",
+    "mehu","limonadi","vichy","suklaa","jäätelö","pakaste"
+  ];
+  const basketCoverage = basketQueries.map(query => ({query, count: searchLidlResearch(query, 50).length}));
+  const basketGaps = basketCoverage.filter(row => row.count === 0).map(row => row.query);
+  console.log(JSON.stringify({audit:"Lidl ordinary-basket search coverage", total:basketQueries.length,
+    matched:basketQueries.length-basketGaps.length, gaps:basketGaps, counts:basketCoverage}));
+  assert.ok(basketCoverage.every(row => row.count <= 50), "Research cap exceeded");
   const priced = corpus.records.filter(r => typeof r.displayedPriceEur === "number");
   assert.equal(priced.length, 110, "Price observation count changed; review before updating");
   const cases = ["maito", "jauheliha", "makaroni", "kananmunat", "kahvi", "kevytmaito", "kahvipavut", "kaurahiutale"];
