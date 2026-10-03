@@ -1789,6 +1789,72 @@
       "recordKind": "lidl-named-product",
       "assortmentEvidence": "lidl-public-category-observation",
       "currentStoreStockVerified": false
+    },
+    {
+      "name": "Milbona Puhvelimozzarella",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/p/milbona-puhvelimozzarella/p10023501",
+      "observedDate": "2026-10-03",
+      "note": "Official Lidl public product mention; research-only, not proof of current local stock, checkout price or EAN.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Grill & Fun Grillitofu",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/lihat-ja-makkarat/h10071016",
+      "observedDate": "2026-10-03",
+      "note": "Official Lidl public product mention; research-only, not proof of current local stock, checkout price or EAN.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Grillimaisteri Pekonimakkara",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/lihat-ja-makkarat/h10071016",
+      "observedDate": "2026-10-03",
+      "note": "Official Lidl public product mention; research-only, not proof of current local stock, checkout price or EAN.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Grillimaisteri Frankfurter-nakki",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/lihat-ja-makkarat/h10071016",
+      "observedDate": "2026-10-03",
+      "note": "Official Lidl public product mention; research-only, not proof of current local stock, checkout price or EAN.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Grillimaisteri Minibraatvursti",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/lihat-ja-makkarat/h10071016",
+      "observedDate": "2026-10-03",
+      "note": "Official Lidl public product mention; research-only, not proof of current local stock, checkout price or EAN.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
+    },
+    {
+      "name": "Grillimaisteri Braatvursti",
+      "ean": null,
+      "eanStatus": "not_verified",
+      "source": "https://www.lidl.fi/h/lihat-ja-makkarat/h10071016",
+      "observedDate": "2026-10-03",
+      "note": "Official Lidl public product mention; research-only, not proof of current local stock, checkout price or EAN.",
+      "recordKind": "lidl-named-product",
+      "assortmentEvidence": "lidl-public-category-observation",
+      "currentStoreStockVerified": false
     }
   ]
 }
