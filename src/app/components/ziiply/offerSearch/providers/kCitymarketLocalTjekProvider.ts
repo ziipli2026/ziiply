@@ -91,16 +91,22 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
 
 
 /** Optional national-publication photo index. Never imports Tjek prices or local campaigns. */
+export type KCitymarketTjekImageDebug={fronts:number;publications:number;pages:number;offerIds:number;offersWithImage:number;uniqueImages:number;error:string|null};
+let nationalTjekImageDebug:KCitymarketTjekImageDebug={fronts:0,publications:0,pages:0,offerIds:0,offersWithImage:0,uniqueImages:0,error:null};
+export function getKCitymarketNationalTjekImageDebug(){return {...nationalTjekImageDebug};}
 export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,string>> {
+  const stats:KCitymarketTjekImageDebug={fronts:0,publications:0,pages:0,offerIds:0,offersWithImage:0,uniqueImages:0,error:null};
   const images=new Map<string,string>();
   try {
     const fronts=await tjek("fronts",{businessIds:[BUSINESS]});
+    stats.fronts=Array.isArray(fronts)?fronts.length:0;
     const now=Date.now();
     const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front =>
       front && typeof front==="object" && Array.isArray((front as Row).publications)
         ? (front as Row).publications as Row[] : [])
       .filter(p=>{const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));
         return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
+    stats.publications=publications.length;
     const candidates=new Map<string,Set<string>>();
     for(const publication of publications.slice(0,3)){
       const publicationId=String(publication.id??"");
@@ -110,10 +116,12 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
         const response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(publicationId)+"/"+page,
           {cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(12000)});
         if(!response.ok)break;
+        stats.pages++;
         const payload=await response.json() as Row;
         const hotspots=Array.isArray(payload.hotspots)?payload.hotspots:[];
         const ids=[...new Set(hotspots.map(h=>h&&typeof h==="object"&&((h as Row).offer)&&typeof (h as Row).offer==="object"
           ? String(((h as Row).offer as Row).id??""):"").filter(Boolean))].filter(id=>!seen.has(id));
+        stats.offerIds+=ids.length;
         ids.forEach(id=>seen.add(id));
         for(let offset=0;offset<ids.length;offset+=8){
           const offers=await Promise.all(ids.slice(offset,offset+8).map(async id=>{
@@ -126,6 +134,7 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
             if(!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now)continue;
             const key=normalize(offer.name),url=String(offer.imageLarge??offer.image??"");
             if(!key||!/^https:\/\//i.test(url))continue;
+            stats.offersWithImage++;
             const set=candidates.get(key)||new Set<string>();set.add(url);candidates.set(key,set);
           }
         }
@@ -133,7 +142,9 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
       }
     }
     for(const [key,urls] of candidates)if(urls.size===1)images.set(key,[...urls][0]);
-    console.info("[K-Citymarket] national Tjek photo candidates",{publications:publications.length,uniqueImages:images.size});
-  }catch(error){console.warn("[K-Citymarket] optional national Tjek photo lookup unavailable",error);}
+    stats.uniqueImages=images.size;
+    console.info("[K-Citymarket] national Tjek photo candidates",stats);
+  }catch(error){stats.error=error instanceof Error?error.message:String(error);console.warn("[K-Citymarket] optional national Tjek photo lookup unavailable",error);}
+  nationalTjekImageDebug=stats;
   return images;
 }
