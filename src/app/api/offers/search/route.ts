@@ -62,7 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
-import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8 } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
@@ -558,6 +558,7 @@ export async function GET(request: Request) {
         nationalOffers: offers.length,
         nationalWithImage: offers.filter(offer => Boolean(offer.imageUrl)).length,
         tjek: debug,
+        matching: getKCitymarketNationalPhotoMatchAudit(),
       }, { headers: { "Cache-Control": "no-store" } });
     }
 
