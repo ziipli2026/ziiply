@@ -6160,12 +6160,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!storesReadyForSearch) return;
     if (stableBootWarmupDoneRefV505.current) return;
 
-    stableBootWarmupDoneRefV505.current = true;
-
     const sStore = String(activeStores?.sStoreId || "").trim();
     const kStore = String(activeStores?.kStoreId || "").trim();
 
     const warmup = () => {
+      if (stableBootWarmupDoneRefV505.current) return;
+      stableBootWarmupDoneRefV505.current = true;
       try {
         if (sStore && sStore !== "0") {
           void fetch(`/api/s-products?search=${encodeURIComponent("maito")}&store=${encodeURIComponent(sStore)}`, {
