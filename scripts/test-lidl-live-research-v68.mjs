@@ -112,6 +112,18 @@ try {
     assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
       "Official dairy research candidate missing or incorrectly priced: " + expected);
   }
+  // Batch-check six dated Lidl dairy category observations; no promotion price becomes a checkout price.
+  for (const [query, expected] of [
+    ["turkkilainen jogurtti","Juustoportti pehmeä turkkilainen jogurtti"],
+    ["maalaishyytelö","Kartanon maalaishyytelö"],
+    ["juustoviipale","Arla juustoviipale"],
+    ["soijavalmiste","Alpro soijavalmiste"],
+    ["tuorejuusto","Jokilaakson Juusto tuorejuusto"],
+    ["proteiinipirtelö","Arla proteiinipirtelö"],
+  ]) {
+    assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.ean === null && r.price === null && r.priceVerified === false),
+      "Dated Lidl dairy research observation missing or priced: " + expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
