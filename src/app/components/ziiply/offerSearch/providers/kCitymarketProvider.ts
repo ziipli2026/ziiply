@@ -706,7 +706,13 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
             const complete=common===wanted.size && found.size<=wanted.size+2;
             const descriptive=common>=2 && common>=Math.ceil(Math.min(wanted.size,found.size)*0.8) &&
               found.size<=wanted.size+2 && wanted.size<=found.size+5;
-            return complete||descriptive;
+            // A distinctive single-word product may be brand-prefixed by Tjek.
+            // Only accept it when the word matches exactly and there is no
+            // conflicting pack size; unique-image check below remains mandatory.
+            const single=wanted.size===1 && [...wanted][0].length>=8 &&
+              found.has([...wanted][0]) && found.size<=3 &&
+              (!wantedSize || !foundSize || wantedSize===foundSize);
+            return complete||descriptive||single;
           });
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
