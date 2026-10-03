@@ -96,6 +96,15 @@ try {
   console.log(JSON.stringify({audit:"Lidl ordinary-basket search coverage", total:basketQueries.length,
     matched:basketQueries.length-basketGaps.length, gaps:basketGaps, counts:basketCoverage}));
   assert.ok(basketCoverage.every(row => row.count <= 50), "Research cap exceeded");
+  // These are evidence gaps, not permission to turn a recall or a generic food
+  // category into a current Lidl SKU. Keep the distinction visible in CI.
+  for (const query of ["kananmunat","voi","makaroni"]) {
+    assert.equal(searchLidlResearch(query, 50).length, 0,
+      "Review the source and exact product identity before lifting Lidl evidence gap: " + query);
+  }
+  assert.ok(searchLidlResearch("pasta", 50).some(row => row.name === "Combino kaurapasta" &&
+    row.price === null && row.ean === null && row.priceVerified === false),
+    "Documented oat pasta must be discoverable without a fabricated price or EAN");
   const priced = corpus.records.filter(r => typeof r.displayedPriceEur === "number");
   assert.equal(priced.length, 110, "Price observation count changed; review before updating");
   const cases = ["maito", "jauheliha", "makaroni", "kananmunat", "kahvi", "kevytmaito", "kahvipavut", "kaurahiutale"];
