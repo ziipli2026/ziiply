@@ -9,3 +9,9 @@ const visibleCategories = new Set(["Kahvi & tee","Maitotuotteet","Liha & makkara
 const unmapped = results.map(item => ({ean:String((item as {ean?:string}).ean ?? ""),sourceCategory:String((item as {category?:string}).category ?? ""),displayCategory:String(mapZiiplyGostaOfferToCardOfferV147(item).category ?? "")})).filter(item => !visibleCategories.has(item.displayCategory));
 console.log(JSON.stringify({prismaCampaignCategoryAudit:{total:results.length,unmapped}}));
 if(unmapped.length)process.exitCode=1;
+
+// A campaign must retain its tab marker even when the same EAN also exists in DISCOUNTED offers.
+const missingCampaignMarker = results.filter(item => (item as {campaignType?:string}).campaignType !== "campaign");
+const duplicateCampaignEans = results.map(item => String((item as {ean?:string}).ean ?? "").trim()).filter((ean,index,all) => !!ean && all.indexOf(ean) !== index);
+console.log(JSON.stringify({campaignTabAudit:{missingCampaignMarker:missingCampaignMarker.length,duplicateCampaignEans}}));
+if(missingCampaignMarker.length || duplicateCampaignEans.length) process.exitCode=1;
