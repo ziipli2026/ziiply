@@ -22863,14 +22863,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         : result.key === "k"
                           ? "K" as const
                           : undefined,
-                    // result.totalPrice on jo samaa yksikköä kuin match.price-summat.
-                    // EI kerrota sadalla, muuten mobiilikortilla hinnat näyttävät 100x liian suurilta.
-                    totalPrice: result.totalPrice || 0,
+                    // Core prices are euros; mobile comparison presentation accepts cents.
+                    totalPrice: Math.round((result.totalPrice || 0) * 100),
                     itemCount: result.foundItems,
                     isBest: cheapest?.key === result.key,
                     badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
                     matches: (result.matches || []).map((match: Match) => ({
                       ...match,
+                      // Mobile detail formatter expects cents; core Match.price is euros.
+                      price: Math.round(match.price * 100),
                       chainKey: result.key,
                       qualityMode: match.cartItemId
                         ? qualityModesByCart[`${result.key}:${match.cartItemId}`]
