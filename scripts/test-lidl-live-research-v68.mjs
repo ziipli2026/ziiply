@@ -49,6 +49,23 @@ try {
       assert.deepEqual(matching.storeItems, []);
     }
   }
+  // One representative batch covers all newly sourced food groups without per-word commits.
+  for (const [query, expected] of [
+    ["teriyaki", "Vitasia Teriyaki-broileriateria"], ["perhepizza", "Chef Select Perhepizza"],
+    ["pelmeni", "Taschki Pelmeni"], ["kananugetit", "Kananugetit dipillä"],
+    ["khinkali", "Kuljanka Khinkalitaikinanyytti"], ["borssikeitto", "Kuljanka Borssikeitto"],
+    ["pastanyytti", "Kuljanka Pastanyytti raejuusto-perunatäytteellä"],
+    ["liha perunanyytti", "Kuljanka Liha-perunanyytti"], ["paneroitu juusto", "Kuljanka Paneroitu juusto"],
+    ["papu lihapata", "Podravka Papu-lihapata"], ["burgeri", "HK Burgeri 6 kpl"],
+    ["croissantit", "Danerolles Croissantit 2 kpl"], ["reissumies", "Oululainen Reissumies Tosi Ohut 210 g"],
+    ["hönösaaristolaisrieska", "Pågen Hönösaaristolaisrieska"],
+    ["murea leikkele", "Snellman Tosi murea leikkele"], ["punainen lenkki", "Atria Punainen lenkki 2 kpl"],
+    ["ramenliemi", "Vitasia Ramenliemi"], ["siitakesienitasku", "Vitasia Siitakesienitasku"],
+    ["moniviljasiemensämpylä", "Moniviljasiemensämpylä 6 kpl"],
+  ]) {
+    assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.price === null && r.ean === null && r.priceVerified === false),
+      "Sourced Lidl category batch result missing or priced: " + expected);
+  }
   const priced = corpus.records.filter(r => typeof r.displayedPriceEur === "number");
   assert.equal(priced.length, 110, "Price observation count changed; review before updating");
   const cases = ["maito", "jauheliha", "makaroni", "kananmunat", "kahvi", "kevytmaito", "kahvipavut", "kaurahiutale"];
