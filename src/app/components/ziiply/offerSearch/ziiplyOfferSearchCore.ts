@@ -401,6 +401,10 @@ function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV
     context.eurosparStoreId,
     context.eurosparStoreName,
     context.eurosparStoreChain,
+    context.lidlStoreKey,
+    context.lidlStoreName,
+    context.tokmanniStoreId,
+    context.tokmanniStoreName,
   ]
     .map((value) => normalizeGostaCoreText(value))
     .filter(Boolean)
