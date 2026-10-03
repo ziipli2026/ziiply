@@ -1,7 +1,7 @@
 // Isolated read-only diagnostic for Hämeenmaa Prisma price-banner coverage.
 // Run: node --experimental-strip-types scripts/diagnose-hameenmaa-prisma.mts
 // Never writes prices into the offer cache or production.
-import { fetchSKaupatNormalProductsV220 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts";
+import { fetchSKaupatNormalProductsV220 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
 const store = "Prisma Hämeenlinna";
 const cases = [
   { label:"Snellman Maatiaispossun maustettu uunifilee", query:"Snellman uunifilee", ean:"2396257900001", expected:6.99, unit:"KG" },
