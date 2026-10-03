@@ -35,7 +35,14 @@ const compoundNames: Record<string, readonly string[]> = {
  riisipiirakka:["pakasteriisipiirakka"],
  kaurahiutaleet:["pikakaurahiutaleet","kaurahiutale"],
 };
-const matches=(word:string,term:string)=>word===term||(compoundNames[term]?.includes(word)??false)||(term==="juusto" && /juusto$/.test(word))||(term==="jogurtti" && /jogurtti$/.test(word))||(exactStaples.has(term)
+const groceryCompounds: Record<string, readonly string[]> = {
+ salaatti:["jaasalaattipussi","perunasalaatti","grillikurkkusalaatti"],
+ keitto:["mustikkakeitto","misokeitto","gulassikeitto","ramenkeitto","borssikeitto","lihakeitto"],
+ ketsuppi:["tomaattiketsuppi"],majoneesi:["herkkumajoneesi","paprikamajoneesi"],
+ oljy:["neitsytoliivioljy","ekstraneitsytoliivioljy","extra neitsytoliivioljy"],
+ limonadi:["ananaslimonadi"],
+};
+const matches=(word:string,term:string)=>word===term||(compoundNames[term]?.includes(word)??false)||(groceryCompounds[term]?.includes(word)??false)||(term==="juusto" && /juusto$/.test(word))||(term==="jogurtti" && /jogurtti$/.test(word))||(exactStaples.has(term)
  ?(forms[term]??[]).some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchLidlResearch(query:string,limit=15){
  if(typeof query!=="string")return [];
