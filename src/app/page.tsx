@@ -4642,7 +4642,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   >({});
   const [comparisonLoading, setComparisonLoading] = useState(false);
   const [comparisonDiagnosticV800, setComparisonDiagnosticV800] = useState<string | null>(null);
-  const [comparisonDiagnosticExpandedV802, setComparisonDiagnosticExpandedV802] = useState(false);
   const comparisonRawCountsV801 = useRef({ s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 });
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
@@ -20530,15 +20529,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   return (
     <>
-      {comparisonDiagnosticV800 && (
-        <div role="status" aria-live="polite" className="fixed bottom-[7.2rem] left-2 right-2 z-[10000] mx-auto max-w-lg rounded-lg border border-amber-500 bg-[#211d15] p-2 text-xs text-white shadow-xl">
-          <div className="flex items-center justify-between gap-2">
-            <button type="button" aria-expanded={comparisonDiagnosticExpandedV802} onClick={() => setComparisonDiagnosticExpandedV802((open) => !open)} className="min-w-0 flex-1 text-left font-semibold">Vertailun diagnostiikka {comparisonDiagnosticExpandedV802 ? "▲ Sulje" : "▼ Avaa tiedot"}</button>
-            <button type="button" aria-label="Poista diagnostiikka" onClick={() => setComparisonDiagnosticV800(null)} className="shrink-0 px-2 py-1">✕</button>
-          </div>
-          {comparisonDiagnosticExpandedV802 && <div className="mt-2 max-h-[40dvh] overflow-y-auto whitespace-pre-wrap break-words border-t border-amber-700 pt-2 leading-relaxed">{comparisonDiagnosticV800}</div>}
-        </div>
-      )}
       {mobileLandscapeBlockedV441 && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf] sm:hidden">
           <div className="max-w-[24rem] rounded-[1.6rem] border-[3px] border-[#d8bd75] bg-[#173f2f] px-6 py-7 shadow-[0_8px_0_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.12)]">
