@@ -664,8 +664,22 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   try{
     const {fetchKCitymarketNationalTjekImages}=await import("./kCitymarketLocalTjekProvider");
     const photos=await fetchKCitymarketNationalTjekImages();
-    const norm=(value:unknown)=>String(value??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
-    const packageMatch=(value:string)=>value.match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
+    // The leaflet PDF occasionally exposes UTF-8 bytes as Latin-1 text.
+    const repair=(value:unknown)=>{
+      let raw=String(value??"").replace(/â€“|â€”/g,"-").replace(/â€™/g,"'");
+      if(/[ÃÂ]/.test(raw)){
+        try{
+          const bytes=Uint8Array.from(raw,character=>character.charCodeAt(0));
+          const decoded=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
+          raw=decoded;
+        }catch{
+          raw=raw.replace(/Ã„/g,"Ä").replace(/Ã¤/g,"ä").replace(/Ã–/g,"Ö").replace(/Ã¶/g,"ö").replace(/Ã…/g,"Å").replace(/Ã¥/g,"å");
+        }
+      }
+      return raw;
+    };
+    const norm=(value:unknown)=>repair(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+    const packageMatch=(value:string)=>norm(value).match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
     const tokens=(value:string)=>new Set(norm(value.replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi," ")).split(" ").filter(word=>word.length>=4));
     let matched=0,exact=0,similar=0,ambiguous=0,unmatched=0;
     const result=enriched.map(offer=>{
@@ -673,19 +687,21 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       const title=norm(offer.title);
       let url=photos.get(title);
       if(url)exact++;
-      if(!url && !/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai)\b/i.test(offer.title)){
+      if(!url){
         const wanted=tokens(offer.title);
         const wantedSize=packageMatch(offer.packageSize||offer.title);
         if(wanted.size>=2){
           const candidates=[...photos.entries()].filter(([name])=>{
             const foundSize=packageMatch(name);
-            if(wantedSize && foundSize!==wantedSize)return false;
+            // A missing size in Tjek is not a contradictory size.
+            if(wantedSize && foundSize && foundSize!==wantedSize)return false;
             const found=tokens(name);
-            if(found.size<2)return false;
             const common=[...wanted].filter(word=>found.has(word)).length;
-            return common>=2 && common===Math.min(wanted.size,found.size) && Math.abs(wanted.size-found.size)<=1;
+            // Tjek often prefixes the brand, whereas the leaflet omits it.
+            // Require every meaningful leaflet token, allowing one extra brand token.
+            return common===wanted.size && found.size<=wanted.size+2 &&
+              (wantedSize ? (!foundSize || foundSize===wantedSize) : true);
           });
-          // Never attach a guessed photo if more than one distinct product matches.
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
           else if(unique.length>1)ambiguous++;
