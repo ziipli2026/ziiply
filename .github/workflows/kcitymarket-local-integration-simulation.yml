@@ -23,7 +23,7 @@ jobs:
       - name: Simulate two selected stores and failure isolation
         shell: bash
         run: |
-          node --experimental-strip-types --input-type=module <<'NODE'
+          cat > citymarket-test-1.mts <<'NODE'
           import { fetchKCitymarketSelectedStoreOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts';
           const a=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää');
           const b=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo');
@@ -37,11 +37,13 @@ jobs:
           console.log(JSON.stringify({hyvinkaa:{count:a.length,sample:a.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},jumbo:{count:b.length,sample:b.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},unknownCount:unknown.length,overlap,fish:fish.map(x=>({title:x.title,category:x.category})),fishValid,hyvinkaaValid:check(a,'K-Citymarket Hyvinkää'),jumboValid:check(b,'K-Citymarket Vantaa Jumbo')},null,2));
           if(!a.length||!b.length||unknown.length||overlap||!fishValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
           NODE
+          npx --yes tsx citymarket-test-1.mts
 
       - name: Citymarket category regression
         run: |
-          node --experimental-strip-types --input-type=module <<'NODE'
+          cat > citymarket-test-2.mts <<'NODE'
           import { category } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
           const cases = [['Jättikatkaravunpyrstöt','Kala'],['Pussilakanasetti','Koti & vapaa-aika'],['Putkivarsitoppasaappaat','Koti & vapaa-aika'],['Konetiskitabletit','Kodinhoito'],['Kangasnaamio','Hygienia & kosmetiikka'],['Kirjolohi','Kala'],['Pölynimuri','Koti & vapaa-aika']];
           for (const [title,wanted] of cases) { const actual=category(title); console.log(title,actual,wanted); if(actual!==wanted) process.exitCode=1; }
           NODE
+          npx --yes tsx citymarket-test-2.mts
