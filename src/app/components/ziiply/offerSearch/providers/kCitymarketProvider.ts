@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 
 // ============================================================================
@@ -569,6 +570,43 @@ export async function warmKCitymarketOfferCache(now=new Date()){
   }
   return result;
 }
+// Only exact, unambiguous EAN-bank matches are enriched. Multi-variant leaflet
+// headings must never inherit an arbitrary barcode or product photo.
+async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<CitymarketOffer[]>{
+  if(!process.env.DATABASE_URL || !offers.length) return offers;
+  try{
+    const sql=neon(process.env.DATABASE_URL);
+    const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' LIMIT 5000`;
+    const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\\s+/g," ");
+    const index=new Map<string,typeof rows>();
+    for(const row of rows){
+      const key=norm(row.name);
+      if(!key)continue;
+      const group=index.get(key)||[];
+      group.push(row);
+      index.set(key,group);
+    }
+    return offers.map(offer=>{
+      // Require a single exact title match and matching package size when
+      // the leaflet provides one. Never guess EAN for a group/range offer.
+      if(/\\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\\d+\\s*[–-]\\s*\\d+\\s*(?:g|ml))\\b/i.test(offer.title))return offer;
+      const matches=index.get(norm(offer.title))||[];
+      if(matches.length!==1)return offer;
+      const row=matches[0];
+      const pack=norm(offer.packageSize);
+      const bankPack=norm(row.quantity);
+      if(pack && (!bankPack || pack!==bankPack))return offer;
+      const ean=String(row.ean??"");
+      const imageUrl=String(row.image_url??"");
+      if(!/^\\d{8,14}$/.test(ean)||!/^https:\\/\\//i.test(imageUrl))return offer;
+      return {...offer,ean,imageUrl};
+    });
+  }catch(error){
+    console.warn("[K-Citymarket] optional EAN image enrichment unavailable",error);
+    return offers;
+  }
+}
+
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const active=getActiveKCitymarketPeriod();
 
@@ -595,6 +633,6 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   }
 
   const fallback=kCitymarketDefaultValidityV15(active);
-  return offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
+  return enrichCitymarketFromEanBank(offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to})));
 }
 export default fetchKCitymarketOffers;
