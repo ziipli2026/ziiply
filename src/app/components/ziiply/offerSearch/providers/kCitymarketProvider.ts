@@ -680,8 +680,11 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     };
     const norm=(value:unknown)=>repair(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
     const packageMatch=(value:string)=>{
-      const match=repair(value).toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i);
-      return match?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
+      // Tjek's normalized titles encode decimal commas as spaces:
+      // "0 33 l" = 0.33 l, not 33 l.
+      const raw=repair(value).toLowerCase().replace(/\b0\s+(\d{1,3})\s*(kg|g|ml|cl|dl|l)\b/g,"0.$1 $2");
+      const matches=[...raw.matchAll(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi)];
+      return matches.at(-1)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
     };
     const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma","sis","pantit","pantti"]);
     const tokens=(value:string)=>{
