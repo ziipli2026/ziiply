@@ -5959,7 +5959,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
 
     const resolveWarmSStore = () => {
-      const selected = cleanStore(activeStores.sStoreId, activeStores.sStoreName);
+      // Match visible Gösta: activeArea's mode-specific selection wins over
+      // activeStores (which can still hold an older GPS-ranked store).
+      const selected = (storeMode === "local"
+        ? cleanStore(activeArea.sLocalStoreId, activeArea.sLocalStoreName)
+        : cleanStore(activeArea.sStoreId, activeArea.sStoreName))
+        ?? cleanStore(activeStores.sStoreId, activeStores.sStoreName);
       if (!selected) return null;
       if (storeMode !== "hyper") return selected;
 
