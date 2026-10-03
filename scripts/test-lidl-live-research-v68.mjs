@@ -91,6 +91,12 @@ try {
     assert.ok(rows.some(r => r.name === expected && r.price === null && r.ean === null && r.priceVerified === false),
       "Missing documented Lidl supplier research name: " + expected);
   }
+  // Two separately documented bakery names are historical research, not verified SKUs.
+  for (const [query, expected] of [["jättikorvapuusti", "Jättikorvapuusti"], ["pakasteriisipiirakka", "Pakasteriisipiirakka"]]) {
+    const rows = searchLidlResearch(query, 50);
+    assert.ok(rows.some(r => r.name === expected && r.price === null && r.ean === null && r.priceVerified === false),
+      "Missing documented historical Lidl bakery name: " + expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
