@@ -592,7 +592,6 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
         index.set(key,group);
       }
     }
-    let enriched=0;
     return offers.map(offer=>{
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
@@ -608,7 +607,6 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       const ean=String(row.ean??"");
       const imageUrl=String(row.image_url??"");
       if(!/^\d{8,14}$/.test(ean)||!/^https:\/\//i.test(imageUrl))return offer;
-      enriched++;
       return {...offer,ean,imageUrl};
     });
   }catch(error){
