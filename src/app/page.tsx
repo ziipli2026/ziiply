@@ -14786,7 +14786,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
         if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
-          setEanScannerMessage("✓ Tuote lisätty — haetaan hintaa…");
+          setEanScannerMessage("✓ Lisätty koriin");
         }
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
@@ -15691,7 +15691,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     showCartToast(
       mergedExistingV129
         ? `Määrä +1: ${productName}`
-        : "✓ Tuote lisätty — haetaan hintaa…",
+        : "✓ Lisätty koriin",
     );
     setEanInput("");
     setEanResults([]);
@@ -15708,7 +15708,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       const scannerMessage = mergedExistingV129
         ? "Määrä +1 — hinta ei saatavilla"
-        : "✓ Tuote lisätty — haetaan hintaa…";
+        : "✓ Lisätty koriin";
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
@@ -15914,7 +15914,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
       const scannerAddMessageV794 =
         result.chain === "S" && getProductPrice(result.product) <= 0
-          ? "✓ Tuote lisätty — haetaan hintaa…"
+          ? "✓ Lisätty koriin"
           : "✓ Lisätty ostoskoriin";
       setEanScannerMessage(scannerAddMessageV794);
       window.setTimeout(() => {
