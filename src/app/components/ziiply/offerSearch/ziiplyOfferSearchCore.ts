@@ -294,6 +294,26 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
   const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
+  // Prisma CMS supplies its own hierarchy, unlike DISCOUNTED search results.
+  // Resolve its top-level department to the same category buttons as Gösta.
+  if (sourceItem?.campaignType === "campaign" && /^prisma/i.test(String(sourceItem?.storeLabel || ""))) {
+    const department = normalizeGostaCoreText(sourceItem?.category || "");
+    const mapped: Record<string, string> = {
+      "hedelmat ja vihannekset": "Hevi", "liha ja kasviproteiinit": "Liha & makkarat",
+      "kala ja merenelavat": "Kala", "leivat ja leivonnaiset": "Leipomo",
+      "maito munat ja rasvat": "Maitotuotteet", "juustot tofut ja kasvipohjaiset": "Maitotuotteet",
+      "kahvit teet ja mehut": "Juomat", "karkit suklaat ja keksit": "Makeiset & keksit",
+      "pakasteet": "Pakasteet", "lemmikit": "Lemmikit",
+      "kosmetiikka ja hygienia": "Hygienia & kosmetiikka",
+      "kodinhoito ja taloustarvikkeet": "Kodinhoito",
+      "lapset": "Lastenruoat", "urheiluravinteet terveys ja itsehoito": "Vitamiinit & ravinteet",
+      "kuivatuotteet ja leivonta": "Kuivatuotteet", "pastat riisit ja nuudelit": "Kuivatuotteet",
+      "oljyt maustaminen ja kastikkeet": "Kuivatuotteet",
+      "keittio ja kattaus": "Koti & vapaa-aika", "kukat ja koti": "Koti & vapaa-aika",
+      "vapaa aika": "Koti & vapaa-aika", "ruokatori": "Valmisruoka"
+    };
+    return mapped[department] || getOfferCategoryV106(item);
+  }
   const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
   // V182: EUROSPAR provider already emits Ziiply's authoritative category.
   // Preserve it instead of reclassifying leaflet titles with generic regexes.
