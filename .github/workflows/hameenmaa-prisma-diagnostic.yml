@@ -7,6 +7,8 @@ on:
     paths:
       - scripts/diagnose-hameenmaa-prisma.mts
       - scripts/diagnose-prisma-campaign-pages.mts
+      - scripts/diagnose-prisma-provider.mts
+      - src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider.ts
       - .github/workflows/hameenmaa-prisma-diagnostic.yml
 jobs:
   check:
@@ -22,3 +24,7 @@ jobs:
         run: npx --yes tsx scripts/diagnose-hameenmaa-prisma.mts
       - name: Check Prisma campaign page EAN membership
         run: npx --yes tsx scripts/diagnose-prisma-campaign-pages.mts
+      - name: Verify isolated Prisma campaign provider
+        run: npx --yes tsx scripts/diagnose-prisma-provider.mts
+      - name: Check TypeScript
+        run: npx tsc --noEmit
