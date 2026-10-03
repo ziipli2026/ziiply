@@ -602,6 +602,18 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
   return promise;
 }
 
+// V803: cache the final deduplicated all-offers list during background warmup.
+// Opening Gösta can reuse it without running full-list deduplication on the UI path.
+const gostaPreparedAllV803 = new Map<string, { source: ZiiplyGostaOfferLike[]; results: ZiiplyGostaOfferLike[] }>();
+function preparedGostaAllV803(context: ZiiplyGostaOfferSearchContextV152 | undefined, source: ZiiplyGostaOfferLike[]) {
+  const key = buildOfferSearchContextKeyV152(context) || "global";
+  const existing = gostaPreparedAllV803.get(key);
+  if (existing?.source === source) return existing.results;
+  const results = dedupeZiiplyGostaOfferResultsV146(source);
+  gostaPreparedAllV803.set(key, { source, results });
+  return results;
+}
+
 export async function warmZiiplyGostaOfferCacheV182(
   context?: ZiiplyGostaOfferSearchContextV152,
 ) {
@@ -612,6 +624,7 @@ export async function warmZiiplyGostaOfferCacheV182(
   // campaign provider runs alongside discounted offers in that master request;
   // do not issue a second network request when preparing the campaign tab.
   const masterResults = await fetchGostaMasterOfferResultsV156(context);
+  preparedGostaAllV803(context, masterResults);
   const campaigns = masterResults.filter((item) => (item as any)?.campaignType === "campaign");
   const offers = masterResults.filter((item) => (item as any)?.campaignType !== "campaign");
   return { offers, campaigns };
@@ -783,9 +796,11 @@ export async function searchZiiplyGostaOffersV146(options: {
     nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
 
-  const results = searchAllAreaOffers || searchByCategory
-    ? dedupeZiiplyGostaOfferResultsV146(nextResults)
-    : cleanZiiplyGostaOfferResultsV146(nextResults);
+  const results = searchAllAreaOffers
+    ? preparedGostaAllV803(options.context, nextResults)
+    : searchByCategory
+      ? dedupeZiiplyGostaOfferResultsV146(nextResults)
+      : cleanZiiplyGostaOfferResultsV146(nextResults);
 
   return {
     results,
