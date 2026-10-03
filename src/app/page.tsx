@@ -4642,6 +4642,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   >({});
   const [comparisonLoading, setComparisonLoading] = useState(false);
   const [comparisonDiagnosticV800, setComparisonDiagnosticV800] = useState<string | null>(null);
+  const comparisonRawCountsV801 = useRef({ s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 });
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
   const comparisonCompletedKeyRef = useRef<string | null>(null);
@@ -12283,7 +12284,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     query: string,
     storeId: string | number,
     ean?: string,
+    comparisonTraceV801 = false,
   ) {
+    const fetchKForMatchV801 = async (term: string) => {
+      try {
+        const products = await fetchKProducts(term, storeId);
+        if (comparisonTraceV801) { comparisonRawCountsV801.current.kCalls++; comparisonRawCountsV801.current.k += products.length; }
+        return products;
+      } catch (error) {
+        if (comparisonTraceV801) { comparisonRawCountsV801.current.kCalls++; comparisonRawCountsV801.current.errors++; }
+        throw error;
+      }
+    };
     const normalizedEan = normalizeEan(ean);
     const searchTerms = getKSearchTerms(query).filter(Boolean);
     const identityTerms = Array.from(
@@ -12298,7 +12310,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // sama EAN voi löytyä nimihakutuloksesta.
     const identityResults = await Promise.all(
       identityTerms.map((term) =>
-        fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
+        fetchKForMatchV801(term).catch(() => [] as KProduct[]),
       ),
     );
     const identityCandidates = identityResults.flat();
@@ -12321,7 +12333,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (normalizedEan && remainingTerms.length > 0) {
       const remainingResults = await Promise.all(
         remainingTerms.map((term) =>
-          fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
+          fetchKForMatchV801(term).catch(() => [] as KProduct[]),
         ),
       );
       const allCandidates = [...identityCandidates, ...remainingResults.flat()];
@@ -12339,7 +12351,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // löytänyt turvallista vastinetta.
     const fallbackResults = await Promise.all(
       remainingTerms.map((term) =>
-        fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
+        fetchKForMatchV801(term).catch(() => [] as KProduct[]),
       ),
     );
     return pickBestKProduct(
@@ -12391,6 +12403,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let s: Match | null = null;
       let k: Match | null = null;
       let failed = false;
+      const fetchSForMatchV801 = async (term: string, storeId: string | number) => {
+        try {
+          const products = await fetchSProducts(term, storeId);
+          comparisonRawCountsV801.current.sCalls++;
+          comparisonRawCountsV801.current.s += products.length;
+          return products;
+        } catch (error) {
+          comparisonRawCountsV801.current.sCalls++;
+          comparisonRawCountsV801.current.errors++;
+          throw error;
+        }
+      };
 
       // Vertailun identiteetti tulee ensisijaisesti varsinaisesta tuoteobjektista.
       // Jos CartItem.name on vanha/lyhennetty, pakkauskoko ei saa kadota matcherilta.
@@ -12416,7 +12440,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(hyperName)) {
             hyperBest = item.product;
           } else if (hyperId) {
-            hyperBest = pickBestSProduct(await fetchSProducts(item.name, hyperId), item.name, itemEan);
+            hyperBest = pickBestSProduct(await fetchSForMatchV801(item.name, hyperId), item.name, itemEan);
           }
           if (hyperBest && getProductPrice(hyperBest) > 0) {
             s = { product: { ...hyperBest, storeName: hyperName } as Product, price: getProductPrice(hyperBest), quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
@@ -12441,7 +12465,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             // 1) Täsmävastine aina ensisijaisesti EANilla.
             if (itemEan) {
-              const eanItems = await fetchSProducts(itemEan, localId).catch(
+              const eanItems = await fetchSForMatchV801(itemEan, localId).catch(
                 () => [] as Product[],
               );
               localBest = eanItems.find(
@@ -12455,7 +12479,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             // 2) Vasta jos samaa EANia ei löydy, etsi lähin turvallinen vastaava tuote.
             if (!localBest) {
               for (const term of localSearchTerms.filter((term) => normalizeEan(term) !== itemEan)) {
-                const localItems = await fetchSProducts(term, localId).catch(
+                const localItems = await fetchSForMatchV801(term, localId).catch(
                   () => [] as Product[],
                 );
                 localBest = pickBestSProduct(localItems, item.name);
@@ -12506,10 +12530,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             // käynnistä molemmat haut rinnakkain.
             const [hyperBest, localBest] = await Promise.all([
               hyperId
-                ? findBestKMatchForStore(comparisonSourceName, hyperId, comparisonSourceEan)
+                ? findBestKMatchForStore(comparisonSourceName, hyperId, comparisonSourceEan, true)
                 : Promise.resolve(undefined),
               localId
-                ? findBestKMatchForStore(comparisonSourceName, localId, comparisonSourceEan)
+                ? findBestKMatchForStore(comparisonSourceName, localId, comparisonSourceEan, true)
                 : Promise.resolve(undefined),
             ]);
 
@@ -12527,7 +12551,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // Jos alkuperäinen tuote oli jo valitusta tavaratalosta, hae vain lähikaupan
           // vastine erikseen; tavaratalon alkuperäinen rivi säilyy muuttumattomana.
           if (s && localId && !k) {
-            const localBest = await findBestKMatchForStore(comparisonSourceName, localId, comparisonSourceEan);
+            const localBest = await findBestKMatchForStore(comparisonSourceName, localId, comparisonSourceEan, true);
             if (localBest && localBest.price > 0) {
               const product = convertKProductToProduct(localBest);
               k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", storeId: localId, storeName: localName, cartItemId: item.id };
@@ -12539,7 +12563,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           s = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
-            const best = pickBestSProduct(await fetchSProducts(item.name, activeStores.sStoreId), item.name, item.ean);
+            const best = pickBestSProduct(await fetchSForMatchV801(item.name, activeStores.sStoreId), item.name, item.ean);
             if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
           } catch { failed = true; }
         }
@@ -12547,7 +12571,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
-            const best = await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan);
+            const best = await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan, true);
             if (best) {
               const product = convertKProductToProduct(best);
               k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
@@ -12861,6 +12885,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextSMatches: Record<string, Match> = {};
       const nextKMatches: Record<string, Match> = {};
 
+      comparisonRawCountsV801.current = { s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 };
       setComparisonDiagnosticV800(`Rajapintahaku käynnissä · ${comparisonCartV738.length} tuoteriviä`);
       const itemMatches = await Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item)));
       let failed = false;
@@ -12872,7 +12897,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
-        setComparisonDiagnosticV800(`Haku valmis · S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length} · ${failed ? "hakupoikkeus" : "ei poikkeusta"} · koreissa S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length}`);
+        setComparisonDiagnosticV800(`API: S ${comparisonRawCountsV801.current.s} tuotetta / ${comparisonRawCountsV801.current.sCalls} kutsua · K ${comparisonRawCountsV801.current.k} tuotetta / ${comparisonRawCountsV801.current.kCalls} kutsua · virheitä ${comparisonRawCountsV801.current.errors} · vastineet/kori S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length}${failed ? " · matcher-virhe" : ""}`);
         if (comparisonCartV738.length > 0 && !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length) {
           const diagnosis = failed
             ? "Hintavertailun tuotehaussa tapahtui virhe. Yritä uudelleen."
