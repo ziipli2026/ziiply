@@ -28,7 +28,8 @@ jobs:
           const core=fs.readFileSync(root+'ziiplyOfferSearchCore.ts','utf8');
           const check=(ok,msg)=>{if(!ok)throw Error(msg);console.log('PASS '+msg)};
           check(/campaignType:\s*"campaign"/.test(s),'S-local CMS campaign marker');
-          check(/campaignType:\s*"campaign"/.test(k),'K-local leaflet campaign marker');
+          check(/ziiplySourceTab: "campaign"/.test(k) && /ziiplySourceTab: "offer"/.test(k),'K-local provenance preserved');
+          check(/reduced >= regular/.test(k),'K-local offers require price reduction evidence');
           check(/sLocalDiscountedResults/.test(router),'S-local discounted source exists');
           check(/\.\.\.sLocalDiscountedResults,[\s\S]*?\.\.\.sLocalCampaignResults/.test(router),'S-local discounted and CMS merged independently');
           check(/campaignType === "campaign"/.test(core),'Gösta tab separation retained');
