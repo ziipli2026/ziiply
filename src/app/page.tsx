@@ -22324,7 +22324,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
-            testedEmptyCategories={gostaTestedEmptyCategoriesV166}
+            testedEmptyCategories={gostaContentTabV1 === "campaigns" ? {} : gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             kruokaDebug={gostaKruokaDebugV550}
