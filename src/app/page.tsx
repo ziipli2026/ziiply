@@ -17371,10 +17371,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function clearCart() {
     if (cart.length === 0) return false;
 
-    const ok = window.confirm(
-      `Tyhjennetäänkö koko ostoskori (${cart.length} tuotetta)?`,
-    );
-    if (!ok) return false;
+    // ZiiplyMobileCartCard confirms the destructive action in its own themed dialog.
 
     // Tyhjennä myös synkroninen ref ja storage heti. Muuten saman tickin
     // myöhempi mergeCartPoolsByIdV129 voi herättää juuri poistetun tuotteen takaisin.
