@@ -32,6 +32,19 @@ try {
     assert.equal(record.currentStoreStockVerified, false);
     assert.equal(Object.hasOwn(record, "price"), false, "Do not persist campaign prices as research prices: " + record.name);
   }
+  // Full-batch data audit: every source row must be distinct and unpriced, not
+  // merely the handful of names selected by representative search queries.
+  const sourceKeys = new Set();
+  for (const record of evidence.records) {
+    assert.ok(typeof record.name === "string" && record.name.trim(), "Unnamed Lidl evidence");
+    assert.ok(typeof record.source === "string" && /^https:\\/\\//.test(record.source), "Missing evidence URL: " + record.name);
+    assert.equal(record.eanStatus, "not_verified", "Unexpected EAN verification: " + record.name);
+    assert.equal(record.ean, null, "Unexpected EAN: " + record.name);
+    assert.equal(Object.hasOwn(record, "price"), false, "Evidence row contains checkout price: " + record.name);
+    const key = record.name.toLocaleLowerCase("fi-FI").trim() + "|" + record.source;
+    assert.ok(!sourceKeys.has(key), "Duplicate Lidl source record: " + record.name);
+    sourceKeys.add(key);
+  }
   // Search results must retain each source observation date, not the evidence-file date.
   for (const record of categoryObservations) {
     const rows = searchLidlResearch(record.name, 50);
