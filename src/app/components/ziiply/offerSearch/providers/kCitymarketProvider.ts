@@ -592,23 +592,27 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
         index.set(key,group);
       }
     }
-    return offers.map(offer=>{
+    const stats={total:offers.length,bankRows:rows.length,matched:0,ambiguous:0,missing:0,invalidImage:0,groupOffer:0};
+    const enriched=offers.map(offer=>{
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
-      if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title))return offer;
+      if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title)){stats.groupOffer++;return offer;}
       const direct=index.get(norm(offer.title))||[];
       const offerSize=size(offer.packageSize)||size(offer.title);
       const candidates=direct.length?direct:rows.filter(row=>offerSize && nameOnly(row.name)===nameOnly(offer.title) && (size(row.quantity)||size(row.name))===offerSize);
       const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()];
-      if(matches.length!==1)return offer;
+      if(matches.length!==1){if(matches.length>1)stats.ambiguous++;else stats.missing++;return offer;}
       const row=matches[0];
       const bankSize=size(row.quantity)||size(row.name);
       if(offerSize && bankSize!==offerSize)return offer;
       const ean=String(row.ean??"");
       const imageUrl=String(row.image_url??"");
-      if(!/^\d{8,14}$/.test(ean)||!/^https:\/\//i.test(imageUrl))return offer;
+      if(!/^\d{8,14}$/.test(ean)||!/^https:\/\//i.test(imageUrl)){stats.invalidImage++;return offer;}
+      stats.matched++;
       return {...offer,ean,imageUrl};
     });
+    console.info("[K-Citymarket] national image enrichment",stats);
+    return enriched;
   }catch(error){
     console.warn("[K-Citymarket] optional EAN image enrichment unavailable",error);
     return offers;
