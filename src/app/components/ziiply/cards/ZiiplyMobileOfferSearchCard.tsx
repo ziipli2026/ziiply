@@ -1161,7 +1161,7 @@ export default function ZiiplyMobileOfferSearchCard({
       data-ziiply-mobile-offer-search-card-version="V53-MINI-DEBUG-BUTTON"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section className="ziiply-offer-pop relative flex h-full max-h-[41.8rem] min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-offer-pop relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         {debugOpenV52 ? (
           <div className="absolute inset-2 z-[9999] flex flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-[#2b1a0e] bg-[#fff8dc] shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-[#9a7a3d] bg-[#f1d99a] px-3 py-2">
@@ -1208,8 +1208,8 @@ export default function ZiiplyMobileOfferSearchCard({
           </button>
         ) : null}
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.7rem]">
-          <div className="pl-[3.15rem] pr-[2.20rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[0.9rem] before:pointer-events-none before:absolute before:inset-x-3 before:top-2 before:h-[4.1rem] before:rounded-xl before:bg-[#f4e4bb] before:content-['']">
+          <div className="relative z-10 min-h-[3.3rem] px-[3.15rem] flex flex-col justify-center">
             <div
               className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
               style={{ fontFamily: cooperFont }}
@@ -1269,7 +1269,7 @@ export default function ZiiplyMobileOfferSearchCard({
           ) : null}
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.18rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[0.75rem] pt-[0.18rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
