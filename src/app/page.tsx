@@ -4733,6 +4733,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [scannerStoreMismatchV801, setScannerStoreMismatchV801] = useState<{ name: string; searchTerm: string; selectedName: string } | null>(null);
+  const [scannerEquivalentNoticeV813, setScannerEquivalentNoticeV813] = useState("");
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
 
   function pushScannerDebugV493(_message: string) {
@@ -14215,6 +14216,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : "";
         const selectedKeysV801 = (["s", "k", "lidl", "tokmanni"] as const).filter((key) => Boolean(selectedChains[key]));
         const mismatchedV801 = storeCompareScope === "between_chains" && ownBrandV801 && selectedKeysV801.length > 0 && !selectedKeysV801.includes(ownBrandV801 as typeof selectedKeysV801[number]);
+        setScannerEquivalentNoticeV813("");
         setScannerStoreMismatchV801(mismatchedV801 ? {
           name: bankIdentityNameV789,
           searchTerm: bankIdentityNameV789.replace(/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow|milbona|cien|chef select|favorina)\s+/i, "").replace(/\s+\d+\s*(?:kpl|g|kg|ml|l)\b.*$/i, "").trim(),
@@ -16049,18 +16051,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // scanned foreign private label. Reuse Justiina's result selection for ties.
   async function findScannerEquivalentV812(term: string) {
     const selected = (["s", "k", "lidl", "tokmanni"] as const).filter((key) => selectedChains[key]);
-    setScannerStoreMismatchV801(null);
-    setEanModalOpen(false);
-    setShopsPanelOpen(false);
-    setSearchPanelOpen(true);
-    setSearchCompareMode("single");
-    setInput(term);
-    setActiveNormalSearchTerm(term);
-    setNormalSearchAttempted(false);
-    setNormalResultsStableV441([]);
+    setScannerEquivalentNoticeV813("Etsitään vastaavaa tuotetta…");
     if (storeCompareScope !== "between_chains" || selected.length !== 1) {
       // Multiple selected chains need the existing cross-chain choice flow.
-      void searchNormalPrices(term);
+      setScannerEquivalentNoticeV813("Valitse ensin yksi kauppaketju.");
       return;
     }
     setLoadingNormal(true);
@@ -16084,18 +16078,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         !(chain !== "lidl" && /^(?:milbona|cien|chef select|favorina)\b/i.test(product.name))
       ).map((product) => [String(product.ean || product.id), product])).values());
       if (valid.length === 1) {
+        setScannerEquivalentNoticeV813("");
+        setScannerStoreMismatchV801(null);
+        setEanModalOpen(false);
+        setInput(term);
+        setActiveNormalSearchTerm(term);
         addProductToCart(valid[0]);
       } else if (valid.length > 1) {
+        setScannerEquivalentNoticeV813("");
+        setScannerStoreMismatchV801(null);
+        setEanModalOpen(false);
+        setShopsPanelOpen(false);
+        setSearchPanelOpen(true);
+        setSearchCompareMode("single");
+        setInput("");
+        setActiveNormalSearchTerm(term);
         setNormalResultsStableV441(valid);
         setMobileResultsReadyQueryV537(term);
         setNormalSearchAttempted(true);
       } else {
-        setNormalSearchAttempted(true);
-        showSearchNotFoundNoticeV471(term);
+        setScannerEquivalentNoticeV813("Vastaavaa tuotetta ei löydy valitusta kaupasta.");
       }
     } catch {
-      setNormalSearchAttempted(true);
-      showSearchNotFoundNoticeV471(term);
+      setScannerEquivalentNoticeV813("Vastaavan tuotteen haku epäonnistui. Yritä uudelleen.");
     } finally {
       setLoadingNormal(false);
     }
@@ -22152,6 +22157,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               className="flex h-full w-full max-w-[430px] flex-col overflow-hidden"
             >
 
+              {scannerEquivalentNoticeV813 && (
+                <p role="status" className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-bold text-slate-800">{scannerEquivalentNoticeV813}</p>
+              )}
               {scannerStoreMismatchV801 && (
                 <div className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-slate-800" role="status">
                   <p className="font-bold">Tuote ei kuulu valittuun kauppaketjuun.</p>
