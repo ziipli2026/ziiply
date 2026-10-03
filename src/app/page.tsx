@@ -16741,11 +16741,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Tämän jälkeen kauppa-/ketjuvalinnan muutokset saavat päivittää vertailun taustalla.
     comparisonUserStartedRefV768.current = true;
 
-    if (storesReadyForSearch) {
+    // The store-mode readiness flag may lag behind already selected S/K
+    // hypermarkets (e.g. after scanner -> cart). Use the actual store IDs.
+    // Never open two empty comparison baskets without starting a request.
+    const selectedComparisonStoresReady =
+      storeCompareScope === "between_chains"
+        ? Boolean(activeStores.sStoreId && activeStores.kStoreId)
+        : storesReadyForSearch;
+    if (selectedComparisonStoresReady) {
+      comparisonCacheKeyRef.current = null;
+      comparisonCompletedKeyRef.current = null;
+      setComparisonLoading(true);
       void updateChainComparison(comparableCartV730);
     } else {
+      setActiveResult("none");
       setComparisonLoading(false);
-      showCartToast("Valitse kaupat, niin vertailu hakee hinnat.");
+      setCartModalOpen(true);
+      showCartToast("Vertailukauppojen tiedot eivät ole vielä valmiit. Odota kauppavalintojen päivittymistä.");
     }
   }
 
