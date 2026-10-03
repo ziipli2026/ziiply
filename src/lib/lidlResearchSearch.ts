@@ -21,11 +21,14 @@ const forms: Record<string,string[]> = {
  leipa:["leipa","leivat","ruisleipa","kauraleipa","vehnaleipa","hapanjuurileipa","siemenhapanjuurileipa","kiviuunileipa","artesaanileipa","rusticoleipa","myslileipa","herkkumyslileipa","pitaleipa","tomaattimozzarellaleipa","perunasipulileipa"]
 };
 // Only normalize ordinary category plurals; preserve qualifiers (e.g. kevytmaito).
-const queryForms: Record<string,string> = {
- kananmunat:"kananmuna",perunat:"peruna",banaanit:"banaani",juustot:"juusto",
- leivat:"leipa",makaronit:"makaroni",jogurtit:"jogurtti",kahvipapu:"kahvipavut",
- korvapuustit:"korvapuusti",riisipiirakat:"riisipiirakka",kaurahiutale:"kaurahiutaleet",
+const queryFormGroups: Record<string, readonly string[]> = {
+ kananmuna:["kananmunat"],peruna:["perunat"],banaani:["banaanit"],juusto:["juustot"],
+ leipa:["leivat"],makaroni:["makaronit"],jogurtti:["jogurtit"],kahvipavut:["kahvipapu"],
+ korvapuusti:["korvapuustit"],riisipiirakka:["riisipiirakat"],kaurahiutaleet:["kaurahiutale"],
 };
+const queryForms: Record<string,string> = Object.fromEntries(
+ Object.entries(queryFormGroups).flatMap(([canonical,variants])=>variants.map(variant=>[variant,canonical]))
+);
 // Exact, documented compound-name expansions; keep generic prefix matching separate.
 const compoundNames: Record<string, readonly string[]> = {
  korvapuusti:["jattikorvapuusti"],
