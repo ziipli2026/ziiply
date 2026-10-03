@@ -861,7 +861,7 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
   }
 }
 
-async function getEffectiveSKaupatStoreIdV174(
+async function resolveEffectiveSKaupatStoreIdV174(
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<string | null> {
   const raw = firstString(options?.storeId, options?.sStoreId);
@@ -948,6 +948,28 @@ async function getEffectiveSKaupatStoreIdV174(
   return null;
 }
 
+// V235: share one in-flight effective-store resolver between the Prisma
+// RemoteFilteredProducts and CMS-campaign master branches.
+const effectiveSKaupatStoreIdPromiseCacheV235 = new Map<string, Promise<string | null>>();
+
+function getEffectiveSKaupatStoreIdCacheKeyV235(options?: SKaupatOfferProviderOptionsV173) {
+  const raw = firstString(options?.storeId, options?.sStoreId);
+  const name = normalizeSKaupatStoreNameForMatchV198(firstString(options?.storeName, options?.sStoreName));
+  return raw + "|" + name;
+}
+
+async function getEffectiveSKaupatStoreIdV174(options?: SKaupatOfferProviderOptionsV173): Promise<string | null> {
+  const key = getEffectiveSKaupatStoreIdCacheKeyV235(options);
+  if (!key.replace(/\|/g, "")) return null;
+  const existing = effectiveSKaupatStoreIdPromiseCacheV235.get(key);
+  if (existing) return existing;
+  const promise = resolveEffectiveSKaupatStoreIdV174(options).catch((error) => {
+    effectiveSKaupatStoreIdPromiseCacheV235.delete(key);
+    throw error;
+  });
+  effectiveSKaupatStoreIdPromiseCacheV235.set(key, promise);
+  return promise;
+}
 
 async function resolveSelectedSKaupatStoresV194(
   options?: SKaupatOfferProviderOptionsV173,
