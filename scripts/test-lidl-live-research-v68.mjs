@@ -97,6 +97,11 @@ try {
     assert.ok(rows.some(r => r.name === expected && r.price === null && r.ean === null && r.priceVerified === false),
       "Missing documented historical Lidl bakery name: " + expected);
   }
+  // Ordinary grocery terms should discover documented compound product names.
+  for (const [query, expected] of [["korvapuusti", "Jättikorvapuusti"], ["riisipiirakka", "Pakasteriisipiirakka"], ["kaurahiutaleet", "Myllykivi pikakaurahiutaleet"]]) {
+    assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.price === null && r.ean === null),
+      "Lidl compound-name discovery failed: " + query + " -> " + expected);
+  }
   const observed = searchLidlResearch("oddlygood barista");
   assert.ok(observed.some(r => r.observedPriceEur === 1.89 && r.price === null && r.priceVerified === false), "Observed catalog price must remain separate");
   const quarantine = new Set(corpus.quarantinedProductIds.map(String));
