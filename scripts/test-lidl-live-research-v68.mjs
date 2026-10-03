@@ -98,7 +98,7 @@ try {
       "Missing documented historical Lidl bakery name: " + expected);
   }
   // Ordinary grocery terms should discover documented compound product names.
-  for (const [query, expected] of [["korvapuusti", "Jättikorvapuusti"], ["riisipiirakka", "Pakasteriisipiirakka"], ["kaurahiutaleet", "Myllykivi pikakaurahiutaleet"]]) {
+  for (const [query, expected] of [["korvapuusti", "Jättikorvapuusti"], ["korvapuustit", "Jättikorvapuusti"], ["riisipiirakka", "Pakasteriisipiirakka"], ["riisipiirakat", "Pakasteriisipiirakka"], ["kaurahiutaleet", "Myllykivi pikakaurahiutaleet"], ["kaurahiutale", "Myllykivi pikakaurahiutaleet"]]) {
     assert.ok(searchLidlResearch(query, 50).some(r => r.name === expected && r.price === null && r.ean === null),
       "Lidl compound-name discovery failed: " + query + " -> " + expected);
   }
