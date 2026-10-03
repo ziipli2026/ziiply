@@ -44,7 +44,7 @@ jobs:
         run: node scripts/test-lidl-research-search-v54.mjs
       - name: Typecheck Lidl offer provider and app
         run: |
-          npm ci --ignore-scripts
+          npm install --no-save --no-package-lock --ignore-scripts
           npx tsc --noEmit
       - name: Test actual Lidl research route module and price isolation
         run: |
