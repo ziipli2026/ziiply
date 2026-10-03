@@ -16011,6 +16011,60 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return currentTerms.filter((term) => term !== matchedTerm);
   }
 
+  // Scanner mismatch: search ONLY the selected single chain, never insert the
+  // scanned foreign private label. Reuse Justiina's result selection for ties.
+  async function findScannerEquivalentV812(term: string) {
+    const selected = (["s", "k", "lidl", "tokmanni"] as const).filter((key) => selectedChains[key]);
+    setScannerStoreMismatchV801(null);
+    setEanModalOpen(false);
+    setShopsPanelOpen(false);
+    setSearchPanelOpen(true);
+    setSearchCompareMode("single");
+    setInput(term);
+    setActiveNormalSearchTerm(term);
+    setNormalSearchAttempted(false);
+    setNormalResultsStableV441([]);
+    if (storeCompareScope !== "between_chains" || selected.length !== 1) {
+      // Multiple selected chains need the existing cross-chain choice flow.
+      void searchNormalPrices(term);
+      return;
+    }
+    setLoadingNormal(true);
+    try {
+      let results: Product[] = [];
+      const chain = selected[0];
+      if (chain === "lidl" && selectedLidlStoreV750) {
+        results = await fetchLidlProductsV760(term, selectedLidlStoreV750);
+      } else if (chain === "k" && activeStores.kStoreId) {
+        results = (await fetchKProducts(term, activeStores.kStoreId)).map(convertKProductToProduct);
+      } else if (chain === "s" && activeStores.sStoreId) {
+        results = await fetchSProducts(term, activeStores.sStoreId);
+      } else if (chain === "tokmanni" && (selectedTokmanniStoreV756 || selectedEurosparStoreV751)) {
+        results = await fetchTokmanniProductsV761(term, term);
+      }
+      const valid = Array.from(new Map(results.filter((product) =>
+        product.name && Number(getProductPrice(product)) > 0 &&
+        // Exclude other chains' own labels even if an upstream index leaks them.
+        !/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow)\\b/i.test(product.name)
+      ).map((product) => [String(product.ean || product.id), product])).values());
+      if (valid.length === 1) {
+        addProductToCart(valid[0]);
+      } else if (valid.length > 1) {
+        setNormalResultsStableV441(valid);
+        setMobileResultsReadyQueryV537(term);
+        setNormalSearchAttempted(true);
+      } else {
+        setNormalSearchAttempted(true);
+        showSearchNotFoundNoticeV471(term);
+      }
+    } catch {
+      setNormalSearchAttempted(true);
+      showSearchNotFoundNoticeV471(term);
+    } finally {
+      setLoadingNormal(false);
+    }
+  }
+
   function addProductToCart(product: Product) {
     // Tallenna käyttäjän onnistunut valinta ennen kuin hakukenttää muutetaan.
     // activeNormalSearchTerm on juuri valmistuneen tuloslistan hakutermi;
@@ -22060,7 +22114,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   <p className="font-bold">Tuote ei kuulu valittuun kauppaketjuun.</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button type="button" className="rounded-xl bg-white px-3 py-2 font-bold ring-1 ring-amber-300" onClick={() => { setEanModalOpen(false); setShopsPanelOpen(true); setScannerStoreMismatchV801(null); }}>Tarkista kauppavalinta</button>
-                    <button type="button" className="rounded-xl bg-emerald-800 px-3 py-2 font-bold text-white" onClick={() => { const term = scannerStoreMismatchV801.searchTerm; setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(false); setSearchPanelOpen(true); setSearchCompareMode("single"); setInput(term); setNormalResults([]); void searchNormalPrices(term); }}>Etsi vastaava</button>
+                    <button type="button" className="rounded-xl bg-emerald-800 px-3 py-2 font-bold text-white" onClick={() => { void findScannerEquivalentV812(scannerStoreMismatchV801.searchTerm); }}>Etsi vastaava</button>
                   </div>
                 </div>
               )}
