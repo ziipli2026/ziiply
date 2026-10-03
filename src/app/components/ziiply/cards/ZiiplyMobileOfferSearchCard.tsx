@@ -1225,13 +1225,31 @@ export default function ZiiplyMobileOfferSearchCard({
           </div>
 
           {selectedOfferChainV39 && selectedStoreNameV41 ? (
-            <div className="mt-[0.28rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+            <div className="relative z-10 -mt-[0.02rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
               <div className="whitespace-nowrap text-[clamp(0.84rem,4vw,1.02rem)] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 {selectedStoreDisplayNameV56}
               </div>
               <div className="mt-0.5 whitespace-nowrap text-[clamp(0.55rem,2.55vw,0.68rem)] font-extrabold italic leading-tight text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
                 {selectedStoreOfferLineV41}
               </div>
+
+              {showLandingView && !loading ? (
+                <div className="mt-2 rounded-[0.82rem] border-[2px] border-[#174c2c] bg-[#fff8d9]/92 px-1.5 py-1.5">
+                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] items-center gap-1">
+                    <button type="button" aria-pressed={contentTab === "offers"} onClick={() => onContentTabChange?.("offers")}
+                      className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "offers" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
+                      Tarjoukset
+                    </button>
+                    <div className="min-w-0 text-[clamp(0.78rem,3.3vw,1.02rem)] font-black italic leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
+                      Mitä tänään etsitään?
+                    </div>
+                    <button type="button" aria-pressed={contentTab === "campaigns"} onClick={() => onContentTabChange?.("campaigns")}
+                      className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "campaigns" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
+                      Kampanjat
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -1264,23 +1282,6 @@ export default function ZiiplyMobileOfferSearchCard({
                     </button>
                   );
                 })}
-              </div>
-            </div>
-          ) : null}
-          {selectedOfferChainV39 && showLandingView && !loading ? (
-            <div className="relative z-10 mt-2 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3 py-2.5 text-center">
-              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] items-center gap-1">
-                <button type="button" aria-pressed={contentTab === "offers"} onClick={() => onContentTabChange?.("offers")}
-                  className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "offers" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
-                  Tarjoukset
-                </button>
-                <div className="min-w-0 text-[clamp(0.78rem,3.3vw,1.02rem)] font-black italic leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
-                  Mitä tänään etsitään?
-                </div>
-                <button type="button" aria-pressed={contentTab === "campaigns"} onClick={() => onContentTabChange?.("campaigns")}
-                  className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "campaigns" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
-                  Kampanjat
-                </button>
               </div>
             </div>
           ) : null}
