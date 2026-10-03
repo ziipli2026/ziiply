@@ -27,7 +27,7 @@ const queryFormGroups: Record<string, readonly string[]> = {
  korvapuusti:["korvapuustit"],riisipiirakka:["riisipiirakat"],kaurahiutaleet:["kaurahiutale"],
 };
 const queryForms: Record<string,string> = Object.fromEntries(
- Object.entries(queryFormGroups).flatMap(([canonical,variants])=>variants.map(variant=>[variant,canonical]))
+ Object.entries(queryFormGroups).flatMap(([canonical,variants])=>variants.map(variant=>[norm(variant),norm(canonical)]))
 );
 // Exact, documented compound-name expansions; keep generic prefix matching separate.
 const compoundNames: Record<string, readonly string[]> = {
