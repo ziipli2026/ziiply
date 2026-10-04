@@ -686,7 +686,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
   try{
     const {fetchKCitymarketNationalTjekImages}=await import("./kCitymarketLocalTjekProvider");
-    const photos=await fetchKCitymarketNationalTjekImages();
+    const photos=await fetchKCitymarketNationalTjekImages(new Date(active.startDate+"T12:00:00Z"));
     // The leaflet PDF occasionally exposes UTF-8 bytes as Latin-1 text.
     const repair=(value:unknown)=>{
       let raw=String(value??"").replace(/â€“|â€”/g,"-").replace(/â€™/g,"'");
