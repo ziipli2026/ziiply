@@ -644,7 +644,11 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     offers=payload.offers;
   }catch(error){
     console.warn("[K-Citymarket] active period cache unavailable, parsing fresh",active.key,error);
-    const periodEntry=active.kind==="AV"?AV_ENTRY:LV_ENTRY;
+    // The generic LV entry can switch to Monday's AV leaflet on Sunday before
+    // the LV period ends. Recover the verified week-40 LV publication directly.
+    const periodEntry=active.key==="2026-10-01-W40-LV"
+      ?"https://kcm-tarjouslehdet.k-ruoka.fi/80s40wg_tarjouslehti_40LV_KCM/index.html"
+      :active.kind==="AV"?AV_ENTRY:LV_ENTRY;
     offers=await fetchKCitymarketOffersFresh(periodEntry);
     // Never leak the other half-week leaflet through a redirecting entry URL.
     // The cache path already validates the period; the recovery path must obey
