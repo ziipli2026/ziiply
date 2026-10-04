@@ -9253,6 +9253,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     selectedChains,
   ]);
 
+  // Preserve the last complete comparison presentation across a hard Safari reload.
+  // Match it to the basket; never replace it with the transient zero-match
+  // projection produced before asynchronous store/match hydration finishes.
+  const [savedComparePresentationV821, setSavedComparePresentationV821] = useState<{
+    signature: string; results: ChainResult[];
+  } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem("ziiply-compare-presentation-v821");
+      const parsed = raw ? JSON.parse(raw) : null;
+      return parsed && typeof parsed.signature === "string" && Array.isArray(parsed.results)
+        ? parsed : null;
+    } catch { return null; }
+  });
+  const comparePresentationSignatureV821 = comparisonCartSignatureV817(cart);
+  const currentComparePricedV821 = chainResults.some((result) =>
+    (result.matches || []).some((match) => Number(match.price) > 0));
+  useEffect(() => {
+    if (!currentComparePricedV821 || comparisonLoading || restoredCartPromptV320.open) return;
+    const snapshot = { signature: comparePresentationSignatureV821, results: chainResults };
+    setSavedComparePresentationV821(snapshot);
+    try { window.localStorage.setItem("ziiply-compare-presentation-v821", JSON.stringify(snapshot)); } catch {}
+  }, [chainResults, currentComparePricedV821, comparisonLoading, restoredCartPromptV320.open, comparePresentationSignatureV821]);
+  const displayedChainResultsV821 =
+    !currentComparePricedV821 &&
+    savedComparePresentationV821?.signature === comparePresentationSignatureV821
+      ? savedComparePresentationV821.results
+      : chainResults;
+
   // V732_COMPARE_STORE_PICKING_LIST:
   // A Compare -> store selection must show that store's matched products/prices,
   // while a normal cart opening must continue to show the user's original cart.
@@ -23138,8 +23167,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
           <ZiiplyMobileCompareCard
             open
-            stores={(chainResults.length > 0
-              ? chainResults
+            stores={(displayedChainResultsV821.length > 0
+              ? displayedChainResultsV821
                   .filter((result) => !result.comingSoon)
                   .map((result) => ({
                     id: result.key,
