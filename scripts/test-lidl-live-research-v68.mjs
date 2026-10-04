@@ -10,14 +10,20 @@ const root = resolve(import.meta.dirname, "..");
 const source = readFileSync(join(root, "src/lib/lidlResearchSearch.ts"), "utf8");
 const corpus = JSON.parse(readFileSync(join(root, "data/lidl/official-grocery-candidates-v44-2026-10-01.json"), "utf8"));
 const evidence = JSON.parse(readFileSync(join(root, "data/lidl/independent-staple-ean-evidence-2026-10-02.json"), "utf8"));
+const images = JSON.parse(readFileSync(join(root, "data/lidl/official-product-images.generated.json"), "utf8"));
+const priceAnnouncement = JSON.parse(readFileSync(join(root, "data/lidl/official-paistopiste-price-announcement-2026-04-20.json"), "utf8"));
 const temp = mkdtempSync(join(tmpdir(), "ziiply-lidl-research-"));
 try {
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, resolveJsonModule: true } });
   let js = compiled.outputText.replace(/from ["']\.\.\/\.\.\/data\/lidl\/official-grocery-candidates-v44-2026-10-01\.json["'];?/, "from './catalog.mjs';")
-    .replace(/from ["']\.\.\/\.\.\/data\/lidl\/independent-staple-ean-evidence-2026-10-02\.json["'];?/, "from './evidence.mjs';");
+     .replace(/from ["']\.\.\/\.\.\/data\/lidl\/independent-staple-ean-evidence-2026-10-02\.json["'];?/, "from './evidence.mjs';")
+    .replace(/from ["']\.\.\/\.\.\/data\/lidl\/official-product-images\.generated\.json["'];?/, "from './images.mjs';")
+    .replace(/from ["']\.\.\/\.\.\/data\/lidl\/official-paistopiste-price-announcement-2026-04-20\.json["'];?/, "from './prices.mjs';");
   assert.ok(js.includes("./catalog.mjs") && js.includes("./evidence.mjs"), "Both production research imports must be mapped");
   writeFileSync(join(temp, "catalog.mjs"), "export default " + JSON.stringify(corpus) + ";");
   writeFileSync(join(temp, "evidence.mjs"), "export default " + JSON.stringify(evidence) + ";");
+  writeFileSync(join(temp, "images.mjs"), "export default " + JSON.stringify(images) + ";");
+  writeFileSync(join(temp, "prices.mjs"), "export default " + JSON.stringify(priceAnnouncement) + ";");
   writeFileSync(join(temp, "research.mjs"), js);
   const { searchLidlResearch } = await import(pathToFileURL(join(temp, "research.mjs")).href);
   // All dated public category observations are provenance-only, never verified stock or checkout prices.
