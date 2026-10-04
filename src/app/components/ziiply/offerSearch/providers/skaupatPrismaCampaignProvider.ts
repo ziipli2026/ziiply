@@ -76,12 +76,14 @@ export async function fetchPrismaCampaignOffersV1(
         const unit=String(pricing.comparisonUnit??"");
         result.push({
           id:"prisma-campaign-"+storeId+"-"+key,source:config.id,chain:config.chain,
+          sourceUrl:"https://www.s-kaupat.fi/tuotteet/kampanjat",
           title,priceText:price.toFixed(2).replace(".",",")+" €",
           unitPriceText:Number.isFinite(unitPrice)&&unit ? unitPrice.toFixed(2).replace(".",",")+" € / "+unit.toLowerCase():"",
           benefitText:sectionTitle,storeLabel:storeName,imageUrl:imageUrl(product),
           productUrl:product.slug?"https://www.s-kaupat.fi/tuote/"+product.slug:"",
           matchScore:1,rawText:title+" "+sectionTitle,
           ean,category,categoryPath:[...hierarchy].reverse().join(" > ")||category,
+          mainCategory:category,productGroup:hierarchy[hierarchy.length-2]||"",subCategory:hierarchy[0]||"",
           campaignType:"campaign",campaignSection:sectionTitle,storeId
         } as ZiiplyOfferSearchResult);
       }

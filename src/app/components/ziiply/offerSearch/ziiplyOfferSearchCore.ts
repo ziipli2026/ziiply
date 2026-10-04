@@ -294,25 +294,17 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
   const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
-  // Prisma CMS supplies its own hierarchy, unlike DISCOUNTED search results.
-  // Resolve its top-level department to the same category buttons as Gösta.
+  // Prisma CMS and cached campaign rows use the same taxonomy rules as offers.
+  // The broad "Kahvit, teet ja mehut" parent cannot decide the product bucket.
   if (sourceItem?.campaignType === "campaign" && /^prisma/i.test(String(sourceItem?.storeLabel || ""))) {
-    const department = normalizeGostaCoreText(sourceItem?.category || "").replace(/-/g, " ").replace(/\s+/g, " ").trim();
-    const mapped: Record<string, string> = {
-      "hedelmat ja vihannekset": "Hevi", "liha ja kasviproteiinit": "Liha & makkarat",
-      "kala ja merenelavat": "Kala", "leivat ja leivonnaiset": "Leipomo",
-      "maito munat ja rasvat": "Maitotuotteet", "juustot tofut ja kasvipohjaiset": "Maitotuotteet",
-      "kahvit teet ja mehut": "Juomat", "karkit suklaat ja keksit": "Makeiset & keksit",
-      "pakasteet": "Pakasteet", "lemmikit": "Lemmikit",
-      "kosmetiikka ja hygienia": "Hygienia & kosmetiikka",
-      "kodinhoito ja taloustarvikkeet": "Kodinhoito",
-      "lapset": "Lastenruoat", "urheiluravinteet terveys ja itsehoito": "Vitamiinit & ravinteet",
-      "kuivatuotteet ja leivonta": "Kuivatuotteet", "pastat riisit ja nuudelit": "Kuivatuotteet",
-      "oljyt maustaminen ja kastikkeet": "Kuivatuotteet",
-      "keittio ja kattaus": "Koti & vapaa-aika", "kukat ja koti": "Koti & vapaa-aika",
-      "vapaa aika": "Koti & vapaa-aika", "ruokatori": "Valmisruoka"
-    };
-    return mapped[department] || getOfferCategoryV106(item);
+    const path = String(sourceItem?.categoryPath || "").split(/\\s*[>/]\\s*/).filter(Boolean);
+    return getOfferCategoryV106({
+      ...sourceItem,
+      sourceUrl: "https://www.s-kaupat.fi/tuotteet/kampanjat",
+      mainCategory: sourceItem?.mainCategory || path[0] || sourceItem?.category,
+      productGroup: sourceItem?.productGroup || path[1] || "",
+      subCategory: sourceItem?.subCategory || path[path.length - 1] || "",
+    });
   }
   // S-local CMS: source taxonomy wins over fruit-related words in processed
   // products (e.g. omenasose must not become fresh produce / Hevi).

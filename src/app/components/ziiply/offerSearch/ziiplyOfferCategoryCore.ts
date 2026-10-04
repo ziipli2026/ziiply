@@ -306,7 +306,7 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
 
   if (/\blapset\b/.test(mainCategory)) {
     if (/\blastenruo|\bvauvanruo|\blasten puuro|\bpuuro|\bvelli|\bvalipala|\bvälipala|\bnaksut|\bpatukat|\bsose|\blastentuote/.test(categoryText)) return "Lastenruoat";
-    if (/\bvaippa|\bhoitotarvik|\blastentarvik/.test(categoryText)) return "Hygienia & kosmetiikka";
+    if (/\bvaippa|\bvaipat|\bhoitotarvik|\blastentarvik/.test(categoryText)) return "Hygienia & kosmetiikka";
     return "Muut";
   }
 
