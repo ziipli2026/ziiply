@@ -717,6 +717,30 @@ export async function GET(request: Request) {
         query: q,
         context,
         results,
+        kOfferStageAuditV1: hasKSelectionV20 ? (() => {
+          const debug = getKruokaOfferPipelineDebugV34();
+          const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
+          const identity = (row: UnknownRecord) => [
+            String((row.debug as UnknownRecord | undefined)?.publicationId ?? ""),
+            String(row.offerId ?? ""),
+            String(row.campaignType ?? "offer"),
+          ].join("|");
+          const stages = {
+            provider: providerRows.map(row => ({ id: [row.publicationId, row.offerId, row.campaignType].join("|"), title: row.title })),
+            source: (baseResults as unknown as UnknownRecord[]).map(row => ({ id: identity(row), title: String(row.title ?? "") })),
+            combined: combinedResultsV20.map(row => ({ id: identity(row), title: String(row.title ?? "") })),
+            api: results.map(row => ({ id: identity(row), title: String(row.title ?? "") })),
+          };
+          const sourceIds = new Set(stages.source.map(row => row.id));
+          const combinedIds = new Set(stages.combined.map(row => row.id));
+          const apiIds = new Set(stages.api.map(row => row.id));
+          return {
+            counts: Object.fromEntries(Object.entries(stages).map(([stage, rows]) => [stage, rows.length])),
+            missingAtSource: stages.provider.filter(row => !sourceIds.has(row.id)),
+            missingAtCombined: stages.source.filter(row => !combinedIds.has(row.id)),
+            missingAtApi: stages.combined.filter(row => !apiIds.has(row.id)),
+          };
+        })() : null,
         sEvidenceRouteV228: hasSSelectionV20 ? {
           traceRevision: "V229-API-SOURCE-SPLIT",
           baseResultCount: baseResults.length,
