@@ -1,0 +1,68 @@
+{
+  "source": "https://www.sttinfo.fi/tiedote/71968449/lidl-laskee-suosituimpien-paistopistetuotteiden-hintoja?lang=fi",
+  "publisher": "Lidl Suomi",
+  "publishedAt": "2026-04-20",
+  "priceKind": "historical-announced-regular",
+  "researchOnly": true,
+  "currentCheckoutVerified": false,
+  "storeId": null,
+  "notes": "Prices announced effective 2026-04-20. Not validated as current store checkout prices in October 2026. Product identity must be independently matched to catalog ID.",
+  "records": [
+    {
+      "name": "Riisipiirakka",
+      "oldPriceEur": 0.39,
+      "announcedPriceEur": 0.33,
+      "lidlProductId": null,
+      "currentRegularPriceEur": null,
+      "comparable": false
+    },
+    {
+      "name": "Sulhaspiirakka",
+      "oldPriceEur": 0.35,
+      "announcedPriceEur": 0.29,
+      "lidlProductId": null,
+      "currentRegularPriceEur": null,
+      "comparable": false
+    },
+    {
+      "name": "Voicroissant",
+      "oldPriceEur": 0.65,
+      "announcedPriceEur": 0.49,
+      "lidlProductId": null,
+      "currentRegularPriceEur": null,
+      "comparable": false
+    },
+    {
+      "name": "Nakkicroissant",
+      "oldPriceEur": 1.29,
+      "announcedPriceEur": 1.19,
+      "lidlProductId": null,
+      "currentRegularPriceEur": null,
+      "comparable": false
+    },
+    {
+      "name": "Pizza-salami",
+      "oldPriceEur": 1.69,
+      "announcedPriceEur": 1.49,
+      "lidlProductId": null,
+      "currentRegularPriceEur": null,
+      "comparable": false
+    },
+    {
+      "name": "Korvapuusti",
+      "oldPriceEur": 0.88,
+      "announcedPriceEur": 0.79,
+      "lidlProductId": null,
+      "currentRegularPriceEur": null,
+      "comparable": false
+    },
+    {
+      "name": "Vehnäsämpylä",
+      "oldPriceEur": 0.45,
+      "announcedPriceEur": 0.39,
+      "lidlProductId": null,
+      "currentRegularPriceEur": null,
+      "comparable": false
+    }
+  ]
+}
