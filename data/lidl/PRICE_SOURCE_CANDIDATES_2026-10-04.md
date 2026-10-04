@@ -21,3 +21,8 @@ Before importing a third-party observation, establish permission to reuse data; 
 - Lidl Finland leaflet archives can support offer timing, not current regular-price acceptance. https://archivana.com/fi/fi/lidl/
 
 **Decision:** neither Alennuskartta nor everydata.io is approved for current Ziiply normal-price ingestion. Next validation must obtain a sample licensed payload demonstrating Finnish food product IDs, store scope, observedAt, promotion status, and permission to republish; otherwise use verified checkout receipts.
+
+## Production adapter inspection (2026-10-04)
+Inspected `src/app/api/lidl/products/route.ts`: the current Ruoanhinta adapter reads `storeItems[0].price` and filters positive values, but its payload type does not include `priceKind`, `observedAt`, `checkoutPriceVerified`, `evidenceReference` or authorization provenance. A positive price from this adapter must not be equated to the strict verified-normal-price contract. The store resolver ranks address/city/name matches; it does not itself verify that a selected price row belongs to the intended physical store. This is a source-quality finding, **not a claim that the current API returned an incorrect price**.
+
+Before changing the live adapter, obtain a real redacted sample of `/api/items` and `/api/stores` for the same Lidl location, validate field semantics and permitted reuse, and explicitly decide whether unverified observations may appear as non-comparable research-only prices. Do not silently zero or remove existing production prices without a reviewed UI migration.
