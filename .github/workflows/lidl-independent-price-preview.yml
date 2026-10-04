@@ -14,6 +14,7 @@ on:
       - 'scripts/generate-lidl-price-pilot-template.mjs'
       - 'scripts/test-lidl-price-pilot-template.mjs'
       - 'scripts/test-lidl-pilot-csv-reader.mjs'
+      - 'scripts/test-lidl-barcode-kind.mjs'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -38,3 +39,4 @@ jobs:
       - run: node scripts/test-lidl-manual-price-batch.mjs
       - run: node scripts/test-lidl-price-pilot-template.mjs
       - run: node scripts/test-lidl-pilot-csv-reader.mjs
+      - run: node scripts/test-lidl-barcode-kind.mjs
