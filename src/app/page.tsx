@@ -13135,7 +13135,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
     } catch {}
-    void updateChainComparison(comparableCart, { openCompare: false });
+    // Reload only restores saved results. A missing/stale snapshot must never
+    // implicitly run Halpuuta; only an explicit user action may start it.
+    setComparisonLoading(false);
   }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.sStoreName, activeArea.sLocalStoreName, activeArea.kStoreName, activeArea.kLocalStoreName, storeMode, storeCompareScope, withinChain]);
 
   // V809: Warm comparison matches silently as soon as a comparable cart and
@@ -13184,7 +13186,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!storesReadyForSearch || restoredCartPromptV320.open) return;
     // V768: älä esilämmitä Halpuusvertailua ennen käyttäjän ensimmäistä käynnistystä.
     if (!comparisonUserStartedRefV768.current) return;
-    if (comparisonCacheKeyRef.current !== getComparisonCacheKey(comparisonCart)) {
+    // Restoring a completed snapshot is not a new user request. In particular,
+    // late store hydration must not schedule the matcher for an unchanged cart.
+    const currentComparisonKeyV816 = getComparisonCacheKey(comparisonCart);
+    if (comparisonCompletedKeyRef.current === currentComparisonKeyV816 &&
+        [...Object.values(sMatches), ...Object.values(kMatches)].some(match => Number(match.price) > 0)) return;
+    if (comparisonCacheKeyRef.current !== currentComparisonKeyV816) {
       comparisonCacheKeyRef.current = null;
       setComparisonLoading(true);
     }
