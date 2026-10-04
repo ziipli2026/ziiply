@@ -165,39 +165,44 @@ function editDistance(a: string, b: string) {
 function correctSingleGroceryTypo(value: string) {
   const word = normalizeFi(value);
   if (!word || word.length < 4 || /\d/.test(word)) return word;
+  if (QUERY_CORRECTIONS[word]) return QUERY_CORRECTIONS[word];
+
+  // Build candidates from the search intent vocabulary rather than maintaining
+  // one hardcoded typo -> correction for every possible keyboard mistake.
+  const vocabulary = new Set<string>(FUZZY_GROCERY_TERMS);
+  for (const intent of Object.values(INTENTS)) {
+    for (const phrase of [...intent.includeTerms, ...intent.preferredTerms]) {
+      for (const token of normalizeFi(phrase).split(/[\s-]+/)) {
+        if (token.length >= 4 && !/\d/.test(token)) vocabulary.add(token);
+      }
+    }
+  }
+  if (vocabulary.has(word)) return word;
 
   let best = "";
-  let bestDistance = Number.POSITIVE_INFINITY;
+  let bestDistance = Infinity;
   let tied = false;
-
-  for (const candidate of FUZZY_GROCERY_TERMS) {
-    const normalizedCandidate = normalizeFi(candidate);
-    const distance = editDistance(word, normalizedCandidate);
+  for (const candidate of vocabulary) {
+    if (Math.abs(candidate.length - word.length) > (word.length >= 8 ? 2 : 1)) continue;
+    const distance = editDistance(word, candidate);
     if (distance < bestDistance) {
       best = candidate;
       bestDistance = distance;
       tied = false;
-    } else if (distance === bestDistance) {
-      tied = true;
-    }
+    } else if (distance === bestDistance) tied = true;
   }
-
-  // Conservative on purpose: one typo for short words, at most two for longer
-  // grocery nouns. Ambiguous matches are never autocorrected.
   const maxDistance = word.length >= 8 ? 2 : 1;
   return !tied && bestDistance <= maxDistance ? best : word;
 }
 
 export function correctSearchQuery(query: string) {
   const q = normalizeFi(query);
-  const explicit = QUERY_CORRECTIONS[q];
-  if (explicit) return explicit;
-
-  // Fuzzy correction is deliberately limited to a single grocery noun.
-  // Brand names and multi-word product searches stay untouched unless they have
-  // an explicit correction above.
-  if (!q.includes(" ")) return correctSingleGroceryTypo(q);
-  return q;
+  if (QUERY_CORRECTIONS[q]) return QUERY_CORRECTIONS[q];
+  // Correct individual grocery words in multiword searches while leaving
+  // short brand tokens, sizes, quantities and EANs unchanged.
+  return q.split(/(\s+)/).map(part =>
+    /^\s+$/.test(part) ? part : correctSingleGroceryTypo(part)
+  ).join("");
 }
 
 const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySearchIntent, "originalQuery" | "correctedQuery" | "canonicalQuery" | "intent">> = {
