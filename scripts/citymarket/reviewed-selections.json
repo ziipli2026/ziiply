@@ -1,0 +1,786 @@
+{
+  "b14d8a27004e6984037b0c7cbe42e4575ed9f403c060bda67e2a77f9475eb54e": {
+    "kcm:spatial:1:peruna 5 kg:1": {
+      "page": 1,
+      "rectangles": [
+        [
+          498.488,
+          161.942,
+          714.539,
+          400.525
+        ]
+      ]
+    },
+    "kcm:spatial:1:kiusaukset 650–700 g (7,84–8,45/kg) frestelse:5.49": {
+      "page": 1,
+      "rectangles": [
+        [
+          101.242,
+          608.387,
+          179.468,
+          695.173
+        ],
+        [
+          25.649,
+          616.567,
+          99.674,
+          700.44
+        ]
+      ]
+    },
+    "kcm:spatial:1:proteiinirahkat 175 g:4": {
+      "page": 1,
+      "rectangles": [
+        [
+          348.117,
+          611.451,
+          415.939,
+          664.925
+        ],
+        [
+          257.949,
+          622.145,
+          325.771,
+          675.619
+        ],
+        [
+          306.925,
+          641.342,
+          372.338,
+          692.935
+        ],
+        [
+          399.48,
+          639.287,
+          464.893,
+          690.88
+        ]
+      ]
+    },
+    "kcm:spatial:1:pikku hönö moniviljapalaleipä 400 g:1.49": {
+      "page": 1,
+      "rectangles": [
+        [
+          143.076,
+          791.846,
+          304.159,
+          920.094
+        ]
+      ]
+    },
+    "kcm:spatial:2:sipuli 1 kg:1.29": {
+      "page": 2,
+      "rectangles": [
+        [
+          410.897,
+          449.134,
+          543.591,
+          572.162
+        ]
+      ]
+    },
+    "kcm:spatial:2:omena 1 kg:2.99": {
+      "page": 2,
+      "rectangles": [
+        [
+          396.518,
+          218.092,
+          554.916,
+          431.402
+        ]
+      ]
+    },
+    "kcm:spatial:2:myskikurpitsa suomi butternutpumpa:2.49": {
+      "page": 2,
+      "rectangles": [
+        [
+          422.377,
+          580.701,
+          553.728,
+          725.009
+        ]
+      ]
+    },
+    "kcm:spatial:3:välipalajuomat 240 ml:3": {
+      "page": 3,
+      "rectangles": [
+        [
+          257.889,
+          497.781,
+          310.639,
+          647.81
+        ],
+        [
+          306.083,
+          561.645,
+          358.833,
+          711.674
+        ]
+      ]
+    },
+    "kcm:spatial:3:smoothiet 250 ml/pl:4": {
+      "page": 3,
+      "rectangles": [
+        [
+          493.484,
+          506.196,
+          547.314,
+          638.624
+        ],
+        [
+          533.581,
+          574.597,
+          587.41,
+          707.025
+        ]
+      ]
+    },
+    "kcm:spatial:3:skyr 2 x 140 g:4": {
+      "page": 3,
+      "rectangles": [
+        [
+          91.09,
+          454.836,
+          235.92,
+          561.237
+        ],
+        [
+          13.002,
+          509.669,
+          162.294,
+          620.208
+        ]
+      ]
+    },
+    "kcm:spatial:3:kokolihaleikkeleet 150–200 g (16,45–21,93/kg) helköttspålägg:3.29": {
+      "page": 3,
+      "rectangles": [
+        [
+          30.901,
+          741.064,
+          115.843,
+          901.26
+        ],
+        [
+          160.504,
+          760.161,
+          245.445,
+          920.357
+        ],
+        [
+          95.549,
+          803.341,
+          180.454,
+          963.469
+        ]
+      ]
+    },
+    "kcm:spatial:3:little kids 1–3 v. välipalat:percent:20": {
+      "page": 3,
+      "rectangles": [
+        [
+          455.523,
+          746.316,
+          567.105,
+          883.12
+        ],
+        [
+          379.684,
+          779.419,
+          469.083,
+          916.223
+        ],
+        [
+          502.068,
+          832.874,
+          575.824,
+          950.752
+        ]
+      ]
+    },
+    "kcm:spatial:4:airfry kana- ja possutuotteet 300–350 g (12,54–14,63/kg) k4y c k l i n g o c h g r i s:4.39": {
+      "page": 4,
+      "rectangles": [
+        [
+          442.952,
+          58.066,
+          565.988,
+          171.042
+        ],
+        [
+          460.162,
+          136.429,
+          583.198,
+          250.262
+        ]
+      ]
+    },
+    "kcm:spatial:4:härkis härkäpapumurskat 250 g (13,96/kg):3.49": {
+      "page": 4,
+      "rectangles": [
+        [
+          408.984,
+          314.812,
+          581.142,
+          436.147
+        ]
+      ]
+    },
+    "kcm:spatial:4:rehti lihaisat kuorettomat nakit 280 g (8,57/kg):4.8": {
+      "page": 4,
+      "rectangles": [
+        [
+          469.154,
+          507.249,
+          559.287,
+          616.585
+        ],
+        [
+          482.177,
+          599.869,
+          572.31,
+          709.734
+        ]
+      ]
+    },
+    "kcm:spatial:4:keittiön maustetut ruokakermat 2,5 dl (7,00/l):3.5": {
+      "page": 4,
+      "rectangles": [
+        [
+          488.395,
+          740.675,
+          542.849,
+          870.725
+        ],
+        [
+          522.858,
+          809.672,
+          577.312,
+          939.722
+        ]
+      ]
+    },
+    "kcm:spatial:4:isot burgerit 220–245 g (13,60–15,15/kg) stora burgare:10": {
+      "page": 4,
+      "rectangles": [
+        [
+          139.962,
+          737.347,
+          219.464,
+          825.285
+        ],
+        [
+          25.504,
+          732.253,
+          105.006,
+          820.191
+        ],
+        [
+          86.813,
+          758.237,
+          166.315,
+          846.175
+        ]
+      ]
+    },
+    "kcm:spatial:4:keitot 300 g:5": {
+      "page": 4,
+      "rectangles": [
+        [
+          256.67,
+          751.051,
+          364.279,
+          850.336
+        ],
+        [
+          348.772,
+          741.654,
+          456.406,
+          840.002
+        ]
+      ]
+    },
+    "kcm:spatial:5:kananpojan paneroidut fileepalat ja kanaranskikset 250–380 g:3.99": {
+      "page": 5,
+      "rectangles": [
+        [
+          495.96,
+          497.848,
+          598.468,
+          619.98
+        ],
+        [
+          485.991,
+          596.065,
+          586.459,
+          716.196
+        ]
+      ]
+    },
+    "kcm:spatial:5:nopeat kananugetit tai kanapuikot dipillä 218 g:2.99": {
+      "page": 5,
+      "rectangles": [
+        [
+          268.518,
+          514.935,
+          357.008,
+          615.552
+        ],
+        [
+          257.241,
+          604.634,
+          348.343,
+          708.96
+        ]
+      ]
+    },
+    "kcm:spatial:5:patongit 230–245 g (16,29–17,35/kg) baguetter:3.99": {
+      "page": 5,
+      "rectangles": [
+        [
+          3.442,
+          467.557,
+          177.678,
+          575.844
+        ],
+        [
+          56.974,
+          487.908,
+          241.014,
+          597.891
+        ],
+        [
+          18.585,
+          537.557,
+          188.462,
+          648.022
+        ]
+      ]
+    },
+    "kcm:spatial:5:kypsät jätti- katkaravunpyrstöt 29–33 kpl/200 g asc-sertifioitu, pakaste (22,50/kg):9": {
+      "page": 5,
+      "rectangles": [
+        [
+          17.068,
+          743.073,
+          129.037,
+          853.644
+        ],
+        [
+          16.9,
+          829.844,
+          120.378,
+          931.785
+        ]
+      ]
+    },
+    "kcm:spatial:5:ketsuppi 1 kg:3.49": {
+      "page": 5,
+      "rectangles": [
+        [
+          505.64,
+          738.508,
+          582.82,
+          952.052
+        ]
+      ]
+    },
+    "kcm:spatial:5:aito nakki 360 g:3.79": {
+      "page": 5,
+      "rectangles": [
+        [
+          253.849,
+          760.316,
+          462.651,
+          835.019
+        ]
+      ]
+    },
+    "kcm:spatial:6:pastillirasiat 80 g:5": {
+      "page": 6,
+      "rectangles": [
+        [
+          29.792,
+          510.931,
+          107.518,
+          618.303
+        ],
+        [
+          46.403,
+          606.772,
+          122.963,
+          714.034
+        ]
+      ]
+    },
+    "kcm:spatial:6:suklaa snacks makeispussit 140–160 g (15,63–17,86/kg) godispåsar-:5": {
+      "page": 6,
+      "rectangles": [
+        [
+          258.173,
+          497.244,
+          344.562,
+          612.691
+        ],
+        [
+          272.318,
+          593.037,
+          359.294,
+          715.756
+        ]
+      ]
+    },
+    "kcm:spatial:6:perunalastut 275 g:1.99": {
+      "page": 6,
+      "rectangles": [
+        [
+          481.593,
+          466.28,
+          571.832,
+          620.198
+        ],
+        [
+          505.532,
+          563.239,
+          595.772,
+          717.157
+        ]
+      ]
+    },
+    "kcm:spatial:6:keksilevite 380–400 g (11,23–11,82/kg) biscoff kexpålägg:4.49": {
+      "page": 6,
+      "rectangles": [
+        [
+          251.325,
+          738.971,
+          336.656,
+          874.297
+        ],
+        [
+          280.334,
+          818.481,
+          365.665,
+          953.808
+        ]
+      ]
+    },
+    "kcm:spatial:6:all stars pantteri tai ässä makeispussit 400 g (7,48/kg):2.99": {
+      "page": 6,
+      "rectangles": [
+        [
+          488.176,
+          754.413,
+          574.902,
+          857.606
+        ],
+        [
+          501.86,
+          851.346,
+          589.789,
+          954.969
+        ]
+      ]
+    },
+    "kcm:spatial:6:domino crunchy herkuttelukeksit 150 g (16,67/kg):5": {
+      "page": 6,
+      "rectangles": [
+        [
+          14.865,
+          732.953,
+          165.279,
+          819.592
+        ]
+      ]
+    },
+    "kcm:spatial:7:energiajuomat 0,33–0,355 l/tlk (6,15–6,62/l):7": {
+      "page": 7,
+      "rectangles": [
+        [
+          95.375,
+          542.859,
+          154.042,
+          695.206
+        ],
+        [
+          160.135,
+          542.756,
+          218.826,
+          695.318
+        ],
+        [
+          28.722,
+          542.867,
+          90.46,
+          695.185
+        ]
+      ]
+    },
+    "kcm:spatial:7:energiajuomat 0,5 l/tlk:4": {
+      "page": 7,
+      "rectangles": [
+        [
+          487.371,
+          528.454,
+          560.133,
+          707.54
+        ]
+      ]
+    },
+    "kcm:spatial:7:virvoitusjuomat 0,33 l/tlk:5": {
+      "page": 7,
+      "rectangles": [
+        [
+          21.641,
+          733.585,
+          88.318,
+          897.409
+        ],
+        [
+          60.145,
+          819.665,
+          127.779,
+          936.315
+        ]
+      ]
+    },
+    "kcm:spatial:7:kirin ichiban alkoholiton olut 0,0 % 0,33 l/pl:1.99": {
+      "page": 7,
+      "rectangles": [
+        [
+          283.227,
+          742.088,
+          339.433,
+          959.402
+        ]
+      ]
+    },
+    "kcm:spatial:7:original olut 5,0 % 0,5 l/tlk (6,28/l):3.29": {
+      "page": 7,
+      "rectangles": [
+        [
+          505.329,
+          763.644,
+          571.696,
+          938.42
+        ]
+      ]
+    },
+    "kcm:spatial:8:puhdistussuihkeet 500 ml:2.49": {
+      "page": 8,
+      "rectangles": [
+        [
+          472.362,
+          368.147,
+          525.523,
+          488.229
+        ],
+        [
+          382.369,
+          379.552,
+          434.844,
+          499.495
+        ],
+        [
+          426.169,
+          389.911,
+          481.044,
+          511.667
+        ]
+      ]
+    },
+    "kcm:spatial:11:puhdistussuihkeet 500 ml:2.39": {
+      "page": 11,
+      "rectangles": [
+        [
+          495.418,
+          47.933,
+          644.708,
+          397.075
+        ],
+        [
+          227.007,
+          84.365,
+          375.426,
+          430.554
+        ],
+        [
+          357.783,
+          113.008,
+          512.095,
+          467.925
+        ]
+      ]
+    },
+    "kcm:spatial:11:casting creme gloss sävytteet ja magic retouch hiusvärituotteet:14.9": {
+      "page": 11,
+      "rectangles": [
+        [
+          79.074,
+          525.278,
+          160.761,
+          668.245
+        ],
+        [
+          38.242,
+          573.838,
+          119.929,
+          716.805
+        ],
+        [
+          148.091,
+          599.166,
+          189.647,
+          731.508
+        ]
+      ]
+    },
+    "kcm:spatial:11:lumene natural glow meikkivoide:percent:25": {
+      "page": 11,
+      "rectangles": [
+        [
+          367.501,
+          508.25,
+          721.063,
+          979.496
+        ]
+      ]
+    },
+    "kcm:spatial:11:purkkapallo shampoo ja hoitoaine sekä suihkugeeli 200-250 ml:2.99": {
+      "page": 11,
+      "rectangles": [
+        [
+          119.09,
+          769.224,
+          195.377,
+          961.14
+        ],
+        [
+          48.26,
+          768.285,
+          125.106,
+          960.2
+        ]
+      ]
+    },
+    "kcm:spatial:11:meikkivoide sk20 0,5 light 30 ml:16.42": {
+      "page": 11,
+      "rectangles": [
+        [
+          367.501,
+          508.25,
+          721.063,
+          979.496
+        ]
+      ]
+    },
+    "kcm:spatial:12:tena ihonhoitotuotteet 150–500 ml, pesulappu 5–200 kpl/pkt, ruokalappu 150 kpl/pkt ja vuodesuoja 30 kpl/pkt tena hudvårdsprodukter, tvättlappar, matlappar och madrasskydd:percent:15": {
+      "page": 12,
+      "rectangles": [
+        [
+          205.859,
+          124.191,
+          299.296,
+          485.786
+        ]
+      ]
+    },
+    "kcm:spatial:12:deodorantit ja suihkusaippuat 50–300 ml:6.5": {
+      "page": 12,
+      "rectangles": [
+        [
+          582.695,
+          39.699,
+          666.1,
+          208.194
+        ],
+        [
+          469.47,
+          48.946,
+          566.889,
+          219.575
+        ],
+        [
+          536.987,
+          117.743,
+          611.525,
+          271.13
+        ]
+      ]
+    },
+    "kcm:spatial:12:suihkusaippuat 225 ml:4": {
+      "page": 12,
+      "rectangles": [
+        [
+          189.665,
+          530.345,
+          268.381,
+          714.134
+        ],
+        [
+          295.419,
+          643.045,
+          374.135,
+          826.833
+        ],
+        [
+          233.114,
+          605.408,
+          311.83,
+          789.196
+        ],
+        [
+          105.506,
+          582.707,
+          184.222,
+          766.495
+        ],
+        [
+          51.577,
+          630.11,
+          130.293,
+          813.898
+        ],
+        [
+          168.781,
+          640.861,
+          247.497,
+          824.649
+        ]
+      ]
+    },
+    "kcm:spatial:12:foliovuoat kansineen 0,4–1,5 l:3": {
+      "page": 12,
+      "rectangles": [
+        [
+          442.354,
+          603.155,
+          593.624,
+          788.795
+        ],
+        [
+          528.358,
+          501.327,
+          658.89,
+          686.967
+        ],
+        [
+          596.551,
+          654.398,
+          701.464,
+          840.038
+        ]
+      ]
+    },
+    "kcm:spatial:13:wc-paperi 8 rl:3.59": {
+      "page": 13,
+      "rectangles": [
+        [
+          22.068,
+          409.784,
+          420.997,
+          625.434
+        ]
+      ]
+    }
+  }
+}
