@@ -177,9 +177,14 @@ export type {
 } from "./types";
 
 let lastKruokaGateDebugV35: KruokaPipelineDebugV49 | null = null;
+let lastKOfferDedupeAuditV1: {
+  inputCount: number; outputCount: number;
+  collisionCount: number; collisions: Array<Record<string, unknown>>;
+} | null = null;
 
-export function getKruokaOfferPipelineDebugV34(): KruokaPipelineDebugV49 | null {
-  return getLastKruokaPipelineDebugV49() ?? lastKruokaGateDebugV35;
+export function getKruokaOfferPipelineDebugV34() {
+  const providerDebug = getLastKruokaPipelineDebugV49() ?? lastKruokaGateDebugV35;
+  return providerDebug ? { ...providerDebug, kOfferDedupeAuditV1: lastKOfferDedupeAuditV1 } : null;
 }
 
 export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & KruokaOfferProviderOptionsV10 & {
@@ -439,12 +444,11 @@ function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
     unique.push(result);
   }
 
-  if (kCollisions.length) {
-    console.info("[Ziiply K offer dedupe audit V1]", {
-      inputCount: results.length, outputCount: unique.length,
-      collisionCount: kCollisions.length, collisions: kCollisions,
-    });
-  }
+  lastKOfferDedupeAuditV1 = {
+    inputCount: results.length, outputCount: unique.length,
+    collisionCount: kCollisions.length, collisions: kCollisions,
+  };
+  if (kCollisions.length) console.info("[Ziiply K offer dedupe audit V1]", lastKOfferDedupeAuditV1);
   return unique;
 }
 
