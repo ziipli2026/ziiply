@@ -321,6 +321,10 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
       [sourceItem?.categoryPath, sourceItem?.mainCategory, sourceItem?.department,
         sourceItem?.productGroup, sourceItem?.subCategory].filter(Boolean).join(" "),
     );
+    const productTitle = normalizeGostaCoreText(sourceItem?.title || anyItem?.title || "");
+    if (/\b(vaipat|vaippa|pampers|housuvaipat|teippivaipat)\b/.test(`${taxonomy} ${productTitle}`)) {
+      return "Lastenhoito";
+    }
     if (/hillot|sailykkeet|soseet|hyytelot|marmeladit/.test(taxonomy)) {
       return "Kuivatuotteet";
     }
