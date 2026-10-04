@@ -28,22 +28,36 @@ export async function GET(request: Request) {
       };
     });
     const latestRun = runs[0];
-    const current = editions.filter((edition) => edition.state === "current");
-    const upcoming = editions.filter((edition) => edition.state === "upcoming");
+    // Corrected snapshots of the same period must not inflate the health totals.
+    // The store returns newest first; retain the first edition per validity period.
+    const latestByPeriod = new Map<string, (typeof editions)[number]>();
+    for (const edition of editions) {
+      const period = `${edition.validFrom}:${edition.validUntil}`;
+      if (!latestByPeriod.has(period)) latestByPeriod.set(period, edition);
+    }
+    const effectiveEditions = [...latestByPeriod.values()];
+    const current = effectiveEditions.filter((edition) => edition.state === "current");
+    const upcoming = effectiveEditions.filter((edition) => edition.state === "upcoming");
     const issues: string[] = [];
     if (!latestRun) issues.push("No recorded source run");
-    else if (!latestRun.ok) issues.push("Latest source run failed");
+    else {
+      if (!latestRun.ok) issues.push("Latest source run failed");
+      const ageMs = Date.now() - Date.parse(String(latestRun.checked_at));
+      if (!Number.isFinite(ageMs) || ageMs < -300000 || ageMs > 36 * 60 * 60 * 1000)
+        issues.push("Source run is stale or has an invalid timestamp");
+    }
     if (!current.length) issues.push("No currently valid stored publication");
     for (const edition of current) {
       if (edition.quality.severity === "error") issues.push(`Critical offer data in ${edition.publicationId}`);
       else if (edition.quality.severity === "warning") issues.push(`Incomplete offer metadata in ${edition.publicationId}`);
     }
     const summary = {
-      status: issues.some((issue) => /failed|Critical|No currently|No recorded/.test(issue)) ? "error" :
+      status: issues.some((issue) => /failed|Critical|No currently|No recorded|stale/.test(issue)) ? "error" :
         issues.length ? "warning" : "ok",
       latestRunAt: latestRun?.checked_at ?? null,
       latestRunSucceeded: latestRun?.ok ?? null,
       latestRunOfferCount: latestRun?.offer_count ?? null,
+      effectiveEditionCount: effectiveEditions.length,
       currentEditionCount: current.length,
       upcomingEditionCount: upcoming.length,
       currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
