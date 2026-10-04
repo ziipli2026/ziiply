@@ -22310,8 +22310,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
           !showLaunchScreen && (
-            <div className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+10.5rem)] z-[160] mx-auto max-w-[34rem] ziiply-soft-open sm:top-5">
-              <div className="rounded-[1.35rem] border border-green-100 bg-[#fff8df]/95 p-3 shadow-[0_18px_50px_rgba(15,23,42,0.18)] ring-1 ring-white/70 backdrop-blur-2xl">
+            <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+10.5rem)] z-[160] mx-auto max-w-[34rem] ziiply-soft-open sm:top-5">
+              <div className="pointer-events-auto rounded-[1.35rem] border border-green-100 bg-[#fff8df]/95 p-3 shadow-[0_18px_50px_rgba(15,23,42,0.18)] ring-1 ring-white/70 backdrop-blur-2xl">
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-xl ring-1 ring-green-100">
                     🛒
@@ -22333,7 +22333,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           // or automatically start a visible comparison.
                           setComparisonLoading(false);
                           setRestoredComparisonPending(false);
-                          restoreReloadPanelV812();
+                          // The panel was restored during hydration. Do not replay
+                          // navigation on Jatka: the user may have interacted meanwhile.
                         }}
                         className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                       >
