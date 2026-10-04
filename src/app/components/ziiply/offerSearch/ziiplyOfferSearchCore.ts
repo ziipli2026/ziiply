@@ -740,6 +740,11 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   if (sourceOffer?.source === "etarjouslehdet" && sourceOffer?.offerId) {
     return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug?.publicationId || "")}:${String(sourceOffer.offerId)}`;
   }
+  // National leaflet cards have distinct prices, packs and page identities.
+  // Preserve them through API and UI deduplication using the parser identity.
+  if (sourceOffer?.source === "K-Citymarket tarjouslehti" && String(sourceOffer.id || "").startsWith("kcm:spatial:")) {
+    return `${sourceTab}:kcm-national:${String(sourceOffer.id)}`;
+  }
   if (ean) return `${sourceTab}:ean:${ean}`;
 
   const title =
