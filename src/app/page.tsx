@@ -3711,6 +3711,44 @@ export default function Page() {
   const [mobileCompareCheckedV733, setMobileCompareCheckedV733] = useState<Record<string, boolean>>({});
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
+  // V812: Keep the currently visible mobile tab across an ordinary reload.
+  // Session storage is intentionally separate from persisted basket contents.
+  const mobileViewRestoredRefV812 = useRef(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const view = window.sessionStorage.getItem("ziiply-mobile-view-v812");
+      if (view === "shops") {
+        setShopsPanelOpen(true);
+        setSearchPanelOpen(false);
+        setCartModalOpen(false);
+        setActiveResult("none");
+      } else if (view === "search") {
+        setSearchPanelOpen(true);
+        setShopsPanelOpen(false);
+        setCartModalOpen(false);
+        setActiveResult("none");
+      } else if (view === "cart") {
+        setCartModalOpen(true);
+        setShopsPanelOpen(false);
+        setSearchPanelOpen(false);
+        setActiveResult("none");
+      } else if (view === "compare") {
+        setActiveResult("compare");
+        setShopsPanelOpen(false);
+        setSearchPanelOpen(false);
+        setCartModalOpen(false);
+      }
+    } catch {}
+    mobileViewRestoredRefV812.current = true;
+  }, []);
+  useEffect(() => {
+    if (!mobileViewRestoredRefV812.current || typeof window === "undefined") return;
+    const view = shopsPanelOpen ? "shops" : searchPanelOpen ? "search" :
+      cartModalOpen ? "cart" : activeResult === "compare" ? "compare" : "home";
+    try { window.sessionStorage.setItem("ziiply-mobile-view-v812", view); } catch {}
+  }, [shopsPanelOpen, searchPanelOpen, cartModalOpen, activeResult]);
+
 
   function preloadSearchUiAssetsV774() {
     [
