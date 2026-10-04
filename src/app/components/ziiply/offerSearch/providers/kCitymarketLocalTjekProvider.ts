@@ -120,7 +120,7 @@ export async function fetchKCitymarketNationalTjekImages(asOf=new Date()): Promi
       try{
         const page=await fetch(ORIGIN+"K-Citymarket",{cache:"no-store",signal:AbortSignal.timeout(12000)});
         if(page.ok){
-          const html=await page.text();
+          const html=(await page.text()).replace(/&quot;|&#34;|&#x22;/gi, '"' ).replace(/&amp;/g, "&");
           // Embedded JSON may contain whitespace or escaped quotation marks.
           const match=/"publications"\s*:\s*\[/.exec(html);
           if(match){
