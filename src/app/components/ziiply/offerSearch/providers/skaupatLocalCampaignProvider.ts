@@ -656,6 +656,10 @@ function mapProductV1(
     priceText,
     unitPriceText,
     benefitText,
+    // RemoteGetPageContent is the S-local campaign publication feed.
+    // Keep its entries on Gösta's Kampanjat tab instead of silently
+    // treating them as ordinary discounted offers.
+    campaignType: "campaign",
     // V231: read-only per-product evidence from the actual S-local page section.
     // No change to eligibility, filtering, price selection, or displayed offer count.
     debugLocalCampaignEvidenceV231: {
