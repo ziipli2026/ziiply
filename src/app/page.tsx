@@ -4657,6 +4657,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // kun käyttäjä on käynnistänyt Halpuusvertailun vähintään kerran tälle korille.
   const comparisonUserStartedRefV768 = useRef(false);
   const comparisonItemRequestsRef = useRef<Map<string, Promise<{ s: Match | null; k: Match | null; failed: boolean }>>>(new Map());
+  const comparisonWarmResultsRefV809 = useRef<Map<string, { savedAt: number; result: { s: Match | null; k: Match | null; failed: boolean } }>>(new Map());
   const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
   const [kMatches, setKMatches] = useState<Record<string, Match>>({});
@@ -12418,6 +12419,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
     ]);
+    const warmedV809 = comparisonWarmResultsRefV809.current.get(itemKey);
+    if (warmedV809) {
+      if (Date.now() - warmedV809.savedAt < 60_000) return Promise.resolve(warmedV809.result);
+      comparisonWarmResultsRefV809.current.delete(itemKey);
+    }
     const previous = comparisonItemRequestsRef.current.get(itemKey);
     if (previous) return previous;
 
@@ -13027,6 +13033,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } catch {}
     void updateChainComparison(comparableCart, { openCompare: false });
   }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.sStoreName, activeArea.sLocalStoreName, activeArea.kStoreName, activeArea.kLocalStoreName, storeMode, storeCompareScope, withinChain]);
+
+  // V809: Warm comparison matches silently as soon as a comparable cart and
+  // two selected chains are ready. Never open Compare, change totals or show loading.
+  // Reuse the exact matcher key, so changed products/stores cannot reuse old prices.
+  useEffect(() => {
+    if (storeCompareScope !== "between_chains" || betweenChainSelectionModeV749 !== "many" ||
+        !selectedChains.s || !selectedChains.k || !activeStores.sStoreId || !activeStores.kStoreId ||
+        !storesReadyForSearch || restoredCartPromptV320.open) return;
+    const eligible = cart.filter(isComparisonEligibleV797);
+    if (!eligible.length) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void Promise.all(eligible.map((item) => {
+        const key = JSON.stringify([
+          "matcher-v13", item.id, item.name, item.product?.name, item.ean, item.product?.ean,
+          item.price, item.product?.id, item.chain, item.storeName, item.source,
+          activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
+          storeCompareScope, withinChain,
+        ]);
+        return getComparisonItemMatches(item).then((result) => {
+          if (cancelled || result.failed) return;
+          const cache = comparisonWarmResultsRefV809.current;
+          cache.set(key, { savedAt: Date.now(), result });
+          if (cache.size > 80) cache.delete(cache.keys().next().value!);
+        }).catch(() => {});
+      }));
+    }, 150);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [cart, storeCompareScope, betweenChainSelectionModeV749, selectedChains.s, selectedChains.k,
+      activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
+      withinChain, storesReadyForSearch, restoredCartPromptV320.open]);
 
   useEffect(() => {
     const comparisonCart = cart.filter(isComparisonEligibleV797);
