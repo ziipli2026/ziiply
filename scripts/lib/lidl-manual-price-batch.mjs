@@ -19,8 +19,7 @@ export function processLidlManualPriceBatch(observations, knownProductIds, store
  });
  const result = importVerifiedLidlPrices(candidates, knownProductIds, storeId, at);
  for (const row of result.rejected) {
-  const source = candidates.find(candidate => candidate.lidlProductId === row.lidlProductId && !rejected.some(rej => rej.index === candidate._inputIndex && rej.reason === row.reason)) || candidates.find(candidate => candidate.lidlProductId === row.lidlProductId);
-  rejected.push({index:source?._inputIndex ?? null,lidlProductId:row.lidlProductId,reason:row.reason});
+  rejected.push({index:row.inputIndex,lidlProductId:row.lidlProductId,reason:row.reason});
  }
  return {
   storeId, inputCount:observations.length, acceptedCount:result.prices.length,
