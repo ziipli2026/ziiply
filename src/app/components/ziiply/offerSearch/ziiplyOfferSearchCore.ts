@@ -368,6 +368,20 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     if (trusted) return trusted;
   }
 
+  // Product-specific correction must run before trusting a generic K/Tjek category.
+  // The shared CategoryCore rule alone is insufficient because the trusted
+  // provider category otherwise returns early (e.g. Kivikylän PIZZAT -> dairy).
+  const isKLocalTjek = source === "etarjouslehdet" &&
+    /k supermarket|k-supermarket|k market|k-market/.test(normalizeGostaCoreText(
+      [sourceItem?.storeLabel, sourceItem?.storeName, anyItem?.storeLabel, anyItem?.storeName].filter(Boolean).join(" "),
+    ));
+  if (isKLocalTjek) {
+    const productTitle = normalizeGostaCoreText(sourceItem?.title || sourceItem?.name || anyItem?.title || anyItem?.name || "");
+    if (/\b(pizza|pizzat|pizzapala|pizzapalat|pitsa|pitsat)\b/.test(productTitle)) {
+      return /\b(pakaste|pakastettu|pakastepizza|pakastepitsa)\b/.test(productTitle) ? "Pakasteet" : "Valmisruoka";
+    }
+  }
+
   const trustedExistingProviderCategory = getTrustedETarjousCategoryV166(item);
   if (trustedExistingProviderCategory) return trustedExistingProviderCategory;
   return getOfferCategoryV106(item);
