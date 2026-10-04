@@ -686,6 +686,7 @@ function mapProductV1(
       productPrice: product?.price ?? null,
       campaignPriceValidUntil: pricing?.campaignPriceValidUntil ?? null,
       priceBelowRegular: hasLowerCampaignPrice,
+      primaryDiscountRule: pricing?.primaryDiscountRule ?? null,
     },
     validityText: campaignUntil ? `Voimassa ${campaignUntil}` : sectionDescription,
     imageUrl,
@@ -846,7 +847,9 @@ export async function fetchSKaupatLocalCampaignOffersV1(
 
     // RemoteGetPageContent /tuotteet/kampanjat is a mixed merchandising
     // collection. A discounted row belongs to Offers; a non-discounted CMS
-    // selection belongs to Campaigns. Never clone the same EAN to both tabs.
+    // selection belongs to Campaigns only with an explicit non-price discount rule.
+    // Merely being featured on this CMS page is not campaign evidence.
+    // Never clone the same EAN to both tabs.
     // Reject inconsistent campaignPrice > regularPrice/currentPrice records.
     const today = currentFinnishDateV1();
     const offers: ZiiplyOfferSearchResult[] = [];
@@ -866,7 +869,10 @@ export async function fetchSKaupatLocalCampaignOffersV1(
       ) continue;
       if (evidence?.priceBelowRegular === true) {
         offers.push(item);
-      } else if (Number.isFinite(Number(current)) && current != null && Number(current) > 0) {
+      } else if (
+        evidence?.primaryDiscountRule &&
+        Number.isFinite(Number(current)) && current != null && Number(current) > 0
+      ) {
         campaigns.push({
           ...item,
           campaignType: "campaign",
