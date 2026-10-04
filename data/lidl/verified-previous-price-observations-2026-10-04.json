@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-04",
+  "purpose": "Research-only: independently verified Lidl.fi previous-price observations for existing catalog IDs; not current normal prices or checkout prices",
+  "sourceUrl": "https://www.lidl.fi/h/vihannekset/h10095593",
+  "records": [
+    {
+      "lidlProductId": "10038249",
+      "name": "Kotimainen porkkana",
+      "pack": "1 kg",
+      "offerPriceEur": 0.79,
+      "previousDisplayedPriceEur": 1.09,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "ean": null,
+      "imageStatus": "not_verified"
+    },
+    {
+      "lidlProductId": "10038253",
+      "name": "Kotimainen kiinankaali",
+      "pricingUnit": "kg",
+      "offerPriceEur": 2.69,
+      "previousDisplayedPriceEur": 3.89,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "ean": null,
+      "imageStatus": "not_verified"
+    },
+    {
+      "lidlProductId": "10038254",
+      "name": "Kotimainen peruna",
+      "pack": "2 kg",
+      "offerPriceEur": 1.19,
+      "previousDisplayedPriceEur": 1.49,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "ean": null,
+      "imageStatus": "not_verified"
+    },
+    {
+      "lidlProductId": "10038255",
+      "name": "Kotimainen ruusukaali",
+      "pack": "400 g",
+      "offerPriceEur": 2.99,
+      "previousDisplayedPriceEur": 3.99,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "ean": null,
+      "imageStatus": "not_verified"
+    }
+  ]
+}
