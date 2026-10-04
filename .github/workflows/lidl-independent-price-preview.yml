@@ -1,0 +1,27 @@
+name: Lidl independent price preview
+on:
+  push:
+    branches: [preview/lidl-independent-catalog]
+    paths:
+      - 'scripts/lib/lidl-*.mjs'
+      - 'scripts/test-lidl-independent-route.mjs'
+      - 'scripts/test-lidl-verified-price-import.mjs'
+      - 'scripts/test-lidl-manual-price-intake.mjs'
+      - 'src/app/api/lidl/products/route.ts'
+      - '.github/workflows/lidl-independent-price-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-price-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/test-lidl-independent-route.mjs
+      - run: node scripts/test-lidl-price-source-contract-v69.mjs
+      - run: node scripts/test-lidl-verified-price-import.mjs
+      - run: node scripts/test-lidl-manual-price-intake.mjs
