@@ -80,6 +80,9 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Explicit hygiene and beverages precede substrings in compound words.
+  if(/ihonhoito|pesulappu|ruokalappu|vuodesuoja/.test(s)) return "Hygienia & kosmetiikka";
+  if(/välipalajuoma/.test(s)) return "Juomat";
   // Explicit non-food types precede generic matches (e.g. pussilakanasetti contains "kana").
   if(/pussilakana|lakanasetti|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|saappaat|kengät|valaisin|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypuss|rikkasetti|ruusukimppu|terttuneilikka|erika|lankaköynnös/.test(s)) return "Koti & vapaa-aika";
   if(/konetiskitablet|astianpesutablet|\\bfairy\\b/.test(s)) return "Kodinhoito";
@@ -94,7 +97,7 @@ export function category(t:string){
   // Frozen vegetables must win over the generic "keitto" prepared-food match.
   if(/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if(/koira|kissa|lemmik|possunkorva|kissanhiekka/.test(s)) return "Lemmikit";
-  if(/little kids|lastenruo/.test(s)) return "Lastenruoka";
+  if(/little kids|lastenruo/.test(s)) return "Lastenruoat";
   if(/kiusaus|kiusauk|burger|härkis|härkäpapumursk|pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
   if(/kana|kananpoika|broiler|nauta|sika|porsaa|porsas|jauheliha|makkara|nakki|pekoni|kinkku|kokoliha|leikkele|fileepih|fileesuikale|liha/.test(s)) return "Liha & makkarat";
   if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
@@ -564,7 +567,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v7-owned-daily-goods-cards-20261004"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
