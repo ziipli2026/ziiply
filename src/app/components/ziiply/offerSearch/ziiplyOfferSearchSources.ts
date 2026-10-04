@@ -387,7 +387,10 @@ function getUniqueOfferKeyV4(result: ZiiplyOfferSearchResult) {
   const anyResult = result as any;
   const ean = normalizeOfferUniqueText(anyResult.ean || anyResult.gtin || anyResult.barcode || "");
 
-  if (ean) return `ean:${ean}`;
+  const price = Number(result.price);
+  const priceKey = Number.isFinite(price) ? price.toFixed(4) : normalizeOfferUniqueText(result.priceText);
+  const terms = `price:${priceKey}|from:${normalizeOfferUniqueText(anyResult.validFrom ?? "")}|until:${normalizeOfferUniqueText(anyResult.validUntil ?? "")}`;
+  if (ean) return `ean:${ean}|store:${normalizeOfferUniqueText(result.storeLabel)}|${terms}`;
 
   const title = normalizeOfferUniqueText(result.title);
   const store = normalizeOfferUniqueText(result.storeLabel);
@@ -395,11 +398,7 @@ function getUniqueOfferKeyV4(result: ZiiplyOfferSearchResult) {
   // Same product can have different regional and store-local prices/validity.
   // Collapse only genuinely identical offer terms, not merely matching titles.
   if (title) {
-    const price = Number(result.price);
-    const priceKey = Number.isFinite(price) ? price.toFixed(4) : normalizeOfferUniqueText(result.priceText);
-    const validUntil = normalizeOfferUniqueText(anyResult.validUntil ?? "");
-    const validFrom = normalizeOfferUniqueText(anyResult.validFrom ?? "");
-    return `title:${title}|store:${store}|price:${priceKey}|from:${validFrom}|until:${validUntil}`;
+    return `title:${title}|store:${store}|${terms}`;
   }
 
   return normalizeOfferUniqueText(
