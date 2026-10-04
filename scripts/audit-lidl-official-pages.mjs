@@ -60,22 +60,27 @@ for (const row of output) {
     row.imageVerified = false;
   }
 }
-const statusCounts = Object.fromEntries([...new Set(output.map(x => x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")))].map(k => [k, output.filter(x => (x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")) === k).length]));
 for (const row of output) {
   if (row.imageStatus !== "product_page_image_candidate") continue;
+  row.imageCheck = "not_checked";
   try {
-    const response = await fetch(row.candidateImageUrl, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(8000) });
+    const response = await fetch(row.candidateImageUrl, { method: "GET", redirect: "follow", headers: { Range: "bytes=0-1023", Accept: "image/*" }, signal: AbortSignal.timeout(8000) });
     row.imageHttpStatus = response.status;
     row.imageContentType = response.headers.get("content-type");
-    row.imageReachable = response.ok && /^image\\//i.test(row.imageContentType || "");
-    if (!row.imageReachable) row.imageStatus = "image_not_reachable_or_not_image";
+    row.imageReachable = response.ok && String(row.imageContentType || "").toLowerCase().startsWith("image/");
+    row.imageCheck = row.imageReachable ? "http_image_confirmed" : "http_non_image_or_unavailable";
+    await response.body?.cancel();
   } catch (error) {
-    row.imageReachable = false;
-    row.imageStatus = "image_request_failed";
+    row.imageReachable = null;
+    row.imageCheck = "network_check_inconclusive";
     row.imageError = String(error);
   }
+  // Keep a product-identity-matched official metadata URL as a candidate even
+  // when a separate CDN request is blocked by the CI runner. Never call it visually verified.
 }
-const result = { source: "lidl.fi-official-product-page", statusCounts, researchOnly: true, count: output.length, candidateCount: output.filter(x => x.imageStatus === "product_page_image_candidate" && x.imageReachable).length, sharedMetaImageCount: [...imageCounts.values()].filter(n => n > 1).length, records: output };
+const statusCounts = Object.fromEntries([...new Set(output.map(x => x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")))].map(k => [k, output.filter(x => (x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")) === k).length]));
+const imageCheckCounts = Object.fromEntries([...new Set(output.map(x => x.imageCheck || "no_candidate"))].map(k => [k, output.filter(x => (x.imageCheck || "no_candidate") === k).length]));
+const result = { source: "lidl.fi-official-product-page", statusCounts, imageCheckCounts, researchOnly: true, count: output.length, candidateCount: output.filter(x => x.imageStatus === "product_page_image_candidate").length, sharedMetaImageCount: [...imageCounts.values()].filter(n => n > 1).length, records: output };
 const json = JSON.stringify(result, null, 2) + "\n";
 if (outputArg) { const file = outputArg.slice("--output=".length); if (!file) throw new Error("--output requires a path"); writeFileSync(file, json); process.stderr.write(`Wrote ${output.length} records to ${file}\n`); }
 else process.stdout.write(json);
