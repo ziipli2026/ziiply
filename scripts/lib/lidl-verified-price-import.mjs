@@ -6,6 +6,7 @@ export function importVerifiedLidlPrices(rows, knownProductIds, storeId, now = n
   const allowed = new Set(knownProductIds.map(String));
   const accepted = new Map();
   const rejected = [];
+  const conflicted = new Set();
   for (const row of rows) {
     const id = String(row?.lidlProductId ?? "").trim();
     if (!id || !allowed.has(id)) {
@@ -17,7 +18,15 @@ export function importVerifiedLidlPrices(rows, knownProductIds, storeId, now = n
       rejected.push({ lidlProductId:id, reason:verdict.reason });
       continue;
     }
+    if (conflicted.has(id)) { rejected.push({ lidlProductId:id, reason:"conflicting-evidence" }); continue; }
     const previous = accepted.get(id);
+    if (previous && Date.parse(row.observedAt) === Date.parse(previous.observedAt) &&
+        row.regularPriceEur !== previous.regularPriceEur) {
+      accepted.delete(id);
+      conflicted.add(id);
+      rejected.push({ lidlProductId:id, reason:"conflicting-evidence" });
+      continue;
+    }
     if (!previous || Date.parse(row.observedAt) > Date.parse(previous.observedAt)) {
       accepted.set(id, {
         lidlProductId:id, storeId, regularPriceEur:verdict.regularPriceEur,
