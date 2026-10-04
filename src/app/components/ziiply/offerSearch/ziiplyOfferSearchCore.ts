@@ -698,6 +698,12 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   // CMS campaigns and discounted-master offers are independent tab datasets.
   // The same EAN must survive once in each tab, not dedupe across tabs.
   const sourceTab = anyItem?.campaignType === "campaign" ? "campaign" : "offer";
+  // Tjek rows already carry a stable, publication-specific offer identity. Do not
+  // collapse different leaflet offers just because their shortened names/prices match.
+  const sourceOffer = anyItem?.__sourceOfferSearchResult ?? anyItem;
+  if (sourceOffer?.source === "etarjouslehdet" && sourceOffer?.offerId) {
+    return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.offerId)}`;
+  }
   if (ean) return `${sourceTab}:ean:${ean}`;
 
   const title =
