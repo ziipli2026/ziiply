@@ -43,23 +43,6 @@ jobs:
       - name: Live K-local campaign probe
         shell: bash
         run: |
-          cat > k-campaign-probe.mts <<'NODE'
-          import { fetchKruokaOffers, getLastKruokaPipelineDebugV49 } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
-          const stores = ['K-Supermarket Jokela','K-Market Hakalantori'];
-          let failures=0;
-          for (const storeName of stores) {
-            const rows=await fetchKruokaOffers('__ziiply_all_offers__', {} as any, {storeName,kStoreName:storeName});
-            const debug=getLastKruokaPipelineDebugV49();
-            const campaigns=rows.filter(row=>(row as any).campaignType==='campaign');
-            console.log('K_CAMPAIGN_PROBE '+JSON.stringify({storeName,total:rows.length,campaigns:campaigns.length,probe:debug?.campaignProbe,publicationFetch:debug?.publicationFetch,publicationPipeline:debug?.publicationPipeline,sourceMarkers:(debug?.rawOffers??[]).slice(0,8).map(o=>({publicationPublicId:o.publicationPublicId,name:o.name,campaignType:o.campaignType,offerType:o.offerType,promotionType:o.promotionType,campaignLabel:o.campaignLabel,publicationLabel:o.publicationLabel,isCampaign:o.isCampaign,keys:Object.keys(o).filter(k=>/campaign|promo|type|label|source|category/i.test(k))})),error:debug?.error,publications:debug?.kSupermarketPublicationResolverDebug?.publications?.map(p=>({label:p.label,id:p.id,active:p.active})),samples:campaigns.slice(0,3).map(x=>({title:x.title,price:x.price}))}));
-            const localPublicationIds=(debug?.kSupermarketPublicationResolverDebug?.publications??[]).filter(p=>p.active && p.label.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi').includes(storeName.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi'))).map(p=>p.id);
-            const campaignIds=debug?.campaignProbe?.campaignPublicationIds??[];
-            const regionalLeak=(debug?.rawOffers??[]).filter(o=>o.campaignType==='campaign' && !campaignIds.includes(String(o.publicationPublicId??''))).length;
-            console.log('K_LOCAL_CAMPAIGN_ASSERT '+JSON.stringify({storeName,localPublicationIds,campaignIds,regionalLeak,returnedCampaigns:campaigns.length}));
-            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || campaigns.length===0) failures++;
-          }
-          if(failures) {console.error('Campaign source validation failed for '+failures+' store(s)');process.exitCode=1;}
-          NODE
           # Inspect the two actual store-publication viewer responses. A 200 response
           # with zero hotspots is not proof that a campaign has no products.
           node --input-type=module <<'NODE'
@@ -91,5 +74,22 @@ jobs:
             }
             console.log('K_LOCAL_LATER_PAGES '+JSON.stringify({id,nonemptyOrErrors:counts}));
           }
+          NODE
+          cat > k-campaign-probe.mts <<'NODE'
+          import { fetchKruokaOffers, getLastKruokaPipelineDebugV49 } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
+          const stores = ['K-Supermarket Jokela','K-Market Hakalantori'];
+          let failures=0;
+          for (const storeName of stores) {
+            const rows=await fetchKruokaOffers('__ziiply_all_offers__', {} as any, {storeName,kStoreName:storeName});
+            const debug=getLastKruokaPipelineDebugV49();
+            const campaigns=rows.filter(row=>(row as any).campaignType==='campaign');
+            console.log('K_CAMPAIGN_PROBE '+JSON.stringify({storeName,total:rows.length,campaigns:campaigns.length,probe:debug?.campaignProbe,publicationFetch:debug?.publicationFetch,publicationPipeline:debug?.publicationPipeline,sourceMarkers:(debug?.rawOffers??[]).slice(0,8).map(o=>({publicationPublicId:o.publicationPublicId,name:o.name,campaignType:o.campaignType,offerType:o.offerType,promotionType:o.promotionType,campaignLabel:o.campaignLabel,publicationLabel:o.publicationLabel,isCampaign:o.isCampaign,keys:Object.keys(o).filter(k=>/campaign|promo|type|label|source|category/i.test(k))})),error:debug?.error,publications:debug?.kSupermarketPublicationResolverDebug?.publications?.map(p=>({label:p.label,id:p.id,active:p.active})),samples:campaigns.slice(0,3).map(x=>({title:x.title,price:x.price}))}));
+            const localPublicationIds=(debug?.kSupermarketPublicationResolverDebug?.publications??[]).filter(p=>p.active && p.label.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi').includes(storeName.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi'))).map(p=>p.id);
+            const campaignIds=debug?.campaignProbe?.campaignPublicationIds??[];
+            const regionalLeak=(debug?.rawOffers??[]).filter(o=>o.campaignType==='campaign' && !campaignIds.includes(String(o.publicationPublicId??''))).length;
+            console.log('K_LOCAL_CAMPAIGN_ASSERT '+JSON.stringify({storeName,localPublicationIds,campaignIds,regionalLeak,returnedCampaigns:campaigns.length}));
+            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || campaigns.length===0) failures++;
+          }
+          if(failures) {console.error('Campaign source validation failed for '+failures+' store(s)');process.exitCode=1;}
           NODE
           npx --yes tsx k-campaign-probe.mts
