@@ -293,18 +293,28 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
   return groceryOffers;
 }
 
+// Pre-parsed offers become visible only during their Finnish validity dates.
+export function onlyCurrentlyValidLidlOffers<T extends { validFrom?: unknown; validUntil?: unknown }>(offers: T[], today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())): T[] {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return [];
+  return offers.filter((offer) => {
+    const from = String(offer.validFrom || "").slice(0, 10);
+    const until = String(offer.validUntil || "").slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(until) && from <= today && today <= until;
+  });
+}
+
 export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
   const key = String(storeKey || "").trim();
   if (!key) return [];
   const cacheKey = key + ":" + storeName;
   const now = Date.now();
   const cached = lidlStructuredCache.get(cacheKey);
-  if (cached && cached.expiresAt > now) return cached.promise;
+  if (cached && cached.expiresAt > now) return cached.promise.then((offers) => onlyCurrentlyValidLidlOffers(offers));
   const promise = fetchLidlStructuredUncached(key, storeName).catch((error) => {
     // Do not retain a failed structured feed; the next request can retry.
     lidlStructuredCache.delete(cacheKey);
     throw error;
   });
   lidlStructuredCache.set(cacheKey, { expiresAt: now + LIDL_STRUCTURED_TTL_MS, promise });
-  return promise;
+  return promise.then((offers) => onlyCurrentlyValidLidlOffers(offers));
 }
