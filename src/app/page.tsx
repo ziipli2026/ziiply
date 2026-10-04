@@ -7093,6 +7093,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (restoredItems.length > 0) {
           setCart(restoredItems);
+          // Hydrate the previously priced comparison in the same initial render
+          // as the restored basket. Store discovery may still be running; it must
+          // not make the Compare card appear empty until another tab is visited.
+          try {
+            const rawComparisonV815 = window.localStorage.getItem("ziiply-comparison-snapshot-v1");
+            const savedComparisonV815 = rawComparisonV815 ? JSON.parse(rawComparisonV815) : null;
+            const idsV815 = new Set(restoredItems.filter(isComparisonEligibleV797).map((item: CartItem) => String(item.id)));
+            const savedKeysV815 = [
+              ...Object.keys(savedComparisonV815?.sMatches || {}),
+              ...Object.keys(savedComparisonV815?.kMatches || {}),
+            ];
+            const pricedV815 = [
+              ...Object.values(savedComparisonV815?.sMatches || {}),
+              ...Object.values(savedComparisonV815?.kMatches || {}),
+            ].some((match) => Number((match as Match).price) > 0);
+            if (idsV815.size > 0 && savedKeysV815.length > 0 &&
+                savedKeysV815.every(id => idsV815.has(id)) && pricedV815) {
+              setSMatches(savedComparisonV815.sMatches || {});
+              setKMatches(savedComparisonV815.kMatches || {});
+              comparisonCacheKeyRef.current = savedComparisonV815.cacheKey || null;
+              comparisonCompletedKeyRef.current = savedComparisonV815.cacheKey || null;
+              comparisonUserStartedRefV768.current = true;
+            }
+          } catch {}
 
           // v343_RESTORE_STORE_SELECTION_WITH_CART:
           // Kun ostoskori palautetaan reloadin jälkeen, kauppa- ja vertailuvalintoja ei saa nollata.
