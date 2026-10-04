@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-04",
+  "scope": "Research branch only",
+  "checks": [
+    {
+      "item": "Milbona Puhvelimozzarella 125 g",
+      "url": "https://www.lidl.fi/p/milbona-puhvelimozzarella/p10023501",
+      "product_id": "10023501",
+      "status": "official product page confirmed",
+      "price": null,
+      "reason": "Search index crawl age ~1.3 years; cannot assert current normal price"
+    },
+    {
+      "item": "Vemondo Vegan Topping Mozzarella Flavour 150 g",
+      "url": "https://www.lidl.fi/c/takaisinvedot/s10021744",
+      "status": "official recall confirmed",
+      "affected_lot": "L1141152",
+      "best_before": "2026-11-19",
+      "reason": "Lot recall 2026-08-28; never treat recall listing as proof of current availability"
+    },
+    {
+      "item": "Lidl hintavertailun halvin",
+      "url": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "status": "official historic product-name evidence",
+      "reason": "Comparison weights for loose produce must not be treated as retail pack size"
+    },
+    {
+      "item": "Vastuullisuus Lidlissä 2024",
+      "url": "https://corporate.lidl.fi/file/download/138743/file/Vastuullisuus%20Lidliss%C3%A4%202024.pdf",
+      "status": "official historical product evidence",
+      "reason": "2024 examples not current stock confirmation"
+    }
+  ],
+  "acceptance_rules": [
+    "Only verified distinct package variants count as SKU; grouped flavors and sizes remain candidates",
+    "A /p/ identifier is page identifier; do not equate to EAN",
+    "Keep image URL null until exact official image asset resolved",
+    "No price promotion from stale indexed pages or Lidl Plus/offer pages",
+    "Keep 96 earlier candidates as unverified candidate rows until audited against bakery bank"
+  ],
+  "new_products_added": 0
+}
