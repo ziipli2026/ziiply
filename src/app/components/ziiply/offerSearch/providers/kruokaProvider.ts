@@ -549,7 +549,7 @@ export async function fetchKruokaOffers(
     }, business.slug);
 
     const baseOffers = dataArray(offersValue);
-    const offers = baseOffers.map(offer => ({ ...offer,
+    const offers: UnknownRecord[] = baseOffers.map(offer => ({ ...offer,
       campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? "campaign" : offer.campaignType,
     }));
     const knownOfferIds = new Set(baseOffers.map(o => String(o.publicId ?? "")).filter(Boolean));
