@@ -455,6 +455,7 @@ export const SEARCH_ALIASES: Record<string, string> = {
   kahvi: "kahvi",
   kahvia: "kahvi",
   cola: "cola",
+  vola: "cola",
   kokis: "cola",
 
   // Perustuotteet
