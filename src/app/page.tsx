@@ -7182,6 +7182,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeMode,
     storeModeChosenV299,
     storeCompareScope,
+    betweenChainSelectionModeV749,
     withinChain,
     selectedChains,
     selectedEurosparStoreV751,
@@ -18795,6 +18796,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleBetweenChainSelectionModeChangeV749(nextMode: "one" | "many") {
+    // Persist the explicit choice immediately: a reload before the next
+    // effect/render must not resurrect the previous Yksi/Monta selection.
+    try {
+      const saved = window.localStorage.getItem(STORE_SELECTION_STORAGE_KEY_V343);
+      const previous = saved ? JSON.parse(saved) : {};
+      window.localStorage.setItem(STORE_SELECTION_STORAGE_KEY_V343, JSON.stringify({
+        ...previous,
+        version: 1,
+        savedAt: Date.now(),
+        betweenChainSelectionModeV749: nextMode,
+      }));
+    } catch {}
     setBetweenChainSelectionModeV749(nextMode);
     setOpenStorePicker(null);
     setSelectedChains((current) => {
