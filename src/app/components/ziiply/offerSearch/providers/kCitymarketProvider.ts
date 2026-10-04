@@ -675,7 +675,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const from=dateStamp(offer.validFrom,todayYear);
     let to=dateStamp(offer.validTo,todayYear);
     // Handle year-crossing periods such as 30.12.-2.1.
-    if(from!==null&&to!==null&&to<from&&String(offer.validTo??"").match(/^(\\d{1,2})\\.(\\d{1,2})\\.$/)){
+    if(from!==null&&to!==null&&to<from&&String(offer.validTo??"").match(/^(\d{1,2})\.(\d{1,2})\.$/)){
       to=dateStamp(offer.validTo,todayYear+1);
     }
     return (from===null||from<=todayStamp)&&(to===null||to>=todayStamp);
