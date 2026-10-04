@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-04",
+  "input_files": [
+    "2026-10-04-lidl-comparison.json",
+    "2026-10-04-official-category-candidates.json",
+    "2026-10-04-category-audit-batch-03.json"
+  ],
+  "input_rows": 80,
+  "exact_normalized_duplicate_groups": 0,
+  "unique_candidate_keys": 80,
+  "duplicates": [],
+  "suspect_rows": [
+    {
+      "name": "Kotimainen tomaatti",
+      "size": "1 kg",
+      "reason": "Sold loose / comparison unit not package"
+    },
+    {
+      "name": "Kotimainen kurkku",
+      "size": "1 kg",
+      "reason": "Sold loose / comparison unit not package"
+    },
+    {
+      "name": "Kesäkurpitsa",
+      "size": "1 kg",
+      "reason": "Sold loose / comparison unit not package"
+    },
+    {
+      "name": "Minivesimeloni",
+      "size": "1 kg",
+      "reason": "Sold loose / comparison unit not package"
+    },
+    {
+      "name": "Snack Pot",
+      "size": "51–69 g",
+      "reason": "Variant or range; split only on source evidence"
+    },
+    {
+      "name": "Maustettu udonnuudeli",
+      "size": "747/756 g",
+      "reason": "Variant or range; split only on source evidence"
+    },
+    {
+      "name": "Vaniljakastike",
+      "size": null,
+      "reason": "Missing pack size"
+    },
+    {
+      "name": "Rasvaton raejuusto",
+      "size": null,
+      "reason": "Missing pack size"
+    },
+    {
+      "name": "Mansikkahillo",
+      "size": null,
+      "reason": "Missing pack size"
+    },
+    {
+      "name": "Moniviljakolmioleipä",
+      "size": null,
+      "reason": "Missing pack size"
+    },
+    {
+      "name": "Mojito-mocktail",
+      "size": null,
+      "reason": "Missing pack size"
+    }
+  ],
+  "confirmed_sku_count": null,
+  "method": "Brand + name + pack size normalization; not EAN identity. Distinct keys are candidates, not proven active SKUs.",
+  "next": "Resolve exact /p/ product pages and images, then compare against 101 bakery items. Do not use candidate count as verified inventory."
+}
