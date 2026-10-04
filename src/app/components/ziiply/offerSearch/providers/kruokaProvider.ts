@@ -551,7 +551,18 @@ export async function fetchKruokaOffers(
     // label contains no campaign keyword. Fetch every store-scoped active publication;
     // retain the source's campaign classification rather than inventing one.
     for (const publicationId of resolvedPublications.ids) {
-      const rows = await fetchKSupermarketRegionalOffers(publicationId);
+      // Store-specific leaflets have no viewer hotspots, although the Tjek
+      // offer index exposes their products when filtered by publicationIds.
+      // Fetch campaigns from that index directly; retain the established
+      // viewer route for regional/chain-wide leaflets.
+      const rows = campaignPublicationIds.has(publicationId)
+        ? dataArray(await fetchTjekData("offers", {
+            publicationIds: [publicationId],
+            sources: ["publication", "business_product"],
+            pagination: { limit: 1000, offset: 0 },
+            sort: ["score_desc"],
+          }, business.slug)).filter(row => String(row.publicationPublicId ?? "") === publicationId)
+        : await fetchKSupermarketRegionalOffers(publicationId);
       publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0 });
       regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
         campaignType: campaignPublicationIds.has(publicationId) ? "campaign" : row.campaignType })));
