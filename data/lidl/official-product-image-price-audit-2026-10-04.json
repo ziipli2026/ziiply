@@ -19,7 +19,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10000047",
@@ -33,7 +34,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10000081",
@@ -47,7 +49,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Meat pie is savory"
+      "categoryEvidence": "Meat pie is savory",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10005280",
@@ -62,7 +65,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10008395",
@@ -77,7 +81,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10012302",
@@ -93,7 +98,8 @@
       "productPageEvidence": "Official page identifies perunapiirakka and describes potato filling; image depicts pies.",
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official product ingredients: potato 16.7%, savory pie"
+      "categoryEvidence": "Lidl official product ingredients: potato 16.7%, savory pie",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10013219",
@@ -108,7 +114,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10014112",
@@ -122,7 +129,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10014992",
@@ -136,7 +144,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10015004",
@@ -151,7 +160,10 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": "check-current-assortment",
+      "reviewReason": "Public product page alone does not prove current in-store availability",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10015005",
@@ -165,7 +177,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10017268",
@@ -180,7 +193,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10017269",
@@ -195,7 +209,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10017906",
@@ -210,7 +225,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10017911",
@@ -224,7 +240,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10020413",
@@ -238,7 +255,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10020612",
@@ -253,7 +271,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10020613",
@@ -267,7 +286,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10020883",
@@ -281,7 +301,10 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "availabilityReview": "check-current-assortment",
+      "reviewReason": "Public product page alone does not prove current in-store availability",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10021258",
@@ -296,7 +319,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10021477",
@@ -310,7 +334,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10021478",
@@ -324,7 +349,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10021479",
@@ -339,7 +365,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10022389",
@@ -354,7 +381,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10023065",
@@ -368,7 +396,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10026398",
@@ -382,7 +411,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10026399",
@@ -397,7 +427,10 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": "check-current-assortment",
+      "reviewReason": "Public product page alone does not prove current in-store availability",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10026400",
@@ -412,7 +445,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10027077",
@@ -427,7 +461,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10030550",
@@ -442,7 +477,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10030552",
@@ -457,7 +493,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10031093",
@@ -472,7 +509,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10031094",
@@ -486,7 +524,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10031095",
@@ -500,7 +539,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10032834",
@@ -514,7 +554,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Rice pie is a savory bakery product"
+      "categoryEvidence": "Rice pie is a savory bakery product",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10032835",
@@ -528,7 +569,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10032836",
@@ -543,7 +585,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10032838",
@@ -557,7 +600,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10032840",
@@ -571,7 +615,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10033042",
@@ -585,7 +630,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Karelian pie is a savory bakery product"
+      "categoryEvidence": "Karelian pie is a savory bakery product",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10033046",
@@ -600,7 +646,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10033047",
@@ -614,7 +661,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10033048",
@@ -629,7 +677,10 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": "check-current-assortment",
+      "reviewReason": "Public product page alone does not prove current in-store availability",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10033050",
@@ -644,7 +695,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10033051",
@@ -659,7 +711,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10034203",
@@ -674,7 +727,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10034228",
@@ -688,7 +742,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10034793",
@@ -703,7 +758,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10034796",
@@ -717,7 +773,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10034797",
@@ -731,7 +788,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10034798",
@@ -745,7 +803,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste listing under Suolaiset"
+      "categoryEvidence": "Lidl official Paistopiste listing under Suolaiset",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10034799",
@@ -759,7 +818,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10035728",
@@ -775,7 +835,8 @@
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
       "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10035729",
@@ -790,7 +851,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
       "categoryEvidence": "Bread/roll item; Lidl has a distinct Paistopisteen leivät category at https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086. Prior claim of direct Suolaiset item membership was not substantiated by category page.",
-      "categoryVerification": "semantic-research-category"
+      "categoryVerification": "semantic-research-category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10035959",
@@ -804,7 +866,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl Paistopiste official listing places Porkkanapiirakka under Suolaiset; do not infer sweet from name"
+      "categoryEvidence": "Lidl Paistopiste official listing places Porkkanapiirakka under Suolaiset; do not infer sweet from name",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10035960",
@@ -818,7 +881,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036370",
@@ -832,7 +896,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036371",
@@ -847,7 +912,10 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": "check-current-assortment",
+      "reviewReason": "Public product page alone does not prove current in-store availability",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036372",
@@ -861,7 +929,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036373",
@@ -875,7 +944,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036374",
@@ -889,7 +959,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036375",
@@ -904,7 +975,10 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": "check-current-assortment",
+      "reviewReason": "Public product page alone does not prove current in-store availability",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036376",
@@ -918,7 +992,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10036377",
@@ -932,7 +1007,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037402",
@@ -947,7 +1023,10 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
       "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Check whether promotional or limited availability"
+      "manualReviewNote": "Check whether promotional or limited availability",
+      "availabilityReview": "seasonal-or-promotion-check",
+      "reviewReason": "Brand collaboration name; cannot assume permanent everyday assortment",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037403",
@@ -961,7 +1040,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037404",
@@ -975,7 +1055,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037405",
@@ -989,7 +1070,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037406",
@@ -1003,7 +1085,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037407",
@@ -1017,7 +1100,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037408",
@@ -1031,7 +1115,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037409",
@@ -1045,7 +1130,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037410",
@@ -1059,7 +1145,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037411",
@@ -1073,7 +1160,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10037443",
@@ -1088,7 +1176,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Prior claim of direct official section match is unverified; grouping based on product type pending source category evidence.",
-      "categoryVerification": "pending-direct-product-category-verification"
+      "categoryVerification": "pending-direct-product-category-verification",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "1060620",
@@ -1102,7 +1191,10 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "availabilityReview": "check-current-assortment",
+      "reviewReason": "Public product page alone does not prove current in-store availability",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "1182510",
@@ -1116,7 +1208,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "1210220",
@@ -1130,7 +1223,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "12180",
@@ -1144,7 +1238,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "1259030",
@@ -1158,7 +1253,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "16150",
@@ -1172,7 +1268,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "1821550",
@@ -1186,7 +1283,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "282110",
@@ -1200,7 +1298,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "40780",
@@ -1214,7 +1313,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "40800",
@@ -1229,7 +1329,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "413500",
@@ -1243,7 +1344,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "52098320",
@@ -1257,7 +1359,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "558810",
@@ -1271,7 +1374,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "599520",
@@ -1285,7 +1389,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "65260",
@@ -1299,7 +1404,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "678860",
@@ -1313,7 +1419,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "69052170",
@@ -1327,7 +1434,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "71014430",
@@ -1342,7 +1450,8 @@
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
       "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "71025080",
@@ -1356,7 +1465,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "71025510",
@@ -1370,7 +1480,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "71041700",
@@ -1384,7 +1495,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "852650",
@@ -1398,7 +1510,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "927810",
@@ -1412,7 +1525,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "927850",
@@ -1426,7 +1540,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "956640",
@@ -1440,7 +1555,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "975540",
@@ -1454,7 +1570,8 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-leivat",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     }
   ],
   "categoryAudit": {
@@ -1516,6 +1633,7 @@
         "after": "paistopisteen-suolaiset"
       }
     ],
-    "correction": "Removed unsupported direct-official-section assertions; restored 16 breads to dedicated bread group; category placement is preliminary until individual page evidence."
+    "correction": "Removed unsupported direct-official-section assertions; restored 16 breads to dedicated bread group; category placement is preliminary until individual page evidence.",
+    "assortmentReviewFlagCount": 8
   }
 }
