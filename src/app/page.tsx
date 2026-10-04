@@ -17140,12 +17140,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setInitialStoreNavPrompt(false);
     };
 
-    if (searchPanelOpen) {
-      applyShopsPanelV512();
-      return;
-    }
-
-    transitionMobilePanel("shops", applyShopsPanelV512);
+    // Bottom navigation must not fade out Compare before Shops is mounted.
+    // Apply both states in one React batch to avoid exposing the home screen.
+    applyShopsPanelV512();
   }
 
   function toggleShopsPanel() {
@@ -23295,7 +23292,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            setActiveResult("none");
+            // Let openShopsPanel close Compare atomically with opening Shops.
             toggleShopsPanel();
           }}
           onSearchClick={() => {
