@@ -1692,6 +1692,7 @@ import {
   mapZiiplyGostaOfferToCardOfferV147,
   searchZiiplyGostaOffersV146,
   warmZiiplyGostaOfferCacheV182,
+  invalidateZiiplyGostaOfferCacheV804,
   getLastZiiplyKruokaDebugV174,
   type ZiiplyKruokaDebugV174,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
@@ -11305,7 +11306,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // Estää esim. vanhan K-haun valmistumisen uuden S-haun jälkeen ja korvaamasta S-listaa.
   const gostaOfferSearchRequestSeqRefV551 = useRef(0);
 
-  async function searchOffers(termOverride?: string) {
+  async function searchOffers(termOverride?: string, refreshLocalCitymarketV804 = false) {
     const requestSeqV551 = ++gostaOfferSearchRequestSeqRefV551.current;
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
@@ -11550,7 +11551,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       // Reopening the same store must not fetch its master again, even after
       // the chain-selection screen temporarily cleared the visible results.
-      if (cachedMasterV802 && !hasExplicitOverride) {
+      if (cachedMasterV802 && !hasExplicitOverride && !refreshLocalCitymarketV804) {
         setOfferSearchResults(cachedMasterV802);
         setGostaMasterOfferResultsV528(cachedMasterV802);
         setLoadingOffers(false);
@@ -11582,6 +11583,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
       };
+
+      if (refreshLocalCitymarketV804) {
+        invalidateZiiplyGostaOfferCacheV804(gostaOfferSearchContextV172);
+      }
 
       if (typeof window !== "undefined") {
         console.info("[Ziiply Gosta context v532 selected stores]", gostaOfferSearchContextV172);
@@ -11689,6 +11694,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     }
   }
+
+  // V804: refresh the selected Citymarket's local publications while Gösta is
+  // open. Keep existing cards visible until the fresh source request completes.
+  // The national leaflet remains governed by its independent period archive.
+  useEffect(() => {
+    if (activeResult !== "offers" || searchPanelOpen || !storeModeChosenV299) return;
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      if (gostaSelectedOfferChainRefV547.current !== "K") return;
+      const name = String(activeArea.kStoreName || activeStores.kStoreName || "");
+      if (!/citymarket/i.test(name)) return;
+      void searchOffers(undefined, true);
+    };
+    const timer = window.setInterval(refresh, 15 * 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, [activeResult, searchPanelOpen, storeModeChosenV299, activeArea.kStoreName, activeStores.kStoreName]);
 
   // V784: if the selected S/K store changes while Gösta is already open
   // (for example a boot/GPS refresh finishes after the first request started),
