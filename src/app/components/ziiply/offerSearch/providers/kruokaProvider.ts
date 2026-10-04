@@ -42,6 +42,7 @@ export type KruokaPipelineDebugV49 = {
   activeOffers: number | null;
   campaignProbe?: { activePublicationIds: string[]; campaignPublicationIds: string[]; fetchedCampaignRows: number; mappedCampaignRows: number; returnedCampaignRows: number };
   publicationPipeline?: Array<{ publicationId: string; raw: number; allowed: number; mapped: number; queryMatched: number; duplicate: number; returned: number }>;
+  publicationFetch?: Array<{ publicationId: string; fetchedRows: number; uniqueOfferIds: number; addedAfterBaseDedupe: number; skippedAsDuplicate: number }>;
   error: string | null;
   rawOffers?: UnknownRecord[];
   kSupermarketPublicationResolverDebug?: {
@@ -532,12 +533,15 @@ export async function fetchKruokaOffers(
     debug.kStoreId = tjekStoreId;
 
     const regionalOffers: UnknownRecord[] = [];
+    const publicationFetch: NonNullable<typeof debug.publicationFetch> = [];
+    debug.publicationFetch = publicationFetch;
     const resolvedPublications = await resolveKLocalPublicationIds(selected, business.businessId, business.slug);
     debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
     const campaignPublicationIds = new Set(resolvedPublications.campaignIds);
     for (const publicationId of resolvedPublications.ids) {
       if (business.chain === "K-Supermarket" || campaignPublicationIds.has(publicationId)) {
         const rows = await fetchKSupermarketRegionalOffers(publicationId);
+        publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0 });
         regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
           campaignType: campaignPublicationIds.has(publicationId) ? "campaign" : row.campaignType })));
       }
@@ -559,7 +563,12 @@ export async function fetchKruokaOffers(
     for (const offer of regionalOffers) {
       const id = String(offer.publicId ?? "");
       const key = `${id}|${String(offer.campaignType ?? "offer")}`;
-      if (!id || knownOfferIds.has(key)) continue;
+      const fetchEntry = publicationFetch.find(entry => entry.publicationId === String(offer.publicationPublicId ?? ""));
+      if (!id || knownOfferIds.has(key)) {
+        if (fetchEntry) fetchEntry.skippedAsDuplicate++;
+        continue;
+      }
+      if (fetchEntry) fetchEntry.addedAfterBaseDedupe++;
       knownOfferIds.add(key);
       offers.push(offer);
     }
