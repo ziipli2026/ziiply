@@ -18,7 +18,8 @@ import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 export type CitymarketOffer = {
   id: string;
   title: string;
-  price: number;
+  price: number | null;
+  discountPercent?: number;
   normalPrice?: number | null;
   unitPrice?: number | null;
   unit?: string | null;
@@ -88,26 +89,27 @@ export function category(t:string){
   // K-Citymarket classification is authoritative downstream. Match non-food
   // appliances and other product-specific classes before generic food words.
   if(/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli/.test(s)) return "Koti & vapaa-aika";
-  if(/suklaa|noblesse|remix|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|godispås|patuk|tikkari|crunchy bites/.test(s)) return "Makeiset & keksit";
+  if(/pastilli|suklaa|noblesse|remix|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|godispås|patuk|tikkari|crunchy bites/.test(s)) return "Makeiset & keksit";
   if(/leipä|näkkileip|näkkileiv|näkkäri|sämpyl|pull|croissant|patonki|patongi|karjalanpiirakka|ruisleip|rieska|rinkeli|puikula|reissumies/.test(s)) return "Leipomo";
   // Frozen vegetables must win over the generic "keitto" prepared-food match.
   if(/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if(/koira|kissa|lemmik|possunkorva|kissanhiekka/.test(s)) return "Lemmikit";
-  if(/pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
+  if(/little kids|lastenruo/.test(s)) return "Lastenruoka";
+  if(/kiusaus|kiusauk|burger|härkis|härkäpapumursk|pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
   if(/kana|kananpoika|broiler|nauta|sika|porsaa|porsas|jauheliha|makkara|nakki|pekoni|kinkku|kokoliha|leikkele|fileepih|fileesuikale|liha/.test(s)) return "Liha & makkarat";
   if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
-  if(/maito|juusto|jogur|rahka|kerma|voi\b|margariin|raejuusto|viili|piim|kefir|vanukas|vanukka|mousse|grana padano|creme fraiche|crème fraiche|smetana/.test(s)) return "Maitotuotteet";
+  if(/skyr|maito|juusto|jogur|rahka|kerma|voi\b|margariin|raejuusto|viili|piim|kefir|vanukas|vanukka|mousse|grana padano|creme fraiche|crème fraiche|smetana/.test(s)) return "Maitotuotteet";
   if(/kahvi|espresso|tee\b/.test(s)) return "Kahvi & tee";
-  if(/pinaatti|rucola|avokado/.test(s)) return "Hevi";
+  if(/pinaatti|rucola|avokado|kurpitsa/.test(s)) return "Hevi";
   // Shelf-stable fruit pieces/slices packed in juice are preserves, not beverages.
   // This must run before the generic "mehu" beverage match (e.g. "mehussa").
   if(/(?:viipale|palat).*(?:mehussa|siirapissa)/.test(s)) return "Kuivatuotteet";
-  if(/mehu|limon|virvoitus|energiajuoma|vitamiinijuoma|urheilujuoma|kivennäisves|vichy|cola|hard seltzer|seltzer|radler|olut|oluet|riesling|blanco|tinto|juoma|vesi\b/.test(s)) return "Juomat";
+  if(/smoothie|mehu|limon|virvoitus|energiajuoma|vitamiinijuoma|urheilujuoma|kivennäisves|vichy|cola|hard seltzer|seltzer|radler|olut|oluet|riesling|blanco|tinto|juoma|vesi\b/.test(s)) return "Juomat";
   if(/jäätel|tuut|multipack|pakaste|palko\+/.test(s)) return "Pakasteet";
   if(/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastike|ketsupp|hiiva|ruokaöljy|mauste|tortilla/.test(s)) return "Kuivatuotteet";
   if(/omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
-  if(/wc-paper|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietikka|biojätekassi|jätekassi|roskapussi|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
-  if(/shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
+  if(/foliovuo|leivinpaper|tuorekelmu|alumiinifolio|wc-paper|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietikka|biojätekassi|jätekassi|roskapussi|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
+  if(/sävytteet|hiusväri|pesulappu|ruokalappu|vuodesuoja|vaippa|shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
   if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
   if(/calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|kerä|lanka|asuste/.test(s)) return "Koti & vapaa-aika";
   return "Muut";
@@ -403,17 +405,28 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   const leafletUrl=String(parsed?.leaflet||ENTRY);
   const rows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
-  const leafletValidity=extractKCitymarketValidityV16(allLeafletText);
+  const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
   citymarketHtmlDebugV8={
     leafletUrl,
     basicIndexUrl:undefined,
-    maxPage:Math.max(0,...rows.map((r:any)=>Number(r?.page)||0)),
+    maxPage:Number(parsed.pageCount)||Math.max(0,...rows.map((r:any)=>Number(r?.page)||0)),
     samples:[]
   };
 
   const offers:CitymarketOffer[]=[];
   for(const row of rows){
+    const campaignTitle=clean(row?.title||"");
+    const percent=Number(row?.percentageOffer?.percent);
+    if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){
+      const validity=extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))||leafletValidity;
+      offers.push({id:`kcm:spatial:${row?.page??0}:${campaignTitle.toLowerCase()}:percent:${percent}`,
+        title:campaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
+        resolutionSource:row.percentageOffer.source,plussa:/plussa/i.test((row.nearby||[]).join(" ")),
+        validFrom:validity?.from??null,validTo:validity?.to??null,category:category(campaignTitle),
+        chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
+      continue;
+    }
     const resolved=row?.spatialResolved;
     if(!resolved || resolved.displayOnlyUnitPrice) continue;
 
@@ -476,7 +489,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
 
   const seen=new Set<string>();
   return offers.filter(o=>{
-    const key=`${o.title.toLowerCase()}|${o.price}|${o.packageSize??""}`;
+    const key=`${o.title.toLowerCase()}|${o.price}|${o.discountPercent??""}|${o.packageSize??""}`;
     if(seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -551,7 +564,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v6-published-page-count-20261004"],
+  ["ziiply-kcitymarket-offers-v7-owned-daily-goods-cards-20261004"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -785,3 +798,4 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   }
 }
 export default fetchKCitymarketOffers;
+
