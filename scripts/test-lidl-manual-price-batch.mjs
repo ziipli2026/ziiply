@@ -6,9 +6,13 @@ const result=process([{...base},{...base,lidlProductId:"999"},{...base,isLidlPlu
 assert.equal(result.inputCount,4);
 assert.equal(result.acceptedCount,1);
 assert.equal(result.rejectedCount,3);
+assert.deepEqual(result.rejected.map(x=>x.index),[2,1,3]);
 assert.deepEqual(result.rejected.map(x=>x.reason),["eligibility-unconfirmed-or-promotional","unknown-product","store-mismatch"]);
 assert.equal(result.prices[0].regularPriceEur,1.29);
 assert.equal(result.status,"research-only-not-published");
+const sameId=process([{...base,storeId:"B"},{...base,priceKind:"offer",isPromotion:true},base],["123"],"A",at);
+assert.deepEqual(sameId.rejected.map(x=>x.index),[1,0]);
+assert.equal(sameId.acceptedCount,1);
 assert.equal(process([],["123"],"A",at).acceptedCount,0);
 assert.throws(()=>process(null,["123"],"A",at),TypeError);
 console.log("PASS: manual Lidl price batch validates inputs, store, eligibility and report counts");
