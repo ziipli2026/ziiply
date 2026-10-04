@@ -7,6 +7,11 @@ on:
       - 'scripts/test-lidl-price-source-contract-v69.mjs'
       - 'scripts/test-lidl-price-record-mapping-v70.mjs'
       - 'scripts/lib/lidl-price-source-contract.mjs'
+      - 'scripts/audit-lidl-research-coverage-v71.mjs'
+      - 'data/lidl/official-product-image-price-audit-2026-10-04.json'
+      - 'data/lidl/official-product-images.generated.json'
+      - 'data/lidl/verified-previous-price-observations-2026-10-04.json'
+      - 'data/lidl/verified-previous-price-observations-extra-2026-10-04.json'
       - '.github/workflows/lidl-price-source-contract.yml'
 permissions:
   contents: read
@@ -25,3 +30,5 @@ jobs:
         run: node scripts/test-lidl-price-source-contract-v69.mjs
       - name: Verify nullable product mapping
         run: node scripts/test-lidl-price-record-mapping-v70.mjs
+      - name: Audit real Lidl research data coverage
+        run: node scripts/audit-lidl-research-coverage-v71.mjs
