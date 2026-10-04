@@ -12941,7 +12941,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (comparisonCacheKeyRef.current === cacheKey) {
         setComparisonDiagnosticV800(`API: S ${comparisonRawCountsV801.current.s} tuotetta / ${comparisonRawCountsV801.current.sCalls} kutsua · K ${comparisonRawCountsV801.current.k} tuotetta / ${comparisonRawCountsV801.current.kCalls} kutsua · virheitä ${comparisonRawCountsV801.current.errors} · vastineet/kori S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length}${failed ? " · matcher-virhe" : ""}`);
-        if (comparisonCartV738.length > 0 && !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length) {
+        const noComparisonMatchesV810 = comparisonCartV738.length > 0 &&
+          !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length;
+        // A transient empty provider response is not proof that priced basket
+        // products have no counterpart. Never announce or cache it as success.
+        if (noComparisonMatchesV810 && shouldOpenCompare &&
+            !comparisonCartV738.some((item) => Number(item.price) > 0)) {
           const diagnosis = failed
             ? "Hintavertailun tuotehaussa tapahtui virhe. Yritä uudelleen."
             : `Hintahaku valmistui, mutta kumpikaan kauppa ei palauttanut vastinetta (${comparisonCartV738.length} tuotetta).`;
@@ -12975,7 +12980,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           setCart(enrichedCartV805);
           persistCartImmediately(enrichedCartV805);
         }
-        if (!failed) {
+        if (!failed && !noComparisonMatchesV810) {
           comparisonCompletedKeyRef.current = cacheKey;
         } else {
           comparisonCacheKeyRef.current = null;
@@ -12983,7 +12988,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           setComparisonLoading(false);
         }
         try {
-          if (!failed) {
+          if (!failed && !noComparisonMatchesV810) {
             window.localStorage.setItem("ziiply-comparison-snapshot-v1", JSON.stringify({
               cacheKey,
               sMatches: nextSMatches,
