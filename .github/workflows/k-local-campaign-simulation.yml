@@ -60,4 +60,19 @@ jobs:
           }
           if(failures) {console.error('Campaign source validation failed for '+failures+' store(s)');process.exitCode=1;}
           NODE
+          # Inspect the two actual store-publication viewer responses. A 200 response
+          # with zero hotspots is not proof that a campaign has no products.
+          node --input-type=module <<'NODE'
+          for (const id of ['ji1luTAL','aETRYhoN']) {
+            for (const page of [1,2]) {
+              try {
+                const response=await fetch('https://publication-viewer.tjek.com/api/paged-publications/'+encodeURIComponent(id)+'/'+page,{signal:AbortSignal.timeout(12000)});
+                const body=await response.text();
+                let json;try{json=JSON.parse(body)}catch{}
+                const hotspots=Array.isArray(json?.hotspots)?json.hotspots:[];
+                console.log('K_LOCAL_VIEWER '+JSON.stringify({id,page,status:response.status,keys:json&&typeof json==='object'?Object.keys(json):[],hotspots:hotspots.length,firstHotspot:hotspots[0]?{keys:Object.keys(hotspots[0]),offer:hotspots[0].offer}:null,bodySample:json?undefined:body.slice(0,120)}));
+              } catch(error) {console.log('K_LOCAL_VIEWER_ERROR '+JSON.stringify({id,page,error:String(error)}));}
+            }
+          }
+          NODE
           npx --yes tsx k-campaign-probe.mts
