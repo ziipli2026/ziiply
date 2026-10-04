@@ -32,12 +32,18 @@ for (const item of records.slice(0, limit)) {
     if (response.ok) {
       const html = await response.text();
       const image = meta(html, "og:image") || meta(html, "twitter:image");
+      row.metaImagePresent = !!image;
+      row.metaImageHost = image ? (() => { try { return new URL(image, response.url).hostname; } catch { return null; } })() : null;
       row.pageTitle = meta(html, "og:title") || null;
       const canonicalTag = (html.match(/<link\b[^>]*>/gi) || []).find(tag => /\brel\s*=\s*["\x27]canonical["\x27]/i.test(tag));
       const canonical = canonicalTag?.match(/href\s*=\s*(["\x27])(.*?)\1/i)?.[2] || null;
       row.canonicalUrl = canonical ? new URL(decode(canonical), response.url).href : null;
       row.productIdInCanonical = !!row.canonicalUrl && new URL(row.canonicalUrl).pathname.replace(/\/$/, "").endsWith(`/p${item.lidlProductId}`);
       row.titleMatchesProduct = !!row.pageTitle && normalize(row.pageTitle).includes(normalize(item.name));
+      row.finalUrl = response.url;
+      row.htmlTitle = decode(html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] || "");
+      row.imageMarkupCounts = { img: (html.match(/<img\\b/gi) || []).length, picture: (html.match(/<picture\\b/gi) || []).length, jsonLd: (html.match(/application\\/ld\\+json/gi) || []).length, nextImage: (html.match(/_next\\/image/gi) || []).length };
+      row.htmlBytes = html.length;
       if (image) { try { const url = new URL(image, response.url); if (url.protocol === "https:" && imageHostAllowed(url.hostname)) row.candidateImageUrl = url.href; else row.imageStatus = "external_or_insecure_meta_image"; } catch { row.imageStatus = "invalid_meta_image_url"; } }
       if (!image) row.imageStatus = "not_found_in_meta";
       else if (row.candidateImageUrl) row.imageStatus = genericImage(row.candidateImageUrl) ? "generic_meta_image" : row.productIdInCanonical && row.titleMatchesProduct ? "product_page_image_candidate" : "page_identity_not_confirmed";
@@ -54,7 +60,8 @@ for (const row of output) {
     row.imageVerified = false;
   }
 }
-const result = { source: "lidl.fi-official-product-page", researchOnly: true, count: output.length, candidateCount: output.filter(x => x.imageStatus === "product_page_image_candidate").length, sharedMetaImageCount: [...imageCounts.values()].filter(n => n > 1).length, records: output };
+const statusCounts = Object.fromEntries([...new Set(output.map(x => x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")))].map(k => [k, output.filter(x => (x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")) === k).length]));
+const result = { source: "lidl.fi-official-product-page", statusCounts, researchOnly: true, count: output.length, candidateCount: output.filter(x => x.imageStatus === "product_page_image_candidate").length, sharedMetaImageCount: [...imageCounts.values()].filter(n => n > 1).length, records: output };
 const json = JSON.stringify(result, null, 2) + "\n";
 if (outputArg) { const file = outputArg.slice("--output=".length); if (!file) throw new Error("--output requires a path"); writeFileSync(file, json); process.stderr.write(`Wrote ${output.length} records to ${file}\n`); }
 else process.stdout.write(json);
