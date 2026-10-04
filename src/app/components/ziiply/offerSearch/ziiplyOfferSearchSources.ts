@@ -152,6 +152,7 @@ import {
   type KruokaOfferProviderOptionsV10,
   type KruokaPipelineDebugV49,
 } from "./providers/kruokaProvider";
+import { fetchKLocalCampaignOffers } from "./providers/kLocalCampaignProvider";
 import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
 import { fetchSKaupatLocalCampaignOffersV1 } from "./providers/skaupatLocalCampaignProvider";
 import { fetchPrismaCampaignOffersV1 } from "./providers/skaupatPrismaCampaignProvider";
@@ -898,12 +899,24 @@ export async function searchZiiplyOffers(
       )
     : [];
 
+  const kLocalCampaignResults = providerScopeV10.useK && hasSelectedKLocalStoreV33
+    ? await safelySearchSource(
+        "K-local independent campaigns",
+        () => {
+          const ids = normalizeOfferStoreListV11(options?.kStoreIds, options?.kStoreId);
+          const names = normalizeOfferStoreListV11(options?.kStoreNames, options?.kStoreName ?? options?.storeName);
+          return fetchKLocalCampaignOffers(cleanQuery, names.map((name, index) => ({ id: ids[index] ?? "", name })));
+        },
+      )
+    : [];
+
   const uniqueAllResults = uniqueOfferResults([
     ...eTarjouslehdetResults,
     ...sKaupatResults,
     ...prismaCampaignResults,
     ...sLocalCampaignResults,
     ...kResults,
+    ...kLocalCampaignResults,
   ]);
 
   const strictCategoryQueryV15 = isStrictGostaCategoryQueryV15(cleanQuery);
