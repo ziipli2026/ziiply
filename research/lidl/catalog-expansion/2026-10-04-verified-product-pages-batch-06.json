@@ -1,0 +1,64 @@
+{
+  "research_only": true,
+  "new_candidate_rows": 4,
+  "price_policy": "All price fields null unless current normal price independently confirmed",
+  "products": [
+    {
+      "observed_at": "2026-10-04",
+      "brand": "Valio",
+      "name": "Aamupala-sulatejuustoviipaleet",
+      "package_size": "400 g",
+      "category": "maitotuotteet",
+      "lidl_product_id": "10033030",
+      "official_product_url": "https://www.lidl.fi/p/valio-aamupala-sulatejuustoviipaleet/p10033030",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_validity": "13.4.–15.4.; year not established from page",
+      "note": "Historic ERÄ 5.45 EUR excluded from current price"
+    },
+    {
+      "observed_at": "2026-10-04",
+      "brand": "Jyväbroiler",
+      "name": "Broilerin filee",
+      "package_size": "390 g",
+      "category": "liha",
+      "lidl_product_id": "10023404",
+      "official_product_url": "https://www.lidl.fi/p/jyvabroiler-broilerin-filee/p10023404",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_validity": "9.6. alkaen; year not established",
+      "note": "Historic ERÄ 5.95 EUR excluded"
+    },
+    {
+      "observed_at": "2026-10-04",
+      "brand": "Kanamestari",
+      "name": "Kanan sisäfilee yrttimaustettu",
+      "package_size": "600 g",
+      "category": "liha",
+      "lidl_product_id": "10031493",
+      "official_product_url": "https://www.lidl.fi/p/kanamestari-kanan-sisafilee/p10031493",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_validity": "19.2.–22.2.; year not established",
+      "note": "Historic discounted price excluded; product variant derived from pictured packaging, needs manual image crosscheck"
+    },
+    {
+      "observed_at": "2026-10-04",
+      "brand": "Solevita",
+      "name": "Tuorepuristettu veriappelsiinitäysmehu",
+      "package_size": "0,95 l",
+      "category": "juomat",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_url": "https://www.lidl.fi/c/ruoka-ja-juoma/s10068374",
+      "source_validity": "28.9.–30.9.2026",
+      "note": "Lidl Plus 2.79 EUR excluded"
+    }
+  ]
+}
