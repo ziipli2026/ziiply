@@ -1,0 +1,24 @@
+import { parseLidlPilotCsv } from "./lidl-pilot-csv-reader.mjs";
+import { processLidlManualPriceBatch } from "./lidl-manual-price-batch.mjs";
+
+// No network or production writes. A blank template always produces zero prices.
+export function processLidlPilotCsv(csv, knownProductIds, storeId, at = new Date()) {
+ const rows=parseLidlPilotCsv(csv);
+ const parseBoolean=value=>value==="true"?true:value==="false"?false:null;
+ const parsePrice=value=>value!==""&&/^\d+(?:\.\d{1,2})?$/.test(value)?Number(value):null;
+ const observations=rows.map(row=>({
+  lidlProductId:row.lidlProductId,
+  storeId:row.storeId,
+  priceBasis:row.priceBasis,
+  shelfPriceEur:parsePrice(row.shelfPriceEur),
+  receiptUnitPriceEur:parsePrice(row.receiptUnitPriceEur),
+  receiptTimestamp:row.receiptTimestamp,
+  receiptEvidenceReference:row.receiptEvidenceReference,
+  validThrough:row.validThrough,
+  isLidlPlus:parseBoolean(row.isLidlPlus),
+  isPromotion:parseBoolean(row.isPromotion),
+  isMultiBuy:parseBoolean(row.isMultiBuy),
+  permissionToUseEvidence:parseBoolean(row.permissionToUseEvidence)
+ }));
+ return processLidlManualPriceBatch(observations,knownProductIds,storeId,at);
+}
