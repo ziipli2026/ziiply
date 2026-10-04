@@ -387,7 +387,7 @@ function getUniqueOfferKeyV4(result: ZiiplyOfferSearchResult) {
   const anyResult = result as any;
   const ean = normalizeOfferUniqueText(anyResult.ean || anyResult.gtin || anyResult.barcode || "");
 
-  const price = Number(result.price);
+  const price = Number(anyResult.price);
   const priceKey = Number.isFinite(price) ? price.toFixed(4) : normalizeOfferUniqueText(result.priceText);
   const terms = `price:${priceKey}|from:${normalizeOfferUniqueText(anyResult.validFrom ?? "")}|until:${normalizeOfferUniqueText(anyResult.validUntil ?? "")}`;
   if (ean) return `ean:${ean}|store:${normalizeOfferUniqueText(result.storeLabel)}|${terms}`;
