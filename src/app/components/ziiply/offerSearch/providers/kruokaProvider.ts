@@ -538,13 +538,14 @@ export async function fetchKruokaOffers(
     const resolvedPublications = await resolveKLocalPublicationIds(selected, business.businessId, business.slug);
     debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
     const campaignPublicationIds = new Set(resolvedPublications.campaignIds);
+    // Both K-Market and K-Supermarket can have selected-store publications whose
+    // label contains no campaign keyword. Fetch every store-scoped active publication;
+    // retain the source's campaign classification rather than inventing one.
     for (const publicationId of resolvedPublications.ids) {
-      if (business.chain === "K-Supermarket" || campaignPublicationIds.has(publicationId)) {
-        const rows = await fetchKSupermarketRegionalOffers(publicationId);
-        publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0 });
-        regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
-          campaignType: campaignPublicationIds.has(publicationId) ? "campaign" : row.campaignType })));
-      }
+      const rows = await fetchKSupermarketRegionalOffers(publicationId);
+      publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0 });
+      regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
+        campaignType: campaignPublicationIds.has(publicationId) ? "campaign" : row.campaignType })));
     }
 
     const offersValue = await fetchTjekData("offers", {
