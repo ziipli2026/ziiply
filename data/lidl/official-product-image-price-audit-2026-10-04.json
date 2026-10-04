@@ -46,8 +46,7 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "categoryEvidence": "Meat pie is savory"
     },
     {
       "lidlProductId": "10005280",
@@ -61,8 +60,7 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "categoryEvidence": "Karelian pie is savory"
     },
     {
       "lidlProductId": "10008395",
@@ -92,8 +90,7 @@
       "productPageEvidence": "Official page identifies perunapiirakka and describes potato filling; image depicts pies.",
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "categoryEvidence": "Lidl official product ingredients: potato 16.7%, savory pie"
     },
     {
       "lidlProductId": "10013219",
@@ -499,8 +496,7 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "categoryEvidence": "Rice pie is a savory bakery product"
     },
     {
       "lidlProductId": "10032835",
@@ -570,8 +566,7 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "categoryEvidence": "Karelian pie is a savory bakery product"
     },
     {
       "lidlProductId": "10033046",
@@ -627,7 +622,7 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending"
+      "categoryEvidence": "Egg and rice pastry is savory"
     },
     {
       "lidlProductId": "10033051",
@@ -725,8 +720,7 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "categoryEvidence": "Lidl official Paistopiste listing under Suolaiset"
     },
     {
       "lidlProductId": "10034799",
@@ -783,8 +777,7 @@
       "pageCheckedOn": null,
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "manualReviewNote": "Piirakka: inspect product type (sweet vs savory) before publishing category"
+      "categoryEvidence": "Lidl Paistopiste official listing places Porkkanapiirakka under Suolaiset; do not infer sweet from name"
     },
     {
       "lidlProductId": "10035960",
@@ -1442,6 +1435,56 @@
       "paistopisteen-makeat": 39,
       "paistopisteen-suolaiset": 27
     },
-    "note": "Aligned to Lidl's three official Paistopiste groups; preliminary name-based assignment, not production category."
+    "note": "Aligned to Lidl's three official Paistopiste groups; preliminary name-based assignment, not production category.",
+    "reviewedCorrections": [
+      {
+        "id": "10000081",
+        "name": "Lihapiirakka",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      },
+      {
+        "id": "10005280",
+        "name": "Pielispakarin Aito Karjalanpiirakka",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      },
+      {
+        "id": "10012302",
+        "name": "Perunapiirakka",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      },
+      {
+        "id": "10032834",
+        "name": "Riisipiirakka",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      },
+      {
+        "id": "10033042",
+        "name": "Pielispakari mini karjalanpiirakka",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      },
+      {
+        "id": "10033050",
+        "name": "Munariisipasteija",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      },
+      {
+        "id": "10034798",
+        "name": "Jyväinen kaurapiirakka",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      },
+      {
+        "id": "10035959",
+        "name": "Porkkanapiirakka",
+        "before": "paistopisteen-suolaiset",
+        "after": "paistopisteen-suolaiset"
+      }
+    ]
   }
 }
