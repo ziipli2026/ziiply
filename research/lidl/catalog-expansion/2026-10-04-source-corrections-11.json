@@ -1,0 +1,37 @@
+{
+  "observed_at": "2026-10-04",
+  "type": "evidence corrections; do not increment SKU count",
+  "corrections": [
+    {
+      "target": "2026-10-04-lidl-comparison.json",
+      "field": "package_size",
+      "affected": [
+        "Kotimainen tomaatti",
+        "Kotimainen kurkku",
+        "Kesäkurpitsa",
+        "Minivesimeloni"
+      ],
+      "action": "Treat 1 kg as comparison pricing unit, NOT confirmed package size",
+      "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608"
+    },
+    {
+      "target": "2026-10-04-category-audit-batch-03.json",
+      "item": "Milbona Halloumi",
+      "action": "Do not merge with Milbona halloumi 225 g without verified pack size; possible duplicate",
+      "source": "https://www.lidl.fi/c/testimenestyjaet/s10033140"
+    },
+    {
+      "target": "2026-10-04-official-category-candidates.json",
+      "item": "Bellarom Hieno Mokka 500 g",
+      "action": "Official 2026-09-06 snapshot supports identity and historic price only; no current normal price",
+      "source": "https://www.lidl.fi/c/hinnanpudotus/s10082102"
+    },
+    {
+      "target": "2026-10-04-category-audit-batch-03.json",
+      "item": "Vemondo Vegan Topping Mozzarella Flavour 150 g",
+      "action": "Affected lot L1141152 best before 2026-11-19 is recalled; do not treat as active offer",
+      "source": "https://www.lidl.fi/c/takaisinvedot/s10021744"
+    }
+  ],
+  "counting_rule": "Research rows 109, not 109 validated SKUs. Only confirmed independent variants count toward 300."
+}
