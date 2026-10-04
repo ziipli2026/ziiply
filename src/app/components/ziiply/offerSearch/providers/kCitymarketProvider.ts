@@ -574,16 +574,11 @@ export async function warmKCitymarketOfferCache(now=new Date()){
 }
 // Only exact, unambiguous EAN-bank matches are enriched. Multi-variant leaflet
 // headings must never inherit an arbitrary barcode or product photo.
-const getCachedCitymarketEanImages=unstable_cache(async()=>{
-  if(!process.env.DATABASE_URL)return [];
-  const sql=neon(process.env.DATABASE_URL);
-  return sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC LIMIT 25000`;
-},["ziiply-citymarket-ean-image-index-v1"],{revalidate:21600});
-
 async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<CitymarketOffer[]>{
   if(!process.env.DATABASE_URL || !offers.length) return offers;
   try{
-    const rows=await getCachedCitymarketEanImages();
+    const sql=neon(process.env.DATABASE_URL);
+    const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC LIMIT 25000`;
     if(!rows.length)console.warn("[K-Citymarket] EAN bank contains no usable image rows");
     const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
     // Do not silently exclude older catalogue images merely because the EAN bank has grown.
@@ -662,31 +657,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
 
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
-  // A leaflet can remain active after individual offers have expired (e.g.
-  // Sunday 40LV includes Thu-Sat deals). Filter per offer in Finnish local time.
-  const nowParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
-  const datePart=(type:string)=>Number(nowParts.find(part=>part.type===type)?.value);
-  const todayYear=datePart("year"),todayMonth=datePart("month"),todayDay=datePart("day");
-  const todayStamp=todayYear*10000+todayMonth*100+todayDay;
-  const dateStamp=(value:string|undefined|null,referenceYear:number)=>{
-    const match=String(value??"").trim().match(/^(\d{1,2})\.(\d{1,2})\.(?:(\d{4})\.?)?$/);
-    if(!match)return null;
-    const day=Number(match[1]),month=Number(match[2]),year=match[3]?Number(match[3]):referenceYear;
-    const date=new Date(Date.UTC(year,month-1,day));
-    if(date.getUTCFullYear()!==year||date.getUTCMonth()!==month-1||date.getUTCDate()!==day)return null;
-    return year*10000+month*100+day;
-  };
-  const currentOffers=dated.filter(offer=>{
-    const from=dateStamp(offer.validFrom,todayYear);
-    let to=dateStamp(offer.validTo,todayYear);
-    // Handle year-crossing periods such as 30.12.-2.1.
-    if(from!==null&&to!==null&&to<from&&String(offer.validTo??"").match(/^(\d{1,2})\.(\d{1,2})\.$/)){
-      to=dateStamp(offer.validTo,todayYear+1);
-    }
-    return (from===null||from<=todayStamp)&&(to===null||to>=todayStamp);
-  });
-  // Avoid the optional 25k-row EAN lookup when the cached leaflet already has all images.
-  const enriched=currentOffers.every(offer=>!!offer.imageUrl)?currentOffers:await enrichCitymarketFromEanBank(currentOffers);
+  const enriched=await enrichCitymarketFromEanBank(dated);
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
