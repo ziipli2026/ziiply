@@ -46,17 +46,27 @@ export async function GET(request: Request) {
       if (!Number.isFinite(ageMs) || ageMs < -300000 || ageMs > 36 * 60 * 60 * 1000)
         issues.push("Source run is stale or has an invalid timestamp");
     }
+    // Detect suspicious source shrinkage even when parsing technically succeeded.
+    const successfulRuns = runs.filter((run) => run.ok && Number(run.offer_count) > 0);
+    const newestCount = successfulRuns.length ? Number(successfulRuns[0].offer_count) : null;
+    const previousCount = successfulRuns.length > 1 ? Number(successfulRuns[1].offer_count) : null;
+    const sourceDropPercent = newestCount !== null && previousCount !== null && previousCount > 0
+      ? Math.round((previousCount - newestCount) / previousCount * 100) : null;
+    if (sourceDropPercent !== null && sourceDropPercent >= 40)
+      issues.push(`Source offer count dropped ${sourceDropPercent}% versus previous successful run`);
     if (!current.length) issues.push("No currently valid stored publication");
     for (const edition of current) {
       if (edition.quality.severity === "error") issues.push(`Critical offer data in ${edition.publicationId}`);
       else if (edition.quality.severity === "warning") issues.push(`Incomplete offer metadata in ${edition.publicationId}`);
     }
     const summary = {
-      status: issues.some((issue) => /failed|Critical|No currently|No recorded|stale/.test(issue)) ? "error" :
+      status: issues.some((issue) => /failed|Critical|No currently|No recorded|stale|dropped/.test(issue)) ? "error" :
         issues.length ? "warning" : "ok",
       latestRunAt: latestRun?.checked_at ?? null,
       latestRunSucceeded: latestRun?.ok ?? null,
       latestRunOfferCount: latestRun?.offer_count ?? null,
+      previousSuccessfulOfferCount: previousCount,
+      sourceDropPercent,
       effectiveEditionCount: effectiveEditions.length,
       currentEditionCount: current.length,
       upcomingEditionCount: upcoming.length,
