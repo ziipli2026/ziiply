@@ -455,6 +455,18 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   return "Muut";
 }
 
+// A local leaflet can mix short weekly offers with longer monthly benefits.
+// Classify by the item's own validity, never by its publication ID alone.
+function localBenefitType(offer: UnknownRecord): "offer" | "campaign" {
+  const from = Date.parse(String(offer.validFrom ?? ""));
+  const until = Date.parse(String(offer.validUntil ?? ""));
+  if (Number.isFinite(from) && Number.isFinite(until) && until >= from) {
+    return until - from > 7 * 24 * 60 * 60 * 1000 ? "campaign" : "offer";
+  }
+  // Unknown validity must not be presented as a confirmed monthly campaign.
+  return "offer";
+}
+
 function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: string, displayStoreName: string, chain: string, slug: string): ZiiplyOfferSearchResult | null {
   const title = String(offer.name ?? offer.title ?? "").trim();
   if (!title) return null;
@@ -565,7 +577,7 @@ export async function fetchKruokaOffers(
         : await fetchKSupermarketRegionalOffers(publicationId);
       publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0 });
       regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
-        campaignType: campaignPublicationIds.has(publicationId) ? "campaign" : row.campaignType })));
+        campaignType: campaignPublicationIds.has(publicationId) ? localBenefitType(row) : row.campaignType })));
     }
 
     const offersValue = await fetchTjekData("offers", {
@@ -578,7 +590,7 @@ export async function fetchKruokaOffers(
     debug.campaignProbe = { activePublicationIds: resolvedPublications.ids, campaignPublicationIds: resolvedPublications.campaignIds, fetchedCampaignRows: regionalOffers.filter(row => row.campaignType === "campaign").length, mappedCampaignRows: 0, returnedCampaignRows: 0 };
     const baseOffers = dataArray(offersValue);
     const offers: UnknownRecord[] = baseOffers.map(offer => ({ ...offer,
-      campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? "campaign" : offer.campaignType,
+      campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? localBenefitType(offer) : offer.campaignType,
     }));
     const knownOfferIds = new Set(offers.map(o => `${String(o.publicId ?? "")}|${String(o.campaignType ?? "offer")}`).filter(Boolean));
     for (const offer of regionalOffers) {
