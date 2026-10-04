@@ -156,14 +156,16 @@ async function fetchTjekData(name: string, params: UnknownRecord, slug = "K-Supe
   throw new Error(`eTarjouslehdet data-avain ${name} puuttui vastauksesta`);
 }
 
-async function resolveKSupermarketRegionalPublicationIds(
+async function resolveKLocalPublicationIds(
   selected: UnknownRecord,
-): Promise<{ ids: string[]; debug: NonNullable<KruokaPipelineDebugV49["kSupermarketPublicationResolverDebug"]> }> {
+  businessId: string,
+  slug: string,
+): Promise<{ ids: string[]; campaignIds: string[]; debug: NonNullable<KruokaPipelineDebugV49["kSupermarketPublicationResolverDebug"]> }> {
   const storeId = String(selected.id ?? "").trim();
   const coordinates = selected.coordinates;
   if (!storeId || !coordinates || typeof coordinates !== "object") {
     return {
-      ids: [],
+      ids: [], campaignIds: [],
       debug: {
         selectedTjekStoreId: storeId,
         selectedStoreName: String(selected.name ?? ""),
@@ -176,10 +178,10 @@ async function resolveKSupermarketRegionalPublicationIds(
   }
 
   const value = await fetchTjekData("fronts", {
-    businessIds: [K_SUPERMARKET_BUSINESS_ID],
+    businessIds: [businessId],
     localBusinessIds: [storeId],
     coordinates,
-  }, "K-Supermarket");
+  }, slug);
   const fronts = Array.isArray(value) ? value : [];
   const now = Date.now();
   const publications = fronts.flatMap(front => {
@@ -204,8 +206,10 @@ async function resolveKSupermarketRegionalPublicationIds(
     new Set(active.map(publication => String(publication.id ?? "").trim()).filter(Boolean)),
   );
   const regionalIds = new Set(regional.map(publication => String(publication.id ?? "").trim()).filter(Boolean));
+  const campaignIds = active.filter(publication => /\b(kampanja|campaign)\b/i.test(String(publication.label ?? "")))
+    .map(publication => String(publication.id ?? "").trim()).filter(Boolean);
   return {
-    ids,
+    ids, campaignIds,
     debug: {
       selectedTjekStoreId: storeId,
       selectedStoreName: String(selected.name ?? ""),
@@ -526,11 +530,14 @@ export async function fetchKruokaOffers(
     debug.kStoreId = tjekStoreId;
 
     const regionalOffers: UnknownRecord[] = [];
-    if (business.chain === "K-Supermarket") {
-      const resolvedPublications = await resolveKSupermarketRegionalPublicationIds(selected);
-      debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
-      for (const publicationId of resolvedPublications.ids) {
-        regionalOffers.push(...await fetchKSupermarketRegionalOffers(publicationId));
+    const resolvedPublications = await resolveKLocalPublicationIds(selected, business.businessId, business.slug);
+    debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
+    const campaignPublicationIds = new Set(resolvedPublications.campaignIds);
+    for (const publicationId of resolvedPublications.ids) {
+      if (business.chain === "K-Supermarket" || campaignPublicationIds.has(publicationId)) {
+        const rows = await fetchKSupermarketRegionalOffers(publicationId);
+        regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
+          campaignType: campaignPublicationIds.has(publicationId) ? "campaign" : row.campaignType })));
       }
     }
 
@@ -542,7 +549,9 @@ export async function fetchKruokaOffers(
     }, business.slug);
 
     const baseOffers = dataArray(offersValue);
-    const offers = [...baseOffers];
+    const offers = baseOffers.map(offer => ({ ...offer,
+      campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? "campaign" : offer.campaignType,
+    }));
     const knownOfferIds = new Set(baseOffers.map(o => String(o.publicId ?? "")).filter(Boolean));
     for (const offer of regionalOffers) {
       const id = String(offer.publicId ?? "");
@@ -594,6 +603,7 @@ export async function fetchKruokaOffers(
         : "Dominant-publication safety criteria not met",
     };
 
+    for (const id of campaignPublicationIds) allowed.add(id);
     if (acceptDominantAsChainPublication && dominant) {
       allowed.add(dominant.publicationPublicId);
     }
