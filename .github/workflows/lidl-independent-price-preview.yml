@@ -16,6 +16,8 @@ on:
       - 'scripts/test-lidl-pilot-csv-reader.mjs'
       - 'scripts/test-lidl-barcode-kind.mjs'
       - 'scripts/test-lidl-pilot-csv-intake.mjs'
+      - 'scripts/run-lidl-pilot-intake.mjs'
+      - 'scripts/test-lidl-pilot-intake-cli.mjs'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -42,3 +44,4 @@ jobs:
       - run: node scripts/test-lidl-pilot-csv-reader.mjs
       - run: node scripts/test-lidl-barcode-kind.mjs
       - run: node scripts/test-lidl-pilot-csv-intake.mjs
+      - run: node scripts/test-lidl-pilot-intake-cli.mjs
