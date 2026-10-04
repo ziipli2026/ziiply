@@ -450,6 +450,11 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
     (offer as any)?.ean || source?.ean || source?.gtin || source?.barcode || "",
   );
 
+  // Distinct regional/local Tjek publication rows must survive final mobile-card dedupe.
+  if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+    return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || (offer as any)?.campaignType || "offer")}`;
+  }
+
   if (ean) return `ean:${ean}`;
 
   const visibleName = normalizeOfferCardKeyV13(getOfferName(offer))
@@ -480,6 +485,13 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
       (item as any)?.ean || source?.ean || source?.gtin || source?.barcode || "",
     );
     const key = getOfferCardDedupeKeyV13(item);
+
+    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(item);
+      continue;
+    }
 
     // V36: EAN-tuote on yksilöllinen tuote. Älä käytä sille root+hinta-dedupea,
     // koska sama kampanja/hinta voi sisältää useita eri EAN-variantteja.
