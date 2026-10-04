@@ -10,6 +10,7 @@ on:
       - 'scripts/test-lidl-store-price-bank.mjs'
       - 'scripts/test-lidl-price-conflicts.mjs'
       - 'scripts/test-lidl-price-search-enrichment.mjs'
+      - 'scripts/test-lidl-manual-price-batch.mjs'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -31,3 +32,4 @@ jobs:
       - run: node scripts/test-lidl-store-price-bank.mjs
       - run: node scripts/test-lidl-price-conflicts.mjs
       - run: node scripts/test-lidl-price-search-enrichment.mjs
+      - run: node scripts/test-lidl-manual-price-batch.mjs
