@@ -5852,7 +5852,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   const activeStores = useMemo(() => {
-    if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
+    if (storeCompareScope !== "within_chain" && !storeModeChosenV299 &&
+        !(storeMode === "hyper"
+          ? (activeArea.sStoreId || activeArea.kStoreId)
+          : (activeArea.sLocalStoreId || activeArea.kLocalStoreId))) {
       return {
         sStoreId: 0,
         sStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
@@ -7119,9 +7122,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 setStoreMode(parsedStoreSelection.storeMode as StoreMode);
               }
 
-              setStoreModeChosenV299(
-                Boolean(parsedStoreSelection.storeModeChosenV299),
-              );
+              const restoredAreaV814 = parsedStoreSelection.activeArea;
+              const restoredModeV814 = parsedStoreSelection.storeMode;
+              const hasRestoredStoreV814 = restoredModeV814 === "hyper"
+                ? Boolean(restoredAreaV814?.sStoreId || restoredAreaV814?.kStoreId ||
+                    restoredAreaV814?.sStoreName || restoredAreaV814?.kStoreName)
+                : Boolean(restoredAreaV814?.sLocalStoreId || restoredAreaV814?.kLocalStoreId ||
+                    restoredAreaV814?.sLocalStoreName || restoredAreaV814?.kLocalStoreName);
+              setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299 || hasRestoredStoreV814));
+              if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
+                setSelectedChains(current => ({ ...current, ...parsedStoreSelection.selectedChains }));
+              }
 
               if (parsedStoreSelection.betweenChainSelectionModeV749 === "one" || parsedStoreSelection.betweenChainSelectionModeV749 === "many") {
                 setBetweenChainSelectionModeV749(parsedStoreSelection.betweenChainSelectionModeV749);
@@ -17116,7 +17127,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // expose the home screen: retain the cart and explain what is missing.
     setActiveResult("none");
     setCartModalOpen(true);
-    showCartToast("Tallennettua vertailua ei löytynyt. Voit käynnistää vertailun Halpuuta-painikkeella.");
+    showCartToast(!storesReadyForSearch
+      ? "Palautetaan tavaratalojen tietoja. Ostoskori ja kauppavalinnat säilyvät."
+      : "Tallennettua vertailua ei löytynyt. Voit käynnistää vertailun Halpuuta-painikkeella.");
   }
 
   function openShopsPanel() {
