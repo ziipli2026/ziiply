@@ -107,8 +107,12 @@ jobs:
             const localPublicationIds=(debug?.kSupermarketPublicationResolverDebug?.publications??[]).filter(p=>p.active && p.label.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi').includes(storeName.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi'))).map(p=>p.id);
             const campaignIds=debug?.campaignProbe?.campaignPublicationIds??[];
             const regionalLeak=(debug?.rawOffers??[]).filter(o=>o.campaignType==='campaign' && !campaignIds.includes(String(o.publicationPublicId??''))).length;
+            const localRows=(debug?.rawOffers??[]).filter(o=>campaignIds.includes(String(o.publicationPublicId??'')));
+            const weeklyMisclassified=localRows.filter(o=>{const a=Date.parse(String(o.validFrom??'')),b=Date.parse(String(o.validUntil??''));return Number.isFinite(a)&&Number.isFinite(b)&&b-a<=7*86400000&&o.campaignType==='campaign';}).length;
+            const monthlyMisclassified=localRows.filter(o=>{const a=Date.parse(String(o.validFrom??'')),b=Date.parse(String(o.validUntil??''));return Number.isFinite(a)&&Number.isFinite(b)&&b-a>7*86400000&&o.campaignType!=='campaign';}).length;
+            console.log('K_LOCAL_VALIDITY_SPLIT '+JSON.stringify({storeName,weeklyMisclassified,monthlyMisclassified,localRows:localRows.length}));
             console.log('K_LOCAL_CAMPAIGN_ASSERT '+JSON.stringify({storeName,localPublicationIds,campaignIds,regionalLeak,returnedCampaigns:campaigns.length}));
-            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || campaigns.length===0) failures++;
+            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || weeklyMisclassified || monthlyMisclassified || campaigns.length===0) failures++;
           }
           if(failures) {console.error('Campaign source validation failed for '+failures+' store(s)');process.exitCode=1;}
           NODE
