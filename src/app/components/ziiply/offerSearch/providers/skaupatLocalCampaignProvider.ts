@@ -865,7 +865,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
         !Number.isFinite(Number(regular)) ||
         Number(campaign) <= 0 ||
         Number(campaign) >= Number(regular) ||
-        !/^\\d{4}-\\d{2}-\\d{2}$/.test(until) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(until) ||
         until < today
       ) return [];
       return [{ ...item, campaignType: "campaign", validityText: `Voimassa ${until}` }];
