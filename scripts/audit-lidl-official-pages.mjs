@@ -32,7 +32,7 @@ for (const item of records.slice(0, limit)) {
       const html = await response.text();
       const image = meta(html, "og:image") || meta(html, "twitter:image");
       row.pageTitle = meta(html, "og:title") || null;
-      const canonical = html.match(/<link\\b[^>]*rel\\s*=\\s*["\x27]canonical["\x27][^>]*>/i)?.[0]?.match(/href\\s*=\\s*(["\x27])(.*?)\\1/i)?.[2] || null;
+      const canonical = html.match(/<link\b[^>]*rel\s*=\s*["\x27]canonical["\x27][^>]*>/i)?.[0]?.match(/href\s*=\s*(["\x27])(.*?)\1/i)?.[2] || null;
       row.canonicalUrl = canonical ? new URL(decode(canonical), response.url).href : null;
       row.productIdInCanonical = !!row.canonicalUrl && new URL(row.canonicalUrl).pathname.endsWith(`/p${item.lidlProductId}`);
       row.titleMatchesProduct = !!row.pageTitle && normalize(row.pageTitle).includes(normalize(item.name));
