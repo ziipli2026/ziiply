@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'scripts/test-lidl-price-source-contract-v69.mjs'
+      - 'scripts/test-lidl-price-record-mapping-v70.mjs'
+      - 'scripts/lib/lidl-price-source-contract.mjs'
       - '.github/workflows/lidl-price-source-contract.yml'
 permissions:
   contents: read
@@ -19,5 +21,7 @@ jobs:
           node-version: '22'
       - name: Check syntax
         run: node --check scripts/test-lidl-price-source-contract-v69.mjs
-      - name: Run eleven price provenance fixtures
+      - name: Run price provenance fixtures
         run: node scripts/test-lidl-price-source-contract-v69.mjs
+      - name: Verify nullable product mapping
+        run: node scripts/test-lidl-price-record-mapping-v70.mjs
