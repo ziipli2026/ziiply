@@ -52,3 +52,11 @@ export async function readActivePublicationOffers<T>(chain: string, at: Date = n
     ORDER BY valid_from, valid_until, parsed_at DESC, publication_id DESC`;
   return rows.flatMap((row) => Array.isArray(row.offers) ? row.offers as T[] : []);
 }
+export async function publicationDiagnosticSnapshots(chain: string, limit = 12) {
+  const sql = await database();
+  const rows = await sql`SELECT publication_id, valid_from::text AS valid_from,
+    valid_until::text AS valid_until, parsed_at::text AS parsed_at, offers
+    FROM ziiply_offer_publications WHERE chain = ${chain}
+    ORDER BY parsed_at DESC LIMIT ${Math.max(1, Math.min(limit, 30))}`;
+  return rows;
+}
