@@ -8,6 +8,8 @@ on:
       - 'scripts/test-lidl-price-record-mapping-v70.mjs'
       - 'scripts/lib/lidl-price-source-contract.mjs'
       - 'scripts/audit-lidl-research-coverage-v71.mjs'
+      - 'scripts/audit-lidl-historical-name-matches-v73.mjs'
+      - 'data/lidl/official-historical-bakery-prices-2026-04-20.json'
       - 'data/lidl/official-product-image-price-audit-2026-10-04.json'
       - 'data/lidl/official-product-images.generated.json'
       - 'data/lidl/verified-previous-price-observations-2026-10-04.json'
@@ -32,3 +34,5 @@ jobs:
         run: node scripts/test-lidl-price-record-mapping-v70.mjs
       - name: Audit real Lidl research data coverage
         run: node scripts/audit-lidl-research-coverage-v71.mjs
+      - name: Audit historical price name matches
+        run: node scripts/audit-lidl-historical-name-matches-v73.mjs
