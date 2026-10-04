@@ -7100,6 +7100,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 Boolean(parsedStoreSelection.storeModeChosenV299),
               );
 
+              if (parsedStoreSelection.betweenChainSelectionModeV749 === "one" || parsedStoreSelection.betweenChainSelectionModeV749 === "many") {
+                setBetweenChainSelectionModeV749(parsedStoreSelection.betweenChainSelectionModeV749);
+              }
+
               if (
                 parsedStoreSelection.storeCompareScope === "none" ||
                 parsedStoreSelection.storeCompareScope === "between_chains" ||
