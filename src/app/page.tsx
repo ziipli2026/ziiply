@@ -16747,11 +16747,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const cachedStoreV797 = String((item as any).ziiplyPriceStoreName || item.storeName || "");
+      // K-Citymarket and Citymarket (likewise K-Supermarket/Supermarket)
+      // refer to the same selected shop. Do not erase a valid cart price on
+      // reload just because its display prefix differs.
+      const canonicalStoreV808 = (name: string) =>
+        normalize(name).replace(/^k[\\s-]+(?=(?:citymarket|supermarket|market)\\b)/, "");
       const storeChangedV797 =
         Boolean(target.storeName) &&
-        normalize(cachedStoreV797) !== normalize(target.storeName);
+        canonicalStoreV808(cachedStoreV797) !== canonicalStoreV808(target.storeName);
       const alreadyPendingV797 = Boolean((item as any).ziiplyPriceRefreshPending);
+      const fetchedAtV797 = Number((item as any).ziiplyPriceFetchedAt || 0);
+      const sameStoreFreshV808 = !storeChangedV797 &&
+        Number(item.price || 0) > 0 &&
+        fetchedAtV797 > 0 &&
+        Date.now() - fetchedAtV797 < SAVED_LIST_PRICE_FRESH_MS_V783;
 
+      // Same-store cached price remains visible during background verification.
+      // A genuine shop change still clears the old shop's price immediately.
+      if (sameStoreFreshV808) return item;
       if (!storeChangedV797 && !alreadyPendingV797) return item;
 
       refreshIdsV797.push(String(item.id));
@@ -16760,7 +16773,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartChangedV797 = true;
       return {
         ...item,
-        price: 0,
+        price: storeChangedV797 ? 0 : item.price,
         ziiplyPriceRefreshPending: true,
       } as CartItem;
     });
