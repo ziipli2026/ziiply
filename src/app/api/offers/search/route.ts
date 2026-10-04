@@ -673,7 +673,7 @@ export async function GET(request: Request) {
       // Local and national sources must be independently fault-tolerant.
       try {
         const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
-        if (selectedCitymarket) {
+        if (selectedCitymarket && !(process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF === "preview/citymarket-41av")) {
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
           citymarketLocalCount = matchingLocalOffers.length;
