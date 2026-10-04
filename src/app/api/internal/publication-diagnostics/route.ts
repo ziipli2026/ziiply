@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recentPublicationRuns } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 import { publicationDiagnosticSnapshots } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { inspectOfferPublication, type OfferDiagnosticRow } from "@/app/components/ziiply/offerSearch/publicationDiagnostics";
 import { publicationState, finnishPublicationDate } from "@/app/components/ziiply/offerSearch/publicationLifecycle";
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: false, error: "Invalid chain" }, { status: 400 });
     const snapshots = await publicationDiagnosticSnapshots(chain);
     const date = finnishPublicationDate();
+    const runs = await recentPublicationRuns(chain);
     const editions = snapshots.map((row) => {
       const validFrom = String(row.valid_from);
       const validUntil = String(row.valid_until);
@@ -26,7 +28,7 @@ export async function GET(request: Request) {
       };
     });
     return NextResponse.json({ ok: true, chain, checkedAt: new Date().toISOString(),
-      editionCount: editions.length, editions },
+      editionCount: editions.length, editions, runs },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Diagnostics failed" },
