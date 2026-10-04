@@ -6,4 +6,5 @@ const historical=load("../data/lidl/official-historical-bakery-prices-2026-04-20
 const norm=s=>s.normalize("NFC").toLocaleLowerCase("fi").trim();
 const matches=historical.map(p=>{const exact=catalog.filter(c=>norm(c.name)===norm(p.name));return {name:p.name,candidateProductIds:exact.map(x=>x.lidlProductId),identityStatus:exact.length===1?"single-name-candidate":exact.length>1?"ambiguous-duplicate-name":"no-exact-name",currentRegularPriceEur:null,comparable:false};});
 console.log(JSON.stringify({sourceDate:"2026-04-20",records:matches,counts:{singleNameCandidate:matches.filter(x=>x.identityStatus==="single-name-candidate").length,ambiguous:matches.filter(x=>x.identityStatus==="ambiguous-duplicate-name").length,unmatched:matches.filter(x=>x.identityStatus==="no-exact-name").length},warning:"Name-only matches are candidates, not verified product identities or current checkout prices."},null,2));
-if(matches.length!==7)process.exitCode=1;
+const counts={singleNameCandidate:matches.filter(x=>x.identityStatus==="single-name-candidate").length,ambiguous:matches.filter(x=>x.identityStatus==="ambiguous-duplicate-name").length,unmatched:matches.filter(x=>x.identityStatus==="no-exact-name").length};
+if(matches.length!==7||counts.singleNameCandidate+counts.ambiguous+counts.unmatched!==7||matches.some(x=>x.comparable||x.currentRegularPriceEur!==null))process.exitCode=1;
