@@ -28,6 +28,10 @@
     {
       "path": "/api/cron/skaupat-protocol",
       "schedule": "20 14 * * *"
+    },
+    {
+      "path": "/api/cron/lidl-publications",
+      "schedule": "15 5 * * *"
     }
   ]
 }
