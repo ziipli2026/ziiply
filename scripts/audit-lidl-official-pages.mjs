@@ -47,7 +47,7 @@ for (const item of records.slice(0, limit)) {
       // Collect only structured Product offers, as evidence for later price review.
       // Never infer a current store price from an arbitrary campaign or page text.
       row.structuredPriceEvidence = [];
-      for (const script of html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
+      for (const script of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
         try {
           const parsed = JSON.parse(script[1]);
           const nodes = [];
