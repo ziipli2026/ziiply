@@ -662,42 +662,27 @@ export async function GET(request: Request) {
     let citymarketNationalCount = 0;
     let citymarketLocalCount = 0;
     let citymarketLocalStoreId: string | null = null;
-    let citymarketTiming: { nationalMs: number | null; localMs: number | null; totalMs: number } | null = null;
     if (isKCitymarketV19) {
-      const citymarketStarted = Date.now();
-      const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
-      // Both independent sources start immediately; a failure in either must not discard the other.
-      const [national, local] = await Promise.allSettled([
-        (async () => {
-          const started = Date.now();
-          const fetched = await fetchKCitymarketOffers();
-          return { offers: (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer)), ms: Date.now() - started };
-        })(),
-        (async () => {
-          if (!selectedCitymarket) return { offers: [] as UnknownRecord[], ms: 0 };
-          const started = Date.now();
-          const fetched = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
-          return { offers: (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer)), ms: Date.now() - started };
-        })(),
-      ]);
-      if (national.status === "fulfilled") {
-        citymarketResults.push(...national.value.offers);
-        citymarketNationalCount = national.value.offers.length;
-      } else {
-        console.warn("[Ziiply offers V19] K-Citymarket national fetch failed", national.reason);
+      try {
+        const fetched = await fetchKCitymarketOffers();
+        citymarketResults = (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer));
+        citymarketNationalCount = citymarketResults.length;
+      } catch (error) {
+        console.warn("[Ziiply offers V19] K-Citymarket national fetch failed", error);
       }
-      if (local.status === "fulfilled") {
-        citymarketResults.push(...local.value.offers);
-        citymarketLocalCount = local.value.offers.length;
-        citymarketLocalStoreId = local.value.offers.length ? String(local.value.offers[0].storeId ?? "") || null : null;
-      } else {
-        console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", local.reason);
+      // Local and national sources must be independently fault-tolerant.
+      try {
+        const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
+        if (selectedCitymarket) {
+          const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
+          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
+          citymarketLocalCount = matchingLocalOffers.length;
+          citymarketLocalStoreId = matchingLocalOffers.length ? String(matchingLocalOffers[0].storeId ?? "") || null : null;
+          citymarketResults.push(...matchingLocalOffers);
+        }
+      } catch (localError) {
+        console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
       }
-      citymarketTiming = {
-        nationalMs: national.status === "fulfilled" ? national.value.ms : null,
-        localMs: local.status === "fulfilled" && selectedCitymarket ? local.value.ms : null,
-        totalMs: Date.now() - citymarketStarted,
-      };
     }
 
     let sMarketResults: UnknownRecord[] = [];
@@ -814,7 +799,6 @@ export async function GET(request: Request) {
             ...(isKCitymarketV19 ? {
               localOffers: citymarketLocalCount,
               nationalOffers: citymarketNationalCount,
-              sourceTimingV1: citymarketTiming,
               nationalTjekImageDebug: getKCitymarketNationalTjekImageDebug(),
               nationalImageCoverage: {
                 total: citymarketResults.filter(o => String(o.source || "") === "K-Citymarket tarjouslehti").length,
