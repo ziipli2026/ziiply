@@ -1,0 +1,26 @@
+name: Lidl official product page audit
+on:
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Collect official page evidence
+        run: node scripts/audit-lidl-official-pages.mjs --all --output=lidl-official-page-results.json
+      - name: Print evidence summary
+        run: |
+          node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));console.log(JSON.stringify({total:d.count,candidates:d.candidateCount,sharedImages:d.sharedMetaImageCount,httpOK:d.records.filter(x=>x.httpStatus===200).length,errors:d.records.filter(x=>x.error).length},null,2))"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lidl-official-page-results
+          path: lidl-official-page-results.json
+          if-no-files-found: warn
+          retention-days: 14
