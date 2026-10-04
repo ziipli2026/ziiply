@@ -8,6 +8,6 @@ assert.match(rows[0].lidlProductId,/^\d+$/);
 assert.equal(rows[0].receiptUnitPriceEur,"");
 assert.equal(rows[0].permissionToUseEvidence,"");
 assert.throws(()=>parseLidlPilotCsv(csv.replace('"lidlProductId"','"wrongId"')),/header mismatch/);
-assert.throws(()=>parseLidlPilotCsv(csv+' "unclosed'),/Unterminated CSV quote/);
+assert.throws(()=>parseLidlPilotCsv(csv+'"unclosed'),/Unterminated CSV quote/);
 assert.throws(()=>parseLidlPilotCsv(csv+'x,y\n'),/column mismatch/);
 console.log("PASS: generated Lidl pilot CSV round trip, 25 rows and malformed-input rejection");
