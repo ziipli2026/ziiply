@@ -11,8 +11,8 @@ try {
  const result=JSON.parse(execFileSync(process.execPath,["scripts/run-lidl-pilot-intake.mjs",path,"TEST-STORE","2026-10-04T12:00:00Z"],{encoding:"utf8"}));
  assert.equal(result.status,"research-only-not-published");
  assert.equal(result.inputCount,25);
- assert.equal(result.acceptedProductCount,0);
- assert.equal(result.rejectedObservationCount,25);
+ assert.equal(result.structurallyAcceptedCandidateCount,0);
+ assert.equal(result.rejectedObservationCount,25);\n assert.equal(result.externallyVerifiedEvidenceCount,0);\n assert.equal(result.publishablePriceCount,0);
  assert.equal(result.rejectionReasons["permission-not-confirmed"],25);
  assert.equal(JSON.stringify(result).includes("receiptEvidenceReference"),false);
  assert.equal(JSON.stringify(result).includes("regularPriceEur"),false);
