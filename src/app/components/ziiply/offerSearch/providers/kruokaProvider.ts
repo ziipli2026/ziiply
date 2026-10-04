@@ -41,6 +41,7 @@ export type KruokaPipelineDebugV49 = {
   productMapProducts: number | null;
   activeOffers: number | null;
   campaignProbe?: { activePublicationIds: string[]; campaignPublicationIds: string[]; fetchedCampaignRows: number; mappedCampaignRows: number; returnedCampaignRows: number };
+  publicationPipeline?: Array<{ publicationId: string; raw: number; allowed: number; mapped: number; queryMatched: number; duplicate: number; returned: number }>;
   error: string | null;
   rawOffers?: UnknownRecord[];
   kSupermarketPublicationResolverDebug?: {
@@ -703,19 +704,33 @@ export async function fetchKruokaOffers(
 
     const results: ZiiplyOfferSearchResult[] = [];
     const seen = new Set<string>();
+    const publicationPipeline = new Map<string, { publicationId: string; raw: number; allowed: number; mapped: number; queryMatched: number; duplicate: number; returned: number }>();
+    for (const offer of offers) {
+      const publicationId = String(offer.publicationPublicId ?? "");
+      const entry = publicationPipeline.get(publicationId) ?? { publicationId, raw: 0, allowed: 0, mapped: 0, queryMatched: 0, duplicate: 0, returned: 0 };
+      entry.raw++;
+      publicationPipeline.set(publicationId, entry);
+    }
 
     for (const [index, offer] of offers.entries()) {
       const publicationId = String(offer.publicationPublicId ?? "");
+      const entry = publicationPipeline.get(publicationId)!;
       if (!allowed.has(publicationId)) continue;
+      entry.allowed++;
       const mapped = mapTjekOffer(
         offer, index, ziiplyStoreId || tjekStoreId, displayStoreName, business.chain, business.slug
       );
-      if (!mapped || !matchesQuery(mapped, query)) continue;
+      if (!mapped) continue;
+      entry.mapped++;
+      if (!matchesQuery(mapped, query)) continue;
+      entry.queryMatched++;
       const key = `${String((mapped as unknown as UnknownRecord).campaignType ?? "offer")}|${String((mapped as unknown as UnknownRecord).offerId ?? mapped.id)}`;
-      if (seen.has(key)) continue;
+      if (seen.has(key)) { entry.duplicate++; continue; }
       seen.add(key);
+      entry.returned++;
       results.push(mapped);
     }
+    debug.publicationPipeline = Array.from(publicationPipeline.values());
 
     if (debug.campaignProbe) {
       debug.campaignProbe.mappedCampaignRows = offers.filter(offer => offer.campaignType === "campaign").length;
