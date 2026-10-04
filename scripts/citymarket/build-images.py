@@ -117,7 +117,7 @@ def build(folder,manifest_path,public_folder,review_path):
     chosen=[b for b in blocks if any(max(abs(a-c) for a,c in zip(b['bbox'],rect))<.015 for rect in selection['rectangles'])]
     if len(chosen)!=len(selection['rectangles']):raise ValueError('Reviewed image object missing: '+row['title'])
    else:chosen=accepted[row['id']]
-   report.append({'id':row['id'],'title':row['title'],'page':row['page'],'images':len(chosen),'method':'reviewed-pdf-digest' if selection else 'publisher-cell-or-package-text' if chosen else 'unresolved'})
+   report.append({'id':row['id'],'title':row['title'],'page':row['page'],'images':len(chosen),'rectangles':[list(b['bbox']) for b in chosen],'method':'reviewed-pdf-digest' if selection else 'publisher-cell-or-package-text' if chosen else 'unresolved'})
    if not chosen:continue
    data=composite(chosen);fragment=hashlib.sha256(row['id'].encode()).hexdigest()[:20];y=len(cells)*300
    cells.append(f'<view id="{fragment}" viewBox="0 {y} 300 300"/><image x="0" y="{y}" width="300" height="300" preserveAspectRatio="xMidYMid meet" href="data:image/jpeg;base64,{base64.b64encode(data).decode()}"/>')
