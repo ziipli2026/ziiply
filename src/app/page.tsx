@@ -11695,16 +11695,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  // V804: refresh the selected Citymarket's local publications while Gösta is
-  // open. Keep existing cards visible until the fresh source request completes.
-  // The national leaflet remains governed by its independent period archive.
+  // V805: refresh the selected K-Citymarket, K-Supermarket or K-Market
+  // publications while Gösta is open. The provider resolves currently active
+  // publication IDs/validity on each fresh request. Preserve the previous cards
+  // during refresh; Citymarket's national period archive remains independent.
   useEffect(() => {
     if (activeResult !== "offers" || searchPanelOpen || !storeModeChosenV299) return;
     const refresh = () => {
       if (document.visibilityState !== "visible") return;
       if (gostaSelectedOfferChainRefV547.current !== "K") return;
       const name = String(activeArea.kStoreName || activeStores.kStoreName || "");
-      if (!/citymarket/i.test(name)) return;
+      if (!/\b(?:k[\s-]*)?(?:citymarket|supermarket|market)\b/i.test(name)) return;
       void searchOffers(undefined, true);
     };
     const timer = window.setInterval(refresh, 15 * 60 * 1000);
