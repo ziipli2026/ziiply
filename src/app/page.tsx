@@ -5896,10 +5896,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           normalize(store.name || "") === normalize(manual.name)
         ) ?? null;
       };
+      // GPS coordinates can hydrate before foundStores. Keep the persisted
+      // selected pair visible until ranked candidates actually exist; otherwise
+      // reload briefly renders "not selected" behind the cart restore prompt.
+      const savedS = getActiveAreaStoreCandidateV139("S", gpsMode);
+      const savedK = getActiveAreaStoreCandidateV139("K", gpsMode);
       const selectedS = manualCandidate("S", gpsMode) ??
-        (gpsMode === "local" ? ranked.sLocal : ranked.sHyper);
+        (gpsMode === "local" ? ranked.sLocal : ranked.sHyper) ?? savedS;
       const selectedK = manualCandidate("K", gpsMode) ??
-        (gpsMode === "local" ? ranked.kLocal : ranked.kHyper);
+        (gpsMode === "local" ? ranked.kLocal : ranked.kHyper) ?? savedK;
       return {
         sStoreId: selectedS?.id ?? 0,
         sStoreName: selectedS?.name ?? (gpsMode === "local" ? "S-lähikauppa ei valittu" : "S-tavaratalo ei valittu"),
