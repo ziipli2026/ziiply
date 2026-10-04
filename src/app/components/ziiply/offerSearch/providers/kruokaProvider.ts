@@ -776,6 +776,7 @@ export async function fetchKruokaOffers(
       results.push(mapped);
     }
     debug.publicationPipeline = Array.from(publicationPipeline.values());
+    debug.kTabClassificationAuditV1 = results.map(result => ({ publicationId: String((result as any).debug?.publicationId ?? ""), offerId: String((result as any).offerId ?? ""), title: result.title, campaignType: (result as any).campaignType ?? "offer", validFrom: (result as any).validFrom ?? null, validUntil: (result as any).validUntil ?? null }));
 
     if (debug.campaignProbe) {
       debug.campaignProbe.mappedCampaignRows = offers.filter(offer => offer.campaignType === "campaign").length;
