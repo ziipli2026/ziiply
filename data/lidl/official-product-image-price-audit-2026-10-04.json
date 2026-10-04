@@ -9,11 +9,13 @@
       "name": "Herkkumyslileipä",
       "officialUrl": "https://www.lidl.fi/p/herkkumyslileipa/p10000000",
       "priceEur": null,
-      "priceStatus": "not_published_in_catalog",
+      "priceStatus": "no_regular_price_visible_on_public_page",
       "ean": null,
       "imageUrl": null,
-      "imageStatus": "official_page_image_observed_url_not_extracted",
-      "pageCheckedOn": "2026-10-04"
+      "imageStatus": "official_product_page_image_confirmed_url_not_extracted",
+      "pageCheckedOn": "2026-10-04",
+      "verifiedCategory": "Paistopiste",
+      "productPageEvidence": "Official page describes raisin, cranberry and apple mixed bread; image depicts sliced bread."
     },
     {
       "lidlProductId": "10000047",
@@ -64,11 +66,13 @@
       "name": "Perunapiirakka",
       "officialUrl": "https://www.lidl.fi/p/perunapiirakka/p10012302",
       "priceEur": null,
-      "priceStatus": "not_published_in_catalog",
+      "priceStatus": "no_regular_price_visible_on_public_page",
       "ean": null,
       "imageUrl": null,
-      "imageStatus": "official_page_image_observed_url_not_extracted",
-      "pageCheckedOn": "2026-10-04"
+      "imageStatus": "official_product_page_image_confirmed_url_not_extracted",
+      "pageCheckedOn": "2026-10-04",
+      "verifiedCategory": "Paistopiste",
+      "productPageEvidence": "Official page identifies perunapiirakka and describes potato filling; image depicts pies."
     },
     {
       "lidlProductId": "10013219",
