@@ -52,6 +52,7 @@ jobs:
           const requiredAliases = [
             ['pilsneri', 'pilsner'],
             ['pils', 'pilsner'],
+            ['vola', 'cola'],
             ['kahvia', 'kahvi'],
             ['maitoa', 'maito'],
             ['juustoa', 'juusto 500g'],
@@ -168,6 +169,7 @@ jobs:
 
           const typoCases = [
             ['matio', 'maito', 'milk_drink'],
+            ['vola', 'cola', 'cola'],
             ['maitoo', 'maito', 'milk_drink'],
             ['jogurti', 'jogurtti', 'yogurt'],
             ['kanamuna', 'kananmuna', 'eggs'],
