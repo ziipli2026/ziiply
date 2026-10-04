@@ -14,6 +14,18 @@ const independentlyVerifiedIds = new Set([
   "atria-mince", "chicken-nuggets",
 ]);
 
+const verifiedLeafletImages: Record<string, string> = {
+  "lidl-leaflet-pizza-ice-cream": "/products/lidl/week40-2026/pizza_gelatelli.webp",
+  "lidl-leaflet-atria-mince": "/products/lidl/week40-2026/atria_jauheliha.webp",
+  "lidl-leaflet-chicken-nuggets": "/products/lidl/week40-2026/kananuggetit.webp",
+  "lidl-leaflet-carrot": "/products/lidl/week40-2026/porkkana.webp",
+  "lidl-leaflet-apple": "/products/lidl/week40-2026/omena.webp",
+  "lidl-leaflet-potato": "/products/lidl/week40-2026/peruna.webp",
+  "lidl-leaflet-chinese-cabbage": "/products/lidl/week40-2026/kiinankaali.webp",
+  "lidl-leaflet-brussels-sprouts": "/products/lidl/week40-2026/ruusukaali.webp",
+  "lidl-leaflet-banana": "/products/lidl/week40-2026/banaani.webp",
+};
+
 export function addVerifiedLidlWeek40Leaflet(
   structured: Record<string, any>[],
   storeKey: string,
@@ -56,14 +68,14 @@ export function addVerifiedLidlWeek40Leaflet(
   }
   const merged = mergeLidlStructuredAndLeaflet(structured, filtered, today);
   // Preserve a machine-readable list of unmatched leaflet images for the offer DBG.
-  // Only the official feed can supply an automatic image match here.
+  // Exact leaflet IDs also have verified crops from the supplied paper leaflet.
   return merged.map(item =>
     String(item.id || "").startsWith("lidl-leaflet-")
       ? { ...item, storeKey, storeName, storeLabel: storeName, shopName: storeName,
-          imageUrl: item.imageUrl || officialImages.get(imageKey(item.name || item.title)) || "",
-          image: item.image || officialImages.get(imageKey(item.name || item.title)) || "",
-          pictureUrl: item.pictureUrl || officialImages.get(imageKey(item.name || item.title)) || "",
-          imageMatchStatus: (item.imageUrl || officialImages.get(imageKey(item.name || item.title))) ? "official-exact-title" : "missing-leaflet-image",
+          imageUrl: verifiedLeafletImages[String(item.id)] || item.imageUrl || officialImages.get(imageKey(item.name || item.title)) || "",
+          image: verifiedLeafletImages[String(item.id)] || item.image || officialImages.get(imageKey(item.name || item.title)) || "",
+          pictureUrl: verifiedLeafletImages[String(item.id)] || item.pictureUrl || officialImages.get(imageKey(item.name || item.title)) || "",
+          imageMatchStatus: verifiedLeafletImages[String(item.id)] ? "verified-leaflet-crop" : (item.imageUrl || officialImages.get(imageKey(item.name || item.title))) ? "official-exact-title" : "missing-leaflet-image",
           category: item.id === "lidl-leaflet-carrot" ? "Hevi" :
             item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.category,
           categoryPath: item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.categoryPath || item.category,
