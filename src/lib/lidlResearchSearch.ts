@@ -1,6 +1,9 @@
 /** Public Lidl catalog: read-only name discovery, never a price or EAN feed. */
 import catalog from "../../data/lidl/official-grocery-candidates-v44-2026-10-01.json";
 import stapleEvidence from "../../data/lidl/independent-staple-ean-evidence-2026-10-02.json";
+import officialImages from "../../data/lidl/official-product-images.generated.json";
+
+const officialImageByProductId = new Map(officialImages.records.map(record => [record.lidlProductId, record.imageUrl]));
 
 const quarantined = new Set(catalog.quarantinedProductIds.map(id => String(id).trim()));
 const norm = (s: string) => s.toLocaleLowerCase("fi-FI").normalize("NFKD")
@@ -87,6 +90,7 @@ export function searchLidlResearch(query:string,limit=15){
  .filter(({r})=>{const id=r.lidlProductId.trim();const name=identity([r.name,r.variant].filter(Boolean).join(" "));if(seen.has(id)||seenNames.has(name))return false;seen.add(id);seenNames.add(name);return true;})
  .slice(0,safeLimit).map(({r})=>({
   id:-Number(r.lidlProductId),lidlProductId:r.lidlProductId.trim(),name:[r.name,r.variant].filter(Boolean).join(" "),
+  pictureUrl:officialImageByProductId.get(r.lidlProductId.trim()) ?? null,
   ean:null,price:null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
   observedUnitPriceText:"unitPriceText" in r ? r.unitPriceText ?? null : null,
   storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
