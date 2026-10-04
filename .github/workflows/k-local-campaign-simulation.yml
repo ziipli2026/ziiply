@@ -70,7 +70,7 @@ jobs:
                 const body=await response.text();
                 let json;try{json=JSON.parse(body)}catch{}
                 const hotspots=Array.isArray(json?.hotspots)?json.hotspots:[];
-                console.log('K_LOCAL_VIEWER '+JSON.stringify({id,page,status:response.status,keys:json&&typeof json==='object'?Object.keys(json):[],hotspots:hotspots.length,firstHotspot:hotspots[0]?{keys:Object.keys(hotspots[0]),offer:hotspots[0].offer}:null,bodySample:json?undefined:body.slice(0,120)}));
+                console.log('K_LOCAL_VIEWER '+JSON.stringify({id,page,status:response.status,keys:json&&typeof json==='object'?Object.keys(json):[],hotspots:hotspots.length,firstHotspot:hotspots[0]?{keys:Object.keys(hotspots[0]),offer:hotspots[0].offer}:null,decorations:Array.isArray(json?.decorations)?json.decorations.length:null,firstDecoration:Array.isArray(json?.decorations)?json.decorations.slice(0,2):json?.decorations,bodySample:json?undefined:body.slice(0,120)}));
               } catch(error) {console.log('K_LOCAL_VIEWER_ERROR '+JSON.stringify({id,page,error:String(error)}));}
             }
           }
