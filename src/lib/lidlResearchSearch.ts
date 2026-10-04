@@ -2,7 +2,9 @@
 import catalog from "../../data/lidl/official-grocery-candidates-v44-2026-10-01.json";
 import stapleEvidence from "../../data/lidl/independent-staple-ean-evidence-2026-10-02.json";
 import officialImages from "../../data/lidl/official-product-images.generated.json";
+import paistopistePriceAnnouncement from "../../data/lidl/official-paistopiste-price-announcement-2026-04-20.json";
 
+const historicalPaistopistePriceById = new Map(paistopistePriceAnnouncement.records.map(record => [record.lidlProductId, record]));
 const officialImageByProductId = new Map(officialImages.records.map(record => [record.lidlProductId, record.imageUrl]));
 
 const quarantined = new Set(catalog.quarantinedProductIds.map(id => String(id).trim()));
@@ -91,6 +93,10 @@ export function searchLidlResearch(query:string,limit=15){
  .slice(0,safeLimit).map(({r})=>({
   id:-Number(r.lidlProductId),lidlProductId:r.lidlProductId.trim(),name:[r.name,r.variant].filter(Boolean).join(" "),
   pictureUrl:officialImageByProductId.get(r.lidlProductId.trim()) ?? null,
+  // Lidl's 20 April announcement is historical reference evidence, not today's basket price.
+  historicalAnnouncedPriceEur:historicalPaistopistePriceById.get(r.lidlProductId.trim())?.announcedNewPriceEur ?? null,
+  historicalPriceEffectiveFrom:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.effectiveFrom : null,
+  historicalPriceSource:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.source : null,
   ean:null,price:null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
   observedUnitPriceText:"unitPriceText" in r ? r.unitPriceText ?? null : null,
   storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
