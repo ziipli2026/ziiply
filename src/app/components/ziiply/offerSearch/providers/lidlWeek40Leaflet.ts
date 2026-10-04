@@ -54,12 +54,16 @@ export function addVerifiedLidlWeek40Leaflet(
     const name = imageKey(offer.name || offer.title);
     if (name && /^https:\/\//.test(url) && !officialImages.has(name)) officialImages.set(name, url);
   }
-  return mergeLidlStructuredAndLeaflet(structured, filtered, today).map(item =>
+  const merged = mergeLidlStructuredAndLeaflet(structured, filtered, today);
+  // Preserve a machine-readable list of unmatched leaflet images for the offer DBG.
+  // Only the official feed can supply an automatic image match here.
+  return merged.map(item =>
     String(item.id || "").startsWith("lidl-leaflet-")
       ? { ...item, storeKey, storeName, storeLabel: storeName, shopName: storeName,
           imageUrl: item.imageUrl || officialImages.get(imageKey(item.name || item.title)) || "",
           image: item.image || officialImages.get(imageKey(item.name || item.title)) || "",
           pictureUrl: item.pictureUrl || officialImages.get(imageKey(item.name || item.title)) || "",
+          imageMatchStatus: (item.imageUrl || officialImages.get(imageKey(item.name || item.title))) ? "official-exact-title" : "missing-leaflet-image",
           category: item.id === "lidl-leaflet-carrot" ? "Hevi" :
             item.id === "lidl-leaflet-pizza-ice-cream" ? "Muut" : item.category,
           benefitText: item.priceBasis === "multi-buy-total"
