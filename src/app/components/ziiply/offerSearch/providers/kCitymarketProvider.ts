@@ -657,7 +657,30 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
 
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
-  // A leaflet can remain active after individual offers have expired (e.g.\n  // Sunday 40LV includes Thu-Sat deals). Filter per offer in Finnish local time.\n  const nowHelsinki=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());\n  const [todayYear,todayMonth,todayDay]=nowHelsinki.split("-").map(Number);\n  const todayStamp=todayYear*10000+todayMonth*100+todayDay;\n  const dateStamp=(value:string|undefined|null,referenceYear:number)=>{\n    const match=String(value??"").trim().match(/^(\\d{1,2})\\.(\\d{1,2})\\.(?:(\\d{4})\\.?)?$/);\n    if(!match)return null;\n    const day=Number(match[1]),month=Number(match[2]),year=match[3]?Number(match[3]):referenceYear;\n    const date=new Date(Date.UTC(year,month-1,day));\n    if(date.getUTCFullYear()!==year||date.getUTCMonth()!==month-1||date.getUTCDate()!==day)return null;\n    return year*10000+month*100+day;\n  };\n  const currentOffers=dated.filter(offer=>{\n    const from=dateStamp(offer.validFrom,todayYear);\n    let to=dateStamp(offer.validTo,todayYear);\n    // Handle year-crossing periods such as 30.12.-2.1.\n    if(from!==null&&to!==null&&to<from&&String(offer.validTo??"").match(/^(\\d{1,2})\\.(\\d{1,2})\\.$/)){\n      to=dateStamp(offer.validTo,todayYear+1);\n    }\n    return (from===null||from<=todayStamp)&&(to===null||to>=todayStamp);\n  });\n  const enriched=await enrichCitymarketFromEanBank(currentOffers);
+  // A leaflet can remain active after individual offers have expired (e.g.
+  // Sunday 40LV includes Thu-Sat deals). Filter per offer in Finnish local time.
+  const nowParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+  const datePart=(type:string)=>Number(nowParts.find(part=>part.type===type)?.value);
+  const todayYear=datePart("year"),todayMonth=datePart("month"),todayDay=datePart("day");
+  const todayStamp=todayYear*10000+todayMonth*100+todayDay;
+  const dateStamp=(value:string|undefined|null,referenceYear:number)=>{
+    const match=String(value??"").trim().match(/^(\\d{1,2})\\.(\\d{1,2})\\.(?:(\\d{4})\\.?)?$/);
+    if(!match)return null;
+    const day=Number(match[1]),month=Number(match[2]),year=match[3]?Number(match[3]):referenceYear;
+    const date=new Date(Date.UTC(year,month-1,day));
+    if(date.getUTCFullYear()!==year||date.getUTCMonth()!==month-1||date.getUTCDate()!==day)return null;
+    return year*10000+month*100+day;
+  };
+  const currentOffers=dated.filter(offer=>{
+    const from=dateStamp(offer.validFrom,todayYear);
+    let to=dateStamp(offer.validTo,todayYear);
+    // Handle year-crossing periods such as 30.12.-2.1.
+    if(from!==null&&to!==null&&to<from&&String(offer.validTo??"").match(/^(\\d{1,2})\\.(\\d{1,2})\\.$/)){
+      to=dateStamp(offer.validTo,todayYear+1);
+    }
+    return (from===null||from<=todayStamp)&&(to===null||to>=todayStamp);
+  });
+  const enriched=await enrichCitymarketFromEanBank(currentOffers);
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
