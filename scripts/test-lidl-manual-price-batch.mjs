@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import { processLidlManualPriceBatch as process } from "./lib/lidl-manual-price-batch.mjs";
+const at=new Date("2026-10-04T12:00:00Z");
+const base={permissionToUseEvidence:true,isLidlPlus:false,isPromotion:false,isMultiBuy:false,priceBasis:"unit",lidlProductId:"123",storeId:"A",receiptUnitPriceEur:1.29,receiptEvidenceReference:"SYNTHETIC-ONLY",receiptTimestamp:"2026-10-04T10:00:00Z",validThrough:"2026-10-05T10:00:00Z",shelfPriceEur:1.29};
+const result=process([{...base},{...base,lidlProductId:"999"},{...base,isLidlPlus:true},{...base,storeId:"B"}],["123"],"A",at);
+assert.equal(result.inputCount,4);
+assert.equal(result.acceptedCount,1);
+assert.equal(result.rejectedCount,3);
+assert.deepEqual(result.rejected.map(x=>x.reason),["eligibility-unconfirmed-or-promotional","unknown-product","store-mismatch"]);
+assert.equal(result.prices[0].regularPriceEur,1.29);
+assert.equal(result.status,"research-only-not-published");
+assert.equal(process([],["123"],"A",at).acceptedCount,0);
+assert.throws(()=>process(null,["123"],"A",at),TypeError);
+console.log("PASS: manual Lidl price batch validates inputs, store, eligibility and report counts");
