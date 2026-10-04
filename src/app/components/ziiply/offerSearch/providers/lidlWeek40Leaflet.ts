@@ -28,9 +28,9 @@ export function addVerifiedLidlWeek40Leaflet(
       id: row.id,
       name: row.name,
       price: row.printedPriceEur,
-      priceBasis: row.priceBasis === "kg" ? "per-kg" :
+      priceBasis: (row.priceBasis === "kg" ? "per-kg" :
         row.priceBasis === "multi-buy" ? "multi-buy-total" :
-        row.priceBasis === "bundle" ? "bundle" : "unit",
+        row.priceBasis === "bundle" ? "bundle" : "unit") as LidlLeafletEnrichment["priceBasis"],
       validFrom: row.validFrom,
       validUntil: row.validThrough as string,
       source: "verified-official-leaflet",
