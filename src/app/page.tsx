@@ -11695,38 +11695,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  // V805: refresh the selected K-Citymarket, K-Supermarket or K-Market
-  // publications while Gösta is open. The provider resolves currently active
-  // publication IDs/validity on each fresh request. Preserve the previous cards
-  // during refresh; Citymarket's national period archive remains independent.
-  useEffect(() => {
-    if (activeResult !== "offers" || searchPanelOpen || !storeModeChosenV299) return;
-    const refresh = () => {
-      if (document.visibilityState !== "visible") return;
-      if (gostaSelectedOfferChainRefV547.current !== "K") return;
-      const name = String(activeArea.kStoreName || activeStores.kStoreName || "");
-      if (!/\b(?:k[\s-]*)?(?:citymarket|supermarket|market)\b/i.test(name)) return;
-      void searchOffers(undefined, true);
-    };
-    // Refresh immediately on foreground return if the scheduled interval elapsed
-    // while the browser was hidden. Avoid duplicate requests near a timer tick.
-    let lastCheckAt = Date.now();
-    const refreshIfDue = () => {
-      if (document.visibilityState !== "visible") return;
-      const now = Date.now();
-      if (now - lastCheckAt < 15 * 60 * 1000) return;
-      lastCheckAt = now;
-      refresh();
-    };
-    const onVisibilityChange = () => refreshIfDue();
-    const timer = window.setInterval(refreshIfDue, 15 * 60 * 1000);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      window.clearInterval(timer);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [activeResult, searchPanelOpen, storeModeChosenV299, activeArea.kStoreName, activeStores.kStoreName]);
-
   // V784: if the selected S/K store changes while Gösta is already open
   // (for example a boot/GPS refresh finishes after the first request started),
   // immediately issue a fresh request for the now-visible store. The request
