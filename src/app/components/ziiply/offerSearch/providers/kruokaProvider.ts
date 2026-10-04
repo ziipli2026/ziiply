@@ -604,7 +604,14 @@ export async function fetchKruokaOffers(
         : "Dominant-publication safety criteria not met",
     };
 
+    // A campaign publication must still belong to the selected store: fronts was scoped
+    // by localBusinessIds above. Preserve its rows even if Tjek stores(publicationId)
+    // omits the local store (a known issue for shared K-chain publications).
     for (const id of campaignPublicationIds) allowed.add(id);
+    // The same scoped fronts response also establishes selected-store eligibility
+    // for other active publications. Do not discard their offers solely because the
+    // separate publication->stores lookup is incomplete.
+    for (const id of resolvedPublications.ids) allowed.add(id);
     if (acceptDominantAsChainPublication && dominant) {
       allowed.add(dominant.publicationPublicId);
     }
