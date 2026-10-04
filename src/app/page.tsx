@@ -3684,6 +3684,7 @@ export default function Page() {
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
 
+  const [reloadViewHydratedV820, setReloadViewHydratedV820] = useState(false);
   const [activeResult, setActiveResult] = useState<
     "none" | "offers" | "compare" | "singleCompare"
   >("none");
@@ -7214,6 +7215,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } finally {
       cartHasLoadedRef.current = true;
       storeSelectionHydratedRefV343.current = true;
+      // Never paint the default home cards before the saved panel/cart are restored.
+      setReloadViewHydratedV820(true);
     }
   }, []);
 
@@ -20806,6 +20809,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       </div>
     );
   }
+
+  if (!reloadViewHydratedV820) return null;
 
   return (
     <>
