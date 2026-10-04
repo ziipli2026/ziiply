@@ -1,7 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import {
-  activePublications, isNewPublication, publicationState,
-  type OfferPublication, type StagedPublication,
+  publicationState, type StagedPublication,
 } from "./publicationLifecycle";
 
 /** Persistent staged leaflet editions; no request may publish an upcoming edition. */
