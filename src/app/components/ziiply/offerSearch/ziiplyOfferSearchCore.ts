@@ -702,7 +702,7 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   // collapse different leaflet offers just because their shortened names/prices match.
   const sourceOffer = anyItem?.__sourceOfferSearchResult ?? anyItem;
   if (sourceOffer?.source === "etarjouslehdet" && sourceOffer?.offerId) {
-    return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.offerId)}`;
+    return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug?.publicationId || "")}:${String(sourceOffer.offerId)}`;
   }
   if (ean) return `${sourceTab}:ean:${ean}`;
 
