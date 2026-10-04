@@ -17090,10 +17090,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setComparisonLoading(false);
     if ([...Object.values(sMatches), ...Object.values(kMatches)].some(match => Number(match.price) > 0)) {
       setActiveResult("compare");
-    } else {
-      setActiveResult("none");
-      showCartToast("Vertailua ei ole vielä tehty. Käynnistä se Halpuuta-painikkeella.");
+      return;
     }
+    // After reload the persisted comparison may not yet have been hydrated into
+    // React state. Recover its priced snapshot without invoking the matcher.
+    try {
+      const raw = window.localStorage.getItem("ziiply-comparison-snapshot-v1");
+      const snapshot = raw ? JSON.parse(raw) : null;
+      const eligible = cart.filter(isComparisonEligibleV797);
+      const matches: Match[] = [
+        ...Object.values(snapshot?.sMatches || {}),
+        ...Object.values(snapshot?.kMatches || {}),
+      ] as Match[];
+      const currentIds = new Set(eligible.map(item => String(item.id)));
+      if (eligible.length > 0 && matches.some(match => Number(match.price) > 0) &&
+          matches.every(match => currentIds.has(String(match.cartItemId))) &&
+          eligible.every(item => matches.some(match => String(match.cartItemId) === String(item.id)))) {
+        setSMatches(snapshot.sMatches);
+        setKMatches(snapshot.kMatches);
+        setActiveResult("compare");
+        return;
+      }
+    } catch {}
+    // A missing snapshot is not permission to launch a new comparison or
+    // expose the home screen: retain the cart and explain what is missing.
+    setActiveResult("none");
+    setCartModalOpen(true);
+    showCartToast("Tallennettua vertailua ei löytynyt. Voit käynnistää vertailun Halpuuta-painikkeella.");
   }
 
   function openShopsPanel() {
