@@ -1,0 +1,38 @@
+{
+  "observed_at": "2026-10-04",
+  "purpose": "Crosscheck only; no newly counted SKU",
+  "checks": [
+    {
+      "match": "Vemondo Vegan Topping Mozzarella Flavour 150 g",
+      "existing_file": "2026-10-04-category-audit-batch-03.json",
+      "official_source": "https://www.lidl.fi/c/edullisesti-kotiin/",
+      "evidence": "Lidl recall dated 2026-08-28, batch L1141152, best before 2026-11-19",
+      "action": "Mark historical product identity confirmed; do not infer EAN, product page, image or current stock; recalled batch must not be recommended"
+    },
+    {
+      "match": "Bellarom Hieno Mokka 500 g",
+      "existing_file": "2026-10-04-official-category-candidates.json",
+      "official_source": "https://www.lidl.fi/c/hinnanpudotus/s10082102",
+      "evidence": "Official Lidl price-drop page rendered 2026-09-06; listed price EUR 4.99 at that time",
+      "action": "Do not promote September price to October normal price"
+    },
+    {
+      "match": "Bellarom Gold-suodatinkahvi 500 g",
+      "official_source": "https://www.lidl.fi/c/hinnanpudotus/s10082102",
+      "evidence": "Official Lidl price-drop page rendered 2026-09-06; listed EUR 5.49",
+      "action": "Historical price evidence only"
+    },
+    {
+      "match": "Bellarom Alkuperämaakahvi 250 g",
+      "official_source": "https://www.lidl.fi/c/hinnanpudotus/s10082102",
+      "evidence": "Official Lidl price-drop page rendered 2026-09-06; listed EUR 3.99",
+      "action": "Historical price evidence only"
+    },
+    {
+      "match": "Bellarom Extra Dark Roast -suodatinkahvi 500 g",
+      "official_source": "https://www.lidl.fi/c/hinnanpudotus/s10082102",
+      "evidence": "Official Lidl price-drop page rendered 2026-09-06; listed EUR 5.49",
+      "action": "Historical price evidence only"
+    }
+  ]
+}
