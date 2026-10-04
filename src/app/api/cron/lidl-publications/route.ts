@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { fetchLidlDatedOffersForStaging } from "@/app/components/ziiply/offerSearch/providers/lidlProvider";
 import { storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { publicationState } from "@/app/components/ziiply/offerSearch/publicationLifecycle";
+import { inspectOfferPublication } from "@/app/components/ziiply/offerSearch/publicationDiagnostics";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -36,7 +37,8 @@ export async function GET(request: Request) {
         )).digest("hex").slice(0, 20)}`,
         validFrom, validUntil, parsedAt: new Date().toISOString(), offers,
       });
-      outcomes.push({ period, count: offers.length, outcome });
+      const quality = inspectOfferPublication(offers, validFrom, validUntil);
+      outcomes.push({ period, count: offers.length, outcome, quality });
     }
     await recordPublicationRun({ chain: "LIDL:FI0218", source: "official-lidl-dated-offers", ok: true,
       count: rows.length, outcome: "staging-completed", details: { periods: outcomes } }).catch(() => undefined);
