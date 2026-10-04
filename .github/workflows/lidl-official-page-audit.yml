@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate collector syntax
+        run: node --check scripts/audit-lidl-official-pages.mjs
       - name: Collect official page evidence
         run: node scripts/audit-lidl-official-pages.mjs --all --output=lidl-official-page-results.json
       - name: Print evidence summary
