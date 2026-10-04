@@ -44,6 +44,37 @@ for (const item of records.slice(0, limit)) {
       row.htmlTitle = decode(html.match(/<title[^>]*>(.*?)<[/]title>/is)?.[1] || "");
       row.imageMarkupCounts = { img: (html.match(/<img\b/gi) || []).length, picture: (html.match(/<picture\b/gi) || []).length, jsonLd: (html.match(/application[/]ld[+]json/gi) || []).length, nextImage: (html.match(/_next[/]image/gi) || []).length };
       row.htmlBytes = html.length;
+      // Collect only structured Product offers, as evidence for later price review.
+      // Never infer a current store price from an arbitrary campaign or page text.
+      row.structuredPriceEvidence = [];
+      for (const script of html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
+        try {
+          const parsed = JSON.parse(script[1]);
+          const nodes = [];
+          const visit = value => {
+            if (!value || typeof value !== "object") return;
+            if (Array.isArray(value)) { value.forEach(visit); return; }
+            if (value["@type"] === "Product" || (Array.isArray(value["@type"]) && value["@type"].includes("Product"))) nodes.push(value);
+            if (value["@graph"]) visit(value["@graph"]);
+          };
+          visit(parsed);
+          for (const product of nodes) {
+            const offers = Array.isArray(product.offers) ? product.offers : product.offers ? [product.offers] : [];
+            for (const offer of offers) {
+              if (offer.price == null && offer.priceSpecification?.price == null) continue;
+              row.structuredPriceEvidence.push({
+                productName: product.name ?? null,
+                price: offer.price ?? offer.priceSpecification?.price,
+                currency: offer.priceCurrency ?? offer.priceSpecification?.priceCurrency ?? null,
+                validFrom: offer.validFrom ?? null,
+                validThrough: offer.validThrough ?? offer.priceValidUntil ?? null,
+                evidenceType: "jsonld-product-offer-unverified-price-kind",
+                usableAsCurrentNormalPrice: false
+              });
+            }
+          }
+        } catch { /* malformed or non-product structured metadata is not price evidence */ }
+      }
       if (image) { try { const url = new URL(image, response.url); if (url.protocol === "https:" && imageHostAllowed(url.hostname)) row.candidateImageUrl = url.href; else row.imageStatus = "external_or_insecure_meta_image"; } catch { row.imageStatus = "invalid_meta_image_url"; } }
       if (!image) row.imageStatus = "not_found_in_meta";
       else if (row.candidateImageUrl) row.imageStatus = genericImage(row.candidateImageUrl) ? "generic_meta_image" : row.productIdInCanonical && row.titleMatchesProduct ? "product_page_image_candidate" : "page_identity_not_confirmed";
