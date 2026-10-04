@@ -43,3 +43,29 @@ export function activePublications<T extends OfferPublication>(publications: rea
 export function isNewPublication(publications: readonly Pick<OfferPublication, "chain" | "id">[], chain: string, id: string): boolean {
   return Boolean(chain && id) && !publications.some((publication) => publication.chain === chain && publication.id === id);
 }
+
+/**
+ * Build an immutable staging snapshot. A failed discovery must not replace the
+ * last working edition; unchanged edition IDs are not re-parsed.
+ */
+export type StagedPublication<T> = OfferPublication & { offers: readonly T[] };
+export function stagePublication<T>(
+  existing: readonly StagedPublication<T>[],
+  candidate: StagedPublication<T> | null | undefined,
+): StagedPublication<T>[] {
+  if (!candidate || !candidate.chain || !candidate.id ||
+      publicationState(candidate, candidate.validFrom) === "invalid" ||
+      !Array.isArray(candidate.offers) || candidate.offers.length === 0 ||
+      !isNewPublication(existing, candidate.chain, candidate.id)) return [...existing];
+  return [...existing, candidate];
+}
+
+/** Choose a stored edition only when its actual validity includes the Finnish date. */
+export function visibleStagedOffers<T>(
+  staged: readonly StagedPublication<T>[],
+  chain: string,
+  at: Date = new Date(),
+): T[] {
+  const current = activePublications(staged.filter((entry) => entry.chain === chain), at);
+  return current.flatMap((entry) => [...entry.offers]);
+}
