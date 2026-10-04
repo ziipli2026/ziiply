@@ -464,6 +464,14 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     ? priceText(effective)
     : `${priceText(effective)} € / ${offerQuantity} kpl`;
   const category = mapTjekCategoryV54(offer);
+  // Only explicit source campaign metadata may move an item to Gösta's
+  // campaign tab. Plussa/app prices and multi-buy alone are still offers.
+  const campaignMarker = [
+    offer.campaignType, offer.offerType, offer.promotionType,
+    offer.campaignLabel, offer.publicationLabel,
+  ].map(value => String(value ?? "").trim().toLowerCase());
+  const isCampaign = offer.isCampaign === true ||
+    campaignMarker.some(value => /^(campaign|kampanja)(?:$|[\s:_-])/.test(value));
   return {
     id: `etarjouslehdet-v59-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
@@ -473,6 +481,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     imageUrl: image, image, pictureUrl: image,
     storeId: displayStoreId, storeName: displayStoreName, storeLabel: displayStoreName,
     chain: "K", source: "etarjouslehdet", provider: "kruoka", offerId,
+    campaignType: isCampaign ? "campaign" : "offer",
     additionalInfo: offer.description ?? null,
     benefitText: isPlussa ? "Plussa-tarjous" : app != null ? "Mobiilitarjous" : undefined,
     validityText: validityText(offer.validUntil),
