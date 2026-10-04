@@ -488,6 +488,12 @@ function dedupe(items: UnknownRecord[]) {
     const key = String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
       ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
       : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
+    // The provider has already deduplicated Tjek rows by their source identity.
+    // Never collapse its regional and local leaflet rows in this cross-provider pass.
+    if (String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId) {
+      out.push(item);
+      continue;
+    }
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(item);
