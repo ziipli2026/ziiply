@@ -3791,6 +3791,29 @@ export default function Page() {
     });
   }, []);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const mobileViewRestoredV812 = useRef(false);
+  // Remember the visible tab, not merely the contents of the cart.
+  useEffect(() => {
+    const restore = window.setTimeout(() => {
+      const view = window.sessionStorage.getItem("ziiply-mobile-view-v812");
+      if (view === "shops") setShopsPanelOpen(true);
+      else if (view === "search") setSearchPanelOpen(true);
+      else if (view === "cart") setCartModalOpen(true);
+      else if (view === "compare") {
+        // Restore navigation only; the comparison snapshot is restored separately.
+        setActiveResult("compare");
+      }
+      mobileViewRestoredV812.current = true;
+    }, 320);
+    return () => window.clearTimeout(restore);
+  }, []);
+  useEffect(() => {
+    if (!mobileViewRestoredV812.current) return;
+    const view = shopsPanelOpen ? "shops" : searchPanelOpen ? "search" :
+      cartModalOpen ? "cart" : activeResult === "compare" ? "compare" : "home";
+    window.sessionStorage.setItem("ziiply-mobile-view-v812", view);
+  }, [shopsPanelOpen, searchPanelOpen, cartModalOpen, activeResult]);
+
   const [inlineHakutapaNoticeVisibleV452, setInlineHakutapaNoticeVisibleV452] = useState(false);
   const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
   const [mapRouteOverlayOpenV428, setMapRouteOverlayOpenV428] = useState(false);
@@ -16962,6 +16985,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function openComparisonView() {
     if (cart.length === 0) {
       showCartToast("Lisää ensin tuote koriin.");
+      return;
+    }
+
+    // Bottom navigation is navigation: existing priced comparison results must
+    // not be replaced by a fresh matcher run merely on reopening the tab.
+    if (Object.values(sMatches).some(m => Number(m.price) > 0) ||
+        Object.values(kMatches).some(m => Number(m.price) > 0)) {
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("compare");
+      setComparisonLoading(false);
       return;
     }
 
