@@ -94,7 +94,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
 export type KCitymarketTjekImageDebug={fronts:number;publications:number;pages:number;offerIds:number;offersWithImage:number;uniqueImages:number;stage:string;error:string|null};
 let nationalTjekImageDebug:KCitymarketTjekImageDebug={fronts:0,publications:0,pages:0,offerIds:0,offersWithImage:0,uniqueImages:0,stage:"not-started",error:null};
 export function getKCitymarketNationalTjekImageDebug(){return {...nationalTjekImageDebug};}
-export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,string>> {
+export async function fetchKCitymarketNationalTjekImages(asOf=new Date()): Promise<Map<string,string>> {
   const stats:KCitymarketTjekImageDebug={fronts:0,publications:0,pages:0,offerIds:0,offersWithImage:0,uniqueImages:0,stage:"not-started",error:null};
   const images=new Map<string,string>();
   try {
@@ -108,7 +108,7 @@ export async function fetchKCitymarketNationalTjekImages(): Promise<Map<string,s
       if(reference)fronts=await tjek("fronts",{businessIds:[BUSINESS],coordinates:reference.coordinates});
     }catch(error){console.warn("[K-Citymarket] national Tjek fronts unavailable; trying public publication page",error);}
     stats.fronts=Array.isArray(fronts)?fronts.length:0;
-    const now=Date.now();
+    const now=asOf.getTime();
     const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front =>
       front && typeof front==="object" && Array.isArray((front as Row).publications)
         ? (front as Row).publications as Row[] : [])
