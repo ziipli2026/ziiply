@@ -578,6 +578,7 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
             ...(payloadV174.kruokaDebug ? { ...payloadV174.kruokaDebug } : {}),
             ...(deployV184 ? { deploy: deployV184 } : {}),
             ...(payloadV174.sEvidenceRouteV228 ? { sEvidenceRouteV228: payloadV174.sEvidenceRouteV228 } : {}),
+            ...(payloadV174.kOfferStageAuditV1 ? { kOfferStageAuditV1: payloadV174.kOfferStageAuditV1 } : {}),
           }
         : null;
     if (contextKey) {
