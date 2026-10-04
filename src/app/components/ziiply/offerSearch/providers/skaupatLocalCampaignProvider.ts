@@ -848,7 +848,30 @@ export async function fetchSKaupatLocalCampaignOffersV1(
       return [];
     }
 
-    return deduped;
+    // Keep the proven ordinary Offers result untouched. A second, independently
+    // typed result exposes only explicitly dated discounted campaign prices to
+    // Gösta's Campaigns tab. Deduplication upstream is tab-scoped.
+    const today = currentFinnishDateV1();
+    const campaigns = deduped.flatMap((item: any) => {
+      const evidence = item.debugLocalCampaignEvidenceV231;
+      const until = String(evidence?.campaignPriceValidUntil ?? "").slice(0, 10);
+      const campaign = evidence?.campaignPrice;
+      const regular = evidence?.regularPrice;
+      if (
+        evidence?.priceBelowRegular !== true ||
+        campaign == null ||
+        regular == null ||
+        !Number.isFinite(Number(campaign)) ||
+        !Number.isFinite(Number(regular)) ||
+        Number(campaign) <= 0 ||
+        Number(campaign) >= Number(regular) ||
+        !/^\\d{4}-\\d{2}-\\d{2}$/.test(until) ||
+        until < today
+      ) return [];
+      return [{ ...item, campaignType: "campaign", validityText: `Voimassa ${until}` }];
+    });
+
+    return [...deduped, ...campaigns];
   } catch (error) {
     return [];
   }
