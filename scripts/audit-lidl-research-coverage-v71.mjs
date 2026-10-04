@@ -11,10 +11,11 @@ const previous=[
 const unique = (rows,label) => { const ids=rows.map(r=>String(r.lidlProductId)); if(new Set(ids).size!==ids.length)throw Error(label+" contains duplicate product IDs"); return new Map(rows.map(r=>[String(r.lidlProductId),r])); };
 const catalog=unique(products,"catalog"),imageById=unique(images,"images"),previousById=unique(previous,"previous prices");
 const missingImage=[...catalog.keys()].filter(id=>!imageById.get(id)?.imageUrl);
+const missingImageDetails=missingImage.map(id=>({id,name:catalog.get(id)?.name??null,imageStatus:catalog.get(id)?.imageStatus??null,availabilityStatus:catalog.get(id)?.availabilityStatus??null}));
 const orphanImages=[...imageById.keys()].filter(id=>!catalog.has(id));
 const orphanPrevious=[...previousById.keys()].filter(id=>!catalog.has(id));
 const visiblePrevious=[...catalog.keys()].filter(id=>previousById.has(id));
 const regularPrices=[...catalog.values()].filter(r=>Number.isFinite(r.priceEur)&&r.priceEur>0&&r.priceUsePolicy!=="do-not-publish-as-current-normal-price");
-const report={catalogProducts:catalog.size,officialImageUrls:imageById.size,matchedImageUrls:catalog.size-missingImage.length,missingImageIds:missingImage,orphanImageIds:orphanImages,previousDisplayedPriceObservations:previousById.size,matchedPreviousPriceObservations:visiblePrevious.length,orphanPreviousPriceIds:orphanPrevious,approvedRegularPricesInCatalog:regularPrices.length,checkoutVerifiedRegularPrices:0,warning:"Historical promotional reference prices are not current regular checkout prices; image URLs are research-only."};
+const report={catalogProducts:catalog.size,officialImageUrls:imageById.size,matchedImageUrls:catalog.size-missingImage.length,missingImageIds:missingImage,missingImageDetails,orphanImageIds:orphanImages,previousDisplayedPriceObservations:previousById.size,matchedPreviousPriceObservations:visiblePrevious.length,orphanPreviousPriceIds:orphanPrevious,approvedRegularPricesInCatalog:regularPrices.length,checkoutVerifiedRegularPrices:0,warning:"Historical promotional reference prices are not current regular checkout prices; image URLs are research-only."};
 console.log(JSON.stringify(report,null,2));
 // Historical observations may legitimately cover a different official product category.\n// Image IDs, however, must belong to the audited Paistopiste catalog.\nif(orphanImages.length)process.exitCode=1;
