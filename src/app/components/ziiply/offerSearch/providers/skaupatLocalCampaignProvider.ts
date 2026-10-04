@@ -825,12 +825,8 @@ export async function fetchSKaupatLocalCampaignOffersV1(
           query,
           index++,
         );
-        // Do not surface ordinary-price CMS recommendations as Gösta offers.
-        // Preserve the existing Offers tab and its product mapping; campaign-tab
-        // classification needs separate, verified campaign-source semantics.
-        if (item && (item as any).debugLocalCampaignEvidenceV231?.priceBelowRegular === true) {
-          mapped.push(item);
-        }
+        // Keep all store-scoped CMS rows until we partition the two tabs below.
+        if (item) mapped.push(item);
       }
     }
 
@@ -848,29 +844,37 @@ export async function fetchSKaupatLocalCampaignOffersV1(
       return [];
     }
 
-    // Keep the proven ordinary Offers result untouched. A second, independently
-    // typed result exposes only explicitly dated discounted campaign prices to
-    // Gösta's Campaigns tab. Deduplication upstream is tab-scoped.
+    // RemoteGetPageContent /tuotteet/kampanjat is a mixed merchandising
+    // collection. A discounted row belongs to Offers; a non-discounted CMS
+    // selection belongs to Campaigns. Never clone the same EAN to both tabs.
+    // Reject inconsistent campaignPrice > regularPrice/currentPrice records.
     const today = currentFinnishDateV1();
-    const campaigns = deduped.flatMap((item: any) => {
+    const offers: ZiiplyOfferSearchResult[] = [];
+    const campaigns: ZiiplyOfferSearchResult[] = [];
+    for (const item of deduped as any[]) {
       const evidence = item.debugLocalCampaignEvidenceV231;
       const until = String(evidence?.campaignPriceValidUntil ?? "").slice(0, 10);
+      if (until && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(until) || until < today)) continue;
       const campaign = evidence?.campaignPrice;
       const regular = evidence?.regularPrice;
+      const current = evidence?.currentPrice;
       if (
-        evidence?.priceBelowRegular !== true ||
-        campaign == null ||
-        regular == null ||
-        !Number.isFinite(Number(campaign)) ||
-        !Number.isFinite(Number(regular)) ||
-        Number(campaign) <= 0 ||
-        Number(campaign) >= Number(regular) ||
-        (until.length > 0 && (!/^\d{4}-\d{2}-\d{2}$/.test(until) || until < today))
-      ) return [];
-      return [{ ...item, campaignType: "campaign", validityText: until ? `Voimassa ${until}` : item.validityText }];
-    });
-
-    return [...deduped, ...campaigns];
+        campaign != null &&
+        Number.isFinite(Number(campaign)) &&
+        ((regular != null && Number(campaign) > Number(regular)) ||
+          (current != null && Number(campaign) > Number(current)))
+      ) continue;
+      if (evidence?.priceBelowRegular === true) {
+        offers.push(item);
+      } else if (Number.isFinite(Number(current)) && current != null && Number(current) > 0) {
+        campaigns.push({
+          ...item,
+          campaignType: "campaign",
+          validityText: until ? `Voimassa ${until}` : item.validityText,
+        } as ZiiplyOfferSearchResult);
+      }
+    }
+    return [...offers, ...campaigns];
   } catch (error) {
     return [];
   }
