@@ -1013,6 +1013,9 @@ function classifyCategory(title: string, sectionTitle: string) {
   const classifyProductOnly = (text: string): string => {
     if (!text) return "";
 
+    // Product type wins over a misleading brochure section or incidental dairy words.
+    if (/\bpizz(?:a|at|o|an|aa|ojen)\b|\bpizza/.test(text)) return "Valmisruoka";
+
     // Ehdoton yliajo: limsa/virvoitusjuoma ei saa koskaan mennä Maitotuotteisiin,
     // vaikka section tai muu teksti sisältäisi maitotuote-viitteitä.
     if (isSoftDrinkOrNonDairyDrink(text) || isSoftDrinkOrNonDairyDrink(combinedText)) return "Juomat";
@@ -1072,6 +1075,9 @@ function normalizeFinalProviderCategoryV41(title: string, sectionTitle: string, 
   // V41: Tämä on viimeinen providerin oma korjauskerros.
   // Tarkoitus ei ole käyttää aktiivista filtteriä eikä core-luokitusta, vaan korjata
   // Tjek/section-parserin mahdolliset vuodot tuotteen nimen ja selkeän sectionin perusteella.
+
+  // Pizza is prepared food even when a brochure section or ingredients suggest dairy.
+  if (/\bpizz(?:a|at|o|an|aa|ojen)\b|\bpizza/.test(titleText)) return "Valmisruoka";
 
   // 1) Lemmikit ennen lihaa: "Possu koiranruoka" ei saa mennä Lihaan.
   if (/koiranruoka|kissanruoka|lemmik|koira|kissa|pedigree|whiskas|sheba|purina|friskies|rehti\s+possu/.test(titleText)) {
