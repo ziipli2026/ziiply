@@ -1,6 +1,10 @@
 name: Lidl official product page audit
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lidl-official-page-audit.yml'
 jobs:
   audit:
     runs-on: ubuntu-latest
