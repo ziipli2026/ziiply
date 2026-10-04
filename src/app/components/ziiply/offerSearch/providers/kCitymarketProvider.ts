@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
+import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
 
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V14
@@ -631,6 +632,7 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     }
     const stats={total:offers.length,bankRows:rows.length,matched:0,ambiguous:0,missing:0,invalidImage:0,groupOffer:0};
     const enriched=offers.map(offer=>{
+      if(offer.imageUrl)return offer;
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
       if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title)){stats.groupOffer++;return offer;}
@@ -683,7 +685,11 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
 
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
-  const enriched=await enrichCitymarketFromEanBank(dated);
+  const publisherImages=dated.map(offer=>{
+    const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id);
+    return imageUrl?{...offer,imageUrl}:offer;
+  });
+  const enriched=await enrichCitymarketFromEanBank(publisherImages);
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
