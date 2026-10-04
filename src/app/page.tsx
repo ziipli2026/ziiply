@@ -16751,7 +16751,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // refer to the same selected shop. Do not erase a valid cart price on
       // reload just because its display prefix differs.
       const canonicalStoreV808 = (name: string) =>
-        normalize(name).replace(/^k[\\s-]+(?=(?:citymarket|supermarket|market)\\b)/, "");
+        normalize(name).replace(/^k[\s-]+(?=(?:citymarket|supermarket|market)\b)/, "");
       const storeChangedV797 =
         Boolean(target.storeName) &&
         canonicalStoreV808(cachedStoreV797) !== canonicalStoreV808(target.storeName);
