@@ -8983,11 +8983,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
     // Normalize the actual matches BEFORE passing them to either the total or the mobile row renderer.
     // Otherwise a restored 0.01 placeholder can yield 1.60 € for visible 1.45 € + 1.59 € rows.
+    // Provider matches currently mix cent-valued grocery prices (439 = 4.39 €)
+    // with already-euro-denominated substitutes (Santa Maria = 1.45 €).
+    // Normalize ONCE at the comparison-data boundary; do not change the
+    // mobile comparison card's existing euro/cent display contract.
+    const normalizeComparisonUnitV807 = (raw: number) =>
+      raw >= 100 ? raw / 100 : raw;
     const normalizeVisibleMatchesV804 = (matches: Match[]) => matches.map((match) => {
-      const productPrice = getProductPrice(match.product);
-      const price = Number(match.price);
-      const resolved = Number.isFinite(productPrice) && productPrice >= 0.05 ? productPrice : price;
-      return { ...match, price: resolved };
+      const productPrice = Number(getProductPrice(match.product));
+      const rawPrice = Number(match.price);
+      const resolvedRaw = Number.isFinite(productPrice) && productPrice >= 0.05 ? productPrice : rawPrice;
+      return { ...match, price: normalizeComparisonUnitV807(resolvedRaw) };
     }).filter((match) => Number.isFinite(match.price) && match.price >= 0.05);
     const visibleSListV804 = normalizeVisibleMatchesV804(sList);
     const visibleKListV804 = normalizeVisibleMatchesV804(kList);
