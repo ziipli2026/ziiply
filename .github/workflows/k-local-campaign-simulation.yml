@@ -51,7 +51,7 @@ jobs:
             const rows=await fetchKruokaOffers('__ziiply_all_offers__', {} as any, {storeName,kStoreName:storeName});
             const debug=getLastKruokaPipelineDebugV49();
             const campaigns=rows.filter(row=>(row as any).campaignType==='campaign');
-            console.log('K_CAMPAIGN_PROBE '+JSON.stringify({storeName,total:rows.length,campaigns:campaigns.length,probe:debug?.campaignProbe,publicationFetch:debug?.publicationFetch,publicationPipeline:debug?.publicationPipeline,error:debug?.error,publications:debug?.kSupermarketPublicationResolverDebug?.publications?.map(p=>({label:p.label,id:p.id,active:p.active})),samples:campaigns.slice(0,3).map(x=>({title:x.title,price:x.price}))}));
+            console.log('K_CAMPAIGN_PROBE '+JSON.stringify({storeName,total:rows.length,campaigns:campaigns.length,probe:debug?.campaignProbe,publicationFetch:debug?.publicationFetch,publicationPipeline:debug?.publicationPipeline,sourceMarkers:(debug?.rawOffers??[]).slice(0,8).map(o=>({publicationPublicId:o.publicationPublicId,name:o.name,campaignType:o.campaignType,offerType:o.offerType,promotionType:o.promotionType,campaignLabel:o.campaignLabel,publicationLabel:o.publicationLabel,isCampaign:o.isCampaign,keys:Object.keys(o).filter(k=>/campaign|promo|type|label|source|category/i.test(k))})),error:debug?.error,publications:debug?.kSupermarketPublicationResolverDebug?.publications?.map(p=>({label:p.label,id:p.id,active:p.active})),samples:campaigns.slice(0,3).map(x=>({title:x.title,price:x.price}))}));
             if(debug?.error || campaigns.length===0) failures++;
           }
           if(failures) {console.error('Campaign source validation failed for '+failures+' store(s)');process.exitCode=1;}
