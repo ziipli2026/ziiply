@@ -7004,6 +7004,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function getCartItemMemoryKey(item: CartItem) {
     const ean = normalizeEan(item.ean || item.product?.ean);
+    // Tjek leaflet rows are separate offers even when regional and local titles/prices match.
+    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+      return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || item?.campaignType || "offer")}`;
+    }
+
     if (ean) return `ean:${ean}`;
     return `name:${normalize(item.name)}`;
   }
@@ -8824,6 +8829,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         source?.ean || source?.gtin || source?.barcode || (item as any)?.ean || "",
       );
       const key = getGostaPageDedupeKeyV544(item);
+
+      // Preserve publication-specific Tjek offers before EAN/root fallback dedupe.
+      if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+        if (seen.has(key)) continue;
+        seen.add(key);
+        unique.push(item);
+        continue;
+      }
 
       // V534: jos EAN on olemassa, se on tuotteen yksilöllinen dedupe-avain.
       // Älä käytä root+hinta-avainta EAN-tuotteisiin, koska se yhdistää eri
