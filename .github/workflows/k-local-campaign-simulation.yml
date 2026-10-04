@@ -75,6 +75,26 @@ jobs:
             console.log('K_LOCAL_LATER_PAGES '+JSON.stringify({id,nonemptyOrErrors:counts}));
           }
           NODE
+          # Alternative path: query Tjek's offer index directly for the selected
+          # publication/store instead of relying on the empty publication viewer.
+          node --input-type=module <<'NODE'
+          const stable=v=>JSON.stringify(v,(_k,x)=>x&&Object.prototype.toString.call(x)==='[object Object]'?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x);
+          async function tjek(name,params,slug){
+            const key=Buffer.from(stable([name,params])).toString('base64');
+            const r=await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/'+slug},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(12000)});
+            if(!r.ok)throw Error('HTTP '+r.status);
+            for(const line of (await r.text()).split(/\\r?\\n/).filter(Boolean)){try{const j=JSON.parse(line);if(j.key===key)return j.value}catch{}}
+            throw Error('Missing Tjek response key');
+          }
+          for(const {slug,name,id} of [{slug:'K-Supermarket',name:'K-Supermarket Jokela',id:'ji1luTAL'},{slug:'K-Market',name:'K-Market Hakalantori',id:'aETRYhoN'}]){
+            try{
+              const business=await tjek('businesses',{pagination:{offset:0,limit:100}},slug);
+              console.log('K_ALT_BUSINESS '+JSON.stringify({name,businessCount:business?.data?.length}));
+              const rows=await tjek('offers',{publicationIds:[id],sources:['publication','business_product'],pagination:{offset:0,limit:1000},sort:['score_desc']},slug);
+              console.log('K_ALT_PUBLICATION '+JSON.stringify({name,id,count:rows?.data?.length??null,publications:(rows?.data??[]).slice(0,5).map(x=>({id:x.publicId,publicationPublicId:x.publicationPublicId,name:x.name}))}));
+            }catch(e){console.log('K_ALT_ERROR '+JSON.stringify({name,error:String(e)}));}
+          }
+          NODE
           cat > k-campaign-probe.mts <<'NODE'
           import { fetchKruokaOffers, getLastKruokaPipelineDebugV49 } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
           const stores = ['K-Supermarket Jokela','K-Market Hakalantori'];
