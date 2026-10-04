@@ -8126,7 +8126,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
     const openedFromSingleCompare = activeResult === "singleCompare";
 
-    transitionMobilePanel("search", () => {
+    // Switch from comparison to search atomically. Delaying the switch exposes
+    // the underlying cart/home layer for one animation frame.
+    (() => {
       setRestoredCartPromptV320({ open: false, count: 0 });
       setCartModalOpen(false);
       setShopsPanelOpen(false);
@@ -8150,7 +8152,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
-    });
+    })();
   }
 
   function toggleSearchPanel() {
@@ -23315,7 +23317,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            setActiveResult("none");
+            // openSearchPanel clears compare in the same React update as opening Hae.
             toggleSearchPanel();
           }}
           onCartClick={() => {
