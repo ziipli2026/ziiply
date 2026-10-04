@@ -345,12 +345,14 @@
       "priceStatus": "not_published_in_catalog",
       "ean": null,
       "imageUrl": null,
-      "imageStatus": "pending_verification",
-      "pageCheckedOn": null,
+      "imageStatus": "official_page_404_2026-10-04",
+      "pageCheckedOn": "2026-10-04",
       "category": "Paistopiste",
       "researchSubcategory": "paistopisteen-makeat",
       "categoryEvidence": "Lidl official Paistopiste groups: Paistopisteen leivät / makeat / suolaiset; name-based preliminary placement; manual review pending",
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "availabilityStatus": "seasonal_previous_listing_current_availability_unverified",
+      "availabilityEvidence": "Lidl Paistopiste listing indexed as erä / Myymälässä 3.8. alkaen; official product URL returned HTTP 404 in GitHub check"
     },
     {
       "lidlProductId": "10021479",
