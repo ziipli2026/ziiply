@@ -664,7 +664,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const todayYear=datePart("year"),todayMonth=datePart("month"),todayDay=datePart("day");
   const todayStamp=todayYear*10000+todayMonth*100+todayDay;
   const dateStamp=(value:string|undefined|null,referenceYear:number)=>{
-    const match=String(value??"").trim().match(/^(\\d{1,2})\\.(\\d{1,2})\\.(?:(\\d{4})\\.?)?$/);
+    const match=String(value??"").trim().match(/^(\d{1,2})\.(\d{1,2})\.(?:(\d{4})\.?)?$/);
     if(!match)return null;
     const day=Number(match[1]),month=Number(match[2]),year=match[3]?Number(match[3]):referenceYear;
     const date=new Date(Date.UTC(year,month-1,day));
