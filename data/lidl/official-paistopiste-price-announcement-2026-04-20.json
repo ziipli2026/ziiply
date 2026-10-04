@@ -1,0 +1,88 @@
+{
+  "source": "https://www.sttinfo.fi/tiedote/71968449/lidl-laskee-suosituimpien-paistopistetuotteiden-hintoja?lang=fi",
+  "publisher": "Lidl Suomi",
+  "publishedOn": "2026-04-20",
+  "effectiveFrom": "2026-04-20",
+  "observedOn": "2026-10-04",
+  "status": "historical_official_price_announcement_not_verified_current_2026_10_04",
+  "usage": "Research only. Do not inject into Justiina current prices, EAN bank or active store prices without new verification.",
+  "records": [
+    {
+      "name": "Riisipiirakka",
+      "lidlProductId": "40800",
+      "oldPriceEur": 0.39,
+      "announcedNewPriceEur": 0.33,
+      "unit": "piece",
+      "ean": null,
+      "imageUrl": null,
+      "currentPriceVerified": false,
+      "sourceMatch": "name-based; product ID from existing Lidl candidate catalog; article itself does not include product IDs"
+    },
+    {
+      "name": "Sulhaspiirakka",
+      "lidlProductId": "71014430",
+      "oldPriceEur": 0.35,
+      "announcedNewPriceEur": 0.29,
+      "unit": "piece",
+      "ean": null,
+      "imageUrl": null,
+      "currentPriceVerified": false,
+      "sourceMatch": "name-based; product ID from existing Lidl candidate catalog; article itself does not include product IDs"
+    },
+    {
+      "name": "Voicroissant",
+      "lidlProductId": "10014112",
+      "oldPriceEur": 0.65,
+      "announcedNewPriceEur": 0.49,
+      "unit": "piece",
+      "ean": null,
+      "imageUrl": null,
+      "currentPriceVerified": false,
+      "sourceMatch": "name-based; product ID from existing Lidl candidate catalog; article itself does not include product IDs"
+    },
+    {
+      "name": "Nakkicroissant",
+      "lidlProductId": "10023065",
+      "oldPriceEur": 1.29,
+      "announcedNewPriceEur": 1.19,
+      "unit": "piece",
+      "ean": null,
+      "imageUrl": null,
+      "currentPriceVerified": false,
+      "sourceMatch": "name-based; product ID from existing Lidl candidate catalog; article itself does not include product IDs"
+    },
+    {
+      "name": "Salamipizza",
+      "lidlProductId": "10015004",
+      "oldPriceEur": 1.69,
+      "announcedNewPriceEur": 1.49,
+      "unit": "piece",
+      "ean": null,
+      "imageUrl": null,
+      "currentPriceVerified": false,
+      "sourceMatch": "name-based; product ID from existing Lidl candidate catalog; article itself does not include product IDs"
+    },
+    {
+      "name": "Korvapuusti",
+      "lidlProductId": "413500",
+      "oldPriceEur": 0.88,
+      "announcedNewPriceEur": 0.79,
+      "unit": "piece",
+      "ean": null,
+      "imageUrl": null,
+      "currentPriceVerified": false,
+      "sourceMatch": "name-based; product ID from existing Lidl candidate catalog; article itself does not include product IDs"
+    },
+    {
+      "name": "Vehnäsämpylä",
+      "lidlProductId": "927810",
+      "oldPriceEur": 0.45,
+      "announcedNewPriceEur": 0.39,
+      "unit": "piece",
+      "ean": null,
+      "imageUrl": null,
+      "currentPriceVerified": false,
+      "sourceMatch": "name-based; product ID from existing Lidl candidate catalog; article itself does not include product IDs"
+    }
+  ]
+}
