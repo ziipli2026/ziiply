@@ -865,9 +865,12 @@
       "imageStatus": "pending_verification",
       "pageCheckedOn": null,
       "category": "Paistopiste",
-      "researchSubcategory": "paistopisteen-suolaiset",
-      "categoryEvidence": "Lidl Paistopiste official listing places Porkkanapiirakka under Suolaiset; do not infer sweet from name",
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "researchSubcategory": "paistopisteen-makeat",
+      "categoryEvidence": "Lidl corporate article says porkkanapiirakka was an Easter seasonal treat, sold from March 9; not a savory vegetable pie. https://corporate.lidl.fi/vastuullisuus/vuoropuhelu/kotimaisuus/myllyn-paras",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "availabilityReview": "historical-seasonal-product",
+      "reviewReason": "2023 corporate article explicitly identifies seasonal Easter assortment; current availability not established",
+      "categoryVerification": "official-corporate-editorial"
     },
     {
       "lidlProductId": "10035960",
@@ -1579,8 +1582,8 @@
     "officialSource": "https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086",
     "groupCounts": {
       "paistopisteen-leivat": 35,
-      "paistopisteen-makeat": 39,
-      "paistopisteen-suolaiset": 27
+      "paistopisteen-makeat": 40,
+      "paistopisteen-suolaiset": 26
     },
     "note": "Aligned to Lidl's three official Paistopiste groups; preliminary name-based assignment, not production category.",
     "reviewedCorrections": [
@@ -1634,6 +1637,7 @@
       }
     ],
     "correction": "Removed unsupported direct-official-section assertions; restored 16 breads to dedicated bread group; category placement is preliminary until individual page evidence.",
-    "assortmentReviewFlagCount": 8
+    "assortmentReviewFlagCount": 8,
+    "latestCorrection": "Porkkanapiirakka is a sweet seasonal pastry per Lidl corporate source, contrary to earlier savory inference."
   }
 }
