@@ -49,6 +49,6 @@ export async function readActivePublicationOffers<T>(chain: string, at: Date = n
     FROM ziiply_offer_publications
     WHERE chain = ${chain} AND valid_from <= ${date}::date
       AND valid_until >= ${date}::date
-    ORDER BY valid_from DESC, valid_until DESC, parsed_at DESC, publication_id DESC`;
+    ORDER BY valid_from, valid_until, parsed_at DESC, publication_id DESC`;
   return rows.flatMap((row) => Array.isArray(row.offers) ? row.offers as T[] : []);
 }
