@@ -11708,8 +11708,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (!/\b(?:k[\s-]*)?(?:citymarket|supermarket|market)\b/i.test(name)) return;
       void searchOffers(undefined, true);
     };
-    const timer = window.setInterval(refresh, 15 * 60 * 1000);
-    return () => window.clearInterval(timer);
+    // Refresh immediately on foreground return if the scheduled interval elapsed
+    // while the browser was hidden. Avoid duplicate requests near a timer tick.
+    let lastCheckAt = Date.now();
+    const refreshIfDue = () => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - lastCheckAt < 15 * 60 * 1000) return;
+      lastCheckAt = now;
+      refresh();
+    };
+    const onVisibilityChange = () => refreshIfDue();
+    const timer = window.setInterval(refreshIfDue, 15 * 60 * 1000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [activeResult, searchPanelOpen, storeModeChosenV299, activeArea.kStoreName, activeStores.kStoreName]);
 
   // V784: if the selected S/K store changes while Gösta is already open
