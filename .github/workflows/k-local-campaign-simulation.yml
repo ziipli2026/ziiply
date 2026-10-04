@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --no-audit --no-fund
+      - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript
         run: npx tsc --noEmit
       - name: Live K-local campaign probe
