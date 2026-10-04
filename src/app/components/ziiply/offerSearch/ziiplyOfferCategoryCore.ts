@@ -571,6 +571,7 @@ export function isKnownOfferCategoryFilterV113(filter: string) {
     "makeisetkeksit",
     "makeiset ja keksit",
     "lastenruoat",
+    "lastenhoito",
     "vitamiinit ravinteet",
     "lemmikit",
     "hygienia kosmetiikka",
@@ -595,6 +596,7 @@ export const GOSTA_CATEGORY_LABELS_V136 = [
   "Kuivatuotteet",
   "Makeiset & keksit",
   "Lastenruoat",
+  "Lastenhoito",
   "Vitamiinit & ravinteet",
   "Lemmikit",
   "Hygienia & kosmetiikka",
@@ -607,6 +609,7 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
   const key = normalizeGostaText(categoryOrFilter);
 
   const seedsByCategory: Record<string, string[]> = {
+    lastenhoito: ["vaipat", "pampers", "lastenhoito"],
     kahvi: ["kahvi", "tee", "espresso", "suodatinjauhettu kahvi", "kahvipapu", "juhla mokka", "presidentti"],
     maitotuotteet: ["maito", "munat", "kananmuna", "juusto", "jogurtti", "rahka", "raejuusto", "voi", "margariini", "kerma", "viili", "kefiiri", "vanukas", "kaurajuoma"],
     liha: ["liha", "liha ja kasviproteiinit", "jauheliha", "kana", "broileri", "nauta", "possu", "porsas", "sika", "makkara", "grillimakkara", "leikkele", "kinkku", "pekoni", "filee", "lihapulla", "kasviproteiini", "tofu"],
