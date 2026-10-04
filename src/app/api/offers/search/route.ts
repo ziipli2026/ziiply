@@ -66,6 +66,7 @@ import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNation
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
+import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
 import {
   searchZiiplyOffers,
@@ -582,7 +583,9 @@ export async function GET(request: Request) {
       const storeKey = getParam(searchParams, "lidlStoreKey") || "";
       const storeName = getParam(searchParams, "lidlStoreName") || "Lidl";
       const fetched = storeKey ? await fetchLidlOffers(storeKey, storeName) : [];
-      const results = (fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer));
+      const todayFi = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+      const enriched = addVerifiedLidlWeek40Leaflet(fetched as Record<string, any>[], storeKey, storeName, todayFi);
+      const results = (enriched as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
         { ok: true, query: q, provider: "lidl", storeKey, storeName, results },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
