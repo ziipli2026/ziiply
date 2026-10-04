@@ -75,4 +75,21 @@ jobs:
             }
           }
           NODE
+          # Check whether a store-specific publication has products on later pages.
+          node --input-type=module <<'NODE'
+          for (const id of ['ji1luTAL','aETRYhoN']) {
+            const counts=[];
+            for(let page=3;page<=20;page++){
+              try{
+                const r=await fetch('https://publication-viewer.tjek.com/api/paged-publications/'+encodeURIComponent(id)+'/'+page,{signal:AbortSignal.timeout(10000)});
+                if(!r.ok){counts.push({page,status:r.status});break;}
+                const j=await r.json();
+                const hotspots=Array.isArray(j.hotspots)?j.hotspots:[];
+                const decorations=Array.isArray(j.decorations)?j.decorations:[];
+                if(hotspots.length||decorations.length)counts.push({page,hotspots:hotspots.length,decorations:decorations.length,offerIds:hotspots.slice(0,2).map(h=>h?.offer?.id).filter(Boolean)});
+              }catch(error){counts.push({page,error:String(error)});break;}
+            }
+            console.log('K_LOCAL_LATER_PAGES '+JSON.stringify({id,nonemptyOrErrors:counts}));
+          }
+          NODE
           npx --yes tsx k-campaign-probe.mts
