@@ -16547,7 +16547,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : undefined;
     const remembered = String((item as any).ziiplySingleChainAtAdd || "").toLowerCase();
     const fallback = String(item.chain || "").toLowerCase();
-    const key = oneKey || remembered || (fallback === "k" ? "k" : "s");
+    // In Monta mode the original product must refresh from its OWN chain.
+    // A K-chain Pirkka item must never fall back to Prisma merely because
+    // S is also selected (or the remembered single-chain flag is stale).
+    const key = oneKey || (fallback === "k" ? "k" : fallback === "s" ? "s" : remembered || "s");
 
     if (key === "k") return { key, storeName: activeStores.kStoreName || "", ready: Boolean(activeStores.kStoreId) };
     if (key === "lidl") return { key, storeName: selectedLidlStoreV750?.name || "", ready: Boolean(selectedLidlStoreV750) };
