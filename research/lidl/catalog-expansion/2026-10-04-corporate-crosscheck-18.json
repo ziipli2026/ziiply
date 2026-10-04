@@ -1,0 +1,59 @@
+{
+  "observed_at": "2026-10-04",
+  "source": "https://corporate.lidl.fi/file/download/138743/file/Vastuullisuus%20Lidliss%C3%A4%202024.pdf",
+  "source_year": 2024,
+  "kind": "official historical food product evidence; do not assume 2026 availability",
+  "records": [
+    {
+      "brand": "Chef Select",
+      "name": "Hummus",
+      "package_size": "200 g",
+      "category": "kylmätuotteet",
+      "ean": null,
+      "lidl_product_id": null,
+      "official_image_url": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Vemondo",
+      "name": "Burgerpihvi",
+      "package_size": "160 g",
+      "category": "kasviproteiinit",
+      "variant_identity": "not established independently",
+      "ean": null,
+      "lidl_product_id": null,
+      "official_image_url": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Vemondo",
+      "name": "Crunchy burgerpihvi",
+      "package_size": "160 g",
+      "category": "kasviproteiinit",
+      "variant_identity": "not established independently",
+      "ean": null,
+      "lidl_product_id": null,
+      "official_image_url": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Vemondo",
+      "name": "Luomutofu",
+      "package_size": "200 g",
+      "category": "kasviproteiinit",
+      "ean": null,
+      "lidl_product_id": null,
+      "official_image_url": null,
+      "normal_price": null
+    }
+  ],
+  "counting": "Crosscheck against existing historical batch-04 before adding any candidate. Burger variants might be one grouped range; zero new unique SKUs claimed.",
+  "extra_verification": {
+    "product": "Milbona Puhvelimozzarella",
+    "package_size": "125 g",
+    "product_id": "10023501",
+    "url": "https://www.lidl.fi/p/milbona-puhvelimozzarella/p10023501",
+    "status": "Product-specific official page found, but indexed price is historical; do not use as current normal price"
+  },
+  "new_unique_skus_claimed": 0
+}
