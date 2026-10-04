@@ -503,6 +503,11 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
   if (!title) return "";
   if (/\b(oreo|taytekeksi|taytekeksit|suklaakeksi|suklaakeksit|voileipakeksi|voileipakeksit)\b/.test(title)) return "Makeiset & keksit";
   if (/\b(omenapossu|munkki|munkit|donitsi|donitsit|korvapuusti|pullapitko)\b/.test(title)) return "Leipomo";
+  // Product identity outranks an incorrect generic dairy category (e.g. cheese pizza).
+  // Plain pizza offers are ready meals; explicitly frozen pizzas remain frozen goods.
+  if (/\b(pizza|pizzat|pizzapala|pizzapalat|pitsa|pitsat)\b/.test(title)) {
+    return /\b(pakaste|pakastettu|pakastepizza|pakastepitsa)\b/.test(title) ? "Pakasteet" : "Valmisruoka";
+  }
   if (/\b(burgeri|burgerit|hampurilainen|hampurilaiset|mikroburgeri|mikroburgerit|valmisateria|valmisateriat)\b/.test(title)) return "Valmisruoka";
   if (/\b(harkis|harkismurska|harkapapumurska|nyhtokaura|kasviproteiinimurska)\b/.test(title)) return "Valmisruoka";
   if (/\b(kahvi|kahvit|kahvipapu|kahvipavut|papukahvi|papukahvit|suodatinkahvi|suodatinkahvit|jauhettu kahvi|pikakahvi|espresso|kahvikapseli|kahvikapselit)\b/.test(title)) return "Kahvi & tee";
