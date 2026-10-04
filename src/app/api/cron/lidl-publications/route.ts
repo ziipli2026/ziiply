@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { fetchLidlDatedOffersForStaging } from "@/app/components/ziiply/offerSearch/providers/lidlProvider";
 import { storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
@@ -27,7 +28,11 @@ export async function GET(request: Request) {
     for (const [period, offers] of groups) {
       const [validFrom, validUntil] = period.split(":");
       const outcome = await storeParsedPublication({
-        chain: "LIDL:FI0218", id: `official-dated:${period}`,
+        // Stable content fingerprint: a corrected offer within the same period is a new snapshot.
+        chain: "LIDL:FI0218",
+        id: `official-dated:${period}:${createHash("sha256").update(JSON.stringify(
+          offers.map((offer) => offer).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+        )).digest("hex").slice(0, 20)}`,
         validFrom, validUntil, parsedAt: new Date().toISOString(), offers,
       });
       outcomes.push({ period, count: offers.length, outcome });
