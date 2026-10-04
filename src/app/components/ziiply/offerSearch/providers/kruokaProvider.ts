@@ -42,6 +42,7 @@ export type KruokaPipelineDebugV49 = {
   activeOffers: number | null;
   campaignProbe?: { activePublicationIds: string[]; campaignPublicationIds: string[]; fetchedCampaignRows: number; mappedCampaignRows: number; returnedCampaignRows: number };
   publicationPipeline?: Array<{ publicationId: string; raw: number; allowed: number; mapped: number; queryMatched: number; duplicate: number; returned: number }>;
+  kTabClassificationAuditV1?: Array<{ publicationId: string; offerId: string; title: string; campaignType: string; validFrom: string | null; validUntil: string | null }>;
   publicationFetch?: Array<{ publicationId: string; fetchedRows: number; uniqueOfferIds: number; addedAfterBaseDedupe: number; skippedAsDuplicate: number }>;
   error: string | null;
   rawOffers?: UnknownRecord[];
