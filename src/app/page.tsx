@@ -4678,6 +4678,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V768: kauppavalinnan muutos saa ajaa vertailun taustalla vasta sen jälkeen,
   // kun käyttäjä on käynnistänyt Halpuusvertailun vähintään kerran tälle korille.
   const comparisonUserStartedRefV768 = useRef(false);
+  // A restored basket is display-only until the user changes its comparable
+  // contents or explicitly presses Halpuuta. Store/GPS hydration is not a cart edit.
+  const reloadComparisonCartSignatureV817 = useRef<string | null>(null);
+  const comparisonCartSignatureV817 = (items: CartItem[]) =>
+    JSON.stringify(items.filter(isComparisonEligibleV797).map(item =>
+      [item.id, item.name, item.quantity, item.ean, item.product?.ean, item.source]));
   const comparisonItemRequestsRef = useRef<Map<string, Promise<{ s: Match | null; k: Match | null; failed: boolean }>>>(new Map());
   const comparisonWarmResultsRefV809 = useRef<Map<string, { savedAt: number; result: { s: Match | null; k: Match | null; failed: boolean } }>>(new Map());
   const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -7093,6 +7099,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (restoredItems.length > 0) {
           setCart(restoredItems);
+          reloadComparisonCartSignatureV817.current = comparisonCartSignatureV817(restoredItems);
           // Hydrate the previously priced comparison in the same initial render
           // as the restored basket. Store discovery may still be running; it must
           // not make the Compare card appear empty until another tab is visited.
@@ -13148,7 +13155,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         !selectedChains.s || !selectedChains.k || !activeStores.sStoreId || !activeStores.kStoreId ||
         !storesReadyForSearch || restoredCartPromptV320.open) return;
     const eligible = cart.filter(isComparisonEligibleV797);
-    if (!eligible.length) return;
+    if (!eligible.length || reloadComparisonCartSignatureV817.current === comparisonCartSignatureV817(cart)) return;
     let cancelled = false;
     const timer = window.setTimeout(() => {
       void Promise.all(eligible.map((item) => {
@@ -13186,6 +13193,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!storesReadyForSearch || restoredCartPromptV320.open) return;
     // V768: älä esilämmitä Halpuusvertailua ennen käyttäjän ensimmäistä käynnistystä.
     if (!comparisonUserStartedRefV768.current) return;
+    if (reloadComparisonCartSignatureV817.current === comparisonCartSignatureV817(comparisonCart)) return;
     // Restoring a completed snapshot is not a new user request. In particular,
     // late store hydration must not schedule the matcher for an unchanged cart.
     const currentComparisonKeyV816 = getComparisonCacheKey(comparisonCart);
@@ -17086,6 +17094,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V768: tästä alkaa käyttäjän nimenomaisesti käynnistämä Halpuusvertailu.
     // Tämän jälkeen kauppa-/ketjuvalinnan muutokset saavat päivittää vertailun taustalla.
     comparisonUserStartedRefV768.current = true;
+    reloadComparisonCartSignatureV817.current = null;
 
     // Bottom navigation is navigation only when the displayed comparison already
     // covers every eligible row. Do not replace good matches with a new request.
