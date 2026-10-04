@@ -778,6 +778,7 @@ export async function GET(request: Request) {
               },
             } : {}),
             error: debug?.error ?? null,
+            ...(debug?.kOfferDedupeAuditV1 ? { kOfferDedupeAuditV1: debug.kOfferDedupeAuditV1 } : {}),
             ...(resolver ? { kSupermarketPublicationResolverDebug: resolver } : {}),
           };
         })(),
