@@ -868,9 +868,12 @@ export function getNormalSearchQueries(term: string) {
     return uniqueNormalizedQueries(exactQueries);
   }
 
+  // Correct a recognized typo before querying providers. Otherwise the
+  // original misspelling consumes the first (and sometimes only) query slot.
+  const canonicalQuery = getSearchQuery(term);
   const expanded = uniqueNormalizedQueries([
+    canonicalQuery,
     term,
-    getSearchQuery(term),
     primaryProductNounQuery,
     ...intent.variants,
   ]);
