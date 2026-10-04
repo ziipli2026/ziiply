@@ -91,8 +91,8 @@ export function mergeLidlStructuredAndLeaflet(
   for (const row of leaflet) {
     if (row.source !== "verified-official-leaflet" || !row.id || !row.name ||
         !Number.isFinite(row.price) || row.price <= 0 ||
-        !/^\\d{4}-\\d{2}-\\d{2}$/.test(row.validFrom) ||
-        !/^\\d{4}-\\d{2}-\\d{2}$/.test(row.validUntil) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(row.validFrom) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(row.validUntil) ||
         today < row.validFrom || today > row.validUntil) continue;
     if ((row.priceBasis === "multi-buy-total" || row.priceBasis === "bundle") &&
         (!Number.isInteger(row.multiBuyQuantity) || (row.multiBuyQuantity || 0) < 2)) continue;
