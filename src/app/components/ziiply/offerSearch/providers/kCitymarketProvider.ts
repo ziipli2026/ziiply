@@ -531,6 +531,8 @@ function periodFromStart(startDate:string,kind:KCitymarketPeriodKind):KCitymarke
   return {key:startDate+"-W"+week+"-"+kind,kind,week,startDate};
 }
 export function getActiveKCitymarketPeriod(now=new Date()):KCitymarketPeriod{
+  // Isolated preview requested for reviewing the next leaflet before activation.
+  if(process.env.VERCEL_ENV==="preview" && process.env.VERCEL_GIT_COMMIT_REF==="preview/citymarket-41av") return periodFromStart("2026-10-05","AV");
   const clock=helsinkiClock(now);
   const index:Record<string,number>={Mon:0,Tue:1,Wed:2,Thu:3,Fri:4,Sat:5,Sun:6};
   const day=index[clock.weekday]??0;
@@ -549,6 +551,7 @@ function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
 }
 // Immutable publication URL for a period whose public entry already rolled forward.
 const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
+  "2026-10-05-W41-AV":"https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html",
   "2026-10-01-W40-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/80s40wg_tarjouslehti_40LV_KCM/index.html",
 };
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
@@ -564,7 +567,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v7-owned-daily-goods-cards-20261004"],
+  ["ziiply-kcitymarket-offers-preview41av-owned-daily-goods-cards-20261004"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
