@@ -9865,7 +9865,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V771: hiljainen GPS-/snapshot-taustapäivitys ei saa heittää käyttäjää
     // avoimesta Vertailu- tai muusta näkymästä pääsivulle.
     if (!options.preserveActiveView) setActiveResult("none");
-    setLastOptimizationSnapshot(null);
+    if (!options.preserveComparison) setLastOptimizationSnapshot(null);
   }
 
   function getZiiplyResolverStoreChainV32(store: StoreSearchItem): ZiiplyStoreChain {
@@ -13204,7 +13204,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!storesReadyForSearch || restoredCartPromptV320.open) return;
     // V768: älä esilämmitä Halpuusvertailua ennen käyttäjän ensimmäistä käynnistystä.
     if (!comparisonUserStartedRefV768.current) return;
-    if (reloadComparisonCartSignatureV817.current === comparisonCartSignatureV817(comparisonCart)) return;
+    if (reloadComparisonCartSignatureV817.current === comparisonCartSignatureV817(cart)) return;
     // Restoring a completed snapshot is not a new user request. In particular,
     // late store hydration must not schedule the matcher for an unchanged cart.
     const currentComparisonKeyV816 = getComparisonCacheKey(comparisonCart);
