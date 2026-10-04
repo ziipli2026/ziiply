@@ -4653,6 +4653,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
   const comparisonCompletedKeyRef = useRef<string | null>(null);
+  const comparisonCompletedIdentityRefV811 = useRef<string | null>(null);
   // V768: kauppavalinnan muutos saa ajaa vertailun taustalla vasta sen jälkeen,
   // kun käyttäjä on käynnistänyt Halpuusvertailun vähintään kerran tälle korille.
   const comparisonUserStartedRefV768 = useRef(false);
@@ -12404,6 +12405,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
+  function getComparisonIdentityV811(items: CartItem[]) {
+    return JSON.stringify({
+      ids: items.map(item => [item.id, item.quantity, item.ean, item.product?.ean, item.name, item.source]),
+      stores: storeCompareScope === "within_chain"
+        ? [withinChain, activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.kStoreId, activeArea.kLocalStoreId]
+        : [activeStores.sStoreId, activeStores.kStoreId],
+      storeCompareScope, withinChain, storeMode,
+    });
+  }
+
   function getComparisonItemMatches(item: CartItem) {
     const withinS = storeCompareScope === "within_chain" && withinChain === "S";
     const withinK = storeCompareScope === "within_chain" && withinChain === "K";
@@ -12982,6 +12993,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
         if (!failed && !noComparisonMatchesV810) {
           comparisonCompletedKeyRef.current = cacheKey;
+          comparisonCompletedIdentityRefV811.current = getComparisonIdentityV811(comparisonCartV738);
         } else {
           comparisonCacheKeyRef.current = null;
           comparisonCompletedKeyRef.current = null;
@@ -16980,7 +16992,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Opening an already completed comparison is navigation, not a new search.
       // Only a changed basket/store cache key may start another request.
       const nextComparisonKey = getComparisonCacheKey(comparableCartV730);
-      if (comparisonCompletedKeyRef.current === nextComparisonKey) {
+      // Bottom navigation reopens the last completed result without refetching
+      // merely because a display name or price-enrichment changed the cache key.
+      const sameCompletedBasketV811 = comparisonCompletedIdentityRefV811.current ===
+        getComparisonIdentityV811(comparableCartV730);
+      if (sameCompletedBasketV811 && comparisonCompletedKeyRef.current) {
+        setComparisonLoading(false);
+      } else if (comparisonCompletedKeyRef.current === nextComparisonKey) {
         setComparisonLoading(false);
       } else if (comparisonCacheKeyRef.current !== nextComparisonKey || !comparisonLoading) {
         void updateChainComparison(comparableCartV730);
