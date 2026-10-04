@@ -289,6 +289,11 @@ export default function ZiiplyMobileCompareCardresponsive({
   const cheapest = getCheapestStore(visibleStores);
   const handleBack = detailsStoreId ? () => setDetailsStoreId(null) : onBack || onBackToCart;
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
+  // Missing counterpart is a result state, not the default while restored
+  // stores/matches are still hydrating. Require actual priced comparison data.
+  const hasResolvedComparisonData = visibleStores.some((store) =>
+    (store.matches || []).some((match: any) => Number(match?.price) > 0),
+  );
 
   return (
     <div
@@ -342,6 +347,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               visibleStores.map((store, index) => {
                 if (detailsStoreId && detailsStoreId !== store.id) return null;
                 const hasNoCounterpart =
+                  hasResolvedComparisonData &&
                   comparedCount > 0 &&
                   Math.max(0, Number(store.itemCount || 0)) === 0 &&
                   Math.max(0, Number(store.missingItems || comparedCount)) > 0;
