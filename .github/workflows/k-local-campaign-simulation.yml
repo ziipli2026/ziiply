@@ -18,6 +18,29 @@ jobs:
       - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript
         run: npx tsc --noEmit
+      - name: Independent K-Ruoka campaign source discovery
+        shell: bash
+        run: |
+          cat > k-campaign-source-probe.mjs <<'NODE'
+          const urls=[
+            'https://www.k-ruoka.fi/k-supermarket/tarjouslehti',
+            'https://www.k-ruoka.fi/kauppa/k-supermarket-jokela'
+          ];
+          for(const url of urls) {
+            try {
+              const response=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 (compatible; ZiiplySourceValidation/1.0)','Accept':'text/html'}});
+              const html=await response.text();
+              const title=html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]??null;
+              const campaignTokens=['Tefal','kampanja','campaign','tarjouslehti'];
+              console.log('K_INDEPENDENT_SOURCE '+JSON.stringify({url,status:response.status,bytes:html.length,title,markers:Object.fromEntries(campaignTokens.map(t=>[t,html.toLowerCase().includes(t.toLowerCase())])),nextData:html.includes('__NEXT_DATA__'),rsc:html.includes('self.__next_f.push')}));
+              if(!response.ok)process.exitCode=1;
+            } catch(error) {
+              console.error('K_INDEPENDENT_SOURCE_ERROR '+JSON.stringify({url,error:String(error)}));
+              process.exitCode=1;
+            }
+          }
+          NODE
+          node k-campaign-source-probe.mjs
       - name: Live K-local campaign probe
         shell: bash
         run: |
