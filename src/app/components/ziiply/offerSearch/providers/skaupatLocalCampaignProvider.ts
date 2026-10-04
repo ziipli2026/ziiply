@@ -854,7 +854,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     for (const item of deduped as any[]) {
       const evidence = item.debugLocalCampaignEvidenceV231;
       const until = String(evidence?.campaignPriceValidUntil ?? "").slice(0, 10);
-      if (until && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(until) || until < today)) continue;
+      if (until && (!/^\d{4}-\d{2}-\d{2}$/.test(until) || until < today)) continue;
       const campaign = evidence?.campaignPrice;
       const regular = evidence?.regularPrice;
       const current = evidence?.currentPrice;
