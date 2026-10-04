@@ -17077,6 +17077,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Tämän jälkeen kauppa-/ketjuvalinnan muutokset saavat päivittää vertailun taustalla.
     comparisonUserStartedRefV768.current = true;
 
+    // Bottom navigation is navigation only when the displayed comparison already
+    // covers every eligible row. Do not replace good matches with a new request.
+    const existingMatchesV813 = [...Object.values(sMatches), ...Object.values(kMatches)];
+    const existingRowsV813 = new Set(existingMatchesV813.map(match => String(match.cartItemId)));
+    if (comparisonCompletedIdentityRefV811.current === getComparisonIdentityV811(comparableCartV730) &&
+        comparableCartV730.every(item => existingRowsV813.has(String(item.id))) &&
+        existingMatchesV813.some(match => Number(match.price) > 0)) {
+      setComparisonLoading(false);
+      return;
+    }
+
     // The store-mode readiness flag may lag behind already selected S/K
     // hypermarkets (e.g. after scanner -> cart). Use the actual store IDs.
     // Never open two empty comparison baskets without starting a request.
