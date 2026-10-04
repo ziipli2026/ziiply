@@ -1,0 +1,36 @@
+{
+  "research_only": true,
+  "new_candidate_rows": 2,
+  "products": [
+    {
+      "brand": "Snack Day",
+      "name": "Cream Cracker",
+      "category": "kuivatuotteet",
+      "package_size": null,
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_url": "https://www.lidl.fi/c/ruokavirasto/s10021747",
+      "observed_at": "2026-10-04",
+      "status": "Official Lidl ingredient-substitution list; historical/current availability not established",
+      "note": "Do not infer ingredient composition of a current batch from this notice"
+    },
+    {
+      "brand": "Baresa",
+      "name": "Aurinkokuivattu tomaatti öljyssä",
+      "category": "säilykkeet",
+      "package_size": null,
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_url": "https://www.lidl.fi/c/ruokavirasto/s10021747",
+      "observed_at": "2026-10-04",
+      "status": "Official Lidl ingredient-substitution list; historical/current availability not established",
+      "note": "Do not infer ingredient composition of a current batch from this notice"
+    }
+  ]
+}
