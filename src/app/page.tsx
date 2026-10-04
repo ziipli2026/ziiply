@@ -4047,6 +4047,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     count: number;
     savedAt?: number;
   }>({ open: false, count: 0 });
+  // Remember the actual visible tab across a browser reload (session only).
+  const reloadPanelRefV812 = useRef("home");
+  const reloadPanelReadyRefV812 = useRef(false);
+  useEffect(() => {
+    try { reloadPanelRefV812.current = window.sessionStorage.getItem("ziiply-active-panel-v812") || "home"; } catch {}
+    reloadPanelReadyRefV812.current = true;
+  }, []);
+  useEffect(() => {
+    if (!reloadPanelReadyRefV812.current || restoredCartPromptV320.open) return;
+    const panel = shopsPanelOpen ? "shops" : searchPanelOpen ? "search" :
+      cartModalOpen ? "cart" : activeResult === "compare" ? "compare" : "home";
+    // Initial default render must not overwrite the previously saved panel.
+    if (!storeSelectionHydratedRefV343.current) return;
+    try { window.sessionStorage.setItem("ziiply-active-panel-v812", panel); } catch {}
+  }, [shopsPanelOpen, searchPanelOpen, cartModalOpen, activeResult, restoredCartPromptV320.open]);
+  function restoreReloadPanelV812() {
+    const panel = reloadPanelRefV812.current;
+    setShopsPanelOpen(panel === "shops");
+    setSearchPanelOpen(panel === "search");
+    setCartModalOpen(panel === "cart");
+    setActiveResult(panel === "compare" ? "compare" : "none");
+  }
   const cartIsEmpty = cart.length === 0;
 
   function getMobileCartItemKeyV546(item: any) {
@@ -22227,6 +22249,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           // or automatically start a visible comparison.
                           setComparisonLoading(false);
                           setRestoredComparisonPending(false);
+                          restoreReloadPanelV812();
                         }}
                         className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                       >
