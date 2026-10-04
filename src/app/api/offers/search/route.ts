@@ -485,7 +485,8 @@ function dedupe(items: UnknownRecord[]) {
     // regional and a store-local leaflet are distinct source offers.
     const publicationId = String((item.debug as UnknownRecord | undefined)?.publicationId ?? "").trim();
     const sourceOfferId = String(item.offerId ?? "").trim();
-    const key = String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
+    const nationalLeafletId = String(item.source ?? "") === "K-Citymarket tarjouslehti" && String(item.id ?? "").startsWith("kcm:spatial:") ? String(item.id) : "";
+    const key = nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
       ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
       : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
     // The provider has already deduplicated Tjek rows by their source identity.
