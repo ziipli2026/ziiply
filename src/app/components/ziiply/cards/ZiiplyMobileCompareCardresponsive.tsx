@@ -29,6 +29,7 @@ export type ZiiplyMobileCompareCardresponsiveProps = {
   title?: string;
   subtitle?: string;
   loading?: boolean;
+  suppressMissingStatus?: boolean;
   onSelectStore?: (storeId: string) => void;
   onBack?: () => void;
   onBackToCart?: () => void;
@@ -267,6 +268,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   title = "Vertailu",
   subtitle,
   loading = false,
+  suppressMissingStatus = false,
   onSelectStore,
   onBack,
   onBackToCart,
@@ -428,7 +430,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                                 {loading
                                   ? ""
                                   : hasNoCounterpart
-                                    ? "Vastinetta ei löytynyt"
+                                    ? (suppressMissingStatus ? "" : "Vastinetta ei löytynyt")
                                     : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
                               </span>
                             ) : null}
