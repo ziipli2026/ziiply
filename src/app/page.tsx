@@ -10626,8 +10626,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         String(activeStores.kStoreId || "") === String(nextSelectedK.id || "") &&
         normalize(activeStores.kStoreName || "") === normalize(nextSelectedK.name || "");
 
+      // A late GPS hydration must not blank an already restored comparison:
+      // the restored basket stays display-only until an explicit cart/store edit.
+      const restoredCompareUnchangedV819 =
+        reloadPanelRefV812.current === "compare" &&
+        reloadComparisonCartSignatureV817.current === comparisonCartSignatureV817(cart);
       clearStoreBackedSearchState({
-        preserveComparison: comparisonStoresUnchanged,
+        preserveComparison: comparisonStoresUnchanged || restoredCompareUnchangedV819,
         // GPS/background store hydration must never navigate an already open
         // Compare tab back to the three-card home screen after reload.
         preserveActiveView: source === "gps" || reloadPanelRefV812.current === "compare",
