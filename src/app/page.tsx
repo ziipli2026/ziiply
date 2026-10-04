@@ -3513,12 +3513,18 @@ export default function Page() {
     setGpsBootReadyV473(true);
     setStoreSearchLoading(false);
     setGpsStorePickerBlockedV382(false);
-    setSearchPanelOpen(false);
-    setCartModalOpen(false);
+    // Do not briefly reset a persisted Compare tab to the three-card home
+    // during boot. The cart hydration effect restores its snapshot separately.
+    let persistedPanelV818 = "home";
+    try { persistedPanelV818 = window.sessionStorage.getItem("ziiply-active-panel-v812") || "home"; } catch {}
+    if (persistedPanelV818 !== "compare") {
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setActiveResult("none");
+      setShopsPanelOpen(false);
+    }
     setCartSavePanelOpen(false);
     setEanModalOpen(false);
-    setActiveResult("none");
-    setShopsPanelOpen(false);
     setInitialStoreNavPrompt(false);
 
     window.setTimeout(() => {
@@ -10624,7 +10630,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         preserveComparison: comparisonStoresUnchanged,
         // GPS/background store hydration must never navigate an already open
         // Compare tab back to the three-card home screen after reload.
-        preserveActiveView: source === "gps",
+        preserveActiveView: source === "gps" || reloadPanelRefV812.current === "compare",
       });
 
       // V39_GPS_RELOAD_NO_HYPER_DEFAULT_LOCK:
