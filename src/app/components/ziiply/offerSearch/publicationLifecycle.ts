@@ -11,7 +11,7 @@ export type OfferPublication = {
   parsedAt: string;
 };
 
-const DATE = /^(\\d{4})-(\\d{2})-(\\d{2})$/;
+const DATE = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
 function isCalendarDate(value: string): boolean {
   const match = DATE.exec(value);
   if (!match) return false;
