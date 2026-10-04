@@ -9032,6 +9032,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return cart.filter(isComparisonEligibleV797);
   }, [cart]);
 
+  // Reload recovery: asynchronous store hydration can clear match state after the
+  // initial basket restore. Rehydrate while Compare itself remains open; users
+  // must not have to visit another bottom tab to trigger the restoration.
+  useEffect(() => {
+    if (activeResult !== "compare" || cart.length === 0 || restoredCartPromptV320.open) return;
+    if ([...Object.values(sMatches), ...Object.values(kMatches)]
+      .some(match => Number(match.price) > 0)) return;
+    try {
+      const raw = window.localStorage.getItem("ziiply-comparison-snapshot-v1");
+      const snapshot = raw ? JSON.parse(raw) : null;
+      const eligibleIds = new Set(cart.filter(isComparisonEligibleV797).map(item => String(item.id)));
+      const savedKeys = [...Object.keys(snapshot?.sMatches || {}), ...Object.keys(snapshot?.kMatches || {})];
+      const savedMatches = [...Object.values(snapshot?.sMatches || {}), ...Object.values(snapshot?.kMatches || {})] as Match[];
+      if (eligibleIds.size && savedKeys.length && savedKeys.every(id => eligibleIds.has(id)) &&
+          savedMatches.some(match => Number(match.price) > 0)) {
+        setSMatches(snapshot.sMatches || {});
+        setKMatches(snapshot.kMatches || {});
+        comparisonUserStartedRefV768.current = true;
+        setComparisonLoading(false);
+      }
+    } catch {}
+  }, [activeResult, cart, sMatches, kMatches, restoredCartPromptV320.open]);
+
   const chainResults = useMemo<ChainResult[]>(() => {
     if (comparableCart.length === 0) return [];
     const expectedHyperStoreId =
