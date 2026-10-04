@@ -13,3 +13,11 @@ Before importing a third-party observation, establish permission to reuse data; 
 2. Determine whether Alennuskartta exposes a licensed feed with store-specific timestamped observations and promotion flags; if not, retain as research lead only.
 3. Collect verified current store receipts for a small Paistopiste validation sample; reconcile exact catalog IDs and images.
 4. Do not deploy any research prices to production.
+
+## 2026-10-04 follow-up verification
+- Alennuskartta's Lidl page explicitly labels its displayed current prices as observed daily prices; examples include **Lidl Plus** and **4-pack** promotions. This cannot be used as a normal-price feed without row-level separation and licensed access. https://alennuskartta.fi/alennuskoodit/lidl
+- everydata.io markets a Lidl Online Shop API with search and product detail endpoints, but its published example targets lidl.de online-shop URLs. Finland in-store food price coverage and redistribution rights are **unverified**. https://everydata.io/apis/lidl
+- Lidl confirms Lidl Plus prices require scanning the loyalty card; these must not silently be presented as unconditional regular prices. https://www.lidl.fi/c/lidl-plus-tarjoukset/s10036426
+- Lidl Finland leaflet archives can support offer timing, not current regular-price acceptance. https://archivana.com/fi/fi/lidl/
+
+**Decision:** neither Alennuskartta nor everydata.io is approved for current Ziiply normal-price ingestion. Next validation must obtain a sample licensed payload demonstrating Finnish food product IDs, store scope, observedAt, promotion status, and permission to republish; otherwise use verified checkout receipts.
