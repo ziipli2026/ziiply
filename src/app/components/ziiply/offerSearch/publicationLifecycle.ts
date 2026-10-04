@@ -27,7 +27,7 @@ export function publicationState(
   date: string = finnishPublicationDate(),
 ): "upcoming" | "current" | "expired" | "invalid" {
   const { validFrom, validUntil } = publication;
-  if (![date, validFrom, validUntil].every((value) => DATE.test(value)) || validFrom > validUntil) return "invalid";
+  if (![date, validFrom, validUntil].every(isCalendarDate) || validFrom > validUntil) return "invalid";
   if (date < validFrom) return "upcoming";
   if (date > validUntil) return "expired";
   return "current";
