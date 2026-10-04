@@ -12910,17 +12910,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       comparisonCartV738.forEach((item, index) => {
         const match = itemMatches[index];
         if (match.failed) failed = true;
-        // Reject missing/placeholder prices before caching or summing comparison results.
-        // In particular, a 0.01 € substitute must never make a basket look cheaper.
-        const validMatchPriceV806 = (candidate: Match | undefined) => {
-          if (!candidate) return false;
-          const price = Number(candidate.price);
-          const productPrice = Number(getProductPrice(candidate.product));
-          return Number.isFinite(price) && price >= 0.05 &&
-            Number.isFinite(productPrice) && productPrice >= 0.05;
-        };
-        if (validMatchPriceV806(match.s)) nextSMatches[item.id] = { ...match.s!, quantity: item.quantity };
-        if (validMatchPriceV806(match.k)) nextKMatches[item.id] = { ...match.k!, quantity: item.quantity };
+        if (match.s) nextSMatches[item.id] = { ...match.s, quantity: item.quantity };
+        if (match.k) nextKMatches[item.id] = { ...match.k, quantity: item.quantity };
       });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
