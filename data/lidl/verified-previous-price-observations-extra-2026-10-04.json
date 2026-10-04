@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "sourceUrl": "https://www.lidl.fi/h/vihannekset/h10095593",
+  "observationDate": "2026-10-04",
+  "note": "Historical Lidl public prices. Previous displayed prices are not verified current regular checkout prices. Existing Lidl product IDs.",
+  "records": [
+    {
+      "lidlProductId": "10038251",
+      "name": "Kotimainen hokkaidokurpitsa",
+      "offerPriceEur": 1.99,
+      "previousDisplayedPriceEur": 2.39,
+      "priceBasis": "EUR/kg",
+      "lidlPlusRequired": false,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "ean": null,
+      "imageStatus": "not_verified"
+    },
+    {
+      "lidlProductId": "10038252",
+      "name": "Kotimainen varsiselleri",
+      "offerPriceEur": 1.49,
+      "previousDisplayedPriceEur": 2.09,
+      "pack": "250 g",
+      "lidlPlusRequired": true,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "ean": null,
+      "imageStatus": "not_verified"
+    },
+    {
+      "lidlProductId": "10038256",
+      "name": "Kotimainen punajuuri",
+      "offerPriceEur": 0.79,
+      "previousDisplayedPriceEur": 1.09,
+      "pack": "1 kg",
+      "lidlPlusRequired": true,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "ean": null,
+      "imageStatus": "not_verified"
+    }
+  ]
+}
