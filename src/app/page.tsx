@@ -10568,7 +10568,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       clearStoreBackedSearchState({
         preserveComparison: comparisonStoresUnchanged,
-        preserveActiveView: source === "gps" && silentStatusV137,
+        // GPS/background store hydration must never navigate an already open
+        // Compare tab back to the three-card home screen after reload.
+        preserveActiveView: source === "gps",
       });
 
       // V39_GPS_RELOAD_NO_HYPER_DEFAULT_LOCK:
