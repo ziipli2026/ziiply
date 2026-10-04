@@ -480,7 +480,7 @@ function dedupe(items: UnknownRecord[]) {
   const out: UnknownRecord[] = [];
 
   for (const item of items) {
-    const key = [item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
+    const key = [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(item);
