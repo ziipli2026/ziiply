@@ -47,6 +47,8 @@ export function addVerifiedLidlWeek40Leaflet(
   return mergeLidlStructuredAndLeaflet(structured, filtered, today).map(item =>
     String(item.id || "").startsWith("lidl-leaflet-")
       ? { ...item, storeKey, storeName, storeLabel: storeName, shopName: storeName,
+          category: item.id === "lidl-leaflet-carrot" ? "Hevi" :
+            item.id === "lidl-leaflet-pizza-ice-cream" ? "Muut" : item.category,
           benefitText: item.priceBasis === "multi-buy-total"
             ? `${item.multiBuyQuantity} kpl yhteensä ${item.priceText}`
             : item.priceBasis === "bundle"
