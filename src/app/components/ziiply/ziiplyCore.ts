@@ -2,6 +2,7 @@
 
 import type React from "react";
 import posthog from "posthog-js";
+import { correctSearchQuery } from "./search/searchIntentAI";
 
 export type Offer = {
   id: number;
@@ -525,7 +526,11 @@ export const SEARCH_ALIASES: Record<string, string> = {
 
 export function getSearchQuery(term: string) {
   const normalized = normalize(term);
-  return SEARCH_ALIASES[normalized] || term;
+  const alias = SEARCH_ALIASES[normalized];
+  if (alias) return alias;
+  // One shared correction engine for the actual provider queries and intent
+  // detection. Unknown names are preserved by its conservative threshold.
+  return correctSearchQuery(term);
 }
 
 export function getColaSpecificSearchQueries(term: string) {
