@@ -1,4 +1,5 @@
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
+import { finnishPublicationDate, publicationState } from "../publicationLifecycle";
 
 type LidlRaw = Record<string, any>;
 
@@ -294,13 +295,14 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
 }
 
 // Pre-parsed offers become visible only during their Finnish validity dates.
-export function onlyCurrentlyValidLidlOffers<T extends { validFrom?: unknown; validUntil?: unknown }>(offers: T[], today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())): T[] {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return [];
-  return offers.filter((offer) => {
-    const from = String(offer.validFrom || "").slice(0, 10);
-    const until = String(offer.validUntil || "").slice(0, 10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(until) && from <= today && today <= until;
-  });
+export function onlyCurrentlyValidLidlOffers<T extends { validFrom?: unknown; validUntil?: unknown }>(
+  offers: T[],
+  today: string = finnishPublicationDate(),
+): T[] {
+  return offers.filter((offer) => publicationState({
+    validFrom: String(offer.validFrom || "").slice(0, 10),
+    validUntil: String(offer.validUntil || "").slice(0, 10),
+  }, today) === "current");
 }
 
 export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
