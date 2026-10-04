@@ -554,6 +554,16 @@ function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   return isMultiBuy && price ? `${quantity} ${unit} / ${price}` : price;
 }
 
+// Shared display-only price layout for both Gösta offers and campaigns.
+function splitOfferDisplayPrice(value: string) {
+  const clean = String(value || "").trim();
+  const after = clean.match(/^(.+?€)\s*\/\s*(\d+(?:[,.]\d+)?\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml))$/i);
+  if (after) return { amount: after[1].trim(), basis: `/ ${after[2].trim()}` };
+  const before = clean.match(/^(\d+(?:[,.]\d+)?\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml))\s*\/\s*(.+?€)$/i);
+  if (before) return { amount: before[2].trim(), basis: `/ ${before[1].trim()}` };
+  return { amount: clean || "—", basis: "" };
+}
+
 function getNormalPrice(offer: ZiiplyMobileOfferSearchItem) {
   const source = offer.__sourceOfferSearchResult || {};
   const isEurospar = String(source.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR";
@@ -1454,14 +1464,15 @@ export default function ZiiplyMobileOfferSearchCard({
                   <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
                     <div className="px-3 py-2.5">
                       <div className="flex items-start gap-3">
-                        <div className="flex w-[5.8rem] shrink-0 flex-col items-center gap-1.5">
+                        <div className="flex w-[5.8rem] min-w-0 shrink-0 flex-col items-center gap-1.5">
                           <button type="button" onClick={() => setExpandedOfferB(offer)} aria-label={`Suurenna tuote ${productName}`} className="grid h-[5.15rem] w-[5.15rem] place-items-center overflow-hidden rounded-[0.65rem] border-[1.5px] border-[#7b5c2a] bg-[#fffaf0] text-[1.5rem] shadow-[0_2px_3px_rgba(50,31,13,0.18)]">
                             <OfferImageBox src={image} category={category} />
                           </button>
                           <button type="button" onClick={() => onAddOffer?.(offer)} disabled={!onAddOffer}
                             aria-label={`Lisää koriin: ${productName}, ${offerPrice || "hinta puuttuu"}`}
-                            className={cx("flex min-h-[3.1rem] w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")}>
-                            <span className="whitespace-nowrap text-[1.05rem] font-black leading-tight" style={{ fontFamily: cooperFont }}>{offerPrice || "—"}</span>
+                            className={cx("flex min-h-[3.8rem] min-w-0 w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")}>
+                            <span className="block w-full max-w-full break-words text-center text-[clamp(0.85rem,3.7vw,1.12rem)] font-black leading-tight tabular-nums" style={{ fontFamily: cooperFont }}>{splitOfferDisplayPrice(offerPrice).amount}</span>
+                            {splitOfferDisplayPrice(offerPrice).basis && <span className="block w-full text-center text-[0.76rem] font-black leading-tight">{splitOfferDisplayPrice(offerPrice).basis}</span>}
                             <span className="whitespace-nowrap text-[0.57rem] font-black leading-tight text-[#244525]">🛒 Lisää koriin</span>
                           </button>
                         </div>
