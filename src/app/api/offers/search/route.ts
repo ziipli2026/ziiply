@@ -779,6 +779,15 @@ export async function GET(request: Request) {
             } : {}),
             error: debug?.error ?? null,
             ...(debug?.kOfferDedupeAuditV1 ? { kOfferDedupeAuditV1: debug.kOfferDedupeAuditV1 } : {}),
+            ...(debug?.publicationPipeline ? { publicationPipeline: debug.publicationPipeline } : {}),
+            ...(debug?.rawOfferAnalysis ? { kOfferMappingAuditV1: {
+              inputCount: debug.rawOfferAnalysis.length,
+              rejected: debug.rawOfferAnalysis.filter(row => !row.mapWouldAccept).map(row => ({ publicationId: row.publicationPublicId, title: row.name, reason: row.rejectReason })),
+              acceptedByPublication: Object.entries(debug.rawOfferAnalysis.reduce((acc: Record<string, number>, row) => {
+                if (row.mapWouldAccept) acc[row.publicationPublicId] = (acc[row.publicationPublicId] ?? 0) + 1;
+                return acc;
+              }, {})),
+            } } : {}),
             ...(resolver ? { kSupermarketPublicationResolverDebug: resolver } : {}),
           };
         })(),
