@@ -12945,7 +12945,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const diagnosis = failed
             ? "Hintavertailun tuotehaussa tapahtui virhe. Yritä uudelleen."
             : `Hintahaku valmistui, mutta kumpikaan kauppa ei palauttanut vastinetta (${comparisonCartV738.length} tuotetta).`;
-          showCartToast(diagnosis);
+          if (shouldOpenCompare) showCartToast(diagnosis);
           console.warn("[Ziiply zero comparison]", {
             items: comparisonCartV738.map(item => ({ name: item.name, ean: item.ean, source: item.source })),
             sStoreId: activeStores.sStoreId, kStoreId: activeStores.kStoreId, failed,
@@ -22126,13 +22126,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         type="button"
                         onClick={() => {
                           setRestoredCartPromptV320({ open: false, count: 0 });
-                          setComparisonLoading(true);
-                          setRestoredComparisonPending(true);
-                          setSearchPanelOpen(false);
-                          setShopsPanelOpen(false);
-                          setEanModalOpen(false);
-                          setActiveResult("none");
-                          setCartModalOpen(true);
+                          // Keeping a restored basket must not navigate away from Kaupat
+                          // or automatically start a visible comparison.
+                          setComparisonLoading(false);
+                          setRestoredComparisonPending(false);
                         }}
                         className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                       >
