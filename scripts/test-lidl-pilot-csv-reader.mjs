@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import {execFileSync} from "node:child_process";
+import {parseLidlPilotCsv} from "./lib/lidl-pilot-csv-reader.mjs";
+const csv=execFileSync(process.execPath,["scripts/generate-lidl-price-pilot-template.mjs"],{encoding:"utf8"});
+const rows=parseLidlPilotCsv(csv);
+assert.equal(rows.length,25);
+assert.match(rows[0].lidlProductId,/^\d+$/);
+assert.equal(rows[0].receiptUnitPriceEur,"");
+assert.equal(rows[0].permissionToUseEvidence,"");
+assert.throws(()=>parseLidlPilotCsv(csv.replace('"lidlProductId"','"wrongId"')),/header mismatch/);
+assert.throws(()=>parseLidlPilotCsv(csv+' "unclosed'),/Unterminated CSV quote/);
+assert.throws(()=>parseLidlPilotCsv(csv+'x,y\n'),/column mismatch/);
+console.log("PASS: generated Lidl pilot CSV round trip, 25 rows and malformed-input rejection");
