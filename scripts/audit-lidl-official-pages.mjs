@@ -41,8 +41,8 @@ for (const item of records.slice(0, limit)) {
       row.productIdInCanonical = !!row.canonicalUrl && new URL(row.canonicalUrl).pathname.replace(/\/$/, "").endsWith(`/p${item.lidlProductId}`);
       row.titleMatchesProduct = !!row.pageTitle && normalize(row.pageTitle).includes(normalize(item.name));
       row.finalUrl = response.url;
-      row.htmlTitle = decode(html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] || "");
-      row.imageMarkupCounts = { img: (html.match(/<img\\b/gi) || []).length, picture: (html.match(/<picture\\b/gi) || []).length, jsonLd: (html.match(/application\\/ld\\+json/gi) || []).length, nextImage: (html.match(/_next\\/image/gi) || []).length };
+      row.htmlTitle = decode(html.match(/<title[^>]*>(.*?)<[/]title>/is)?.[1] || "");
+      row.imageMarkupCounts = { img: (html.match(/<img\b/gi) || []).length, picture: (html.match(/<picture\b/gi) || []).length, jsonLd: (html.match(/application[/]ld[+]json/gi) || []).length, nextImage: (html.match(/_next[/]image/gi) || []).length };
       row.htmlBytes = html.length;
       if (image) { try { const url = new URL(image, response.url); if (url.protocol === "https:" && imageHostAllowed(url.hostname)) row.candidateImageUrl = url.href; else row.imageStatus = "external_or_insecure_meta_image"; } catch { row.imageStatus = "invalid_meta_image_url"; } }
       if (!image) row.imageStatus = "not_found_in_meta";
