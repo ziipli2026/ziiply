@@ -46,14 +46,26 @@ export async function GET(request: Request) {
       if (!Number.isFinite(ageMs) || ageMs < -300000 || ageMs > 36 * 60 * 60 * 1000)
         issues.push("Source run is stale or has an invalid timestamp");
     }
-    // Detect suspicious source shrinkage even when parsing technically succeeded.
+    // Compare only identical publication periods: a normal weekly edition change
+    // must not trigger a false source-collapse alarm.
     const successfulRuns = runs.filter((run) => run.ok && Number(run.offer_count) > 0);
-    const newestCount = successfulRuns.length ? Number(successfulRuns[0].offer_count) : null;
-    const previousCount = successfulRuns.length > 1 ? Number(successfulRuns[1].offer_count) : null;
+    const periodsOf = (run: (typeof runs)[number]): string | null => {
+      const details = run.details as { periods?: Array<{ period?: string }> } | null;
+      if (!Array.isArray(details?.periods) || !details.periods.length) return null;
+      const periods = details.periods.map((entry) => entry.period).filter(
+        (period): period is string => typeof period === "string",
+      ).sort();
+      return periods.length === details.periods.length ? periods.join("|") : null;
+    };
+    const latestSuccess = successfulRuns[0];
+    const periodKey = latestSuccess ? periodsOf(latestSuccess) : null;
+    const baseline = periodKey ? successfulRuns.slice(1).find((run) => periodsOf(run) === periodKey) : undefined;
+    const newestCount = latestSuccess ? Number(latestSuccess.offer_count) : null;
+    const previousCount = baseline ? Number(baseline.offer_count) : null;
     const sourceDropPercent = newestCount !== null && previousCount !== null && previousCount > 0
       ? Math.round((previousCount - newestCount) / previousCount * 100) : null;
     if (sourceDropPercent !== null && sourceDropPercent >= 40)
-      issues.push(`Source offer count dropped ${sourceDropPercent}% versus previous successful run`);
+      issues.push(`Source offer count dropped ${sourceDropPercent}% for the same publication periods`);
     if (!current.length) issues.push("No currently valid stored publication");
     for (const edition of current) {
       if (edition.quality.severity === "error") issues.push(`Critical offer data in ${edition.publicationId}`);
