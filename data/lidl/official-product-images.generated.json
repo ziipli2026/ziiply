@@ -1,0 +1,507 @@
+{
+  "source": "lidl.fi-official-product-page",
+  "researchOnly": true,
+  "checkedAt": "2026-10-04T15:21:15.711Z",
+  "records": [
+    {
+      "lidlProductId": "10000000",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/lXDu6OekIB3l-l0kcjB1zEC3r0MCzU2BYEgO9RTxi1o/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82ODg1RjZERUMyRjVFMTYzNjE2RDk1Njl/DMEFBNTY0OTFBNzI0NjBGN0IzMDg5MTQwRjlFNTU1MjIzQTYxQkI4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/herkkumyslileipa/p10000000"
+    },
+    {
+      "lidlProductId": "10000047",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/9WLQHm5kB_TezgNHY-9j9R9LrapxTVbXIjgFvByr-EE/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS81OThEQjZGMzgzNkQ3REYwMjIwMTNGNUI/xQzc1QjE3RkYyM0NFRjJFMjY3MTYxNDM1M0ZCMENDRjZGNzU0Q0I2LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/kolmen-suklaan-cookie/p10000047"
+    },
+    {
+      "lidlProductId": "10000081",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/n9Uv8GlDnfjANvozUhed4w7WmoUjPH3iaWvqqalyW5w/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82OTNGQjUyMkE3OEExOUMyNjI1QUIxQUQ/wNzg1QjQyMzVDRTQ1MTg3QzhCQzExNDRGREI5QzNDQUNENUI5QjYzLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/lihapiirakka/p10000081"
+    },
+    {
+      "lidlProductId": "10005280",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/TBRp7TP8svpBjaN8vWojJiCoxq0Bc4fg4TVdp-rqLFU/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xNzhGQjQxQzM5ODJBNDAzQkMyNTAyODQ/zNjM1Qzc1MTkzMDRGQzEzNkYzNUZCNEU3RkY2N0FFMkI4QjhERTk5LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/pielispakarin-aito-karjalanpiirakka/p10005280"
+    },
+    {
+      "lidlProductId": "10008395",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/X432RGnqfOJoCDLxqWGBb8vEHGH8yNdTbF0Gad7Vcnk/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82RjlCN0ZFRUIzQkQ1RUZCQzgxMzFFQUY/0NDBBNUY1MEVEOEUzREVGRTkxODk2RThGN0MwMzgwQTRCQTIyRUNGLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/juustokierre/p10008395"
+    },
+    {
+      "lidlProductId": "10012302",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/MdxC0M4kvbRej0Ck539___MBil7IaNKMRq6nlqb-bwM/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FMTk2MDgxMzQzMTIxOTBBN0M0NkY2MTY/wM0NBOEIzMjBBRkUyRjM0MjEzODk2MkU5OEEwNEYwMzVFQzczMjg4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/perunapiirakka/p10012302"
+    },
+    {
+      "lidlProductId": "10013219",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/TJ1PV412TV37GpbNWuok76zIkyvLnhw5pi19ToN_xB0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS83QkNBNjkxMTM0QzFFNzA1RURGRjdGNjc/2NzVFMzQwNUNDNjE0NkE3OTk1MjNBRjAxQTNBOUFCNDcyMjZFQzc2LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/ciabattasampyla/p10013219"
+    },
+    {
+      "lidlProductId": "10014112",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/aaEXE3piNfiGHEyYk-J8RJYv-XL5-E_J2CMASvVRvPc/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS80MEU0MzJEMzk4MDRGNURFRkVCOUFERTQ/yOEIzN0QzMjY3QzZDRTc1NzAwMzkyMzM2NzRENEJEMkZFMDYyMkQzLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/voicroissant/p10014112"
+    },
+    {
+      "lidlProductId": "10014992",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/hVZLmRyr5SenBqfqPjRs3WPo4TfWUTnlS44BTqClcgY/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zODUyNTUyOUYwOTNEMDQ3NUE2RTdBNUM/3NkQ4MjI0Mzk0Qzk4NkRGQjA3RDg1MUQ0QjIzRjYyMTEyQzQ2MTIzLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/fazer-dallaspulla/p10014992"
+    },
+    {
+      "lidlProductId": "10015004",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/lOSuNiaozR2ApGzajqbLQQFJCeAII_ZhhLopJbIVhvY/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zQzc4MTM0ODU4MzE0NjMzMUVDNzk2OTY/yNjM3NTBDNDA2Mzc5ODU3MEQwODhBMzQ4OUI2QjVFNjAwMENBMjM5LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/salamipizza/p10015004"
+    },
+    {
+      "lidlProductId": "10015005",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/oEHERJ05lVl-DSGlWBVfqVRX0u1SJfhfqrp8twnLjHg/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8yQzg3MEE3QzQ4OTBFN0JGMDVEQjlFRDU/3MTEzNThFRUE5MkZBNjlGOTgwNTI2QjQ2NUQ5RTlDRjhGNjI5RTA3LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/pinkki-donitsi/p10015005"
+    },
+    {
+      "lidlProductId": "10017268",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/up0-9OpTXX2wDf2gXLwtHkeAx_2aLwpFHd3hkUT-6gA/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xQUJDQUU1ODgyODUwOEFDMTY0RjVFQzU/4OTRFQkVBRTU0MTFEMkZDQTY1RjdBNUQ4N0FBQ0I4NUUyNEVGQzYxLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/siemenpatonki/p10017268"
+    },
+    {
+      "lidlProductId": "10017269",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/_Akj124OvfQG590DQu4kQJnc1bJnKkj8xSKuTGqH_r8/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xRDA0MzgzRENBNzFDMEI5MzExMURDOUU/0NTE3RTM2ODk3QzE3M0I1RDNDM0ZFQzMyRTQ0OURCOURFODkxQ0IyLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/jattipatonki/p10017269"
+    },
+    {
+      "lidlProductId": "10017906",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/DcXmu5t649T1FPFR8NCJBw7rshCJ3LujCGvrR-MdZOo/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9EMjExRTU0MzQ4OEE2MjEyNzZEM0FFNjg/wQkM4QkMyMzk2RTNBMDM5M0NBNjkyMDc2MUE4MUQ4ODdGODA3QjZBLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/siemensampyla/p10017906"
+    },
+    {
+      "lidlProductId": "10017911",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/EJ1q1DQgXk6_yb5db2nAnCLHRJktKJtLquuVCVuTsto/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS80M0VBNTYzNDA0OTVGQ0RGQTBCQzNEMTI/0RDg4QkU1RUM4MDMxRDNCRjlBNzM2REZCNjI4N0RDNkU5REFGQURFLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/toscapulla/p10017911"
+    },
+    {
+      "lidlProductId": "10020413",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/F7jlAIYzV_a-vQ5LaVPEFhc0XYVWXoLVlsc98M1_YII/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9EMUFEMzA0NkY2MzVBQTRDNDg1NTI2NjM/xRDIzMTVBQ0MzMkI1NDhFOEMxQURCQUY1REI5NzRGMEI3RjY0Q0NCLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/voisilmapulla/p10020413"
+    },
+    {
+      "lidlProductId": "10020612",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/HOpAq3PMPyGu53-xkgdJHZzjeqWvZL1NWybTOiD9qe4/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9EMkY4MzMyNjMyMzM1QjJCQzM4NTI0ODk/1OEJEQkNERUJBQUQ3OTZCN0QwOTVDNUJFQzQ0OTk0RUM1QjcwRUQ5LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/porkkanakaurasampyla/p10020612"
+    },
+    {
+      "lidlProductId": "10020613",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/fojWzCal3TRKWCvg19_sBgeZUUlKzkbEBvhQS8L3rIo/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FOUEyNjgzQjk5MEY1RTJEMzJFMzA2REZ/FOTRGNzRFN0ZEQ0E1QjI4N0EwOUIxNUZCNjhDRDlBM0NBQjhCNTczLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/herkuttelijan-pistaasimunkki/p10020613"
+    },
+    {
+      "lidlProductId": "10020883",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/9oWXJTnUNNVIj3e-nzwj3jV1FXrF-SxoTl0lYdEaKXs/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9DNjBCRDE3N0Y2RjQzMzkwQUE1NTA0RUY/xM0IwNkRCQjcyMTIxMDNBQzREMUY4MzM5NTk3MDA3QzI2MTU5NDMxLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pizza-hawaii/p10020883"
+    },
+    {
+      "lidlProductId": "10021258",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/fjBY7m4GUbvBjNabysixz-P8Q68xNoXAFOIGBKK2mP8/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FMUVGODNBNjI0NzE5NkNDQTQ1ODU3QTA/3MEI4MDRCRjk5MDRGMUQzQzA5MjEwMzMxODZBOUM0NkRCNDc3NkZFLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/brezelsampyla/p10021258"
+    },
+    {
+      "lidlProductId": "10021477",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/CDqDpMeeQw53bdg9Ts4N8wUanbmcBE4tU9dGUeuJGqY/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82OTAzNDVEODExQjUzRjI5QThDODkyQTN/DQkEwRjQ5MkI1MUI1RjI1NUExQjIyNzhFQzc5RUVCNjJGQzY1NzE2LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/maitosuklaacookie/p10021477"
+    },
+    {
+      "lidlProductId": "10021479",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/YAb2vna_I0tcSXFqP8ocFUMo7bnlvtowwDEsJe3wOL8/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85RDQ3MDJGMUQ4NkEzRjZEMzdFMDQyN0E/0NjM2OUQ3REIyQTU1MkRFQzVERkZBNEQ1NzRCMDU5NDc2MUUxQzk0LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/monijyvacroissant/p10021479"
+    },
+    {
+      "lidlProductId": "10022389",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/9QwAQmAO94XHfhgqUeB5OwM7V4yhMILt35PS5w3b_YQ/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9BQzk4RjhDNTJFOTIwMjEyNkE2NDkyQjB/CNzk5OTZFM0E0QjYxMzNGOUNGNDVEOTZDMzY0MTZDNDg1NkVCQTEzLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/herkkusampyla/p10022389"
+    },
+    {
+      "lidlProductId": "10023065",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/ECxwvjucohgHzASjRhK2csbdGZXK_SezzOrxGsGy3kc/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zQTA5QUQ2NDE1NTlDNzE4RTlEQTI1OTR/FNTM5MkUzMzYwRDhGRUFBMUQ5QTg3OEM2N0Q2RUQyOTAxNEYxODY2LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/nakkicroissant/p10023065"
+    },
+    {
+      "lidlProductId": "10026398",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/XHarXoVPSz_f5YwGA4TbvGRudx6T-ES56BIuKbFuuK0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82MjY3MTY0MDY0M0JGM0ZGRDI1NEQ3QTY/4NzNBMDlCRjUyQUMzMTI4N0MyNjEwMDMwQTYxNkQ0M0IwMTYyODE3LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/maalaissampyla/p10026398"
+    },
+    {
+      "lidlProductId": "10026399",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/XdXzMjymvL9Tkhd4WM8KAuGZhyiyBnQDBQxaBU4XOiA/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xRkRFQ0I3MEU1QUQ3OUNEQUYwQjYyNkV/CMjkyRjhGQzE0RTRBMTZERjVENUEzMEU1MEE4RkFCNkU4NDc1Q0E4LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/pizza-kebab/p10026399"
+    },
+    {
+      "lidlProductId": "10026400",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/zQZseJ97HoVQzo3HbxPKgRYfYP4NDseMUItCM-Ly-a0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9CREQwRDgzRDUzMkZFNzdBRTAyMEQzRTN/DNEEzNTM3RUUzNENFQTA2RjNDQkU2NTg3RDRGQkQzRUE3N0U1MDlFLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/bolognese-pasteija/p10026400"
+    },
+    {
+      "lidlProductId": "10027077",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/dHQhS43ywN03lSWTAkcVhM66CCO2g__B9R_3IRo_-ck/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS81QzRBNjJFREU3MzI4QTY5M0IzNjcwQzl/BOEI5MzIwOUNDNkQxRDRERDkzQ0E3RDY2QTIxN0MzNTRBRkRBQjJCLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/rustico-leipa/p10027077"
+    },
+    {
+      "lidlProductId": "10030550",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/EpdL-iTbtQI8ry7EVjpSRqSQ0VRznKAdkahvd-3JAEM/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FRUMwOEFENjQxMTA4QjVEOTI4MzNCMDM/wNTM2NTQwRDVGMkUxM0YxRDNCRkQyNEJBNEU1OTE0MDcxNkI1ODkzLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/siemen-hapanjuurileipa/p10030550"
+    },
+    {
+      "lidlProductId": "10030552",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/r5IVzJHCCmcmFmm0tRu_OpIJ4gzVqxnJ_9R42we1AYc/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8yRTk5RTYzMzlGQkI5NkE0RTU1QURDRUF/CNTJCQTU5QjUwNDg1ODNDMDNCOTQ0MDc4RTQ3RTlFRTU1MzdDM0NDLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/kaura-seesamsampyla/p10030552"
+    },
+    {
+      "lidlProductId": "10031093",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/xs0ZH-EPlveziWSGU-wfkBN1Y1kLzr2ZEC3MXQnIv9k/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS80NEFGMTIyODdENjBFMDUzNzhCNkIxRjk/1QjI1OUEyMEU2NjE5QkJBNkRBMzFBQTg5QzlGNEE0RjY3NTIxODg4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/kiviuunileipa/p10031093"
+    },
+    {
+      "lidlProductId": "10031094",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/vu98gsseL9NMxI2OlX12oHNZL78wDze8fNotD775TU4/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85MzRDOTVFODdGMzAzRDkzMUJBOTIyRDF/GNzBCRTNCNEQyM0IzN0MwNzNEOUNFRDc5NEZDMUJEM0U4M0VBREQxLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/voitaytepulla/p10031094"
+    },
+    {
+      "lidlProductId": "10031095",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/m8nOurbuXXVW73z0UifthrG9lJwbwvh6iHHyy7nG9SY/sm:1/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9DOUM4MzI0OUNEOTFCNkI1OUU0MDI1REQ/wRjVCOTVEMTUzRjZDNjg4RTJGNzQ1Q0U5MzAzNDdCMDg2MjI5NDhDLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/munkkipallero/p10031095"
+    },
+    {
+      "lidlProductId": "10032834",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/16n5xBjyoRFEAgkl99YGOb8cn6hfPr2uwN8BITtTGXg/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8yMjc1RTYyRTQ0RTFGNUE3Q0Q4RDdFMkU/3QTIyRjYyOTdBODUzRjA1NzI0Mjg2MDM3RTAwQzY2QkEwQTcyNjI4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/riisipiirakka/p10032834"
+    },
+    {
+      "lidlProductId": "10032835",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/WgyV0XewT0SG1Hbc1ZGp6kSrZDFtae-fM3v-aaoy8C0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85NjBEMEZFOTZGOTYxODhBRjlBMUUxQTh/CRTFCOTU4QUQwRjdENTY4RkE5RUMyMkZERUY1MjQ3NUU4MEVGQUEyLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/fazer-berliininmunkki/p10032835"
+    },
+    {
+      "lidlProductId": "10032836",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/dCfNlpxtOIULo2yfCDcI1RByhlp36hGtcFSxHYBHvPU/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS84RDFGMkNCQUIxMTQ5RkNBMzBDMTg0NjM/3RDUzODAwRkEyNjQxOURGNzE0MEY1NTYwRjJBOUUxQUYzQkU4RTVCLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pesto-juustokierre/p10032836"
+    },
+    {
+      "lidlProductId": "10032838",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/O-WtESAde0FaW4cHLc6TW9iyjdRLENuxtcdESEtx0ac/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9EREREM0MxOEYyRDUxQjZDMUM1OUZCNDI/3QTgwRURDMzg1RDg0MzQzODkyQzk4QUZFQjg0MDQ5NkQ1REZCMTU4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/toffeeviineri/p10032838"
+    },
+    {
+      "lidlProductId": "10032840",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/sWnwpaTuorHXRFPPjddVK5RDenAx6G5XipDOZgm5CYk/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS83NUZFN0VDMDE2NzlBMzMzQjMwNzY5RDV/GRDZDMjlCMEE0MTdGQjJEMzYzNDUyRkYzMTgwMUIwMTAwQjExQzQ3LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pahkina-nougat-croissant/p10032840"
+    },
+    {
+      "lidlProductId": "10033042",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/Xtfxa6LMvfnPriUIlWPRAupFBt9gwiw9dUuXeel7JiU/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS80N0JBM0U3NUE5OEQxM0IxMEIyMDgwNEZ/GQTZBNThGN0YxOEYxMjhBOTA4RDFEQTc1Q0JGNDczOTFBQ0RBNjYwLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pielispakari-mini-karjalanpiirakka/p10033042"
+    },
+    {
+      "lidlProductId": "10033046",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/_r2F0DMVdeBBVwlNre1H-dGOl61YLun6S5CLkD6ILGc/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82Mjc4M0M1RDVGRDg3NTcwNjQ0N0NGMUN/CNTI4MTIwOUU4MUU2QTk4Q0VFQkU5QjdCMUM5RTI5NjBFNkRERUIxLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/siemenruispala/p10033046"
+    },
+    {
+      "lidlProductId": "10033047",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/WnGCdH3mzqdir9Iy-maZ0yXG36s-cmUCTH9NTrHFlsA/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8wQURDNjFBMTgyQjE4QzZDQ0Y4NDI3N0I/4MTg1RjNCQjYyMzUxNTk5RjdENjkwMkI3MDJEQjk3ODM1QTY4MTg1LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/rahkapulla/p10033047"
+    },
+    {
+      "lidlProductId": "10033048",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/_TQ8-iuPa9OULteOcstUvehYwF5vu4i-E9MjqQxUPMU/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9BRjJGRkUwNUYzNkRCRUU5M0U1M0I0Mjg/2REExOTBDNTA2MkVGNTE0N0IwNTYyRUY4MzVGNjEyNTFBMDA5QUIwLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pizzadonitsi-margherita/p10033048"
+    },
+    {
+      "lidlProductId": "10033050",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/rtuL55OJTqd_9ezn-Orto0QibGOlTSy1bljp6EnqzEo/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8yMzg4MDkyRDlGQ0ZEMDU3MEVGREVCQ0Z/FMjBFQjdFMEQ3MUE0NzlDMURGNzRBNkMzMTM4Q0QyOUU1QUU4MEFELnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/munariisipasteija/p10033050"
+    },
+    {
+      "lidlProductId": "10033051",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/A_UTriKnwL8gU08exg8gM4OpZViXxaFr6L_A1SM1o3E/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9GMDZGMDZGN0I0OTkzMzE3OTAxRjlGQTE/wMDQ5MUU4OEJBRURBMDQ5NzRBNEM2RkQ5MzMwRTc2RjUyMTkzMkUzLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/riihiruispala/p10033051"
+    },
+    {
+      "lidlProductId": "10034203",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/f2Xb8ZjEY0cAJTTZ9-jtk-j_9i68t0OQDlqQiEAykUY/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9BQUQxNDUxRDhDQjZFMzAxRUI4NTNEOEQ/zQjcwOTk0MDQ3OEU0RTZGQzI1ODUyMTJERkZEQkY1RkRGNTc5NjM5LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/kreikkalainen-juustotanko/p10034203"
+    },
+    {
+      "lidlProductId": "10034228",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/6GUTM6YhU-9eMpaAlf9_3O5wMULaw00bxb5mx_PLm8A/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9GQkE4MTE4QkNDMzI1RDEyMjUxRTE2MUU/2MUQzNEU0NzVDMEJDMTFGODRDNTMzRUFGMTQ0QzdGNkFCNjhCNjMwLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/ranskalainen-suklaacroissant/p10034228"
+    },
+    {
+      "lidlProductId": "10034793",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/Nu3CCqLUjpK23K1XZM8-U_QXVK7PRz-zYTvrZy1VyJU/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82RUE2NjYwNThGMjE2NTI0NjkyQzI4NjA/4MDIzQ0NDMzkwNDcyNTdEMUUxMzgxQ0JDNjc2MUY0RTFBQkNCNkRELnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/oliivitanko/p10034793"
+    },
+    {
+      "lidlProductId": "10034796",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/X254xqjdZscaHHgbmNLdD1RwGztH4OdBhmzsclWs6-E/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82QTIzNTVBMTEzQTNENjlDMDE4MEI4MEU/4NkIwRTg1QTQ0QzZBQTdBNEU3NDkxRTBBN0EwRTkwRjdERTNBNUQ3LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/fazer-dumle-munkki/p10034796"
+    },
+    {
+      "lidlProductId": "10034797",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/evfakBuqv76pTMYl3al8UVd3SrM5c8-a5YWXxXFxeDA/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9BMzcxRjdFRDI1N0EyODQzQjRFRDkwMTI/4MzYwMjM2MjAyODQzNkYyOUI3REQzMUE1RjY5RkQyNDA3OTBFQzdBLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/briossisuklaacroissant/p10034797"
+    },
+    {
+      "lidlProductId": "10034798",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/mQ2WPxOywAicOPobfq9U9q0ShICg2YyWfYcyNS-gOEU/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS81RDNCRUEzQ0YzQUM3REUwNEM3OTlCMEF/FMzYzMjY2MDY3MDQ2Q0ZGMzAxRDMzRjJFMUMzQUJEQ0FENDMwREZDLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/jyvainen-kaurapiirakka/p10034798"
+    },
+    {
+      "lidlProductId": "10034799",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/KODxYqqXA2zSUbkXPGduPUzqArIKmdOLPVBGDL0suSk/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85MTM0N0Y2NDQ0NjY5NDA0MjlBRUFFNEJ/FMkQ0NTk2Q0RCOTU5Nzk4MEI0QzMyMkQyMTE4RjEzODdDM0NEMzc5LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/kuningatartaytepulla/p10034799"
+    },
+    {
+      "lidlProductId": "10035728",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/YVVMXMcsLhIKqzy1N75_o_KxwU5DQBATLQqUoR2nuzY/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9ENjFFMzBBODI3MDZEQ0E3N0JCNkI0MTE/yNTRENjUxQTY5MDA1MjA4NEU0QUIxNkZBOUI0RDU2MzI4NkEyMDlFLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/texmex-piirakka/p10035728"
+    },
+    {
+      "lidlProductId": "10035729",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/SKzftPmgYSSqGbJ0Ww1lyWbe7AImr2nkGYZIyAmh7mg/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xOENFQUEzM0I5MjZCQkI0RUY1NDEyQUJ/CNzhDQkM5MEExNDA2QjcxQkI2M0M1NENCM0JDNTQxMjhCNEMwMDM0LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/tumma-artesaanileipa/p10035729"
+    },
+    {
+      "lidlProductId": "10035959",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/Uyw3g4s5ByXP_fGtzWymoYRg0GN5HsHArCRpHxPsVMI/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS83RkIxQkY0OTFEMkJFMEFEOUZBMjVFQzQ/3MzI5OTEyQTZEQTEwMkUyQTM3OUE1MzVCMTQ4NEJDQkIxQjVGQUU4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/porkkanapiirakka/p10035959"
+    },
+    {
+      "lidlProductId": "10035960",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/Gg0dfJiF0GP4vAWVop47VVwq2khEpLpm3D9QVXBOeHM/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FMEZCOTYxNzA4N0E2ODFFRTRGRjgzQUZ/BNDc5NkMxRTgwOTkwQjQ5RjRDNENFQjkyRkQwQTBFQkQzQTU2NDdCLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/mustikka-vaniljaviineri/p10035960"
+    },
+    {
+      "lidlProductId": "10036370",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/EQShQXKQq4avOe6hP3gjzf4y6EDPUkFA7mVUfkZk3ck/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS81MjA3N0ZFNzc0NDhCOUQzQ0FERjZGQjM/5MjBGMzk1M0E3NkFGNUMwRUFENjM0QjlDQjgwMDYxMUJBMzNDMTJGLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/kinuskicronitsi/p10036370"
+    },
+    {
+      "lidlProductId": "10036371",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/2gCkVRghT7fhQEaa3v1uz0o3evazMxCKaiAAV09-R7c/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FOTU2NDBDQ0U3MTRDNzc1ODQzNUE1MDA/1RTZCQjdDMEJGODgxRjc0ODU3N0Q0OUEwMzRCMUVBMjdBMjJCMzI1LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/bbq-hot-dog/p10036371"
+    },
+    {
+      "lidlProductId": "10036372",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/6GMSMjxFyhZVMVxJO7Qy-AxaJzKts2I7njm7VNqPJJ4/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8wNzgxQzIyMTRDOUYyOTVCODM2MkYyNDM/wNjBCMDJBMjI5Mjk2N0QxMjY2NDQ0QkVDRjNCQThDOUQzQzFFMEI5LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/mustikkamuffinsi/p10036372"
+    },
+    {
+      "lidlProductId": "10036373",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/_Yac9wEKjSQXB3hvd2_GHBGTA1L777ETkO08T4o-nPM/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FN0JENEYxRkU3QTI3QUQ0QURBQjYwRTY/5QTA4N0ZCM0UwNTJBMTg5RUM0QUUwMzA5QjdBNTcwNDRFRjc3RTQ4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/suklaamuffinsi/p10036373"
+    },
+    {
+      "lidlProductId": "10036374",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/94HWVTzX0IcigcLbotfOP-ucGMbRe5Fm0fIUGC8rOgo/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8wRTJBOEQ5MDVDMjE5MTk4OTNFQTY5Nzl/EMzkzREIyNDUyQkM0OEFFNDY3MDgxNTIwQTdGRDVFRTFCQzQxNkI3LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/mini-voicroissant/p10036374"
+    },
+    {
+      "lidlProductId": "10036375",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/UkaYh8XHrHG_JQ5Oig4SZo11GMNk0AEPOjcO2q3g0FE/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85QTY1QzM1MDA3NjY0ODNEMkMxNEU1NTJ/ERjI3OTRGOTEyMzc0NzUyMDNCQjY4NDEwOTVGMTUwNTI2N0YxNUZELnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/calzone-margherita/p10036375"
+    },
+    {
+      "lidlProductId": "10036376",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/szcoJePPnbswUIpYbdXfdp0oL_u-ahZgVsWFSg577dg/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82NEM3NjZBMEVDN0QyRjBFQkE2M0Y0QjY/wRDBEODc0NUI4QTQyNkY5NkNEQ0I2QjgyRTc1ODk4MThBNzA1MEEwLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pistaasicroissant/p10036376"
+    },
+    {
+      "lidlProductId": "10036377",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/vC8LhAbh3o7ctxdSHNKSquK8nrlMO3-f3Ztr1bS2mWM/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xODE1QzcwOTk2NkY0Qzk4QjMxNjc1NzB/EQjA3ODM2OEQ3M0M1MjA1NTMwNzM2NkFCRDYzNEZDNTQ1MjJCNzk4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/kuningatarsydanmunkki/p10036377"
+    },
+    {
+      "lidlProductId": "10037402",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/tdPoeeLTEHXDv3q2ukDAecZmaeReKm-84qUfBrk2_jg/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9DMzhGQkY2RkUxNjg4QzU3QUMwNDZBQ0Y/xMzM2QTk2Qjc3QUZDRUQwRkY0NzI4QzU4RTVFMTg0MTI0QTFERjMyLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/parkside-munkki/p10037402"
+    },
+    {
+      "lidlProductId": "10037403",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/BeCLkbZ6PcsG45uLVxMUSx7wPwyvJwOf4e1IDP44sJ0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xQ0IyRDVCNjRBMTA3NkNCNERFRDhCMkY/1NEY5Q0I1QzhBQTBDOEZDQUM2MDAyQkE2Q0I3M0Q4OUI3NjVENzE0LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pastel-de-nata-leivos/p10037403"
+    },
+    {
+      "lidlProductId": "10037404",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/06QjuO3GyovvCHe55hODzsCydrLnAAjyp23j1gRuz80/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9CN0VDMENGMTcxQjVFQkY2NTcxMkQ2NTZ/CRDI2NDJDRjI0MkY4MDZCNUI1MkM0NjIxREREMzNDNkZFOEM5M0FFLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/dulce-de-leche-cookie/p10037404"
+    },
+    {
+      "lidlProductId": "10037405",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/iyH2qIyJZDGy6Hz0vt3gYgZpew2KkRUyETH0pTde7GQ/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zMkVCMDQzRjBCOEQ5RTQ0RTdERjFBNkN/GNDVBRkM4NDBDMjBCRTg0QjYwNEJFMkNEMzI0RUU3QjVBOTRCMTIxLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/leijonantassu-kinuski-paaryna/p10037405"
+    },
+    {
+      "lidlProductId": "10037406",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/FjRfORMyE9MvZUrzyN2m22tawXupEnu5mhauVqetV2I/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85NjQxRjhCNDI1NDJEMUFFOEYwMDhGRDF/GNjBFQTgyQUEyQzgxOTA3NjcxOURGMEUwMzQxOEJBNUMxQTAwMTlCLnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/peruna-sipulileipa/p10037406"
+    },
+    {
+      "lidlProductId": "10037407",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/grt5WNlVq02p8qW5eTFG5gKSsNOcjB6eJ1MgONrLnzw/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9DRTlDRTRENDE5OTEyRjYzNUJCODlBQjZ/GQkYzQkNEMzY1NzZEM0MzMEIwRERFMzM5MUMwM0M2MUNERTJBOTI5LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/fazer-raspberry-kiss-munkki/p10037407"
+    },
+    {
+      "lidlProductId": "10037408",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/Bk8s6Pd9OYS9VSoabs1oTNq_tWf4R_LwHrsoN0ZEyco/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9EMjUwREE5NEVCNTFBRkEwQ0Q3NDIwNDY/1RjZCMkE0MzkxQzFDRDkxQ0U1OTI3NTE5RDFFQTJGQUFFNTA4ODk4LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/pinaatti-fetapasteija/p10037408"
+    },
+    {
+      "lidlProductId": "10037409",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/0mBahpCAfYT2gETMtG13pYJBe4hELK-bn-WzaMTdf2M/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS81NjQ0QzE0QTE0QkQ4QUFGMTA1OTlCRkU/5NEZBMUVCRjQyQTBDOURBQzAzNjlERjg2MDI1N0UzMkQ5ODY0QjU0LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/toffeemuffinsi/p10037409"
+    },
+    {
+      "lidlProductId": "10037410",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/8qc6H8B70z7fpyXdV549vDN-dZSmXSQSA1ud6C--dn4/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zQTIzRDM3RUQ1QUFDMkRDMEY2MjFGNjZ/BQTFFN0FEM0QwOEEwNkUzRDNDNTFFRjdCNkRDNzlGQURCREIyQjA1LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/paaryna-kinuskipulla/p10037410"
+    },
+    {
+      "lidlProductId": "10037411",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/OQ6rt2agtcCy84NYoB5hneQBVzXfsxnhWtVMB6xR8QQ/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9BNkI3QTFCNzlEOThGODIwRDE0OUIyRDk/yM0FDQkMwNTAwQzk1OUNBMzhEMTk3QTA2Qjc0QzM1RDc5RkI5QTU3LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/dubai-munkki/p10037411"
+    },
+    {
+      "lidlProductId": "10037443",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/RqQ7F8jzfBhGfm66qI0441dJ6YvGylYf7GhLUcz4AQA/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zRjk3MkJBMUE1OTExREVENDVBMEU4QjE/xNjlBODU1N0YxMzhGRUQwMDVBMzA3OUYxNDhDOEVFQTc1QUNBMzU1LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/kalkkuna-juustotasku/p10037443"
+    },
+    {
+      "lidlProductId": "1060620",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/8Zc8BXjUg-uWLKrzoUkuu_f-Tqql0i-0Sg1TlYUqoN0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85RUVGREQ0NkI2NzBFMjFGMzg1MzI3MzZ/GMUIxRUQxMDhGOEJBNUM0OUQ4NDU4RUQ1QzExQzk0RjI5MjNFNDU5LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/hot-dog/p1060620"
+    },
+    {
+      "lidlProductId": "1182510",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/xnrp9ZEnoEPxzIvW3CDT56jSwbuoQE3krvAKmobDt9c/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85MTRCQzJDM0Q1MjM1Njg3NEQ2RDJDQTl/FQkM0OUMxOTk2MzExODkyQjQxREUwMzAzQzRCNzgyQjhBQ0E5MUJFLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/ciabatta/p1182510"
+    },
+    {
+      "lidlProductId": "1210220",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/z20QV5Vdr7M0cLRlF3rN78d6boNqFZQucHvhrHuyxB4/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FQzQxN0FGNjE4RjJCMjIwQUExNjU2QkQ/2QjU4RkQ5QTZGRjJFNjgwNkM1NkY1OTY1MzBGNUMzRUY0RUU2QUUwLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/valkosipulivoipatonki/p1210220"
+    },
+    {
+      "lidlProductId": "12180",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/ht4XTRbcP-I3IJlnOv3mrejh-zn4oZyD7EQb_qNw3bY/sm:1/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS81RkFGMTlDNjIzNzI4Q0IzQzU0QzNBRTg/2MDlBMEYzMDQ4RjY1MDdERjcwNTAxRDhBQTE2NzFFRDA2QkVBNTA2LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/vadelmahillomunkki/p12180"
+    },
+    {
+      "lidlProductId": "1259030",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/CmuttwmGu50EZNE8yHDk8jHfTjYcS99_Bet9Qtz8v80/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9GMkI4MEVDNkVDNUM2QTk1RDhEMThBQzl/CNUM5N0Y2RjZBNkNDNDBDMUIyNjNEMEM3RkYwMTgwOEMxNTAzNTdCLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/rustiikkinen-maalaissampyla/p1259030"
+    },
+    {
+      "lidlProductId": "16150",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/SFVkSH7l2SqbDLPIm-EgIDaYAk_-P0Z4TuzmzEBUekM/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82MjRBRUIyMzI5ODI4NDI4QjJBNUY4NkJ/BRUZFMTdEMTMwNEJCMzVFMkE4NTQ3NUQwNUMzMTE2M0U0QTg2QjUyLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/ruispala-100/p16150"
+    },
+    {
+      "lidlProductId": "1821550",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/WilCEShfzBWXV6cBVUDaY8PN5qQEqFLUzjV5thkSOOc/sm:1/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS84MTdCOUY4MjQ0MTU5OEM4OEFBODU3MUJ/CM0NFOUFERTZFMzdCNzZEQTMxMDBEMjA5MkI2QjYxM0M2OTg1QkExLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/suklaadonitsi/p1821550"
+    },
+    {
+      "lidlProductId": "282110",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/hpaPeOxeGEizdAsfTQINMdEdiYU1se_tU57-e4mMDgc/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82OUU4QTUyRDdEMDMzRDhFNDY4Njk2QTU/xMDE3MDQxMDMwN0IxNTM4OUQ4MDQ5MThFMzcxQjFDQ0Y0QUQxRTJFLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/vehnapatonki/p282110"
+    },
+    {
+      "lidlProductId": "40780",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/NMuHxrMI8v0RIRlT5iCsXIIUgJdDMlx8_328ak0m55U/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS83RDBFMzk2RkVDN0UyMEE1N0JGRkNDODQ/yMDM4NzMwRjk2N0NERDM4ODFCNDgyM0FERjkwMkUyQTA4QThEMDFBLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/lihapasteija/p40780"
+    },
+    {
+      "lidlProductId": "40800",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/xppPQBePunlIesEy7_BYolYcEAP1gJPgdO-2C4hYKCQ/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82NEVBRDQ3OUMwMzAzN0VENkYyM0U2NEQ/1QTdCNEQxNzM5RkFBNjBCOThCNjVBMTA5M0VENDBBNTQyQTU2RDk2LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/riisipiirakka/p40800"
+    },
+    {
+      "lidlProductId": "413500",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/C40E3Tb29aXcmGoXj8ECJcomMTvJiMGYMVYpZQx_o14/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS83RDFGMjAyQjA3OTdFNTk1NzVEOTU2NjI/2OEZDNEI1REFCNjM4OEJFQURBQUFFQkJEMDNGRDc1MDc4MUQ5NTA2LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/korvapuusti/p413500"
+    },
+    {
+      "lidlProductId": "52098320",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/EklGgENDVI8mtDHOHJE6RgJbe1Fa5grW55aV8GNf65g/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS82RkFDM0Q1NzY0MzIwNTk3RjI5QUQ1RDl/CRTE2ODc2NDFGNDIxMjgwQTYzRDcwOTA2RUQ1REI2MUFERDQ0QURGLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/valkosuklaacookie/p52098320"
+    },
+    {
+      "lidlProductId": "558810",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/w1Xvgk3dPNGWYkwdc7Jc8J86Vc2s4ichPWxcBHfS1Bo/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zQzY3RUM3NTI3RUJGMzQ1MjM2NjQyMDZ/EMDZFQjZGN0E5REZDQjk4RDZFM0JCNTc0MzlCRTQwMENCM0JEQzA3LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/maalaiscroissant/p558810"
+    },
+    {
+      "lidlProductId": "599520",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/3fgCIM776mGwsYzFk-6PQ_oXkCONmBqhr2fv7IIi9WA/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS83OEI1Q0IzNkEyMEMyQkI0RTNGQUU0Qjk/0RUVGNjgyNENEQTYxRDgyOEJCQTRFQzRERTg5MDAxQTZFQkZFM0IxLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/tomaattimozzarellaleipa/p599520"
+    },
+    {
+      "lidlProductId": "65260",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/bUlKIDcLeUp0GUsHlxDev_UY-pBPu4LztwlsdK1z-PQ/sm:1/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8zNkNDNkM3NkJGQ0NFODY1MDREQ0JGN0E/5M0ZGQUE0OTI0M0JGREJFQUEzMzlEQkU4RTVBNDAzNjQxMTlEQ0UzLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/omenatasku/p65260"
+    },
+    {
+      "lidlProductId": "678860",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/3pexomSDhp_x6-HOQxhholwnffuT0aPA1_q4tP9uDBw/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9DODE4MTcyMDJCRjAxMjM4Rjk5RkQwNkY/5Qzg0NDZFMjdFMUIyQjU2OTJBMDdFQjcyQ0M3QTgzMDQ3MTQ2QTIwLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/kinkkujuustocroissant/p678860"
+    },
+    {
+      "lidlProductId": "69052170",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/uZoqwzbDTpjLyDqoVMtThb9SqbfW0G7vFmqOrv0fPCE/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85REM2Nzg2MjczNjgxODE4NkJFMUI1MDF/EMzA2QzkxOTgwNkQ2RDU4NzZFQkVDNUM2NEY4MUIwOTA2NjZDNUYwLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/pitaleipa/p69052170"
+    },
+    {
+      "lidlProductId": "71014430",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/1CxjIgjNF6B97ImIsz9KChyouFAlmwXibDWZWa-uXI0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8yNTI5NDg5OTYxODVFMzI3QjFCMEQ1RUM/1MEI5OENGQzQ4OUZGQ0VERDI5MDc0MEM4MkFBRjZBRjI5QUZDRUU5LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/sulhaspiirakka/p71014430"
+    },
+    {
+      "lidlProductId": "71025080",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/GAqwlD_5xU5l4kVDPBdtFBW9NP-bbef1ln1iShb2ahw/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9FOEU0NkZGNkI4RTM1ODYzQzBGMjM5Rjk/5NEVDRUY0NDYzMDBCQTI3NkNDNTA3Q0I1QzUwNjJCQjI2NUI3MjEzLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/kaurasydan-100/p71025080"
+    },
+    {
+      "lidlProductId": "71025510",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/uBgmHOQ_aobdpbenpzSGoM_74Y1-isoYRLrl-jMQzOw/sm:1/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8xN0REMUI2QTA0OTJEMzc2QzkwMTk0OEF/EM0FEQTE2OTJBMUZBRDFGQzVBQjNFMzU3RUFDREEwNkM3MDFDRTlGLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/munkkirinkeli/p71025510"
+    },
+    {
+      "lidlProductId": "71041700",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/9ZAN1AFmeF0vRWcniaF3wnNd_MGfn5cOzGFZLAMu7O8/sm:1/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9GQUZDOENBQ0Q0NjhENDY0NjY1RDBEMUU/xOTAzMjFBQUEyN0FCQzY1MTFDMkIzQjlGNjVFM0ZBMDIxRTA0MzlCLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/berliininmunkki/p71041700"
+    },
+    {
+      "lidlProductId": "852650",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/J0gN0ebGR5BlhOWfM9Ul5IkYYyBmokqeQxDWNHIXCHU/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9CMUVFRjVCRjIwNUZBNDNGODM1N0JDRkE/0RTFGQkYzMTQ5RERDM0U1MzkzMDdGQ0NEMkU3NjVDNTFERDUyNTg0LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/ranskalainen-maalaispatonki/p852650"
+    },
+    {
+      "lidlProductId": "927810",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/p1UlTVR-h3aNXS8kYAOAwMQMS9MWh1RgVPqnm_7T3X0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS85OUY2NUUxQTA0RTgyNUQ0OTI0RDI4Njk/4RTc4MTBFQTMzMEVENUQ5NUZFMjYxN0Q0NzdGQTg0NDlDOEU5QzNDLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/vehnasampyla/p927810"
+    },
+    {
+      "lidlProductId": "927850",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/LUQW1ZiJvrgTDBekgi-_depjTPu2RBq4oXK_E5aQZM8/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9BNjc4NDhGNERBOTAyMUZFODI1QzdBNkE/0MTNERkZGRTFEMzYxODcwQTQ4NUY0MzA5ODYyNDI2MkFEODIwQUY0LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/moniviljasiemensampyla/p927850"
+    },
+    {
+      "lidlProductId": "956640",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/OHq4vKQ8cRw4rW4pLP_pJsXdHEuDpy0WGBD3GjTRVC4/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8yQTc1RTEwNkYyNkI1RjcxMzJBOEY1QzV/EMDFDMUY2QjIyMzE4NkQ1NjBGRTI3NUEzM0EzMkVDODdDNDBCNjU0LmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/brezel/p956640"
+    },
+    {
+      "lidlProductId": "975540",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/h2G_fDDTVLNTRDPtuiC8SWv8N_WCRw7WunoJO0TprD8/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9EMDg3Mzc5QUM4RjI2NEEzMEVERDM1MEJ/GMTM1MjU3NDFCOUU5MjE4NjkzRThDMzlBQ0M4NjA1MjEwMTNEQjFDLmpwZw.jpg",
+      "officialUrl": "https://www.lidl.fi/p/juustopekonisampyla/p975540"
+    }
+  ]
+}
