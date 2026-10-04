@@ -15,10 +15,15 @@ export async function GET(request: Request) {
 
   const startedAt = new Date();
   const result = await warmKCitymarketOfferCache(startedAt);
-  const ok = result.errors.length === 0 || Boolean(result.active) || Boolean(result.next);
+  // A successful active leaflet must not mask a failed next-period warm-up.
+  // warmKCitymarketOfferCache records failures for both attempted periods.
+  const activeOk = Boolean(result.active);
+  const nextAttempted = result.next !== null || result.errors.some((error) => error.startsWith("next "));
+  const nextOk = !nextAttempted || Boolean(result.next);
+  const ok = activeOk && nextOk && result.errors.length === 0;
 
   return NextResponse.json(
-    { ok, startedAt: startedAt.toISOString(), ...result },
+    { ok, activeOk, nextAttempted, nextOk, startedAt: startedAt.toISOString(), ...result },
     { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
   );
 }
