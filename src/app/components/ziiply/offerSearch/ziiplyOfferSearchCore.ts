@@ -646,6 +646,13 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
   return promise;
 }
 
+/** Invalidate one selected-store master before a scheduled local-publication refresh. */
+export function invalidateZiiplyGostaOfferCacheV804(context?: ZiiplyGostaOfferSearchContextV152) {
+  const key=buildOfferSearchContextKeyV152(context)||"global";
+  ziiplyGostaMasterCacheV156.delete(key);
+  gostaPreparedAllV803.delete(key);
+}
+
 // V803: cache the final deduplicated all-offers list during background warmup.
 // Opening Gösta can reuse it without running full-list deduplication on the UI path.
 const gostaPreparedAllV803 = new Map<string, { source: ZiiplyGostaOfferLike[]; results: ZiiplyGostaOfferLike[] }>();
