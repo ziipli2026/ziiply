@@ -8,6 +8,7 @@ on:
       - 'scripts/test-lidl-verified-price-import.mjs'
       - 'scripts/test-lidl-manual-price-intake.mjs'
       - 'scripts/test-lidl-store-price-bank.mjs'
+      - 'scripts/test-lidl-price-conflicts.mjs'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -27,3 +28,4 @@ jobs:
       - run: node scripts/test-lidl-verified-price-import.mjs
       - run: node scripts/test-lidl-manual-price-intake.mjs
       - run: node scripts/test-lidl-store-price-bank.mjs
+      - run: node scripts/test-lidl-price-conflicts.mjs
