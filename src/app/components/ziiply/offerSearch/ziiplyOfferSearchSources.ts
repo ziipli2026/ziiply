@@ -407,17 +407,44 @@ function getUniqueOfferKeyV4(result: ZiiplyOfferSearchResult) {
 }
 
 function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
-  const seen = new Set<string>();
+  const seen = new Map<string, ZiiplyOfferSearchResult>();
   const unique: ZiiplyOfferSearchResult[] = [];
+  const kCollisions: Array<Record<string, unknown>> = [];
+  const describeK = (item: ZiiplyOfferSearchResult) => {
+    const raw = item as ZiiplyOfferSearchResult & {
+      offerId?: string; validFrom?: string; validUntil?: string; price?: number;
+      debug?: { publicationId?: string }; campaignType?: string;
+    };
+    return {
+      id: item.id, offerId: raw.offerId ?? null,
+      publicationId: raw.debug?.publicationId ?? null,
+      title: item.title, price: raw.price ?? item.priceText,
+      validFrom: raw.validFrom ?? null, validUntil: raw.validUntil ?? null,
+      campaignType: raw.campaignType ?? "offer",
+    };
+  };
 
   for (const result of results) {
     // A product may legitimately appear in both tabs. Deduplicate within each dataset only.
     const key = `${(result as ZiiplyOfferSearchResult & { campaignType?: string }).campaignType === "campaign" ? "campaign" : "offer"}|${getUniqueOfferKeyV4(result)}`;
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
+    const previous = seen.get(key);
+    if (previous) {
+      // Diagnose K-local versus regional collisions without changing the live result set.
+      if (result.chain === "K" || previous.chain === "K") {
+        kCollisions.push({ key, kept: describeK(previous), dropped: describeK(result) });
+      }
+      continue;
+    }
+    seen.set(key, result);
     unique.push(result);
   }
 
+  if (kCollisions.length) {
+    console.info("[Ziiply K offer dedupe audit V1]", {
+      inputCount: results.length, outputCount: unique.length,
+      collisionCount: kCollisions.length, collisions: kCollisions,
+    });
+  }
   return unique;
 }
 
