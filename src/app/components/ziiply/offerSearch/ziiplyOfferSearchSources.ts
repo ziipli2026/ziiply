@@ -392,7 +392,15 @@ function getUniqueOfferKeyV4(result: ZiiplyOfferSearchResult) {
   const title = normalizeOfferUniqueText(result.title);
   const store = normalizeOfferUniqueText(result.storeLabel);
 
-  if (title) return `title:${title}|store:${store}`;
+  // Same product can have different regional and store-local prices/validity.
+  // Collapse only genuinely identical offer terms, not merely matching titles.
+  if (title) {
+    const price = Number(result.price);
+    const priceKey = Number.isFinite(price) ? price.toFixed(4) : normalizeOfferUniqueText(result.priceText);
+    const validUntil = normalizeOfferUniqueText(anyResult.validUntil ?? "");
+    const validFrom = normalizeOfferUniqueText(anyResult.validFrom ?? "");
+    return `title:${title}|store:${store}|price:${priceKey}|from:${validFrom}|until:${validUntil}`;
+  }
 
   return normalizeOfferUniqueText(
     [result.source, result.title, result.priceText].filter(Boolean).join("|"),
