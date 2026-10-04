@@ -206,7 +206,7 @@ async function resolveKLocalPublicationIds(
     new Set(active.map(publication => String(publication.id ?? "").trim()).filter(Boolean)),
   );
   const regionalIds = new Set(regional.map(publication => String(publication.id ?? "").trim()).filter(Boolean));
-  const campaignIds = active.filter(publication => /\b(kampanja|campaign)\b/i.test(String(publication.label ?? "")))
+  const campaignIds = active.filter(publication => /(?:kampanj|campaign|teema|sesonki|erikoisjulkaisu)/i.test([publication.label, publication.title, publication.type, publication.category].map(v => String(v ?? "")).join(" ")))
     .map(publication => String(publication.id ?? "").trim()).filter(Boolean);
   return {
     ids, campaignIds,
@@ -552,11 +552,12 @@ export async function fetchKruokaOffers(
     const offers: UnknownRecord[] = baseOffers.map(offer => ({ ...offer,
       campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? "campaign" : offer.campaignType,
     }));
-    const knownOfferIds = new Set(baseOffers.map(o => String(o.publicId ?? "")).filter(Boolean));
+    const knownOfferIds = new Set(offers.map(o => `${String(o.publicId ?? "")}|${String(o.campaignType ?? "offer")}`).filter(Boolean));
     for (const offer of regionalOffers) {
       const id = String(offer.publicId ?? "");
-      if (!id || knownOfferIds.has(id)) continue;
-      knownOfferIds.add(id);
+      const key = `${id}|${String(offer.campaignType ?? "offer")}`;
+      if (!id || knownOfferIds.has(key)) continue;
+      knownOfferIds.add(key);
       offers.push(offer);
     }
     debug.brochureOffers = offers.length;
@@ -701,7 +702,7 @@ export async function fetchKruokaOffers(
         offer, index, ziiplyStoreId || tjekStoreId, displayStoreName, business.chain, business.slug
       );
       if (!mapped || !matchesQuery(mapped, query)) continue;
-      const key = String((mapped as unknown as UnknownRecord).offerId ?? mapped.id);
+      const key = `${String((mapped as unknown as UnknownRecord).campaignType ?? "offer")}|${String((mapped as unknown as UnknownRecord).offerId ?? mapped.id)}`;
       if (seen.has(key)) continue;
       seen.add(key);
       results.push(mapped);
