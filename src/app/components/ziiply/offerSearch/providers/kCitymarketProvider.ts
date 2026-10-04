@@ -44,8 +44,8 @@ export type CitymarketOffer = {
 let nationalPhotoMatchAudit: {matched:number;exact:number;similar:number;ambiguous:number;unmatched:number;examples:Array<{leaflet:string;size:string;tjekCandidates:string[];reasons:string[]}>}|null=null;
 export function getKCitymarketNationalPhotoMatchAudit(){return nationalPhotoMatchAudit;}
 const ENTRY = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
-const AV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/arkilehti.html";
-const LV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/lvtarjouslehti.html";
+const AV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/";
+const LV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/";
 const clean=(s:string)=>String(s??"").replace(/\u00a0/g," ").replace(/[ \t]+/g," ").trim();
 const money=(s:string)=>Number(String(s).replace(",","."));
 const abs=(href:string,base:string)=>{try{return new URL(href,base).href}catch{return null}};
@@ -551,7 +551,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v5-period-archive-20261004"],
+  ["ziiply-kcitymarket-offers-v6-published-page-count-20261004"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
