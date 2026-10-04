@@ -481,7 +481,13 @@ function dedupe(items: UnknownRecord[]) {
   const out: UnknownRecord[] = [];
 
   for (const item of items) {
-    // Tjek publications are independent leaflets: the same product and price in a\n    // regional and a store-local leaflet are distinct source offers.\n    const publicationId = String((item.debug as UnknownRecord | undefined)?.publicationId ?? "").trim();\n    const sourceOfferId = String(item.offerId ?? "").trim();\n    const key = String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId\n      ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")\n      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
+    // Tjek publications are independent leaflets: the same product and price in a
+    // regional and a store-local leaflet are distinct source offers.
+    const publicationId = String((item.debug as UnknownRecord | undefined)?.publicationId ?? "").trim();
+    const sourceOfferId = String(item.offerId ?? "").trim();
+    const key = String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
+      ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
+      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(item);
