@@ -56,6 +56,7 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   "kevyt mait": "kevytmaito",
   kevytmait: "kevytmaito",
   cocacola: "coca cola",
+  vola: "cola",
   kokis: "coca cola",
   cokis: "coca cola",
   kookis: "coca cola",
@@ -107,6 +108,7 @@ const QUERY_CORRECTIONS: Record<string, string> = {
 
 const FUZZY_GROCERY_TERMS = [
   "maito",
+  "cola",
   "piimä",
   "jogurtti",
   "jauheliha",
