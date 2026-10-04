@@ -390,6 +390,11 @@ function normalizeOfferUniqueText(value: unknown) {
 
 function getUniqueOfferKeyV4(result: ZiiplyOfferSearchResult) {
   const anyResult = result as any;
+  // Tjek regional and store-local publications have distinct source offer IDs.
+  // Do not merge their rows by matching EAN, price, validity or product title.
+  if (anyResult.source === "etarjouslehdet" && anyResult.debug?.publicationId && anyResult.offerId) {
+    return `tjek:${String(anyResult.debug.publicationId)}:${String(anyResult.offerId)}:${normalizeOfferUniqueText(result.storeLabel)}`;
+  }
   const ean = normalizeOfferUniqueText(anyResult.ean || anyResult.gtin || anyResult.barcode || "");
 
   const price = Number(anyResult.price);
