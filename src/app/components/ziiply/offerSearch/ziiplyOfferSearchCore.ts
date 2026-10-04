@@ -604,7 +604,29 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
   }
 
   const promise = fetchOfferSearchResults(ZIIPLY_GOSTA_MASTER_QUERY_V156, context)
-    .then((results) => cleanZiiplyGostaOfferResultsV146(results))
+    .then((results) => {
+      const cleaned = cleanZiiplyGostaOfferResultsV146(results);
+      const identity = (item: ZiiplyGostaOfferLike) => {
+        const source = (item as any).__sourceOfferSearchResult ?? item;
+        return [String(source?.debug?.publicationId ?? ""), String(source?.offerId ?? ""), String((item as any).campaignType ?? "offer")].join("|");
+      };
+      const cleanedIds = new Set(cleaned.map(identity));
+      const removed = results.filter(item => !cleanedIds.has(identity(item)));
+      const stageAudit = lastZiiplyKruokaDebugV174 as any;
+      if (stageAudit && stageAudit.kOfferStageAuditV1) {
+        stageAudit.kOfferClientAuditV1 = {
+          received: results.length,
+          cleaned: cleaned.length,
+          removed: removed.map(item => ({
+            id: identity(item),
+            title: String(item.title ?? ""),
+            badTitle: isBadOfferSearchResultV106(item),
+            dedupeKey: getGostaOfferDedupeKeyV148(item),
+          })),
+        };
+      }
+      return cleaned;
+    })
     .catch((error) => {
       ziiplyGostaMasterCacheV156.delete(contextKey);
       throw error;
