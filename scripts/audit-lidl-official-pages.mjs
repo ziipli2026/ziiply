@@ -14,7 +14,7 @@ const decode = s => String(s || "").replace(/&amp;/g, "&").replace(/&quot;/g, '"
 const meta = (html, key) => {
   const tags = html.match(/<meta\b[^>]*>/gi) || [];
   for (const tag of tags) {
-    if (!new RegExp('(?:property|name)\\s*=\\s*["\\']' + key.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g, "\\$&") + '["\\']', "i").test(tag)) continue;
+    if (tag.match(/(?:property|name)\s*=\s*["']([^"']+)["']/i)?.[1] !== key) continue;
     return decode(tag.match(/content\s*=\s*(["'])(.*?)\1/i)?.[2] || "");
   }
   return null;
