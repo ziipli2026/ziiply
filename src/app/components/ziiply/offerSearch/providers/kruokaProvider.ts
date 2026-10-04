@@ -40,6 +40,7 @@ export type KruokaPipelineDebugV49 = {
   productMapHttp: number | null;
   productMapProducts: number | null;
   activeOffers: number | null;
+  campaignProbe?: { activePublicationIds: string[]; campaignPublicationIds: string[]; fetchedCampaignRows: number; mappedCampaignRows: number; returnedCampaignRows: number };
   error: string | null;
   rawOffers?: UnknownRecord[];
   kSupermarketPublicationResolverDebug?: {
@@ -548,6 +549,7 @@ export async function fetchKruokaOffers(
       sort: ["score_desc"],
     }, business.slug);
 
+    debug.campaignProbe = { activePublicationIds: resolvedPublications.ids, campaignPublicationIds: resolvedPublications.campaignIds, fetchedCampaignRows: regionalOffers.filter(row => row.campaignType === "campaign").length, mappedCampaignRows: 0, returnedCampaignRows: 0 };
     const baseOffers = dataArray(offersValue);
     const offers: UnknownRecord[] = baseOffers.map(offer => ({ ...offer,
       campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? "campaign" : offer.campaignType,
@@ -715,6 +717,10 @@ export async function fetchKruokaOffers(
       results.push(mapped);
     }
 
+    if (debug.campaignProbe) {
+      debug.campaignProbe.mappedCampaignRows = offers.filter(offer => offer.campaignType === "campaign").length;
+      debug.campaignProbe.returnedCampaignRows = results.filter(result => (result as unknown as UnknownRecord).campaignType === "campaign").length;
+    }
     debug.activeOffers = results.length;
     lastKruokaPipelineDebugV49 = { ...debug };
     return results;
