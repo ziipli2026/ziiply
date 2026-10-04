@@ -574,11 +574,16 @@ export async function warmKCitymarketOfferCache(now=new Date()){
 }
 // Only exact, unambiguous EAN-bank matches are enriched. Multi-variant leaflet
 // headings must never inherit an arbitrary barcode or product photo.
+const getCachedCitymarketEanImages=unstable_cache(async()=>{
+  if(!process.env.DATABASE_URL)return [];
+  const sql=neon(process.env.DATABASE_URL);
+  return sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC LIMIT 25000`;
+},["ziiply-citymarket-ean-image-index-v1"],{revalidate:21600});
+
 async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<CitymarketOffer[]>{
   if(!process.env.DATABASE_URL || !offers.length) return offers;
   try{
-    const sql=neon(process.env.DATABASE_URL);
-    const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC LIMIT 25000`;
+    const rows=await getCachedCitymarketEanImages();
     if(!rows.length)console.warn("[K-Citymarket] EAN bank contains no usable image rows");
     const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
     // Do not silently exclude older catalogue images merely because the EAN bank has grown.
@@ -680,7 +685,8 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     }
     return (from===null||from<=todayStamp)&&(to===null||to>=todayStamp);
   });
-  const enriched=await enrichCitymarketFromEanBank(currentOffers);
+  // Avoid the optional 25k-row EAN lookup when the cached leaflet already has all images.
+  const enriched=currentOffers.every(offer=>!!offer.imageUrl)?currentOffers:await enrichCitymarketFromEanBank(currentOffers);
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
