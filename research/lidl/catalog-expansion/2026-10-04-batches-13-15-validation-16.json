@@ -1,0 +1,30 @@
+{
+  "observed_at": "2026-10-04",
+  "scope": [
+    "2026-10-04-ready-meals-batch-13.json",
+    "2026-10-04-hevi-drygoods-batch-14.json",
+    "2026-10-04-ingredient-notice-batch-15.json"
+  ],
+  "rows_checked": 23,
+  "product_specific_urls": 1,
+  "category_listing_only": 20,
+  "notice_only": 2,
+  "ean_confirmed": 0,
+  "official_image_url_confirmed": 0,
+  "normal_price_confirmed": 0,
+  "issues": [
+    {
+      "file": "2026-10-04-hevi-drygoods-batch-14.json",
+      "items": [
+        "Kotimainen pikkutomaatti 800 g",
+        "Kotimainen kirsikkatomaatti 800 g"
+      ],
+      "issue": "Potential overlapping tomato product naming; retain separately as source observations but do not count as two confirmed distinct SKUs without individual product ID/EAN."
+    },
+    {
+      "file": "2026-10-04-ingredient-notice-batch-15.json",
+      "issue": "Ingredient notice is not evidence of current availability."
+    }
+  ],
+  "release_gate": "No import into live product bank until individual product identity and official image are verified. These 23 observations are not 23 verified SKUs."
+}
