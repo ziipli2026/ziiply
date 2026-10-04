@@ -44,9 +44,22 @@ export function addVerifiedLidlWeek40Leaflet(
     !(row.id === "hk-burger" && officialNames.some(name => name.includes("burgeri"))) &&
     !(row.id === "solevita-orange" && officialNames.some(name => name.includes("appelsiinitäysmehu")))
   );
+  // Reuse an official Lidl image only when the normalized product title is an exact match.
+  // Never borrow a generic image from a different size, brand or product variant.
+  const imageKey = (value: unknown) => String(value || "").toLocaleLowerCase("fi-FI")
+    .normalize("NFKC").replace(/[^\\p{L}\\p{N}]+/gu, " ").trim();
+  const officialImages = new Map<string, string>();
+  for (const offer of structured) {
+    const url = String(offer.imageUrl || offer.image || offer.pictureUrl || "");
+    const name = imageKey(offer.name || offer.title);
+    if (name && /^https:\\/\\//.test(url) && !officialImages.has(name)) officialImages.set(name, url);
+  }
   return mergeLidlStructuredAndLeaflet(structured, filtered, today).map(item =>
     String(item.id || "").startsWith("lidl-leaflet-")
       ? { ...item, storeKey, storeName, storeLabel: storeName, shopName: storeName,
+          imageUrl: item.imageUrl || officialImages.get(imageKey(item.name || item.title)) || "",
+          image: item.image || officialImages.get(imageKey(item.name || item.title)) || "",
+          pictureUrl: item.pictureUrl || officialImages.get(imageKey(item.name || item.title)) || "",
           category: item.id === "lidl-leaflet-carrot" ? "Hevi" :
             item.id === "lidl-leaflet-pizza-ice-cream" ? "Muut" : item.category,
           benefitText: item.priceBasis === "multi-buy-total"
