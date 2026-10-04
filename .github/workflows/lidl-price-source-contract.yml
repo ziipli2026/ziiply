@@ -1,0 +1,23 @@
+name: Lidl price source contract
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/test-lidl-price-source-contract-v69.mjs'
+      - '.github/workflows/lidl-price-source-contract.yml'
+permissions:
+  contents: read
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax
+        run: node --check scripts/test-lidl-price-source-contract-v69.mjs
+      - name: Run eleven price provenance fixtures
+        run: node scripts/test-lidl-price-source-contract-v69.mjs
