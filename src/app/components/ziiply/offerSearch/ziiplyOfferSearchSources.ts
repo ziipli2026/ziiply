@@ -287,7 +287,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v34-s-local-campaign-type-cache-bump";
+const OFFER_SEARCH_SOURCE_REVISION = "v33-k-local-kruoka-enabled";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const ENABLE_ETARJOUSLEHDET_PROVIDER_V28 = false;
 const ENABLE_KRUOKA_PROVIDER_V33 = true;
