@@ -13,4 +13,4 @@ const allowed=image?.protocol==="https:"&&["imgproxy-retcat.assets.schwarz","lid
 const identity=response.ok&&canonicalPath.endsWith("/p"+id)&&/korvapuusti.*croissant/i.test(String(title??"").normalize("NFD").replace(/[\u0300-\u036f]/g,""));
 const candidate=identity&&allowed&&!/(?:placeholder|default|logo|social-share)/i.test(image.pathname)?image.href:null;
 console.log(JSON.stringify({id,httpStatus:response.status,canonical,title,imageCandidate:candidate,identityConfirmed:identity,verifiedImage:false,priceEur:null},null,2));
-if(!candidate)process.exitCode=1;
+// A 404 is a valid source-availability finding, not a broken research workflow.\n// Never automatically publish an image from a cached search result.\nif(response.status!==404&&!candidate)process.exitCode=1;
