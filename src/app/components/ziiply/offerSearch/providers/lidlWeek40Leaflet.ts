@@ -5,7 +5,7 @@
  * This is a temporary week-scoped bridge, not a replacement for official feeds.
  */
 import { mergeLidlStructuredAndLeaflet, type LidlLeafletEnrichment } from "./lidlProvider";
-import reference from "../../../../../data/lidl/hyvinkaa-paper-leaflet-w40-2026.fixture.json";
+import reference from "../../../../../../data/lidl/hyvinkaa-paper-leaflet-w40-2026.fixture.json";
 
 const independentlyVerifiedIds = new Set([
   "carrot", "apple", "potato", "chinese-cabbage", "brussels-sprouts",
