@@ -10,7 +10,7 @@ export function parseLidlPilotCsv(csv) {
   if(quoted){if(c==='"'&&csv[i+1]==='"'){field+='"';i++;}else if(c==='"'){quoted=false;closed=true;}else field+=c;continue;}
   if(c==='"'){if(field!==""||closed)throw new Error("Invalid CSV quote");quoted=true;}
   else if(c===",")pushField();
-  else if(c==="\n")pushRow();
+  else if(c==="\n"){if(closed||field!==""||fields.length)pushRow();}
   else if(c==="\r"){if(csv[i+1]!=="\n")throw new Error("Invalid CSV line ending");}
   else {if(closed)throw new Error("Unexpected characters after closing quote");field+=c;}
  }
