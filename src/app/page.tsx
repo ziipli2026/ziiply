@@ -11695,6 +11695,45 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  // Refresh exactly at the next Finnish date boundary, not on a polling interval.
+  // Future-dated publications are already gated by the provider/API validity dates.
+  useEffect(() => {
+    if (activeResult !== "offers" || searchPanelOpen || !storeModeChosenV299) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const finnishDay = () => new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(new Date());
+    let observedDay = finnishDay();
+    const checkBoundary = () => {
+      if (document.visibilityState !== "visible") return;
+      const currentDay = finnishDay();
+      if (currentDay === observedDay) return;
+      observedDay = currentDay;
+      const chain = gostaSelectedOfferChainRefV547.current;
+      if (["K", "LIDL", "EUROSPAR", "TOKMANNI"].includes(chain)) void searchOffers(undefined, true);
+    };
+    const scheduleBoundary = () => {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Helsinki", hour: "2-digit", minute: "2-digit", second: "2-digit",
+        hourCycle: "h23",
+      }).formatToParts(now);
+      const number = (type: string) => Number(parts.find((part) => part.type === type)?.value || 0);
+      const elapsed = ((number("hour") * 60 + number("minute")) * 60 + number("second")) * 1000 + now.getMilliseconds();
+      timer = setTimeout(() => {
+        checkBoundary();
+        scheduleBoundary();
+      }, 86400000 - elapsed + 100);
+    };
+    const onVisibilityChange = () => checkBoundary();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    scheduleBoundary();
+    return () => {
+      if (timer !== undefined) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [activeResult, searchPanelOpen, storeModeChosenV299]);
+
   // V784: if the selected S/K store changes while Gösta is already open
   // (for example a boot/GPS refresh finishes after the first request started),
   // immediately issue a fresh request for the now-visible store. The request
