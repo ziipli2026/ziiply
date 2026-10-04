@@ -1,0 +1,57 @@
+{
+  "observed_at": "2026-10-04",
+  "purpose": "Official coffee range evidence and broken product-link quarantine",
+  "source_url": "https://www.lidl.fi/c/kahvi-ja-tee/s10073273",
+  "brand": "Bellarom",
+  "named_products": [
+    {
+      "name": "Hieno Mokka",
+      "package_size": null
+    },
+    {
+      "name": "Hieno Vilhelmiina",
+      "package_size": null
+    },
+    {
+      "name": "Extra Dark Roast",
+      "form_variants": [
+        "suodatinkahvi",
+        "kahvipapu"
+      ],
+      "package_size": null
+    },
+    {
+      "name": "Kofeiiniton suodatinkahvi",
+      "package_size": null
+    },
+    {
+      "name": "Alkuperämaakahvi",
+      "package_size": null
+    }
+  ],
+  "other_range": [
+    "jauhettu kahvi",
+    "kahvipavut",
+    "kahvikapselit"
+  ],
+  "crosscheck": {
+    "source_url": "https://www.lidl.fi/c/hinnanpudotus/s10082102",
+    "historical_snapshot": "2026-09-06",
+    "package_sizes_verified_there": {
+      "Hieno Mokka": "500 g",
+      "Hieno Vilhelmiina": "500 g",
+      "Extra Dark Roast -suodatinkahvi": "500 g",
+      "Alkuperämaakahvi": "250 g",
+      "Gold-suodatinkahvi": "500 g"
+    },
+    "price_policy": "Historic 2026-09-06 snapshot prices must not become current normal prices"
+  },
+  "quarantine": [
+    {
+      "url": "https://www.lidl.fi/p/bellarom-hieno-mokka/p10037752",
+      "issue": "Web crawler reports 404 with query string; do not promote ID 10037752 as verified live product page without direct successful retrieval"
+    }
+  ],
+  "new_unique_sku_count": 0,
+  "notes": "These coffee names may already exist in earlier research batches. This file supplies range and size evidence, not extra additive candidates; no EAN or official product image verified."
+}
