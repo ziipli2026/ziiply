@@ -5,11 +5,12 @@
  * Never treats a promotional/previous price as a verified regular store price.
  * Does not import inferred barcodes, mutate the EAN bank, or change app data.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 const source = new URL("../data/lidl/official-product-image-price-audit-2026-10-04.json", import.meta.url);
 const records = JSON.parse(readFileSync(source, "utf8")).records;
 const arg = process.argv.find(x => x.startsWith("--limit="));
-const limit = arg ? Math.max(0, Math.min(records.length, Number(arg.split("=")[1]) || 0)) : 10;
+const limit = process.argv.includes("--all") ? records.length : arg ? Math.max(0, Math.min(records.length, Number(arg.split("=")[1]) || 0)) : 10;
+const outputArg = process.argv.find(x => x.startsWith("--output="));
 const decode = s => String(s || "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 const meta = (html, key) => {
   const tags = html.match(/<meta\b[^>]*>/gi) || [];
@@ -35,4 +36,15 @@ for (const item of records.slice(0, limit)) {
   } catch (error) { row.error = String(error); }
   output.push(row);
 }
-process.stdout.write(JSON.stringify({ source: "lidl.fi-official-product-page", researchOnly: true, count: output.length, records: output }, null, 2) + "\n");
+const imageCounts = new Map();
+for (const row of output) if (row.candidateImageUrl) imageCounts.set(row.candidateImageUrl, (imageCounts.get(row.candidateImageUrl) || 0) + 1);
+for (const row of output) {
+  if (row.candidateImageUrl && imageCounts.get(row.candidateImageUrl) > 1) {
+    row.imageStatus = "shared_meta_image_not_product_verified";
+    row.imageVerified = false;
+  }
+}
+const result = { source: "lidl.fi-official-product-page", researchOnly: true, count: output.length, sharedMetaImageCount: [...imageCounts.values()].filter(n => n > 1).length, records: output };
+const json = JSON.stringify(result, null, 2) + "\n";
+if (outputArg) { const file = outputArg.slice("--output=".length); if (!file) throw new Error("--output requires a path"); writeFileSync(file, json); process.stderr.write(`Wrote ${output.length} records to ${file}\\n`); }
+else process.stdout.write(json);
