@@ -772,7 +772,7 @@ export default function ZiiplyMobileOfferSearchCard({
   onSelectOfferChain,
   showSChain = true,
   showKChain = true,
-  showLidlChain = false,
+  showLidlChain = true,
   showEurosparChain = false,
   showTokmanniChain = false,
   onBack,
