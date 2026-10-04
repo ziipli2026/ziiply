@@ -723,9 +723,9 @@ function OfferImageBox({
   src: string;
   category?: string;
 }) {
-  const [imageFailed, setImageFailed] = React.useState(false);
+  const [failedSrc, setFailedSrc] = React.useState<string | null>(null);
   const cleanSrc = String(src || "").trim();
-  const showImage = cleanSrc.length > 0 && !imageFailed;
+  const showImage = cleanSrc.length > 0 && failedSrc !== cleanSrc;
 
   if (!showImage) return <>{getCategoryIcon(category)}</>;
 
@@ -738,7 +738,7 @@ function OfferImageBox({
       decoding="async"
       referrerPolicy="no-referrer"
       draggable={false}
-      onError={() => setImageFailed(true)}
+      onError={() => setFailedSrc(cleanSrc)}
     />
   );
 }
