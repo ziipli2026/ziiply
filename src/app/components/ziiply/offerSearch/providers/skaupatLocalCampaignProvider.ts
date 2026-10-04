@@ -622,9 +622,15 @@ function mapProductV1(
   const ean = firstStringV1(product?.ean);
   const id = ean || firstStringV1(product?.id, product?.sokId) || `s-local-${storeId}-${index}`;
 
+  // RemoteGetPageContent is a mixed merchandising page, not an offer-only feed.
+  // Require a demonstrably lower payable price before publishing an offer.
+  // Number(null) is zero, so validate raw values before numeric comparison.
   const hasLowerCampaignPrice =
+    currentPrice != null &&
+    regularPrice != null &&
     Number.isFinite(Number(currentPrice)) &&
     Number.isFinite(Number(regularPrice)) &&
+    Number(currentPrice) > 0 &&
     Number(currentPrice) < Number(regularPrice);
 
   const benefitText = hasLowerCampaignPrice
@@ -819,7 +825,12 @@ export async function fetchSKaupatLocalCampaignOffersV1(
           query,
           index++,
         );
-        if (item) mapped.push(item);
+        // Do not surface ordinary-price CMS recommendations as Gösta offers.
+        // Preserve the existing Offers tab and its product mapping; campaign-tab
+        // classification needs separate, verified campaign-source semantics.
+        if (item && (item as any).debugLocalCampaignEvidenceV231?.priceBelowRegular === true) {
+          mapped.push(item);
+        }
       }
     }
 
