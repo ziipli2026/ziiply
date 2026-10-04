@@ -21,7 +21,7 @@ const meta = (html, key) => {
   return null;
 };
 const normalize = s => String(s || "").toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-const imageHostAllowed = host => host === "lidl.fi" || host.endsWith(".lidl.fi") || host === "lidl.net" || host.endsWith(".lidl.net") || host === "lidl.com" || host.endsWith(".lidl.com");
+const imageHostAllowed = host => host === "imgproxy-retcat.assets.schwarz" || host === "lidl.fi" || host.endsWith(".lidl.fi") || host === "lidl.net" || host.endsWith(".lidl.net") || host === "lidl.com" || host.endsWith(".lidl.com");
 const genericImage = url => /(?:logo|placeholder|default|fallback|no-image|social-share|open-graph|og-image)/i.test(new URL(url).pathname);
 const output = [];
 for (const item of records.slice(0, limit)) {
