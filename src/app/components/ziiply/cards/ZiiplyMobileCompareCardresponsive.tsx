@@ -346,6 +346,8 @@ export default function ZiiplyMobileCompareCardresponsive({
             ) : (
               visibleStores.map((store, index) => {
                 if (detailsStoreId && detailsStoreId !== store.id) return null;
+                const hasPricedMatches = (store.matches || []).some((match: any) => Number(match?.price) > 0);
+                const resultPending = !loading && !hasPricedMatches && !hasResolvedComparisonData;
                 const hasNoCounterpart =
                   hasResolvedComparisonData &&
                   comparedCount > 0 &&
@@ -433,6 +435,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                               <span>
                                 {loading
                                   ? ""
+                                  : resultPending ? ""
                                   : hasNoCounterpart
                                     ? "Vastinetta ei löytynyt"
                                     : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
@@ -451,8 +454,8 @@ export default function ZiiplyMobileCompareCardresponsive({
 
                       <div className="flex -translate-y-[0.18rem] flex-col items-center gap-2">
                           {onShareStore ? (
-                            <button type="button" onClick={(event) => { event.stopPropagation(); if (!hasNoCounterpart) onShareStore(store.id); }}
-                              disabled={hasNoCounterpart}
+                            <button type="button" onClick={(event) => { event.stopPropagation(); if (!hasNoCounterpart && !resultPending) onShareStore(store.id); }}
+                              disabled={hasNoCounterpart || resultPending}
                               className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-45"
                               aria-label={hasNoCounterpart ? `${store.name}: jaettavia vastintuotteita ei löytynyt` : `Jaa ${store.name} kori`} title={hasNoCounterpart ? "Jaettavia vastintuotteita ei löytynyt" : "Jaa kori"}>
                               <svg aria-hidden="true" viewBox="0 0 24 18" className="h-[0.94rem] w-[1.12rem]">
@@ -462,8 +465,8 @@ export default function ZiiplyMobileCompareCardresponsive({
                             </button>
                           ) : null}
                           {onSelectStore ? (
-                            <button type="button" onClick={(event) => { event.stopPropagation(); if (!hasNoCounterpart) onSelectStore(store.id); }}
-                              disabled={hasNoCounterpart}
+                            <button type="button" onClick={(event) => { event.stopPropagation(); if (!hasNoCounterpart && !resultPending) onSelectStore(store.id); }}
+                              disabled={hasNoCounterpart || resultPending}
                               className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-45"
                               aria-label={hasNoCounterpart ? `${store.name}: ostettavia vastintuotteita ei löytynyt` : `Osta ${store.name} vertailukori`} title={hasNoCounterpart ? "Ostettavia vastintuotteita ei löytynyt" : "Osta tämä vertailukori" }>
                               <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.52rem] w-[1.52rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
@@ -488,7 +491,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           )}
                           style={{ fontFamily: serifFont }}
                         >
-                          {loading ? "" : hasNoCounterpart ? "—" : formatEuro(store.totalPrice)}
+                          {loading || resultPending ? "" : hasNoCounterpart ? "—" : formatEuro(store.totalPrice)}
                         </span>
                       </button>
                     </div>
