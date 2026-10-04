@@ -116,6 +116,7 @@ function resolveCards(rows,rawBoxes){
  }
  const repairText=s=>s.replace(/(\d+)\s+(\d{2})(?=[–-])/g,'$1,$2').replace(/(\d+)\s+[–-](\d+)\s+(\d{1,2})\s+(20\d{2})/g,'$1.–$2.$3.$4').replace(/(\d+)\s+(\d{2})(?=\/(?:kg|l|rl|kpl|ps|pkt|prk|tlk|pl|rs)\b)/gi,'$1,$2');
  for(const card of cards){
+  card.row.imageAnchor={left:card.anchor.left,top:card.anchor.top,width:card.anchor.right-card.anchor.left,height:card.anchor.height};
   const candidates=(owned.get(card)||[]).sort((a,b)=>a.score-b.score);
   const pkProof=card.row.package,rateProof=card.row.unitPrice;
   const proven=pkProof&&rateProof?candidates.filter(p=>Math.abs(pkProof.min*rateProof.max*(p.quantity||1)-p.value)<.08&&Math.abs(pkProof.max*rateProof.min*(p.quantity||1)-p.value)<.08):[];
