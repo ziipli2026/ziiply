@@ -478,7 +478,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     offer.campaignLabel, offer.publicationLabel,
   ].map(value => String(value ?? "").trim().toLowerCase());
   const isCampaign = offer.isCampaign === true ||
-    campaignMarker.some(value => /^(campaign|kampanja)(?:$|[\s:_-])/.test(value));
+    campaignMarker.some(value => /(?:^|[\s:_-])(campaign|kampanja|teema|sesonki|erikoisjulkaisu)(?:$|[\s:_-])/.test(value));
   return {
     id: `etarjouslehdet-v59-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
