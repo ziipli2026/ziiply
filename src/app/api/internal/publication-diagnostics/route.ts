@@ -27,8 +27,30 @@ export async function GET(request: Request) {
         quality: inspectOfferPublication(offers, validFrom, validUntil),
       };
     });
+    const latestRun = runs[0];
+    const current = editions.filter((edition) => edition.state === "current");
+    const upcoming = editions.filter((edition) => edition.state === "upcoming");
+    const issues: string[] = [];
+    if (!latestRun) issues.push("No recorded source run");
+    else if (!latestRun.ok) issues.push("Latest source run failed");
+    if (!current.length) issues.push("No currently valid stored publication");
+    for (const edition of current) {
+      if (edition.quality.severity === "error") issues.push(`Critical offer data in ${edition.publicationId}`);
+      else if (edition.quality.severity === "warning") issues.push(`Incomplete offer metadata in ${edition.publicationId}`);
+    }
+    const summary = {
+      status: issues.some((issue) => /failed|Critical|No currently|No recorded/.test(issue)) ? "error" :
+        issues.length ? "warning" : "ok",
+      latestRunAt: latestRun?.checked_at ?? null,
+      latestRunSucceeded: latestRun?.ok ?? null,
+      latestRunOfferCount: latestRun?.offer_count ?? null,
+      currentEditionCount: current.length,
+      upcomingEditionCount: upcoming.length,
+      currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
+      issues,
+    };
     return NextResponse.json({ ok: true, chain, checkedAt: new Date().toISOString(),
-      editionCount: editions.length, editions, runs },
+      summary, editionCount: editions.length, editions, runs },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Diagnostics failed" },
