@@ -43,9 +43,12 @@ export async function readActivePublicationOffers<T>(chain: string, at: Date = n
   const date = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit",
   }).format(at);
-  const rows = await sql`SELECT offers FROM ziiply_offer_publications
+  // Multiple corrected snapshots can share a validity period. Use only the latest
+  // snapshot per period, never concatenate obsolete and corrected offers.
+  const rows = await sql`SELECT DISTINCT ON (valid_from, valid_until) offers
+    FROM ziiply_offer_publications
     WHERE chain = ${chain} AND valid_from <= ${date}::date
       AND valid_until >= ${date}::date
-    ORDER BY valid_from DESC, parsed_at DESC`;
+    ORDER BY valid_from DESC, valid_until DESC, parsed_at DESC, publication_id DESC`;
   return rows.flatMap((row) => Array.isArray(row.offers) ? row.offers as T[] : []);
 }
