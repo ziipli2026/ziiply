@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "imgproxy-retcat.assets.schwarz",
+      },
+      {
+        protocol: "https",
         hostname: "cdn.s-cloud.fi",
       },
       {
