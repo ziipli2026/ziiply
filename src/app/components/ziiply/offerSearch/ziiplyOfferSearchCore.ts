@@ -848,6 +848,7 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     pictureUrl: item.imageUrl,
     productUrl: item.productUrl,
     category: getResolvedGostaCategoryV166(item),
+    campaignType: (item as any).campaignType,
     __sourceOfferSearchResult: item,
   };
 }
