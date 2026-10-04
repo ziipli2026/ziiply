@@ -22233,6 +22233,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {searchPanelOpen && (
           <>
+            {/* Opaque Hae backdrop: the transparent search-card frame must not reveal
+                the home/three-logo screen during Compare -> Hae navigation. */}
+            <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[71] bg-[#f1dfad] sm:hidden" />
             <ZiiplyMobileSearchCard
               open={true}
               title="HAKU"
