@@ -780,6 +780,7 @@ export async function GET(request: Request) {
             error: debug?.error ?? null,
             ...(debug?.kOfferDedupeAuditV1 ? { kOfferDedupeAuditV1: debug.kOfferDedupeAuditV1 } : {}),
             ...(debug?.publicationPipeline ? { publicationPipeline: debug.publicationPipeline } : {}),
+            ...(debug?.kTabClassificationAuditV1 ? { kTabClassificationAuditV1: debug.kTabClassificationAuditV1 } : {}),
             ...(debug?.rawOfferAnalysis ? { kOfferMappingAuditV1: {
               inputCount: debug.rawOfferAnalysis.length,
               rejected: debug.rawOfferAnalysis.filter(row => !row.mapWouldAccept).map(row => ({ publicationId: row.publicationPublicId, title: row.name, reason: row.rejectReason })),
