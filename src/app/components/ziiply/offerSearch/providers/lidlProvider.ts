@@ -305,6 +305,12 @@ export function onlyCurrentlyValidLidlOffers<T extends { validFrom?: unknown; va
   }, today) === "current");
 }
 
+/** Fetch raw dated Lidl source rows for advance staging, including future offers. */
+export async function fetchLidlDatedOffersForStaging(storeKey: string, storeName = "Lidl") {
+  const key = String(storeKey || "").trim();
+  return key ? fetchLidlStructuredUncached(key, storeName) : [];
+}
+
 export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
   const key = String(storeKey || "").trim();
   if (!key) return [];
