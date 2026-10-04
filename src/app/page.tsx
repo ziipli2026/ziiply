@@ -7004,11 +7004,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function getCartItemMemoryKey(item: CartItem) {
     const ean = normalizeEan(item.ean || item.product?.ean);
-    // Tjek leaflet rows are separate offers even when regional and local titles/prices match.
-    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
-      return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || item?.campaignType || "offer")}`;
-    }
-
     if (ean) return `ean:${ean}`;
     return `name:${normalize(item.name)}`;
   }
@@ -8799,6 +8794,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const ean = normalizeGostaCardDedupeTextV544(
       source?.ean || source?.gtin || source?.barcode || item?.ean || "",
     );
+
+    // Tjek leaflet rows are separate offers even when regional and local titles/prices match.
+    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+      return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || item?.campaignType || "offer")}`;
+    }
 
     if (ean) return `ean:${ean}`;
 
