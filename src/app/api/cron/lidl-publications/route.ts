@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 import { NextResponse } from "next/server";
 import { fetchLidlDatedOffersForStaging } from "@/app/components/ziiply/offerSearch/providers/lidlProvider";
 import { storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
@@ -37,9 +38,13 @@ export async function GET(request: Request) {
       });
       outcomes.push({ period, count: offers.length, outcome });
     }
+    await recordPublicationRun({ chain: "LIDL:FI0218", source: "official-lidl-dated-offers", ok: true,
+      count: rows.length, outcome: "staging-completed", details: { periods: outcomes } }).catch(() => undefined);
     return NextResponse.json({ ok: true, source: "official-lidl-dated-offers", staged: outcomes },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
+    await recordPublicationRun({ chain: "LIDL:FI0218", source: "official-lidl-dated-offers", ok: false,
+      count: 0, outcome: "staging-failed", details: { errorType: error instanceof Error ? error.name : "Unknown" } }).catch(() => undefined);
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Staging failed" },
       { status: 503, headers: { "Cache-Control": "no-store" } });
   }
