@@ -15,7 +15,10 @@
       "imageStatus": "official_product_page_image_confirmed_url_not_extracted",
       "pageCheckedOn": "2026-10-04",
       "verifiedCategory": "Paistopiste",
-      "productPageEvidence": "Official page describes raisin, cranberry and apple mixed bread; image depicts sliced bread."
+      "productPageEvidence": "Official page describes raisin, cranberry and apple mixed bread; image depicts sliced bread.",
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10000047",
@@ -26,7 +29,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10000081",
@@ -37,7 +43,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10005280",
@@ -48,7 +57,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10008395",
@@ -59,7 +71,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10012302",
@@ -72,7 +87,10 @@
       "imageStatus": "official_product_page_image_confirmed_url_not_extracted",
       "pageCheckedOn": "2026-10-04",
       "verifiedCategory": "Paistopiste",
-      "productPageEvidence": "Official page identifies perunapiirakka and describes potato filling; image depicts pies."
+      "productPageEvidence": "Official page identifies perunapiirakka and describes potato filling; image depicts pies.",
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10013219",
@@ -83,7 +101,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10014112",
@@ -94,7 +115,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10014992",
@@ -105,7 +129,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10015004",
@@ -116,7 +143,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10015005",
@@ -127,7 +157,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10017268",
@@ -138,7 +171,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10017269",
@@ -149,7 +185,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10017906",
@@ -160,7 +199,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10017911",
@@ -171,7 +213,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10020413",
@@ -182,7 +227,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10020612",
@@ -193,7 +241,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10020613",
@@ -204,7 +255,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10020883",
@@ -215,7 +269,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10021258",
@@ -226,7 +283,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10021477",
@@ -237,7 +297,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10021478",
@@ -248,7 +311,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10021479",
@@ -259,7 +325,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10022389",
@@ -270,7 +339,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10023065",
@@ -281,7 +353,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10026398",
@@ -292,7 +367,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10026399",
@@ -303,7 +381,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10026400",
@@ -314,7 +395,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10027077",
@@ -325,7 +409,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10030550",
@@ -336,7 +423,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10030552",
@@ -347,7 +437,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10031093",
@@ -358,7 +451,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10031094",
@@ -369,7 +465,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10031095",
@@ -380,7 +479,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10032834",
@@ -391,7 +493,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10032835",
@@ -402,7 +507,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10032836",
@@ -413,7 +521,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10032838",
@@ -424,7 +535,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10032840",
@@ -435,7 +549,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10033042",
@@ -446,7 +563,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10033046",
@@ -457,7 +577,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10033047",
@@ -468,7 +591,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10033048",
@@ -479,7 +605,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10033050",
@@ -490,7 +619,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10033051",
@@ -501,7 +633,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10034203",
@@ -512,7 +647,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10034228",
@@ -523,7 +661,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10034793",
@@ -534,7 +675,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10034796",
@@ -545,7 +689,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10034797",
@@ -556,7 +703,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10034798",
@@ -567,7 +717,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10034799",
@@ -578,7 +731,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10035728",
@@ -589,7 +745,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10035729",
@@ -600,7 +759,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10035959",
@@ -611,7 +773,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10035960",
@@ -622,7 +787,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036370",
@@ -633,7 +801,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036371",
@@ -644,7 +815,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036372",
@@ -655,7 +829,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036373",
@@ -666,7 +843,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036374",
@@ -677,7 +857,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036375",
@@ -688,7 +871,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036376",
@@ -699,7 +885,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10036377",
@@ -710,7 +899,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037402",
@@ -721,7 +913,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037403",
@@ -732,7 +927,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037404",
@@ -743,7 +941,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037405",
@@ -754,7 +955,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037406",
@@ -765,7 +969,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037407",
@@ -776,7 +983,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037408",
@@ -787,7 +997,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037409",
@@ -798,7 +1011,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037410",
@@ -809,7 +1025,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037411",
@@ -820,7 +1039,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "10037443",
@@ -831,7 +1053,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "1060620",
@@ -842,7 +1067,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "1182510",
@@ -853,7 +1081,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "1210220",
@@ -864,7 +1095,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "12180",
@@ -875,7 +1109,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "1259030",
@@ -886,7 +1123,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "16150",
@@ -897,7 +1137,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "1821550",
@@ -908,7 +1151,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "282110",
@@ -919,7 +1165,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "40780",
@@ -930,7 +1179,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-suolaiset-valipalat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "40800",
@@ -941,7 +1193,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "413500",
@@ -952,7 +1207,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "52098320",
@@ -963,7 +1221,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "558810",
@@ -974,7 +1235,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "599520",
@@ -985,7 +1249,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "65260",
@@ -996,7 +1263,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "678860",
@@ -1007,7 +1277,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "69052170",
@@ -1018,7 +1291,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "71014430",
@@ -1029,7 +1305,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-piirakat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "71025080",
@@ -1040,7 +1319,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "71025510",
@@ -1051,7 +1333,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "71041700",
@@ -1062,7 +1347,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-makeat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "852650",
@@ -1073,7 +1361,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "927810",
@@ -1084,7 +1375,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "927850",
@@ -1095,7 +1389,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "956640",
@@ -1106,7 +1403,10 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     },
     {
       "lidlProductId": "975540",
@@ -1117,7 +1417,20 @@
       "ean": null,
       "imageUrl": null,
       "imageStatus": "pending_verification",
-      "pageCheckedOn": null
+      "pageCheckedOn": null,
+      "category": "Paistopiste",
+      "researchSubcategory": "paistopiste-leivat-ja-sampylat",
+      "categoryEvidence": "Source catalogue researchCategory=bakery-piece; finer subdivision inferred from product name, research-only"
     }
-  ]
+  ],
+  "categoryAudit": {
+    "count": 101,
+    "subcategoryCounts": {
+      "paistopiste-leivat-ja-sampylat": 35,
+      "paistopiste-makeat": 39,
+      "paistopiste-suolaiset-valipalat": 19,
+      "paistopiste-piirakat": 8
+    },
+    "note": "Research-only grouping, not live offer or normal product search mapping."
+  }
 }
