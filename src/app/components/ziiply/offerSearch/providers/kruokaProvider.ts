@@ -209,8 +209,17 @@ async function resolveKLocalPublicationIds(
     new Set(active.map(publication => String(publication.id ?? "").trim()).filter(Boolean)),
   );
   const regionalIds = new Set(regional.map(publication => String(publication.id ?? "").trim()).filter(Boolean));
-  const campaignIds = active.filter(publication => /(?:kampanj|campaign|teema|sesonki|erikoisjulkaisu)/i.test([publication.label, publication.title, publication.type, publication.category].map(v => String(v ?? "")).join(" ")))
-    .map(publication => String(publication.id ?? "").trim()).filter(Boolean);
+  // Match the proven K-Citymarket split: a publication explicitly addressed to
+  // the selected individual store belongs in Kampanjat; regional/chain-wide
+  // leaflets stay in Tarjoukset. Never classify a regional PKS leaflet as local.
+  const selectedName = normalize(selected.name);
+  const campaignIds = active.filter(publication => {
+    const label = normalize(publication.label ?? publication.title ?? "");
+    const storeSpecific = selectedName.length > 0 && label.includes(selectedName);
+    const explicitlyCampaign = /(?:kampanj|campaign|teema|sesonki|erikoisjulkaisu)/i.test(
+      [publication.label, publication.title, publication.type, publication.category].map(v => String(v ?? "")).join(" "));
+    return storeSpecific || explicitlyCampaign;
+  }).map(publication => String(publication.id ?? "").trim()).filter(Boolean);
   return {
     ids, campaignIds,
     debug: {
