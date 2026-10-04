@@ -1,0 +1,22 @@
+name: Lidl missing image evidence
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/check-lidl-missing-image-v72.mjs'
+      - '.github/workflows/lidl-missing-image-check.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check scripts/check-lidl-missing-image-v72.mjs
+      - name: Check missing product page evidence
+        run: node scripts/check-lidl-missing-image-v72.mjs
