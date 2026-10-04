@@ -1,0 +1,62 @@
+{
+  "research_only": true,
+  "candidate_rows": 4,
+  "products": [
+    {
+      "brand": "Milbona",
+      "name": "Puhvelimozzarella",
+      "package_size": "125 g",
+      "category": "maitotuotteet",
+      "lidl_product_id": "10023501",
+      "official_product_url": "https://www.lidl.fi/p/milbona-puhvelimozzarella/p10023501",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_url": "https://www.lidl.fi/p/milbona-puhvelimozzarella/p10023501",
+      "source_note": "Official /p/ product page. Displayed 2.59 EUR has no verified current observation/price classification; intentionally omitted.",
+      "observed_at": "2026-10-04"
+    },
+    {
+      "brand": "Chef Select",
+      "name": "Hummus",
+      "package_size": "200 g",
+      "category": "valmisruoat",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_url": "https://corporate.lidl.fi/file/download/138743/file/Vastuullisuus%20Lidliss%C3%A4%202024.pdf",
+      "source_note": "Official 2024 sustainability report; historical product reference.",
+      "observed_at": "2026-10-04"
+    },
+    {
+      "brand": "Vemondo",
+      "name": "Luomutofu",
+      "package_size": "200 g",
+      "category": "kasviproteiinit",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_url": "https://corporate.lidl.fi/file/download/138743/file/Vastuullisuus%20Lidliss%C3%A4%202024.pdf",
+      "source_note": "Official 2024 sustainability report. Distinct package from prior 360 g entry; current availability unverified.",
+      "observed_at": "2026-10-04"
+    },
+    {
+      "brand": "Vemondo",
+      "name": "Burgerpihvi & crunchy burgerpihvi",
+      "package_size": "160 g",
+      "category": "kasviproteiinit",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "source_url": "https://corporate.lidl.fi/file/download/138743/file/Vastuullisuus%20Lidliss%C3%A4%202024.pdf",
+      "source_note": "Official 2024 report groups variants; not yet countable as single SKU.",
+      "observed_at": "2026-10-04"
+    }
+  ]
+}
