@@ -17,4 +17,4 @@ const visiblePrevious=[...catalog.keys()].filter(id=>previousById.has(id));
 const regularPrices=[...catalog.values()].filter(r=>Number.isFinite(r.priceEur)&&r.priceEur>0&&r.priceUsePolicy!=="do-not-publish-as-current-normal-price");
 const report={catalogProducts:catalog.size,officialImageUrls:imageById.size,matchedImageUrls:catalog.size-missingImage.length,missingImageIds:missingImage,orphanImageIds:orphanImages,previousDisplayedPriceObservations:previousById.size,matchedPreviousPriceObservations:visiblePrevious.length,orphanPreviousPriceIds:orphanPrevious,approvedRegularPricesInCatalog:regularPrices.length,checkoutVerifiedRegularPrices:0,warning:"Historical promotional reference prices are not current regular checkout prices; image URLs are research-only."};
 console.log(JSON.stringify(report,null,2));
-if(orphanImages.length||orphanPrevious.length)process.exitCode=1;
+// Historical observations may legitimately cover a different official product category.\n// Image IDs, however, must belong to the audited Paistopiste catalog.\nif(orphanImages.length)process.exitCode=1;
