@@ -61,7 +61,21 @@ for (const row of output) {
   }
 }
 const statusCounts = Object.fromEntries([...new Set(output.map(x => x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")))].map(k => [k, output.filter(x => (x.imageStatus || (x.httpStatus ? `http_${x.httpStatus}` : "network_error")) === k).length]));
-const result = { source: "lidl.fi-official-product-page", statusCounts, researchOnly: true, count: output.length, candidateCount: output.filter(x => x.imageStatus === "product_page_image_candidate").length, sharedMetaImageCount: [...imageCounts.values()].filter(n => n > 1).length, records: output };
+for (const row of output) {
+  if (row.imageStatus !== "product_page_image_candidate") continue;
+  try {
+    const response = await fetch(row.candidateImageUrl, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(8000) });
+    row.imageHttpStatus = response.status;
+    row.imageContentType = response.headers.get("content-type");
+    row.imageReachable = response.ok && /^image\\//i.test(row.imageContentType || "");
+    if (!row.imageReachable) row.imageStatus = "image_not_reachable_or_not_image";
+  } catch (error) {
+    row.imageReachable = false;
+    row.imageStatus = "image_request_failed";
+    row.imageError = String(error);
+  }
+}
+const result = { source: "lidl.fi-official-product-page", statusCounts, researchOnly: true, count: output.length, candidateCount: output.filter(x => x.imageStatus === "product_page_image_candidate" && x.imageReachable).length, sharedMetaImageCount: [...imageCounts.values()].filter(n => n > 1).length, records: output };
 const json = JSON.stringify(result, null, 2) + "\n";
 if (outputArg) { const file = outputArg.slice("--output=".length); if (!file) throw new Error("--output requires a path"); writeFileSync(file, json); process.stderr.write(`Wrote ${output.length} records to ${file}\n`); }
 else process.stdout.write(json);
