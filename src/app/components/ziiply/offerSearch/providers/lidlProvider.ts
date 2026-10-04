@@ -86,7 +86,7 @@ export function mergeLidlStructuredAndLeaflet(
   today: string,
 ): Record<string, any>[] {
   const output = [...structured];
-  const normalized = (name: string) => normalizeText(name).replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l)\\b/g, "").trim();
+  const normalized = (name: string) => normalizeText(name).replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/g, "").replace(/\s+/g, " ").trim();
   const existing = new Set(structured.map((item) => normalized(String(item.name || item.title || ""))));
   for (const row of leaflet) {
     if (row.source !== "verified-official-leaflet" || !row.id || !row.name ||
