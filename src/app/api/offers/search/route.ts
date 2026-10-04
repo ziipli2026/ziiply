@@ -410,7 +410,7 @@ function offerMatchesQuery(query: string, offer: UnknownRecord) {
   const q = normalizeText(query);
   if (!q || q === normalizeText(MASTER_QUERY)) return true;
 
-  const haystack = normalizeText([offer.title, offer.category, offer.rawText].join(" "));
+  const haystack = normalizeText([offer.title, offer.name, offer.productName, offer.brandName, offer.category, offer.categoryPath, offer.rawText].join(" "));
   return q.split(/\s+/).filter(Boolean).every((word) => haystack.includes(word));
 }
 
