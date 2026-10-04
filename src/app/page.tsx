@@ -3395,6 +3395,9 @@ export default function Page() {
           });
         }
 
+        if (parsedStoreSelection.betweenChainSelectionModeV749 === "one" || parsedStoreSelection.betweenChainSelectionModeV749 === "many") {
+          setBetweenChainSelectionModeV749(parsedStoreSelection.betweenChainSelectionModeV749);
+        }
         if (
           parsedStoreSelection.storeCompareScope === "none" ||
           parsedStoreSelection.storeCompareScope === "between_chains" ||
@@ -3452,6 +3455,9 @@ export default function Page() {
             setStoreMode(parsedStableSnapshot.storeMode as StoreMode);
           }
           setStoreModeChosenV299(Boolean(parsedStableSnapshot.storeModeChosenV299));
+          if (parsedStableSnapshot.betweenChainSelectionModeV749 === "one" || parsedStableSnapshot.betweenChainSelectionModeV749 === "many") {
+            setBetweenChainSelectionModeV749(parsedStableSnapshot.betweenChainSelectionModeV749);
+          }
           if (
             parsedStableSnapshot.storeCompareScope === "none" ||
             parsedStableSnapshot.storeCompareScope === "between_chains" ||
@@ -4168,6 +4174,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             storeMode,
             storeModeChosenV299,
             storeCompareScope,
+            betweenChainSelectionModeV749,
             withinChain,
             gpsCoordsV320,
             usingOwnLocation,
@@ -7153,6 +7160,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeMode,
           storeModeChosenV299,
           storeCompareScope,
+          betweenChainSelectionModeV749,
           withinChain,
           selectedChains,
           selectedEurosparStoreV751,
