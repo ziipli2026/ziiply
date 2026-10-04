@@ -23179,6 +23179,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             title="Vertailu"
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
             loading={comparisonLoading}
+            suppressMissingStatus={restoredCartPromptV320.open}
             onSelectStore={(storeId) => openMobileShoppingListFromCompareV724(storeId)}
             onShareStore={(storeId) => shareMobileCompareStoreV729(storeId)}
             onBackToCart={() => {
