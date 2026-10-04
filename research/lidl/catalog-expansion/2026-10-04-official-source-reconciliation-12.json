@@ -1,0 +1,44 @@
+{
+  "observed_at": "2026-10-04",
+  "type": "source reconciliation, not new SKU",
+  "source": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+  "comparison_date": "2026-05-28",
+  "corrections": [
+    {
+      "item": "Kotimainen tomaatti",
+      "original": "1 kg",
+      "corrected": "irto; 1 kg comparison quantity",
+      "package_size": null
+    },
+    {
+      "item": "Kotimainen kurkku",
+      "original": "1 kg",
+      "corrected": "irto; 1 kg comparison quantity",
+      "package_size": null
+    },
+    {
+      "item": "Kesäkurpitsa",
+      "original": "1 kg",
+      "corrected": "irto; 1 kg comparison quantity",
+      "package_size": null
+    },
+    {
+      "item": "Minivesimeloni",
+      "original": "1 kg",
+      "corrected": "irto; 1 kg comparison quantity",
+      "package_size": null
+    }
+  ],
+  "missing_from_initial_comparison": [
+    {
+      "name": "Aromata kartonkilautanen",
+      "size": "23 cm, 50 kpl",
+      "decision": "Exclude: non-food product"
+    }
+  ],
+  "price_policy": "The comparison explicitly says normal prices were used on 2026-05-28, but no per-product Lidl normal-price table is supplied. Do not infer individual prices from basket totals.",
+  "coffee_source": "https://www.lidl.fi/c/hinnanpudotus/s10082102",
+  "coffee_snapshot": "2026-09-06",
+  "coffee_prices_status": "Historical only; no current price asserted",
+  "count_delta": 0
+}
