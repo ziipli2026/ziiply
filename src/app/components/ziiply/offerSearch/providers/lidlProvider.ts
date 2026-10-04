@@ -275,8 +275,12 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
     };
   });
 
+  // Gösta is a grocery offer search, not the Lidl general-merchandise catalogue.
+  // Match the S/K daily-grocery scope; do not reclassify non-food as "Muut".
+  const groceryOffers = offers.filter((offer) => offer.category !== "Koti & vapaa-aika");
+
   await observeEanProductsBestEffort(
-    offers.map((offer) => ({
+    groceryOffers.map((offer) => ({
       ean: offer.ean,
       name: offer.name,
       brand: offer.brandName,
@@ -286,7 +290,7 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
     })),
   );
 
-  return offers;
+  return groceryOffers;
 }
 
 export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
