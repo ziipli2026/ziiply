@@ -314,6 +314,17 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     };
     return mapped[department] || getOfferCategoryV106(item);
   }
+  // S-local CMS: source taxonomy wins over fruit-related words in processed
+  // products (e.g. omenasose must not become fresh produce / Hevi).
+  if (source === "skaupat" && sourceItem?.debugLocalCampaignEvidenceV231) {
+    const taxonomy = normalizeGostaCoreText(
+      [sourceItem?.categoryPath, sourceItem?.mainCategory, sourceItem?.department,
+        sourceItem?.productGroup, sourceItem?.subCategory].filter(Boolean).join(" "),
+    );
+    if (/hillot|sailykkeet|soseet|hyytelot|marmeladit/.test(taxonomy)) {
+      return "Kuivatuotteet";
+    }
+  }
   const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
   // V182: EUROSPAR provider already emits Ziiply's authoritative category.
   // Preserve it instead of reclassifying leaflet titles with generic regexes.
