@@ -1,49 +1,81 @@
-name: K-Citymarket 40AV parser audit
+name: K-Citymarket leaflet parser history
 on:
   workflow_dispatch:
   push:
     paths:
       - ".github/workflows/kcitymarket-40av-audit.yml"
+      - "scripts/citymarket/leaflet-regression-publications.json"
+      - "tests/fixtures/citymarket/**"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
+      - "src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts"
+      - "tests/k-offer-tab-policy.test.cjs"
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run current spatial parser against 40AV
+      - name: Run K offer tab policy regression
+        run: node --test tests/k-offer-tab-policy.test.cjs
+      - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-parser.mjs
           node --input-type=module <<'NODE'
+          import fs from "node:fs";
           import parser from "file:///tmp/kcm-parser.mjs";
-          const URL="https://kcm-tarjouslehdet.k-ruoka.fi/79obhu0_tarjouslehti_40AV_KCM/index.html";
-          const out=await parser(URL);
+
+          const manifest=JSON.parse(fs.readFileSync("scripts/citymarket/leaflet-regression-publications.json","utf8"));
+          const historical=Array.isArray(manifest?.historicalFixtures)?manifest.historicalFixtures:[];
+          if(!historical.length) throw new Error("No frozen Citymarket historical fixtures configured");
+
+          for(const entry of historical){
+            const fixture=JSON.parse(fs.readFileSync(entry.fixture,"utf8"));
+            if(fixture.id!==entry.id) throw new Error(`${entry.id}: fixture id mismatch`);
+            if(!Array.isArray(fixture.offers)||fixture.offers.length!==fixture.offerCount) {
+              throw new Error(`${entry.id}: fixture offer count mismatch`);
+            }
+            if(!fixture.pdfSha256||!(Number(fixture.pageCount)>0)||!(Number(fixture.offerCount)>0)) {
+              throw new Error(`${entry.id}: incomplete frozen evidence`);
+            }
+            const duplicateKeys=fixture.offers.filter((x,i,a)=>a.findIndex(y=>y.key===x.key)!==i);
+            if(duplicateKeys.length) throw new Error(`${entry.id}: duplicate approved offer keys`);
+            console.log("KCM_FROZEN_FIXTURE",JSON.stringify({id:entry.id,pages:fixture.pageCount,offers:fixture.offerCount,pdfSha256:fixture.pdfSha256}));
+          }
+
+          const current=manifest?.current;
+          if(!current?.url||!current?.fixture) throw new Error("No current Citymarket publication configured");
+          const expected=JSON.parse(fs.readFileSync(current.fixture,"utf8"));
+          const out=await parser(current.url);
           const rows=Array.isArray(out?.rows)?out.rows:[];
-          const clean=rows.map(r=>({
-            page:r.page,title:r.title,package:r.package?.raw??null,unitPrice:r.unitPrice?.raw??null,
-            normal:r.normal??null,expectedSingle:r.expectedSingle??null,
-            price:r.spatialResolved?.value??null,quantity:r.spatialResolved?.quantity??null,
-            unit:r.spatialResolved?.unit??null,source:r.spatialResolved?.source??null,
-            sanity:r.spatialResolved?.sanity??null
+          const resolved=rows.filter(r=>Number(r?.spatialResolved?.value)>0);
+          if(!rows.length||!resolved.length) throw new Error(`${current.id}: live parser returned no usable rows`);
+
+          const liveKeys=new Set(resolved.map(r=>{
+            const page=Number(r.page)||0;
+            const title=String(r.title||"").trim().toLowerCase();
+            const price=Number(r.spatialResolved.value);
+            return `kcm:spatial:${page}:${title}:${Number.isFinite(price)?price:""}`;
           }));
-          const unresolved=clean.filter(r=>!(Number(r.price)>0));
-          const review=clean.filter(r=>r.sanity==="review");
-          const inverted=clean.filter(r=>Number(r.normal?.min)>0&&Number(r.price)>Number(r.normal.min)*1.02&&!(Number(r.quantity)>1));
-          const arithmetic=clean.filter(r=>Number(r.expectedSingle)>0&&Number(r.price)>0&&Number(r.quantity||1)===1&&Math.abs(Number(r.price)-Number(r.expectedSingle))>Math.max(.25,Number(r.expectedSingle)*.20));
-          const suspiciousHigh=clean.filter(r=>Number(r.price)>=20);
-          console.log("KCM_40AV_SUMMARY",JSON.stringify({leaflet:out.leaflet,total:clean.length,resolved:clean.length-unresolved.length,unresolved:unresolved.length,review:review.length,inverted:inverted.length,arithmetic:arithmetic.length,suspiciousHigh:suspiciousHigh.length},null,2));
-          console.log("KCM_40AV_UNRESOLVED",JSON.stringify(unresolved,null,2));
-          console.log("KCM_40AV_REVIEW",JSON.stringify(review,null,2));
-          console.log("KCM_40AV_INVERTED",JSON.stringify(inverted,null,2));
-          console.log("KCM_40AV_ARITHMETIC",JSON.stringify(arithmetic,null,2));
-          console.log("KCM_40AV_SUSPICIOUS_HIGH",JSON.stringify(suspiciousHigh,null,2));
-          console.log("KCM_40AV_ALL_ROWS",JSON.stringify(clean,null,2));
-          const focusTitles=new Set([...unresolved,...inverted,...arithmetic].map(x=>x.title));
-          const focusRaw=rows.filter(r=>focusTitles.has(r.title)).map(r=>({page:r.page,title:r.title,package:r.package,unitPrice:r.unitPrice,normal:r.normal,expectedSingle:r.expectedSingle,spatialResolved:r.spatialResolved,debugAnchor:r.debugAnchor,debugBestTitleRow:r.debugBestTitleRow,debugNearbyBoxes:r.debugNearbyBoxes,spatialCandidates:r.spatialCandidates,spatialGroups:r.spatialGroups,nearby:r.nearby}));
-          console.log("KCM_40AV_FOCUS_RAW",JSON.stringify(focusRaw,null,2));
-          if(!clean.length) process.exitCode=2;
+          const expectedKeys=new Set(expected.offers.map(x=>x.key));
+          const matched=[...expectedKeys].filter(k=>liveKeys.has(k));
+          const missing=[...expectedKeys].filter(k=>!liveKeys.has(k));
+          const coverage=expectedKeys.size?matched.length/expectedKeys.size:0;
+          console.log("KCM_CURRENT_LIVE",JSON.stringify({
+            id:current.id,
+            expected:expectedKeys.size,
+            liveResolved:resolved.length,
+            matched:matched.length,
+            missing:missing.length,
+            coverage:Number(coverage.toFixed(4)),
+            missingSample:missing.slice(0,10)
+          },null,2));
+
+          // The approved fixture is the publication contract. Exact equality is intentionally
+          // not required because parser titles can retain harmless publisher text variants,
+          // but a material loss of approved cards must fail the gate.
+          if(coverage<0.90) throw new Error(`${current.id}: approved live coverage fell below 90% (${matched.length}/${expectedKeys.size})`);
           NODE

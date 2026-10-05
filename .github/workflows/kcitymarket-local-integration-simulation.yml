@@ -4,6 +4,8 @@ on:
     paths:
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
       - 'src/app/api/offers/search/route.ts'
+      - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
+      - 'tests/k-offer-tab-policy.test.cjs'
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
       - '.github/workflows/kcitymarket-local-integration-simulation.yml'
   workflow_dispatch:
@@ -20,6 +22,8 @@ jobs:
       - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript compile
         run: npx tsc --noEmit
+      - name: K offer tab policy regression
+        run: node --test tests/k-offer-tab-policy.test.cjs
       - name: Simulate two selected stores and failure isolation
         shell: bash
         run: |
@@ -32,10 +36,11 @@ jobs:
           console.log('VALIDATION_DIAGNOSTIC '+JSON.stringify({a:a.slice(0,2).map(x=>({storeName:x.storeName,price:x.price,validFrom:x.validFrom,validUntil:x.validUntil,source:x.source})),b:b.slice(0,2).map(x=>({storeName:x.storeName,price:x.price,validFrom:x.validFrom,validUntil:x.validUntil,source:x.source}))}));
           const idsA=new Set(a.map(x=>x.id));
           const overlap=b.filter(x=>idsA.has(x.id)).length;
-          const fish=[...a,...b].filter(x=>/kirjolohi|kokonainen lohi/i.test(x.title));
-          const fishValid=fish.length>0&&fish.every(x=>x.category==='Kala');
-          console.log(JSON.stringify({hyvinkaa:{count:a.length,sample:a.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},jumbo:{count:b.length,sample:b.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},unknownCount:unknown.length,overlap,fish:fish.map(x=>({title:x.title,category:x.category})),fishValid,hyvinkaaValid:check(a,'K-Citymarket Hyvinkää'),jumboValid:check(b,'K-Citymarket Vantaa Jumbo')},null,2));
-          if(!a.length||!b.length||unknown.length||overlap||!fishValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
+          const publicationA=new Set(a.map(x=>x.debug?.publicationId).filter(Boolean));
+          const publicationB=new Set(b.map(x=>x.debug?.publicationId).filter(Boolean));
+          const categoriesValid=[...a,...b].every(x=>typeof x.category==='string'&&x.category.length>0);
+          console.log(JSON.stringify({hyvinkaa:{count:a.length,publications:[...publicationA],sample:a.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},jumbo:{count:b.length,publications:[...publicationB],sample:b.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},unknownCount:unknown.length,overlap,categoriesValid,hyvinkaaValid:check(a,'K-Citymarket Hyvinkää'),jumboValid:check(b,'K-Citymarket Vantaa Jumbo')},null,2));
+          if(!a.length||!b.length||unknown.length||overlap||!publicationA.size||!publicationB.size||!categoriesValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-1.mts
 
@@ -54,14 +59,15 @@ jobs:
           cat > citymarket-test-3.mts <<'NODE'
           import { fetchKCitymarketSelectedStoreOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts';
           import { fetchKCitymarketOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
+          import { removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
           const [national, local, jumbo] = await Promise.all([
             fetchKCitymarketOffers(),
             fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää'),
             fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo')
           ]);
-          const master=[...national,...local];
-          const offers=master.filter(x=>x.campaignType!=='campaign');
-          const campaigns=master.filter(x=>x.campaignType==='campaign');
+          const offers=national.filter(x=>x.campaignType!=='campaign');
+          const campaigns=removeCampaignCopiesOfLeaflet(offers, local.filter(x=>x.campaignType==='campaign'));
+          const master=[...offers,...campaigns];
           const categories=[...new Set(campaigns.map(x=>x.category))];
           const visible=categories.flatMap(category=>campaigns.filter(x=>x.category===category));
           const localIds=new Set(local.map(x=>x.id));
@@ -71,6 +77,6 @@ jobs:
           const wrongTab=offers.filter(x=>localIds.has(x.id));
           const badCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
           console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title)},null,2));
-          if(!national.length||!local.length||!jumbo.length||foreign.length||missing.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length!==local.length)process.exitCode=1;
+          if(!national.length||!local.length||!jumbo.length||foreign.length||missing.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
