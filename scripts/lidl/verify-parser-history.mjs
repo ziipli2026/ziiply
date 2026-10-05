@@ -66,15 +66,22 @@ if (mode === "verify") {
   for (const name of manifests) {
     const edition = name.replace(".expected.json", "");
     const expected = canonical(JSON.parse(await fs.readFile(path.join(root, name), "utf8")));
-    const fixturePath = path.join(root, edition + ".html");
-    let html;
-    try { html = await fs.readFile(fixturePath, "utf8"); }
-    catch { console.error("Missing immutable Lidl source capture:", fixturePath); failed++; continue; }
-    const sourceUrlPath = path.join(root, edition + ".source-url.txt");
-    let sourceUrl = "https://www.lidl.fi/";
-    try { sourceUrl = (await fs.readFile(sourceUrlPath, "utf8")).trim() || sourceUrl; } catch {}
+    const fixtureNames = (await files(root)).filter(file => file.startsWith(edition + ".") && file.endsWith(".html"));
+    if (!fixtureNames.length) {
+      console.error("Missing immutable Lidl source capture(s) for:", edition);
+      failed++;
+      continue;
+    }
     const date = expected[0]?.validFrom || edition.slice(0, 10);
-    const actual = canonical(parse(html, sourceUrl, date));
+    const parsedRows = [];
+    for (const fixtureName of fixtureNames) {
+      const html = await fs.readFile(path.join(root, fixtureName), "utf8");
+      const sourceUrlPath = path.join(root, fixtureName.replace(/\.html$/, ".source-url.txt"));
+      let sourceUrl = "https://www.lidl.fi/";
+      try { sourceUrl = (await fs.readFile(sourceUrlPath, "utf8")).trim() || sourceUrl; } catch {}
+      parsedRows.push(...parse(html, sourceUrl, date));
+    }
+    const actual = canonical(parsedRows);
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
       console.error(`Regression mismatch ${name}: expected ${expected.length}, parser produced ${actual.length}`);
       console.error("EXPECTED", JSON.stringify(expected, null, 2));
