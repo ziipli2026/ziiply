@@ -42,9 +42,12 @@ function semanticSameProduct(a: KOfferTabRow, b: KOfferTabRow): boolean {
   const bSet=new Set(B);
   const common=A.filter(token=>bSet.has(token));
   const score=common.length/Math.max(1,Math.min(A.length,B.length));
+  const pa=packageTokens(a), pb=packageTokens(b);
+  // If both sides expose package sizes, they must agree before semantic
+  // name matching can suppress a local campaign copy.
+  if(pa.length > 0 && pb.length > 0 && !pa.some(x=>pb.includes(x))) return false;
   if(common.length >= 2 && score >= 0.67) return true;
   if(common.length !== 1 || score < 1) return false;
-  const pa=packageTokens(a), pb=packageTokens(b);
   return pa.length > 0 && pb.length > 0 && pa.some(x=>pb.includes(x));
 }
 
