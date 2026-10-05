@@ -128,14 +128,13 @@ if (mode === "verify") {
       const rawProduct = capture.html.slice(equalsIndex + 1, scriptEnd).trim();
       let product;
       try { product = JSON.parse(rawProduct); } catch { return null; }
-      const visible = decode(capture.html.replace(/<script\\b[\\s\\S]*?<\\/script>/gi, " ").replace(/<style\\b[\\s\\S]*?<\\/style>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\\s+/g, " ");
-      const priceText = visible.match(/(\\d+[,.]\\d{2})€/)?.[1]?.replace(",", ".") || "";
+      const lowerHtml = capture.html.toLocaleLowerCase("fi-FI");
       return {
         name: normalize([product.brand, product.name, product.netWeight || ""].filter(Boolean).join(" ")),
         brandName: normalize(product.brand),
-        price: Number(product.price ?? priceText),
+        price: Number(product.price),
         category: String(product.wonCategoryPrimary || ""),
-        limitedBatch: /\\berä\\b/i.test(visible),
+        limitedBatch: lowerHtml.includes("erä"),
       };
     };
 
