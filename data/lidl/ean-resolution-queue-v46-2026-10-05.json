@@ -1,18 +1,18 @@
 {
-  "revision": "V48-EAN-QUEUE-BAKERY-RECLASSIFIED",
+  "revision": "V51-EAN-QUEUE-SEMANTIC-RECLASSIFICATION",
   "created": "2026-10-05",
   "source": "ean-resolution-queue-v45-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
   "total": 197,
   "counts": {
-    "needs_external_gtin_lookup": 31,
-    "variable_weight_or_produce": 30,
-    "multipack_or_variant": 9,
+    "needs_external_gtin_lookup": 27,
+    "multipack_or_variant": 11,
+    "variable_weight_or_produce": 32,
     "bakery_or_store_bakery": 103,
     "verified_ean": 11,
     "non_food": 13
   },
-  "unresolvedExternalLookupCount": 31,
+  "unresolvedExternalLookupCount": 27,
   "records": [
     {
       "lidlProductId": "10037645",
@@ -29,8 +29,8 @@
       "name": "MARIBEL Hillo",
       "variant": "mustikka tai sekamarja",
       "unitPriceText": "450 g | 7,31 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "Maribel row contains blueberry or mixed-berry variants; candidate GTIN 20000684 applies only to mixed-berry 450 g pending Finland confirmation"
     },
     {
       "lidlProductId": "10038243",
@@ -47,8 +47,8 @@
       "name": "FISKANO Tuore lohifilee",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "FISKANO Tuore lohifilee is variable-weight (~1.2 kg, €/kg); no fixed consumer-pack GTIN expected"
     },
     {
       "lidlProductId": "10038245",
@@ -247,8 +247,8 @@
       "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "NORVIDA NATURKÖTT Naudan sisäfilee is variable-weight; external retail evidence uses weight-encoded barcode"
     },
     {
       "lidlProductId": "10038268",
@@ -549,8 +549,8 @@
       "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "Combined offer row contains separate McEnnedy pan pizza and Gelatelli ice cream products; requires variant split, not one EAN"
     },
     {
       "lidlProductId": "10038313",
