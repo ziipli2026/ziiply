@@ -1,4 +1,4 @@
-name: Alepa Siltamaki discounted probe
+name: S-local discounted cross-check
 on:
   workflow_dispatch:
   push:
