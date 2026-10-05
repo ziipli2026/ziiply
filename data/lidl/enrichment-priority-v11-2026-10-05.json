@@ -10,7 +10,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/maalaissampyla/p10026398",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10026399",
@@ -21,7 +26,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/pizza-kebab/p10026399",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": "check-current-assortment"
     },
     {
       "lidlProductId": "10026400",
@@ -32,7 +42,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/bolognese-pasteija/p10026400",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10027077",
@@ -43,7 +58,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/rustico-leipa/p10027077",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "semantic-research-category",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10030550",
@@ -54,7 +74,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/siemen-hapanjuurileipa/p10030550",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "semantic-research-category",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10030552",
@@ -65,7 +90,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/kaura-seesamsampyla/p10030552",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "semantic-research-category",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10031093",
@@ -76,7 +106,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/kiviuunileipa/p10031093",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "semantic-research-category",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10031094",
@@ -87,7 +122,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/voitaytepulla/p10031094",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10031095",
@@ -98,7 +138,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/munkkipallero/p10031095",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10032834",
@@ -109,7 +154,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/riisipiirakka/p10032834",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10032835",
@@ -120,7 +170,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/fazer-berliininmunkki/p10032835",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10032836",
@@ -131,7 +186,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/pesto-juustokierre/p10032836",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "pending-direct-product-category-verification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10032838",
@@ -142,7 +202,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/toffeeviineri/p10032838",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10032840",
@@ -153,7 +218,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/pahkina-nougat-croissant/p10032840",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10033042",
@@ -164,7 +234,12 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/pielispakari-mini-karjalanpiirakka/p10033042",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "categoryVerification": "research-classification",
+      "availabilityReview": null
     }
   ]
 }
