@@ -38,13 +38,14 @@ export async function GET(request: Request) {
     const effectiveEditions = [...latestByPeriod.values()];
     const current = effectiveEditions.filter((edition) => edition.state === "current");
     const upcoming = effectiveEditions.filter((edition) => edition.state === "upcoming");
-    const issues: string[] = [];
-    if (!latestRun) issues.push("No recorded source run");
+    const issues: Array<{ code: string; severity: "warning" | "error"; message: string }> = [];
+    const issue = (code: string, severity: "warning" | "error", message: string) => issues.push({ code, severity, message });
+    if (!latestRun) issue("NO_SOURCE_RUN", "error", "No recorded source run");
     else {
-      if (!latestRun.ok) issues.push("Latest source run failed");
+      if (!latestRun.ok) issue("SOURCE_RUN_FAILED", "error", "Latest source run failed");
       const ageMs = Date.now() - Date.parse(String(latestRun.checked_at));
       if (!Number.isFinite(ageMs) || ageMs < -300000 || ageMs > 36 * 60 * 60 * 1000)
-        issues.push("Source run is stale or has an invalid timestamp");
+        issue("SOURCE_RUN_STALE", "error", "Source run is stale or has an invalid timestamp");
     }
     // Compare only identical publication periods: a normal weekly edition change
     // must not trigger a false source-collapse alarm.
@@ -65,14 +66,14 @@ export async function GET(request: Request) {
     const sourceDropPercent = newestCount !== null && previousCount !== null && previousCount > 0
       ? Math.round((previousCount - newestCount) / previousCount * 100) : null;
     if (sourceDropPercent !== null && sourceDropPercent >= 40)
-      issues.push(`Source offer count dropped ${sourceDropPercent}% for the same publication periods`);
-    if (!current.length) issues.push("No currently valid stored publication");
+      issue("SOURCE_COUNT_DROP", "error", `Source offer count dropped ${sourceDropPercent}% for the same publication periods`);
+    if (!current.length) issue("NO_CURRENT_PUBLICATION", "error", "No currently valid stored publication");
     for (const edition of current) {
-      if (edition.quality.severity === "error") issues.push(`Critical offer data in ${edition.publicationId}`);
-      else if (edition.quality.severity === "warning") issues.push(`Incomplete offer metadata in ${edition.publicationId}`);
+      if (edition.quality.severity === "error") issue("PUBLICATION_DATA_ERROR", "error", `Critical offer data in ${edition.publicationId}`);
+      else if (edition.quality.severity === "warning") issue("PUBLICATION_METADATA_WARNING", "warning", `Incomplete offer metadata in ${edition.publicationId}`);
     }
     const summary = {
-      status: issues.some((issue) => /failed|Critical|No currently|No recorded|stale|dropped/.test(issue)) ? "error" :
+      status: issues.some((entry) => entry.severity === "error") ? "error" :
         issues.length ? "warning" : "ok",
       latestRunAt: latestRun?.checked_at ?? null,
       latestRunSucceeded: latestRun?.ok ?? null,
