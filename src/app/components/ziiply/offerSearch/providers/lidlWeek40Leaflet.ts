@@ -59,15 +59,20 @@ export function addVerifiedLidlWeek40Leaflet(
       eligibility: row.eligibility as LidlLeafletEnrichment["eligibility"],
       ...(row.requiredQuantity > 1 ? { multiBuyQuantity: row.requiredQuantity } : {}),
     }));
-  // The official Lidl Plus feed wins. It uses the shorter names "Burgeri" and
-  // "Tuorepuristettu appelsiinitäysmehu" for these photographed offers.
+  // The official Lidl Plus feed wins for ordinary dated offers when it already
+  // contains the same photographed product. The Kartanon meatball is different:
+  // it is explicitly a 5.–7.10. campaign, so remove the ordinary Lidl Plus copy
+  // and keep the verified campaign row while reusing the official Lidl Plus image.
   const officialNames = structured.map(item => String(item.name || item.title || "").toLowerCase());
+  const meatballOfficial = structured.find(item =>
+    String(item.name || item.title || "").toLowerCase().includes("kotimainen lihapulla")
+  );
+  const structuredForMerge = meatballOfficial
+    ? structured.filter(item => item !== meatballOfficial)
+    : structured;
   const filtered = rows.filter(row =>
     !(row.id === "hk-burger" && officialNames.some(name => name.includes("burgeri"))) &&
-    !(row.id === "solevita-orange" && officialNames.some(name => name.includes("appelsiinitäysmehu"))) &&
-    // The Lidl Plus row is the same Kartanon 300 g meatball offer, only with a
-    // shorter title. Prefer it because it carries Lidl's official product image.
-    !(row.id === "kartanon-meatballs" && officialNames.some(name => name.includes("kotimainen lihapulla")))
+    !(row.id === "solevita-orange" && officialNames.some(name => name.includes("appelsiinitäysmehu")))
   );
   // Reuse an official Lidl image only when the normalized product title is an exact match.
   // Never borrow a generic image from a different size, brand or product variant.
@@ -79,15 +84,15 @@ export function addVerifiedLidlWeek40Leaflet(
     const name = imageKey(offer.name || offer.title);
     if (name && /^https:\/\//.test(url) && !officialImages.has(name)) officialImages.set(name, url);
   }
-  const merged = mergeLidlStructuredAndLeaflet(structured, filtered, today);
+  const merged = mergeLidlStructuredAndLeaflet(structuredForMerge, filtered, today);
   // Preserve a machine-readable list of unmatched leaflet images for the offer DBG.
   // Exact leaflet IDs also have verified crops from the supplied paper leaflet.
   return merged.map(item =>
     String(item.id || "").startsWith("lidl-leaflet-")
       ? { ...item, storeKey, storeName, storeLabel: storeName, shopName: storeName,
-          imageUrl: verifiedLeafletImages[String(item.id)] || item.imageUrl || officialImages.get(imageKey(item.name || item.title)) || "",
-          image: verifiedLeafletImages[String(item.id)] || item.image || officialImages.get(imageKey(item.name || item.title)) || "",
-          pictureUrl: verifiedLeafletImages[String(item.id)] || item.pictureUrl || officialImages.get(imageKey(item.name || item.title)) || "",
+          imageUrl: verifiedLeafletImages[String(item.id)] || item.imageUrl || (item.id === "lidl-leaflet-kartanon-meatballs" ? String(meatballOfficial?.imageUrl || meatballOfficial?.image || meatballOfficial?.pictureUrl || "") : "") || officialImages.get(imageKey(item.name || item.title)) || "",
+          image: verifiedLeafletImages[String(item.id)] || item.image || (item.id === "lidl-leaflet-kartanon-meatballs" ? String(meatballOfficial?.imageUrl || meatballOfficial?.image || meatballOfficial?.pictureUrl || "") : "") || officialImages.get(imageKey(item.name || item.title)) || "",
+          pictureUrl: verifiedLeafletImages[String(item.id)] || item.pictureUrl || (item.id === "lidl-leaflet-kartanon-meatballs" ? String(meatballOfficial?.imageUrl || meatballOfficial?.image || meatballOfficial?.pictureUrl || "") : "") || officialImages.get(imageKey(item.name || item.title)) || "",
           imageMatchStatus: verifiedLeafletImages[String(item.id)] ? (String(item.id).includes("cherry-tomato-20261005") || String(item.id).includes("kuusamon-erankavija-20261005") || String(item.id).includes("atria-chicken-strips") || String(item.id).includes("arla-protein") ? "official-product-image" : "verified-leaflet-crop") : (item.imageUrl || officialImages.get(imageKey(item.name || item.title))) ? "official-exact-title" : "missing-leaflet-image",
           category: item.id === "lidl-leaflet-carrot" ? "Hevi" :
             item.id === "lidl-leaflet-kartanon-meatballs" ? "Liha & makkarat" :

@@ -28,7 +28,7 @@ function classifyLidlOffer(name: string, brand = "") {
   if (/vaatte|asuste|esmara|tyokalu|tyokal|akkukayttoinen|imuri|puhallin|pumppu|ruuvinvaannin|raikka|vasara|urheiluhame|pesuri|magneettiastia|auton puhdistusliina/.test(s)) return "Koti & vapaa-aika";
   if (/talouspaperi|wc[ -]?paperi|paperipyyhe|huuhteluaine|pesuaine|pyykin|astianpesu|puhdistuskivi|puhdistusaine/.test(s)) return "Kodinhoito";
   if (/varsiselleri|selleri|punajuuri/.test(s)) return "Hevi";
-  if (/korvapuusti|ruispala|blini/.test(s)) return "Leipomo";
+  if (/korvapuusti|ruispala|blini|kreikkalainen juustotanko/.test(s)) return "Leipomo";
   if (/pahkina/.test(s)) return "Kuivatuotteet";
   if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
   if (/maito|jogur|jugur|rahka|juusto|kerma|voi\b|piima|viili/.test(s)) return "Maitotuotteet";
