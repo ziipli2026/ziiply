@@ -8993,8 +8993,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const category = String(cardOffer.category || "").trim();
 
       if (!category || category.toLowerCase() === "kaikki") continue;
+      // Keep one canonical display key. The card already performs
+      // case-insensitive lookup, so storing both "Hevi" and "hevi" here
+      // doubles the debug/count map and can make category diagnostics look
+      // like two separate categories.
       counts[category] = (counts[category] ?? 0) + 1;
-      counts[category.toLowerCase()] = (counts[category.toLowerCase()] ?? 0) + 1;
     }
 
     return counts;
