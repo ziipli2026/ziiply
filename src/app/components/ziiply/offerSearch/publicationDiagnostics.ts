@@ -17,9 +17,13 @@ export function inspectOfferPublication(rows: readonly OfferDiagnosticRow[], val
     if (!String(row.category || "").trim()) missingCategories.push(index);
     if (row.validFrom && String(row.validFrom).slice(0, 10) !== validFrom ||
         row.validUntil && String(row.validUntil).slice(0, 10) !== validUntil) mismatchedValidity.push(index);
-    const identity = [String(row.ean || "").trim(), name.toLocaleLowerCase("fi-FI"), String(row.price ?? "")].join("|");
-    if (seen.has(identity)) duplicates.push(index);
-    seen.add(identity);
+    // Do not classify anonymous/incomplete rows as duplicates merely because
+    // several missing fields stringify to the same empty identity.
+    const ean = String(row.ean || "").trim();
+    const price = String(row.price ?? "").trim();
+    const identity = [ean, name.toLocaleLowerCase("fi-FI"), price].join("|");
+    if ((ean || name) && seen.has(identity)) duplicates.push(index);
+    if (ean || name) seen.add(identity);
   });
   return {
     count: rows.length,
