@@ -1,0 +1,27 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_verified_skus": 1,
+  "products": [
+    {
+      "brand": "Grillimaisteri",
+      "name": "Briossihampurilaissämpylä",
+      "package_size": "4 kpl / 380 g",
+      "category": "leipä/grillituotteet",
+      "lidl_product_id": "10023767",
+      "official_product_url": "https://www.lidl.fi/p/grillimaisteri-briossihampurilaissampyla/p10023767",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "attributes": [
+        "Hyvää Suomesta"
+      ],
+      "verification": "Official Lidl Finland product-specific /p/ page. ERÄ price intentionally excluded from normal_price."
+    }
+  ],
+  "master_index_effect": {
+    "previous_logical_verified_skus": 38,
+    "new_logical_verified_skus": 39
+  },
+  "price_policy": "Campaign, Lidl Plus and ERÄ prices are not persisted as current normal prices."
+}
