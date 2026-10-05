@@ -68,5 +68,12 @@
       "10038437",
       "DOVGAN Blini 2 kpl"
     ]
-  ]
+  ],
+  "batch1Status": {
+    "officialPublicEvidenceFound": 6,
+    "noAdditionalOfficialPublicEvidence": 9,
+    "checkoutVerifiedPrices": 0,
+    "eansVerified": 0,
+    "notes": "Batch 1 exhausted against current official Lidl.fi public search and repository Nuxt/category evidence. Missing fields remain null; no inferred EAN or regular checkout price."
+  }
 }
