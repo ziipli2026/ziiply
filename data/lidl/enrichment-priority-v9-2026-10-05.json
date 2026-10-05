@@ -65,7 +65,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/herkkumyslileipa/p10000000",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "no_regular_price_visible_on_public_page",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10000047",
@@ -76,7 +80,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/kolmen-suklaan-cookie/p10000047",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10000081",
@@ -87,7 +95,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/lihapiirakka/p10000081",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10005280",
@@ -98,7 +110,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/pielispakarin-aito-karjalanpiirakka/p10005280",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10008395",
@@ -109,7 +125,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/juustokierre/p10008395",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10012302",
@@ -120,7 +140,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/perunapiirakka/p10012302",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "no_regular_price_visible_on_public_page",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10013219",
@@ -131,7 +155,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/ciabattasampyla/p10013219",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10014112",
@@ -142,7 +170,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/voicroissant/p10014112",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10014992",
@@ -153,7 +185,11 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/fazer-dallaspulla/p10014992",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
     },
     {
       "lidlProductId": "10015004",
@@ -164,7 +200,27 @@
       "source": "official Lidl.fi research catalog",
       "checkoutComparable": false,
       "ean": null,
-      "priceEvidenceStatus": "missing"
+      "priceEvidenceStatus": "missing",
+      "officialUrl": "https://www.lidl.fi/p/salamipizza/p10015004",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    }
+  ],
+  "historicalAnnouncements": [
+    {
+      "lidlProductId": "10014112",
+      "name": "Voicroissant",
+      "announcedNewPriceEur": 0.49,
+      "announcementDate": "2026-04-20",
+      "currentPriceVerified": false
+    },
+    {
+      "lidlProductId": "10015004",
+      "name": "Salamipizza",
+      "announcedNewPriceEur": 1.49,
+      "announcementDate": "2026-04-20",
+      "currentPriceVerified": false
     }
   ]
 }
