@@ -656,6 +656,24 @@
       "name": "ATRIA Pizza 2 kpl",
       "unitPriceText": "200 g | 8,75 €/kg | hinta yksittäin 1,99 € | erä",
       "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038303",
+      "name": "KULJANKA Hapankaali",
+      "unitPriceText": "800 g | 2,49 €/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038345",
+      "name": "W5 Puhdistussuihke",
+      "unitPriceText": "300 ml | 6,63 €/l",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038436",
+      "name": "W5 Puhdistussuihke",
+      "unitPriceText": "300 ml | 6,63 €/l",
+      "source": "official_lidl_fi"
     }
   ],
   "remainingMissingRows": [
@@ -810,12 +828,6 @@
       "ian": "5500397"
     },
     {
-      "lidlProductId": "10038303",
-      "name": "KULJANKA Hapankaali",
-      "displayedPriceEur": 1.99,
-      "ian": "5502721"
-    },
-    {
       "lidlProductId": "10038304",
       "name": "PODRAVKA Papu-lihapata",
       "displayedPriceEur": 3.49,
@@ -924,18 +936,6 @@
       "ian": "39850"
     },
     {
-      "lidlProductId": "10038345",
-      "name": "W5 Puhdistussuihke",
-      "displayedPriceEur": 1.99,
-      "ian": "13095"
-    },
-    {
-      "lidlProductId": "10038436",
-      "name": "W5 Puhdistussuihke",
-      "displayedPriceEur": 1.99,
-      "ian": "13099"
-    },
-    {
       "lidlProductId": "10038471",
       "name": "FRESHONA Suomalainen herne",
       "displayedPriceEur": 0.88,
@@ -986,9 +986,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 24,
+    "resolvedOfficial": 27,
     "notApplicable": 6,
-    "remaining": 54
+    "remaining": 51
   },
   "unitPriceNotApplicable": [
     {
