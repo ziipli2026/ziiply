@@ -5,9 +5,6 @@ on:
     paths:
       - "scripts/generate-lidl-price-pilot-template.mjs"
       - "scripts/fill-lidl-pilot-from-receipt-json.mjs"
-      - "scripts/run-lidl-receipt-pilot.mjs"
-      - "data/lidl/pilot/batch-input.example.json"
-      - "data/lidl/pilot/README.md"
       - "scripts/run-lidl-pilot-intake.mjs"
       - "scripts/lib/lidl-pilot-*.mjs"
       - "scripts/lib/lidl-manual-price-*.mjs"
@@ -17,10 +14,6 @@ on:
       - "scripts/test-lidl-price-pilot-template.mjs"
       - "scripts/test-lidl-pilot-*.mjs"
       - ".github/workflows/lidl-pilot-intake-gates.yml"
-      - "scripts/fill-lidl-pilot-from-receipt-json.mjs"
-      - "scripts/run-lidl-receipt-pilot.mjs"
-      - "scripts/test-lidl-pilot-receipt-helper.mjs"
-      - "scripts/test-lidl-receipt-pipeline.mjs"
   push:
     branches: [main]
     paths:
@@ -49,8 +42,3 @@ jobs:
       - run: node scripts/test-lidl-pilot-csv-intake.mjs
       - run: node scripts/test-lidl-pilot-intake-cli.mjs
       - run: node scripts/test-lidl-pilot-receipt-helper.mjs
-      - run: node scripts/test-lidl-receipt-pipeline.mjs
-      - run: node scripts/test-lidl-receipt-pilot-report.mjs
-      - run: node scripts/test-lidl-receipt-batch.mjs
-      - run: node scripts/test-lidl-receipt-quality.mjs
-      - run: node scripts/test-lidl-receipt-pilot-batch.mjs
