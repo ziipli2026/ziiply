@@ -1,18 +1,21 @@
 #!/usr/bin/env node
 /**
- * Lidl leaflet parser regression archive.
+ * Lidl parser regression verifier.
  *
- * Every successfully parsed official Lidl.fi edition is stored as an immutable
- * normalized snapshot. Before a new edition can be accepted, the parser is run
- * against every archived HTML fixture and the normalized result is compared
- * with its approved snapshot. This is deliberately the same "old editions must
- * still parse" principle used by the Citymarket leaflet pipeline.
+ * Regression fixtures must contain the captured official Lidl.fi HTML plus the
+ * independently approved normalized result. "actual" is always produced by the
+ * real production parser at test time; committed *.actual.json files are never
+ * trusted as parser evidence.
  */
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
+import ts from "typescript";
 
 const root = path.resolve("data/lidl/parser-regression");
 const mode = process.argv[2] || "verify";
+const providerPath = path.resolve("src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts");
+const lifecyclePath = path.resolve("src/app/components/ziiply/offerSearch/publicationLifecycle.ts");
 
 const normalize = value => String(value ?? "").toLocaleLowerCase("fi")
   .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -36,32 +39,53 @@ async function files(dir) {
   try { return (await fs.readdir(dir)).sort(); } catch { return []; }
 }
 
+async function loadProductionParser() {
+  const tempDir = path.resolve(".tmp-lidl-parser-regression");
+  await fs.rm(tempDir, { recursive: true, force: true });
+  await fs.mkdir(tempDir, { recursive: true });
+  const transpile = async (input, output, rewrite = x => x) => {
+    const source = rewrite(await fs.readFile(input, "utf8"));
+    const js = ts.transpileModule(source, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
+      fileName: input,
+    }).outputText;
+    await fs.writeFile(output, js);
+  };
+  await transpile(lifecyclePath, path.join(tempDir, "publicationLifecycle.mjs"));
+  await transpile(providerPath, path.join(tempDir, "lidlPublicLeafletProvider.mjs"),
+    source => source.replace('from "../publicationLifecycle"', 'from "./publicationLifecycle.mjs"'));
+  const module = await import(pathToFileURL(path.join(tempDir, "lidlPublicLeafletProvider.mjs")).href + "?v=" + Date.now());
+  return { parse: module.parseLidlPublicCategoryHtml, tempDir };
+}
+
 const manifests = (await files(root)).filter(name => name.endsWith(".expected.json"));
 if (mode === "verify") {
-  if (!manifests.length) {
-    console.log("Lidl parser regression archive is empty: bootstrap required after first approved HTML capture.");
-    process.exit(0);
-  }
+  if (!manifests.length) throw new Error("Lidl parser regression archive is empty");
+  const { parse, tempDir } = await loadProductionParser();
   let failed = 0;
   for (const name of manifests) {
-    const expected = JSON.parse(await fs.readFile(path.join(root, name), "utf8"));
-    const actualPath = path.join(root, name.replace(".expected.json", ".actual.json"));
-    let actual;
-    try { actual = JSON.parse(await fs.readFile(actualPath, "utf8")); }
-    catch { console.error("Missing parser output:", actualPath); failed++; continue; }
-    const a = canonical(actual), e = canonical(expected);
-    if (JSON.stringify(a) !== JSON.stringify(e)) {
-      console.error(`Regression mismatch ${name}: expected ${e.length}, got ${a.length}`);
+    const edition = name.replace(".expected.json", "");
+    const expected = canonical(JSON.parse(await fs.readFile(path.join(root, name), "utf8")));
+    const fixturePath = path.join(root, edition + ".html");
+    let html;
+    try { html = await fs.readFile(fixturePath, "utf8"); }
+    catch { console.error("Missing immutable Lidl source capture:", fixturePath); failed++; continue; }
+    const sourceUrlPath = path.join(root, edition + ".source-url.txt");
+    let sourceUrl = "https://www.lidl.fi/";
+    try { sourceUrl = (await fs.readFile(sourceUrlPath, "utf8")).trim() || sourceUrl; } catch {}
+    const date = expected[0]?.validFrom || edition.slice(0, 10);
+    const actual = canonical(parse(html, sourceUrl, date));
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      console.error(`Regression mismatch ${name}: expected ${expected.length}, parser produced ${actual.length}`);
+      console.error("EXPECTED", JSON.stringify(expected, null, 2));
+      console.error("ACTUAL", JSON.stringify(actual, null, 2));
       failed++;
-    } else console.log(`OK ${name}: ${e.length} offers`);
+    } else {
+      console.log(`OK ${name}: production parser reproduced ${expected.length} approved offers from archived HTML`);
+    }
   }
+  await fs.rm(tempDir, { recursive: true, force: true });
   if (failed) process.exit(1);
-} else if (mode === "approve") {
-  const input = process.argv[3], edition = process.argv[4];
-  if (!input || !edition || !/^[a-zA-Z0-9._-]+$/.test(edition)) throw new Error("Usage: approve <parser-output.json> <edition-id>");
-  const rows = canonical(JSON.parse(await fs.readFile(input, "utf8")));
-  if (!rows.length) throw new Error("Refusing to approve an empty Lidl edition");
-  await fs.mkdir(root, { recursive: true });
-  await fs.writeFile(path.join(root, `${edition}.expected.json`), JSON.stringify(rows, null, 2) + "\n");
-  console.log(`Approved Lidl regression snapshot ${edition}: ${rows.length} offers`);
-} else throw new Error("Unknown mode");
+} else {
+  throw new Error("Only verify mode is supported. Approval must come from an independently reviewed source capture.");
+}
