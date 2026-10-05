@@ -8,10 +8,10 @@ const apolloVersion="4.3.1";
 const all=[];
 const pages=[];
 for(let from=0;from<2000;from+=limit){
- const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"ziiply-siltamaki-probe",fetchSponsoredContent:false,from,limit,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"ziiply-siltamaki-probe"};
+ const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,from,offset:from,skip:from,page:Math.floor(from/limit)+1,limit,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf"};
  const extensions={clientLibrary:{name:"@apollo/client",version:apolloVersion},persistedQuery:{version:1,sha256Hash:hash}};
  const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
- const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":clientVersion}});
+ const r=await fetch(u,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":clientVersion}});
  const body=await r.json(); if(!r.ok||body.errors){console.log(JSON.stringify({http:r.status,errors:body.errors}));process.exit(1);}
  const root=body?.data?.store?.products??{}; const items=Array.isArray(root.productListItems)?root.productListItems:[];
  const total=Number(root.total??0); pages.push({requestedFrom:from,responseFrom:root.from,limit:root.limit,total,raw:items.length});
