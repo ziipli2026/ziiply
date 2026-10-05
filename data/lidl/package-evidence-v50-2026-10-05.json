@@ -77,9 +77,10 @@
       "lidlProductId": "10038287",
       "name": "KULJANKA Maustekurkut etikkaliemessä",
       "packageSize": "860 g (valutettu 450 g)",
-      "source": "Lidl current category listing",
+      "source": "2026 Lidl catalogue independently matches article 5504242 and drained weight 450 g.",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "status": "exact_identity_gtin_missing"
     },
     {
       "lidlProductId": "10038299",
@@ -239,10 +240,10 @@
       "lidlProductId": "10038286",
       "name": "KULJANKA Valkokaalisalaatti",
       "packageSize": "880 g (kiinteä paino 410 g)",
-      "source": "Multiple Lidl country catalogues independently match Kuljanka white-cabbage salad 880 g / 410 g solid weight",
+      "source": "2026 Lidl catalogue independently matches article 5500677 and drained-weight cabbage salad.",
       "gtin": null,
       "gtinVerified": false,
-      "status": "exact_product_identity_strong_gtin_missing"
+      "status": "exact_identity_gtin_missing"
     },
     {
       "lidlProductId": "10038485",
@@ -272,6 +273,16 @@
         }
       ],
       "source": "Combined Finnish Lidl row is coffee or coconut; keep split until coffee GTIN is resolved.",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038288",
+      "name": "KULJANKA Täytetty broileripihvi",
+      "packageSize": "500 g",
+      "ian": "184403",
+      "status": "exact_identity_gtin_missing",
+      "source": "Official cross-market Lidl catalogue matches Kuljanka Chicken Kiev, article 184403, 500 g.",
       "gtin": null,
       "gtinVerified": false
     }
