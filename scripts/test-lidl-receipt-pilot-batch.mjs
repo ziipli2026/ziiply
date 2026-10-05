@@ -12,7 +12,7 @@ try{
  const out=JSON.parse(execFileSync(process.execPath,["scripts/run-lidl-receipt-pilot-batch.mjs",batch],{encoding:"utf8"}));
  assert.equal(out.status,"research-only-not-published");
  assert.equal(out.batchCount,1);
- assert.equal(out.intake.inputCount,1);
+ assert.equal(out.intake.inputCount,25);
  assert.equal(out.quality.knownCatalogObservationCount,1);
  assert.equal(out.safety.publishablePriceCount,0);
  assert.equal(JSON.stringify(out).includes("1.29"),false);
