@@ -1,5 +1,5 @@
 name: Lidl independent price preview
-# Identifier, variant, completeness and enrichment-priority audits
+# Identifier, variant, completeness, enrichment-priority and public-evidence audits
 on:
   push:
     branches: [preview/lidl-independent-catalog]
@@ -34,6 +34,7 @@ on:
       - 'scripts/test-lidl-enrichment-priority.mjs'
       - 'scripts/test-lidl-enrichment-priority-batch.mjs'
       - 'scripts/test-lidl-public-observation-evidence-v1.mjs'
+      - 'data/lidl/public-observation-evidence-v1-2026-10-05.json'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
