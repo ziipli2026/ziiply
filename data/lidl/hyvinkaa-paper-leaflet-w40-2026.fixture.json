@@ -247,6 +247,66 @@
       "checkoutPriceVerified": false,
       "note": "Leaflet page states starting Thu 1 Oct; no confirmed end date visible on supplied photograph.",
       "endDateStatus": "unknown"
+    },
+    {
+      "id": "cherry-tomato-20261005",
+      "name": "Kotimainen kirsikkatomaatti 800 g",
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "printedPriceEur": 4.99,
+      "priceBasis": "pack",
+      "requiredQuantity": 1,
+      "eligibility": "limited-batch",
+      "ean": null,
+      "lidlProductId": null,
+      "regularPriceEur": null,
+      "checkoutPriceVerified": false,
+      "note": "Verified from official Lidl.fi Vihannekset page on 2026-10-05"
+    },
+    {
+      "id": "kuusamon-erankavija-20261005",
+      "name": "Kuusamon Juusto Eränkävijä-juusto 300 g",
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "printedPriceEur": 4.39,
+      "priceBasis": "pack",
+      "requiredQuantity": 1,
+      "eligibility": "limited-batch",
+      "ean": null,
+      "lidlProductId": null,
+      "regularPriceEur": null,
+      "checkoutPriceVerified": false,
+      "note": "Verified from official Lidl.fi Juustot page on 2026-10-05"
+    },
+    {
+      "id": "danerolles-croissants-20261005",
+      "name": "Danerolles Croissantit 240 g",
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "printedPriceEur": 4.5,
+      "priceBasis": "multi-buy",
+      "requiredQuantity": 2,
+      "eligibility": "limited-batch",
+      "ean": null,
+      "lidlProductId": null,
+      "regularPriceEur": null,
+      "checkoutPriceVerified": false,
+      "note": "Verified from official Lidl.fi Valmisateriat page on 2026-10-05"
+    },
+    {
+      "id": "atria-pizza-20261005",
+      "name": "Atria Pizza 200 g",
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "printedPriceEur": 3.5,
+      "priceBasis": "multi-buy",
+      "requiredQuantity": 2,
+      "eligibility": "limited-batch",
+      "ean": null,
+      "lidlProductId": null,
+      "regularPriceEur": null,
+      "checkoutPriceVerified": false,
+      "note": "Verified from official Lidl.fi Valmisateriat page on 2026-10-05"
     }
   ]
 }

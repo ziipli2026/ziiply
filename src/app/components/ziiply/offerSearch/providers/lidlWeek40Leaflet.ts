@@ -12,6 +12,8 @@ const independentlyVerifiedIds = new Set([
   "banana", "pizza-ice-cream", "hk-burger", "solevita-orange",
   "kartanon-meatballs", "atria-chicken-strips", "arla-protein",
   "atria-mince", "chicken-nuggets",
+  "cherry-tomato-20261005", "kuusamon-erankavija-20261005",
+  "danerolles-croissants-20261005", "atria-pizza-20261005",
 ]);
 
 const verifiedLeafletImages: Record<string, string> = {

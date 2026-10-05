@@ -67,6 +67,7 @@ import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDeb
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
 import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
+import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
 import {
   searchZiiplyOffers,
@@ -598,10 +599,26 @@ export async function GET(request: Request) {
       const fetched = storeKey ? await fetchLidlOffers(storeKey, storeName) : [];
       const todayFi = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
       const enriched = addVerifiedLidlWeek40Leaflet(fetched as Record<string, any>[], storeKey, storeName, todayFi);
-      // The enrichment may contain pre-parsed leaflet rows: enforce the same publication gate at the API boundary.
-      const results = onlyCurrentlyValidLidlOffers(enriched as UnknownRecord[], todayFi).filter((offer) => offerMatchesQuery(q, offer));
+      // FI0218 is the first deep-tested publication-staging store. Stored rows combine
+      // the Lidl Plus feed with the official Lidl.fi public leaflet/category source.
+      // If staging is unavailable, foreground structured + verified manual fallback still works.
+      let staged: UnknownRecord[] = [];
+      if (storeKey === "FI0218") {
+        try { staged = await readActivePublicationOffers<UnknownRecord>("LIDL:FI0218"); }
+        catch (error) { console.warn("[Ziiply offers] Lidl staged publication unavailable", error); }
+      }
+      const combined = dedupe([...(enriched as UnknownRecord[]), ...staged]);
+      const results = onlyCurrentlyValidLidlOffers(combined, todayFi).filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
-        { ok: true, query: q, provider: "lidl", storeKey, storeName, results },
+        {
+          ok: true, query: q, provider: "lidl", storeKey, storeName, results,
+          lidlSourceAudit: {
+            structuredAndManual: enriched.length,
+            staged: staged.length,
+            combined: combined.length,
+            publicLeaflet: combined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
+          },
+        },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
