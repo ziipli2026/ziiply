@@ -693,11 +693,20 @@ export async function GET(request: Request) {
       // complete validFrom/validUntil JSON-LD, so they cannot be the only source.
       // Give the campaign copies distinct ids so the master dedupe does not erase
       // them against the Tarjoukset copy before the UI can split the tabs.
+      // Do not compare campaigns against every row in combined: combined
+      // intentionally contains the whole Lidl Plus feed so the verified visual
+      // leaflet can be assembled correctly. Comparing against all of it makes
+      // every Lidl Plus campaign disappear. Only rows that are independently
+      // verified as paper-leaflet rows are allowed to suppress a campaign copy.
+      const independentlyVerifiedLeafletRows = combined.filter((offer) =>
+        String(offer.id || "").startsWith("lidl-leaflet-") ||
+        String(offer.source || "") === "verified-official-leaflet"
+      );
       const leafletIdentityKeys = new Set(
-        combined.map((offer) => lidlImageKey(offer)).filter(Boolean),
+        independentlyVerifiedLeafletRows.map((offer) => lidlImageKey(offer)).filter(Boolean),
       );
       const leafletProductIds = new Set(
-        combined.flatMap((offer) => {
+        independentlyVerifiedLeafletRows.flatMap((offer) => {
           const ids = [
             offer.lidlProductId,
             ...(Array.isArray(offer.lidlProductIds) ? offer.lidlProductIds : []),
@@ -714,8 +723,6 @@ export async function GET(request: Request) {
             ...(Array.isArray(offer.lidlProductIds) ? offer.lidlProductIds : []),
             ...(Array.isArray(offer.productIds) ? offer.productIds : []),
           ].map(String).filter(Boolean);
-          // If the product is already in the verified visual leaflet, it stays
-          // only under Tarjoukset even when Lidl Plus is its technical source.
           return (!key || !leafletIdentityKeys.has(key)) && !ids.some((id) => leafletProductIds.has(id));
         })
         .map((offer) => ({
