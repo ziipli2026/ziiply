@@ -782,6 +782,12 @@
       "name": "KARINIEMEN Kananpojan rintaleike",
       "unitPriceText": "n. 1 kg | 7,99 €/kg",
       "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038478",
+      "name": "PANDA Pepe Original -lakritsipatukka",
+      "unitPriceText": "32 g | 12,50 €/kg",
+      "source": "exact_product_public_catalog"
     }
   ],
   "remainingMissingRows": [
@@ -918,12 +924,6 @@
       "ian": "7112282"
     },
     {
-      "lidlProductId": "10038478",
-      "name": "PANDA Pepe Original -lakritsipatukka",
-      "displayedPriceEur": 0.4,
-      "ian": "7108837"
-    },
-    {
       "lidlProductId": "10038479",
       "name": "FAZER Tutti Frutti Candy Salad",
       "displayedPriceEur": 3.49,
@@ -956,9 +956,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 45,
+    "resolvedOfficial": 46,
     "notApplicable": 11,
-    "remaining": 28
+    "remaining": 27
   },
   "unitPriceNotApplicable": [
     {
