@@ -75,6 +75,8 @@ export async function GET(request: Request) {
       const calculated = Math.round((Date.parse(`${currentEnd}T12:00:00Z`) - Date.parse(`${date}T12:00:00Z`)) / 86400000);
       daysUntilCurrentEnd = Number.isFinite(calculated) ? calculated : null;
     }
+    if (current.length > 1)
+      issue("OVERLAPPING_CURRENT_PUBLICATIONS", "warning", `${current.length} publication periods are simultaneously current`);
     if (current.length && upcoming.length) {
       const currentEnd = current.map((edition) => edition.validUntil).sort().at(-1)!;
       const nextStart = upcoming.map((edition) => edition.validFrom).sort()[0];
