@@ -183,5 +183,10 @@
     "lidlProductId": "10038314",
     "ean": "6414893310118",
     "evidence": "Finnish retail product data identifies ATRIA Kanan fileesuikale 300 g EAN 6414893310118; matches Lidl 10038314 ATRIA Kanan fileesuikale 4 kpl / 300 g."
+  },
+  {
+    "lidlProductId": "10038297",
+    "ean": "20755775",
+    "evidence": "Lidl.fi Finland identifies KULJANKA Paprikapyree 160 g. Independent Lidl product review identifies KULJANKA Paprikacreme scharf 160 g, manufacturer Univer Product Zrt. Hungary, EAN 20755775. GTIN-8 checksum valid."
   }
 ]
