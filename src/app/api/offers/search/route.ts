@@ -639,7 +639,21 @@ export async function GET(request: Request) {
         const imageUrl = firstString(match.imageUrl, match.image, match.pictureUrl);
         return { ...offer, imageUrl, image: imageUrl, pictureUrl: imageUrl, imageMatchStatus: "official-lidl-fi-product-match" };
       });
-      const combined = dedupe([...imageEnriched, ...staged]);
+      // Keep the visual paper leaflet separate from Lidl Plus/store campaigns.
+      // addVerifiedLidlWeek40Leaflet() starts from the structured feed, so using
+      // the whole enriched array here was the reason the same products appeared
+      // under both Tarjoukset and Kampanjat.
+      const structuredIds = new Set((fetched as UnknownRecord[]).map((offer) => String(offer.id || "")));
+      const verifiedLeafletRows = imageEnriched.filter((offer) =>
+        String(offer.id || "").startsWith("lidl-leaflet-") || !structuredIds.has(String(offer.id || ""))
+      );
+      // Three photographed leaflet rows deliberately prefer the official Lidl Plus
+      // representation because it has the exact first-party image/data.
+      const verifiedStructuredLeafletNames = /burgeri|appelsiinitaysmehu|kotimainen lihapulla/;
+      const structuredLeafletRows = (fetched as UnknownRecord[]).filter((offer) =>
+        verifiedStructuredLeafletNames.test(normalizeText(offer.name || offer.title))
+      );
+      const combined = dedupe([...verifiedLeafletRows, ...structuredLeafletRows]);
 
       // Lidl has two Gösta tabs just like Prisma/Citymarket:
       // 1) "Tarjoukset" = the dated paper/public leaflet publication
