@@ -5,8 +5,8 @@
   "total": 197,
   "counts": {
     "multipack_or_variant": 15,
-    "variable_weight_or_produce": 29,
-    "needs_external_gtin_lookup": 104,
+    "variable_weight_or_produce": 30,
+    "needs_external_gtin_lookup": 103,
     "bakery_or_store_bakery": 36,
     "non_food": 13
   },
@@ -332,8 +332,8 @@
       "name": "NOSTJA Pancetta",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "no_fixed_consumer_gtin"
     },
     {
       "lidlProductId": "10038283",
