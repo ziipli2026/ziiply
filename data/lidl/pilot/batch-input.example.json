@@ -1,0 +1,9 @@
+[
+  {
+    "observationsPath": "<path-to-real-receipt-observations.json>",
+    "storeId": "<lidl-store-id>",
+    "storeName": "<Lidl store name>",
+    "storeAddress": "<store address>",
+    "observationTime": "<ISO-8601 timestamp>"
+  }
+]
