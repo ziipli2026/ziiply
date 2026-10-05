@@ -1,4 +1,5 @@
 # Lidl normal-price adapter regression gate
+# Trigger after latest route-test fix
 name: Lidl independent price preview
 # Identifier, variant, completeness, enrichment-priority and public-evidence audits
 on:
