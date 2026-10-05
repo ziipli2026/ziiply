@@ -1,4 +1,5 @@
 name: Lidl leaflet parser history
+# Regression rerun trigger after verifier fix.
 on:
   workflow_dispatch:
   push:
