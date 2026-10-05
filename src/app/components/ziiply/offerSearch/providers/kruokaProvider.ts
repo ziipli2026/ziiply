@@ -395,6 +395,11 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\bannosateria\w*\b/.test(productTitle)) return "Valmisruoka";
   if (/\blohipihvi\w*\b/.test(productTitle)) return "Kala";
   if (/\bnakit?\b/.test(productTitle)) return "Liha & makkarat";
+  // V73: K-Market Etu-Lyötty production audit. Product identity beats misleading
+  // dairy/bakery taxonomy and ingredient words.
+  if (/\bmaksalaatik\w*\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(?:muro)?mysli\w*\b/.test(productTitle)) return "Kuivatuotteet";
+  if (/\bleivoskeksi\w*\b/.test(productTitle)) return "Makeiset & keksit";
 
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
