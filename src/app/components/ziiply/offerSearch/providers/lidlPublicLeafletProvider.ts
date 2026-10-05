@@ -252,7 +252,7 @@ function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackD
 
   const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
   const output: LidlPublicOffer[] = [];
-  const datePattern = /Myymälässä\s+(\d{1,2})\.(\d{1,2})\.\s*-\s*(\d{1,2})\.(\d{1,2})\./i;
+  const datePattern = /Myymälässä\s+(\d{1,2})\.(\d{1,2})\.\s*(?:-|–|—)\s*(\d{1,2})\.(\d{1,2})\./i;
   const pricePattern = /^(\d{1,3})[,.](\d{2})\s*€?$/;
 
   for (let i = 0; i < lines.length; i++) {
