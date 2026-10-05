@@ -21,10 +21,11 @@
       "variant": "",
       "displayedPriceEur": 1.89,
       "unitPriceText": "1 l | 1,89 €/l",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6430081490041",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037643",
@@ -33,10 +34,11 @@
       "variant": "White Peach",
       "displayedPriceEur": 1.99,
       "unitPriceText": "250 ml | 7,36 €/l | hinta sis. pantin",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "9002490279875",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037644",
@@ -45,10 +47,11 @@
       "variant": "",
       "displayedPriceEur": 1.39,
       "unitPriceText": "150 ml | 8,27 €/l | hinta sis. pantin",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "4335619339798",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037645",
@@ -67,50 +70,55 @@
       "ian": "7109970",
       "name": "OULULAINEN Pullava Dallaspitko",
       "displayedPriceEur": 3.29,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6413467593802",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037647",
       "ian": "7112815",
       "name": "OULULAINEN Reissumies Tosi Ohut",
       "displayedPriceEur": 1.79,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6413467428401",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037648",
       "ian": "7112814",
       "name": "OULULAINEN Reissumies Tosi Ohut",
       "displayedPriceEur": 1.49,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6413467449604",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037649",
       "ian": "7112635",
       "name": "SNELLMAN Kotimainen palvikinkku",
       "displayedPriceEur": 5.19,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6409620011917",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037650",
       "ian": "1028593",
       "name": "MAMA Nuudeli 6-pack",
       "displayedPriceEur": 3.39,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "8850987146619",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10037651",
@@ -343,12 +351,13 @@
       "ian": "7111362",
       "name": "ATRIA Nauta-viljapossujauheliha",
       "displayedPriceEur": 8.99,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6407830032371",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search + category Nuxt v14",
       "observedDate": "2026-10-01",
       "variant": "",
-      "unitPriceText": "1 kg | 8,99 €/kg"
+      "unitPriceText": "1 kg | 8,99 €/kg",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038265",
@@ -399,10 +408,11 @@
       "ian": "7104737",
       "name": "WURSTI Extrapalvikinkku",
       "displayedPriceEur": null,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6409290001492",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038270",
@@ -451,10 +461,11 @@
       "ian": "7107399",
       "name": "PÅGEN Hönösaaristolaisrieska",
       "displayedPriceEur": null,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "7311070014631",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038276",
@@ -495,20 +506,22 @@
       "ian": "7107027",
       "name": "SERLA Valkoinen talouspaperi",
       "displayedPriceEur": null,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6414301081226",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v17b batch 1",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038280",
       "ian": "7107022",
       "name": "SERLA Hellä-wc-paperi",
       "displayedPriceEur": null,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6414301079759",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v17b batch 1",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038281",
@@ -627,10 +640,11 @@
       "ian": "175056",
       "name": "KULJANKA Gulassikeitto",
       "displayedPriceEur": 2.49,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "4056489624455",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038293",
@@ -739,20 +753,22 @@
       "ian": "5502721",
       "name": "KULJANKA Hapankaali",
       "displayedPriceEur": 1.99,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "20544317",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038304",
       "ian": "6905117",
       "name": "PODRAVKA Papu-lihapata",
       "displayedPriceEur": 3.49,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "3850104035739",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038305",
@@ -779,10 +795,11 @@
       "ian": "7704257",
       "name": "TYMBARK Omena-kirsikkamehu",
       "displayedPriceEur": 2.49,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "5900334000781",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v17b batch 1",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038311",
@@ -799,10 +816,11 @@
       "ian": "7107496",
       "name": "HK Burgeri 6 kpl",
       "displayedPriceEur": null,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6409100077884",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038313",
@@ -881,20 +899,22 @@
       "ian": "7111511",
       "name": "KUUSAMON JUUSTO Eränkävijä-juusto",
       "displayedPriceEur": 4.39,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6405020033962",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038322",
       "ian": "7101245",
       "name": "DANEROLLES Croissantit 2 kpl",
       "displayedPriceEur": 4.5,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "5410146401435",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038323",
@@ -1155,10 +1175,11 @@
       "variant": "sokeriton Classic Cactus",
       "displayedPriceEur": 1.19,
       "unitPriceText": "25 g | 47,60 €/kg",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "7310350118496",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038474",
@@ -1167,10 +1188,11 @@
       "variant": "Aqua Menthol",
       "displayedPriceEur": 1.75,
       "unitPriceText": "44 g | 39,77 €/kg",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6420256013083",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038475",
@@ -1179,10 +1201,11 @@
       "variant": "Cool Mint",
       "displayedPriceEur": 1.75,
       "unitPriceText": "44 g | 39,77 €/kg",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6420256014493",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038476",
@@ -1191,10 +1214,11 @@
       "variant": "Menthol & Eucalyptus",
       "displayedPriceEur": 1.35,
       "unitPriceText": "29 g | 46,55 €/kg",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "4009900412728",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038477",
@@ -1211,10 +1235,11 @@
       "ian": "7108837",
       "name": "PANDA Pepe Original -lakritsipatukka",
       "displayedPriceEur": 0.4,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6412500070003",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038479",
@@ -1231,20 +1256,22 @@
       "ian": "7112091",
       "name": "CLOETTA Kex-keksisuklaa",
       "displayedPriceEur": 0.95,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "7310350118342",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038481",
       "ian": "7100789",
       "name": "KARL FAZER Vadelmajogurttisuklaapatukka",
       "displayedPriceEur": 1.25,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6411401019043",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038482",
@@ -1253,10 +1280,11 @@
       "variant": "",
       "displayedPriceEur": 1.99,
       "unitPriceText": "330 ml | 5,58 €/l",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6415600582643",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038483",
@@ -1309,10 +1337,11 @@
       "variant": "",
       "displayedPriceEur": 2.69,
       "unitPriceText": "220 g | 12,23 €/kg",
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6416453048805",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi public search v10/v11",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038488",
