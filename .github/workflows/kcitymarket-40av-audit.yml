@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/kcitymarket-40av-audit.yml"
       - "scripts/citymarket/leaflet-regression-publications.json"
+      - "tests/fixtures/citymarket/**"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
       - "src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts"
       - "tests/k-offer-tab-policy.test.cjs"
