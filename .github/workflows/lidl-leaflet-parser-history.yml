@@ -43,6 +43,9 @@ jobs:
       - name: Install dependencies for production parser replay
         if: steps.clock.outputs.run == 'true'
         run: npm ci --ignore-scripts
+      - name: Simulate Lidl publication date gates
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/lidl/verify-publication-lifecycle.mjs
       - name: Capture current official Lidl.fi category HTML
         if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         run: |
