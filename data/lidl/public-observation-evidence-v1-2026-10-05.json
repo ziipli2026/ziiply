@@ -60,6 +60,17 @@
       "validFrom": "2026-10-01",
       "validThrough": "2026-10-07",
       "sourceUrl": "https://www.lidl.fi/c/siistimpi-arki-se-kannattaa/a10104166"
+    },
+    {
+      "lidlProductId": "10038274",
+      "name": "PÅGEN Hönösaaristolaisrieska",
+      "displayedPriceEur": 1.99,
+      "referencePriceEur": 2.49,
+      "unitPriceText": "630 g | 3,16 €/kg",
+      "memberOnly": true,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-04",
+      "sourceUrl": "https://www.lidl.fi/h/leivaet-ja-leivonnaiset/h10096094"
     }
   ]
 }
