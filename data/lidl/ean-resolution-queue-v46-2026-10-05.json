@@ -1,5 +1,5 @@
 {
-  "revision": "V48-EAN-QUEUE-BAKERY-RECLASSIFIED",
+  "revision": "V50-EAN-QUEUE-PACKAGE-SIZE-ENRICHED",
   "created": "2026-10-05",
   "source": "ean-resolution-queue-v45-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
@@ -833,9 +833,11 @@
       "ian": "7111948",
       "name": "FRESHONA Suomalainen herne",
       "variant": null,
-      "unitPriceText": null,
+      "unitPriceText": "200 g",
       "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionReason": "single_candidate",
+      "packageSizeEvidence": "Sydänmerkki product listing: Freshona Suomalainen herne 200g; manufacturer Lidl",
+      "packageSizeVerified": true
     },
     {
       "lidlProductId": "10038477",
