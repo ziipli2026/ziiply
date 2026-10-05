@@ -1,0 +1,155 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V8",
+  "priority": [
+    {
+      "lidlProductId": "10038470",
+      "name": "Kalkkuna-juustotasku",
+      "ian": "6907018",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038482",
+      "name": "COCA-COLA Coca-Cola",
+      "ian": "193695",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038483",
+      "name": "W5 Paperipyyherulla",
+      "ian": "39850",
+      "displayedPriceEur": 5.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038484",
+      "name": "KARLENS Omenasiideri",
+      "ian": "7112040",
+      "displayedPriceEur": 2.45,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038487",
+      "name": "FAZER Aarrearkku-makeispussi",
+      "ian": "7112756",
+      "displayedPriceEur": 2.69,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10037643",
+      "name": "RED BULL Energiajuoma",
+      "ian": "1011144",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10037645",
+      "name": "MILBONA Proteiinivanukas",
+      "ian": "181201",
+      "displayedPriceEur": 1.19,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10037651",
+      "name": "MARIBEL Hillo",
+      "ian": "1013035",
+      "displayedPriceEur": 3.29,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038247",
+      "name": "KANAMESTARI Kanan sisäfilee",
+      "ian": "7111717",
+      "displayedPriceEur": 3.89,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038258",
+      "name": "Reilun kaupan banaani",
+      "ian": "80020",
+      "displayedPriceEur": 1.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038277",
+      "name": "MARLI Vital-mehujuoma",
+      "ian": "7107664",
+      "displayedPriceEur": 2.39,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038328",
+      "name": "Pionin juurakko",
+      "ian": "131091",
+      "displayedPriceEur": 3.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038329",
+      "name": "Calluna",
+      "ian": "51291",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038330",
+      "name": "Kolmivärinen calluna 3 kpl",
+      "ian": "92369",
+      "displayedPriceEur": 8,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038331",
+      "name": "Kotimainen krysanteemi",
+      "ian": "51274",
+      "displayedPriceEur": 2.79,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    }
+  ]
+}
