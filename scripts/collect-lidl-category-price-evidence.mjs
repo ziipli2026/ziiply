@@ -37,7 +37,18 @@ const structuredProducts=html=>{
     const p=deref(value.gridBoxData);
     if(!p||typeof p!=='object'||Array.isArray(p)) continue;
     const ians=deref(p.ians);
-    out.push({lidlProductId:deref(p.productId)??null,ian:Array.isArray(ians)?ians.map(deref).filter(Boolean):[],name:deref(p.fullTitle)??null,canonicalPath:deref(p.canonicalPath)??null});
+    const priceRaw=deref(p.price);
+    const priceObj=priceRaw&&typeof priceRaw==='object'&&!Array.isArray(priceRaw)?priceRaw:{};
+    const baseRaw=deref(priceObj.basePrice);
+    const baseObj=baseRaw&&typeof baseRaw==='object'&&!Array.isArray(baseRaw)?baseRaw:{};
+    out.push({
+      lidlProductId:deref(p.productId)??null,
+      ian:Array.isArray(ians)?ians.map(deref).filter(Boolean):[],
+      name:deref(p.fullTitle)??null,
+      canonicalPath:deref(p.canonicalPath)??null,
+      displayedPriceEur:typeof deref(priceObj.price)==='number'?deref(priceObj.price):null,
+      unitPriceText:deref(baseObj.text)??null
+    });
   }
   return out;
 };
@@ -50,6 +61,23 @@ for(const source of urls){
   const html=await res.text();
   const products=structuredProducts(html);
   const text=decode(html);
+
+  if(source.includes('/h/')){
+    for(const product of products){
+      if(product.displayedPriceEur==null) continue;
+      raw.push({
+        source,observedAt,researchOnly:true,
+        lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,
+        productUrl:product.canonicalPath?new URL(String(product.canonicalPath),source).href:null,
+        displayedPriceEur:product.displayedPriceEur,unitPriceText:product.unitPriceText,
+        isLidlPlus:false,isMultiBuy:false,
+        validFromRaw:null,validThroughRaw:null,validFrom:null,validThrough:null,
+        availabilityKind:'continuous-listing',temporalStatus:'continuous',
+        evidenceText:clean([product.name,product.displayedPriceEur+' €',product.unitPriceText].filter(Boolean).join(' ')),
+        priceVerified:false,checkoutPriceVerified:false,regularPriceVerified:false
+      });
+    }
+  }
 
   const dated=[...text.matchAll(/Myymälässä\s+(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)\s*-\s*(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)/gi)];
   for(const m of dated){
