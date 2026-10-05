@@ -135,6 +135,15 @@
       "source": "Current Finnish Lidl offer evidence",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038477",
+      "name": "GELATELLI Kuningatarkermajäätelö",
+      "packageSize": "1 l / 515 g",
+      "manufacturer": "Lidl",
+      "source": "Sydänmerkki exact product listing",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
