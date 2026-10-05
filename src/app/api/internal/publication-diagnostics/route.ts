@@ -82,9 +82,13 @@ export async function GET(request: Request) {
       duplicates: current.reduce((n, e) => n + e.quality.duplicates.count, 0),
       invalidPrices: current.reduce((n, e) => n + e.quality.invalidPrices.count, 0),
     };
+    const latestRunAgeMinutes = latestRun ? Math.max(0, Math.round(
+      (Date.now() - Date.parse(String(latestRun.checked_at))) / 60000,
+    )) : null;
     const summary = {
       status,
       latestRunAt: latestRun?.checked_at ?? null,
+      latestRunAgeMinutes: Number.isFinite(latestRunAgeMinutes) ? latestRunAgeMinutes : null,
       latestRunSucceeded: latestRun?.ok ?? null,
       latestRunOfferCount: latestRun?.offer_count ?? null,
       latestRunOutcome: latestRun?.outcome ?? null,
