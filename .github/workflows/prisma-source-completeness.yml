@@ -1,0 +1,29 @@
+name: Prisma source-to-Ziiply completeness audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/audit-prisma-source-to-ziiply.mts
+      - src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
+      - src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider.ts
+      - src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
+      - src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts
+      - .github/workflows/prisma-source-completeness.yml
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Prisma Hyvinkää source -> Ziiply
+        run: npx --yes tsx scripts/audit-prisma-source-to-ziiply.mts "Prisma Hyvinkää"
+      - name: Prisma Hämeenlinna source -> Ziiply
+        run: npx --yes tsx scripts/audit-prisma-source-to-ziiply.mts "Prisma Hämeenlinna"
