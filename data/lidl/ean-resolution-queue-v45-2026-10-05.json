@@ -6,9 +6,10 @@
   "counts": {
     "multipack_or_variant": 15,
     "variable_weight_or_produce": 30,
-    "needs_external_gtin_lookup": 90,
+    "needs_external_gtin_lookup": 76,
     "bakery_or_store_bakery": 36,
     "no_public_gtin": 13,
+    "verified_gtin": 14,
     "non_food": 13
   },
   "records": [
@@ -81,8 +82,8 @@
       "name": "TASCHKI Pelmeni",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038249",
@@ -270,8 +271,8 @@
       "name": "ARLA Juustoviipale",
       "variant": null,
       "unitPriceText": "270 g | 11,07 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038272",
@@ -297,8 +298,8 @@
       "name": "MYLLÄRIN Murot",
       "variant": null,
       "unitPriceText": "300 g | 8,17 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038277",
@@ -351,8 +352,8 @@
       "name": "KULJANKA Borssikeitto",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038285",
@@ -369,8 +370,8 @@
       "name": "KULJANKA Valkokaalisalaatti",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038287",
@@ -396,8 +397,8 @@
       "name": "KULJANKA Hapankurkku",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038290",
@@ -441,8 +442,8 @@
       "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038296",
@@ -459,8 +460,8 @@
       "name": "KULJANKA Paprikapyree",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038298",
@@ -468,8 +469,8 @@
       "name": "KULJANKA Maustesuola",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038299",
@@ -486,8 +487,8 @@
       "name": "KULJANKA Paneroitu juusto",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038301",
@@ -495,8 +496,8 @@
       "name": "KULJANKA Lihakeitto",
       "variant": null,
       "unitPriceText": "800 g | 4,11 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038302",
@@ -522,8 +523,8 @@
       "name": "PILOS Vadelmakefir",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038311",
@@ -594,8 +595,8 @@
       "name": "KARINIEMEN Kananpojan rintaleike",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10038323",
@@ -873,8 +874,8 @@
       "name": "CONFISERIE FIRENZE Minidonitsit",
       "variant": "pakkauksessa kolme eri makua",
       "unitPriceText": "276 g | 10,83 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_gtin",
+      "resolutionReason": "present_in_verified_ean_links"
     },
     {
       "lidlProductId": "10000000",
