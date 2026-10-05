@@ -494,8 +494,15 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const offerId = String(offer.publicId ?? `${index}`);
   const publicationId = String(offer.publicationPublicId ?? "");
   const image = String(offer.imageLarge ?? offer.image ?? "") || null;
-  const unit = String(offer.baseUnit ?? "").trim();
-  const unitPriceValue = num(offer.unitPrice);
+  const sourceDescription = String(offer.description ?? "").trim();
+  const sourceKgPrice = sourceDescription.match(/(?:^|\\s)(\\d+[,.]\\d{1,2})\\s*\\/\\s*kg(?:\\s|$)/i);
+  const sourceKgPriceValue = sourceKgPrice ? num(sourceKgPrice[1].replace(",", ".")) : null;
+  const rawUnit = String(offer.baseUnit ?? "").trim();
+  // V73: explicit source €/kg text wins over an erroneous Tjek baseUnit=piece.
+  // Keep normal piece pricing and multi-buy display untouched when the source
+  // does not explicitly provide a kilogram comparison price.
+  const unit = sourceKgPriceValue != null ? "kilogram" : rawUnit;
+  const unitPriceValue = sourceKgPriceValue ?? num(offer.unitPrice);
   const unitPrice = unitPriceValue == null ? "" : `${priceText(unitPriceValue)}${unit ? `/${unit}` : ""}`;
   const isPlussa = membership != null;
   const pieceCountFrom = num(offer.pieceCountFrom);
