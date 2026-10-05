@@ -4,6 +4,8 @@ on:
     paths:
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
       - 'src/app/api/offers/search/route.ts'
+      - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
+      - 'tests/k-offer-tab-policy.test.cjs'
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
       - '.github/workflows/kcitymarket-local-integration-simulation.yml'
   workflow_dispatch:
@@ -20,6 +22,8 @@ jobs:
       - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript compile
         run: npx tsc --noEmit
+      - name: K offer tab policy regression
+        run: node --test tests/k-offer-tab-policy.test.cjs
       - name: Simulate two selected stores and failure isolation
         shell: bash
         run: |
@@ -54,14 +58,15 @@ jobs:
           cat > citymarket-test-3.mts <<'NODE'
           import { fetchKCitymarketSelectedStoreOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts';
           import { fetchKCitymarketOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
+          import { removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
           const [national, local, jumbo] = await Promise.all([
             fetchKCitymarketOffers(),
             fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää'),
             fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo')
           ]);
-          const master=[...national,...local];
-          const offers=master.filter(x=>x.campaignType!=='campaign');
-          const campaigns=master.filter(x=>x.campaignType==='campaign');
+          const offers=national.filter(x=>x.campaignType!=='campaign');
+          const campaigns=removeCampaignCopiesOfLeaflet(offers, local.filter(x=>x.campaignType==='campaign'));
+          const master=[...offers,...campaigns];
           const categories=[...new Set(campaigns.map(x=>x.category))];
           const visible=categories.flatMap(category=>campaigns.filter(x=>x.category===category));
           const localIds=new Set(local.map(x=>x.id));
@@ -71,6 +76,6 @@ jobs:
           const wrongTab=offers.filter(x=>localIds.has(x.id));
           const badCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
           console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title)},null,2));
-          if(!national.length||!local.length||!jumbo.length||foreign.length||missing.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length!==local.length)process.exitCode=1;
+          if(!national.length||!local.length||!jumbo.length||foreign.length||missing.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
