@@ -1023,6 +1023,8 @@
   "summary": {
     "originalMissing": 83,
     "resolvedOfficial": 19,
-    "remaining": 65
-  }
+    "remaining": 65,
+    "notApplicable": 0
+  },
+  "unitPriceNotApplicable": []
 }
