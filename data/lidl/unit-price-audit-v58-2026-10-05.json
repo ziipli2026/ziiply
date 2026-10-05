@@ -855,6 +855,13 @@
       "unitPriceText": "hinta/kg 29,89 €",
       "source": "public_lidl_campaign_exact_identity",
       "note": "Public campaign evidence confirms the product is sold per kg; corpus value 29.89 is treated as kg price, not package total."
+    },
+    {
+      "lidlProductId": "10038486",
+      "name": "FRESHONA Suomalainen peruna-sipulisekoitus",
+      "unitPriceText": "hinta/kg 1,45 €",
+      "source": "public_current_offer_exact_identity",
+      "note": "Public offer listing exposes 1.45 €/kg directly; no package-size inference used."
     }
   ],
   "remainingMissingRows": [
@@ -893,21 +900,15 @@
       "name": "ALESTO Nut Trio -pähkinäsekoitus",
       "displayedPriceEur": 0.99,
       "ian": "209455"
-    },
-    {
-      "lidlProductId": "10038486",
-      "name": "FRESHONA Suomalainen peruna-sipulisekoitus",
-      "displayedPriceEur": 1.45,
-      "ian": "7111949"
     }
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 57,
+    "resolvedOfficial": 58,
     "resolvedDerived": 8,
     "notApplicable": 11,
     "variantSplitRequired": 1,
-    "remaining": 7
+    "remaining": 6
   },
   "unitPriceNotApplicable": [
     {
