@@ -20,17 +20,61 @@ const meta = (html, key) => {
   }
   return null;
 };
-const normalize = s => String(s || "").toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const normalize = s => String(s || "").toLocaleLowerCase("fi").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const digits = value => String(value ?? "").replace(/\\D/g, "");
+const validGtin = value => {
+  const d = digits(value);
+  if (![8, 12, 13, 14].includes(d.length)) return false;
+  const body = d.slice(0, -1);
+  const check = Number(d.at(-1));
+  let sum = 0, weight = 3;
+  for (let i = body.length - 1; i >= 0; i--, weight = weight === 3 ? 1 : 3) sum += Number(body[i]) * weight;
+  return (10 - (sum % 10)) % 10 === check;
+};
+const collectGtins = html => {
+  const found = new Set();
+  const add = value => { const d = digits(value); if (validGtin(d)) found.add(d); };
+  for (const match of html.matchAll(/(?:ean|gtin|barcode|gs1|productCode|itemCode)\\s*["':=]+\\s*["']?([0-9]{8,14})/gi)) add(match[1]);
+  for (const script of html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
+    try {
+      const parsed = JSON.parse(script[1]);
+      const visit = value => {
+        if (!value || typeof value !== "object") return;
+        if (Array.isArray(value)) return value.forEach(visit);
+        for (const [key, item] of Object.entries(value)) {
+          if (/gtin|ean|barcode|sku/i.test(key)) add(item);
+          if (item && typeof item === "object") visit(item);
+        }
+      };
+      visit(parsed);
+    } catch {}
+  }
+  const marker = "unified_datalayer_product";
+  const start = html.indexOf(marker);
+  if (start >= 0) {
+    const eq = html.indexOf("=", start + marker.length);
+    const end = html.indexOf("</script>", eq);
+    if (eq >= 0 && end > eq) {
+      try {
+        const raw = html.slice(eq + 1, end).trim();
+        const product = JSON.parse(raw);
+        for (const [key, value] of Object.entries(product || {})) if (/gtin|ean|barcode|gs1/i.test(key)) add(value);
+      } catch {}
+    }
+  }
+  return [...found];
+};
 const imageHostAllowed = host => host === "imgproxy-retcat.assets.schwarz" || host === "lidl.fi" || host.endsWith(".lidl.fi") || host === "lidl.net" || host.endsWith(".lidl.net") || host === "lidl.com" || host.endsWith(".lidl.com");
 const genericImage = url => /(?:logo|placeholder|default|fallback|no-image|social-share|open-graph|og-image)/i.test(new URL(url).pathname);
 const output = [];
 for (const item of records.slice(0, limit)) {
-  const row = { lidlProductId: item.lidlProductId, name: item.name, officialUrl: item.officialUrl, checkedAt: new Date().toISOString(), httpStatus: null, candidateImageUrl: null, imageVerified: false, regularPriceEur: null, priceVerified: false, ean: null };
+  const row = { lidlProductId: item.lidlProductId, name: item.name, officialUrl: item.officialUrl, checkedAt: new Date().toISOString(), httpStatus: null, candidateImageUrl: null, imageVerified: false, regularPriceEur: null, priceVerified: false, ean: null, officialPageGtins: [] };
   try {
     const response = await fetch(item.officialUrl, { redirect: "follow", headers: { "user-agent": "ZiiplyLidlResearch/1.0", accept: "text/html" }, signal: AbortSignal.timeout(12000) });
     row.httpStatus = response.status;
     if (response.ok) {
       const html = await response.text();
+      row.officialPageGtins = collectGtins(html);
       const image = meta(html, "og:image") || meta(html, "twitter:image");
       row.metaImagePresent = !!image;
       row.metaImageHost = image ? (() => { try { return new URL(image, response.url).hostname; } catch { return null; } })() : null;
