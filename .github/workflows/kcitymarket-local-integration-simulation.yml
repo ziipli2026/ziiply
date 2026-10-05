@@ -97,17 +97,6 @@ jobs:
           const missing=local.filter(x=>!visible.some(y=>y.id===x.id));
           const wrongTab=offers.filter(x=>localIds.has(x.id));
           const badCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
-          const norm=(v)=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9åäö]+/gi,' ').trim();
-          const tokens=(row)=>new Set(norm([row.brandName,row.title||row.name||row.productName].filter(Boolean).join(' ')).split(' ').filter(x=>x.length>=3&&!['kpl','pkt','prk','plo','tarjous','erä'].includes(x)));
-          const price=(row)=>{const v=row.offerPrice??row.price??row.priceText; if(typeof v==='number')return v; const m=String(v??'').replace(',','.').match(/\d+(?:\.\d+)?/); return m?Number(m[0]):null;};
-          const suspects=[];
-          for(const a of offers) for(const b of campaigns){
-            if(price(a)==null||price(b)==null||Math.abs(price(a)-price(b))>0.001)continue;
-            const A=tokens(a),B=tokens(b); const common=[...A].filter(x=>B.has(x));
-            const score=common.length/Math.max(1,Math.min(A.size,B.size));
-            if(common.length>=1&&score>=0.34)suspects.push({score:Number(score.toFixed(2)),price:price(a),offer:a.title,campaign:b.title,offerBrand:a.brandName,campaignBrand:b.brandName,common});
-          }
-          suspects.sort((a,b)=>b.score-a.score);
           console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title)},null,2));
           if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length)process.exitCode=1;
           NODE
