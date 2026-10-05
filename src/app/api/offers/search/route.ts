@@ -66,7 +66,8 @@ import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNation
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
-import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";\nimport { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
+import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
+import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
 import {
   searchZiiplyOffers,
