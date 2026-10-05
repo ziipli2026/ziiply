@@ -1,0 +1,20 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "audit_type": "branch-wide consolidation checkpoint",
+  "research_json_file_count": 35,
+  "findings": [
+    "Research branch currently contains 35 JSON files under research/lidl/catalog-expansion.",
+    "Two distinct files carry batch number 31: 2026-10-05-frozen-category-candidates-batch-31.json and 2026-10-05-official-category-candidates-batch-31.json. Batch number must not be used as a unique identity key.",
+    "GitHub default-branch code search must not be used as proof that a research-branch product is unique.",
+    "Authoritative dedup key order remains: Lidl product ID first; then normalized brand + product name + package size for records without an ID.",
+    "Known repeated official product pages Jyväbroiler 10023404, Solevita 10028819 and Milbona 10023501 were re-found in web search and must not increment counts."
+  ],
+  "next_index_rule": "Build consolidated verified-SKU index from research branch contents in bounded fetch batches; do not mix category candidates with verified /p/ records.",
+  "count_policy": {
+    "verified_sku_requires": "official product-specific Lidl /p/ page with Lidl product ID, or independently confirmed EAN identity",
+    "category_listing_only": "candidate",
+    "historical_report_only": "candidate/context",
+    "campaign_price_as_normal_price": false
+  }
+}
