@@ -43,5 +43,10 @@
     "lidlProductId": "10037650",
     "ean": "8850987146619",
     "evidence": "Lidl.fi official product path /p/mama-nuudeli-6-pack/p10037650 and Lidl dry-goods category identify MAMA Nuudeli 6-pack 330 g; S-kaupat product data identifies MAMA Kananmakuinen nuudeli 6x55 g = 330 g, EAN 8850987146619"
+  },
+  {
+    "lidlProductId": "10037643",
+    "ean": "0000090474132",
+    "evidence": "Lidl official catalog record identifies RED BULL Energiajuoma, variant White Peach, 250 ml; S-kaupat and Finnish wholesale product data identify Red Bull White Peach 250 ml, EAN 0000090474132"
   }
 ]
