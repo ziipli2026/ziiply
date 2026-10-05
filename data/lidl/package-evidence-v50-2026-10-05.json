@@ -189,6 +189,15 @@
       "gtin": null,
       "gtinVerified": false,
       "status": "identity_corroborated_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038286",
+      "name": "KULJANKA Valkokaalisalaatti",
+      "packageSize": "880 g (kiinteä paino 410 g)",
+      "source": "Multiple Lidl country catalogues independently match Kuljanka white-cabbage salad 880 g / 410 g solid weight",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "exact_product_identity_strong_gtin_missing"
     }
   ]
 }
