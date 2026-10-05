@@ -11,6 +11,31 @@
       "source": "Sydänmerkki product listing",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038255",
+      "name": "Kotimainen ruusukaali",
+      "packageSize": "400 g",
+      "source": "Current Lidl offer listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038313",
+      "name": "SOLEVITA Appelsiinitäysmehu",
+      "packageSize": "0.95 l",
+      "source": "Current Lidl Plus offer listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038247",
+      "name": "KANAMESTARI Kanan sisäfilee",
+      "packageSize": "400 g",
+      "manufacturer": "Lidl",
+      "source": "Sydänmerkki + Lidl price comparison",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
