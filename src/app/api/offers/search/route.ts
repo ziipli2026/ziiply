@@ -698,99 +698,12 @@ export async function GET(request: Request) {
         console.warn("[Ziiply offers] Lidl campaign feed unavailable", error);
       }
 
-      // The store-scoped Lidl Plus JSON feed is itself an active campaign source.
-      // Public Lidl.fi pages are supplemental: many campaign pages do not expose
-      // complete validFrom/validUntil JSON-LD, so they cannot be the only source.
-      // Give the campaign copies distinct ids so the master dedupe does not erase
-      // them against the Tarjoukset copy before the UI can split the tabs.
-      // Do not compare campaigns against every row in combined: combined
-      // intentionally contains the whole Lidl Plus feed so the verified visual
-      // leaflet can be assembled correctly. Comparing against all of it makes
-      // every Lidl Plus campaign disappear. Only rows that are independently
-      // verified as paper-leaflet rows are allowed to suppress a campaign copy.
-      const independentlyVerifiedLeafletRows = combined.filter((offer) =>
-        offer.campaignType !== "campaign" && (
-          String(offer.id || "").startsWith("lidl-leaflet-") ||
-          String(offer.source || "") === "verified-official-leaflet"
-        )
-      );
-      const leafletIdentityKeys = new Set(
-        independentlyVerifiedLeafletRows.map((offer) => lidlImageKey(offer)).filter(Boolean),
-      );
-      const leafletProductIds = new Set(
-        independentlyVerifiedLeafletRows.flatMap((offer) => {
-          const ids = [
-            offer.lidlProductId,
-            ...(Array.isArray(offer.lidlProductIds) ? offer.lidlProductIds : []),
-            ...(Array.isArray(offer.productIds) ? offer.productIds : []),
-          ];
-          return ids.map(String).filter(Boolean);
-        }),
-      );
-      const structuredCampaigns = (fetched as UnknownRecord[])
-        .filter((offer) => {
-          const key = lidlImageKey(offer);
-          const ids = [
-            offer.lidlProductId,
-            ...(Array.isArray(offer.lidlProductIds) ? offer.lidlProductIds : []),
-            ...(Array.isArray(offer.productIds) ? offer.productIds : []),
-          ].map(String).filter(Boolean);
-          return (!key || !leafletIdentityKeys.has(key)) && !ids.some((id) => leafletProductIds.has(id));
-        })
-        .map((offer) => ({
-          ...offer,
-          id: `lidl-campaign-${String(offer.id || lidlImageKey(offer))}`,
-          campaignType: "campaign",
-          source: "lidl-plus-campaign",
-          campaignSection: "Lidl Plus",
-        }));
-
-      // Keep campaign rows separate from the dated leaflet rows. The UI filters
-      // by campaignType exactly like the Prisma/Citymarket campaign tabs.
-      // Prefer Lidl.fi public campaign rows when the same live grocery campaign
-      // is also present in Lidl Plus. Keep unique Lidl Plus campaigns unchanged.
-      const publicCampaignIdentityKeys = new Set(
-        lidlCampaigns.map((offer) => [
-          normalizeText([offer.brandName, offer.name || offer.title].filter(Boolean).join(" "))
-            .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl)\b/g, " ")
-            .replace(/\b\d+\b/g, " ")
-            .replace(/\s+/g, " ")
-            .trim(),
-          Number(offer.offerPrice ?? offer.price),
-          firstString(offer.validFrom).slice(0, 10),
-          firstString(offer.validUntil).slice(0, 10),
-        ].join("|")),
-      );
-      const combinedWithPublicCampaignPrecedence = combined.filter((offer) => {
-        if (String(offer.source || "") !== "lidl-plus-campaign") return true;
-        const key = [
-          normalizeText([offer.brandName, offer.name || offer.title].filter(Boolean).join(" "))
-            .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl)\b/g, " ")
-            .replace(/\b\d+\b/g, " ")
-            .replace(/\s+/g, " ")
-            .trim(),
-          Number(offer.offerPrice ?? offer.price),
-          firstString(offer.validFrom).slice(0, 10),
-          firstString(offer.validUntil).slice(0, 10),
-        ].join("|");
-        return !publicCampaignIdentityKeys.has(key);
-      });
-      // A Lidl Plus store-feed row that has been promoted into structuredCampaigns
-      // belongs only to Kampanjat. Remove its original non-campaign copy from the
-      // dated Tarjoukset side before building the shared master, otherwise the same
-      // product appears in both tabs.
-      const structuredCampaignOriginIds = new Set(
-        structuredCampaigns
-          .map((offer) => String(offer.id || "").replace(/^lidl-campaign-/, ""))
-          .filter(Boolean),
-      );
-      const combinedWithoutStructuredCampaignOrigins = combinedWithPublicCampaignPrecedence.filter((offer) =>
-        offer.campaignType === "campaign" ||
-        !structuredCampaignOriginIds.has(String(offer.id || ""))
-      );
+      // Lidl Plus store-feed rows are ordinary active offers in Gösta's Tarjoukset tab.
+      // Do not manufacture campaign copies from the whole store feed: doing so moves
+      // every Lidl Plus offer out of Tarjoukset. Real campaigns are already marked
+      // explicitly by the verified leaflet/CMS data or come from lidl.fi campaign pages.
       const masterCombined = dedupe([
-        ...combinedWithoutStructuredCampaignOrigins,
-        ...structuredCampaigns,
+        ...combined,
         ...lidlCampaigns,
       ]);
 
@@ -808,10 +721,10 @@ export async function GET(request: Request) {
             staged: staged.length,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
-            campaigns: structuredCampaigns.length + lidlCampaigns.length,
-            structuredCampaigns: structuredCampaigns.length,
+            campaigns: masterCombined.filter((offer) => offer.campaignType === "campaign").length,
+            structuredCampaigns: 0,
             publicCampaigns: lidlCampaigns.length,
-            campaignSource: "Lidl Plus store feed + lidl.fi public campaign pages",
+            campaignSource: "verified leaflet/CMS campaign rows + lidl.fi public campaign pages",
           },
         },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
