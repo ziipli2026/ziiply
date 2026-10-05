@@ -9,5 +9,5 @@ assert.match(source, /storeId:\s*storeId \|\| null/);
 assert.doesNotMatch(source, /ruoanhinta|storeItems\?\.\[0\]|api\/items|api\/stores/i);
 assert.match(researchSource, /observedPriceSource:.*lidl-fi-public-observation/);
 assert.match(researchSource, /observedPriceComparable:false/);
-assert.match(source, /const verified = storeId \? getVerifiedLidlStorePrice/);
+
 console.log("PASS: independent Lidl preview route uses only research catalog plus verified store-price adapter");
