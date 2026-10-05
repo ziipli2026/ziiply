@@ -39,6 +39,10 @@ export type LidlPublicOffer = {
 const BASE = "https://www.lidl.fi";
 const SEEDS = [
   "/",
+  "/c/lidl-plus-kupongit/",
+  "/c/lidl-plus/",
+  "/c/template_sales_campaigns/",
+  "/c/tarjouslehdet/",
   "/h/vihannekset/h10095593",
   "/h/lihat/h10095752",
   "/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
@@ -74,14 +78,15 @@ const money = (value: unknown) => {
 const GROCERY_CATEGORIES = new Set([
   "Hevi", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Pakasteet",
   "Valmisruoka", "Juomat", "Kahvi & tee", "Kuivatuotteet", "Makeiset & keksit",
-  "Lastenruoat", "Lemmikit",
+  "Lastenruoat", "Lemmikit", "Kodinhoito",
 ]);
 
 function categoryFor(name: string, sourceUrl: string) {
   const s = normalize(name + " " + sourceUrl);
   // Explicit non-food exclusions run first so words such as "liha" in a tool
   // name can never leak a general-merchandise campaign into Gösta.
-  if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna|pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi/.test(s)) return "Muut";
+  if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna/.test(s)) return "Muut";
+  if (/pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi|wc-paperi|vessapaperi|siivous/.test(s)) return "Kodinhoito";
   if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani|selleri|punajuuri|paprika|salaatti|retiisi/.test(s)) return "Hevi";
   if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna|viili|piima/.test(s)) return "Maitotuotteet";
   if (/liha|kana|broiler|nauta|sika|pors|makkara|nakki|pekoni|kinkku|jauheliha|lihapulla|nugget/.test(s)) return "Liha & makkarat";
@@ -166,9 +171,15 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
   return output;
 }
 
-function categoryLinks(html: string) {
+function discoveryLinks(html: string) {
   const decoded = html.replace(/\\u002F/g, "/").replace(/\\\//g, "/");
-  return [...new Set([...decoded.matchAll(/\/h\/[a-z0-9åäö-]+\/h\d{5,}/gi)].map(match => match[0]))];
+  const category = [...decoded.matchAll(/\/h\/[a-z0-9åäö-]+\/h\d{5,}/gi)].map(match => match[0]);
+  // Lidl's active campaign hub links live under /c/. Discover them dynamically
+  // instead of hard-coding each weekly theme. Product /p/ pages stay excluded.
+  const campaigns = [...decoded.matchAll(/\/c\/[a-z0-9åäö_-]+(?:\/s\d+)?\/?/gi)]
+    .map(match => match[0])
+    .filter(path => !/asiakaspalvelu|tietosuoja|evaste|saavutettavuus|yritys|ura/i.test(path));
+  return [...new Set([...category, ...campaigns])];
 }
 
 async function fetchHtml(path: string) {
@@ -183,11 +194,11 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   const discovered = new Set<string>(SEEDS.filter(path => path !== "/"));
   const discoveryPages = await Promise.allSettled(SEEDS.map(fetchHtml));
   for (const result of discoveryPages) if (result.status === "fulfilled")
-    for (const link of categoryLinks(result.value.html)) discovered.add(link);
+    for (const link of discoveryLinks(result.value.html)) discovered.add(link);
 
-  // Guard against an accidental navigation explosion. Lidl category URLs are enough;
-  // individual /p/ product pages are deliberately excluded.
-  const paths = [...discovered].slice(0, 80);
+  // Guard against an accidental navigation explosion. Active /c/ campaign hubs and
+  // /h/ grocery categories are enough; individual /p/ pages stay excluded.
+  const paths = [...discovered].slice(0, 160);
   const pages = await Promise.allSettled(paths.map(fetchHtml));
   const parsed: LidlPublicOffer[] = [];
   let failedPages = 0;
