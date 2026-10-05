@@ -18,7 +18,11 @@ export function enrichLidlResearchWithVerifiedPrices(items, evidenceRows, storeI
     priceVerified:true, comparable:true,
     verifiedPriceEvidence:{
      source:verified.priceSource,observedAt:verified.observedAt,
-     validThrough:verified.validThrough,evidenceReference:verified.evidenceReference
+     validThrough:verified.validThrough,
+     freshUntil:verified.priceSource==="verified-store-receipt"
+      ? new Date(Date.parse(verified.observedAt)+24*60*60*1000).toISOString()
+      : verified.validThrough,
+     evidenceReference:verified.evidenceReference
     }
    };
   }),
