@@ -153,7 +153,12 @@
       "source": "Lidl Hungary campaign PDF independently matches Confiserie Firenze Mini donut assortment 276 g to product number 218769",
       "gtin": null,
       "gtinVerified": false,
-      "ianIdentityCorroborated": true
+      "ianIdentityCorroborated": true,
+      "ianCrossMarketEvidence": {
+        "finlandOrHungary": "218769",
+        "serbia": "239792",
+        "conclusion": "IAN is market/listing-specific evidence and must never be converted or treated as GTIN"
+      }
     },
     {
       "lidlProductId": "10038282",
