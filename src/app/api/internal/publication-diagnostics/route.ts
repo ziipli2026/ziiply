@@ -85,6 +85,9 @@ export async function GET(request: Request) {
       currentEditionCount: current.length,
       upcomingEditionCount: upcoming.length,
       currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
+      errorCount: issues.filter((entry) => entry.severity === "error").length,
+      warningCount: issues.filter((entry) => entry.severity === "warning").length,
+      issueCodes: issues.map((entry) => entry.code),
       issues,
     };
     return NextResponse.json({ ok: true, needsAttention: status !== "ok", chain, checkedAt: new Date().toISOString(),
