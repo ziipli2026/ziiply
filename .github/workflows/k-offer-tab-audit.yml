@@ -25,7 +25,7 @@ jobs:
         run: |
           cat > k-offer-tab-audit.mts <<'NODE'
           import { auditKOfferTabs, removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
-          import { mapTjekCategoryV54 } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
+          import { mapTjekCategoryV54, mapTjekOffer } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
           const cases = [
             { chain:'K-Citymarket', offer:{title:'AITO NAKKI 360 g',price:3.79}, campaign:{title:'HK AITO NAKKI',price:3.79}, duplicate:true },
             { chain:'K-Citymarket', offer:{title:'ENERGIAJUOMAT 0,5 l/tlk',price:4}, campaign:{title:'Nocco ENERGIAJUOMAT 0,33 l/tlk',price:4}, duplicate:false },
@@ -61,6 +61,10 @@ jobs:
             const actual=mapTjekCategoryV54(row);
             if (actual!==expected) throw new Error('semantic category mismatch: '+row.name+' => '+actual+' expected '+expected);
           }
+          const kgMapped=mapTjekOffer({name:'Kaalikääryle, lihan alkuperämaa Suomi',price:13.9,unitPrice:13.9,baseUnit:'piece',description:'13,90/kg',validFrom:'2026-10-04T21:00:00+0000',validUntil:'2026-10-07T20:59:59+0000'},0,'3334','K-Supermarket Jokela','K-Supermarket','K-Supermarket');
+          if (!kgMapped || kgMapped.unitPrice!=='13,90/kilogram' || kgMapped.unitPriceUnit!=='kilogram') throw new Error('explicit source kg unit must override piece');
+          const multiMapped=mapTjekOffer({name:'Myllyn Paras MAKARONI',membershipPrice:1,price:0.55,unitPrice:0.83,baseUnit:'kilogram',pieceCountFrom:3,pieceCountTo:3,description:'400 g (0,83/kg)'},0,'3334','K-Supermarket Jokela','K-Supermarket','K-Supermarket');
+          if (!multiMapped || multiMapped.priceText!=='1,00 € / 3 kpl' || multiMapped.unitPrice!=='0,83/kilogram') throw new Error('multi-buy unit regression');
           const bad=auditKOfferTabs([], [{title:'x',price:1,category:'  Hevi  '}]);
           if (bad.normalizedCategoryIssues.length!==1) throw new Error('category whitespace regression not detected');
           console.log('K_CHAIN_OFFER_TAB_AUDIT_OK');
