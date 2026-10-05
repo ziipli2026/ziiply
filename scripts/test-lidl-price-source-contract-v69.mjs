@@ -17,6 +17,7 @@ const cases = [
  ["other-store",{...base,storeId:"FI-2"},false],
  ["third-party",{...base,priceSource:"ruoanhinta-lidl"},false],
  ["public-lidl-fi",{...base,priceSource:"lidl-fi-public-observation",checkoutPriceVerified:false},false],
+ ["user-scan-go",{...base,priceSource:"lidl-scan-go-user-observation",checkoutPriceVerified:false},false],
  ["unverified",{...base,checkoutPriceVerified:false},false],
  ["no-evidence",{...base,evidenceReference:""},false],
  ["stale",{...base,validThrough:"2026-10-03T23:59:59Z"},false],
@@ -37,5 +38,6 @@ for (const [name,row,expected,argumentsStore] of cases) {
  assert.equal(actual.comparable,expected,name);
  assert.equal(actual.price,expected?1.49:null,name+" price");
  if(name==="public-lidl-fi") assert.equal(actual.reason,"public-observation-not-checkout-verified");
+ if(name==="user-scan-go") assert.equal(actual.reason,"scan-go-observation-not-checkout-verified");
 }
 console.log(JSON.stringify({suite:"Lidl offline price source contract",passed:cases.length,failed:0,productionChanges:false}));
