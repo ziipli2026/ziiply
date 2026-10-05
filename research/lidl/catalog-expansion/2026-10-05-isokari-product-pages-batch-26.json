@@ -1,0 +1,45 @@
+{
+  "research_only": true,
+  "new_product_specific_records": 2,
+  "source_context": {
+    "url": "https://www.lidl.fi/c/kala-ja-aeyriaeiset/s10021137",
+    "note": "Official Lidl fish category identifies Isokari as Lidl's Finnish fish range and explicitly mentions seasonal pike-perch (kuha)."
+  },
+  "products": [
+    {
+      "brand": "Isokari",
+      "name": "Kuhafilee",
+      "package_size": "200 g",
+      "category": "kala",
+      "lidl_product_id": "10023507",
+      "official_product_url": "https://www.lidl.fi/p/isokari-kuhafilee/p10023507",
+      "attributes": [
+        "Hyvää Suomesta",
+        "Sydänmerkki"
+      ],
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific /p/ page. Indexed page price is not stored as a current normal price."
+    },
+    {
+      "brand": "Isokari",
+      "name": "Savustettu kirjolohifilee",
+      "package_size": "n. 750 g",
+      "category": "kala",
+      "lidl_product_id": "10023750",
+      "official_product_url": "https://www.lidl.fi/p/isokari-savustettu-kirjolohifilee/p10023750",
+      "attributes": [
+        "Hyvää Suomesta",
+        "Sydänmerkki"
+      ],
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific /p/ page. Indexed page price is not stored as a current normal price."
+    }
+  ],
+  "price_policy": "Kuhafilee page contains an indexed price and smoked rainbow trout page contains a Lidl Plus campaign price. Both normal_price fields remain null because the research bank requires a separately time-valid current normal-price verification."
+}
