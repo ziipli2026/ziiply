@@ -79,7 +79,8 @@ if (mode === "verify") {
       const sourceUrlPath = path.join(root, fixtureName.replace(/\.html$/, ".source-url.txt"));
       let sourceUrl = "https://www.lidl.fi/";
       try { sourceUrl = (await fs.readFile(sourceUrlPath, "utf8")).trim() || sourceUrl; } catch {}
-      parsedRows.push(...parseGrid(html, sourceUrl, date));\n      parsedRows.push(...parse(html, sourceUrl, date));
+      parsedRows.push(...parseGrid(html, sourceUrl, date));
+      parsedRows.push(...parse(html, sourceUrl, date));
     }
     const actual = canonical(parsedRows);
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
