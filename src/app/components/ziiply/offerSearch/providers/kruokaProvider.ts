@@ -495,7 +495,7 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   const publicationId = String(offer.publicationPublicId ?? "");
   const image = String(offer.imageLarge ?? offer.image ?? "") || null;
   const sourceDescription = String(offer.description ?? "").trim();
-  const sourceKgPrice = sourceDescription.match(/(?:^|\\s)(\\d+[,.]\\d{1,2})\\s*\\/\\s*kg(?:\\s|$)/i);
+  const sourceKgPrice = sourceDescription.match(/(?:^|\s)(\d+[,.]\d{1,2})\s*\/\s*kg(?:\s|$)/i);
   const sourceKgPriceValue = sourceKgPrice ? num(sourceKgPrice[1].replace(",", ".")) : null;
   const rawUnit = String(offer.baseUnit ?? "").trim();
   // V73: explicit source €/kg text wins over an erroneous Tjek baseUnit=piece.
