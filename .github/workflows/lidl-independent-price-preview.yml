@@ -46,6 +46,8 @@ on:
       - 'src/lib/lidlVerifiedStorePrice.ts'
       - 'data/lidl/verified-store-price-bank-v1.json'
       - 'scripts/test-lidl-verified-store-price-adapter.mjs'
+      - 'scripts/import-lidl-verified-store-price.mjs'
+      - 'data/lidl/verified-store-price-evidence-template.json'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
 permissions:
