@@ -8,9 +8,10 @@
       "name": "FRESHONA Suomalainen herne",
       "packageSize": "200 g",
       "manufacturer": "Lidl",
-      "source": "Sydänmerkki product listing",
+      "source": "Sydänmerkki exact product listing",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "status": "exact_identity_gtin_missing"
     },
     {
       "lidlProductId": "10038255",
@@ -24,18 +25,20 @@
       "lidlProductId": "10038313",
       "name": "SOLEVITA Appelsiinitäysmehu",
       "packageSize": "0.95 l",
-      "source": "Current Lidl Plus offer listing",
+      "source": "Lidl Finland press release distinguishes multiple Solevita orange juices including fresh-pressed 0.95 l PET",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "status": "variant_identity_requires_exact_gtin"
     },
     {
       "lidlProductId": "10038247",
       "name": "KANAMESTARI Kanan sisäfilee",
       "packageSize": "400 g",
       "manufacturer": "Lidl",
-      "source": "Sydänmerkki + Lidl price comparison",
+      "source": "Sydänmerkki and Lidl price comparison independently confirm exact 400 g product",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "status": "exact_identity_gtin_missing"
     },
     {
       "lidlProductId": "10038319",
@@ -137,9 +140,16 @@
       "lidlProductId": "10038278",
       "name": "ALESTO Pähkinäsekoitus",
       "packageSize": "200 g",
-      "source": "Current Finnish Lidl offer evidence",
+      "source": "Multiple Alesto 200 g nut-mix products have distinct GTINs; Finnish generic Pähkinäsekoitus lacks exact variant identity",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "status": "variant_ambiguous_gtin_not_assignable",
+      "rejectedGtinCandidates": [
+        "20815394",
+        "20047238",
+        "20005726",
+        "20772970"
+      ]
     },
     {
       "lidlProductId": "10038477",
@@ -198,6 +208,14 @@
       "gtin": null,
       "gtinVerified": false,
       "status": "exact_product_identity_strong_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038485",
+      "name": "ALESTO Nut Trio -pähkinäsekoitus",
+      "status": "exact_variant_gtin_missing",
+      "source": "Alesto barcode catalog contains many distinct nut mixes; no exact Nut Trio identity match found",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
