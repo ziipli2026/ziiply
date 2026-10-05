@@ -1,0 +1,84 @@
+{
+  "revision": "V57-LIDL-NULL-PRICE-AUDIT",
+  "generatedAt": "2026-10-05",
+  "purpose": "Separate intentional bakery/weight nulls and campaign-only evidence from packaged products whose normal checkout price is still unknown. Research-only; does not promote campaign prices to normal prices.",
+  "knownCampaignEvidence": [
+    {
+      "lidlProductId": "10038252",
+      "name": "Kotimainen varsiselleri",
+      "evidenceType": "lidl_plus_campaign",
+      "displayedPriceEur": 1.49,
+      "packageSize": "250 g",
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07"
+    },
+    {
+      "lidlProductId": "10038256",
+      "name": "Kotimainen punajuuri",
+      "evidenceType": "lidl_plus_campaign",
+      "displayedPriceEur": 0.79,
+      "packageSize": "1 kg",
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07"
+    },
+    {
+      "lidlProductId": "10038348",
+      "name": "W5 Puhdistusliina 2 kpl",
+      "evidenceType": "lidl_plus_campaign",
+      "displayedPriceEur": 3,
+      "normalMultiBuyReferenceEur": 3.98,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07"
+    },
+    {
+      "lidlProductId": "10038313",
+      "name": "SOLEVITA Appelsiinitäysmehu",
+      "evidenceType": "lidl_plus_campaign",
+      "packageSize": "0.95 l",
+      "normalPriceUnknown": true
+    }
+  ],
+  "packagedNormalPriceMissing": [
+    {
+      "lidlProductId": "10038269",
+      "name": "WURSTI Extrapalvikinkku",
+      "ean": "6409290001492"
+    },
+    {
+      "lidlProductId": "10038278",
+      "name": "ALESTO Pähkinäsekoitus",
+      "packageSize": "200 g"
+    },
+    {
+      "lidlProductId": "10038279",
+      "name": "SERLA Valkoinen talouspaperi"
+    },
+    {
+      "lidlProductId": "10038280",
+      "name": "SERLA Hellä-wc-paperi"
+    },
+    {
+      "lidlProductId": "10038312",
+      "name": "HK Burgeri 6 kpl"
+    },
+    {
+      "lidlProductId": "10038313",
+      "name": "SOLEVITA Appelsiinitäysmehu",
+      "packageSize": "0.95 l"
+    },
+    {
+      "lidlProductId": "10038348",
+      "name": "W5 Puhdistusliina 2 kpl"
+    },
+    {
+      "lidlProductId": "10038437",
+      "name": "DOVGAN Blini 2 kpl"
+    }
+  ],
+  "rules": [
+    "Do not copy Lidl Plus/campaign price into normal checkout price.",
+    "Do not convert Lidl IAN/productId to GTIN.",
+    "Store-bakery piece-price rows may intentionally remain null in the main research corpus.",
+    "Variable-weight produce requires price-per-weight semantics, not fabricated piece price."
+  ]
+}
