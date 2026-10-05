@@ -1,0 +1,42 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_product_specific_records": 1,
+  "products": [
+    {
+      "brand": "Nautica",
+      "name": "Kylmäsavulohi",
+      "package_size": "200 g",
+      "category": "kala",
+      "lidl_product_id": "10023624",
+      "official_product_url": "https://www.lidl.fi/p/nautica-kylmasavulohi/p10023624",
+      "attributes": [
+        "ASC-sertifioitu"
+      ],
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "verification": "Official Lidl Finland /p/ page. Lidl Plus campaign price intentionally excluded from current normal price."
+    }
+  ],
+  "source_context": {
+    "url": "https://www.lidl.fi/c/kala-ja-aeyriaeiset/s10021137",
+    "note": "Official Lidl fish page identifies Nautica as part of Lidl's fish range."
+  },
+  "historical_candidate_only": [
+    {
+      "brand": "Isokari",
+      "name": "Savulohifileepala",
+      "package_size": null,
+      "source": "Lidl Finland Sustainability Report 2021–2022",
+      "reason": "Official report confirms product family/name and ASC packaging, but no current individual product ID/pack size was verified."
+    },
+    {
+      "brand": "Isokari",
+      "name": "Loimulohifileepala",
+      "package_size": null,
+      "source": "Lidl Finland Sustainability Report 2021–2022",
+      "reason": "Official report confirms product family/name and packaging, but no current individual product ID/pack size was verified."
+    }
+  ]
+}
