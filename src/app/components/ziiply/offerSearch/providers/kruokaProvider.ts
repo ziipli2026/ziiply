@@ -522,8 +522,13 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
     offer.campaignType, offer.offerType, offer.promotionType,
     offer.campaignLabel, offer.publicationLabel,
   ].map(value => String(value ?? "").trim().toLowerCase());
-  const isCampaign = offer.isCampaign === true ||
+  const sourceMarksCampaign = offer.isCampaign === true ||
     campaignMarker.some(value => /(?:^|[\s:_-])(campaign|kampanja|teema|sesonki|erikoisjulkaisu)(?:$|[\s:_-])/.test(value));
+  // K-local source data can expose a shared/dominant publication without an
+  // explicit campaign marker. The item's own validity is the stable evidence:
+  // weekly rows stay Tarjoukset, longer benefits belong in Kampanjat.
+  const validityCampaign = localBenefitType(offer) === "campaign";
+  const isCampaign = sourceMarksCampaign || validityCampaign;
   return {
     id: `etarjouslehdet-v59-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
