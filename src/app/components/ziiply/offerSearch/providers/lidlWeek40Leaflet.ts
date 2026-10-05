@@ -16,7 +16,7 @@ const independentlyVerifiedIds = new Set([
   "danerolles-croissants-20261005", "atria-pizza-20261005",
 ]);
 
-const verifiedLeafletImages: Record<string, string> = {
+const shortCampaignIds = new Set(reference.records\n  .filter(row => row.validFrom === "2026-10-05" && row.validThrough === "2026-10-07")\n  .map(row => row.id));\n\nconst verifiedLeafletImages: Record<string, string> = {
   "lidl-leaflet-pizza-ice-cream": "/products/lidl/week40-2026/pizza_gelatelli.webp",
   "lidl-leaflet-atria-mince": "/products/lidl/week40-2026/atria_jauheliha.webp",
   "lidl-leaflet-chicken-nuggets": "/products/lidl/week40-2026/kananuggetit.webp",
@@ -100,7 +100,7 @@ export function addVerifiedLidlWeek40Leaflet(
               ? `Yhdistelmä yhteensä ${item.priceText}`
               : item.eligibility === "limited-batch" ? "Rajoitettu erä" :
                 item.eligibility === "lidl-plus" ? "Lidl Plus -etu" : "Tarjouslehti",
-          rawText: [item.name, item.category, item.priceText, storeName].filter(Boolean).join(" "),
+          campaignType: shortCampaignIds.has(String(item.id || "").replace(/^lidl-leaflet-/, "")) ? "campaign" : item.campaignType,\n          campaignSection: shortCampaignIds.has(String(item.id || "").replace(/^lidl-leaflet-/, "")) ? "5.–7.10." : item.campaignSection,\n          rawText: [item.name, item.category, item.priceText, storeName].filter(Boolean).join(" "),
         }
       : item
   );
