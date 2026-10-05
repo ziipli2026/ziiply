@@ -5,6 +5,7 @@ import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
 
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V14
+// Category audit: canonical display categories are regression-tested with 41AV.
 // Revision: V14-KCITYMARKET-SPATIAL-METADATA-PRESERVATION
 // Date: 2026-09-23
 //
