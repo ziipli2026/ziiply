@@ -1,5 +1,5 @@
 {
-  "revision": "V54-EAN-QUEUE-BULK-RESOLUTION",
+  "revision": "V55-EAN-QUEUE-PUBLIC-LOOKUP-EXHAUSTED",
   "created": "2026-10-05",
   "source": "ean-resolution-queue-v45-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
@@ -8,11 +8,12 @@
     "multipack_or_variant": 13,
     "variable_weight_or_produce": 32,
     "bakery_or_store_bakery": 104,
-    "needs_external_gtin_lookup": 22,
+    "exact_identity_gtin_not_public": 21,
     "verified_ean": 13,
+    "needs_external_gtin_lookup": 1,
     "non_food": 13
   },
-  "unresolvedExternalLookupCount": 22,
+  "unresolvedExternalLookupCount": 1,
   "records": [
     {
       "lidlProductId": "10037645",
@@ -74,8 +75,8 @@
       "name": "KANAMESTARI Kanan sisäfilee",
       "variant": "maustamaton",
       "unitPriceText": "400 g | 9,73 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038248",
@@ -353,8 +354,8 @@
       "name": "KULJANKA Khinkalitaikinanyytti",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038284",
@@ -362,8 +363,8 @@
       "name": "KULJANKA Borssikeitto",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038285",
@@ -381,8 +382,8 @@
       "name": "KULJANKA Valkokaalisalaatti",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038287",
@@ -390,8 +391,8 @@
       "name": "KULJANKA Maustekurkut etikkaliemessä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038288",
@@ -399,8 +400,8 @@
       "name": "KULJANKA Täytetty broileripihvi",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038289",
@@ -437,8 +438,8 @@
       "name": "KULJANKA Vaniljajäätelövohvelipikarit",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038294",
@@ -446,8 +447,8 @@
       "name": "KULJANKA Jäätelökakku",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038295",
@@ -455,8 +456,8 @@
       "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038296",
@@ -495,8 +496,8 @@
       "name": "KULJANKA Höyrytetty juusto",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038300",
@@ -504,8 +505,8 @@
       "name": "KULJANKA Paneroitu juusto",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038301",
@@ -513,8 +514,8 @@
       "name": "KULJANKA Lihakeitto",
       "variant": null,
       "unitPriceText": "800 g | 4,11 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038302",
@@ -522,8 +523,8 @@
       "name": "KULJANKA Ajvar-paprikatahna",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038305",
@@ -531,8 +532,8 @@
       "name": "KULJANKA Puolalainen makkara",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038309",
@@ -560,8 +561,8 @@
       "name": "SOLEVITA Appelsiinitäysmehu",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038314",
@@ -607,8 +608,8 @@
       "name": "REILU Naudan uunipata",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038320",
@@ -836,8 +837,8 @@
       "name": "FRESHONA Suomalainen herne",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038477",
@@ -845,8 +846,8 @@
       "name": "GELATELLI Kuningatarkermajäätelö",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038479",
@@ -854,8 +855,8 @@
       "name": "FAZER Tutti Frutti Candy Salad",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038483",
@@ -881,8 +882,8 @@
       "name": "ALESTO Nut Trio -pähkinäsekoitus",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10038486",
@@ -899,8 +900,8 @@
       "name": "CONFISERIE FIRENZE Minidonitsit",
       "variant": "pakkauksessa kolme eri makua",
       "unitPriceText": "276 g | 10,83 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
     },
     {
       "lidlProductId": "10000000",
