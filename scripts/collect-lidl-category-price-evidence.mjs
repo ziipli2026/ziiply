@@ -57,6 +57,29 @@ const packageSizeFrom=(name,unitPriceText)=>{
   const m=text.match(/\b(\d+(?:[,.]\d+)?)\s*(kg|g|l|ml|cl)\b/i);
   return m?{value:Number(m[1].replace(',','.')),unit:m[2].toLowerCase(),raw:m[0]}:null;
 };
+const gridCampaignProducts=html=>{
+  const out=[];
+  for(const m of html.matchAll(/data-grid-data="([^"]+)"/gi)){
+    let p; try{p=JSON.parse(decode(m[1]))}catch{continue}
+    const price=typeof p?.price?.price==='number'?p.price.price:Number(String(p?.price?.price??'').replace(',','.'));
+    const fromTs=Number(p?.storeStartDate||p?.stockAvailability?.badgeInfoV2?.[0]?.validFrom||0);
+    const untilTs=Number(p?.storeEndDate||p?.stockAvailability?.badgeInfoV2?.[0]?.validUntil||0);
+    if(!p?.fullTitle||!Number.isFinite(price)||price<=0||!fromTs||!untilTs) continue;
+    out.push({
+      lidlProductId:p.productId||p.itemId||null,
+      ian:Array.isArray(p.ians)?p.ians.filter(Boolean):[],
+      name:p.fullTitle,
+      displayedPriceEur:price,
+      unitPriceText:p?.price?.basePrice?.text||null,
+      oldPriceEur:typeof p?.price?.oldPrice==='number'?p.price.oldPrice:null,
+      validFrom:new Date(fromTs*1000).toISOString().slice(0,10),
+      validThrough:new Date(untilTs*1000).toISOString().slice(0,10),
+      isLidlPlus:/lidl plus/i.test(JSON.stringify(p)),
+      isMultiBuy:/\b\d+\s*kpl\b/i.test([p.fullTitle,p?.price?.basePrice?.text].filter(Boolean).join(' '))
+    });
+  }
+  return out;
+};
 const raw=[];
 
 for(const source of urls){
@@ -66,6 +89,24 @@ for(const source of urls){
   const html=await res.text();
   const products=structuredProducts(html);
   const text=decode(html);
+
+  if(source.includes('/c/')){
+    for(const product of gridCampaignProducts(html)){
+      raw.push({
+        source,observedAt,researchOnly:true,
+        lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,productUrl:null,
+        displayedPriceEur:product.displayedPriceEur,oldPriceEur:product.oldPriceEur,
+        unitPriceText:product.unitPriceText,packageSize:packageSizeFrom(product.name,product.unitPriceText),
+        productMatchConfidence:'structured-grid',
+        isLidlPlus:product.isLidlPlus,isMultiBuy:product.isMultiBuy,
+        validFromRaw:null,validThroughRaw:null,validFrom:product.validFrom,validThrough:product.validThrough,
+        availabilityKind:'dated-campaign',
+        temporalStatus:temporalStatus(product.validFrom,product.validThrough,observedAt,'dated-campaign'),
+        evidenceText:clean([product.name,product.displayedPriceEur+' €',product.unitPriceText].filter(Boolean).join(' ')),
+        priceVerified:false,checkoutPriceVerified:false,regularPriceVerified:false
+      });
+    }
+  }
 
   if(source.includes('/h/')){
     for(const product of products){
@@ -120,7 +161,7 @@ const records=raw.filter(r=>{
   if(seen.has(key)) return false;
   seen.add(key); return true;
 });
-const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.productMatchConfidence==='exact-name');
+const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.productMatchConfidence==='exact-name'||r.productMatchConfidence==='structured-grid');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,
