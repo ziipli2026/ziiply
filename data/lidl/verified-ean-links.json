@@ -128,5 +128,10 @@
     "lidlProductId": "10038279",
     "ean": "6414301081226",
     "evidence": "Lidl W40/2026 offer identifies SERLA Valkoinen talouspaperi 8 rullaa; Kespro identifies Serla talouspaperi 8rl valkoinen consumer GTIN 6414301081226; S-kaupat independently confirms EAN 6414301081226."
+  },
+  {
+    "lidlProductId": "10038303",
+    "ean": "20544317",
+    "evidence": "Lidl.fi Finland dry-goods/preserved-vegetables listing: KULJANKA Hapankaali 800 g, 1.99 EUR, in stores 1.10.-7.10.2026; FoodDB/CHOMP product record: Kuljanka Lidl Sauerkraut/Hapankaali, Finland, barcode 20544317, matching Finnish ingredient text."
   }
 ]
