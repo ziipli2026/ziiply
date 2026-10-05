@@ -1,0 +1,72 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V2",
+  "purpose": "Second enrichment batch after batch one public-source exhaustion",
+  "rules": [
+    "key by lidlProductId",
+    "official Lidl evidence first",
+    "leave unknown fields null",
+    "never infer EAN or checkout price"
+  ],
+  "priority": [
+    [
+      "10037646",
+      "OULULAINEN Pullava Dallaspitko"
+    ],
+    [
+      "10037647",
+      "OULULAINEN Reissumies Tosi Ohut"
+    ],
+    [
+      "10037648",
+      "OULULAINEN Reissumies Tosi Ohut"
+    ],
+    [
+      "10037649",
+      "SNELLMAN Kotimainen palvikinkku"
+    ],
+    [
+      "10037650",
+      "MAMA Nuudeli 6-pack"
+    ],
+    [
+      "10038243",
+      "Satsuma"
+    ],
+    [
+      "10038244",
+      "FISKANO Tuore lohifilee"
+    ],
+    [
+      "10038245",
+      "HARTWALL Sokeriton Jaffa 6-pack 3 kpl"
+    ],
+    [
+      "10038248",
+      "TASCHKI Pelmeni"
+    ],
+    [
+      "10038249",
+      "Kotimainen porkkana"
+    ],
+    [
+      "10038250",
+      "Kotimainen omena"
+    ],
+    [
+      "10038251",
+      "Kotimainen hokkaidokurpitsa"
+    ],
+    [
+      "10038253",
+      "Kotimainen kiinankaali"
+    ],
+    [
+      "10038254",
+      "Kotimainen peruna"
+    ],
+    [
+      "10038255",
+      "Kotimainen ruusukaali"
+    ]
+  ]
+}
