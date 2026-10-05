@@ -107,11 +107,12 @@
       "lidlProductId": "10038300",
       "name": "KULJANKA Paneroitu juusto",
       "packageSize": "500 g",
-      "source": "External product database: Kuljanka/Pilos Morski 500 g, EAN 20265816; exact Finnish breaded-cheese variant not proven",
+      "source": "Bidfood Opava V-Label certificate identifies Kuljanka Panierter Käse as product 20398002; not treated as GTIN. Older 230 g Edamer evidence conflicts with Finnish 500 g pack, so prior GTIN candidate removed.",
       "gtin": null,
       "gtinVerified": false,
-      "gtinCandidate": "20265816",
-      "status": "candidate_requires_exact_variant_confirmation"
+      "gtinCandidate": null,
+      "status": "exact_product_identity_strong_gtin_missing",
+      "manufacturerProductNumber": "20398002"
     },
     {
       "lidlProductId": "10037651",
