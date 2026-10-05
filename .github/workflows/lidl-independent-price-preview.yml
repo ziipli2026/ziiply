@@ -35,6 +35,8 @@ on:
       - 'scripts/test-lidl-enrichment-priority-batch.mjs'
       - 'scripts/test-lidl-public-observation-evidence-v1.mjs'
       - 'data/lidl/public-observation-evidence-v1-2026-10-05.json'
+      - 'data/lidl/public-observation-metadata-v2-2026-10-05.json'
+      - 'data/lidl/enrichment-priority-v5-2026-10-05.json'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
