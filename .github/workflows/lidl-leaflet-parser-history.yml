@@ -1,0 +1,44 @@
+name: Lidl leaflet parser history
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/lidl-leaflet-parser-history.yml"
+      - "scripts/lidl/**"
+      - "data/lidl/parser-regression/**"
+      - "src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts"
+  schedule:
+    # Publication-day checks. Helsinki clock guard keeps DST behaviour stable.
+    - cron: '15 12,13,14,15 * * 0,3'
+permissions:
+  contents: read
+concurrency:
+  group: lidl-leaflet-parser-history
+  cancel-in-progress: false
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Helsinki publication clock
+        id: clock
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != schedule ]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            hour=$(TZ=Europe/Helsinki date +%H)
+            if [ "$hour" = 15 ] || [ "$hour" = 17 ]; then
+              echo 'run=true' >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.clock.outputs.run == 'true'
+        with:
+          node-version: '24'
+      - name: Verify every archived Lidl parser edition
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/lidl/verify-parser-history.mjs verify
