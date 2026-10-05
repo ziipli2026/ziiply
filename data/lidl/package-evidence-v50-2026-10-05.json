@@ -1,0 +1,16 @@
+{
+  "revision": "V50-PACKAGE-EVIDENCE",
+  "created": "2026-10-05",
+  "researchOnly": true,
+  "records": [
+    {
+      "lidlProductId": "10038471",
+      "name": "FRESHONA Suomalainen herne",
+      "packageSize": "200 g",
+      "manufacturer": "Lidl",
+      "source": "Sydänmerkki product listing",
+      "gtin": null,
+      "gtinVerified": false
+    }
+  ]
+}
