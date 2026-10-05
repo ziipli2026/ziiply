@@ -1256,7 +1256,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 {selectedStoreOfferLineV41}
               </div>
 
-              {showLandingView && !loading ? (
+              {showLandingView ? (
                 <div className="mt-2 rounded-[0.82rem] border-[2px] border-[#174c2c] bg-[#fff8d9]/92 px-1.5 py-1.5">
                   <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] items-center gap-1">
                     <button type="button" aria-pressed={contentTab === "offers"} onClick={() => onContentTabChange?.("offers")}
