@@ -7,7 +7,7 @@ export function processLidlPilotCsv(csv, knownProductIds, storeId, at = new Date
  const parseBoolean=value=>value==="true"?true:value==="false"?false:null;
  const parsePrice=value=>{
   const normalized=value.replace(",",".");
-  return normalized!==""&&/^\\d+(?:\\.\\d{1,2})?$/.test(normalized)?Number(normalized):null;
+  return normalized!==""&&/^[0-9]+(?:[.][0-9]{1,2})?$/.test(normalized)?Number(normalized):null;
  };
  const observations=rows.map(row=>({
   lidlProductId:row.lidlProductId,
