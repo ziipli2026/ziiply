@@ -74,6 +74,14 @@ export async function GET(request: Request) {
     }
     const status = issues.some((entry) => entry.severity === "error") ? "error" :
       issues.length ? "warning" : "ok";
+    const currentQuality = {
+      missingNames: current.reduce((n, e) => n + e.quality.missingNames.count, 0),
+      missingImages: current.reduce((n, e) => n + e.quality.missingImages.count, 0),
+      missingCategories: current.reduce((n, e) => n + e.quality.missingCategories.count, 0),
+      mismatchedValidity: current.reduce((n, e) => n + e.quality.mismatchedValidity.count, 0),
+      duplicates: current.reduce((n, e) => n + e.quality.duplicates.count, 0),
+      invalidPrices: current.reduce((n, e) => n + e.quality.invalidPrices.count, 0),
+    };
     const summary = {
       status,
       latestRunAt: latestRun?.checked_at ?? null,
@@ -87,6 +95,7 @@ export async function GET(request: Request) {
       currentEditionCount: current.length,
       upcomingEditionCount: upcoming.length,
       currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
+      currentQuality,
       errorCount: issues.filter((entry) => entry.severity === "error").length,
       warningCount: issues.filter((entry) => entry.severity === "warning").length,
       issueCodes: issues.map((entry) => entry.code),
