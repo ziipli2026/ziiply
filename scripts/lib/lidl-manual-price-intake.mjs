@@ -20,17 +20,12 @@ export function prepareManualLidlReceipt(row) {
  if (typeof row.receiptTimestamp !== "string" || !Number.isFinite(Date.parse(row.receiptTimestamp)) ||
      !/^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(row.receiptTimestamp))
    return reject("missing-receipt-timestamp");
- if (typeof row.validThrough !== "string" || !Number.isFinite(Date.parse(row.validThrough)) ||
-     !/^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(row.validThrough))
-   return reject("missing-validity");
- if (Date.parse(row.validThrough) < Date.parse(row.receiptTimestamp))
-   return reject("invalid-validity");
  if (row.shelfPriceEur != null && row.shelfPriceEur !== row.receiptUnitPriceEur)
    return reject("shelf-receipt-discrepancy");
  return {reason:"candidate-only",candidate:{
    lidlProductId:row.lidlProductId,storeId:row.storeId,regularPriceEur:row.receiptUnitPriceEur,
    priceKind:"regular",priceSource:"verified-store-receipt",checkoutPriceVerified:true,
    evidenceReference:row.receiptEvidenceReference,observedAt:row.receiptTimestamp,
-   validThrough:row.validThrough
+   validThrough:null
  }};
 }
