@@ -1,0 +1,155 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V4",
+  "priority": [
+    {
+      "lidlProductId": "10038286",
+      "name": "KULJANKA Valkokaalisalaatti",
+      "ian": "5500677",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038287",
+      "name": "KULJANKA Maustekurkut etikkaliemessä",
+      "ian": "5504242",
+      "displayedPriceEur": 2.29,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038288",
+      "name": "KULJANKA Täytetty broileripihvi",
+      "ian": "184403",
+      "displayedPriceEur": 4.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038289",
+      "name": "KULJANKA Hapankurkku",
+      "ian": "5502722",
+      "displayedPriceEur": 2.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038291",
+      "name": "KULJANKA Pastanyytti raejuusto-perunatäytteellä",
+      "ian": "5528637",
+      "displayedPriceEur": 3.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038292",
+      "name": "KULJANKA Gulassikeitto",
+      "ian": "175056",
+      "displayedPriceEur": 2.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038293",
+      "name": "KULJANKA Vaniljajäätelövohvelipikarit",
+      "ian": "7601221",
+      "displayedPriceEur": 3.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038294",
+      "name": "KULJANKA Jäätelökakku",
+      "ian": "6700311",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038295",
+      "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+      "ian": "5524178",
+      "displayedPriceEur": 3.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038296",
+      "name": "KULJANKA Liha-perunanyytti",
+      "ian": "5528628",
+      "displayedPriceEur": 3.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038297",
+      "name": "KULJANKA Paprikapyree",
+      "ian": "6404019",
+      "displayedPriceEur": 1.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038298",
+      "name": "KULJANKA Maustesuola",
+      "ian": "5500397",
+      "displayedPriceEur": 3.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038299",
+      "name": "KULJANKA Höyrytetty juusto",
+      "ian": "7509615",
+      "displayedPriceEur": 4.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038300",
+      "name": "KULJANKA Paneroitu juusto",
+      "ian": "6401588",
+      "displayedPriceEur": 3.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038302",
+      "name": "KULJANKA Ajvar-paprikatahna",
+      "ian": "6900208",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    }
+  ]
+}
