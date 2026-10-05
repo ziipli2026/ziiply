@@ -57,7 +57,35 @@ const packageSizeFrom=(name,unitPriceText)=>{
   const m=text.match(/\b(\d+(?:[,.]\d+)?)\s*(kg|g|l|ml|cl)\b/i);
   return m?{value:Number(m[1].replace(',','.')),unit:m[2].toLowerCase(),raw:m[0]}:null;
 };
+const OFFICIAL_CATEGORY_IDS=["10071012","10095752","10071050","10095761","10096086","10096095","10096110","10071020","10096153","10071049","10096205","10071022","10096287","10071024","10095753","10095754","10095755","10095758","10096075","10096076","10096077","10096096","10096098","10096100"];
+const collectOfficialApi=async()=>{
+  const out=[],errors=[];
+  for(const id of OFFICIAL_CATEGORY_IDS){
+    try{
+      const p=new URLSearchParams({assortment:"FI",locale:"fi_FI",version:"v2.1.0",fetchsize:"60",offset:"0","category.id":id});
+      const r=await fetch("https://www.lidl.fi/q/api/search?"+p,{headers:{accept:"*/*","accept-language":"fi-FI,fi;q=0.9"},signal:AbortSignal.timeout(15000)});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j=await r.json();
+      for(const x of Array.isArray(j.items)?j.items:[]){
+        const d=x?.gridbox?.data||{},price=d?.price?.price,base=d?.basePrice?.text??null;
+        if(!d.productId||!d.fullTitle||typeof price!=="number") continue;
+        out.push({categoryId:id,lidlProductId:String(d.productId),ian:Array.isArray(d.ians)?d.ians.filter(Boolean):[],name:String(d.fullTitle),displayedPriceEur:price,unitPriceText:base,canonicalPath:d.canonicalPath??null,gs1Attributes:d.gs1Attributes??null});
+      }
+    }catch(e){errors.push({categoryId:id,error:String(e)})}
+  }
+  return {out,errors};
+};
 const raw=[];
+const observedAt=new Date().toISOString();
+const api=await collectOfficialApi();
+for(const product of api.out){
+  raw.push({source:"https://www.lidl.fi/q/api/search?category.id="+product.categoryId,observedAt,researchOnly:true,
+    lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,productUrl:product.canonicalPath?new URL(product.canonicalPath,"https://www.lidl.fi").href:null,
+    displayedPriceEur:product.displayedPriceEur,unitPriceText:product.unitPriceText,packageSize:packageSizeFrom(product.name,null),gs1Attributes:product.gs1Attributes,
+    productMatchConfidence:"official-category-api",isLidlPlus:null,isMultiBuy:null,validFromRaw:null,validThroughRaw:null,validFrom:null,validThrough:null,
+    availabilityKind:"continuous-api",temporalStatus:"continuous",evidenceText:clean([product.name,product.displayedPriceEur+" €",product.unitPriceText].filter(Boolean).join(" ")),
+    priceVerified:false,checkoutPriceVerified:false,regularPriceVerified:false});
+}
 
 for(const source of urls){
   const observedAt=new Date().toISOString();
@@ -120,7 +148,7 @@ const records=raw.filter(r=>{
   if(seen.has(key)) return false;
   seen.add(key); return true;
 });
-const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.productMatchConfidence==='exact-name');
+const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,
