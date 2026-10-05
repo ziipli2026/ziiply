@@ -96,8 +96,8 @@ if (mode === "verify") {
         fixtureName,
         sourceUrl,
         html,
-        isProductPage: /\\/p\\//i.test(sourceUrl),
-        isCategoryPage: /\\/h\\//i.test(sourceUrl),
+        isProductPage: /\/p\//i.test(sourceUrl),
+        isCategoryPage: /\/h\//i.test(sourceUrl),
       });
     }
 
