@@ -848,15 +848,16 @@
       "name": "KARINIEMEN Kananpojan siivet 2 kpl",
       "unitPriceText": "700 g | 3,57 €/kg | 2 kpl 5,00 €",
       "source": "public_campaign_exact_match"
-    }
-  ],
-  "remainingMissingRows": [
+    },
     {
       "lidlProductId": "10038267",
       "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
-      "displayedPriceEur": 29.89,
-      "ian": "7112516"
-    },
+      "unitPriceText": "hinta/kg 29,89 €",
+      "source": "public_lidl_campaign_exact_identity",
+      "note": "Public campaign evidence confirms the product is sold per kg; corpus value 29.89 is treated as kg price, not package total."
+    }
+  ],
+  "remainingMissingRows": [
     {
       "lidlProductId": "10038293",
       "name": "KULJANKA Vaniljajäätelövohvelipikarit",
@@ -914,11 +915,11 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 56,
+    "resolvedOfficial": 57,
     "resolvedDerived": 6,
     "notApplicable": 11,
     "variantSplitRequired": 1,
-    "remaining": 10
+    "remaining": 9
   },
   "unitPriceNotApplicable": [
     {
