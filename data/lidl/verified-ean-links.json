@@ -208,5 +208,10 @@
     "lidlProductId": "10038295",
     "ean": "4056489120087",
     "evidence": "Finnish Lidl archive identifies the product as KULJANKA Suklaakuorrutettu vaahtomakeinen. Swedish Lidl retail data identifies the same Kuljanka chocolate-coated marshmallow product as a 380 g pack with EAN 4056489120087. Independent barcode/product data names EAN 4056489120087 as Kuljanka Vanilla Flavoured Marshmallows Coated In Dark Chocolate; nutrition data (396 kcal/100 g) matches the Kuljanka product record. GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038300",
+    "ean": "20398002",
+    "evidence": "Finnish Lidl identifies KULJANKA Paneroitu juusto as a 500 g product. Lidl Romania independently lists the corresponding KULJANKA breaded Trapist cheese as 500 g. Bidfood Opava/V-Label identifies KULJANKA Panierter Käse with product number 20398002, and independent food product data explicitly records EAN 20398002 for breaded cheese manufactured by Bidfood Czech Republic. GTIN-8 checksum valid."
   }
 ]
