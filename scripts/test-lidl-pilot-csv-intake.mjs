@@ -38,6 +38,5 @@ values[columns.indexOf("observedCode")]="12345678";
 lines[1]=values.map(x=>'"'+x.replaceAll('"','""')+'"').join(",");
 const validBarcode=processLidlPilotCsv(lines.join("\n")+"\n",[id],"A",at);
 assert.equal(validBarcode.acceptedCount,1);
-const wrong=processLidlPilotCsv(lines.join("\n")+"\n",[id],"B",at);
-assert.equal(wrong.acceptedCount,0);
-console.log("PASS: 25-row blank pilot rejects all; dot/comma decimals normalize; barcode provenance guarded; synthetic row imports for matching store only");
+assert.throws(()=>processLidlPilotCsv(lines.join("\n")+"\n",[id],"B",at),/CSV storeId mismatch: selected B; found A/);
+console.log("PASS: 25-row blank pilot rejects all; dot/comma decimals normalize; barcode provenance guarded; mismatched CSV store fails closed");
