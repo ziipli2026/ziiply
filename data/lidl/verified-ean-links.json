@@ -163,5 +163,10 @@
     "lidlProductId": "10038323",
     "ean": "5711953201677",
     "evidence": "Official Arla Finland product page identifies EAN 5711953201677 for Arla Protein Suklaa-Brownie 200 ml. Lidl candidate is ARLA Proteiinipirtelö 2 kpl; external Finnish offer data repeatedly identifies the same EAN for the 2-kpl promotion, so the product EAN is unambiguous."
+  },
+  {
+    "lidlProductId": "10038320",
+    "ean": "2377211700004",
+    "evidence": "Lidl W40/2026 candidate is KARINIEMEN Kananpojan rintaleike. Kariniemen official product page identifies the marinated chicken breast cut as approx. 1 kg with EAN 2377211700004; current Finnish offer data shows the same product/EAN at 7.99 EUR, matching the Lidl candidate price."
   }
 ]
