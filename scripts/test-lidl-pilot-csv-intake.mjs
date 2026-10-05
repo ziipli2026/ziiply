@@ -24,4 +24,4 @@ assert.equal(completed.prices[0].regularPriceEur,1.29);
 assert.equal(completed.rejectedCount,24);
 const wrong=processLidlPilotCsv(lines.join("\n")+"\n",[id],"B",at);
 assert.equal(wrong.acceptedCount,0);
-console.log("PASS: 25-row blank pilot rejects all; one synthetic complete row imports for matching store only");
+console.log("PASS: 25-row blank pilot rejects all; dot/comma decimals normalize; synthetic row imports for matching store only");
