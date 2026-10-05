@@ -4,9 +4,9 @@
   "source": "official-grocery-candidates-v44-2026-10-01.json",
   "total": 197,
   "counts": {
-    "needs_external_gtin_lookup": 106,
-    "variable_weight_or_produce": 30,
-    "multipack_or_variant": 12,
+    "multipack_or_variant": 15,
+    "variable_weight_or_produce": 29,
+    "needs_external_gtin_lookup": 104,
     "bakery_or_store_bakery": 36,
     "non_food": 13
   },
@@ -17,8 +17,8 @@
       "name": "MILBONA Proteiinivanukas",
       "variant": "kahvi tai kookos",
       "unitPriceText": "200 g | 5,95 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "requires_exact_variant"
     },
     {
       "lidlProductId": "10037651",
@@ -26,8 +26,8 @@
       "name": "MARIBEL Hillo",
       "variant": "mustikka tai sekamarja",
       "unitPriceText": "450 g | 7,31 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "requires_exact_variant"
     },
     {
       "lidlProductId": "10038243",
@@ -251,8 +251,8 @@
       "name": "Kananugetit dipillä",
       "variant": null,
       "unitPriceText": "1 kg | 8,99 €/kg",
-      "resolutionStatus": "variable_weight_or_produce",
-      "resolutionReason": "no_fixed_consumer_gtin"
+      "resolutionStatus": "needs_external_gtin_lookup",
+      "resolutionReason": "single_candidate"
     },
     {
       "lidlProductId": "10038270",
@@ -512,8 +512,8 @@
       "name": "KULJANKA Puolalainen makkara",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "requires_exact_variant"
     },
     {
       "lidlProductId": "10038309",
