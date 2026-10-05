@@ -1,0 +1,302 @@
+{
+  "revision": "V50-GTIN-LOOKUP-31",
+  "created": "2026-10-05",
+  "source": "data/lidl/ean-resolution-queue-v46-2026-10-05.json",
+  "acceptance": {
+    "deriveEanFromIan": false,
+    "exactProductRequired": true,
+    "exactPackRequiredWhenKnown": true
+  },
+  "counts": {
+    "total": 31,
+    "kuljanka": 14,
+    "other": 17
+  },
+  "batches": {
+    "other": [
+      {
+        "lidlProductId": "10037645",
+        "ian": "181201",
+        "name": "MILBONA Proteiinivanukas",
+        "variant": "kahvi tai kookos",
+        "unitPriceText": "200 g | 5,95 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037651",
+        "ian": "1013035",
+        "name": "MARIBEL Hillo",
+        "variant": "mustikka tai sekamarja",
+        "unitPriceText": "450 g | 7,31 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038244",
+        "ian": "7112603",
+        "name": "FISKANO Tuore lohifilee",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038247",
+        "ian": "7111717",
+        "name": "KANAMESTARI Kanan sisäfilee",
+        "variant": "maustamaton",
+        "unitPriceText": "400 g | 9,73 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038255",
+        "ian": "82934",
+        "name": "Kotimainen ruusukaali",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038267",
+        "ian": "7112516",
+        "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038278",
+        "ian": "2541",
+        "name": "ALESTO Pähkinäsekoitus",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038282",
+        "ian": "6902818",
+        "name": "NOSTJA Pancetta",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038311",
+        "ian": "59859",
+        "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038313",
+        "ian": "176508",
+        "name": "SOLEVITA Appelsiinitäysmehu",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038319",
+        "ian": "7101787",
+        "name": "REILU Naudan uunipata",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038470",
+        "ian": "6907018",
+        "name": "Kalkkuna-juustotasku",
+        "variant": null,
+        "unitPriceText": "160 g | 12,44 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038471",
+        "ian": "7111948",
+        "name": "FRESHONA Suomalainen herne",
+        "variant": null,
+        "unitPriceText": "200 g",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate",
+        "packageSizeEvidence": "Sydänmerkki product listing: Freshona Suomalainen herne 200g; manufacturer Lidl",
+        "packageSizeVerified": true
+      },
+      {
+        "lidlProductId": "10038477",
+        "ian": "7112282",
+        "name": "GELATELLI Kuningatarkermajäätelö",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038479",
+        "ian": "7112722",
+        "name": "FAZER Tutti Frutti Candy Salad",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038485",
+        "ian": "209455",
+        "name": "ALESTO Nut Trio -pähkinäsekoitus",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038488",
+        "ian": "218769",
+        "name": "CONFISERIE FIRENZE Minidonitsit",
+        "variant": "pakkauksessa kolme eri makua",
+        "unitPriceText": "276 g | 10,83 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      }
+    ],
+    "kuljanka": [
+      {
+        "lidlProductId": "10038283",
+        "ian": "1018431",
+        "name": "KULJANKA Khinkalitaikinanyytti",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038284",
+        "ian": "7701804",
+        "name": "KULJANKA Borssikeitto",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038285",
+        "ian": "185279",
+        "name": "KULJANKA Savustettu makkara",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038286",
+        "ian": "5500677",
+        "name": "KULJANKA Valkokaalisalaatti",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038287",
+        "ian": "5504242",
+        "name": "KULJANKA Maustekurkut etikkaliemessä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038288",
+        "ian": "184403",
+        "name": "KULJANKA Täytetty broileripihvi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038293",
+        "ian": "7601221",
+        "name": "KULJANKA Vaniljajäätelövohvelipikarit",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038294",
+        "ian": "6700311",
+        "name": "KULJANKA Jäätelökakku",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038295",
+        "ian": "5524178",
+        "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038299",
+        "ian": "7509615",
+        "name": "KULJANKA Höyrytetty juusto",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038300",
+        "ian": "6401588",
+        "name": "KULJANKA Paneroitu juusto",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038301",
+        "ian": "175070",
+        "name": "KULJANKA Lihakeitto",
+        "variant": null,
+        "unitPriceText": "800 g | 4,11 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038302",
+        "ian": "6900208",
+        "name": "KULJANKA Ajvar-paprikatahna",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038305",
+        "ian": "5500349",
+        "name": "KULJANKA Puolalainen makkara",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      }
+    ]
+  }
+}
