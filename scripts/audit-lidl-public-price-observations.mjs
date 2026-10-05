@@ -6,7 +6,7 @@ const promotionSignal=row=>{
  return /\\b\\d+\\s*kpl\\b|hinta yksittäin|lidl\\s*plus|superhinta|tarjous|kampanja/.test(text);
 };
 const multiBuySignal=row=>/\\b\\d+\\s*kpl\\b|hinta yksittäin/i.test([row.name,row.variant,row.unitPriceText].filter(Boolean).join(" "));
-const weightPriceSignal=row=>/hinta\\/kg|€\\/kg/i.test(String(row.unitPriceText??""));
+const weightPriceSignal=row=>String(row.unitPriceText??"").toLocaleLowerCase("fi-FI").includes("€/kg") || String(row.unitPriceText??"").toLocaleLowerCase("fi-FI").includes("hinta/kg");
 const promotionSuspect=priced.filter(promotionSignal);
 const multiBuy=priced.filter(multiBuySignal);
 const weightPriced=priced.filter(weightPriceSignal);
