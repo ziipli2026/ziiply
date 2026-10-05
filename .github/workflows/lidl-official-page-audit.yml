@@ -3,9 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/lidl-official-page-audit.yml'
-      - 'scripts/audit-lidl-official-pages.mjs'
 jobs:
   audit:
     runs-on: ubuntu-latest
