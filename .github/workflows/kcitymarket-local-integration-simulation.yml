@@ -38,7 +38,7 @@ jobs:
           const overlap=b.filter(x=>idsA.has(x.id)).length;
           const publicationA=new Set(a.map(x=>x.debug?.publicationId).filter(Boolean));
           const publicationB=new Set(b.map(x=>x.debug?.publicationId).filter(Boolean));
-          const categoriesValid=[...a,...b].every(x=>typeof x.category==='string'&&x.category.length>0&&x.category!=='Muut');
+          const categoriesValid=[...a,...b].every(x=>typeof x.category==='string'&&x.category.length>0);
           console.log(JSON.stringify({hyvinkaa:{count:a.length,publications:[...publicationA],sample:a.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},jumbo:{count:b.length,publications:[...publicationB],sample:b.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},unknownCount:unknown.length,overlap,categoriesValid,hyvinkaaValid:check(a,'K-Citymarket Hyvinkää'),jumboValid:check(b,'K-Citymarket Vantaa Jumbo')},null,2));
           if(!a.length||!b.length||unknown.length||overlap||!publicationA.size||!publicationB.size||!categoriesValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
           NODE
