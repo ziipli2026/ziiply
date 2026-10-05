@@ -655,12 +655,6 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   }
 }
 
-// Test/support entrypoint: parses a specific archived/current leaflet without changing
-// the active-period selection logic used by production.
-export async function fetchKCitymarketOffersFromEntry(entry:string):Promise<CitymarketOffer[]>{
-  return fetchKCitymarketOffersFresh(entry);
-}
-
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const active=getActiveKCitymarketPeriod();
 
