@@ -652,9 +652,9 @@ export async function GET(request: Request) {
         const publicFeed = await fetchLidlPublicLeafletOffers({ date: todayFi });
         const normalizeCampaignKey = (offer: UnknownRecord) =>
           normalizeText([offer.brandName, offer.name || offer.title].filter(Boolean).join(" "))
-            .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l|kpl)\\b/g, " ")
-            .replace(/\\b\\d+\\b/g, " ")
-            .replace(/\\s+/g, " ")
+            .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl)\b/g, " ")
+            .replace(/\b\d+\b/g, " ")
+            .replace(/\s+/g, " ")
             .trim();
         const activeOfferKeys = new Set(
           combined.map((offer) => [
@@ -678,7 +678,7 @@ export async function GET(request: Request) {
             ...(offer as unknown as UnknownRecord),
             campaignType: "campaign",
             source: "lidl-fi-campaign",
-            campaignSection: String((offer as any).sourceUrl || "").replace(/^https?:\\/\\/www\\.lidl\\.fi/, ""),
+            campaignSection: String((offer as any).sourceUrl || "").replace(/^https?:\/\/www\.lidl\.fi/, ""),
           }));
       } catch (error) {
         console.warn("[Ziiply offers] Lidl campaign feed unavailable", error);
