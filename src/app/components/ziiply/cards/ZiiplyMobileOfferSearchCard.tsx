@@ -550,20 +550,28 @@ function cleanRepeatedOfferTextV4(value: unknown) {
   return text;
 }
 
-function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
+export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   const source = offer.__sourceOfferSearchResult || {};
-  const isEurospar = String(source.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR";
-  const quantity = Number(source.offerQuantity);
-  const unit = String(source.offerUnit || "").trim();
-  const isMultiBuy =
-    isEurospar &&
-    source.priceBasis === "multi-buy-total" &&
-    Number.isFinite(quantity) &&
-    quantity > 1 &&
-    unit;
+  const quantity = Number(source.offerQuantity ?? offer.offerQuantity ?? source.multiBuyQuantity ?? offer.multiBuyQuantity);
+  const unit = String(source.offerUnit ?? offer.offerUnit ?? "kpl").trim() || "kpl";
+  const rawPriceText = String(source.priceText ?? offer.priceText ?? "").trim();
+  const numericPrice = offer.offerPrice ?? offer.price ?? source.offerPrice ?? source.price;
 
-  const price = normalizePrice(offer.offerPrice ?? offer.price);
-  return isMultiBuy && price ? `${quantity} ${unit} / ${price}` : price;
+  // Shared rule for every chain and for both Tarjoukset/Kampanjat:
+  // preserve an explicit source multi-buy expression when it contains both
+  // a price and quantity. Otherwise combine the provider's structured
+  // offerQuantity with the total offer price. Never divide a multi-buy total
+  // into a synthetic per-item offer price.
+  if (rawPriceText && /€/.test(rawPriceText) && /\b\d+\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml)\b/i.test(rawPriceText)) {
+    return rawPriceText.replace(/\s+/g, " ").trim();
+  }
+
+  const price = normalizePrice(numericPrice);
+  if (Number.isFinite(quantity) && quantity > 1 && price) {
+    return `${price} / ${quantity} ${unit}`;
+  }
+
+  return rawPriceText && /€/.test(rawPriceText) ? rawPriceText : price;
 }
 
 // Shared display-only price layout for both Gösta offers and campaigns.
