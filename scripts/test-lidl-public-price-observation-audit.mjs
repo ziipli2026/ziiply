@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import {execFileSync} from "node:child_process";
+const result=JSON.parse(execFileSync(process.execPath,["scripts/audit-lidl-public-price-observations.mjs"],{encoding:"utf8"}));
+assert.equal(result.totalCatalogRecords,226);
+assert.equal(result.publicPriceObservations,110);
+assert.ok(result.promotionSuspectCount>0);
+assert.equal(result.promotionSuspectCount+result.unclassifiedPublicPriceCount,110);
+assert.equal(result.checkoutVerifiedCount,0);
+assert.equal(result.comparableCount,0);
+assert.deepEqual(result.missingPromotionMetadataFields,["labels","validFrom","validThrough","referencePriceEur"]);
+console.log("PASS: Lidl public price audit keeps all 110 observations non-comparable");
