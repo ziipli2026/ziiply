@@ -774,8 +774,21 @@ export async function GET(request: Request) {
         ].join("|");
         return !publicCampaignIdentityKeys.has(key);
       });
+      // A Lidl Plus store-feed row that has been promoted into structuredCampaigns
+      // belongs only to Kampanjat. Remove its original non-campaign copy from the
+      // dated Tarjoukset side before building the shared master, otherwise the same
+      // product appears in both tabs.
+      const structuredCampaignOriginIds = new Set(
+        structuredCampaigns
+          .map((offer) => String(offer.id || "").replace(/^lidl-campaign-/, ""))
+          .filter(Boolean),
+      );
+      const combinedWithoutStructuredCampaignOrigins = combinedWithPublicCampaignPrecedence.filter((offer) =>
+        offer.campaignType === "campaign" ||
+        !structuredCampaignOriginIds.has(String(offer.id || ""))
+      );
       const masterCombined = dedupe([
-        ...combinedWithPublicCampaignPrecedence,
+        ...combinedWithoutStructuredCampaignOrigins,
         ...structuredCampaigns,
         ...lidlCampaigns,
       ]);
