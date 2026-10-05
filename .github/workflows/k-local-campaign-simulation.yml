@@ -1,6 +1,10 @@
 name: K-local campaign source simulation
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts'
+      - '.github/workflows/k-local-campaign-simulation.yml'
   push:
     paths:
       - 'src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts'
@@ -102,8 +106,19 @@ jobs:
           for (const storeName of stores) {
             const rows=await fetchKruokaOffers('__ziiply_all_offers__', {} as any, {storeName,kStoreName:storeName});
             const debug=getLastKruokaPipelineDebugV49();
+            const offers=rows.filter(row=>(row as any).campaignType!=='campaign');
             const campaigns=rows.filter(row=>(row as any).campaignType==='campaign');
-            console.log('K_CAMPAIGN_PROBE '+JSON.stringify({storeName,total:rows.length,campaigns:campaigns.length,probe:debug?.campaignProbe,publicationFetch:debug?.publicationFetch,publicationPipeline:debug?.publicationPipeline,sourceMarkers:(debug?.rawOffers??[]).slice(0,8).map(o=>({publicationPublicId:o.publicationPublicId,name:o.name,campaignType:o.campaignType,offerType:o.offerType,promotionType:o.promotionType,campaignLabel:o.campaignLabel,publicationLabel:o.publicationLabel,isCampaign:o.isCampaign,keys:Object.keys(o).filter(k=>/campaign|promo|type|label|source|category/i.test(k))})),error:debug?.error,publications:debug?.kSupermarketPublicationResolverDebug?.publications?.map(p=>({label:p.label,id:p.id,active:p.active})),samples:campaigns.slice(0,3).map(x=>({title:x.title,price:x.price}))}));
+            const offerFallbacks=offers.filter(row=>!(row as any).category||(row as any).category==='Muut');
+            const campaignFallbacks=campaigns.filter(row=>!(row as any).category||(row as any).category==='Muut');
+            const categoryCounts=(items:any[])=>Object.fromEntries([...new Set(items.map(row=>String((row as any).category||'Muut')))].sort().map(category=>[category,items.filter(row=>String((row as any).category||'Muut')===category).length]));
+            const semanticCategoryFailures=rows.filter(row=>{
+              const title=String((row as any).title||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+              const category=String((row as any).category||'');
+              if(/salaattimix|salaattisekoitus/.test(title)) return category!=='Hevi';
+              if(title.includes('suklaalevy')||title.includes('suklaapatukka')||title.includes('suklaakonvehti')) return category!=='Makeiset & keksit';
+              return false;
+            });
+            console.log('K_CAMPAIGN_PROBE '+JSON.stringify({storeName,total:rows.length,offers:offers.length,campaigns:campaigns.length,offerCategories:categoryCounts(offers as any[]),campaignCategories:categoryCounts(campaigns as any[]),offerFallbacks:offerFallbacks.map(x=>x.title),campaignFallbacks:campaignFallbacks.map(x=>x.title),semanticCategoryFailures:semanticCategoryFailures.map(x=>({title:x.title,category:x.category})),probe:debug?.campaignProbe,publicationFetch:debug?.publicationFetch,publicationPipeline:debug?.publicationPipeline,sourceMarkers:(debug?.rawOffers??[]).slice(0,8).map(o=>({publicationPublicId:o.publicationPublicId,name:o.name,campaignType:o.campaignType,offerType:o.offerType,promotionType:o.promotionType,campaignLabel:o.campaignLabel,publicationLabel:o.publicationLabel,isCampaign:o.isCampaign,keys:Object.keys(o).filter(k=>/campaign|promo|type|label|source|category/i.test(k))})),error:debug?.error,publications:debug?.kSupermarketPublicationResolverDebug?.publications?.map(p=>({label:p.label,id:p.id,active:p.active})),samples:campaigns.slice(0,3).map(x=>({title:x.title,price:x.price,category:x.category}))}));
             const localPublicationIds=(debug?.kSupermarketPublicationResolverDebug?.publications??[]).filter(p=>p.active && p.label.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi').includes(storeName.normalize('NFKC').replace(/[‐‑‒–—−]/g,'-').toLocaleLowerCase('fi'))).map(p=>p.id);
             const campaignIds=debug?.campaignProbe?.campaignPublicationIds??[];
             const regionalLeak=(debug?.rawOffers??[]).filter(o=>o.campaignType==='campaign' && !campaignIds.includes(String(o.publicationPublicId??''))).length;
@@ -112,7 +127,7 @@ jobs:
             const monthlyMisclassified=localRows.filter(o=>{const a=Date.parse(String(o.validFrom??'')),b=Date.parse(String(o.validUntil??''));return Number.isFinite(a)&&Number.isFinite(b)&&b-a>7*86400000&&o.campaignType!=='campaign';}).length;
             console.log('K_LOCAL_VALIDITY_SPLIT '+JSON.stringify({storeName,weeklyMisclassified,monthlyMisclassified,localRows:localRows.length}));
             console.log('K_LOCAL_CAMPAIGN_ASSERT '+JSON.stringify({storeName,localPublicationIds,campaignIds,regionalLeak,returnedCampaigns:campaigns.length}));
-            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || weeklyMisclassified || monthlyMisclassified || campaigns.length===0) failures++;
+            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || weeklyMisclassified || monthlyMisclassified || campaigns.length===0 || offerFallbacks.length || campaignFallbacks.length || semanticCategoryFailures.length) failures++;
           }
           if(failures) {console.error('Campaign source validation failed for '+failures+' store(s)');process.exitCode=1;}
           NODE

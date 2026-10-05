@@ -375,6 +375,11 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b(harkis\w*|harkapapumurska\w*|nyhtokaura\w*|kasviproteiinimurska\w*)\b/.test(productTitle)) return "Valmisruoka";
   if (/\b(burgeri\w*|hampurilais\w*|mikroburgeri\w*|valmisateria\w*)\b/.test(productTitle)) return "Valmisruoka";
   if (/\b(kahvi\w*|papukahvi\w*|suodatinkahvi\w*|pikakahvi\w*|espresso\w*|kahvikapseli\w*)\b/.test(productTitle)) return "Kahvi & tee";
+  // V71: exact product identities must beat ingredient/flavour words.
+  // Salad mixes are HEVI even when source descriptions mention dairy.
+  if (/\b(salaattimix\w*|salaattisekoitus\w*)\b/.test(productTitle)) return "Hevi";
+  // Flavoured chocolate is confectionery even when the flavour contains "jogurtti".
+  if (/(?:suklaalevy|suklaapatukka|suklaakonvehti)\w*/.test(productTitle)) return "Makeiset & keksit";
 
   // V70: K-Market Martti 1 Oct 2026 cross-store category audit.
   // Identity guards before Tjek's sometimes incorrect department.
