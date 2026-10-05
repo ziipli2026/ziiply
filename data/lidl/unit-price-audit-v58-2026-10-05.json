@@ -889,18 +889,6 @@
       "ian": "7112722"
     },
     {
-      "lidlProductId": "10038480",
-      "name": "CLOETTA Kex-keksisuklaa",
-      "displayedPriceEur": 0.95,
-      "ian": "7112091"
-    },
-    {
-      "lidlProductId": "10038481",
-      "name": "KARL FAZER Vadelmajogurttisuklaapatukka",
-      "displayedPriceEur": 1.25,
-      "ian": "7100789"
-    },
-    {
       "lidlProductId": "10038485",
       "name": "ALESTO Nut Trio -pähkinäsekoitus",
       "displayedPriceEur": 0.99,
@@ -916,10 +904,10 @@
   "summary": {
     "originalMissing": 83,
     "resolvedOfficial": 57,
-    "resolvedDerived": 6,
+    "resolvedDerived": 8,
     "notApplicable": 11,
     "variantSplitRequired": 1,
-    "remaining": 9
+    "remaining": 7
   },
   "unitPriceNotApplicable": [
     {
@@ -1042,6 +1030,20 @@
       "unitPriceText": "n. 1,2 kg | hinta/kg 12,89 €",
       "source": "exact_package_evidence_variable_weight",
       "note": "displayedPriceEur is the per-kilogram price, not a package total"
+    },
+    {
+      "lidlProductId": "10038480",
+      "name": "CLOETTA Kex-keksisuklaa",
+      "unitPriceText": "60 g | 15,83 €/kg",
+      "source": "derived_from_manufacturer_product_size_and_corpus_price",
+      "derivation": "0.95 / 0.060 kg"
+    },
+    {
+      "lidlProductId": "10038481",
+      "name": "KARL FAZER Vadelmajogurttisuklaapatukka",
+      "unitPriceText": "37 g | 33,78 €/kg",
+      "source": "derived_from_manufacturer_product_size_and_corpus_price",
+      "derivation": "1.25 / 0.037 kg"
     }
   ],
   "variantSplitRequired": [
