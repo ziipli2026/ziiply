@@ -44,6 +44,54 @@
       "source": "Lidl historical offer evidence",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038301",
+      "name": "KULJANKA Lihakeitto",
+      "packageSize": "800 g",
+      "source": "Lidl current campaign unit-size evidence",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038302",
+      "name": "KULJANKA Ajvar-paprikatahna",
+      "packageSize": "350 g",
+      "source": "Lidl current category listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038287",
+      "name": "KULJANKA Maustekurkut etikkaliemessä",
+      "packageSize": "860 g (valutettu 450 g)",
+      "source": "Lidl current category listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038299",
+      "name": "KULJANKA Höyrytetty juusto",
+      "packageSize": "370 g",
+      "source": "Lidl current cheese listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038305",
+      "name": "KULJANKA Puolalainen makkara",
+      "packageSize": "230 g",
+      "source": "Current Lidl campaign catalogue evidence",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038285",
+      "name": "KULJANKA Savustettu makkara",
+      "packageSize": "600 g",
+      "source": "Current Lidl campaign catalogue evidence",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
