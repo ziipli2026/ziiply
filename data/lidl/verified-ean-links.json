@@ -118,5 +118,10 @@
     "lidlProductId": "10038480",
     "ean": "7310350118342",
     "evidence": "Lidl catalog: CLOETTA Kex-keksisuklaa 60 g. Finnish/European product data identifies Cloetta Kexchoklad 60 g, EAN 7310350118342."
+  },
+  {
+    "lidlProductId": "10037644",
+    "ean": "4335619339798",
+    "evidence": "Lidl catalog identifies SOLEVITA Luomukofeiinishotti 150 ml; supplier/product database identifies Solevita Bio Koffein Shot Apfel-Mango-Limetten-Guarana, 150 ml, EAN 4335619339798."
   }
 ]
