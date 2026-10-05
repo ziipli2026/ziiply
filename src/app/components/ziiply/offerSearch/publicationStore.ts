@@ -58,6 +58,25 @@ export async function readActivePublicationOffers<T>(chain: string, at: Date = n
   return rows.flatMap((row) => Array.isArray(row.offers) ? row.offers as T[] : []);
 }
 
+export async function readPublicationCandidate<T>(chain: string, publicationId: string) {
+  if (!chain || !publicationId) return null;
+  const sql = await database();
+  const rows = await sql`SELECT publication_id, valid_from::text AS valid_from,
+    valid_until::text AS valid_until, parsed_at::text AS parsed_at, approval_state, offers
+    FROM ziiply_offer_publications
+    WHERE chain = ${chain} AND publication_id = ${publicationId} AND approval_state = 'candidate'
+    LIMIT 1`;
+  if (!rows.length) return null;
+  const row = rows[0];
+  return {
+    publicationId: String(row.publication_id),
+    validFrom: String(row.valid_from).slice(0, 10),
+    validUntil: String(row.valid_until).slice(0, 10),
+    parsedAt: String(row.parsed_at),
+    offers: (Array.isArray(row.offers) ? row.offers : []) as T[],
+  };
+}
+
 export async function approvePublication(chain: string, publicationId: string): Promise<boolean> {
   if (!chain || !publicationId) return false;
   const sql = await database();
