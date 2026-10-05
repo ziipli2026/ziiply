@@ -104,8 +104,8 @@ export function addVerifiedLidlWeek40Leaflet(
               ? `Yhdistelmä yhteensä ${item.priceText}`
               : item.eligibility === "limited-batch" ? "Rajoitettu erä" :
                 item.eligibility === "lidl-plus" ? "Lidl Plus -etu" : "Tarjouslehti",
-          campaignType: shortCampaignIds.has(String(item.id || "").replace(/^lidl-leaflet-/, "")) ? "campaign" : item.campaignType,
-          campaignSection: shortCampaignIds.has(String(item.id || "").replace(/^lidl-leaflet-/, "")) ? "5.–7.10." : item.campaignSection,
+          campaignType: shortCampaignIds.has(String(item.id || "").replace(/^lidl-leaflet-/, "")) ? "campaign" : (item as any).campaignType,
+          campaignSection: shortCampaignIds.has(String(item.id || "").replace(/^lidl-leaflet-/, "")) ? "5.–7.10." : (item as any).campaignSection,
           rawText: [item.name, item.category, item.priceText, storeName].filter(Boolean).join(" "),
         }
       : item
