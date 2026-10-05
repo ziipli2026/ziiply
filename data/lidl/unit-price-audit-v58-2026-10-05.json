@@ -824,33 +824,33 @@
       "name": "KARL FAZER Suklaalevy 4 kpl",
       "unitPriceText": "180–200 g | 12,50–13,89 €/kg | hinta yksittäin 3,85 € | 4 kpl 10,00 €",
       "source": "public_campaign_exact_match"
-    }
-  ],
-  "remainingMissingRows": [
+    },
     {
       "lidlProductId": "10038243",
       "name": "Satsuma",
-      "displayedPriceEur": 1.39,
-      "ian": "80103"
+      "unitPriceText": "1 kg | 1,39 €/kg",
+      "source": "public_campaign_exact_match"
     },
     {
       "lidlProductId": "10038250",
       "name": "Kotimainen omena",
-      "displayedPriceEur": 2.79,
-      "ian": "80241"
+      "unitPriceText": "irto | hinta/kg 2,79 €",
+      "source": "public_campaign_exact_match"
     },
     {
       "lidlProductId": "10038257",
       "name": "Osteen-mango",
-      "displayedPriceEur": 3.49,
-      "ian": "80710"
+      "unitPriceText": "irto | hinta/kg 3,49 €",
+      "source": "public_campaign_exact_match"
     },
     {
       "lidlProductId": "10038265",
       "name": "KARINIEMEN Kananpojan siivet 2 kpl",
-      "displayedPriceEur": 5,
-      "ian": "7109626"
-    },
+      "unitPriceText": "700 g | 3,57 €/kg | 2 kpl 5,00 €",
+      "source": "public_campaign_exact_match"
+    }
+  ],
+  "remainingMissingRows": [
     {
       "lidlProductId": "10038267",
       "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
@@ -920,10 +920,10 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 52,
+    "resolvedOfficial": 56,
     "resolvedDerived": 6,
     "notApplicable": 11,
-    "remaining": 15
+    "remaining": 11
   },
   "unitPriceNotApplicable": [
     {
