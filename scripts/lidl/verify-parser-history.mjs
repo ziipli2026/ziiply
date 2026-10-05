@@ -152,3 +152,5 @@ if (mode === "verify") {
 } else {
   throw new Error("Only verify mode is supported. Approval must come from an independently reviewed source capture.");
 }
+
+// History replay trigger: verifier logic unchanged.
