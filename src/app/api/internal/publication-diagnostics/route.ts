@@ -81,10 +81,10 @@ export async function GET(request: Request) {
     // Superseded snapshots are expected when a source republishes a corrected edition.
     // Report their count, but do not degrade health merely because history exists.
     if (current.length && !upcoming.length) {
-      const endDates = current.map((edition) => edition.validUntil).sort();
-      const currentEnd = endDates[endDates.length - 1];
       const daysUntilEnd = daysUntilCurrentEnd;
-      if (daysUntilEnd !== null && daysUntilEnd <= 1)
+      if (daysUntilEnd !== null && daysUntilEnd < 0)
+        issue("CURRENT_PUBLICATION_EXPIRED", "error", "Stored current publication has already expired");
+      else if (daysUntilEnd !== null && daysUntilEnd <= 1)
         issue("NEXT_PUBLICATION_MISSING", "warning", "Current publication ends within one day and no upcoming publication is staged");
     }
     for (const edition of current) {
