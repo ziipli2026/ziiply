@@ -1,5 +1,6 @@
 # Lidl normal-price adapter regression gate
 # Trigger after latest route-test fix
+# CI marker: 63b1150 route assertion cleanup
 name: Lidl independent price preview
 # Identifier, variant, completeness, enrichment-priority and public-evidence audits
 on:
