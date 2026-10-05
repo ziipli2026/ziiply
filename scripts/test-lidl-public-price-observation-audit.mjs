@@ -6,6 +6,7 @@ assert.equal(result.publicPriceObservations,110);
 assert.ok(result.promotionSuspectCount>0);
 assert.equal(result.explicitMultiBuyCount,16);
 assert.equal(result.weightPricedObservationCount,20);
+assert.equal(result.promotionOnlySignalCount,0);
 assert.equal(result.promotionSuspectCount+result.unclassifiedPublicPriceCount,110);
 assert.equal(result.checkoutVerifiedCount,0);
 assert.equal(result.comparableCount,0);
