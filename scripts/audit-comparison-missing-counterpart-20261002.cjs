@@ -6,8 +6,8 @@ assert.match(source,/if \(aComplete !== bComplete\) return aComplete \? -1 : 1;/
 assert.match(source,/if \(storeMissing !== cheapestMissing \|\| storeCount !== cheapestCount\) return null;/);
 assert.match(source,/const hasNoCounterpart =[\s\S]*?Number\(store\.itemCount \|\| 0\)\) === 0/);
 assert.match(source,/const diffLabel = hasNoCounterpart \\|\\| Math\\.max/);
-assert.match(chain,/missingItems: comparableCart\\.length - visibleSListV804\\.length/);
-assert.match(chain,/missingItems: comparableCart\\.length - visibleKListV804\\.length/);
+assert.match(chain,/missingItems: comparableCart\.length - visibleSListV804\.length/);
+assert.match(chain,/missingItems: comparableCart\.length - visibleKListV804\.length/);
 function cheapest(stores){return [...stores].sort((a,b)=>{const ac=a.missingItems===0,bc=b.missingItems===0;if(ac!==bc)return ac?-1:1;if(a.itemCount!==b.itemCount)return b.itemCount-a.itemCount;return a.totalPrice-b.totalPrice})[0]}
 function diff(store,best){if(store.missingItems!==best.missingItems||store.itemCount!==best.itemCount)return null;return store.totalPrice-best.totalPrice}
 const full={id:"S",totalPrice:550,itemCount:2,missingItems:0};
