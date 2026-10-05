@@ -23011,6 +23011,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onContentTabChange={(tab: "offers" | "campaigns") => {
               setGostaContentTabV1(tab);
               handleGostaFilterChangeV136("");
+
+              // Lidl campaigns share the provider master with leaflet offers.
+              // Refresh once only when an older in-memory master has no campaign
+              // rows; keep the normal warmed/cache path untouched otherwise.
+              if (
+                tab === "campaigns" &&
+                gostaSelectedOfferChainRefV547.current === "LIDL" &&
+                !gostaMasterOfferResultsV528.some((item: any) => item?.campaignType === "campaign")
+              ) {
+                gostaMasterByContextRefV802.current.clear();
+                gostaLastSearchContextKeyRefV532.current = "";
+                void searchOffers();
+              }
             }}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
