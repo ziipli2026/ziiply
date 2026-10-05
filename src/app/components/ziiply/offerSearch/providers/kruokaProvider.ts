@@ -482,7 +482,7 @@ function localBenefitType(offer: UnknownRecord): "offer" | "campaign" {
   return "offer";
 }
 
-function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: string, displayStoreName: string, chain: string, slug: string): ZiiplyOfferSearchResult | null {
+export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: string, displayStoreName: string, chain: string, slug: string): ZiiplyOfferSearchResult | null {
   const title = String(offer.name ?? offer.title ?? "").trim();
   if (!title) return null;
   const membership = num(offer.membershipPrice);
