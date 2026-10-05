@@ -38,12 +38,7 @@
       "normalPriceUnknown": true
     }
   ],
-  "packagedNormalPriceMissing": [
-    {
-      "lidlProductId": "10038437",
-      "name": "DOVGAN Blini 2 kpl"
-    }
-  ],
+  "packagedNormalPriceMissing": [],
   "rules": [
     "Do not copy Lidl Plus/campaign price into normal checkout price.",
     "Do not convert Lidl IAN/productId to GTIN.",
@@ -108,10 +103,19 @@
       "campaignPriceEur": 3,
       "normalUnitPriceEur": 1.99,
       "sourceType": "retailer_reported_normal_price"
+    },
+    {
+      "lidlProductId": "10038437",
+      "name": "DOVGAN Blini 2 kpl",
+      "packageSize": "2 x 500 g",
+      "normalPriceEur": 5.98,
+      "campaignPriceEur": 5,
+      "normalUnitPriceEur": 2.99,
+      "sourceType": "retailer_reported_normal_price"
     }
   ],
   "summary": {
-    "resolvedFromRetailerReportedCampaignReference": 7,
-    "stillMissing": 1
+    "resolvedFromRetailerReportedCampaignReference": 8,
+    "stillMissing": 0
   }
 }
