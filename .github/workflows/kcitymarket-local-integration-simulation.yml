@@ -115,7 +115,17 @@ jobs:
           const missing=local.filter(x=>!visible.some(y=>y.id===x.id));
           const wrongTab=offers.filter(x=>localIds.has(x.id));
           const badCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
-          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title)},null,2));
-          if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length)process.exitCode=1;
+          const knownFallbacks=new Set([
+            'ROOSA NAUHA 2026','ROOSA NAUHA 2026 -RANNEKE','myhome Pumpkin KORISTETYYNY',
+            'HALLOWEEN SERPENTIINI 2 rll/pkt tai ILMAPALLO 5 kpl/pkt','HÄMÄHÄKINVERKKO 100 g',
+            'HALLOWEEN MINITIKKUPALLO','LASTEN LUURANKO- tai NOITA-ASU','ERÄ HALLOWEEN TUOTTEITA',
+            'HALLOWEEN PEHMO 38 cm','HALLOWEEN ELÄIMET','LED-NAAMARI, 6 VÄRIÄ','TYYNYLIINA SILKKI',
+            'VATI 20 x 35 cm','LAUTANEN 26 cm tai LAUTANEN SYVÄ 21 cm','VATI 12 x 12 cm',
+            'KULHO 0,6 l','KULHO 15 cm','LAUTANEN 22 cm','LAUTANEN 16 x 16 cm','LAUTANEN 17 cm',
+            'Drift LANGATTOMAT NAPPIKUULOKKEET','Grip BLUETOOTH-KAIUTIN','Recreate AKTIVITEETTIKORTIT','Remes KAAOS'
+          ]);
+          const unexpectedFallbacks=badCategories.filter(x=>!knownFallbacks.has(x.title)).map(x=>x.title);
+          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),unexpectedFallbacks},null,2));
+          if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
