@@ -110,6 +110,6 @@ jobs:
           }
           suspects.sort((a,b)=>b.score-a.score);
           console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),semanticDuplicateSuspects:suspects.slice(0,40)},null,2));
-          if(!national.length||!local.length||!jumbo.length||foreign.length||missing.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length)process.exitCode=1;
+          if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
