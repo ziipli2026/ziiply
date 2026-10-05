@@ -7,6 +7,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 const source = new URL("../data/lidl/official-product-image-price-audit-2026-10-04.json", import.meta.url);
+// Mass GTIN audit run marker: 2026-10-05T15:00Z
 const records = JSON.parse(readFileSync(source, "utf8")).records;
 const arg = process.argv.find(x => x.startsWith("--limit="));
 const limit = process.argv.includes("--all") ? records.length : arg ? Math.max(0, Math.min(records.length, Number(arg.split("=")[1]) || 0)) : 10;
