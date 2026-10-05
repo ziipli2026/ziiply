@@ -96,14 +96,10 @@ jobs:
             const r = await fetch(archive, {headers:{'user-agent':'Ziiply-Citymarket-Regression/1.0'}});
             if (!r.ok) throw new Error('archive HTTP '+r.status+' '+archive);
             const html = await r.text();
-            for (const m of html.matchAll(/https?:\\/\\/[^"'\\s<>]+/g)) {
-              const url = m[0].replace(/\\\\/g,'');
-              if (/kcm-lehdet\\.k-ruoka\\.fi/i.test(url)) links.add(url);
-            }
-            for (const m of html.matchAll(/(?:href|src)=[\"']([^\"']+)[\"']/gi)) {
+            for (const m of html.matchAll(/(?:href|src)=["']([^"']+)["']/gi)) {
               try {
                 const url = new URL(m[1], archive).href;
-                if (/kcm-lehdet\\.k-ruoka\\.fi/i.test(url)) links.add(url);
+                if (/kcm-lehdet\.k-ruoka\.fi/i.test(url)) links.add(url);
               } catch {}
             }
           }
