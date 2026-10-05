@@ -227,7 +227,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
     })();
     output.push({
       id: "lidl-fi-campaign-" + normalize([brandName, name, price, validFrom, validUntil].join("-")),
-      source: "lidl-fi-public", chain: "Lidl", storeKey: "FI", storeLabel: "Lidl", storeName: "Lidl", shopName: "Lidl",
+      source: "lidl-fi-public", chain: "Lidl",
       title: name, name, productName: name, brandName, price, priceText: `${price.toFixed(2).replace(".", ",")} €`, offerPrice: price,
       originalPrice: money(product.originalPrice ?? offer.originalPrice) || null,
       normalPrice: money(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice) || null,
