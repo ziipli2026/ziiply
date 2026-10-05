@@ -210,7 +210,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
     const name = String(product.productName || product.name || product.title || "").trim();
     const brandName = typeof product.brand === "string" ? product.brand : String(product.brand?.name || product.brandName || "").trim();
     const price = money(offer.price ?? offer.offerPrice ?? product.price ?? product.offerPrice);
-    if (!name || !Number.isFinite(price) || price <= 0) continue;
+    if (!name || price == null || price <= 0) continue;
     const validFrom = isoDate(offer.validFrom || offer.startDate || product.validFrom || product.startDate) || fallbackDate;
     const validUntil = isoDate(offer.validUntil || offer.endDate || product.validUntil || product.endDate) || fallbackDate;
     const category = categoryFor([brandName, name, product.description, product.category].filter(Boolean).join(" "), sourceUrl);
