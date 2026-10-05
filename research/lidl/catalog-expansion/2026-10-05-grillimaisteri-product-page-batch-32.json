@@ -1,0 +1,50 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_product_specific_records": 1,
+  "products": [
+    {
+      "brand": "Grillimaisteri",
+      "name": "Kanan grilliboxi",
+      "package_size": "n. 1,7 kg",
+      "category": "tuorekana/grillituotteet",
+      "lidl_product_id": "10023795",
+      "official_product_url": "https://www.lidl.fi/p/grillimaisteri-kanan-grilliboxi/p10023795",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "attributes": [
+        "Hyvää Suomesta",
+        "100 % kotimaista lihaa"
+      ],
+      "verification": "Official Lidl Finland product-specific /p/ page. Lidl Plus/campaign price intentionally excluded from normal_price."
+    }
+  ],
+  "dedup_notes": [
+    {
+      "brand": "Kanamestari",
+      "name": "Kanan ohut fileeleike",
+      "package_size": "600 g",
+      "ids": [
+        "10023533",
+        "10023534"
+      ],
+      "status": "duplicate-quarantine",
+      "reason": "Two official Lidl product pages expose the same displayed product and pack size; keep one logical SKU until EAN/variant evidence proves otherwise."
+    },
+    {
+      "brand": "Nautica",
+      "name": "Kylmäsavulohi",
+      "package_size": "200 g",
+      "lidl_product_id": "10023624",
+      "status": "already-present",
+      "reason": "Confirmed again but already stored in batch 27."
+    }
+  ],
+  "source_context": [
+    "https://www.lidl.fi/p/grillimaisteri-kanan-grilliboxi/p10023795",
+    "https://www.lidl.fi/p/kanamestari-kanan-ohut-fileeleike/p10023533",
+    "https://www.lidl.fi/p/kanamestari-kanan-ohut-fileeleike/p10023534",
+    "https://www.lidl.fi/p/nautica-kylmasavulohi/p10023624"
+  ]
+}
