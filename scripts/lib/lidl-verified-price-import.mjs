@@ -25,7 +25,7 @@ export function importVerifiedLidlPrices(rows, knownProductIds, storeId, now = n
         row.regularPriceEur !== previous.regularPriceEur) {
       accepted.delete(id);
       conflicted.add(id);
-      rejected.push({ lidlProductId:id, reason:"conflicting-evidence" });
+      reject(row, id, "conflicting-evidence");
       continue;
     }
     if (!previous || Date.parse(row.observedAt) > Date.parse(previous.observedAt)) {
