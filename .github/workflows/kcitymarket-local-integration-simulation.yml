@@ -87,38 +87,28 @@ jobs:
         run: |
           cat > citymarket-archive-test.mts <<'NODE'
           import { parseKCitymarketSpatialLeaflet } from './src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js';
-          const archives = [
-            'https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/',
-            'https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/'
+          const urls = [
+            'https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html',
+            'https://kcm-tarjouslehdet.k-ruoka.fi/77seutu_tarjouslehti_39AV_KCM/files/basic-html/page1.html',
+            'https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/files/basic-html/page1.html',
+            'https://kcm-tarjouslehdet.k-ruoka.fi/75q7ung_tarjouslehti_38AV_KCM/files/basic-html/page1.html',
+            'https://kcm-tarjouslehdet.k-ruoka.fi/76c426p_tarjouslehti_38LV_KCM/files/basic-html/page1.html',
+            'https://kcm-tarjouslehdet.k-ruoka.fi/74si9l9_tarjouslehti_37LV_KCM/files/basic-html/page1.html',
           ];
-          const links = new Set<string>();
-          for (const archive of archives) {
-            const r = await fetch(archive, {headers:{'user-agent':'Ziiply-Citymarket-Regression/1.0'}});
-            if (!r.ok) throw new Error('archive HTTP '+r.status+' '+archive);
-            const html = await r.text();
-            for (const m of html.matchAll(/(?:href|src)=["']([^"']+)["']/gi)) {
-              try {
-                const url = new URL(m[1], archive).href;
-                if (/kcm-lehdet\.k-ruoka\.fi/i.test(url)) links.add(url);
-              } catch {}
-            }
-          }
-          const candidates=[...links].filter(u=>/tarjous|lehdet|pdf/i.test(u));
-          if(candidates.length<2) throw new Error('Could not discover archived Citymarket leaflets from archive pages');
-          const sample=candidates.slice(0,6);
           const results=[];
-          for(const url of sample){
-            try{
+          for (const url of urls) {
+            try {
               const parsed=await parseKCitymarketSpatialLeaflet(url);
               const rows=Array.isArray(parsed?.rows)?parsed.rows:[];
-              if(rows.length) results.push({url,count:rows.length,leaflet:parsed?.leaflet||url});
-            }catch(error){ results.push({url,error:String(error)}); }
+              results.push({url,count:rows.length,leaflet:parsed?.leaflet||url});
+              if(rows.length<5) process.exitCode=1;
+            } catch(error) {
+              results.push({url,error:String(error)});
+              process.exitCode=1;
+            }
           }
           console.log('CITYMARKET_ARCHIVE_REGRESSION '+JSON.stringify(results,null,2));
-          if(results.length<2) process.exitCode=1;
-          for(const result of results){
-            if(!result.count||result.count<5) process.exitCode=1;
-          }
+          if(results.length!==urls.length) process.exitCode=1;
           NODE
           npx --yes tsx citymarket-archive-test.mts
 
