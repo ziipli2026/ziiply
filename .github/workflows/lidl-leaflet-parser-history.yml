@@ -63,6 +63,35 @@ jobs:
       - name: Verify every archived Lidl parser edition
         if: steps.clock.outputs.run == 'true'
         run: node scripts/lidl/verify-parser-history.mjs verify
+      - name: Stage official Lidl candidates
+        id: stage
+        if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ZIIPLY_BASE_URL: ${{ secrets.ZIIPLY_BASE_URL }}
+        run: |
+          test -n "$CRON_SECRET"
+          test -n "$ZIIPLY_BASE_URL"
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$ZIIPLY_BASE_URL/api/cron/lidl-publications" > /tmp/lidl-stage.json
+          node -e 'const fs=require("fs"); const j=JSON.parse(fs.readFileSync("/tmp/lidl-stage.json","utf8")); if(!j.ok) process.exit(1); const ids=(j.staged||[]).filter(x=>x.outcome==="stored"||x.outcome==="unchanged").map(x=>x.publicationId).filter(Boolean); fs.appendFileSync(process.env.GITHUB_OUTPUT,"publication_ids="+ids.join(",")+"\n");'
+      - name: Promote only regression-verified Lidl candidates
+        if: steps.clock.outputs.run == 'true' && steps.stage.outputs.publication_ids != ''
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ZIIPLY_BASE_URL: ${{ secrets.ZIIPLY_BASE_URL }}
+          PUBLICATION_IDS: ${{ steps.stage.outputs.publication_ids }}
+        run: |
+          IFS=',' read -ra ids <<< "$PUBLICATION_IDS"
+          for id in "${ids[@]}"; do
+            payload=$(node -e 'process.stdout.write(JSON.stringify({publicationId:process.argv[1],regressionPassed:true,regressionCommit:process.env.GITHUB_SHA}))' "$id")
+            curl --fail --silent --show-error -X POST \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              -H "Content-Type: application/json" \
+              --data "$payload" \
+              "$ZIIPLY_BASE_URL/api/cron/lidl-publications/promote"
+          done
       - name: Upload Lidl source captures for review
         if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
