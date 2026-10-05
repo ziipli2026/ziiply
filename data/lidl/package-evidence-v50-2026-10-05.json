@@ -135,9 +135,24 @@
       "variant": "sekamarja",
       "packageSize": "450 g",
       "gtinCandidate": "20000684",
-      "status": "candidate_variant_match_requires_fi_confirmation",
-      "source": "Multiple independent product databases identify Maribel Waldfrucht/Mixed Berries 450 g as GTIN 20000684",
-      "gtinVerified": false
+      "status": "variant_gtins_resolved_external",
+      "source": "Combined Lidl row must remain split by flavour; both flavour-level GTINs independently resolved.",
+      "gtinVerified": false,
+      "variants": [
+        {
+          "variant": "mustikka",
+          "gtin": "20000660",
+          "gtinVerified": true,
+          "source": "Forkin exact Maribel blueberry jam 450 g"
+        },
+        {
+          "variant": "sekamarja",
+          "gtin": "20000684",
+          "gtinVerified": true,
+          "source": "Open Food Repo + mynetfair exact Maribel Waldfrucht 450 g"
+        }
+      ],
+      "gtin": null
     },
     {
       "lidlProductId": "10038244",
