@@ -1,0 +1,101 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_verified_skus": 0,
+  "new_official_candidates": 6,
+  "source_url": "https://www.lidl.fi/h/pakasteet/h10071049",
+  "source_window": "2026-09-24/2026-09-30",
+  "products": [
+    {
+      "brand": "VITASIA",
+      "name": "Surimikatkaravut",
+      "package_size": "320 g",
+      "category": "pakastekala ja -äyriäiset",
+      "attributes": ["MSC"],
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "VITASIA",
+      "name": "Edamamepavut",
+      "package_size": "200 g",
+      "category": "pakastevihannekset",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "note": "Listed as Uutuus/SUPERHINTA; campaign price excluded"
+    },
+    {
+      "brand": "VITASIA",
+      "name": "Mochijäätelö",
+      "package_size": "6 x 35 g",
+      "category": "jäätelöt",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "GELATELLI",
+      "name": "Juustokakkujäätelö",
+      "package_size": "500 ml",
+      "category": "jäätelöt",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "note": "Listed as Uutuus"
+    },
+    {
+      "brand": "VITASIA",
+      "name": "Gyoza-taikinanyytti broileri",
+      "package_size": "212 g",
+      "category": "pakasteateriat",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "VITASIA",
+      "name": "Edamame-pavut",
+      "package_size": "400 g",
+      "category": "pakastevihannekset",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null
+    }
+  ],
+  "excluded_from_new_candidates": [
+    {
+      "brand": "VITASIA",
+      "name": "Gyoza-taikinanyytti",
+      "package_size": "400 g",
+      "reason": "Already verified earlier as Lidl ID 10023536"
+    },
+    {
+      "brand": "LEROY",
+      "name": "Rapea kalapihvi",
+      "package_size": "240 g",
+      "reason": "Already captured in batch 30"
+    },
+    {
+      "brand": "MAGNUM",
+      "name": "Minijäätelöpuikko 6-pack",
+      "package_size": "330 ml",
+      "reason": "Not prioritized in this Lidl-own research expansion batch"
+    }
+  ],
+  "identity_note": "Vitasia Edamamepavut 200 g and Edamame-pavut 400 g are kept as separate observations because pack sizes differ; do not merge without EAN/product-ID evidence.",
+  "price_policy": "Category-page campaign prices are not stored as current normal prices. Promotion to verified SKU requires individual Lidl product ID or independently verified EAN."
+}
