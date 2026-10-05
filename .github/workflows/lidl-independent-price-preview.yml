@@ -9,6 +9,8 @@ on:
     paths:
       - 'scripts/lib/lidl-*.mjs'
       - 'scripts/test-lidl-independent-route.mjs'
+      - 'scripts/test-lidl-normal-search-store-key.mjs'
+      - 'src/app/page.tsx'
       - 'scripts/test-lidl-price-source-contract-v69.mjs'
       - 'scripts/test-lidl-verified-price-import.mjs'
       - 'scripts/test-lidl-manual-price-intake.mjs'
@@ -69,6 +71,7 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/test-lidl-independent-route.mjs
+      - run: node scripts/test-lidl-normal-search-store-key.mjs
       - run: node scripts/test-lidl-price-source-contract-v69.mjs
       - run: node scripts/test-lidl-verified-price-import.mjs
       - run: node scripts/test-lidl-manual-price-intake.mjs
