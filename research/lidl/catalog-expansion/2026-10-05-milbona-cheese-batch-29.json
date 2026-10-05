@@ -1,0 +1,39 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_product_specific_records": 1,
+  "products": [
+    {
+      "brand": "Milbona",
+      "name": "Cheddar",
+      "package_size": "250 g",
+      "category": "juustot",
+      "lidl_product_id": "10026908",
+      "official_product_url": "https://www.lidl.fi/p/milbona-cheddar/p10026908",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "verification": "Official Lidl Finland product-specific /p/ page. Indexed campaign price intentionally not stored as current normal price."
+    }
+  ],
+  "candidate_only": [
+    {
+      "brand": "Milbona",
+      "name": "Halloumi",
+      "package_size": "225 g",
+      "source_url": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+      "reason": "Official category listing confirms name and pack size, but no individual /p/ ID verified in this batch."
+    },
+    {
+      "brand": "Milbona",
+      "name": "Gouda 30 %",
+      "package_size": "500 g",
+      "source_url": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+      "reason": "Official category listing only; no individual /p/ ID verified."
+    }
+  ],
+  "source_context": {
+    "url": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+    "indexed_product_count": 16
+  }
+}
