@@ -7,6 +7,7 @@ on:
       - ".github/workflows/lidl-leaflet-parser-history.yml"
       - "scripts/lidl/**"
       - "data/lidl/parser-regression/**"
+      - "data/lidl/source-captures/**"
       - "src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts"
   schedule:
     # Publication-day checks. Helsinki clock guard keeps DST behaviour stable.
@@ -42,6 +43,25 @@ jobs:
       - name: Install dependencies for production parser replay
         if: steps.clock.outputs.run == 'true'
         run: npm ci --ignore-scripts
+      - name: Capture current official Lidl.fi category HTML
+        if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        run: |
+          mkdir -p data/lidl/source-captures
+          stamp=$(TZ=Europe/Helsinki date +%Y-%m-%dT%H-%M-%S)
+          curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' \
+            'https://www.lidl.fi/h/vihannekset/h10095593' \
+            -o "data/lidl/source-captures/${stamp}-vihannekset.html"
+          curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' \
+            'https://www.lidl.fi/h/valmisateriat/h10097147' \
+            -o "data/lidl/source-captures/${stamp}-valmisateriat.html"
       - name: Verify every archived Lidl parser edition
         if: steps.clock.outputs.run == 'true'
         run: node scripts/lidl/verify-parser-history.mjs verify
+      - name: Upload Lidl source captures for review
+        if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-artifact@v4
+        with:
+          name: lidl-official-source-captures
+          path: data/lidl/source-captures/*.html
+          if-no-files-found: error
+          retention-days: 30
