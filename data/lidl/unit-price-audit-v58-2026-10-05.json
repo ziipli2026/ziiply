@@ -864,24 +864,6 @@
       "ian": "7107090"
     },
     {
-      "lidlProductId": "10038282",
-      "name": "NOSTJA Pancetta",
-      "displayedPriceEur": 6.25,
-      "ian": "6902818"
-    },
-    {
-      "lidlProductId": "10038286",
-      "name": "KULJANKA Valkokaalisalaatti",
-      "displayedPriceEur": 1.99,
-      "ian": "5500677"
-    },
-    {
-      "lidlProductId": "10038288",
-      "name": "KULJANKA Täytetty broileripihvi",
-      "displayedPriceEur": 4.49,
-      "ian": "184403"
-    },
-    {
       "lidlProductId": "10038293",
       "name": "KULJANKA Vaniljajäätelövohvelipikarit",
       "displayedPriceEur": 3.49,
@@ -910,18 +892,6 @@
       "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
       "displayedPriceEur": 5,
       "ian": "59859"
-    },
-    {
-      "lidlProductId": "10038471",
-      "name": "FRESHONA Suomalainen herne",
-      "displayedPriceEur": 0.88,
-      "ian": "7111948"
-    },
-    {
-      "lidlProductId": "10038477",
-      "name": "GELATELLI Kuningatarkermajäätelö",
-      "displayedPriceEur": 2.69,
-      "ian": "7112282"
     },
     {
       "lidlProductId": "10038479",
@@ -957,8 +927,9 @@
   "summary": {
     "originalMissing": 83,
     "resolvedOfficial": 46,
+    "resolvedDerived": 5,
     "notApplicable": 11,
-    "remaining": 27
+    "remaining": 22
   },
   "unitPriceNotApplicable": [
     {
@@ -1037,6 +1008,43 @@
       "displayedPriceEur": 2.5,
       "ian": "7112003",
       "reason": "store-bakery/piece-priced campaign; mass/volume unit price is not required for this audit"
+    }
+  ],
+  "derivedUnitPriceEvidence": [
+    {
+      "lidlProductId": "10038471",
+      "name": "FRESHONA Suomalainen herne",
+      "unitPriceText": "200 g | 4,40 €/kg",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "0.88 / 0.200 kg"
+    },
+    {
+      "lidlProductId": "10038477",
+      "name": "GELATELLI Kuningatarkermajäätelö",
+      "unitPriceText": "1 l / 515 g | 2,69 €/l",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "2.69 / 1 l"
+    },
+    {
+      "lidlProductId": "10038282",
+      "name": "NOSTJA Pancetta",
+      "unitPriceText": "100 g | 62,50 €/kg",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "6.25 / 0.100 kg"
+    },
+    {
+      "lidlProductId": "10038288",
+      "name": "KULJANKA Täytetty broileripihvi",
+      "unitPriceText": "500 g | 8,98 €/kg",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "4.49 / 0.500 kg"
+    },
+    {
+      "lidlProductId": "10038286",
+      "name": "KULJANKA Valkokaalisalaatti",
+      "unitPriceText": "880 g (kiinteä paino 410 g) | 4,85 €/kg kiinteästä painosta",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "1.99 / 0.410 kg"
     }
   ]
 }
