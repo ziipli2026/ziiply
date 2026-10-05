@@ -373,7 +373,8 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\\bsadonkorjuu\\s*(?:amp[a-z]*ri\\w*|kassi\\w*)\\b/.test(productTitle)) return "Hevi";
   if (/\b(oreo|taytekeksi\w*|suklaakeksi\w*|voileipakeksi\w*)\b/.test(productTitle)) return "Makeiset & keksit";
   if (/\b(harkis\w*|harkapapumurska\w*|nyhtokaura\w*|kasviproteiinimurska\w*)\b/.test(productTitle)) return "Valmisruoka";
-  if (/\b(burgeri\w*|hampurilais\w*|mikroburgeri\w*|valmisateria\w*)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(burgeri\w*|hampurilais\w*|mikroburgeri\w*|valmisateria\w*|annosateria\w*|kaalikaaryle\w*)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(pehmosampyla\w*|sampyla\w*)\b/.test(productTitle)) return "Leipomo";
   if (/\b(kahvi\w*|papukahvi\w*|suodatinkahvi\w*|pikakahvi\w*|espresso\w*|kahvikapseli\w*)\b/.test(productTitle)) return "Kahvi & tee";
   // V71: exact product identities must beat ingredient/flavour words.
   // Salad mixes are HEVI even when source descriptions mention dairy.
@@ -490,8 +491,16 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const publicationId = String(offer.publicationPublicId ?? "");
   const image = String(offer.imageLarge ?? offer.image ?? "") || null;
   const unit = String(offer.baseUnit ?? "").trim();
-  const unitPriceValue = num(offer.unitPrice);
-  const unitPrice = unitPriceValue == null ? "" : `${priceText(unitPriceValue)}${unit ? `/${unit}` : ""}`;
+  const sourceDescription = String(offer.description ?? "");
+  const sourceUnitMatch = sourceDescription.match(/(?:^|\s)(\d+[,.]\d{1,2})\s*\/(kg|l)(?:\b|\s|,)/i);
+  const sourceUnitPriceValue = sourceUnitMatch ? Number(sourceUnitMatch[1].replace(",", ".")) : null;
+  const sourceUnit = sourceUnitMatch?.[2]?.toLowerCase() === "l" ? "liter" : sourceUnitMatch ? "kilogram" : "";
+  // V72: Tjek's numeric unitPrice/baseUnit can be internally inconsistent for
+  // multipacks and weighed deli products. Prefer the human-readable source
+  // description when it contains an explicit current offer unit price.
+  const unitPriceValue = sourceUnitPriceValue ?? num(offer.unitPrice);
+  const resolvedUnit = sourceUnit || unit;
+  const unitPrice = unitPriceValue == null ? "" : `${priceText(unitPriceValue)}${resolvedUnit ? `/${resolvedUnit}` : ""}`;
   const isPlussa = membership != null;
   const pieceCountFrom = num(offer.pieceCountFrom);
   const pieceCountTo = num(offer.pieceCountTo);
@@ -515,7 +524,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     title, name: title, productName: title,
     price: effective, priceText: effectivePriceText, offerPrice: effectivePriceText,
     previousPrice: regular != null && regular !== effective ? regular : null,
-    unitPrice, unitPriceText: unitPrice, unitPriceUnit: unit || null,
+    unitPrice, unitPriceText: unitPrice, unitPriceUnit: resolvedUnit || null,
     imageUrl: image, image, pictureUrl: image,
     storeId: displayStoreId, storeName: displayStoreName, storeLabel: displayStoreName,
     chain: "K", source: "etarjouslehdet", provider: "kruoka", offerId,

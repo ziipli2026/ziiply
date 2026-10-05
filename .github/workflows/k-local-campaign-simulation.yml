@@ -116,6 +116,9 @@ jobs:
               const category=String((row as any).category||'');
               if(/salaattimix|salaattisekoitus/.test(title)) return category!=='Hevi';
               if(title.includes('suklaalevy')||title.includes('suklaapatukka')||title.includes('suklaakonvehti')) return category!=='Makeiset & keksit';
+              if(title.includes('annosateria')||title.includes('kaalikaaryle')) return category!=='Valmisruoka';
+              if(title.includes('pehmosampyla')) return category!=='Leipomo';
+              if(title.includes('kuorettomat nakit')) return category!=='Liha & makkarat';
               return false;
             });
             console.log('K_CAMPAIGN_PROBE '+JSON.stringify({storeName,total:rows.length,offers:offers.length,campaigns:campaigns.length,offerCategories:categoryCounts(offers as any[]),campaignCategories:categoryCounts(campaigns as any[]),offerFallbacks:offerFallbacks.map(x=>x.title),campaignFallbacks:campaignFallbacks.map(x=>x.title),semanticCategoryFailures:semanticCategoryFailures.map(x=>({title:x.title,category:x.category})),probe:debug?.campaignProbe,publicationFetch:debug?.publicationFetch,publicationPipeline:debug?.publicationPipeline,sourceMarkers:(debug?.rawOffers??[]).slice(0,8).map(o=>({publicationPublicId:o.publicationPublicId,name:o.name,campaignType:o.campaignType,offerType:o.offerType,promotionType:o.promotionType,campaignLabel:o.campaignLabel,publicationLabel:o.publicationLabel,isCampaign:o.isCampaign,keys:Object.keys(o).filter(k=>/campaign|promo|type|label|source|category/i.test(k))})),error:debug?.error,publications:debug?.kSupermarketPublicationResolverDebug?.publications?.map(p=>({label:p.label,id:p.id,active:p.active})),samples:campaigns.slice(0,3).map(x=>({title:x.title,price:x.price,category:x.category}))}));
