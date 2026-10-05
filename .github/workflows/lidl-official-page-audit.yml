@@ -27,6 +27,9 @@ jobs:
       - name: Report structured price evidence
         run: |
           node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));const rows=d.records.filter(r=>r.structuredPriceEvidence?.length);console.log(JSON.stringify({pagesWithStructuredOffers:rows.length,totalStructuredOffers:rows.reduce((n,r)=>n+r.structuredPriceEvidence.length,0),products:rows.map(r=>({id:r.lidlProductId,name:r.name,offers:r.structuredPriceEvidence}))},null,2))"
+      - name: Export official GTIN candidates separately
+        run: |
+          node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));const rows=d.records.filter(r=>Array.isArray(r.officialPageGtins)&&r.officialPageGtins.length);const unique=[...new Set(rows.flatMap(r=>r.officialPageGtins))];console.log(JSON.stringify({pagesWithOfficialGtins:rows.length,uniqueOfficialGtins:unique.length,products:rows.map(r=>({id:r.lidlProductId,name:r.name,gtins:r.officialPageGtins}))},null,2));fs.writeFileSync('lidl-official-gtin-candidates.json',JSON.stringify({source:'lidl.fi-official-product-page',researchOnly:true,records:rows.map(r=>({lidlProductId:r.lidlProductId,name:r.name,officialUrl:r.officialUrl,gtins:r.officialPageGtins}))},null,2)+'\\n')"
       - name: Export reachable image candidates separately
         run: |
           node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));fs.writeFileSync('lidl-image-candidates.json',JSON.stringify({source:d.source,researchOnly:true,visuallyVerified:false,records:d.records.filter(x=>x.imageStatus==='product_page_image_candidate').map(x=>({lidlProductId:x.lidlProductId,name:x.name,officialUrl:x.officialUrl,imageUrl:x.candidateImageUrl,imageHttpStatus:x.imageHttpStatus,imageContentType:x.imageContentType,priceEur:null,ean:null}))},null,2)+'\\n')"
@@ -47,5 +50,6 @@ jobs:
           path: |
             lidl-official-page-results.json
             lidl-image-candidates.json
+            lidl-official-gtin-candidates.json
           if-no-files-found: warn
           retention-days: 14
