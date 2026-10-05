@@ -332,8 +332,13 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
   let failedPages = 0;
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
-    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date)
-      .filter(row => GROCERY_CATEGORIES.has(row.category)));
+    parsed.push(...[
+      ...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date),
+      // Lidl's category product grid is server-rendered for users/search engines,
+      // but its Product JSON-LD is not guaranteed to carry validFrom/validUntil.
+      // Reuse the visible Myymälässä parser as a first-party fallback here too.
+      ...parseCampaignVisibleProducts(result.value.html, result.value.url, date),
+    ].filter(row => GROCERY_CATEGORIES.has(row.category)));
   }
 
   const byKey = new Map<string, LidlPublicOffer>();
