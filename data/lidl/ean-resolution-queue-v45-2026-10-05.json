@@ -7,10 +7,9 @@
     "multipack_or_variant": 18,
     "variable_weight_or_produce": 33,
     "bakery_or_store_bakery": 104,
-    "no_public_gtin": 14,
+    "no_public_gtin": 15,
     "verified_gtin": 14,
-    "non_food": 13,
-    "needs_external_gtin_lookup": 1
+    "non_food": 13
   },
   "records": [
     {
@@ -829,8 +828,8 @@
       "name": "FAZER Tutti Frutti Candy Salad",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "no_public_gtin",
+      "resolutionReason": "exact_180g_variant_public_gtin_not_verified"
     },
     {
       "lidlProductId": "10038483",
