@@ -16,7 +16,7 @@ for(const source of urls){
  const html=await res.text();
  // Lidl category payload contains rendered product-card text. Split conservatively at product-card-ish price markers;
  // keep raw evidence so parser changes remain auditable.
- const text=clean(html);
+ const text=clean(html.replace(/\\u002F/g,"/").replace(/\\u0026/g,"&").replace(/\\u003C/g,"<").replace(/\\u003E/g,">").replace(/\\u0022/g,'"'));
  const chunks=text.split(/(?=Myymälässä\s+\d{1,2}\.\d{1,2}\.)/i);
  for(const chunk of chunks){
    const validity=chunk.match(/Myymälässä\s+(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)\s*-\s*(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)/i);
