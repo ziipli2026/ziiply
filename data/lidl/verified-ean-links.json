@@ -203,5 +203,10 @@
     "lidlProductId": "10038488",
     "ean": "5411823867841",
     "evidence": "Lidl identifies CONFISERIE FIRENZE Mini Donuts, article/IAN 218769, as 9 pieces / 276 g. Poppies Bakeries NV is documented as the manufacturer behind Lidl's Confiserie Firenze brand and lists Trio Mini Donuts under that brand. Poppies' official catalog identifies Trio Mini Donuts as 9 pieces / 276 g; independent product/foodservice data identifies the exact Poppies 276 g / 9-piece consumer pack EAN as 5411823867841. GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038295",
+    "ean": "4056489120087",
+    "evidence": "Finnish Lidl archive identifies the product as KULJANKA Suklaakuorrutettu vaahtomakeinen. Swedish Lidl retail data identifies the same Kuljanka chocolate-coated marshmallow product as a 380 g pack with EAN 4056489120087. Independent barcode/product data names EAN 4056489120087 as Kuljanka Vanilla Flavoured Marshmallows Coated In Dark Chocolate; nutrition data (396 kcal/100 g) matches the Kuljanka product record. GTIN-13 checksum valid."
   }
 ]
