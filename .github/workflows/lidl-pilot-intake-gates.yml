@@ -35,7 +35,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/test-lidl-price-source-contract-v69.mjs\n      - run: node scripts/test-lidl-price-pilot-template.mjs
+      - run: node scripts/test-lidl-price-source-contract-v69.mjs
+      - run: node scripts/test-lidl-price-pilot-template.mjs
       - run: node scripts/test-lidl-pilot-csv-reader.mjs
       - run: node scripts/test-lidl-pilot-csv-intake.mjs
       - run: node scripts/test-lidl-pilot-intake-cli.mjs
