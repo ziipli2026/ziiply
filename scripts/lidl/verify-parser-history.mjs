@@ -181,6 +181,8 @@ if (mode === "verify") {
       const covered = expected.filter(row => categoryActual.some(actual => actual.name === row.name));
       console.log(`INFO ${name}: category-page parser replay covered ${covered.length}/${expected.length} approved products (${categoryActual.length} total parsed category offers)`);
     }
+  }
+
   await fs.rm(tempDir, { recursive: true, force: true });
   if (failed) process.exit(1);
 } else {
