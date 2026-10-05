@@ -19,7 +19,7 @@ const sample=selectedIndices.map(index=>{
  if(!row||excluded.has(String(row.lidlProductId))) throw new Error("Pilot candidate missing or quarantined: "+index);
  return row;
 });
-const columns=["lidlProductId","name","variant","physicalStoreName","physicalStoreAddress","storeId","observedCode","observedCodeOrigin","scannedEanVerified","priceBasis","shelfPriceEur","shelfObservedAt","shelfPhotoReference","scanGoDisplayedPriceEur","receiptUnitPriceEur","receiptTimestamp","receiptEvidenceReference","validThrough","isLidlPlus","isPromotion","isMultiBuy","permissionToUseEvidence"];
+const columns=["lidlProductId","name","variant","physicalStoreName","physicalStoreAddress","storeId","observedCode","observedCodeOrigin","scannedEanVerified","priceBasis","shelfPriceEur","shelfObservedAt","shelfPhotoReference","scanGoDisplayedPriceEur","receiptUnitPriceEur","receiptTimestamp","receiptEvidenceReference","isLidlPlus","isPromotion","isMultiBuy","permissionToUseEvidence"];
 const quote=value=>'"'+String(value??"").replaceAll('"','""')+'"';
 const rows=[columns,...sample.map(item=>columns.map(col=>["lidlProductId","name","variant"].includes(col)?item[col]??"":""))];
 const output=rows.map(row=>row.map(quote).join(",")).join("\n")+"\n";
