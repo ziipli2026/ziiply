@@ -69,6 +69,8 @@ jobs:
           }
           const kgMapped=mapTjekOffer({name:'Kaalikääryle, lihan alkuperämaa Suomi',price:13.9,unitPrice:13.9,baseUnit:'piece',description:'13,90/kg',validFrom:'2026-10-04T21:00:00+0000',validUntil:'2026-10-07T20:59:59+0000'},0,'3334','K-Supermarket Jokela','K-Supermarket','K-Supermarket');
           if (!kgMapped || kgMapped.unitPrice!=='13,90/kilogram' || kgMapped.unitPriceUnit!=='kilogram') throw new Error('explicit source kg unit must override piece');
+          const arkiMapped=mapTjekOffer({name:'Saarioinen Arki annosateriat 310 g',membershipPrice:2.99,price:3.59,unitPrice:11.58,baseUnit:'kilogram',description:'310 g 9,65/kg Norm. 3,59 (11,58/kg)',validFrom:'2026-10-04T21:00:00+0000',validUntil:'2026-10-11T20:59:59+0000'},0,'3334','K-Supermarket Jokela','K-Supermarket','K-Supermarket');
+          if (!arkiMapped || arkiMapped.price!==2.99 || arkiMapped.unitPrice!=='9,65/kilogram' || arkiMapped.previousPrice!==3.59) throw new Error('offer unit price must follow explicit source offer kg price, not regular unit price');
           const multiMapped=mapTjekOffer({name:'Myllyn Paras MAKARONI',membershipPrice:1,price:0.55,unitPrice:0.83,baseUnit:'kilogram',pieceCountFrom:3,pieceCountTo:3,description:'400 g (0,83/kg)'},0,'3334','K-Supermarket Jokela','K-Supermarket','K-Supermarket');
           if (!multiMapped || multiMapped.priceText!=='1,00 € / 3 kpl' || multiMapped.unitPrice!=='0,83/kilogram') throw new Error('multi-buy unit regression');
           const bad=auditKOfferTabs([], [{title:'x',price:1,category:'  Hevi  '}]);
