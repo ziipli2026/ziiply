@@ -92,6 +92,22 @@
       "source": "Current Lidl campaign catalogue evidence",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038283",
+      "name": "KULJANKA Khinkalitaikinanyytti",
+      "packageSize": "400 g",
+      "source": "Lidl current prepared-food listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038300",
+      "name": "KULJANKA Paneroitu juusto",
+      "packageSize": "500 g",
+      "source": "Lidl current prepared-food listing",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
