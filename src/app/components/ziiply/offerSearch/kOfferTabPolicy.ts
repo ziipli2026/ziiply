@@ -29,8 +29,10 @@ function semanticTokens(row: KOfferTabRow): string[] {
     .filter(token => token.length >= 3 && !SEMANTIC_STOP_WORDS.has(token) && !/^\d/.test(token));
 }
 function packageTokens(row: KOfferTabRow): string[] {
-  return normalize([row.title || row.name || row.productName, row.packageSize].filter(Boolean).join(" "))
-    .match(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml|cl|kpl|pkt|prk|plo|tlk|rl)\b/g) || [];
+  const raw = [row.title || row.name || row.productName, row.packageSize]
+    .filter(Boolean).join(" ").toLowerCase();
+  return raw.match(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml|cl|kpl|pkt|prk|plo|tlk|rl)\b/g)
+    ?.map(token => token.replace(",", ".").replace(/\s+/g, "")) || [];
 }
 function semanticSameProduct(a: KOfferTabRow, b: KOfferTabRow): boolean {
   const ap=priceNumber(a), bp=priceNumber(b);
