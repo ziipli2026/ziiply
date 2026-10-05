@@ -56,6 +56,9 @@ jobs:
             [{name:'Salonen Pehmosämpylä kaura, peruna tai juusto 5 kpl/325 g',category:'Maitotuotteet'},'Leipomo'],
             [{name:'Atria rehti lihaisat kuorettomat nakit 280 g',category:'Kala'},'Liha & makkarat'],
             [{name:'Kaalikääryle, lihan alkuperämaa Suomi',category:'Maitotuotteet'},'Valmisruoka'],
+            [{name:'Saarioinen ARKI ANNOSATERIAT',category:'Maitotuotteet'},'Valmisruoka'],
+            [{name:'Saarioinen Arki annosateriat 310 g',category:'Maitotuotteet'},'Valmisruoka'],
+            [{name:'Hätälä pohjolan lohipihvi 190 g',category:'Liha & makkarat'},'Kala'],
           ];
           for (const [row,expected] of semanticCategoryCases) {
             const actual=mapTjekCategoryV54(row);

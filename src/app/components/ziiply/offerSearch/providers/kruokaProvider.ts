@@ -392,6 +392,8 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   // These guards also cover compounds/inflections that generic word-boundary rules miss.
   if (/\b(?:pehmo)?sampyla\w*\b/.test(productTitle)) return "Leipomo";
   if (/\bkaalikaaryle\w*\b/.test(productTitle)) return "Valmisruoka";
+  if (/\bannosateria\w*\b/.test(productTitle)) return "Valmisruoka";
+  if (/\blohipihvi\w*\b/.test(productTitle)) return "Kala";
   if (/\bnakit?\b/.test(productTitle)) return "Liha & makkarat";
 
   // Ready meals / ready-to-eat products.
