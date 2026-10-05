@@ -626,6 +626,36 @@
       "name": "Kotimainen ruusukaali",
       "unitPriceText": "400 g | 7,48 €/kg",
       "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038273",
+      "name": "JOKILAAKSON JUUSTO Tuorejuusto 2 kpl",
+      "unitPriceText": "90 g | 27,78 €/kg | hinta yksittäin 2,89 € | erä",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038299",
+      "name": "KULJANKA Höyrytetty juusto",
+      "unitPriceText": "370 g | 12,14 €/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038321",
+      "name": "KUUSAMON JUUSTO Eränkävijä-juusto",
+      "unitPriceText": "300 g | 14,63 €/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038322",
+      "name": "DANEROLLES Croissantit 2 kpl",
+      "unitPriceText": "240 g | 9,38 €/kg | hinta yksittäin 2,49 € | erä",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038324",
+      "name": "ATRIA Pizza 2 kpl",
+      "unitPriceText": "200 g | 8,75 €/kg | hinta yksittäin 1,99 € | erä",
+      "source": "official_lidl_fi"
     }
   ],
   "remainingMissingRows": [
@@ -720,12 +750,6 @@
       "ian": "207361"
     },
     {
-      "lidlProductId": "10038273",
-      "name": "JOKILAAKSON JUUSTO Tuorejuusto 2 kpl",
-      "displayedPriceEur": 5,
-      "ian": "7110186"
-    },
-    {
       "lidlProductId": "10038281",
       "name": "KARL FAZER Suklaalevy 4 kpl",
       "displayedPriceEur": 10,
@@ -786,12 +810,6 @@
       "ian": "5500397"
     },
     {
-      "lidlProductId": "10038299",
-      "name": "KULJANKA Höyrytetty juusto",
-      "displayedPriceEur": 4.49,
-      "ian": "7509615"
-    },
-    {
       "lidlProductId": "10038303",
       "name": "KULJANKA Hapankaali",
       "displayedPriceEur": 1.99,
@@ -846,28 +864,10 @@
       "ian": "7108496"
     },
     {
-      "lidlProductId": "10038321",
-      "name": "KUUSAMON JUUSTO Eränkävijä-juusto",
-      "displayedPriceEur": 4.39,
-      "ian": "7111511"
-    },
-    {
-      "lidlProductId": "10038322",
-      "name": "DANEROLLES Croissantit 2 kpl",
-      "displayedPriceEur": 4.5,
-      "ian": "7101245"
-    },
-    {
       "lidlProductId": "10038323",
       "name": "ARLA Proteiinipirtelö 2 kpl",
       "displayedPriceEur": 2.5,
       "ian": "7111597"
-    },
-    {
-      "lidlProductId": "10038324",
-      "name": "ATRIA Pizza 2 kpl",
-      "displayedPriceEur": 3.5,
-      "ian": "7111464"
     },
     {
       "lidlProductId": "10038325",
@@ -986,9 +986,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 19,
+    "resolvedOfficial": 24,
     "notApplicable": 6,
-    "remaining": 59
+    "remaining": 54
   },
   "unitPriceNotApplicable": [
     {
