@@ -33,6 +33,7 @@ on:
       - 'scripts/audit-lidl-enrichment-priority.mjs'
       - 'scripts/test-lidl-enrichment-priority.mjs'
       - 'scripts/test-lidl-enrichment-priority-batch.mjs'
+      - 'scripts/test-lidl-public-observation-evidence-v1.mjs'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -67,3 +68,4 @@ jobs:
       - run: node scripts/test-lidl-product-name-variants.mjs
       - run: node scripts/test-lidl-enrichment-priority.mjs
       - run: node scripts/test-lidl-enrichment-priority-batch.mjs
+      - run: node scripts/test-lidl-public-observation-evidence-v1.mjs
