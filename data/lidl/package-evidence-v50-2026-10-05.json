@@ -52,9 +52,14 @@
       "lidlProductId": "10038301",
       "name": "KULJANKA Lihakeitto",
       "packageSize": "800 g",
-      "source": "Lidl current campaign unit-size evidence",
+      "source": "UK Kuljanka 800 g beetroot/cabbage stews use 20831837 and 20831844, but these are different recipes from Finnish Lihakeitto; rejected",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "rejectedRelatedGtins": [
+        "20831837",
+        "20831844"
+      ],
+      "status": "exact_fi_product_gtin_missing"
     },
     {
       "lidlProductId": "10038302",
@@ -92,11 +97,13 @@
       "lidlProductId": "10038285",
       "name": "KULJANKA Savustettu makkara",
       "packageSize": "600 g",
-      "source": "Cross-market Lidl catalog exact IAN 185279 + 600 g match",
+      "source": "FoodDB and Czech food database identify Kuljanka/Lidl Silesian sausage as EAN 20076573; Finnish row has exact cross-market IAN 185279 and 600 g identity, but barcode source does not expose pack size",
       "gtin": null,
       "gtinVerified": false,
       "ian": "185279",
-      "ianIdentityCorroborated": true
+      "ianIdentityCorroborated": true,
+      "gtinCandidate": "20076573",
+      "status": "candidate_requires_exact_pack_confirmation"
     },
     {
       "lidlProductId": "10038283",
@@ -165,7 +172,7 @@
       "name": "CONFISERIE FIRENZE Minidonitsit",
       "packageSize": "276 g",
       "ian": "218769",
-      "source": "Lidl Hungary campaign PDF independently matches Confiserie Firenze Mini donut assortment 276 g to product number 218769",
+      "source": "Official Lidl Switzerland exact Mini Donuts 276 g article 218769 matches Finnish IAN and package; page publishes article number but not GTIN",
       "gtin": null,
       "gtinVerified": false,
       "ianIdentityCorroborated": true,
@@ -173,7 +180,8 @@
         "finlandOrHungary": "218769",
         "serbia": "239792",
         "conclusion": "IAN is market/listing-specific evidence and must never be converted or treated as GTIN"
-      }
+      },
+      "status": "exact_identity_cross_market_gtin_missing"
     },
     {
       "lidlProductId": "10038282",
