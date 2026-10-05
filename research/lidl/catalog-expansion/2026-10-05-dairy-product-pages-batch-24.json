@@ -1,0 +1,50 @@
+{
+  "research_only": true,
+  "new_product_specific_records": 2,
+  "dedup_check": "Neither Lidl product ID had a repository code-search hit before this batch.",
+  "category_context": {
+    "source": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+    "current_indexed_count": 16,
+    "note": "Category page currently indexes 16 products; product-page discovery remains more reliable for SKU identity than category-name rows."
+  },
+  "fish_context": {
+    "source": "https://www.lidl.fi/c/kala-ja-aeyriaeiset/s10021137",
+    "brands": [
+      "Isokari",
+      "Ocean Sea",
+      "Nautica",
+      "Nixe"
+    ],
+    "note": "Brand families confirmed, but no new product-specific fish page was verified in this search batch; therefore none added."
+  },
+  "products": [
+    {
+      "brand": "Arla",
+      "name": "Kadett-juusto",
+      "package_size": "500 g",
+      "category": "juustot",
+      "lidl_product_id": "10026707",
+      "official_product_url": "https://www.lidl.fi/p/arla-kadett-juusto/p10026707",
+      "variant_note": "Search result image/text identifies Arla Kepeä Kadett 5 %, lactose-free.",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific /p/ page; campaign price intentionally excluded from current normal price."
+    },
+    {
+      "brand": "Valio",
+      "name": "Maustettu rahka 2 kpl",
+      "package_size": "200 g",
+      "category": "jogurtit ja rahkat",
+      "lidl_product_id": "10023562",
+      "official_product_url": "https://www.lidl.fi/p/valio-maustettu-rahka-2-kpl/p10023562",
+      "variant_note": "200 g shown as individual unit size; page is a two-unit campaign.",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific /p/ page; campaign price intentionally excluded from current normal price."
+    }
+  ]
+}
