@@ -596,6 +596,36 @@
       "name": "KULJANKA Ajvar-paprikatahna",
       "unitPriceText": "350 g | 5,69 €/kg",
       "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038249",
+      "name": "Kotimainen porkkana",
+      "unitPriceText": "1 kg | 0,79 €/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038251",
+      "name": "Kotimainen hokkaidokurpitsa",
+      "unitPriceText": "irto | hinta/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038253",
+      "name": "Kotimainen kiinankaali",
+      "unitPriceText": "irto | hinta/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038254",
+      "name": "Kotimainen peruna",
+      "unitPriceText": "2 kg | 0,60 €/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038255",
+      "name": "Kotimainen ruusukaali",
+      "unitPriceText": "400 g | 7,48 €/kg",
+      "source": "official_lidl_fi"
     }
   ],
   "remainingMissingRows": [
@@ -636,40 +666,10 @@
       "ian": "7112199"
     },
     {
-      "lidlProductId": "10038249",
-      "name": "Kotimainen porkkana",
-      "displayedPriceEur": 0.79,
-      "ian": "82761"
-    },
-    {
       "lidlProductId": "10038250",
       "name": "Kotimainen omena",
       "displayedPriceEur": 2.79,
       "ian": "80241"
-    },
-    {
-      "lidlProductId": "10038251",
-      "name": "Kotimainen hokkaidokurpitsa",
-      "displayedPriceEur": 1.99,
-      "ian": "82840"
-    },
-    {
-      "lidlProductId": "10038253",
-      "name": "Kotimainen kiinankaali",
-      "displayedPriceEur": 2.69,
-      "ian": "82910"
-    },
-    {
-      "lidlProductId": "10038254",
-      "name": "Kotimainen peruna",
-      "displayedPriceEur": 1.19,
-      "ian": "83274"
-    },
-    {
-      "lidlProductId": "10038255",
-      "name": "Kotimainen ruusukaali",
-      "displayedPriceEur": 2.99,
-      "ian": "82934"
     },
     {
       "lidlProductId": "10038257",
@@ -1022,7 +1022,7 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 14,
-    "remaining": 70
+    "resolvedOfficial": 19,
+    "remaining": 65
   }
 }
