@@ -77,6 +77,9 @@ export async function GET(request: Request) {
     }
     if (current.length > 1)
       issue("OVERLAPPING_CURRENT_PUBLICATIONS", "warning", `${current.length} publication periods are simultaneously current`);
+    const duplicatePeriods = editions.length - effectiveEditions.length;
+    if (duplicatePeriods > 0)
+      issue("CORRECTED_SNAPSHOTS_PRESENT", "warning", `${duplicatePeriods} superseded publication snapshot(s) are retained for diagnostics`);
     if (current.length && upcoming.length) {
       const currentEnd = current.map((edition) => edition.validUntil).sort().at(-1)!;
       const nextStart = upcoming.map((edition) => edition.validFrom).sort()[0];
@@ -119,6 +122,7 @@ export async function GET(request: Request) {
       previousSuccessfulOfferCount: previousCount,
       sourceDropPercent,
       effectiveEditionCount: effectiveEditions.length,
+      supersededSnapshotCount: editions.length - effectiveEditions.length,
       currentEditionCount: current.length,
       upcomingEditionCount: upcoming.length,
       nextValidFrom: upcoming.map((edition) => edition.validFrom).sort()[0] ?? null,
