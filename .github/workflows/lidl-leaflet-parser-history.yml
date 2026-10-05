@@ -6,6 +6,10 @@ on:
     paths:
       - ".github/workflows/lidl-leaflet-parser-history.yml"
       - "scripts/lidl/**"
+      - "scripts/test-lidl-campaign-separation-20261005.mjs"
+      - "src/app/api/offers/search/route.ts"
+      - "src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx"
+      - "src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts"
       - "data/lidl/parser-regression/**"
       - "data/lidl/source-captures/**"
       - "src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts"
@@ -46,6 +50,9 @@ jobs:
       - name: Simulate Lidl publication date gates
         if: steps.clock.outputs.run == 'true'
         run: node scripts/lidl/verify-publication-lifecycle.mjs
+      - name: Verify Lidl offer and campaign separation
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/test-lidl-campaign-separation-20261005.mjs
       - name: Capture current official Lidl.fi category HTML
         if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         run: |
