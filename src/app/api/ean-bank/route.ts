@@ -3,6 +3,240 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+const VERIFIED_LIDL_EAN_PRODUCTS = [
+  {
+    "ean": "6409620011917",
+    "lidlProductId": "10037649",
+    "name": ""
+  },
+  {
+    "ean": "6413467428401",
+    "lidlProductId": "10037647",
+    "name": ""
+  },
+  {
+    "ean": "7311070014631",
+    "lidlProductId": "10038274",
+    "name": ""
+  },
+  {
+    "ean": "6409100077884",
+    "lidlProductId": "10038312",
+    "name": ""
+  },
+  {
+    "ean": "6413467449604",
+    "lidlProductId": "10037648",
+    "name": ""
+  },
+  {
+    "ean": "6409290001492",
+    "lidlProductId": "10038269",
+    "name": ""
+  },
+  {
+    "ean": "6413467593802",
+    "lidlProductId": "10037646",
+    "name": ""
+  },
+  {
+    "ean": "6430081490041",
+    "lidlProductId": "10037642",
+    "name": ""
+  },
+  {
+    "ean": "8850987146619",
+    "lidlProductId": "10037650",
+    "name": ""
+  },
+  {
+    "ean": "9002490279875",
+    "lidlProductId": "10037643",
+    "name": ""
+  },
+  {
+    "ean": "6405020033962",
+    "lidlProductId": "10038321",
+    "name": ""
+  },
+  {
+    "ean": "6407830032371",
+    "lidlProductId": "10038264",
+    "name": ""
+  },
+  {
+    "ean": "6414301079759",
+    "lidlProductId": "10038280",
+    "name": ""
+  },
+  {
+    "ean": "5410146401435",
+    "lidlProductId": "10038322",
+    "name": ""
+  },
+  {
+    "ean": "5900334000781",
+    "lidlProductId": "10038310",
+    "name": ""
+  },
+  {
+    "ean": "3850104035739",
+    "lidlProductId": "10038304",
+    "name": ""
+  },
+  {
+    "ean": "7310350118496",
+    "lidlProductId": "10038473",
+    "name": ""
+  },
+  {
+    "ean": "6420256014493",
+    "lidlProductId": "10038475",
+    "name": ""
+  },
+  {
+    "ean": "4009900412728",
+    "lidlProductId": "10038476",
+    "name": ""
+  },
+  {
+    "ean": "6412500070003",
+    "lidlProductId": "10038478",
+    "name": ""
+  },
+  {
+    "ean": "6416453048805",
+    "lidlProductId": "10038487",
+    "name": ""
+  },
+  {
+    "ean": "6420256013083",
+    "lidlProductId": "10038474",
+    "name": ""
+  },
+  {
+    "ean": "6411401019043",
+    "lidlProductId": "10038481",
+    "name": ""
+  },
+  {
+    "ean": "7310350118342",
+    "lidlProductId": "10038480",
+    "name": ""
+  },
+  {
+    "ean": "4335619339798",
+    "lidlProductId": "10037644",
+    "name": ""
+  },
+  {
+    "ean": "6414301081226",
+    "lidlProductId": "10038279",
+    "name": ""
+  },
+  {
+    "ean": "20544317",
+    "lidlProductId": "10038303",
+    "name": ""
+  },
+  {
+    "ean": "4056489624455",
+    "lidlProductId": "10038292",
+    "name": ""
+  },
+  {
+    "ean": "6415600582643",
+    "lidlProductId": "10038482",
+    "name": ""
+  },
+  {
+    "ean": "5411188138099",
+    "lidlProductId": "10038272",
+    "name": "ALPRO Soijavalmiste 2 kpl"
+  },
+  {
+    "ean": "4032549039605",
+    "lidlProductId": "10038248",
+    "name": "TASCHKI Pelmeni"
+  },
+  {
+    "ean": "5711953215698",
+    "lidlProductId": "10038271",
+    "name": "ARLA Juustoviipale"
+  },
+  {
+    "ean": "5711953201677",
+    "lidlProductId": "10038323",
+    "name": "ARLA Proteiinipirtelö 2 kpl"
+  },
+  {
+    "ean": "2377211700004",
+    "lidlProductId": "10038320",
+    "name": "KARINIEMEN Kananpojan rintaleike"
+  },
+  {
+    "ean": "6415000116035",
+    "lidlProductId": "10038276",
+    "name": "MYLLÄRIN Murot"
+  },
+  {
+    "ean": "6410604802117",
+    "lidlProductId": "10038309",
+    "name": "PILOS Vadelmakefir"
+  },
+  {
+    "ean": "6414893310118",
+    "lidlProductId": "10038314",
+    "name": "ATRIA Kanan fileesuikale 4 kpl"
+  },
+  {
+    "ean": "20755775",
+    "lidlProductId": "10038297",
+    "name": "KULJANKA Paprikapyree"
+  },
+  {
+    "ean": "20544324",
+    "lidlProductId": "10038289",
+    "name": "KULJANKA Hapankurkku"
+  },
+  {
+    "ean": "20342173",
+    "lidlProductId": "10038298",
+    "name": "KULJANKA Maustesuola"
+  },
+  {
+    "ean": "5411823867841",
+    "lidlProductId": "10038488",
+    "name": "CONFISERIE FIRENZE Minidonitsit"
+  },
+  {
+    "ean": "4056489120087",
+    "lidlProductId": "10038295",
+    "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen"
+  },
+  {
+    "ean": "20398002",
+    "lidlProductId": "10038300",
+    "name": "KULJANKA Paneroitu juusto"
+  },
+  {
+    "ean": "55006774",
+    "lidlProductId": "10038286",
+    "name": "KULJANKA Valkokaalisalaatti"
+  },
+  {
+    "ean": "20831851",
+    "lidlProductId": "10038284",
+    "name": "KULJANKA Borssikeitto"
+  },
+  {
+    "ean": "4056489624479",
+    "lidlProductId": "10038301",
+    "name": "KULJANKA Lihakeitto"
+  }
+] as const;
+const VERIFIED_LIDL_EAN_BY_CODE = new Map(VERIFIED_LIDL_EAN_PRODUCTS.map((item) => [item.ean, item]));
+
 
 type ProductInput = {
   ean?: unknown;
@@ -71,6 +305,23 @@ export async function GET(request: NextRequest) {
       `;
       if (rows[0]) {
         return NextResponse.json({ ok: true, product: rows[0] });
+      }
+
+      const verifiedLidl = VERIFIED_LIDL_EAN_BY_CODE.get(ean);
+      if (verifiedLidl) {
+        return NextResponse.json({
+          ok: true,
+          product: {
+            ean: verifiedLidl.ean,
+            name: verifiedLidl.name,
+            brand: null,
+            quantity: null,
+            imageUrl: null,
+            category: "Lidl",
+            source: "lidl-verified-ean-master",
+            aliases: [],
+          },
+        });
       }
 
       // Tokmanni/SPAR cold EAN fallback: Tokmanni product URLs end in the
