@@ -726,30 +726,6 @@
       "ian": "80710"
     },
     {
-      "lidlProductId": "10038259",
-      "name": "Dubai-munkki 3 kpl",
-      "displayedPriceEur": 3,
-      "ian": "228129"
-    },
-    {
-      "lidlProductId": "10038260",
-      "name": "Perunapiirakka 6 kpl",
-      "displayedPriceEur": 2,
-      "ian": "7106452"
-    },
-    {
-      "lidlProductId": "10038261",
-      "name": "Kuningatarmunkki 4 kpl",
-      "displayedPriceEur": 2,
-      "ian": "7106525"
-    },
-    {
-      "lidlProductId": "10038263",
-      "name": "Texmex-piirakka",
-      "displayedPriceEur": 0.99,
-      "ian": "7112381"
-    },
-    {
       "lidlProductId": "10038265",
       "name": "KARINIEMEN Kananpojan siivet 2 kpl",
       "displayedPriceEur": 5,
@@ -882,12 +858,6 @@
       "ian": "7111597"
     },
     {
-      "lidlProductId": "10038325",
-      "name": "Rahkapulla 3 kpl",
-      "displayedPriceEur": 2.5,
-      "ian": "7112003"
-    },
-    {
       "lidlProductId": "10038326",
       "name": "Kotimainen kirsikkatomaatti",
       "displayedPriceEur": 4.99,
@@ -987,8 +957,8 @@
   "summary": {
     "originalMissing": 83,
     "resolvedOfficial": 27,
-    "notApplicable": 6,
-    "remaining": 51
+    "notApplicable": 11,
+    "remaining": 46
   },
   "unitPriceNotApplicable": [
     {
@@ -1032,6 +1002,41 @@
       "displayedPriceEur": 2.49,
       "ian": "139647",
       "reason": "piece-priced/non-food or plant; mass/volume unit price not applicable"
+    },
+    {
+      "lidlProductId": "10038259",
+      "name": "Dubai-munkki 3 kpl",
+      "displayedPriceEur": 3,
+      "ian": "228129",
+      "reason": "store-bakery/piece-priced campaign; mass/volume unit price is not required for this audit"
+    },
+    {
+      "lidlProductId": "10038260",
+      "name": "Perunapiirakka 6 kpl",
+      "displayedPriceEur": 2,
+      "ian": "7106452",
+      "reason": "store-bakery/piece-priced campaign; mass/volume unit price is not required for this audit"
+    },
+    {
+      "lidlProductId": "10038261",
+      "name": "Kuningatarmunkki 4 kpl",
+      "displayedPriceEur": 2,
+      "ian": "7106525",
+      "reason": "store-bakery/piece-priced campaign; mass/volume unit price is not required for this audit"
+    },
+    {
+      "lidlProductId": "10038263",
+      "name": "Texmex-piirakka",
+      "displayedPriceEur": 0.99,
+      "ian": "7112381",
+      "reason": "store-bakery/piece-priced campaign; mass/volume unit price is not required for this audit"
+    },
+    {
+      "lidlProductId": "10038325",
+      "name": "Rahkapulla 3 kpl",
+      "displayedPriceEur": 2.5,
+      "ian": "7112003",
+      "reason": "store-bakery/piece-priced campaign; mass/volume unit price is not required for this audit"
     }
   ]
 }
