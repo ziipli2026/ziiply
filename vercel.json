@@ -32,6 +32,14 @@
     {
       "path": "/api/cron/lidl-publications",
       "schedule": "15 5 * * *"
+    },
+    {
+      "path": "/api/cron/lidl-publications",
+      "schedule": "15 13 * * 0"
+    },
+    {
+      "path": "/api/cron/lidl-publications",
+      "schedule": "15 13 * * 3"
     }
   ]
 }
