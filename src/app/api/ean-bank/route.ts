@@ -232,7 +232,7 @@ import verifiedLidlEanLinks from "../../../../data/lidl/verified-ean-linksconst 
     "name": "KULJANKA Lihakeitto"
   }
 ] as const;
-const VERIFIED_LIDL_EAN_BY_CODE = new Map(
+const VERIFIED_LIDL_EAN_BY_CODE = new Map<string, (typeof VERIFIED_LIDL_EAN_PRODUCTS)[number]>(
   VERIFIED_LIDL_EAN_PRODUCTS.map((item) => [item.ean, item]),
 );
 
