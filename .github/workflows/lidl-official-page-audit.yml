@@ -30,6 +30,18 @@ jobs:
       - name: Export official GTIN candidates separately
         run: |
           node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));const rows=d.records.filter(r=>Array.isArray(r.officialPageGtins)&&r.officialPageGtins.length);const unique=[...new Set(rows.flatMap(r=>r.officialPageGtins))];console.log(JSON.stringify({pagesWithOfficialGtins:rows.length,uniqueOfficialGtins:unique.length,products:rows.map(r=>({id:r.lidlProductId,name:r.name,gtins:r.officialPageGtins}))},null,2));fs.writeFileSync('lidl-official-gtin-candidates.json',JSON.stringify({source:'lidl.fi-official-product-page',researchOnly:true,records:rows.map(r=>({lidlProductId:r.lidlProductId,name:r.name,officialUrl:r.officialUrl,gtins:r.officialPageGtins}))},null,2)+'\\n')"
+      - name: Publish official GTIN candidates separately
+        run: |
+          if [ ! -f lidl-official-gtin-candidates.json ]; then exit 0; fi
+          node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-gtin-candidates.json'));fs.writeFileSync('data/lidl/official-gtin-candidates.generated.json',JSON.stringify(d,null,2)+'\\n')"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/lidl/official-gtin-candidates.generated.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update Lidl official GTIN candidates"
+            git push
+          fi
+
       - name: Export reachable image candidates separately
         run: |
           node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));fs.writeFileSync('lidl-image-candidates.json',JSON.stringify({source:d.source,researchOnly:true,visuallyVerified:false,records:d.records.filter(x=>x.imageStatus==='product_page_image_candidate').map(x=>({lidlProductId:x.lidlProductId,name:x.name,officialUrl:x.officialUrl,imageUrl:x.candidateImageUrl,imageHttpStatus:x.imageHttpStatus,imageContentType:x.imageContentType,priceEur:null,ean:null}))},null,2)+'\\n')"
