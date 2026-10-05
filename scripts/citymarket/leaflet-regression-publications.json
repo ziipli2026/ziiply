@@ -1,0 +1,18 @@
+{
+  "revision": 1,
+  "description": "Approved K-Citymarket leaflet parser regression publications. Keep old publications when adding the newest approved leaflet.",
+  "publications": [
+    {
+      "id": "39LV",
+      "url": "https://kcm-tarjouslehdet.k-ruoka.fi/79obhu0_tarjouslehti_39LV_KCM/index.html"
+    },
+    {
+      "id": "40AV",
+      "url": "https://kcm-tarjouslehdet.k-ruoka.fi/79obhu0_tarjouslehti_40AV_KCM/index.html"
+    },
+    {
+      "id": "41AV",
+      "url": "https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html"
+    }
+  ]
+}
