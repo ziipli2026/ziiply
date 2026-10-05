@@ -9,6 +9,7 @@ export function inspectOfferPublication(rows: readonly OfferDiagnosticRow[], val
   const missingCategories: number[] = [];
   const mismatchedValidity: number[] = [];
   const duplicates: number[] = [];
+  const invalidPrices: number[] = [];
   const seen = new Set<string>();
   rows.forEach((row, index) => {
     const name = String(row.name || row.title || "").trim();
@@ -21,6 +22,7 @@ export function inspectOfferPublication(rows: readonly OfferDiagnosticRow[], val
     // several missing fields stringify to the same empty identity.
     const ean = String(row.ean || "").trim();
     const price = String(row.price ?? "").trim();
+    if (price && (!Number.isFinite(Number(price.replace(",", "."))) || Number(price.replace(",", ".")) < 0)) invalidPrices.push(index);
     const identity = [ean, name.toLocaleLowerCase("fi-FI"), price].join("|");
     if ((ean || name) && seen.has(identity)) duplicates.push(index);
     if (ean || name) seen.add(identity);
@@ -32,7 +34,8 @@ export function inspectOfferPublication(rows: readonly OfferDiagnosticRow[], val
     missingCategories: { count: missingCategories.length, sampleIndices: missingCategories.slice(0, 10) },
     mismatchedValidity: { count: mismatchedValidity.length, sampleIndices: mismatchedValidity.slice(0, 10) },
     duplicates: { count: duplicates.length, sampleIndices: duplicates.slice(0, 10) },
-    severity: rows.length === 0 || missingNames.length || mismatchedValidity.length ? "error" :
+    invalidPrices: { count: invalidPrices.length, sampleIndices: invalidPrices.slice(0, 10) },
+    severity: rows.length === 0 || missingNames.length || mismatchedValidity.length || invalidPrices.length ? "error" :
       missingImages.length || missingCategories.length || duplicates.length ? "warning" : "ok",
   };
 }
