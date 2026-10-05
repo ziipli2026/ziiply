@@ -7,7 +7,7 @@ const headers=lines[0].split(",");
 for (const field of ["lidlProductId","observedCode","observedCodeOrigin","scannedEanVerified","receiptUnitPriceEur","receiptEvidenceReference","permissionToUseEvidence"]) assert.ok(headers.includes('"'+field+'"'));
 for (const line of lines.slice(1)) {
  const fields=line.match(/"(?:[^"]|"")*"/g);
- assert.equal(fields.length,22);
+ assert.equal(fields.length,21);
  assert.match(fields[0],/^"\d+"$/);
  for (let i=3;i<fields.length;i++) assert.equal(fields[i],'""');
 }
