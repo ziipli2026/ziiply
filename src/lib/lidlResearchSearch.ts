@@ -1,9 +1,11 @@
 /** Public Lidl catalog: read-only name discovery, never a price or EAN feed. */
 import catalog from "../../data/lidl/official-grocery-candidates-v44-2026-10-01.json";
+import metadataOverlay from "../../data/lidl/product-metadata-enrichment-v1-2026-10-05.json";
 import stapleEvidence from "../../data/lidl/independent-staple-ean-evidence-2026-10-02.json";
 import officialImages from "../../data/lidl/official-product-images.generated.json";
 import paistopistePriceAnnouncement from "../../data/lidl/official-paistopiste-price-announcement-2026-04-20.json";
 
+const metadataByProductId = new Map(metadataOverlay.records.map(record => [record.lidlProductId, record]));
 const historicalPaistopistePriceById = new Map(paistopistePriceAnnouncement.records.map(record => [record.lidlProductId, record]));
 const officialImageByProductId = new Map(officialImages.records.map(record => [record.lidlProductId, record.imageUrl]));
 
@@ -105,8 +107,9 @@ export function searchLidlResearch(query:string,limit=15){
   storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:"unverified",
   evidenceSource:"evidenceSource" in r ? r.evidenceSource : null,
   assortmentEvidence:"assortmentEvidence" in r ? r.assortmentEvidence : "lidl-public-catalog-observation",
+  canonicalPath:metadata?.canonicalPath ?? null,officialUrl:metadata?.officialUrl ?? null,researchCategory:metadata?.researchCategory ?? null,researchSubcategory:metadata?.researchSubcategory ?? null,pricingUnit:metadata?.pricingUnit ?? null,
   note:"assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"
    ?"Lidl on ilmoittanut tuotteen valtakunnalliseen Ilona-valikoimaan. Paikallinen saatavuus ja hinta eivät ole vahvistettuja."
    :"Tuotteesta on Lidlin julkinen tai historiallinen maininta. Nykyinen myymäläsaatavuus ja hinta eivät ole vahvistettuja."
- }));
+ });});
 }
