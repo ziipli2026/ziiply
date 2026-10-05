@@ -66,7 +66,7 @@ import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNation
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
-import { fetchLidlPublicLeafletOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
+import { fetchLidlPublicCampaignOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
 import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
 import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
@@ -653,7 +653,7 @@ export async function GET(request: Request) {
       // validity) so the same leaflet item is not duplicated into Kampanjat.
       let lidlCampaigns: UnknownRecord[] = [];
       try {
-        const publicFeed = await fetchLidlPublicLeafletOffers({ date: todayFi });
+        const publicFeed = await fetchLidlPublicCampaignOffers({ date: todayFi });
         const normalizeCampaignKey = (offer: UnknownRecord) =>
           normalizeText([offer.brandName, offer.name || offer.title].filter(Boolean).join(" "))
             .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl)\b/g, " ")
