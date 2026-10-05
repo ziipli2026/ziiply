@@ -36,6 +36,14 @@
       "source": "Sydänmerkki + Lidl price comparison",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038319",
+      "name": "REILU Naudan uunipata",
+      "packageSize": "700 g",
+      "source": "Lidl historical offer evidence",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
