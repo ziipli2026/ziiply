@@ -32,7 +32,7 @@ function classifyLidlOffer(name: string, brand = "") {
   if (/pahkina/.test(s)) return "Kuivatuotteet";
   if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
   if (/maito|jogur|jugur|rahka|juusto|kerma|voi\b|piima|viili/.test(s)) return "Maitotuotteet";
-  if (/burger|kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|\bliha\b|pulled pork/.test(s)) return "Liha & makkarat";
+  if (/burger|kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|lihapulla|\bliha\b|pulled pork/.test(s)) return "Liha & makkarat";
   if (/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if (/leipa|sampyl|pull|croissant|paton|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
   if (/limu|juoma|mehu|vesi|vichy|energiajuoma|cola/.test(s)) return "Juomat";
