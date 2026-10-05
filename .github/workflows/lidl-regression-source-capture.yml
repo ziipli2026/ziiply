@@ -25,6 +25,10 @@ jobs:
           erankavija|https://www.lidl.fi/p/kuusamon-juusto-erankavija-juusto/p10038321
           danerolles|https://www.lidl.fi/p/danerolles-croissantit-2-kpl/p10038322
           atria-pizza|https://www.lidl.fi/p/atria-pizza-2-kpl/p10038324
+          vihannekset|https://www.lidl.fi/h/vihannekset/h10095593
+          juustot-maitotuotteet-kananmunat|https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761
+          valmisateriat|https://www.lidl.fi/h/valmisateriat/h10097147
+          paistopiste|https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086
           URLS
       - name: Publish immutable capture branch
         env:
