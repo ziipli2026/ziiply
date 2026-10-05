@@ -2,7 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanLinks from "../../../../data/lidl/verified-ean-linksconst VERIFIED_LIDL_EAN_BY_CODE = new Map(
   verifiedLidlEanLinks.map((link) => {
-    const product = officialLidlGroceryCandidates.find(
+    const product = officialLidlGroceryCandidates.candidates.find(
       (candidate) => String(candidate.lidlProductId) === String(link.lidlProductId),
     );
     const fullName = [product?.name, product?.variant].filter(Boolean).join(" ").trim();
