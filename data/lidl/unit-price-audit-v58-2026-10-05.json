@@ -864,16 +864,52 @@
       "note": "Public offer listing exposes 1.45 €/kg directly; no package-size inference used."
     }
   ],
-  "remainingMissingRows": [],
+  "remainingMissingRows": [
+    {
+      "lidlProductId": "10038293",
+      "name": "KULJANKA Vaniljajäätelövohvelipikarit",
+      "displayedPriceEur": 3.49,
+      "ian": "7601221"
+    },
+    {
+      "lidlProductId": "10038294",
+      "name": "KULJANKA Jäätelökakku",
+      "displayedPriceEur": 1.99,
+      "ian": "6700311"
+    },
+    {
+      "lidlProductId": "10038295",
+      "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+      "displayedPriceEur": 3.99,
+      "ian": "5524178"
+    },
+    {
+      "lidlProductId": "10038309",
+      "name": "PILOS Vadelmakefir",
+      "displayedPriceEur": 0.99,
+      "ian": "5535919"
+    },
+    {
+      "lidlProductId": "10038479",
+      "name": "FAZER Tutti Frutti Candy Salad",
+      "displayedPriceEur": 3.49,
+      "ian": "7112722"
+    },
+    {
+      "lidlProductId": "10038485",
+      "name": "ALESTO Nut Trio -pähkinäsekoitus",
+      "displayedPriceEur": 0.99,
+      "ian": "209455"
+    }
+  ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 57,
+    "resolvedOfficial": 58,
     "resolvedDerived": 8,
     "notApplicable": 11,
     "variantSplitRequired": 1,
-    "sourceGapQuarantine": 6,
-    "remaining": 0,
-    "classifiedTotal": 83
+    "packageSizeEvidenceRequired": 0,
+    "unclassifiedRemaining": 6
   },
   "unitPriceNotApplicable": [
     {
@@ -1070,5 +1106,6 @@
       "status": "source_gap",
       "reason": "Exact Alesto Nut Trio identity exists, but package size/GTIN not safely resolved; no unit price inferred."
     }
-  ]
+  ],
+  "packageSizeEvidenceRequired": []
 }
