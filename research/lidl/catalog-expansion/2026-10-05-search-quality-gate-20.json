@@ -1,0 +1,28 @@
+{
+  "observed_at": "2026-10-05",
+  "purpose": "Search-quality gate after attempting to expand product-specific Lidl pages",
+  "search_outcome": {
+    "new_verified_product_specific_skus": 0,
+    "reason": "Current search index returned no trustworthy new official Lidl Finland product pages for the requested food categories. Third-party/forum hits were rejected."
+  },
+  "rejected_evidence": [
+    {
+      "kind": "forum",
+      "example": "Suomi24 references to old Lidl product URLs",
+      "reason": "Not an official Lidl source and too old for SKU verification"
+    },
+    {
+      "kind": "mirror",
+      "example": "2016 Lidl leaflet mirror",
+      "reason": "Third-party mirror and obsolete campaign data"
+    },
+    {
+      "kind": "generic_external",
+      "reason": "Does not provide official current Lidl product identity"
+    }
+  ],
+  "accepted_rule": "Only official lidl.fi or corporate.lidl.fi evidence can create/promote records. Product-specific /p/ page preferred; category/notice/report evidence stays candidate-only unless independently identified.",
+  "count_delta": 0,
+  "production_changed": false,
+  "preview_changed": false
+}
