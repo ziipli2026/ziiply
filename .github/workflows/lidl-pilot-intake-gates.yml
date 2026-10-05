@@ -6,6 +6,8 @@ on:
       - "scripts/generate-lidl-price-pilot-template.mjs"
       - "scripts/fill-lidl-pilot-from-receipt-json.mjs"
       - "scripts/run-lidl-receipt-pilot.mjs"
+      - "data/lidl/pilot/batch-input.example.json"
+      - "data/lidl/pilot/README.md"
       - "scripts/run-lidl-pilot-intake.mjs"
       - "scripts/lib/lidl-pilot-*.mjs"
       - "scripts/lib/lidl-manual-price-*.mjs"
