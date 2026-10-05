@@ -48,6 +48,9 @@ on:
       - 'scripts/test-lidl-verified-store-price-adapter.mjs'
       - 'scripts/test-lidl-verified-price-resolution.mjs'
       - 'scripts/import-lidl-verified-store-price.mjs'
+      - 'scripts/export-lidl-pilot-verified-prices.mjs'
+      - 'scripts/merge-lidl-verified-price-export.mjs'
+      - 'scripts/test-lidl-verified-price-export-merge.mjs'
       - 'data/lidl/verified-store-price-evidence-template.json'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -87,4 +90,5 @@ jobs:
       - run: node scripts/test-lidl-product-metadata-enrichment.mjs
       - run: node scripts/test-lidl-verified-store-price-adapter.mjs
       - run: node scripts/test-lidl-verified-price-resolution.mjs
+      - run: node scripts/test-lidl-verified-price-export-merge.mjs
       - run: git diff --exit-code -- data/lidl/product-metadata-enrichment-v1-2026-10-05.json
