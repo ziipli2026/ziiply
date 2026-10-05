@@ -1,0 +1,45 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_product_specific_records": 2,
+  "products": [
+    {
+      "brand": "Grillimaisteri",
+      "name": "Possun Spare Ribs",
+      "package_size": "n. 1 kg",
+      "category": "tuoreliha/grillituotteet",
+      "lidl_product_id": "10023625",
+      "official_product_url": "https://www.lidl.fi/p/grillimaisteri-possun-spare-ribs/p10023625",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "attributes": [
+        "Hyvää Suomesta",
+        "100 % kotimaista lihaa"
+      ],
+      "verification": "Official Lidl Finland product-specific /p/ page. ERÄ price intentionally excluded from normal_price."
+    },
+    {
+      "brand": "Grillimaisteri",
+      "name": "Possun fileepihvi",
+      "package_size": "450 g (2 kpl)",
+      "category": "tuoreliha/grillituotteet",
+      "lidl_product_id": "10023626",
+      "official_product_url": "https://www.lidl.fi/p/grillimaisteri-possun-fileepihvi/p10023626",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "attributes": [
+        "Hyvää Suomesta",
+        "100 % kotimaista lihaa"
+      ],
+      "verification": "Official Lidl Finland product-specific /p/ page. ERÄ price intentionally excluded from normal_price."
+    }
+  ],
+  "dedup_checked_against_known_product_page_batches": [
+    "batch-19",
+    "batch-28",
+    "batch-32"
+  ],
+  "price_policy": "Campaign, Lidl Plus and ERÄ prices are not stored as current normal prices."
+}
