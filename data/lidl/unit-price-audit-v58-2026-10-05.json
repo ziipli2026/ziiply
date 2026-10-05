@@ -728,6 +728,36 @@
       "name": "KULJANKA Savustettu makkara",
       "unitPriceText": "600 g | 9,98 €/kg",
       "source": "lidl_campaign_publication_exact_match"
+    },
+    {
+      "lidlProductId": "10038305",
+      "name": "KULJANKA Puolalainen makkara",
+      "unitPriceText": "230 g | 16,48 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038297",
+      "name": "KULJANKA Paprikapyree",
+      "unitPriceText": "160 g | 9,31 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038304",
+      "name": "PODRAVKA Papu-lihapata",
+      "unitPriceText": "400 g | 8,73 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038298",
+      "name": "KULJANKA Maustesuola",
+      "unitPriceText": "1 kg | 3,49 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038310",
+      "name": "TYMBARK Omena-kirsikkamehu",
+      "unitPriceText": "1 l | 2,49 €/l",
+      "source": "public_lidl_campaign_exact_match"
     }
   ],
   "remainingMissingRows": [
@@ -840,40 +870,10 @@
       "ian": "5524178"
     },
     {
-      "lidlProductId": "10038297",
-      "name": "KULJANKA Paprikapyree",
-      "displayedPriceEur": 1.49,
-      "ian": "6404019"
-    },
-    {
-      "lidlProductId": "10038298",
-      "name": "KULJANKA Maustesuola",
-      "displayedPriceEur": 3.49,
-      "ian": "5500397"
-    },
-    {
-      "lidlProductId": "10038304",
-      "name": "PODRAVKA Papu-lihapata",
-      "displayedPriceEur": 3.49,
-      "ian": "6905117"
-    },
-    {
-      "lidlProductId": "10038305",
-      "name": "KULJANKA Puolalainen makkara",
-      "displayedPriceEur": 3.79,
-      "ian": "5500349"
-    },
-    {
       "lidlProductId": "10038309",
       "name": "PILOS Vadelmakefir",
       "displayedPriceEur": 0.99,
       "ian": "5535919"
-    },
-    {
-      "lidlProductId": "10038310",
-      "name": "TYMBARK Omena-kirsikkamehu",
-      "displayedPriceEur": 2.49,
-      "ian": "7704257"
     },
     {
       "lidlProductId": "10038311",
@@ -956,9 +956,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 36,
+    "resolvedOfficial": 41,
     "notApplicable": 11,
-    "remaining": 37
+    "remaining": 32
   },
   "unitPriceNotApplicable": [
     {
