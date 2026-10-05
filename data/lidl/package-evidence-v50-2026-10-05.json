@@ -1,0 +1,279 @@
+{
+  "revision": "V50-PACKAGE-EVIDENCE",
+  "created": "2026-10-05",
+  "researchOnly": true,
+  "records": [
+    {
+      "lidlProductId": "10038471",
+      "name": "FRESHONA Suomalainen herne",
+      "packageSize": "200 g",
+      "manufacturer": "Lidl",
+      "source": "Finnish exact product is 200 g. Candidate barcodes found are canned Freshona peas 425 ml and therefore different products; rejected.",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "exact_fi_product_gtin_missing",
+      "rejectedGtinCandidates": [
+        "20009885",
+        "20425708"
+      ]
+    },
+    {
+      "lidlProductId": "10038255",
+      "name": "Kotimainen ruusukaali",
+      "packageSize": "400 g",
+      "source": "Current Lidl offer listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038313",
+      "name": "SOLEVITA Appelsiinitäysmehu",
+      "packageSize": "0.95 l",
+      "source": "Lidl Finland press release distinguishes multiple Solevita orange juices including fresh-pressed 0.95 l PET",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "variant_identity_requires_exact_gtin"
+    },
+    {
+      "lidlProductId": "10038247",
+      "name": "KANAMESTARI Kanan sisäfilee",
+      "packageSize": "400 g",
+      "manufacturer": "Lidl",
+      "source": "Sydänmerkki and Lidl price comparison independently confirm exact 400 g product",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "exact_identity_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038319",
+      "name": "REILU Naudan uunipata",
+      "packageSize": "700 g",
+      "source": "Lidl historical offer evidence",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038301",
+      "name": "KULJANKA Lihakeitto",
+      "packageSize": "800 g",
+      "source": "UK Kuljanka 800 g beetroot/cabbage stews use 20831837 and 20831844, but these are different recipes from Finnish Lihakeitto; rejected",
+      "gtin": null,
+      "gtinVerified": false,
+      "rejectedRelatedGtins": [
+        "20831837",
+        "20831844"
+      ],
+      "status": "exact_fi_product_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038302",
+      "name": "KULJANKA Ajvar-paprikatahna",
+      "packageSize": "350 g",
+      "source": "Lidl current category listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038287",
+      "name": "KULJANKA Maustekurkut etikkaliemessä",
+      "packageSize": "860 g (valutettu 450 g)",
+      "source": "Lidl current category listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038299",
+      "name": "KULJANKA Höyrytetty juusto",
+      "packageSize": "370 g",
+      "source": "Lidl current cheese listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038305",
+      "name": "KULJANKA Puolalainen makkara",
+      "packageSize": "230 g",
+      "source": "Current Lidl campaign catalogue evidence",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038285",
+      "name": "KULJANKA Savustettu makkara",
+      "packageSize": "600 g",
+      "source": "Exact Kuljanka Silesian sausage identity: Lidl article 185279 / 600 g cross-market; two independent food databases publish EAN 20076573 for Kuljanka/Lidl Silesian sausage. Barcode source lacks package size, so remains candidate.",
+      "gtin": null,
+      "gtinVerified": false,
+      "ian": "185279",
+      "ianIdentityCorroborated": true,
+      "gtinCandidate": "20076573",
+      "status": "candidate_requires_exact_pack_confirmation",
+      "candidateConfidence": "medium-high"
+    },
+    {
+      "lidlProductId": "10038283",
+      "name": "KULJANKA Khinkalitaikinanyytti",
+      "packageSize": "400 g",
+      "source": "Lidl current prepared-food listing",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038300",
+      "name": "KULJANKA Paneroitu juusto",
+      "packageSize": "500 g",
+      "source": "Bidfood Opava V-Label certificate identifies Kuljanka Panierter Käse as product 20398002; not treated as GTIN. Older 230 g Edamer evidence conflicts with Finnish 500 g pack, so prior GTIN candidate removed.",
+      "gtin": null,
+      "gtinVerified": false,
+      "gtinCandidate": null,
+      "status": "exact_product_identity_strong_gtin_missing",
+      "manufacturerProductNumber": "20398002"
+    },
+    {
+      "lidlProductId": "10037651",
+      "name": "MARIBEL Hillo",
+      "variant": "sekamarja",
+      "packageSize": "450 g",
+      "gtinCandidate": "20000684",
+      "status": "variant_gtins_resolved_external",
+      "source": "Combined Lidl row must remain split by flavour; both flavour-level GTINs independently resolved.",
+      "gtinVerified": false,
+      "variants": [
+        {
+          "variant": "mustikka",
+          "gtin": "20000660",
+          "gtinVerified": true,
+          "source": "Forkin exact Maribel blueberry jam 450 g"
+        },
+        {
+          "variant": "sekamarja",
+          "gtin": "20000684",
+          "gtinVerified": true,
+          "source": "Open Food Repo + mynetfair exact Maribel Waldfrucht 450 g"
+        }
+      ],
+      "gtin": null
+    },
+    {
+      "lidlProductId": "10038244",
+      "name": "FISKANO Tuore lohifilee",
+      "packageSize": "n. 1.2 kg",
+      "status": "variable_weight_or_produce_candidate",
+      "source": "Current Finnish Lidl campaign evidence: A-cut, Norway, approx. 1.2 kg, price/kg",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038278",
+      "name": "ALESTO Pähkinäsekoitus",
+      "packageSize": "200 g",
+      "source": "Multiple Alesto 200 g nut-mix products have distinct GTINs; Finnish generic Pähkinäsekoitus lacks exact variant identity",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "variant_ambiguous_gtin_not_assignable",
+      "rejectedGtinCandidates": [
+        "20815394",
+        "20047238",
+        "20005726",
+        "20772970"
+      ]
+    },
+    {
+      "lidlProductId": "10038477",
+      "name": "GELATELLI Kuningatarkermajäätelö",
+      "packageSize": "1 l / 515 g",
+      "manufacturer": "Lidl",
+      "source": "Finnish Sydänmerkki exact 515 g product. EAN 20106911 is Gelatelli Nocciolata 900 ml/515 g, different flavour and volume; rejected.",
+      "gtin": null,
+      "gtinVerified": false,
+      "rejectedGtinCandidates": [
+        "20106911"
+      ],
+      "status": "exact_fi_product_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038488",
+      "name": "CONFISERIE FIRENZE Minidonitsit",
+      "packageSize": "276 g",
+      "ian": "218769",
+      "source": "Official Lidl Switzerland exact Mini Donuts 276 g article 218769 matches Finnish IAN and package; page publishes article number but not GTIN",
+      "gtin": null,
+      "gtinVerified": false,
+      "ianIdentityCorroborated": true,
+      "ianCrossMarketEvidence": {
+        "finlandOrHungary": "218769",
+        "serbia": "239792",
+        "conclusion": "IAN is market/listing-specific evidence and must never be converted or treated as GTIN"
+      },
+      "status": "exact_identity_cross_market_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038282",
+      "name": "NOSTJA Pancetta",
+      "packageSize": "100 g",
+      "source": "PromoAzi publishes NOSTJA Panceta I.G.P., Dalmatia, EAN 2508791003883; Lidl Romania 2026 catalogue independently confirms Nostja Panceta I.G.P. Dalmatia sold per 100 g. Finnish row identity still requires exact pack/image match before verification.",
+      "gtin": null,
+      "gtinVerified": false,
+      "gtinCandidate": "2508791003883",
+      "candidateConfidence": "medium",
+      "status": "candidate_requires_exact_cross_market_confirmation"
+    },
+    {
+      "lidlProductId": "10038311",
+      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+      "packageSize": "440 g / 500 ml",
+      "source": "Finnish Lidl campaign aggregators consistently show 440 g pan pizza / 500 ml American ice cream",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "multi_product_offer_requires_variant_split"
+    },
+    {
+      "lidlProductId": "10038295",
+      "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+      "source": "Finnish Lidl product/campaign index corroborates exact Kuljanka product identity",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "identity_corroborated_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038286",
+      "name": "KULJANKA Valkokaalisalaatti",
+      "packageSize": "880 g (kiinteä paino 410 g)",
+      "source": "Multiple Lidl country catalogues independently match Kuljanka white-cabbage salad 880 g / 410 g solid weight",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "exact_product_identity_strong_gtin_missing"
+    },
+    {
+      "lidlProductId": "10038485",
+      "name": "ALESTO Nut Trio -pähkinäsekoitus",
+      "status": "exact_variant_gtin_missing",
+      "source": "Alesto barcode catalog contains many distinct nut mixes; no exact Nut Trio identity match found",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10037645",
+      "name": "MILBONA Proteiinivanukas",
+      "packageSize": "200 g",
+      "status": "variant_partial_gtin_resolution",
+      "variants": [
+        {
+          "variant": "kookos",
+          "gtinCandidate": "4056489654926",
+          "gtinVerified": false,
+          "source": "F+S Milchwerk product registry exact Milbona High Protein Pudding Coconut 200 g; corroborated by FDDB"
+        },
+        {
+          "variant": "kahvi",
+          "gtin": null,
+          "gtinVerified": false,
+          "source": "Exact Milbona Colombian Coffee 200 g product identity found, but barcode not exposed in indexed source"
+        }
+      ],
+      "source": "Combined Finnish Lidl row is coffee or coconut; keep split until coffee GTIN is resolved.",
+      "gtin": null,
+      "gtinVerified": false
+    }
+  ]
+}
