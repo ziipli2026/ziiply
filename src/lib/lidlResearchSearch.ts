@@ -98,6 +98,8 @@ export function searchLidlResearch(query:string,limit=15){
   historicalPriceEffectiveFrom:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.effectiveFrom : null,
   historicalPriceSource:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.source : null,
   ean:null,price:null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
+  observedPriceSource:"displayedPriceEur" in r && r.displayedPriceEur != null ? "lidl-fi-public-observation" : null,
+  observedPriceComparable:false,
   observedUnitPriceText:"unitPriceText" in r ? r.unitPriceText ?? null : null,
   storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
   storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:"unverified",
