@@ -406,7 +406,8 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
     for (const link of productLinks(result.value.html)) productPaths.add(link);
-    parsed.push(...parseLidlGridDataOffers(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));\n    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
+    parsed.push(...parseLidlGridDataOffers(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
+    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
     // Campaign landing pages also embed their own product-card payloads. Parse
     // those directly instead of requiring every card to expose a /p/ link.
     if (/\/c\//i.test(result.value.url)) {
