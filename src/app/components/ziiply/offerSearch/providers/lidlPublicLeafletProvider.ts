@@ -174,12 +174,18 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
 function discoveryLinks(html: string) {
   const decoded = html.replace(/\\u002F/g, "/").replace(/\\\//g, "/");
   const category = [...decoded.matchAll(/\/h\/[a-z0-9åäö-]+\/h\d{5,}/gi)].map(match => match[0]);
-  // Lidl's active campaign hub links live under /c/. Discover them dynamically
-  // instead of hard-coding each weekly theme. Product /p/ pages stay excluded.
+  // Lidl's active campaign hub links live under /c/. Discover them dynamically.
   const campaigns = [...decoded.matchAll(/\/c\/[a-z0-9åäö_-]+(?:\/s\d+)?\/?/gi)]
     .map(match => match[0])
     .filter(path => !/asiakaspalvelu|tietosuoja|evaste|saavutettavuus|yritys|ura/i.test(path));
   return [...new Set([...category, ...campaigns])];
+}
+
+function productLinks(html: string) {
+  const decoded = html.replace(/\\u002F/g, "/").replace(/\\\//g, "/");
+  return [...new Set(
+    [...decoded.matchAll(/\/p\/[a-z0-9åäö_-]+\/p\d{5,}/gi)].map(match => match[0])
+  )];
 }
 
 async function fetchHtml(path: string) {
@@ -196,14 +202,26 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   for (const result of discoveryPages) if (result.status === "fulfilled")
     for (const link of discoveryLinks(result.value.html)) discovered.add(link);
 
-  // Guard against an accidental navigation explosion. Active /c/ campaign hubs and
-  // /h/ grocery categories are enough; individual /p/ pages stay excluded.
+  // First fetch active campaign/category hubs, then follow their concrete /p/
+  // product links. Lidl campaign hubs often carry cards but the complete Product
+  // JSON-LD (price/validity/image) lives on the product page itself.
   const paths = [...discovered].slice(0, 160);
   const pages = await Promise.allSettled(paths.map(fetchHtml));
+  const productPaths = new Set<string>();
   const parsed: LidlPublicOffer[] = [];
   let failedPages = 0;
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
+    for (const link of productLinks(result.value.html)) productPaths.add(link);
+    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
+  }
+
+  // Bound the fan-out: enough for the current grocery campaign surface while
+  // preventing a site-wide crawl if Lidl changes navigation markup.
+  const productPages = await Promise.allSettled([...productPaths].slice(0, 220).map(fetchHtml));
+  let failedProductPages = 0;
+  for (const result of productPages) {
+    if (result.status === "rejected") { failedProductPages++; continue; }
     parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
   }
 
@@ -217,6 +235,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
