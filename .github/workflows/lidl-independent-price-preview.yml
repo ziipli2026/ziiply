@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/lib/lidl-*.mjs'
       - 'scripts/test-lidl-independent-route.mjs'
+      - 'scripts/test-lidl-price-source-contract-v69.mjs'
       - 'scripts/test-lidl-verified-price-import.mjs'
       - 'scripts/test-lidl-manual-price-intake.mjs'
       - 'scripts/test-lidl-store-price-bank.mjs'
