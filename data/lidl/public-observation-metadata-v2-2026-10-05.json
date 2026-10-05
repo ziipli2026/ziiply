@@ -131,6 +131,32 @@
       "promotionType": "ERÄ",
       "source": "https://www.lidl.fi/h/vihannekset/h10095593",
       "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038321",
+      "name": "KUUSAMON JUUSTO Eränkävijä-juusto",
+      "displayedPriceEur": 4.39,
+      "pack": "300 g",
+      "unitPriceText": "14,63 €/kg",
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "promotionType": "ERÄ",
+      "source": "https://www.lidl.fi/h/juustot/h10096077",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038322",
+      "name": "DANEROLLES Croissantit 2 kpl",
+      "displayedPriceEur": 4.5,
+      "pack": "2 × 240 g",
+      "unitPriceText": "9,38 €/kg",
+      "singlePriceEur": 2.49,
+      "multiBuyQuantity": 2,
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "promotionType": "2 KPL",
+      "source": "https://www.lidl.fi/h/valmisateriat/h10097147",
+      "checkoutComparable": false
     }
   ]
 }
