@@ -4,8 +4,10 @@ const result=JSON.parse(execFileSync(process.execPath,["scripts/audit-lidl-publi
 assert.equal(result.totalCatalogRecords,226);
 assert.equal(result.publicPriceObservations,110);
 assert.ok(result.promotionSuspectCount>0);
+assert.equal(result.explicitMultiBuyCount,16);
+assert.equal(result.weightPricedObservationCount,20);
 assert.equal(result.promotionSuspectCount+result.unclassifiedPublicPriceCount,110);
 assert.equal(result.checkoutVerifiedCount,0);
 assert.equal(result.comparableCount,0);
 assert.deepEqual(result.missingPromotionMetadataFields,["labels","validFrom","validThrough","referencePriceEur"]);
-console.log("PASS: Lidl public price audit keeps all 110 observations non-comparable");
+console.log("PASS: Lidl public price audit separates multi-buy/weight observations and keeps all 110 non-comparable");
