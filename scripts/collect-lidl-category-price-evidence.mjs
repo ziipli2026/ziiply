@@ -79,7 +79,7 @@ for(const source of urls){
 
 const seen=new Set();
 const records=raw.filter(r=>{
-  const key=[identity(r.evidenceText),r.displayedPriceEur,r.validFrom,r.validThrough,r.availabilityKind].join("|");
+  const stableIdentity=r.lidlProductId||r.productUrl||identity(r.evidenceText);\n  const key=[stableIdentity,r.displayedPriceEur,r.validFrom,r.validThrough,r.availabilityKind].join("|");
   if(seen.has(key)) return false;
   seen.add(key); return true;
 });
