@@ -11,7 +11,8 @@ try{
  const template=join(dir,"template.csv");
  const templateCsv=execFileSync(process.execPath,["scripts/generate-lidl-price-pilot-template.mjs",template,"FI0218","Lidl Hyvinkää","Kankurinkatu 4"],{encoding:"utf8"});
  const firstDataLine=templateCsv.trim().split("\n")[1];
- const id=firstDataLine.slice(1,firstDataLine.indexOf("\""));\n writeFileSync(obs,JSON.stringify([{lidlProductId:id,priceBasis:"unit",receiptUnitPriceEur:1.29,receiptTimestamp:"2026-10-05T10:00:00+03:00",receiptEvidenceReference:"secret-evidence",isLidlPlus:false,isPromotion:false,isMultiBuy:false,permissionToUseEvidence:true}]));
+ const id=firstDataLine.slice(1,firstDataLine.indexOf("\"",1));
+ writeFileSync(obs,JSON.stringify([{lidlProductId:id,priceBasis:"unit",receiptUnitPriceEur:1.29,receiptTimestamp:"2026-10-05T10:00:00+03:00",receiptEvidenceReference:"secret-evidence",isLidlPlus:false,isPromotion:false,isMultiBuy:false,permissionToUseEvidence:true}]));
  writeFileSync(batch,JSON.stringify([{observationsPath:obs,storeId:"FI0218",storeName:"Lidl Hyvinkää",storeAddress:"Kankurinkatu 4",observationTime:"2026-10-05T10:30:00+03:00"}]));
  const out=JSON.parse(execFileSync(process.execPath,["scripts/run-lidl-receipt-batch.mjs",batch],{encoding:"utf8"}));
  assert.equal(out.status,"research-only-not-published");
