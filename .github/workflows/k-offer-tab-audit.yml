@@ -59,6 +59,9 @@ jobs:
             [{name:'Saarioinen ARKI ANNOSATERIAT',category:'Maitotuotteet'},'Valmisruoka'],
             [{name:'Saarioinen Arki annosateriat 310 g',category:'Maitotuotteet'},'Valmisruoka'],
             [{name:'Hätälä pohjolan lohipihvi 190 g',category:'Liha & makkarat'},'Kala'],
+            [{name:'Saarioinen maksalaatikot 350-400 g',category:'Maitotuotteet'},'Valmisruoka'],
+            [{name:'Pirkka crunchy jogurtti-mansikkamuromysli 750 g',category:'Maitotuotteet'},'Kuivatuotteet'],
+            [{name:'Fazer Jaffa leivoskeksit 300 g',category:'Leipomo'},'Makeiset & keksit'],
           ];
           for (const [row,expected] of semanticCategoryCases) {
             const actual=mapTjekCategoryV54(row);
