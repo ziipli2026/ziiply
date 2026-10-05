@@ -101,7 +101,7 @@ jobs:
           NODE
           cat > k-campaign-probe.mts <<'NODE'
           import { fetchKruokaOffers, getLastKruokaPipelineDebugV49 } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
-          const stores = ['K-Supermarket Jokela','K-Market Hakalantori'];
+          const stores = ['K-Supermarket Jokela','K-Market Hakalantori','K-Market Etu-Lyötty'];
           let failures=0;
           for (const storeName of stores) {
             const rows=await fetchKruokaOffers('__ziiply_all_offers__', {} as any, {storeName,kStoreName:storeName});
@@ -127,7 +127,8 @@ jobs:
             const monthlyMisclassified=localRows.filter(o=>{const a=Date.parse(String(o.validFrom??'')),b=Date.parse(String(o.validUntil??''));return Number.isFinite(a)&&Number.isFinite(b)&&b-a>7*86400000&&o.campaignType!=='campaign';}).length;
             console.log('K_LOCAL_VALIDITY_SPLIT '+JSON.stringify({storeName,weeklyMisclassified,monthlyMisclassified,localRows:localRows.length}));
             console.log('K_LOCAL_CAMPAIGN_ASSERT '+JSON.stringify({storeName,localPublicationIds,campaignIds,regionalLeak,returnedCampaigns:campaigns.length}));
-            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || weeklyMisclassified || monthlyMisclassified || campaigns.length===0 || offerFallbacks.length || campaignFallbacks.length || semanticCategoryFailures.length) failures++;
+            const ouluSplitFailure=storeName==='K-Market Etu-Lyötty' && (offers.length===0 || campaigns.length===0);
+            if(debug?.error || !localPublicationIds.length || !localPublicationIds.every(id=>campaignIds.includes(id)) || regionalLeak || weeklyMisclassified || monthlyMisclassified || campaigns.length===0 || ouluSplitFailure || offerFallbacks.length || campaignFallbacks.length || semanticCategoryFailures.length) failures++;
           }
           if(failures) {console.error('Campaign source validation failed for '+failures+' store(s)');process.exitCode=1;}
           NODE
