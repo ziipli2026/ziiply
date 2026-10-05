@@ -10,6 +10,7 @@
 // - K-Supermarket-logiikka säilyy ennallaan
 // ============================================================================
 
+import { removeCampaignCopiesOfLeaflet } from "../kOfferTabPolicy";
 import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
@@ -783,9 +784,33 @@ export async function fetchKruokaOffers(
       debug.campaignProbe.mappedCampaignRows = offers.filter(offer => offer.campaignType === "campaign").length;
       debug.campaignProbe.returnedCampaignRows = results.filter(result => (result as unknown as UnknownRecord).campaignType === "campaign").length;
     }
-    debug.activeOffers = results.length;
+
+    // K-chain rule: Tarjoukset is authoritative. A local campaign that is the
+    // same product at the same price as a current offer must not be rendered in
+    // both tabs. Keep different prices/package sizes as separate rows.
+    const kOfferRows = results.filter(result =>
+      String((result as unknown as UnknownRecord).campaignType ?? "offer") !== "campaign",
+    );
+    const kCampaignRows = results.filter(result =>
+      String((result as unknown as UnknownRecord).campaignType ?? "offer") === "campaign",
+    );
+    const uniqueCampaignRows = removeCampaignCopiesOfLeaflet(kOfferRows, kCampaignRows);
+    const removedCampaignCount = kCampaignRows.length - uniqueCampaignRows.length;
+    if (debug.campaignProbe) {
+      debug.campaignProbe.returnedCampaignRows = uniqueCampaignRows.length;
+    }
+    if (removedCampaignCount > 0) {
+      console.info("[Ziiply K provider] suppressed offer/campaign duplicates", {
+        chain: business.chain,
+        store: displayStoreName,
+        removedCampaignCount,
+      });
+    }
+
+    const finalResults = [...kOfferRows, ...uniqueCampaignRows];
+    debug.activeOffers = finalResults.length;
     lastKruokaPipelineDebugV49 = { ...debug };
-    return results;
+    return finalResults;
   } catch (error) {
     debug.error = error instanceof Error ? error.message : String(error);
     lastKruokaPipelineDebugV49 = { ...debug };
