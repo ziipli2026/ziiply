@@ -25,4 +25,15 @@ const rows=[columns,...sample.map(item=>columns.map(col=>["lidlProductId","name"
 const output=rows.map(row=>row.map(quote).join(",")).join("\n")+"\n";
 if (sample.length!==25) throw new Error("Insufficient unquarantined catalog records");
 const target=process.argv[2];
-if (target) writeFileSync(target,output,"utf8"); else process.stdout.write(output);
+const storeId=String(process.argv[3]||"").trim();
+const storeName=String(process.argv[4]||"").trim();
+const storeAddress=String(process.argv[5]||"").trim();
+const hydratedRows=[columns,...sample.map(item=>columns.map(col=>{
+ if(col==="lidlProductId"||col==="name"||col==="variant") return item[col]??"";
+ if(col==="storeId") return storeId;
+ if(col==="physicalStoreName") return storeName;
+ if(col==="physicalStoreAddress") return storeAddress;
+ return "";
+}))];
+const hydratedOutput=hydratedRows.map(row=>row.map(quote).join(",")).join("\n")+"\n";
+if (target) writeFileSync(target,hydratedOutput,"utf8"); else process.stdout.write(hydratedOutput);
