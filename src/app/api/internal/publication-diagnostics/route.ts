@@ -14,9 +14,11 @@ export async function GET(request: Request) {
     const chain = new URL(request.url).searchParams.get("chain") || "LIDL:FI0218";
     if (!/^[A-Z0-9:_-]{2,60}$/.test(chain))
       return NextResponse.json({ ok: false, error: "Invalid chain" }, { status: 400 });
-    const snapshots = await publicationDiagnosticSnapshots(chain);
+    const [snapshots, runs] = await Promise.all([
+      publicationDiagnosticSnapshots(chain),
+      recentPublicationRuns(chain),
+    ]);
     const date = finnishPublicationDate();
-    const runs = await recentPublicationRuns(chain);
     const editions = snapshots.map((row) => {
       const validFrom = String(row.valid_from);
       const validUntil = String(row.valid_until);
