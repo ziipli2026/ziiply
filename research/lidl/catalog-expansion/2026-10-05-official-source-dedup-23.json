@@ -1,0 +1,29 @@
+{
+  "observed_at": "2026-10-05",
+  "purpose": "Dedup crosscheck of high-quality official Lidl sources before adding more candidate rows",
+  "sources": [
+    {
+      "url": "https://www.lidl.fi/c/hintavertailun-halvin/s10046608",
+      "evidence_date": "2026-05-28"
+    },
+    {
+      "url": "https://www.lidl.fi/c/takaisinvedot/s10021744",
+      "evidence_date": "2026-06-25"
+    }
+  ],
+  "checked": [
+    "Kania tomaattiketsuppi light 530 g",
+    "Kania sinappi 1 kg",
+    "Kania herkkumajoneesi 472 g",
+    "Snack Day perunalastu sileä 300 g",
+    "Tastino hot dog -sämpylä 250 g",
+    "Kania paprikamajoneesi 270 g",
+    "Tastino patonki esipaistettu 300 g",
+    "Milbona sinihomejuusto 120 g",
+    "Dulano Palvi 400 g",
+    "Kot-Kot-Kotimaiset vapaan kanan kananmuna L15 / M10"
+  ],
+  "dedup_result": "All ten names already have hits in repository search, so zero additive records were created.",
+  "new_unique_records": 0,
+  "quality_rule": "Do not inflate the target count by re-adding products already present under candidate/history files. Continue searching product-specific official pages and use Lidl ID as primary dedup key."
+}
