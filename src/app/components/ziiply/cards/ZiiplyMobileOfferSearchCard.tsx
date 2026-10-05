@@ -552,7 +552,7 @@ function cleanRepeatedOfferTextV4(value: unknown) {
 
 function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   const source = offer.__sourceOfferSearchResult || {};
-  const quantity = Number(source.offerQuantity ?? offer.offerQuantity);
+  const quantity = Number(source.offerQuantity ?? offer.offerQuantity ?? source.multiBuyQuantity ?? offer.multiBuyQuantity);
   const unit = String(source.offerUnit ?? offer.offerUnit ?? "kpl").trim() || "kpl";
   const rawPriceText = String(source.priceText ?? offer.priceText ?? "").trim();
   const numericPrice = offer.offerPrice ?? offer.price ?? source.offerPrice ?? source.price;
