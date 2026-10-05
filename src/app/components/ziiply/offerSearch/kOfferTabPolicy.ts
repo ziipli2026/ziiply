@@ -73,6 +73,36 @@ export function kOfferOverlapKey(row: KOfferTabRow): string {
  * Tarjoukset is authoritative. A store campaign is suppressed only when it is
  * the same product at the same price as a current leaflet offer.
  */
+
+export type KOfferTabAudit = {
+  offerCount: number;
+  campaignCount: number;
+  duplicateCampaignCount: number;
+  duplicateCampaigns: KOfferTabRow[];
+  normalizedCategoryIssues: string[];
+};
+
+/** Shared audit for every K-chain Tarjoukset/Kampanjat feed. */
+export function auditKOfferTabs(
+  leafletOffers: readonly KOfferTabRow[],
+  campaigns: readonly KOfferTabRow[],
+): KOfferTabAudit {
+  const duplicateCampaigns = campaigns.filter(row =>
+    leafletOffers.some(offer => semanticSameProduct(offer, row)),
+  );
+  const normalizedCategoryIssues = campaigns
+    .map(row => String((row as KOfferTabRow & { category?: unknown }).category ?? ""))
+    .filter(Boolean)
+    .filter(category => category !== category.trim() || /\\s{2,}/.test(category));
+  return {
+    offerCount: leafletOffers.length,
+    campaignCount: campaigns.length,
+    duplicateCampaignCount: duplicateCampaigns.length,
+    duplicateCampaigns,
+    normalizedCategoryIssues,
+  };
+}
+
 export function removeCampaignCopiesOfLeaflet<T extends KOfferTabRow>(
   leafletOffers: readonly T[],
   campaigns: readonly T[],
