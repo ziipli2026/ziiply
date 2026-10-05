@@ -1,0 +1,44 @@
+{
+  "observed_at": "2026-10-05",
+  "purpose": "Fish-source expansion gate and product-page identity sanity check",
+  "official_fish_source": {
+    "url": "https://www.lidl.fi/c/kala-ja-aeyriaeiset/s10021137",
+    "confirmed_brands": [
+      "Isokari",
+      "Ocean Sea",
+      "Nautica",
+      "Nixe"
+    ],
+    "claims": [
+      "Isokari includes Finnish-made fish products and seasonal domestic/local species",
+      "Ocean Sea covers fish and seafood",
+      "Nautica covers herring",
+      "Nixe covers canned fish"
+    ],
+    "sku_rows_added": 0,
+    "reason": "No individual /p/ fish product page with exact product name + pack size + Lidl ID was returned by the official-source search; brand-level evidence is not enough for SKU promotion."
+  },
+  "sustainability_crosscheck": {
+    "url": "https://corporate.lidl.fi/file/download/65677/file/Valikoimalinjaus_kestava_kala.pdf",
+    "confirmed_private_label_families": [
+      "Isokari",
+      "Ocean Sea",
+      "Nautica",
+      "Nixe",
+      "Admiral"
+    ],
+    "note": "Supports product-family provenance, not individual SKU identity."
+  },
+  "identity_sanity_check": {
+    "known_verified_page": {
+      "brand": "Milbona",
+      "name": "Puhvelimozzarella",
+      "package_size": "125 g",
+      "lidl_product_id": "10023501",
+      "url": "https://www.lidl.fi/p/milbona-puhvelimozzarella/p10023501"
+    },
+    "repo_search_note": "Known ID 10023501 is found in repository search; several newer research-branch IDs are not visible to default-branch code search. Therefore absence from GitHub search must NOT be treated as proof of uniqueness across the research branch."
+  },
+  "dedup_policy_update": "For final consolidation, fetch every research JSON from the research branch and dedupe locally by Lidl product ID, then normalized brand/name/size. GitHub default-branch search is only a hint, not a definitive research-branch duplicate check.",
+  "new_unique_skus": 0
+}
