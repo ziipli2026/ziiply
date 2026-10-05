@@ -92,6 +92,45 @@
       "validThrough": "2026-10-07",
       "source": "lidl.fi public category page",
       "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038303",
+      "name": "KULJANKA Hapankaali",
+      "displayedPriceEur": 1.99,
+      "pack": "800 g",
+      "unitPriceText": "2,49 €/kg",
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "promotionType": "SUPERHINTA",
+      "source": "https://www.lidl.fi/h/saeilykehedelmaet-ja-vihannekset/h10096100",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038324",
+      "name": "ATRIA Pizza 2 kpl",
+      "displayedPriceEur": 3.5,
+      "referencePriceEur": 3.98,
+      "pack": "2 × 200 g",
+      "unitPriceText": "8,75 €/kg",
+      "singlePriceEur": 1.99,
+      "multiBuyQuantity": 2,
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "promotionType": "2 KPL -12%",
+      "source": "https://www.lidl.fi/h/valmisateriat/h10097147",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038326",
+      "name": "Kotimainen kirsikkatomaatti",
+      "displayedPriceEur": 4.99,
+      "pack": "800 g",
+      "unitPriceText": "6,24 €/kg",
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "promotionType": "ERÄ",
+      "source": "https://www.lidl.fi/h/vihannekset/h10095593",
+      "checkoutComparable": false
     }
   ]
 }
