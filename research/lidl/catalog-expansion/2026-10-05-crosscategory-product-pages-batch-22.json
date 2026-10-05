@@ -1,0 +1,68 @@
+{
+  "research_only": true,
+  "new_product_page_records": 4,
+  "counting_note": "Dulano and Halloween are distinct product records. The two Juustoportti IDs appear to represent repeated campaign/product-page records for the same 1 kg Hyvin-jogurtti family; keep both IDs as source records but count as ONE unique product until flavor/EAN identity proves otherwise.",
+  "unique_products_safe_to_add": 3,
+  "products": [
+    {
+      "brand": "Dulano",
+      "name": "Salamitanko",
+      "package_size": "650 g",
+      "category": "liha/leikkeleet",
+      "lidl_product_id": "10026918",
+      "official_product_url": "https://www.lidl.fi/p/dulano-salamitanko/p10026918",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific page. Search index shows campaign/availability evidence only; price intentionally omitted as current normal price."
+    },
+    {
+      "brand": "Halloween",
+      "name": "Minidonitsit",
+      "package_size": "279 g / 9 kpl",
+      "category": "pakasteet/jälkiruoat",
+      "lidl_product_id": "10027394",
+      "official_product_url": "https://www.lidl.fi/p/halloween-minidonitsit/p10027394",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific page. Search index shows campaign/availability evidence only; price intentionally omitted as current normal price."
+    },
+    {
+      "brand": "Juustoportti",
+      "name": "Hyvin-jogurtti",
+      "package_size": "1 kg",
+      "category": "maitotuotteet",
+      "lidl_product_id": "10023804",
+      "official_product_url": "https://www.lidl.fi/p/juustoportti-hyvin-jogurtti/p10023804",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific page. Search index shows campaign/availability evidence only; price intentionally omitted as current normal price."
+    },
+    {
+      "brand": "Juustoportti",
+      "name": "Hyvin-jogurtti",
+      "package_size": "1 kg",
+      "category": "maitotuotteet",
+      "lidl_product_id": "10026845",
+      "official_product_url": "https://www.lidl.fi/p/juustoportti-hyvin-jogurtti/p10026845",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl Finland product-specific page. Search index shows campaign/availability evidence only; price intentionally omitted as current normal price."
+    }
+  ],
+  "rejected_as_already_present": [
+    "Ranskalainen suklaacroissant p10034228",
+    "Kolmen suklaan cookie p10000047",
+    "Valkosuklaacookie p52098320",
+    "Suklaadonitsi p1821550",
+    "Maitosuklaacookie p10021477",
+    "Kinkkujuustocroissant p678860"
+  ]
+}
