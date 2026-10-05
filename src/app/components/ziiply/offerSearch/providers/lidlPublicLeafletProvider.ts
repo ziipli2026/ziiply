@@ -266,10 +266,13 @@ function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackD
     const validUntil = `${endYear}-${String(endMonth).padStart(2, "0")}-${String(validity[3]).padStart(2, "0")}`;
     const window = lines.slice(Math.max(0, i - 12), i);
     let priceIndex = -1;
-    for (let j = window.length - 1; j >= 0; j--) if (pricePattern.test(window[j])) { priceIndex = j; break; }
-    if (priceIndex < 1) continue;
-    const priceMatch = window[priceIndex].match(pricePattern);
-    const price = priceMatch ? Number(`${priceMatch[1]}.${priceMatch[2]}`) : NaN;
+    let priceMatch: RegExpMatchArray | null = null;
+    for (let j = window.length - 1; j >= 0; j--) {
+      const match = window[j].match(pricePattern);
+      if (match) { priceIndex = j; priceMatch = match; break; }
+    }
+    if (priceIndex < 1 || !priceMatch) continue;
+    const price = Number(`${priceMatch[1]}.${priceMatch[2]}`);
     if (!Number.isFinite(price) || price <= 0) continue;
 
     const ignored = /^(alkaen|erilaisia|uutuus|lidl plus|\-\d+€|\d+\s*kpl\s*(?:jopa\s*)?-?\d+%|\d+\s*(?:g|kg|ml|l|kpl|cm)|\d+[,.]\d+\s*€\/kg)/i;
