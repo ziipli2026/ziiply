@@ -379,7 +379,7 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   // Salad mixes are HEVI even when source descriptions mention dairy.
   if (/\b(salaattimix\w*|salaattisekoitus\w*)\b/.test(productTitle)) return "Hevi";
   // Flavoured chocolate is confectionery even when the flavour contains "jogurtti".
-  if (/\b(suklaalevy\w*|suklaapatukka\w*|suklaakonvehti\w*)\b/.test(productTitle)) return "Makeiset & keksit";
+  if (/(?:suklaalevy|suklaapatukka|suklaakonvehti)\w*/.test(productTitle)) return "Makeiset & keksit";
 
   // V70: K-Market Martti 1 Oct 2026 cross-store category audit.
   // Identity guards before Tjek's sometimes incorrect department.
