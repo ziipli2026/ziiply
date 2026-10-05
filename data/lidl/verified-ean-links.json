@@ -53,5 +53,10 @@
     "lidlProductId": "10038321",
     "ean": "6405020033962",
     "evidence": "Lidl paper-leaflet fixture and parser regression identify Kuusamon Juusto Eränkävijä-juusto 300 g at 4.39 EUR; Kuusamon Juusto official product page identifies Eränkävijä 300 g, EAN 6405020033962"
+  },
+  {
+    "lidlProductId": "10038264",
+    "ean": "6407830032371",
+    "evidence": "Lidl official catalog and Hyvinkää W40 leaflet identify ATRIA Nauta-viljapossujauheliha 1 kg; Atria official consumer-pack catalog identifies 1 kg consumer package GTIN 6407830032371"
   }
 ]
