@@ -1,0 +1,41 @@
+name: Lidl pilot intake gates
+
+on:
+  pull_request:
+    paths:
+      - "scripts/generate-lidl-price-pilot-template.mjs"
+      - "scripts/run-lidl-pilot-intake.mjs"
+      - "scripts/lib/lidl-pilot-*.mjs"
+      - "scripts/lib/lidl-manual-price-*.mjs"
+      - "scripts/lib/lidl-barcode-kind.mjs"
+      - "scripts/lib/lidl-verified-price-import.mjs"
+      - "scripts/lib/lidl-price-source-contract.mjs"
+      - "scripts/test-lidl-price-pilot-template.mjs"
+      - "scripts/test-lidl-pilot-*.mjs"
+      - ".github/workflows/lidl-pilot-intake-gates.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/generate-lidl-price-pilot-template.mjs"
+      - "scripts/run-lidl-pilot-intake.mjs"
+      - "scripts/lib/lidl-pilot-*.mjs"
+      - "scripts/lib/lidl-manual-price-*.mjs"
+      - "scripts/lib/lidl-barcode-kind.mjs"
+      - "scripts/lib/lidl-verified-price-import.mjs"
+      - "scripts/lib/lidl-price-source-contract.mjs"
+      - "scripts/test-lidl-price-pilot-template.mjs"
+      - "scripts/test-lidl-pilot-*.mjs"
+      - ".github/workflows/lidl-pilot-intake-gates.yml"
+
+jobs:
+  pilot-intake-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-lidl-price-source-contract-v69.mjs\n      - run: node scripts/test-lidl-price-pilot-template.mjs
+      - run: node scripts/test-lidl-pilot-csv-reader.mjs
+      - run: node scripts/test-lidl-pilot-csv-intake.mjs
+      - run: node scripts/test-lidl-pilot-intake-cli.mjs
