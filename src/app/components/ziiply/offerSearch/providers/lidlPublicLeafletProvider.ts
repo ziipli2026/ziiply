@@ -209,19 +209,28 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
     const offer = (product.offers && typeof product.offers === "object" ? product.offers : product) as Record<string, any>;
     const name = String(product.productName || product.name || product.title || "").trim();
     const brandName = typeof product.brand === "string" ? product.brand : String(product.brand?.name || product.brandName || "").trim();
-    const price = numberValue(offer.price ?? offer.offerPrice ?? product.price ?? product.offerPrice);
+    const price = money(offer.price ?? offer.offerPrice ?? product.price ?? product.offerPrice);
     if (!name || !Number.isFinite(price) || price <= 0) continue;
-    const validFrom = isoDate(offer.validFrom || offer.startDate || product.validFrom || product.startDate, fallbackDate);
-    const validUntil = isoDate(offer.validUntil || offer.endDate || product.validUntil || product.endDate, fallbackDate);
-    const category = classifyCategory([brandName, name, product.description, product.category].filter(Boolean).join(" "));
+    const validFrom = isoDate(offer.validFrom || offer.startDate || product.validFrom || product.startDate) || fallbackDate;
+    const validUntil = isoDate(offer.validUntil || offer.endDate || product.validUntil || product.endDate) || fallbackDate;
+    const category = categoryFor([brandName, name, product.description, product.category].filter(Boolean).join(" "), sourceUrl);
     if (!GROCERY_CATEGORIES.has(category)) continue;
-    const imageUrl = imageValue(product.image || product.imageUrl || product.pictureUrl || offer.image || offer.imageUrl);
+    const imageUrl = (() => {
+      const candidate = product.image || product.imageUrl || product.pictureUrl || offer.image || offer.imageUrl;
+      const value = Array.isArray(candidate) ? candidate[0] : candidate;
+      if (typeof value === "string") return /^https:\/\//.test(value) ? value : "";
+      if (value && typeof value === "object") {
+        const url = value.url || value.contentUrl || value["@id"] || "";
+        return typeof url === "string" && /^https:\/\//.test(url) ? url : "";
+      }
+      return "";
+    })();
     output.push({
       id: "lidl-fi-campaign-" + normalize([brandName, name, price, validFrom, validUntil].join("-")),
       source: "lidl-fi-public", chain: "Lidl", storeKey: "FI", storeLabel: "Lidl", storeName: "Lidl", shopName: "Lidl",
-      title: name, name, productName: name, brandName, price, priceText: euro(price), offerPrice: price,
-      originalPrice: numberValue(product.originalPrice ?? offer.originalPrice) || null,
-      normalPrice: numberValue(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice) || null,
+      title: name, name, productName: name, brandName, price, priceText: `${price.toFixed(2).replace(".", ",")} €`, offerPrice: price,
+      originalPrice: money(product.originalPrice ?? offer.originalPrice) || null,
+      normalPrice: money(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice) || null,
       unitPriceText: "", comparisonPriceText: "", isWeightedProduct: false, weightProductLabel: "", priceBasis: "unit",
       discountText: "", benefitText: "", validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
