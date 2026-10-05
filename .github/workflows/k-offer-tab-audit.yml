@@ -1,0 +1,58 @@
+name: K-chain offer tab audit
+on:
+  pull_request:
+  push:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
+      - 'src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts'
+      - '.github/workflows/k-offer-tab-audit.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install --package-lock=false --no-audit --no-fund
+      - name: TypeScript compile
+        run: npx tsc --noEmit
+      - name: Shared Tarjoukset/Kampanjat policy matrix
+        run: |
+          cat > k-offer-tab-audit.mts <<'NODE'
+          import { auditKOfferTabs, removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
+          const cases = [
+            { chain:'K-Citymarket', offer:{title:'AITO NAKKI 360 g',price:3.79}, campaign:{title:'HK AITO NAKKI',price:3.79}, duplicate:true },
+            { chain:'K-Citymarket', offer:{title:'ENERGIAJUOMAT 0,5 l/tlk',price:4}, campaign:{title:'Nocco ENERGIAJUOMAT 0,33 l/tlk',price:4}, duplicate:false },
+            { chain:'K-Supermarket', offer:{title:'Arla SHAKE UP 240 ml',price:3}, campaign:{title:'Arla SHAKE UP 240 ml',price:3}, duplicate:true },
+            { chain:'K-Supermarket', offer:{title:'Froosh SMOOTHIE 250 ml',price:4}, campaign:{title:'Froosh SMOOTHIE 250 ml',price:3.5}, duplicate:false },
+            { chain:'K-Market', offer:{title:'Santa Maria TORTILLAT 320 g',price:2.49}, campaign:{title:'Santa Maria TORTILLAT 320 g',price:2.49}, duplicate:true },
+            { chain:'K-Market', offer:{title:'PIZZA 300 g',price:3}, campaign:{title:'PIZZA 350 g',price:3}, duplicate:false },
+          ];
+          for (const c of cases) {
+            const audit=auditKOfferTabs([c.offer],[c.campaign]);
+            const filtered=removeCampaignCopiesOfLeaflet([c.offer],[c.campaign]);
+            if ((audit.duplicateCampaignCount===1)!==c.duplicate) throw new Error(c.chain+': audit mismatch');
+            if ((filtered.length===0)!==c.duplicate) throw new Error(c.chain+': filtering mismatch');
+          }
+          const categoryCases=[
+            ['Hevi','Hevi'],['hevi','Hevi'],['HEVI','Hevi'],
+            ['Valmisruoka','Valmisruoka'],['valmisruoka','Valmisruoka'],
+            ['Maitotuotteet','Maitotuotteet'],['maitotuotteet','Maitotuotteet'],
+          ];
+          for (const [input,canonical] of categoryCases) {
+            const row={title:'test',price:1,category:input};
+            const normalized=row.category.trim().replace(/\\s+/g,' ');
+            if (normalized.toLocaleLowerCase('fi-FI')!==canonical.toLocaleLowerCase('fi-FI')) throw new Error('category normalization mismatch');
+            const audit=auditKOfferTabs([], [row]);
+            if (audit.normalizedCategoryIssues.length) throw new Error('category whitespace issue');
+          }
+          const bad=auditKOfferTabs([], [{title:'x',price:1,category:'  Hevi  '}]);
+          if (bad.normalizedCategoryIssues.length!==1) throw new Error('category whitespace regression not detected');
+          console.log('K_CHAIN_OFFER_TAB_AUDIT_OK');
+          NODE
+          npx --yes tsx k-offer-tab-audit.mts
