@@ -158,5 +158,10 @@
     "lidlProductId": "10038271",
     "ean": "5711953215698",
     "evidence": "Lidl Finland official current product listing: ARLA Juustoviipale 270 g at 2.99 EUR; independent Finnish retail offer data identifies the exact 270 g Arla Maasdam Juustoviipale with consumer EAN 5711953215698, matching the Lidl price/size listing."
+  },
+  {
+    "lidlProductId": "10038323",
+    "ean": "5711953201677",
+    "evidence": "Official Arla Finland product page identifies EAN 5711953201677 for Arla Protein Suklaa-Brownie 200 ml. Lidl candidate is ARLA Proteiinipirtelö 2 kpl; external Finnish offer data repeatedly identifies the same EAN for the 2-kpl promotion, so the product EAN is unambiguous."
   }
 ]
