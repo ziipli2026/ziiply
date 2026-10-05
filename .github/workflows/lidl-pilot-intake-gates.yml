@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/generate-lidl-price-pilot-template.mjs"
+      - "scripts/fill-lidl-pilot-from-receipt-json.mjs"
       - "scripts/run-lidl-pilot-intake.mjs"
       - "scripts/lib/lidl-pilot-*.mjs"
       - "scripts/lib/lidl-manual-price-*.mjs"
@@ -40,3 +41,4 @@ jobs:
       - run: node scripts/test-lidl-pilot-csv-reader.mjs
       - run: node scripts/test-lidl-pilot-csv-intake.mjs
       - run: node scripts/test-lidl-pilot-intake-cli.mjs
+      - run: node scripts/test-lidl-pilot-receipt-helper.mjs
