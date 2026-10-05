@@ -3,9 +3,9 @@ import catalog from "../data/lidl/official-grocery-candidates-v44-2026-10-01.jso
 const priced=catalog.records.filter(row=>Number.isFinite(row.displayedPriceEur));
 const promotionSignal=row=>{
  const text=[row.name,row.variant,row.unitPriceText].filter(Boolean).join(" ").toLocaleLowerCase("fi-FI");
- return /\\b\\d+\\s*kpl\\b|hinta yksittäin|lidl\\s*plus|superhinta|tarjous|kampanja/.test(text);
+ return /(^|\\s)\\d+\\s*kpl(?=\\s|$)|hinta yksittäin|lidl\\s*plus|superhinta|tarjous|kampanja/.test(text);
 };
-const multiBuySignal=row=>/\\b\\d+\\s*kpl\\b|hinta yksittäin/i.test([row.name,row.variant,row.unitPriceText].filter(Boolean).join(" "));
+const multiBuySignal=row=>/(^|\\s)\\d+\\s*kpl(?=\\s|$)|hinta yksittäin/i.test([row.name,row.variant,row.unitPriceText].filter(Boolean).join(" "));
 const weightPriceSignal=row=>String(row.unitPriceText??"").toLocaleLowerCase("fi-FI").includes("€/kg") || String(row.unitPriceText??"").toLocaleLowerCase("fi-FI").includes("hinta/kg");
 const promotionSuspect=priced.filter(promotionSignal);
 const multiBuy=priced.filter(multiBuySignal);
