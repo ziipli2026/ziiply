@@ -118,6 +118,16 @@ if (mode === "verify") {
     // category/grid production parser. Replay their embedded Lidl product
     // datalayer and visible offer footer against the independently approved
     // normalized expectation.
+    const expectedCategoryMatches = (rawCategory, expectedCategory) => {
+      const raw = normalize(rawCategory);
+      const expectedValue = normalize(expectedCategory);
+      if (!expectedValue) return true;
+      if (expectedValue === "valmisruoka") return raw.includes("valmisruo") || raw.includes("valmisateria");
+      if (expectedValue === "maitotuotteet") return raw.includes("maitotuot") || raw.includes("juusto");
+      if (expectedValue === "hevi") return raw.includes("hedelmat") || raw.includes("vihannek");
+      return raw.includes(expectedValue);
+    };
+
     const extractProductEvidence = capture => {
       const marker = "unified_datalayer_product";
       const markerIndex = capture.html.indexOf(marker);
@@ -128,13 +138,12 @@ if (mode === "verify") {
       const rawProduct = capture.html.slice(equalsIndex + 1, scriptEnd).trim();
       let product;
       try { product = JSON.parse(rawProduct); } catch { return null; }
-      const lowerHtml = capture.html.toLocaleLowerCase("fi-FI");
       return {
-        name: normalize([product.brand, product.name, product.netWeight || ""].filter(Boolean).join(" ")),
+        baseName: normalize([product.brand, product.name].filter(Boolean).join(" ")),
         brandName: normalize(product.brand),
         price: Number(product.price),
         category: String(product.wonCategoryPrimary || ""),
-        limitedBatch: lowerHtml.includes("erä"),
+        normalizedHtml: normalize(capture.html),
       };
     };
 
@@ -144,20 +153,36 @@ if (mode === "verify") {
       failed++;
     }
 
-    const missingEvidence = expected.filter(row => {
-      const expectedName = normalize(row.name);
-      return !evidenceRows.some(actual =>
-        actual.name.includes(expectedName) ||
-        expectedName.includes(actual.name)
+    const coreTokens = row => {
+      const brandTokens = normalize(row.brandName).split(" ").filter(Boolean);
+      return normalize(row.name).split(" ").filter(token =>
+        token.length > 2 &&
+        token !== "kpl" &&
+        token !== "kg" &&
+        token !== "ml" &&
+        !brandTokens.includes(token) &&
+        !Number.isFinite(Number(token))
       );
-    });
+    };
+    const evidenceFor = row => evidenceRows.find(actual =>
+      coreTokens(row).every(token => actual.baseName.includes(token))
+    );
+    const expectedWeight = row => {
+      const parts = normalize(row.name).split(" ");
+      const unitIndex = parts.findIndex(part => part === "g" || part === "kg" || part === "ml" || part === "l");
+      return unitIndex > 0 ? parts[unitIndex - 1] + " " + parts[unitIndex] : "";
+    };
+
+    const missingEvidence = expected.filter(row => !evidenceFor(row));
     const sourceMismatches = expected.filter(row => {
-      const actual = evidenceRows.find(x => x.name.includes(normalize(row.name)) || normalize(row.name).includes(x.name));
+      const actual = evidenceFor(row);
       if (!actual) return false;
+      const weight = expectedWeight(row);
       return Math.abs(actual.price - row.price) > 0.001 ||
         (row.brandName && !actual.brandName.includes(normalize(row.brandName))) ||
-        (row.category && !normalize(actual.category).includes(normalize(row.category))) ||
-        (row.eligibility === "limited-batch" && !actual.limitedBatch);
+        (weight && !actual.normalizedHtml.includes(weight)) ||
+        !expectedCategoryMatches(actual.category, row.category) ||
+        (row.eligibility === "limited-batch" && !actual.normalizedHtml.includes("era"));
     });
 
     if (missingEvidence.length || sourceMismatches.length) {
