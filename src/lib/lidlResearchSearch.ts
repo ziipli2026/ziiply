@@ -93,7 +93,7 @@ export function searchLidlResearch(query:string,limit=15,storeId?:string){
  }).filter(x=>x.score>0)
  .sort((a,b)=>b.score-a.score||a.r.name.localeCompare(b.r.name,"fi-FI"))
  .filter(({r})=>{const id=r.lidlProductId.trim();const name=identity([r.name,r.variant].filter(Boolean).join(" "));if(seen.has(id)||seenNames.has(name))return false;seen.add(id);seenNames.add(name);return true;})
- .slice(0,safeLimit).map(({r})=>{ const metadata=metadataByProductId.get(r.lidlProductId.trim()); return ({
+ .slice(0,safeLimit).map(({r})=>{ const metadata=metadataByProductId.get(r.lidlProductId.trim()); const verifiedPrice=selectedStoreId ? getVerifiedLidlStorePrice(r.lidlProductId.trim(), selectedStoreId) : null; return ({
   id:-Number(r.lidlProductId),lidlProductId:r.lidlProductId.trim(),name:[r.name,r.variant].filter(Boolean).join(" "),
   pictureUrl:officialImageByProductId.get(r.lidlProductId.trim()) ?? null,
   // Lidl's 20 April announcement is historical reference evidence, not today's basket price.
