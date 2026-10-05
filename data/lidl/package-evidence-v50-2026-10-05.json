@@ -251,6 +251,29 @@
       "source": "Alesto barcode catalog contains many distinct nut mixes; no exact Nut Trio identity match found",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10037645",
+      "name": "MILBONA Proteiinivanukas",
+      "packageSize": "200 g",
+      "status": "variant_partial_gtin_resolution",
+      "variants": [
+        {
+          "variant": "kookos",
+          "gtinCandidate": "4056489654926",
+          "gtinVerified": false,
+          "source": "F+S Milchwerk product registry exact Milbona High Protein Pudding Coconut 200 g; corroborated by FDDB"
+        },
+        {
+          "variant": "kahvi",
+          "gtin": null,
+          "gtinVerified": false,
+          "source": "Exact Milbona Colombian Coffee 200 g product identity found, but barcode not exposed in indexed source"
+        }
+      ],
+      "source": "Combined Finnish Lidl row is coffee or coconut; keep split until coffee GTIN is resolved.",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
