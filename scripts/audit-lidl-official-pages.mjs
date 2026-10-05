@@ -32,9 +32,10 @@ const validGtin = value => {
   for (let i = body.length - 1; i >= 0; i--, weight = weight === 3 ? 1 : 3) sum += Number(body[i]) * weight;
   return (10 - (sum % 10)) % 10 === check;
 };
-const collectGtins = html => {
+const collectGtins = (html, excludedIds = []) => {
   const found = new Set();
-  const add = value => { const d = digits(value); if (validGtin(d)) found.add(d); };
+  const excluded = new Set(excludedIds.map(digits).filter(Boolean));
+  const add = value => { const d = digits(value); if (validGtin(d) && !excluded.has(d)) found.add(d); };
   for (const match of html.matchAll(/(?:ean|gtin|barcode|gs1|productCode|itemCode)\\s*["':=]+\\s*["']?([0-9]{8,14})/gi)) add(match[1]);
   for (const script of html.matchAll(/<script[^>]*>([^]*?)<\/script>/gi)) {
     const tag = script[0].slice(0, script[0].indexOf(">") + 1);
@@ -45,7 +46,7 @@ const collectGtins = html => {
         if (!value || typeof value !== "object") return;
         if (Array.isArray(value)) return value.forEach(visit);
         for (const [key, item] of Object.entries(value)) {
-          if (/gtin|ean|barcode|sku/i.test(key)) add(item);
+          if (/gtin|ean|barcode/i.test(key)) add(item);
           if (item && typeof item === "object") visit(item);
         }
       };
@@ -77,7 +78,7 @@ for (const item of records.slice(0, limit)) {
     row.httpStatus = response.status;
     if (response.ok) {
       const html = await response.text();
-      row.officialPageGtins = collectGtins(html);
+      row.officialPageGtins = collectGtins(html, [row.lidlProductId, item.ian]);
       const image = meta(html, "og:image") || meta(html, "twitter:image");
       row.metaImagePresent = !!image;
       row.metaImageHost = image ? (() => { try { return new URL(image, response.url).hostname; } catch { return null; } })() : null;
