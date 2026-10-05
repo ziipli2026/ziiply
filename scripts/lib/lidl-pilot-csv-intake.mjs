@@ -11,7 +11,7 @@ export function processLidlPilotCsv(csv, knownProductIds, storeId, at = new Date
   return normalized!==""&&/^[0-9]+(?:[.][0-9]{1,2})?$/.test(normalized)?Number(normalized):null;
  };
  const observations=rows.map(row=>({
-  observedBarcode:classifyLidlObservedBarcode(row.observedCode,row.observedCodeOrigin),
+  observedBarcode:row.observedCode.trim()?classifyLidlObservedBarcode(row.observedCode,row.observedCodeOrigin):null,
   lidlProductId:row.lidlProductId,
   storeId:row.storeId,
   priceBasis:row.priceBasis,
