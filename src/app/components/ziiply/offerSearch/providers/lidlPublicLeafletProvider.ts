@@ -185,6 +185,61 @@ function discoveryLinks(html: string) {
   return [...new Set([...category, ...campaigns])];
 }
 
+function campaignProductJson(html: string) {
+  const decoded = html
+    .replace(/&quot;/g, '"')
+    .replace(/&#34;/g, '"')
+    .replace(/\\u0022/g, '"')
+    .replace(/\\u002F/g, "/")
+    .replace(/\\\//g, "/");
+  const candidates: unknown[] = [];
+  for (const match of decoded.matchAll(/\{[^{}]{0,12000}"(?:productName|name)"[^{}]{0,12000}\}/gi)) {
+    try {
+      const value = JSON.parse(match[0]);
+      if (value && typeof value === "object") candidates.push(value);
+    } catch {}
+  }
+  return candidates;
+}
+
+function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate: string): LidlPublicOffer[] {
+  const output: LidlPublicOffer[] = [];
+  for (const raw of campaignProductJson(html)) {
+    const product = raw as Record<string, any>;
+    const offer = (product.offers && typeof product.offers === "object" ? product.offers : product) as Record<string, any>;
+    const name = String(product.productName || product.name || product.title || "").trim();
+    const brandName = typeof product.brand === "string" ? product.brand : String(product.brand?.name || product.brandName || "").trim();
+    const price = money(offer.price ?? offer.offerPrice ?? product.price ?? product.offerPrice);
+    if (!name || price == null || price <= 0) continue;
+    const validFrom = isoDate(offer.validFrom || offer.startDate || product.validFrom || product.startDate) || fallbackDate;
+    const validUntil = isoDate(offer.validUntil || offer.endDate || product.validUntil || product.endDate) || fallbackDate;
+    const category = categoryFor([brandName, name, product.description, product.category].filter(Boolean).join(" "), sourceUrl);
+    if (!GROCERY_CATEGORIES.has(category)) continue;
+    const imageUrl = (() => {
+      const candidate = product.image || product.imageUrl || product.pictureUrl || offer.image || offer.imageUrl;
+      const value = Array.isArray(candidate) ? candidate[0] : candidate;
+      if (typeof value === "string") return /^https:\/\//.test(value) ? value : "";
+      if (value && typeof value === "object") {
+        const url = value.url || value.contentUrl || value["@id"] || "";
+        return typeof url === "string" && /^https:\/\//.test(url) ? url : "";
+      }
+      return "";
+    })();
+    output.push({
+      id: "lidl-fi-campaign-" + normalize([brandName, name, price, validFrom, validUntil].join("-")),
+      source: "lidl-fi-public", chain: "Lidl",
+      title: name, name, productName: name, brandName, price, priceText: `${price.toFixed(2).replace(".", ",")} €`, offerPrice: price,
+      originalPrice: money(product.originalPrice ?? offer.originalPrice),
+      normalPrice: money(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice),
+      priceBasis: "unit", isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
+      validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
+      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
+      rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean: "",
+    });
+  }
+  return output;
+}
+
 function productLinks(html: string) {
   const decoded = html.replace(/\\u002F/g, "/").replace(/\\\//g, "/");
   return [...new Set(
@@ -218,6 +273,9 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     if (result.status === "rejected") { failedPages++; continue; }
     for (const link of productLinks(result.value.html)) productPaths.add(link);
     parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
+    // Campaign landing pages also embed their own product-card payloads. Parse
+    // those directly instead of requiring every card to expose a /p/ link.
+    if (/\/c\//i.test(result.value.url)) parsed.push(...parseCampaignProductCards(result.value.html, result.value.url, date));
   }
 
   // Bound the fan-out: enough for the current grocery campaign surface while
