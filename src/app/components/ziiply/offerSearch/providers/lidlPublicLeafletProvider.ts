@@ -353,29 +353,35 @@ async function fetchHtml(path: string) {
   return { url: response.url, html: await response.text() };
 }
 
+async function fetchHtmlCached(path: string) {
+  const url = path.startsWith("http") ? path : BASE + path;
+  const response = await fetch(url, {
+    headers: HEADERS,
+    cache: "force-cache",
+    next: { revalidate: 300 },
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!response.ok) throw new Error(`Lidl.fi ${response.status}: ${url}`);
+  return { url: response.url, html: await response.text() };
+}
+
 
 export async function fetchLidlPublicCampaignOffers(options: { date?: string } = {}) {
   const date = options.date || finnishPublicationDate();
-  // Campaign search must stay lightweight. The leaflet/staging crawler follows
-  // hundreds of product pages and can exceed the request budget when used inline
-  // by Gösta. Lidl's /h/ category pages already expose Product JSON-LD with
-  // price and Myymälässä validity, so use those directly for live campaigns.
-  const discovered = new Set<string>(SEEDS.filter(path => /\/h\//i.test(path)));
-  const discoveryPages = await Promise.allSettled(SEEDS.map(fetchHtml));
-  for (const result of discoveryPages) if (result.status === "fulfilled")
-    for (const link of discoveryLinks(result.value.html)) if (/\/h\//i.test(link)) discovered.add(link);
 
-  const paths = [...discovered].slice(0, 120);
-  const pages = await Promise.allSettled(paths.map(fetchHtml));
+  // Gösta's Kampanjat feed must stay lightweight. The known grocery /h/ pages
+  // are the authoritative first-party campaign surface we need here. Do not
+  // crawl Lidl navigation/discovery and then fan out to dozens of extra pages:
+  // that made every foreground Kampanjat request slow.
+  const paths = [...new Set(SEEDS.filter(path => /\/h\//i.test(path)))];
+  const pages = await Promise.allSettled(paths.map(fetchHtmlCached));
   const parsed: LidlPublicOffer[] = [];
   let failedPages = 0;
+
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
     parsed.push(...[
       ...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date),
-      // Lidl's category product grid is server-rendered for users/search engines,
-      // but its Product JSON-LD is not guaranteed to carry validFrom/validUntil.
-      // Reuse the visible Myymälässä parser as a first-party fallback here too.
       ...parseCampaignVisibleProducts(result.value.html, result.value.url, date),
     ].filter(row => GROCERY_CATEGORIES.has(row.category)));
   }
@@ -387,9 +393,17 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     const old = byKey.get(key);
     if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
   }
+
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: {
+      date,
+      discoveredCategoryPages: paths.length,
+      fetchedCategoryPages: pages.length - failedPages,
+      failedPages,
+      parsedRows: parsed.length,
+      uniqueRows: byKey.size,
+    },
   };
 }
 
