@@ -11,12 +11,14 @@ const promotionSuspect=priced.filter(promotionSignal);
 const multiBuy=priced.filter(multiBuySignal);
 const weightPriced=priced.filter(weightPriceSignal);
 const unclassified=priced.filter(row=>!promotionSignal(row));
+const promotionOnly=priced.filter(row=>promotionSignal(row) && !multiBuySignal(row) && !weightPriceSignal(row));
 const summary={
  totalCatalogRecords:catalog.records.length,
  publicPriceObservations:priced.length,
  promotionSuspectCount:promotionSuspect.length,
  explicitMultiBuyCount:multiBuy.length,
  weightPricedObservationCount:weightPriced.length,
+ promotionOnlySignalCount:promotionOnly.length,
  unclassifiedPublicPriceCount:unclassified.length,
  checkoutVerifiedCount:0,
  comparableCount:0,
