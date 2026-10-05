@@ -23011,6 +23011,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onContentTabChange={(tab: "offers" | "campaigns") => {
               setGostaContentTabV1(tab);
               handleGostaFilterChangeV136("");
+
+              // Lidl campaign rows are part of the same provider master as offers.
+              // If an older in-memory master was populated before campaign rows were
+              // available, refresh it once when Kampanjat is opened instead of
+              // showing a permanently empty tab. Normal warm/cache behavior stays
+              // untouched when the master already contains campaigns.
+              if (
+                tab === "campaigns" &&
+                gostaSelectedOfferChainRefV547.current === "LIDL" &&
+                !gostaMasterOfferResultsV528.some((item: any) => item?.campaignType === "campaign")
+              ) {
+                gostaMasterByContextRefV802.current.clear();
+                gostaLastSearchContextKeyRefV532.current = "";
+                void searchOffers();
+              }
             }}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
