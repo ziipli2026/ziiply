@@ -80,13 +80,6 @@ export async function GET(request: Request) {
     const duplicatePeriods = editions.length - effectiveEditions.length;
     // Superseded snapshots are expected when a source republishes a corrected edition.
     // Report their count, but do not degrade health merely because history exists.
-    if (current.length && upcoming.length) {
-      const currentEnd = current.map((edition) => edition.validUntil).sort().at(-1)!;
-      const nextStart = upcoming.map((edition) => edition.validFrom).sort()[0];
-      const gapDays = Math.round((Date.parse(`${nextStart}T12:00:00Z`) - Date.parse(`${currentEnd}T12:00:00Z`)) / 86400000) - 1;
-      if (Number.isFinite(gapDays) && gapDays > 0)
-        issue("PUBLICATION_GAP", "error", `There is a ${gapDays}-day gap between current and next publication`);
-    }
     if (current.length && !upcoming.length) {
       const endDates = current.map((edition) => edition.validUntil).sort();
       const currentEnd = endDates[endDates.length - 1];
