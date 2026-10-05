@@ -788,98 +788,74 @@
       "name": "PANDA Pepe Original -lakritsipatukka",
       "unitPriceText": "32 g | 12,50 €/kg",
       "source": "exact_product_public_catalog"
-    }
-  ],
-  "remainingMissingRows": [
+    },
     {
       "lidlProductId": "10037646",
       "name": "OULULAINEN Pullava Dallaspitko",
-      "displayedPriceEur": 3.29,
-      "ian": "7109970"
+      "unitPriceText": "400 g | 8,23 €/kg",
+      "source": "official_lidl_fi_index_exact_price_match"
     },
     {
       "lidlProductId": "10037647",
       "name": "OULULAINEN Reissumies Tosi Ohut",
-      "displayedPriceEur": 1.79,
-      "ian": "7112815"
+      "unitPriceText": "210 g | 8,52 €/kg",
+      "source": "official_lidl_fi_index_exact_price_match"
     },
     {
       "lidlProductId": "10037648",
       "name": "OULULAINEN Reissumies Tosi Ohut",
-      "displayedPriceEur": 1.49,
-      "ian": "7112814"
-    },
-    {
-      "lidlProductId": "10038243",
-      "name": "Satsuma",
-      "displayedPriceEur": 1.39,
-      "ian": "80103"
-    },
-    {
-      "lidlProductId": "10038244",
-      "name": "FISKANO Tuore lohifilee",
-      "displayedPriceEur": 12.89,
-      "ian": "7112603"
+      "unitPriceText": "175 g | 8,51 €/kg",
+      "source": "official_lidl_fi_index_exact_price_match"
     },
     {
       "lidlProductId": "10038245",
       "name": "HARTWALL Sokeriton Jaffa 6-pack 3 kpl",
-      "displayedPriceEur": 10,
-      "ian": "7112199"
+      "unitPriceText": "6 x 0,33 l | 1,23 €/l | hinta sis. pantin | hinta yksittäin 4,95 € | 3 kpl 10,00 €",
+      "source": "public_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038272",
+      "name": "ALPRO Soijavalmiste 2 kpl",
+      "unitPriceText": "400 g | 5,00 €/kg | hinta yksittäin 2,39 € | 2 kpl 4,00 €",
+      "source": "public_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038281",
+      "name": "KARL FAZER Suklaalevy 4 kpl",
+      "unitPriceText": "180–200 g | 12,50–13,89 €/kg | hinta yksittäin 3,85 € | 4 kpl 10,00 €",
+      "source": "public_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038243",
+      "name": "Satsuma",
+      "unitPriceText": "1 kg | 1,39 €/kg",
+      "source": "public_campaign_exact_match"
     },
     {
       "lidlProductId": "10038250",
       "name": "Kotimainen omena",
-      "displayedPriceEur": 2.79,
-      "ian": "80241"
+      "unitPriceText": "irto | hinta/kg 2,79 €",
+      "source": "public_campaign_exact_match"
     },
     {
       "lidlProductId": "10038257",
       "name": "Osteen-mango",
-      "displayedPriceEur": 3.49,
-      "ian": "80710"
+      "unitPriceText": "irto | hinta/kg 3,49 €",
+      "source": "public_campaign_exact_match"
     },
     {
       "lidlProductId": "10038265",
       "name": "KARINIEMEN Kananpojan siivet 2 kpl",
-      "displayedPriceEur": 5,
-      "ian": "7109626"
-    },
+      "unitPriceText": "700 g | 3,57 €/kg | 2 kpl 5,00 €",
+      "source": "public_campaign_exact_match"
+    }
+  ],
+  "remainingMissingRows": [
     {
       "lidlProductId": "10038267",
       "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
       "displayedPriceEur": 29.89,
       "ian": "7112516"
-    },
-    {
-      "lidlProductId": "10038272",
-      "name": "ALPRO Soijavalmiste 2 kpl",
-      "displayedPriceEur": 4,
-      "ian": "207361"
-    },
-    {
-      "lidlProductId": "10038281",
-      "name": "KARL FAZER Suklaalevy 4 kpl",
-      "displayedPriceEur": 10,
-      "ian": "7107090"
-    },
-    {
-      "lidlProductId": "10038282",
-      "name": "NOSTJA Pancetta",
-      "displayedPriceEur": 6.25,
-      "ian": "6902818"
-    },
-    {
-      "lidlProductId": "10038286",
-      "name": "KULJANKA Valkokaalisalaatti",
-      "displayedPriceEur": 1.99,
-      "ian": "5500677"
-    },
-    {
-      "lidlProductId": "10038288",
-      "name": "KULJANKA Täytetty broileripihvi",
-      "displayedPriceEur": 4.49,
-      "ian": "184403"
     },
     {
       "lidlProductId": "10038293",
@@ -904,24 +880,6 @@
       "name": "PILOS Vadelmakefir",
       "displayedPriceEur": 0.99,
       "ian": "5535919"
-    },
-    {
-      "lidlProductId": "10038311",
-      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
-      "displayedPriceEur": 5,
-      "ian": "59859"
-    },
-    {
-      "lidlProductId": "10038471",
-      "name": "FRESHONA Suomalainen herne",
-      "displayedPriceEur": 0.88,
-      "ian": "7111948"
-    },
-    {
-      "lidlProductId": "10038477",
-      "name": "GELATELLI Kuningatarkermajäätelö",
-      "displayedPriceEur": 2.69,
-      "ian": "7112282"
     },
     {
       "lidlProductId": "10038479",
@@ -956,9 +914,11 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 46,
+    "resolvedOfficial": 56,
+    "resolvedDerived": 6,
     "notApplicable": 11,
-    "remaining": 27
+    "variantSplitRequired": 1,
+    "remaining": 10
   },
   "unitPriceNotApplicable": [
     {
@@ -1037,6 +997,59 @@
       "displayedPriceEur": 2.5,
       "ian": "7112003",
       "reason": "store-bakery/piece-priced campaign; mass/volume unit price is not required for this audit"
+    }
+  ],
+  "derivedUnitPriceEvidence": [
+    {
+      "lidlProductId": "10038471",
+      "name": "FRESHONA Suomalainen herne",
+      "unitPriceText": "200 g | 4,40 €/kg",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "0.88 / 0.200 kg"
+    },
+    {
+      "lidlProductId": "10038477",
+      "name": "GELATELLI Kuningatarkermajäätelö",
+      "unitPriceText": "1 l / 515 g | 2,69 €/l",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "2.69 / 1 l"
+    },
+    {
+      "lidlProductId": "10038282",
+      "name": "NOSTJA Pancetta",
+      "unitPriceText": "100 g | 62,50 €/kg",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "6.25 / 0.100 kg"
+    },
+    {
+      "lidlProductId": "10038288",
+      "name": "KULJANKA Täytetty broileripihvi",
+      "unitPriceText": "500 g | 8,98 €/kg",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "4.49 / 0.500 kg"
+    },
+    {
+      "lidlProductId": "10038286",
+      "name": "KULJANKA Valkokaalisalaatti",
+      "unitPriceText": "880 g (kiinteä paino 410 g) | 4,85 €/kg kiinteästä painosta",
+      "source": "derived_from_exact_package_evidence_and_corpus_price",
+      "derivation": "1.99 / 0.410 kg"
+    },
+    {
+      "lidlProductId": "10038244",
+      "name": "FISKANO Tuore lohifilee",
+      "unitPriceText": "n. 1,2 kg | hinta/kg 12,89 €",
+      "source": "exact_package_evidence_variable_weight",
+      "note": "displayedPriceEur is the per-kilogram price, not a package total"
+    }
+  ],
+  "variantSplitRequired": [
+    {
+      "lidlProductId": "10038311",
+      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+      "displayedPriceEur": 5,
+      "ian": "59859",
+      "reason": "combined MCENNEDY pan pizza 440 g / GELATELLI ice cream 500 ml offer; no single shared unit price"
     }
   ]
 }
