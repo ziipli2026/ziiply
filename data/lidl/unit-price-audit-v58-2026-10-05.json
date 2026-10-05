@@ -867,13 +867,13 @@
   "remainingMissingRows": [],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 58,
+    "resolvedOfficial": 57,
     "resolvedDerived": 8,
     "notApplicable": 11,
     "variantSplitRequired": 1,
     "sourceGapQuarantine": 6,
     "remaining": 0,
-    "classifiedTotal": 84
+    "classifiedTotal": 83
   },
   "unitPriceNotApplicable": [
     {
