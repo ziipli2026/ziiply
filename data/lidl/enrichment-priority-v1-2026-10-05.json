@@ -1,0 +1,72 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V1",
+  "generatedFrom": "official-grocery-candidates-v44-2026-10-01.json",
+  "policy": {
+    "firstPass": "official Lidl product page metadata",
+    "secondPass": "public price observation",
+    "thirdPass": "EAN only with explicit packaging evidence",
+    "never": "infer EAN from IAN or name"
+  },
+  "priority": [
+    [
+      "10038246",
+      "Korvapuusti 4 kpl"
+    ],
+    [
+      "10038252",
+      "Kotimainen varsiselleri"
+    ],
+    [
+      "10038256",
+      "Kotimainen punajuuri"
+    ],
+    [
+      "10038262",
+      "Riihiruispala 5 kpl"
+    ],
+    [
+      "10038269",
+      "WURSTI Extrapalvikinkku"
+    ],
+    [
+      "10038274",
+      "PÅGEN Hönösaaristolaisrieska"
+    ],
+    [
+      "10038278",
+      "ALESTO Pähkinäsekoitus"
+    ],
+    [
+      "10038279",
+      "SERLA Valkoinen talouspaperi"
+    ],
+    [
+      "10038280",
+      "SERLA Hellä-wc-paperi"
+    ],
+    [
+      "10038312",
+      "HK Burgeri 6 kpl"
+    ],
+    [
+      "10038313",
+      "SOLEVITA Appelsiinitäysmehu"
+    ],
+    [
+      "10038316",
+      "Kreikkalainen juustotanko 2 kpl"
+    ],
+    [
+      "10038317",
+      "KARTANON Kotimainen lihapulla 2 kpl"
+    ],
+    [
+      "10038348",
+      "W5 Puhdistusliina 2 kpl"
+    ],
+    [
+      "10038437",
+      "DOVGAN Blini 2 kpl"
+    ]
+  ]
+}
