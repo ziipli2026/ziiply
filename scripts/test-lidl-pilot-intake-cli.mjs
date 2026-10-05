@@ -12,7 +12,9 @@ try {
  assert.equal(result.status,"research-only-not-published");
  assert.equal(result.inputCount,25);
  assert.equal(result.structurallyAcceptedCandidateCount,0);
- assert.equal(result.rejectedObservationCount,25);\n assert.equal(result.externallyVerifiedEvidenceCount,0);\n assert.equal(result.publishablePriceCount,0);
+ assert.equal(result.rejectedObservationCount,25);
+ assert.equal(result.externallyVerifiedEvidenceCount,0);
+ assert.equal(result.publishablePriceCount,0);
  assert.equal(result.rejectionReasons["permission-not-confirmed"],25);
  assert.equal(JSON.stringify(result).includes("receiptEvidenceReference"),false);
  assert.equal(JSON.stringify(result).includes("regularPriceEur"),false);
