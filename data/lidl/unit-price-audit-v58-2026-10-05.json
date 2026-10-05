@@ -806,6 +806,24 @@
       "name": "OULULAINEN Reissumies Tosi Ohut",
       "unitPriceText": "175 g | 8,51 €/kg",
       "source": "official_lidl_fi_index_exact_price_match"
+    },
+    {
+      "lidlProductId": "10038245",
+      "name": "HARTWALL Sokeriton Jaffa 6-pack 3 kpl",
+      "unitPriceText": "6 x 0,33 l | 1,23 €/l | hinta sis. pantin | hinta yksittäin 4,95 € | 3 kpl 10,00 €",
+      "source": "public_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038272",
+      "name": "ALPRO Soijavalmiste 2 kpl",
+      "unitPriceText": "400 g | 5,00 €/kg | hinta yksittäin 2,39 € | 2 kpl 4,00 €",
+      "source": "public_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038281",
+      "name": "KARL FAZER Suklaalevy 4 kpl",
+      "unitPriceText": "180–200 g | 12,50–13,89 €/kg | hinta yksittäin 3,85 € | 4 kpl 10,00 €",
+      "source": "public_campaign_exact_match"
     }
   ],
   "remainingMissingRows": [
@@ -814,12 +832,6 @@
       "name": "Satsuma",
       "displayedPriceEur": 1.39,
       "ian": "80103"
-    },
-    {
-      "lidlProductId": "10038245",
-      "name": "HARTWALL Sokeriton Jaffa 6-pack 3 kpl",
-      "displayedPriceEur": 10,
-      "ian": "7112199"
     },
     {
       "lidlProductId": "10038250",
@@ -844,18 +856,6 @@
       "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
       "displayedPriceEur": 29.89,
       "ian": "7112516"
-    },
-    {
-      "lidlProductId": "10038272",
-      "name": "ALPRO Soijavalmiste 2 kpl",
-      "displayedPriceEur": 4,
-      "ian": "207361"
-    },
-    {
-      "lidlProductId": "10038281",
-      "name": "KARL FAZER Suklaalevy 4 kpl",
-      "displayedPriceEur": 10,
-      "ian": "7107090"
     },
     {
       "lidlProductId": "10038293",
@@ -920,10 +920,10 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 49,
+    "resolvedOfficial": 52,
     "resolvedDerived": 6,
     "notApplicable": 11,
-    "remaining": 18
+    "remaining": 15
   },
   "unitPriceNotApplicable": [
     {
