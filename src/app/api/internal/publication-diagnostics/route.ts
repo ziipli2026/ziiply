@@ -124,6 +124,7 @@ export async function GET(request: Request) {
       latestRunSource: latestRun?.source ?? null,
       previousSuccessfulOfferCount: previousCount,
       sourceDropPercent,
+      storedSnapshotCount: editions.length,
       effectiveEditionCount: effectiveEditions.length,
       supersededSnapshotCount: editions.length - effectiveEditions.length,
       currentEditionCount: current.length,
