@@ -28,7 +28,7 @@ for(const source of urls){
      displayedPriceEur:price,
      isLidlPlus:/Lidl Plus/i.test(chunk),
      isMultiBuy:/\b\d+\s*KPL\b/i.test(chunk),
-     validFromRaw:validity[1], validThroughRaw:validity[2],
+     validFromRaw:validity?.[1] ?? null, validThroughRaw:validity?.[2] ?? null,\n     availabilityKind: validity ? "dated-campaign" : "continuous-listing",
      evidenceText:chunk.slice(Math.max(0,chunk.length-900)),
      priceVerified:false, checkoutPriceVerified:false, regularPriceVerified:false
    });
