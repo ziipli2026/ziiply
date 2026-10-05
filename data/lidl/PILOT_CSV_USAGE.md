@@ -15,7 +15,7 @@ The generator takes five products from each of five grocery groups in the frozen
 - Record observed code + origin (packaging / paistopiste-shelf / scale-label); packaging EAN, Paistopiste shelf code and scale-label code as distinct evidence. None becomes a verified EAN merely because it looks numeric.
 - Enter shelf price and a receipt **unit** price only for an ordinary purchase. Set `isLidlPlus=false`, `isPromotion=false`, `isMultiBuy=false` only after actually confirming all three; otherwise leave blank, which causes rejection.
 - `permissionToUseEvidence=true` only when permission really exists. Provide an evidence reference, not a receipt photo, personal/payment information, or customer identifiers.
-- `receiptTimestamp` and `validThrough` must be full timezone-qualified ISO timestamps. Do not invent a validity period. A receipt documents an observed transaction, not a promise of a future shelf price.
+- `receiptTimestamp` must be a full timezone-qualified ISO timestamp. A receipt documents the checkout price at that observation time; Ziiply applies its own freshness policy separately and does not ask you to invent a future validity period.
 - Do not put completed CSVs, receipts, card details, or customer data in GitHub.
 
 Check the local file:
