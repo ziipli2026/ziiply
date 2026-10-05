@@ -86,7 +86,7 @@ export async function GET(request: Request) {
         period, count: offers.length,
         structuredCount: offers.filter(row => row.source === "lidl-plus").length,
         publicCount: offers.filter(row => row.source === "lidl-fi-public").length,
-        outcome, approvalState: "candidate", quality,
+        outcome, publicationId: `official-combined:${period}:${fingerprint}`, approvalState: "candidate", quality,
       });
     }
 
