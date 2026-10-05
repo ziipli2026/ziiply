@@ -52,16 +52,6 @@ export async function readActivePublicationOffers<T>(chain: string, at: Date = n
     ORDER BY valid_from, valid_until, parsed_at DESC, publication_id DESC`;
   return rows.flatMap((row) => Array.isArray(row.offers) ? row.offers as T[] : []);
 }
-export async function prunePublicationSnapshots(chain: string, keepDays = 70): Promise<void> {
-  if (!chain) return;
-  const sql = await database();
-  const days = Math.max(35, Math.min(keepDays, 180));
-  // Keep current/future editions regardless of age; remove only long-expired snapshots.
-  await sql`DELETE FROM ziiply_offer_publications
-    WHERE chain = ${chain}
-      AND valid_until < (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Helsinki')::date - ${days}::integer`;
-}
-
 export async function publicationDiagnosticSnapshots(chain: string, limit = 12) {
   const sql = await database();
   const rows = await sql`SELECT publication_id, valid_from::text AS valid_from,
