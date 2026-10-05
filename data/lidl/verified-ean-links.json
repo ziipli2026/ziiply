@@ -48,5 +48,10 @@
     "lidlProductId": "10037643",
     "ean": "0000090474132",
     "evidence": "Lidl official catalog record identifies RED BULL Energiajuoma, variant White Peach, 250 ml; S-kaupat and Finnish wholesale product data identify Red Bull White Peach 250 ml, EAN 0000090474132"
+  },
+  {
+    "lidlProductId": "10038321",
+    "ean": "6405020033962",
+    "evidence": "Lidl paper-leaflet fixture and parser regression identify Kuusamon Juusto Eränkävijä-juusto 300 g at 4.39 EUR; Kuusamon Juusto official product page identifies Eränkävijä 300 g, EAN 6405020033962"
   }
 ]
