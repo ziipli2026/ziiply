@@ -26,6 +26,10 @@ const verifiedLeafletImages: Record<string, string> = {
   "lidl-leaflet-chinese-cabbage": "/products/lidl/week40-2026/kiinankaali.webp",
   "lidl-leaflet-brussels-sprouts": "/products/lidl/week40-2026/ruusukaali.webp",
   "lidl-leaflet-banana": "/products/lidl/week40-2026/banaani.webp",
+  "lidl-leaflet-cherry-tomato-20261005": "https://www.lidl.fi/static/assets/sjl-tuotteet_pikkutomaatti-892420.jpg",
+  "lidl-leaflet-kuusamon-erankavija-20261005": "https://public.keskofiles.com/f/k-ruoka/product/6405020033931",
+  "lidl-leaflet-atria-chicken-strips": "https://cdn.s-cloud.fi/v1/w720h720%40_q75/assets/dam-id/A41snnwqaIh9IaMfw5EgR4.webp",
+  "lidl-leaflet-arla-protein": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/5711953201707?auto=format&h=400&pad=30",
 };
 
 export function addVerifiedLidlWeek40Leaflet(
@@ -80,7 +84,7 @@ export function addVerifiedLidlWeek40Leaflet(
           imageUrl: verifiedLeafletImages[String(item.id)] || item.imageUrl || officialImages.get(imageKey(item.name || item.title)) || "",
           image: verifiedLeafletImages[String(item.id)] || item.image || officialImages.get(imageKey(item.name || item.title)) || "",
           pictureUrl: verifiedLeafletImages[String(item.id)] || item.pictureUrl || officialImages.get(imageKey(item.name || item.title)) || "",
-          imageMatchStatus: verifiedLeafletImages[String(item.id)] ? "verified-leaflet-crop" : (item.imageUrl || officialImages.get(imageKey(item.name || item.title))) ? "official-exact-title" : "missing-leaflet-image",
+          imageMatchStatus: verifiedLeafletImages[String(item.id)] ? (String(item.id).includes("cherry-tomato-20261005") || String(item.id).includes("kuusamon-erankavija-20261005") || String(item.id).includes("atria-chicken-strips") || String(item.id).includes("arla-protein") ? "official-product-image" : "verified-leaflet-crop") : (item.imageUrl || officialImages.get(imageKey(item.name || item.title))) ? "official-exact-title" : "missing-leaflet-image",
           category: item.id === "lidl-leaflet-carrot" ? "Hevi" :
             item.id === "lidl-leaflet-kartanon-meatballs" ? "Liha & makkarat" :
             item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.category,
