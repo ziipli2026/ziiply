@@ -1,0 +1,130 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V3",
+  "rules": [
+    "key by lidlProductId",
+    "public displayed price remains non-checkout evidence",
+    "never infer EAN"
+  ],
+  "priority": [
+    {
+      "lidlProductId": "10038257",
+      "name": "Osteen-mango",
+      "displayedPriceEur": 3.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038259",
+      "name": "Dubai-munkki 3 kpl",
+      "displayedPriceEur": 3,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038260",
+      "name": "Perunapiirakka 6 kpl",
+      "displayedPriceEur": 2,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038261",
+      "name": "Kuningatarmunkki 4 kpl",
+      "displayedPriceEur": 2,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038263",
+      "name": "Texmex-piirakka",
+      "displayedPriceEur": 0.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038265",
+      "name": "KARINIEMEN Kananpojan siivet 2 kpl",
+      "displayedPriceEur": 5,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038267",
+      "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
+      "displayedPriceEur": 29.89,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038270",
+      "name": "VIA Valmisateria 2 kpl",
+      "displayedPriceEur": 7,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038272",
+      "name": "ALPRO Soijavalmiste 2 kpl",
+      "displayedPriceEur": 4,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038273",
+      "name": "JOKILAAKSON JUUSTO Tuorejuusto 2 kpl",
+      "displayedPriceEur": 5,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038281",
+      "name": "KARL FAZER Suklaalevy 4 kpl",
+      "displayedPriceEur": 10,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038282",
+      "name": "NOSTJA Pancetta",
+      "displayedPriceEur": 6.25,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038283",
+      "name": "KULJANKA Khinkalitaikinanyytti",
+      "displayedPriceEur": 3.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038284",
+      "name": "KULJANKA Borssikeitto",
+      "displayedPriceEur": 3.29,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038285",
+      "name": "KULJANKA Savustettu makkara",
+      "displayedPriceEur": 5.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    }
+  ]
+}
