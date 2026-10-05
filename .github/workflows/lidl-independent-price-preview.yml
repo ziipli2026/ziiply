@@ -43,6 +43,9 @@ on:
       - 'data/lidl/product-metadata-enrichment-v1-2026-10-05.json'
       - 'src/app/api/lidl/products/route.ts'
       - 'src/lib/lidlResearchSearch.ts'
+      - 'src/lib/lidlVerifiedStorePrice.ts'
+      - 'data/lidl/verified-store-price-bank-v1.json'
+      - 'scripts/test-lidl-verified-store-price-adapter.mjs'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
 permissions:
@@ -79,4 +82,5 @@ jobs:
       - run: node scripts/test-lidl-public-observation-evidence-v1.mjs
       - run: node scripts/build-lidl-product-metadata-enrichment.mjs
       - run: node scripts/test-lidl-product-metadata-enrichment.mjs
+      - run: node scripts/test-lidl-verified-store-price-adapter.mjs
       - run: git diff --exit-code -- data/lidl/product-metadata-enrichment-v1-2026-10-05.json
