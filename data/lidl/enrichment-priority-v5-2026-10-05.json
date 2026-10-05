@@ -1,0 +1,155 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V5",
+  "priority": [
+    {
+      "lidlProductId": "10038303",
+      "name": "KULJANKA Hapankaali",
+      "ian": "5502721",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038304",
+      "name": "PODRAVKA Papu-lihapata",
+      "ian": "6905117",
+      "displayedPriceEur": 3.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038305",
+      "name": "KULJANKA Puolalainen makkara",
+      "ian": "5500349",
+      "displayedPriceEur": 3.79,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038309",
+      "name": "PILOS Vadelmakefir",
+      "ian": "5535919",
+      "displayedPriceEur": 0.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038310",
+      "name": "TYMBARK Omena-kirsikkamehu",
+      "ian": "7704257",
+      "displayedPriceEur": 2.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038311",
+      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+      "ian": "59859",
+      "displayedPriceEur": 5,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038314",
+      "name": "ATRIA Kanan fileesuikale 4 kpl",
+      "ian": "7112108",
+      "displayedPriceEur": 8.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038319",
+      "name": "REILU Naudan uunipata",
+      "ian": "7101787",
+      "displayedPriceEur": 9.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038320",
+      "name": "KARINIEMEN Kananpojan rintaleike",
+      "ian": "7108496",
+      "displayedPriceEur": 7.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038321",
+      "name": "KUUSAMON JUUSTO Eränkävijä-juusto",
+      "ian": "7111511",
+      "displayedPriceEur": 4.39,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038322",
+      "name": "DANEROLLES Croissantit 2 kpl",
+      "ian": "7101245",
+      "displayedPriceEur": 4.5,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038323",
+      "name": "ARLA Proteiinipirtelö 2 kpl",
+      "ian": "7111597",
+      "displayedPriceEur": 2.5,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038324",
+      "name": "ATRIA Pizza 2 kpl",
+      "ian": "7111464",
+      "displayedPriceEur": 3.5,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038325",
+      "name": "Rahkapulla 3 kpl",
+      "ian": "7112003",
+      "displayedPriceEur": 2.5,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038326",
+      "name": "Kotimainen kirsikkatomaatti",
+      "ian": "82463",
+      "displayedPriceEur": 4.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    }
+  ]
+}
