@@ -14,5 +14,5 @@ const key=r=>[r.lidlProductId,r.storeId,r.observedAt,r.priceSource,r.evidenceRef
 assert.equal(new Set([valid,valid].map(key)).size,1);
 console.log(JSON.stringify({ok:true,cases:7}));
 
-// Keep the one-step local receipt-to-bank regression under the existing verified-price CI gate.
+// CI trigger: verified price gate also covers local receipt bank import.
 import "./test-lidl-pilot-receipt-bank-import.mjs";
