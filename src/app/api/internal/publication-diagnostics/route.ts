@@ -77,8 +77,6 @@ export async function GET(request: Request) {
       const calculated = Math.round((Date.parse(`${currentEnd}T12:00:00Z`) - Date.parse(`${date}T12:00:00Z`)) / 86400000);
       daysUntilCurrentEnd = Number.isFinite(calculated) ? calculated : null;
     }
-    if (current.length > 1)
-      issue("OVERLAPPING_CURRENT_PUBLICATIONS", "warning", `${current.length} publication periods are simultaneously current`);
     const duplicatePeriods = editions.length - effectiveEditions.length;
     // Superseded snapshots are expected when a source republishes a corrected edition.
     // Report their count, but do not degrade health merely because history exists.
