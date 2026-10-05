@@ -25,6 +25,8 @@ on:
       - 'scripts/test-lidl-ean-price-coverage.mjs'
       - 'scripts/audit-lidl-ean-linkage.mjs'
       - 'scripts/test-lidl-ean-linkage.mjs'
+      - 'scripts/audit-lidl-product-identifiers.mjs'
+      - 'scripts/test-lidl-product-identifiers.mjs'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -55,3 +57,4 @@ jobs:
       - run: node scripts/test-lidl-public-price-observation-audit.mjs
       - run: node scripts/test-lidl-ean-price-coverage.mjs
       - run: node scripts/test-lidl-ean-linkage.mjs
+      - run: node scripts/test-lidl-product-identifiers.mjs
