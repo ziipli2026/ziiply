@@ -7,10 +7,11 @@
       "ian": "7112635",
       "name": "SNELLMAN Kotimainen palvikinkku",
       "displayedPriceEur": 5.19,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6409620011917",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038247",
@@ -27,10 +28,11 @@
       "ian": "7111362",
       "name": "ATRIA Nauta-viljapossujauheliha",
       "displayedPriceEur": 8.99,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6407830032371",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038265",
@@ -67,10 +69,11 @@
       "ian": "7104737",
       "name": "WURSTI Extrapalvikinkku",
       "displayedPriceEur": null,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6409290001492",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038282",
@@ -157,10 +160,11 @@
       "ian": "7109970",
       "name": "OULULAINEN Pullava Dallaspitko",
       "displayedPriceEur": 3.29,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6413467593802",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038278",
@@ -427,20 +431,22 @@
       "ian": "6905117",
       "name": "PODRAVKA Papu-lihapata",
       "displayedPriceEur": 3.49,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "3850104035739",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038312",
       "ian": "7107496",
       "name": "HK Burgeri 6 kpl",
       "displayedPriceEur": null,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "6409100077884",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038317",
@@ -457,10 +463,11 @@
       "ian": "7101245",
       "name": "DANEROLLES Croissantit 2 kpl",
       "displayedPriceEur": 4.5,
-      "ean": null,
-      "eanMatchStatus": "unverified",
+      "ean": "5410146401435",
+      "eanMatchStatus": "verified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01"
+      "observedDate": "2026-10-01",
+      "eanSource": "verified-ean-links.json"
     },
     {
       "lidlProductId": "10038324",
