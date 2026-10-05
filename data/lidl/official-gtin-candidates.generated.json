@@ -1,0 +1,78 @@
+{
+  "source": "lidl.fi-official-product-page",
+  "researchOnly": true,
+  "records": [
+    {
+      "lidlProductId": "10017906",
+      "name": "Siemensämpylä",
+      "officialUrl": "https://www.lidl.fi/p/siemensampyla/p10017906",
+      "gtins": [
+        "10017906"
+      ]
+    },
+    {
+      "lidlProductId": "10020883",
+      "name": "Pizza Hawaii",
+      "officialUrl": "https://www.lidl.fi/p/pizza-hawaii/p10020883",
+      "gtins": [
+        "10020883"
+      ]
+    },
+    {
+      "lidlProductId": "10021477",
+      "name": "Maitosuklaacookie",
+      "officialUrl": "https://www.lidl.fi/p/maitosuklaacookie/p10021477",
+      "gtins": [
+        "10021477"
+      ]
+    },
+    {
+      "lidlProductId": "10031094",
+      "name": "Voitäytepulla",
+      "officialUrl": "https://www.lidl.fi/p/voitaytepulla/p10031094",
+      "gtins": [
+        "10031094"
+      ]
+    },
+    {
+      "lidlProductId": "10033050",
+      "name": "Munariisipasteija",
+      "officialUrl": "https://www.lidl.fi/p/munariisipasteija/p10033050",
+      "gtins": [
+        "10033050"
+      ]
+    },
+    {
+      "lidlProductId": "10034798",
+      "name": "Jyväinen kaurapiirakka",
+      "officialUrl": "https://www.lidl.fi/p/jyvainen-kaurapiirakka/p10034798",
+      "gtins": [
+        "10034798"
+      ]
+    },
+    {
+      "lidlProductId": "10036372",
+      "name": "Mustikkamuffinsi",
+      "officialUrl": "https://www.lidl.fi/p/mustikkamuffinsi/p10036372",
+      "gtins": [
+        "10036372"
+      ]
+    },
+    {
+      "lidlProductId": "10037409",
+      "name": "Toffeemuffinsi",
+      "officialUrl": "https://www.lidl.fi/p/toffeemuffinsi/p10037409",
+      "gtins": [
+        "10037409"
+      ]
+    },
+    {
+      "lidlProductId": "69052170",
+      "name": "Pitaleipä",
+      "officialUrl": "https://www.lidl.fi/p/pitaleipa/p69052170",
+      "gtins": [
+        "69052170"
+      ]
+    }
+  ]
+}
