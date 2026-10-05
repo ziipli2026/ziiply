@@ -88,5 +88,20 @@
     "lidlProductId": "10038475",
     "ean": "6420256014493",
     "evidence": "Lidl catalog: Mynthon Cool Mint 44 g. Retail product data confirms EAN 6420256014493."
+  },
+  {
+    "lidlProductId": "10038476",
+    "ean": "4009900412728",
+    "evidence": "Lidl catalog: Airwaves Menthol & Eucalyptus 29 g. Metro product data confirms EAN 4009900412728."
+  },
+  {
+    "lidlProductId": "10038478",
+    "ean": "6412500070003",
+    "evidence": "Lidl catalog: Panda Pepe Original. Retail product data confirms 32 g EAN 6412500070003."
+  },
+  {
+    "lidlProductId": "10038487",
+    "ean": "6416453048805",
+    "evidence": "Lidl catalog: Fazer Aarrearkku 220 g. Fazer Pro confirms consumer GTIN 6416453048805."
   }
 ]
