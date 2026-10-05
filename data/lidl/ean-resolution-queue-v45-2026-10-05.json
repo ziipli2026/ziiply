@@ -4,12 +4,12 @@
   "source": "official-grocery-candidates-v44-2026-10-01.json",
   "total": 197,
   "counts": {
-    "multipack_or_variant": 15,
+    "multipack_or_variant": 18,
     "variable_weight_or_produce": 33,
     "bakery_or_store_bakery": 104,
     "no_public_gtin": 13,
     "verified_gtin": 14,
-    "needs_external_gtin_lookup": 5,
+    "needs_external_gtin_lookup": 2,
     "non_food": 13
   },
   "records": [
@@ -433,8 +433,8 @@
       "name": "KULJANKA Jäätelökakku",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "multiple_variants_or_combined_promotion_requires_variant_specific_gtin"
     },
     {
       "lidlProductId": "10038295",
@@ -505,8 +505,8 @@
       "name": "KULJANKA Ajvar-paprikatahna",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "multiple_variants_or_combined_promotion_requires_variant_specific_gtin"
     },
     {
       "lidlProductId": "10038305",
@@ -532,8 +532,8 @@
       "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "multiple_variants_or_combined_promotion_requires_variant_specific_gtin"
     },
     {
       "lidlProductId": "10038313",
