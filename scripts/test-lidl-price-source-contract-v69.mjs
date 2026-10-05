@@ -7,6 +7,7 @@ const classify = (row, store) => {
  return { price: result.regularPriceEur, comparable: result.comparable, reason: result.reason };
 };
 const base = {regularPriceEur:1.49,priceKind:"regular",storeId:"FI-1",priceSource:"authorized-store-feed",checkoutPriceVerified:true,evidenceReference:"test-fixture",observedAt:"2026-10-04T10:00:00Z",validThrough:"2026-10-05T00:00:00Z"};
+const receiptBase = {...base,priceSource:"verified-store-receipt",validThrough:null};
 const cases = [
  ["verified",base,true],
  ["missing",{...base,regularPriceEur:null},false],
@@ -23,6 +24,8 @@ const cases = [
  ["invalid-observation",{...base,observedAt:"not-a-date"},false],
  ["timezone-required",{...base,observedAt:"2026-10-04T10:00:00"},false],
  ["missing-expiry",{...base,validThrough:null},false],
+ ["fresh-receipt",receiptBase,true],
+ ["stale-receipt",{...receiptBase,observedAt:"2026-10-03T10:00:00Z"},false],
  ["expiry-before-observation",{...base,validThrough:"2026-10-04T09:00:00Z"},false],
  ["no-store-scope",base,false,""],
  ["negative-price",{...base,regularPriceEur:-1},false],
