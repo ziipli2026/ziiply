@@ -272,7 +272,7 @@ function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackD
     const price = priceMatch ? Number(`${priceMatch[1]}.${priceMatch[2]}`) : NaN;
     if (!Number.isFinite(price) || price <= 0) continue;
 
-    const ignored = /^(alkaen|erilaisia|uutuus|lidl plus|\-\d+€|\d+\s*(?:g|kg|ml|l|kpl|cm)|\d+[,.]\d+\s*€\/kg)/i;
+    const ignored = /^(alkaen|erilaisia|uutuus|lidl plus|\-\d+€|\d+\s*kpl\s*(?:jopa\s*)?-?\d+%|\d+\s*(?:g|kg|ml|l|kpl|cm)|\d+[,.]\d+\s*€\/kg)/i;
     let name = "";
     for (let j = priceIndex - 1; j >= 0; j--) {
       const candidate = window[j].replace(/\s*\^\{\}\s*$/, "").trim();
