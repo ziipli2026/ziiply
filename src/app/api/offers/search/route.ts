@@ -651,6 +651,13 @@ export async function GET(request: Request) {
       // The public category pages are the campaign source. Remove only rows that
       // are an exact current offer match (same normalized product, price and
       // validity) so the same leaflet item is not duplicated into Kampanjat.
+      // Only independently verified paper-leaflet rows may suppress a campaign.
+      // combined also contains the broader Lidl Plus feed, so using all combined
+      // rows here would incorrectly erase valid public Lidl.fi campaign rows.
+      const independentlyVerifiedLeafletRows = combined.filter((offer) =>
+        String(offer.id || "").startsWith("lidl-leaflet-") ||
+        String(offer.source || "") === "verified-official-leaflet"
+      );
       let lidlCampaigns: UnknownRecord[] = [];
       try {
         const publicFeed = await fetchLidlPublicCampaignOffers({ date: todayFi });
@@ -661,7 +668,7 @@ export async function GET(request: Request) {
             .replace(/\s+/g, " ")
             .trim();
         const activeOfferKeys = new Set(
-          combined.map((offer) => [
+          independentlyVerifiedLeafletRows.map((offer) => [
             normalizeCampaignKey(offer),
             Number(offer.offerPrice ?? offer.price),
             firstString(offer.validFrom).slice(0, 10),
