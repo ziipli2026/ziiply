@@ -38,5 +38,10 @@
     "lidlProductId": "10037642",
     "ean": "6430081490041",
     "evidence": "Lidl official product path /p/oddlygood-barista-kaurajuoma/p10037642 identifies Oddlygood Barista-kaurajuoma; Valio official product data identifies Oddlygood Barista kaurajuoma 1 l UHT gluteeniton, EAN 6430081490041"
+  },
+  {
+    "lidlProductId": "10037650",
+    "ean": "8850987146619",
+    "evidence": "Lidl.fi official product path /p/mama-nuudeli-6-pack/p10037650 and Lidl dry-goods category identify MAMA Nuudeli 6-pack 330 g; S-kaupat product data identifies MAMA Kananmakuinen nuudeli 6x55 g = 330 g, EAN 8850987146619"
   }
 ]
