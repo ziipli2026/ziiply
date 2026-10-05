@@ -758,6 +758,30 @@
       "name": "TYMBARK Omena-kirsikkamehu",
       "unitPriceText": "1 l | 2,49 €/l",
       "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038314",
+      "name": "ATRIA Kanan fileesuikale 4 kpl",
+      "unitPriceText": "300 g | 7,49 €/kg | hinta yksittäin 2,89 € | 4 kpl 8,99 €",
+      "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038323",
+      "name": "ARLA Proteiinipirtelö 2 kpl",
+      "unitPriceText": "200 g | 6,25 €/kg | hinta yksittäin 1,49 € | 2 kpl 2,50 €",
+      "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038319",
+      "name": "REILU Naudan uunipata",
+      "unitPriceText": "700 g | 9,99 €/kg",
+      "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038320",
+      "name": "KARINIEMEN Kananpojan rintaleike",
+      "unitPriceText": "n. 1 kg | 7,99 €/kg",
+      "source": "public_exact_product_campaign_evidence"
     }
   ],
   "remainingMissingRows": [
@@ -882,30 +906,6 @@
       "ian": "59859"
     },
     {
-      "lidlProductId": "10038314",
-      "name": "ATRIA Kanan fileesuikale 4 kpl",
-      "displayedPriceEur": 8.99,
-      "ian": "7112108"
-    },
-    {
-      "lidlProductId": "10038319",
-      "name": "REILU Naudan uunipata",
-      "displayedPriceEur": 9.99,
-      "ian": "7101787"
-    },
-    {
-      "lidlProductId": "10038320",
-      "name": "KARINIEMEN Kananpojan rintaleike",
-      "displayedPriceEur": 7.99,
-      "ian": "7108496"
-    },
-    {
-      "lidlProductId": "10038323",
-      "name": "ARLA Proteiinipirtelö 2 kpl",
-      "displayedPriceEur": 2.5,
-      "ian": "7111597"
-    },
-    {
       "lidlProductId": "10038471",
       "name": "FRESHONA Suomalainen herne",
       "displayedPriceEur": 0.88,
@@ -956,9 +956,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 41,
+    "resolvedOfficial": 45,
     "notApplicable": 11,
-    "remaining": 32
+    "remaining": 28
   },
   "unitPriceNotApplicable": [
     {
