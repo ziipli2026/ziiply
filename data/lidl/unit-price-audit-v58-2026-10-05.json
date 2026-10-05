@@ -722,6 +722,12 @@
       "name": "Kotimainen kirsikkatomaatti",
       "unitPriceText": "800 g | 6,24 €/kg",
       "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038285",
+      "name": "KULJANKA Savustettu makkara",
+      "unitPriceText": "600 g | 9,98 €/kg",
+      "source": "lidl_campaign_publication_exact_match"
     }
   ],
   "remainingMissingRows": [
@@ -802,12 +808,6 @@
       "name": "NOSTJA Pancetta",
       "displayedPriceEur": 6.25,
       "ian": "6902818"
-    },
-    {
-      "lidlProductId": "10038285",
-      "name": "KULJANKA Savustettu makkara",
-      "displayedPriceEur": 5.99,
-      "ian": "185279"
     },
     {
       "lidlProductId": "10038286",
@@ -956,9 +956,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 35,
+    "resolvedOfficial": 36,
     "notApplicable": 11,
-    "remaining": 38
+    "remaining": 37
   },
   "unitPriceNotApplicable": [
     {
