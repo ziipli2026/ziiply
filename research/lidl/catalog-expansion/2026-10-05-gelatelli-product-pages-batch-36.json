@@ -1,0 +1,44 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_verified_skus": 2,
+  "products": [
+    {
+      "brand": "Gelatelli",
+      "name": "Jättituutti",
+      "package_size": "200 ml",
+      "category": "jäätelö",
+      "lidl_product_id": "10021787",
+      "official_product_url": "https://www.lidl.fi/p/gelatelli-laktoositon-jattituutti/p10021787",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "attributes": [
+        "Pakaste",
+        "Rainforest Alliance"
+      ],
+      "verification": "Official Lidl Finland product-specific /p/ page; displayed price not copied into normal_price."
+    },
+    {
+      "brand": "Gelatelli",
+      "name": "Mahtis-jäätelötuutti",
+      "package_size": "200 ml",
+      "category": "jäätelö",
+      "lidl_product_id": "10022394",
+      "official_product_url": "https://www.lidl.fi/p/gelatelli-mahtis-jaatelotuutti/p10022394",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "attributes": [
+        "Pakaste",
+        "Rainforest Alliance"
+      ],
+      "verification": "Official Lidl Finland product-specific /p/ page; displayed price not copied into normal_price."
+    }
+  ],
+  "master_index_effect": {
+    "previous_logical_verified_skus": 36,
+    "new_logical_verified_skus": 38
+  },
+  "price_policy": "Do not infer or persist current normal price from indexed/campaign page pricing."
+}
