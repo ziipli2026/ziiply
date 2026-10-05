@@ -1,0 +1,248 @@
+{
+  "generated_at": "2026-10-05",
+  "research_only": true,
+  "method": "Branch-wide consolidation of product-specific records. Unique Lidl IDs were extracted, then same normalized brand/name/package groups with multiple IDs were quarantined.",
+  "raw_unique_lidl_ids_found": 40,
+  "logical_verified_skus": 36,
+  "quarantined_parallel_id_groups": [
+    {
+      "brand": "Juustoportti",
+      "name": "Hyvin-jogurtti",
+      "package_size": "1 kg",
+      "lidl_product_ids": [
+        "10023804",
+        "10026845"
+      ],
+      "counted_in_master": false
+    },
+    {
+      "brand": "Kanamestari",
+      "name": "Kanan ohut fileeleike",
+      "package_size": "600 g",
+      "lidl_product_ids": [
+        "10023533",
+        "10023534"
+      ],
+      "counted_in_master": false
+    }
+  ],
+  "verified_products": [
+    {
+      "lidl_product_id": "10023501",
+      "brand": "Milbona",
+      "name": "Puhvelimozzarella",
+      "package_size": "125 g"
+    },
+    {
+      "lidl_product_id": "10033030",
+      "brand": "Valio",
+      "name": "Aamupala-sulatejuustoviipaleet",
+      "package_size": "400 g"
+    },
+    {
+      "lidl_product_id": "10023404",
+      "brand": "Jyväbroiler",
+      "name": "Broilerin filee",
+      "package_size": "390 g"
+    },
+    {
+      "lidl_product_id": "10031493",
+      "brand": "Kanamestari",
+      "name": "Kanan sisäfilee yrttimaustettu",
+      "package_size": "600 g"
+    },
+    {
+      "lidl_product_id": "10026918",
+      "brand": "Dulano",
+      "name": "Salamitanko",
+      "package_size": "650 g"
+    },
+    {
+      "lidl_product_id": "10027394",
+      "brand": "Halloween",
+      "name": "Minidonitsit",
+      "package_size": "279 g / 9 kpl"
+    },
+    {
+      "lidl_product_id": "10026707",
+      "brand": "Arla",
+      "name": "Kadett-juusto",
+      "package_size": "500 g"
+    },
+    {
+      "lidl_product_id": "10023562",
+      "brand": "Valio",
+      "name": "Maustettu rahka 2 kpl",
+      "package_size": "200 g"
+    },
+    {
+      "lidl_product_id": "10023795",
+      "brand": "Grillimaisteri",
+      "name": "Kanan grilliboxi",
+      "package_size": "n. 1,7 kg"
+    },
+    {
+      "lidl_product_id": "10023625",
+      "brand": "Grillimaisteri",
+      "name": "Possun Spare Ribs",
+      "package_size": "n. 1 kg"
+    },
+    {
+      "lidl_product_id": "10023626",
+      "brand": "Grillimaisteri",
+      "name": "Possun fileepihvi",
+      "package_size": "450 g (2 kpl)"
+    },
+    {
+      "lidl_product_id": "10023507",
+      "brand": "Isokari",
+      "name": "Kuhafilee",
+      "package_size": "200 g"
+    },
+    {
+      "lidl_product_id": "10023750",
+      "brand": "Isokari",
+      "name": "Savustettu kirjolohifilee",
+      "package_size": "n. 750 g"
+    },
+    {
+      "lidl_product_id": "10028615",
+      "brand": "Kanamestari",
+      "name": "Kanan minuuttisuikale",
+      "package_size": "1 kg"
+    },
+    {
+      "lidl_product_id": "10026908",
+      "brand": "Milbona",
+      "name": "Cheddar",
+      "package_size": "250 g"
+    },
+    {
+      "lidl_product_id": "10023624",
+      "brand": "Nautica",
+      "name": "Kylmäsavulohi",
+      "package_size": "200 g"
+    },
+    {
+      "lidl_product_id": "10021816",
+      "brand": "Grillimaisteri",
+      "name": "Kanan paistileike Hot Honey",
+      "package_size": "600 g"
+    },
+    {
+      "lidl_product_id": "10023536",
+      "brand": "Vitasia",
+      "name": "Gyoza-taikinanyytti",
+      "package_size": "400 g"
+    },
+    {
+      "lidl_product_id": "10023580",
+      "brand": "Vitasia",
+      "name": "BBQ-ribsit",
+      "package_size": "600 g"
+    },
+    {
+      "lidl_product_id": "10023554",
+      "brand": "Grillimaisteri",
+      "name": "Ribs",
+      "package_size": "n. 600 g"
+    },
+    {
+      "lidl_product_id": "10027892",
+      "brand": "Deluxe",
+      "name": "Perunapaistos tomaatti-mozzarella",
+      "package_size": "400 g"
+    },
+    {
+      "lidl_product_id": "10021852",
+      "brand": "Grillimaisteri",
+      "name": "Possun marinoitu sisäfileepihvi BBQ",
+      "package_size": "400 g"
+    },
+    {
+      "lidl_product_id": "10023751",
+      "brand": "Atria",
+      "name": "Wilhelm-grillimakkara",
+      "package_size": "350–400 g"
+    },
+    {
+      "lidl_product_id": "10023394",
+      "brand": "Mutti",
+      "name": "Hieno tomaattimurska",
+      "package_size": "400 g"
+    },
+    {
+      "lidl_product_id": "10026316",
+      "brand": "Fazer",
+      "name": "Aito Gurtti 2 kpl",
+      "package_size": "400 g"
+    },
+    {
+      "lidl_product_id": "10023576",
+      "brand": "Vitasia",
+      "name": "Currytahna 2 kpl",
+      "package_size": "195 g"
+    },
+    {
+      "lidl_product_id": "10023581",
+      "brand": "Vitasia",
+      "name": "Kevätkääryle",
+      "package_size": "280 g"
+    },
+    {
+      "lidl_product_id": "10026664",
+      "brand": "Vitasia",
+      "name": "Valkokatkaravut",
+      "package_size": "100 g"
+    },
+    {
+      "lidl_product_id": "10026674",
+      "brand": "Vitasia",
+      "name": "Merileväsnack",
+      "package_size": "70 g"
+    },
+    {
+      "lidl_product_id": "10023598",
+      "brand": "Vitasia",
+      "name": "Teriyakikastike",
+      "package_size": "200 g"
+    },
+    {
+      "lidl_product_id": "10023582",
+      "brand": "Vitasia",
+      "name": "Dim Sum",
+      "package_size": "200 g"
+    },
+    {
+      "lidl_product_id": "10023622",
+      "brand": "Vitasia",
+      "name": "Musta riisi",
+      "package_size": "500 g"
+    },
+    {
+      "lidl_product_id": "10023608",
+      "brand": "Vitasia",
+      "name": "Tiramisu",
+      "package_size": "2 x 55 g"
+    },
+    {
+      "lidl_product_id": "10023588",
+      "brand": "Vitasia",
+      "name": "Konjac-nuudelit",
+      "package_size": "270 g"
+    },
+    {
+      "lidl_product_id": "10026672",
+      "brand": "Vitasia",
+      "name": "Seesamijäätelö",
+      "package_size": "473 ml"
+    },
+    {
+      "lidl_product_id": "10028819",
+      "brand": "Solevita",
+      "name": "Appelsiinimehu",
+      "package_size": "5 x 0,2 l"
+    }
+  ],
+  "count_policy": "This master count covers verified non-bakery research records only. Category candidates and historical/context rows are excluded. The existing bakery bank is not merged into this file."
+}
