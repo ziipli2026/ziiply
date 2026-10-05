@@ -68,6 +68,13 @@ export async function GET(request: Request) {
     if (sourceDropPercent !== null && sourceDropPercent >= 40)
       issue("SOURCE_COUNT_DROP", "error", `Source offer count dropped ${sourceDropPercent}% for the same publication periods`);
     if (!current.length) issue("NO_CURRENT_PUBLICATION", "error", "No currently valid stored publication");
+    if (current.length && !upcoming.length) {
+      const endDates = current.map((edition) => edition.validUntil).sort();
+      const currentEnd = endDates[endDates.length - 1];
+      const daysUntilEnd = Math.round((Date.parse(`${currentEnd}T12:00:00Z`) - Date.parse(`${date}T12:00:00Z`)) / 86400000);
+      if (Number.isFinite(daysUntilEnd) && daysUntilEnd <= 1)
+        issue("NEXT_PUBLICATION_MISSING", "warning", "Current publication ends within one day and no upcoming publication is staged");
+    }
     for (const edition of current) {
       if (edition.quality.severity === "error") issue("PUBLICATION_DATA_ERROR", "error", `Critical offer data in ${edition.publicationId}`);
       else if (edition.quality.severity === "warning") issue("PUBLICATION_METADATA_WARNING", "warning", `Incomplete offer metadata in ${edition.publicationId}`);
