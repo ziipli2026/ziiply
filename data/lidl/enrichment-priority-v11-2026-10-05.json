@@ -1,0 +1,170 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V11",
+  "priority": [
+    {
+      "lidlProductId": "10026398",
+      "name": "Maalaissämpylä",
+      "ian": "7111563",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10026399",
+      "name": "Pizza Kebab",
+      "ian": "6515521",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10026400",
+      "name": "Bolognese pasteija",
+      "ian": "146325",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10027077",
+      "name": "Rustico-leipä",
+      "ian": "1002917",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10030550",
+      "name": "Siemen-hapanjuurileipä",
+      "ian": "1005284",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10030552",
+      "name": "Kaura-seesamsämpylä",
+      "ian": "7111564",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10031093",
+      "name": "Kiviuunileipä",
+      "ian": "5536265",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10031094",
+      "name": "Voitäytepulla",
+      "ian": "7106383",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10031095",
+      "name": "Munkkipallero",
+      "ian": "7110633",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10032834",
+      "name": "Riisipiirakka",
+      "ian": "7111956",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10032835",
+      "name": "FAZER Berliininmunkki",
+      "ian": "7112289",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10032836",
+      "name": "Pesto-juustokierre",
+      "ian": "1016391",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10032838",
+      "name": "Toffeeviineri",
+      "ian": "7107767",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10032840",
+      "name": "Pähkinä-nougat croissant",
+      "ian": "227543",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10033042",
+      "name": "Pielispakari mini karjalanpiirakka",
+      "ian": "7111986",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    }
+  ]
+}
