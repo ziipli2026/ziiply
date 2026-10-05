@@ -68,5 +68,43 @@
       "10038255",
       "Kotimainen ruusukaali"
     ]
-  ]
+  ],
+  "verifiedPreviousPriceLinks": [
+    {
+      "lidlProductId": "10038249",
+      "pack": "1 kg",
+      "offerPriceEur": 0.79,
+      "previousDisplayedPriceEur": 1.09,
+      "validThrough": "2026-10-07"
+    },
+    {
+      "lidlProductId": "10038251",
+      "priceBasis": "EUR/kg",
+      "offerPriceEur": 1.99,
+      "previousDisplayedPriceEur": 2.39,
+      "validThrough": "2026-10-07"
+    },
+    {
+      "lidlProductId": "10038253",
+      "pricingUnit": "kg",
+      "offerPriceEur": 2.69,
+      "previousDisplayedPriceEur": 3.89,
+      "validThrough": "2026-10-07"
+    },
+    {
+      "lidlProductId": "10038254",
+      "pack": "2 kg",
+      "offerPriceEur": 1.19,
+      "previousDisplayedPriceEur": 1.49,
+      "validThrough": "2026-10-07"
+    },
+    {
+      "lidlProductId": "10038255",
+      "pack": "400 g",
+      "offerPriceEur": 2.99,
+      "previousDisplayedPriceEur": 3.99,
+      "validThrough": "2026-10-07"
+    }
+  ],
+  "previousPricePolicy": "Previous displayed prices are historical/public comparison evidence only; they are not current checkout-verified regular prices."
 }
