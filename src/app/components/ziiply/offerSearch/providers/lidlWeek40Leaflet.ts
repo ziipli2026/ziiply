@@ -79,9 +79,14 @@ export function addVerifiedLidlWeek40Leaflet(
           pictureUrl: verifiedLeafletImages[String(item.id)] || item.pictureUrl || officialImages.get(imageKey(item.name || item.title)) || "",
           imageMatchStatus: verifiedLeafletImages[String(item.id)] ? "verified-leaflet-crop" : (item.imageUrl || officialImages.get(imageKey(item.name || item.title))) ? "official-exact-title" : "missing-leaflet-image",
           category: item.id === "lidl-leaflet-carrot" ? "Hevi" :
+            item.id === "lidl-leaflet-kartanon-meatballs" ? "Liha & makkarat" :
             item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.category,
-          categoryPath: item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.categoryPath || item.category,
-          mainCategory: item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.mainCategory || item.category,
+          categoryPath: item.id === "lidl-leaflet-carrot" ? "Hevi" :
+            item.id === "lidl-leaflet-kartanon-meatballs" ? "Liha & makkarat" :
+            item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.categoryPath || item.category,
+          mainCategory: item.id === "lidl-leaflet-carrot" ? "Hevi" :
+            item.id === "lidl-leaflet-kartanon-meatballs" ? "Liha & makkarat" :
+            item.id === "lidl-leaflet-pizza-ice-cream" ? "Pakasteet" : item.mainCategory || item.category,
           benefitText: item.priceBasis === "multi-buy-total"
             ? `${item.multiBuyQuantity} kpl yhteensä ${item.priceText}`
             : item.priceBasis === "bundle"

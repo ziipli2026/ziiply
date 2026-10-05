@@ -608,7 +608,12 @@ export async function GET(request: Request) {
         catch (error) { console.warn("[Ziiply offers] Lidl staged publication unavailable", error); }
       }
       const combined = dedupe([...(enriched as UnknownRecord[]), ...staged]);
-      const results = onlyCurrentlyValidLidlOffers(combined, todayFi).filter((offer) => offerMatchesQuery(q, offer));
+      // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
+      // visible catch-all category: general merchandise/campaign rows stay out,
+      // while real groceries must be classified into a concrete grocery category.
+      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(combined, todayFi)
+        .filter((offer) => normalizeText(offer.category) !== "muut");
+      const results = lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
