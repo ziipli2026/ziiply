@@ -72,8 +72,10 @@ export async function GET(request: Request) {
       if (edition.quality.severity === "error") issue("PUBLICATION_DATA_ERROR", "error", `Critical offer data in ${edition.publicationId}`);
       else if (edition.quality.severity === "warning") issue("PUBLICATION_METADATA_WARNING", "warning", `Incomplete offer metadata in ${edition.publicationId}`);
     }
+    const status = issues.some((entry) => entry.severity === "error") ? "error" :
+      issues.length ? "warning" : "ok";
     const summary = {
-      status: issues.some((entry) => entry.severity === "error") ? "error" :
+      status, issues.some((entry) => entry.severity === "error") ? "error" :
         issues.length ? "warning" : "ok",
       latestRunAt: latestRun?.checked_at ?? null,
       latestRunSucceeded: latestRun?.ok ?? null,
@@ -86,7 +88,7 @@ export async function GET(request: Request) {
       currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
       issues,
     };
-    return NextResponse.json({ ok: true, chain, checkedAt: new Date().toISOString(),
+    return NextResponse.json({ ok: true, needsAttention: status !== "ok", chain, checkedAt: new Date().toISOString(),
       summary, editionCount: editions.length, editions, runs },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
