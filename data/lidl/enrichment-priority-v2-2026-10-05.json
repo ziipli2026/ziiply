@@ -106,5 +106,84 @@
       "validThrough": "2026-10-07"
     }
   ],
-  "previousPricePolicy": "Previous displayed prices are historical/public comparison evidence only; they are not current checkout-verified regular prices."
+  "previousPricePolicy": "Previous displayed prices are historical/public comparison evidence only; they are not current checkout-verified regular prices.",
+  "batch2PublicObservations": [
+    {
+      "lidlProductId": "10037646",
+      "displayedPriceEur": 3.29,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10037647",
+      "displayedPriceEur": 1.79,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10037648",
+      "displayedPriceEur": 1.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10037649",
+      "displayedPriceEur": 5.19,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10037650",
+      "displayedPriceEur": 3.39,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038243",
+      "displayedPriceEur": 1.39,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038244",
+      "displayedPriceEur": 12.89,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038245",
+      "displayedPriceEur": 10,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038248",
+      "displayedPriceEur": 5.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038250",
+      "displayedPriceEur": 2.79,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false
+    }
+  ],
+  "batch2Status": {
+    "products": 15,
+    "publicPriceObservations": 15,
+    "previousDisplayedPriceLinks": 5,
+    "verifiedEans": 0,
+    "checkoutVerifiedRegularPrices": 0
+  }
 }
