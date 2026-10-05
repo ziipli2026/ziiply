@@ -11,7 +11,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": false
+      "legacyProductId": false,
+      "officialUrl": "https://www.lidl.fi/p/pinaatti-fetapasteija/p10037408",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037409",
@@ -23,7 +27,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": false
+      "legacyProductId": false,
+      "officialUrl": "https://www.lidl.fi/p/toffeemuffinsi/p10037409",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037410",
@@ -35,7 +43,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": false
+      "legacyProductId": false,
+      "officialUrl": "https://www.lidl.fi/p/paaryna-kinuskipulla/p10037410",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037411",
@@ -47,7 +59,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": false
+      "legacyProductId": false,
+      "officialUrl": "https://www.lidl.fi/p/dubai-munkki/p10037411",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037443",
@@ -59,7 +75,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": false
+      "legacyProductId": false,
+      "officialUrl": "https://www.lidl.fi/p/kalkkuna-juustotasku/p10037443",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "1060620",
@@ -71,7 +91,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/hot-dog/p1060620",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": "check-current-assortment"
     },
     {
       "lidlProductId": "1182510",
@@ -83,7 +107,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/ciabatta/p1182510",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "1210220",
@@ -95,7 +123,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/valkosipulivoipatonki/p1210220",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "12180",
@@ -107,7 +139,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/vadelmahillomunkki/p12180",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "1259030",
@@ -119,7 +155,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/rustiikkinen-maalaissampyla/p1259030",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "16150",
@@ -131,7 +171,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/ruispala-100/p16150",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "1821550",
@@ -143,7 +187,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/suklaadonitsi/p1821550",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "282110",
@@ -155,7 +203,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/vehnapatonki/p282110",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "40780",
@@ -167,7 +219,11 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/lihapasteija/p40780",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "40800",
@@ -179,7 +235,21 @@
       "checkoutComparable": false,
       "ean": null,
       "priceUsePolicy": "do-not-publish-as-current-normal-price",
-      "legacyProductId": true
+      "legacyProductId": true,
+      "officialUrl": "https://www.lidl.fi/p/riisipiirakka/p40800",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
+    }
+  ],
+  "identifierWarnings": [
+    {
+      "name": "Riisipiirakka",
+      "lidlProductIds": [
+        "10032834",
+        "40800"
+      ],
+      "reason": "same product name occurs under distinct Lidl Product IDs; never merge by name alone"
     }
   ]
 }
