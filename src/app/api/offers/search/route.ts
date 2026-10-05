@@ -62,6 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
+import { removeCampaignCopiesOfLeaflet } from "../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
@@ -876,9 +877,14 @@ export async function GET(request: Request) {
         if (selectedCitymarket) {
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
-          citymarketLocalCount = matchingLocalOffers.length;
-          citymarketLocalStoreId = matchingLocalOffers.length ? String(matchingLocalOffers[0].storeId ?? "") || null : null;
-          citymarketResults.push(...matchingLocalOffers);
+          // The reviewed national leaflet is the Tarjoukset master. Local/store
+          // publications are Kampanjat, but an exact product+price copy must not
+          // appear in both tabs.
+          const nationalLeafletOffers = citymarketResults.filter(offer => offer.campaignType !== "campaign");
+          const uniqueLocalCampaigns = removeCampaignCopiesOfLeaflet(nationalLeafletOffers, matchingLocalOffers);
+          citymarketLocalCount = uniqueLocalCampaigns.length;
+          citymarketLocalStoreId = uniqueLocalCampaigns.length ? String(uniqueLocalCampaigns[0].storeId ?? "") || null : null;
+          citymarketResults.push(...uniqueLocalCampaigns);
         }
       } catch (localError) {
         console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
