@@ -48,12 +48,18 @@ jobs:
         run: |
           mkdir -p data/lidl/source-captures
           stamp=$(TZ=Europe/Helsinki date +%Y-%m-%dT%H-%M-%S)
-          curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' \
-            'https://www.lidl.fi/h/vihannekset/h10095593' \
-            -o "data/lidl/source-captures/${stamp}-vihannekset.html"
-          curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' \
-            'https://www.lidl.fi/h/valmisateriat/h10097147' \
-            -o "data/lidl/source-captures/${stamp}-valmisateriat.html"
+          while IFS='|' read -r slug url; do
+            curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' "$url" \
+              -o "data/lidl/source-captures/${stamp}-${slug}.html"
+            printf '%s\n' "$url" > "data/lidl/source-captures/${stamp}-${slug}.source-url.txt"
+          done <<'URLS'
+          vihannekset|https://www.lidl.fi/h/vihannekset/h10095593
+          lihat|https://www.lidl.fi/h/lihat-ja-makkarat/h10071016
+          juustot-maitotuotteet-kananmunat|https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761
+          kuivatuotteet|https://www.lidl.fi/h/kuivatuotteet/h10096095
+          valmisateriat|https://www.lidl.fi/h/valmisateriat/h10097147
+          paistopiste|https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086
+          URLS
       - name: Verify every archived Lidl parser edition
         if: steps.clock.outputs.run == 'true'
         run: node scripts/lidl/verify-parser-history.mjs verify
@@ -62,6 +68,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lidl-official-source-captures
-          path: data/lidl/source-captures/*.html
+          path: data/lidl/source-captures/*
           if-no-files-found: error
           retention-days: 30
