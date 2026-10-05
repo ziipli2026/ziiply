@@ -7,11 +7,14 @@ export function classifyLidlPublicCard(card, dateISO) {
   const end = card.validThrough ?? null;
   const validDates = [start, end].every(v => v === null || /^\d{4}-\d{2}-\d{2}$/.test(v));
   const memberOnly = /lidl\s*plus/.test(labels);
-  const promotion = memberOnly || /erä|superhinta|tarjous|kampanja|\d+\s*kpl|%/.test(labels)
-    || Boolean(start || end || card.referencePriceEur != null);
+  const multiBuy = /\b\d+\s*kpl\b/.test(labels) || Number(card.quantity) > 1;
+  const referencePrice = Number.isFinite(card.referencePriceEur) ? card.referencePriceEur : null;
+  const promotion = memberOnly || /erä|superhinta|tarjous|kampanja|%/.test(labels) || multiBuy
+    || Boolean(start || end || referencePrice != null);
   const active = Boolean(date && validDates && start && end && start <= date && date <= end);
   return {
     kind: memberOnly ? "member-offer" : promotion ? "offer-candidate" : "unverified-display",
+    memberOnly, multiBuy, referencePriceEur:referencePrice,
     activeOffer: promotion && active,
     future: Boolean(date && start && start > date),
     expired: Boolean(date && end && end < date),
