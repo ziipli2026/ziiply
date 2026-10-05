@@ -1,5 +1,6 @@
 name: K-Citymarket leaflet parser history
 on:
+  pull_request:
   workflow_dispatch:
   push:
     paths:
