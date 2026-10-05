@@ -75,7 +75,9 @@ const collectOfficialApi=async()=>{
   }
   return {out,errors};
 };
-const raw=[];\nconst observedAt=new Date().toISOString();\nconst api=await collectOfficialApi();
+const raw=[];
+const observedAt=new Date().toISOString();
+const api=await collectOfficialApi();
 for(const product of api.out){
   raw.push({source:"https://www.lidl.fi/q/api/search?category.id="+product.categoryId,observedAt,researchOnly:true,
     lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,productUrl:product.canonicalPath?new URL(product.canonicalPath,"https://www.lidl.fi").href:null,
