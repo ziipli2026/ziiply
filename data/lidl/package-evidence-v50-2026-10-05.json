@@ -89,9 +89,11 @@
       "lidlProductId": "10038285",
       "name": "KULJANKA Savustettu makkara",
       "packageSize": "600 g",
-      "source": "Current Lidl campaign catalogue evidence",
+      "source": "Cross-market Lidl catalog exact IAN 185279 + 600 g match",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "ian": "185279",
+      "ianIdentityCorroborated": true
     },
     {
       "lidlProductId": "10038283",
@@ -105,9 +107,11 @@
       "lidlProductId": "10038300",
       "name": "KULJANKA Paneroitu juusto",
       "packageSize": "500 g",
-      "source": "Lidl current prepared-food listing",
+      "source": "External product database: Kuljanka/Pilos Morski 500 g, EAN 20265816; exact Finnish breaded-cheese variant not proven",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "gtinCandidate": "20265816",
+      "status": "candidate_requires_exact_variant_confirmation"
     },
     {
       "lidlProductId": "10037651",
