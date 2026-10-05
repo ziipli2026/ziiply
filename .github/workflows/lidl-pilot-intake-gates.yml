@@ -51,3 +51,4 @@ jobs:
       - run: node scripts/test-lidl-receipt-pilot-report.mjs
       - run: node scripts/test-lidl-receipt-batch.mjs
       - run: node scripts/test-lidl-receipt-quality.mjs
+      - run: node scripts/test-lidl-receipt-pilot-batch.mjs
