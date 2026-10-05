@@ -1,5 +1,5 @@
 {
-  "revision": "V55-EAN-QUEUE-PUBLIC-LOOKUP-EXHAUSTED",
+  "revision": "V56-EAN-QUEUE-PUBLIC-LOOKUP-COMPLETE",
   "created": "2026-10-05",
   "source": "ean-resolution-queue-v45-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
@@ -8,12 +8,11 @@
     "multipack_or_variant": 13,
     "variable_weight_or_produce": 32,
     "bakery_or_store_bakery": 104,
-    "exact_identity_gtin_not_public": 21,
+    "exact_identity_gtin_not_public": 22,
     "verified_ean": 13,
-    "needs_external_gtin_lookup": 1,
     "non_food": 13
   },
-  "unresolvedExternalLookupCount": 1,
+  "unresolvedExternalLookupCount": 0,
   "records": [
     {
       "lidlProductId": "10037645",
@@ -149,8 +148,8 @@
       "name": "Kotimainen ruusukaali",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "exact_identity_gtin_not_public",
+      "resolutionReason": "Lidl Finland exact 400 g packaged domestic Brussels sprouts confirmed; bulk public barcode search found no safe GTIN. Do not infer from IAN 82934."
     },
     {
       "lidlProductId": "10038256",
