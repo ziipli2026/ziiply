@@ -56,7 +56,10 @@ export function addVerifiedLidlWeek40Leaflet(
   const officialNames = structured.map(item => String(item.name || item.title || "").toLowerCase());
   const filtered = rows.filter(row =>
     !(row.id === "hk-burger" && officialNames.some(name => name.includes("burgeri"))) &&
-    !(row.id === "solevita-orange" && officialNames.some(name => name.includes("appelsiinitäysmehu")))
+    !(row.id === "solevita-orange" && officialNames.some(name => name.includes("appelsiinitäysmehu"))) &&
+    // The Lidl Plus row is the same Kartanon 300 g meatball offer, only with a
+    // shorter title. Prefer it because it carries Lidl's official product image.
+    !(row.id === "kartanon-meatballs" && officialNames.some(name => name.includes("kotimainen lihapulla")))
   );
   // Reuse an official Lidl image only when the normalized product title is an exact match.
   // Never borrow a generic image from a different size, brand or product variant.
