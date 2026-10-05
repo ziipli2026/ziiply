@@ -1,0 +1,902 @@
+{
+  "revision": "V47-GTIN-LOOKUP-BATCHES",
+  "created": "2026-10-05",
+  "source": "ean-resolution-queue-v46-2026-10-05.json",
+  "rules": {
+    "eanFromIan": false,
+    "requireExactProductAndPackMatch": true
+  },
+  "counts": {
+    "total": 98,
+    "branded": 72,
+    "lidlPrivateLabel": 26
+  },
+  "batches": {
+    "branded": [
+      {
+        "lidlProductId": "10038255",
+        "ian": "82934",
+        "name": "Kotimainen ruusukaali",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038470",
+        "ian": "6907018",
+        "name": "Kalkkuna-juustotasku",
+        "variant": null,
+        "unitPriceText": "160 g | 12,44 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038471",
+        "ian": "7111948",
+        "name": "FRESHONA Suomalainen herne",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038479",
+        "ian": "7112722",
+        "name": "FAZER Tutti Frutti Candy Salad",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038488",
+        "ian": "218769",
+        "name": "CONFISERIE FIRENZE Minidonitsit",
+        "variant": "pakkauksessa kolme eri makua",
+        "unitPriceText": "276 g | 10,83 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10000000",
+        "ian": "7102269",
+        "name": "Herkkumyslileipä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10000047",
+        "ian": "52098330",
+        "name": "Kolmen suklaan cookie",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10008395",
+        "ian": "201107",
+        "name": "Juustokierre",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10013219",
+        "ian": "7006968",
+        "name": "Ciabattasämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10014112",
+        "ian": "121471",
+        "name": "Voicroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10015004",
+        "ian": "6503360",
+        "name": "Salamipizza",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10015005",
+        "ian": "213056",
+        "name": "Pinkki donitsi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10017268",
+        "ian": "165173",
+        "name": "Siemenpatonki",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10017269",
+        "ian": "27986",
+        "name": "Jättipatonki",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10017906",
+        "ian": "152767",
+        "name": "Siemensämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10020883",
+        "ian": "1000556",
+        "name": "Pizza Hawaii",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10021258",
+        "ian": "51100",
+        "name": "Brezelsämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10021477",
+        "ian": "52098322",
+        "name": "Maitosuklaacookie",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10021479",
+        "ian": "129611",
+        "name": "Monijyväcroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10022389",
+        "ian": "220072",
+        "name": "Herkkusämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10023065",
+        "ian": "9750400",
+        "name": "Nakkicroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10026398",
+        "ian": "7111563",
+        "name": "Maalaissämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10026399",
+        "ian": "6515521",
+        "name": "Pizza Kebab",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10026400",
+        "ian": "146325",
+        "name": "Bolognese pasteija",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10027077",
+        "ian": "1002917",
+        "name": "Rustico-leipä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10030550",
+        "ian": "1005284",
+        "name": "Siemen-hapanjuurileipä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10030552",
+        "ian": "7111564",
+        "name": "Kaura-seesamsämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10031093",
+        "ian": "5536265",
+        "name": "Kiviuunileipä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10032836",
+        "ian": "1016391",
+        "name": "Pesto-juustokierre",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10032838",
+        "ian": "7107767",
+        "name": "Toffeeviineri",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10032840",
+        "ian": "227543",
+        "name": "Pähkinä-nougat croissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10033046",
+        "ian": "7111562",
+        "name": "Siemenruispala",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10033048",
+        "ian": "165337",
+        "name": "Pizzadonitsi margherita",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10033050",
+        "ian": "7108562",
+        "name": "Munariisipasteija",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10034203",
+        "ian": "6205049",
+        "name": "Kreikkalainen juustotanko",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10034228",
+        "ian": "57732",
+        "name": "Ranskalainen suklaacroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10034793",
+        "ian": "1002919",
+        "name": "Oliivitanko",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10034797",
+        "ian": "230002",
+        "name": "Briossisuklaacroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10035729",
+        "ian": "1014691",
+        "name": "Tumma artesaanileipä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10035960",
+        "ian": "7106037",
+        "name": "Mustikka-vaniljaviineri",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10036370",
+        "ian": "180906",
+        "name": "Kinuskicronitsi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10036371",
+        "ian": "178744",
+        "name": "BBQ-hot dog",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10036372",
+        "ian": "1007202",
+        "name": "Mustikkamuffinsi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10036373",
+        "ian": "1007202",
+        "name": "Suklaamuffinsi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10036374",
+        "ian": "1021785",
+        "name": "Mini voicroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10036375",
+        "ian": "127696",
+        "name": "Calzone Margherita",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10036376",
+        "ian": "6019043",
+        "name": "Pistaasicroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037403",
+        "ian": "128974",
+        "name": "Pastel de Nata -leivos",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037404",
+        "ian": "6608343",
+        "name": "Dulce de leche -cookie",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037405",
+        "ian": "7107768",
+        "name": "Leijonantassu kinuski-päärynä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037408",
+        "ian": "223633",
+        "name": "Pinaatti-fetapasteija",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037409",
+        "ian": "1002925",
+        "name": "Toffeemuffinsi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037443",
+        "ian": "6907018",
+        "name": "Kalkkuna-juustotasku",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "1060620",
+        "ian": "1060620",
+        "name": "Hot dog",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "1182510",
+        "ian": "1182510",
+        "name": "Ciabatta",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "1210220",
+        "ian": "1210220",
+        "name": "Valkosipulivoipatonki",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "1259030",
+        "ian": "1259030",
+        "name": "Rustiikkinen maalaissämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "16150",
+        "ian": "7110746",
+        "name": "Ruispala 100 %",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "1821550",
+        "ian": "1821550",
+        "name": "Suklaadonitsi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "282110",
+        "ian": "282110",
+        "name": "Vehnäpatonki",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "40780",
+        "ian": "40780",
+        "name": "Lihapasteija",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "52098320",
+        "ian": "52098320",
+        "name": "Valkosuklaacookie",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "558810",
+        "ian": "558810",
+        "name": "Maalaiscroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "599520",
+        "ian": "599520",
+        "name": "Tomaattimozzarellaleipä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "678860",
+        "ian": "678860",
+        "name": "Kinkkujuustocroissant",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "69052170",
+        "ian": "69052170",
+        "name": "Pitaleipä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "71025080",
+        "ian": "7110747",
+        "name": "Kaurasydän 100 %",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "852650",
+        "ian": "852650",
+        "name": "Ranskalainen maalaispatonki",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "927810",
+        "ian": "927810",
+        "name": "Vehnäsämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "927850",
+        "ian": "927850",
+        "name": "Moniviljasiemensämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "956640",
+        "ian": "956640",
+        "name": "Brezel",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "975540",
+        "ian": "975540",
+        "name": "Juustopekonisämpylä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      }
+    ],
+    "privateLabel": [
+      {
+        "lidlProductId": "10037645",
+        "ian": "181201",
+        "name": "MILBONA Proteiinivanukas",
+        "variant": "kahvi tai kookos",
+        "unitPriceText": "200 g | 5,95 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10037651",
+        "ian": "1013035",
+        "name": "MARIBEL Hillo",
+        "variant": "mustikka tai sekamarja",
+        "unitPriceText": "450 g | 7,31 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038244",
+        "ian": "7112603",
+        "name": "FISKANO Tuore lohifilee",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038247",
+        "ian": "7111717",
+        "name": "KANAMESTARI Kanan sisäfilee",
+        "variant": "maustamaton",
+        "unitPriceText": "400 g | 9,73 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038267",
+        "ian": "7112516",
+        "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038278",
+        "ian": "2541",
+        "name": "ALESTO Pähkinäsekoitus",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038282",
+        "ian": "6902818",
+        "name": "NOSTJA Pancetta",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038283",
+        "ian": "1018431",
+        "name": "KULJANKA Khinkalitaikinanyytti",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038284",
+        "ian": "7701804",
+        "name": "KULJANKA Borssikeitto",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038285",
+        "ian": "185279",
+        "name": "KULJANKA Savustettu makkara",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038286",
+        "ian": "5500677",
+        "name": "KULJANKA Valkokaalisalaatti",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038287",
+        "ian": "5504242",
+        "name": "KULJANKA Maustekurkut etikkaliemessä",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038288",
+        "ian": "184403",
+        "name": "KULJANKA Täytetty broileripihvi",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038293",
+        "ian": "7601221",
+        "name": "KULJANKA Vaniljajäätelövohvelipikarit",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038294",
+        "ian": "6700311",
+        "name": "KULJANKA Jäätelökakku",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038295",
+        "ian": "5524178",
+        "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038299",
+        "ian": "7509615",
+        "name": "KULJANKA Höyrytetty juusto",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038300",
+        "ian": "6401588",
+        "name": "KULJANKA Paneroitu juusto",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038301",
+        "ian": "175070",
+        "name": "KULJANKA Lihakeitto",
+        "variant": null,
+        "unitPriceText": "800 g | 4,11 €/kg",
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038302",
+        "ian": "6900208",
+        "name": "KULJANKA Ajvar-paprikatahna",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038305",
+        "ian": "5500349",
+        "name": "KULJANKA Puolalainen makkara",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038311",
+        "ian": "59859",
+        "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038313",
+        "ian": "176508",
+        "name": "SOLEVITA Appelsiinitäysmehu",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038319",
+        "ian": "7101787",
+        "name": "REILU Naudan uunipata",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038477",
+        "ian": "7112282",
+        "name": "GELATELLI Kuningatarkermajäätelö",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      },
+      {
+        "lidlProductId": "10038485",
+        "ian": "209455",
+        "name": "ALESTO Nut Trio -pähkinäsekoitus",
+        "variant": null,
+        "unitPriceText": null,
+        "resolutionStatus": "needs_external_gtin_lookup",
+        "resolutionReason": "single_candidate"
+      }
+    ]
+  }
+}
