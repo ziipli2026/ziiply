@@ -6836,6 +6836,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ): Promise<Product[]> {
     const params = new URLSearchParams({
       search,
+      storeId: String(store.id || store.externalId || ""),
       storeName: String(store.name || ""),
       city: String(store.city || ""),
     });
