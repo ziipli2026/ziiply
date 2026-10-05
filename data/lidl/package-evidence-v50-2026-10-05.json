@@ -108,6 +108,25 @@
       "source": "Lidl current prepared-food listing",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10037651",
+      "name": "MARIBEL Hillo",
+      "variant": "sekamarja",
+      "packageSize": "450 g",
+      "gtinCandidate": "20000684",
+      "status": "candidate_variant_match_requires_fi_confirmation",
+      "source": "Multiple independent product databases identify Maribel Waldfrucht/Mixed Berries 450 g as GTIN 20000684",
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038244",
+      "name": "FISKANO Tuore lohifilee",
+      "packageSize": "n. 1.2 kg",
+      "status": "variable_weight_or_produce_candidate",
+      "source": "Current Finnish Lidl campaign evidence: A-cut, Norway, approx. 1.2 kg, price/kg",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
