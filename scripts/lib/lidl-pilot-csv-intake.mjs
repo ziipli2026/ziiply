@@ -19,7 +19,6 @@ export function processLidlPilotCsv(csv, knownProductIds, storeId, at = new Date
   receiptUnitPriceEur:parsePrice(row.receiptUnitPriceEur),
   receiptTimestamp:row.receiptTimestamp,
   receiptEvidenceReference:row.receiptEvidenceReference,
-  validThrough:row.validThrough,
   isLidlPlus:parseBoolean(row.isLidlPlus),
   isPromotion:parseBoolean(row.isPromotion),
   isMultiBuy:parseBoolean(row.isMultiBuy),
