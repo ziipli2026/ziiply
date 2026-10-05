@@ -314,6 +314,41 @@ async function fetchHtml(path: string) {
   return { url: response.url, html: await response.text() };
 }
 
+
+export async function fetchLidlPublicCampaignOffers(options: { date?: string } = {}) {
+  const date = options.date || finnishPublicationDate();
+  // Campaign search must stay lightweight. The leaflet/staging crawler follows
+  // hundreds of product pages and can exceed the request budget when used inline
+  // by Gösta. Lidl's /h/ category pages already expose Product JSON-LD with
+  // price and Myymälässä validity, so use those directly for live campaigns.
+  const discovered = new Set<string>(SEEDS.filter(path => /\/h\//i.test(path)));
+  const discoveryPages = await Promise.allSettled(SEEDS.map(fetchHtml));
+  for (const result of discoveryPages) if (result.status === "fulfilled")
+    for (const link of discoveryLinks(result.value.html)) if (/\/h\//i.test(link)) discovered.add(link);
+
+  const paths = [...discovered].slice(0, 120);
+  const pages = await Promise.allSettled(paths.map(fetchHtml));
+  const parsed: LidlPublicOffer[] = [];
+  let failedPages = 0;
+  for (const result of pages) {
+    if (result.status === "rejected") { failedPages++; continue; }
+    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date)
+      .filter(row => GROCERY_CATEGORIES.has(row.category)));
+  }
+
+  const byKey = new Map<string, LidlPublicOffer>();
+  for (const row of parsed) {
+    if (publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date) !== "current") continue;
+    const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
+    const old = byKey.get(key);
+    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+  }
+  return {
+    offers: [...byKey.values()],
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, parsedRows: parsed.length, uniqueRows: byKey.size },
+  };
+}
+
 export async function fetchLidlPublicLeafletOffers(options: { date?: string; includeUpcoming?: boolean } = {}) {
   const date = options.date || finnishPublicationDate();
   const discovered = new Set<string>(SEEDS.filter(path => path !== "/"));
