@@ -674,6 +674,48 @@
       "name": "W5 Puhdistussuihke",
       "unitPriceText": "300 ml | 6,63 €/l",
       "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038333",
+      "name": "PURIO Roskapussi tuoksulla",
+      "unitPriceText": "35 l | 30 kpl | 0,07 €/kpl",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038334",
+      "name": "W5 WC-puhdistusjauhe",
+      "unitPriceText": "4 x 100 g | 8,73 €/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038335",
+      "name": "W5 Rasvalikaa irrottava puhdistusaine",
+      "unitPriceText": "1 l | 1,99 €/l",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038336",
+      "name": "W5 WC-geeli",
+      "unitPriceText": "65 ml | 46,00 €/l",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038338",
+      "name": "W5 Kyllästyssuihke",
+      "unitPriceText": "400 ml | 6,23 €/l",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038340",
+      "name": "W5 Käsien puhdistusaine",
+      "unitPriceText": "500 g | 4,58 €/kg",
+      "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038343",
+      "name": "W5 Paperipyyherulla",
+      "unitPriceText": "350 arkkia | 0,017 €/arkki",
+      "source": "official_lidl_fi"
     }
   ],
   "remainingMissingRows": [
@@ -864,48 +906,6 @@
       "ian": "82463"
     },
     {
-      "lidlProductId": "10038333",
-      "name": "PURIO Roskapussi tuoksulla",
-      "displayedPriceEur": 1.99,
-      "ian": "150304"
-    },
-    {
-      "lidlProductId": "10038334",
-      "name": "W5 WC-puhdistusjauhe",
-      "displayedPriceEur": 3.49,
-      "ian": "1009184"
-    },
-    {
-      "lidlProductId": "10038335",
-      "name": "W5 Rasvalikaa irrottava puhdistusaine",
-      "displayedPriceEur": 1.99,
-      "ian": "161950"
-    },
-    {
-      "lidlProductId": "10038336",
-      "name": "W5 WC-geeli",
-      "displayedPriceEur": 2.99,
-      "ian": "219654"
-    },
-    {
-      "lidlProductId": "10038338",
-      "name": "W5 Kyllästyssuihke",
-      "displayedPriceEur": 2.49,
-      "ian": "13195"
-    },
-    {
-      "lidlProductId": "10038340",
-      "name": "W5 Käsien puhdistusaine",
-      "displayedPriceEur": 2.29,
-      "ian": "22961"
-    },
-    {
-      "lidlProductId": "10038343",
-      "name": "W5 Paperipyyherulla",
-      "displayedPriceEur": 5.99,
-      "ian": "39850"
-    },
-    {
       "lidlProductId": "10038471",
       "name": "FRESHONA Suomalainen herne",
       "displayedPriceEur": 0.88,
@@ -956,9 +956,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 27,
+    "resolvedOfficial": 34,
     "notApplicable": 11,
-    "remaining": 46
+    "remaining": 39
   },
   "unitPriceNotApplicable": [
     {
