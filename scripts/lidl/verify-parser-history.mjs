@@ -2,10 +2,12 @@
 /**
  * Lidl parser regression verifier.
  *
- * Regression fixtures must contain the captured official Lidl.fi HTML plus the
- * independently approved normalized result. "actual" is always produced by the
- * real production parser at test time; committed *.actual.json files are never
- * trusted as parser evidence.
+ * Product-page captures are the exact immutable regression fixtures: their
+ * approved normalized result must be reproduced exactly by the production
+ * parser. Category-page captures are supplementary source evidence and are
+ * checked for coverage of every approved product, but are not compared as an
+ * exact snapshot because a category page legitimately contains many other
+ * offers.
  */
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -39,6 +41,15 @@ async function files(dir) {
   try { return (await fs.readdir(dir)).sort(); } catch { return []; }
 }
 
+async function sourceUrlFor(dir, fixtureName) {
+  const fallback = "https://www.lidl.fi/";
+  try {
+    return (await fs.readFile(path.join(dir, fixtureName.replace(/\\.html$/, ".source-url.txt"), "utf8"))).trim() || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 async function loadProductionParser() {
   const tempDir = path.resolve(".tmp-lidl-parser-regression");
   await fs.rm(tempDir, { recursive: true, force: true });
@@ -60,38 +71,82 @@ async function loadProductionParser() {
 
 const manifests = (await files(root)).filter(name => name.endsWith(".expected.json"));
 if (mode === "verify") {
+  const manifests = (await files(root)).filter(name => name.endsWith(".expected.json"));
   if (!manifests.length) throw new Error("Lidl parser regression archive is empty");
+
   const { parse, parseGrid, tempDir } = await loadProductionParser();
   let failed = 0;
+
   for (const name of manifests) {
     const edition = name.replace(".expected.json", "");
     const expected = canonical(JSON.parse(await fs.readFile(path.join(root, name), "utf8")));
     const fixtureNames = (await files(root)).filter(file => file.startsWith(edition + ".") && file.endsWith(".html"));
+
     if (!fixtureNames.length) {
       console.error("Missing immutable Lidl source capture(s) for:", edition);
       failed++;
       continue;
     }
-    const date = expected[0]?.validFrom || edition.slice(0, 10);
-    const parsedRows = [];
+
+    const captures = [];
     for (const fixtureName of fixtureNames) {
+      const sourceUrl = await sourceUrlFor(root, fixtureName);
       const html = await fs.readFile(path.join(root, fixtureName), "utf8");
-      const sourceUrlPath = path.join(root, fixtureName.replace(/\.html$/, ".source-url.txt"));
-      let sourceUrl = "https://www.lidl.fi/";
-      try { sourceUrl = (await fs.readFile(sourceUrlPath, "utf8")).trim() || sourceUrl; } catch {}
-      parsedRows.push(...parseGrid(html, sourceUrl, date));
-      parsedRows.push(...parse(html, sourceUrl, date));
+      captures.push({
+        fixtureName,
+        sourceUrl,
+        html,
+        isProductPage: /\\/p\\//i.test(sourceUrl),
+        isCategoryPage: /\\/h\\//i.test(sourceUrl),
+      });
     }
-    const actual = canonical(parsedRows);
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-      console.error(`Regression mismatch ${name}: expected ${expected.length}, parser produced ${actual.length}`);
+
+    const productCaptures = captures.filter(x => x.isProductPage);
+    const categoryCaptures = captures.filter(x => x.isCategoryPage);
+
+    if (!productCaptures.length) {
+      console.error("Missing immutable Lidl product-page regression capture(s) for:", edition);
+      failed++;
+      continue;
+    }
+
+    const date = expected[0]?.validFrom || edition.slice(0, 10);
+    const parseCapture = capture => [
+      ...parseGrid(capture.html, capture.sourceUrl, date),
+      ...parse(capture.html, capture.sourceUrl, date),
+    ];
+
+    // Exact regression: approved product-page captures must reproduce exactly
+    // the independently reviewed expected result.
+    const actualProduct = canonical(productCaptures.flatMap(parseCapture));
+    if (JSON.stringify(actualProduct) !== JSON.stringify(expected)) {
+      console.error(`Regression mismatch ${name}: expected ${expected.length}, product-page parser produced ${actualProduct.length}`);
       console.error("EXPECTED", JSON.stringify(expected, null, 2));
-      console.error("ACTUAL", JSON.stringify(actual, null, 2));
+      console.error("ACTUAL", JSON.stringify(actualProduct, null, 2));
       failed++;
     } else {
-      console.log(`OK ${name}: production parser reproduced ${expected.length} approved offers from archived HTML`);
+      console.log(`OK ${name}: production parser reproduced ${expected.length} approved product-page offers`);
+    }
+
+    // Category pages are deliberately not exact snapshots: they contain many
+    // legitimate offers. They must, however, cover every independently
+    // approved product captured for this edition.
+    if (categoryCaptures.length) {
+      const categoryActual = canonical(categoryCaptures.flatMap(parseCapture));
+      const categoryByName = new Map(categoryActual.map(row => [row.name, row]));
+      const missing = expected.filter(row => !categoryByName.has(row.name));
+      if (missing.length) {
+        console.error(`Category-page coverage mismatch ${name}: missing ${missing.length} approved offer(s)`);
+        console.error("MISSING", JSON.stringify(missing, null, 2));
+        failed++;
+      } else {
+        console.log(`OK ${name}: category-page captures cover all ${expected.length} approved offers (${categoryActual.length} parsed category offers)`);
+      }
+    } else {
+      console.log(`INFO ${name}: no supplementary category-page captures`);
     }
   }
+
   await fs.rm(tempDir, { recursive: true, force: true });
   if (failed) process.exit(1);
 } else {
