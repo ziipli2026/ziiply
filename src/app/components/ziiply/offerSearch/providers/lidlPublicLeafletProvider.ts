@@ -138,7 +138,16 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     const quantity = Number(fullName.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
     const weighted = /(?:€|eur)\s*\/\s*kg/i.test(baseText) && !packageText;
     const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
-    const imageUrl = typeof product.image === "string" && /^https:\/\//.test(product.image) ? product.image : "";
+    const imageUrl = (() => {
+      const candidate = product.image ?? product.imageUrl ?? product.pictureUrl ?? product.keyfacts?.image;
+      const value = Array.isArray(candidate) ? candidate[0] : candidate;
+      if (typeof value === "string") return /^https:\/\//.test(value) ? value : "";
+      if (value && typeof value === "object") {
+        const url = value.url || value.contentUrl || value["@id"] || "";
+        return typeof url === "string" && /^https:\/\//.test(url) ? url : "";
+      }
+      return "";
+    })();
     const category = categoryFor([brandName, fullName, product.keyfacts?.wonCategoryPrimary].filter(Boolean).join(" "), sourceUrl);
     output.push({
       id: `lidl-fi-grid-${product.productId || product.itemId || normalize(fullName)}-${validFrom}`,
