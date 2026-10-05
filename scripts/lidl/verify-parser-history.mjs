@@ -90,7 +90,9 @@ if (mode === "verify") {
 
     const captures = [];
     for (const fixtureName of fixtureNames) {
-      const sourceUrl = await sourceUrlFor(root, fixtureName);
+      const sourceUrlPath = path.join(root, fixtureName.slice(0, -".html".length) + ".source-url.txt");
+      const sourceUrl = (await fs.readFile(sourceUrlPath, "utf8")).trim();
+      if (!sourceUrl) throw new Error(`Empty Lidl source URL sidecar: ${sourceUrlPath}`);
       const html = await fs.readFile(path.join(root, fixtureName), "utf8");
       captures.push({
         fixtureName,
