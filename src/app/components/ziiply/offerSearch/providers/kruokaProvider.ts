@@ -350,7 +350,7 @@ function tjekTaxonomyTextV67(offer: UnknownRecord): string {
   }).join(" "));
 }
 
-function mapTjekCategoryV54(offer: UnknownRecord): string {
+export function mapTjekCategoryV54(offer: UnknownRecord): string {
   const department = tjekTaxonomyTextV67(offer);
   const productText = normalize([offer.name, offer.title, offer.description].filter(Boolean).join(" "));
 
@@ -388,6 +388,11 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b(fasupala\w*|fasupalat|suklaavohveli\w*)\b/.test(productTitle)) return "Makeiset & keksit";
   if (/\b(panini\w*|paninit|pitaleipa\w*)\b/.test(productTitle)) return "Valmisruoka";
   if (/\b(minikalapihvi\w*|kalapihvi\w*)\b/.test(productTitle)) return "Kala";
+  // V72: product identity beats misleading ingredient words and Tjek departments.
+  // These guards also cover compounds/inflections that generic word-boundary rules miss.
+  if (/\b(?:pehmo)?sampyla\w*\b/.test(productTitle)) return "Leipomo";
+  if (/\bkaalikaaryle\w*\b/.test(productTitle)) return "Valmisruoka";
+  if (/\bnakit?\b/.test(productTitle)) return "Liha & makkarat";
 
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
