@@ -42,7 +42,7 @@ jobs:
           node-version: '24'
       - name: Install dependencies for production parser replay
         if: steps.clock.outputs.run == 'true'
-        run: npm ci --ignore-scripts
+        run: npm install --package-lock=false --no-audit --no-fund --ignore-scripts
       - name: Simulate Lidl publication date gates
         if: steps.clock.outputs.run == 'true'
         run: node scripts/lidl/verify-publication-lifecycle.mjs
