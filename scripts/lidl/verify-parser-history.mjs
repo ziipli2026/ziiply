@@ -119,10 +119,15 @@ if (mode === "verify") {
     // datalayer and visible offer footer against the independently approved
     // normalized expectation.
     const extractProductEvidence = capture => {
-      const match = capture.html.match(/unified_datalayer_product\s*=\s*(\{[\\s\\S]*?\})<\\/script>/i);
-      if (!match) return null;
+      const marker = "unified_datalayer_product";
+      const markerIndex = capture.html.indexOf(marker);
+      if (markerIndex < 0) return null;
+      const equalsIndex = capture.html.indexOf("=", markerIndex + marker.length);
+      const scriptEnd = capture.html.indexOf("</script>", equalsIndex);
+      if (equalsIndex < 0 || scriptEnd < 0) return null;
+      const rawProduct = capture.html.slice(equalsIndex + 1, scriptEnd).trim();
       let product;
-      try { product = JSON.parse(match[1]); } catch { return null; }
+      try { product = JSON.parse(rawProduct); } catch { return null; }
       const visible = decode(capture.html.replace(/<script\\b[\\s\\S]*?<\\/script>/gi, " ").replace(/<style\\b[\\s\\S]*?<\\/style>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\\s+/g, " ");
       const priceText = visible.match(/(\\d+[,.]\\d{2})€/)?.[1]?.replace(",", ".") || "";
       return {
