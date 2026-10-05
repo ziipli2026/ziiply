@@ -1,0 +1,45 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_product_specific_records": 1,
+  "products": [
+    {
+      "brand": "Kanamestari",
+      "name": "Kanan minuuttisuikale",
+      "package_size": "1 kg",
+      "category": "liha/tuorekana",
+      "lidl_product_id": "10028615",
+      "official_product_url": "https://www.lidl.fi/p/kanamestari-kanan-minuuttisuikale/p10028615",
+      "attributes": [
+        "Hyvää Suomesta",
+        "Parempi Valinta"
+      ],
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "verification": "Official Lidl Finland product-specific page. Indexed historical ERÄ price not stored as current normal price."
+    }
+  ],
+  "duplicate_quarantine": [
+    {
+      "brand": "Kanamestari",
+      "name": "Kanan ohut fileeleike",
+      "package_size": "600 g",
+      "lidl_product_id": "10023534",
+      "official_product_url": "https://www.lidl.fi/p/kanamestari-kanan-ohut-fileeleike/p10023534",
+      "reason": "Another official page ID 10023533 for same displayed product name and size is already in research. Do not count 10023534 as a second unique product without variant/EAN proof."
+    }
+  ],
+  "source_context": {
+    "url": "https://www.lidl.fi/c/tuorekana/s10021305",
+    "note": "Official Kanamestari range page confirms the family is 100% Finnish chicken and includes multiple fillet and seasoned products."
+  },
+  "fish_search": {
+    "brands": [
+      "Ocean Sea",
+      "Nixe"
+    ],
+    "new_product_specific_records": 0,
+    "reason": "No trustworthy individual Lidl Finland /p/ result with exact SKU identity returned in this search batch."
+  }
+}
