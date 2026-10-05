@@ -68,23 +68,67 @@ export async function GET(request: Request) {
     if (sourceDropPercent !== null && sourceDropPercent >= 40)
       issue("SOURCE_COUNT_DROP", "error", `Source offer count dropped ${sourceDropPercent}% for the same publication periods`);
     if (!current.length) issue("NO_CURRENT_PUBLICATION", "error", "No currently valid stored publication");
+    let daysUntilCurrentEnd: number | null = null;
+    if (current.length) {
+      const endDates = current.map((edition) => edition.validUntil).sort();
+      const currentEnd = endDates[endDates.length - 1];
+      const calculated = Math.round((Date.parse(`${currentEnd}T12:00:00Z`) - Date.parse(`${date}T12:00:00Z`)) / 86400000);
+      daysUntilCurrentEnd = Number.isFinite(calculated) ? calculated : null;
+    }
+    if (current.length > 1)
+      issue("OVERLAPPING_CURRENT_PUBLICATIONS", "warning", `${current.length} publication periods are simultaneously current`);
+    if (current.length && upcoming.length) {
+      const currentEnd = current.map((edition) => edition.validUntil).sort().at(-1)!;
+      const nextStart = upcoming.map((edition) => edition.validFrom).sort()[0];
+      const gapDays = Math.round((Date.parse(`${nextStart}T12:00:00Z`) - Date.parse(`${currentEnd}T12:00:00Z`)) / 86400000) - 1;
+      if (Number.isFinite(gapDays) && gapDays > 0)
+        issue("PUBLICATION_GAP", "error", `There is a ${gapDays}-day gap between current and next publication`);
+    }
+    if (current.length && !upcoming.length) {
+      const endDates = current.map((edition) => edition.validUntil).sort();
+      const currentEnd = endDates[endDates.length - 1];
+      const daysUntilEnd = daysUntilCurrentEnd;
+      if (daysUntilEnd !== null && daysUntilEnd <= 1)
+        issue("NEXT_PUBLICATION_MISSING", "warning", "Current publication ends within one day and no upcoming publication is staged");
+    }
     for (const edition of current) {
       if (edition.quality.severity === "error") issue("PUBLICATION_DATA_ERROR", "error", `Critical offer data in ${edition.publicationId}`);
       else if (edition.quality.severity === "warning") issue("PUBLICATION_METADATA_WARNING", "warning", `Incomplete offer metadata in ${edition.publicationId}`);
     }
     const status = issues.some((entry) => entry.severity === "error") ? "error" :
       issues.length ? "warning" : "ok";
+    const currentQuality = {
+      missingNames: current.reduce((n, e) => n + e.quality.missingNames.count, 0),
+      missingImages: current.reduce((n, e) => n + e.quality.missingImages.count, 0),
+      missingCategories: current.reduce((n, e) => n + e.quality.missingCategories.count, 0),
+      mismatchedValidity: current.reduce((n, e) => n + e.quality.mismatchedValidity.count, 0),
+      duplicates: current.reduce((n, e) => n + e.quality.duplicates.count, 0),
+      invalidPrices: current.reduce((n, e) => n + e.quality.invalidPrices.count, 0),
+    };
+    const latestRunAgeMinutes = latestRun ? Math.max(0, Math.round(
+      (Date.now() - Date.parse(String(latestRun.checked_at))) / 60000,
+    )) : null;
     const summary = {
       status,
       latestRunAt: latestRun?.checked_at ?? null,
+      latestRunAgeMinutes: Number.isFinite(latestRunAgeMinutes) ? latestRunAgeMinutes : null,
       latestRunSucceeded: latestRun?.ok ?? null,
       latestRunOfferCount: latestRun?.offer_count ?? null,
+      latestRunOutcome: latestRun?.outcome ?? null,
+      latestRunSource: latestRun?.source ?? null,
       previousSuccessfulOfferCount: previousCount,
       sourceDropPercent,
       effectiveEditionCount: effectiveEditions.length,
       currentEditionCount: current.length,
       upcomingEditionCount: upcoming.length,
+      nextValidFrom: upcoming.map((edition) => edition.validFrom).sort()[0] ?? null,
+      currentValidUntil: current.map((edition) => edition.validUntil).sort().at(-1) ?? null,
+      daysUntilCurrentEnd,
       currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
+      currentQuality,
+      errorCount: issues.filter((entry) => entry.severity === "error").length,
+      warningCount: issues.filter((entry) => entry.severity === "warning").length,
+      issueCodes: issues.map((entry) => entry.code),
       issues,
     };
     return NextResponse.json({ ok: true, needsAttention: status !== "ok", chain, checkedAt: new Date().toISOString(),
