@@ -57,6 +57,23 @@ const packageSizeFrom=(name,unitPriceText)=>{
   const m=text.match(/\b(\d+(?:[,.]\d+)?)\s*(kg|g|l|ml|cl)\b/i);
   return m?{value:Number(m[1].replace(',','.')),unit:m[2].toLowerCase(),raw:m[0]}:null;
 };
+const productLinks=html=>[...new Set([...html.replace(/\\u002F/g,'/').replace(/\\\//g,'/').matchAll(/\/p\/[a-z0-9åäö_-]+\/p\d{5,}/gi)].map(m=>m[0]))];
+const jsonLdProducts=html=>{
+  const out=[];
+  for(const m of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
+    let root; try{root=JSON.parse(m[1])}catch{continue}
+    const visit=v=>{
+      if(!v||typeof v!=='object') return;
+      if(Array.isArray(v)){v.forEach(visit);return}
+      const types=Array.isArray(v['@type'])?v['@type']:[v['@type']];
+      if(types.includes('Product')) out.push(v);
+      if(v['@graph']) visit(v['@graph']);
+      if(v.itemListElement) visit(v.itemListElement);
+      if(v.item) visit(v.item);
+    }; visit(root);
+  }
+  return out;
+};
 const raw=[];
 
 for(const source of urls){
@@ -66,6 +83,36 @@ for(const source of urls){
   const html=await res.text();
   const products=structuredProducts(html);
   const text=decode(html);
+
+  if(source.includes('/c/')){
+    const links=productLinks(html).slice(0,120);
+    const pages=await Promise.allSettled(links.map(async path=>{
+      const url=new URL(path,source).href;
+      const r=await fetch(url,{headers:{"user-agent":"ZiiplyLidlResearch/1.0",accept:"text/html"},signal:AbortSignal.timeout(15000)});
+      if(!r.ok) throw new Error(String(r.status));
+      return {url,html:await r.text()};
+    }));
+    for(const page of pages){
+      if(page.status!=='fulfilled') continue;
+      for(const p of jsonLdProducts(page.value.html)){
+        const offers=Array.isArray(p.offers)?p.offers:p.offers?[p.offers]:[];
+        for(const offer of offers){
+          const price=Number(offer?.price??offer?.priceSpecification?.price);
+          const from=String(offer?.validFrom??offer?.priceSpecification?.validFrom??'').slice(0,10);
+          const through=String(offer?.validThrough??offer?.priceValidUntil??offer?.priceSpecification?.validThrough??'').slice(0,10);
+          if(!p.name||!Number.isFinite(price)||price<=0||!/^20\d\d-/.test(from)||!/^20\d\d-/.test(through)) continue;
+          const id=String(page.value.url).match(/\/p(\d{5,})/i)?.[1]??null;
+          raw.push({
+            source:page.value.url,observedAt,researchOnly:true,lidlProductId:id,ian:[],productName:String(p.name),productUrl:page.value.url,
+            displayedPriceEur:price,unitPriceText:null,packageSize:packageSizeFrom(p.name,null),productMatchConfidence:'structured-product-page',
+            isLidlPlus:false,isMultiBuy:/\b\d+\s*kpl\b/i.test(String(p.name)),validFromRaw:null,validThroughRaw:null,validFrom:from,validThrough:through,
+            availabilityKind:'dated-campaign',temporalStatus:temporalStatus(from,through,observedAt,'dated-campaign'),
+            evidenceText:clean([p.name,price+' €'].join(' ')),priceVerified:false,checkoutPriceVerified:false,regularPriceVerified:false
+          });
+        }
+      }
+    }
+  }
 
   if(source.includes('/h/')){
     for(const product of products){
