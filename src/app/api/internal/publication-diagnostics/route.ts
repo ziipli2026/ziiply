@@ -79,6 +79,8 @@ export async function GET(request: Request) {
       latestRunAt: latestRun?.checked_at ?? null,
       latestRunSucceeded: latestRun?.ok ?? null,
       latestRunOfferCount: latestRun?.offer_count ?? null,
+      latestRunOutcome: latestRun?.outcome ?? null,
+      latestRunSource: latestRun?.source ?? null,
       previousSuccessfulOfferCount: previousCount,
       sourceDropPercent,
       effectiveEditionCount: effectiveEditions.length,
