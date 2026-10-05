@@ -8,6 +8,7 @@ const cases = [
   [{ labels:"",displayPriceEur:3.39 }, "unverified-display",false,false,false],
   [{ labels:"Lidl Plus",displayPriceEur:1.99 }, "member-offer",false,false,false],
   [{ labels:"Tarjous",validFrom:"2026-10-04",validThrough:"2026-10-04" }, "offer-candidate",true,false,false],
+  [{ labels:"",quantity:4,referencePriceEur:5.96,displayPriceEur:5 }, "offer-candidate",false,false,false],
 ];
 for (const [card,kind,activeOffer,future,expired] of cases) {
  const actual=classify(card,today);
@@ -16,6 +17,7 @@ for (const [card,kind,activeOffer,future,expired] of cases) {
  assert.equal(actual.future,future);
  assert.equal(actual.expired,expired);
  assert.equal(actual.regularPriceEur,null);
+ if(card.quantity===4){assert.equal(actual.multiBuy,true);assert.equal(actual.referencePriceEur,5.96);}
  assert.equal(actual.comparable,false);
 }
-console.log("PASS: 6 Lidl public-card research cases");
+console.log("PASS: 7 Lidl public-card research cases");
