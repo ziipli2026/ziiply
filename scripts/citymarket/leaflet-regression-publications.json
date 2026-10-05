@@ -1,18 +1,27 @@
 {
-  "revision": 1,
-  "description": "Approved K-Citymarket leaflet parser regression publications. Keep old publications when adding the newest approved leaflet.",
-  "publications": [
+  "revision": 2,
+  "description": "Citymarket regression sources. Approved historical publications use committed fixtures; only the current publication depends on the live publisher URL.",
+  "historicalFixtures": [
+    {
+      "id": "41AV",
+      "fixture": "tests/fixtures/citymarket/41AV.approved.json"
+    }
+  ],
+  "current": {
+    "id": "41AV",
+    "url": "https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html",
+    "fixture": "tests/fixtures/citymarket/41AV.approved.json"
+  },
+  "legacyEvidence": [
     {
       "id": "39LV",
-      "url": "https://kcm-tarjouslehdet.k-ruoka.fi/79obhu0_tarjouslehti_39LV_KCM/index.html"
+      "status": "publisher-url-expired",
+      "note": "Historical regression was run in Git history; no complete frozen fixture exists."
     },
     {
       "id": "40AV",
-      "url": "https://kcm-tarjouslehdet.k-ruoka.fi/79obhu0_tarjouslehti_40AV_KCM/index.html"
-    },
-    {
-      "id": "41AV",
-      "url": "https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html"
+      "status": "publisher-url-expired",
+      "note": "Historical regression was run in Git history; no complete frozen fixture exists."
     }
   ]
 }
