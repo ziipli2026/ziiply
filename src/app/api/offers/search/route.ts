@@ -742,7 +742,39 @@ export async function GET(request: Request) {
 
       // Keep campaign rows separate from the dated leaflet rows. The UI filters
       // by campaignType exactly like the Prisma/Citymarket campaign tabs.
-      const masterCombined = dedupe([...combined, ...structuredCampaigns, ...lidlCampaigns]);
+      // Prefer Lidl.fi public campaign rows when the same live grocery campaign
+      // is also present in Lidl Plus. Keep unique Lidl Plus campaigns unchanged.
+      const publicCampaignIdentityKeys = new Set(
+        lidlCampaigns.map((offer) => [
+          normalizeText([offer.brandName, offer.name || offer.title].filter(Boolean).join(" "))
+            .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl)\b/g, " ")
+            .replace(/\b\d+\b/g, " ")
+            .replace(/\s+/g, " ")
+            .trim(),
+          Number(offer.offerPrice ?? offer.price),
+          firstString(offer.validFrom).slice(0, 10),
+          firstString(offer.validUntil).slice(0, 10),
+        ].join("|")),
+      );
+      const combinedWithPublicCampaignPrecedence = combined.filter((offer) => {
+        if (String(offer.source || "") !== "lidl-plus-campaign") return true;
+        const key = [
+          normalizeText([offer.brandName, offer.name || offer.title].filter(Boolean).join(" "))
+            .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl)\b/g, " ")
+            .replace(/\b\d+\b/g, " ")
+            .replace(/\s+/g, " ")
+            .trim(),
+          Number(offer.offerPrice ?? offer.price),
+          firstString(offer.validFrom).slice(0, 10),
+          firstString(offer.validUntil).slice(0, 10),
+        ].join("|");
+        return !publicCampaignIdentityKeys.has(key);
+      });
+      const masterCombined = dedupe([
+        ...combinedWithPublicCampaignPrecedence,
+        ...structuredCampaigns,
+        ...lidlCampaigns,
+      ]);
 
       // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
       // visible catch-all category: general merchandise/campaign rows stay out,
