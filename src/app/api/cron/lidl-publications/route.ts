@@ -29,6 +29,11 @@ export async function GET(request: Request) {
     const outcomes = [];
     for (const [period, offers] of groups) {
       const [validFrom, validUntil] = period.split(":");
+      const quality = inspectOfferPublication(offers, validFrom, validUntil);
+      if (quality.severity === "error") {
+        outcomes.push({ period, count: offers.length, outcome: "rejected-quality-error", quality });
+        continue;
+      }
       const outcome = await storeParsedPublication({
         // Stable content fingerprint: a corrected offer within the same period is a new snapshot.
         chain: "LIDL:FI0218",
@@ -37,7 +42,6 @@ export async function GET(request: Request) {
         )).digest("hex").slice(0, 20)}`,
         validFrom, validUntil, parsedAt: new Date().toISOString(), offers,
       });
-      const quality = inspectOfferPublication(offers, validFrom, validUntil);
       outcomes.push({ period, count: offers.length, outcome, quality });
     }
     const qualityOk = outcomes.every(({ quality }) => quality.severity !== "error");
