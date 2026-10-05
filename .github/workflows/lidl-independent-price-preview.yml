@@ -1,3 +1,4 @@
+# Lidl normal-price adapter regression gate
 name: Lidl independent price preview
 # Identifier, variant, completeness, enrichment-priority and public-evidence audits
 on:
