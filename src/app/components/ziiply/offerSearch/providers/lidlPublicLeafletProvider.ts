@@ -202,6 +202,66 @@ function campaignProductJson(html: string) {
   return candidates;
 }
 
+function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackDate: string): LidlPublicOffer[] {
+  const text = decode(html
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, "\n"))
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{2,}/g, "\n");
+
+  const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+  const output: LidlPublicOffer[] = [];
+  const datePattern = /Myymälässä\s+(\d{1,2})\.(\d{1,2})\.\s*-\s*(\d{1,2})\.(\d{1,2})\./i;
+  const pricePattern = /^(\d{1,3})[,.](\d{2})\s*€?$/;
+
+  for (let i = 0; i < lines.length; i++) {
+    const validity = lines[i].match(datePattern);
+    if (!validity) continue;
+    const year = Number(fallbackDate.slice(0, 4));
+    const startMonth = Number(validity[2]);
+    const endMonth = Number(validity[4]);
+    const validFrom = `${year}-${String(startMonth).padStart(2, "0")}-${String(validity[1]).padStart(2, "0")}`;
+    const endYear = endMonth < startMonth ? year + 1 : year;
+    const validUntil = `${endYear}-${String(endMonth).padStart(2, "0")}-${String(validity[3]).padStart(2, "0")}`;
+    const window = lines.slice(Math.max(0, i - 12), i);
+    let priceIndex = -1;
+    for (let j = window.length - 1; j >= 0; j--) if (pricePattern.test(window[j])) { priceIndex = j; break; }
+    if (priceIndex < 1) continue;
+    const priceMatch = window[priceIndex].match(pricePattern);
+    const price = priceMatch ? Number(`${priceMatch[1]}.${priceMatch[2]}`) : NaN;
+    if (!Number.isFinite(price) || price <= 0) continue;
+
+    const ignored = /^(alkaen|erilaisia|uutuus|lidl plus|\-\d+€|\d+\s*(?:g|kg|ml|l|kpl|cm)|\d+[,.]\d+\s*€\/kg)/i;
+    let name = "";
+    for (let j = priceIndex - 1; j >= 0; j--) {
+      const candidate = window[j].replace(/\s*\^\{\}\s*$/, "").trim();
+      if (!candidate || ignored.test(candidate) || pricePattern.test(candidate)) continue;
+      if (candidate.length >= 3 && candidate.length <= 120) { name = candidate; break; }
+    }
+    if (!name) continue;
+    const category = categoryFor(name, sourceUrl);
+    if (!GROCERY_CATEGORIES.has(category)) continue;
+    if (publicationState({ validFrom, validUntil }, fallbackDate) !== "current") continue;
+
+    const key = normalize([name, price, validFrom, validUntil].join(" ")).replace(/\s+/g, "-");
+    output.push({
+      id: `lidl-fi-campaign-visible-${key}`, source: "lidl-fi-public", chain: "Lidl",
+      title: name, name, productName: name, brandName: "",
+      price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €`,
+      originalPrice: null, normalPrice: null, priceBasis: "unit",
+      requiresLidlPlus: false, eligibility: "open",
+      validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
+      imageUrl: "", image: "", pictureUrl: "",
+      category, categoryPath: category, mainCategory: category,
+      rawText: [name, category].join(" "), sourceUrl, hasConcretePrice: true,
+      isWeightedProduct: false, ean: "",
+    });
+  }
+  return output;
+}
+
 function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate: string): LidlPublicOffer[] {
   const output: LidlPublicOffer[] = [];
   for (const raw of campaignProductJson(html)) {
@@ -275,7 +335,10 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
     // Campaign landing pages also embed their own product-card payloads. Parse
     // those directly instead of requiring every card to expose a /p/ link.
-    if (/\/c\//i.test(result.value.url)) parsed.push(...parseCampaignProductCards(result.value.html, result.value.url, date));
+    if (/\/c\//i.test(result.value.url)) {
+      parsed.push(...parseCampaignProductCards(result.value.html, result.value.url, date));
+      parsed.push(...parseCampaignVisibleProducts(result.value.html, result.value.url, date));
+    }
   }
 
   // Bound the fan-out: enough for the current grocery campaign surface while
