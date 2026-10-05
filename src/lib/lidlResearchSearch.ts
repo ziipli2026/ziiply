@@ -61,6 +61,7 @@ export function searchLidlResearch(query:string,limit=15,storeId?:string){
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set<string>();
  const seenNames=new Set<string>();
+ const selectedStoreId=String(storeId||"").trim();
  // Research-only entries are discovery candidates, not verified local stock or prices.
  const independentlyNamed = stapleEvidence.records
   // Use the original evidence position for the temporary research ID: filtering
