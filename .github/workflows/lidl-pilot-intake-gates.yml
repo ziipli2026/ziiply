@@ -15,6 +15,10 @@ on:
       - "scripts/test-lidl-price-pilot-template.mjs"
       - "scripts/test-lidl-pilot-*.mjs"
       - ".github/workflows/lidl-pilot-intake-gates.yml"
+      - "scripts/fill-lidl-pilot-from-receipt-json.mjs"
+      - "scripts/run-lidl-receipt-pilot.mjs"
+      - "scripts/test-lidl-pilot-receipt-helper.mjs"
+      - "scripts/test-lidl-receipt-pipeline.mjs"
   push:
     branches: [main]
     paths:
