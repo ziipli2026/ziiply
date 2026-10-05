@@ -6,9 +6,10 @@
  * Does not import inferred barcodes, mutate the EAN bank, or change app data.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-const source = new URL("../data/lidl/official-product-image-price-audit-2026-10-04.json", import.meta.url);
+const source = new URL("../data/lidl/official-grocery-candidates-v44-2026-10-01.json", import.meta.url);
 // Mass GTIN audit run marker: 2026-10-05T15:00Z
-const records = JSON.parse(readFileSync(source, "utf8")).records;
+const sourceRecords = JSON.parse(readFileSync(source, "utf8")).records;
+const records = sourceRecords.filter(item => !item.ean || item.eanMatchStatus !== "verified").map(item => ({ ...item, officialUrl: item.officialUrl || `https://www.lidl.fi/p/p${item.lidlProductId}` }));
 const arg = process.argv.find(x => x.startsWith("--limit="));
 const limit = process.argv.includes("--all") ? records.length : arg ? Math.max(0, Math.min(records.length, Number(arg.split("=")[1]) || 0)) : 10;
 const outputArg = process.argv.find(x => x.startsWith("--output="));
