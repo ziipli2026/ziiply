@@ -44,7 +44,7 @@ async function files(dir) {
 async function sourceUrlFor(dir, fixtureName) {
   const fallback = "https://www.lidl.fi/";
   try {
-    return (await fs.readFile(path.join(dir, fixtureName.replace(/\\.html$/, ".source-url.txt"), "utf8"))).trim() || fallback;
+    return (await fs.readFile(path.join(dir, fixtureName.replace(".html", ".source-url.txt"), "utf8"))).trim() || fallback;
   } catch {
     return fallback;
   }
