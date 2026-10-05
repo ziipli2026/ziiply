@@ -1,0 +1,34 @@
+name: Lidl regression source capture
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/lidl-regression-source-capture.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture official Lidl.fi regression sources
+        run: |
+          mkdir -p data/lidl/regression-capture
+          while IFS='|' read -r slug url; do
+            curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' "$url"               -o "data/lidl/regression-capture/2026-10-05_07.$slug.html"
+            printf '%s\n' "$url" > "data/lidl/regression-capture/2026-10-05_07.$slug.source-url.txt"
+          done <<'URLS'
+          vihannekset|https://www.lidl.fi/h/vihannekset/h10095593
+          juustot-maitotuotteet-kananmunat|https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761
+          valmisateriat|https://www.lidl.fi/h/valmisateriat/h10097147
+          paistopiste|https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086
+          URLS
+      - name: Upload immutable source candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: lidl-regression-source-2026-10-05_07
+          path: data/lidl/regression-capture/*
+          if-no-files-found: error
+          retention-days: 30
