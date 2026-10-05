@@ -1,0 +1,170 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V10",
+  "priority": [
+    {
+      "lidlProductId": "10015005",
+      "name": "Pinkki donitsi",
+      "ian": "213056",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10017268",
+      "name": "Siemenpatonki",
+      "ian": "165173",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10017269",
+      "name": "Jättipatonki",
+      "ian": "27986",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10017906",
+      "name": "Siemensämpylä",
+      "ian": "152767",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10017911",
+      "name": "Toscapulla",
+      "ian": "7110043",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10020413",
+      "name": "Voisilmäpulla",
+      "ian": "7110042",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10020612",
+      "name": "Porkkanakaurasämpylä",
+      "ian": "7110438",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10020613",
+      "name": "Herkuttelijan pistaasimunkki",
+      "ian": "5563593",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10020883",
+      "name": "Pizza Hawaii",
+      "ian": "1000556",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10021258",
+      "name": "Brezelsämpylä",
+      "ian": "51100",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10021477",
+      "name": "Maitosuklaacookie",
+      "ian": "52098322",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10021478",
+      "name": "Korvapuusticroissant",
+      "ian": "6403546",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10021479",
+      "name": "Monijyväcroissant",
+      "ian": "129611",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10022389",
+      "name": "Herkkusämpylä",
+      "ian": "220072",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10023065",
+      "name": "Nakkicroissant",
+      "ian": "9750400",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    }
+  ]
+}
