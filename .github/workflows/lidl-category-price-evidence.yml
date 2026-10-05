@@ -1,0 +1,40 @@
+name: Lidl category price evidence batch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 6,12,16 * * 1,4"
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Collect official Lidl category price evidence
+        run: |
+          mkdir -p tmp/lidl
+          node scripts/collect-lidl-category-price-evidence.mjs \
+            https://www.lidl.fi/h/valmisateriat/h10097147 \
+            https://www.lidl.fi/h/vihannekset/h10095593 \
+            https://www.lidl.fi/h/juustot/h10096077 \
+            https://www.lidl.fi/h/saeilykehedelmaet-ja-vihannekset/h10096100 \
+            https://www.lidl.fi/h/kuivatuotteet/h10096095 \
+            https://www.lidl.fi/h/lihat/h10095752 \
+            https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761 \
+            https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086 \
+            https://www.lidl.fi/h/leivaet-ja-leivonnaiset/h10096094 \
+            https://www.lidl.fi/h/kahvit-teet-ja-kaakaot/h10071683 \
+            https://www.lidl.fi/h/pakastepizzat-ja-snacksit/h10096197 \
+            > tmp/lidl/category-price-evidence.json
+          node -e 'const x=require("./tmp/lidl/category-price-evidence.json"); if((x.records?.length||0)<20) throw new Error(`Too few Lidl price observations: ${x.records?.length||0}`); console.log("records",x.records.length)'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lidl-category-price-evidence
+          path: tmp/lidl/category-price-evidence.json
+          retention-days: 14
