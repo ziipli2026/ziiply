@@ -38,6 +38,9 @@ on:
       - 'data/lidl/public-observation-metadata-v2-2026-10-05.json'
       - 'data/lidl/enrichment-priority-v*-2026-10-05.json'
       - 'scripts/test-lidl-enrichment-priority-batch*.mjs'
+      - 'scripts/build-lidl-product-metadata-enrichment.mjs'
+      - 'scripts/test-lidl-product-metadata-enrichment.mjs'
+      - 'data/lidl/product-metadata-enrichment-v1-2026-10-05.json'
       - 'src/app/api/lidl/products/route.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
@@ -73,3 +76,6 @@ jobs:
       - run: node scripts/test-lidl-enrichment-priority.mjs
       - run: node scripts/test-lidl-enrichment-priority-batch.mjs
       - run: node scripts/test-lidl-public-observation-evidence-v1.mjs
+      - run: node scripts/build-lidl-product-metadata-enrichment.mjs
+      - run: node scripts/test-lidl-product-metadata-enrichment.mjs
+      - run: git diff --exit-code -- data/lidl/product-metadata-enrichment-v1-2026-10-05.json
