@@ -1,5 +1,5 @@
 // Strict parser for the generated Lidl pilot template; no external CSV dependency.
-export const PILOT_COLUMNS=["lidlProductId","name","variant","physicalStoreName","physicalStoreAddress","storeId","observedCode","observedCodeOrigin","scannedEanVerified","priceBasis","shelfPriceEur","shelfObservedAt","shelfPhotoReference","scanGoDisplayedPriceEur","receiptUnitPriceEur","receiptTimestamp","receiptEvidenceReference","validThrough","isLidlPlus","isPromotion","isMultiBuy","permissionToUseEvidence"];
+export const PILOT_COLUMNS=["lidlProductId","name","variant","physicalStoreName","physicalStoreAddress","storeId","observedCode","observedCodeOrigin","scannedEanVerified","priceBasis","shelfPriceEur","shelfObservedAt","shelfPhotoReference","scanGoDisplayedPriceEur","receiptUnitPriceEur","receiptTimestamp","receiptEvidenceReference","isLidlPlus","isPromotion","isMultiBuy","permissionToUseEvidence"];
 export function parseLidlPilotCsv(csv) {
  if (typeof csv!=="string") throw new TypeError("CSV string required");
  const records=[];let fields=[],field="",quoted=false,closed=false;
