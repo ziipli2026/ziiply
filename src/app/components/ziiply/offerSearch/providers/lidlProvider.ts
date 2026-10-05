@@ -184,12 +184,21 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
       .map((value) => String(value))
       .join(" ");
     const hasPackWeightInTitle = /\b\d+(?:[.,]\d+)?\s*(?:g|kg)\b/i.test(title);
+    // Lidl Scan & Go requires loose, non-unit-priced produce to be weighed
+    // and the scale barcode scanned. Explicit "irto" evidence therefore
+    // wins even when another source also contains a package-size token.
+    const isExplicitlyLoose =
+      /\birto\b|\bloose\b/i.test(lidlPricingText) ||
+      /\birto\b|\bloose\b/i.test(title);
     const isWeightedProduct =
-      !hasPackWeightInTitle &&
+      isExplicitlyLoose ||
       (
-        /(?:€|eur)\s*\/\s*kg\b/i.test(lidlPricingText) ||
-        /\b(?:hinta\s*\/\s*kg|kilohinta|per\s*kg)\b/i.test(lidlPricingText) ||
-        /\bkg\b/i.test(String(box?.priceSymbol || ""))
+        !hasPackWeightInTitle &&
+        (
+          /(?:€|eur)\s*\/\s*kg\b/i.test(lidlPricingText) ||
+          /\b(?:hinta\s*\/\s*kg|kilohinta|per\s*kg)\b/i.test(lidlPricingText) ||
+          /\bkg\b/i.test(String(box?.priceSymbol || ""))
+        )
       );
 
     return {
