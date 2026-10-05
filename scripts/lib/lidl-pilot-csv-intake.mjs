@@ -5,7 +5,10 @@ import { processLidlManualPriceBatch } from "./lidl-manual-price-batch.mjs";
 export function processLidlPilotCsv(csv, knownProductIds, storeId, at = new Date()) {
  const rows=parseLidlPilotCsv(csv);
  const parseBoolean=value=>value==="true"?true:value==="false"?false:null;
- const parsePrice=value=>value!==""&&/^\d+(?:\.\d{1,2})?$/.test(value)?Number(value):null;
+ const parsePrice=value=>{
+  const normalized=value.replace(",",".");
+  return normalized!==""&&/^\\d+(?:\\.\\d{1,2})?$/.test(normalized)?Number(normalized):null;
+ };
  const observations=rows.map(row=>({
   lidlProductId:row.lidlProductId,
   storeId:row.storeId,
