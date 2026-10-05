@@ -398,7 +398,7 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   // V73: K-Market Etu-Lyötty production audit. Product identity beats misleading
   // dairy/bakery taxonomy and ingredient words.
   if (/\bmaksalaatik\w*\b/.test(productTitle)) return "Valmisruoka";
-  if (/(?:^|[-\s])(?:muro)?mysli\w*\b/.test(productTitle)) return "Kuivatuotteet";
+  if (/(?:^|\s)(?:muro)?mysli\w*\b/.test(productTitle)) return "Kuivatuotteet";
   if (/\bleivoskeksi\w*\b/.test(productTitle)) return "Makeiset & keksit";
 
   // Ready meals / ready-to-eat products.
