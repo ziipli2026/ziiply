@@ -95,6 +95,34 @@ jobs:
               --data "$payload" \
               "$ZIIPLY_BASE_URL/api/cron/lidl-publications/promote"
           done
+      - name: Verify production publication diagnostics
+        if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ZIIPLY_BASE_URL: ${{ secrets.ZIIPLY_BASE_URL }}
+        run: |
+          test -n "$CRON_SECRET"
+          test -n "$ZIIPLY_BASE_URL"
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$ZIIPLY_BASE_URL/api/internal/publication-diagnostics?chain=LIDL:FI0218" > /tmp/lidl-diagnostics.json
+          node -e '
+            const fs=require("fs");
+            const j=JSON.parse(fs.readFileSync("/tmp/lidl-diagnostics.json","utf8"));
+            if(!j.ok) { console.error("Diagnostics endpoint failed", j); process.exit(1); }
+            const s=j.summary||{};
+            console.log(JSON.stringify({
+              status:s.status,
+              currentEditionCount:s.currentEditionCount,
+              upcomingEditionCount:s.upcomingEditionCount,
+              currentValidUntil:s.currentValidUntil,
+              nextValidFrom:s.nextValidFrom,
+              daysUntilCurrentEnd:s.daysUntilCurrentEnd,
+              currentOfferCount:s.currentOfferCount,
+              issueCodes:s.issueCodes
+            }, null, 2));
+            if(s.status==="error" || Number(s.errorCount||0)>0) process.exit(1);
+          '
       - name: Upload Lidl source captures for review
         if: steps.clock.outputs.run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
