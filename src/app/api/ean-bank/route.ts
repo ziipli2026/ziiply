@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
-import verifiedLidlEanLinks from "../../../../data/lidl/verified-ean-linksconst VERIFIED_LIDL_EAN_PRODUCTS = [
+const VERIFIED_LIDL_EAN_PRODUCTS = [
   {
     "ean": "6409620011917",
     "lidlProductId": "10037649",
