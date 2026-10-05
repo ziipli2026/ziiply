@@ -16,12 +16,12 @@ function run(name,row){
  return {r,bank:JSON.parse(readFileSync(bank,"utf8"))};
 }
 try{
- const valid=run("valid","10033976,Test,,,Testikatu 1,FI0218,1234567890123,packaging,,unit,1.99,2026-10-05T08:25:00Z,SHELF-TEST-1,,1.99,2026-10-05T08:30:00Z,RECEIPT-TEST-1,false,false,false,true");
+ const valid=run("valid","10037642,Test,,,Testikatu 1,FI0218,1234567890123,packaging,,unit,1.99,2026-10-05T08:25:00Z,SHELF-TEST-1,,1.99,2026-10-05T08:30:00Z,RECEIPT-TEST-1,false,false,false,true");
  assert.equal(valid.r.status,0,valid.r.stderr);
  assert.equal(valid.bank.records.length,1);
  assert.equal(valid.bank.records[0].storeId,"FI0218");
  assert.equal(valid.bank.records[0].regularPriceEur,1.99);
- const promo=run("promo","10033976,Test,,,Testikatu 1,FI0218,1234567890123,packaging,,unit,1.49,2026-10-05T08:25:00Z,SHELF-TEST-2,,1.49,2026-10-05T08:30:00Z,RECEIPT-TEST-2,false,true,false,true");
+ const promo=run("promo","10037642,Test,,,Testikatu 1,FI0218,1234567890123,packaging,,unit,1.49,2026-10-05T08:25:00Z,SHELF-TEST-2,,1.49,2026-10-05T08:30:00Z,RECEIPT-TEST-2,false,true,false,true");
  assert.equal(promo.r.status,1);
  assert.equal(promo.bank.records.length,0);
  console.log("PASS: one-step Lidl receipt import writes only fully accepted rows and leaves bank untouched on rejection");
