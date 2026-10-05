@@ -36,7 +36,9 @@ const collectGtins = html => {
   const found = new Set();
   const add = value => { const d = digits(value); if (validGtin(d)) found.add(d); };
   for (const match of html.matchAll(/(?:ean|gtin|barcode|gs1|productCode|itemCode)\\s*["':=]+\\s*["']?([0-9]{8,14})/gi)) add(match[1]);
-  for (const script of html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
+  for (const script of html.matchAll(/<script[^>]*>([^]*?)<\/script>/gi)) {
+    const tag = script[0].slice(0, script[0].indexOf(">") + 1);
+    if (!/type=["']application\/ld\+json["']/i.test(tag)) continue;
     try {
       const parsed = JSON.parse(script[1]);
       const visit = value => {
