@@ -154,6 +154,14 @@
       "gtin": null,
       "gtinVerified": false,
       "ianIdentityCorroborated": true
+    },
+    {
+      "lidlProductId": "10038282",
+      "name": "NOSTJA Pancetta",
+      "packageSize": "100 g",
+      "source": "Lidl Austria exact Nostja Dalmatinska Panceta listing; Finnish Lidl historical campaign corroborates Nostja Pancetta identity",
+      "gtin": null,
+      "gtinVerified": false
     }
   ]
 }
