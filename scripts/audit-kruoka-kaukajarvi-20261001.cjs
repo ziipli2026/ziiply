@@ -3,7 +3,14 @@
 const fs=require("node:fs"); const vm=require("node:vm"); const ts=require("typescript");
 const source=fs.readFileSync("src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts","utf8");
 const js=ts.transpileModule(source+"\nexports.__categoryAudit=mapTjekCategoryV54;\n",{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-const context={exports:{},require,Buffer,console,fetch:()=>{throw Error("Audit must not fetch live data")}};
+const auditRequire=(id)=>{
+  // kruokaProvider now imports the shared K offer-tab policy. This isolated
+  // category audit does not exercise that path, but the module must resolve
+  // so the real provider classifier can be loaded into the VM.
+  if(id==="../kOfferTabPolicy") return {removeCampaignCopiesOfLeaflet:(_offers,campaigns)=>campaigns};
+  return require(id);
+};
+const context={exports:{},require:auditRequire,Buffer,console,fetch:()=>{throw Error("Audit must not fetch live data")}};
 vm.runInNewContext(js,context,{filename:"kruokaProvider.audit.js"});
 const classify=context.exports.__categoryAudit;
 const cases=[
