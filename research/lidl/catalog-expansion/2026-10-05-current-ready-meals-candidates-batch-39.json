@@ -1,0 +1,165 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "source": {
+    "url": "https://www.lidl.fi/h/valmisateriat/h10097147",
+    "type": "official_lidl_category_page",
+    "rendered_snapshot": "2026-09-28"
+  },
+  "verification_level": "candidate_only_no_product_id",
+  "products": [
+    {
+      "brand": "Vitasia",
+      "name": "Teriyaki-broileriateria",
+      "package_size": "400 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Chef Select",
+      "name": "Perhepizza",
+      "package_size": "1 kg",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Taschki",
+      "name": "Pelmeni",
+      "package_size": "1 kg",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": null,
+      "name": "Kananugetit dipillä",
+      "package_size": "1 kg",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Via",
+      "name": "Valmisateria",
+      "package_size": "320/335 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Kuljanka",
+      "name": "Khinkalitaikinanyytti",
+      "package_size": "400 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Kuljanka",
+      "name": "Borssikeitto",
+      "package_size": "800 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Kuljanka",
+      "name": "Pastanyytti raejuusto-perunatäytteellä",
+      "package_size": "1 kg",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Kuljanka",
+      "name": "Liha-perunanyytti",
+      "package_size": "1 kg",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Kuljanka",
+      "name": "Paneroitu juusto",
+      "package_size": "500 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Kuljanka",
+      "name": "Lihakeitto",
+      "package_size": "800 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Podravka",
+      "name": "Papu-lihapata",
+      "package_size": "400 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "HK",
+      "name": "Burgeri",
+      "package_size": "100 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Kartanon",
+      "name": "Kotimainen lihapulla",
+      "package_size": "300 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Danerolles",
+      "name": "Croissantit",
+      "package_size": "240 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "Atria",
+      "name": "Pizza",
+      "package_size": "200 g",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "ean": null,
+      "normal_price": null
+    }
+  ],
+  "notes": [
+    "Official category page is accepted as exact name/size evidence but not as SKU-ID verification.",
+    "Campaign/Lidl Plus/ERÄ prices intentionally omitted.",
+    "Potential Vemondo Vegaaninen pesto IDs 10018549 and 10024519 remain quarantined because third-party indexed sources conflict and official /p/ verification was unavailable."
+  ],
+  "master_index_effect": {
+    "previous_logical_verified_skus": 42,
+    "new_logical_verified_skus": 42
+  }
+}
