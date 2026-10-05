@@ -1,0 +1,48 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_verified_skus": 3,
+  "products": [
+    {
+      "brand": "Vitasia",
+      "name": "Gyoza-taikinanyytti",
+      "package_size": "150 g",
+      "category": "pakasteateriat",
+      "lidl_product_id": "10026639",
+      "official_product_url": "https://www.lidl.fi/p/vitasia-gyoza-taikinanyytti/p10026639",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "verification": "Official Lidl Finland product-specific /p/ page; distinct from existing 400 g SKU 10023536. Observed campaign price intentionally not stored as normal price."
+    },
+    {
+      "brand": "Vitasia",
+      "name": "Kimchi",
+      "package_size": "215 g",
+      "category": "aasialaiset elintarvikkeet",
+      "lidl_product_id": "10023596",
+      "official_product_url": "https://www.lidl.fi/p/vitasia-kimchi/p10023596",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "verification": "Official Lidl Finland product-specific /p/ page. ERÄ price intentionally excluded from normal_price."
+    },
+    {
+      "brand": "Vitasia",
+      "name": "Kookosjäätelö",
+      "package_size": "2 x 91 g",
+      "category": "jäätelöt/pakasteet",
+      "lidl_product_id": "10023605",
+      "official_product_url": "https://www.lidl.fi/p/vitasia-kookosjaatelo/p10023605",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "verification": "Official Lidl Finland product-specific /p/ page. ERÄ price intentionally excluded from normal_price."
+    }
+  ],
+  "master_index_effect": {
+    "previous_logical_verified_skus": 39,
+    "new_logical_verified_skus": 42
+  },
+  "price_policy": "Campaign, Lidl Plus, SUPERHINTA and ERÄ prices are not persisted as current normal prices."
+}
