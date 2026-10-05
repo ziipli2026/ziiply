@@ -607,7 +607,38 @@ export async function GET(request: Request) {
         try { staged = await readActivePublicationOffers<UnknownRecord>("LIDL:FI0218"); }
         catch (error) { console.warn("[Ziiply offers] Lidl staged publication unavailable", error); }
       }
-      const combined = dedupe([...(enriched as UnknownRecord[]), ...staged]);
+      // Fill manual verified-leaflet rows from the staged official Lidl.fi image when
+      // product identity is strong: same normalized product key + same price + overlapping validity.
+      // This keeps real Lidl imagery and never borrows an image by category alone.
+      const lidlImageKey = (offer: UnknownRecord) => normalizeText(
+        [offer.brandName, offer.name || offer.title].filter(Boolean).join(" ")
+      )
+        .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl)\b/g, " ")
+        .replace(/\b\d+\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const stagedWithImages = staged.filter((offer) => Boolean(firstString(offer.imageUrl, offer.image, offer.pictureUrl)));
+      const imageEnriched = (enriched as UnknownRecord[]).map((offer) => {
+        if (firstString(offer.imageUrl, offer.image, offer.pictureUrl)) return offer;
+        const key = lidlImageKey(offer);
+        const price = Number(offer.offerPrice ?? offer.price);
+        const from = firstString(offer.validFrom).slice(0, 10);
+        const until = firstString(offer.validUntil).slice(0, 10);
+        const match = stagedWithImages.find(candidate => {
+          const candidateKey = lidlImageKey(candidate);
+          const candidatePrice = Number(candidate.offerPrice ?? candidate.price);
+          const candidateFrom = firstString(candidate.validFrom).slice(0, 10);
+          const candidateUntil = firstString(candidate.validUntil).slice(0, 10);
+          const identityMatch = key && candidateKey && (key === candidateKey || key.includes(candidateKey) || candidateKey.includes(key));
+          return identityMatch && Number.isFinite(price) && candidatePrice === price &&
+            (!from || !candidateUntil || from <= candidateUntil) &&
+            (!until || !candidateFrom || candidateFrom <= until);
+        });
+        if (!match) return offer;
+        const imageUrl = firstString(match.imageUrl, match.image, match.pictureUrl);
+        return { ...offer, imageUrl, image: imageUrl, pictureUrl: imageUrl, imageMatchStatus: "official-lidl-fi-product-match" };
+      });
+      const combined = dedupe([...imageEnriched, ...staged]);
       // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
       // visible catch-all category: general merchandise/campaign rows stay out,
       // while real groceries must be classified into a concrete grocery category.
