@@ -78,5 +78,15 @@
     "lidlProductId": "10038304",
     "ean": "3850104035739",
     "evidence": "Lidl catalog identifies PODRAVKA Papu-lihapata at 3.49 EUR; current Croatian official/retail product data identifies Podravka Grah s kobasicom 400 g, sold by Lidl at 3.49 EUR, consumer EAN 3850104035739"
+  },
+  {
+    "lidlProductId": "10038473",
+    "ean": "7310350118496",
+    "evidence": "Lidl catalog: Lakerol Classic Cactus 25 g. Retail product data confirms EAN 7310350118496."
+  },
+  {
+    "lidlProductId": "10038475",
+    "ean": "6420256014493",
+    "evidence": "Lidl catalog: Mynthon Cool Mint 44 g. Retail product data confirms EAN 6420256014493."
   }
 ]
