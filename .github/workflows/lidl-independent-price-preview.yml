@@ -1,5 +1,5 @@
 name: Lidl independent price preview
-# Identifier audit includes legacy 5-8 digit Lidl product IDs
+# Identifier and variant audits include legacy Lidl product IDs
 on:
   push:
     branches: [preview/lidl-independent-catalog]
