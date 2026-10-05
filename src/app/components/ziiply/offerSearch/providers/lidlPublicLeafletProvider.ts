@@ -71,19 +71,33 @@ const money = (value: unknown) => {
   return Number.isFinite(n) && n > 0 ? n : null;
 };
 
+const GROCERY_CATEGORIES = new Set([
+  "Hevi", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Pakasteet",
+  "Valmisruoka", "Juomat", "Kahvi & tee", "Kuivatuotteet", "Makeiset & keksit",
+  "Lastenruoat", "Lemmikit",
+]);
+
 function categoryFor(name: string, sourceUrl: string) {
   const s = normalize(name + " " + sourceUrl);
-  if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani/.test(s)) return "Hevi";
-  if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna/.test(s)) return "Maitotuotteet";
-  if (/liha|kana|broiler|nauta|sika|makkara|nakki|pekoni|jauheliha|lihapulla/.test(s)) return "Liha & makkarat";
-  if (/kala|lohi|katkarapu|tonnikala/.test(s)) return "Kala";
-  if (/paistopiste|leip|croissant|pull|sampyl|rieska/.test(s)) return "Leipomo";
-  if (/pakaste|jaatelo/.test(s)) return "Pakasteet";
-  if (/valmisateria|pizza|keitto|ateria|nyytti|pata/.test(s)) return "Valmisruoka";
-  if (/juoma|mehu|vesi|limu|cola|kahvi|tee/.test(s)) return "Juomat";
-  if (/kark|makeis|suklaa|keksi|sips|chips/.test(s)) return "Makeiset & keksit";
+  // Explicit non-food exclusions run first so words such as "liha" in a tool
+  // name can never leak a general-merchandise campaign into Gösta.
+  if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna|pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi/.test(s)) return "Muut";
+  if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani|selleri|punajuuri|paprika|salaatti|retiisi/.test(s)) return "Hevi";
+  if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna|viili|piima/.test(s)) return "Maitotuotteet";
+  if (/liha|kana|broiler|nauta|sika|pors|makkara|nakki|pekoni|kinkku|jauheliha|lihapulla|nugget/.test(s)) return "Liha & makkarat";
+  if (/kala|lohi|katkarapu|tonnikala|silakka|seiti/.test(s)) return "Kala";
+  if (/paistopiste|leip|croissant|pull|sampyl|rieska|patonki|karjalanpiirakka/.test(s)) return "Leipomo";
+  if (/pakaste|jaatelo|jäätelö/.test(s)) return "Pakasteet";
+  if (/valmisateria|pizza|keitto|ateria|nyytti|pata|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
+  if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
+  if (/juoma|mehu|vesi|limu|cola|vichy|energiajuoma/.test(s)) return "Juomat";
+  if (/kark|makeis|suklaa|keksi|sips|chips|lakrit|salmiak|purukumi/.test(s)) return "Makeiset & keksit";
+  if (/lastenruo|vauvanruo|aidinmaidonkorvike/.test(s)) return "Lastenruoat";
   if (/koira|kissa|lemmik/.test(s)) return "Lemmikit";
-  return "Kuivatuotteet";
+  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|säilyke|kastike|oljy|öljy|mauste|sokeri|suola|nuudeli|makaroni|spagetti|pahkina|pähkinä/.test(s)) return "Kuivatuotteet";
+  // Unknown is deliberately "Muut", never Kuivatuotteet. New products must earn
+  // a grocery category before they can become visible in the grocery leaflet.
+  return "Muut";
 }
 
 function visitProducts(value: unknown, output: AnyRecord[]) {
@@ -174,7 +188,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   let failedPages = 0;
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
-    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date));
+    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
   }
 
   const byKey = new Map<string, LidlPublicOffer>();
