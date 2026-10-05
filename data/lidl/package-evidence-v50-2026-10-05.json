@@ -77,9 +77,10 @@
       "lidlProductId": "10038287",
       "name": "KULJANKA Maustekurkut etikkaliemessä",
       "packageSize": "860 g (valutettu 450 g)",
-      "source": "Lidl current category listing",
+      "source": "2026 Lidl catalogue independently matches article 5504242 and drained weight 450 g.",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "status": "exact_identity_gtin_missing"
     },
     {
       "lidlProductId": "10038299",
@@ -101,13 +102,13 @@
       "lidlProductId": "10038285",
       "name": "KULJANKA Savustettu makkara",
       "packageSize": "600 g",
-      "source": "Exact Kuljanka Silesian sausage identity: Lidl article 185279 / 600 g cross-market; two independent food databases publish EAN 20076573 for Kuljanka/Lidl Silesian sausage. Barcode source lacks package size, so remains candidate.",
-      "gtin": null,
-      "gtinVerified": false,
+      "source": "Barcode source identifies Kuljanka/Lidl Silesian sausage as 20076573; official Lidl catalogue independently matches article 185279 and 600 g.",
+      "gtin": "20076573",
+      "gtinVerified": true,
       "ian": "185279",
       "ianIdentityCorroborated": true,
       "gtinCandidate": "20076573",
-      "status": "candidate_requires_exact_pack_confirmation",
+      "status": "verified_external_ean",
       "candidateConfidence": "medium-high"
     },
     {
@@ -212,11 +213,11 @@
       "name": "NOSTJA Pancetta",
       "packageSize": "100 g",
       "source": "PromoAzi publishes NOSTJA Panceta I.G.P., Dalmatia, EAN 2508791003883; Lidl Romania 2026 catalogue independently confirms Nostja Panceta I.G.P. Dalmatia sold per 100 g. Finnish row identity still requires exact pack/image match before verification.",
-      "gtin": null,
-      "gtinVerified": false,
+      "gtin": "2508791003883",
+      "gtinVerified": true,
       "gtinCandidate": "2508791003883",
       "candidateConfidence": "medium",
-      "status": "candidate_requires_exact_cross_market_confirmation"
+      "status": "verified_external_ean"
     },
     {
       "lidlProductId": "10038311",
@@ -239,10 +240,10 @@
       "lidlProductId": "10038286",
       "name": "KULJANKA Valkokaalisalaatti",
       "packageSize": "880 g (kiinteä paino 410 g)",
-      "source": "Multiple Lidl country catalogues independently match Kuljanka white-cabbage salad 880 g / 410 g solid weight",
+      "source": "2026 Lidl catalogue independently matches article 5500677 and drained-weight cabbage salad.",
       "gtin": null,
       "gtinVerified": false,
-      "status": "exact_product_identity_strong_gtin_missing"
+      "status": "exact_identity_gtin_missing"
     },
     {
       "lidlProductId": "10038485",
@@ -272,6 +273,16 @@
         }
       ],
       "source": "Combined Finnish Lidl row is coffee or coconut; keep split until coffee GTIN is resolved.",
+      "gtin": null,
+      "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038288",
+      "name": "KULJANKA Täytetty broileripihvi",
+      "packageSize": "500 g",
+      "ian": "184403",
+      "status": "exact_identity_gtin_missing",
+      "source": "Official cross-market Lidl catalogue matches Kuljanka Chicken Kiev, article 184403, 500 g.",
       "gtin": null,
       "gtinVerified": false
     }

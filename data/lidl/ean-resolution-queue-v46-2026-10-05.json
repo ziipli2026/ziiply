@@ -1,5 +1,5 @@
 {
-  "revision": "V52-EAN-QUEUE-BULK-RECLASSIFICATION",
+  "revision": "V54-EAN-QUEUE-BULK-RESOLUTION",
   "created": "2026-10-05",
   "source": "ean-resolution-queue-v45-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
@@ -7,12 +7,12 @@
   "counts": {
     "multipack_or_variant": 13,
     "variable_weight_or_produce": 32,
-    "bakery_or_store_bakery": 103,
-    "needs_external_gtin_lookup": 25,
-    "verified_ean": 11,
+    "bakery_or_store_bakery": 104,
+    "needs_external_gtin_lookup": 22,
+    "verified_ean": 13,
     "non_food": 13
   },
-  "unresolvedExternalLookupCount": 25,
+  "unresolvedExternalLookupCount": 22,
   "records": [
     {
       "lidlProductId": "10037645",
@@ -343,8 +343,9 @@
       "name": "NOSTJA Pancetta",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "External barcode/EAN resolved with exact product identity evidence",
+      "resolvedEan": "2508791003883"
     },
     {
       "lidlProductId": "10038283",
@@ -370,8 +371,9 @@
       "name": "KULJANKA Savustettu makkara",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "External barcode/EAN resolved with exact product identity evidence",
+      "resolvedEan": "20076573"
     },
     {
       "lidlProductId": "10038286",
@@ -825,8 +827,8 @@
       "name": "Kalkkuna-juustotasku",
       "variant": null,
       "unitPriceText": "160 g | 12,44 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "Lidl Paistopiste item; not a packaged consumer GTIN lookup"
     },
     {
       "lidlProductId": "10038471",
