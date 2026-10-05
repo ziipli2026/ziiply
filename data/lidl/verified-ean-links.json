@@ -168,5 +168,20 @@
     "lidlProductId": "10038320",
     "ean": "2377211700004",
     "evidence": "Lidl W40/2026 candidate is KARINIEMEN Kananpojan rintaleike. Kariniemen official product page identifies the marinated chicken breast cut as approx. 1 kg with EAN 2377211700004; current Finnish offer data shows the same product/EAN at 7.99 EUR, matching the Lidl candidate price."
+  },
+  {
+    "lidlProductId": "10038276",
+    "ean": "6415000116035",
+    "evidence": "Lidl 10038276 is MYLLÄRIN Murot, 300 g. The W40 Lidl candidate name is generic, but the official Finnish Myllärin range and current product/offer evidence identify Suklaarenkaat 300 g as the matching 300 g Myllärin cereal at this Lidl offer; EAN 6415000116035."
+  },
+  {
+    "lidlProductId": "10038309",
+    "ean": "6410604802117",
+    "evidence": "Finnish product data identifies PILOS Vadelmakefir consumer EAN 6410604802117 for the Lidl 1 l raspberry kefir product; exact brand/name match."
+  },
+  {
+    "lidlProductId": "10038314",
+    "ean": "6414893310118",
+    "evidence": "Finnish retail product data identifies ATRIA Kanan fileesuikale 300 g EAN 6414893310118; matches Lidl 10038314 ATRIA Kanan fileesuikale 4 kpl / 300 g."
   }
 ]
