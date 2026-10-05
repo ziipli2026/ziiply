@@ -684,9 +684,34 @@ export async function GET(request: Request) {
         console.warn("[Ziiply offers] Lidl campaign feed unavailable", error);
       }
 
-      // Keep the campaign feed separate from the dated leaflet rows. The UI
-      // already filters by campaignType, exactly like the S/K campaign tabs.
-      const masterCombined = dedupe([...combined, ...lidlCampaigns]);
+      // The store-scoped Lidl Plus JSON feed is itself an active campaign source.
+      // Public Lidl.fi pages are supplemental: many campaign pages do not expose
+      // complete validFrom/validUntil JSON-LD, so they cannot be the only source.
+      // Give the campaign copies distinct ids so the master dedupe does not erase
+      // them against the Tarjoukset copy before the UI can split the tabs.
+      const leafletIdentityKeys = new Set(
+        combined
+          .filter((offer) => String(offer.source || "") !== "lidl-plus")
+          .map((offer) => lidlImageKey(offer))
+          .filter(Boolean),
+      );
+      const structuredCampaigns = (fetched as UnknownRecord[])
+        .filter((offer) => {
+          const key = lidlImageKey(offer);
+          // A strong exact leaflet identity stays only under Tarjoukset.
+          return !key || !leafletIdentityKeys.has(key);
+        })
+        .map((offer) => ({
+          ...offer,
+          id: `lidl-campaign-${String(offer.id || lidlImageKey(offer))}`,
+          campaignType: "campaign",
+          source: "lidl-plus-campaign",
+          campaignSection: "Lidl Plus",
+        }));
+
+      // Keep campaign rows separate from the dated leaflet rows. The UI filters
+      // by campaignType exactly like the Prisma/Citymarket campaign tabs.
+      const masterCombined = dedupe([...combined, ...structuredCampaigns, ...lidlCampaigns]);
 
       // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
       // visible catch-all category: general merchandise/campaign rows stay out,
@@ -702,8 +727,10 @@ export async function GET(request: Request) {
             staged: staged.length,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
-            campaigns: lidlCampaigns.length,
-            campaignSource: "lidl.fi public category/campaign pages",
+            campaigns: structuredCampaigns.length + lidlCampaigns.length,
+            structuredCampaigns: structuredCampaigns.length,
+            publicCampaigns: lidlCampaigns.length,
+            campaignSource: "Lidl Plus store feed + lidl.fi public campaign pages",
           },
         },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
