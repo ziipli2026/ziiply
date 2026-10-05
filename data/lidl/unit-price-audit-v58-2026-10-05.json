@@ -882,36 +882,6 @@
       "ian": "82463"
     },
     {
-      "lidlProductId": "10038328",
-      "name": "Pionin juurakko",
-      "displayedPriceEur": 3.99,
-      "ian": "131091"
-    },
-    {
-      "lidlProductId": "10038329",
-      "name": "Calluna",
-      "displayedPriceEur": 1.99,
-      "ian": "51291"
-    },
-    {
-      "lidlProductId": "10038330",
-      "name": "Kolmivärinen calluna 3 kpl",
-      "displayedPriceEur": 8,
-      "ian": "92369"
-    },
-    {
-      "lidlProductId": "10038331",
-      "name": "Kotimainen krysanteemi",
-      "displayedPriceEur": 2.79,
-      "ian": "51274"
-    },
-    {
-      "lidlProductId": "10038332",
-      "name": "W5 Kertakäyttökäsine",
-      "displayedPriceEur": 4.99,
-      "ian": "136355"
-    },
-    {
       "lidlProductId": "10038333",
       "name": "PURIO Roskapussi tuoksulla",
       "displayedPriceEur": 1.99,
@@ -946,12 +916,6 @@
       "name": "W5 Käsien puhdistusaine",
       "displayedPriceEur": 2.29,
       "ian": "22961"
-    },
-    {
-      "lidlProductId": "10038342",
-      "name": "W5 Mikrokuitupesukinnas",
-      "displayedPriceEur": 2.49,
-      "ian": "139647"
     },
     {
       "lidlProductId": "10038343",
@@ -1023,8 +987,51 @@
   "summary": {
     "originalMissing": 83,
     "resolvedOfficial": 19,
-    "remaining": 65,
-    "notApplicable": 0
+    "notApplicable": 6,
+    "remaining": 59
   },
-  "unitPriceNotApplicable": []
+  "unitPriceNotApplicable": [
+    {
+      "lidlProductId": "10038328",
+      "name": "Pionin juurakko",
+      "displayedPriceEur": 3.99,
+      "ian": "131091",
+      "reason": "piece-priced/non-food or plant; mass/volume unit price not applicable"
+    },
+    {
+      "lidlProductId": "10038329",
+      "name": "Calluna",
+      "displayedPriceEur": 1.99,
+      "ian": "51291",
+      "reason": "piece-priced/non-food or plant; mass/volume unit price not applicable"
+    },
+    {
+      "lidlProductId": "10038330",
+      "name": "Kolmivärinen calluna 3 kpl",
+      "displayedPriceEur": 8,
+      "ian": "92369",
+      "reason": "piece-priced/non-food or plant; mass/volume unit price not applicable"
+    },
+    {
+      "lidlProductId": "10038331",
+      "name": "Kotimainen krysanteemi",
+      "displayedPriceEur": 2.79,
+      "ian": "51274",
+      "reason": "piece-priced/non-food or plant; mass/volume unit price not applicable"
+    },
+    {
+      "lidlProductId": "10038332",
+      "name": "W5 Kertakäyttökäsine",
+      "displayedPriceEur": 4.99,
+      "ian": "136355",
+      "reason": "piece-priced/non-food or plant; mass/volume unit price not applicable"
+    },
+    {
+      "lidlProductId": "10038342",
+      "name": "W5 Mikrokuitupesukinnas",
+      "displayedPriceEur": 2.49,
+      "ian": "139647",
+      "reason": "piece-priced/non-food or plant; mass/volume unit price not applicable"
+    }
+  ]
 }
