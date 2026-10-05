@@ -25,6 +25,23 @@ jobs:
         run: npx tsc --noEmit
       - name: K offer tab policy regression
         run: node --test tests/k-offer-tab-policy.test.cjs
+      - name: Citymarket semantic dedupe regression
+        run: |
+          cat > citymarket-dedupe-test.mts <<'NODE'
+          import { removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
+          const cases = [
+            ['brand prefix duplicate', [{title:'VÄLIPALAJUOMAT 240 ml',price:3}], [{title:'Arla SHAKE UP VÄLIPALAJUOMAT 240 ml',price:3}], 0],
+            ['strong name duplicate', [{title:'AITO NAKKI 360 g',price:3.79}], [{title:'HK AITO NAKKI',price:3.79}], 0],
+            ['generic different package survives', [{title:'ENERGIAJUOMAT 0,5 l/tlk',price:4}], [{title:'Nocco ENERGIAJUOMAT 0,33 l/tlk',price:4}], 1],
+            ['different price survives', [{title:'Froosh SMOOTHIET 250 ml/pl',price:4}], [{title:'Froosh SMOOTHIET 250 ml/pl',price:3.5}], 1],
+          ];
+          for (const [name,offers,campaigns,wanted] of cases) {
+            const got=removeCampaignCopiesOfLeaflet(offers,campaigns).length;
+            if(got!==wanted) throw new Error(name+': expected '+wanted+' rows, got '+got);
+          }
+          console.log('CITYMARKET_SEMANTIC_DEDUPE_REGRESSION_OK');
+          NODE
+          npx --yes tsx citymarket-dedupe-test.mts
       - name: Shared offer price display regression
         run: |
           cat > offer-price-test.mts <<'NODE'
