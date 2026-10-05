@@ -78,6 +78,18 @@ const collectOfficialApi=async()=>{
 const raw=[];
 const observedAt=new Date().toISOString();
 const api=await collectOfficialApi();
+const apiUniqueProducts=new Set(api.out.map(x=>x.lidlProductId));
+const officialApi={
+  rawRecordCount:api.out.length,
+  uniqueProductCount:apiUniqueProducts.size,
+  categoryCount:OFFICIAL_CATEGORY_IDS.length,
+  errorCount:api.errors.length,
+  errors:api.errors,
+  withIan:api.out.filter(x=>x.ian.length>0).length,
+  withGs1Attributes:api.out.filter(x=>x.gs1Attributes&&Object.keys(x.gs1Attributes).length>0).length,
+  withUnitPriceText:api.out.filter(x=>x.unitPriceText).length,
+  withPackageSizeInTitle:api.out.filter(x=>packageSizeFrom(x.name,null)).length
+};
 for(const product of api.out){
   raw.push({source:"https://www.lidl.fi/q/api/search?category.id="+product.categoryId,observedAt,researchOnly:true,
     lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,productUrl:product.canonicalPath?new URL(product.canonicalPath,"https://www.lidl.fi").href:null,
@@ -156,7 +168,7 @@ const records=[...byKey.values()];
 const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
 process.stdout.write(JSON.stringify({
-  sourceType:"lidl.fi-public",researchOnly:true,
+  sourceType:"lidl.fi-public",researchOnly:true,officialApi,
   count:strongRecords.length,totalCount:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
   statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),
   matchCounts:records.reduce((a,r)=>{const k=r.productMatchConfidence||"structured-continuous";a[k]=(a[k]||0)+1;return a},{}),
