@@ -1,0 +1,97 @@
+{
+  "revision": "LIDL-PUBLIC-OBSERVATION-METADATA-V2",
+  "capturedDate": "2026-10-05",
+  "policy": "Official public Lidl.fi metadata only. Prices remain public observations and are never checkout-verified by this file.",
+  "records": [
+    {
+      "lidlProductId": "10037650",
+      "name": "MAMA Nuudeli 6-pack",
+      "displayedPriceEur": 3.39,
+      "pack": "330 g",
+      "unitPriceText": "10,27 €/kg",
+      "validThrough": null,
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038287",
+      "name": "KULJANKA Maustekurkut etikkaliemessä",
+      "displayedPriceEur": 2.29,
+      "pack": "860 g (valutettu paino 450 g)",
+      "unitPriceText": "5,09 €/kg",
+      "validThrough": "2026-10-07",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038289",
+      "name": "KULJANKA Hapankurkku",
+      "displayedPriceEur": 2.49,
+      "pack": "700 g (valutettu paino 400 g)",
+      "unitPriceText": "6,23 €/kg",
+      "validThrough": "2026-10-07",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038270",
+      "name": "VIA Valmisateria 2 kpl",
+      "displayedPriceEur": 7,
+      "pack": "320/335 g",
+      "unitPriceText": "10,45–10,94 €/kg",
+      "validThrough": "2026-10-04",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038283",
+      "name": "KULJANKA Khinkalitaikinanyytti",
+      "displayedPriceEur": 3.99,
+      "pack": "400 g",
+      "unitPriceText": "9,98 €/kg",
+      "validThrough": "2026-10-07",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038284",
+      "name": "KULJANKA Borssikeitto",
+      "displayedPriceEur": 3.29,
+      "pack": "800 g",
+      "unitPriceText": "4,11 €/kg",
+      "validThrough": "2026-10-07",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038291",
+      "name": "KULJANKA Pastanyytti raejuusto-perunatäytteellä",
+      "displayedPriceEur": 3.49,
+      "pack": "1 kg",
+      "unitPriceText": "3,49 €/kg",
+      "validThrough": "2026-10-07",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038296",
+      "name": "KULJANKA Liha-perunanyytti",
+      "displayedPriceEur": 3.99,
+      "pack": "1 kg",
+      "unitPriceText": "3,99 €/kg",
+      "validThrough": "2026-10-07",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    },
+    {
+      "lidlProductId": "10038300",
+      "name": "KULJANKA Paneroitu juusto",
+      "displayedPriceEur": 3.99,
+      "pack": "500 g",
+      "unitPriceText": "7,98 €/kg",
+      "validThrough": "2026-10-07",
+      "source": "lidl.fi public category page",
+      "checkoutComparable": false
+    }
+  ]
+}
