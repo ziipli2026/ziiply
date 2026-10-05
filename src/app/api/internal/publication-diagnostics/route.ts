@@ -80,13 +80,8 @@ export async function GET(request: Request) {
     const duplicatePeriods = editions.length - effectiveEditions.length;
     // Superseded snapshots are expected when a source republishes a corrected edition.
     // Report their count, but do not degrade health merely because history exists.
-    if (current.length && !upcoming.length) {
-      const daysUntilEnd = daysUntilCurrentEnd;
-      if (daysUntilEnd !== null && daysUntilEnd < 0)
-        issue("CURRENT_PUBLICATION_EXPIRED", "error", "Stored current publication has already expired");
-      else if (daysUntilEnd !== null && daysUntilEnd <= 1)
-        issue("NEXT_PUBLICATION_MISSING", "warning", "Current publication ends within one day and no upcoming publication is staged");
-    }
+    if (current.length && !upcoming.length && daysUntilCurrentEnd !== null && daysUntilCurrentEnd <= 1)
+      issue("NEXT_PUBLICATION_MISSING", "warning", "Current publication ends within one day and no upcoming publication is staged");
     for (const edition of current) {
       if (edition.quality.severity === "error") issue("PUBLICATION_DATA_ERROR", "error", `Critical offer data in ${edition.publicationId}`);
       else if (edition.quality.severity === "warning") issue("PUBLICATION_METADATA_WARNING", "warning", `Incomplete offer metadata in ${edition.publicationId}`);
