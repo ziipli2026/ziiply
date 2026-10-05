@@ -78,8 +78,8 @@ export async function GET(request: Request) {
     if (current.length > 1)
       issue("OVERLAPPING_CURRENT_PUBLICATIONS", "warning", `${current.length} publication periods are simultaneously current`);
     const duplicatePeriods = editions.length - effectiveEditions.length;
-    if (duplicatePeriods > 0)
-      issue("CORRECTED_SNAPSHOTS_PRESENT", "warning", `${duplicatePeriods} superseded publication snapshot(s) are retained for diagnostics`);
+    // Superseded snapshots are expected when a source republishes a corrected edition.
+    // Report their count, but do not degrade health merely because history exists.
     if (current.length && upcoming.length) {
       const currentEnd = current.map((edition) => edition.validUntil).sort().at(-1)!;
       const nextStart = upcoming.map((edition) => edition.validFrom).sort()[0];
