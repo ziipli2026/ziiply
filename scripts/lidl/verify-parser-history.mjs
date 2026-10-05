@@ -12,7 +12,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
 
-const root = path.resolve("data/lidl/parser-regression");
+const root = path.resolve(process.env.LIDL_REGRESSION_ROOT || "data/lidl/parser-regression");
 const mode = process.argv[2] || "verify";
 const providerPath = path.resolve("src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts");
 const lifecyclePath = path.resolve("src/app/components/ziiply/offerSearch/publicationLifecycle.ts");
