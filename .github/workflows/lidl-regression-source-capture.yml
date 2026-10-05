@@ -13,22 +13,23 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Capture official Lidl.fi regression sources
+      - name: Capture official Lidl.fi product regression sources
         run: |
           mkdir -p data/lidl/regression-capture
           while IFS='|' read -r slug url; do
-            curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' "$url"               -o "data/lidl/regression-capture/2026-10-05_07.$slug.html"
+            curl --fail --location --retry 3 --user-agent 'ZiiplyLidlLeaflet/1.0' "$url" \
+              -o "data/lidl/regression-capture/2026-10-05_07.$slug.html"
             printf '%s\n' "$url" > "data/lidl/regression-capture/2026-10-05_07.$slug.source-url.txt"
           done <<'URLS'
-          vihannekset|https://www.lidl.fi/h/vihannekset/h10095593
-          juustot-maitotuotteet-kananmunat|https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761
-          valmisateriat|https://www.lidl.fi/h/valmisateriat/h10097147
-          paistopiste|https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086
+          kirsikkatomaatti|https://www.lidl.fi/p/kotimainen-kirsikkatomaatti/p10038326
+          erankavija|https://www.lidl.fi/p/kuusamon-juusto-erankavija-juusto/p10038321
+          danerolles|https://www.lidl.fi/p/danerolles-croissantit-2-kpl/p10038322
+          atria-pizza|https://www.lidl.fi/p/atria-pizza-2-kpl/p10038324
           URLS
       - name: Upload immutable source candidate
         uses: actions/upload-artifact@v4
         with:
-          name: lidl-regression-source-2026-10-05_07
+          name: lidl-regression-source-2026-10-05_07-products
           path: data/lidl/regression-capture/*
           if-no-files-found: error
           retention-days: 30
