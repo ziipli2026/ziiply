@@ -120,9 +120,13 @@ const records=raw.filter(r=>{
   if(seen.has(key)) return false;
   seen.add(key); return true;
 });
+const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.productMatchConfidence==='exact-name');
+const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,
-  count:records.length,rawCount:raw.length,deduplicated:raw.length-records.length,
-  statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),\n  matchCounts:records.reduce((a,r)=>{const k=r.productMatchConfidence||"structured-continuous";a[k]=(a[k]||0)+1;return a},{}),
-  records
+  count:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
+  statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),
+  matchCounts:records.reduce((a,r)=>{const k=r.productMatchConfidence||"structured-continuous";a[k]=(a[k]||0)+1;return a},{}),
+  records:strongRecords,
+  reviewQueue
 },null,2)+"\n");
