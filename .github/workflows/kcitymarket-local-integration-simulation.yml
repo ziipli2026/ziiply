@@ -6,6 +6,7 @@ on:
       - 'src/app/api/offers/search/route.ts'
       - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
       - 'tests/k-offer-tab-policy.test.cjs'
+      - 'src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx'
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
       - '.github/workflows/kcitymarket-local-integration-simulation.yml'
   workflow_dispatch:
@@ -24,6 +25,26 @@ jobs:
         run: npx tsc --noEmit
       - name: K offer tab policy regression
         run: node --test tests/k-offer-tab-policy.test.cjs
+      - name: Shared offer price display regression
+        run: |
+          cat > offer-price-test.mts <<'NODE'
+          import { getOfferPrice } from './src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx';
+          const cases = [
+            ['plain', {offerPrice:3.49}, '3,49 €'],
+            ['citymarket leaflet', {offerPrice:4,__sourceOfferSearchResult:{offerQuantity:4,offerUnit:'PRK'}}, '4,00 € / 4 PRK'],
+            ['citymarket campaign', {offerPrice:4,__sourceOfferSearchResult:{priceText:'4,00 € / 4 kpl',offerQuantity:4}}, '4,00 € / 4 kpl'],
+            ['k-super', {offerPrice:'5,00 € / 2 kpl',__sourceOfferSearchResult:{priceText:'5,00 € / 2 kpl',offerQuantity:2}}, '5,00 € / 2 kpl'],
+            ['lidl', {offerPrice:5,__sourceOfferSearchResult:{multiBuyQuantity:2,priceBasis:'multi-buy-total'}}, '5,00 € / 2 kpl'],
+            ['eurospar', {offerPrice:6,__sourceOfferSearchResult:{offerQuantity:3,offerUnit:'kpl',priceBasis:'multi-buy-total'}}, '6,00 € / 3 kpl'],
+            ['tokmanni', {offerPrice:10,__sourceOfferSearchResult:{offerQuantity:3,offerUnit:'kpl',multiBuyTotalPrice:10}}, '10,00 € / 3 kpl'],
+          ];
+          for (const [name,row,wanted] of cases) {
+            const actual=getOfferPrice(row as any);
+            console.log(name,actual,wanted);
+            if(actual!==wanted) process.exitCode=1;
+          }
+          NODE
+          npx --yes tsx offer-price-test.mts
       - name: Simulate two selected stores and failure isolation
         shell: bash
         run: |
