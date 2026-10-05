@@ -1,0 +1,141 @@
+{
+  "research_only": true,
+  "new_product_specific_records": 10,
+  "products": [
+    {
+      "brand": "Kanamestari",
+      "name": "Kanan ohut fileeleike",
+      "package_size": "600 g",
+      "category": "liha",
+      "lidl_product_id": "10023533",
+      "official_product_url": "https://www.lidl.fi/p/kanamestari-kanan-ohut-fileeleike/p10023533",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Grillimaisteri",
+      "name": "Kanan paistileike Hot Honey",
+      "package_size": "600 g",
+      "category": "liha",
+      "lidl_product_id": "10021816",
+      "official_product_url": "https://www.lidl.fi/p/grillimaisteri-kanan-paistileike-hot-honey/p10021816",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Vitasia",
+      "name": "Gyoza-taikinanyytti",
+      "package_size": "400 g",
+      "category": "pakasteet",
+      "lidl_product_id": "10023536",
+      "official_product_url": "https://www.lidl.fi/p/vitasia-gyoza-taikinanyytti/p10023536",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Vitasia",
+      "name": "BBQ-ribsit",
+      "package_size": "600 g",
+      "category": "liha/valmisruoka",
+      "lidl_product_id": "10023580",
+      "official_product_url": "https://www.lidl.fi/p/vitasia-bbq-ribsit/p10023580",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Grillimaisteri",
+      "name": "Ribs",
+      "package_size": "n. 600 g",
+      "category": "liha",
+      "lidl_product_id": "10023554",
+      "official_product_url": "https://www.lidl.fi/p/grillimaisteri-ribs/p10023554",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Deluxe",
+      "name": "Perunapaistos tomaatti-mozzarella",
+      "package_size": "400 g",
+      "category": "valmisruoka",
+      "lidl_product_id": "10027892",
+      "official_product_url": "https://www.lidl.fi/p/deluxe-perunapaistos-tomaatti-mozzarella/p10027892",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Grillimaisteri",
+      "name": "Possun marinoitu sisäfileepihvi BBQ",
+      "package_size": "400 g",
+      "category": "liha",
+      "lidl_product_id": "10021852",
+      "official_product_url": "https://www.lidl.fi/p/grillimaisteri-possun-marinoitu-sisafileepihvi-bbq/p10021852",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Atria",
+      "name": "Wilhelm-grillimakkara",
+      "package_size": "350–400 g",
+      "category": "makkarat",
+      "lidl_product_id": "10023751",
+      "official_product_url": "https://www.lidl.fi/p/atria-wilhelm-grillimakkara/p10023751",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Mutti",
+      "name": "Hieno tomaattimurska",
+      "package_size": "400 g",
+      "category": "säilykkeet",
+      "lidl_product_id": "10023394",
+      "official_product_url": "https://www.lidl.fi/p/mutti-hieno-tomaattimurska/p10023394",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    },
+    {
+      "brand": "Fazer",
+      "name": "Aito Gurtti 2 kpl",
+      "package_size": "400 g",
+      "category": "kasvipohjaiset kylmätuotteet",
+      "lidl_product_id": "10026316",
+      "official_product_url": "https://www.lidl.fi/p/fazer-aito-gurtti-2-kpl/p10026316",
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "observed_at": "2026-10-05",
+      "verification": "Official Lidl product-specific /p/ page indexed. Historical displayed offer/price intentionally not stored as current normal price."
+    }
+  ],
+  "duplicate_warning": {
+    "url": "https://www.lidl.fi/p/atria-wilhelm-grillimakkara/p10023649",
+    "id": "10023649",
+    "note": "A second Lidl URL exists for apparently the same Wilhelm 350–400 g campaign. Quarantined as possible duplicate; not counted separately."
+  }
+}
