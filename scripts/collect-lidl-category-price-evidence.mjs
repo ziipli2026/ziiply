@@ -10,6 +10,9 @@ const clean=s=>String(s??"").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").repl
 const eur=s=>{const m=String(s??"").match(/(\d+[,.]\d{1,2})\s*€/);return m?Number(m[1].replace(",",".")):null};
 const isoDate=s=>{const m=String(s??"").match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);return m?`${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`:null};
 const out=[];
+const now=new Date();
+const inferYear=(raw)=>{ const m=String(raw||"").match(/(\d{1,2})\.(\d{1,2})\.?/); if(!m) return null; const y=now.getUTCFullYear(); return new Date(Date.UTC(y,Number(m[2])-1,Number(m[1]))); };
+const temporalStatus=(fromRaw,throughRaw,kind)=>{ if(kind==="continuous-listing") return "continuous"; const a=inferYear(fromRaw), z=inferYear(throughRaw); if(!a||!z) return "unknown"; z.setUTCHours(23,59,59,999); return now<a?"future":now>z?"past":"current"; };
 for(const source of urls){
  const res=await fetch(source,{headers:{"user-agent":"ZiiplyLidlResearch/1.0",accept:"text/html"},signal:AbortSignal.timeout(15000)});
  if(!res.ok) throw new Error(`${res.status} ${source}`);
@@ -28,7 +31,7 @@ for(const source of urls){
      displayedPriceEur:price,
      isLidlPlus:/Lidl Plus/i.test(chunk),
      isMultiBuy:/\b\d+\s*KPL\b/i.test(chunk),
-     validFromRaw:validity?.[1] ?? null, validThroughRaw:validity?.[2] ?? null,\n     availabilityKind: validity ? "dated-campaign" : "continuous-listing",
+     validFromRaw:validity?.[1] ?? null, validThroughRaw:validity?.[2] ?? null,\n     availabilityKind: validity ? "dated-campaign" : "continuous-listing",\n     temporalStatus: temporalStatus(validity?.[1], validity?.[2], validity ? "dated-campaign" : "continuous-listing"),
      evidenceText:chunk.slice(Math.max(0,chunk.length-900)),
      priceVerified:false, checkoutPriceVerified:false, regularPriceVerified:false
    });
