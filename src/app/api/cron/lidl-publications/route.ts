@@ -81,12 +81,12 @@ export async function GET(request: Request) {
         chain: "LIDL:FI0218",
         id: `official-combined:${period}:${fingerprint}`,
         validFrom, validUntil, parsedAt: new Date().toISOString(), offers,
-      });
+      }, { approvalState: "candidate" });
       outcomes.push({
         period, count: offers.length,
         structuredCount: offers.filter(row => row.source === "lidl-plus").length,
         publicCount: offers.filter(row => row.source === "lidl-fi-public").length,
-        outcome, quality,
+        outcome, approvalState: "candidate", quality,
       });
     }
 
@@ -95,7 +95,7 @@ export async function GET(request: Request) {
     await recordPublicationRun({
       chain: "LIDL:FI0218", source: "official-lidl-combined", ok: qualityOk && sourceHealthy,
       count: structured.length + publicOffers.length,
-      outcome: qualityOk && sourceHealthy ? "staging-completed" : "staging-partial-or-quality-error",
+      outcome: qualityOk && sourceHealthy ? "candidate-staging-completed" : "staging-partial-or-quality-error",
       details: {
         structuredCount: structured.length, publicCount: publicOffers.length, publicAudit,
         structuredError: structuredResult.status === "rejected" ? String(structuredResult.reason) : null,
