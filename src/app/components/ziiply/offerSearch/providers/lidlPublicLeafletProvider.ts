@@ -116,6 +116,45 @@ function visitProducts(value: unknown, output: AnyRecord[]) {
   if (row.item) visitProducts(row.item, output);
 }
 
+export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = finnishPublicationDate()): LidlPublicOffer[] {
+  const output: LidlPublicOffer[] = [];
+  for (const match of html.matchAll(/data-grid-data="([^"]+)"/gi)) {
+    let product: AnyRecord;
+    try { product = JSON.parse(decode(match[1])); } catch { continue; }
+    const name = String(product.fullTitle || product.title || product.keyfacts?.fullTitle || "").trim();
+    const brandName = String(product.brand?.name || product.brandName || "").trim();
+    const price = money(product.price?.price);
+    const fromTs = Number(product.storeStartDate || product.stockAvailability?.badgeInfoV2?.[0]?.validFrom || 0);
+    const untilTs = Number(product.storeEndDate || product.stockAvailability?.badgeInfoV2?.[0]?.validUntil || 0);
+    const validFrom = fromTs ? new Date(fromTs * 1000).toISOString().slice(0,10) : "";
+    const validUntil = untilTs ? new Date(untilTs * 1000).toISOString().slice(0,10) : "";
+    if (!name || price == null || !validFrom || !validUntil) continue;
+    if (publicationState({ validFrom, validUntil }, date) === "invalid") continue;
+    const baseText = String(product.price?.basePrice?.text || "");
+    const packageText = baseText.match(/^([^|]+)\|/)?.[1]?.trim() || "";
+    const fullName = packageText && !normalize(name).includes(normalize(packageText)) ? `${name} ${packageText}` : name;
+    const discountText = String(product.price?.discount?.discountText || "");
+    const limitedBatch = /erä/i.test(discountText);
+    const quantity = Number(fullName.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
+    const weighted = /(?:€|eur)\s*\/\s*kg/i.test(baseText) && !packageText;
+    const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
+    const imageUrl = typeof product.image === "string" && /^https:\/\//.test(product.image) ? product.image : "";
+    const category = categoryFor([brandName, fullName, product.keyfacts?.wonCategoryPrimary].filter(Boolean).join(" "), sourceUrl);
+    output.push({
+      id: `lidl-fi-grid-${product.productId || product.itemId || normalize(fullName)}-${validFrom}`,
+      source: "lidl-fi-public", chain: "Lidl", title: fullName, name: fullName, productName: fullName, brandName,
+      price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €`, originalPrice: money(product.price?.oldPrice), normalPrice: money(product.price?.oldPrice),
+      priceBasis, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
+      requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
+      validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
+      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
+      rawText: [brandName, fullName, baseText, discountText, category].filter(Boolean).join(" "), sourceUrl,
+      hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
+    });
+  }
+  return output;
+}
+
 export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, date = finnishPublicationDate()): LidlPublicOffer[] {
   const products: AnyRecord[] = [];
   for (const match of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
@@ -372,6 +411,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
     for (const link of productLinks(result.value.html)) productPaths.add(link);
+    parsed.push(...parseLidlGridDataOffers(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
     parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
     // Campaign landing pages also embed their own product-card payloads. Parse
     // those directly instead of requiring every card to expose a /p/ link.

@@ -55,13 +55,13 @@ async function loadProductionParser() {
   await transpile(providerPath, path.join(tempDir, "lidlPublicLeafletProvider.mjs"),
     source => source.replace('from "../publicationLifecycle"', 'from "./publicationLifecycle.mjs"'));
   const module = await import(pathToFileURL(path.join(tempDir, "lidlPublicLeafletProvider.mjs")).href + "?v=" + Date.now());
-  return { parse: module.parseLidlPublicCategoryHtml, tempDir };
+  return { parse: module.parseLidlPublicCategoryHtml, parseGrid: module.parseLidlGridDataOffers, tempDir };
 }
 
 const manifests = (await files(root)).filter(name => name.endsWith(".expected.json"));
 if (mode === "verify") {
   if (!manifests.length) throw new Error("Lidl parser regression archive is empty");
-  const { parse, tempDir } = await loadProductionParser();
+  const { parse, parseGrid, tempDir } = await loadProductionParser();
   let failed = 0;
   for (const name of manifests) {
     const edition = name.replace(".expected.json", "");
@@ -79,7 +79,7 @@ if (mode === "verify") {
       const sourceUrlPath = path.join(root, fixtureName.replace(/\.html$/, ".source-url.txt"));
       let sourceUrl = "https://www.lidl.fi/";
       try { sourceUrl = (await fs.readFile(sourceUrlPath, "utf8")).trim() || sourceUrl; } catch {}
-      parsedRows.push(...parse(html, sourceUrl, date));
+      parsedRows.push(...parseGrid(html, sourceUrl, date));\n      parsedRows.push(...parse(html, sourceUrl, date));
     }
     const actual = canonical(parsedRows);
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
