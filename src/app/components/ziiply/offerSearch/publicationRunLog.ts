@@ -22,6 +22,9 @@ export async function recordPublicationRun(input: {
     VALUES (${input.chain}, ${input.source}, ${input.ok},
       ${input.count}, ${input.outcome.slice(0, 200)},
       ${JSON.stringify(input.details ?? {})}::jsonb)`;
+  // Operational history only: prevent an unbounded diagnostics table.
+  await sql`DELETE FROM ziiply_publication_run_log
+    WHERE checked_at < NOW() - INTERVAL '45 days'`;
 }
 
 export async function recentPublicationRuns(chain: string, limit = 20) {
