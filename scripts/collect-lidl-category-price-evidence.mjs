@@ -53,7 +53,7 @@ const structuredProducts=html=>{
   return out;
 };
 const packageSizeFrom=(name,unitPriceText)=>{
-  const text=clean([name,unitPriceText].filter(Boolean).join(' '));
+  const text=clean(name);
   const m=text.match(/\b(\d+(?:[,.]\d+)?)\s*(kg|g|l|ml|cl)\b/i);
   return m?{value:Number(m[1].replace(',','.')),unit:m[2].toLowerCase(),raw:m[0]}:null;
 };
@@ -141,18 +141,23 @@ for(const source of urls){
   }
 }
 
-const seen=new Set();
-const records=raw.filter(r=>{
+const priority=r=>r.productMatchConfidence==="official-category-api"?3:r.availabilityKind==="continuous-listing"?2:1;
+const byKey=new Map();
+for(const r of raw){
   const stableIdentity=r.lidlProductId||r.productUrl||identity(r.evidenceText);
-  const key=[stableIdentity,r.displayedPriceEur,r.validFrom,r.validThrough,r.availabilityKind].join("|");
-  if(seen.has(key)) return false;
-  seen.add(key); return true;
-});
+  const continuous=r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api";
+  const key=continuous&&r.lidlProductId
+    ? ["continuous-product",r.lidlProductId].join("|")
+    : [stableIdentity,r.displayedPriceEur,r.validFrom,r.validThrough,r.availabilityKind].join("|");
+  const prev=byKey.get(key);
+  if(!prev||priority(r)>priority(prev)) byKey.set(key,r);
+}
+const records=[...byKey.values()];
 const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,
-  count:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
+  count:strongRecords.length,totalCount:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
   statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),
   matchCounts:records.reduce((a,r)=>{const k=r.productMatchConfidence||"structured-continuous";a[k]=(a[k]||0)+1;return a},{}),
   records:strongRecords,
