@@ -4,6 +4,7 @@ import metadataOverlay from "../../data/lidl/product-metadata-enrichment-v1-2026
 import stapleEvidence from "../../data/lidl/independent-staple-ean-evidence-2026-10-02.json";
 import officialImages from "../../data/lidl/official-product-images.generated.json";
 import paistopistePriceAnnouncement from "../../data/lidl/official-paistopiste-price-announcement-2026-04-20.json";
+import { getVerifiedLidlStorePrice } from "./lidlVerifiedStorePrice";
 
 const metadataByProductId = new Map(metadataOverlay.records.map(record => [record.lidlProductId, record]));
 const historicalPaistopistePriceById = new Map(paistopistePriceAnnouncement.records.map(record => [record.lidlProductId, record]));
@@ -51,7 +52,7 @@ const groceryCompounds: Record<string, readonly string[]> = {
 };
 const matches=(word:string,term:string)=>word===term||(compoundNames[term]?.includes(word)??false)||(groceryCompounds[term]?.includes(word)??false)||(term==="juusto" && /juusto$/.test(word))||(term==="jogurtti" && /jogurtti$/.test(word))||(exactStaples.has(term)
  ?(forms[term]??[]).some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
-export function searchLidlResearch(query:string,limit=15){
+export function searchLidlResearch(query:string,limit=15,storeId?:string){
  if(typeof query!=="string")return [];
  const q=tokens(query).map(t=>queryForms[t]??t);
  // Keep product qualifiers such as kevytmaito and kahvipavut intact: a broad
@@ -99,11 +100,15 @@ export function searchLidlResearch(query:string,limit=15){
   historicalAnnouncedPriceEur:historicalPaistopistePriceById.get(r.lidlProductId.trim())?.announcedNewPriceEur ?? null,
   historicalPriceEffectiveFrom:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.effectiveFrom : null,
   historicalPriceSource:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.source : null,
-  ean:null,price:null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
+  ean:null,price:verifiedPrice?.regularPriceEur ?? null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
   observedPriceSource:"displayedPriceEur" in r && r.displayedPriceEur != null ? "lidl-fi-public-observation" : null,
   observedPriceComparable:false,
   observedUnitPriceText:"unitPriceText" in r ? r.unitPriceText ?? null : null,
-  storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
+  storeItems:verifiedPrice ? [{price:verifiedPrice.regularPriceEur}] : [],source:"lidl.fi-public-research",priceVerified:Boolean(verifiedPrice),
+  verifiedPriceObservedAt:verifiedPrice?.observedAt ?? null,
+  verifiedPriceFreshUntil:verifiedPrice?.freshUntil ?? null,
+  verifiedPriceSource:verifiedPrice?.priceSource ?? null,
+  verifiedPriceEvidenceReference:verifiedPrice?.evidenceReference ?? null,
   storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:"unverified",
   evidenceSource:"evidenceSource" in r ? r.evidenceSource : null,
   assortmentEvidence:"assortmentEvidence" in r ? r.assortmentEvidence : "lidl-public-catalog-observation",
