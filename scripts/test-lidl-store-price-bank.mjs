@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { buildLidlStorePriceBank } from "./lib/lidl-store-price-bank.mjs";
-const row={lidlProductId:"10000000",storeId:"store-A",regularPriceEur:1.29,priceKind:"regular",priceSource:"verified-store-receipt",checkoutPriceVerified:true,evidenceReference:"SYNTHETIC-FIXTURE-NOT-REAL",observedAt:"2026-10-04T10:00:00Z",validThrough:"2026-10-05T10:00:00Z"};
+const row={lidlProductId:"10000000",storeId:"store-A",regularPriceEur:1.29,priceKind:"regular",priceSource:"verified-store-receipt",checkoutPriceVerified:true,evidenceReference:"SYNTHETIC-FIXTURE-NOT-REAL",observedAt:"2026-10-04T10:00:00Z" ,validThrough:null};
 const at=new Date("2026-10-04T12:00:00Z");
 const bank=buildLidlStorePriceBank([row,{...row,storeId:"store-B",regularPriceEur:0.99},{...row,priceKind:"offer",regularPriceEur:0.49}],["10000000"],"store-A",at);
 assert.equal(bank.acceptedCount,1);
 assert.deepEqual(bank.rejected.map(x=>x.reason),["store-mismatch","not-regular"]);
 assert.equal(bank.getAt("10000000",at).regularPriceEur,1.29);
 assert.equal(bank.getAt("10000000",new Date("2026-10-03T12:00:00Z")),null);
-assert.equal(bank.getAt("10000000",new Date("2026-10-06T12:00:00Z")),null);
+assert.equal(bank.getAt("10000000",new Date("2026-10-05T09:59:59Z")).regularPriceEur,1.29);
+assert.equal(bank.getAt("10000000",new Date("2026-10-05T10:00:01Z")),null);
 assert.equal(bank.getAt("other",at),null);
 assert.equal(buildLidlStorePriceBank([],["10000000"],"store-A",at).acceptedCount,0);
 console.log("PASS: Lidl store bank isolates stores, rejects offers, enforces freshness and empty default");
