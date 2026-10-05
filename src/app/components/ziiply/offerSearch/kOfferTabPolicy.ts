@@ -93,7 +93,7 @@ export function auditKOfferTabs(
   const normalizedCategoryIssues = campaigns
     .map(row => String((row as KOfferTabRow & { category?: unknown }).category ?? ""))
     .filter(Boolean)
-    .filter(category => category !== category.trim() || /\\s{2,}/.test(category));
+    .filter(category => category !== category.trim() || /\s{2,}/.test(category));
   return {
     offerCount: leafletOffers.length,
     campaignCount: campaigns.length,
