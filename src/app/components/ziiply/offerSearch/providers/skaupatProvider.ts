@@ -1603,6 +1603,21 @@ function isSponsoredSProductListItem(listItem: UnknownRecord, product: UnknownRe
   );
 }
 
+// V237: S-kaupat can keep unavailable campaign rows in DISCOUNTED_MASTER.
+// Availability labels must win over campaign price/date evidence: Gösta must not
+// advertise a product that the selected store explicitly marks as sold out.
+function isUnavailableSOfferV237(
+  listItem: UnknownRecord,
+  product: UnknownRecord,
+): boolean {
+  const labelsText = normalizeText(getLabels(listItem, product));
+  return (
+    labelsText.includes("loppuunmyyty") ||
+    labelsText.includes("sold out") ||
+    labelsText.includes("out of stock")
+  );
+}
+
 function hasSOfferSignal(
   listItem: UnknownRecord,
   product: UnknownRecord,
@@ -1857,6 +1872,7 @@ function mapSProductListItemToOfferResult(
   if (!title) return null;
 
   if (isSponsoredSProductListItem(listItem, product)) return null;
+  if (isUnavailableSOfferV237(listItem, product)) return null;
   if (
     !options.discountedOnly &&
     !belongsToSelectedSHypermarketV163(product, options.selectedStoreId)
