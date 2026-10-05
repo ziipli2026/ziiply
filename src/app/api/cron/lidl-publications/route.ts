@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 import { NextResponse } from "next/server";
 import { fetchLidlDatedOffersForStaging } from "@/app/components/ziiply/offerSearch/providers/lidlProvider";
-import { storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
+import { prunePublicationSnapshots, storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { publicationState } from "@/app/components/ziiply/offerSearch/publicationLifecycle";
 import { inspectOfferPublication } from "@/app/components/ziiply/offerSearch/publicationDiagnostics";
 
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
       const quality = inspectOfferPublication(offers, validFrom, validUntil);
       outcomes.push({ period, count: offers.length, outcome, quality });
     }
-    await recordPublicationRun({ chain: "LIDL:FI0218", source: "official-lidl-dated-offers", ok: true,
+    await prunePublicationSnapshots("LIDL:FI0218").catch(() => undefined);\n    await recordPublicationRun({ chain: "LIDL:FI0218", source: "official-lidl-dated-offers", ok: true,
       count: rows.length, outcome: "staging-completed", details: { periods: outcomes } }).catch(() => undefined);
     return NextResponse.json({ ok: true, source: "official-lidl-dated-offers", staged: outcomes },
       { headers: { "Cache-Control": "no-store" } });
