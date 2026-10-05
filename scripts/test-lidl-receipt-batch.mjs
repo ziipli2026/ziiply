@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {mkdtempSync,writeFileSync,rmSync} from "node:fs";
+import {mkdtempSync,writeFileSync,readFileSync,rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {execFileSync} from "node:child_process";
@@ -9,8 +9,8 @@ try{
  const obs=join(dir,"obs.json");
  const batch=join(dir,"batch.json");
  const template=join(dir,"template.csv");
- const templateCsv=execFileSync(process.execPath,["scripts/generate-lidl-price-pilot-template.mjs",template,"FI0218","Lidl Hyvinkää","Kankurinkatu 4"],{encoding:"utf8"});
- const firstDataLine=templateCsv.trim().split("\n")[1];
+ execFileSync(process.execPath,["scripts/generate-lidl-price-pilot-template.mjs",template,"FI0218","Lidl Hyvinkää","Kankurinkatu 4"],{encoding:"utf8"});
+ const firstDataLine=readFileSync(template,"utf8").trim().split("\n")[1];
  const id=firstDataLine.slice(1,firstDataLine.indexOf("\"",1));
  writeFileSync(obs,JSON.stringify([{lidlProductId:id,priceBasis:"unit",receiptUnitPriceEur:1.29,receiptTimestamp:"2026-10-05T10:00:00+03:00",receiptEvidenceReference:"secret-evidence",isLidlPlus:false,isPromotion:false,isMultiBuy:false,permissionToUseEvidence:true}]));
  writeFileSync(batch,JSON.stringify([{observationsPath:obs,storeId:"FI0218",storeName:"Lidl Hyvinkää",storeAddress:"Kankurinkatu 4",observationTime:"2026-10-05T10:30:00+03:00"}]));
