@@ -5,6 +5,7 @@ export function classifyLidlPriceEvidence(row, expectedStore, now = new Date()) 
   if (!Number.isFinite(price) || price <= 0) return rejected("missing-price");
   if (row.priceKind !== "regular") return rejected("not-regular");
   if (!expectedStore || row.storeId !== expectedStore) return rejected("store-mismatch");
+  if (row.priceSource === "lidl-fi-public-observation") return rejected("public-observation-not-checkout-verified");
   if (!["authorized-store-feed", "verified-store-receipt"].includes(row.priceSource) ||
       row.checkoutPriceVerified !== true || typeof row.evidenceReference !== "string" ||
       !row.evidenceReference.trim()) return rejected("unverified-source");
