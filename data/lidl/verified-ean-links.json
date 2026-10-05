@@ -223,5 +223,10 @@
     "lidlProductId": "10038284",
     "ean": "20831851",
     "evidence": "The Finnish queue identifies KULJANKA Borssikeitto (IAN 7701804). Independent Lidl offer history identifies the matching Kuljanka Borscht Soup with White Cabbage & Beetroot as an 800 g retail pack. CHOMP barcode product data identifies Kuljanka Borscht with barcode 20831851. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038301",
+    "ean": "4056489624479",
+    "evidence": "Finnish Lidl queue identifies KULJANKA Lihakeitto as 800 g. SupermarktCheck independently identifies Kuljanka Rinderfleischsuppe nach osteuropäischer Art as an 800 g Lidl retail product. Root Index, sourced from OpenFoodFacts, identifies the exact Kuljanka Rindfleischsuppe nach osteuropäischer Art with EAN 4056489624479 and matching nutrition (61 kcal, protein 3.2 g, carbs 6.6 g, fat 2.2 g per 100 g). GTIN-13 checksum valid."
   }
 ]
