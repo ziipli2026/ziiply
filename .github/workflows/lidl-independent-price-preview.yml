@@ -42,6 +42,7 @@ on:
       - 'scripts/test-lidl-product-metadata-enrichment.mjs'
       - 'data/lidl/product-metadata-enrichment-v1-2026-10-05.json'
       - 'src/app/api/lidl/products/route.ts'
+      - 'src/lib/lidlResearchSearch.ts'
       - '.github/workflows/lidl-independent-price-preview.yml'
   workflow_dispatch:
 permissions:
