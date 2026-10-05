@@ -13,3 +13,6 @@ for(const bad of [
 const key=r=>[r.lidlProductId,r.storeId,r.observedAt,r.priceSource,r.evidenceReference].join("|");
 assert.equal(new Set([valid,valid].map(key)).size,1);
 console.log(JSON.stringify({ok:true,cases:7}));
+
+// Keep the one-step local receipt-to-bank regression under the existing verified-price CI gate.
+import "./test-lidl-pilot-receipt-bank-import.mjs";
