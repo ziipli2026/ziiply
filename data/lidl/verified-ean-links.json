@@ -213,5 +213,10 @@
     "lidlProductId": "10038300",
     "ean": "20398002",
     "evidence": "Finnish Lidl identifies KULJANKA Paneroitu juusto as a 500 g product. Lidl Romania independently lists the corresponding KULJANKA breaded Trapist cheese as 500 g. Bidfood Opava/V-Label identifies KULJANKA Panierter Käse with product number 20398002, and independent food product data explicitly records EAN 20398002 for breaded cheese manufactured by Bidfood Czech Republic. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038286",
+    "ean": "55006774",
+    "evidence": "Lidl Poland official product list identifies article 5500677 as white cabbage salad (Sałatka z białej kapusty), 410 g. Independent barcode food data identifies Kuljanka/Lidl Vegetable salad with cabbage with barcode 55006774 and matching cabbage/vegetable composition. The GTIN-8 is exactly Lidl article 5500677 plus its valid GS1 check digit 4."
   }
 ]
