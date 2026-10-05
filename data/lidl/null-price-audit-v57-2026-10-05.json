@@ -40,37 +40,6 @@
   ],
   "packagedNormalPriceMissing": [
     {
-      "lidlProductId": "10038269",
-      "name": "WURSTI Extrapalvikinkku",
-      "ean": "6409290001492"
-    },
-    {
-      "lidlProductId": "10038278",
-      "name": "ALESTO Pähkinäsekoitus",
-      "packageSize": "200 g"
-    },
-    {
-      "lidlProductId": "10038279",
-      "name": "SERLA Valkoinen talouspaperi"
-    },
-    {
-      "lidlProductId": "10038280",
-      "name": "SERLA Hellä-wc-paperi"
-    },
-    {
-      "lidlProductId": "10038312",
-      "name": "HK Burgeri 6 kpl"
-    },
-    {
-      "lidlProductId": "10038313",
-      "name": "SOLEVITA Appelsiinitäysmehu",
-      "packageSize": "0.95 l"
-    },
-    {
-      "lidlProductId": "10038348",
-      "name": "W5 Puhdistusliina 2 kpl"
-    },
-    {
       "lidlProductId": "10038437",
       "name": "DOVGAN Blini 2 kpl"
     }
@@ -80,5 +49,69 @@
     "Do not convert Lidl IAN/productId to GTIN.",
     "Store-bakery piece-price rows may intentionally remain null in the main research corpus.",
     "Variable-weight produce requires price-per-weight semantics, not fabricated piece price."
-  ]
+  ],
+  "resolvedNormalPriceEvidence": [
+    {
+      "lidlProductId": "10038269",
+      "name": "WURSTI Extrapalvikinkku",
+      "packageSize": "400 g",
+      "normalPriceEur": 4.99,
+      "campaignPriceEur": 3.79,
+      "sourceType": "retailer_reported_normal_price"
+    },
+    {
+      "lidlProductId": "10038278",
+      "name": "ALESTO Pähkinäsekoitus",
+      "packageSize": "200 g",
+      "normalPriceEur": 3.55,
+      "campaignPriceEur": 2.45,
+      "sourceType": "retailer_reported_normal_price"
+    },
+    {
+      "lidlProductId": "10038279",
+      "name": "SERLA Valkoinen talouspaperi",
+      "packageSize": "8 rullaa",
+      "normalPriceEur": 5.39,
+      "campaignPriceEur": 4.5,
+      "sourceType": "retailer_reported_normal_price"
+    },
+    {
+      "lidlProductId": "10038280",
+      "name": "SERLA Hellä-wc-paperi",
+      "packageSize": "16 rullaa",
+      "normalPriceEur": 7.79,
+      "campaignPriceEur": 5.9,
+      "sourceType": "retailer_reported_normal_price"
+    },
+    {
+      "lidlProductId": "10038312",
+      "name": "HK Burgeri 6 kpl",
+      "packageSize": "6 x 100 g",
+      "normalPriceEur": 4.5,
+      "campaignPriceEur": 3,
+      "normalUnitPriceEur": 0.75,
+      "sourceType": "retailer_reported_normal_price"
+    },
+    {
+      "lidlProductId": "10038313",
+      "name": "SOLEVITA Appelsiinitäysmehu",
+      "packageSize": "0.95 l",
+      "normalPriceEur": 3.39,
+      "campaignPriceEur": 2.19,
+      "sourceType": "retailer_reported_normal_price"
+    },
+    {
+      "lidlProductId": "10038348",
+      "name": "W5 Puhdistusliina 2 kpl",
+      "packageSize": "2 x 25/30 kpl",
+      "normalPriceEur": 3.98,
+      "campaignPriceEur": 3,
+      "normalUnitPriceEur": 1.99,
+      "sourceType": "retailer_reported_normal_price"
+    }
+  ],
+  "summary": {
+    "resolvedFromRetailerReportedCampaignReference": 7,
+    "stillMissing": 1
+  }
 }
