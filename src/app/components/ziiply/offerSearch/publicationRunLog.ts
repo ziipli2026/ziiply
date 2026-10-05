@@ -17,6 +17,8 @@ export async function recordPublicationRun(input: {
     outcome TEXT NOT NULL,
     details JSONB NOT NULL DEFAULT '{}'::jsonb
   )`;
+  await sql`CREATE INDEX IF NOT EXISTS ziiply_publication_run_log_chain_checked_idx
+    ON ziiply_publication_run_log (chain, checked_at DESC, id DESC)`;
   await sql`INSERT INTO ziiply_publication_run_log
     (chain, source, ok, offer_count, outcome, details)
     VALUES (${input.chain}, ${input.source}, ${input.ok},
@@ -40,6 +42,8 @@ export async function recentPublicationRuns(chain: string, limit = 20) {
     outcome TEXT NOT NULL,
     details JSONB NOT NULL DEFAULT '{}'::jsonb
   )`;
+  await sql`CREATE INDEX IF NOT EXISTS ziiply_publication_run_log_chain_checked_idx
+    ON ziiply_publication_run_log (chain, checked_at DESC, id DESC)`;
   return sql`SELECT checked_at::text AS checked_at, source, ok, offer_count, outcome, details
     FROM ziiply_publication_run_log WHERE chain = ${chain}
     ORDER BY checked_at DESC, id DESC LIMIT ${Math.max(1, Math.min(limit, 30))}`;
