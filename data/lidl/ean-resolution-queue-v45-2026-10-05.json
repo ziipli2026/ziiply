@@ -5,11 +5,11 @@
   "total": 197,
   "counts": {
     "multipack_or_variant": 15,
-    "variable_weight_or_produce": 30,
-    "needs_external_gtin_lookup": 8,
+    "variable_weight_or_produce": 33,
     "bakery_or_store_bakery": 104,
     "no_public_gtin": 13,
     "verified_gtin": 14,
+    "needs_external_gtin_lookup": 5,
     "non_food": 13
   },
   "records": [
@@ -46,8 +46,8 @@
       "name": "FISKANO Tuore lohifilee",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "variable_weight_or_loose_produce_no_fixed_consumer_gtin"
     },
     {
       "lidlProductId": "10038245",
@@ -145,8 +145,8 @@
       "name": "Kotimainen ruusukaali",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "variable_weight_or_loose_produce_no_fixed_consumer_gtin"
     },
     {
       "lidlProductId": "10038256",
@@ -244,8 +244,8 @@
       "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "variable_weight_or_loose_produce_no_fixed_consumer_gtin"
     },
     {
       "lidlProductId": "10038268",
