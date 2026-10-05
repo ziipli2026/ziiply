@@ -25,6 +25,7 @@ jobs:
         run: |
           cat > k-offer-tab-audit.mts <<'NODE'
           import { auditKOfferTabs, removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
+          import { mapTjekCategoryV54 } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
           const cases = [
             { chain:'K-Citymarket', offer:{title:'AITO NAKKI 360 g',price:3.79}, campaign:{title:'HK AITO NAKKI',price:3.79}, duplicate:true },
             { chain:'K-Citymarket', offer:{title:'ENERGIAJUOMAT 0,5 l/tlk',price:4}, campaign:{title:'Nocco ENERGIAJUOMAT 0,33 l/tlk',price:4}, duplicate:false },
@@ -50,6 +51,15 @@ jobs:
             if (normalized.toLocaleLowerCase('fi-FI')!==canonical.toLocaleLowerCase('fi-FI')) throw new Error('category normalization mismatch');
             const audit=auditKOfferTabs([], [row]);
             if (audit.normalizedCategoryIssues.length) throw new Error('category whitespace issue');
+          }
+          const semanticCategoryCases=[
+            [{name:'Salonen Pehmosämpylä kaura, peruna tai juusto 5 kpl/325 g',category:'Maitotuotteet'},'Leipomo'],
+            [{name:'Atria rehti lihaisat kuorettomat nakit 280 g',category:'Kala'},'Liha & makkarat'],
+            [{name:'Kaalikääryle, lihan alkuperämaa Suomi',category:'Maitotuotteet'},'Valmisruoka'],
+          ];
+          for (const [row,expected] of semanticCategoryCases) {
+            const actual=mapTjekCategoryV54(row);
+            if (actual!==expected) throw new Error('semantic category mismatch: '+row.name+' => '+actual+' expected '+expected);
           }
           const bad=auditKOfferTabs([], [{title:'x',price:1,category:'  Hevi  '}]);
           if (bad.normalizedCategoryIssues.length!==1) throw new Error('category whitespace regression not detected');
