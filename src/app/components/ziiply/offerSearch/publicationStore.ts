@@ -17,6 +17,8 @@ async function database() {
     PRIMARY KEY (chain, publication_id),
     CONSTRAINT ziiply_publication_dates CHECK (valid_from <= valid_until)
   )`;
+  await sql`CREATE INDEX IF NOT EXISTS ziiply_offer_publications_chain_period_idx
+    ON ziiply_offer_publications (chain, valid_from, valid_until, parsed_at DESC)`;
   return sql;
 }
 
