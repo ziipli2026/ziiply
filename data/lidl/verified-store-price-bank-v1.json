@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "source": "verified-lidl-store-price-bank",
+  "policy": {
+    "primaryProductKey": "lidlProductId",
+    "receiptFreshnessHours": 24,
+    "acceptedSources": [
+      "verified-store-receipt",
+      "authorized-store-feed"
+    ]
+  },
+  "records": []
+}
