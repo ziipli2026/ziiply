@@ -183,20 +183,5 @@
     "lidlProductId": "10038314",
     "ean": "6414893310118",
     "evidence": "Finnish retail product data identifies ATRIA Kanan fileesuikale 300 g EAN 6414893310118; matches Lidl 10038314 ATRIA Kanan fileesuikale 4 kpl / 300 g."
-  },
-  {
-    "lidlProductId": "10038282",
-    "ean": "5900397730150",
-    "evidence": "NOSTJA Pancetta; exact brand/product identity found in Finnish/European product data for the Lidl 2026 candidate."
-  },
-  {
-    "lidlProductId": "10038297",
-    "ean": "5900397730174",
-    "evidence": "KULJANKA Paprikapyree; exact Lidl brand/product identity and 160 g retail product record match."
-  },
-  {
-    "lidlProductId": "10038300",
-    "ean": "5900397730181",
-    "evidence": "KULJANKA Paneroitu juusto; exact Lidl brand/product identity and retail product record match."
   }
 ]
