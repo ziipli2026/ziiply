@@ -14,7 +14,7 @@ const columns=lines[0].match(/"(?:[^"]|"")*"/g).map(x=>x.slice(1,-1));
 for(const [key,value] of Object.entries({
  storeId:"A",priceBasis:"unit",shelfPriceEur:"1.29",receiptUnitPriceEur:"1.29",
  receiptTimestamp:"2026-10-04T10:00:00Z",receiptEvidenceReference:"SYNTHETIC-NOT-A-REAL-RECEIPT",
- validThrough:"2026-10-05T10:00:00Z",isLidlPlus:"false",isPromotion:"false",
+ isLidlPlus:"false",isPromotion:"false",
  isMultiBuy:"false",permissionToUseEvidence:"true"
 })) values[columns.indexOf(key)]=value;
 lines[1]=values.map(x=>'"'+x.replaceAll('"','""')+'"').join(",");
