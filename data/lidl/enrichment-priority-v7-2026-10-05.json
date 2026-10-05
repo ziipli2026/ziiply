@@ -1,0 +1,155 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V7",
+  "priority": [
+    {
+      "lidlProductId": "10038480",
+      "name": "CLOETTA Kex-keksisuklaa",
+      "ian": "7112091",
+      "displayedPriceEur": 0.95,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038481",
+      "name": "KARL FAZER Vadelmajogurttisuklaapatukka",
+      "ian": "7100789",
+      "displayedPriceEur": 1.25,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038485",
+      "name": "ALESTO Nut Trio -pähkinäsekoitus",
+      "ian": "209455",
+      "displayedPriceEur": 0.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038486",
+      "name": "FRESHONA Suomalainen peruna-sipulisekoitus",
+      "ian": "7111949",
+      "displayedPriceEur": 1.45,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10037642",
+      "name": "ODDLYGOOD Barista-kaurajuoma",
+      "ian": "7109998",
+      "displayedPriceEur": 1.89,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10037644",
+      "name": "SOLEVITA Luomukofeiinishotti",
+      "ian": "223206",
+      "displayedPriceEur": 1.39,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038264",
+      "name": "ATRIA Nauta-viljapossujauheliha",
+      "ian": "7111362",
+      "displayedPriceEur": 8.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038266",
+      "name": "TÖNNIES Kasslerpala",
+      "ian": "132527",
+      "displayedPriceEur": 5.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038268",
+      "name": "Kananugetit dipillä",
+      "ian": "162246",
+      "displayedPriceEur": 8.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038271",
+      "name": "ARLA Juustoviipale",
+      "ian": "7112701",
+      "displayedPriceEur": 2.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038276",
+      "name": "MYLLÄRIN Murot",
+      "ian": "7107815",
+      "displayedPriceEur": 2.45,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038290",
+      "name": "KULJANKA Filotaikinakierre",
+      "ian": "7210098",
+      "displayedPriceEur": 4.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038301",
+      "name": "KULJANKA Lihakeitto",
+      "ian": "175070",
+      "displayedPriceEur": 3.29,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038318",
+      "name": "REILU Viljapossun lihasuikale 2 kpl",
+      "ian": "7105964",
+      "displayedPriceEur": 7,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038327",
+      "name": "Reilun kaupan luomubanaani",
+      "ian": "81510",
+      "displayedPriceEur": 1.89,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    }
+  ]
+}
