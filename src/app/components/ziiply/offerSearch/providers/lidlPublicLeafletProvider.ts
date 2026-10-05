@@ -187,7 +187,6 @@ function productLinks(html: string) {
     [...decoded.matchAll(/\/p\/[a-z0-9åäö_-]+\/p\d{5,}/gi)].map(match => match[0])
   )];
 }
-}
 
 async function fetchHtml(path: string) {
   const url = path.startsWith("http") ? path : BASE + path;
