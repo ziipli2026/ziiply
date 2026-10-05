@@ -103,5 +103,15 @@
     "lidlProductId": "10038487",
     "ean": "6416453048805",
     "evidence": "Lidl catalog: Fazer Aarrearkku 220 g. Fazer Pro confirms consumer GTIN 6416453048805."
+  },
+  {
+    "lidlProductId": "10038474",
+    "ean": "6420256013083",
+    "evidence": "Lidl catalog: Mynthon Aqua Menthol 44 g. Metro and S-kaupat confirm consumer EAN 6420256013083."
+  },
+  {
+    "lidlProductId": "10038481",
+    "ean": "6411401019043",
+    "evidence": "Lidl catalog: Karl Fazer Vadelmajogurttisuklaapatukka. S-kaupat and wholesale catalog confirm 37 g consumer EAN 6411401019043."
   }
 ]
