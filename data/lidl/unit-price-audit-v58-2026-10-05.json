@@ -882,12 +882,6 @@
       "ian": "5535919"
     },
     {
-      "lidlProductId": "10038311",
-      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
-      "displayedPriceEur": 5,
-      "ian": "59859"
-    },
-    {
       "lidlProductId": "10038479",
       "name": "FAZER Tutti Frutti Candy Salad",
       "displayedPriceEur": 3.49,
@@ -923,7 +917,8 @@
     "resolvedOfficial": 56,
     "resolvedDerived": 6,
     "notApplicable": 11,
-    "remaining": 11
+    "variantSplitRequired": 1,
+    "remaining": 10
   },
   "unitPriceNotApplicable": [
     {
@@ -1046,6 +1041,15 @@
       "unitPriceText": "n. 1,2 kg | hinta/kg 12,89 €",
       "source": "exact_package_evidence_variable_weight",
       "note": "displayedPriceEur is the per-kilogram price, not a package total"
+    }
+  ],
+  "variantSplitRequired": [
+    {
+      "lidlProductId": "10038311",
+      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+      "displayedPriceEur": 5,
+      "ian": "59859",
+      "reason": "combined MCENNEDY pan pizza 440 g / GELATELLI ice cream 500 ml offer; no single shared unit price"
     }
   ]
 }
