@@ -1,0 +1,515 @@
+{
+  "revision": "V58-LIDL-UNIT-PRICE-COVERAGE-AUDIT",
+  "generatedAt": "2026-10-05",
+  "totalCorpus": 226,
+  "pricedRows": 110,
+  "unitPricePresent": 27,
+  "unitPriceMissing": 83,
+  "note": "Missing unitPriceText is partly a collector-generation gap: older official category records did not persist the field. Do not fabricate unit prices from campaign totals or ambiguous multipacks.",
+  "missingRows": [
+    {
+      "lidlProductId": "10037646",
+      "name": "OULULAINEN Pullava Dallaspitko",
+      "displayedPriceEur": 3.29,
+      "ian": "7109970"
+    },
+    {
+      "lidlProductId": "10037647",
+      "name": "OULULAINEN Reissumies Tosi Ohut",
+      "displayedPriceEur": 1.79,
+      "ian": "7112815"
+    },
+    {
+      "lidlProductId": "10037648",
+      "name": "OULULAINEN Reissumies Tosi Ohut",
+      "displayedPriceEur": 1.49,
+      "ian": "7112814"
+    },
+    {
+      "lidlProductId": "10037649",
+      "name": "SNELLMAN Kotimainen palvikinkku",
+      "displayedPriceEur": 5.19,
+      "ian": "7112635"
+    },
+    {
+      "lidlProductId": "10037650",
+      "name": "MAMA Nuudeli 6-pack",
+      "displayedPriceEur": 3.39,
+      "ian": "1028593"
+    },
+    {
+      "lidlProductId": "10038243",
+      "name": "Satsuma",
+      "displayedPriceEur": 1.39,
+      "ian": "80103"
+    },
+    {
+      "lidlProductId": "10038244",
+      "name": "FISKANO Tuore lohifilee",
+      "displayedPriceEur": 12.89,
+      "ian": "7112603"
+    },
+    {
+      "lidlProductId": "10038245",
+      "name": "HARTWALL Sokeriton Jaffa 6-pack 3 kpl",
+      "displayedPriceEur": 10,
+      "ian": "7112199"
+    },
+    {
+      "lidlProductId": "10038248",
+      "name": "TASCHKI Pelmeni",
+      "displayedPriceEur": 5.99,
+      "ian": "7701996"
+    },
+    {
+      "lidlProductId": "10038249",
+      "name": "Kotimainen porkkana",
+      "displayedPriceEur": 0.79,
+      "ian": "82761"
+    },
+    {
+      "lidlProductId": "10038250",
+      "name": "Kotimainen omena",
+      "displayedPriceEur": 2.79,
+      "ian": "80241"
+    },
+    {
+      "lidlProductId": "10038251",
+      "name": "Kotimainen hokkaidokurpitsa",
+      "displayedPriceEur": 1.99,
+      "ian": "82840"
+    },
+    {
+      "lidlProductId": "10038253",
+      "name": "Kotimainen kiinankaali",
+      "displayedPriceEur": 2.69,
+      "ian": "82910"
+    },
+    {
+      "lidlProductId": "10038254",
+      "name": "Kotimainen peruna",
+      "displayedPriceEur": 1.19,
+      "ian": "83274"
+    },
+    {
+      "lidlProductId": "10038255",
+      "name": "Kotimainen ruusukaali",
+      "displayedPriceEur": 2.99,
+      "ian": "82934"
+    },
+    {
+      "lidlProductId": "10038257",
+      "name": "Osteen-mango",
+      "displayedPriceEur": 3.49,
+      "ian": "80710"
+    },
+    {
+      "lidlProductId": "10038259",
+      "name": "Dubai-munkki 3 kpl",
+      "displayedPriceEur": 3,
+      "ian": "228129"
+    },
+    {
+      "lidlProductId": "10038260",
+      "name": "Perunapiirakka 6 kpl",
+      "displayedPriceEur": 2,
+      "ian": "7106452"
+    },
+    {
+      "lidlProductId": "10038261",
+      "name": "Kuningatarmunkki 4 kpl",
+      "displayedPriceEur": 2,
+      "ian": "7106525"
+    },
+    {
+      "lidlProductId": "10038263",
+      "name": "Texmex-piirakka",
+      "displayedPriceEur": 0.99,
+      "ian": "7112381"
+    },
+    {
+      "lidlProductId": "10038265",
+      "name": "KARINIEMEN Kananpojan siivet 2 kpl",
+      "displayedPriceEur": 5,
+      "ian": "7109626"
+    },
+    {
+      "lidlProductId": "10038267",
+      "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
+      "displayedPriceEur": 29.89,
+      "ian": "7112516"
+    },
+    {
+      "lidlProductId": "10038270",
+      "name": "VIA Valmisateria 2 kpl",
+      "displayedPriceEur": 7,
+      "ian": "7105950"
+    },
+    {
+      "lidlProductId": "10038272",
+      "name": "ALPRO Soijavalmiste 2 kpl",
+      "displayedPriceEur": 4,
+      "ian": "207361"
+    },
+    {
+      "lidlProductId": "10038273",
+      "name": "JOKILAAKSON JUUSTO Tuorejuusto 2 kpl",
+      "displayedPriceEur": 5,
+      "ian": "7110186"
+    },
+    {
+      "lidlProductId": "10038281",
+      "name": "KARL FAZER Suklaalevy 4 kpl",
+      "displayedPriceEur": 10,
+      "ian": "7107090"
+    },
+    {
+      "lidlProductId": "10038282",
+      "name": "NOSTJA Pancetta",
+      "displayedPriceEur": 6.25,
+      "ian": "6902818"
+    },
+    {
+      "lidlProductId": "10038283",
+      "name": "KULJANKA Khinkalitaikinanyytti",
+      "displayedPriceEur": 3.99,
+      "ian": "1018431"
+    },
+    {
+      "lidlProductId": "10038284",
+      "name": "KULJANKA Borssikeitto",
+      "displayedPriceEur": 3.29,
+      "ian": "7701804"
+    },
+    {
+      "lidlProductId": "10038285",
+      "name": "KULJANKA Savustettu makkara",
+      "displayedPriceEur": 5.99,
+      "ian": "185279"
+    },
+    {
+      "lidlProductId": "10038286",
+      "name": "KULJANKA Valkokaalisalaatti",
+      "displayedPriceEur": 1.99,
+      "ian": "5500677"
+    },
+    {
+      "lidlProductId": "10038287",
+      "name": "KULJANKA Maustekurkut etikkaliemessä",
+      "displayedPriceEur": 2.29,
+      "ian": "5504242"
+    },
+    {
+      "lidlProductId": "10038288",
+      "name": "KULJANKA Täytetty broileripihvi",
+      "displayedPriceEur": 4.49,
+      "ian": "184403"
+    },
+    {
+      "lidlProductId": "10038289",
+      "name": "KULJANKA Hapankurkku",
+      "displayedPriceEur": 2.49,
+      "ian": "5502722"
+    },
+    {
+      "lidlProductId": "10038291",
+      "name": "KULJANKA Pastanyytti raejuusto-perunatäytteellä",
+      "displayedPriceEur": 3.49,
+      "ian": "5528637"
+    },
+    {
+      "lidlProductId": "10038292",
+      "name": "KULJANKA Gulassikeitto",
+      "displayedPriceEur": 2.49,
+      "ian": "175056"
+    },
+    {
+      "lidlProductId": "10038293",
+      "name": "KULJANKA Vaniljajäätelövohvelipikarit",
+      "displayedPriceEur": 3.49,
+      "ian": "7601221"
+    },
+    {
+      "lidlProductId": "10038294",
+      "name": "KULJANKA Jäätelökakku",
+      "displayedPriceEur": 1.99,
+      "ian": "6700311"
+    },
+    {
+      "lidlProductId": "10038295",
+      "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+      "displayedPriceEur": 3.99,
+      "ian": "5524178"
+    },
+    {
+      "lidlProductId": "10038296",
+      "name": "KULJANKA Liha-perunanyytti",
+      "displayedPriceEur": 3.99,
+      "ian": "5528628"
+    },
+    {
+      "lidlProductId": "10038297",
+      "name": "KULJANKA Paprikapyree",
+      "displayedPriceEur": 1.49,
+      "ian": "6404019"
+    },
+    {
+      "lidlProductId": "10038298",
+      "name": "KULJANKA Maustesuola",
+      "displayedPriceEur": 3.49,
+      "ian": "5500397"
+    },
+    {
+      "lidlProductId": "10038299",
+      "name": "KULJANKA Höyrytetty juusto",
+      "displayedPriceEur": 4.49,
+      "ian": "7509615"
+    },
+    {
+      "lidlProductId": "10038300",
+      "name": "KULJANKA Paneroitu juusto",
+      "displayedPriceEur": 3.99,
+      "ian": "6401588"
+    },
+    {
+      "lidlProductId": "10038302",
+      "name": "KULJANKA Ajvar-paprikatahna",
+      "displayedPriceEur": 1.99,
+      "ian": "6900208"
+    },
+    {
+      "lidlProductId": "10038303",
+      "name": "KULJANKA Hapankaali",
+      "displayedPriceEur": 1.99,
+      "ian": "5502721"
+    },
+    {
+      "lidlProductId": "10038304",
+      "name": "PODRAVKA Papu-lihapata",
+      "displayedPriceEur": 3.49,
+      "ian": "6905117"
+    },
+    {
+      "lidlProductId": "10038305",
+      "name": "KULJANKA Puolalainen makkara",
+      "displayedPriceEur": 3.79,
+      "ian": "5500349"
+    },
+    {
+      "lidlProductId": "10038309",
+      "name": "PILOS Vadelmakefir",
+      "displayedPriceEur": 0.99,
+      "ian": "5535919"
+    },
+    {
+      "lidlProductId": "10038310",
+      "name": "TYMBARK Omena-kirsikkamehu",
+      "displayedPriceEur": 2.49,
+      "ian": "7704257"
+    },
+    {
+      "lidlProductId": "10038311",
+      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+      "displayedPriceEur": 5,
+      "ian": "59859"
+    },
+    {
+      "lidlProductId": "10038314",
+      "name": "ATRIA Kanan fileesuikale 4 kpl",
+      "displayedPriceEur": 8.99,
+      "ian": "7112108"
+    },
+    {
+      "lidlProductId": "10038319",
+      "name": "REILU Naudan uunipata",
+      "displayedPriceEur": 9.99,
+      "ian": "7101787"
+    },
+    {
+      "lidlProductId": "10038320",
+      "name": "KARINIEMEN Kananpojan rintaleike",
+      "displayedPriceEur": 7.99,
+      "ian": "7108496"
+    },
+    {
+      "lidlProductId": "10038321",
+      "name": "KUUSAMON JUUSTO Eränkävijä-juusto",
+      "displayedPriceEur": 4.39,
+      "ian": "7111511"
+    },
+    {
+      "lidlProductId": "10038322",
+      "name": "DANEROLLES Croissantit 2 kpl",
+      "displayedPriceEur": 4.5,
+      "ian": "7101245"
+    },
+    {
+      "lidlProductId": "10038323",
+      "name": "ARLA Proteiinipirtelö 2 kpl",
+      "displayedPriceEur": 2.5,
+      "ian": "7111597"
+    },
+    {
+      "lidlProductId": "10038324",
+      "name": "ATRIA Pizza 2 kpl",
+      "displayedPriceEur": 3.5,
+      "ian": "7111464"
+    },
+    {
+      "lidlProductId": "10038325",
+      "name": "Rahkapulla 3 kpl",
+      "displayedPriceEur": 2.5,
+      "ian": "7112003"
+    },
+    {
+      "lidlProductId": "10038326",
+      "name": "Kotimainen kirsikkatomaatti",
+      "displayedPriceEur": 4.99,
+      "ian": "82463"
+    },
+    {
+      "lidlProductId": "10038328",
+      "name": "Pionin juurakko",
+      "displayedPriceEur": 3.99,
+      "ian": "131091"
+    },
+    {
+      "lidlProductId": "10038329",
+      "name": "Calluna",
+      "displayedPriceEur": 1.99,
+      "ian": "51291"
+    },
+    {
+      "lidlProductId": "10038330",
+      "name": "Kolmivärinen calluna 3 kpl",
+      "displayedPriceEur": 8,
+      "ian": "92369"
+    },
+    {
+      "lidlProductId": "10038331",
+      "name": "Kotimainen krysanteemi",
+      "displayedPriceEur": 2.79,
+      "ian": "51274"
+    },
+    {
+      "lidlProductId": "10038332",
+      "name": "W5 Kertakäyttökäsine",
+      "displayedPriceEur": 4.99,
+      "ian": "136355"
+    },
+    {
+      "lidlProductId": "10038333",
+      "name": "PURIO Roskapussi tuoksulla",
+      "displayedPriceEur": 1.99,
+      "ian": "150304"
+    },
+    {
+      "lidlProductId": "10038334",
+      "name": "W5 WC-puhdistusjauhe",
+      "displayedPriceEur": 3.49,
+      "ian": "1009184"
+    },
+    {
+      "lidlProductId": "10038335",
+      "name": "W5 Rasvalikaa irrottava puhdistusaine",
+      "displayedPriceEur": 1.99,
+      "ian": "161950"
+    },
+    {
+      "lidlProductId": "10038336",
+      "name": "W5 WC-geeli",
+      "displayedPriceEur": 2.99,
+      "ian": "219654"
+    },
+    {
+      "lidlProductId": "10038338",
+      "name": "W5 Kyllästyssuihke",
+      "displayedPriceEur": 2.49,
+      "ian": "13195"
+    },
+    {
+      "lidlProductId": "10038340",
+      "name": "W5 Käsien puhdistusaine",
+      "displayedPriceEur": 2.29,
+      "ian": "22961"
+    },
+    {
+      "lidlProductId": "10038342",
+      "name": "W5 Mikrokuitupesukinnas",
+      "displayedPriceEur": 2.49,
+      "ian": "139647"
+    },
+    {
+      "lidlProductId": "10038343",
+      "name": "W5 Paperipyyherulla",
+      "displayedPriceEur": 5.99,
+      "ian": "39850"
+    },
+    {
+      "lidlProductId": "10038345",
+      "name": "W5 Puhdistussuihke",
+      "displayedPriceEur": 1.99,
+      "ian": "13095"
+    },
+    {
+      "lidlProductId": "10038436",
+      "name": "W5 Puhdistussuihke",
+      "displayedPriceEur": 1.99,
+      "ian": "13099"
+    },
+    {
+      "lidlProductId": "10038471",
+      "name": "FRESHONA Suomalainen herne",
+      "displayedPriceEur": 0.88,
+      "ian": "7111948"
+    },
+    {
+      "lidlProductId": "10038477",
+      "name": "GELATELLI Kuningatarkermajäätelö",
+      "displayedPriceEur": 2.69,
+      "ian": "7112282"
+    },
+    {
+      "lidlProductId": "10038478",
+      "name": "PANDA Pepe Original -lakritsipatukka",
+      "displayedPriceEur": 0.4,
+      "ian": "7108837"
+    },
+    {
+      "lidlProductId": "10038479",
+      "name": "FAZER Tutti Frutti Candy Salad",
+      "displayedPriceEur": 3.49,
+      "ian": "7112722"
+    },
+    {
+      "lidlProductId": "10038480",
+      "name": "CLOETTA Kex-keksisuklaa",
+      "displayedPriceEur": 0.95,
+      "ian": "7112091"
+    },
+    {
+      "lidlProductId": "10038481",
+      "name": "KARL FAZER Vadelmajogurttisuklaapatukka",
+      "displayedPriceEur": 1.25,
+      "ian": "7100789"
+    },
+    {
+      "lidlProductId": "10038485",
+      "name": "ALESTO Nut Trio -pähkinäsekoitus",
+      "displayedPriceEur": 0.99,
+      "ian": "209455"
+    },
+    {
+      "lidlProductId": "10038486",
+      "name": "FRESHONA Suomalainen peruna-sipulisekoitus",
+      "displayedPriceEur": 1.45,
+      "ian": "7111949"
+    }
+  ],
+  "rules": [
+    "Prefer official Lidl unit-price/package text verbatim when available.",
+    "Derive only when package quantity is exact and price semantics are unambiguous.",
+    "Do not derive piece price for variable-weight products.",
+    "For multipacks distinguish total campaign price, individual price and package unit price."
+  ]
+}
