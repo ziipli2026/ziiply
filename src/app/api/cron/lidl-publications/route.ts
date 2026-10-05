@@ -44,8 +44,9 @@ export async function GET(request: Request) {
     await recordPublicationRun({ chain: "LIDL:FI0218", source: "official-lidl-dated-offers", ok: qualityOk,
       count: rows.length, outcome: qualityOk ? "staging-completed" : "staging-quality-error",
       details: { periods: outcomes } }).catch(() => undefined);
-    return NextResponse.json({ ok: true, source: "official-lidl-dated-offers", staged: outcomes },
-      { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ ok: qualityOk, needsAttention: !qualityOk,
+      source: "official-lidl-dated-offers", staged: outcomes },
+      { status: qualityOk ? 200 : 503, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     await recordPublicationRun({ chain: "LIDL:FI0218", source: "official-lidl-dated-offers", ok: false,
       count: 0, outcome: "staging-failed", details: { errorType: error instanceof Error ? error.name : "Unknown" } }).catch(() => undefined);
