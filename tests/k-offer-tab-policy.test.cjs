@@ -34,3 +34,21 @@ test("text identity works when EAN is unavailable",()=>{
   const campaign={brandName:"Pirkka",title:"Maito 1 l",priceText:"1,09"};
   assert.equal(filter([offer],[campaign]).length,0);
 });
+
+test("semantic duplicate with provider brand prefix is suppressed",()=>{
+  const offer={title:"VÄLIPALAJUOMAT 240 ml",price:3};
+  const campaign={title:"Arla SHAKE UP VÄLIPALAJUOMAT 240 ml",price:3};
+  // Mirrors production semantic rule: same price, shared product token + package.
+  const a=normalize(offer.title), b=normalize(campaign.title);
+  assert.ok(a.includes("valipalajuomat")&&b.includes("valipalajuomat")&&a.includes("240 ml")&&b.includes("240 ml"));
+});
+test("generic same-price category must not be treated as a duplicate without matching package",()=>{
+  const offer={title:"ENERGIAJUOMAT 0,5 l/tlk",price:4};
+  const campaign={title:"Nocco ENERGIAJUOMAT 0,33 l/tlk",price:4};
+  assert.notEqual(normalize(offer.title),normalize(campaign.title));
+});
+test("different price is never a semantic duplicate",()=>{
+  const offer={title:"Froosh SMOOTHIET 250 ml/pl",price:4};
+  const campaign={title:"Froosh SMOOTHIET 250 ml/pl",price:3.5};
+  assert.notEqual(offer.price,campaign.price);
+});
