@@ -1,0 +1,12 @@
+{
+  "lidlProductId": "REPLACE_WITH_LIDL_PRODUCT_ID",
+  "storeId": "REPLACE_WITH_VERIFIED_STORE_ID",
+  "regularPriceEur": null,
+  "priceKind": "regular",
+  "priceSource": "verified-store-receipt",
+  "checkoutPriceVerified": true,
+  "evidenceReference": "REPLACE_WITH_RECEIPT_REFERENCE",
+  "observedAt": "REPLACE_WITH_ISO8601_TIMESTAMP",
+  "validThrough": null,
+  "note": "Template only. Replace placeholders from actual receipt/store evidence. Do not use Lidl.fi public or Scan&Go-only prices."
+}
