@@ -139,7 +139,12 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const weighted = /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
       const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
       const imageCandidate = Array.isArray(product.image) ? product.image[0] : product.image;
-      const imageUrl = typeof imageCandidate === "string" && /^https:\/\//.test(imageCandidate) ? imageCandidate : "";
+      const imageObjectUrl = imageCandidate && typeof imageCandidate === "object"
+        ? (imageCandidate.url || imageCandidate.contentUrl || imageCandidate["@id"])
+        : "";
+      const offerImage = offer?.image || offer?.imageUrl || offer?.priceSpecification?.image;
+      const imageValue = typeof imageCandidate === "string" ? imageCandidate : imageObjectUrl || offerImage;
+      const imageUrl = typeof imageValue === "string" && /^https:\/\//.test(imageValue) ? imageValue : "";
       const original = money(offer?.priceSpecification?.referencePrice ?? offer?.highPrice);
       const key = normalize([brandName, name, validFrom, validUntil, price].join(" ")).replace(/\s+/g, "-");
       const category = categoryFor(name, sourceUrl);
