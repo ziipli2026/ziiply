@@ -68,11 +68,18 @@ export async function GET(request: Request) {
     if (sourceDropPercent !== null && sourceDropPercent >= 40)
       issue("SOURCE_COUNT_DROP", "error", `Source offer count dropped ${sourceDropPercent}% for the same publication periods`);
     if (!current.length) issue("NO_CURRENT_PUBLICATION", "error", "No currently valid stored publication");
+    let daysUntilCurrentEnd: number | null = null;
+    if (current.length) {
+      const endDates = current.map((edition) => edition.validUntil).sort();
+      const currentEnd = endDates[endDates.length - 1];
+      const calculated = Math.round((Date.parse(`${currentEnd}T12:00:00Z`) - Date.parse(`${date}T12:00:00Z`)) / 86400000);
+      daysUntilCurrentEnd = Number.isFinite(calculated) ? calculated : null;
+    }
     if (current.length && !upcoming.length) {
       const endDates = current.map((edition) => edition.validUntil).sort();
       const currentEnd = endDates[endDates.length - 1];
-      const daysUntilEnd = Math.round((Date.parse(`${currentEnd}T12:00:00Z`) - Date.parse(`${date}T12:00:00Z`)) / 86400000);
-      if (Number.isFinite(daysUntilEnd) && daysUntilEnd <= 1)
+      const daysUntilEnd = daysUntilCurrentEnd;
+      if (daysUntilEnd !== null && daysUntilEnd <= 1)
         issue("NEXT_PUBLICATION_MISSING", "warning", "Current publication ends within one day and no upcoming publication is staged");
     }
     for (const edition of current) {
@@ -107,6 +114,7 @@ export async function GET(request: Request) {
       upcomingEditionCount: upcoming.length,
       nextValidFrom: upcoming.map((edition) => edition.validFrom).sort()[0] ?? null,
       currentValidUntil: current.map((edition) => edition.validUntil).sort().at(-1) ?? null,
+      daysUntilCurrentEnd,
       currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
       currentQuality,
       errorCount: issues.filter((entry) => entry.severity === "error").length,
