@@ -196,9 +196,12 @@
       "lidlProductId": "10038282",
       "name": "NOSTJA Pancetta",
       "packageSize": "100 g",
-      "source": "Lidl Austria exact Nostja Dalmatinska Panceta listing; Finnish Lidl historical campaign corroborates Nostja Pancetta identity",
+      "source": "PromoAzi publishes NOSTJA Panceta I.G.P., Dalmatia, EAN 2508791003883; Lidl Romania 2026 catalogue independently confirms Nostja Panceta I.G.P. Dalmatia sold per 100 g. Finnish row identity still requires exact pack/image match before verification.",
       "gtin": null,
-      "gtinVerified": false
+      "gtinVerified": false,
+      "gtinCandidate": "2508791003883",
+      "candidateConfidence": "medium",
+      "status": "candidate_requires_exact_cross_market_confirmation"
     },
     {
       "lidlProductId": "10038311",
