@@ -175,7 +175,11 @@ function discoveryLinks(html: string) {
   const decoded = html.replace(/\\u002F/g, "/").replace(/\\\//g, "/");
   const category = [...decoded.matchAll(/\/h\/[a-z0-9åäö-]+\/h\d{5,}/gi)].map(match => match[0]);
   // Lidl's active campaign hub links live under /c/. Discover them dynamically.
-  const campaigns = [...decoded.matchAll(/\/c\/[a-z0-9åäö_-]+(?:\/s\d+)?\/?/gi)]
+  // Current Lidl campaign landing pages use an article id after the slug
+  // (for example /c/uutta-valikoimassa/a10026611). The old matcher stopped at
+  // /c/uutta-valikoimassa/, so we fetched a non-canonical/empty hub and never
+  // reached the campaign's concrete /p/ product cards.
+  const campaigns = [...decoded.matchAll(/\/c\/[a-z0-9åäö_-]+(?:\/(?:a|s)\d+)?\/?/gi)]
     .map(match => match[0])
     .filter(path => !/asiakaspalvelu|tietosuoja|evaste|saavutettavuus|yritys|ura/i.test(path));
   return [...new Set([...category, ...campaigns])];
