@@ -22,6 +22,35 @@ function normalize(value: unknown): string {
     .trim();
 }
 
+const SEMANTIC_STOP_WORDS = new Set(["era","tai","ja","seka","suomi"]);
+function semanticTokens(row: KOfferTabRow): string[] {
+  return normalize([row.title || row.name || row.productName].filter(Boolean).join(" "))
+    .split(" ")
+    .filter(token => token.length >= 3 && !SEMANTIC_STOP_WORDS.has(token) && !/^\d/.test(token));
+}
+function packageTokens(row: KOfferTabRow): string[] {
+  const raw = [row.title || row.name || row.productName, row.packageSize]
+    .filter(Boolean).join(" ").toLowerCase();
+  return raw.match(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml|cl|kpl|pkt|prk|plo|tlk|rl)\b/g)
+    ?.map(token => token.replace(",", ".").replace(/\s+/g, "")) || [];
+}
+function semanticSameProduct(a: KOfferTabRow, b: KOfferTabRow): boolean {
+  const ap=priceNumber(a), bp=priceNumber(b);
+  if(ap == null || bp == null || Math.abs(ap-bp) > 0.001) return false;
+  const A=semanticTokens(a), B=semanticTokens(b);
+  if(!A.length || !B.length) return false;
+  const bSet=new Set(B);
+  const common=A.filter(token=>bSet.has(token));
+  const score=common.length/Math.max(1,Math.min(A.length,B.length));
+  const pa=packageTokens(a), pb=packageTokens(b);
+  // If both sides expose package sizes, they must agree before semantic
+  // name matching can suppress a local campaign copy.
+  if(pa.length > 0 && pb.length > 0 && !pa.some(x=>pb.includes(x))) return false;
+  if(common.length >= 2 && score >= 0.67) return true;
+  if(common.length !== 1 || score < 1) return false;
+  return pa.length > 0 && pb.length > 0 && pa.some(x=>pb.includes(x));
+}
+
 function productText(row: KOfferTabRow): string {
   return normalize([row.brandName, row.title || row.name || row.productName, row.packageSize].filter(Boolean).join(" "));
 }
@@ -49,5 +78,8 @@ export function removeCampaignCopiesOfLeaflet<T extends KOfferTabRow>(
   campaigns: readonly T[],
 ): T[] {
   const offerKeys = new Set(leafletOffers.map(kOfferOverlapKey).filter(key => !key.startsWith("text:|")));
-  return campaigns.filter(row => !offerKeys.has(kOfferOverlapKey(row)));
+  return campaigns.filter(row =>
+    !offerKeys.has(kOfferOverlapKey(row)) &&
+    !leafletOffers.some(offer => semanticSameProduct(offer, row))
+  );
 }
