@@ -1,18 +1,18 @@
 {
-  "revision": "V46-EAN-QUEUE-RECONCILED",
+  "revision": "V48-EAN-QUEUE-BAKERY-RECLASSIFIED",
   "created": "2026-10-05",
   "source": "ean-resolution-queue-v45-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
   "total": 197,
   "counts": {
-    "needs_external_gtin_lookup": 98,
+    "needs_external_gtin_lookup": 31,
     "variable_weight_or_produce": 30,
     "multipack_or_variant": 9,
-    "bakery_or_store_bakery": 36,
+    "bakery_or_store_bakery": 103,
     "verified_ean": 11,
     "non_food": 13
   },
-  "unresolvedExternalLookupCount": 98,
+  "unresolvedExternalLookupCount": 31,
   "records": [
     {
       "lidlProductId": "10037645",
@@ -906,8 +906,8 @@
       "name": "Herkkumyslileipä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10000047",
@@ -915,8 +915,8 @@
       "name": "Kolmen suklaan cookie",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10000081",
@@ -942,8 +942,8 @@
       "name": "Juustokierre",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10012302",
@@ -960,8 +960,8 @@
       "name": "Ciabattasämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10014112",
@@ -969,8 +969,8 @@
       "name": "Voicroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10014992",
@@ -987,8 +987,8 @@
       "name": "Salamipizza",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10015005",
@@ -996,8 +996,8 @@
       "name": "Pinkki donitsi",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10017268",
@@ -1005,8 +1005,8 @@
       "name": "Siemenpatonki",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10017269",
@@ -1014,8 +1014,8 @@
       "name": "Jättipatonki",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10017906",
@@ -1023,8 +1023,8 @@
       "name": "Siemensämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10017911",
@@ -1068,8 +1068,8 @@
       "name": "Pizza Hawaii",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10021258",
@@ -1077,8 +1077,8 @@
       "name": "Brezelsämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10021477",
@@ -1086,8 +1086,8 @@
       "name": "Maitosuklaacookie",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10021478",
@@ -1104,8 +1104,8 @@
       "name": "Monijyväcroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10022389",
@@ -1113,8 +1113,8 @@
       "name": "Herkkusämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10023065",
@@ -1122,8 +1122,8 @@
       "name": "Nakkicroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10026398",
@@ -1131,8 +1131,8 @@
       "name": "Maalaissämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10026399",
@@ -1140,8 +1140,8 @@
       "name": "Pizza Kebab",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10026400",
@@ -1149,8 +1149,8 @@
       "name": "Bolognese pasteija",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10027077",
@@ -1158,8 +1158,8 @@
       "name": "Rustico-leipä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10030550",
@@ -1167,8 +1167,8 @@
       "name": "Siemen-hapanjuurileipä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10030552",
@@ -1176,8 +1176,8 @@
       "name": "Kaura-seesamsämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10031093",
@@ -1185,8 +1185,8 @@
       "name": "Kiviuunileipä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10031094",
@@ -1230,8 +1230,8 @@
       "name": "Pesto-juustokierre",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10032838",
@@ -1239,8 +1239,8 @@
       "name": "Toffeeviineri",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10032840",
@@ -1248,8 +1248,8 @@
       "name": "Pähkinä-nougat croissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10033042",
@@ -1266,8 +1266,8 @@
       "name": "Siemenruispala",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10033047",
@@ -1284,8 +1284,8 @@
       "name": "Pizzadonitsi margherita",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10033050",
@@ -1293,8 +1293,8 @@
       "name": "Munariisipasteija",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10033051",
@@ -1311,8 +1311,8 @@
       "name": "Kreikkalainen juustotanko",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10034228",
@@ -1320,8 +1320,8 @@
       "name": "Ranskalainen suklaacroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10034793",
@@ -1329,8 +1329,8 @@
       "name": "Oliivitanko",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10034796",
@@ -1347,8 +1347,8 @@
       "name": "Briossisuklaacroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10034798",
@@ -1383,8 +1383,8 @@
       "name": "Tumma artesaanileipä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10035959",
@@ -1401,8 +1401,8 @@
       "name": "Mustikka-vaniljaviineri",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036370",
@@ -1410,8 +1410,8 @@
       "name": "Kinuskicronitsi",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036371",
@@ -1419,8 +1419,8 @@
       "name": "BBQ-hot dog",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036372",
@@ -1428,8 +1428,8 @@
       "name": "Mustikkamuffinsi",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036373",
@@ -1437,8 +1437,8 @@
       "name": "Suklaamuffinsi",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036374",
@@ -1446,8 +1446,8 @@
       "name": "Mini voicroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036375",
@@ -1455,8 +1455,8 @@
       "name": "Calzone Margherita",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036376",
@@ -1464,8 +1464,8 @@
       "name": "Pistaasicroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10036377",
@@ -1491,8 +1491,8 @@
       "name": "Pastel de Nata -leivos",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10037404",
@@ -1500,8 +1500,8 @@
       "name": "Dulce de leche -cookie",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10037405",
@@ -1509,8 +1509,8 @@
       "name": "Leijonantassu kinuski-päärynä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10037406",
@@ -1536,8 +1536,8 @@
       "name": "Pinaatti-fetapasteija",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10037409",
@@ -1545,8 +1545,8 @@
       "name": "Toffeemuffinsi",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "10037410",
@@ -1572,8 +1572,8 @@
       "name": "Kalkkuna-juustotasku",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "1060620",
@@ -1581,8 +1581,8 @@
       "name": "Hot dog",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "1182510",
@@ -1590,8 +1590,8 @@
       "name": "Ciabatta",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "1210220",
@@ -1599,8 +1599,8 @@
       "name": "Valkosipulivoipatonki",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "12180",
@@ -1617,8 +1617,8 @@
       "name": "Rustiikkinen maalaissämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "16150",
@@ -1626,8 +1626,8 @@
       "name": "Ruispala 100 %",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "1821550",
@@ -1635,8 +1635,8 @@
       "name": "Suklaadonitsi",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "282110",
@@ -1644,8 +1644,8 @@
       "name": "Vehnäpatonki",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "40780",
@@ -1653,8 +1653,8 @@
       "name": "Lihapasteija",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "40800",
@@ -1680,8 +1680,8 @@
       "name": "Valkosuklaacookie",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "558810",
@@ -1689,8 +1689,8 @@
       "name": "Maalaiscroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "599520",
@@ -1698,8 +1698,8 @@
       "name": "Tomaattimozzarellaleipä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "65260",
@@ -1716,8 +1716,8 @@
       "name": "Kinkkujuustocroissant",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "69052170",
@@ -1725,8 +1725,8 @@
       "name": "Pitaleipä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "71014430",
@@ -1743,8 +1743,8 @@
       "name": "Kaurasydän 100 %",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "71025510",
@@ -1770,8 +1770,8 @@
       "name": "Ranskalainen maalaispatonki",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "927810",
@@ -1779,8 +1779,8 @@
       "name": "Vehnäsämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "927850",
@@ -1788,8 +1788,8 @@
       "name": "Moniviljasiemensämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "956640",
@@ -1797,8 +1797,8 @@
       "name": "Brezel",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     },
     {
       "lidlProductId": "975540",
@@ -1806,8 +1806,8 @@
       "name": "Juustopekonisämpylä",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "bakery_or_store_bakery",
+      "resolutionReason": "store_bakery_no_consumer_pack_gtin"
     }
   ]
 }
