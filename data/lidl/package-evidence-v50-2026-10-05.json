@@ -162,6 +162,23 @@
       "source": "Lidl Austria exact Nostja Dalmatinska Panceta listing; Finnish Lidl historical campaign corroborates Nostja Pancetta identity",
       "gtin": null,
       "gtinVerified": false
+    },
+    {
+      "lidlProductId": "10038311",
+      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+      "packageSize": "440 g / 500 ml",
+      "source": "Finnish Lidl campaign aggregators consistently show 440 g pan pizza / 500 ml American ice cream",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "multi_product_offer_requires_variant_split"
+    },
+    {
+      "lidlProductId": "10038295",
+      "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+      "source": "Finnish Lidl product/campaign index corroborates exact Kuljanka product identity",
+      "gtin": null,
+      "gtinVerified": false,
+      "status": "identity_corroborated_gtin_missing"
     }
   ]
 }
