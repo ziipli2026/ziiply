@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { approvePublication, readPublicationCandidate } from "@/app/components/ziiply/offerSearch/publicationStore";
+import { approvePublication, publicationApprovalState, readPublicationCandidate } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { inspectOfferPublication } from "@/app/components/ziiply/offerSearch/publicationDiagnostics";
 
 export const dynamic = "force-dynamic";
@@ -33,8 +33,19 @@ export async function POST(request: Request) {
 
   const chain = "LIDL:FI0218";
   const candidate = await readPublicationCandidate<OfferRow>(chain, publicationId);
-  if (!candidate)
-    return NextResponse.json({ ok: false, error: "Candidate not found or already promoted" }, { status: 404 });
+  if (!candidate) {
+    const state = await publicationApprovalState(chain, publicationId);
+    if (state === "approved") {
+      return NextResponse.json({
+        ok: true,
+        publicationId,
+        regressionCommit,
+        approvalState: "approved",
+        idempotent: true,
+      }, { status: 200, headers: { "Cache-Control": "no-store" } });
+    }
+    return NextResponse.json({ ok: false, error: "Candidate not found" }, { status: 404 });
+  }
 
   const quality = inspectOfferPublication(candidate.offers, candidate.validFrom, candidate.validUntil);
   if (quality.severity === "error")
