@@ -98,6 +98,8 @@ export async function GET(request: Request) {
       effectiveEditionCount: effectiveEditions.length,
       currentEditionCount: current.length,
       upcomingEditionCount: upcoming.length,
+      nextValidFrom: upcoming.map((edition) => edition.validFrom).sort()[0] ?? null,
+      currentValidUntil: current.map((edition) => edition.validUntil).sort().at(-1) ?? null,
       currentOfferCount: current.reduce((total, edition) => total + edition.quality.count, 0),
       currentQuality,
       errorCount: issues.filter((entry) => entry.severity === "error").length,
