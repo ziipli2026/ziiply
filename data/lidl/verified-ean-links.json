@@ -218,5 +218,10 @@
     "lidlProductId": "10038286",
     "ean": "55006774",
     "evidence": "Lidl Poland official product list identifies article 5500677 as white cabbage salad (Sałatka z białej kapusty), 410 g. Independent barcode food data identifies Kuljanka/Lidl Vegetable salad with cabbage with barcode 55006774 and matching cabbage/vegetable composition. The GTIN-8 is exactly Lidl article 5500677 plus its valid GS1 check digit 4."
+  },
+  {
+    "lidlProductId": "10038284",
+    "ean": "20831851",
+    "evidence": "The Finnish queue identifies KULJANKA Borssikeitto (IAN 7701804). Independent Lidl offer history identifies the matching Kuljanka Borscht Soup with White Cabbage & Beetroot as an 800 g retail pack. CHOMP barcode product data identifies Kuljanka Borscht with barcode 20831851. GTIN-8 checksum valid."
   }
 ]
