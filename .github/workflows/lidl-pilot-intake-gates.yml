@@ -48,3 +48,5 @@ jobs:
       - run: node scripts/test-lidl-pilot-intake-cli.mjs
       - run: node scripts/test-lidl-pilot-receipt-helper.mjs
       - run: node scripts/test-lidl-receipt-pipeline.mjs
+      - run: node scripts/test-lidl-receipt-pilot-report.mjs
+      - run: node scripts/test-lidl-receipt-batch.mjs
