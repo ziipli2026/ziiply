@@ -138,5 +138,10 @@
     "lidlProductId": "10038292",
     "ean": "4056489624455",
     "evidence": "Lidl Finland candidate data identifies KULJANKA Gulassikeitto productId 10038292, IAN 175056; Lidl.fi Finland lists Kuljanka Gulassikeitto 400 ml; another Lidl market lists the same Kuljanka Goulash IAN 175056 as 400 ml; product database identifies Kuljanka Gulaschsuppe ungarische Art EAN 4056489624455. GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038482",
+    "ean": "6415600582643",
+    "evidence": "Lidl Finland product candidate 10038482 is COCA-COLA Coca-Cola, fixed 330 ml; Metro-tukku identifies Coca-Cola Original Taste 0.33 l can consumer EAN 6415600582643 in Finland. GTIN-13 checksum valid."
   }
 ]
