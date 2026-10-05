@@ -75,8 +75,7 @@ export async function GET(request: Request) {
     const status = issues.some((entry) => entry.severity === "error") ? "error" :
       issues.length ? "warning" : "ok";
     const summary = {
-      status, issues.some((entry) => entry.severity === "error") ? "error" :
-        issues.length ? "warning" : "ok",
+      status,
       latestRunAt: latestRun?.checked_at ?? null,
       latestRunSucceeded: latestRun?.ok ?? null,
       latestRunOfferCount: latestRun?.offer_count ?? null,
