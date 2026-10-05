@@ -73,5 +73,10 @@
     "lidlProductId": "10038310",
     "ean": "5900334000781",
     "evidence": "Lidl catalog identifies TYMBARK Omena-kirsikkamehu product 10038310; current Lidl offer listing confirms 1 l size; Kespro identifies Tymbark kirsikka-omenamehujuoma 1 l consumer GTIN 5900334000781"
+  },
+  {
+    "lidlProductId": "10038304",
+    "ean": "3850104035739",
+    "evidence": "Lidl catalog identifies PODRAVKA Papu-lihapata at 3.49 EUR; current Croatian official/retail product data identifies Podravka Grah s kobasicom 400 g, sold by Lidl at 3.49 EUR, consumer EAN 3850104035739"
   }
 ]
