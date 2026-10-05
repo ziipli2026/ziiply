@@ -77,6 +77,18 @@ export async function readPublicationCandidate<T>(chain: string, publicationId: 
   };
 }
 
+export async function publicationApprovalState(chain: string, publicationId: string): Promise<"candidate" | "approved" | null> {
+  if (!chain || !publicationId) return null;
+  const sql = await database();
+  const rows = await sql`SELECT approval_state
+    FROM ziiply_offer_publications
+    WHERE chain = ${chain} AND publication_id = ${publicationId}
+    LIMIT 1`;
+  if (!rows.length) return null;
+  const state = String(rows[0].approval_state);
+  return state === "candidate" || state === "approved" ? state : null;
+}
+
 export async function approvePublication(chain: string, publicationId: string): Promise<boolean> {
   if (!chain || !publicationId) return false;
   const sql = await database();
