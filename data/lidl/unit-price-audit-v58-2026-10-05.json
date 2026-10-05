@@ -855,59 +855,25 @@
       "unitPriceText": "hinta/kg 29,89 €",
       "source": "public_lidl_campaign_exact_identity",
       "note": "Public campaign evidence confirms the product is sold per kg; corpus value 29.89 is treated as kg price, not package total."
-    }
-  ],
-  "remainingMissingRows": [
-    {
-      "lidlProductId": "10038293",
-      "name": "KULJANKA Vaniljajäätelövohvelipikarit",
-      "displayedPriceEur": 3.49,
-      "ian": "7601221"
-    },
-    {
-      "lidlProductId": "10038294",
-      "name": "KULJANKA Jäätelökakku",
-      "displayedPriceEur": 1.99,
-      "ian": "6700311"
-    },
-    {
-      "lidlProductId": "10038295",
-      "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
-      "displayedPriceEur": 3.99,
-      "ian": "5524178"
-    },
-    {
-      "lidlProductId": "10038309",
-      "name": "PILOS Vadelmakefir",
-      "displayedPriceEur": 0.99,
-      "ian": "5535919"
-    },
-    {
-      "lidlProductId": "10038479",
-      "name": "FAZER Tutti Frutti Candy Salad",
-      "displayedPriceEur": 3.49,
-      "ian": "7112722"
-    },
-    {
-      "lidlProductId": "10038485",
-      "name": "ALESTO Nut Trio -pähkinäsekoitus",
-      "displayedPriceEur": 0.99,
-      "ian": "209455"
     },
     {
       "lidlProductId": "10038486",
       "name": "FRESHONA Suomalainen peruna-sipulisekoitus",
-      "displayedPriceEur": 1.45,
-      "ian": "7111949"
+      "unitPriceText": "hinta/kg 1,45 €",
+      "source": "public_current_offer_exact_identity",
+      "note": "Public offer listing exposes 1.45 €/kg directly; no package-size inference used."
     }
   ],
+  "remainingMissingRows": [],
   "summary": {
     "originalMissing": 83,
     "resolvedOfficial": 57,
     "resolvedDerived": 8,
     "notApplicable": 11,
     "variantSplitRequired": 1,
-    "remaining": 7
+    "sourceGapQuarantine": 6,
+    "remaining": 0,
+    "classifiedTotal": 83
   },
   "unitPriceNotApplicable": [
     {
@@ -1053,6 +1019,56 @@
       "displayedPriceEur": 5,
       "ian": "59859",
       "reason": "combined MCENNEDY pan pizza 440 g / GELATELLI ice cream 500 ml offer; no single shared unit price"
+    }
+  ],
+  "sourceGapQuarantine": [
+    {
+      "lidlProductId": "10038293",
+      "name": "KULJANKA Vaniljajäätelövohvelipikarit",
+      "displayedPriceEur": 3.49,
+      "ian": "7601221",
+      "status": "source_gap",
+      "reason": "Exact current campaign identity and price confirmed, but package size/unit price not exposed in indexed source."
+    },
+    {
+      "lidlProductId": "10038294",
+      "name": "KULJANKA Jäätelökakku",
+      "displayedPriceEur": 1.99,
+      "ian": "6700311",
+      "status": "source_gap",
+      "reason": "Exact current campaign identity and price confirmed, but package size/unit price not exposed in indexed source."
+    },
+    {
+      "lidlProductId": "10038295",
+      "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
+      "displayedPriceEur": 3.99,
+      "ian": "5524178",
+      "status": "source_gap",
+      "reason": "Exact identity corroborated; historical 380 g evidence is price/period-mismatched, so package size is not promoted to current row."
+    },
+    {
+      "lidlProductId": "10038309",
+      "name": "PILOS Vadelmakefir",
+      "displayedPriceEur": 0.99,
+      "ian": "5535919",
+      "status": "bad_public_unit_metadata",
+      "reason": "Current 0.99 € offer confirmed, but public aggregator exposes invalid unit metadata ('€/ml'); quarantined instead of copying it."
+    },
+    {
+      "lidlProductId": "10038479",
+      "name": "FAZER Tutti Frutti Candy Salad",
+      "displayedPriceEur": 3.49,
+      "ian": "7112722",
+      "status": "source_gap",
+      "reason": "Current corpus identity/price exists; public search finds other-period offer but no exact package size for the 3.49 € row."
+    },
+    {
+      "lidlProductId": "10038485",
+      "name": "ALESTO Nut Trio -pähkinäsekoitus",
+      "displayedPriceEur": 0.99,
+      "ian": "209455",
+      "status": "source_gap",
+      "reason": "Exact Alesto Nut Trio identity exists, but package size/GTIN not safely resolved; no unit price inferred."
     }
   ]
 }
