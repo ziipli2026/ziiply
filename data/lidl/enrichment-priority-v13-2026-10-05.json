@@ -10,7 +10,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/mustikka-vaniljaviineri/p10035960",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10036370",
@@ -21,7 +25,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/kinuskicronitsi/p10036370",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10036371",
@@ -32,7 +40,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/bbq-hot-dog/p10036371",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": "check-current-assortment"
     },
     {
       "lidlProductId": "10036372",
@@ -43,7 +55,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/mustikkamuffinsi/p10036372",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10036373",
@@ -54,7 +70,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/suklaamuffinsi/p10036373",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10036374",
@@ -65,7 +85,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/mini-voicroissant/p10036374",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10036375",
@@ -76,7 +100,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/calzone-margherita/p10036375",
+      "researchSubcategory": "paistopisteen-suolaiset",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": "check-current-assortment"
     },
     {
       "lidlProductId": "10036376",
@@ -87,7 +115,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/pistaasicroissant/p10036376",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10036377",
@@ -98,7 +130,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/kuningatarsydanmunkki/p10036377",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037402",
@@ -109,7 +145,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/parkside-munkki/p10037402",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": "seasonal-or-promotion-check"
     },
     {
       "lidlProductId": "10037403",
@@ -120,7 +160,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/pastel-de-nata-leivos/p10037403",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037404",
@@ -131,7 +175,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/dulce-de-leche-cookie/p10037404",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037405",
@@ -142,7 +190,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/leijonantassu-kinuski-paaryna/p10037405",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037406",
@@ -153,7 +205,11 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/peruna-sipulileipa/p10037406",
+      "researchSubcategory": "paistopisteen-leivat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
     },
     {
       "lidlProductId": "10037407",
@@ -164,7 +220,21 @@
       "priceEvidenceStatus": "missing",
       "checkoutComparable": false,
       "ean": null,
-      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+      "priceUsePolicy": "do-not-publish-as-current-normal-price",
+      "officialUrl": "https://www.lidl.fi/p/fazer-raspberry-kiss-munkki/p10037407",
+      "researchSubcategory": "paistopisteen-makeat",
+      "priceStatus": "not_published_in_catalog",
+      "availabilityReview": null
+    }
+  ],
+  "identifierWarnings": [
+    {
+      "ian": "1007202",
+      "lidlProductIds": [
+        "10036372",
+        "10036373"
+      ],
+      "reason": "same IAN maps to distinct official Lidl Product IDs; do not use IAN as unique product key"
     }
   ]
 }
