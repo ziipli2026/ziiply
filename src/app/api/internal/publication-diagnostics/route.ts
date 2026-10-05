@@ -98,6 +98,7 @@ export async function GET(request: Request) {
       if (edition.quality.severity === "error") issue("PUBLICATION_DATA_ERROR", "error", `Critical offer data in ${edition.publicationId}`);
       else if (edition.quality.severity === "warning") issue("PUBLICATION_METADATA_WARNING", "warning", `Incomplete offer metadata in ${edition.publicationId}`);
     }
+    const checkedAt = new Date().toISOString();
     const status = issues.some((entry) => entry.severity === "error") ? "error" :
       issues.length ? "warning" : "ok";
     const currentQuality = {
@@ -135,7 +136,7 @@ export async function GET(request: Request) {
       issueCodes: issues.map((entry) => entry.code),
       issues,
     };
-    return NextResponse.json({ ok: true, needsAttention: status !== "ok", chain, checkedAt: new Date().toISOString(),
+    return NextResponse.json({ ok: true, needsAttention: status !== "ok", chain, checkedAt,
       summary, editionCount: editions.length, editions, runs },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
