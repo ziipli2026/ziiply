@@ -66,6 +66,7 @@ import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNation
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
+import { fetchLidlPublicLeafletOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
 import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
 import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
@@ -639,10 +640,58 @@ export async function GET(request: Request) {
         return { ...offer, imageUrl, image: imageUrl, pictureUrl: imageUrl, imageMatchStatus: "official-lidl-fi-product-match" };
       });
       const combined = dedupe([...imageEnriched, ...staged]);
+
+      // Lidl has two Gösta tabs just like Prisma/Citymarket:
+      // 1) "Tarjoukset" = the dated paper/public leaflet publication
+      // 2) "Kampanjat" = other currently active first-party Lidl.fi grocery campaigns.
+      // The public category pages are the campaign source. Remove only rows that
+      // are an exact current offer match (same normalized product, price and
+      // validity) so the same leaflet item is not duplicated into Kampanjat.
+      let lidlCampaigns: UnknownRecord[] = [];
+      try {
+        const publicFeed = await fetchLidlPublicLeafletOffers({ date: todayFi });
+        const normalizeCampaignKey = (offer: UnknownRecord) =>
+          normalizeText([offer.brandName, offer.name || offer.title].filter(Boolean).join(" "))
+            .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l|kpl)\\b/g, " ")
+            .replace(/\\b\\d+\\b/g, " ")
+            .replace(/\\s+/g, " ")
+            .trim();
+        const activeOfferKeys = new Set(
+          combined.map((offer) => [
+            normalizeCampaignKey(offer),
+            Number(offer.offerPrice ?? offer.price),
+            firstString(offer.validFrom).slice(0, 10),
+            firstString(offer.validUntil).slice(0, 10),
+          ].join("|")),
+        );
+        lidlCampaigns = publicFeed.offers
+          .filter((offer) => {
+            const key = [
+              normalizeCampaignKey(offer as unknown as UnknownRecord),
+              Number((offer as any).offerPrice ?? (offer as any).price),
+              String((offer as any).validFrom || "").slice(0, 10),
+              String((offer as any).validUntil || "").slice(0, 10),
+            ].join("|");
+            return !activeOfferKeys.has(key);
+          })
+          .map((offer) => ({
+            ...(offer as unknown as UnknownRecord),
+            campaignType: "campaign",
+            source: "lidl-fi-campaign",
+            campaignSection: String((offer as any).sourceUrl || "").replace(/^https?:\\/\\/www\\.lidl\\.fi/, ""),
+          }));
+      } catch (error) {
+        console.warn("[Ziiply offers] Lidl campaign feed unavailable", error);
+      }
+
+      // Keep the campaign feed separate from the dated leaflet rows. The UI
+      // already filters by campaignType, exactly like the S/K campaign tabs.
+      const masterCombined = dedupe([...combined, ...lidlCampaigns]);
+
       // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
       // visible catch-all category: general merchandise/campaign rows stay out,
       // while real groceries must be classified into a concrete grocery category.
-      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(combined, todayFi)
+      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(masterCombined, todayFi)
         .filter((offer) => normalizeText(offer.category) !== "muut");
       const results = lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
@@ -651,8 +700,10 @@ export async function GET(request: Request) {
           lidlSourceAudit: {
             structuredAndManual: enriched.length,
             staged: staged.length,
-            combined: combined.length,
-            publicLeaflet: combined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
+            combined: masterCombined.length,
+            publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
+            campaigns: lidlCampaigns.length,
+            campaignSource: "lidl.fi public category/campaign pages",
           },
         },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
