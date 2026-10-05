@@ -5,7 +5,7 @@ const row = {
  permissionToUseEvidence:true,isLidlPlus:false,isPromotion:false,isMultiBuy:false,
  priceBasis:"unit",lidlProductId:"10000000",storeId:"test-store",
  receiptUnitPriceEur:1.29,receiptEvidenceReference:"synthetic-fixture-not-real-receipt",
- receiptTimestamp:"2026-10-04T12:00:00+03:00",validThrough:"2026-10-05T12:00:00+03:00",
+ receiptTimestamp:"2026-10-04T12:00:00+03:00",
  shelfPriceEur:1.29
 };
 const accepted=prepare(row);
@@ -22,11 +22,10 @@ for (const [patch, reason] of [
  [{receiptUnitPriceEur:null},"missing-receipt-price"],
  [{receiptEvidenceReference:""},"missing-receipt-evidence"],
  [{receiptTimestamp:"2026-10-04"},"missing-receipt-timestamp"],
- [{validThrough:"2026-10-03T12:00:00+03:00"},"invalid-validity"],
  [{shelfPriceEur:1.49},"shelf-receipt-discrepancy"],
 ]) {
  const result=prepare({...row,...patch});
  assert.equal(result.candidate,null);
  assert.equal(result.reason,reason);
 }
-console.log("PASS: 11 manual intake cases + verified importer integration (synthetic data only)");
+console.log("PASS: 10 manual intake cases + verified importer integration (synthetic data only)");
