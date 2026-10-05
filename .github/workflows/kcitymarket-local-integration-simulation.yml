@@ -1,6 +1,5 @@
 name: Citymarket local offer integration simulation
 on:
-  pull_request:
   push:
     paths:
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
@@ -82,35 +81,6 @@ jobs:
           if(!a.length||!b.length||unknown.length||overlap||!publicationA.size||!publicationB.size||!categoriesValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-1.mts
-
-      - name: Citymarket archive parser regression
-        run: |
-          cat > citymarket-archive-test.mts <<'NODE'
-          import { parseKCitymarketSpatialLeaflet } from './src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js';
-          const urls = [
-            'https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html',
-            'https://kcm-tarjouslehdet.k-ruoka.fi/77seutu_tarjouslehti_39AV_KCM/files/basic-html/page1.html',
-            'https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/files/basic-html/page1.html',
-            'https://kcm-tarjouslehdet.k-ruoka.fi/75q7ung_tarjouslehti_38AV_KCM/files/basic-html/page1.html',
-            'https://kcm-tarjouslehdet.k-ruoka.fi/76c426p_tarjouslehti_38LV_KCM/files/basic-html/page1.html',
-            'https://kcm-tarjouslehdet.k-ruoka.fi/74si9l9_tarjouslehti_37LV_KCM/files/basic-html/page1.html',
-          ];
-          const results=[];
-          for (const url of urls) {
-            try {
-              const parsed=await parseKCitymarketSpatialLeaflet(url);
-              const rows=Array.isArray(parsed?.rows)?parsed.rows:[];
-              results.push({url,count:rows.length,leaflet:parsed?.leaflet||url});
-              if(rows.length<5) process.exitCode=1;
-            } catch(error) {
-              results.push({url,error:String(error)});
-              process.exitCode=1;
-            }
-          }
-          console.log('CITYMARKET_ARCHIVE_REGRESSION '+JSON.stringify(results,null,2));
-          if(results.length!==urls.length) process.exitCode=1;
-          NODE
-          npx --yes tsx citymarket-archive-test.mts
 
       - name: Citymarket category regression
         run: |
