@@ -1,0 +1,170 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V13",
+  "priority": [
+    {
+      "lidlProductId": "10035960",
+      "name": "Mustikka-vaniljaviineri",
+      "ian": "7106037",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036370",
+      "name": "Kinuskicronitsi",
+      "ian": "180906",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036371",
+      "name": "BBQ-hot dog",
+      "ian": "178744",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036372",
+      "name": "Mustikkamuffinsi",
+      "ian": "1007202",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036373",
+      "name": "Suklaamuffinsi",
+      "ian": "1007202",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036374",
+      "name": "Mini voicroissant",
+      "ian": "1021785",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036375",
+      "name": "Calzone Margherita",
+      "ian": "127696",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036376",
+      "name": "Pistaasicroissant",
+      "ian": "6019043",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10036377",
+      "name": "Kuningatarsydänmunkki",
+      "ian": "7106525",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10037402",
+      "name": "Parkside-munkki",
+      "ian": "1022663",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10037403",
+      "name": "Pastel de Nata -leivos",
+      "ian": "128974",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10037404",
+      "name": "Dulce de leche -cookie",
+      "ian": "6608343",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10037405",
+      "name": "Leijonantassu kinuski-päärynä",
+      "ian": "7107768",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10037406",
+      "name": "Peruna-sipulileipä",
+      "ian": "59570",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    },
+    {
+      "lidlProductId": "10037407",
+      "name": "Fazer Raspberry Kiss -munkki",
+      "ian": "7112388",
+      "displayedPriceEur": null,
+      "source": "official Lidl.fi research catalog",
+      "priceEvidenceStatus": "missing",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceUsePolicy": "do-not-publish-as-current-normal-price"
+    }
+  ]
+}
