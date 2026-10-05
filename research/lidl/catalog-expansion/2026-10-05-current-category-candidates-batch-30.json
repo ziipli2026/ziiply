@@ -1,0 +1,86 @@
+{
+  "observed_at": "2026-10-05",
+  "research_only": true,
+  "new_verified_skus": 0,
+  "new_official_current_candidates": 5,
+  "products": [
+    {
+      "brand": "ARLA",
+      "name": "Juustoviipale",
+      "package_size": "270 g",
+      "category": "juustot",
+      "source_url": "https://www.lidl.fi/h/juustot/h10096077",
+      "availability": "2026-10-01/2026-10-04",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null
+    },
+    {
+      "brand": "JOKILAAKSON JUUSTO",
+      "name": "Tuorejuusto",
+      "package_size": "90 g",
+      "category": "juustot",
+      "source_url": "https://www.lidl.fi/h/juustot/h10096077",
+      "availability": "2026-10-01/2026-10-04",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "note": "2 kpl campaign; 90 g is individual unit size"
+    },
+    {
+      "brand": "KULJANKA",
+      "name": "Höyrytetty juusto",
+      "package_size": "370 g",
+      "category": "juustot",
+      "source_url": "https://www.lidl.fi/h/juustot/h10096077",
+      "availability": "2026-10-01/2026-10-07",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "note": "Listed as Uutuus"
+    },
+    {
+      "brand": "KUUSAMON JUUSTO",
+      "name": "Eränkävijä-juusto",
+      "package_size": "300 g",
+      "category": "juustot",
+      "source_url": "https://www.lidl.fi/h/juustot/h10096077",
+      "availability": "2026-10-05/2026-10-07",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "attributes": [
+        "Hyvää Suomesta",
+        "Parempi Valinta"
+      ]
+    },
+    {
+      "brand": "LEROY",
+      "name": "Rapea kalapihvi",
+      "package_size": "240 g",
+      "category": "pakastekala",
+      "source_url": "https://www.lidl.fi/h/pakasteet/h10071049",
+      "availability": "2026-09-24/2026-09-27",
+      "lidl_product_id": null,
+      "official_product_url": null,
+      "official_image_url": null,
+      "ean": null,
+      "normal_price": null,
+      "note": "Listed as Uutuus; historical availability window"
+    }
+  ],
+  "price_policy": "Displayed listing prices are not copied into normal_price. Product-specific ID/EAN required before promotion to verified SKU.",
+  "next_resolution_targets": [
+    "KULJANKA Höyrytetty juusto 370 g",
+    "KUUSAMON JUUSTO Eränkävijä-juusto 300 g",
+    "LEROY Rapea kalapihvi 240 g"
+  ]
+}
