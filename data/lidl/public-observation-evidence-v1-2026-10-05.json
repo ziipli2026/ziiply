@@ -1,0 +1,65 @@
+{
+  "revision": "LIDL-PUBLIC-OBSERVATION-EVIDENCE-V1",
+  "observedAt": "2026-10-05",
+  "sourcePolicy": "Public Lidl.fi observation only; never checkout-comparable",
+  "observations": [
+    {
+      "lidlProductId": "10038252",
+      "name": "Kotimainen varsiselleri",
+      "displayedPriceEur": 1.49,
+      "referencePriceEur": 2.09,
+      "unitPriceText": "250 g | 5,96 €/kg",
+      "memberOnly": true,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "sourceUrl": "https://www.lidl.fi/h/vihannekset/h10095593"
+    },
+    {
+      "lidlProductId": "10038256",
+      "name": "Kotimainen punajuuri",
+      "displayedPriceEur": 0.79,
+      "referencePriceEur": 1.09,
+      "unitPriceText": "1 kg | 0,79 €/kg",
+      "memberOnly": true,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "sourceUrl": "https://www.lidl.fi/h/vihannekset/h10095593"
+    },
+    {
+      "lidlProductId": "10038312",
+      "name": "HK Burgeri 6 kpl",
+      "displayedPriceEur": 3,
+      "referencePriceEur": 4.5,
+      "unitPriceText": "100 g | 5,00 €/kg | hinta yksittäin 0,75 €",
+      "memberOnly": true,
+      "multiBuyQuantity": 6,
+      "validFrom": "2026-10-02",
+      "validThrough": "2026-10-04",
+      "sourceUrl": "https://www.lidl.fi/h/valmisateriat/h10097147"
+    },
+    {
+      "lidlProductId": "10038317",
+      "name": "KARTANON Kotimainen lihapulla 2 kpl",
+      "displayedPriceEur": 3.5,
+      "referencePriceEur": 4.98,
+      "unitPriceText": "300 g | 5,83 €/kg | hinta yksittäin 2,49 €",
+      "memberOnly": true,
+      "multiBuyQuantity": 2,
+      "validFrom": "2026-10-05",
+      "validThrough": "2026-10-07",
+      "sourceUrl": "https://www.lidl.fi/h/valmisateriat/h10097147"
+    },
+    {
+      "lidlProductId": "10038348",
+      "name": "W5 Puhdistusliina 2 kpl",
+      "displayedPriceEur": 3,
+      "referencePriceEur": 3.98,
+      "unitPriceText": "25/30 kpl | 0,05/0,06 €/kpl | hinta yksittäin 1,99 €",
+      "memberOnly": true,
+      "multiBuyQuantity": 2,
+      "validFrom": "2026-10-01",
+      "validThrough": "2026-10-07",
+      "sourceUrl": "https://www.lidl.fi/c/siistimpi-arki-se-kannattaa/a10104166"
+    }
+  ]
+}
