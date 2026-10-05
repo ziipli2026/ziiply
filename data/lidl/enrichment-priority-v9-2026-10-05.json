@@ -1,0 +1,170 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V9",
+  "priority": [
+    {
+      "lidlProductId": "10038473",
+      "name": "LÄKEROL Pastilli",
+      "ian": "7112072",
+      "displayedPriceEur": 1.19,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "public-observation"
+    },
+    {
+      "lidlProductId": "10038474",
+      "name": "MYNTHON Purukumi",
+      "ian": "7107050",
+      "displayedPriceEur": 1.75,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "public-observation"
+    },
+    {
+      "lidlProductId": "10038475",
+      "name": "MYNTHON Purukumi",
+      "ian": "7107051",
+      "displayedPriceEur": 1.75,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "public-observation"
+    },
+    {
+      "lidlProductId": "10038476",
+      "name": "WRIGLEY'S Airwaves-purukumi",
+      "ian": "1019752",
+      "displayedPriceEur": 1.35,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "public-observation"
+    },
+    {
+      "lidlProductId": "10038488",
+      "name": "CONFISERIE FIRENZE Minidonitsit",
+      "ian": "218769",
+      "displayedPriceEur": 2.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "public-observation"
+    },
+    {
+      "lidlProductId": "10000000",
+      "name": "Herkkumyslileipä",
+      "ian": "7102269",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10000047",
+      "name": "Kolmen suklaan cookie",
+      "ian": "52098330",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10000081",
+      "name": "Lihapiirakka",
+      "ian": "71077860",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10005280",
+      "name": "Pielispakarin Aito Karjalanpiirakka",
+      "ian": "71087580",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10008395",
+      "name": "Juustokierre",
+      "ian": "201107",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10012302",
+      "name": "Perunapiirakka",
+      "ian": "7106452",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10013219",
+      "name": "Ciabattasämpylä",
+      "ian": "7006968",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10014112",
+      "name": "Voicroissant",
+      "ian": "121471",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10014992",
+      "name": "Fazer Dallaspulla",
+      "ian": "7107534",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    },
+    {
+      "lidlProductId": "10015004",
+      "name": "Salamipizza",
+      "ian": "6503360",
+      "displayedPriceEur": null,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi research catalog",
+      "checkoutComparable": false,
+      "ean": null,
+      "priceEvidenceStatus": "missing"
+    }
+  ]
+}
