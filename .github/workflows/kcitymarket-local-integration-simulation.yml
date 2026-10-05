@@ -36,10 +36,11 @@ jobs:
           console.log('VALIDATION_DIAGNOSTIC '+JSON.stringify({a:a.slice(0,2).map(x=>({storeName:x.storeName,price:x.price,validFrom:x.validFrom,validUntil:x.validUntil,source:x.source})),b:b.slice(0,2).map(x=>({storeName:x.storeName,price:x.price,validFrom:x.validFrom,validUntil:x.validUntil,source:x.source}))}));
           const idsA=new Set(a.map(x=>x.id));
           const overlap=b.filter(x=>idsA.has(x.id)).length;
-          const fish=[...a,...b].filter(x=>/kirjolohi|kokonainen lohi/i.test(x.title));
-          const fishValid=fish.length>0&&fish.every(x=>x.category==='Kala');
-          console.log(JSON.stringify({hyvinkaa:{count:a.length,sample:a.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},jumbo:{count:b.length,sample:b.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},unknownCount:unknown.length,overlap,fish:fish.map(x=>({title:x.title,category:x.category})),fishValid,hyvinkaaValid:check(a,'K-Citymarket Hyvinkää'),jumboValid:check(b,'K-Citymarket Vantaa Jumbo')},null,2));
-          if(!a.length||!b.length||unknown.length||overlap||!fishValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
+          const publicationA=new Set(a.map(x=>x.debug?.publicationId).filter(Boolean));
+          const publicationB=new Set(b.map(x=>x.debug?.publicationId).filter(Boolean));
+          const categoriesValid=[...a,...b].every(x=>typeof x.category==='string'&&x.category.length>0&&x.category!=='Muut');
+          console.log(JSON.stringify({hyvinkaa:{count:a.length,publications:[...publicationA],sample:a.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},jumbo:{count:b.length,publications:[...publicationB],sample:b.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},unknownCount:unknown.length,overlap,categoriesValid,hyvinkaaValid:check(a,'K-Citymarket Hyvinkää'),jumboValid:check(b,'K-Citymarket Vantaa Jumbo')},null,2));
+          if(!a.length||!b.length||unknown.length||overlap||!publicationA.size||!publicationB.size||!categoriesValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-1.mts
 
