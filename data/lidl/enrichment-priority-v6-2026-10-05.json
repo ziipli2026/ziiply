@@ -1,0 +1,155 @@
+{
+  "revision": "LIDL-ENRICHMENT-PRIORITY-V6",
+  "priority": [
+    {
+      "lidlProductId": "10038332",
+      "name": "W5 Kertakäyttökäsine",
+      "ian": "136355",
+      "displayedPriceEur": 4.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038333",
+      "name": "PURIO Roskapussi tuoksulla",
+      "ian": "150304",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038334",
+      "name": "W5 WC-puhdistusjauhe",
+      "ian": "1009184",
+      "displayedPriceEur": 3.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038335",
+      "name": "W5 Rasvalikaa irrottava puhdistusaine",
+      "ian": "161950",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038336",
+      "name": "W5 WC-geeli",
+      "ian": "219654",
+      "displayedPriceEur": 2.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038338",
+      "name": "W5 Kyllästyssuihke",
+      "ian": "13195",
+      "displayedPriceEur": 2.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038340",
+      "name": "W5 Käsien puhdistusaine",
+      "ian": "22961",
+      "displayedPriceEur": 2.29,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038342",
+      "name": "W5 Mikrokuitupesukinnas",
+      "ian": "139647",
+      "displayedPriceEur": 2.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038343",
+      "name": "W5 Paperipyyherulla",
+      "ian": "39850",
+      "displayedPriceEur": 5.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038345",
+      "name": "W5 Puhdistussuihke",
+      "ian": "13095",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038436",
+      "name": "W5 Puhdistussuihke",
+      "ian": "13099",
+      "displayedPriceEur": 1.99,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038471",
+      "name": "FRESHONA Suomalainen herne",
+      "ian": "7111948",
+      "displayedPriceEur": 0.88,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038477",
+      "name": "GELATELLI Kuningatarkermajäätelö",
+      "ian": "7112282",
+      "displayedPriceEur": 2.69,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038478",
+      "name": "PANDA Pepe Original -lakritsipatukka",
+      "ian": "7108837",
+      "displayedPriceEur": 0.4,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    },
+    {
+      "lidlProductId": "10038479",
+      "name": "FAZER Tutti Frutti Candy Salad",
+      "ian": "7112722",
+      "displayedPriceEur": 3.49,
+      "observedDate": "2026-10-01",
+      "source": "official Lidl.fi category Nuxt",
+      "checkoutComparable": false,
+      "ean": null
+    }
+  ]
+}
