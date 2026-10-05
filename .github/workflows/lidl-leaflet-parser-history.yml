@@ -39,6 +39,9 @@ jobs:
         if: steps.clock.outputs.run == 'true'
         with:
           node-version: '24'
+      - name: Install dependencies for production parser replay
+        if: steps.clock.outputs.run == 'true'
+        run: npm ci --ignore-scripts
       - name: Verify every archived Lidl parser edition
         if: steps.clock.outputs.run == 'true'
         run: node scripts/lidl/verify-parser-history.mjs verify
