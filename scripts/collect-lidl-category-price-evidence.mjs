@@ -52,6 +52,11 @@ const structuredProducts=html=>{
   }
   return out;
 };
+const packageSizeFrom=(name,unitPriceText)=>{
+  const text=clean([name,unitPriceText].filter(Boolean).join(' '));
+  const m=text.match(/\b(\d+(?:[,.]\d+)?)\s*(kg|g|l|ml|cl)\b/i);
+  return m?{value:Number(m[1].replace(',','.')),unit:m[2].toLowerCase(),raw:m[0]}:null;
+};
 const raw=[];
 
 for(const source of urls){
@@ -69,7 +74,7 @@ for(const source of urls){
         source,observedAt,researchOnly:true,
         lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,
         productUrl:product.canonicalPath?new URL(String(product.canonicalPath),source).href:null,
-        displayedPriceEur:product.displayedPriceEur,unitPriceText:product.unitPriceText,
+        displayedPriceEur:product.displayedPriceEur,unitPriceText:product.unitPriceText,packageSize:packageSizeFrom(product.name,product.unitPriceText),
         isLidlPlus:false,isMultiBuy:false,
         validFromRaw:null,validThroughRaw:null,validFrom:null,validThrough:null,
         availabilityKind:'continuous-listing',temporalStatus:'continuous',
@@ -89,11 +94,14 @@ for(const source of urls){
     const evidenceText=text.slice(Math.max(0,m.index-900),Math.min(text.length,m.index+m[0].length+80));
     const normalizedEvidence=clean(evidenceText).toLowerCase();
     const product=products.find(p=>p.name&&normalizedEvidence.includes(clean(p.name).toLowerCase()))??null;
+    const exactNameMatches=products.filter(p=>p.name&&normalizedEvidence.includes(clean(p.name).toLowerCase()));
+    const matchConfidence=product?(exactNameMatches.length===1?'exact-name':'ambiguous-name'):'unmatched';
     raw.push({
       source,observedAt,researchOnly:true,
       lidlProductId:product?.lidlProductId??null,ian:product?.ian??[],productName:product?.name??null,
       productUrl:product?.canonicalPath?new URL(String(product.canonicalPath),source).href:null,
-      displayedPriceEur:price,
+      displayedPriceEur:price,unitPriceText:product?.unitPriceText??null,packageSize:packageSizeFrom(product?.name,product?.unitPriceText),
+      productMatchConfidence:matchConfidence,
       isLidlPlus:/Lidl Plus/i.test(evidenceText),
       isMultiBuy:/\b\d+\s*KPL\b/i.test(evidenceText),
       validFromRaw:m[1],validThroughRaw:m[2],validFrom:fromIso,validThrough:throughIso,
