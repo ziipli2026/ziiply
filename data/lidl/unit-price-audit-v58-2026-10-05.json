@@ -716,6 +716,12 @@
       "name": "W5 Paperipyyherulla",
       "unitPriceText": "350 arkkia | 0,017 €/arkki",
       "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038326",
+      "name": "Kotimainen kirsikkatomaatti",
+      "unitPriceText": "800 g | 6,24 €/kg",
+      "source": "official_lidl_fi"
     }
   ],
   "remainingMissingRows": [
@@ -900,12 +906,6 @@
       "ian": "7111597"
     },
     {
-      "lidlProductId": "10038326",
-      "name": "Kotimainen kirsikkatomaatti",
-      "displayedPriceEur": 4.99,
-      "ian": "82463"
-    },
-    {
       "lidlProductId": "10038471",
       "name": "FRESHONA Suomalainen herne",
       "displayedPriceEur": 0.88,
@@ -956,9 +956,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 34,
+    "resolvedOfficial": 35,
     "notApplicable": 11,
-    "remaining": 39
+    "remaining": 38
   },
   "unitPriceNotApplicable": [
     {
