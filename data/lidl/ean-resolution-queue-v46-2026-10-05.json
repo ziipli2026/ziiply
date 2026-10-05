@@ -1,18 +1,18 @@
 {
-  "revision": "V48-EAN-QUEUE-BAKERY-RECLASSIFIED",
+  "revision": "V52-EAN-QUEUE-BULK-RECLASSIFICATION",
   "created": "2026-10-05",
   "source": "ean-resolution-queue-v45-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
   "total": 197,
   "counts": {
-    "needs_external_gtin_lookup": 31,
-    "variable_weight_or_produce": 30,
-    "multipack_or_variant": 9,
+    "multipack_or_variant": 13,
+    "variable_weight_or_produce": 32,
     "bakery_or_store_bakery": 103,
+    "needs_external_gtin_lookup": 25,
     "verified_ean": 11,
     "non_food": 13
   },
-  "unresolvedExternalLookupCount": 31,
+  "unresolvedExternalLookupCount": 25,
   "records": [
     {
       "lidlProductId": "10037645",
@@ -20,8 +20,8 @@
       "name": "MILBONA Proteiinivanukas",
       "variant": "kahvi tai kookos",
       "unitPriceText": "200 g | 5,95 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "Combined coffee-or-coconut Milbona 200 g row; coconut GTIN candidate resolved but coffee GTIN still missing, so requires flavour split"
     },
     {
       "lidlProductId": "10037651",
@@ -29,8 +29,8 @@
       "name": "MARIBEL Hillo",
       "variant": "mustikka tai sekamarja",
       "unitPriceText": "450 g | 7,31 €/kg",
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "Maribel row contains blueberry or mixed-berry variants; candidate GTIN 20000684 applies only to mixed-berry 450 g pending Finland confirmation"
     },
     {
       "lidlProductId": "10038243",
@@ -47,8 +47,8 @@
       "name": "FISKANO Tuore lohifilee",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "FISKANO Tuore lohifilee is variable-weight (~1.2 kg, €/kg); no fixed consumer-pack GTIN expected"
     },
     {
       "lidlProductId": "10038245",
@@ -247,8 +247,8 @@
       "name": "NORVIDA NATURKÖTT Naudan sisäfilee",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "variable_weight_or_produce",
+      "resolutionReason": "NORVIDA NATURKÖTT Naudan sisäfilee is variable-weight; external retail evidence uses weight-encoded barcode"
     },
     {
       "lidlProductId": "10038268",
@@ -325,8 +325,8 @@
       "name": "ALESTO Pähkinäsekoitus",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "Generic Alesto 200 g nut-mix identity maps to multiple distinct products/GTINs; exact variant required before GTIN assignment"
     },
     {
       "lidlProductId": "10038281",
@@ -549,8 +549,8 @@
       "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "needs_external_gtin_lookup",
-      "resolutionReason": "single_candidate"
+      "resolutionStatus": "multipack_or_variant",
+      "resolutionReason": "Combined offer row contains separate McEnnedy pan pizza and Gelatelli ice cream products; requires variant split, not one EAN"
     },
     {
       "lidlProductId": "10038313",
