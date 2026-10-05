@@ -1,0 +1,13 @@
+import { classifyLidlPriceEvidence } from "./lib/lidl-price-source-contract.mjs";
+const now=new Date("2026-10-05T10:00:00+03:00");
+const base={lidlProductId:"10037642",storeId:"LIDL-TEST",regularPriceEur:1.89,priceKind:"regular",priceSource:"verified-store-receipt",checkoutPriceVerified:true,evidenceReference:"receipt:test:1",observedAt:"2026-10-05T09:00:00+03:00"};
+const ok=(name,row,store,want)=>{const r=classifyLidlPriceEvidence(row,store,now);if(r.comparable!==want)throw new Error(name+": "+JSON.stringify(r));};
+ok("fresh receipt",base,"LIDL-TEST",true);
+ok("wrong store",base,"OTHER",false);
+ok("promo",{...base,priceKind:"promotion"},"LIDL-TEST",false);
+ok("public",{...base,priceSource:"lidl-fi-public-observation"},"LIDL-TEST",false);
+ok("scan-go",{...base,priceSource:"lidl-scan-go-user-observation"},"LIDL-TEST",false);
+ok("no evidence",{...base,evidenceReference:""},"LIDL-TEST",false);
+ok("stale receipt",{...base,observedAt:"2026-10-04T08:00:00+03:00"},"LIDL-TEST",false);
+ok("future receipt",{...base,observedAt:"2026-10-05T11:00:00+03:00"},"LIDL-TEST",false);
+console.log(JSON.stringify({ok:true,cases:8}));
