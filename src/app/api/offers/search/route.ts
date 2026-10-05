@@ -655,8 +655,10 @@ export async function GET(request: Request) {
       // combined also contains the broader Lidl Plus feed, so using all combined
       // rows here would incorrectly erase valid public Lidl.fi campaign rows.
       const publicCampaignLeafletRows = combined.filter((offer) =>
-        String(offer.id || "").startsWith("lidl-leaflet-") ||
-        String(offer.source || "") === "verified-official-leaflet"
+        offer.campaignType !== "campaign" && (
+          String(offer.id || "").startsWith("lidl-leaflet-") ||
+          String(offer.source || "") === "verified-official-leaflet"
+        )
       );
       let lidlCampaigns: UnknownRecord[] = [];
       try {
@@ -706,8 +708,10 @@ export async function GET(request: Request) {
       // every Lidl Plus campaign disappear. Only rows that are independently
       // verified as paper-leaflet rows are allowed to suppress a campaign copy.
       const independentlyVerifiedLeafletRows = combined.filter((offer) =>
-        String(offer.id || "").startsWith("lidl-leaflet-") ||
-        String(offer.source || "") === "verified-official-leaflet"
+        offer.campaignType !== "campaign" && (
+          String(offer.id || "").startsWith("lidl-leaflet-") ||
+          String(offer.source || "") === "verified-official-leaflet"
+        )
       );
       const leafletIdentityKeys = new Set(
         independentlyVerifiedLeafletRows.map((offer) => lidlImageKey(offer)).filter(Boolean),
