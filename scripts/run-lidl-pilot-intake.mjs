@@ -2,7 +2,8 @@ import {readFileSync} from "node:fs";
 import catalog from "../data/lidl/official-grocery-candidates-v44-2026-10-01.json" with {type:"json"};
 import {processLidlPilotCsv} from "./lib/lidl-pilot-csv-intake.mjs";
 // Usage: node scripts/run-lidl-pilot-intake.mjs <local-csv-path> <store-id> [ISO-observation-time]
-// This tool only checks row structure and claimed evidence metadata; it cannot authenticate receipts or permissions.\n// Never commit raw CSV/receipt data. No publishing, and no receipt references/prices in output.
+// This tool only checks row structure and claimed evidence metadata; it cannot authenticate receipts or permissions.
+// Never commit raw CSV/receipt data. No publishing, and no receipt references/prices in output.
 const [path,storeId,time]=process.argv.slice(2);
 if(!path||!storeId){console.error("Usage: node scripts/run-lidl-pilot-intake.mjs <local-csv-path> <store-id> [ISO-time]");process.exitCode=2;}
 else {
