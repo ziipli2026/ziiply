@@ -722,6 +722,72 @@
       "name": "Kotimainen kirsikkatomaatti",
       "unitPriceText": "800 g | 6,24 €/kg",
       "source": "official_lidl_fi"
+    },
+    {
+      "lidlProductId": "10038285",
+      "name": "KULJANKA Savustettu makkara",
+      "unitPriceText": "600 g | 9,98 €/kg",
+      "source": "lidl_campaign_publication_exact_match"
+    },
+    {
+      "lidlProductId": "10038305",
+      "name": "KULJANKA Puolalainen makkara",
+      "unitPriceText": "230 g | 16,48 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038297",
+      "name": "KULJANKA Paprikapyree",
+      "unitPriceText": "160 g | 9,31 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038304",
+      "name": "PODRAVKA Papu-lihapata",
+      "unitPriceText": "400 g | 8,73 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038298",
+      "name": "KULJANKA Maustesuola",
+      "unitPriceText": "1 kg | 3,49 €/kg",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038310",
+      "name": "TYMBARK Omena-kirsikkamehu",
+      "unitPriceText": "1 l | 2,49 €/l",
+      "source": "public_lidl_campaign_exact_match"
+    },
+    {
+      "lidlProductId": "10038314",
+      "name": "ATRIA Kanan fileesuikale 4 kpl",
+      "unitPriceText": "300 g | 7,49 €/kg | hinta yksittäin 2,89 € | 4 kpl 8,99 €",
+      "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038323",
+      "name": "ARLA Proteiinipirtelö 2 kpl",
+      "unitPriceText": "200 g | 6,25 €/kg | hinta yksittäin 1,49 € | 2 kpl 2,50 €",
+      "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038319",
+      "name": "REILU Naudan uunipata",
+      "unitPriceText": "700 g | 9,99 €/kg",
+      "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038320",
+      "name": "KARINIEMEN Kananpojan rintaleike",
+      "unitPriceText": "n. 1 kg | 7,99 €/kg",
+      "source": "public_exact_product_campaign_evidence"
+    },
+    {
+      "lidlProductId": "10038478",
+      "name": "PANDA Pepe Original -lakritsipatukka",
+      "unitPriceText": "32 g | 12,50 €/kg",
+      "source": "exact_product_public_catalog"
     }
   ],
   "remainingMissingRows": [
@@ -804,12 +870,6 @@
       "ian": "6902818"
     },
     {
-      "lidlProductId": "10038285",
-      "name": "KULJANKA Savustettu makkara",
-      "displayedPriceEur": 5.99,
-      "ian": "185279"
-    },
-    {
       "lidlProductId": "10038286",
       "name": "KULJANKA Valkokaalisalaatti",
       "displayedPriceEur": 1.99,
@@ -840,70 +900,16 @@
       "ian": "5524178"
     },
     {
-      "lidlProductId": "10038297",
-      "name": "KULJANKA Paprikapyree",
-      "displayedPriceEur": 1.49,
-      "ian": "6404019"
-    },
-    {
-      "lidlProductId": "10038298",
-      "name": "KULJANKA Maustesuola",
-      "displayedPriceEur": 3.49,
-      "ian": "5500397"
-    },
-    {
-      "lidlProductId": "10038304",
-      "name": "PODRAVKA Papu-lihapata",
-      "displayedPriceEur": 3.49,
-      "ian": "6905117"
-    },
-    {
-      "lidlProductId": "10038305",
-      "name": "KULJANKA Puolalainen makkara",
-      "displayedPriceEur": 3.79,
-      "ian": "5500349"
-    },
-    {
       "lidlProductId": "10038309",
       "name": "PILOS Vadelmakefir",
       "displayedPriceEur": 0.99,
       "ian": "5535919"
     },
     {
-      "lidlProductId": "10038310",
-      "name": "TYMBARK Omena-kirsikkamehu",
-      "displayedPriceEur": 2.49,
-      "ian": "7704257"
-    },
-    {
       "lidlProductId": "10038311",
       "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
       "displayedPriceEur": 5,
       "ian": "59859"
-    },
-    {
-      "lidlProductId": "10038314",
-      "name": "ATRIA Kanan fileesuikale 4 kpl",
-      "displayedPriceEur": 8.99,
-      "ian": "7112108"
-    },
-    {
-      "lidlProductId": "10038319",
-      "name": "REILU Naudan uunipata",
-      "displayedPriceEur": 9.99,
-      "ian": "7101787"
-    },
-    {
-      "lidlProductId": "10038320",
-      "name": "KARINIEMEN Kananpojan rintaleike",
-      "displayedPriceEur": 7.99,
-      "ian": "7108496"
-    },
-    {
-      "lidlProductId": "10038323",
-      "name": "ARLA Proteiinipirtelö 2 kpl",
-      "displayedPriceEur": 2.5,
-      "ian": "7111597"
     },
     {
       "lidlProductId": "10038471",
@@ -916,12 +922,6 @@
       "name": "GELATELLI Kuningatarkermajäätelö",
       "displayedPriceEur": 2.69,
       "ian": "7112282"
-    },
-    {
-      "lidlProductId": "10038478",
-      "name": "PANDA Pepe Original -lakritsipatukka",
-      "displayedPriceEur": 0.4,
-      "ian": "7108837"
     },
     {
       "lidlProductId": "10038479",
@@ -956,9 +956,9 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 35,
+    "resolvedOfficial": 46,
     "notApplicable": 11,
-    "remaining": 38
+    "remaining": 27
   },
   "unitPriceNotApplicable": [
     {
