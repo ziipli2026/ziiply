@@ -31,6 +31,23 @@ jobs:
             https://www.lidl.fi/h/leivaet-ja-leivonnaiset/h10096094 \
             https://www.lidl.fi/h/kahvit-teet-ja-kaakaot/h10071683 \
             https://www.lidl.fi/h/pakastepizzat-ja-snacksit/h10096197 \
+            https://www.lidl.fi/h/hedelmaet-ja-vihannekset/h10071012 \
+            https://www.lidl.fi/h/kala/h10071050 \
+            https://www.lidl.fi/h/oljyt-ja-kastikkeet/h10096110 \
+            https://www.lidl.fi/h/murot-ja-hillot/h10096153 \
+            https://www.lidl.fi/h/pakasteet/h10071049 \
+            https://www.lidl.fi/h/makeiset-ja-snacksit/h10096205 \
+            https://www.lidl.fi/h/juomat/h10071022 \
+            https://www.lidl.fi/h/kana/h10095753 \
+            https://www.lidl.fi/h/naudanliha/h10095754 \
+            https://www.lidl.fi/h/sianliha/h10095755 \
+            https://www.lidl.fi/h/leikkeleet/h10095758 \
+            https://www.lidl.fi/h/maito-ja-kerma/h10096075 \
+            https://www.lidl.fi/h/jogurtit-ja-rahkat/h10096076 \
+            https://www.lidl.fi/h/riisi-ja-pasta/h10096096 \
+            https://www.lidl.fi/h/keitot-ja-kastikkeet/h10096098 \
+            https://www.lidl.fi/c/hyytaevaen-herkullinen-se-kannattaa/a10104529 \
+            https://www.lidl.fi/c/uutta-valikoimassa/a10026611 \
             > tmp/lidl/category-price-evidence.json
           node -e 'const x=require("./tmp/lidl/category-price-evidence.json"); if((x.records?.length||0)<20) throw new Error(`Too few Lidl price observations: ${x.records?.length||0}`); console.log("records",x.records.length,"statusCounts",x.statusCounts)'
       - uses: actions/upload-artifact@v4
