@@ -816,12 +816,6 @@
       "ian": "80103"
     },
     {
-      "lidlProductId": "10038244",
-      "name": "FISKANO Tuore lohifilee",
-      "displayedPriceEur": 12.89,
-      "ian": "7112603"
-    },
-    {
       "lidlProductId": "10038245",
       "name": "HARTWALL Sokeriton Jaffa 6-pack 3 kpl",
       "displayedPriceEur": 10,
@@ -927,9 +921,9 @@
   "summary": {
     "originalMissing": 83,
     "resolvedOfficial": 46,
-    "resolvedDerived": 5,
+    "resolvedDerived": 6,
     "notApplicable": 11,
-    "remaining": 22
+    "remaining": 21
   },
   "unitPriceNotApplicable": [
     {
@@ -1045,6 +1039,13 @@
       "unitPriceText": "880 g (kiinteä paino 410 g) | 4,85 €/kg kiinteästä painosta",
       "source": "derived_from_exact_package_evidence_and_corpus_price",
       "derivation": "1.99 / 0.410 kg"
+    },
+    {
+      "lidlProductId": "10038244",
+      "name": "FISKANO Tuore lohifilee",
+      "unitPriceText": "n. 1,2 kg | hinta/kg 12,89 €",
+      "source": "exact_package_evidence_variable_weight",
+      "note": "displayedPriceEur is the per-kilogram price, not a package total"
     }
   ]
 }
