@@ -3,6 +3,8 @@
 export function prepareManualLidlReceipt(row) {
  const reject = reason => ({ candidate:null, reason });
  if (!row || row.permissionToUseEvidence !== true) return reject("permission-not-confirmed");
+ if (row.observedBarcode && !["packaging-code-unverified","paistopiste-shelf-code","scale-label-code"].includes(row.observedBarcode.kind))
+   return reject("invalid-observed-barcode");
  if (row.isLidlPlus !== false || row.isPromotion !== false ||
      row.isMultiBuy !== false) return reject("eligibility-unconfirmed-or-promotional");
  if (!["unit","kg","l"].includes(row.priceBasis) || row.priceBasis !== "unit")
