@@ -123,6 +123,6 @@ const records=raw.filter(r=>{
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,
   count:records.length,rawCount:raw.length,deduplicated:raw.length-records.length,
-  statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),
+  statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),\n  matchCounts:records.reduce((a,r)=>{const k=r.productMatchConfidence||"structured-continuous";a[k]=(a[k]||0)+1;return a},{}),
   records
 },null,2)+"\n");
