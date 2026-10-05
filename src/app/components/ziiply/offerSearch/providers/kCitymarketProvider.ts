@@ -86,7 +86,7 @@ export function category(t:string){
   if(/ihonhoito|pesulappu|ruokalappu|vuodesuoja/.test(s)) return "Hygienia & kosmetiikka";
   if(/välipalajuoma/.test(s)) return "Juomat";
   // Explicit non-food types precede generic matches (e.g. pussilakanasetti contains "kana").
-  if(/pussilakana|lakanasetti|torkkupeit|peitto\b|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|saappaat|kengät|valaisin|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypuss|rikkasetti|ruusukimppu|terttuneilikka|erika|lankaköynnös/.test(s)) return "Koti & vapaa-aika";
+  if(/pussilakana|aluslakana|lakana\b|lakanasetti|tyynyliina|koristetyyny|torkkupeit|peitto\b|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|saappaat|kengät|valaisin|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypuss|rikkasetti|ruusukimppu|terttuneilikka|erika|lankaköynnös|muki\b|vati\b|lautanen|kulho|ranneke|naamari|serpentiini|ilmapallo|hämähäkinverkko|halloween|luuranko|noita-asu|kurpitsa-asu|pehmo|nappikuulok|kuulok/.test(s)) return "Koti & vapaa-aika";
   if(/konetiskitablet|astianpesutablet|\\bfairy\\b/.test(s)) return "Kodinhoito";
   if(/kangasnaamio|kasvonaamio/.test(s)) return "Hygienia & kosmetiikka";
   if(/katkarav|jättikatkarav/.test(s)) return "Kala";
@@ -101,7 +101,7 @@ export function category(t:string){
   if(/koira|kissa|lemmik|possunkorva|kissanhiekka/.test(s)) return "Lemmikit";
   if(/little kids|lastenruo/.test(s)) return "Lastenruoat";
   if(/kiusaus|kiusauk|burger|härkis|härkäpapumursk|pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
-  if(/kana|kananpoika|broiler|nauta|sika|porsaa|porsas|jauheliha|makkara|nakki|pekoni|kinkku|kokoliha|leikkele|fileepih|fileesuikale|liha/.test(s)) return "Liha & makkarat";
+  if(/\\bkana\\b|kananpoika|broiler|nauta|sika|porsaa|porsas|jauheliha|makkara|nakki|pekoni|kinkku|kokoliha|leikkele|fileepih|fileesuikale|liha/.test(s)) return "Liha & makkarat";
   if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if(/skyr|maito|juusto|jogur|rahka|kerma|voi\b|margariin|raejuusto|viili|piim|kefir|vanukas|vanukka|mousse|grana padano|creme fraiche|crème fraiche|smetana/.test(s)) return "Maitotuotteet";
   if(/kahvi|espresso|tee\b/.test(s)) return "Kahvi & tee";
