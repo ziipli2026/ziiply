@@ -788,27 +788,27 @@
       "name": "PANDA Pepe Original -lakritsipatukka",
       "unitPriceText": "32 g | 12,50 €/kg",
       "source": "exact_product_public_catalog"
-    }
-  ],
-  "remainingMissingRows": [
+    },
     {
       "lidlProductId": "10037646",
       "name": "OULULAINEN Pullava Dallaspitko",
-      "displayedPriceEur": 3.29,
-      "ian": "7109970"
+      "unitPriceText": "400 g | 8,23 €/kg",
+      "source": "official_lidl_fi_index_exact_price_match"
     },
     {
       "lidlProductId": "10037647",
       "name": "OULULAINEN Reissumies Tosi Ohut",
-      "displayedPriceEur": 1.79,
-      "ian": "7112815"
+      "unitPriceText": "210 g | 8,52 €/kg",
+      "source": "official_lidl_fi_index_exact_price_match"
     },
     {
       "lidlProductId": "10037648",
       "name": "OULULAINEN Reissumies Tosi Ohut",
-      "displayedPriceEur": 1.49,
-      "ian": "7112814"
-    },
+      "unitPriceText": "175 g | 8,51 €/kg",
+      "source": "official_lidl_fi_index_exact_price_match"
+    }
+  ],
+  "remainingMissingRows": [
     {
       "lidlProductId": "10038243",
       "name": "Satsuma",
@@ -920,10 +920,10 @@
   ],
   "summary": {
     "originalMissing": 83,
-    "resolvedOfficial": 46,
+    "resolvedOfficial": 49,
     "resolvedDerived": 6,
     "notApplicable": 11,
-    "remaining": 21
+    "remaining": 18
   },
   "unitPriceNotApplicable": [
     {
