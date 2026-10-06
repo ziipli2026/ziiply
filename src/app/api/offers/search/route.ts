@@ -751,6 +751,20 @@ export async function GET(request: Request) {
           next.category = correctedCategory;
           next.categoryPath = correctedCategory;
           next.mainCategory = correctedCategory;
+
+          // The mobile offer card keeps the provider row under
+          // __sourceOfferSearchResult and some category paths still read that
+          // nested object. Keep the effective category synchronized there too;
+          // rawText remains untouched as source evidence.
+          const sourceOffer = next.__sourceOfferSearchResult;
+          if (sourceOffer && typeof sourceOffer === "object" && !Array.isArray(sourceOffer)) {
+            next.__sourceOfferSearchResult = {
+              ...(sourceOffer as UnknownRecord),
+              category: correctedCategory,
+              categoryPath: correctedCategory,
+              mainCategory: correctedCategory,
+            };
+          }
         }
         return next;
       };
