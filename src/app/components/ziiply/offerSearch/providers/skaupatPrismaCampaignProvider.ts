@@ -67,6 +67,7 @@ export async function fetchPrismaCampaignOffersV1(
         if(seen.has(key)) continue;
         const pricing=product.pricing??product.store?.pricing??{};
         const price=Number(pricing.campaignPrice??pricing.currentPrice??product.price);
+        const campaignUntil=String(pricing.campaignPriceValidUntil??"").trim();
         if(!Number.isFinite(price)||price<=0) continue;
         seen.add(key);
         const hierarchy=Array.isArray(product.hierarchyPath)?product.hierarchyPath.map((h:RecordValue)=>String(h.name??"")).filter(Boolean):[];
@@ -84,7 +85,10 @@ export async function fetchPrismaCampaignOffersV1(
           matchScore:1,rawText:title+" "+sectionTitle,
           ean,category,categoryPath:[...hierarchy].reverse().join(" > ")||category,
           mainCategory:category,productGroup:hierarchy[hierarchy.length-2]||"",subCategory:hierarchy[0]||"",
-          campaignType:"campaign",campaignSection:sectionTitle,storeId
+          campaignType:"campaign",campaignSection:sectionTitle,storeId,
+          validUntil:campaignUntil,
+          validityText:campaignUntil ? "Voimassa "+campaignUntil : "",
+          debugPrismaCampaignEvidenceV2:{campaignPriceValidUntil:campaignUntil||null}
         } as ZiiplyOfferSearchResult);
       }
     }
