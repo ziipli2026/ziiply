@@ -79,7 +79,7 @@ const candidate={
     dataAttributes:[...frameHtml.matchAll(/\bdata-[a-z0-9_-]+=["']([^"']{1,300})["']/gi)].map(m=>m[0]).slice(0,40)
   },
   ready:Boolean(issue&&validity&&validityCurrentOrFuture&&priceTokens.length>=5&&storeHits.length>=1&&parsedOffers.length===15&&uniqueNames.size===parsedOffers.length&&parseErrors.length===0),
-  reason:candidateReadyReason
+  reason:parseErrors.length===0&&parsedOffers.length===15&&uniqueNames.size===parsedOffers.length&&validityCurrentOrFuture?"EUROSPAR publication and 15 offer rows parsed; candidate can be promoted after validation.":"EUROSPAR publication found but one or more offer rows failed validation; keep existing feed fail-closed."
 };
 
 if(candidate.ready){
