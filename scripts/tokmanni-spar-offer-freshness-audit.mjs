@@ -14,7 +14,7 @@ const eurospar={
   active:Boolean(from&&to&&from<=now&&now<=to),
 };
 
-const url=new URL("https://www.tokmanni.fi/viikkotarjoukset");
+const url=new URL("https://www.tokmanni.fi/viikkotarjoukset/elintarvikkeet-ja-elainruoka");
 const response=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)});
 if(!response.ok)throw new Error("Tokmanni weekly offers HTTP "+response.status);
 const html=await response.text();
@@ -22,7 +22,7 @@ const text=html.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]
 const totalMatch=text.match(/(?:Tuotteet\s+\d+\s*[-–]\s*\d+\s*\/\s*|)(\d+)\s+tuotetta/i);
 const total=totalMatch?Number(totalMatch[1]):null;
 const cards=(html.match(/<li\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/gi)||[]).length;
-const tokmanni={http:response.status,total,cards,source:"https://www.tokmanni.fi/viikkotarjoukset",healthy:response.ok&&cards>0};
+const expectedFirstPage=Math.min(total??40,40);\nconst tokmanni={http:response.status,total,cards,expectedFirstPage,source:url.href,healthy:response.ok&&Number.isFinite(total)&&total>0&&cards>=expectedFirstPage};
 
 const report={checkedAt:new Date().toISOString(),dateFi:now,eurospar,tokmanni};
 writeFileSync("tokmanni-spar-offer-freshness.json",JSON.stringify(report,null,2));
