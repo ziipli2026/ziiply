@@ -14769,11 +14769,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           })();
         }
 
-        // V815: Lidl verified EAN remains identity-only.
-        // Do not call the existing third-party Lidl price adapter from the scanner:
-        // its current terms/provenance are not approved for automated commercial use.
-        // A scanned verified Lidl product therefore stays unpriced until an authorized
-        // store-price source is available; research/catalog observations never fill price.
+        // V827: verified Lidl EAN identity may reuse a fresh store-specific Neon price.
+        // Missing/stale cache stays unpriced here; it must be refreshed by an approved
+        // price source. Never fall through to the legacy third-party Lidl adapter.
+        if (
+          bankSourceV786 === "lidl-verified-ean-master" &&
+          selectedChains.lidl &&
+          selectedLidlStoreV750
+        ) {
+          void (async () => {
+            try {
+              const lidlStoreIdV827 = String(
+                (selectedLidlStoreV750 as any)?.id ||
+                (selectedLidlStoreV750 as any)?.storeId ||
+                (selectedLidlStoreV750 as any)?.name ||
+                "",
+              ).trim();
+              if (!lidlStoreIdV827) return;
+              const params = new URLSearchParams({ ean, storeId: lidlStoreIdV827 });
+              const response = await fetch(`/api/lidl/ean-price?${params.toString()}`, { cache: "no-store" });
+              const data = response.ok ? await response.json().catch(() => null) : null;
+              if (data?.status !== "fresh" || !data?.price) return;
+              const price = Number(data.price.priceEur || 0);
+              if (!(price > 0)) return;
+              setCart((currentCart) => {
+                const nextCart = currentCart.map((item) => {
+                  if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  return {
+                    ...item,
+                    price,
+                    chain: "Lidl" as const,
+                    storeName: selectedLidlStoreV750?.name || item.storeName,
+                    product: { ...(item.product || {}), ean, price } as Product,
+                    ean,
+                  } as CartItem;
+                });
+                cartRefV124.current = nextCart;
+                if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
+                return nextCart;
+              });
+            } catch {}
+          })();
+        }
 
         // Selected Citymarket/K-store must receive its own exact-EAN lookup even
         // when the identity bank takes the fast scanner return above.
