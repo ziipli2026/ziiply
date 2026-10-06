@@ -1,0 +1,16 @@
+import { searchSelectedSKaupatOffersV11, searchZiiplyOffers } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
+import { fetchPrismaCampaignOffersV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider";
+const MASTER="__ziiply_all_offers__",storeName="Prisma Hyvinkää";
+const ctx={storeName,sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
+const cfg={id:"skaupat",chain:"S",storeLabel:storeName,url:"https://www.s-kaupat.fi"};
+const [d,c,m]=await Promise.all([searchSelectedSKaupatOffersV11(MASTER,ctx as any),fetchPrismaCampaignOffersV1(MASTER,cfg as any,storeName),searchZiiplyOffers(MASTER,ctx as any)]);
+const price=(x:any)=>{const n=Number(x?.price);if(Number.isFinite(n))return n.toFixed(4);const p=Number(String(x?.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(p)?p.toFixed(4):""};
+const valid=(x:any)=>String(x?.validUntil??x?.debugOfferEvidenceV226?.campaignPriceValidUntil??x?.debugPrismaCampaignEvidenceV2?.campaignPriceValidUntil??"").trim();
+const store=(x:any)=>String(x?.storeId??x?.debugOfferEvidenceV226?.storeId??x?.debugPrismaCampaignEvidenceV2?.storeId??"").trim();
+const key=(x:any)=>[store(x),String(x?.ean??"").trim(),price(x),valid(x)].join("|");
+const ck=new Set(c.map(key));const hidden=d.filter(x=>ck.has(key(x)));const kept=d.filter(x=>!ck.has(key(x)));
+const synthetic={storeId:"634976534",ean:"9999999999999",price:1.23,validUntil:"2026-10-11"};const exact=new Set([key(synthetic)]);
+const guards={exactMatchHidden:exact.has(key({...synthetic})),differentPriceKept:!exact.has(key({...synthetic,price:1.24})),differentValidityKept:!exact.has(key({...synthetic,validUntil:"2026-10-12"})),missingValidityKept:!exact.has(key({...synthetic,validUntil:""})),differentStoreKept:!exact.has(key({...synthetic,storeId:"OTHER"})),differentEanKept:!exact.has(key({...synthetic,ean:"8888888888888"}))};
+const uiOfferCount=m.filter((x:any)=>x?.campaignType!=="campaign").length,uiCampaignCount=m.filter((x:any)=>x?.campaignType==="campaign").length;
+const report={live:{discounted:d.length,campaigns:c.length,master:m.length,uiOfferCount,uiCampaignCount,hiddenByStrictRule:hidden.length,offersAfterStrictRule:kept.length,finalUiRowsAfterStrictRule:kept.length+uiCampaignCount,hiddenSample:hidden.slice(0,8).map((x:any)=>({ean:x.ean,title:x.title,price:price(x),validity:valid(x),store:store(x)})),muikkuHidden:hidden.filter((x:any)=>String(x.ean)==="2004657500003").map((x:any)=>({ean:x.ean,title:x.title,price:price(x),validity:valid(x),store:store(x)}))},guards,pass:Object.values(guards).every(Boolean)};
+console.log("UI_DEDUPE_SIM",JSON.stringify(report,null,2));if(!report.pass)process.exitCode=1;
