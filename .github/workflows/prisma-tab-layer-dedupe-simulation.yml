@@ -30,8 +30,8 @@ jobs:
             const numericPrice=(item:any)=>{const direct=Number(item?.price);if(Number.isFinite(direct))return direct;const parsed=Number(String(item?.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};
             const identity=(item:any)=>{const ean=String(item?.ean??item?.gtin??item?.barcode??"").trim();const price=numericPrice(item);return ean&&price!==null?ean+"|"+price.toFixed(4):""};
             const selectedStore=String(selectedStoreName??"").trim();
-            if(!/^prisma(?:\\s|$)/i.test(selectedStore))return visibleResults;
-            const prismaCampaignKeys=new Set(masterResults.filter((item:any)=>item?.campaignType==="campaign"&&/^prisma(?:\\s|$)/i.test(String(item?.storeLabel??item?.storeName??""))&&String(item?.storeLabel??item?.storeName??"").trim().toLowerCase()===selectedStore.toLowerCase()).map(identity).filter(Boolean));
+            if(!/^prisma(?:\s|$)/i.test(selectedStore))return visibleResults;
+            const prismaCampaignKeys=new Set(masterResults.filter((item:any)=>item?.campaignType==="campaign"&&/^prisma(?:\s|$)/i.test(String(item?.storeLabel??item?.storeName??""))&&String(item?.storeLabel??item?.storeName??"").trim().toLowerCase()===selectedStore.toLowerCase()).map(identity).filter(Boolean));
             if(!prismaCampaignKeys.size)return visibleResults;
             return visibleResults.filter((item:any)=>item?.campaignType==="campaign"||!prismaCampaignKeys.has(identity(item)));
           };
