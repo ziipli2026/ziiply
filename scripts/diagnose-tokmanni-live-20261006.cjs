@@ -26,6 +26,18 @@ function first(block, patterns) {
   for (const re of patterns) { const m=block.match(re); if(m?.[1]) return textOf(m[1]); }
   return "";
 }
+function price(value) {
+  const m=String(value??"").replace(/\s/g,"").match(/(\d+(?:[.,]\d{1,2})?)/);
+  return m ? Number(m[1].replace(",",".")) : null;
+}
+function mapOutcome(block) {
+  const t=textOf(block);
+  const multi=t.match(/(\d+)\s*kpl\s*\/\s*(\d+(?:[,.]\d{1,2})?)\s*€/i);
+  const offerMarker=t.match(/(?:Tarjoushinta|Klubitarjous!)\s*(\d+(?:[,.]\d{1,2})?)/i);
+  const normalMarker=t.match(/Normaalihinta\s*(\d+(?:[,.]\d{1,2})?)/i);
+  const offerPrice=multi ? Number(multi[2].replace(",",".")) : price(offerMarker?.[1]);
+  return {offerPrice, offerMarker:offerMarker?.[0]||"", normalMarker:normalMarker?.[0]||""};
+}
 function parsed(block) {
   const name=first(block,[
     /class=["'][^"']*product-item-link[^"']*["'][^>]*>([\s\S]*?)<\/a>/i,
@@ -44,8 +56,11 @@ function parsed(block) {
     const html=await res.text();
     const raw=rawProductBlocks(html), offers=productBlocks(html), examples=offers.slice(0,5).map(parsed);
     const named=offers.filter(x=>parsed(x).name).length;
+    const outcomes=offers.map(mapOutcome);
+    const priced=outcomes.filter(x=>x.offerPrice!=null).length;
+    const unpriced=outcomes.filter(x=>x.offerPrice==null).length;
     totalRaw+=raw.length; totalOffer+=offers.length; totalNamed+=named;
-    console.log(JSON.stringify({page,status:res.status,bytes:html.length,advertised:page===1?advertisedTotal(html):null,rawCards:raw.length,offerCards:offers.length,namedOfferCards:named,hasProductItem:/product-item/i.test(html),hasTarjoushinta:/Tarjoushinta/i.test(textOf(html)),hasKpl:/\d+\s*kpl\s*\//i.test(textOf(html)),examples},null,2));
+    console.log(JSON.stringify({page,status:res.status,bytes:html.length,advertised:page===1?advertisedTotal(html):null,rawCards:raw.length,offerCards:offers.length,namedOfferCards:named,priced,unpriced,unpricedSamples:offers.filter((x,i)=>outcomes[i].offerPrice==null).slice(0,5).map(parsed),hasProductItem:/product-item/i.test(html),hasTarjoushinta:/Tarjoushinta/i.test(textOf(html)),hasKpl:/\d+\s*kpl\s*\//i.test(textOf(html)),examples},null,2));
   }
   console.log("TOTALS",JSON.stringify({totalRaw,totalOffer,totalNamed}));
   if(totalRaw===0) process.exitCode=2;
