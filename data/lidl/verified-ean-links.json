@@ -288,5 +288,10 @@
     "lidlProductId": "10038542",
     "ean": "4056489042587",
     "evidence": "Lidl Finland identifies ITALIAMO Grana Padano productId 10038542 as 200 g, matured over 16 months. Lidl France official consumer product table identifies Grana Padano 16 mois 200g with GTIN 4056489042587."
+  },
+  {
+    "lidlProductId": "10038569",
+    "ean": "0000020034153",
+    "evidence": "Lidl Finland identifies ITALIAMO Savoiardi productId 10038569 as 400 g. Current Swedish Lidl product data identifies ITALIAMO Savoiardi 400 g with EAN 0000020034153; Lidl Italy also lists Savoiardi 400 g."
   }
 ]
