@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
              fresh_until AS "freshUntil", evidence_reference AS "evidenceReference",
              checkout_price_verified AS "checkoutPriceVerified"
       FROM ziiply_lidl_ean_prices
-      WHERE ean=${ean} AND store_id=${storeId} AND price_kind='regular'
+      WHERE ean=${ean} AND store_id=${storeId} AND price_kind='regular' AND checkout_price_verified=TRUE
       LIMIT 1
     `;
     const row=rows[0] ?? null;
