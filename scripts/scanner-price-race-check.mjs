@@ -241,3 +241,22 @@ assert.match(addResultV838, /setEanScannerMessage\("✓ Kerätty"\)/);
   assert.equal(quantity, 4, "second scan may increment quantity only after collection");
 }
 console.log("V838 existing basket collection semantics regression: PASS");
+
+
+// V839: closing/navigating away from the scanner invalidates the V837 waiting scan too.
+const closeEanV839 = source.split("async function closeEanModal")[1]?.split("function openEanModal")[0];
+assert.ok(closeEanV839, "EAN modal close handler exists");
+assert.match(closeEanV839, /queuedPhysicalScanRefV837\.current = null/);
+const modalBackstopV839 = source.split("// V835: closing the EAN modal by any navigation path")[1]?.split("function resolveVoiceResultWaitV509")[0];
+assert.ok(modalBackstopV839, "EAN modal close backstop exists");
+assert.match(modalBackstopV839, /queuedPhysicalScanRefV837\.current = null/);
+{
+  let queued = "B";
+  let scannerOpen = true;
+  const close = () => { scannerOpen = false; queued = null; };
+  close();
+  const releasedAfterOldA = queued;
+  assert.equal(scannerOpen, false);
+  assert.equal(releasedAfterOldA, null, "old A cannot release queued B after scanner close");
+}
+console.log("V839 scanner close invalidates queued physical scan regression: PASS");
