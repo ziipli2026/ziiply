@@ -210,3 +210,34 @@ assert.match(searchTailV837, /finishScannedEan\(queuedPhysicalScanV837\)/);
   assert.equal(queued, null, "queue is empty after drain");
 }
 console.log("V837 fast consecutive physical scan queue regression: PASS");
+
+
+// V838: collection semantics for an item already in the basket.
+// First physical scan checks an unchecked row without changing quantity;
+// only the next physical scan of the already-checked row may increment quantity.
+const addResultV838 = source.split("function addEanResultToCart")[1]?.split("function addProductToCart")[0];
+assert.ok(addResultV838, "EAN result cart handler exists");
+assert.match(addResultV838, /if \(isPhysicalBarcodeScanV815 && scannerExistingItemV798\)/);
+assert.match(addResultV838, /!checkedCartItems\[collectionKeyV814\]/);
+assert.match(addResultV838, /setCheckedCartItems/);
+assert.match(addResultV838, /setEanMessage\("Tuote kerätty\."\)/);
+assert.match(addResultV838, /setEanScannerMessage\("✓ Kerätty"\)/);
+
+{
+  let quantity = 3;
+  let checked = false;
+  const physicalScan = () => {
+    if (!checked) {
+      checked = true;
+      return "collected";
+    }
+    quantity += 1;
+    return "incremented";
+  };
+  assert.equal(physicalScan(), "collected");
+  assert.equal(checked, true);
+  assert.equal(quantity, 3, "first collection scan must preserve existing quantity");
+  assert.equal(physicalScan(), "incremented");
+  assert.equal(quantity, 4, "second scan may increment quantity only after collection");
+}
+console.log("V838 existing basket collection semantics regression: PASS");
