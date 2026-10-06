@@ -807,7 +807,7 @@ export async function GET(request: Request) {
         .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName }))
         .filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
-        { ok: true, query: q, provider: "tokmanni", storeName, results, debug: { tokmanni: getTokmanniOfferDebug(), campaigns: results.filter((offer) => offer.campaignType === "campaign").length, offers: results.filter((offer) => offer.campaignType !== "campaign").length } },
+        { ok: true, query: q, provider: "tokmanni", storeName, results, debug: { tokmanni: getTokmanniOfferDebug(), campaigns: results.filter((offer) => offer["campaignType"] === "campaign").length, offers: results.filter((offer) => offer["campaignType"] !== "campaign").length } },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
