@@ -55,7 +55,7 @@ function parseOfferSegment(segment,index){
   return {name:title.toLocaleLowerCase("fi-FI"),category,size,packCount:null,unitPrice,unitPriceUnit,normalPrice:normal,normalUnit:normalMatch?.[3]??null,discountPercent:discount,restriction:null,offerPrice,multiUnit,eans:[],identityStatus:"leaflet-only",identityReason:"EUROSPAR fresh-food catalog identity is not exposed by Tokmanni web/Klevu; do not infer EAN",id:"eurospar:"+issue+":1:"+(index+1),chain:"EUROSPAR",storeType:"EUROSPAR",source:"EUROSPAR tarjouslehti",priceBasis:multiUnit?"multi-buy-total":"single-unit",issue,validFrom:validity?.from??null,validTo:validity?.to??null,stores:storeNames,page:1};
 }
 const parsedOffers=offerSegments.map(parseOfferSegment);
-const parseErrors=parsedOffers.filter(x=>!x.name||!(x.offerPrice>0)||!x.validFrom||!x.validTo);
+const parseErrors=parsedOffers.filter(x=>!x.name||x.name.length<5||!(x.offerPrice>0)||x.offerPrice>100||!x.validFrom||!x.validTo);\nconst uniqueNames=new Set(parsedOffers.map(x=>x.name));\nconst validityCurrentOrFuture=Boolean(validity?.to && validity.to>=today);
 
 
 
@@ -78,8 +78,8 @@ const candidate={
     scriptSources:[...frameHtml.matchAll(/<script\b[^>]*src=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]).slice(0,30),
     dataAttributes:[...frameHtml.matchAll(/\bdata-[a-z0-9_-]+=["']([^"']{1,300})["']/gi)].map(m=>m[0]).slice(0,40)
   },
-  ready:Boolean(issue&&validity&&priceTokens.length>=5&&storeHits.length>=1&&parsedOffers.length===15&&parseErrors.length===0),
-  reason:parseErrors.length===0&&parsedOffers.length===15?"EUROSPAR publication and 15 offer rows parsed; candidate can be promoted after validation.":"EUROSPAR publication found but one or more offer rows lack a reliable offer price; keep existing feed fail-closed."
+  ready:Boolean(issue&&validity&&validityCurrentOrFuture&&priceTokens.length>=5&&storeHits.length>=1&&parsedOffers.length===15&&uniqueNames.size===parsedOffers.length&&parseErrors.length===0),
+  reason:candidateReadyReason
 };
 
 if(candidate.ready){
