@@ -2,6 +2,7 @@
 import {readFileSync,writeFileSync} from "node:fs";
 
 const FEED="src/app/components/ziiply/offerSearch/providers/eurospar-feed.json";
+// Live validation fixture trigger.
 const HUB="https://www.tokmanni.fi/tarjouslehti";
 const oldFeed=JSON.parse(readFileSync(FEED,"utf8"));
 const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
