@@ -9306,14 +9306,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // Preserve the last complete comparison presentation across a hard Safari reload.
   // Match it to the basket; never replace it with the transient zero-match
   // projection produced before asynchronous store/match hydration finishes.
+  const COMPARE_PRESENTATION_SCHEMA_V822 = 2;
   const [savedComparePresentationV821, setSavedComparePresentationV821] = useState<{
-    signature: string; results: ChainResult[];
+    schema?: number; signature: string; results: ChainResult[];
   } | null>(() => {
     if (typeof window === "undefined") return null;
     try {
       const raw = window.localStorage.getItem("ziiply-compare-presentation-v821");
       const parsed = raw ? JSON.parse(raw) : null;
-      return parsed && typeof parsed.signature === "string" && Array.isArray(parsed.results)
+      return parsed && parsed.schema === COMPARE_PRESENTATION_SCHEMA_V822 &&
+        typeof parsed.signature === "string" && Array.isArray(parsed.results)
         ? parsed : null;
     } catch { return null; }
   });
@@ -9322,7 +9324,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     (result.matches || []).some((match) => Number(match.price) > 0));
   useEffect(() => {
     if (!currentComparePricedV821 || comparisonLoading || restoredCartPromptV320.open) return;
-    const snapshot = { signature: comparePresentationSignatureV821, results: chainResults };
+    const snapshot = { schema: COMPARE_PRESENTATION_SCHEMA_V822, signature: comparePresentationSignatureV821, results: chainResults };
     setSavedComparePresentationV821(snapshot);
     try { window.localStorage.setItem("ziiply-compare-presentation-v821", JSON.stringify(snapshot)); } catch {}
   }, [chainResults, currentComparePricedV821, comparisonLoading, restoredCartPromptV320.open, comparePresentationSignatureV821]);
