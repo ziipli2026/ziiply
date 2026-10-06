@@ -34,6 +34,9 @@ const verifiedLeafletImages: Record<string, string> = {
   "lidl-leaflet-kuusamon-erankavija-20261005": "https://public.keskofiles.com/f/k-ruoka/product/6405020033931",
   "lidl-leaflet-atria-chicken-strips": "https://cdn.s-cloud.fi/v1/w720h720%40_q75/assets/dam-id/A41snnwqaIh9IaMfw5EgR4.webp",
   "lidl-leaflet-arla-protein": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/5711953201707?auto=format&h=400&pad=30",
+  "lidl-leaflet-hk-burger": "https://cdn.s-cloud.fi/v1/w750_q75/product/ean/6409100077884_kuva1.jpg",
+  "lidl-leaflet-kartanon-meatballs": "https://archivana.com/pics/6e/cd/6ecd70207381941b14524e0e06f83a75ecc97fc3.jpg",
+  "lidl-leaflet-danerolles-croissants-20261005": "https://web-fileserver.dekamarkt.nl/artikelen/254211_1_335427_639095118682893590.png?height=500&mode=crop&width=500",
 };
 
 export function addVerifiedLidlWeek40Leaflet(
