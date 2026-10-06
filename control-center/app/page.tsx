@@ -1,10 +1,10 @@
 import {neon} from "@neondatabase/serverless";
 
 const CHAINS=[
-  {key:"S",name:"S-ryhmä / Prisma / S-market"},
-  {key:"K",name:"K-ryhmä / Citymarket / K-Supermarket / K-Market"},
-  {key:"Lidl",name:"Lidl"},
-  {key:"Tokmanni",name:"Tokmanni / SPAR"}
+  {key:"S",name:"S-ryhmä / Prisma / S-market",match:(v:string)=>/^(s(?::|$)|prisma|s-?market|sale|alepa)/i.test(v)},
+  {key:"K",name:"K-ryhmä / Citymarket / K-Supermarket / K-Market",match:(v:string)=>/^(k(?::|$)|k-?citymarket|citymarket|k-?supermarket|k-?market)/i.test(v)},
+  {key:"Lidl",name:"Lidl",match:(v:string)=>/^lidl(?::|$)/i.test(v)},
+  {key:"Tokmanni",name:"Tokmanni / SPAR",match:(v:string)=>/^(tokmanni|spar|eurospar)(?::|$)/i.test(v)}
 ];
 
 type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;checked_at:string};
@@ -58,17 +58,18 @@ function dot(s:string){return s==="green"?"🟢":s==="yellow"?"🟡":s==="red"?"
 
 export default async function Page(){
   const d=await load();
-  const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>r.chain.toLowerCase().includes(c.key.toLowerCase()))}));
+  const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim()))}));
   const activePubs=d.pubs.filter(p=>p.approval_state==="approved"&&new Date(p.valid_from+"T00:00:00")<=new Date()&&new Date(p.valid_until+"T23:59:59")>=new Date());
   const candidatePubs=d.pubs.filter(p=>p.approval_state==="candidate");
   const activeOfferTotal=activePubs.reduce((n,p)=>n+p.offer_count,0);
   const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
-  const staleRuns=d.runs.filter(r=>Date.now()-new Date(r.checked_at).getTime()>36*60*60*1000);
+  const latestBySource=[...new Map(d.runs.map(r=>[`${r.chain}::${r.source}`,r])).values()];
+  const staleRuns=latestBySource.filter(r=>Date.now()-new Date(r.checked_at).getTime()>36*60*60*1000);
   const latestRun=d.runs[0];
   const states=cards.map(c=>state(c.runs));
-  const overall=states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
+  const overall=activeCandidates.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
   return <main style={{maxWidth:1500,margin:"0 auto",padding:28}}>
     <header style={{display:"flex",justifyContent:"space-between",alignItems:"end",marginBottom:22}}>
