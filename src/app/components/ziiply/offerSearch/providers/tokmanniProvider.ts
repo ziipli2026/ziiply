@@ -8,15 +8,6 @@ const TOKMANNI_MAX_PAGES = 20;
 const TOKMANNI_CACHE_TTL_MS = 10 * 60 * 1000;
 let tokmanniOffersCache: { expiresAt: number; items: TokmanniOffer[] } | null = null;
 let tokmanniOffersInFlight: Promise<TokmanniOffer[]> | null = null;
-let tokmanniOfferDebug = {
-  source: TOKMANNI_OFFERS_URL,
-  advertisedTotal: null as number | null,
-  parsed: 0,
-  pages: 0,
-  cacheHit: false,
-  fetchedAt: null as string | null,
-};
-export function getTokmanniOfferDebug() { return { ...tokmanniOfferDebug }; }
 
 const clean = (value: unknown) =>
   String(value ?? "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").trim();
@@ -224,14 +215,6 @@ async function fetchTokmanniOffersFresh() {
   const pageCount = total
     ? Math.min(TOKMANNI_MAX_PAGES, Math.max(1, Math.ceil(total / TOKMANNI_PAGE_SIZE)))
     : 1;
-  tokmanniOfferDebug = {
-    source: TOKMANNI_OFFERS_URL,
-    advertisedTotal: total,
-    parsed: 0,
-    pages: pageCount,
-    cacheHit: false,
-    fetchedAt: new Date().toISOString(),
-  };
   if (total != null && Math.ceil(total / TOKMANNI_PAGE_SIZE) > TOKMANNI_MAX_PAGES) {
     throw new Error(`Tokmanni offer listing exceeds parser page cap: ${total} products`);
   }
@@ -285,14 +268,12 @@ async function fetchTokmanniOffersFresh() {
     );
   }
 
-  tokmanniOfferDebug = { ...tokmanniOfferDebug, parsed: dedupedItems.length };
   return dedupedItems;
 }
 
 export async function fetchTokmanniOffers() {
   const now = Date.now();
   if (tokmanniOffersCache && tokmanniOffersCache.expiresAt > now) {
-    tokmanniOfferDebug = { ...tokmanniOfferDebug, cacheHit: true };
     return tokmanniOffersCache.items;
   }
   if (tokmanniOffersInFlight) return tokmanniOffersInFlight;
