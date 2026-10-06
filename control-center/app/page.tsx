@@ -14,7 +14,7 @@ type ScanStats={events_24h:number;unresolved_24h:number;unknown_24h:number;no_pr
 
 async function load(){
   const url=process.env.DATABASE_URL;
-  if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],pubs:[] as Pub[],ean:null};
+  if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],pubs:[] as Pub[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats};
   try{
     const sql=neon(url);
     const runs=await sql`SELECT checked_at::text AS checked_at,chain,source,ok,offer_count,outcome
