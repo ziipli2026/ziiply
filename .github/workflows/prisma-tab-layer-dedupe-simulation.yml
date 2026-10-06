@@ -31,6 +31,10 @@ jobs:
           const campaignKeys=new Set(campaigns.map(key).filter(Boolean));
           const hidden=offers.filter(x=>campaignKeys.has(key(x)));
           const kept=offers.filter(x=>!campaignKeys.has(key(x)));
+          const productionHelperResult:any[]=hidePrismaOfferCopiesAlreadyInCampaignTabV804([...offers,...campaigns],[...offers,...campaigns]);
+          const helperOffers=productionHelperResult.filter(x=>x.campaignType!=="campaign"),helperCampaigns=productionHelperResult.filter(x=>x.campaignType==="campaign");
+          const foreignOffer={ean:"9999999999999",price:1.23,storeLabel:"Lidl"} as any,foreignCampaign={ean:"9999999999999",price:1.23,storeLabel:"Lidl",campaignType:"campaign"} as any;
+          const foreignResult=hidePrismaOfferCopiesAlreadyInCampaignTabV804([foreignOffer,foreignCampaign],[foreignOffer,foreignCampaign]);
           const byCat=(rows:any[])=>Object.fromEntries([...new Set(rows.map(x=>String(x.mainCategory??x.category??"").trim()||"(empty)"))].sort().map(c=>[c,rows.filter(x=>(String(x.mainCategory??x.category??"").trim()||"(empty)")===c).length]));
           const hiddenSignal=hidden.map(x=>({ean:String(x.ean??""),title:x.title,price:price(x),validUntil:String(x.validUntil??x.debugOfferEvidenceV226?.campaignPriceValidUntil??""),labels:String(x.debugOfferEvidenceV226?.rawLabels??""),campaignPrice:x.debugOfferEvidenceV226?.campaignPrice??null,currentPrice:x.debugOfferEvidenceV226?.currentPrice??null,regularPrice:x.debugOfferEvidenceV226?.regularPrice??null}));
           const noSignal=hiddenSignal.filter(x=>!x.labels&&!x.validUntil&&x.campaignPrice==null&&!(Number.isFinite(Number(x.currentPrice))&&Number.isFinite(Number(x.regularPrice))&&Number(x.currentPrice)<Number(x.regularPrice)));
