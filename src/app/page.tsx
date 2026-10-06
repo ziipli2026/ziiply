@@ -4613,6 +4613,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const lastEanCartAddRef = useRef<{ key: string; at: number } | null>(null);
   // V791: kauppavarmistus tehdään vain ensimmäisen onnistuneen skannerilisäyksen jälkeen.
   const scannerStoreCheckDoneRefV791 = useRef(false);
+  // V828: scanner session knows separately whether scans are collection scans.
+  // "En" never blocks product lookup; it only disables automatic collected-state.
+  const scannerInStoreRefV828 = useRef(false);
+  const scannerConfirmedStoreNameRefV828 = useRef("");
+  const scannerStorePromptResolverRefV828 = useRef<null | ((inStore: boolean) => void)>(null);
+  const scannerStorePromptTimerRefV828 = useRef<number | null>(null);
+  const [scannerStorePromptV828, setScannerStorePromptV828] = useState<{ storeName: string; seconds: number } | null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
   const cartSaveTimeoutRef = useRef<number | null>(null);
@@ -13395,8 +13402,49 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V819: etänä koottu kori on vahva ennakkotieto keräyskaupasta.
   // GPS vahvistaa tätä hypoteesia, mutta 50 m turvaraja ja viereisten kauppojen
   // ristiriita ratkaisevat, voidaanko keräilysessio avata ilman kysymystä.
-  function confirmPhysicalScannerStoreV818() {
-    if (scannerStoreCheckDoneRefV791.current) return true;
+  function resolveScannerStorePromptV828(inStore: boolean) {
+    if (scannerStorePromptTimerRefV828.current) {
+      window.clearInterval(scannerStorePromptTimerRefV828.current);
+      scannerStorePromptTimerRefV828.current = null;
+    }
+    setScannerStorePromptV828(null);
+    scannerStoreCheckDoneRefV791.current = true;
+    scannerInStoreRefV828.current = inStore;
+    const resolve = scannerStorePromptResolverRefV828.current;
+    scannerStorePromptResolverRefV828.current = null;
+    resolve?.(inStore);
+  }
+
+  function askScannerStoreV828(storeName: string) {
+    if (scannerStorePromptResolverRefV828.current) {
+      return new Promise<boolean>((resolve) => {
+        const poll = window.setInterval(() => {
+          if (!scannerStorePromptResolverRefV828.current) {
+            window.clearInterval(poll);
+            resolve(scannerInStoreRefV828.current);
+          }
+        }, 50);
+      });
+    }
+
+    scannerConfirmedStoreNameRefV828.current = storeName;
+    setScannerStorePromptV828({ storeName, seconds: 5 });
+    return new Promise<boolean>((resolve) => {
+      scannerStorePromptResolverRefV828.current = resolve;
+      let seconds = 5;
+      scannerStorePromptTimerRefV828.current = window.setInterval(() => {
+        seconds -= 1;
+        if (seconds <= 0) {
+          resolveScannerStorePromptV828(true);
+          return;
+        }
+        setScannerStorePromptV828({ storeName, seconds });
+      }, 1000);
+    });
+  }
+
+  async function confirmPhysicalScannerStoreV818(): Promise<boolean> {
+    if (scannerStoreCheckDoneRefV791.current) return scannerInStoreRefV828.current;
 
     const eanCartItems = mergeCartPoolsByIdV129(cartRefV124.current).filter((item) =>
       isUsableEan(normalizeEan(item.ean || (item.product as any)?.ean || "")),
@@ -13411,41 +13459,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     const cartTarget = [...cartStoreCounts.values()].sort((a, b) => b.count - a.count)[0] || null;
 
-    const selectedChain: "S" | "K" | null =
-      selectedChains.s && !selectedChains.k ? "S" :
-      selectedChains.k && !selectedChains.s ? "K" : null;
-    const selectedName = selectedChain === "S"
-      ? String(activeStores.sStoreName || "").trim()
-      : selectedChain === "K"
-        ? String(activeStores.kStoreName || "").trim()
-        : "";
-    const selectedId = selectedChain === "S" ? activeStores.sStoreId : selectedChain === "K" ? activeStores.kStoreId : undefined;
+    const selectedNames = [
+      selectedChains.s ? String(activeStores.sStoreName || "").trim() : "",
+      selectedChains.k ? String(activeStores.kStoreName || "").trim() : "",
+      selectedChains.lidl ? String(selectedLidlStoreV750?.name || "").trim() : "",
+      selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
+    ].filter((name) => name && !name.startsWith("Valitse ensin"));
+    const selectedName = selectedNames.length === 1 ? selectedNames[0] : "";
+    const intendedName = cartTarget?.name || selectedName || selectedNames[0] || "";
 
-    // Etäkorin oma kauppa voittaa pelkän nykyisen UI-valinnan ennakkohypoteesina.
-    const intendedName = cartTarget?.name || selectedName;
     if (!intendedName) {
-      setEanScannerMessage("Valitse ensin kauppa, jossa keräät ostokset.");
+      // No store can be named reliably. Scanner remains useful, but not as collection.
+      scannerStoreCheckDoneRefV791.current = true;
+      scannerInStoreRefV828.current = false;
+      setEanScannerMessage("Valitse kauppa, jos haluat merkitä tuotteita kerätyiksi.");
       return false;
     }
 
     const allStores = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
     const intendedStore = allStores.find((store) =>
-      normalize(String(store.name || "")) === normalize(intendedName) ||
-      Boolean(selectedId && sameStoreIdV93(store.id, selectedId) && normalize(intendedName) === normalize(selectedName)),
+      normalize(String(store.name || "")) === normalize(intendedName),
     ) || null;
 
-    // Ilman GPS:ää ostoslistan kauppa on silti paras oletus, mutta käyttäjä vahvistaa sen.
-    if (!usingOwnLocation || !gpsCoordsV320) {
-      const confirmed = window.confirm(`Oletko nyt kaupassa ${intendedName}?\n\nOK = Kyllä · Peruuta = En / vaihda kauppaa`);
-      if (confirmed) {
-        scannerStoreCheckDoneRefV791.current = true;
-        return true;
-      }
-      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
-      return false;
+    // Missing GPS must always be confirmed manually, with the suspected store named.
+    if (!usingOwnLocation || !gpsCoordsV320 || !intendedStore) {
+      return askScannerStoreV828(intendedName);
     }
 
-    const intendedDistance = intendedStore ? getGpsDistanceKmForStoreV93(intendedStore) : null;
+    const intendedDistance = getGpsDistanceKmForStoreV93(intendedStore);
     const nearby50 = allStores
       .map((store) => ({ store, distance: getGpsDistanceKmForStoreV93(store) }))
       .filter((row) => row.distance != null && Number(row.distance) <= 0.05)
@@ -13455,43 +13496,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       normalize(String(store.name || "")) !== normalize(intendedName),
     );
 
-    // V819 fuzzy: jos etäkori osoittaa tiettyyn kauppaan ja GPS on jo 50 m sisällä
-    // juuri siitä kaupasta eikä samalla alueella ole toista vaihtoehtoa, yhdistelmä
-    // (ostoslista + koordinaatit) riittää avaamaan keräilysession ilman turhaa kysymystä.
-    if (cartTarget && intendedIsNear && !competingNearby) {
+    // GPS may auto-confirm only when it identifies the intended store without a nearby ambiguity.
+    if (intendedIsNear && !competingNearby) {
       scannerStoreCheckDoneRefV791.current = true;
+      scannerInStoreRefV828.current = true;
+      scannerConfirmedStoreNameRefV828.current = intendedName;
       return true;
     }
 
-    // Vierekkäiset kaupat: ostoslista kertoo oletuksen, mutta käyttäjä ratkaisee ristiriidan.
-    if (intendedIsNear && competingNearby) {
-      const stayIntended = window.confirm(
-        `Ostoslista on tehty kauppaan ${intendedName}.\n\nLähellä on myös ${competingNearby.store.name}.\n\nOletko nyt kaupassa ${intendedName}?\n\nOK = Kyllä · Peruuta = Olen toisessa kaupassa`,
-      );
-      if (stayIntended) {
-        scannerStoreCheckDoneRefV791.current = true;
-        return true;
-      }
-      setEanScannerMessage(`Vaihda kaupaksi ${competingNearby.store.name} ja skannaa tuote uudelleen.`);
-      return false;
-    }
-
-    // Jos kohdekauppa alkaa jo "polttaa" mutta 50 m varmuusraja ei vielä täyty,
-    // ostoslistan kauppa esitäytetään kysymykseen. GPS ei yksin hyväksy keräystä.
-    const approachingIntended = intendedDistance != null && intendedDistance <= 0.3;
-    const prompt = approachingIntended
-      ? `Ostoslistasi kauppa ${intendedName} on lähellä (noin ${Math.max(50, Math.round(intendedDistance * 1000 / 10) * 10)} m).\n\nOletko nyt kaupassa ${intendedName}?`
-      : `Oletko nyt kaupassa ${intendedName}?`;
-    const confirmed = window.confirm(prompt);
-    if (confirmed) {
-      scannerStoreCheckDoneRefV791.current = true;
-      return true;
-    }
-    setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
-    return false;
+    // Adjacent stores, weak distance, or a GPS mismatch: name the suspected store and let
+    // the user override the default Yes during the five-second window.
+    return askScannerStoreV828(intendedName);
   }
 
-  function finishScannedEan(code: string) {
+  async function finishScannedEan(code: string) {
     const normalizedCode = normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
 
@@ -13499,7 +13517,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V818: mitään fyysisen skannauksen keräysvaikutusta ei tehdä ennen kuin
     // myymälä on vahvistettu. Jos kauppa vaihdetaan, sama tuote skannataan uudelleen.
-    if (!confirmPhysicalScannerStoreV818()) return;
+    const scannerInStoreV828 = await confirmPhysicalScannerStoreV818();
 
     // V783: yksi kameraskannaus saa omistaa EAN-haun loppuun asti.
     // Muuten hidas edellinen lookup voi valmistua uuden skannauksen jälkeen ja
@@ -13555,7 +13573,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerOpen(true);
     setEanScannerMessage("");
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
-    void searchByEan(normalizedCode, { fromScanner: true });
+    void searchByEan(normalizedCode, { fromScanner: true, collectionEligible: scannerInStoreV828 });
   }
 
   function focusBluetoothBarcodeInputV202() {
