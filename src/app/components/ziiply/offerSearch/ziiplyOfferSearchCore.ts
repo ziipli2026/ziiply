@@ -836,6 +836,44 @@ export function filterZiiplyGostaOfferResultsV146(
   });
 }
 
+function hidePrismaOfferCopiesAlreadyInCampaignTabV804(
+  visibleResults: ZiiplyGostaOfferLike[],
+  masterResults: ZiiplyGostaOfferLike[],
+) {
+  const numericPrice = (item: ZiiplyGostaOfferLike) => {
+    const anyItem = item as any;
+    const direct = Number(anyItem?.price);
+    if (Number.isFinite(direct)) return direct;
+    const parsed = Number(String(anyItem?.priceText ?? "").replace(/[^0-9,.-]/g, "").replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+  const identity = (item: ZiiplyGostaOfferLike) => {
+    const anyItem = item as any;
+    const ean = String(anyItem?.ean ?? anyItem?.gtin ?? anyItem?.barcode ?? "").trim();
+    const price = numericPrice(item);
+    return ean && price !== null ? `${ean}|${price.toFixed(4)}` : "";
+  };
+  const prismaCampaignKeys = new Set(
+    masterResults
+      .filter((item) => {
+        const anyItem = item as any;
+        const sourceItem = anyItem?.__sourceOfferSearchResult ?? anyItem;
+        return sourceItem?.campaignType === "campaign" &&
+          /^prisma(?:\s|$)/i.test(String(sourceItem?.storeLabel ?? sourceItem?.storeName ?? ""));
+      })
+      .map(identity)
+      .filter(Boolean),
+  );
+  if (!prismaCampaignKeys.size) return visibleResults;
+  return visibleResults.filter((item) => {
+    const anyItem = item as any;
+    const sourceItem = anyItem?.__sourceOfferSearchResult ?? anyItem;
+    if (sourceItem?.campaignType === "campaign") return true;
+    const key = identity(item);
+    return !key || !prismaCampaignKeys.has(key);
+  });
+}
+
 export async function searchZiiplyGostaOffersV146(options: {
   query: string;
   terms?: string[];
@@ -881,11 +919,23 @@ export async function searchZiiplyGostaOffersV146(options: {
     nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
 
-  const results = searchAllAreaOffers
+  const resultsBeforePrismaCrossTabV804 = searchAllAreaOffers
     ? preparedGostaAllV803(options.context, nextResults)
     : searchByCategory
       ? dedupeZiiplyGostaOfferResultsV146(nextResults)
       : cleanZiiplyGostaOfferResultsV146(nextResults);
+
+  // Cross-tab presentation rule only. Keep provider/master/cache rows untouched:
+  // if Prisma CMS already shows the exact EAN + price in Kampanjat, hide the
+  // matching non-campaign copy from Tarjoukset.
+  const prismaCrossTabMasterV804 =
+    searchAllAreaOffers || searchByCategory
+      ? await fetchGostaMasterOfferResultsV156(options.context)
+      : resultsBeforePrismaCrossTabV804;
+  const results = hidePrismaOfferCopiesAlreadyInCampaignTabV804(
+    resultsBeforePrismaCrossTabV804,
+    prismaCrossTabMasterV804,
+  );
 
   return {
     results,
