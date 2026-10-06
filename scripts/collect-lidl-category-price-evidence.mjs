@@ -123,7 +123,7 @@ for(const product of api.out){
       canonicalPromoByProduct.set(String(product.lidlProductId),{
         validFrom:null,validThrough:null,
         isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
-        displayedPriceEur:eur(local),
+        displayedPriceEur:product.displayedPriceEur,
         evidenceText:local,source:url
       });
     }
