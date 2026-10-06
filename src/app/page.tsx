@@ -15350,7 +15350,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           });
 
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
-        if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
+        if (eanScannerOpen || eanHtml5ScannerRef.current || isPhysicalSearchScanV825) {
           setEanScannerMessage("✓ Lisätty koriin");
         }
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
@@ -15393,7 +15393,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // rinnakkaisia hakuketjuja. Jos Open Food Facts tunnistaa tuotteen yhdessä ketjussa,
       // toinen ketju saattoi silti päätyä myöhemmin unknown-fallbackiin ja luoda rinnakkaisen
       // "Tuntematon tuote" -rivin. Käsin käynnistetty EAN-haku saa edelleen tehdä unknown-fallbackin.
-      if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
+      if (isPhysicalSearchScanV825 || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
         // V525: kameraskannerissa ei lisätä tuntematonta riviä automaattisesti,
         // mutta ketjua ei saa enää katkaista hiljaa.
         const scannerNoResultMessageV525 = "❌ Tuotetta ei tunnistettu — ei lisätty koriin";
@@ -15419,7 +15419,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Täysin tunnistamatonta EANia ei lisätä koriin. EAN voidaan edelleen
       // havaita/tallentaa taustalla, mutta korissa pitää olla vähintään tuotteen nimi.
       setEanMessage("Tuotetta ei tunnistettu.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
+      if (eanScannerOpen || eanHtml5ScannerRef.current || isPhysicalSearchScanV825) {
         setEanScannerMessage("Tuotetta ei tunnistettu");
       }
 
@@ -15457,7 +15457,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return;
         }
 
-        if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
+        if (isPhysicalSearchScanV825 || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
           // V133: hetkellinen verkkovirhe kameraskannauksessa ei saa tehdä unknown-tilaa
           // eikä lukita seuraavaa onnistuvaa OFF/S/K-tunnistusta pois.
           setEanMessage("");
