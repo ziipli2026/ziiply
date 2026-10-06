@@ -953,36 +953,9 @@ export async function searchZiiplyOffers(
       )
     : [];
 
-  // Prisma cross-tab dedupe: hide a DISCOUNTED row from Tarjoukset only when
-  // the independent CMS campaign row proves the same store + EAN + price +
-  // explicit validity. Missing validity or any mismatch must fail open.
-  const prismaCampaignExactKeysV37 = new Set(
-    prismaCampaignResults.flatMap((item) => {
-      const row = item as any;
-      const storeId = String(row.storeId ?? "").trim();
-      const ean = String(row.ean ?? "").trim();
-      const validUntil = String(row.validUntil ?? "").slice(0, 10);
-      const price = Number(String(row.priceText ?? "").replace(/[^0-9,.-]/g, "").replace(",", "."));
-      return storeId && ean && validUntil && Number.isFinite(price)
-        ? [[storeId, ean, price.toFixed(4), validUntil].join("|")]
-        : [];
-    }),
-  );
-  const prismaOffersWithoutExactCampaignCopiesV37 = sKaupatResults.filter((item) => {
-    const row = item as any;
-    const storeId = String(row.storeId ?? row.debugOfferEvidenceV226?.requestedStoreId ?? "").trim();
-    const ean = String(row.ean ?? "").trim();
-    const validUntil = String(row.validUntil ?? row.debugOfferEvidenceV226?.campaignPriceValidUntil ?? "").slice(0, 10);
-    const directPrice = Number(row.price);
-    const textPrice = Number(String(row.priceText ?? "").replace(/[^0-9,.-]/g, "").replace(",", "."));
-    const price = Number.isFinite(directPrice) ? directPrice : textPrice;
-    if (!storeId || !ean || !validUntil || !Number.isFinite(price)) return true;
-    return !prismaCampaignExactKeysV37.has([storeId, ean, price.toFixed(4), validUntil].join("|"));
-  });
-
   const uniqueAllResults = uniqueOfferResults([
     ...eTarjouslehdetResults,
-    ...prismaOffersWithoutExactCampaignCopiesV37,
+    ...sKaupatResults,
     ...prismaCampaignResults,
     ...sLocalCampaignResults,
     ...kResults,
