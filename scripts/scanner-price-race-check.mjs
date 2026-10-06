@@ -169,3 +169,13 @@ assert.match(modalCloseGuardV835, /scannerStoreCheckDoneRefV791\.current = false
 assert.match(modalCloseGuardV835, /scannerInStoreRefV828\.current = false/);
 assert.match(modalCloseGuardV835, /scannerConfirmedStoreNameRefV828\.current = ""/);
 console.log("V835 global scanner modal-close session cleanup regression: PASS");
+
+
+// V836: a delayed scanner result may collect only for the exact confirmed store.
+const resultAddV836 = source.split("function addEanResultToCart")[1]?.split("function addProductToCart")[0];
+assert.ok(resultAddV836, "EAN result add function exists");
+assert.match(resultAddV836, /confirmedScannerStoreV836/);
+assert.match(resultAddV836, /resultScannerStoreV836/);
+assert.match(resultAddV836, /confirmedScannerStoreV836 === resultScannerStoreV836/);
+assert.match(resultAddV836, /scannerStoreStillMatchesResultV836/);
+console.log("V836 exact-store delayed scanner result regression: PASS");
