@@ -64,3 +64,23 @@ assert.equal(returnedByName.find(item=>item.ean==="0000000000000"),undefined);
 assert.match(source,/cleanNameV811/);
 console.log("Pirkka tortilla 148-cent name-fallback fixture: PASS");
 console.log("Scanner source-contract and isolated race/order simulations: PASS");
+
+
+// V825: request metadata alone must never prove a physical collection scan.
+const searchByEanSectionV825 = source.split("async function searchByEan(")[1]?.split("const existingLookupPromiseV121")[0];
+assert.ok(searchByEanSectionV825, "searchByEan weight-label block exists");
+assert.match(searchByEanSectionV825, /const isPhysicalSearchScanV825 = Boolean\(/);
+assert.match(searchByEanSectionV825, /options\.fromScanner &&/);
+assert.match(searchByEanSectionV825, /\(eanScannerOpen \|\| eanHtml5ScannerRef\.current\) &&/);
+assert.match(searchByEanSectionV825, /physicalSearchScanV825 &&/);
+assert.match(searchByEanSectionV825, /Date\.now\(\) - physicalSearchScanV825\.at < 10000/);
+assert.equal((searchByEanSectionV825.match(/physicalScan: Boolean\(options\.fromScanner\)/g) || []).length, 0, "weight paths cannot trust fromScanner alone");
+assert.ok((searchByEanSectionV825.match(/physicalScan: isPhysicalSearchScanV825/g) || []).length >= 5, "all weight add paths use verified physical scan proof");
+function physicalProofV825({fromScanner, scannerActive, refMatches, ageMs}) {
+  return Boolean(fromScanner && scannerActive && refMatches && ageMs < 10000);
+}
+assert.equal(physicalProofV825({fromScanner:true,scannerActive:false,refMatches:true,ageMs:10}), false, "manual/inactive scanner cannot collect");
+assert.equal(physicalProofV825({fromScanner:true,scannerActive:true,refMatches:false,ageMs:10}), false, "different EAN cannot collect");
+assert.equal(physicalProofV825({fromScanner:true,scannerActive:true,refMatches:true,ageMs:10001}), false, "expired scan cannot collect");
+assert.equal(physicalProofV825({fromScanner:true,scannerActive:true,refMatches:true,ageMs:10}), true, "fresh active matching physical scan collects");
+console.log("V825 physical weight-scan proof regression: PASS");
