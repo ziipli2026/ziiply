@@ -1,0 +1,21 @@
+name: Tokmanni offer provider regression
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts'
+      - 'scripts/audit-tokmanni-offer-provider-20261006.cjs'
+      - '.github/workflows/tokmanni-offer-provider-regression.yml'
+
+jobs:
+  tokmanni-provider-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Audit Tokmanni provider invariants
+        run: node scripts/audit-tokmanni-offer-provider-20261006.cjs
