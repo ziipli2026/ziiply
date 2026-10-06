@@ -1,0 +1,51 @@
+name: Tokmanni SPAR offer freshness audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * *"
+    - cron: "17 10 * * *"
+    - cron: "17 16 * * *"
+    - cron: "10 15 * * 0"
+    - cron: "20 15 * * 0"
+  push:
+    branches: [main, "fix/tokmanni-spar-offer-freshness"]
+    paths:
+      - "src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/eurospar-feed.json"
+      - "scripts/tokmanni-leaflet-discovery.mjs"
+      - "scripts/eurospar-feed-refresh.mjs"
+      - "scripts/tokmanni-spar-offer-freshness-audit.mjs"
+      - ".github/workflows/tokmanni-spar-offer-freshness.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/eurospar-feed.json"
+      - "scripts/tokmanni-leaflet-discovery.mjs"
+      - "scripts/eurospar-feed-refresh.mjs"
+      - "scripts/tokmanni-spar-offer-freshness-audit.mjs"
+      - ".github/workflows/tokmanni-spar-offer-freshness.yml"
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --check scripts/eurospar-feed-refresh.mjs
+      - run: node scripts/tokmanni-leaflet-discovery.mjs
+      - run: node scripts/eurospar-feed-refresh.mjs
+      - run: node scripts/tokmanni-spar-offer-freshness-audit.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tokmanni-spar-offer-freshness
+          path: |
+            tokmanni-spar-offer-freshness.json
+            tokmanni-leaflet-discovery.json
+            eurospar-feed-candidate.json
+          if-no-files-found: ignore

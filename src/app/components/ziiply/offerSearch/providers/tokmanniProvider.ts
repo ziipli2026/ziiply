@@ -2,9 +2,9 @@ import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
 type TokmanniOffer = Record<string, any>;
 
-const TOKMANNI_OFFERS_URL = "https://www.tokmanni.fi/viikkotarjoukset";
+const TOKMANNI_OFFERS_URL = "https://www.tokmanni.fi/viikkotarjoukset/elintarvikkeet-ja-elainruoka";
 const TOKMANNI_PAGE_SIZE = 40;
-const TOKMANNI_MAX_PAGES = 80;
+const TOKMANNI_MAX_PAGES = 20;
 
 const clean = (value: unknown) =>
   String(value ?? "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").trim();
@@ -142,6 +142,7 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
     sourceUrl: TOKMANNI_OFFERS_URL,
     chain: "TOKMANNI",
     storeName: "Tokmanni",
+    sourceScope: "food-and-pet-weekly-offers",
     storeLabel: "Tokmanni",
     shopName: "Tokmanni",
     title: name,
