@@ -58,7 +58,17 @@ for(const probe of frameProbes.filter(x=>x.kind==="eurospar"&&Array.isArray(x.sc
     }catch{}
   }
 }
-const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames,classifiedFrames,frameProbes,backendCandidates};
+const normalizedBackendUrls=[...new Set(backendCandidates.flatMap(x=>x.hits||[]))];
+const backendSummary={
+  total:normalizedBackendUrls.length,
+  api:normalizedBackendUrls.filter(x=>/\/api\/|api\./i.test(x)).length,
+  publication:normalizedBackendUrls.filter(x=>/publication/i.test(x)).length,
+  catalog:normalizedBackendUrls.filter(x=>/catalog/i.test(x)).length,
+  json:normalizedBackendUrls.filter(x=>/\.json(?:[?#]|$)/i.test(x)).length,
+  tjek:normalizedBackendUrls.filter(x=>/tjek/i.test(x)).length,
+  incito:normalizedBackendUrls.filter(x=>/incito/i.test(x)).length,
+};
+const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames,classifiedFrames,frameProbes,backendCandidates,backendSummary};
 writeFileSync("tokmanni-leaflet-discovery.json",JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(!labels.eurospar||!labels.ruokasanomat){console.error("Expected EUROSPAR/Ruokasanomat labels missing from official leaflet hub");process.exitCode=1;}
