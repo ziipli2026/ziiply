@@ -864,7 +864,7 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV804(
         const campaignStore = String(sourceItem?.storeLabel ?? sourceItem?.storeName ?? "").trim();
         return sourceItem?.campaignType === "campaign" &&
           /^prisma(?:\s|$)/i.test(campaignStore) &&
-          normalize(campaignStore) === normalize(selectedStore);
+          campaignStore.toLocaleLowerCase("fi-FI") === selectedStore.toLocaleLowerCase("fi-FI");
       })
       .map(identity)
       .filter(Boolean),
