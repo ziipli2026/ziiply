@@ -48,6 +48,7 @@ const structuredProducts=html=>{
       lidlProductId:deref(p.productId)??null,
       ian:Array.isArray(ians)?ians.map(deref).filter(Boolean):[],
       name:deref(p.fullTitle)??null,
+      shortName:deref(p.title)??null,
       canonicalPath:deref(p.canonicalPath)??null,
       displayedPriceEur:typeof deref(priceObj.price)==='number'?deref(priceObj.price):null,
       unitPriceText:deref(baseObj.text)??null
@@ -72,7 +73,7 @@ const collectOfficialApi=async()=>{
       for(const x of Array.isArray(j.items)?j.items:[]){
         const d=x?.gridbox?.data||{},price=d?.price?.price,base=d?.basePrice?.text??null;
         if(!d.productId||!d.fullTitle||typeof price!=="number") continue;
-        out.push({categoryId:id,lidlProductId:String(d.productId),ian:Array.isArray(d.ians)?d.ians.filter(Boolean):[],name:String(d.fullTitle),displayedPriceEur:price,unitPriceText:base,canonicalPath:d.canonicalPath??null,gs1Attributes:d.gs1Attributes??null});
+        out.push({categoryId:id,lidlProductId:String(d.productId),ian:Array.isArray(d.ians)?d.ians.filter(Boolean):[],name:String(d.fullTitle),shortName:d.title?String(d.title):null,displayedPriceEur:price,unitPriceText:base,canonicalPath:d.canonicalPath??null,gs1Attributes:d.gs1Attributes??null});
       }
     }catch(e){errors.push({categoryId:id,error:String(e)})}
   }
@@ -95,7 +96,7 @@ const officialApi={
 };
 for(const product of api.out){
   raw.push({source:"https://www.lidl.fi/q/api/search?category.id="+product.categoryId,observedAt,researchOnly:true,
-    lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,productUrl:product.canonicalPath?new URL(product.canonicalPath,"https://www.lidl.fi").href:null,
+    lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,productShortName:product.shortName??null,productUrl:product.canonicalPath?new URL(product.canonicalPath,"https://www.lidl.fi").href:null,
     displayedPriceEur:product.displayedPriceEur,unitPriceText:product.unitPriceText,packageSize:packageSizeFrom(product.name,null),gs1Attributes:product.gs1Attributes,
     productMatchConfidence:"official-category-api",isLidlPlus:null,isMultiBuy:null,validFromRaw:null,validThroughRaw:null,validFrom:null,validThrough:null,
     availabilityKind:"continuous-api",temporalStatus:"continuous",evidenceText:clean([product.name,product.displayedPriceEur+" €",product.unitPriceText].filter(Boolean).join(" ")),
@@ -115,7 +116,7 @@ for(const source of urls){
       if(product.displayedPriceEur==null) continue;
       raw.push({
         source,observedAt,researchOnly:true,
-        lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,
+        lidlProductId:product.lidlProductId,ian:product.ian,productName:product.name,productShortName:product.shortName??null,
         productUrl:product.canonicalPath?new URL(String(product.canonicalPath),source).href:null,
         displayedPriceEur:product.displayedPriceEur,unitPriceText:product.unitPriceText,packageSize:packageSizeFrom(product.name,product.unitPriceText),
         isLidlPlus:false,isMultiBuy:false,
@@ -136,8 +137,9 @@ for(const source of urls){
     const fromIso=parseFiDate(m[1],observedAt), throughIso=parseFiDate(m[2],observedAt);
     const evidenceText=text.slice(Math.max(0,m.index-900),Math.min(text.length,m.index+m[0].length+80));
     const normalizedEvidence=clean(evidenceText).toLowerCase();
-    const product=products.find(p=>p.name&&normalizedEvidence.includes(clean(p.name).toLowerCase()))??null;
-    const exactNameMatches=products.filter(p=>p.name&&normalizedEvidence.includes(clean(p.name).toLowerCase()));
+    const matchesName=p=>[p.name,p.shortName].filter(Boolean).some(n=>normalizedEvidence.includes(clean(n).toLowerCase()));
+    const exactNameMatches=products.filter(matchesName);
+    const product=exactNameMatches.length===1?exactNameMatches[0]:null;
     const matchConfidence=product?(exactNameMatches.length===1?'exact-name':'ambiguous-name'):'unmatched';
     raw.push({
       source,observedAt,researchOnly:true,
@@ -170,7 +172,7 @@ for(const r of raw){
 const promoByProduct=new Map();
 for(const r of byKey.values()){
   if(!r.lidlProductId||r.availabilityKind!=="dated-campaign") continue;
-  if(r.temporalStatus!=="current"&&r.temporalStatus!=="future") continue;
+  if(r.temporalStatus!=="current") continue;
   const prev=promoByProduct.get(String(r.lidlProductId));
   if(!prev || r.temporalStatus==="current") promoByProduct.set(String(r.lidlProductId),r);
 }
