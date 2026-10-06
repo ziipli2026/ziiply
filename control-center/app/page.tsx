@@ -83,6 +83,15 @@ export default async function Page(){
   const nextApproved=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
   const overlappingApproved=activePubs.filter((p,i,a)=>a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
   const rolloverChains=[...new Set(d.pubs.map(p=>p.chain))].map(chain=>{const pubs=d.pubs.filter(p=>p.chain===chain);const current=pubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0];const future=pubs.filter(p=>p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];const nextDay=current?new Date(current.valid_until+"T12:00:00Z"):null;if(nextDay)nextDay.setUTCDate(nextDay.getUTCDate()+1);const expected=nextDay?nextDay.toISOString().slice(0,10):null;const gap=Boolean(current&&future&&expected&&future.valid_from>expected);const level=!current?"red":gap?"red":!future&&current.valid_until<=todayFi?"yellow":future?.approval_state==="candidate"?"yellow":"green";return {chain,current,future,gap,level};});
+  const publicationPipeline=CHAINS.map(ch=>{
+    const current=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
+    const future=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]??null;
+    const discovery=d.runs.find(r=>ch.match(r.chain.trim())&&r.source==="future-publication-discovery")??null;
+    const discoveryApplicable=["K","Tokmanni"].includes(ch.key);
+    const discoveryFound=discovery?.outcome==="future-publication-found";
+    const level=!current?"red":future?.approval_state==="approved"?"green":future?.approval_state==="candidate"?"yellow":discoveryApplicable&&discovery&&!discovery.ok?"red":discoveryApplicable&&discoveryFound?"yellow":current.valid_until<=todayFi?"yellow":"green";
+    return {key:ch.key,name:ch.name,current,future,discovery,discoveryApplicable,discoveryFound,level};
+  });
   const publicationGroups=[...new Map(activePubs.map(p=>[p.chain,activePubs.filter(q=>q.chain===p.chain)])).entries()];
   const chainQuality=publicationGroups.map(([chain,pubs])=>({chain,offers:pubs.reduce((n,p)=>n+p.offer_count,0),missingPrice:pubs.reduce((n,p)=>n+p.missing_price,0),missingImage:pubs.reduce((n,p)=>n+p.missing_image,0),missingCategory:pubs.reduce((n,p)=>n+p.missing_category,0),publications:pubs.length}));
   const chainHealth=CHAINS.map(ch=>{const pubs=activePubs.filter(p=>ch.match(p.chain.trim()));const runs=sourceHealth.filter(r=>ch.match(r.chain.trim()));const offers=pubs.reduce((n,p)=>n+p.offer_count,0);const missingPrice=pubs.reduce((n,p)=>n+p.missing_price,0);const missingImage=pubs.reduce((n,p)=>n+p.missing_image,0);const missingCategory=pubs.reduce((n,p)=>n+p.missing_category,0);const badRun=runs.some(r=>r.level==="red");const stale=!runs.length||runs.every(r=>r.ageH>36);const level=badRun||missingPrice>0?"red":stale||missingImage>0||missingCategory>0?"yellow":"green";return {chain:ch.key,name:ch.name,offers,missingPrice,missingImage,missingCategory,runs:runs.length,badRun,stale,level};});
@@ -233,6 +242,22 @@ export default async function Page(){
       {statusCard("Valmiit vaihdot",healthyNext.length,healthyNext.length?"green":"gray","Approved-seuraaja ilman katkosta tai vakavaa määräpudotusta")}
       {statusCard("Vakava määräpudotus",severeNextDrop.length,severeNextDrop.length?"red":"green","Approved-seuraaja alle 25 % nykyisen tarjousmäärästä")}
       {statusCard("Vaihtoriski ≤36 h",unreadyExpiring.length,unreadyExpiring.length?"red":"green","Päättyvä julkaisu ilman approved-seuraajaa")}
+    </section>
+
+    <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Julkaisuketju / nykyinen → seuraava</h2>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+        <thead><tr>{["Tila","Ketju","Nykyinen approved","Future discovery","Candidate","Seuraava approved"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <tbody>{publicationPipeline.map(x=>{const candidate=x.future?.approval_state==="candidate"?x.future:null;const approved=x.future?.approval_state==="approved"?x.future:null;return <tr key={x.key}>
+          <td style={{padding:8}}>{dot(x.level)}</td>
+          <td style={{padding:8,fontWeight:800}}>{x.name}</td>
+          <td style={{padding:8}}>{x.current?x.current.valid_from+"–"+x.current.valid_until+" · "+x.current.offer_count:"—"}</td>
+          <td style={{padding:8}}>{!x.discoveryApplicable?"Ei erillistä future-probea":!x.discovery?"Ei vielä ajoa":!x.discovery.ok?"🔴 Virhe":x.discoveryFound?"🟢 Löydetty":"🟡 Ei vielä digijulkaisua"}{x.discovery&&<div style={{fontSize:11,color:"#667085"}}>{new Date(x.discovery.checked_at).toLocaleString("fi-FI")}</div>}</td>
+          <td style={{padding:8}}>{candidate?"🟡 "+candidate.valid_from+"–"+candidate.valid_until+" · "+candidate.offer_count:"—"}</td>
+          <td style={{padding:8}}>{approved?"🟢 "+approved.valid_from+"–"+approved.valid_until+" · "+approved.offer_count:"—"}</td>
+        </tr>})}</tbody>
+      </table></div>
+      <div style={{fontSize:12,color:"#667085",marginTop:10}}>Putki näyttää yhdellä rivillä, onko nykyinen julkaisu kunnossa ja kuinka pitkälle seuraava julkaisu on edennyt. Future discovery on tällä hetkellä erillisenä K-ryhmälle ja Tokmanni/SPARille.</div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
