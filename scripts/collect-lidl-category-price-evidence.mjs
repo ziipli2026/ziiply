@@ -232,10 +232,15 @@ for(const r of byKey.values()){
   });
   // Continuous listing/API evidence stays regular. Promotions are emitted as
   // separate observations so a campaign can never overwrite normal-price evidence.
+  const canonicalPromo=continuous&&r.lidlProductId?canonicalPromoByProduct.get(String(r.lidlProductId)):null;
+  const canonicalClassification=canonicalPromo?classifyLidlPublicPriceCard({title:r.productName,evidenceText:canonicalPromo.evidenceText,promotionText:canonicalPromo.evidenceText,isLidlPlus:canonicalPromo.isLidlPlus,isMultiBuy:canonicalPromo.isMultiBuy,validFrom:canonicalPromo.validFrom,validThrough:canonicalPromo.validThrough}):null;
+  // If the exact product's canonical page explicitly marks the very same displayed
+  // price as a promotion, do not also publish that API price as regular evidence.
+  // A differing API price is preserved as regular, allowing normal + promo to coexist.
+  const suppressRegular=continuous&&canonicalClassification?.priceKind!=="regular"&&canonicalPromo&&eur(canonicalPromo.evidenceText)===r.displayedPriceEur;
   const baseKind=continuous?"regular":classification.priceKind;
-  records.push({...r,priceKind:baseKind,priceClassificationReason:continuous?"continuous-base-regular":classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:baseKind,validThrough:r.validThrough})});
+  if(!suppressRegular) records.push({...r,priceKind:baseKind,priceClassificationReason:continuous?"continuous-base-regular":classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:baseKind,validThrough:r.validThrough})});
   if(!continuous||!r.lidlProductId) continue;
-  const canonicalPromo=canonicalPromoByProduct.get(String(r.lidlProductId));
   const promo=canonicalPromo||promoByProduct.get(String(r.lidlProductId));
   if(!promo) continue;
   const pc=classifyLidlPublicPriceCard({title:r.productName,evidenceText:promo.evidenceText,promotionText:promo.evidenceText,isLidlPlus:promo.isLidlPlus,isMultiBuy:promo.isMultiBuy,validFrom:promo.validFrom,validThrough:promo.validThrough});
