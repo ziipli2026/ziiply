@@ -84,3 +84,11 @@ assert.equal(physicalProofV825({fromScanner:true,scannerActive:true,refMatches:f
 assert.equal(physicalProofV825({fromScanner:true,scannerActive:true,refMatches:true,ageMs:10001}), false, "expired scan cannot collect");
 assert.equal(physicalProofV825({fromScanner:true,scannerActive:true,refMatches:true,ageMs:10}), true, "fresh active matching physical scan collects");
 console.log("V825 physical weight-scan proof regression: PASS");
+
+
+// V826: stale fromScanner metadata cannot keep the EAN-bank scanner fast path alive.
+const fastBankSectionV826 = source.split("const fastIdentityFromBankV789 = Boolean(")[1]?.split(");")[0];
+assert.ok(fastBankSectionV826, "EAN-bank fast identity guard exists");
+assert.match(fastBankSectionV826, /isPhysicalSearchScanV825/);
+assert.doesNotMatch(fastBankSectionV826, /options\.fromScanner/);
+console.log("V826 stale scanner-context regression: PASS");
