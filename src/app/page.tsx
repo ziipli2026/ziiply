@@ -13736,6 +13736,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (typeof window === "undefined" || typeof navigator === "undefined")
       return;
 
+    // V821: uusi kameraskannerisessio vaatii uuden kauppavarmistuksen.
+    scannerStoreCheckDoneRefV791.current = false;
+
     if (!window.isSecureContext) {
       setEanScannerMessage(
         "Kamera toimii vain HTTPS-osoitteessa. Avaa Ziiply Vercelin live-osoitteesta.",
@@ -14054,6 +14057,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     trackZiiplyEvent("desktop_barcode_reader_opened", {
       cartItemsCount: cart.length,
     });
+
+    // V821: myös fyysinen USB/Bluetooth-lukijasessio aloittaa uuden kauppavarmistuksen.
+    scannerStoreCheckDoneRefV791.current = false;
 
     setDesktopKeyboardScannerOpen(true);
     setEanScannerOpen(false);
