@@ -1266,7 +1266,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
               {showLandingView ? (
                 <div className="mt-2 rounded-[0.82rem] border-[2px] border-[#174c2c] bg-[#fff8d9]/92 px-1.5 py-1.5">
-                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] items-center gap-1">
+                  <div className={cx("grid items-center gap-1", selectedOfferChainV39 === "EUROSPAR" ? "grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]" : "grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)]")}>
                     <button type="button" aria-pressed={contentTab === "offers"} onClick={() => onContentTabChange?.("offers")}
                       className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "offers" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
                       Tarjoukset
@@ -1274,10 +1274,12 @@ export default function ZiiplyMobileOfferSearchCard({
                     <div className="min-w-0 text-[clamp(0.78rem,3.3vw,1.02rem)] font-black italic leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
                       Mitä tänään etsitään?
                     </div>
-                    <button type="button" aria-pressed={contentTab === "campaigns"} onClick={() => onContentTabChange?.("campaigns")}
-                      className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "campaigns" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
-                      Kampanjat
-                    </button>
+                    {selectedOfferChainV39 !== "EUROSPAR" ? (
+                      <button type="button" aria-pressed={contentTab === "campaigns"} onClick={() => onContentTabChange?.("campaigns")}
+                        className={cx("min-w-0 rounded-[0.65rem] border-2 border-[#174c2c] px-1 py-2 text-[clamp(0.61rem,2.5vw,0.78rem)] font-black", contentTab === "campaigns" ? "bg-[#174c2c] text-[#fff8d9]" : "bg-[#fff8d9] text-[#174c2c]")}>
+                        Kampanjat
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               ) : null}
