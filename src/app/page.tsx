@@ -14018,6 +14018,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
+    scannerStoreCheckDoneRefV791.current = false;
+    scannerInStoreRefV828.current = false;
+    scannerConfirmedStoreNameRefV828.current = "";
     // Mobiilin SCAN-nappi avaa aina uuden ZiiplyMobileScannerCard-näkymän heti.
     // Kamera käynnistetään perässä, mutta renderi ei saa jäädä riippumaan
     // startEanCameraScannerin asynkronisesta onnistumisesta.
@@ -14085,6 +14088,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setEanScannerMessage("");
+    scannerStoreCheckDoneRefV791.current = false;
+    scannerInStoreRefV828.current = false;
+    scannerConfirmedStoreNameRefV828.current = "";
     setEanScannerOpen(true);
 
     window.setTimeout(() => {
@@ -14097,8 +14103,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartItemsCount: cart.length,
     });
 
-    // V821: myös fyysinen USB/Bluetooth-lukijasessio aloittaa uuden kauppavarmistuksen.
+    // V821/V829: myös fyysinen USB/Bluetooth-lukijasessio aloittaa uuden kauppavarmistuksen.
     scannerStoreCheckDoneRefV791.current = false;
+    scannerInStoreRefV828.current = false;
+    scannerConfirmedStoreNameRefV828.current = "";
 
     setDesktopKeyboardScannerOpen(true);
     setEanScannerOpen(false);
@@ -14236,7 +14244,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function searchByEan(
     eanOverride?: string,
-    options: { fromScanner?: boolean } = {},
+    options: { fromScanner?: boolean; collectionEligible?: boolean; manualScannerEntry?: boolean } = {},
   ) {
     const ean = normalizeEan(eanOverride ?? eanInput);
 
@@ -14244,13 +14252,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // a matching fresh barcode event while the scanner context is still active.
     const physicalSearchScanV825 = physicalBarcodeScanRefV815.current;
     const isPhysicalSearchScanV825 = Boolean(
+      options.collectionEligible &&
       options.fromScanner &&
-      (eanScannerOpen || eanHtml5ScannerRef.current) &&
-      physicalSearchScanV825 &&
-      getEanVariantKeysV126(physicalSearchScanV825.code).some((variant) =>
-        getEanVariantKeysV126(ean).includes(variant),
-      ) &&
-      Date.now() - physicalSearchScanV825.at < 10000
+      (
+        options.manualScannerEntry ||
+        (
+          (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
+          physicalSearchScanV825 &&
+          getEanVariantKeysV126(physicalSearchScanV825.code).some((variant) =>
+            getEanVariantKeysV126(ean).includes(variant),
+          ) &&
+          Date.now() - physicalSearchScanV825.at < 10000
+        )
+      )
     );
 
     resetScannerDebugV493(`START ean=${ean || "(empty)"} fromScanner=${Boolean(options.fromScanner)} scannerOpen=${Boolean(eanScannerOpen || eanHtml5ScannerRef.current)}`);
@@ -22965,6 +22979,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     }}
                   />
 
+                  {scannerStorePromptV828 && (
+                    <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/45 px-5">
+                      <div className="w-full max-w-[340px] rounded-3xl border-2 border-[#e3c477] bg-[#fff6dd] p-5 text-center text-[#203c32] shadow-2xl">
+                        <p className="text-lg font-black">Oletko nyt kaupassa {scannerStorePromptV828.storeName}?</p>
+                        <p className="mt-2 text-sm font-bold">Kyllä jatkuu automaattisesti {scannerStorePromptV828.seconds} s kuluttua.</p>
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                          <button type="button" className="min-h-12 rounded-xl bg-emerald-800 px-3 font-black text-white" onClick={() => resolveScannerStorePromptV828(true)}>Kyllä</button>
+                          <button type="button" className="min-h-12 rounded-xl border-2 border-[#9a7a47] bg-white px-3 font-black" onClick={() => resolveScannerStorePromptV828(false)}>En</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <ZiiplyMobileScannerCard
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
                   fullscreen
@@ -23018,18 +23045,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         return;
                       }
 
-                      // V827: clipboard paste is manual input, never a physical collection scan.
-                      // Invalidate any fresh camera/USB barcode proof before starting the lookup.
+                      // V829: pasted EAN inside the scanner is a scanner entry too.
+                      // Collection is decided by the confirmed in-store session, not by input hardware.
                       physicalBarcodeScanRefV815.current = null;
                       lastContinuousScanRef.current = null;
                       scannerDecodeIgnoreUntilRefV131.current = 0;
+                      const scannerInStoreV829 = await confirmPhysicalScannerStoreV818();
                       setEanManualInputOpen(true);
                       setEanInput(code);
                       setLastAutoEanSearch(code);
                       setEanSearchStartedAutomatically(true);
                       eanAutoSearchActiveRef.current = true;
+                      if (scannerInStoreV829) playScannerBarcodeFoundBeepV582(code);
                       setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
-                      void searchByEan(code);
+                      void searchByEan(code, { fromScanner: true, collectionEligible: scannerInStoreV829, manualScannerEntry: true });
                     } catch {
                       setEanManualInputOpen(true);
                       window.setTimeout(() => eanInputRef.current?.focus(), 0);
