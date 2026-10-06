@@ -1,0 +1,126 @@
+name: Prisma Campaign Raw Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Query S-kaupat Prisma campaign CMS (read only)
+        shell: bash
+        run: |
+          node <<'NODE'
+          const storeId = "666706775";
+          const date = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Europe/Helsinki",
+            year: "numeric", month: "2-digit", day: "2-digit"
+          }).format(new Date());
+
+          const hash = "f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
+          const variables = {
+            preview: false,
+            storeId,
+            skipProducts: false,
+            availabilityDate: date,
+            where: {
+              storeId,
+              path: "tuotteet/kampanjat",
+              platform: "WEB",
+              availabilityDate: date,
+              userConsent: {
+                analytics: false,
+                marketing: false,
+                preferences: false
+              }
+            }
+          };
+          const extensions = { persistedQuery: { version: 1, sha256Hash: hash } };
+          const qs = new URLSearchParams({
+            operationName: "RemoteGetPageContent",
+            variables: JSON.stringify(variables),
+            extensions: JSON.stringify(extensions)
+          });
+
+          const res = await fetch("https://api.s-kaupat.fi/?" + qs, {
+            headers: {
+              "accept": "application/json",
+              "x-client-name": "skaupat-web",
+              "x-client-version": "production-14a82a5b48cd1dd42c0592db0037514ed3c84de8",
+              "origin": "https://www.s-kaupat.fi",
+              "referer": "https://www.s-kaupat.fi/"
+            }
+          });
+          console.log("HTTP", res.status, "date", date, "store", storeId);
+          const json = await res.json();
+          if (!res.ok || json.errors) {
+            console.log(JSON.stringify(json, null, 2));
+            process.exit(1);
+          }
+
+          const page = json?.data?.pageContent ?? {};
+          const sections = page?.sections ?? [];
+          console.log("PAGE_KEYS", Object.keys(page));
+          console.log("SECTION_COUNT", sections.length);
+
+          const interesting = /date|start|end|valid|campaign|promotion|offer|id/i;
+          function collect(obj, path="", out=[], depth=0) {
+            if (!obj || typeof obj !== "object" || depth > 8) return out;
+            if (Array.isArray(obj)) {
+              obj.forEach((v,i)=>collect(v, path+"["+i+"]", out, depth+1));
+              return out;
+            }
+            for (const [k,v] of Object.entries(obj)) {
+              const p = path ? path+"."+k : k;
+              if (interesting.test(k) && (v == null || typeof v !== "object")) out.push([p,v]);
+              collect(v,p,out,depth+1);
+            }
+            return out;
+          }
+
+          console.log("\n=== PAGE/SECTION CAMPAIGN + VALIDITY METADATA ===");
+          const meta = collect(page).filter(([p]) => !/products?\[\d+\]/i.test(p));
+          for (const [p,v] of meta.slice(0,1000)) console.log(p, "=", JSON.stringify(v));
+
+          const rows=[];
+          for (let si=0; si<sections.length; si++) {
+            const s=sections[si] ?? {};
+            const products = s.products ?? s.items ?? s.productList?.products ?? [];
+            for (let pi=0; pi<(Array.isArray(products)?products.length:0); pi++) {
+              const p=products[pi] ?? {};
+              const ean=String(p.ean ?? p.gtin ?? p.product?.ean ?? "");
+              const pricing=p.pricing ?? p.store?.pricing ?? {};
+              rows.push({
+                section: s.title ?? s.heading ?? s.name ?? "",
+                ean,
+                id: p.id ?? p.productId ?? p.product?.id ?? "",
+                name: p.name ?? p.product?.name ?? "",
+                price: pricing.campaignPrice ?? pricing.currentPrice ?? p.price ?? null,
+                raw: p
+              });
+            }
+          }
+          console.log("\nPRODUCT_ROWS", rows.length);
+
+          const targetEans = new Set(["2004657500003","2396257900001","6405857316207","6438460181269"]);
+          console.log("\n=== TARGET PRODUCTS RAW ===");
+          for (const r of rows.filter(x=>targetEans.has(x.ean))) {
+            console.log("\nTARGET", JSON.stringify({section:r.section,ean:r.ean,id:r.id,name:r.name,price:r.price}));
+            console.log(JSON.stringify(r.raw, null, 2));
+          }
+
+          console.log("\n=== PRODUCT FIELD INVENTORY (campaign/date/id/valid) ===");
+          const seen=new Set();
+          for (const r of rows) {
+            for (const [p,v] of collect(r.raw)) {
+              if (!seen.has(p)) {
+                seen.add(p);
+                console.log(p, "EXAMPLE=", JSON.stringify(v));
+              }
+            }
+          }
+          NODE
