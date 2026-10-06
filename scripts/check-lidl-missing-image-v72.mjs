@@ -27,3 +27,25 @@ for(const target of targets){
 }
 console.error(JSON.stringify({targets:targets.length,confirmed,unavailable}));
 if(failed) process.exitCode=1;
+
+/* Targeted category-payload fallback for Solevita p10038313 (product page is currently 404). */
+{
+ const targetId="10038313", categoryUrl="https://www.lidl.fi/h/juomat/h10071022";
+ try{
+  const response=await fetch(categoryUrl,{headers:{accept:"text/html","accept-language":"fi-FI,fi;q=0.9","user-agent":"ZiiplyLidlResearch/1.0"},signal:AbortSignal.timeout(20000)});
+  const html=await response.text(), match=html.match(/<script[^>]*id=["']__NUXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
+  if(match){
+   const data=JSON.parse(match[1]), deref=v=>typeof v==="number"&&Number.isInteger(v)&&v>=0&&v<data.length?data[v]:v;
+   const expand=(v,d=0)=>d>4?v:typeof v==="number"&&Number.isInteger(v)&&v>=0&&v<data.length?expand(data[v],d+1):Array.isArray(v)?v.map(x=>expand(x,d+1)):v&&typeof v==="object"?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,expand(x,d+1)])):v;
+   for(const value of data){
+    if(!value||typeof value!=="object"||Array.isArray(value)||!("gridBoxData" in value))continue;
+    const raw=deref(value.gridBoxData); if(!raw||typeof raw!=="object"||Array.isArray(raw))continue;
+    if(String(deref(raw.productId))!==targetId)continue;
+    const product=expand(raw), serialized=JSON.stringify(product);
+    const imageUrls=[...new Set(serialized.match(/https:\/\/[^"\\\s]+/g)||[])].filter(x=>/(?:imgproxy|image|media|asset|\.png|\.jpe?g|\.webp)/i.test(x));
+    console.log(JSON.stringify({probe:"category-nuxt",id:targetId,httpStatus:response.status,found:true,product,imageUrls}));
+    break;
+   }
+  } else console.log(JSON.stringify({probe:"category-nuxt",id:targetId,httpStatus:response.status,found:false,error:"NUXT_DATA missing"}));
+ }catch(error){console.log(JSON.stringify({probe:"category-nuxt",id:targetId,found:false,error:String(error?.message||error)}));}
+}
