@@ -4,7 +4,7 @@
  */
 import fs from "node:fs";
 const audit=JSON.parse(fs.readFileSync("data/lidl/official-product-image-price-audit-2026-10-04.json","utf8"));
-const targets=audit.records.filter(row=>row.lidlProductId&&row.officialUrl&&!row.imageUrl);
+const targets=audit.records.filter(row=>row.lidlProductId==="10038313");
 let failed=false, confirmed=0, unavailable=0;
 for(const target of targets){
   try{
