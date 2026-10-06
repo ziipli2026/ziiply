@@ -14,6 +14,7 @@ if(!urls.length) throw new Error("Pass one or more official Lidl category/campai
 const clean=s=>String(s??"").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim();
 const decode=s=>clean(String(s??"").replace(/\\u002F/g,"/").replace(/\\u0026/g,"&").replace(/\\u003C/g,"<").replace(/\\u003E/g,">").replace(/\\u0022/g,'"'));
 const eur=s=>{const m=String(s??"").match(/(\d+[,.]\d{1,2})\s*€/);return m?Number(m[1].replace(",",".")):null};
+const nearestEurBefore=(text,index,window=900)=>{const before=String(text??"").slice(Math.max(0,index-window),index);const prices=[...before.matchAll(/(\d+[,.]\d{1,2})\s*€/g)];return prices.length?Number(prices.at(-1)[1].replace(",",".")):null};
 const parseFiDate=(raw,observedAt)=>{
   const m=String(raw??"").match(/(\d{1,2})\.(\d{1,2})\.?(\d{4})?/);
   if(!m) return null;
