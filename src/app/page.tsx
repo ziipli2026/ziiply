@@ -14162,10 +14162,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
 
-    // V798: vaakatuote merkitsee fyysistä kaupassa asiointia. Vasta sen jälkeen
-    // voidaan verrata valittua kauppaa GPS:ään. Kysely syntyy vain, jos käyttäjä
-    // on <= 200 m jonkin toisen kaupan luona; kotona/kaukana ei kysytä mitään.
-    window.setTimeout(() => confirmWeightProductStoreV798("K"), 0);
+    // V820: vaakatuote käyttää samaa vahvistettua keräilysessiota kuin muutkin
+    // fyysiset EAN-skannaukset. Erillinen vanha GPS-tarkistus ei saa kuitata
+    // sessiota tarkistetuksi ennen etäkorin kauppa + 50 m -päättelyä.
   }
 
   async function searchByEan(
