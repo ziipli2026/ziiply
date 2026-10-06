@@ -1,0 +1,21 @@
+name: Category priority regression
+
+on:
+  push:
+    paths:
+      - "src/app/components/ziiply/offerSearch/ziiplyOfferCategoryCore.ts"
+      - "scripts/category-priority-regression.mjs"
+      - ".github/workflows/category-priority-regression.yml"
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: node scripts/category-priority-regression.mjs
