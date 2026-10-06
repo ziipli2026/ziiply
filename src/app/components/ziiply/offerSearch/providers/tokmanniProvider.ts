@@ -48,6 +48,8 @@ function normalize(value: unknown) {
 function category(title: string) {
   const s = clean(title).toLowerCase().replace(/\s+/g, " ");
   if (/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli|grilli|työkalu|valaisin|lamppu|liimapuulevy|kasteluletku|moppi|pesuri|liina|käsine|kenkä|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|lanka|asuste|lelu/.test(s)) return "Koti & vapaa-aika";
+  if (/kaurajuoma/.test(s)) return "Juomat";
+  if (/piparkakku|piparipallo|pikkuleip/.test(s)) return "Leipomo";
   if (/snack pot|kuppiateria|spaghetti|mac & cheese|bolognese/.test(s)) return "Kuivatuotteet";
   if (/suklaa|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|patuk|tikkari|kismet|tupla\b|da capo|fazerina|geisha|dumle|pantteri|ässä|aarrearkku|remix|suffeli|julia\b|aakkoset|tv mix|daim\b|japp\b|pändy|fisherman|funky fish|super salty|giant strawberries|pätkis/.test(s)) return "Makeiset & keksit";
   if (/leipä|näkkileip|hapankorppu|korppu|sämpyl|pull|croissant|patonki|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
