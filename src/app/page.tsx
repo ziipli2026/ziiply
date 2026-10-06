@@ -16304,6 +16304,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const physicalScanV815 = physicalBarcodeScanRefV815.current;
     const isPhysicalBarcodeScanV815 = Boolean(
       isUsableEan(ean) &&
+      (eanScannerOpen || eanHtml5ScannerRef.current) &&
       physicalScanV815 &&
       getEanVariantKeysV126(physicalScanV815.code).some((variant) =>
         getEanVariantKeysV126(ean).includes(variant),
