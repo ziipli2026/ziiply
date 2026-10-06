@@ -3138,12 +3138,12 @@ function isBreadComparisonCompatible(sourceName: string, candidateName: string):
   const candidate = normalize(candidateName);
 
   const breadType = (value: string) => {
-    if (/\\bpaahtoleip/.test(value)) return "paahtoleipa";
-    if (/\\bruisleip|\\bruispal|\\bjalkiuuni/.test(value)) return "ruisleipa";
-    if (/\\bnakkileip/.test(value)) return "nakkileipa";
-    if (/\\bsampyl/.test(value)) return "sampyla";
-    if (/\\bpatonk/.test(value)) return "patonki";
-    if (/\\bleip/.test(value)) return "leipa";
+    if (/\bpaahtoleip/.test(value)) return "paahtoleipa";
+    if (/\bruisleip|\bruispal|\bjalkiuuni/.test(value)) return "ruisleipa";
+    if (/\bnakkileip/.test(value)) return "nakkileipa";
+    if (/\bsampyl/.test(value)) return "sampyla";
+    if (/\bpatonk/.test(value)) return "patonki";
+    if (/\bleip/.test(value)) return "leipa";
     return "";
   };
 
@@ -3156,7 +3156,7 @@ function isBreadComparisonCompatible(sourceName: string, candidateName: string):
   // Tuotteen nimessä ilmaistu olennainen leipäominaisuus säilytetään.
   // Esim. moniviljapaahtoleipä ei saa muuttua valkoiseksi paahtoleiväksi.
   for (const attribute of ["monivilja", "taysjyva", "kaura", "ruis"]) {
-    if (new RegExp("\\b" + attribute).test(source) && !new RegExp("\\b" + attribute).test(candidate)) {
+    if (new RegExp("\b" + attribute).test(source) && !new RegExp("\b" + attribute).test(candidate)) {
       return false;
     }
   }
@@ -3242,7 +3242,7 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
     // Esim. Kivikylän Huiluntuhti 375 g != Huiluntuhti 400 g.
     if (isUsableEan(normalizedEan) && sourceSize) {
       const targetSize = parseMetricSize(item.name);
-      const sourceIsBread = /\\bleip|\\bpaahtoleip|\\bsampyl|\\bpatonk/.test(normalize(query));
+      const sourceIsBread = /\bleip|\bpaahtoleip|\bsampyl|\bpatonk/.test(normalize(query));
       if (
         targetSize &&
         (sourceSize.unitGroup !== targetSize.unitGroup ||
