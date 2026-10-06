@@ -156,12 +156,11 @@
       "lidlProductId": "10038246",
       "ian": "4135",
       "name": "Korvapuusti 4 kpl",
-      "displayedPriceEur": 3.16,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038247",
@@ -219,12 +218,11 @@
       "lidlProductId": "10038252",
       "ian": "82847",
       "name": "Kotimainen varsiselleri",
-      "displayedPriceEur": 2.09,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038253",
@@ -260,12 +258,11 @@
       "lidlProductId": "10038256",
       "ian": "82821",
       "name": "Kotimainen punajuuri",
-      "displayedPriceEur": 1.09,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038257",
@@ -323,12 +320,11 @@
       "lidlProductId": "10038262",
       "ian": "7112148",
       "name": "Riihiruispala 5 kpl",
-      "displayedPriceEur": 2.25,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038263",
@@ -400,12 +396,11 @@
       "lidlProductId": "10038269",
       "ian": "7104737",
       "name": "WURSTI Extrapalvikinkku",
-      "displayedPriceEur": 4.99,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038270",
@@ -453,12 +448,11 @@
       "lidlProductId": "10038274",
       "ian": "7107399",
       "name": "PÅGEN Hönösaaristolaisrieska",
-      "displayedPriceEur": 2.49,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038276",
@@ -488,34 +482,31 @@
       "lidlProductId": "10038278",
       "ian": "2541",
       "name": "ALESTO Pähkinäsekoitus",
-      "displayedPriceEur": 3.55,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038279",
       "ian": "7107027",
       "name": "SERLA Valkoinen talouspaperi",
-      "displayedPriceEur": 5.39,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v17b batch 1",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038280",
       "ian": "7107022",
       "name": "SERLA Hellä-wc-paperi",
-      "displayedPriceEur": 7.79,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v17b batch 1",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038281",
@@ -805,23 +796,21 @@
       "lidlProductId": "10038312",
       "ian": "7107496",
       "name": "HK Burgeri 6 kpl",
-      "displayedPriceEur": 4.5,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038313",
       "ian": "176508",
       "name": "SOLEVITA Appelsiinitäysmehu",
-      "displayedPriceEur": 3.39,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v17b batch 1",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038314",
@@ -837,23 +826,21 @@
       "lidlProductId": "10038316",
       "ian": "6205049",
       "name": "Kreikkalainen juustotanko 2 kpl",
-      "displayedPriceEur": 1.38,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v15",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038317",
       "ian": "7101769",
       "name": "KARTANON Kotimainen lihapulla 2 kpl",
-      "displayedPriceEur": 4.98,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038318",
@@ -1111,12 +1098,11 @@
       "lidlProductId": "10038348",
       "ian": "39826",
       "name": "W5 Puhdistusliina 2 kpl",
-      "displayedPriceEur": 3.98,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v17b batch 1",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038436",
@@ -1132,12 +1118,11 @@
       "lidlProductId": "10038437",
       "ian": "7715164",
       "name": "DOVGAN Blini 2 kpl",
-      "displayedPriceEur": 5.98,
+      "displayedPriceEur": null,
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
-      "observedDate": "2026-10-01",
-      "priceEvidence": "Lidl published regular price shown alongside 2026 W40 Lidl/Lidl Plus offer; verified 2026-10-06"
+      "observedDate": "2026-10-01"
     },
     {
       "lidlProductId": "10038470",
