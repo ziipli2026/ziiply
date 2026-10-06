@@ -8914,8 +8914,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // on siirretty offerSearch/ziiplyOfferSearchCore.ts -moduuliin.
 
   function dedupePrismaOfferCopiesForPresentationV826(sourceResults: any[], offerResults: any[]) {
-    if (gostaSelectedOfferChainRefV547.current !== "S") return offerResults;
-
+    // Do not read gostaSelectedOfferChainRefV547 here: that ref is declared later
+    // in the component and causes a TDZ failure during SSR/prerender.
+    // Prisma in the resolved S-store name is already a sufficient chain guard.
     const selectedSStoreNameV826 = String(
       (storeMode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName) ||
       activeStores.sStoreName ||
