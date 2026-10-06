@@ -24,6 +24,7 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/eurospar-feed.json"
       - "scripts/tokmanni-leaflet-discovery.mjs"
+      - "scripts/eurospar-feed-refresh.mjs"
       - "scripts/tokmanni-spar-offer-freshness-audit.mjs"
       - ".github/workflows/tokmanni-spar-offer-freshness.yml"
 jobs:
