@@ -5,6 +5,9 @@ type TokmanniOffer = Record<string, any>;
 const TOKMANNI_OFFERS_URL = "https://www.tokmanni.fi/viikkotarjoukset/elintarvikkeet-ja-elainruoka";
 const TOKMANNI_PAGE_SIZE = 40;
 const TOKMANNI_MAX_PAGES = 20;
+const TOKMANNI_CACHE_TTL_MS = 10 * 60 * 1000;
+let tokmanniOffersCache: { expiresAt: number; items: TokmanniOffer[] } | null = null;
+let tokmanniOffersInFlight: Promise<TokmanniOffer[]> | null = null;
 
 const clean = (value: unknown) =>
   String(value ?? "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").trim();
@@ -206,7 +209,7 @@ function advertisedTotal(html: string) {
   return m ? Number(m[1]) : null;
 }
 
-export async function fetchTokmanniOffers() {
+async function fetchTokmanniOffersFresh() {
   const firstHtml = await fetchTokmanniPage(1);
   const total = advertisedTotal(firstHtml);
   const pageCount = total
@@ -262,4 +265,26 @@ export async function fetchTokmanniOffers() {
   }
 
   return dedupedItems;
+}
+
+export async function fetchTokmanniOffers() {
+  const now = Date.now();
+  if (tokmanniOffersCache && tokmanniOffersCache.expiresAt > now) {
+    return tokmanniOffersCache.items;
+  }
+  if (tokmanniOffersInFlight) return tokmanniOffersInFlight;
+
+  tokmanniOffersInFlight = fetchTokmanniOffersFresh()
+    .then((items) => {
+      tokmanniOffersCache = {
+        items,
+        expiresAt: Date.now() + TOKMANNI_CACHE_TTL_MS,
+      };
+      return items;
+    })
+    .finally(() => {
+      tokmanniOffersInFlight = null;
+    });
+
+  return tokmanniOffersInFlight;
 }
