@@ -501,6 +501,15 @@ function getTrustedProviderCategoryV162(item: ZiiplyGostaOfferLike): string {
 function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
   const title = normalizeGostaText(getOfferProductTitleV113(item));
   if (!title) return "";
+
+  // Product-form precedence: frozen products must beat cookie words first.
+  // A name such as "piparkakkujäätelö" is still Pakasteet.
+  if (/(?:pakaste|pakastettu|jäätel|jaatel|ice cream)/.test(title)) return "Pakasteet";
+
+  // Cookie/gingerbread product identity beats stale generic provider categories.
+  // Covers Finnish inflections after accent normalization: pikkuleipä/pikkuleivät
+  // become pikkuleipa/pikkuleivat, hence both p/v stems are intentional.
+  if (/(?:piparkak\w*|pipari\w*|pikkulei[vp]\w*|keksi\w*|cookie\w*)/.test(title)) return "Makeiset & keksit";
   if (/\b(oreo|taytekeksi|taytekeksit|suklaakeksi|suklaakeksit|voileipakeksi|voileipakeksit)\b/.test(title)) return "Makeiset & keksit";
   if (/\b(omenapossu|munkki|munkit|donitsi|donitsit|korvapuusti|pullapitko)\b/.test(title)) return "Leipomo";
   // Product identity outranks an incorrect generic dairy category (e.g. cheese pizza).
@@ -515,13 +524,19 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
-  // V165: official S-kaupat/Prisma taxonomy wins before title/brand overrides.
+  const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
+
+  // Cookie/gingerbread identity is an explicit cross-provider correction: it
+  // must beat a stale generic dairy taxonomy. Frozen form was resolved first
+  // inside getPreciseProductCategoryV170, so piparkakkujäätelö stays Pakasteet.
+  if (preciseProductCategoryV170 === "Makeiset & keksit") return preciseProductCategoryV170;
+
+  // V165: official S-kaupat/Prisma taxonomy wins for all other product types.
   const officialSKaupatCategoryV165 = getOfficialSKaupatCategoryV165(item);
   if (officialSKaupatCategoryV165) return officialSKaupatCategoryV165;
 
-  // V170: specific product identity wins over a generic or mistaken provider
-  // category for non-official sources. Official S-kaupat taxonomy remains first.
-  const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
+  // V170: other specific product identities beat generic provider categories
+  // for non-official sources.
   if (preciseProductCategoryV170) return preciseProductCategoryV170;
 
   // V162: trust an explicit normalized provider category before any title regex.
