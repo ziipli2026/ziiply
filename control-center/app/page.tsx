@@ -61,6 +61,7 @@ export default async function Page(){
   const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
   const latestBySource=[...new Map(d.runs.map(r=>[`${r.chain}::${r.source}`,r])).values()];
+  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const streak=recent.findIndex(x=>x.ok)!==-1?recent.findIndex(x=>x.ok):recent.length;const isProbe=r.source==="s-kaupat-protocol";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const staleRuns=latestBySource.filter(r=>Date.now()-new Date(r.checked_at).getTime()>36*60*60*1000);
   const latestRun=d.runs[0];
   const nextApproved=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
@@ -83,7 +84,6 @@ export default async function Page(){
   const recoveredFailures24h=failedRuns24h.filter(r=>!latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
   const recoveredFailures=d.runs.filter((r,i)=>!r.ok&&d.runs.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
   const monitoredChains=cards.filter(c=>c.runs.length>0).length;
-  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const streak=recent.findIndex(x=>x.ok)!==-1?recent.findIndex(x=>x.ok):recent.length;const isProbe=r.source==="s-kaupat-protocol";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
   const severeFailureStreaks=sourceHealth.filter(s=>s.streak>=3);
   const sourceCountAnomalies=sourceHealth.filter(s=>s.source!=="s-kaupat-protocol"&&s.delta!==null&&Math.abs(s.delta)>=50);
