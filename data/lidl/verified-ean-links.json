@@ -303,5 +303,10 @@
     "lidlProductId": "10038546",
     "ean": "2279769012311",
     "evidence": "Lidl Finland identifies ITALIAMO Prosciutto Crudo productId 10038546 as a whole Italian dry-cured ham matured 9 months, approx. 1.2 kg. Independent barcode product data identifies ITALIAMO/Lidl Prosciutto Crudo Dry Cured Ham, 9 months matured, 1.2 kg with barcode 2279769012311."
+  },
+  {
+    "lidlProductId": "10038547",
+    "ean": "0000020010447",
+    "evidence": "Lidl Finland identifies ITALIAMO Ilmakuivattu kinkku productId 10038547 as 100 g. Current Swedish Lidl store product data identifies ITALIAMO Prosciutto crudo 100 g with EAN 0000020010447; exact brand, product type and pack size match."
   }
 ]
