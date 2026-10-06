@@ -1,7 +1,7 @@
 {
   "source": "lidl.fi-official-product-page",
   "researchOnly": true,
-  "checkedAt": "2026-10-06T15:32:37.442Z",
+  "checkedAt": "2026-10-06T15:42:36.906Z",
   "records": [
     {
       "lidlProductId": "10037645",
@@ -192,6 +192,11 @@
       "lidlProductId": "10038305",
       "imageUrl": "https://imgproxy-retcat.assets.schwarz/SY0NCA_ZDVGwCrxtcnO3TKBGpV9jJz59iu9Z7ngPfB0/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS8wNTZFODFBMEZGOUIzREFGMTAyMkEyMUE/xMTQ3NzQ4QzNERDQ1REIyODdDNDhFRUE5RUNCMUE2NzQ3ODQ5NkI0LnBuZw.png",
       "officialUrl": "https://www.lidl.fi/p/p10038305"
+    },
+    {
+      "lidlProductId": "10038309",
+      "imageUrl": "https://imgproxy-retcat.assets.schwarz/pj4wTOtoaM3rl-sKWU4ndxx9NekLqR6a6QYxC9XXaWs/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS9ERUYwQUFEMUYzOTA5REJEODhBOEZGNkU/2RjMzMTM2RUYzMkZCMjQ5QjNDOUVDMzlDMTY0MzcwMTMyMDNDRjg5LnBuZw.png",
+      "officialUrl": "https://www.lidl.fi/p/p10038309"
     },
     {
       "lidlProductId": "10038314",
