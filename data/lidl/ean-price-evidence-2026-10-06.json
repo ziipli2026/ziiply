@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "purpose": "EAN-linked Lidl Finland public price evidence; not checkout-verified",
+  "rows": [
+    {
+      "ean": "6409620011917",
+      "lidlProductId": "10037649",
+      "name": "SNELLMAN Kotimainen palvikinkku",
+      "packageSize": "400 g",
+      "priceEur": 5.19,
+      "priceKind": "public-unbadged",
+      "checkoutPriceVerified": false,
+      "productionCacheEligible": false
+    },
+    {
+      "ean": "8850987146619",
+      "lidlProductId": "10037650",
+      "name": "MAMA Nuudeli 6-pack",
+      "packageSize": "330 g",
+      "priceEur": 3.39,
+      "priceKind": "public-unbadged",
+      "checkoutPriceVerified": false,
+      "productionCacheEligible": false
+    }
+  ]
+}
