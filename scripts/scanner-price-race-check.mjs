@@ -288,3 +288,21 @@ assert.match(equivalentV840, /chain !== "lidl".*milbona\|cien\|chef select\|favo
   assert.equal(route(0), "stay-scanner");
 }
 console.log("V840 scanner foreign-chain equivalent routing regression: PASS");
+
+
+// V841: scanner collection permission must fail closed.
+// A store-confirmation timeout is NOT consent; only explicit confirmation or
+// the strict GPS auto-confirm branch may enable collection.
+const storePromptV841 = source.split("function askScannerStoreV828")[1]?.split("async function confirmPhysicalScannerStoreV818")[0];
+assert.ok(storePromptV841, "scanner store confirmation prompt exists");
+assert.match(storePromptV841, /seconds <= 0[\s\S]*resolveScannerStorePromptV828\(false\)/);
+assert.doesNotMatch(storePromptV841, /seconds <= 0[\s\S]{0,160}resolveScannerStorePromptV828\(true\)/);
+
+// One OFF fallback scan must not publish a second success status before the
+// cart-add helper handles the visible outcome.
+const offFallbackV841 = source.split("if (openFoodFactsFallback)")[1]?.split("// V122:")[0];
+assert.ok(offFallbackV841, "Open Food Facts scanner fallback exists");
+assert.doesNotMatch(offFallbackV841, /setEanScannerMessage\("✓ Lisätty koriin"\)/);
+assert.match(offFallbackV841, /addOpenFoodFactsScannedEanToCartV729\(openFoodFactsFallback\)/);
+
+console.log("V841 scanner fail-closed store confirmation and single-status regression: PASS");
