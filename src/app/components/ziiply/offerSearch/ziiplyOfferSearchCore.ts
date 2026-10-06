@@ -936,7 +936,7 @@ export async function searchZiiplyGostaOffersV146(options: {
   const finalResults = hidePrismaOfferCopiesAlreadyInCampaignTabV804(
     results,
     prismaCrossTabMasterV804,
-    options.context?.storeName,
+    options.context?.sStoreName,
   );
 
   return {
