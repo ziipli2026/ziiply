@@ -742,7 +742,7 @@ export async function GET(request: Request) {
         } else if (/keitto|pata\b|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(name)) {
           // Must precede ingredient classes: liha-/peruna- etc. are prepared foods here.
           correctedCategory = "Valmisruoka";
-        } else if (/paistopiste|leip|croissant|(?:^|[ -])pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(name)) {
+        } else if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(name)) {
           // Product form wins: rahkapulla/juustocroissant/perunapiirakka are bakery.
           correctedCategory = "Leipomo";
         }
