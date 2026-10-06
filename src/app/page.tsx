@@ -8991,7 +8991,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         title: item?.title || item?.name || item?.__sourceOfferSearchResult?.title || null,
       })),
     };
-  }, [gostaMasterOfferResultsV528, storeMode, activeArea.sLocalStoreName, activeArea.sStoreName, activeStores.sStoreName]);
+  }, [gostaMasterOfferResultsV528]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
