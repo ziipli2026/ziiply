@@ -23084,11 +23084,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       {scannerEquivalentNoticeV813 ? (
                         <div className="grid w-full grid-cols-2 gap-2">
                           <button type="button" className="min-h-11 rounded-xl bg-emerald-800 px-2 py-2 text-[13px] font-black text-white" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanScannerMessage(""); }}>Skannaa seuraava</button>
-                          <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-[13px] font-black" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); setEanModalOpen(false); setShopsPanelOpen(true); }}>Vaihda kauppaa</button>
+                          <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-[13px] font-black" onClick={() => { setScannerEquivalentNoticeV813(""); setScannerStoreMismatchV801(null); void closeEanModal().then(() => setShopsPanelOpen(true)); }}>Vaihda kauppaa</button>
                         </div>
                       ) : (
                         <div className="grid w-full grid-cols-1 gap-2 min-[360px]:grid-cols-2">
-                          <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-sm font-black" onClick={() => { setEanModalOpen(false); setShopsPanelOpen(true); setScannerStoreMismatchV801(null); }}>Tarkista kauppavalinta</button>
+                          <button type="button" className="min-h-11 rounded-xl border border-[#9a7a47] bg-white px-2 py-2 text-sm font-black" onClick={() => { setScannerStoreMismatchV801(null); void closeEanModal().then(() => setShopsPanelOpen(true)); }}>Tarkista kauppavalinta</button>
                           <button type="button" className="min-h-11 rounded-xl bg-emerald-800 px-2 py-2 text-sm font-black text-white" disabled={loadingNormal} onClick={() => { if (scannerStoreMismatchV801) void findScannerEquivalentV812(scannerStoreMismatchV801.searchTerm); }}>Etsi vastaava</button>
                         </div>
                       )}
