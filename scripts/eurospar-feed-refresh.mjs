@@ -80,8 +80,20 @@ const candidate={
     scriptSources:[...frameHtml.matchAll(/<script\b[^>]*src=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]).slice(0,30),
     dataAttributes:[...frameHtml.matchAll(/\bdata-[a-z0-9_-]+=["']([^"']{1,300})["']/gi)].map(m=>m[0]).slice(0,40)
   },
-  ready:Boolean(issue&&validity&&validityCurrentOrFuture&&priceTokens.length>=5&&storeHits.length>=1&&parsedOffers.length===15&&uniqueNames.size===parsedOffers.length&&parseErrors.length===0),
-  reason:parseErrors.length===0&&parsedOffers.length===15&&uniqueNames.size===parsedOffers.length&&validityCurrentOrFuture?"EUROSPAR publication and 15 offer rows parsed; candidate can be promoted after validation.":"EUROSPAR publication found but one or more offer rows failed validation; keep existing feed fail-closed."
+  validation:{
+    previousIssue,
+    previousOfferCount,
+    sameIssue,
+    minimumOfferCount,
+    parsedOfferCount:parsedOffers.length,
+    coverageHealthy,
+    uniqueNames:uniqueNames.size,
+    parseErrors:parseErrors.length
+  },
+  ready:Boolean(issue&&validity&&validityCurrentOrFuture&&priceTokens.length>=5&&storeHits.length>=1&&coverageHealthy&&uniqueNames.size===parsedOffers.length&&parseErrors.length===0),
+  reason:parseErrors.length===0&&coverageHealthy&&uniqueNames.size===parsedOffers.length&&validityCurrentOrFuture
+    ?"EUROSPAR publication parsed with healthy coverage; candidate can be promoted after validation."
+    :"EUROSPAR publication found but coverage or row validation failed; keep existing feed fail-closed."
 };
 
 if(candidate.ready){
