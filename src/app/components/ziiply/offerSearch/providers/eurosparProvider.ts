@@ -31,6 +31,7 @@ export type EurosparOffer = {
   source: "EUROSPAR tarjouslehti";
   stores: string[];
   page?: number | null;
+  imageUrl?: string | null;
 };
 
 type FeedOffer = Record<string, unknown>;
@@ -125,6 +126,7 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
       source: "EUROSPAR tarjouslehti",
       stores,
       page: typeof raw.page === "number" ? raw.page : null,
+      imageUrl: raw.imageUrl ? `/api/eurospar-image?src=${encodeURIComponent(String(raw.imageUrl))}` : null,
     };
     return offer.id && offer.title ? [offer] : [];
   });
