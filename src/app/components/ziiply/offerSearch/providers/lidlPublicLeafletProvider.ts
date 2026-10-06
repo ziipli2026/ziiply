@@ -88,10 +88,10 @@ function categoryFor(name: string, sourceUrl: string) {
   if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna/.test(s)) return "Muut";
   if (/pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi|wc-paperi|vessapaperi|siivous/.test(s)) return "Kodinhoito";
   if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani|selleri|punajuuri|paprika|salaatti|retiisi/.test(s)) return "Hevi";
+  if (/paistopiste|leip|croissant|pull|sampyl|rieska|patonki|karjalanpiirakka/.test(s)) return "Leipomo";
   if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna|viili|piima/.test(s)) return "Maitotuotteet";
   if (/liha|kana|broiler|nauta|sika|pors|makkara|nakki|pekoni|kinkku|jauheliha|lihapulla|nugget/.test(s)) return "Liha & makkarat";
   if (/kala|lohi|katkarapu|tonnikala|silakka|seiti/.test(s)) return "Kala";
-  if (/paistopiste|leip|croissant|pull|sampyl|rieska|patonki|karjalanpiirakka/.test(s)) return "Leipomo";
   if (/pakaste|jaatelo|jäätelö/.test(s)) return "Pakasteet";
   if (/valmisateria|pizza|keitto|ateria|nyytti|pata|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
   if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
