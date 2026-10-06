@@ -85,14 +85,19 @@ function eanFromProductUrl(productUrl: string) {
   }
 }
 
+function rawProductBlocks(html: string) {
+  // Split on the next product card instead of the first </li>. Magento cards
+  // contain nested list markup, so truncating at </li> can cut the product
+  // name/price out of the card and make a valid listing parse as empty.
+  return html
+    .split(/<li\\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/i)
+    .slice(1);
+}
+
 function productBlocks(html: string) {
-  // Magento listing cards are list items. Restrict extraction to cards that
-  // contain both a product link and one of Tokmanni's offer markers.
-  const raw = html.split(/<li\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/i).slice(1);
-  return raw
-    .map((part) => part.split(/<\/li>/i)[0] || "")
+  return rawProductBlocks(html)
     .filter((part) => /product-item-link|product-item-name/i.test(part))
-    .filter((part) => /Tarjoushinta|Klubitarjous|Normaalihinta|\d+\s*kpl\s*\//i.test(textOf(part)));
+    .filter((part) => /Tarjoushinta|Klubitarjous|Normaalihinta|\\d+\\s*kpl\\s*\\//i.test(textOf(part)));
 }
 
 function first(block: string, patterns: RegExp[]) {
