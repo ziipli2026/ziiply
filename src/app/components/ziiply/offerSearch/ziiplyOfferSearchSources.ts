@@ -953,9 +953,32 @@ export async function searchZiiplyOffers(
       )
     : [];
 
+  // Prisma CMS/DISCOUNTED overlap V1: suppress only an offer-tab copy that
+  // is independently present in this same Prisma store's CMS dataset with
+  // the same EAN and numeric price. CMS remains the campaign-tab copy.
+  const prismaCmsOverlapKeysV1 = new Set(
+    (prismaCampaignResults as any[])
+      .map((row) => {
+        const ean = String(row?.ean ?? "").trim();
+        const price = Number(row?.price);
+        const store = normalizeOfferUniqueText(row?.storeLabel ?? "");
+        return ean && Number.isFinite(price) && price > 0 && store
+          ? `${store}|ean:${ean}|price:${price.toFixed(4)}`
+          : "";
+      })
+      .filter(Boolean),
+  );
+  const prismaDiscountedResultsV1 = (sKaupatResults as any[]).filter((row) => {
+    const ean = String(row?.ean ?? "").trim();
+    const price = Number(row?.price);
+    const store = normalizeOfferUniqueText(row?.storeLabel ?? "");
+    if (!ean || !Number.isFinite(price) || price <= 0 || !store) return true;
+    return !prismaCmsOverlapKeysV1.has(`${store}|ean:${ean}|price:${price.toFixed(4)}`);
+  }) as ZiiplyOfferSearchResult[];
+
   const uniqueAllResults = uniqueOfferResults([
     ...eTarjouslehdetResults,
-    ...sKaupatResults,
+    ...prismaDiscountedResultsV1,
     ...prismaCampaignResults,
     ...sLocalCampaignResults,
     ...kResults,
