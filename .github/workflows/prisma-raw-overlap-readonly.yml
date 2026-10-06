@@ -1,0 +1,52 @@
+name: Prisma Raw Overlap Read-only
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-raw-overlap-readonly.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Compare raw DISCOUNTED and CMS for Prisma Hyvinkää
+        run: |
+          node <<'NODE'
+          const storeId="634976534";
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+          const headers=(client)=>({accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":client});
+          const get=async(url,client)=>{const r=await fetch(url,{headers:headers(client)});const b=await r.json();if(!r.ok||b.errors) throw new Error(JSON.stringify({status:r.status,errors:b.errors}));return b};
+          const discounted=[];
+          for(let from=0;from<1000;from+=48){
+            const vars={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"ziiply-raw-overlap",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"ziiply-raw-overlap",from,offset:from,skip:from,page:Math.floor(from/48)+1};
+            const ext={clientLibrary:{name:"@apollo/client",version:"4.3.1"},persistedQuery:{version:1,sha256Hash:"85a4eed2f0a1e3269ac49b94276ca952922568369d85ddd5dcee34481e4c0f91"}};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(vars));u.searchParams.set("extensions",JSON.stringify(ext));
+            const b=await get(u,"production-add4ac0e6ec7f03f2c5373a6ebfab2b63df73f68");
+            const root=b?.data?.store?.products??{}; const rows=root.productListItems??[];
+            for(const li of rows){const p=li?.product??li;const pr=p?.store?.pricing??p?.pricing??{};discounted.push({ean:String(p?.ean??p?.id??""),title:p?.name??p?.title??"",price:Number(pr.campaignPrice??pr.currentPrice??p?.price),valid:String(pr.campaignPriceValidUntil??""),regular:Number(pr.regularPrice),labels:JSON.stringify([...(li?.labels??[]),...(p?.store?.labels??[])])})}
+            const total=Number(root.total??root?.pagination?.total??0); if(rows.length<48 || (total&&from+48>=total)) break;
+          }
+          const cms=[];
+          {
+            const vars={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+            const ext={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:"f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1"}};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(vars));u.searchParams.set("extensions",JSON.stringify(ext));
+            const b=await get(u,"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8");
+            const sections=b?.data?.pageContent?.sections??[];
+            for(const s of sections) for(const p of (s?.products??s?.items??s?.productList?.products??[])){const pr=p?.store?.pricing??p?.pricing??{};cms.push({ean:String(p?.ean??p?.id??""),title:p?.name??p?.title??"",section:s?.title??"",price:Number(pr.campaignPrice??pr.currentPrice??p?.price),valid:String(pr.campaignPriceValidUntil??""),regular:Number(pr.regularPrice)})}
+          }
+          const uniq=a=>[...new Map(a.filter(x=>x.ean).map(x=>[x.ean,x])).values()];
+          const d=uniq(discounted), c=uniq(cms), cm=new Map(c.map(x=>[x.ean,x]));
+          const overlap=d.filter(x=>cm.has(x.ean)).map(x=>({d:x,c:cm.get(x.ean)}));
+          const samePrice=overlap.filter(x=>Number.isFinite(x.d.price)&&Math.abs(x.d.price-x.c.price)<0.005);
+          const exact=samePrice.filter(x=>x.d.valid&&x.c.valid&&x.d.valid===x.c.valid);
+          const missingCms=samePrice.filter(x=>x.d.valid&&!x.c.valid);
+          const mismatch=samePrice.filter(x=>x.d.valid&&x.c.valid&&x.d.valid!==x.c.valid);
+          const bothNoDate=samePrice.filter(x=>!x.d.valid&&!x.c.valid);
+          const diffPrice=overlap.filter(x=>Math.abs(x.d.price-x.c.price)>=0.005);
+          const safeActive=exact.filter(x=>x.d.valid>=date);
+          const muikku=overlap.filter(x=>x.d.ean==="2004657500003");
+          console.log(JSON.stringify({date,storeId,counts:{discounted:d.length,cms:c.length,overlap:overlap.length,samePrice:samePrice.length,exactEanPriceValidity:exact.length,safeActiveExact:safeActive.length,missingCmsValidity:missingCms.length,validityMismatch:mismatch.length,bothNoValidity:bothNoDate.length,differentPrice:diffPrice.length},muikku,validityMismatchRows:mismatch.slice(0,30),missingCmsValidityRows:missingCms.slice(0,30),differentPriceRows:diffPrice.slice(0,30)},null,2));
+          NODE
