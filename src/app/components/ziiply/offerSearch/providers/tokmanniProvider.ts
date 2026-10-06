@@ -169,7 +169,11 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
     : null;
 
   const singleOfferPrice = price(offerMarker?.[1]);
-  const normalPrice = price(normalMarker?.[1]) ?? ordinaryCardPrice;
+  // For multi-buy cards prefer the structured ordinary unit price. The rendered
+  // "Normaalihinta" label may expose only a detached cents node (e.g. 99),
+  // which must never override Magento's machine-readable amount.
+  const renderedNormalPrice = price(normalMarker?.[1]);
+  const normalPrice = multi ? (ordinaryCardPrice ?? renderedNormalPrice) : renderedNormalPrice;
   const offerPrice = multiBuyTotalPrice ?? singleOfferPrice;
   if (offerPrice == null) return null;
 
