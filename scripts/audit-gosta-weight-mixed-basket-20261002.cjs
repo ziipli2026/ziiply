@@ -6,7 +6,7 @@ const end=page.indexOf("\n  const chainResults = useMemo",start);
 const chainEnd=page.indexOf("\n  const ",end+20);
 const guard=page.slice(start,end);
 const chain=page.slice(end,chainEnd>end?chainEnd:end+2700);
-assert.match(guard,/isComparisonEligibleV797\(item\)/);
+assert.match(guard,/cart\.filter\(isComparisonEligibleV797\)/);
 assert.match(chain,/const sList = comparableCart/);
 assert.match(chain,/const kList = comparableCart/);
 assert.match(chain,/const sTotal = sList\.reduce/);
