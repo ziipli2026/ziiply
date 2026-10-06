@@ -14,6 +14,19 @@ const iframeMatches=[...html.matchAll(/<iframe\b[^>]*src=["']([^"']+)["'][^>]*>/
 const eurosparFrame=iframeMatches.find(x=>/eurospar/i.test(x))??null;
 const frameResponse=eurosparFrame?await fetch(new URL(eurosparFrame,HUB),{headers:{"user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)}):null;
 const frameHtml=frameResponse?.ok?await frameResponse.text():"";
+function decodeHtml(s){return s.replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(Number(n)));}
+function stripTags(s){return decodeHtml(s.replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]+>/g," ")).replace(/\r/g,"").replace(/[ \t]+/g," ").replace(/\n[ \t]+/g,"\n").trim();}
+function isoDate(d,m,y){return String(y).padStart(4,"0")+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");}
+
+const seoRaw=(frameHtml.match(/["']seoPageText["']\s*:\s*["']([\s\S]*?)["']\s*[,}]/i)?.[1]??frameHtml.match(/seoPageText[^>]*>([\s\S]*?)<\//i)?.[1]??"");
+const seoText=stripTags(seoRaw.replace(/\\n/g,"\n").replace(/\\u003[cC]/g,"<").replace(/\\u003[eE]/g,">").replace(/\\["']/g,m=>m.slice(1)));
+const issue=seoText.match(/\b(\d{1,2})\/(\d{2})\b/)?.[0]??null;
+const validityMatch=seoText.match(/(?:voimassa|tarjoukset[^\n]{0,40})(?:\s+)?(\d{1,2})[.](\d{1,2})[.]?(?:\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.]?)?(?:\s*(20\d{2}))?/i)??seoText.match(/\b(\d{1,2})[.](\d{1,2})[.]\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.]\s*(20\d{2})/);
+const inferredYear=Number(validityMatch?.[5]??("20"+(issue?.split("/")[1]??"26")));
+const validity=validityMatch?{from:isoDate(validityMatch[1],validityMatch[2],inferredYear),to:isoDate(validityMatch[3]??validityMatch[1],validityMatch[4]??validityMatch[2],inferredYear)}:null;
+const priceTokens=[...seoText.matchAll(/\b\d{1,3}[,.]\d{2}\b/g)].map(m=>m[0]);
+const storeHits=["Iisalmi","Joensuu","Järvenpää","Masku","Tornio","Ylöjärvi"].filter(x=>seoText.toLocaleLowerCase("fi").includes(x.toLocaleLowerCase("fi")));
+
 
 const candidate={
   schemaVersion:1,
@@ -33,8 +46,8 @@ const candidate={
     scriptSources:[...frameHtml.matchAll(/<script\b[^>]*src=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]).slice(0,30),
     dataAttributes:[...frameHtml.matchAll(/\bdata-[a-z0-9_-]+=["']([^"']{1,300})["']/gi)].map(m=>m[0]).slice(0,40)
   },
-  ready:false,
-  reason:"EUROSPAR viewer shell found but no validated offer payload parser is available yet; keep existing feed fail-closed."
+  ready:Boolean(issue&&validity&&priceTokens.length>=5&&storeHits.length>=1),
+  reason:issue&&validity&&priceTokens.length>=5?"EUROSPAR publication metadata parsed; offer row parser pending validation.":"EUROSPAR viewer found but publication metadata is not yet sufficiently validated; keep existing feed fail-closed."
 };
 
 writeFileSync("eurospar-feed-candidate.json",JSON.stringify(candidate,null,2));
