@@ -25,9 +25,24 @@ const classifiedFrames={
   ruokasanomat:publicationFrames.filter(x=>/ruokasanomat/i.test(x.title+" "+x.src)),
   tarjoussanomat:publicationFrames.filter(x=>/tarjoussanomat/i.test(x.title+" "+x.src)),
 };
-const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames,classifiedFrames};
+const frameProbes=[];
+for(const [kind,frames] of Object.entries(classifiedFrames)){
+  for(const frame of frames.slice(0,2)){
+    try{
+      const frameUrl=new URL(frame.src,SOURCE).href;
+      const r=await fetch(frameUrl,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"},redirect:"follow",signal:AbortSignal.timeout(20000)});
+      const body=await r.text();
+      const discovered=[...new Set([...body.matchAll(/https?:\\?\/\\?\/[^"'<>\\s]+/gi)].map(m=>decode(m[0].replace(/\\\//g,"/"))).filter(x=>/publication|catalog|leaflet|viewer|api|json|tjek|incito/i.test(x)))].slice(0,50);
+      frameProbes.push({kind,frameUrl,finalUrl:r.url,http:r.status,bytes:body.length,discovered});
+    }catch(error){
+      frameProbes.push({kind,frameUrl:frame.src,error:String(error)});
+    }
+  }
+}
+const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames,classifiedFrames,frameProbes};
 writeFileSync("tokmanni-leaflet-discovery.json",JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(!labels.eurospar||!labels.ruokasanomat){console.error("Expected EUROSPAR/Ruokasanomat labels missing from official leaflet hub");process.exitCode=1;}
 if(publicationFrames.length===0){console.error("No identifiable publication iframe sources found");process.exitCode=1;}
 if(classifiedFrames.eurospar.length===0||classifiedFrames.ruokasanomat.length===0){console.error("EUROSPAR or Ruokasanomat iframe could not be classified");process.exitCode=1;}
+if(!frameProbes.some(x=>x.kind==="eurospar"&&x.http>=200&&x.http<400)){console.error("EUROSPAR iframe source could not be fetched");process.exitCode=1;}
