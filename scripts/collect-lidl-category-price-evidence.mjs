@@ -237,7 +237,7 @@ for(const r of byKey.values()){
   // If the exact product's canonical page explicitly marks the very same displayed
   // price as a promotion, do not also publish that API price as regular evidence.
   // A differing API price is preserved as regular, allowing normal + promo to coexist.
-  const suppressRegular=continuous&&canonicalClassification?.priceKind!=="regular"&&canonicalPromo&&eur(canonicalPromo.evidenceText)===r.displayedPriceEur;
+  const suppressRegular=continuous&&canonicalClassification?.priceKind!=="regular"&&canonicalPromo?.displayedPriceEur!=null&&canonicalPromo.displayedPriceEur===r.displayedPriceEur;
   const baseKind=continuous?"regular":classification.priceKind;
   if(!suppressRegular) records.push({...r,priceKind:baseKind,priceClassificationReason:continuous?"continuous-base-regular":classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:baseKind,validThrough:r.validThrough})});
   if(!continuous||!r.lidlProductId) continue;
@@ -245,7 +245,7 @@ for(const r of byKey.values()){
   if(!promo) continue;
   const pc=classifyLidlPublicPriceCard({title:r.productName,evidenceText:promo.evidenceText,promotionText:promo.evidenceText,isLidlPlus:promo.isLidlPlus,isMultiBuy:promo.isMultiBuy,validFrom:promo.validFrom,validThrough:promo.validThrough});
   if(pc.priceKind==="regular") continue;
-  records.push({...r,availabilityKind:"current-product-promo",temporalStatus:"current",validFrom:promo.validFrom,validThrough:promo.validThrough,priceKind:pc.priceKind,priceClassificationReason:(canonicalPromo?"canonical-product-current-promo:":"product-current-promo:")+pc.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:promo.validThrough})});
+  records.push({...r,displayedPriceEur:promo.displayedPriceEur??r.displayedPriceEur,availabilityKind:"current-product-promo",temporalStatus:"current",validFrom:promo.validFrom,validThrough:promo.validThrough,priceKind:pc.priceKind,priceClassificationReason:(canonicalPromo?"canonical-product-current-promo:":"product-current-promo:")+pc.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:promo.validThrough})});
 }
 const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.availabilityKind==='current-product-promo'||r.productMatchConfidence==='exact-local-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-local-name');
