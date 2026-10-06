@@ -1,0 +1,22 @@
+name: Prisma Dedupe UI Simulation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-dedupe-ui-simulation.yml'
+permissions:
+  contents: read
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --legacy-peer-deps
+      - name: Simulate UI dedupe and guard cases
+        run: |
+          cp scripts/audit-prisma-source-to-ziiply.mts /tmp/base.mts
+          npx tsx scripts/simulate-prisma-ui-dedupe.mts
