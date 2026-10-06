@@ -82,6 +82,34 @@ const collectOfficialApi=async()=>{
 const raw=[];
 const observedAt=new Date().toISOString();
 const api=await collectOfficialApi();
+
+// For verified EAN products, inspect the product's own canonical Lidl page.
+// Category text can contain neighbouring cards; a canonical product page gives
+// product-scoped validity/promo evidence without positional guessing.
+const verifiedLinks=JSON.parse(readFileSync("data/lidl/verified-ean-links.json","utf8"));
+const verifiedIds=new Set(verifiedLinks.map(x=>String(x.lidlProductId)));
+const canonicalPromoByProduct=new Map();
+for(const product of api.out){
+  if(!verifiedIds.has(String(product.lidlProductId))||!product.canonicalPath||canonicalPromoByProduct.has(String(product.lidlProductId))) continue;
+  try{
+    const url=new URL(product.canonicalPath,"https://www.lidl.fi").href;
+    const res=await fetch(url,{headers:{"user-agent":"ZiiplyLidlResearch/1.0",accept:"text/html"},signal:AbortSignal.timeout(12000)});
+    if(!res.ok) continue;
+    const pageText=decode(await res.text());
+    const dates=[...pageText.matchAll(/Myymälässä\s+(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)\s*-\s*(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)/gi)];
+    for(const m of dates){
+      const fromIso=parseFiDate(m[1],observedAt),throughIso=parseFiDate(m[2],observedAt);
+      if(temporalStatus(fromIso,throughIso,observedAt,"dated-campaign")!=="current") continue;
+      const local=pageText.slice(Math.max(0,m.index-900),Math.min(pageText.length,m.index+m[0].length+100));
+      canonicalPromoByProduct.set(String(product.lidlProductId),{
+        validFrom:fromIso,validThrough:throughIso,
+        isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
+        evidenceText:local,source:url
+      });
+      break;
+    }
+  }catch{}
+}
 const apiUniqueProducts=new Set(api.out.map(x=>x.lidlProductId));
 const officialApi={
   rawRecordCount:api.out.length,
@@ -180,6 +208,11 @@ for(const r of byKey.values()){
   if(!prev || r.temporalStatus==="current") promoByProduct.set(String(r.lidlProductId),r);
 }
 const records=[...byKey.values()].map(r=>{
+  const canonicalPromo=r.lidlProductId?canonicalPromoByProduct.get(String(r.lidlProductId)):null;
+  if(canonicalPromo && (r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api")){
+    const pc=classifyLidlPublicPriceCard({title:r.productName,evidenceText:canonicalPromo.evidenceText,promotionText:canonicalPromo.evidenceText,isLidlPlus:canonicalPromo.isLidlPlus,isMultiBuy:canonicalPromo.isMultiBuy,validFrom:canonicalPromo.validFrom,validThrough:canonicalPromo.validThrough});
+    return {...r,priceKind:pc.priceKind,priceClassificationReason:"canonical-product-current-promo:"+pc.reason,promotionValidFrom:canonicalPromo.validFrom,promotionValidThrough:canonicalPromo.validThrough,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:canonicalPromo.validThrough})};
+  }
   const classification=classifyLidlPublicPriceCard({
     title:r.productName,evidenceText:r.evidenceText,promotionText:r.evidenceText,
     isLidlPlus:r.isLidlPlus,isMultiBuy:r.isMultiBuy,
