@@ -112,3 +112,16 @@ const btSectionV827 = source.split("function handleBluetoothBarcodeInputKeyDownV
 assert.ok(btSectionV827, "USB/Bluetooth scanner handler exists");
 assert.match(btSectionV827, /finishScannedEan\(code\)/);
 console.log("V827 paste vs physical reader source regression: PASS");
+
+
+// V830: every visible scanner EAN entry route must pass through the same store-session helper.
+const scannerEntryHelperV830 = source.split("async function searchScannerEnteredEanV830")[1]?.split("async function finishScannedEan")[0];
+assert.ok(scannerEntryHelperV830, "unified scanner EAN entry helper exists");
+assert.match(scannerEntryHelperV830, /confirmPhysicalScannerStoreV818\(\)/);
+assert.match(scannerEntryHelperV830, /collectionEligible: inStore/);
+assert.match(scannerEntryHelperV830, /manualScannerEntry: true/);
+assert.equal((source.match(/onClick=\{\(\) => void searchByEan\(\)\}/g) || []).length, 0, "scanner Hae buttons cannot bypass store session");
+assert.equal((source.match(/if \(event\.key === "Enter"\) void searchByEan\(\);/g) || []).length, 0, "scanner Enter cannot bypass store session");
+assert.ok((source.match(/searchScannerEnteredEanV830/g) || []).length >= 6, "manual/HID scanner routes use unified helper");
+assert.equal((source.match(/scannerStorePromptV828 &&/g) || []).length, 1, "store prompt is rendered once at scanner modal root");
+console.log("V830 unified scanner entry/store-session regression: PASS");
