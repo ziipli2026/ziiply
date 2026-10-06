@@ -68,9 +68,13 @@ jobs:
             https://www.lidl.fi/c/hyytaevaen-herkullinen-se-kannattaa/a10104529 \
             https://www.lidl.fi/c/uutta-valikoimassa/a10026611 \
             > tmp/lidl/category-price-evidence.json
-          node -e 'const x=require("./tmp/lidl/category-price-evidence.json"); if((x.records?.length||0)<20) throw new Error(`Too few strong Lidl price observations: ${x.records?.length||0}`); console.log("strong",x.strongCount,"review",x.reviewCount,"statusCounts",x.statusCounts,"matchCounts",x.matchCounts,"officialApi",x.officialApi)'\n          node scripts/build-lidl-ean-price-plan.mjs tmp/lidl/category-price-evidence.json > tmp/lidl/ean-price-plan.json\n          node -e 'const x=require("./tmp/lidl/ean-price-plan.json"); console.log("exact EAN price plan",x.count)'
+          node -e 'const x=require("./tmp/lidl/category-price-evidence.json"); if((x.records?.length||0)<20) throw new Error(`Too few strong Lidl price observations: ${x.records?.length||0}`); console.log("strong",x.strongCount,"review",x.reviewCount,"statusCounts",x.statusCounts,"matchCounts",x.matchCounts,"officialApi",x.officialApi)'
+          node scripts/build-lidl-ean-price-plan.mjs tmp/lidl/category-price-evidence.json > tmp/lidl/ean-price-plan.json
+          node -e 'const x=require("./tmp/lidl/ean-price-plan.json"); console.log("exact EAN price plan",x.count)'
       - uses: actions/upload-artifact@v4
         with:
           name: lidl-category-price-evidence
-          path: |\n            tmp/lidl/category-price-evidence.json\n            tmp/lidl/ean-price-plan.json
+          path: |
+            tmp/lidl/category-price-evidence.json
+            tmp/lidl/ean-price-plan.json
           retention-days: 14
