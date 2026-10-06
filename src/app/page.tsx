@@ -13504,8 +13504,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return true;
     }
 
-    // Adjacent stores, weak distance, or a GPS mismatch: name the suspected store and let
-    // the user override the default Yes during the five-second window.
+    // If usable GPS clearly places the user away from the intended store, this is a
+    // remote scanner session. Do not ask a default-Yes question that could falsely collect.
+    if (intendedDistance != null && intendedDistance > 0.3) {
+      scannerStoreCheckDoneRefV791.current = true;
+      scannerInStoreRefV828.current = false;
+      scannerConfirmedStoreNameRefV828.current = intendedName;
+      return false;
+    }
+
+    // Adjacent stores or weak/ambiguous GPS: name the suspected store and let the user
+    // override the default Yes during the five-second window.
     return askScannerStoreV828(intendedName);
   }
 
