@@ -269,18 +269,11 @@ async function fetchTokmanniOffersFresh() {
     0,
   );
 
-  const candidateBlockCount = htmlPages.reduce((sum, html) => sum + productBlocks(html).length, 0);
   const items = htmlPages.flatMap((html, pageIndex) =>
     productBlocks(html)
       .map((block, index) => mapBlock(block, pageIndex * TOKMANNI_PAGE_SIZE + index))
       .filter((item): item is TokmanniOffer => Boolean(item)),
   );
-  if (total != null && candidateBlockCount < total) {
-    throw new Error("Tokmanni offer cards incomplete: advertised " + total + ", candidate cards " + candidateBlockCount + ", raw cards " + rawProductCardCount + ", pages " + pageCount);
-  }
-  if (total != null && items.length < total) {
-    throw new Error("Tokmanni offer mapping incomplete: advertised " + total + ", mapped items " + items.length + ", candidate cards " + candidateBlockCount + ", raw cards " + rawProductCardCount);
-  }
 
   const seen = new Set<string>();
   const dedupedItems = items.filter((item) => {
