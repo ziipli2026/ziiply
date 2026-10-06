@@ -145,3 +145,9 @@ assert.match(storeConfirmV832, /stillMatchesCurrentStore/);
 assert.match(storeConfirmV832, /scannerStoreCheckDoneRefV791\.current = false/);
 assert.match(storeConfirmV832, /scannerInStoreRefV828\.current = false/);
 console.log("V832 scanner store-context change regression: PASS");
+
+
+// V833: ordinary EAN debounce must never masquerade as scanner input.
+assert.equal((source.match(/searchByEan\(ean, \{ fromScanner: Boolean\(eanScannerOpen \|\| eanHtml5ScannerRef\.current\) \}\)/g) || []).length, 0);
+assert.match(source, /V833: this debounce belongs only to ordinary manual EAN search/);
+console.log("V833 manual EAN debounce source separation regression: PASS");
