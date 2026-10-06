@@ -501,6 +501,19 @@ function getTrustedProviderCategoryV162(item: ZiiplyGostaOfferLike): string {
 function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
   const title = normalizeGostaText(getOfferProductTitleV113(item));
   if (!title) return "";
+
+  // Product-form precedence: frozen products must beat cookie words first.
+  // A name such as "piparkakkujäätelö" is still Pakasteet.
+  if (/\b(pakaste\w*|pakastettu\w*|jäätel\w*|jaatel\w*|ice cream)\b/.test(title)) return "Pakasteet";
+
+  // Cookie/gingerbread identity is stronger than a generic provider category.
+  // This is intentionally a product-family rule, not a one-product exception:
+  // piparkakut, piparit, pikkuleivät, keksit and cookies all beat e.g.
+  // a stale "Maitotuotteet" category supplied by the source.
+  if (/\b(piparkak\w*|pipari\w*|pikkuleip\w*|keksi\w*|cookie\w*)\b/.test(title)) {
+    return "Makeiset & keksit";
+  }
+
   if (/\b(oreo|taytekeksi|taytekeksit|suklaakeksi|suklaakeksit|voileipakeksi|voileipakeksit)\b/.test(title)) return "Makeiset & keksit";
   if (/\b(omenapossu|munkki|munkit|donitsi|donitsit|korvapuusti|pullapitko)\b/.test(title)) return "Leipomo";
   // Product identity outranks an incorrect generic dairy category (e.g. cheese pizza).
