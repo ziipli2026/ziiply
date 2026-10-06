@@ -14488,13 +14488,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // on keräilykuittaus, ei määrän kasvatus. Tämä tehdään ennen vanhaa +1-oikopolkua.
     const physicalExistingScanV824 = physicalBarcodeScanRefV815.current;
     const isPhysicalExistingScanV824 = Boolean(
+      options.collectionEligible &&
       options.fromScanner &&
-      (eanScannerOpen || eanHtml5ScannerRef.current) &&
-      physicalExistingScanV824 &&
-      getEanVariantKeysV126(physicalExistingScanV824.code).some((variant) =>
-        getEanVariantKeysV126(ean).includes(variant),
-      ) &&
-      Date.now() - physicalExistingScanV824.at < 10000
+      (
+        options.manualScannerEntry ||
+        (
+          (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
+          physicalExistingScanV824 &&
+          getEanVariantKeysV126(physicalExistingScanV824.code).some((variant) =>
+            getEanVariantKeysV126(ean).includes(variant),
+          ) &&
+          Date.now() - physicalExistingScanV824.at < 10000
+        )
+      )
     );
     if (isPhysicalExistingScanV824 && existingCartItemForEanV122) {
       const collectionKeyV816 = String(existingCartItemForEanV122.id ?? "");
@@ -16399,14 +16405,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically,
     );
     const physicalScanV815 = physicalBarcodeScanRefV815.current;
+    // V829: collection is a property of the confirmed scanner/store session.
+    // Camera, HID reader and manual/pasted EAN inside the scanner are equivalent here.
     const isPhysicalBarcodeScanV815 = Boolean(
       isUsableEan(ean) &&
-      (eanScannerOpen || eanHtml5ScannerRef.current) &&
-      physicalScanV815 &&
-      getEanVariantKeysV126(physicalScanV815.code).some((variant) =>
-        getEanVariantKeysV126(ean).includes(variant),
-      ) &&
-      Date.now() - physicalScanV815.at < 10000
+      scannerInStoreRefV828.current &&
+      isScannerAddV787 &&
+      (
+        eanManualInputOpen ||
+        (
+          (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
+          physicalScanV815 &&
+          getEanVariantKeysV126(physicalScanV815.code).some((variant) =>
+            getEanVariantKeysV126(ean).includes(variant),
+          ) &&
+          Date.now() - physicalScanV815.at < 10000
+        )
+      )
     );
     const addKey = `${result.chain}-${ean || normalize(productName)}-${result.product.id}`;
     const now = Date.now();
