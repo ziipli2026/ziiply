@@ -157,9 +157,10 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   const offerPrice = multiBuyTotalPrice ?? singleOfferPrice;
   if (offerPrice == null) return null;
 
-  const imageMatch = block.match(/class=["'][^"']*product-image-photo[^"']*["'][^>]*(?:src|data-src)=["']([^"']+)/i)
-    || block.match(/(?:src|data-src)=["']([^"']+)["'][^>]*class=["'][^"']*product-image-photo/i);
-  const imageUrl = absoluteUrl(decodeEntities(imageMatch?.[1] || ""));
+  const imageTag = block.match(/<img\b[^>]*class=["'][^"']*product-image-photo[^"']*["'][^>]*>/i)?.[0] || "";
+  const imageMatch = imageTag.match(/(?:data-src|data-original|src)=["']([^"']+)["']/i);
+  const candidateImageUrl = absoluteUrl(decodeEntities(imageMatch?.[1] || ""));
+  const imageUrl = candidateImageUrl && candidateImageUrl !== TOKMANNI_OFFERS_URL ? candidateImageUrl : "";
   const cat = category(name);
   const multiText = multi ? `${offerQuantity} kpl / ${multiBuyTotalPrice!.toFixed(2).replace(".", ",")} €` : "";
 
