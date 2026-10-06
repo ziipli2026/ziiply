@@ -14716,7 +14716,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 });
                 const addressV814 = String(selectedLidlStoreV750.address || "").trim();
                 if (addressV814) paramsV814.set("address", addressV814);
-                const responseV814 = await fetch(\`/api/lidl/products?\${paramsV814.toString()}\`, { cache: "no-store" });
+                const responseV814 = await fetch(`/api/lidl/products?${paramsV814.toString()}`, { cache: "no-store" });
                 const dataV814 = responseV814.ok ? await responseV814.json().catch(() => null) : null;
                 const candidatesV814 = Array.isArray(dataV814?.items) ? dataV814.items as Product[] : [];
                 exactV814 = candidatesV814.find((productV814) =>
