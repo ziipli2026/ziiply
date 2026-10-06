@@ -16,6 +16,15 @@ on:
       - "scripts/tokmanni-leaflet-discovery.mjs"
       - "scripts/tokmanni-spar-offer-freshness-audit.mjs"
       - ".github/workflows/tokmanni-spar-offer-freshness.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/eurospar-feed.json"
+      - "scripts/tokmanni-leaflet-discovery.mjs"
+      - "scripts/tokmanni-spar-offer-freshness-audit.mjs"
+      - ".github/workflows/tokmanni-spar-offer-freshness.yml"
 jobs:
   audit:
     runs-on: ubuntu-latest
