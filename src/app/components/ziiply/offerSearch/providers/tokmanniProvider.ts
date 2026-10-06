@@ -45,8 +45,8 @@ function normalize(value: unknown) {
 function category(title: string) {
   const s = clean(title).toLowerCase().replace(/\s+/g, " ");
   if (/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli|grilli|työkalu|valaisin|lamppu|liimapuulevy|kasteluletku|moppi|pesuri|liina|käsine|kenkä|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|lanka|asuste|lelu/.test(s)) return "Koti & vapaa-aika";
-  if (/suklaa|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|patuk|tikkari|snack/.test(s)) return "Makeiset & keksit";
-  if (/leipä|näkkileip|sämpyl|pull|croissant|patonki|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
+  if (/suklaa|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|patuk|tikkari|snack|kismet|tupla\b|da capo|fazerina|geisha|dumle|pantteri|ässä|aarrearkku|remix|suffeli|julia\b/.test(s)) return "Makeiset & keksit";
+  if (/leipä|näkkileip|hapankorppu|korppu|sämpyl|pull|croissant|patonki|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
   if (/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if (/pizza|ateria|keitto|valmisruoka|wrap|caesar|salaattiateria|välipala/.test(s)) return "Valmisruoka";
   if (/kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|lihavalmiste|liha/.test(s)) return "Liha & makkarat";
@@ -55,7 +55,7 @@ function category(title: string) {
   if (/kahvi|espresso|tee\b|kaakao/.test(s)) return "Kahvi & tee";
   if (/mehu|limon|virvoitus|energiajuoma|kivennäisves|vichy|cola|juoma|vesi\b/.test(s)) return "Juomat";
   if (/jäätel|tuut|multipack|pakaste/.test(s)) return "Pakasteet";
-  if (/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastike|ketsupp|ruokaöljy|mauste|tortilla/.test(s)) return "Kuivatuotteet";
+  if (/pasta|spagetti|nuudeli|riisi|jauho|hiutale|muro|mysli|säilyke|kastike|ketsupp|ruokaöljy|mauste|tortilla|kuivattu (?:aprikoosi|hedelmä)|aprikoosi.*kuivattu/.test(s)) return "Kuivatuotteet";
   if (/omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna\b|sipuli|porkkana|mango|marja|hedelm|vihann/.test(s)) return "Hevi";
   if (/koira|kissa|lemmik|kissanruoka|koiranruoka/.test(s)) return "Lemmikit";
   if (/wc-paper|talouspaper|nenäliina|astianpes|pyykin|puhdistus|pesuaine|talousliina|sieniliina/.test(s)) return "Kodinhoito";
