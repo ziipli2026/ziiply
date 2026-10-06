@@ -82,6 +82,12 @@ const candidate={
   reason:parseErrors.length===0&&parsedOffers.length===15?"EUROSPAR publication and 15 offer rows parsed; candidate can be promoted after validation.":"EUROSPAR publication found but one or more offer rows lack a reliable offer price; keep existing feed fail-closed."
 };
 
+if(candidate.ready){
+  const generated={schemaVersion:1,issue,validity,stores:storeNames,healthy:true,offers:parsedOffers};
+  writeFileSync("eurospar-feed.generated.json",JSON.stringify(generated,null,2)+"\n");
+}else{
+  console.error("EUROSPAR candidate not promoted: "+candidate.reason);
+}
 writeFileSync("eurospar-feed-candidate.json",JSON.stringify(candidate,null,2));
 console.log(JSON.stringify(candidate,null,2));
 
