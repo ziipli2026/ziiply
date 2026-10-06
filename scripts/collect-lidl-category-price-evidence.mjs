@@ -131,6 +131,7 @@ for(const product of api.out){
     }
   }catch{}
 }
+const apiProductById=new Map(api.out.filter(x=>x.lidlProductId).map(x=>[String(x.lidlProductId),x]));
 const apiUniqueProducts=new Set(api.out.map(x=>x.lidlProductId));
 const officialApi={
   rawRecordCount:api.out.length,
@@ -192,7 +193,8 @@ for(const source of urls){
     // When the dated card can be bound to one exact structured product on the
     // same official category page, its product-scoped display price is stronger
     // than any neighbouring €/kg or multi-buy number in flattened page text.
-    const price=product?.displayedPriceEur??textPrice;
+    const apiProduct=product?.lidlProductId?apiProductById.get(String(product.lidlProductId)):null;
+    const price=product?.displayedPriceEur??apiProduct?.displayedPriceEur??textPrice;
     // Keep the dated-card context deliberately tight. A unique product title inside
     // the same local card is stronger evidence than comparing against the structured
     // price, because a genuine campaign price is expected to differ from regular.
