@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs";
-const queuePath="data/lidl/ean-resolution-queue-v45-2026-10-05.json";
+const queuePath="data/lidl/ean-resolution-queue-v46-2026-10-05.json";
 const verifiedPath="data/lidl/verified-ean-links.json";
 const queue=JSON.parse(fs.readFileSync(queuePath,"utf8"));
 const verified=JSON.parse(fs.readFileSync(verifiedPath,"utf8"));
@@ -12,7 +12,7 @@ const records=queue.records.map(r=>{
 const counts=records.reduce((a,r)=>(a[r.resolutionStatus]=(a[r.resolutionStatus]||0)+1,a),{});
 const unresolved=records.filter(r=>r.resolutionStatus==="needs_external_gtin_lookup");
 process.stdout.write(JSON.stringify({
-  revision:"V46-EAN-QUEUE-RECONCILED",
+  revision:"V57-EAN-QUEUE-VERIFIED-MASTER-SYNC",
   created:new Date().toISOString(),
   source:queuePath,
   verifiedSource:verifiedPath,
