@@ -40,8 +40,8 @@ jobs:
           const campaignKeys=new Set(campaigns.map(key).filter(Boolean));
           const hidden=offers.filter(x=>campaignKeys.has(key(x)));
           const kept=offers.filter(x=>!campaignKeys.has(key(x)));
-          const campaignMasterForHelper=campaigns.map(x=>({...x,storeLabel:"Prisma Hyvinkää",storeName:"Prisma Hyvinkää"}));
-          const productionHelperResult:any[]=hidePrismaOfferCopiesAlreadyInCampaignTabV804([...offers,...campaigns],[...offers,...campaignMasterForHelper]);
+          const campaignMasterForHelper=campaigns.map(x=>({...x,campaignType:"campaign",storeLabel:"Prisma Hyvinkää",storeName:"Prisma Hyvinkää"}));
+          const productionHelperResult:any[]=hidePrismaOfferCopiesAlreadyInCampaignTabV804([...offers,...campaignMasterForHelper],[...offers,...campaignMasterForHelper]);
           const helperOffers=productionHelperResult.filter(x=>x.campaignType!=="campaign"),helperCampaigns=productionHelperResult.filter(x=>x.campaignType==="campaign");
           const foreignOffer={ean:"9999999999999",price:1.23,storeLabel:"Lidl"} as any,foreignCampaign={ean:"9999999999999",price:1.23,storeLabel:"Lidl",campaignType:"campaign"} as any;
           const foreignResult=hidePrismaOfferCopiesAlreadyInCampaignTabV804([foreignOffer,foreignCampaign],[foreignOffer,foreignCampaign]);
