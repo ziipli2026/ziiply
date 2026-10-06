@@ -17161,6 +17161,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const nowV783 = Date.now();
     const preparedItemsV783 = list.items.map((item) => {
+      // V824: tallennetulta listalta palautettu vaakatuote on jälleen etänä
+      // suunniteltu ostos. Vanhaa punnitushintaa ei saa koskaan kierrättää uuteen
+      // kauppakäyntiin; hinta syntyy vasta uudesta fyysisestä punnituksesta.
+      if (isWeightCartItemV738(item)) {
+        return {
+          ...item,
+          price: 0,
+          product: item.product ? { ...item.product, price: 0 } as Product : item.product,
+          ziiplyPriceRefreshPending: false,
+        } as CartItem;
+      }
+
       const target = getSavedListPriceTargetV783(item);
       const fetchedAt = Number((item as any).ziiplyPriceFetchedAt || 0);
       const cachedStore = String((item as any).ziiplyPriceStoreName || item.storeName || "");
@@ -17199,7 +17211,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     cartRefV124.current = nextCart;
     persistCartImmediately(nextCart);
     const addedIdsV783 = nextCart
-      .filter((item) => restoredMemoryKeysV790.has(getCartItemMemoryKey(item)))
+      .filter((item) => restoredMemoryKeysV790.has(getCartItemMemoryKey(item)) && !isWeightCartItemV738(item))
       .map((item) => String(item.id));
     void refreshSavedListPricesV783(addedIdsV783);
     setCartSavePanelOpen(false);
