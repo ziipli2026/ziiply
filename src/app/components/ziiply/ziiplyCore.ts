@@ -3133,6 +3133,46 @@ export function scoreQualityMode(
   return score;
 }
 
+function isBreadComparisonCompatible(sourceName: string, candidateName: string): boolean {
+  const source = normalize(sourceName);
+  const candidate = normalize(candidateName);
+
+  const breadType = (value: string) => {
+    if (/\\bpaahtoleip/.test(value)) return "paahtoleipa";
+    if (/\\bruisleip|\\bruispal|\\bjalkiuuni/.test(value)) return "ruisleipa";
+    if (/\\bnakkileip/.test(value)) return "nakkileipa";
+    if (/\\bsampyl/.test(value)) return "sampyla";
+    if (/\\bpatonk/.test(value)) return "patonki";
+    if (/\\bleip/.test(value)) return "leipa";
+    return "";
+  };
+
+  const sourceType = breadType(source);
+  if (!sourceType) return true;
+
+  const candidateType = breadType(candidate);
+  if (candidateType !== sourceType) return false;
+
+  // Tuotteen nimessä ilmaistu olennainen leipäominaisuus säilytetään.
+  // Esim. moniviljapaahtoleipä ei saa muuttua valkoiseksi paahtoleiväksi.
+  for (const attribute of ["monivilja", "taysjyva", "kaura", "ruis"]) {
+    if (new RegExp("\\b" + attribute).test(source) && !new RegExp("\\b" + attribute).test(candidate)) {
+      return false;
+    }
+  }
+
+  const sourceSize = parseMetricSize(sourceName);
+  const candidateSize = parseMetricSize(candidateName);
+  if (sourceSize && candidateSize && sourceSize.unitGroup === candidateSize.unitGroup) {
+    const ratio = candidateSize.amount / sourceSize.amount;
+    // Vastine saa olla hieman eri pakkauskokoa (esim. 500 g -> 525 g),
+    // mutta ei täysin eri kokoluokan tuote.
+    if (ratio < 0.8 || ratio > 1.2) return false;
+  }
+
+  return true;
+}
+
 export function pickBestSProduct(items: Product[], query: string, ean?: string) {
   const normalizedEan = normalizeEan(ean);
   const eanMatch = items.find((item) => isUsableEan(normalizedEan) && normalizeEan(item.ean) === normalizedEan && getProductPrice(item) > 0);
@@ -3141,6 +3181,7 @@ export function pickBestSProduct(items: Product[], query: string, ean?: string) 
   return items
     .filter((item) => getProductPrice(item) > 0)
     .filter((item) => !isHardRejectedAlternative(query, item.name))
+    .filter((item) => isBreadComparisonCompatible(query, item.name))
     .filter((item) => !isBadNormalResult(item, query))
     .map((item) => ({ item, score: scoreNameMatch(query, item.name) }))
     .filter((x) => x.score > -100)
@@ -3190,7 +3231,8 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
       item.price <= 0 ||
       isHardRejectedAlternative(query, item.name) ||
       isHardRejectedKMatch(query, item.name) ||
-      !productGroupGate(query, item.name)
+      !productGroupGate(query, item.name) ||
+      !isBreadComparisonCompatible(query, item.name)
     ) {
       return false;
     }
@@ -3200,10 +3242,12 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
     // Esim. Kivikylän Huiluntuhti 375 g != Huiluntuhti 400 g.
     if (isUsableEan(normalizedEan) && sourceSize) {
       const targetSize = parseMetricSize(item.name);
+      const sourceIsBread = /\\bleip|\\bpaahtoleip|\\bsampyl|\\bpatonk/.test(normalize(query));
       if (
         targetSize &&
         (sourceSize.unitGroup !== targetSize.unitGroup ||
-          sourceSize.amount !== targetSize.amount)
+          (!sourceIsBread && sourceSize.amount !== targetSize.amount) ||
+          (sourceIsBread && (targetSize.amount / sourceSize.amount < 0.8 || targetSize.amount / sourceSize.amount > 1.2)))
       ) {
         return false;
       }
