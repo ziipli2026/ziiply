@@ -5,7 +5,7 @@ type TokmanniOffer = Record<string, any>;
 const TOKMANNI_OFFERS_URL = "https://www.tokmanni.fi/viikkotarjoukset/elintarvikkeet-ja-elainruoka";
 const TOKMANNI_PAGE_SIZE = 40;
 const TOKMANNI_MAX_PAGES = 20;
-const TOKMANNI_CACHE_TTL_MS = 10 * 60 * 1000;
+const TOKMANNI_CACHE_TTL_MS = 10 * 60 * 1000; // live-mapblock-probe-20261006
 let tokmanniOffersCache: { expiresAt: number; items: TokmanniOffer[] } | null = null;
 let tokmanniOffersInFlight: Promise<TokmanniOffer[]> | null = null;
 
