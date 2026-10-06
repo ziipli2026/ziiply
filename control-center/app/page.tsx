@@ -132,6 +132,8 @@ export default async function Page(){
     ...rolloverRisk.filter(x=>x.risk==="red").map(x=>({level:"red",priority:x.hoursLeft??0,title:x.name,detail:x.reason+(x.hoursLeft===null?"":" · "+x.hoursLeft+" h jäljellä")})),
     ...rolloverRisk.filter(x=>x.risk==="yellow").map(x=>({level:"yellow",priority:100+(x.hoursLeft??99),title:x.name,detail:x.reason+(x.hoursLeft===null?"":" · "+x.hoursLeft+" h jäljellä")})),
     ...futureDiscovery.filter(x=>x.run&&!x.run.ok).map(x=>({level:"red",priority:10,title:x.chain,detail:"Future discovery -tarkistus epäonnistui · "+x.run!.outcome})),
+    ...parserRegressions.filter(x=>x.level==="red").map(x=>({level:"red",priority:20,title:x.name,detail:"Vakava parseriregressio · "+x.signals.join(" · ")})),
+    ...parserRegressions.filter(x=>x.level==="yellow").map(x=>({level:"yellow",priority:140,title:x.name,detail:"Parseriregressiovaroitus · "+x.signals.join(" · ")})),
     ...futureDiscovery.filter(x=>!x.run).map(x=>({level:"yellow",priority:180,title:x.chain,detail:"Future discoveryn ensimmäinen ajo puuttuu"})),
   ].sort((a,b)=>(a.level==="red"?0:1)-(b.level==="red"?0:1)||a.priority-b.priority);
   const chainHistory=CHAINS.map(ch=>{
