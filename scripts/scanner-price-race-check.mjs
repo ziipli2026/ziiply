@@ -260,3 +260,31 @@ assert.match(modalBackstopV839, /queuedPhysicalScanRefV837\.current = null/);
   assert.equal(releasedAfterOldA, null, "old A cannot release queued B after scanner close");
 }
 console.log("V839 scanner close invalidates queued physical scan regression: PASS");
+
+
+// V840: foreign private-label scanner mismatch must never enter the selected chain cart.
+// Equivalent search stays scoped to exactly one selected chain: 1 result auto-adds,
+// >1 opens selection, 0 keeps the scanner mismatch flow open with a not-found notice.
+const mismatchGateV840 = source.split("const mismatchedV801")[1]?.split("// Käynnistä hinnan rikastus taustalle.")[0];
+assert.ok(mismatchGateV840, "scanner private-label mismatch gate exists");
+assert.match(mismatchGateV840, /if \(mismatchedV801\)/);
+assert.match(mismatchGateV840, /return;/);
+const equivalentV840 = source.split("async function findScannerEquivalentV812")[1]?.split("function addProductToCart")[0];
+assert.ok(equivalentV840, "scanner equivalent search exists");
+assert.match(equivalentV840, /selected\.length !== 1/);
+assert.match(equivalentV840, /if \(valid\.length === 1\)/);
+assert.match(equivalentV840, /addProductToCart\(valid\[0\]\)/);
+assert.match(equivalentV840, /else if \(valid\.length > 1\)/);
+assert.match(equivalentV840, /setNormalResultsStableV441\(valid\)/);
+assert.match(equivalentV840, /Vastaavaa tuotetta ei löydy\./);
+assert.match(equivalentV840, /chain !== "k".*pirkka\|k-menu/s);
+assert.match(equivalentV840, /chain !== "s".*kotimaista\|coop\|xtra\|rainbow/s);
+assert.match(equivalentV840, /chain !== "lidl".*milbona\|cien\|chef select\|favorina/s);
+
+{
+  const route = (count) => count === 1 ? "auto-add" : count > 1 ? "choose" : "stay-scanner";
+  assert.equal(route(1), "auto-add");
+  assert.equal(route(2), "choose");
+  assert.equal(route(0), "stay-scanner");
+}
+console.log("V840 scanner foreign-chain equivalent routing regression: PASS");
