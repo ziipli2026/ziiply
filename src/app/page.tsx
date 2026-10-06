@@ -13406,7 +13406,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const pool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores)
       .map((store) => ({ store, distance: getGpsDistanceKmForStoreV93(store) }))
-      .filter((row) => row.distance != null && Number(row.distance) <= 0.2)
+      .filter((row) => row.distance != null && Number(row.distance) <= 0.05)
       .sort((a, b) => Number(a.distance) - Number(b.distance));
 
     const selectedNearby = pool.some(({ store }) =>
@@ -15999,7 +15999,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // switching stores only when GPS places the user genuinely at/next to that
     // store. Being kilometres away must never interrupt scanning.
     const gpsStoreDistanceKmV792 = getGpsDistanceKmForStoreV93(gpsStore);
-    const SCANNER_STORE_PROXIMITY_KM_V792 = 0.2;
+    const SCANNER_STORE_PROXIMITY_KM_V792 = 0.05;
     if (
       gpsStoreDistanceKmV792 == null ||
       gpsStoreDistanceKmV792 > SCANNER_STORE_PROXIMITY_KM_V792
