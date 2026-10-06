@@ -1,0 +1,51 @@
+name: Prisma Primary Discount Rule Audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-primary-discount-rule-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --legacy-peer-deps
+      - name: Inspect primaryDiscountRule on CMS missing-validity overlaps
+        run: |
+          cat > scripts/.tmp-primary-rule-audit.mts <<'TS'
+          import { searchSelectedSKaupatOffersV11 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
+          const storeName="Prisma Hyvinkää",storeId="634976534",MASTER="__ziiply_all_offers__";
+          const ctx={storeName,sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
+          const discounted:any[]=await searchSelectedSKaupatOffersV11(MASTER,ctx as any);
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+          const variables={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+          const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:"f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1"}};
+          const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+          const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8"}});
+          const body=await r.json(),sections=body?.data?.pageContent?.sections??[];
+          const dmap=new Map(discounted.map(x=>[String(x.ean??""),x]));
+          const seen=new Set<string>(),rows:any[]=[];
+          const primitive=(o:any)=>Object.fromEntries(Object.entries(o??{}).filter(([,v])=>v==null||["string","number","boolean"].includes(typeof v)));
+          for(const section of sections)for(const p of (section.products??[])){
+            const ean=String(p.ean??""); if(!ean||seen.has(ean))continue; seen.add(ean);
+            const pricing=p.pricing??p.store?.pricing??{}; if(pricing.campaignPriceValidUntil)continue;
+            const d:any=dmap.get(ean); if(!d)continue;
+            const cp=Number(pricing.campaignPrice??pricing.currentPrice??p.price);
+            const dp=Number.isFinite(Number(d.price))?Number(d.price):Number(String(d.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."));
+            if(!Number.isFinite(cp)||!Number.isFinite(dp)||Math.abs(cp-dp)>=.005)continue;
+            const candidates:any={productPrimaryDiscountRule:p.primaryDiscountRule??null,pricingPrimaryDiscountRule:pricing.primaryDiscountRule??null,storePrimaryDiscountRule:p.store?.primaryDiscountRule??null,discountRules:p.discountRules??null,pricingDiscountRules:pricing.discountRules??null,discounts:p.discounts??null,pricingDiscounts:pricing.discounts??null};
+            rows.push({ean,title:p.name,section:section.title,price:cp,discountedValidity:String(d.validUntil??d.debugOfferEvidenceV226?.campaignPriceValidUntil??""),cmsProductKeys:Object.keys(p),cmsPricingKeys:Object.keys(pricing),candidateKeys:Object.entries(candidates).filter(([,v])=>v!=null).map(([k])=>k),candidates,discountedEvidence:d.debugOfferEvidenceV226??null,productPrimitive:primitive(p),pricingPrimitive:primitive(pricing)});
+          }
+          const signature=(v:any)=>JSON.stringify(v??null);
+          const groups=new Map<string,{count:number,example:any}>();
+          for(const row of rows){const sig=signature(row.candidates);const g=groups.get(sig)??{count:0,example:row};g.count++;groups.set(sig,g)}
+          console.log("PRIMARY_RULE_AUDIT",JSON.stringify({date,http:r.status,counts:{discounted:discounted.length,missingValiditySamePriceOverlap:rows.length,withAnyCandidateRule:rows.filter(x=>x.candidateKeys.length).length,withoutCandidateRule:rows.filter(x=>!x.candidateKeys.length).length,distinctCandidateStructures:groups.size},groups:[...groups.values()].map(g=>({count:g.count,ean:g.example.ean,title:g.example.title,candidateKeys:g.example.candidateKeys,candidates:g.example.candidates})),rows},null,2));
+          TS
+          npx tsx scripts/.tmp-primary-rule-audit.mts
+          rm scripts/.tmp-primary-rule-audit.mts
