@@ -15207,7 +15207,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         if (cleanNameHint) params.set("name", cleanNameHint);
 
         const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 8500);
+        // V843: scanner miss must not stall on one S lookup. Neon was already checked
+        // before this route; keep external exact-EAN enrichment bounded.
+        const timeout = window.setTimeout(() => controller.abort(), 2500);
 
         try {
           pushScannerDebugV493(
