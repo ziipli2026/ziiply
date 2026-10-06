@@ -14674,7 +14674,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
       if (fastIdentityFromBankV789) {
         // Warn only for identifiable private labels, never merely for a missing price.
-        const ownBrandV801 = /^(pirkka|k-menu)\b/i.test(bankIdentityNameV789) ? "k"
+        const ownBrandV801 = bankSourceV786 === "lidl-verified-ean-master" ? "lidl"
+          : /^(pirkka|k-menu)\b/i.test(bankIdentityNameV789) ? "k"
           : /^(kotimaista|coop|xtra|rainbow)\b/i.test(bankIdentityNameV789) ? "s"
           : /^(milbona|cien|chef select|favorina)\b/i.test(bankIdentityNameV789) ? "lidl"
           : "";
