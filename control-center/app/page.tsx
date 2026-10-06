@@ -105,6 +105,12 @@ export default async function Page(){
   });
   const urgentRollover=rolloverRisk.filter(x=>x.risk==="red").length;
   const warningRollover=rolloverRisk.filter(x=>x.risk==="yellow").length;
+  const actionQueue=[
+    ...rolloverRisk.filter(x=>x.risk==="red").map(x=>({level:"red",priority:x.hoursLeft??0,title:x.name,detail:x.reason+(x.hoursLeft===null?"":" · "+x.hoursLeft+" h jäljellä")})),
+    ...rolloverRisk.filter(x=>x.risk==="yellow").map(x=>({level:"yellow",priority:100+(x.hoursLeft??99),title:x.name,detail:x.reason+(x.hoursLeft===null?"":" · "+x.hoursLeft+" h jäljellä")})),
+    ...futureDiscovery.filter(x=>x.run&&!x.run.ok).map(x=>({level:"red",priority:10,title:x.chain,detail:"Future discovery -tarkistus epäonnistui · "+x.run!.outcome})),
+    ...futureDiscovery.filter(x=>!x.run).map(x=>({level:"yellow",priority:180,title:x.chain,detail:"Future discoveryn ensimmäinen ajo puuttuu"})),
+  ].sort((a,b)=>(a.level==="red"?0:1)-(b.level==="red"?0:1)||a.priority-b.priority);
   const publicationGroups=[...new Map(activePubs.map(p=>[p.chain,activePubs.filter(q=>q.chain===p.chain)])).entries()];
   const chainQuality=publicationGroups.map(([chain,pubs])=>({chain,offers:pubs.reduce((n,p)=>n+p.offer_count,0),missingPrice:pubs.reduce((n,p)=>n+p.missing_price,0),missingImage:pubs.reduce((n,p)=>n+p.missing_image,0),missingCategory:pubs.reduce((n,p)=>n+p.missing_category,0),publications:pubs.length}));
   const chainHealth=CHAINS.map(ch=>{const pubs=activePubs.filter(p=>ch.match(p.chain.trim()));const runs=sourceHealth.filter(r=>ch.match(r.chain.trim()));const offers=pubs.reduce((n,p)=>n+p.offer_count,0);const missingPrice=pubs.reduce((n,p)=>n+p.missing_price,0);const missingImage=pubs.reduce((n,p)=>n+p.missing_image,0);const missingCategory=pubs.reduce((n,p)=>n+p.missing_category,0);const badRun=runs.some(r=>r.level==="red");const stale=!runs.length||runs.every(r=>r.ageH>36);const level=badRun||missingPrice>0?"red":stale||missingImage>0||missingCategory>0?"yellow":"green";return {chain:ch.key,name:ch.name,offers,missingPrice,missingImage,missingCategory,runs:runs.length,badRun,stale,level};});
@@ -255,6 +261,15 @@ export default async function Page(){
       {statusCard("Valmiit vaihdot",healthyNext.length,healthyNext.length?"green":"gray","Approved-seuraaja ilman katkosta tai vakavaa määräpudotusta")}
       {statusCard("Vakava määräpudotus",severeNextDrop.length,severeNextDrop.length?"red":"green","Approved-seuraaja alle 25 % nykyisen tarjousmäärästä")}
       {statusCard("Vaihtoriski ≤36 h",unreadyExpiring.length,unreadyExpiring.length?"red":"green","Päättyvä julkaisu ilman approved-seuraajaa")}
+    </section>
+
+    <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Toimintajono</h2>
+      {actionQueue.length===0?<div style={{padding:14,borderRadius:12,background:"#ecfdf3",fontWeight:800}}>🟢 Ei avoimia julkaisuvaihdon toimenpiteitä.</div>:
+      <div style={{display:"grid",gap:8}}>{actionQueue.slice(0,12).map((a,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"34px minmax(160px,240px) 1fr",gap:10,alignItems:"center",padding:"10px 12px",border:"1px solid #e5e7eb",borderRadius:10}}>
+        <div style={{fontWeight:900,fontSize:16}}>{i+1}</div><div style={{fontWeight:900}}>{dot(a.level)} {a.title}</div><div>{a.detail}</div>
+      </div>)}</div>}
+      <div style={{fontSize:12,color:"#667085",marginTop:10}}>Punaiset vaihtoriskit ja discovery-virheet nousevat ensin; niiden jälkeen tulevat 48 h varoitukset ja vielä käynnistymättömät future-discoveryt.</div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
