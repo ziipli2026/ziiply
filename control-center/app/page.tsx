@@ -75,6 +75,18 @@ export default async function Page(){
     const level=!current?"red":!next?"gray":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.15?"red":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.05?"yellow":"green";
     return {key:ch.key,name:ch.name,current,next,level,priceNow:pct(current,"missing_price"),priceNext:pct(next,"missing_price"),imageNow:pct(current,"missing_image"),imageNext:pct(next,"missing_image"),categoryNow:pct(current,"missing_category"),categoryNext:pct(next,"missing_category")};
   });
+  const parserRegressions=publicationQuality.map(x=>{
+    if(!x.current||!x.next)return {...x,level:"gray",signals:[] as string[]};
+    const signals:string[]=[];
+    const countDelta=x.current.offer_count>0?Math.round((x.next.offer_count-x.current.offer_count)/x.current.offer_count*100):0;
+    if(countDelta<=-25)signals.push("tarjouksia "+countDelta+" %");
+    const add=(label:string,a:number|null,b:number|null)=>{if(a!==null&&b!==null&&b-a>=5)signals.push(label+" +"+Math.round((b-a)*10)/10+" %-yks.");};
+    add("hinnattomia",x.priceNow,x.priceNext); add("kuvattomia",x.imageNow,x.imageNext); add("kategoriattomia",x.categoryNow,x.categoryNext);
+    const severe=countDelta<=-40||[["hinnattomia",x.priceNow,x.priceNext],["kuvattomia",x.imageNow,x.imageNext],["kategoriattomia",x.categoryNow,x.categoryNext]].some(([,a,b])=>typeof a==="number"&&typeof b==="number"&&b-a>=15);
+    return {...x,countDelta,signals,level:severe?"red":signals.length?"yellow":"green"};
+  });
+  const parserRegressionRed=parserRegressions.filter(x=>x.level==="red").length;
+  const parserRegressionYellow=parserRegressions.filter(x=>x.level==="yellow").length;
   const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
   const latestBySource=[...new Map(d.runs.map(r=>[`${r.chain}::${r.source}`,r])).values()];
@@ -281,6 +293,18 @@ export default async function Page(){
       {statusCard("Valmiit vaihdot",healthyNext.length,healthyNext.length?"green":"gray","Approved-seuraaja ilman katkosta tai vakavaa määräpudotusta")}
       {statusCard("Vakava määräpudotus",severeNextDrop.length,severeNextDrop.length?"red":"green","Approved-seuraaja alle 25 % nykyisen tarjousmäärästä")}
       {statusCard("Vaihtoriski ≤36 h",unreadyExpiring.length,unreadyExpiring.length?"red":"green","Päättyvä julkaisu ilman approved-seuraajaa")}
+    </section>
+
+    <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Parserin regressiohälytys</h2>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginBottom:12}}>
+        {statusCard("Vakava regressio",parserRegressionRed,parserRegressionRed?"red":"green","Määrä tai datan laatu heikkeni voimakkaasti")}
+        {statusCard("Regressiovaroitus",parserRegressionYellow,parserRegressionYellow?"yellow":"green","Seuraava julkaisu on nykyistä heikompi")}
+      </div>
+      <div style={{display:"grid",gap:8}}>{parserRegressions.map(x=><div key={x.key} style={{display:"grid",gridTemplateColumns:"24px minmax(180px,280px) 1fr",gap:10,padding:"10px 12px",border:"1px solid #e5e7eb",borderRadius:10}}>
+        <div>{dot(x.level)}</div><div style={{fontWeight:900}}>{x.name}</div><div>{!x.current||!x.next?"Ei vielä vertailukelpoista seuraavaa julkaisua":x.signals.length?x.signals.join(" · "):"Ei havaittua regressiota"}</div>
+      </div>)}</div>
+      <div style={{fontSize:12,color:"#667085",marginTop:10}}>Varoitus syntyy, kun tarjousmäärä putoaa vähintään 25 % tai jokin puute kasvaa vähintään 5 %-yks. Vakava hälytys syntyy ≥40 % määräromahduksesta tai ≥15 %-yks. laatupuutteen kasvusta.</div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
