@@ -1,0 +1,36 @@
+name: Prisma CMS Date Boundary Audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-cms-date-boundary-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Probe CMS membership across known DISCOUNTED expiry boundaries
+        run: |
+          node <<'NODE'
+          const storeId="634976534";
+          const targets=[
+            {ean:"8700216596633",name:"Pampers Baby Dry Pants S4",valid:"2026-10-06",dates:["2026-10-06","2026-10-07","2026-10-08"]},
+            {ean:"6405184107301",name:"Herkku Hummus 180 g",valid:"2026-10-28",dates:["2026-10-28","2026-10-29","2026-11-01"]},
+            {ean:"8712000050146",name:"Heineken 0,0%",valid:"2026-10-13",dates:["2026-10-13","2026-10-14","2026-10-20"]}
+          ];
+          async function fetchCms(date){
+            const variables={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+            const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:"f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1"}};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8"}});
+            const b=await r.json(),sections=b?.data?.pageContent?.sections??[],map=new Map();
+            for(const s of sections)for(const p of (s.products??[])){const e=String(p.ean??"");if(!map.has(e)){const pr=p.pricing??p.store?.pricing??{};map.set(e,{title:p.name,section:s.title,price:pr.campaignPrice??pr.currentPrice??p.price,campaignPrice:pr.campaignPrice??null,currentPrice:pr.currentPrice??null,regularPrice:pr.regularPrice??null,validUntil:pr.campaignPriceValidUntil??null});}}
+            return {http:r.status,sections:sections.length,unique:map.size,map};
+          }
+          const dates=[...new Set(targets.flatMap(x=>x.dates))],cache=new Map();
+          for(const date of dates) cache.set(date,await fetchCms(date));
+          const results=targets.map(t=>({ean:t.ean,name:t.name,knownDiscountedValidUntil:t.valid,probes:t.dates.map(date=>{const x=cache.get(date),row=x.map.get(t.ean);return {date,present:!!row,row:row??null,cmsUnique:x.unique,http:x.http};})}));
+          console.log("DATE_BOUNDARY_REPORT",JSON.stringify({storeId,results},null,2));
+          NODE
