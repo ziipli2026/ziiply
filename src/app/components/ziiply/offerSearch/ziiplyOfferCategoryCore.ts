@@ -528,13 +528,20 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
-  // V165: official S-kaupat/Prisma taxonomy wins before title/brand overrides.
+  // V170: cookie/gingerbread identity is an explicit product-family override.
+  // It must beat a stale generic provider category such as "Maitotuotteet",
+  // including when an official taxonomy is present. This is a family rule,
+  // not a one-product exception.
+  const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
+  if (preciseProductCategoryV170 === "Makeiset & keksit") return preciseProductCategoryV170;
+
+  // V165: official S-kaupat/Prisma taxonomy wins for everything else.
   const officialSKaupatCategoryV165 = getOfficialSKaupatCategoryV165(item);
   if (officialSKaupatCategoryV165) return officialSKaupatCategoryV165;
 
-  // V170: specific product identity wins over a generic or mistaken provider
-  // category for non-official sources. Official S-kaupat taxonomy remains first.
-  const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
+  // V170: other specific product identity wins over a generic or mistaken
+  // provider category for non-official sources.
+  
   if (preciseProductCategoryV170) return preciseProductCategoryV170;
 
   // V162: trust an explicit normalized provider category before any title regex.
