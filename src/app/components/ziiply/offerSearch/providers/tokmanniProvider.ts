@@ -61,7 +61,7 @@ function category(title: string) {
   if (/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if (/maito|juusto|jogur|rahka|kerma|voi\b|margariin|raejuusto|viili|piim|kefir|vanukas/.test(s)) return "Maitotuotteet";
   if (/kahvi|katriina|espresso|tee\b|kaakao/.test(s)) return "Kahvi & tee";
-  if (/mehu|limon|virvoitus|energiajuoma|kivennäisves|vichy|cola|juoma|vesi\b/.test(s)) return "Juomat";
+  if (/nektari|mehu|limon|virvoitus|energiajuoma|kivennäisves|vichy|cola|juoma|vesi\b/.test(s)) return "Juomat";
   if (/jäätel|tuut|multipack|pakaste/.test(s)) return "Pakasteet";
   if (/pasta|spagetti|nuudeli|riisi|jauho|hiutale|muro|mysli|säilyke|kastike|ketsupp|ruokaöljy|oliiviöljy|mauste|liemikuutio|liemivalmiste|tortilla|kuivattu (?:aprikoosi|hedelmä)|aprikoosi.*kuivattu/.test(s)) return "Kuivatuotteet";
   if (/omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna\b|sipuli|porkkana|mango|marja|hedelm|vihann/.test(s)) return "Hevi";
