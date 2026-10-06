@@ -142,14 +142,23 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   // Magento renders the ordinary per-item price in a price element. Never
   // infer it from arbitrary text after the multi-buy badge: product weights
   // such as "55 g" or "295 g" would otherwise become fake euro prices.
-  const priceElementValues = Array.from(
-    block.matchAll(/<(?:span|span[^>]*)[^>]*class=["'][^"']*(?:price-wrapper|price)[^"']*["'][^>]*>([\s\S]*?)<\/span>/gi),
+  // Prefer Magento's machine-readable price amount. Rendered price markup can
+  // split e.g. 6,99 into separate integer/cents nodes; reading a child span
+  // alone can therefore turn 99 cents into a fake 99 euro normal price.
+  const structuredPriceValues = Array.from(
+    block.matchAll(/data-price-amount=["'](\d+(?:[.,]\d{1,2})?)["']/gi),
+  )
+    .map((match) => price(match[1]))
+    .filter((value): value is number => value != null);
+  const renderedPriceValues = Array.from(
+    block.matchAll(/<(?:span|div)[^>]*class=["'][^"']*(?:price-wrapper|price-box)[^"']*["'][^>]*>([\s\S]*?)<\/(?:span|div)>/gi),
   )
     .map((match) => {
       const visiblePriceText = textOf(match[1] || "").replace(/(\d)\s+([,.])\s*(\d{1,2})\b/g, "$1$2$3");
       return price(visiblePriceText);
     })
     .filter((value): value is number => value != null);
+  const priceElementValues = structuredPriceValues.length ? structuredPriceValues : renderedPriceValues;
   const multiBuyUnitPrice = offerQuantity && multiBuyTotalPrice != null ? multiBuyTotalPrice / offerQuantity : null;
   const ordinaryCardPrice = multi
     ? priceElementValues.find((value) =>
