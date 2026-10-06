@@ -182,13 +182,17 @@ for(const source of urls){
     const before=text.slice(Math.max(0,m.index-650),m.index);
     const prices=[...before.matchAll(/(\d+[,.]\d{1,2})\s*€/g)];
     if(!prices.length) continue;
-    const price=Number(prices.at(-1)[1].replace(",","."));
+    const textPrice=Number(prices.at(-1)[1].replace(",","."));
     const fromIso=parseFiDate(m[1],observedAt), throughIso=parseFiDate(m[2],observedAt);
     const evidenceText=text.slice(Math.max(0,m.index-650),Math.min(text.length,m.index+m[0].length+80));
     const normalizedEvidence=clean(evidenceText).toLowerCase();
     const matchesName=p=>[p.name,p.shortName].filter(Boolean).some(n=>normalizedEvidence.includes(clean(n).toLowerCase()));
     const exactNameMatches=products.filter(matchesName);
     const product=exactNameMatches.length===1?exactNameMatches[0]:null;
+    // When the dated card can be bound to one exact structured product on the
+    // same official category page, its product-scoped display price is stronger
+    // than any neighbouring €/kg or multi-buy number in flattened page text.
+    const price=product?.displayedPriceEur??textPrice;
     // Keep the dated-card context deliberately tight. A unique product title inside
     // the same local card is stronger evidence than comparing against the structured
     // price, because a genuine campaign price is expected to differ from regular.
