@@ -179,3 +179,34 @@ assert.match(resultAddV836, /resultScannerStoreV836/);
 assert.match(resultAddV836, /confirmedScannerStoreV836 === resultScannerStoreV836/);
 assert.match(resultAddV836, /scannerStoreStillMatchesResultV836/);
 console.log("V836 exact-store delayed scanner result regression: PASS");
+
+
+// V837: a fast second physical scan is queued instead of being dropped while A is in flight.
+const finishScanV837 = source.split("async function finishScannedEan")[1]?.split("function focusBluetoothBarcodeInputV202")[0];
+assert.ok(finishScanV837, "physical scanner finish handler exists");
+assert.match(finishScanV837, /queuedPhysicalScanRefV837\.current = normalizedCode/);
+assert.match(finishScanV837, /QUEUE physical scan/);
+const searchTailV837 = source.split("await runLookupPromiseV121")[1]?.split("useEffect\(\(\) =>")[0];
+assert.ok(searchTailV837, "EAN lookup final cleanup exists");
+assert.match(searchTailV837, /const queuedPhysicalScanV837 = queuedPhysicalScanRefV837\.current/);
+assert.match(searchTailV837, /queuedPhysicalScanRefV837\.current = null/);
+assert.match(searchTailV837, /finishScannedEan\(queuedPhysicalScanV837\)/);
+
+// Deterministic A -> B simulation: B waits, A completes, then B becomes the next scan.
+{
+  let active = "A";
+  let queued = null;
+  const accepted = ["A"];
+  const scan = (code) => {
+    if (active) { queued = code; return; }
+    active = code; accepted.push(code);
+  };
+  scan("B");
+  assert.deepEqual(accepted, ["A"], "B does not race A");
+  active = null;
+  const next = queued; queued = null;
+  if (next) scan(next);
+  assert.deepEqual(accepted, ["A", "B"], "B is processed after A");
+  assert.equal(queued, null, "queue is empty after drain");
+}
+console.log("V837 fast consecutive physical scan queue regression: PASS");
