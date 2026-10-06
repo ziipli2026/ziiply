@@ -11,6 +11,7 @@ const checks = [
   ["page-cap overflow fails closed", s.includes("Tokmanni offer listing exceeds parser page cap")],
   ["short master cache", s.includes("TOKMANNI_CACHE_TTL_MS = 10 * 60 * 1000")],
   ["in-flight request coalescing", s.includes("tokmanniOffersInFlight")],
+  ["dedupe preserves distinct product identities", s.includes("item.ean") && s.includes("item.productUrl") && s.includes("fallback:")],
 ];
 let failed = false;
 for (const [name, ok] of checks) {
