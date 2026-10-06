@@ -100,6 +100,7 @@ export default async function Page(){
   const eanCategoryCoverage=d.ean&&d.ean.total?Math.round(d.ean.classified/d.ean.total*1000)/10:0;
   const eanDataHealth=(d.ean?[(eanPriceCoverage>=75),(eanFreshCoverage>=75),(eanImageCoverage>=75),(eanCategoryCoverage>=75)]:[]).filter(Boolean).length;
   const eanHealthState=eanDataHealth===4?"green":eanDataHealth>=2?"yellow":"red";
+  const currentFailures=latestBySource.filter(r=>!r.ok);
   const overallDataHealth=(d.ean?eanDataHealth:0)+(quality.missingPrice===0?1:0)+(currentFailures.length===0?1:0)+(rolloverGaps.length===0?1:0);
   const overallDataHealthState=overallDataHealth>=7?"green":overallDataHealth>=5?"yellow":"red";
   const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
@@ -110,7 +111,6 @@ export default async function Page(){
   const criticallySilentSources=sourceHealth.filter(s=>s.ageH>72);
   const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=!latest?"gray":!latest.ok||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.key,latest,lastOk,ageH,okAgeH,level};});
   const missingMonitoring=cards.filter(c=>c.runs.length===0);
-  const currentFailures=latestBySource.filter(r=>!r.ok);
   const attention=[
     ...activeCandidates.map(p=>({level:"red",title:p.chain+": aktiivinen candidate",detail:p.publication_id+" · "+p.offer_count+" tarjousta · "+p.valid_from+"–"+p.valid_until})),
     ...currentFailures.map(r=>({level:"red",title:r.chain+": viimeisin ajo epäonnistui",detail:r.source+" · "+r.offer_count+" · "+r.outcome})),
