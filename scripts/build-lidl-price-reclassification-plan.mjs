@@ -11,6 +11,8 @@ const data=JSON.parse(readFileSync(input,"utf8"));
 const rows=[...(data.records||[]),...(data.reviewQueue||[])];
 const eligible=rows.filter(r=>
   r.lidlProductId &&
+  r.temporalStatus!=="future" &&
+  r.temporalStatus!=="past" &&
   (r.priceKind==="offer"||r.priceKind==="lidl_plus") &&
   (r.productMatchConfidence==="official-category-api"||
    r.productMatchConfidence==="exact-name"||
