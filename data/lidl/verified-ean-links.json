@@ -318,5 +318,10 @@
     "lidlProductId": "10038551",
     "ean": "8012901071210",
     "evidence": "Lidl Finland identifies ITALIAMO Tiramisu productId 10038551 as 2 x 80 g (160 g). Solo Italia current product/catalog data identifies Excellence Tiramisu 2x80 g, 0.16 kg, EAN 8012901071210 (article 45069). The same EAN/size pairing is present in 2025 and 2026 catalogues."
+  },
+  {
+    "lidlProductId": "10038552",
+    "ean": "20633257",
+    "evidence": "Lidl Finland identifies current ITALIAMO Pistaasikreemi productId 10038552 as 190 g. Current barcode product data identifies ITALIAMO Crema da pistacchio 190 g with GTIN-8 20633257 and a 20% pistachio formulation; independent product data corroborates the same brand, product, pack size and barcode. An older Lidl-supplied record used the same GTIN-8 for an earlier formulation, supporting product-line continuity. GTIN-8 checksum valid."
   }
 ]
