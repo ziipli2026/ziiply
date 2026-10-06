@@ -49,7 +49,7 @@ function category(title: string) {
   const s = clean(title).toLowerCase().replace(/\s+/g, " ");
   if (/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli|grilli|työkalu|valaisin|lamppu|liimapuulevy|kasteluletku|moppi|pesuri|liina|käsine|kenkä|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|lanka|asuste|lelu/.test(s)) return "Koti & vapaa-aika";
   if (/kaurajuoma/.test(s)) return "Juomat";
-  if (/piparkakku|piparipallo|pikkuleip/.test(s)) return "Leipomo";
+  if (/piparkakku|piparipallo|pikkuleip/.test(s)) return "Makeiset & keksit";
   if (/piltti|lastenateria|lastenruoka|hedelmäsose|marjasose|luumua .*\b\d+ kk\b/.test(s)) return "Valmisruoka";
   if (/snack pot|kuppiateria|spaghetti|mac & cheese|bolognese/.test(s)) return "Kuivatuotteet";
   if (/suklaa|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|patuk|tikkari|kismet|tupla\b|da capo|fazerina|geisha|dumle|pantteri|ässä|aarrearkku|remix|suffeli|julia\b|aakkoset|tv mix|daim\b|japp\b|pändy|fisherman|funky fish|super salty|giant strawberries|pätkis|metrilaku/.test(s)) return "Makeiset & keksit";
@@ -71,7 +71,11 @@ function category(title: string) {
 }
 
 function price(value: unknown) {
-  const m = String(value ?? "").replace(/\s/g, "").match(/(\d+(?:[.,]\d{1,2})?)/);
+  const raw = String(value ?? "").trim();
+  const spacedDecimal = raw.match(/^(\d+)\s+(\d{2})(?:\s*€)?$/);
+  if (spacedDecimal) return Number(spacedDecimal[1] + "." + spacedDecimal[2]);
+  const normalized = raw.replace(/\s/g, "");
+  const m = normalized.match(/(\d+(?:[.,]\d{1,2})?)/);
   return m ? Number(m[1].replace(",", ".")) : null;
 }
 
@@ -158,10 +162,13 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   const offerPrice = multiBuyTotalPrice ?? singleOfferPrice;
   if (offerPrice == null) return null;
 
-  const imageTag = block.match(/<img\b[^>]*class=["'][^"']*product-image-photo[^"']*["'][^>]*>/i)?.[0] || "";
-  const imageMatch = imageTag.match(/(?:data-src|data-original|src)=["']([^"']+)["']/i);
-  const candidateImageUrl = absoluteUrl(decodeEntities(imageMatch?.[1] || ""));
-  const imageUrl = candidateImageUrl && candidateImageUrl !== TOKMANNI_OFFERS_URL ? candidateImageUrl : "";
+  const imageTag = block.match(/<img\b[^>]*>/i)?.[0] || "";
+  const imageMatch = imageTag.match(/(?:data-src|data-original|data-lazy-src|src)=["']([^"']+)["']/i);
+  const srcsetMatch = imageTag.match(/srcset=["']([^"']+)["']/i);
+  const srcsetUrl = srcsetMatch?.[1]?.split(",")[0]?.trim().split(/\s+/)[0] || "";
+  const rawImageUrl = imageMatch?.[1] || srcsetUrl;
+  const candidateImageUrl = absoluteUrl(decodeEntities(rawImageUrl));
+  const imageUrl = candidateImageUrl && candidateImageUrl !== TOKMANNI_OFFERS_URL && !candidateImageUrl.startsWith("data:") && !/placeholder|no[_-]?image/i.test(candidateImageUrl) ? candidateImageUrl : "";
   const cat = category(name);
   const multiText = multi ? `${offerQuantity} kpl / ${multiBuyTotalPrice!.toFixed(2).replace(".", ",")} €` : "";
 
@@ -262,11 +269,18 @@ async function fetchTokmanniOffersFresh() {
     0,
   );
 
+  const candidateBlockCount = htmlPages.reduce((sum, html) => sum + productBlocks(html).length, 0);
   const items = htmlPages.flatMap((html, pageIndex) =>
     productBlocks(html)
       .map((block, index) => mapBlock(block, pageIndex * TOKMANNI_PAGE_SIZE + index))
       .filter((item): item is TokmanniOffer => Boolean(item)),
   );
+  if (total != null && candidateBlockCount < total) {
+    throw new Error("Tokmanni offer cards incomplete: advertised " + total + ", candidate cards " + candidateBlockCount + ", raw cards " + rawProductCardCount + ", pages " + pageCount);
+  }
+  if (total != null && items.length < total) {
+    throw new Error("Tokmanni offer mapping incomplete: advertised " + total + ", mapped items " + items.length + ", candidate cards " + candidateBlockCount + ", raw cards " + rawProductCardCount);
+  }
 
   const seen = new Set<string>();
   const dedupedItems = items.filter((item) => {
