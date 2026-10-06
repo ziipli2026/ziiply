@@ -12609,7 +12609,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 17,
+      schema: 18,
       items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -12644,7 +12644,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v16",
+      "matcher-v17",
       item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
@@ -12710,7 +12710,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Hard safety invariant for comparison: if the source identity itself is
       // still not specific enough to establish a product family, do not invent a
       // substitute from arbitrary provider results. Unknown is safer than Piltti/chicken.
-      const sourceFamilyKnownV823 = /\b(?:paahtoleip|ruisleip|ruispal|nakkileip|sampyl|patonk|leip|maito|piima|jogur|juusto|voi|margari|kahvi|tee|kana|broileri|nauta|sika|jauheliha|makkara|kala|lohi|pasta|riisi|muro|mysli|mehu|limonadi|vesi|olut|siideri|suklaa|keksi|sose|lastenruoka)\b/.test(normalize(comparisonSourceName));
+      const sourceFamilyKnownV823 = /\b(?:paahtoleip|paahtis|ruisleip|ruispal|nakkileip|sampyl|patonk|leip|maito|piima|jogur|juusto|voi|margari|kahvi|tee|kana|broileri|nauta|sika|jauheliha|makkara|kala|lohi|pasta|riisi|muro|mysli|mehu|limonadi|vesi|olut|siideri|suklaa|keksi|sose|lastenruoka)\b/.test(normalize(comparisonSourceName));
 
       if (withinS) {
         const hyperId = activeArea.sStoreId;
