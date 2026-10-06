@@ -14691,9 +14691,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V789: EAN-pankki on identiteettilähde. Kun nimi tunnetaan, skannerin ei pidä
       // odottaa hinnan hakua eikä OFF-kierrosta ennen koriin lisäämistä.
       // Hinta saa täydentyä myöhemmin taustalla valittujen kauppojen datasta.
+      // V826: a stale fromScanner request must not keep scanner-only fast-add alive
+      // after the physical scanner context has closed. Reuse the verified V825 proof.
       const fastIdentityFromBankV789 = Boolean(
         bankIdentityNameV789 &&
-        (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner),
+        (eanScannerOpen || eanHtml5ScannerRef.current || isPhysicalSearchScanV825),
       );
       if (fastIdentityFromBankV789) {
         // Warn only for identifiable private labels, never merely for a missing price.
