@@ -64,10 +64,21 @@ export default async function Page(){
   const candidatePubs=d.pubs.filter(p=>p.approval_state==="candidate");
   const activeOfferTotal=activePubs.reduce((n,p)=>n+p.offer_count,0);
   const quality={missingPrice:activePubs.reduce((n,p)=>n+p.missing_price,0),missingImage:activePubs.reduce((n,p)=>n+p.missing_image,0),missingCategory:activePubs.reduce((n,p)=>n+p.missing_category,0)};
+  const publicationQuality=CHAINS.map(ch=>{
+    const current=activePubs.filter(p=>ch.match(p.chain.trim())).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
+    const next=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]??null;
+    const pct=(p:Pub|null,k:"missing_price"|"missing_image"|"missing_category")=>p&&p.offer_count?Math.round(p[k]/p.offer_count*1000)/10:null;
+    const currentBad=current?current.missing_price+current.missing_image+current.missing_category:0;
+    const nextBad=next?next.missing_price+next.missing_image+next.missing_category:0;
+    const currentRate=current&&current.offer_count?currentBad/(current.offer_count*3):null;
+    const nextRate=next&&next.offer_count?nextBad/(next.offer_count*3):null;
+    const level=!current?"red":!next?"gray":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.15?"red":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.05?"yellow":"green";
+    return {key:ch.key,name:ch.name,current,next,level,priceNow:pct(current,"missing_price"),priceNext:pct(next,"missing_price"),imageNow:pct(current,"missing_image"),imageNext:pct(next,"missing_image"),categoryNow:pct(current,"missing_category"),categoryNext:pct(next,"missing_category")};
+  });
   const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
   const latestBySource=[...new Map(d.runs.map(r=>[`${r.chain}::${r.source}`,r])).values()];
-  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count>0?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source==="s-kaupat-protocol";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
+  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count>0?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source==="s-kaupat-protocol"||r.source==="future-publication-discovery";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const latestSuccessBySource=sourceHealth.map(s=>{const okRun=d.runs.find(r=>r.chain===s.chain&&r.source===s.source&&r.ok);const successAgeH=okRun?(Date.now()-new Date(okRun.checked_at).getTime())/3600000:null;return {...s,lastSuccess:okRun?.checked_at??null,successAgeH};});
   const successStale=latestSuccessBySource.filter(s=>s.successAgeH!==null&&s.successAgeH>48);
   const neverSuccessful=latestSuccessBySource.filter(s=>s.lastSuccess===null);
@@ -270,6 +281,19 @@ export default async function Page(){
       {statusCard("Valmiit vaihdot",healthyNext.length,healthyNext.length?"green":"gray","Approved-seuraaja ilman katkosta tai vakavaa määräpudotusta")}
       {statusCard("Vakava määräpudotus",severeNextDrop.length,severeNextDrop.length?"red":"green","Approved-seuraaja alle 25 % nykyisen tarjousmäärästä")}
       {statusCard("Vaihtoriski ≤36 h",unreadyExpiring.length,unreadyExpiring.length?"red":"green","Päättyvä julkaisu ilman approved-seuraajaa")}
+    </section>
+
+    <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Julkaisun laatutrendi / nykyinen → seuraava</h2>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+        <thead><tr>{["Tila","Ketju","Nykyinen / seuraava","Hinta puuttuu","Kuva puuttuu","Kategoria puuttuu"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <tbody>{publicationQuality.map(x=>{const pair=(a:number|null,b:number|null)=>a===null?"—":a+" % → "+(b===null?"—":b+" %");return <tr key={x.key}>
+          <td style={{padding:8}}>{dot(x.level)}</td><td style={{padding:8,fontWeight:900}}>{x.name}</td>
+          <td style={{padding:8}}>{x.current?x.current.offer_count:"—"} → {x.next?x.next.offer_count:"—"}{x.next&&<div style={{fontSize:11,color:"#667085"}}>{x.next.approval_state} · {x.next.valid_from}–{x.next.valid_until}</div>}</td>
+          <td style={{padding:8}}>{pair(x.priceNow,x.priceNext)}</td><td style={{padding:8}}>{pair(x.imageNow,x.imageNext)}</td><td style={{padding:8}}>{pair(x.categoryNow,x.categoryNext)}</td>
+        </tr>})}</tbody>
+      </table></div>
+      <div style={{fontSize:12,color:"#667085",marginTop:10}}>Prosentit suhteutetaan julkaisun tarjousmäärään. Punainen, jos seuraavan julkaisun yhdistetty puutedata heikkenee yli 15 prosenttiyksikköä; keltainen yli 5 prosenttiyksikköä. Harmaa tarkoittaa, ettei seuraavaa julkaisua vielä ole vertailtavana.</div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
