@@ -8,10 +8,11 @@ const CHAINS=[
 ];
 
 type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;checked_at:string};
+type Pub={chain:string;publication_id:string;valid_from:string;valid_until:string;parsed_at:string;approval_state:string;offer_count:number};
 
 async function load(){
   const url=process.env.DATABASE_URL;
-  if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],ean:null};
+  if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],pubs:[] as Pub[],ean:null};
   try{
     const sql=neon(url);
     await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log(
@@ -26,13 +27,18 @@ async function load(){
     const runs=await sql`SELECT checked_at::text AS checked_at,chain,source,ok,offer_count,outcome
       FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days'
       ORDER BY checked_at DESC,id DESC LIMIT 300`;
+    const pubs=await sql`SELECT chain,publication_id,valid_from::text,valid_until::text,parsed_at::text,approval_state,
+      jsonb_array_length(offers)::int AS offer_count
+      FROM ziiply_offer_publications
+      WHERE valid_until >= (NOW() AT TIME ZONE 'Europe/Helsinki')::date - 1
+      ORDER BY parsed_at DESC`;
     const ean=await sql`SELECT COUNT(*)::int total,
       COUNT(*) FILTER(WHERE image_url IS NOT NULL AND image_url<>'')::int with_image,
       COUNT(*) FILTER(WHERE category IS NOT NULL AND TRIM(category)<>'')::int classified,
       COUNT(*) FILTER(WHERE last_seen_at>NOW()-INTERVAL '24 hours')::int seen_24h
       FROM ziiply_ean_products`;
-    return {error:null,runs:runs as Row[],ean:ean[0] as any};
-  }catch(e){return {error:e instanceof Error?e.message:"Tietokantavirhe",runs:[] as Row[],ean:null}}
+    return {error:null,runs:runs as Row[],pubs:pubs as Pub[],ean:ean[0] as any};
+  }catch(e){return {error:e instanceof Error?e.message:"Tietokantavirhe",runs:[] as Row[],pubs:[] as Pub[],ean:null}}
 }
 
 function state(rows:Row[]){
@@ -49,6 +55,9 @@ function dot(s:string){return s==="green"?"🟢":s==="yellow"?"🟡":s==="red"?"
 export default async function Page(){
   const d=await load();
   const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>r.chain.toLowerCase().includes(c.key.toLowerCase()))}));
+  const activePubs=d.pubs.filter(p=>p.approval_state==="approved"&&new Date(p.valid_from+"T00:00:00")<=new Date()&&new Date(p.valid_until+"T23:59:59")>=new Date());
+  const candidatePubs=d.pubs.filter(p=>p.approval_state==="candidate");
+  const activeOfferTotal=activePubs.reduce((n,p)=>n+p.offer_count,0);
   const states=cards.map(c=>state(c.runs));
   const overall=states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
@@ -73,6 +82,12 @@ export default async function Page(){
       </article>})}
     </section>
 
+    <section style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:14,marginBottom:18}}>
+      {metricCard("Aktiiviset hyväksytyt julkaisut",activePubs.length,activePubs.length?"green":"yellow")}
+      {metricCard("Aktiivisten julkaisujen tarjoukset",activeOfferTotal,activeOfferTotal?"green":"yellow")}
+      {metricCard("Candidate / odottaa",candidatePubs.length,candidatePubs.length?"yellow":"green")}
+    </section>
+
     <section style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:18}}>
       <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
         <h2 style={{marginTop:0}}>Julkaisujen ajohistoria</h2>
@@ -92,9 +107,23 @@ export default async function Page(){
       </article>
     </section>
 
+    <section style={{marginTop:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Julkaisuvarasto / voimassaolo</h2>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+        <thead><tr>{["Ketju","Julkaisu","Tila","Voimassa","Määrä","Parsittu"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <tbody>{d.pubs.slice(0,60).map((p,i)=><tr key={i}>
+          <td style={{padding:8,fontWeight:700}}>{p.chain}</td><td style={{padding:8}}>{p.publication_id}</td>
+          <td style={{padding:8}}>{p.approval_state==="approved"?"🟢":p.approval_state==="candidate"?"🟡":"⚪"} {p.approval_state}</td>
+          <td style={{padding:8}}>{p.valid_from} – {p.valid_until}</td><td style={{padding:8,fontWeight:800}}>{p.offer_count}</td>
+          <td style={{padding:8}}>{new Date(p.parsed_at).toLocaleString("fi-FI")}</td>
+        </tr>)}</tbody>
+      </table></div>
+    </section>
+
     <section style={{marginTop:18,padding:16,background:"#eef6ff",borderRadius:12,fontSize:13,color:"#334155"}}>
       <b>Erillinen sovellus.</b> Tämä hakemisto ei lisää mitään nykyiseen Ziiply-käyttöliittymään. V1 lukee Neonista jo olemassa olevaa julkaisujen ajolokia ja EAN-pankkia. Seuraavassa vaiheessa tähän lisätään ketjukohtaiset odotettu/aktiivinen tarjousmäärä-, hinta-, kuva-, voimassaolo- ja näkyvyysvalidaattorit sekä käyttäjien selvitykseen lähettämät EANit.
     </section>
   </main>
 }
+function metricCard(label:string,value:number,state:string){return <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:18}}><div style={{fontSize:13,color:"#667085"}}>{dot(state)} {label}</div><div style={{fontSize:30,fontWeight:900,marginTop:8}}>{value.toLocaleString("fi-FI")}</div></article>}
 function metric(label:string,value:number){return <div style={{display:"flex",justifyContent:"space-between",padding:"11px 0",borderBottom:"1px solid #edf0f2"}}><span>{label}</span><b>{value.toLocaleString("fi-FI")}</b></div>}
