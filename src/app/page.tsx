@@ -9594,6 +9594,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function toggleShoppingListItem(match: Match, index: number) {
     const key = getShoppingListItemKey(match, index);
+    const matchEanV822 = normalizeEan(match.product?.ean || "");
+
+    // V822: EAN-rivin keräilytila on fyysisen viivakoodiskannauksen todiste.
+    // Sitä ei saa muuttaa käsin mistään keräilynäkymästä.
+    if (isUsableEan(matchEanV822)) {
+      showCartToast("EAN-tuote kuitataan kerätyksi vain skannaamalla viivakoodi.");
+      return;
+    }
 
     setCheckedCartItems((current) => {
       const willBeChecked = !current[key];
@@ -9616,16 +9624,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function markAllShoppingListItemsChecked() {
     if (shoppingListKeys.length === 0) return;
 
+    const manuallyCollectableKeysV822 = shoppingListItems
+      .map((match, index) => ({
+        key: getShoppingListItemKey(match, index),
+        ean: normalizeEan(match.product?.ean || ""),
+      }))
+      .filter((item) => !isUsableEan(item.ean))
+      .map((item) => item.key);
+
+    if (manuallyCollectableKeysV822.length === 0) {
+      showCartToast("EAN-tuotteet kuitataan kerätyiksi vain skannaamalla viivakoodi.");
+      return;
+    }
+
     setCheckedCartItems((current) => {
       const next = { ...current };
-      for (const key of shoppingListKeys) {
+      for (const key of manuallyCollectableKeysV822) {
         next[key] = true;
       }
       persistShoppingChecksImmediately(next);
       return next;
     });
 
-    showCartToast("Kaikki ostokset merkitty kerätyiksi");
+    showCartToast("EANittomat ostokset merkitty kerätyiksi");
     triggerHaptic();
   }
 
