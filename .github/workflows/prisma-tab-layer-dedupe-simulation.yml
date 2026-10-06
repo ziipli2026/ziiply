@@ -1,0 +1,41 @@
+name: Prisma Tab Layer Dedupe Simulation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-tab-layer-dedupe-simulation.yml'
+permissions:
+  contents: read
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --legacy-peer-deps
+      - name: Simulate dedupe after tab split only
+        run: |
+          cat > scripts/.tmp-tab-layer-dedupe.mts <<'TS'
+          import { searchSelectedSKaupatOffersV11 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
+          import { fetchPrismaCampaignOffersV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider";
+          const storeName="Prisma Hyvinkää",storeId="634976534",MASTER="__ziiply_all_offers__";
+          const ctx={storeName,sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
+          const offers:any[]=await searchSelectedSKaupatOffersV11(MASTER,ctx as any);
+          const campaigns:any[]=await fetchPrismaCampaignOffersV1(MASTER,{storeId,storeName});
+          const price=(x:any)=>{const n=Number(x.price);if(Number.isFinite(n))return n;return Number(String(x.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."))};
+          const key=(x:any)=>{const e=String(x.ean??"").trim(),p=price(x);return e&&Number.isFinite(p)?e+"|"+p.toFixed(4):""};
+          const campaignKeys=new Set(campaigns.map(key).filter(Boolean));
+          const hidden=offers.filter(x=>campaignKeys.has(key(x)));
+          const kept=offers.filter(x=>!campaignKeys.has(key(x)));
+          const byCat=(rows:any[])=>Object.fromEntries([...new Set(rows.map(x=>String(x.mainCategory??x.category??"").trim()||"(empty)"))].sort().map(c=>[c,rows.filter(x=>(String(x.mainCategory??x.category??"").trim()||"(empty)")===c).length]));
+          const hiddenSignal=hidden.map(x=>({ean:String(x.ean??""),title:x.title,price:price(x),validUntil:String(x.validUntil??x.debugOfferEvidenceV226?.campaignPriceValidUntil??""),labels:String(x.debugOfferEvidenceV226?.rawLabels??""),campaignPrice:x.debugOfferEvidenceV226?.campaignPrice??null,currentPrice:x.debugOfferEvidenceV226?.currentPrice??null,regularPrice:x.debugOfferEvidenceV226?.regularPrice??null}));
+          const noSignal=hiddenSignal.filter(x=>!x.labels&&!x.validUntil&&x.campaignPrice==null&&!(Number.isFinite(Number(x.currentPrice))&&Number.isFinite(Number(x.regularPrice))&&Number(x.currentPrice)<Number(x.regularPrice)));
+          const muikku={offersBefore:offers.filter(x=>String(x.ean)==="2004657500003").length,offersAfter:kept.filter(x=>String(x.ean)==="2004657500003").length,campaigns:campaigns.filter(x=>String(x.ean)==="2004657500003").length};
+          console.log("TAB_LAYER_SIM",JSON.stringify({counts:{offersBefore:offers.length,campaignsBefore:campaigns.length,hiddenFromOffersOnly:hidden.length,offersAfter:kept.length,campaignsAfter:campaigns.length,totalVisibleAcrossTabsAfter:kept.length+campaigns.length,hiddenWithoutDiscountedSignal:noSignal.length},muikku,offerCategoriesBefore:byCat(offers),offerCategoriesAfter:byCat(kept),campaignCategories:byCat(campaigns),hiddenSample:hiddenSignal.slice(0,20),hiddenWithoutSignal:noSignal},null,2));
+          if(campaigns.length!==121||hidden.length<100||kept.length<200||muikku.offersBefore!==1||muikku.offersAfter!==0||muikku.campaigns!==1||noSignal.length!==0)process.exitCode=1;
+          TS
+          npx tsx scripts/.tmp-tab-layer-dedupe.mts
+          rm scripts/.tmp-tab-layer-dedupe.mts
