@@ -246,6 +246,28 @@ async function fetchTokmanniPage(page: number) {
   return response.text();
 }
 
+function currentTokmanniWeeklyValidity(now = new Date()) {
+  // Tokmanni's viikkotarjoukset endpoint represents the currently active
+  // weekly listing. Resolve its Monday-Sunday validity in Finland local time;
+  // do not use the publication time of the next Tarjoussanomat issue.
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Helsinki",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const value = (type: string) => Number(parts.find((part) => part.type === type)?.value || 0);
+  const localDate = new Date(Date.UTC(value("year"), value("month") - 1, value("day")));
+  const day = localDate.getUTCDay();
+  const daysFromMonday = (day + 6) % 7;
+  const monday = new Date(localDate);
+  monday.setUTCDate(localDate.getUTCDate() - daysFromMonday);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  const iso = (date: Date) => date.toISOString().slice(0, 10);
+  return { validFrom: iso(monday), validTo: iso(sunday) };
+}
+
 function advertisedTotal(html: string) {
   const text = textOf(html);
   const m = text.match(/(?:Tuotteet\s+\d+\s*[-–]\s*\d+\s*\/\s*|)(\d+)\s+tuotetta/i);
@@ -290,6 +312,7 @@ async function fetchTokmanniOffersFresh() {
       .filter((item): item is TokmanniOffer => Boolean(item)),
   );
 
+  const weeklyValidity = currentTokmanniWeeklyValidity();
   const seen = new Set<string>();
   const dedupedItems = items.filter((item) => {
     // Do not collapse distinct product variants that happen to share the same
@@ -304,8 +327,15 @@ async function fetchTokmanniOffersFresh() {
     return true;
   });
 
+  const datedItems = dedupedItems.map((item) => ({
+    ...item,
+    validitySource: "tokmanni-current-weekly-listing",
+    validFrom: weeklyValidity.validFrom,
+    validTo: weeklyValidity.validTo,
+  }));
+
   await observeEanProductsBestEffort(
-    dedupedItems
+    datedItems
       .filter((item) => Boolean(item.ean))
       .map((item) => ({
         ean: item.ean,
@@ -326,7 +356,7 @@ async function fetchTokmanniOffersFresh() {
     );
   }
 
-  return dedupedItems;
+  return datedItems;
 }
 
 export async function fetchTokmanniOffers() {
