@@ -34,12 +34,7 @@ jobs:
               storeId,
               path: "tuotteet/kampanjat",
               platform: "WEB",
-              availabilityDate: date,
-              userConsent: {
-                analytics: false,
-                marketing: false,
-                preferences: false
-              }
+              availabilityDate: date
             }
           };
           const extensions = { persistedQuery: { version: 1, sha256Hash: hash } };
