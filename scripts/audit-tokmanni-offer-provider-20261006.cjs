@@ -4,6 +4,7 @@ const s = fs.readFileSync(p, "utf8");
 const checks = [
   ["no arbitrary text normal-price fallback", !s.includes("ordinaryAfterMulti")],
   ["structured card-price fallback", s.includes("ordinaryCardPrice") && s.includes("priceElementValues")],
+  ["complete Magento product cards retained", s.includes("function rawProductBlocks") && !s.includes("part.split(/<\\/li>/i)")],
   ["weekly rows explicitly offers", s.includes('campaignType: "offer"')],
   ["listing completeness checks raw cards", s.includes("rawProductCardCount") && s.includes("Tokmanni listing incomplete")],
   ["filtered offer count is not compared to advertised total", !s.includes("dedupedItems.length !== total")],
