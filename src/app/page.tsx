@@ -22963,6 +22963,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         return;
                       }
 
+                      // V827: clipboard paste is manual input, never a physical collection scan.
+                      // Invalidate any fresh camera/USB barcode proof before starting the lookup.
+                      physicalBarcodeScanRefV815.current = null;
+                      lastContinuousScanRef.current = null;
+                      scannerDecodeIgnoreUntilRefV131.current = 0;
                       setEanManualInputOpen(true);
                       setEanInput(code);
                       setLastAutoEanSearch(code);
