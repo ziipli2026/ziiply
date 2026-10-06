@@ -14409,14 +14409,58 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanScannerMessage("Vaakatuote — haetaan K-tuotetietoa");
 
       try {
-        // V732: canonical K-vaakatuote ratkaistaan ensisijaisesti suoraan K-Ruoasta.
-        // Tämä ei ole riippuvainen Ruoanhinta.fi:n kauppakohtaisesta valikoimasta/hinnasta.
+        // V842: oma pysyvä Neon EAN-pankki on vaakatuotteen ensimmäinen identiteettilähde.
+        // Älä odota ulkoista K-hakua, jos canonical PLU/EAN on jo opittu.
+        try {
+          const bankResponseV842 = await fetch(
+            `/api/ean-bank?ean=${encodeURIComponent(kWeightLabelV730.canonicalEan)}`,
+            { cache: "no-store" },
+          );
+          const bankDataV842 = bankResponseV842.ok
+            ? await bankResponseV842.json().catch(() => null)
+            : null;
+          const bankNameV842 = fixText(String(bankDataV842?.product?.name || "")).trim();
+
+          if (bankNameV842) {
+            const bankProductV842: Product = {
+              id: Number(kWeightLabelV730.canonicalEan.slice(-9)),
+              name: bankNameV842,
+              ean: kWeightLabelV730.scannedEan,
+              price: kWeightLabelV730.price,
+              pictureUrl: String(bankDataV842?.product?.imageUrl || "") || undefined,
+            };
+            pushScannerDebugV493(
+              `K-WEIGHT Neon first hit plu=${kWeightLabelV730.plu} canonical=${kWeightLabelV730.canonicalEan}`,
+            );
+            addWeightProductToCartV733(bankProductV842, kWeightLabelV730.scannedEan, { physicalScan: isPhysicalSearchScanV825 });
+            setEanMessage(
+              isPhysicalSearchScanV825 ? `Vaakatuote tunnistettu: ${bankNameV842}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${bankNameV842}. Lisätty ilman hintaa — punnitaan kaupassa.`,
+            );
+            setEanScannerMessage("Vaakatuote lisätty");
+            window.setTimeout(() => {
+              setEanScannerMessage((current) => current === "Vaakatuote lisätty" ? "" : current);
+            }, 2200);
+            return;
+          }
+          pushScannerDebugV493(
+            `K-WEIGHT Neon first miss plu=${kWeightLabelV730.plu} canonical=${kWeightLabelV730.canonicalEan}`,
+          );
+        } catch (error) {
+          pushScannerDebugV493(
+            `K-WEIGHT Neon first error ${String((error as any)?.message || error).slice(0, 80)}`,
+          );
+        }
+
+        // Neon-missin jälkeen ulkoinen K-haku on rikastus/fallback, ei ensimmäinen askel.
+        const kWeightControllerV842 = new AbortController();
+        const kWeightTimeoutV842 = window.setTimeout(() => kWeightControllerV842.abort(), 2500);
         const kWeightIdentityV732 = await fetch(
           `/api/k-weight-product?ean=${encodeURIComponent(kWeightLabelV730.canonicalEan)}&storeName=${encodeURIComponent(activeStores.kStoreName || "")}`,
-          { cache: "no-store" },
+          { cache: "no-store", signal: kWeightControllerV842.signal },
         )
           .then((response) => response.ok ? response.json() : null)
-          .catch(() => null);
+          .catch(() => null)
+          .finally(() => window.clearTimeout(kWeightTimeoutV842));
 
         const kWeightDebugV734 = `IDENTITY: found=${Boolean(kWeightIdentityV732?.found)} | source=${String(kWeightIdentityV732?.source || "none")} | diagnostic=${String(kWeightIdentityV732?.diagnostic || "none")}`;
         pushScannerDebugV493(`K-WEIGHT ${kWeightDebugV734}`);
