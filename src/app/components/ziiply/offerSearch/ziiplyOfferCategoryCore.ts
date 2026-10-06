@@ -504,13 +504,13 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
 
   // Product-form precedence: frozen products must beat cookie words first.
   // A name such as "piparkakkujäätelö" is still Pakasteet.
-  if (/\b(pakaste\w*|pakastettu\w*|jäätel\w*|jaatel\w*|ice cream)\b/.test(title)) return "Pakasteet";
+  if (/(?:pakaste|pakastettu|jäätel|jaatel|ice cream)/.test(title)) return "Pakasteet";
 
   // Cookie/gingerbread identity is stronger than a generic provider category.
   // This is intentionally a product-family rule, not a one-product exception:
   // piparkakut, piparit, pikkuleivät, keksit and cookies all beat e.g.
   // a stale "Maitotuotteet" category supplied by the source.
-  if (/\b(piparkak\w*|pipari\w*|pikkuleip\w*|keksi\w*|cookie\w*)\b/.test(title)) {
+  if (/(?:piparkak\w*|pipari\w*|pikkuleip\w*|keksi\w*|cookie\w*)/.test(title)) {
     return "Makeiset & keksit";
   }
 
