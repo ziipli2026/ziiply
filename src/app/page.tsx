@@ -13518,6 +13518,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return askScannerStoreV828(intendedName);
   }
 
+  async function searchScannerEnteredEanV830(codeInput?: string) {
+    const code = normalizeEan(codeInput ?? eanInput);
+    if (!isUsableEan(code)) {
+      void searchByEan(codeInput);
+      return;
+    }
+    // Keyboard/HID/manual EAN inside scanner uses the same store-session rule.
+    // It is intentionally not dependent on how the digits arrived.
+    physicalBarcodeScanRefV815.current = null;
+    lastContinuousScanRef.current = null;
+    scannerDecodeIgnoreUntilRefV131.current = 0;
+    const inStore = await confirmPhysicalScannerStoreV818();
+    setEanInput(code);
+    setLastAutoEanSearch(code);
+    setEanSearchStartedAutomatically(true);
+    eanAutoSearchActiveRef.current = true;
+    if (inStore) playScannerBarcodeFoundBeepV582(code);
+    void searchByEan(code, { fromScanner: true, collectionEligible: inStore, manualScannerEntry: true });
+  }
+
   async function finishScannedEan(code: string) {
     const normalizedCode = normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
@@ -21838,7 +21858,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                               setEanInput(event.target.value.replace(/\D/g, ""))
                             }
                             onKeyDown={(event) => {
-                              if (event.key === "Enter") void searchByEan();
+                              if (event.key === "Enter") void searchScannerEnteredEanV830();
                             }}
                             inputMode="numeric"
                             placeholder="Syötä EAN, esim. 641..."
@@ -21846,7 +21866,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           />
                           <button
                             type="button"
-                            onClick={() => void searchByEan()}
+                            onClick={() => void searchScannerEnteredEanV830()}
                             className="rounded-xl bg-[#0c7c38] px-5 py-3 text-sm font-black text-white"
                           >
                             Hae
@@ -21876,7 +21896,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                                 setEanInput(event.target.value.replace(/\D/g, ""))
                               }
                               onKeyDown={(event) => {
-                                if (event.key === "Enter") void searchByEan();
+                                if (event.key === "Enter") void searchScannerEnteredEanV830();
                               }}
                               inputMode="numeric"
                               autoComplete="off"
@@ -21888,12 +21908,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                                 if (!code) return;
                                 event.preventDefault();
                                 setEanInput(code);
-                                window.setTimeout(() => void searchByEan(code), 30);
+                                window.setTimeout(() => void searchScannerEnteredEanV830(code), 30);
                               }}
                             />
                             <button
                               type="button"
-                              onClick={() => void searchByEan()}
+                              onClick={() => void searchScannerEnteredEanV830()}
                               className="rounded-[1.25rem] border-[3px] border-[#063d22] bg-gradient-to-b from-[#159b46] to-[#087a35] px-8 py-4 text-base font-black text-[#fff0d5] shadow-[0_5px_0_#064a26] active:translate-y-1 active:shadow-[0_2px_0_#064a26]"
                             >
                               Hae
@@ -22908,6 +22928,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             >
 
 
+              {scannerStorePromptV828 && (
+                <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/45 px-5">
+                  <div className="w-full max-w-[340px] rounded-3xl border-2 border-[#e3c477] bg-[#fff6dd] p-5 text-center text-[#203c32] shadow-2xl">
+                    <p className="text-lg font-black">Oletko nyt kaupassa {scannerStorePromptV828.storeName}?</p>
+                    <p className="mt-2 text-sm font-bold">Kyllä jatkuu automaattisesti {scannerStorePromptV828.seconds} s kuluttua.</p>
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <button type="button" className="min-h-12 rounded-xl bg-emerald-800 px-3 font-black text-white" onClick={() => resolveScannerStorePromptV828(true)}>Kyllä</button>
+                      <button type="button" className="min-h-12 rounded-xl border-2 border-[#9a7a47] bg-white px-3 font-black" onClick={() => resolveScannerStorePromptV828(false)}>En</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {eanScannerMessage && !eanScannerOpen && (
                 <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700 ziiply-soft-open-fast">
                   {eanScannerMessage}
@@ -22928,7 +22961,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         setEanInput(event.target.value.replace(/\D/g, ""))
                       }
                       onKeyDown={(event) => {
-                        if (event.key === "Enter") void searchByEan();
+                        if (event.key === "Enter") void searchScannerEnteredEanV830();
                       }}
                       inputMode="numeric"
                       autoComplete="off"
@@ -22952,7 +22985,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         setEanSearchStartedAutomatically(true);
                         eanAutoSearchActiveRef.current = true;
                         setEanMessage(`Luettu koodi: ${code}. Haetaan...`);
-                        void searchByEan(code);
+                        void searchScannerEnteredEanV830(code);
                       }}
                     />
                     <button
@@ -23002,19 +23035,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       }
                     }}
                   />
-
-                  {scannerStorePromptV828 && (
-                    <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/45 px-5">
-                      <div className="w-full max-w-[340px] rounded-3xl border-2 border-[#e3c477] bg-[#fff6dd] p-5 text-center text-[#203c32] shadow-2xl">
-                        <p className="text-lg font-black">Oletko nyt kaupassa {scannerStorePromptV828.storeName}?</p>
-                        <p className="mt-2 text-sm font-bold">Kyllä jatkuu automaattisesti {scannerStorePromptV828.seconds} s kuluttua.</p>
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                          <button type="button" className="min-h-12 rounded-xl bg-emerald-800 px-3 font-black text-white" onClick={() => resolveScannerStorePromptV828(true)}>Kyllä</button>
-                          <button type="button" className="min-h-12 rounded-xl border-2 border-[#9a7a47] bg-white px-3 font-black" onClick={() => resolveScannerStorePromptV828(false)}>En</button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   <ZiiplyMobileScannerCard
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
