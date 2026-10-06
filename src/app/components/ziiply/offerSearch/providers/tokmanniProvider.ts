@@ -327,12 +327,12 @@ async function fetchTokmanniOffersFresh() {
     return true;
   });
 
-  const datedItems: TokmanniOffer[] = dedupedItems.map((item: TokmanniOffer): TokmanniOffer => ({
+  const datedItems: TokmanniOffer[] = dedupedItems.map((item: TokmanniOffer) => ({
     ...item,
     validitySource: "tokmanni-current-weekly-listing",
     validFrom: weeklyValidity.validFrom,
     validTo: weeklyValidity.validTo,
-  }));
+  } satisfies TokmanniOffer));
 
   await observeEanProductsBestEffort(
     datedItems
