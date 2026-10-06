@@ -55,7 +55,9 @@ function parseOfferSegment(segment,index){
   return {name:title.toLocaleLowerCase("fi-FI"),category,size,packCount:null,unitPrice,unitPriceUnit,normalPrice:normal,normalUnit:normalMatch?.[3]??null,discountPercent:discount,restriction:null,offerPrice,multiUnit,eans:[],identityStatus:"leaflet-only",identityReason:"EUROSPAR fresh-food catalog identity is not exposed by Tokmanni web/Klevu; do not infer EAN",id:"eurospar:"+issue+":1:"+(index+1),chain:"EUROSPAR",storeType:"EUROSPAR",source:"EUROSPAR tarjouslehti",priceBasis:multiUnit?"multi-buy-total":"single-unit",issue,validFrom:validity?.from??null,validTo:validity?.to??null,stores:storeNames,page:1};
 }
 const parsedOffers=offerSegments.map(parseOfferSegment);
-const parseErrors=parsedOffers.filter(x=>!x.name||x.name.length<5||!(x.offerPrice>0)||x.offerPrice>100||!x.validFrom||!x.validTo);\nconst uniqueNames=new Set(parsedOffers.map(x=>x.name));\nconst validityCurrentOrFuture=Boolean(validity?.to && validity.to>=today);
+const parseErrors=parsedOffers.filter(x=>!x.name||x.name.length<5||!(x.offerPrice>0)||x.offerPrice>100||!x.validFrom||!x.validTo);
+const uniqueNames=new Set(parsedOffers.map(x=>x.name));
+const validityCurrentOrFuture=Boolean(validity?.to && validity.to>=today);
 
 
 
