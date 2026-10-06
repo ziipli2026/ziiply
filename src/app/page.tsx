@@ -12607,7 +12607,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 14,
+      schema: 15,
       items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -12642,7 +12642,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v13",
+      "matcher-v14",
       item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
@@ -12819,8 +12819,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           s = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
-            const best = pickBestSProduct(await fetchSForMatchV801(item.name, activeStores.sStoreId), item.name, item.ean);
-            if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
+            const sTerms = Array.from(new Set([
+              comparisonSourceEan,
+              comparisonSourceName,
+              ...getNormalSearchQueries(comparisonSourceName).slice(0, 6),
+            ].map((term) => fixText(String(term || "")).trim()).filter(Boolean)));
+            const sBatches = await Promise.all(
+              sTerms.map((term) => fetchSForMatchV801(term, activeStores.sStoreId).catch(() => [] as Product[])),
+            );
+            const sCandidates = sBatches.flat();
+            const exactS = comparisonSourceEan
+              ? sCandidates.find((candidate) =>
+                  normalizeEan(candidate.ean) === comparisonSourceEan && getProductPrice(candidate) > 0)
+              : undefined;
+            const best = exactS || pickBestSProduct(sCandidates, comparisonSourceName, comparisonSourceEan);
+            if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: normalizeEan(best.ean) === comparisonSourceEan && comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
           } catch { failed = true; }
         }
         if (item.chain === "K" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")) {
