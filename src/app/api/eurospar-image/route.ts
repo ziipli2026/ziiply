@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   const upstream = await fetch(url, {
     cache: "force-cache",
-    headers: { Accept: "image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8" },
+    headers: {\n      Accept: "image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8",\n      "User-Agent": "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",\n      "Accept-Language": "fi-FI,fi;q=0.9,en;q=0.7",\n    },
   });
   if (!upstream.ok) {
     return NextResponse.json({ ok: false, error: "Upstream image unavailable" }, { status: 502 });
