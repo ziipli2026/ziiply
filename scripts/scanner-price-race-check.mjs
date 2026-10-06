@@ -92,3 +92,14 @@ assert.ok(fastBankSectionV826, "EAN-bank fast identity guard exists");
 assert.match(fastBankSectionV826, /isPhysicalSearchScanV825/);
 assert.doesNotMatch(fastBankSectionV826, /options\.fromScanner/);
 console.log("V826 stale scanner-context regression: PASS");
+
+
+// V827: pasted/manual EAN must invalidate physical scan proof, while USB/BT uses finishScannedEan.
+const pasteSectionV827 = source.split("Liitetty koodi:")[0].slice(-1800);
+assert.match(pasteSectionV827, /physicalBarcodeScanRefV815\.current = null/);
+assert.match(pasteSectionV827, /lastContinuousScanRef\.current = null/);
+assert.match(pasteSectionV827, /scannerDecodeIgnoreUntilRefV131\.current = 0/);
+const btSectionV827 = source.split("function handleBluetoothBarcodeInputKeyDownV202")[1]?.split("async function toggleScannerTorch")[0];
+assert.ok(btSectionV827, "USB/Bluetooth scanner handler exists");
+assert.match(btSectionV827, /finishScannedEan\(code\)/);
+console.log("V827 paste vs physical reader source regression: PASS");
