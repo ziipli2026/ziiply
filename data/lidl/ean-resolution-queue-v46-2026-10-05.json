@@ -1,15 +1,17 @@
 {
-  "revision": "V56-EAN-QUEUE-PUBLIC-LOOKUP-COMPLETE",
-  "created": "2026-10-05",
-  "source": "ean-resolution-queue-v45-2026-10-05.json",
+  "revision": "V57-EAN-QUEUE-VERIFIED-MASTER-SYNC",
+  "created": "2026-10-06",
+  "source": "ean-resolution-queue-v46-2026-10-05.json",
   "verifiedSource": "verified-ean-links.json",
+  "verifiedMasterLinks": 46,
+  "verifiedLinksPresentInQueue": 17,
   "total": 197,
   "counts": {
     "multipack_or_variant": 13,
     "variable_weight_or_produce": 32,
     "bakery_or_store_bakery": 104,
-    "exact_identity_gtin_not_public": 22,
-    "verified_ean": 13,
+    "exact_identity_gtin_not_public": 16,
+    "verified_ean": 19,
     "non_food": 13
   },
   "unresolvedExternalLookupCount": 0,
@@ -362,8 +364,10 @@
       "name": "KULJANKA Borssikeitto",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "exact_identity_gtin_not_public",
-      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "verified_ean_links",
+      "ean": "20831851",
+      "evidence": "The Finnish queue identifies KULJANKA Borssikeitto (IAN 7701804). Independent Lidl offer history identifies the matching Kuljanka Borscht Soup with White Cabbage & Beetroot as an 800 g retail pack. CHOMP barcode product data identifies Kuljanka Borscht with barcode 20831851. GTIN-8 checksum valid."
     },
     {
       "lidlProductId": "10038285",
@@ -381,8 +385,10 @@
       "name": "KULJANKA Valkokaalisalaatti",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "exact_identity_gtin_not_public",
-      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "verified_ean_links",
+      "ean": "55006774",
+      "evidence": "Lidl Poland official product list identifies article 5500677 as white cabbage salad (Sałatka z białej kapusty), 410 g. Independent barcode food data identifies Kuljanka/Lidl Vegetable salad with cabbage with barcode 55006774 and matching cabbage/vegetable composition. The GTIN-8 is exactly Lidl article 5500677 plus its valid GS1 check digit 4."
     },
     {
       "lidlProductId": "10038287",
@@ -455,8 +461,10 @@
       "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "exact_identity_gtin_not_public",
-      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "verified_ean_links",
+      "ean": "4056489120087",
+      "evidence": "Finnish Lidl archive identifies the product as KULJANKA Suklaakuorrutettu vaahtomakeinen. Swedish Lidl retail data identifies the same Kuljanka chocolate-coated marshmallow product as a 380 g pack with EAN 4056489120087. Independent barcode/product data names EAN 4056489120087 as Kuljanka Vanilla Flavoured Marshmallows Coated In Dark Chocolate; nutrition data (396 kcal/100 g) matches the Kuljanka product record. GTIN-13 checksum valid."
     },
     {
       "lidlProductId": "10038296",
@@ -504,8 +512,10 @@
       "name": "KULJANKA Paneroitu juusto",
       "variant": null,
       "unitPriceText": null,
-      "resolutionStatus": "exact_identity_gtin_not_public",
-      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "verified_ean_links",
+      "ean": "20398002",
+      "evidence": "Finnish Lidl identifies KULJANKA Paneroitu juusto as a 500 g product. Lidl Romania independently lists the corresponding KULJANKA breaded Trapist cheese as 500 g. Bidfood Opava/V-Label identifies KULJANKA Panierter Käse with product number 20398002, and independent food product data explicitly records EAN 20398002 for breaded cheese manufactured by Bidfood Czech Republic. GTIN-8 checksum valid."
     },
     {
       "lidlProductId": "10038301",
@@ -513,8 +523,10 @@
       "name": "KULJANKA Lihakeitto",
       "variant": null,
       "unitPriceText": "800 g | 4,11 €/kg",
-      "resolutionStatus": "exact_identity_gtin_not_public",
-      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "verified_ean_links",
+      "ean": "4056489624479",
+      "evidence": "Finnish Lidl queue identifies KULJANKA Lihakeitto as 800 g. SupermarktCheck independently identifies Kuljanka Rinderfleischsuppe nach osteuropäischer Art as an 800 g Lidl retail product. Root Index, sourced from OpenFoodFacts, identifies the exact Kuljanka Rindfleischsuppe nach osteuropäischer Art with EAN 4056489624479 and matching nutrition (61 kcal, protein 3.2 g, carbs 6.6 g, fat 2.2 g per 100 g). GTIN-13 checksum valid."
     },
     {
       "lidlProductId": "10038302",
@@ -899,8 +911,10 @@
       "name": "CONFISERIE FIRENZE Minidonitsit",
       "variant": "pakkauksessa kolme eri makua",
       "unitPriceText": "276 g | 10,83 €/kg",
-      "resolutionStatus": "exact_identity_gtin_not_public",
-      "resolutionReason": "Exact product identity/package evidence established where available; bulk public GTIN search exhausted without a safe barcode match. Do not infer from Lidl IAN."
+      "resolutionStatus": "verified_ean",
+      "resolutionReason": "verified_ean_links",
+      "ean": "5411823867841",
+      "evidence": "Lidl identifies CONFISERIE FIRENZE Mini Donuts, article/IAN 218769, as 9 pieces / 276 g. Poppies Bakeries NV is documented as the manufacturer behind Lidl's Confiserie Firenze brand and lists Trio Mini Donuts under that brand. Poppies' official catalog identifies Trio Mini Donuts as 9 pieces / 276 g; independent product/foodservice data identifies the exact Poppies 276 g / 9-piece consumer pack EAN as 5411823867841. GTIN-13 checksum valid."
     },
     {
       "lidlProductId": "10000000",
