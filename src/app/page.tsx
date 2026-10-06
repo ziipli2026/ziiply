@@ -13371,11 +13371,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
-  // V818: fyysinen keräily tarvitsee yhden vahvistetun myymälän.
-  // GPS on vain vihje: vierekkäiset S/K-kaupat eivät saa valita kauppaa automaattisesti,
-  // eikä geneerinen EAN (esim. Valio) todista ketjua.
+  // V819: etänä koottu kori on vahva ennakkotieto keräyskaupasta.
+  // GPS vahvistaa tätä hypoteesia, mutta 50 m turvaraja ja viereisten kauppojen
+  // ristiriita ratkaisevat, voidaanko keräilysessio avata ilman kysymystä.
   function confirmPhysicalScannerStoreV818() {
     if (scannerStoreCheckDoneRefV791.current) return true;
+
+    const eanCartItems = mergeCartPoolsByIdV129(cartRefV124.current).filter((item) =>
+      isUsableEan(normalizeEan(item.ean || (item.product as any)?.ean || "")),
+    );
+    const cartStoreCounts = new Map<string, { name: string; count: number }>();
+    for (const item of eanCartItems) {
+      const name = String(item.storeName || "").trim();
+      if (!name) continue;
+      const key = normalize(name);
+      const current = cartStoreCounts.get(key);
+      cartStoreCounts.set(key, { name, count: (current?.count || 0) + 1 });
+    }
+    const cartTarget = [...cartStoreCounts.values()].sort((a, b) => b.count - a.count)[0] || null;
 
     const selectedChain: "S" | "K" | null =
       selectedChains.s && !selectedChains.k ? "S" :
@@ -13387,15 +13400,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : "";
     const selectedId = selectedChain === "S" ? activeStores.sStoreId : selectedChain === "K" ? activeStores.kStoreId : undefined;
 
-    // Ilman yksiselitteistä valittua S/K-kauppaa skanneri ei arvaa keräyskauppaa.
-    if (!selectedChain || !selectedName) {
+    // Etäkorin oma kauppa voittaa pelkän nykyisen UI-valinnan ennakkohypoteesina.
+    const intendedName = cartTarget?.name || selectedName;
+    if (!intendedName) {
       setEanScannerMessage("Valitse ensin kauppa, jossa keräät ostokset.");
       return false;
     }
 
-    // Ilman käyttökelpoista GPS:ää käyttäjä vahvistaa valitun kaupan itse.
+    const allStores = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+    const intendedStore = allStores.find((store) =>
+      normalize(String(store.name || "")) === normalize(intendedName) ||
+      Boolean(selectedId && sameStoreIdV93(store.id, selectedId) && normalize(intendedName) === normalize(selectedName)),
+    ) || null;
+
+    // Ilman GPS:ää ostoslistan kauppa on silti paras oletus, mutta käyttäjä vahvistaa sen.
     if (!usingOwnLocation || !gpsCoordsV320) {
-      const confirmed = window.confirm(`Oletko nyt kaupassa ${selectedName}?\n\nOK = Kyllä · Peruuta = En / vaihda kauppaa`);
+      const confirmed = window.confirm(`Oletko nyt kaupassa ${intendedName}?\n\nOK = Kyllä · Peruuta = En / vaihda kauppaa`);
       if (confirmed) {
         scannerStoreCheckDoneRefV791.current = true;
         return true;
@@ -13404,57 +13424,49 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return false;
     }
 
-    const pool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores)
+    const intendedDistance = intendedStore ? getGpsDistanceKmForStoreV93(intendedStore) : null;
+    const nearby50 = allStores
       .map((store) => ({ store, distance: getGpsDistanceKmForStoreV93(store) }))
       .filter((row) => row.distance != null && Number(row.distance) <= 0.05)
       .sort((a, b) => Number(a.distance) - Number(b.distance));
-
-    const selectedNearby = pool.some(({ store }) =>
-      Boolean(selectedId && sameStoreIdV93(store.id, selectedId)) ||
-      normalize(String(store.name || "")) === normalize(selectedName),
-    );
-    const otherNearby = pool.find(({ store }) =>
-      (store.type === "S" || store.type === "K") &&
-      !(Boolean(selectedId && sameStoreIdV93(store.id, selectedId)) ||
-        normalize(String(store.name || "")) === normalize(selectedName)),
+    const intendedIsNear = intendedDistance != null && intendedDistance <= 0.05;
+    const competingNearby = nearby50.find(({ store }) =>
+      normalize(String(store.name || "")) !== normalize(intendedName),
     );
 
-    // Jos GPS ei osoita toista mahdollista kauppaa aivan vieressä, valittu kauppa
-    // voidaan hyväksyä vain käyttäjän vahvistuksella. GPS ei koskaan yksin kuittaa.
-    if (!otherNearby) {
-      const confirmed = window.confirm(`Oletko nyt kaupassa ${selectedName}?`);
-      if (confirmed) {
-        scannerStoreCheckDoneRefV791.current = true;
-        return true;
-      }
-      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
-      return false;
-    }
-
-    const staySelected = window.confirm(
-      `Lähellä on useampi kauppa.\n\nOletko kaupassa ${selectedName}?\n\nOK = Kyllä · Peruuta = Olen toisessa kaupassa`,
-    );
-    if (staySelected) {
+    // V819 fuzzy: jos etäkori osoittaa tiettyyn kauppaan ja GPS on jo 50 m sisällä
+    // juuri siitä kaupasta eikä samalla alueella ole toista vaihtoehtoa, yhdistelmä
+    // (ostoslista + koordinaatit) riittää avaamaan keräilysession ilman turhaa kysymystä.
+    if (cartTarget && intendedIsNear && !competingNearby) {
       scannerStoreCheckDoneRefV791.current = true;
       return true;
     }
 
-    const candidate = otherNearby.store;
-    const candidateChain = candidate.type === "S" ? "S" : candidate.type === "K" ? "K" : null;
-    if (!candidateChain) {
-      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
-      return false;
-    }
-    const switchStore = window.confirm(`Oletko kaupassa ${candidate.name}?\n\nOK = Vaihda tähän kauppaan · Peruuta = En`);
-    if (!switchStore) {
-      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
+    // Vierekkäiset kaupat: ostoslista kertoo oletuksen, mutta käyttäjä ratkaisee ristiriidan.
+    if (intendedIsNear && competingNearby) {
+      const stayIntended = window.confirm(
+        `Ostoslista on tehty kauppaan ${intendedName}.\n\nLähellä on myös ${competingNearby.store.name}.\n\nOletko nyt kaupassa ${intendedName}?\n\nOK = Kyllä · Peruuta = Olen toisessa kaupassa`,
+      );
+      if (stayIntended) {
+        scannerStoreCheckDoneRefV791.current = true;
+        return true;
+      }
+      setEanScannerMessage(`Vaihda kaupaksi ${competingNearby.store.name} ja skannaa tuote uudelleen.`);
       return false;
     }
 
-    selectStoreForCurrentMode(normalizeStoreForPickerV320(candidate), storeMode);
-    setSelectedChains((current) => ({ ...current, s: candidateChain === "S", k: candidateChain === "K" }));
-    scannerStoreCheckDoneRefV791.current = true;
-    setEanScannerMessage(`Kauppa vaihdettu: ${candidate.name}. Skannaa tuote uudelleen.`);
+    // Jos kohdekauppa alkaa jo "polttaa" mutta 50 m varmuusraja ei vielä täyty,
+    // ostoslistan kauppa esitäytetään kysymykseen. GPS ei yksin hyväksy keräystä.
+    const approachingIntended = intendedDistance != null && intendedDistance <= 0.3;
+    const prompt = approachingIntended
+      ? `Ostoslistasi kauppa ${intendedName} on lähellä (noin ${Math.max(50, Math.round(intendedDistance * 1000 / 10) * 10)} m).\n\nOletko nyt kaupassa ${intendedName}?`
+      : `Oletko nyt kaupassa ${intendedName}?`;
+    const confirmed = window.confirm(prompt);
+    if (confirmed) {
+      scannerStoreCheckDoneRefV791.current = true;
+      return true;
+    }
+    setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
     return false;
   }
 
