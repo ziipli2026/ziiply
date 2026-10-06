@@ -1,4 +1,4 @@
-name: Prisma Dedupe UI Simulation
+name: Prisma Dedupe UI Simulation # mapper-validity
 on:
   workflow_dispatch:
   push:
