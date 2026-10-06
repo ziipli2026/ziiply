@@ -135,3 +135,13 @@ assert.match(closeEanV831, /resolvePendingStorePromptV831\(false\)/);
 assert.match(closeEanV831, /setScannerStorePromptV828\(null\)/);
 assert.match(closeEanV831, /scannerInStoreRefV828\.current = false/);
 console.log("V831 scanner close cancels store prompt regression: PASS");
+
+
+// V832: confirmed in-store permission belongs to the exact selected store.
+const storeConfirmV832 = source.split("async function confirmPhysicalScannerStoreV818")[1]?.split("async function searchScannerEnteredEanV830")[0];
+assert.ok(storeConfirmV832, "scanner store confirmation function exists");
+assert.match(storeConfirmV832, /currentSelectedScannerNamesV832/);
+assert.match(storeConfirmV832, /stillMatchesCurrentStore/);
+assert.match(storeConfirmV832, /scannerStoreCheckDoneRefV791\.current = false/);
+assert.match(storeConfirmV832, /scannerInStoreRefV828\.current = false/);
+console.log("V832 scanner store-context change regression: PASS");
