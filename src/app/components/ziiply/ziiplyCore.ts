@@ -1818,9 +1818,9 @@ export function productGroupGate(sourceName: string, targetName: string) {
 
   // Bread must never fall through to an unrelated grocery item. This is a hard
   // product-group gate, not merely a ranking preference.
-  const sourceIsBread = /\b(?:paahtoleip|ruisleip|ruispal|nakkileip|sampyl|patonk|leip)/.test(source);
+  const sourceIsBread = /\b(?:paahtoleip|paahtis|ruisleip|ruispal|nakkileip|sampyl|patonk|leip)/.test(source);
   if (sourceIsBread) {
-    const targetIsBread = /\b(?:paahtoleip|ruisleip|ruispal|nakkileip|sampyl|patonk|leip)/.test(target);
+    const targetIsBread = /\b(?:paahtoleip|paahtis|ruisleip|ruispal|nakkileip|sampyl|patonk|leip)/.test(target);
     if (!targetIsBread) return false;
   }
 
@@ -3146,7 +3146,7 @@ function isBreadComparisonCompatible(sourceName: string, candidateName: string):
   const candidate = normalize(candidateName);
 
   const breadType = (value: string) => {
-    if (/\bpaahtoleip/.test(value)) return "paahtoleipa";
+    if (/\b(?:paahtoleip|paahtis)/.test(value)) return "paahtoleipa";
     if (/\bruisleip|\bruispal|\bjalkiuuni/.test(value)) return "ruisleipa";
     if (/\bnakkileip/.test(value)) return "nakkileipa";
     if (/\bsampyl/.test(value)) return "sampyla";
