@@ -434,12 +434,20 @@ function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
     };
   };
 
-  for (const result of results) {
-    // A product may legitimately appear in both tabs. Deduplicate within each dataset only.
-    const key = `${(result as ZiiplyOfferSearchResult & { campaignType?: string }).campaignType === "campaign" ? "campaign" : "offer"}|${getUniqueOfferKeyV4(result)}`;
+  // V844: identical commercial terms must not be shown once as an offer and
+  // again as a campaign merely because two providers classified the same row
+  // differently. Keep genuinely different price/validity/store rows separate.
+  // Prefer the campaign-labelled row when the terms are otherwise identical.
+  const orderedResults = [...results].sort((a, b) => {
+    const ac = (a as ZiiplyOfferSearchResult & { campaignType?: string }).campaignType === "campaign" ? 1 : 0;
+    const bc = (b as ZiiplyOfferSearchResult & { campaignType?: string }).campaignType === "campaign" ? 1 : 0;
+    return bc - ac;
+  });
+
+  for (const result of orderedResults) {
+    const key = getUniqueOfferKeyV4(result);
     const previous = seen.get(key);
     if (previous) {
-      // Diagnose K-local versus regional collisions without changing the live result set.
       if (result.chain === "K" || previous.chain === "K") {
         kCollisions.push({ key, kept: describeK(previous), dropped: describeK(result) });
       }
