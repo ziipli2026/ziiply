@@ -306,7 +306,7 @@ async function fetchTokmanniOffersFresh() {
     0,
   );
 
-  const items = htmlPages.flatMap((html, pageIndex) =>
+  const items: TokmanniOffer[] = htmlPages.flatMap((html, pageIndex) =>
     productBlocks(html)
       .map((block, index) => mapBlock(block, pageIndex * TOKMANNI_PAGE_SIZE + index))
       .filter((item): item is TokmanniOffer => Boolean(item)),
