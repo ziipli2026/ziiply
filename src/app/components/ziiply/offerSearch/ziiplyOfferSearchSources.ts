@@ -457,6 +457,35 @@ function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
   return unique;
 }
 
+function canonicalPrismaOverlapPriceV1(item: any): string {
+  const direct = Number(item?.price);
+  if (Number.isFinite(direct) && direct > 0) return direct.toFixed(4);
+  const parsed = Number(String(item?.priceText ?? "").replace(/[^0-9,.-]/g, "").replace(",", "."));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed.toFixed(4) : "";
+}
+function prismaOverlapValidityV1(item: any): string {
+  return String(item?.validUntil ?? item?.debugOfferEvidenceV226?.campaignPriceValidUntil ?? item?.debugPrismaCampaignEvidenceV2?.campaignPriceValidUntil ?? "").trim();
+}
+function removeProvenPrismaOfferCampaignDuplicatesV1(offers: ZiiplyOfferSearchResult[], campaigns: ZiiplyOfferSearchResult[]) {
+  const campaignKeys = new Set<string>();
+  for (const row of campaigns as any[]) {
+    const store = normalizeOfferUniqueText(row?.storeLabel || row?.storeName || row?.shopName || "");
+    const ean = String(row?.ean ?? "").trim();
+    const price = canonicalPrismaOverlapPriceV1(row);
+    const until = prismaOverlapValidityV1(row);
+    if (row?.chain !== "S" || row?.source !== "skaupat" || !store.includes("prisma") || !ean || !price || !until) continue;
+    campaignKeys.add(store+"|ean:"+ean+"|price:"+price+"|until:"+until);
+  }
+  return offers.filter((row: any) => {
+    const store = normalizeOfferUniqueText(row?.storeLabel || row?.storeName || row?.shopName || "");
+    const ean = String(row?.ean ?? "").trim();
+    const price = canonicalPrismaOverlapPriceV1(row);
+    const until = prismaOverlapValidityV1(row);
+    if (row?.chain !== "S" || row?.source !== "skaupat" || !store.includes("prisma") || !ean || !price || !until) return true;
+    return !campaignKeys.has(store+"|ean:"+ean+"|price:"+price+"|until:"+until);
+  });
+}
+
 async function safelySearchSource(
   label: string,
   task: () => Promise<ZiiplyOfferSearchResult[]>,
@@ -916,6 +945,8 @@ export async function searchZiiplyOffers(
     : [],
   ]);
 
+  const prismaOfferResultsV1 = removeProvenPrismaOfferCampaignDuplicatesV1(sKaupatResults, prismaCampaignResults);
+
   const sLocalCampaignResults = providerScopeV10.useS && hasSelectedSLocalV32
     ? await safelySearchSource(
         isGostaMasterQuery ? "S-local S-kaupat campaigns master V32" : "S-local S-kaupat campaigns V32",
@@ -955,7 +986,7 @@ export async function searchZiiplyOffers(
 
   const uniqueAllResults = uniqueOfferResults([
     ...eTarjouslehdetResults,
-    ...sKaupatResults,
+    ...prismaOfferResultsV1,
     ...prismaCampaignResults,
     ...sLocalCampaignResults,
     ...kResults,
