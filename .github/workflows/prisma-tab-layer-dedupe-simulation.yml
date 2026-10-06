@@ -24,7 +24,7 @@ jobs:
           const storeName="Prisma Hyvinkää",storeId="634976534",MASTER="__ziiply_all_offers__";
           const ctx={storeName,sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
           const offers:any[]=await searchSelectedSKaupatOffersV11(MASTER,ctx as any);
-          const campaigns:any[]=await fetchPrismaCampaignOffersV1(MASTER,{storeId,storeName});
+          const campaigns:any[]=await fetchPrismaCampaignOffersV1(MASTER,{storeLabel:"S-kaupat",url:"https://www.s-kaupat.fi/tuotteet/kampanjat"} as any,storeName);
           const price=(x:any)=>{const n=Number(x.price);if(Number.isFinite(n))return n;return Number(String(x.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."))};
           const key=(x:any)=>{const e=String(x.ean??"").trim(),p=price(x);return e&&Number.isFinite(p)?e+"|"+p.toFixed(4):""};
           const campaignKeys=new Set(campaigns.map(key).filter(Boolean));
