@@ -8,7 +8,7 @@ assert.match(eligibility[1],/if \(String\(item\.source \|\| ""\)\.toLowerCase\(\
 assert.doesNotMatch(page,/isComparableWeightOfferV797/,"no €/kg offer exception remains");
 assert.match(page,/const comparisonCartV738 = nextCart\.filter\(isComparisonEligibleV797\);/);
 assert.match(page,/const comparableCartV730 = cart\.filter\(isComparisonEligibleV797\);/);
-assert.match(page,/const comparableCart = useMemo\(\(\) => \{[\s\S]*?isComparisonEligibleV797\(item\)\);/);
+assert.match(page,/const comparableCart = useMemo\(\(\) => \{[\s\S]*?cart\.filter\(isComparisonEligibleV797\);/);
 assert.match(mobile,/if \(isPendingWeightPriceV794\(item\)\) return 0;/,"pending weighed price excluded from receipt total");
 const eligible=x=>String(x.source||"").toLowerCase()!=="offer"&&!x.weightLabel;
 const items=[
