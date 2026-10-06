@@ -8913,6 +8913,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V146: Göstan tarjoushaun orkestrointi, dedupe ja näkyvien tulosten suodatus
   // on siirretty offerSearch/ziiplyOfferSearchCore.ts -moduuliin.
 
+  function dedupePrismaOfferCopiesForPresentationV826(sourceResults: any[], offerResults: any[]) {
+    if (gostaSelectedOfferChainRefV547.current !== "S") return offerResults;
+
+    const selectedSStoreNameV826 = String(
+      (storeMode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName) ||
+      activeStores.sStoreName ||
+      "",
+    ).trim();
+    if (!/\bprisma\b/i.test(selectedSStoreNameV826)) return offerResults;
+
+    const normalizeEanV826 = (value: unknown) => String(value ?? "").replace(/\D/g, "");
+    const normalizePriceV826 = (value: unknown) => {
+      const numeric = Number(String(value ?? "").replace(",", ".").replace(/[^\d.-]/g, ""));
+      return Number.isFinite(numeric) && numeric > 0 ? numeric.toFixed(4) : "";
+    };
+    const exactKeyV826 = (item: any) => {
+      const source = item?.__sourceOfferSearchResult || item;
+      const ean = normalizeEanV826(source?.ean || source?.gtin || source?.barcode || item?.ean);
+      const price = normalizePriceV826(item?.offerPrice ?? item?.price ?? source?.offerPrice ?? source?.price);
+      return ean && price ? `${ean}|${price}` : "";
+    };
+
+    const campaignKeysV826 = new Set(
+      sourceResults
+        .filter((item: any) => item?.campaignType === "campaign")
+        .map(exactKeyV826)
+        .filter(Boolean),
+    );
+    if (campaignKeysV826.size === 0) return offerResults;
+
+    return offerResults.filter((item: any) => {
+      const key = exactKeyV826(item);
+      return !key || !campaignKeysV826.has(key);
+    });
+  }
+
   const cleanOfferSearchResultsV106 = useMemo(() => {
     // V533: Kun käyttäjä avaa tuoteryhmän, näkyvä lista suodatetaan samasta
     // master-datasetistä kuin tuoteryhmälistan määrät. Näin kategoriapainikkeen
@@ -8922,9 +8958,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? gostaMasterOfferResultsV528
         : offerSearchResults;
 
-    return cleanZiiplyGostaOfferResultsV146(visibleSourceResults.filter((item: any) =>
+    const tabResultsV826 = visibleSourceResults.filter((item: any) =>
       gostaContentTabV1 === "campaigns" ? item?.campaignType === "campaign" : item?.campaignType !== "campaign"
-    ));
+    );
+    const presentationResultsV826 =
+      gostaContentTabV1 === "offers"
+        ? dedupePrismaOfferCopiesForPresentationV826(visibleSourceResults, tabResultsV826)
+        : tabResultsV826;
+
+    return cleanZiiplyGostaOfferResultsV146(presentationResultsV826);
   }, [offerSearchResults, offerCardFilterV106, gostaMasterOfferResultsV528, gostaContentTabV1]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
@@ -9013,9 +9055,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // jolloin kahdesta kaupasta / lähteestä tulleet samat tarjoukset nostivat
     // tuoteryhmän lukemaa suuremmaksi kuin varsinainen avattu lista.
     const countSourceResults = gostaMasterOfferResultsV528.length > 0
-      ? cleanZiiplyGostaOfferResultsV146(gostaMasterOfferResultsV528.filter((item: any) =>
-          gostaContentTabV1 === "campaigns" ? item?.campaignType === "campaign" : item?.campaignType !== "campaign"
-        ))
+      ? cleanZiiplyGostaOfferResultsV146(
+          gostaContentTabV1 === "offers"
+            ? dedupePrismaOfferCopiesForPresentationV826(
+                gostaMasterOfferResultsV528,
+                gostaMasterOfferResultsV528.filter((item: any) => item?.campaignType !== "campaign"),
+              )
+            : gostaMasterOfferResultsV528.filter((item: any) => item?.campaignType === "campaign"),
+        )
       : cleanOfferSearchResultsV106;
 
     const countCardItems = dedupeGostaCardItemsV166(
