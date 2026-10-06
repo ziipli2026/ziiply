@@ -157,3 +157,15 @@ console.log("V833 manual EAN debounce source separation regression: PASS");
 assert.match(source, /closeEanModal\(\)\.then\(\(\) => setShopsPanelOpen\(true\)\)[^\n]*>Vaihda kauppaa<\/button>/);
 assert.match(source, /closeEanModal\(\)\.then\(\(\) => setShopsPanelOpen\(true\)\)[^\n]*>Tarkista kauppavalinta<\/button>/);
 console.log("V834 scanner store-change close cleanup regression: PASS");
+
+
+// V835: every EAN-modal close path must end the scanner store session.
+const modalCloseGuardV835 = source.split("V835: closing the EAN modal by any navigation path")[1]?.split("function resolveVoiceResultWaitV509")[0];
+assert.ok(modalCloseGuardV835, "global scanner modal-close session guard exists");
+assert.match(modalCloseGuardV835, /if \(eanModalOpen\) return/);
+assert.match(modalCloseGuardV835, /clearInterval\(scannerStorePromptTimerRefV828\.current\)/);
+assert.match(modalCloseGuardV835, /resolvePendingStorePromptV835\(false\)/);
+assert.match(modalCloseGuardV835, /scannerStoreCheckDoneRefV791\.current = false/);
+assert.match(modalCloseGuardV835, /scannerInStoreRefV828\.current = false/);
+assert.match(modalCloseGuardV835, /scannerConfirmedStoreNameRefV828\.current = ""/);
+console.log("V835 global scanner modal-close session cleanup regression: PASS");
