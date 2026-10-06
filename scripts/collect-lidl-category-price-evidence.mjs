@@ -14,7 +14,6 @@ if(!urls.length) throw new Error("Pass one or more official Lidl category/campai
 const clean=s=>String(s??"").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim();
 const decode=s=>clean(String(s??"").replace(/\\u002F/g,"/").replace(/\\u0026/g,"&").replace(/\\u003C/g,"<").replace(/\\u003E/g,">").replace(/\\u0022/g,'"'));
 const eur=s=>{const m=String(s??"").match(/(\d+[,.]\d{1,2})\s*€/);return m?Number(m[1].replace(",",".")):null};
-const nearestEurBefore=(text,index,window=900)=>{const before=String(text??"").slice(Math.max(0,index-window),index);const prices=[...before.matchAll(/(\d+[,.]\d{1,2})\s*€/g)];return prices.length?Number(prices.at(-1)[1].replace(",",".")):null};
 const parseFiDate=(raw,observedAt)=>{
   const m=String(raw??"").match(/(\d{1,2})\.(\d{1,2})\.?(\d{4})?/);
   if(!m) return null;
@@ -97,7 +96,10 @@ for(const product of api.out){
     const url=new URL(product.canonicalPath,"https://www.lidl.fi").href;
     const res=await fetch(url,{headers:{"user-agent":"ZiiplyLidlResearch/1.0",accept:"text/html"},signal:AbortSignal.timeout(12000)});
     if(!res.ok) continue;
-    const pageText=decode(await res.text());
+    const html=await res.text();
+    const pageText=decode(html);
+    const structured=structuredProducts(html).filter(x=>String(x.lidlProductId)===String(product.lidlProductId));
+    const exactStructured=structured.length===1?structured[0]:null;
     const dates=[...pageText.matchAll(/Myymälässä\s+(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)\s*-\s*(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)/gi)];
     let foundCurrentDatedPromo=false;
     for(const m of dates){
@@ -107,7 +109,7 @@ for(const product of api.out){
       canonicalPromoByProduct.set(String(product.lidlProductId),{
         validFrom:fromIso,validThrough:throughIso,
         isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
-        displayedPriceEur:nearestEurBefore(pageText,m.index),
+        displayedPriceEur:exactStructured?.displayedPriceEur??null,
         evidenceText:local,source:url
       });
       foundCurrentDatedPromo=true;
