@@ -29,7 +29,7 @@ jobs:
           const hidePrismaOfferCopiesAlreadyInCampaignTabV804=(visibleResults:any[],masterResults:any[])=>{
             const numericPrice=(item:any)=>{const direct=Number(item?.price);if(Number.isFinite(direct))return direct;const parsed=Number(String(item?.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};
             const identity=(item:any)=>{const ean=String(item?.ean??item?.gtin??item?.barcode??"").trim();const price=numericPrice(item);return ean&&price!==null?ean+"|"+price.toFixed(4):""};
-            const prismaCampaignKeys=new Set(masterResults.filter((item:any)=>item?.campaignType==="campaign"&&/^prisma(?:\\s|$)/i.test(String(item?.storeLabel??item?.storeName??""))).map(identity).filter(Boolean));
+            const prismaCampaignKeys=new Set(masterResults.filter((item:any)=>item?.campaignType==="campaign").map(identity).filter(Boolean));
             if(!prismaCampaignKeys.size)return visibleResults;
             return visibleResults.filter((item:any)=>item?.campaignType==="campaign"||!prismaCampaignKeys.has(identity(item)));
           };
