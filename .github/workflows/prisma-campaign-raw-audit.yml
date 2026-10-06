@@ -34,7 +34,8 @@ jobs:
               storeId,
               path: "tuotteet/kampanjat",
               platform: "WEB",
-              availabilityDate: date
+              availabilityDate: date,
+              userConsent: { marketing: false }
             }
           };
           const extensions = { persistedQuery: { version: 1, sha256Hash: hash } };
