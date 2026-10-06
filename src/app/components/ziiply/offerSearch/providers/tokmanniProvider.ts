@@ -201,6 +201,9 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
     ean,
     rawText: [name, cat, multiText, offerPrice, normalPrice].filter(Boolean).join(" "),
     campaignType: "offer",
+    validitySource: "current-weekly-listing",
+    validFrom: null,
+    validTo: null,
   };
 }
 
