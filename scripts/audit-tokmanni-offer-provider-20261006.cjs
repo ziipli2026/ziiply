@@ -1,0 +1,18 @@
+const fs = require("fs");
+const p = "src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts";
+const s = fs.readFileSync(p, "utf8");
+const checks = [
+  ["no arbitrary text normal-price fallback", !s.includes("ordinaryAfterMulti")],
+  ["structured card-price fallback", s.includes("ordinaryCardPrice") && s.includes("priceElementValues")],
+  ["weekly rows explicitly offers", s.includes('campaignType: "offer"')],
+  ["partial masters fail closed", s.includes("Tokmanni offer parse incomplete")],
+  ["page-cap overflow fails closed", s.includes("Tokmanni offer listing exceeds parser page cap")],
+  ["short master cache", s.includes("TOKMANNI_CACHE_TTL_MS = 10 * 60 * 1000")],
+  ["in-flight request coalescing", s.includes("tokmanniOffersInFlight")],
+];
+let failed = false;
+for (const [name, ok] of checks) {
+  console.log(ok ? "PASS" : "FAIL", name);
+  if (!ok) failed = true;
+}
+if (failed) process.exit(1);
