@@ -22,7 +22,7 @@ const candidateUrls=[...new Set(evidence.filter(x=>/eurospar|ruokasanomat|tarjou
 const publicationFrames=iframeDetails.filter(x=>/eurospar|ruokasanomat|tarjoussanomat/i.test(x.title+" "+x.src));
 const classifiedFrames={
   eurospar:publicationFrames.filter(x=>/eurospar/i.test(x.title+" "+x.src)),
-  ruokasanomat:publicationFrames.filter(x=>/ruokasanomat/i.test(x.title+" "+x.src)),
+  ruokasanomat:publicationFrames.filter(x=>/ruokasanomat/i.test(x.title+" "+x.src)&&!/eurospar-ruokasanomat/i.test(x.title+" "+x.src)),
   tarjoussanomat:publicationFrames.filter(x=>/tarjoussanomat/i.test(x.title+" "+x.src)),
 };
 const frameProbes=[];
@@ -41,7 +41,10 @@ for(const [kind,frames] of Object.entries(classifiedFrames)){
         hasIncito:/incito/i.test(body),
       };
       const scriptSources=[...new Set([...body.matchAll(/<script\\b[^>]*src=["\x27]([^"\x27]+)["\x27]/gi)].map(m=>new URL(decode(m[1]),r.url).href))].slice(0,30);
-      frameProbes.push({kind,frameUrl,finalUrl:r.url,http:r.status,bytes:body.length,markers,discovered,scriptSources});
+      const imageSources=[...new Set([...body.matchAll(/<(?:img|source)\\b[^>]*(?:src|data-src|srcset)=["\x27]([^"\x27]+)["\x27]/gi)].flatMap(m=>String(m[1]).split(",").map(x=>x.trim().split(/\\s+/)[0])).filter(Boolean).map(x=>new URL(decode(x),r.url).href))].slice(0,100);
+      const pageLinks=[...new Set([...body.matchAll(/<a\\b[^>]*href=["\x27]([^"\x27]+)["\x27]/gi)].map(m=>new URL(decode(m[1]),r.url).href).filter(x=>/page|slider|spread|leaf|offer|product/i.test(x)))].slice(0,100);
+      const htmlSignals={images:imageSources.length,pageLinks:pageLinks.length,hasPrice:/\\d+[,.]\\d{2}\\s*€/.test(strip(body)),hasValidity:/voimassa|asti|alkaen|\\d{1,2}\\.\\d{1,2}\\./i.test(strip(body))};
+      frameProbes.push({kind,frameUrl,finalUrl:r.url,http:r.status,bytes:body.length,markers,discovered,scriptSources,imageSources,pageLinks,htmlSignals});
     }catch(error){
       frameProbes.push({kind,frameUrl:frame.src,error:String(error)});
     }
