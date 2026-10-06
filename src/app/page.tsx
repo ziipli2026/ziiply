@@ -14145,7 +14145,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextCart = [...baseCart, newItem];
       // V814: uusi oikealla skannerilla kaupassa lisätty EAN on samalla kerätty.
       // Käsin syötetty/liitetty EAN ei saa tätä kuittausta.
-      if (isPhysicalBarcodeScanV815 && String(newItem.id || "")) {
+      if (String(newItem.id || "")) {
         setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
       }
       cartRefV124.current = nextCart;
