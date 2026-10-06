@@ -308,5 +308,10 @@
     "lidlProductId": "10038547",
     "ean": "0000020010447",
     "evidence": "Lidl Finland identifies ITALIAMO Ilmakuivattu kinkku productId 10038547 as 100 g. Current Swedish Lidl store product data identifies ITALIAMO Prosciutto crudo 100 g with EAN 0000020010447; exact brand, product type and pack size match."
+  },
+  {
+    "lidlProductId": "10038561",
+    "ean": "4056489525585",
+    "evidence": "Lidl Finland identifies ITALIAMO Burrata productId 10038561 as 200 g. Independent barcode product data identifies ITALIAMO Burrata 200 g with EAN 4056489525585; exact brand, product and pack size match."
   }
 ]
