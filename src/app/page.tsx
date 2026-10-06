@@ -13575,7 +13575,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(true);
     eanAutoSearchActiveRef.current = true;
     if (inStore) playScannerBarcodeFoundBeepV582(code);
-    void searchByEan(code, { fromScanner: true, collectionEligible: inStore, manualScannerEntry: true });
+    void searchByEan(code, { fromScanner: true, collectionEligible: false });
   }
 
   async function finishScannedEan(code: string) {
@@ -14337,7 +14337,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function searchByEan(
     eanOverride?: string,
-    options: { fromScanner?: boolean; collectionEligible?: boolean; manualScannerEntry?: boolean } = {},
+    options: { fromScanner?: boolean; collectionEligible?: boolean } = {},
   ) {
     const ean = normalizeEan(eanOverride ?? eanInput);
 
@@ -14347,17 +14347,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const isPhysicalSearchScanV825 = Boolean(
       options.collectionEligible &&
       options.fromScanner &&
-      (
-        options.manualScannerEntry ||
-        (
-          (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
-          physicalSearchScanV825 &&
-          getEanVariantKeysV126(physicalSearchScanV825.code).some((variant) =>
-            getEanVariantKeysV126(ean).includes(variant),
-          ) &&
-          Date.now() - physicalSearchScanV825.at < 10000
-        )
-      )
+      (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
+      physicalSearchScanV825 &&
+      getEanVariantKeysV126(physicalSearchScanV825.code).some((variant) =>
+        getEanVariantKeysV126(ean).includes(variant),
+      ) &&
+      Date.now() - physicalSearchScanV825.at < 10000
     );
 
     resetScannerDebugV493(`START ean=${ean || "(empty)"} fromScanner=${Boolean(options.fromScanner)} scannerOpen=${Boolean(eanScannerOpen || eanHtml5ScannerRef.current)}`);
@@ -14583,17 +14578,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const isPhysicalExistingScanV824 = Boolean(
       options.collectionEligible &&
       options.fromScanner &&
-      (
-        options.manualScannerEntry ||
-        (
-          (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
-          physicalExistingScanV824 &&
-          getEanVariantKeysV126(physicalExistingScanV824.code).some((variant) =>
-            getEanVariantKeysV126(ean).includes(variant),
-          ) &&
-          Date.now() - physicalExistingScanV824.at < 10000
-        )
-      )
+      (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
+      physicalExistingScanV824 &&
+      getEanVariantKeysV126(physicalExistingScanV824.code).some((variant) =>
+        getEanVariantKeysV126(ean).includes(variant),
+      ) &&
+      Date.now() - physicalExistingScanV824.at < 10000
     );
     if (isPhysicalExistingScanV824 && existingCartItemForEanV122) {
       const collectionKeyV816 = String(existingCartItemForEanV122.id ?? "");
@@ -16527,17 +16517,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       scannerInStoreRefV828.current &&
       scannerStoreStillMatchesResultV836 &&
       isScannerAddV787 &&
-      (
-        eanManualInputOpen ||
-        (
-          (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
-          physicalScanV815 &&
-          getEanVariantKeysV126(physicalScanV815.code).some((variant) =>
-            getEanVariantKeysV126(ean).includes(variant),
-          ) &&
-          Date.now() - physicalScanV815.at < 10000
-        )
-      )
+      (eanScannerOpen || eanHtml5ScannerRef.current || desktopKeyboardScannerOpen) &&
+      physicalScanV815 &&
+      getEanVariantKeysV126(physicalScanV815.code).some((variant) =>
+        getEanVariantKeysV126(ean).includes(variant),
+      ) &&
+      Date.now() - physicalScanV815.at < 10000
     );
     const addKey = `${result.chain}-${ean || normalize(productName)}-${result.product.id}`;
     const now = Date.now();
@@ -23189,7 +23174,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       eanAutoSearchActiveRef.current = true;
                       if (scannerInStoreV829) playScannerBarcodeFoundBeepV582(code);
                       setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
-                      void searchByEan(code, { fromScanner: true, collectionEligible: scannerInStoreV829, manualScannerEntry: true });
+                      void searchByEan(code, { fromScanner: true, collectionEligible: false });
                     } catch {
                       setEanManualInputOpen(true);
                       window.setTimeout(() => eanInputRef.current?.focus(), 0);
