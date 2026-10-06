@@ -42,6 +42,47 @@ function identity(item: any) {
     : `${type}|text:${norm(item?.title)}|price:${norm(price)}`;
 }
 
+
+function canonicalPrice(item: any) {
+  const direct = Number(item?.price);
+  if (Number.isFinite(direct)) return direct.toFixed(4);
+  const parsed = Number(String(item?.priceText ?? "").replace(/[^0-9,.-]/g, "").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed.toFixed(4) : "";
+}
+function validity(item: any) {
+  return String(item?.validUntil ?? item?.debugOfferEvidenceV226?.campaignPriceValidUntil ?? item?.debugPrismaCampaignEvidenceV2?.campaignPriceValidUntil ?? "").trim();
+}
+function eanOverlap(discounted: any[], campaigns: any[]) {
+  const byEan = new Map<string, any[]>();
+  for (const row of campaigns) {
+    const ean=String(row?.ean??"").trim(); if(!ean) continue;
+    byEan.set(ean,[...(byEan.get(ean)||[]),row]);
+  }
+  const samePrice:any[]=[]; const differentPrice:any[]=[]; const discountedOnly:any[]=[];
+  for(const d of discounted){
+    const ean=String(d?.ean??"").trim(); if(!ean) continue;
+    const cms=byEan.get(ean)||[];
+    if(!cms.length){ discountedOnly.push(d); continue; }
+    const exact=cms.filter(x=>canonicalPrice(x)===canonicalPrice(d));
+    const target=exact.length?exact:cms;
+    (exact.length?samePrice:differentPrice).push({ean,title:d?.title??"",discountedPrice:canonicalPrice(d),discountedValidity:validity(d),cms:target.map(x=>({price:canonicalPrice(x),validity:validity(x),title:x?.title??""}))});
+  }
+  const discountedEans=new Set(discounted.map(x=>String(x?.ean??"").trim()).filter(Boolean));
+  const cmsOnly=campaigns.filter(x=>{const e=String(x?.ean??"").trim(); return e&&!discountedEans.has(e);});
+  const muikku={discounted:discounted.filter(x=>norm(x?.title).includes("muikku")),campaigns:campaigns.filter(x=>norm(x?.title).includes("muikku"))};
+  return {
+    sameEanSamePrice:samePrice.length,
+    sameEanDifferentPrice:differentPrice.length,
+    discountedOnly:discountedOnly.length,
+    cmsOnly:cmsOnly.length,
+    samePriceValidityMismatch:samePrice.filter(x=>x.cms.some((y:any)=>y.validity!==x.discountedValidity)).length,
+    differentPriceRows:differentPrice.slice(0,50),
+    discountedOnlyRows:discountedOnly.slice(0,30).map(x=>({ean:x.ean,title:x.title,price:canonicalPrice(x),validity:validity(x),labels:x?.debugOfferEvidenceV226?.rawLabels??""})),
+    cmsOnlyRows:cmsOnly.slice(0,30).map(x=>({ean:x.ean,title:x.title,price:canonicalPrice(x),validity:validity(x)})),
+    muikku
+  };
+}
+
 function summarize(items: any[]) {
   const keys = items.map(identity);
   const duplicateKeys = keys.filter((key, index) => keys.indexOf(key) !== index);
@@ -85,6 +126,7 @@ const invalidCardRows = cardRows
 const report = {
   audit: "PRISMA_SOURCE_TO_ZIIPLY_COMPLETENESS_V1",
   storeName,
+  overlap: eanOverlap(discountedSource, campaignSource),
   source: {
     discounted: summarize(discountedSource),
     campaigns: summarize(campaignSource),
