@@ -293,5 +293,10 @@
     "lidlProductId": "10038569",
     "ean": "0000020034153",
     "evidence": "Lidl Finland identifies ITALIAMO Savoiardi productId 10038569 as 400 g. Current Swedish Lidl product data identifies ITALIAMO Savoiardi 400 g with EAN 0000020034153; Lidl Italy also lists Savoiardi 400 g."
+  },
+  {
+    "lidlProductId": "10038560",
+    "ean": "20456436",
+    "evidence": "Lidl Finland identifies ITALIAMO Melanzane productId 10038560 as Melanzane alla Parmigiana 450 g. Independent product and recall records identify the same Italiamo Melanzane alla Parmigiana 450 g package with barcode/UPC 20456436."
   }
 ]
