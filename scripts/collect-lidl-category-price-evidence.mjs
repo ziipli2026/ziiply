@@ -139,8 +139,12 @@ for(const source of urls){
     const normalizedEvidence=clean(evidenceText).toLowerCase();
     const matchesName=p=>[p.name,p.shortName].filter(Boolean).some(n=>normalizedEvidence.includes(clean(n).toLowerCase()));
     const exactNameMatches=products.filter(matchesName);
-    const product=exactNameMatches.length===1?exactNameMatches[0]:null;
-    const matchConfidence=product?(exactNameMatches.length===1?'exact-name':'ambiguous-name'):'unmatched';
+    const nameProduct=exactNameMatches.length===1?exactNameMatches[0]:null;
+    // A dated text window may include a neighbouring product's price. Only bind a
+    // campaign to a product when the parsed price equals that product's structured
+    // displayed price. Otherwise keep it unlinked for manual/review handling.
+    const product=nameProduct && Number(nameProduct.displayedPriceEur)===price ? nameProduct : null;
+    const matchConfidence=product?'exact-name-price':nameProduct?'name-price-mismatch':exactNameMatches.length>1?'ambiguous-name':'unmatched';
     raw.push({
       source,observedAt,researchOnly:true,
       lidlProductId:product?.lidlProductId??null,ian:product?.ian??[],productName:product?.name??null,
@@ -189,8 +193,8 @@ const records=[...byKey.values()].map(r=>{
   }
   return {...r,priceKind:classification.priceKind,priceClassificationReason:classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:classification.priceKind,validThrough:r.validThrough})};
 });
-const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name');
-const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
+const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name-price');
+const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name-price');
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,officialApi,
   count:strongRecords.length,totalCount:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
