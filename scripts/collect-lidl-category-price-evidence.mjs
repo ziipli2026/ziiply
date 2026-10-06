@@ -130,21 +130,20 @@ for(const source of urls){
 
   const dated=[...text.matchAll(/Myymälässä\s+(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)\s*-\s*(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)/gi)];
   for(const m of dated){
-    const before=text.slice(Math.max(0,m.index-1100),m.index);
+    const before=text.slice(Math.max(0,m.index-650),m.index);
     const prices=[...before.matchAll(/(\d+[,.]\d{1,2})\s*€/g)];
     if(!prices.length) continue;
     const price=Number(prices.at(-1)[1].replace(",","."));
     const fromIso=parseFiDate(m[1],observedAt), throughIso=parseFiDate(m[2],observedAt);
-    const evidenceText=text.slice(Math.max(0,m.index-900),Math.min(text.length,m.index+m[0].length+80));
+    const evidenceText=text.slice(Math.max(0,m.index-650),Math.min(text.length,m.index+m[0].length+80));
     const normalizedEvidence=clean(evidenceText).toLowerCase();
     const matchesName=p=>[p.name,p.shortName].filter(Boolean).some(n=>normalizedEvidence.includes(clean(n).toLowerCase()));
     const exactNameMatches=products.filter(matchesName);
-    const nameProduct=exactNameMatches.length===1?exactNameMatches[0]:null;
-    // A dated text window may include a neighbouring product's price. Only bind a
-    // campaign to a product when the parsed price equals that product's structured
-    // displayed price. Otherwise keep it unlinked for manual/review handling.
-    const product=nameProduct && Number(nameProduct.displayedPriceEur)===price ? nameProduct : null;
-    const matchConfidence=product?'exact-name-price':nameProduct?'name-price-mismatch':exactNameMatches.length>1?'ambiguous-name':'unmatched';
+    const product=exactNameMatches.length===1?exactNameMatches[0]:null;
+    // Keep the dated-card context deliberately tight. A unique product title inside
+    // the same local card is stronger evidence than comparing against the structured
+    // price, because a genuine campaign price is expected to differ from regular.
+    const matchConfidence=product?'exact-local-name':exactNameMatches.length>1?'ambiguous-name':'unmatched';
     raw.push({
       source,observedAt,researchOnly:true,
       lidlProductId:product?.lidlProductId??null,ian:product?.ian??[],productName:product?.name??null,
@@ -193,8 +192,8 @@ const records=[...byKey.values()].map(r=>{
   }
   return {...r,priceKind:classification.priceKind,priceClassificationReason:classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:classification.priceKind,validThrough:r.validThrough})};
 });
-const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name-price');
-const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name-price');
+const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-local-name');
+const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-local-name');
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,officialApi,
   count:strongRecords.length,totalCount:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
