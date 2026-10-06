@@ -33,7 +33,14 @@ for(const [kind,frames] of Object.entries(classifiedFrames)){
       const r=await fetch(frameUrl,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"},redirect:"follow",signal:AbortSignal.timeout(20000)});
       const body=await r.text();
       const discovered=[...new Set([...body.matchAll(/https?:\\?\/\\?\/[^"'<>\\s]+/gi)].map(m=>decode(m[0].replace(/\\\//g,"/"))).filter(x=>/publication|catalog|leaflet|viewer|api|json|tjek|incito/i.test(x)))].slice(0,50);
-      frameProbes.push({kind,frameUrl,finalUrl:r.url,http:r.status,bytes:body.length,discovered});
+      const markers={
+        hasJson:/application\/json|\.json(?:[?"'])/i.test(body),
+        hasApi:/\/api\//i.test(body),
+        hasPublication:/publication/i.test(body),
+        hasTjek:/tjek/i.test(body),
+        hasIncito:/incito/i.test(body),
+      };
+      frameProbes.push({kind,frameUrl,finalUrl:r.url,http:r.status,bytes:body.length,markers,discovered});
     }catch(error){
       frameProbes.push({kind,frameUrl:frame.src,error:String(error)});
     }
@@ -45,4 +52,6 @@ console.log(JSON.stringify(report,null,2));
 if(!labels.eurospar||!labels.ruokasanomat){console.error("Expected EUROSPAR/Ruokasanomat labels missing from official leaflet hub");process.exitCode=1;}
 if(publicationFrames.length===0){console.error("No identifiable publication iframe sources found");process.exitCode=1;}
 if(classifiedFrames.eurospar.length===0||classifiedFrames.ruokasanomat.length===0){console.error("EUROSPAR or Ruokasanomat iframe could not be classified");process.exitCode=1;}
-if(!frameProbes.some(x=>x.kind==="eurospar"&&x.http>=200&&x.http<400)){console.error("EUROSPAR iframe source could not be fetched");process.exitCode=1;}
+const eurosparProbe=frameProbes.find(x=>x.kind==="eurospar"&&x.http>=200&&x.http<400);
+if(!eurosparProbe){console.error("EUROSPAR iframe source could not be fetched");process.exitCode=1;}
+if(eurosparProbe&&eurosparProbe.bytes<500){console.error("EUROSPAR iframe response unexpectedly small");process.exitCode=1;}
