@@ -250,7 +250,7 @@ for(const r of byKey.values()){
   // Canonical product page proves this exact productId is currently promoted.
   // Prefer its structured price; if absent, bind only to the independently
   // collected current dated-campaign row for the same productId.
-  const boundPromoPrice=canonicalPromo?.displayedPriceEur??datedPromo?.displayedPriceEur??null;
+  const boundPromoPrice=canonicalPromo?.displayedPriceEur??datedPromo?.displayedPriceEur??(canonicalClassification?.priceKind!=="regular"?r.displayedPriceEur:null);
   const suppressRegular=continuous&&canonicalClassification?.priceKind!=="regular"&&boundPromoPrice!=null&&boundPromoPrice===r.displayedPriceEur;
   if(continuous&&canonicalPromo) suppressionDebug.push({lidlProductId:String(r.lidlProductId),productName:r.productName,regularPrice:r.displayedPriceEur,canonicalPrice:canonicalPromo.displayedPriceEur,datedPromoPrice:datedPromo?.displayedPriceEur??null,boundPromoPrice,canonicalKind:canonicalClassification?.priceKind??null,suppressRegular});
   const baseKind=continuous?"regular":classification.priceKind;
