@@ -3,7 +3,8 @@ name: Tokmanni SPAR offer freshness audit
 on:
   workflow_dispatch:
   schedule:
-    # Frequent prefetch: publication can appear before its validity starts.\n    - cron: "17 2,5,8,11,14,17,20,23 * * *"
+    # Frequent prefetch: publication can appear before its validity starts.
+    - cron: "17 2,5,8,11,14,17,20,23 * * *"
   push:
     branches: [main, "fix/tokmanni-spar-offer-freshness"]
     paths:
