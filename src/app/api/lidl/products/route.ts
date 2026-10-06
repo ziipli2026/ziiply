@@ -24,15 +24,19 @@ function getPrice(product: RuoanhintaProduct) {
   return product.storeItems?.[0]?.price || 0;
 }
 
+function isValidGtin(value: unknown) {
+  const digits = String(value ?? "").trim();
+  if (!/^(?:\\d{8}|\\d{12}|\\d{13}|\\d{14})$/.test(digits)) return false;
+  const body = digits.slice(0, -1);
+  const expected = Number(digits.at(-1));
+  const sum = [...body].reverse().reduce((total, digit, index) =>
+    total + Number(digit) * (index % 2 === 0 ? 3 : 1), 0);
+  return (10 - (sum % 10)) % 10 === expected;
+}
+
 function getEan(product: RuoanhintaProduct) {
-  const candidates = [
-    product.ean,
-    product.gtin,
-    product.eanCode,
-    product.barcode,
-    product.externalId,
-  ];
-  return candidates.find((value) => value && /^\d{8,14}$/.test(String(value))) || undefined;
+  const candidates = [product.ean, product.gtin, product.eanCode, product.barcode];
+  return candidates.map((value) => String(value ?? "").trim()).find(isValidGtin) || undefined;
 }
 
 function fixEncoding(value: string) {
