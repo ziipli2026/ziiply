@@ -18,6 +18,7 @@ function decodeHtml(s){return s.replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"
 function stripTags(s){return decodeHtml(s.replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]+>/g," ")).replace(/\r/g,"").replace(/[ \t]+/g," ").replace(/\n[ \t]+/g,"\n").trim();}
 function isoDate(d,m,y){return String(y).padStart(4,"0")+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");}
 
+const imageUrls=[...new Set([...frameHtml.matchAll(/"(?:normalImage|zoomImage|image)(?:Url|Path)"\\s*:\\s*"([^"]+)"/gi)].map(m=>m[1]).filter(x=>/^https?:/i.test(x)))].slice(0,30);
 const seoEscaped=frameHtml.match(/\\\\\"seoPageText\\\\\"\s*:\s*\\\\\"([\\s\\S]*?)\\\\\"\s*,\\\\\"metaDescription/i)?.[1]??"";
 const seoRaw=seoEscaped || (frameHtml.match(/["']seoPageText["']\s*:\s*["']([\s\S]*?)["']\s*[,}]/i)?.[1] ?? frameHtml.match(/seoPageText[^>]*>([\s\S]*?)<\//i)?.[1] ?? "");
 const seoText=stripTags(seoRaw.replace(/\\\\n/g,"\n").replace(/\\\\u003[cC]/g,"<").replace(/\\\\u003[eE]/g,">").replace(/\\\\\"/g,'"').replace(/\\\\\\\\/g,"\\"));
@@ -43,6 +44,7 @@ const candidate={
     jsonUrls:[...new Set([...frameHtml.matchAll(/https?:[^"'\\s<>]+\.json(?:\?[^"'\\s<>]*)?/gi)].map(m=>m[0]))].slice(0,20),
     priceSamples:[...frameHtml.matchAll(/.{0,100}\b\d+[,.]\d{2}\b.{0,160}/gi)].map(m=>m[0].replace(/\s+/g," ").trim()).slice(0,20),
     dateSamples:[...frameHtml.matchAll(/.{0,100}\b\d{1,2}[.\/]\d{1,2}[.\/]?(?:20\d{2})?\b.{0,160}/gi)].map(m=>m[0].replace(/\s+/g," ").trim()).slice(0,20),
+    imageUrls,
     scriptSources:[...frameHtml.matchAll(/<script\b[^>]*src=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]).slice(0,30),
     dataAttributes:[...frameHtml.matchAll(/\bdata-[a-z0-9_-]+=["']([^"']{1,300})["']/gi)].map(m=>m[0]).slice(0,40)
   },
