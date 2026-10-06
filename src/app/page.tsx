@@ -19443,7 +19443,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (current) {
             const same = tokmanniOptions.find((store) => sameStoreIdV93(store.id, current.id));
             if (same) return { ...same, chain: "TOKMANNI" };
-            return { ...current, chain: "TOKMANNI" };
+            return tokmanniOptions[0] ? { ...tokmanniOptions[0], chain: "TOKMANNI" } : null;
           }
           return tokmanniOptions[0] ? { ...tokmanniOptions[0], chain: "TOKMANNI" } : null;
         });
@@ -19451,7 +19451,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (current) {
             const same = options.find((store) => sameStoreIdV93(store.id, current.id));
             if (same) return { ...same, chain: "EUROSPAR" };
-            return { ...current, chain: "EUROSPAR" };
+            return options[0] ? { ...options[0], chain: "EUROSPAR" } : null;
           }
           return options[0] ? { ...options[0], chain: "EUROSPAR" } : null;
         });
