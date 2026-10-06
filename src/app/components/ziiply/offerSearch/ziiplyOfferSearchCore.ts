@@ -836,48 +836,6 @@ export function filterZiiplyGostaOfferResultsV146(
   });
 }
 
-export function hidePrismaOfferCopiesAlreadyInCampaignTabV804(
-  visibleResults: ZiiplyGostaOfferLike[],
-  masterResults: ZiiplyGostaOfferLike[],
-  selectedStoreName?: string,
-) {
-  const numericPrice = (item: ZiiplyGostaOfferLike) => {
-    const anyItem = item as any;
-    const direct = Number(anyItem?.price);
-    if (Number.isFinite(direct)) return direct;
-    const parsed = Number(String(anyItem?.priceText ?? "").replace(/[^0-9,.-]/g, "").replace(",", "."));
-    return Number.isFinite(parsed) ? parsed : null;
-  };
-  const identity = (item: ZiiplyGostaOfferLike) => {
-    const anyItem = item as any;
-    const ean = String(anyItem?.ean ?? anyItem?.gtin ?? anyItem?.barcode ?? "").trim();
-    const price = numericPrice(item);
-    return ean && price !== null ? ean + "|" + price.toFixed(4) : "";
-  };
-  const selectedStore = String(selectedStoreName ?? "").trim();
-  if (!/^prisma(?:\s|$)/i.test(selectedStore)) return visibleResults;
-  const prismaCampaignKeys = new Set(
-    masterResults
-      .filter((item) => {
-        const anyItem = item as any;
-        const sourceItem = anyItem?.__sourceOfferSearchResult ?? anyItem;
-        const campaignStore = String(sourceItem?.storeLabel ?? sourceItem?.storeName ?? "").trim();
-        return sourceItem?.campaignType === "campaign" &&
-          /^prisma(?:\s|$)/i.test(campaignStore) &&
-          campaignStore.toLocaleLowerCase("fi-FI") === selectedStore.toLocaleLowerCase("fi-FI");
-      })
-      .map(identity)
-      .filter(Boolean),
-  );
-  if (!prismaCampaignKeys.size) return visibleResults;
-  return visibleResults.filter((item) => {
-    const sourceItem = (item as any)?.__sourceOfferSearchResult ?? item;
-    if ((sourceItem as any)?.campaignType === "campaign") return true;
-    const key = identity(item);
-    return !key || !prismaCampaignKeys.has(key);
-  });
-}
-
 export async function searchZiiplyGostaOffersV146(options: {
   query: string;
   terms?: string[];
@@ -929,20 +887,8 @@ export async function searchZiiplyGostaOffersV146(options: {
       ? dedupeZiiplyGostaOfferResultsV146(nextResults)
       : cleanZiiplyGostaOfferResultsV146(nextResults);
 
-  const selectedSStoreNameV804 = options.context?.sStoreName;
-  const shouldRunPrismaCrossTabDedupeV804 =
-    /^prisma(?:\s|$)/i.test(String(selectedSStoreNameV804 ?? "").trim());
-  const prismaCrossTabMasterV804 = shouldRunPrismaCrossTabDedupeV804
-    ? await fetchGostaMasterOfferResultsV156(options.context)
-    : results;
-  const finalResults = hidePrismaOfferCopiesAlreadyInCampaignTabV804(
-    results,
-    prismaCrossTabMasterV804,
-    options.context?.sStoreName,
-  );
-
   return {
-    results: finalResults,
+    results,
     querySnapshot: searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     cardFilter: searchAllAreaOffers ? "" : searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     showingAllAreaOffers: searchAllAreaOffers,
