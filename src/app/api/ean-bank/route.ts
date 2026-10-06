@@ -83,7 +83,8 @@ export async function GET(request: NextRequest) {
           product: {
             ean: verifiedLidl.ean,
             lidlProductId: verifiedLidl.lidlProductId,
-            name: verifiedLidl.name,
+            // Verified link master proves only EAN <-> Lidl product id. Name is enriched elsewhere.
+            name: "",
             brand: null,
             quantity: null,
             imageUrl: null,
