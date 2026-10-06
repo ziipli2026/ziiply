@@ -739,8 +739,14 @@ export async function GET(request: Request) {
         } else if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(name)) {
           // Must precede Hevi: fruit words in juice names do not make them produce.
           correctedCategory = "Juomat";
-        } else if (/keitto|pata\b|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(name)) {
-          // Must precede ingredient classes: liha-/peruna- etc. are prepared foods here.
+        } else if (/maustekur|hapankurk|hapankaali|ajvar|paprikapyree/.test(name)) {
+          // Preserved vegetables, relishes and pastes are pantry products, not fresh produce.
+          correctedCategory = "Kuivatuotteet";
+        } else if (/valkokaalisalaatti/.test(name)) {
+          // Prepared salad belongs with ready-to-eat foods, not fresh produce.
+          correctedCategory = "Valmisruoka";
+        } else if (/keitto|lihapata|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(name)) {
+          // Prepared foods. Deliberately do NOT match generic "pata": e.g. Naudan uunipata is a raw meat cut.
           correctedCategory = "Valmisruoka";
         } else if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(name)) {
           // Product form wins: rahkapulla/juustocroissant/perunapiirakka are bakery.
