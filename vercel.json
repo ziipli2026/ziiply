@@ -40,6 +40,10 @@
     {
       "path": "/api/cron/lidl-publications",
       "schedule": "15 13 * * 3"
+    },
+    {
+      "path": "/api/cron/future-publications",
+      "schedule": "35 2,8,14,20 * * *"
     }
   ]
 }
