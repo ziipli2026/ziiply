@@ -24,9 +24,9 @@ jobs:
             const ext={clientLibrary:{name:"@apollo/client",version:"4.3.1"},persistedQuery:{version:1,sha256Hash:"85a4eed2f0a1e3269ac49b94276ca952922568369d85ddd5dcee34481e4c0f91"}};
             const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(vars));u.searchParams.set("extensions",JSON.stringify(ext));
             const b=await get(u,"production-add4ac0e6ec7f03f2c5373a6ebfab2b63df73f68");
-            const root=b?.data?.store?.products??{}; const rows=root.productListItems??[];
+            const root=b?.data?.store?.products??{}; const rows=Array.isArray(root.productListItems)?root.productListItems:[];
             for(const li of rows){const p=li?.product??li;const pr=p?.store?.pricing??p?.pricing??{};discounted.push({ean:String(p?.ean??p?.id??""),title:p?.name??p?.title??"",price:Number(pr.campaignPrice??pr.currentPrice??p?.price),valid:String(pr.campaignPriceValidUntil??""),regular:Number(pr.regularPrice),labels:JSON.stringify([...(li?.labels??[]),...(p?.store?.labels??[])])})}
-            const total=Number(root.total??root?.pagination?.total??0); if(rows.length<48 || (total&&from+48>=total)) break;
+            const total=Number(root.total??0); if(rows.length<48 || (total>0&&from+rows.length>=total)) break;
           }
           const cms=[];
           {
