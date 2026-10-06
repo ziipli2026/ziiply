@@ -15518,9 +15518,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           });
 
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
-        if (eanScannerOpen || eanHtml5ScannerRef.current || isPhysicalSearchScanV825) {
-          setEanScannerMessage("✓ Lisätty koriin");
-        }
+        // V841: the cart-add helper owns the success feedback. Avoid a second
+        // scanner status here so one scan produces one visible outcome.
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
       }
