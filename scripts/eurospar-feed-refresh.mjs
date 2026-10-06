@@ -51,7 +51,7 @@ const candidate={
     scriptSources:[...frameHtml.matchAll(/<script\b[^>]*src=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]).slice(0,30),
     dataAttributes:[...frameHtml.matchAll(/\bdata-[a-z0-9_-]+=["']([^"']{1,300})["']/gi)].map(m=>m[0]).slice(0,40)
   },
-  ready:Boolean(issue&&validity&&priceTokens.length>=5&&storeHits.length>=1),
+  ready:Boolean(issue&&validity&&priceTokens.length>=5&&storeHits.length>=1&&offerSegments.length>=15),
   reason:issue&&validity&&priceTokens.length>=5?"EUROSPAR publication metadata parsed; offer row parser pending validation.":"EUROSPAR viewer found but publication metadata is not yet sufficiently validated; keep existing feed fail-closed."
 };
 
