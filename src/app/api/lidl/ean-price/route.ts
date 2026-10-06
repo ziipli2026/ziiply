@@ -49,3 +49,43 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ok:false,error:String(error)},{status:500});
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const body=await request.json();
+    const ean=eanOf(body?.ean);
+    const storeId=String(body?.storeId||"").trim();
+    const priceEur=Number(body?.priceEur);
+    const source=String(body?.source||"").trim();
+    const observedAt=new Date(String(body?.observedAt||""));
+    const freshUntil=new Date(String(body?.freshUntil||""));
+    const evidenceReference=String(body?.evidenceReference||"").trim() || null;
+    const verified=body?.checkoutPriceVerified===true;
+    if(!ean||!storeId||!Number.isFinite(priceEur)||priceEur<=0||!source||
+       !Number.isFinite(observedAt.getTime())||!Number.isFinite(freshUntil.getTime())||
+       freshUntil<observedAt) {
+      return NextResponse.json({ok:false,error:"invalid price observation"},{status:400});
+    }
+    const sql=db(); await ensureSchema(sql);
+    const rows=await sql`
+      INSERT INTO ziiply_lidl_ean_prices
+        (ean,store_id,price_eur,price_kind,source,observed_at,fresh_until,evidence_reference,checkout_price_verified)
+      VALUES
+        (${ean},${storeId},${priceEur},'regular',${source},${observedAt.toISOString()},${freshUntil.toISOString()},${evidenceReference},${verified})
+      ON CONFLICT (ean,store_id,price_kind) DO UPDATE SET
+        price_eur=EXCLUDED.price_eur,
+        source=EXCLUDED.source,
+        observed_at=EXCLUDED.observed_at,
+        fresh_until=EXCLUDED.fresh_until,
+        evidence_reference=EXCLUDED.evidence_reference,
+        checkout_price_verified=EXCLUDED.checkout_price_verified,
+        updated_at=NOW()
+      WHERE EXCLUDED.observed_at >= ziiply_lidl_ean_prices.observed_at
+      RETURNING ean,store_id AS "storeId",price_eur::float8 AS "priceEur",
+                observed_at AS "observedAt",fresh_until AS "freshUntil"
+    `;
+    return NextResponse.json({ok:true,updated:rows.length>0,price:rows[0]??null});
+  } catch(error) {
+    return NextResponse.json({ok:false,error:String(error)},{status:500});
+  }
+}
