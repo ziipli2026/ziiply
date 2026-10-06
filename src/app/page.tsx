@@ -8960,7 +8960,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? gostaMasterOfferResultsV528
         : offerSearchResults;
 
-    return cleanZiiplyGostaOfferResultsV146(visibleSourceResults.filter((item: any) =>
+    const crossTabDeduped = dedupeCrossTabIdenticalOffersV167(visibleSourceResults);
+    return cleanZiiplyGostaOfferResultsV146(crossTabDeduped.filter((item: any) =>
       gostaContentTabV1 === "campaigns" ? item?.campaignType === "campaign" : item?.campaignType !== "campaign"
     ));
   }, [offerSearchResults, offerCardFilterV106, gostaMasterOfferResultsV528, gostaContentTabV1]);
