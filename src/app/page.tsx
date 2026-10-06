@@ -14575,6 +14575,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let bankIdentityNameV789 = "";
       let bankIdentityImageV789 = "";
       let bankIdentityBrandV789 = "";
+      let bankLidlProductIdV814 = "";
       try {
         const bankResponseV784 = await fetch(`/api/ean-bank?ean=${encodeURIComponent(ean)}`, {
           cache: "no-store",
@@ -14584,6 +14585,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         bankIdentityNameV789 = bankNameV784;
         bankIdentityImageV789 = String(bankDataV784?.product?.imageUrl || "").trim();
         bankIdentityBrandV789 = fixText(String(bankDataV784?.product?.brand || "")).trim();
+        bankLidlProductIdV814 = String(bankDataV784?.product?.lidlProductId || "").trim();
         bankSourceV786 = String(bankDataV784?.product?.source || "").trim().toLowerCase();
         if (!cachedName && bankNameV784) {
           cachedName = bankNameV784;
@@ -14686,6 +14688,59 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 });
                 cartRefV124.current = nextCart;
                 // Do not auto-start Halpuuta before the user's first comparison.
+                if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
+                return nextCart;
+              });
+            } catch {}
+          })();
+        }
+
+        // V814: Lidl verified-EAN price enrichment. The EAN bank supplies the
+        // exact Lidl product identity; checkout price may only come from the
+        // selected Lidl store's priced source. Never turn research catalog data
+        // into a price and never accept a name-only candidate here.
+        if (selectedChains.lidl && selectedLidlStoreV750 && bankSourceV786 === "lidl-verified-ean-master") {
+          void (async () => {
+            try {
+              const queriesV814 = Array.from(new Set([
+                bankLidlProductIdV814,
+                ean,
+                bankIdentityNameV789,
+              ].filter(Boolean)));
+              let exactV814: Product | undefined;
+              for (const queryV814 of queriesV814) {
+                const paramsV814 = new URLSearchParams({
+                  search: queryV814,
+                  storeName: String(selectedLidlStoreV750.name || ""),
+                  city: String(selectedLidlStoreV750.city || ""),
+                });
+                const addressV814 = String(selectedLidlStoreV750.address || "").trim();
+                if (addressV814) paramsV814.set("address", addressV814);
+                const responseV814 = await fetch(\`/api/lidl/products?\${paramsV814.toString()}\`, { cache: "no-store" });
+                const dataV814 = responseV814.ok ? await responseV814.json().catch(() => null) : null;
+                const candidatesV814 = Array.isArray(dataV814?.items) ? dataV814.items as Product[] : [];
+                exactV814 = candidatesV814.find((productV814) =>
+                  isSameEan((productV814 as any)?.ean, getEanSearchVariants(ean)) && getProductPrice(productV814) > 0
+                );
+                if (exactV814) break;
+              }
+              if (!exactV814) return;
+              const priceV814 = getProductPrice(exactV814);
+              if (priceV814 <= 0) return;
+              setCart((currentCart) => {
+                const nextCart = currentCart.map((item) => {
+                  if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  return {
+                    ...item,
+                    name: fixText(exactV814!.name || item.name),
+                    price: priceV814,
+                    image: exactV814!.pictureUrl || item.image,
+                    storeName: selectedLidlStoreV750.name || item.storeName,
+                    product: { ...exactV814!, ean, price: priceV814 } as Product,
+                    ean,
+                  } as CartItem;
+                });
+                cartRefV124.current = nextCart;
                 if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
               });
