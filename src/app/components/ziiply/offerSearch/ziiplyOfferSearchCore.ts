@@ -344,6 +344,20 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     source === "lidl-plus" ||
     normalizeGostaCoreText(sourceItem?.chain || anyItem?.chain || "") === "lidl";
   if (isLidl) {
+    // Lidl final UI guard: product form outranks a stale/provider ingredient
+    // category. This runs in the exact resolver used by category counts and
+    // opened category views, so cached/staged source rows cannot put e.g.
+    // rahkapulla back into Maitotuotteet.
+    const productTitle = normalizeGostaCoreText(
+      sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
+      anyItem?.title || anyItem?.name || anyItem?.productName || "",
+    );
+    if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(productTitle)) return "Muut";
+    if (/lihapulla/.test(productTitle)) return "Liha & makkarat";
+    if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(productTitle)) return "Juomat";
+    if (/keitto|pata\\b|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(productTitle)) return "Valmisruoka";
+    if (/paistopiste|leip|croissant|(?:^|[ -])pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(productTitle)) return "Leipomo";
+
     const providerCategory = String(sourceItem?.category || "").trim();
     if (providerCategory) return providerCategory;
   }
