@@ -14257,7 +14257,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         price: genericWeightLabelV737.price,
       };
       addWeightProductToCartV733(unknownWeightProductV737, genericWeightLabelV737.scannedEan, { physicalScan: Boolean(options.fromScanner) });
-      setEanMessage(`Punnittu tuote lisätty tarran hinnalla ${genericWeightLabelV737.price.toFixed(2).replace(".", ",")} €.`);
+      setEanMessage(options.fromScanner ? `Punnittu tuote lisätty tarran hinnalla ${genericWeightLabelV737.price.toFixed(2).replace(".", ",")} €.` : "Punnittava tuote lisätty ilman hintaa. Hinta tulee vasta kaupassa punnituksen jälkeen.");
       setEanScannerMessage("Vaakatuote lisätty");
       window.setTimeout(() => {
         setEanScannerMessage((current) => current === "Vaakatuote lisätty" ? "" : current);
@@ -14302,7 +14302,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           addWeightProductToCartV733(weighedProductV732, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
 
           setEanMessage(
-            `Vaakatuote tunnistettu: ${resolvedNameV732}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
+            options.fromScanner ? `Vaakatuote tunnistettu: ${resolvedNameV732}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${resolvedNameV732}. Lisätty ilman hintaa — punnitaan kaupassa.`,
           );
           setEanScannerMessage("Vaakatuote lisätty");
           window.setTimeout(() => {
@@ -14343,7 +14343,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             );
             addWeightProductToCartV733(learnedProductV790, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
             setEanMessage(
-              `Vaakatuote tunnistettu: ${learnedNameV790}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
+              options.fromScanner ? `Vaakatuote tunnistettu: ${learnedNameV790}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${learnedNameV790}. Lisätty ilman hintaa — punnitaan kaupassa.`,
             );
             setEanScannerMessage("Vaakatuote lisätty");
             window.setTimeout(() => {
@@ -14380,7 +14380,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         addWeightProductToCartV733(fallbackProductV731, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
 
         setEanMessage(
-          `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}.`,
+          options.fromScanner ? `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}.` : `Punnittava tuote (PLU ${kWeightLabelV730.plu}) lisätty ilman hintaa — punnitaan kaupassa.`,
         );
         setEanScannerMessage("Vaakatuote lisätty");
         window.setTimeout(() => {
@@ -14404,7 +14404,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         addWeightProductToCartV733(fallbackProductV736, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
 
         setEanMessage(
-          `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}. Tuotenimeä ei saatu haettua.`,
+          options.fromScanner ? `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}. Tuotenimeä ei saatu haettua.` : `Punnittava tuote (PLU ${kWeightLabelV730.plu}) lisätty ilman hintaa — punnitaan kaupassa. Tuotenimeä ei saatu haettua.`,
         );
         setEanScannerMessage("Vaakatuote lisätty");
         window.setTimeout(() => {
