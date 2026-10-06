@@ -8925,14 +8925,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!/\bprisma\b/i.test(selectedSStoreNameV826)) return offerResults;
 
     const normalizeEanV826 = (value: unknown) => String(value ?? "").replace(/\D/g, "");
-    const normalizePriceV826 = (value: unknown) => {
-      const numeric = Number(String(value ?? "").replace(",", ".").replace(/[^\d.-]/g, ""));
-      return Number.isFinite(numeric) && numeric > 0 ? numeric.toFixed(4) : "";
+    const normalizePriceV826 = (item: any) => {
+      const source = item?.__sourceOfferSearchResult || item;
+      const direct = Number(source?.price ?? item?.price);
+      if (Number.isFinite(direct) && direct > 0) return direct.toFixed(4);
+      const parsed = Number(
+        String(source?.priceText ?? item?.priceText ?? "")
+          .replace(/[^0-9,.-]/g, "")
+          .replace(",", "."),
+      );
+      return Number.isFinite(parsed) && parsed > 0 ? parsed.toFixed(4) : "";
     };
     const exactKeyV826 = (item: any) => {
       const source = item?.__sourceOfferSearchResult || item;
-      const ean = normalizeEanV826(source?.ean || source?.gtin || source?.barcode || item?.ean);
-      const price = normalizePriceV826(item?.offerPrice ?? item?.price ?? source?.offerPrice ?? source?.price);
+      const ean = normalizeEanV826(source?.ean ?? item?.ean);
+      const price = normalizePriceV826(item);
       return ean && price ? `${ean}|${price}` : "";
     };
 
