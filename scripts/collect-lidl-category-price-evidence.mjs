@@ -96,7 +96,10 @@ for(const product of api.out){
     const url=new URL(product.canonicalPath,"https://www.lidl.fi").href;
     const res=await fetch(url,{headers:{"user-agent":"ZiiplyLidlResearch/1.0",accept:"text/html"},signal:AbortSignal.timeout(12000)});
     if(!res.ok) continue;
-    const pageText=decode(await res.text());
+    const html=await res.text();
+    const pageText=decode(html);
+    const structured=structuredProducts(html).filter(x=>String(x.lidlProductId)===String(product.lidlProductId));
+    const exactStructured=structured.length===1?structured[0]:null;
     const dates=[...pageText.matchAll(/Myymälässä\s+(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)\s*-\s*(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)/gi)];
     let foundCurrentDatedPromo=false;
     for(const m of dates){
@@ -106,6 +109,7 @@ for(const product of api.out){
       canonicalPromoByProduct.set(String(product.lidlProductId),{
         validFrom:fromIso,validThrough:throughIso,
         isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
+        displayedPriceEur:exactStructured?.displayedPriceEur??null,
         evidenceText:local,source:url
       });
       foundCurrentDatedPromo=true;
@@ -121,11 +125,13 @@ for(const product of api.out){
       canonicalPromoByProduct.set(String(product.lidlProductId),{
         validFrom:null,validThrough:null,
         isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
+        displayedPriceEur:product.displayedPriceEur,
         evidenceText:local,source:url
       });
     }
   }catch{}
 }
+const apiProductById=new Map(api.out.filter(x=>x.lidlProductId).map(x=>[String(x.lidlProductId),x]));
 const apiUniqueProducts=new Set(api.out.map(x=>x.lidlProductId));
 const officialApi={
   rawRecordCount:api.out.length,
@@ -177,13 +183,18 @@ for(const source of urls){
     const before=text.slice(Math.max(0,m.index-650),m.index);
     const prices=[...before.matchAll(/(\d+[,.]\d{1,2})\s*€/g)];
     if(!prices.length) continue;
-    const price=Number(prices.at(-1)[1].replace(",","."));
+    const textPrice=Number(prices.at(-1)[1].replace(",","."));
     const fromIso=parseFiDate(m[1],observedAt), throughIso=parseFiDate(m[2],observedAt);
     const evidenceText=text.slice(Math.max(0,m.index-650),Math.min(text.length,m.index+m[0].length+80));
     const normalizedEvidence=clean(evidenceText).toLowerCase();
     const matchesName=p=>[p.name,p.shortName].filter(Boolean).some(n=>normalizedEvidence.includes(clean(n).toLowerCase()));
     const exactNameMatches=products.filter(matchesName);
     const product=exactNameMatches.length===1?exactNameMatches[0]:null;
+    // When the dated card can be bound to one exact structured product on the
+    // same official category page, its product-scoped display price is stronger
+    // than any neighbouring €/kg or multi-buy number in flattened page text.
+    const apiProduct=product?.lidlProductId?apiProductById.get(String(product.lidlProductId)):null;
+    const price=product?.displayedPriceEur??apiProduct?.displayedPriceEur??textPrice;
     // Keep the dated-card context deliberately tight. A unique product title inside
     // the same local card is stronger evidence than comparing against the structured
     // price, because a genuine campaign price is expected to differ from regular.
@@ -224,6 +235,7 @@ for(const r of byKey.values()){
   if(!prev || r.temporalStatus==="current") promoByProduct.set(String(r.lidlProductId),r);
 }
 const records=[];
+const suppressionDebug=[];
 for(const r of byKey.values()){
   const continuous=r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api";
   const classification=classifyLidlPublicPriceCard({
@@ -233,11 +245,14 @@ for(const r of byKey.values()){
   // Continuous listing/API evidence stays regular. Promotions are emitted as
   // separate observations so a campaign can never overwrite normal-price evidence.
   const canonicalPromo=continuous&&r.lidlProductId?canonicalPromoByProduct.get(String(r.lidlProductId)):null;
+  const datedPromo=continuous&&r.lidlProductId?promoByProduct.get(String(r.lidlProductId)):null;
   const canonicalClassification=canonicalPromo?classifyLidlPublicPriceCard({title:r.productName,evidenceText:canonicalPromo.evidenceText,promotionText:canonicalPromo.evidenceText,isLidlPlus:canonicalPromo.isLidlPlus,isMultiBuy:canonicalPromo.isMultiBuy,validFrom:canonicalPromo.validFrom,validThrough:canonicalPromo.validThrough}):null;
-  // If the exact product's canonical page explicitly marks the very same displayed
-  // price as a promotion, do not also publish that API price as regular evidence.
-  // A differing API price is preserved as regular, allowing normal + promo to coexist.
-  const suppressRegular=continuous&&canonicalClassification?.priceKind!=="regular"&&canonicalPromo&&eur(canonicalPromo.evidenceText)===r.displayedPriceEur;
+  // Canonical product page proves this exact productId is currently promoted.
+  // Prefer its structured price; if absent, bind only to the independently
+  // collected current dated-campaign row for the same productId.
+  const boundPromoPrice=canonicalPromo?.displayedPriceEur??datedPromo?.displayedPriceEur??(canonicalClassification?.priceKind!=="regular"?r.displayedPriceEur:null);
+  const suppressRegular=continuous&&canonicalClassification?.priceKind!=="regular"&&boundPromoPrice!=null&&boundPromoPrice===r.displayedPriceEur;
+  if(continuous&&canonicalPromo) suppressionDebug.push({lidlProductId:String(r.lidlProductId),productName:r.productName,regularPrice:r.displayedPriceEur,canonicalPrice:canonicalPromo.displayedPriceEur,datedPromoPrice:datedPromo?.displayedPriceEur??null,boundPromoPrice,canonicalKind:canonicalClassification?.priceKind??null,suppressRegular});
   const baseKind=continuous?"regular":classification.priceKind;
   if(!suppressRegular) records.push({...r,priceKind:baseKind,priceClassificationReason:continuous?"continuous-base-regular":classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:baseKind,validThrough:r.validThrough})});
   if(!continuous||!r.lidlProductId) continue;
@@ -245,7 +260,7 @@ for(const r of byKey.values()){
   if(!promo) continue;
   const pc=classifyLidlPublicPriceCard({title:r.productName,evidenceText:promo.evidenceText,promotionText:promo.evidenceText,isLidlPlus:promo.isLidlPlus,isMultiBuy:promo.isMultiBuy,validFrom:promo.validFrom,validThrough:promo.validThrough});
   if(pc.priceKind==="regular") continue;
-  records.push({...r,availabilityKind:"current-product-promo",temporalStatus:"current",validFrom:promo.validFrom,validThrough:promo.validThrough,priceKind:pc.priceKind,priceClassificationReason:(canonicalPromo?"canonical-product-current-promo:":"product-current-promo:")+pc.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:promo.validThrough})});
+  records.push({...r,displayedPriceEur:promo.displayedPriceEur??r.displayedPriceEur,availabilityKind:"current-product-promo",temporalStatus:"current",validFrom:promo.validFrom,validThrough:promo.validThrough,priceKind:pc.priceKind,priceClassificationReason:(canonicalPromo?"canonical-product-current-promo:":"product-current-promo:")+pc.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:promo.validThrough})});
 }
 const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.availabilityKind==='current-product-promo'||r.productMatchConfidence==='exact-local-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-local-name');
@@ -254,6 +269,7 @@ process.stdout.write(JSON.stringify({
   count:strongRecords.length,totalCount:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
   statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),
   matchCounts:records.reduce((a,r)=>{const k=r.productMatchConfidence||"structured-continuous";a[k]=(a[k]||0)+1;return a},{}),
+  suppressionDebug,
   records:strongRecords,
   reviewQueue
 },null,2)+"\n");

@@ -36,6 +36,8 @@ jobs:
           node-version: "22"
       - name: Check Lidl collector syntax
         run: node --check scripts/collect-lidl-category-price-evidence.mjs
+      - name: Regression-test canonical promo dedupe
+        run: node scripts/test-lidl-canonical-promo-dedupe.mjs
       - name: Collect official Lidl category price evidence
         run: |
           mkdir -p tmp/lidl
