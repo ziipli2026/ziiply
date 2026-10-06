@@ -152,7 +152,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     output.push({
       id: `lidl-fi-grid-${product.productId || product.itemId || normalize(fullName)}-${validFrom}`,
       source: "lidl-fi-public", chain: "Lidl", title: fullName, name: fullName, productName: fullName, brandName,
-      price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €`, originalPrice: money(product.price?.oldPrice), normalPrice: money(product.price?.oldPrice),
+      price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`, originalPrice: money(product.price?.oldPrice), normalPrice: money(product.price?.oldPrice),
       priceBasis, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
@@ -204,7 +204,7 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       output.push({
         id: `lidl-fi-${key}`, source: "lidl-fi-public", chain: "Lidl",
         title: name, name, productName: name, brandName,
-        price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €`,
+        price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`,
         originalPrice: original, normalPrice: original,
         priceBasis, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
         requiresLidlPlus, eligibility: requiresLidlPlus ? "lidl-plus" : limitedBatch ? "limited-batch" : "open",
