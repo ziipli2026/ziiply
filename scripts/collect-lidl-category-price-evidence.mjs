@@ -208,25 +208,26 @@ for(const r of byKey.values()){
   const prev=promoByProduct.get(String(r.lidlProductId));
   if(!prev || r.temporalStatus==="current") promoByProduct.set(String(r.lidlProductId),r);
 }
-const records=[...byKey.values()].map(r=>{
-  const canonicalPromo=r.lidlProductId?canonicalPromoByProduct.get(String(r.lidlProductId)):null;
-  if(canonicalPromo && (r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api")){
-    const pc=classifyLidlPublicPriceCard({title:r.productName,evidenceText:canonicalPromo.evidenceText,promotionText:canonicalPromo.evidenceText,isLidlPlus:canonicalPromo.isLidlPlus,isMultiBuy:canonicalPromo.isMultiBuy,validFrom:canonicalPromo.validFrom,validThrough:canonicalPromo.validThrough});
-    return {...r,priceKind:pc.priceKind,priceClassificationReason:"canonical-product-current-promo:"+pc.reason,promotionValidFrom:canonicalPromo.validFrom,promotionValidThrough:canonicalPromo.validThrough,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:canonicalPromo.validThrough})};
-  }
+const records=[];
+for(const r of byKey.values()){
+  const continuous=r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api";
   const classification=classifyLidlPublicPriceCard({
     title:r.productName,evidenceText:r.evidenceText,promotionText:r.evidenceText,
-    isLidlPlus:r.isLidlPlus,isMultiBuy:r.isMultiBuy,
-    validFrom:r.validFrom,validThrough:r.validThrough
+    isLidlPlus:r.isLidlPlus,isMultiBuy:r.isMultiBuy,validFrom:r.validFrom,validThrough:r.validThrough
   });
-  const promo=r.lidlProductId?promoByProduct.get(String(r.lidlProductId)):null;
-  if(promo && (r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api")){
-    const pc=classifyLidlPublicPriceCard({title:promo.productName,evidenceText:promo.evidenceText,promotionText:promo.evidenceText,isLidlPlus:promo.isLidlPlus,isMultiBuy:promo.isMultiBuy,validFrom:promo.validFrom,validThrough:promo.validThrough});
-    return {...r,priceKind:pc.priceKind,priceClassificationReason:"product-current-promo:"+pc.reason,promotionValidFrom:promo.validFrom,promotionValidThrough:promo.validThrough,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:promo.validThrough})};
-  }
-  return {...r,priceKind:classification.priceKind,priceClassificationReason:classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:classification.priceKind,validThrough:r.validThrough})};
-});
-const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-local-name');
+  // Continuous listing/API evidence stays regular. Promotions are emitted as
+  // separate observations so a campaign can never overwrite normal-price evidence.
+  const baseKind=continuous?"regular":classification.priceKind;
+  records.push({...r,priceKind:baseKind,priceClassificationReason:continuous?"continuous-base-regular":classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:baseKind,validThrough:r.validThrough})});
+  if(!continuous||!r.lidlProductId) continue;
+  const canonicalPromo=canonicalPromoByProduct.get(String(r.lidlProductId));
+  const promo=canonicalPromo||promoByProduct.get(String(r.lidlProductId));
+  if(!promo) continue;
+  const pc=classifyLidlPublicPriceCard({title:r.productName,evidenceText:promo.evidenceText,promotionText:promo.evidenceText,isLidlPlus:promo.isLidlPlus,isMultiBuy:promo.isMultiBuy,validFrom:promo.validFrom,validThrough:promo.validThrough});
+  if(pc.priceKind==="regular") continue;
+  records.push({...r,availabilityKind:"current-product-promo",temporalStatus:"current",validFrom:promo.validFrom,validThrough:promo.validThrough,priceKind:pc.priceKind,priceClassificationReason:(canonicalPromo?"canonical-product-current-promo:":"product-current-promo:")+pc.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:promo.validThrough})});
+}
+const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.availabilityKind==='current-product-promo'||r.productMatchConfidence==='exact-local-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-local-name');
 process.stdout.write(JSON.stringify({
   sourceType:"lidl.fi-public",researchOnly:true,officialApi,
