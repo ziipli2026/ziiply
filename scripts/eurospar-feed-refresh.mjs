@@ -26,6 +26,9 @@ const issue=seoText.match(/\b(\d{1,2})\/(\d{2})\b/)?.[0]??null;
 const validityMatch=seoText.match(/\b(\d{1,2})[.]\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.](20\d{2})\b/);
 const validity=validityMatch?{from:isoDate(validityMatch[1],validityMatch[3],validityMatch[4]),to:isoDate(validityMatch[2],validityMatch[3],validityMatch[4])}:null;
 const priceTokens=[...seoText.matchAll(/\b\d{1,3}[,.]\d{2}\b/g)].map(m=>m[0]);
+const offerText=seoText.replace(/\s+/g," ").trim();
+const productStarts=[...offerText.matchAll(/(?=(ATRIA|VALIO|BILLYS|TAMSIN|MAKEA|KELTAINEN|SNELLMAN|MAATILAN PARHAAT|HERKKUTILAN|POROKYLÄN|HK BURGERI|MUNKKIMIEHET|PIZZADONITSI|FLORA|FAZER|OULULAINEN|SAARIOINEN|EMMA)\b)/gi)].map(m=>m.index);
+const offerSegments=productStarts.map((s,i)=>offerText.slice(s,productStarts[i+1]??offerText.length).trim()).filter(x=>x.length>10&&/\d+[,.]\d{2}/.test(x));
 const storeHits=["Iisalmi","Joensuu","Järvenpää","Masku","Tornio","Ylöjärvi"].filter(x=>seoText.toLocaleLowerCase("fi").includes(x.toLocaleLowerCase("fi")));
 
 
