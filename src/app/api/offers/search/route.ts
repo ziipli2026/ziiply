@@ -70,7 +70,7 @@ import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../componen
 import { fetchLidlPublicCampaignOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
 import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
 import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
-import { fetchTokmanniOffers, getTokmanniOfferDebug } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
+import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
 import {
   searchZiiplyOffers,
   getKruokaOfferPipelineDebugV34,
@@ -807,7 +807,7 @@ export async function GET(request: Request) {
         .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName }))
         .filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
-        { ok: true, query: q, provider: "tokmanni", storeName, results, debug: { tokmanni: getTokmanniOfferDebug(), campaigns: results.filter((offer) => offer["campaignType"] === "campaign").length, offers: results.filter((offer) => offer["campaignType"] !== "campaign").length } },
+        { ok: true, query: q, provider: "tokmanni", storeName, results },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
