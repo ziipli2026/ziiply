@@ -229,6 +229,7 @@ for(const r of byKey.values()){
   if(!prev || r.temporalStatus==="current") promoByProduct.set(String(r.lidlProductId),r);
 }
 const records=[];
+const suppressionDebug=[];
 for(const r of byKey.values()){
   const continuous=r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api";
   const classification=classifyLidlPublicPriceCard({
@@ -243,6 +244,7 @@ for(const r of byKey.values()){
   // price as a promotion, do not also publish that API price as regular evidence.
   // A differing API price is preserved as regular, allowing normal + promo to coexist.
   const suppressRegular=continuous&&canonicalClassification?.priceKind!=="regular"&&canonicalPromo?.displayedPriceEur!=null&&canonicalPromo.displayedPriceEur===r.displayedPriceEur;
+  if(continuous&&canonicalPromo) suppressionDebug.push({lidlProductId:String(r.lidlProductId),productName:r.productName,regularPrice:r.displayedPriceEur,promoPrice:canonicalPromo.displayedPriceEur,canonicalKind:canonicalClassification?.priceKind??null,suppressRegular});
   const baseKind=continuous?"regular":classification.priceKind;
   if(!suppressRegular) records.push({...r,priceKind:baseKind,priceClassificationReason:continuous?"continuous-base-regular":classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:baseKind,validThrough:r.validThrough})});
   if(!continuous||!r.lidlProductId) continue;
@@ -259,6 +261,7 @@ process.stdout.write(JSON.stringify({
   count:strongRecords.length,totalCount:records.length,strongCount:strongRecords.length,reviewCount:reviewQueue.length,rawCount:raw.length,deduplicated:raw.length-records.length,
   statusCounts:records.reduce((a,r)=>(a[r.temporalStatus]=(a[r.temporalStatus]||0)+1,a),{}),
   matchCounts:records.reduce((a,r)=>{const k=r.productMatchConfidence||"structured-continuous";a[k]=(a[k]||0)+1;return a},{}),
+  suppressionDebug,
   records:strongRecords,
   reviewQueue
 },null,2)+"\n");
