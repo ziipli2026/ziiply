@@ -4,7 +4,7 @@ const CHAINS=[
   {key:"S",name:"S-ryhmä / Prisma / S-market",match:(v:string)=>/^(s(?::|$)|prisma|s-?market|sale|alepa)/i.test(v)},
   {key:"K",name:"K-ryhmä / Citymarket / K-Supermarket / K-Market",match:(v:string)=>/^(k(?::|$)|k-?citymarket|citymarket|k-?supermarket|k-?market)/i.test(v)},
   {key:"Lidl",name:"Lidl",match:(v:string)=>/^lidl(?::|$)/i.test(v)},
-  {key:"Tokmanni",name:"Tokmanni / SPAR",match:(v:string)=>/^(tokmanni|spar|eurospar)(?::|$)/i.test(v)}
+  {key:"Tokmanni",name:"Tokmanni / SPAR",match:(v:string)=>/^(tokmanni(?:-spar)?|spar|eurospar)(?::|$)/i.test(v)}
 ];
 
 type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;checked_at:string};
@@ -76,6 +76,9 @@ export default async function Page(){
   const futureDiscovery=futureDiscoveryChains.map(chain=>({chain,run:d.runs.find(r=>r.chain===chain&&r.source==="future-publication-discovery")??null}));
   const futureFound=futureDiscovery.filter(x=>x.run?.outcome==="future-publication-found").length;
   const futureDiscoveryErrors=futureDiscovery.filter(x=>x.run&&!x.run.ok).length;
+  const futureDiscoveryMissing=futureDiscovery.filter(x=>!x.run).length;
+  const futureDiscoveryStale=futureDiscovery.filter(x=>x.run&&Date.now()-new Date(x.run.checked_at).getTime()>12*60*60*1000).length;
+  const futureDiscoveryHealthy=futureDiscovery.filter(x=>x.run?.ok&&Date.now()-new Date(x.run.checked_at).getTime()<=12*60*60*1000).length;
   const latestRun=d.runs[0];
   const nextApproved=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
   const overlappingApproved=activePubs.filter((p,i,a)=>a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
@@ -150,7 +153,7 @@ export default async function Page(){
   const states=cards.map(c=>state(c.runs));
   const hasCriticalQuality=quality.missingPrice>0;
   const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0||thinNext.length>0||nextCandidates.length>0||Boolean(eanPriceRisk);
-  const overall=activeCandidates.length||currentFailures.length||hasCriticalQuality||rolloverGaps.length||unreadyExpiring.length||severeNextDrop.length||neverSuccessful.length||severeFailureStreaks.length||sourceCountCrashes.length||criticallySilentSources.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length||hasQualityWarning?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
+  const overall=activeCandidates.length||currentFailures.length||futureDiscoveryErrors||hasCriticalQuality||rolloverGaps.length||unreadyExpiring.length||severeNextDrop.length||neverSuccessful.length||severeFailureStreaks.length||sourceCountCrashes.length||criticallySilentSources.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||futureDiscoveryMissing||futureDiscoveryStale||staleRuns.length||hasQualityWarning?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
   return <main style={{maxWidth:1500,margin:"0 auto",padding:28}}>
     <header style={{display:"flex",justifyContent:"space-between",alignItems:"end",marginBottom:22}}>
@@ -188,6 +191,13 @@ export default async function Page(){
       {statusCard("EAN-datan kokonaisterveys",eanDataHealth+"/4",eanHealthState,"Hinta · tuoreus · kuva · kategoria, tavoite ≥75 %")}
       {statusCard("Datan kokonaisterveys",overallDataHealth+"/7",overallDataHealthState,"EAN 4/4 + aktiiviset hinnat + automaatiot + julkaisuvaihdot")}
       {statusCard("Skannerin onnistumisaste 24 h",scannerTotal24h?scannerSuccessRate24h+" %":"—",scannerVolumeState,scannerTotal24h?scannerSuccess24h+" / "+scannerTotal24h+" kirjattua skannausta onnistui":"Ei kirjattuja skannauksia 24 h")}
+    </section>
+
+    <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
+      {statusCard("Future discovery kunnossa",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors?"red":futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Tuore onnistunut tarkistus ≤12 h")}
+      {statusCard("Tulevia lehtiä löydetty",futureFound,futureFound?"green":"gray","Digitaalisesta lähteestä löytyneet tulevat jaksot")}
+      {statusCard("Future discovery puuttuu",futureDiscoveryMissing,futureDiscoveryMissing?"yellow":"green","Ketjut, joilta ensimmäinen tarkistus ei ole vielä kirjautunut")}
+      {statusCard("Future discovery virheet",futureDiscoveryErrors,futureDiscoveryErrors?"red":"green","Vain itse tarkistuksen epäonnistuminen on virhe")}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
