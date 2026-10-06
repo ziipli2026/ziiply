@@ -4428,6 +4428,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     scannerStoreCheckDoneRefV791.current = false;
     scannerInStoreRefV828.current = false;
     scannerConfirmedStoreNameRefV828.current = "";
+    queuedPhysicalScanRefV837.current = null;
   }, [eanModalOpen]);
 
   function resolveVoiceResultWaitV509(reason = "closed") {
@@ -14029,6 +14030,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     scannerStoreCheckDoneRefV791.current = false;
     scannerInStoreRefV828.current = false;
     scannerConfirmedStoreNameRefV828.current = "";
+    // V839: a queued physical scan belongs to this scanner session only.
+    // Closing the scanner must discard it so an old lookup cannot release it later.
+    queuedPhysicalScanRefV837.current = null;
 
     // v310: skanneri sulkeutuu pehmeällä haihtumisella.
     // Taustalle palautetaan Hae-kortti ensin, jonka jälkeen kamera-overlay
