@@ -5,6 +5,7 @@
  * Never promotes display/campaign prices to verified checkout or regular prices.
  */
 import { classifyLidlPublicPriceCard } from "./lib/lidl-public-price-classifier.mjs";
+import { lidlEvidenceFreshUntil } from "./lib/lidl-evidence-freshness.mjs";
 
 const urls=process.argv.slice(2).filter(x=>/^https:\/\/www\.lidl\.fi\/(?:h|c)\//.test(x));
 if(!urls.length) throw new Error("Pass one or more official Lidl category/campaign URLs");
@@ -182,9 +183,9 @@ const records=[...byKey.values()].map(r=>{
   const promo=r.lidlProductId?promoByProduct.get(String(r.lidlProductId)):null;
   if(promo && (r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api")){
     const pc=classifyLidlPublicPriceCard({title:promo.productName,evidenceText:promo.evidenceText,promotionText:promo.evidenceText,isLidlPlus:promo.isLidlPlus,isMultiBuy:promo.isMultiBuy,validFrom:promo.validFrom,validThrough:promo.validThrough});
-    return {...r,priceKind:pc.priceKind,priceClassificationReason:"product-current-promo:"+pc.reason,promotionValidFrom:promo.validFrom,promotionValidThrough:promo.validThrough};
+    return {...r,priceKind:pc.priceKind,priceClassificationReason:"product-current-promo:"+pc.reason,promotionValidFrom:promo.validFrom,promotionValidThrough:promo.validThrough,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:pc.priceKind,validThrough:promo.validThrough})};
   }
-  return {...r,priceKind:classification.priceKind,priceClassificationReason:classification.reason};
+  return {...r,priceKind:classification.priceKind,priceClassificationReason:classification.reason,freshUntil:lidlEvidenceFreshUntil({observedAt:r.observedAt,priceKind:classification.priceKind,validThrough:r.validThrough})};
 });
 const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
