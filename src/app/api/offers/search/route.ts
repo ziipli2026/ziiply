@@ -727,16 +727,24 @@ export async function GET(request: Request) {
           next.priceText = `${totalText} € / ${quantity} kpl`;
         }
 
-        // Product form outranks ingredient words. These rules intentionally
-        // override stale source categories only when the product identity is clear.
-        if (/halloween asu|koiran asu|kissan asu|lemmikin asu/.test(name)) {
-          next.category = "Muut";
+        // Product form outranks ingredient words. Keep every category field in
+        // sync so neither UI nor debug/source metadata can expose a stale class.
+        let correctedCategory = "";
+        if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(name)) {
+          correctedCategory = "Muut";
+        } else if (/lihapulla/.test(name)) {
+          correctedCategory = "Liha & makkarat";
         } else if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(name)) {
-          next.category = "Juomat";
+          correctedCategory = "Juomat";
         } else if (/keitto|pata\\b|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(name)) {
-          next.category = "Valmisruoka";
+          correctedCategory = "Valmisruoka";
         } else if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(name)) {
-          next.category = "Leipomo";
+          correctedCategory = "Leipomo";
+        }
+        if (correctedCategory) {
+          next.category = correctedCategory;
+          next.categoryPath = correctedCategory;
+          next.mainCategory = correctedCategory;
         }
         return next;
       };
