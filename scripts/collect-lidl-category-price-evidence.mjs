@@ -166,12 +166,24 @@ for(const r of raw){
   const prev=byKey.get(key);
   if(!prev||priority(r)>priority(prev)) byKey.set(key,r);
 }
+const promoByProduct=new Map();
+for(const r of byKey.values()){
+  if(!r.lidlProductId||r.availabilityKind!=="dated-campaign") continue;
+  if(r.temporalStatus!=="current"&&r.temporalStatus!=="future") continue;
+  const prev=promoByProduct.get(String(r.lidlProductId));
+  if(!prev || r.temporalStatus==="current") promoByProduct.set(String(r.lidlProductId),r);
+}
 const records=[...byKey.values()].map(r=>{
   const classification=classifyLidlPublicPriceCard({
     title:r.productName,evidenceText:r.evidenceText,promotionText:r.evidenceText,
     isLidlPlus:r.isLidlPlus,isMultiBuy:r.isMultiBuy,
     validFrom:r.validFrom,validThrough:r.validThrough
   });
+  const promo=r.lidlProductId?promoByProduct.get(String(r.lidlProductId)):null;
+  if(promo && (r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api")){
+    const pc=classifyLidlPublicPriceCard({title:promo.productName,evidenceText:promo.evidenceText,promotionText:promo.evidenceText,isLidlPlus:promo.isLidlPlus,isMultiBuy:promo.isMultiBuy,validFrom:promo.validFrom,validThrough:promo.validThrough});
+    return {...r,priceKind:pc.priceKind,priceClassificationReason:"product-current-promo:"+pc.reason,promotionValidFrom:promo.validFrom,promotionValidThrough:promo.validThrough};
+  }
   return {...r,priceKind:classification.priceKind,priceClassificationReason:classification.reason};
 });
 const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name');
