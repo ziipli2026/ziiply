@@ -1,11 +1,13 @@
 name: Tokmanni SPAR offer freshness audit
+# validation-run-2
 # Live EUROSPAR refresh trigger
 on:
   workflow_dispatch:
   schedule:
-    # Frequent prefetch: publication can appear before its validity starts.\n    - cron: "17 2,5,8,11,14,17,20,23 * * *"
+    # Frequent prefetch: publication can appear before its validity starts.
+    - cron: "17 2,5,8,11,14,17,20,23 * * *"
   push:
-    branches: [main, "fix/tokmanni-spar-offer-freshness"]
+    branches: [main, "fix/tokmanni-spar-offer-freshness", "fix/eurospar-live-41-26"]
     paths:
       - "src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts"
