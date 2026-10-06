@@ -106,6 +106,7 @@ for(const product of api.out){
       canonicalPromoByProduct.set(String(product.lidlProductId),{
         validFrom:fromIso,validThrough:throughIso,
         isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
+        displayedPriceEur:nearestEurBefore(pageText,m.index),
         evidenceText:local,source:url
       });
       foundCurrentDatedPromo=true;
@@ -121,6 +122,7 @@ for(const product of api.out){
       canonicalPromoByProduct.set(String(product.lidlProductId),{
         validFrom:null,validThrough:null,
         isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
+        displayedPriceEur:eur(local),
         evidenceText:local,source:url
       });
     }
