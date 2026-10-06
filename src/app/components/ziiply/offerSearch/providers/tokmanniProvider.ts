@@ -231,6 +231,16 @@ async function fetchTokmanniOffersFresh() {
     htmlPages.push(...batch);
   }
 
+  // Tokmanni's advertised total is the number of product cards in the
+  // listing, not the number of cards that qualify as Ziiply offers. Validate
+  // pagination against raw Magento product cards before applying offer filters.
+  const rawProductCardCount = htmlPages.reduce(
+    (sum, html) =>
+      sum +
+      html.split(/<li\\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/i).slice(1).length,
+    0,
+  );
+
   const items = htmlPages.flatMap((html, pageIndex) =>
     productBlocks(html)
       .map((block, index) => mapBlock(block, pageIndex * TOKMANNI_PAGE_SIZE + index))
@@ -257,14 +267,13 @@ async function fetchTokmanniOffersFresh() {
       })),
   );
 
-  // The source page itself is the authority for the active weekly-offer set.
-  // Surface a mismatch instead of silently accepting an incomplete parse.
-  if (total != null && dedupedItems.length !== total) {
-    // Do not cache or silently publish a partial active master. This mirrors
-    // Ziiply's other provider guards: incomplete source snapshots must fail
-    // closed and be retried rather than presented as a complete offer set.
+  // The source page itself is the authority for pagination completeness.
+  // Compare its advertised total to raw product cards, not to the filtered
+  // Ziiply offer subset; otherwise valid non-offer cards make the whole master
+  // fail closed and Gösta incorrectly reports no results.
+  if (total != null && rawProductCardCount < total) {
     throw new Error(
-      `Tokmanni offer parse incomplete: advertised ${total}, parsed ${dedupedItems.length}, pages ${pageCount}`,
+      `Tokmanni listing incomplete: advertised ${total}, raw cards ${rawProductCardCount}, pages ${pageCount}`,
     );
   }
 
