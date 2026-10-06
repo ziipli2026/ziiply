@@ -1,0 +1,21 @@
+name: Prisma Dedupe Read-only Simulation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-dedupe-readonly-simulation.yml'
+permissions:
+  contents: read
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Simulate current Prisma source overlap (read only)
+        run: npx tsx scripts/audit-prisma-source-to-ziiply.mts "Prisma Hyvinkää"
