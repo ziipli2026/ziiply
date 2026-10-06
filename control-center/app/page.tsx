@@ -100,7 +100,7 @@ export default async function Page(){
   const eanStaleRatio=d.ean&&d.ean.lidl_price_rows?Math.round(d.ean.lidl_stale_prices/d.ean.lidl_price_rows*1000)/10:0;
   const eanUnpriced=d.ean?Math.max(0,d.ean.total-d.ean.lidl_price_eans):0;
   const eanUnpricedRatio=d.ean&&d.ean.total?Math.round(eanUnpriced/d.ean.total*1000)/10:0;
-  const scanRisk=d.scan.unresolved_24h+d.scan.unknown_24h+d.scan.chain_mismatch_24h>0;
+  const scanRisk=Boolean(d.scan&&(d.scan.unresolved_24h+d.scan.unknown_24h+d.scan.chain_mismatch_24h>0));
   const eanImageCoverage=d.ean&&d.ean.total?Math.round(d.ean.with_image/d.ean.total*1000)/10:0;
   const eanCategoryCoverage=d.ean&&d.ean.total?Math.round(d.ean.classified/d.ean.total*1000)/10:0;
   const eanDataHealth=(d.ean?[(eanPriceCoverage>=75),(eanFreshCoverage>=75),(eanImageCoverage>=75),(eanCategoryCoverage>=75)]:[]).filter(Boolean).length;
