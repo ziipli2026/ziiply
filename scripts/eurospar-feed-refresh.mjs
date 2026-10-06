@@ -18,12 +18,12 @@ function decodeHtml(s){return s.replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"
 function stripTags(s){return decodeHtml(s.replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]+>/g," ")).replace(/\r/g,"").replace(/[ \t]+/g," ").replace(/\n[ \t]+/g,"\n").trim();}
 function isoDate(d,m,y){return String(y).padStart(4,"0")+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");}
 
-const seoRaw=(frameHtml.match(/["']seoPageText["']\s*:\s*["']([\s\S]*?)["']\s*[,}]/i)?.[1]??frameHtml.match(/seoPageText[^>]*>([\s\S]*?)<\//i)?.[1]??"");
-const seoText=stripTags(seoRaw.replace(/\\n/g,"\n").replace(/\\u003[cC]/g,"<").replace(/\\u003[eE]/g,">").replace(/\\["']/g,m=>m.slice(1)));
+const seoEscaped=frameHtml.match(/\\\\\"seoPageText\\\\\"\s*:\s*\\\\\"([\\s\\S]*?)\\\\\"\s*,\\\\\"metaDescription/i)?.[1]??"";
+const seoRaw=seoEscaped||frameHtml.match(/["']seoPageText["']\s*:\s*["']([\s\S]*?)["']\s*[,}]/i)?.[1]??frameHtml.match(/seoPageText[^>]*>([\s\S]*?)<\//i)?.[1]??"";
+const seoText=stripTags(seoRaw.replace(/\\\\n/g,"\n").replace(/\\\\u003[cC]/g,"<").replace(/\\\\u003[eE]/g,">").replace(/\\\\\"/g,'"').replace(/\\\\\\\\/g,"\\"));
 const issue=seoText.match(/\b(\d{1,2})\/(\d{2})\b/)?.[0]??null;
-const validityMatch=seoText.match(/(?:voimassa|tarjoukset[^\n]{0,40})(?:\s+)?(\d{1,2})[.](\d{1,2})[.]?(?:\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.]?)?(?:\s*(20\d{2}))?/i)??seoText.match(/\b(\d{1,2})[.](\d{1,2})[.]\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.]\s*(20\d{2})/);
-const inferredYear=Number(validityMatch?.[5]??("20"+(issue?.split("/")[1]??"26")));
-const validity=validityMatch?{from:isoDate(validityMatch[1],validityMatch[2],inferredYear),to:isoDate(validityMatch[3]??validityMatch[1],validityMatch[4]??validityMatch[2],inferredYear)}:null;
+const validityMatch=seoText.match(/\b(\d{1,2})[.]\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.](20\d{2})\b/);
+const validity=validityMatch?{from:isoDate(validityMatch[1],validityMatch[3],validityMatch[4]),to:isoDate(validityMatch[2],validityMatch[3],validityMatch[4])}:null;
 const priceTokens=[...seoText.matchAll(/\b\d{1,3}[,.]\d{2}\b/g)].map(m=>m[0]);
 const storeHits=["Iisalmi","Joensuu","Järvenpää","Masku","Tornio","Ylöjärvi"].filter(x=>seoText.toLocaleLowerCase("fi").includes(x.toLocaleLowerCase("fi")));
 
