@@ -98,6 +98,7 @@ for(const product of api.out){
     if(!res.ok) continue;
     const pageText=decode(await res.text());
     const dates=[...pageText.matchAll(/Myymälässä\s+(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)\s*-\s*(\d{1,2}\.\d{1,2}\.?(?:\d{4})?)/gi)];
+    let foundCurrentDatedPromo=false;
     for(const m of dates){
       const fromIso=parseFiDate(m[1],observedAt),throughIso=parseFiDate(m[2],observedAt);
       if(temporalStatus(fromIso,throughIso,observedAt,"dated-campaign")!=="current") continue;
@@ -107,7 +108,21 @@ for(const product of api.out){
         isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
         evidenceText:local,source:url
       });
+      foundCurrentDatedPromo=true;
       break;
+    }
+    // Some current Lidl product pages expose an explicit promotion badge (for
+    // example SUPERHINTA) without a Myymälässä date window. Keep that product-
+    // scoped badge as promotion evidence instead of silently treating the API
+    // display price as regular.
+    if(!foundCurrentDatedPromo && /\b(?:SUPERHINTA|ERÄ)\b/i.test(pageText)){
+      const marker=pageText.search(/\b(?:SUPERHINTA|ERÄ)\b/i);
+      const local=pageText.slice(Math.max(0,marker-500),Math.min(pageText.length,marker+900));
+      canonicalPromoByProduct.set(String(product.lidlProductId),{
+        validFrom:null,validThrough:null,
+        isLidlPlus:/Lidl Plus/i.test(local),isMultiBuy:/\b\d+\s*KPL\b/i.test(local),
+        evidenceText:local,source:url
+      });
     }
   }catch{}
 }
