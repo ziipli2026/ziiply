@@ -23691,16 +23691,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onAddOffer={(offer: any) => {
               const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
               const sourceOffer = offer.__sourceOfferSearchResult || {};
-              const offerUnitTextV794 = [
-                offer.priceUnit, sourceOffer.priceUnit,
-                offer.offerPrice, sourceOffer.priceText,
-                offer.unit, sourceOffer.unit,
-                offer.priceBasis, sourceOffer.priceBasis,
-                offer.comparisonPriceText, sourceOffer.comparisonPriceText,
-                offer.unitPriceText, sourceOffer.unitPriceText,
-                offer.comparisonPriceUnit, sourceOffer.comparisonPriceUnit,
-                offer.comparisonUnit, sourceOffer.comparisonUnit,
-              ].filter(Boolean).join(" ");
+              const offerUnitTextV794 = [offer.priceUnit, sourceOffer.priceUnit, offer.offerPrice, sourceOffer.priceText, offer.unit, sourceOffer.unit, offer.priceBasis, sourceOffer.priceBasis].filter(Boolean).join(" ");
               const isFreshCounterFishV795 = /\b(?:tuore|kokonainen|fileoitu|kalatiski)\b/i.test(name) &&
                 /\b(?:kirjolohi|lohi|siika|kuha|ahven|taimen|nieriä|silakka|muikku)\b/i.test(name) &&
                 !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || ""));
