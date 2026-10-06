@@ -524,13 +524,19 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
-  // V165: official S-kaupat/Prisma taxonomy wins before title/brand overrides.
+  const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
+
+  // Cookie/gingerbread identity is an explicit cross-provider correction: it
+  // must beat a stale generic dairy taxonomy. Frozen form was resolved first
+  // inside getPreciseProductCategoryV170, so piparkakkujäätelö stays Pakasteet.
+  if (preciseProductCategoryV170 === "Makeiset & keksit") return preciseProductCategoryV170;
+
+  // V165: official S-kaupat/Prisma taxonomy wins for all other product types.
   const officialSKaupatCategoryV165 = getOfficialSKaupatCategoryV165(item);
   if (officialSKaupatCategoryV165) return officialSKaupatCategoryV165;
 
-  // V170: specific product identity wins over a generic or mistaken provider
-  // category for non-official sources. Official S-kaupat taxonomy remains first.
-  const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
+  // V170: other specific product identities beat generic provider categories
+  // for non-official sources.
   if (preciseProductCategoryV170) return preciseProductCategoryV170;
 
   // V162: trust an explicit normalized provider category before any title regex.
