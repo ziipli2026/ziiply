@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { refreshSKaupatProtocolConfig } from "@/lib/skaupatProtocol";
+import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
 
   try {
     const result = await refreshSKaupatProtocolConfig();
+    await recordPublicationRun({ chain: "S", source: "s-kaupat-protocol", ok: result.ok, count: result.ok ? 1 : 0, outcome: result.ok ? "protocol-verified" : "protocol-verification-failed", details: { changed: result.changed, persisted: result.persisted, source: result.source } }).catch(() => undefined);
     return NextResponse.json(result, {
       status: result.ok ? 200 : 503,
       headers: { "Cache-Control": "no-store" },
