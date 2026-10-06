@@ -16488,9 +16488,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const physicalScanV815 = physicalBarcodeScanRefV815.current;
     // V829: collection is a property of the confirmed scanner/store session.
     // Camera, HID reader and manual/pasted EAN inside the scanner are equivalent here.
+    const confirmedScannerStoreV836 = normalize(scannerConfirmedStoreNameRefV828.current);
+    const resultScannerStoreV836 = normalize(String(result.storeName || ""));
+    const scannerStoreStillMatchesResultV836 = Boolean(
+      confirmedScannerStoreV836 &&
+      resultScannerStoreV836 &&
+      confirmedScannerStoreV836 === resultScannerStoreV836
+    );
     const isPhysicalBarcodeScanV815 = Boolean(
       isUsableEan(ean) &&
       scannerInStoreRefV828.current &&
+      scannerStoreStillMatchesResultV836 &&
       isScannerAddV787 &&
       (
         eanManualInputOpen ||
