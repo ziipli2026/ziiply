@@ -215,6 +215,9 @@ async function fetchTokmanniOffersFresh() {
   const pageCount = total
     ? Math.min(TOKMANNI_MAX_PAGES, Math.max(1, Math.ceil(total / TOKMANNI_PAGE_SIZE)))
     : 1;
+  if (total != null && Math.ceil(total / TOKMANNI_PAGE_SIZE) > TOKMANNI_MAX_PAGES) {
+    throw new Error(`Tokmanni offer listing exceeds parser page cap: ${total} products`);
+  }
 
   const htmlPages = [firstHtml];
   // Fetch in small batches: Tokmanni currently paginates the weekly-offer
@@ -257,11 +260,12 @@ async function fetchTokmanniOffersFresh() {
   // The source page itself is the authority for the active weekly-offer set.
   // Surface a mismatch instead of silently accepting an incomplete parse.
   if (total != null && dedupedItems.length !== total) {
-    console.warn("[tokmanni-offers] parsed count differs from advertised total", {
-      advertisedTotal: total,
-      parsed: dedupedItems.length,
-      pages: pageCount,
-    });
+    // Do not cache or silently publish a partial active master. This mirrors
+    // Ziiply's other provider guards: incomplete source snapshots must fail
+    // closed and be retried rather than presented as a complete offer set.
+    throw new Error(
+      `Tokmanni offer parse incomplete: advertised ${total}, parsed ${dedupedItems.length}, pages ${pageCount}`,
+    );
   }
 
   return dedupedItems;
