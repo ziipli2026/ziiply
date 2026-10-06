@@ -2,8 +2,8 @@
 /**
  * Convert current Lidl collector evidence into exact EAN cache candidates.
  * Plan only: no Neon writes.
- * One active price wins per verified product/EAN:
- * current Lidl Plus > current offer > continuous regular.
+ * Preserve price kinds independently per verified product/EAN.
+ * A current offer/Lidl Plus observation must never erase or masquerade as a regular price.
  */
 import {readFileSync} from "node:fs";
 const [collectorPath,linksPath="data/lidl/verified-ean-links.json"]=process.argv.slice(2);
@@ -28,18 +28,16 @@ for(const r of data.records||[]){
   });
 }
 const rank=x=>{
-  if(x.temporalStatus==="current"&&x.priceKind==="lidl_plus") return 30;
-  if(x.temporalStatus==="current"&&x.priceKind==="offer") return 20;
-  if(x.priceKind==="regular") return 10;
-  if(x.priceKind==="lidl_plus") return 3;
-  if(x.priceKind==="offer") return 2;
+  if(x.temporalStatus==="current") return 20;
+  if(x.temporalStatus==="continuous") return 10;
   return 0;
 };
 const best=new Map();
 for(const x of candidates){
-  const old=best.get(x.ean);
-  if(!old||rank(x)>rank(old)) best.set(x.ean,x);
+  const key=x.ean+"|"+x.priceKind;
+  const old=best.get(key);
+  if(!old||rank(x)>rank(old)) best.set(key,x);
 }
-const rowsOut=[...best.values()].sort((a,b)=>a.ean.localeCompare(b.ean));
+const rowsOut=[...best.values()].sort((a,b)=>a.ean.localeCompare(b.ean)||a.priceKind.localeCompare(b.priceKind));
 const counts=rowsOut.reduce((a,x)=>(a[x.priceKind]=(a[x.priceKind]||0)+1,a),{});
-process.stdout.write(JSON.stringify({schemaVersion:2,mode:"plan-only",count:rowsOut.length,counts,rows:rowsOut},null,2)+"\n");
+process.stdout.write(JSON.stringify({schemaVersion:3,mode:"plan-only",count:rowsOut.length,counts,rows:rowsOut},null,2)+"\n");
