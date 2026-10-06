@@ -707,10 +707,45 @@ export async function GET(request: Request) {
         ...lidlCampaigns,
       ]);
 
+      // Final Lidl normalization must happen after every source has been merged.
+      // In particular, publicationStore rows may have been persisted before a
+      // provider/parser fix. Never require the product card to repair source data.
+      const normalizeLidlFinal = (offer: UnknownRecord): UnknownRecord => {
+        const name = normalizeText(firstString(offer.name, offer.title, offer.productName));
+        const quantity = Number(offer.multiBuyQuantity);
+        const total = Number(offer.multiBuyTotalPrice ?? offer.offerPrice ?? offer.price);
+        const next: UnknownRecord = { ...offer };
+
+        if (Number.isFinite(quantity) && quantity >= 2 && Number.isFinite(total) && total > 0) {
+          const totalText = total.toFixed(2).replace(".", ",");
+          next.priceBasis = "multi-buy-total";
+          next.multiBuyQuantity = quantity;
+          next.multiBuyTotalPrice = total;
+          next.multiBuyUnitPrice = total / quantity;
+          next.price = total;
+          next.offerPrice = total;
+          next.priceText = `${totalText} € / ${quantity} kpl`;
+        }
+
+        // Product form outranks ingredient words. These rules intentionally
+        // override stale source categories only when the product identity is clear.
+        if (/halloween asu|koiran asu|kissan asu|lemmikin asu/.test(name)) {
+          next.category = "Muut";
+        } else if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(name)) {
+          next.category = "Juomat";
+        } else if (/keitto|pata\\b|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(name)) {
+          next.category = "Valmisruoka";
+        } else if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(name)) {
+          next.category = "Leipomo";
+        }
+        return next;
+      };
+      const normalizedMasterCombined = masterCombined.map(normalizeLidlFinal);
+
       // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
       // visible catch-all category: general merchandise/campaign rows stay out,
       // while real groceries must be classified into a concrete grocery category.
-      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(masterCombined, todayFi)
+      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
         .filter((offer) => normalizeText(offer.category) !== "muut");
       const results = lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
