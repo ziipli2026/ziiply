@@ -16,7 +16,7 @@ jobs:
           node <<'NODE'
           const storeId="634976534";
           const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          const headers=(client)=>({accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":client});
+          const headers=(client)=>({accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":client,"user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15"});
           const get=async(url,client)=>{const r=await fetch(url,{headers:headers(client)});const b=await r.json();if(!r.ok||b.errors) throw new Error(JSON.stringify({status:r.status,errors:b.errors}));return b};
           const discounted=[];
           for(let from=0;from<1000;from+=48){
