@@ -90,14 +90,14 @@ function rawProductBlocks(html: string) {
   // contain nested list markup, so truncating at </li> can cut the product
   // name/price out of the card and make a valid listing parse as empty.
   return html
-    .split(/<li\\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/i)
+    .split(/<li\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/i)
     .slice(1);
 }
 
 function productBlocks(html: string) {
   return rawProductBlocks(html)
     .filter((part) => /product-item-link|product-item-name/i.test(part))
-    .filter((part) => /Tarjoushinta|Klubitarjous|Normaalihinta|\\d+\\s*kpl\\s*\\//i.test(textOf(part)));
+    .filter((part) => /Tarjoushinta|Klubitarjous|Normaalihinta|\d+\s*kpl\s*\//i.test(textOf(part)));
 }
 
 function first(block: string, patterns: RegExp[]) {
@@ -245,7 +245,7 @@ async function fetchTokmanniOffersFresh() {
   const rawProductCardCount = htmlPages.reduce(
     (sum, html) =>
       sum +
-      html.split(/<li\\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/i).slice(1).length,
+      html.split(/<li\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/i).slice(1).length,
     0,
   );
 
