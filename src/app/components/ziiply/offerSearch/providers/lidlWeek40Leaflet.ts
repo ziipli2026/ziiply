@@ -37,6 +37,8 @@ const verifiedLeafletImages: Record<string, string> = {
   "lidl-leaflet-hk-burger": "https://cdn.s-cloud.fi/v1/w750_q75/product/ean/6409100077884_kuva1.jpg",
   "lidl-leaflet-kartanon-meatballs": "https://archivana.com/pics/6e/cd/6ecd70207381941b14524e0e06f83a75ecc97fc3.jpg",
   "lidl-leaflet-danerolles-croissants-20261005": "https://web-fileserver.dekamarkt.nl/artikelen/254211_1_335427_639095118682893590.png?height=500&mode=crop&width=500",
+  "lidl-leaflet-kuljanka-pickles": "https://imgproxy-retcat.assets.schwarz/ODV6S2A7TLu0OQ8DNOCjLDBQLx1z031_a-aIs7xwhI4/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS80MjY4ODgwOTJENjZBNTA4RjEwMTMzNTB/CNzZEQjA4MzQ1QTFGRUQyNTQ4RDI3NDExOTNEQUQ4MzBBOTg2QzA4LnBuZw.png",
+  "lidl-leaflet-atria-pizza-20261005": "https://imgproxy-retcat.assets.schwarz/Hi5hACgOUpzh4Jzqglf98Y62DPmMvZ4nPKoOqaMyu10/sm:0/exar:1:ce/w:1500/h:1125/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvZmkvMS81RDM2RUQyMUU0OEU5NDJDRDBBRkRDNUM/zMjU1NERGQjc1QzJDQTU0Nzc2OTc4MEFDNDM5RDM2MDVERTIyQ0MxLnBuZw.png",
 };
 
 export function addVerifiedLidlWeek40Leaflet(
