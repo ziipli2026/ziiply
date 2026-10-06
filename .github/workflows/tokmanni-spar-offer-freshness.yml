@@ -1,4 +1,5 @@
 name: Tokmanni SPAR offer freshness audit
+# validation-run-2
 # Live EUROSPAR refresh trigger
 on:
   workflow_dispatch:
