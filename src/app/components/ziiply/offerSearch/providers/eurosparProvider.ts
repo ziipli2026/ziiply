@@ -41,7 +41,7 @@ type Feed = {
   offers?: FeedOffer[];
 };
 
-export const EUROSPAR_PROVIDER_VERSION = 6;
+export const EUROSPAR_PROVIDER_VERSION = 7;
 
 const norm = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("fi-FI");
 const normEurosparStore = (value: unknown) =>
