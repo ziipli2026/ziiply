@@ -13371,11 +13371,102 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
+  // V818: fyysinen keräily tarvitsee yhden vahvistetun myymälän.
+  // GPS on vain vihje: vierekkäiset S/K-kaupat eivät saa valita kauppaa automaattisesti,
+  // eikä geneerinen EAN (esim. Valio) todista ketjua.
+  function confirmPhysicalScannerStoreV818() {
+    if (scannerStoreCheckDoneRefV791.current) return true;
+
+    const selectedChain: "S" | "K" | null =
+      selectedChains.s && !selectedChains.k ? "S" :
+      selectedChains.k && !selectedChains.s ? "K" : null;
+    const selectedName = selectedChain === "S"
+      ? String(activeStores.sStoreName || "").trim()
+      : selectedChain === "K"
+        ? String(activeStores.kStoreName || "").trim()
+        : "";
+    const selectedId = selectedChain === "S" ? activeStores.sStoreId : selectedChain === "K" ? activeStores.kStoreId : undefined;
+
+    // Ilman yksiselitteistä valittua S/K-kauppaa skanneri ei arvaa keräyskauppaa.
+    if (!selectedChain || !selectedName) {
+      setEanScannerMessage("Valitse ensin kauppa, jossa keräät ostokset.");
+      return false;
+    }
+
+    // Ilman käyttökelpoista GPS:ää käyttäjä vahvistaa valitun kaupan itse.
+    if (!usingOwnLocation || !gpsCoordsV320) {
+      const confirmed = window.confirm(`Oletko nyt kaupassa ${selectedName}?\n\nOK = Kyllä · Peruuta = En / vaihda kauppaa`);
+      if (confirmed) {
+        scannerStoreCheckDoneRefV791.current = true;
+        return true;
+      }
+      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
+      return false;
+    }
+
+    const pool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores)
+      .map((store) => ({ store, distance: getGpsDistanceKmForStoreV93(store) }))
+      .filter((row) => row.distance != null && Number(row.distance) <= 0.2)
+      .sort((a, b) => Number(a.distance) - Number(b.distance));
+
+    const selectedNearby = pool.some(({ store }) =>
+      Boolean(selectedId && sameStoreIdV93(store.id, selectedId)) ||
+      normalize(String(store.name || "")) === normalize(selectedName),
+    );
+    const otherNearby = pool.find(({ store }) =>
+      (store.type === "S" || store.type === "K") &&
+      !(Boolean(selectedId && sameStoreIdV93(store.id, selectedId)) ||
+        normalize(String(store.name || "")) === normalize(selectedName)),
+    );
+
+    // Jos GPS ei osoita toista mahdollista kauppaa aivan vieressä, valittu kauppa
+    // voidaan hyväksyä vain käyttäjän vahvistuksella. GPS ei koskaan yksin kuittaa.
+    if (!otherNearby) {
+      const confirmed = window.confirm(`Oletko nyt kaupassa ${selectedName}?`);
+      if (confirmed) {
+        scannerStoreCheckDoneRefV791.current = true;
+        return true;
+      }
+      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
+      return false;
+    }
+
+    const staySelected = window.confirm(
+      `Lähellä on useampi kauppa.\n\nOletko kaupassa ${selectedName}?\n\nOK = Kyllä · Peruuta = Olen toisessa kaupassa`,
+    );
+    if (staySelected) {
+      scannerStoreCheckDoneRefV791.current = true;
+      return true;
+    }
+
+    const candidate = otherNearby.store;
+    const candidateChain = candidate.type === "S" ? "S" : candidate.type === "K" ? "K" : null;
+    if (!candidateChain) {
+      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
+      return false;
+    }
+    const switchStore = window.confirm(`Oletko kaupassa ${candidate.name}?\n\nOK = Vaihda tähän kauppaan · Peruuta = En`);
+    if (!switchStore) {
+      setEanScannerMessage("Vaihda oikea kauppa ja skannaa tuote uudelleen.");
+      return false;
+    }
+
+    selectStoreForCurrentMode(normalizeStoreForPickerV320(candidate), storeMode);
+    setSelectedChains((current) => ({ ...current, s: candidateChain === "S", k: candidateChain === "K" }));
+    scannerStoreCheckDoneRefV791.current = true;
+    setEanScannerMessage(`Kauppa vaihdettu: ${candidate.name}. Skannaa tuote uudelleen.`);
+    return false;
+  }
+
   function finishScannedEan(code: string) {
     const normalizedCode = normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
 
     const now = Date.now();
+
+    // V818: mitään fyysisen skannauksen keräysvaikutusta ei tehdä ennen kuin
+    // myymälä on vahvistettu. Jos kauppa vaihdetaan, sama tuote skannataan uudelleen.
+    if (!confirmPhysicalScannerStoreV818()) return;
 
     // V783: yksi kameraskannaus saa omistaa EAN-haun loppuun asti.
     // Muuten hidas edellinen lookup voi valmistua uuden skannauksen jälkeen ja
