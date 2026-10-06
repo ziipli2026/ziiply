@@ -1,0 +1,21 @@
+name: Lidl GTIN field safety
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/app/api/lidl/products/route.ts"
+      - "scripts/test-lidl-gtin-field-safety-v816.mjs"
+      - ".github/workflows/lidl-gtin-field-safety.yml"
+  pull_request:
+    paths:
+      - "src/app/api/lidl/products/route.ts"
+      - "scripts/test-lidl-gtin-field-safety-v816.mjs"
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/test-lidl-gtin-field-safety-v816.mjs
