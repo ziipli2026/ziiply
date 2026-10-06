@@ -13458,7 +13458,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       scannerStorePromptTimerRefV828.current = window.setInterval(() => {
         seconds -= 1;
         if (seconds <= 0) {
-          resolveScannerStorePromptV828(true);
+          // V841: timeout is not store confirmation. Only an explicit answer or
+          // the strict GPS branch may enable collection.
+          resolveScannerStorePromptV828(false);
           return;
         }
         setScannerStorePromptV828({ storeName, seconds });
