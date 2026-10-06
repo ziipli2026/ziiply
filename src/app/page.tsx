@@ -23609,6 +23609,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             showEurosparChain={Boolean(selectedChains.tokmanni && selectedEurosparStoreV751)}
             showTokmanniChain={Boolean(selectedChains.tokmanni && selectedTokmanniStoreV756)}
             contentTab={gostaContentTabV1}
+            hasCampaigns={gostaMasterOfferResultsV528.some((item: any) => item?.campaignType === "campaign")}
             onContentTabChange={(tab: "offers" | "campaigns") => {
               setGostaContentTabV1(tab);
               handleGostaFilterChangeV136("");
