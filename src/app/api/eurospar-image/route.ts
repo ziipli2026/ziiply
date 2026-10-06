@@ -27,7 +27,11 @@ export async function GET(request: NextRequest) {
 
   const upstream = await fetch(url, {
     cache: "force-cache",
-    headers: {\n      Accept: "image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8",\n      "User-Agent": "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",\n      "Accept-Language": "fi-FI,fi;q=0.9,en;q=0.7",\n    },
+    headers: {
+      Accept: "image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8",
+      "User-Agent": "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",
+      "Accept-Language": "fi-FI,fi;q=0.9,en;q=0.7",
+    },
   });
   if (!upstream.ok) {
     return NextResponse.json({ ok: false, error: "Upstream image unavailable" }, { status: 502 });
