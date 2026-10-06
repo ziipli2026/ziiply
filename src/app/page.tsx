@@ -16170,6 +16170,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const offCollectionKeyV816 = String(baseCart[keepIndex]?.id ?? "");
         const physicalOffScanV816 = physicalBarcodeScanRefV815.current;
         const isPhysicalOffScanV816 = Boolean(
+          (eanScannerOpen || eanHtml5ScannerRef.current) &&
           physicalOffScanV816 &&
           getEanVariantKeysV126(physicalOffScanV816.code).some((variant) =>
             getEanVariantKeysV126(normalizedEan).includes(variant),
@@ -16233,6 +16234,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextCart = [...baseCart, newItem];
       const physicalOffNewV816 = physicalBarcodeScanRefV815.current;
       const isPhysicalOffNewV816 = Boolean(
+        (eanScannerOpen || eanHtml5ScannerRef.current) &&
         physicalOffNewV816 &&
         getEanVariantKeysV126(physicalOffNewV816.code).some((variant) =>
           getEanVariantKeysV126(normalizedEan).includes(variant),
