@@ -11,6 +11,7 @@ export function classifyLidlPublicPriceCard(card) {
   const hasMultiBuy = /\b\d+\s*kpl\b/.test(text) || /hinta yksittäin/.test(text) ||
     card?.isMultiBuy === true;
   const hasDiscount = /-\s*\d+\s*%/.test(text) || card?.hasStrikethroughPrice === true;
+  const hasSuperPrice = /\\bsuperhinta\\b/.test(text) || card?.isSuperPrice === true;
   const hasDatedWindow = /myymälässä\s+\d{1,2}\.\d{1,2}\.\s*-\s*\d{1,2}\.\d{1,2}\./.test(text) ||
     (card?.validFrom && card?.validThrough);
 
