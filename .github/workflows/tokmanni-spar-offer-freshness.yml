@@ -1,5 +1,6 @@
 name: Tokmanni SPAR offer freshness audit
 # Live EUROSPAR refresh trigger
+# main-run-2026-10-06
 on:
   workflow_dispatch:
   schedule:
