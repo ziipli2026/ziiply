@@ -89,6 +89,9 @@ export default async function Page(){
   const recoveredFailures24h=failedRuns24h.filter(r=>!latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
   const recoveredFailures=d.runs.filter((r,i)=>!r.ok&&d.runs.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
   const monitoredChains=cards.filter(c=>c.runs.length>0).length;
+  const eanPriceCoverage=d.ean&&d.ean.total?Math.round(d.ean.lidl_price_eans/d.ean.total*1000)/10:0;
+  const eanFreshCoverage=d.ean&&d.ean.total?Math.round(d.ean.lidl_fresh_prices/d.ean.total*1000)/10:0;
+  const eanPriceRisk=d.ean&&(eanPriceCoverage<50||d.ean.lidl_stale_prices>d.ean.lidl_fresh_prices);
   const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
   const severeFailureStreaks=sourceHealth.filter(s=>s.streak>=3);
   const sourceCountAnomalies=sourceHealth.filter(s=>s.source!=="s-kaupat-protocol"&&s.delta!==null&&Math.abs(s.delta)>=50);
@@ -117,7 +120,7 @@ export default async function Page(){
   ];
   const states=cards.map(c=>state(c.runs));
   const hasCriticalQuality=quality.missingPrice>0;
-  const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0||thinNext.length>0||nextCandidates.length>0;
+  const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0||thinNext.length>0||nextCandidates.length>0||Boolean(eanPriceRisk);
   const overall=activeCandidates.length||currentFailures.length||hasCriticalQuality||rolloverGaps.length||unreadyExpiring.length||severeNextDrop.length||neverSuccessful.length||severeFailureStreaks.length||sourceCountCrashes.length||criticallySilentSources.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length||hasQualityWarning?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
   return <main style={{maxWidth:1500,margin:"0 auto",padding:28}}>
@@ -145,9 +148,11 @@ export default async function Page(){
       {statusCard("Ketjuvalvonnan kattavuus",monitoredChains+" / "+CHAINS.length,monitoredChains===CHAINS.length?"green":"yellow",missingMonitoring.length?"Puuttuu: "+missingMonitoring.map(c=>c.name).join(", "):"Kaikilla ketjuilla health-dataa")}
       {statusCard("Instrumentoidut lähteet",latestBySource.length,latestBySource.length?"green":"yellow","Uniikit chain + source -valvonnat 14 vrk")}
       {statusCard("Avoimet lähdevirheet",currentFailures.length,currentFailures.length?"red":"green",currentFailures.length?"Lähteen viimeisin ajo epäonnistunut":"Kaikkien kirjattujen lähteiden viimeisin ajo OK")}
+      {statusCard("Lidl EAN-hintakattavuus",eanPriceCoverage+" %",eanPriceCoverage<50?"yellow":"green",eanFreshCoverage+" % EAN-pankista tuoreella hinnalla")}
+      {statusCard("Lidl EAN-hintojen tuoreus",d.ean?d.ean.lidl_fresh_prices:0,eanPriceRisk?"yellow":"green",d.ean?d.ean.lidl_stale_prices+" vanhentunutta hintariviä":"Ei EAN-dataa")}
     </section>
 
-    <section style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:14,marginBottom:18}}>
+    <section style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {metricCard("Aktiiviset hyväksytyt julkaisut",activePubs.length,activePubs.length?"green":"yellow")}
       {metricCard("Aktiivisten julkaisujen tarjoukset",activeOfferTotal,activeOfferTotal?"green":"yellow")}
       {metricCard("Candidate / odottaa",candidatePubs.length,activeCandidates.length?"red":candidatePubs.length?"yellow":"green")}
