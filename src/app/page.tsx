@@ -4641,6 +4641,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerStorePromptV828, setScannerStorePromptV828] = useState<{ storeName: string; seconds: number } | null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
+  // V837: keep the newest physical scan that arrives while the previous EAN lookup is busy.
+  // It is drained only after the active lookup has fully released its locks.
+  const queuedPhysicalScanRefV837 = useRef<string | null>(null);
   const cartSaveTimeoutRef = useRef<number | null>(null);
   const cartHasLoadedRef = useRef(false);
   const shoppingChecksSaveTimeoutRef = useRef<number | null>(null);
@@ -13586,6 +13589,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Muuten hidas edellinen lookup voi valmistua uuden skannauksen jälkeen ja
     // kirjoittaa uuden tuotteen päälle vanhan "ei löytynyt" / tuntematon-statuksen.
     if (eanSearchInFlightRef.current || eanLookupPendingRefV120.current.size > 0) {
+      // V837: a fast second HID/camera scan must not disappear while A is still resolving.
+      // One waiting slot is enough for the scanner UI: a newer waiting scan replaces an
+      // older not-yet-started one, while the active scan always completes first.
+      queuedPhysicalScanRefV837.current = normalizedCode;
+      pushScannerDebugV493(`QUEUE physical scan ean=${normalizedCode}`);
       return;
     }
 
@@ -15637,6 +15645,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       await runLookupPromiseV121;
     } finally {
       eanLookupPromiseRefV121.current.delete(ean);
+
+      // V837: release one physical scan that arrived while this lookup was active.
+      // Defer one task so every pending/in-flight lock from A is visibly clear first.
+      const queuedPhysicalScanV837 = queuedPhysicalScanRefV837.current;
+      if (
+        queuedPhysicalScanV837 &&
+        !eanSearchInFlightRef.current &&
+        eanLookupPendingRefV120.current.size === 0
+      ) {
+        queuedPhysicalScanRefV837.current = null;
+        window.setTimeout(() => {
+          void finishScannedEan(queuedPhysicalScanV837);
+        }, 0);
+      }
     }
   }
 
