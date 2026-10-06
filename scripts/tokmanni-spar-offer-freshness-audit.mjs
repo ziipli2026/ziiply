@@ -5,13 +5,13 @@ const feed=JSON.parse(readFileSync("src/app/components/ziiply/offerSearch/provid
 const now=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const from=String(feed?.validity?.from??"");
 const to=String(feed?.validity?.to??"");
-const eurospar={
+const ageDays=to ? Math.floor((Date.parse(now+"T12:00:00Z")-Date.parse(to+"T12:00:00Z"))/86400000) : null;\nconst eurospar={
   issue:String(feed?.issue??""),
   from,to,
   healthy:feed?.healthy===true,
   offers:Array.isArray(feed?.offers)?feed.offers.length:0,
   stores:Array.isArray(feed?.stores)?feed.stores.length:0,
-  active:Boolean(from&&to&&from<=now&&now<=to),
+  active:Boolean(from&&to&&from<=now&&now<=to),\n  ageDays,\n  refreshRequired:Boolean(!to||to<now),
 };
 
 const url=new URL("https://www.tokmanni.fi/viikkotarjoukset/elintarvikkeet-ja-elainruoka");
