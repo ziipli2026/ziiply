@@ -13972,6 +13972,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function closeEanModal() {
+    // V831: cancel a pending store-presence question before closing the scanner.
+    // A five-second default-Yes must never fire after the scanner has already closed.
+    if (scannerStorePromptTimerRefV828.current) {
+      window.clearInterval(scannerStorePromptTimerRefV828.current);
+      scannerStorePromptTimerRefV828.current = null;
+    }
+    if (scannerStorePromptResolverRefV828.current) {
+      const resolvePendingStorePromptV831 = scannerStorePromptResolverRefV828.current;
+      scannerStorePromptResolverRefV828.current = null;
+      resolvePendingStorePromptV831(false);
+    }
+    setScannerStorePromptV828(null);
+    scannerStoreCheckDoneRefV791.current = false;
+    scannerInStoreRefV828.current = false;
+    scannerConfirmedStoreNameRefV828.current = "";
+
     // v310: skanneri sulkeutuu pehmeällä haihtumisella.
     // Taustalle palautetaan Hae-kortti ensin, jonka jälkeen kamera-overlay
     // häivytetään pois riittävän hitaasti ilman layout-hyppyä.
