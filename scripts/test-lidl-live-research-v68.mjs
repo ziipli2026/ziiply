@@ -12,6 +12,7 @@ const corpus = JSON.parse(readFileSync(join(root, "data/lidl/official-grocery-ca
 const evidence = JSON.parse(readFileSync(join(root, "data/lidl/independent-staple-ean-evidence-2026-10-02.json"), "utf8"));
 const images = JSON.parse(readFileSync(join(root, "data/lidl/official-product-images.generated.json"), "utf8"));
 const priceAnnouncement = JSON.parse(readFileSync(join(root, "data/lidl/official-paistopiste-price-announcement-2026-04-20.json"), "utf8"));
+const verifiedEans = JSON.parse(readFileSync(join(root, "data/lidl/verified-ean-links.json"), "utf8"));
 const temp = mkdtempSync(join(tmpdir(), "ziiply-lidl-research-"));
 try {
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, resolveJsonModule: true } });
@@ -24,8 +25,22 @@ try {
   writeFileSync(join(temp, "evidence.mjs"), "export default " + JSON.stringify(evidence) + ";");
   writeFileSync(join(temp, "images.mjs"), "export default " + JSON.stringify(images) + ";");
   writeFileSync(join(temp, "prices.mjs"), "export default " + JSON.stringify(priceAnnouncement) + ";");
+  writeFileSync(join(temp, "verified-eans.mjs"), "export default " + JSON.stringify(verifiedEans) + ";");
   writeFileSync(join(temp, "research.mjs"), js);
   const { searchLidlResearch } = await import(pathToFileURL(join(temp, "research.mjs")).href);
+  // Verified EAN evidence may enrich identity without promoting research rows to checkout SKUs.
+  const verifiedById = new Map(verifiedEans.map(row => [String(row.lidlProductId), String(row.ean)]));
+  for (const [productId, ean] of verifiedById) {
+    const sourceRecord = corpus.records.find(row => String(row.lidlProductId) === productId);
+    if (!sourceRecord) continue;
+    const hit = searchLidlResearch(sourceRecord.name, 50).find(row => String(row.lidlProductId) === productId);
+    if (!hit) continue;
+    assert.equal(hit.ean, null, "Verified identity evidence must not become checkout EAN automatically: " + productId);
+    assert.equal(hit.verifiedEan, ean, "Verified EAN evidence missing from research identity: " + productId);
+    assert.equal(hit.eanMatchStatus, "verified_external_evidence");
+    assert.equal(hit.price, null);
+    assert.equal(hit.priceVerified, false);
+  }
   // All dated public category observations are provenance-only, never verified stock or checkout prices.
   const categoryObservations = evidence.records.filter(r => r.assortmentEvidence === "lidl-public-category-observation");
   assert.ok(categoryObservations.length >= 37, "Expected sourced Lidl category observations missing");
