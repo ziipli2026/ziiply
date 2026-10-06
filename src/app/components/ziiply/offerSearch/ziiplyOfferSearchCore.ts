@@ -339,10 +339,17 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // V184: Lidl provider also emits Ziiply's canonical category. Preserve the
   // provider category; generic title classification can otherwise turn e.g.
   // Siskonmakkara / Pulled pork from "Liha & makkarat" into "Muut".
+  const lidlIdentity = normalizeGostaCoreText(
+    [sourceItem?.source, anyItem?.source, sourceItem?.chain, anyItem?.chain, sourceItem?.storeType, anyItem?.storeType, sourceItem?.storeLabel, anyItem?.storeLabel]
+      .filter(Boolean)
+      .join(" "),
+  );
   const isLidl =
     source === "lidl plus" ||
     source === "lidl-plus" ||
-    normalizeGostaCoreText(sourceItem?.chain || anyItem?.chain || "") === "lidl";
+    source.startsWith("lidl ") ||
+    source.startsWith("lidl-") ||
+    /(?:^| )lidl(?: |$)/.test(lidlIdentity);
   if (isLidl) {
     // Lidl final UI guard: product form outranks a stale/provider ingredient
     // category. This runs in the exact resolver used by category counts and
