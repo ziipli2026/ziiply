@@ -14288,6 +14288,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     pushScannerDebugV493(`EXISTING cart=${Boolean(existingCartItemForEanV122)} fallbackOnly=${existingIsFallbackOnlyV491}`);
 
+    // V816: fyysisen skannauksen ensimmäinen osuma etänä tehtyyn EAN-riviin
+    // on keräilykuittaus, ei määrän kasvatus. Tämä tehdään ennen vanhaa +1-oikopolkua.
+    if (options.fromScanner && existingCartItemForEanV122) {
+      const collectionKeyV816 = String(existingCartItemForEanV122.id ?? "");
+      if (collectionKeyV816 && !checkedCartItems[collectionKeyV816]) {
+        setCheckedCartItems((current) => ({ ...current, [collectionKeyV816]: true }));
+        triggerHaptic();
+        setEanInput("");
+        setEanResults([]);
+        setEanLoading(false);
+        setEanSearchStartedAutomatically(false);
+        eanAutoSearchActiveRef.current = false;
+        setLastAutoEanSearch("");
+        setEanMessage("Tuote kerätty.");
+        setEanScannerMessage("✓ Kerätty");
+        window.setTimeout(() => {
+          setEanScannerMessage((current) => current === "✓ Kerätty" ? "" : current);
+        }, 2200);
+        return;
+      }
+    }
+
     // V491: jos sama EAN on korissa vain OFF/unknown-fallbackina, älä lisää sitä heti +1.
     // Tee ensin uusi S-kaupat.fi exact EAN -tarkistus, jotta fallback-luuppi ei jää päälle.
     if (existingCartItemForEanV122 && !existingIsFallbackOnlyV491) {
@@ -15985,7 +16007,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // V129: jos tunnistettu tuote luetaan uudelleen, vain määrä kasvaa.
         // Jos taas tuntematon rivi ehti syntyä ennen OFF-osumaa, se päivitetään
         // tunnistetuksi ilman toisen tuoterivin luomista.
-        const nextQuantity = totalQuantity + (alreadyHadRecognized ? 1 : 0);
+        const offCollectionKeyV816 = String(baseCart[keepIndex]?.id ?? "");
+        const physicalOffScanV816 = physicalBarcodeScanRefV815.current;
+        const isPhysicalOffScanV816 = Boolean(
+          physicalOffScanV816 &&
+          getEanVariantKeysV126(physicalOffScanV816.code).some((variant) =>
+            getEanVariantKeysV126(normalizedEan).includes(variant),
+          ) &&
+          Date.now() - physicalOffScanV816.at < 10000
+        );
+        const firstCollectionScanV816 =
+          isPhysicalOffScanV816 &&
+          offCollectionKeyV816 &&
+          !checkedCartItems[offCollectionKeyV816];
+        const nextQuantity = totalQuantity + (alreadyHadRecognized && !firstCollectionScanV816 ? 1 : 0);
+        if (firstCollectionScanV816) {
+          setCheckedCartItems((current) => ({ ...current, [offCollectionKeyV816]: true }));
+        }
 
         const keptItem = {
           ...baseCart[keepIndex],
@@ -16033,6 +16071,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } as CartItem;
 
       const nextCart = [...baseCart, newItem];
+      const physicalOffNewV816 = physicalBarcodeScanRefV815.current;
+      const isPhysicalOffNewV816 = Boolean(
+        physicalOffNewV816 &&
+        getEanVariantKeysV126(physicalOffNewV816.code).some((variant) =>
+          getEanVariantKeysV126(normalizedEan).includes(variant),
+        ) &&
+        Date.now() - physicalOffNewV816.at < 10000
+      );
+      if (isPhysicalOffNewV816 && String(newItem.id || "")) {
+        setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
+      }
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       return nextCart;
