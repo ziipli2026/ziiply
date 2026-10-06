@@ -5051,6 +5051,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(
     null,
   );
+  // V815: vain kamera/Bluetooth finishScannedEan-polku saa todistaa fyysisen keräilyn.
+  // EAN:n kirjoittaminen tai liittäminen skanneri-ikkunassa ei saa kuitata tuotetta.
+  const physicalBarcodeScanRefV815 = useRef<{ code: string; at: number } | null>(null);
   const scannedEanSessionSetRef = useRef<Set<string>>(new Set());
   // V120: EAN-haulle oma single-flight-lukko. React-state (eanLoading / lastAutoEanSearch)
   // ei riitä, koska mobiiliskannerissa live-luku, still-fallback ja useEffect voivat ehtiä
@@ -13406,6 +13409,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
+    physicalBarcodeScanRefV815.current = { code: normalizedCode, at: now };
     // V135: vain lyhyt decode-jarru live/still-tuplille. Ei koko session lukitusta.
     scannerDecodeIgnoreUntilRefV131.current = now + 900;
     resetPendingEanPickCardV606();
@@ -14038,7 +14042,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextCart = [...baseCart, newItem];
       // V814: uusi oikealla skannerilla kaupassa lisätty EAN on samalla kerätty.
       // Käsin syötetty/liitetty EAN ei saa tätä kuittausta.
-      if (isScannerAddV787 && String(newItem.id || "")) {
+      if (isPhysicalBarcodeScanV815 && String(newItem.id || "")) {
         setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
       }
       cartRefV124.current = nextCart;
@@ -16089,6 +16093,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const isScannerAddV787 = Boolean(
       eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically,
     );
+    const physicalScanV815 = physicalBarcodeScanRefV815.current;
+    const isPhysicalBarcodeScanV815 = Boolean(
+      isUsableEan(ean) &&
+      physicalScanV815 &&
+      getEanVariantKeysV126(physicalScanV815.code).some((variant) =>
+        getEanVariantKeysV126(ean).includes(variant),
+      ) &&
+      Date.now() - physicalScanV815.at < 10000
+    );
     const addKey = `${result.chain}-${ean || normalize(productName)}-${result.product.id}`;
     const now = Date.now();
 
@@ -16121,7 +16134,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V814: etänä koriin lisätyn EAN-tuotteen ensimmäinen fyysinen skannaus
     // kuittaa tuotteen kerätyksi muuttamatta määrää. Vasta seuraava skannaus +1.
-    if (isScannerAddV787 && scannerExistingItemV798) {
+    if (isPhysicalBarcodeScanV815 && scannerExistingItemV798) {
       const collectionKeyV814 = String(scannerExistingItemV798.id ?? "");
       if (collectionKeyV814 && !checkedCartItems[collectionKeyV814]) {
         setCheckedCartItems((current) => ({ ...current, [collectionKeyV814]: true }));
