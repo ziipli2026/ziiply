@@ -16,15 +16,6 @@ async function load(){
   if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],pubs:[] as Pub[],ean:null};
   try{
     const sql=neon(url);
-    await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log(
-      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      chain TEXT NOT NULL,source TEXT NOT NULL,ok BOOLEAN NOT NULL,offer_count INTEGER NOT NULL,
-      outcome TEXT NOT NULL,details JSONB NOT NULL DEFAULT '{}'::jsonb)`;
-    await sql`CREATE TABLE IF NOT EXISTS ziiply_ean_products(
-      ean TEXT PRIMARY KEY,name TEXT NOT NULL DEFAULT '',brand TEXT,quantity TEXT,image_url TEXT,
-      category TEXT,source TEXT,aliases TEXT[] NOT NULL DEFAULT '{}',
-      first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
     const runs=await sql`SELECT checked_at::text AS checked_at,chain,source,ok,offer_count,outcome
       FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days'
       ORDER BY checked_at DESC,id DESC LIMIT 300`;
@@ -70,6 +61,13 @@ export default async function Page(){
   const latestRun=d.runs[0];
   const failedRuns24h=d.runs.filter(r=>!r.ok&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
   const recoveredFailures=d.runs.filter((r,i)=>!r.ok&&d.runs.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
+  const currentFailures=latestBySource.filter(r=>!r.ok);
+  const attention=[
+    ...activeCandidates.map(p=>({level:"red",title:p.chain+": aktiivinen candidate",detail:p.publication_id+" · "+p.offer_count+" tarjousta · "+p.valid_from+"–"+p.valid_until})),
+    ...currentFailures.map(r=>({level:"red",title:r.chain+": viimeisin ajo epäonnistui",detail:r.source+" · "+r.offer_count+" · "+r.outcome})),
+    ...staleRuns.map(r=>({level:"yellow",title:r.chain+": health-ajo vanhentunut",detail:r.source+" · "+new Date(r.checked_at).toLocaleString("fi-FI")})),
+    ...expiringToday.map(p=>({level:"yellow",title:p.chain+": julkaisu päättyy tänään",detail:p.publication_id+" · "+p.offer_count+" tarjousta"}))
+  ];
   const states=cards.map(c=>state(c.runs));
   const overall=activeCandidates.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
@@ -110,6 +108,11 @@ export default async function Page(){
     <section style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {statusCard("Virheitä 24 h",failedRuns24h.length,failedRuns24h.length?"red":"green",failedRuns24h.length?"Tuore automaatiovirhe vaatii tarkistuksen":"Ei tuoreita kirjattuja virheitä")}
       {statusCard("Palautuneet virheet",recoveredFailures.length,recoveredFailures.length?"yellow":"green",recoveredFailures.length?"Uudempi onnistunut ajo löytyy samalle lähteelle":"Ei palautumishistoriaa 14 vrk ikkunassa")}
+    </section>
+
+    <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Huomiota vaativat</h2>
+      {attention.length===0?<div style={{padding:12,background:"#ecfdf3",borderRadius:10}}>🟢 Ei tällä hetkellä kirjattuja kriittisiä huomioita.</div>:attention.slice(0,20).map((a,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"28px 1fr",padding:"10px 0",borderBottom:"1px solid #edf0f2"}}><div>{dot(a.level)}</div><div><b>{a.title}</b><div style={{fontSize:12,color:"#667085",marginTop:3}}>{a.detail}</div></div></div>)}
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:18}}>
