@@ -235,7 +235,8 @@ for(const r of byKey.values()){
   if(!prev || r.temporalStatus==="current") promoByProduct.set(String(r.lidlProductId),r);
 }
 const records=[];
-for(const r of byKey.values()){
+const suppressionDebug=[];
+for(const r of byKey.values(){
   const continuous=r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api";
   const classification=classifyLidlPublicPriceCard({
     title:r.productName,evidenceText:r.evidenceText,promotionText:r.evidenceText,
