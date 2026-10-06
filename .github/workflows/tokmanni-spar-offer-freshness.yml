@@ -8,7 +8,7 @@ on:
     - cron: "10 15 * * 0"
     - cron: "20 15 * * 0"
   push:
-    branches: [main]
+    branches: [main, "fix/tokmanni-spar-offer-freshness"]
     paths:
       - "src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts"
