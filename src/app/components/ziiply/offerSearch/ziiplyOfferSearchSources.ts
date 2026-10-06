@@ -976,7 +976,7 @@ export async function searchZiiplyOffers(
   );
   const prismaDiscountedResultsV1 = (sKaupatResults as any[]).filter((row) => {
     const ean = String(row?.ean ?? "").trim();
-    const price = Number(row?.price);
+    const price = prismaOverlapPriceV1(row);
     const store = normalizeOfferUniqueText(row?.storeLabel ?? "");
     if (!ean || price == null || !store) return true;
     return !prismaCmsOverlapKeysV1.has(`${store}|ean:${ean}|price:${price.toFixed(4)}`);
