@@ -1,0 +1,26 @@
+name: Prisma CMS Missing Validity Audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-cms-missing-validity-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Inspect CMS products without product validity
+        run: |
+          node <<'NODE'
+          const storeId="634976534",date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+          const vars={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+          const ext={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:"f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1"}};
+          const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(vars));u.searchParams.set("extensions",JSON.stringify(ext));
+          const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8"}});
+          const b=await r.json(),sections=b?.data?.pageContent?.sections??[],seen=new Set(),rows=[];
+          const dateish=(o)=>Object.fromEntries(Object.entries(o??{}).filter(([k,v])=>/date|valid|start|end|until|campaign|promo/i.test(k)&&v!=null&&typeof v!=="object"));
+          for(const s of sections)for(const p of (s.products??[])){const e=String(p.ean??"");if(!e||seen.has(e))continue;seen.add(e);const pr=p.pricing??p.store?.pricing??{};if(pr.campaignPriceValidUntil)continue;rows.push({ean:e,title:p.name,section:s.title,price:pr.campaignPrice??pr.currentPrice??p.price,campaignPrice:pr.campaignPrice??null,currentPrice:pr.currentPrice??null,regularPrice:pr.regularPrice??null,productDateFields:dateish(p),pricingDateFields:dateish(pr),storeDateFields:dateish(p.store),sectionDateFields:dateish(s),sectionKeys:Object.keys(s),productKeys:Object.keys(p),pricingKeys:Object.keys(pr)})}
+          console.log("MISSING_VALIDITY",JSON.stringify({date,count:rows.length,rows},null,2));
+          NODE
