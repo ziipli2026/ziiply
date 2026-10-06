@@ -151,3 +151,9 @@ console.log("V832 scanner store-context change regression: PASS");
 assert.equal((source.match(/searchByEan\(ean, \{ fromScanner: Boolean\(eanScannerOpen \|\| eanHtml5ScannerRef\.current\) \}\)/g) || []).length, 0);
 assert.match(source, /V833: this debounce belongs only to ordinary manual EAN search/);
 console.log("V833 manual EAN debounce source separation regression: PASS");
+
+
+// V834: scanner-owned store-change buttons must use canonical close cleanup.
+assert.match(source, /closeEanModal\(\)\.then\(\(\) => setShopsPanelOpen\(true\)\)[^\n]*>Vaihda kauppaa<\/button>/);
+assert.match(source, /closeEanModal\(\)\.then\(\(\) => setShopsPanelOpen\(true\)\)[^\n]*>Tarkista kauppavalinta<\/button>/);
+console.log("V834 scanner store-change close cleanup regression: PASS");
