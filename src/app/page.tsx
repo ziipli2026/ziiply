@@ -4411,6 +4411,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }, [mobileResultsReadyQueryV537]);
 
+  // V835: closing the EAN modal by any navigation path ends the scanner store session.
+  // This is the backstop for direct setEanModalOpen(false) calls outside closeEanModal().
+  useEffect(() => {
+    if (eanModalOpen) return;
+    if (scannerStorePromptTimerRefV828.current) {
+      window.clearInterval(scannerStorePromptTimerRefV828.current);
+      scannerStorePromptTimerRefV828.current = null;
+    }
+    if (scannerStorePromptResolverRefV828.current) {
+      const resolvePendingStorePromptV835 = scannerStorePromptResolverRefV828.current;
+      scannerStorePromptResolverRefV828.current = null;
+      resolvePendingStorePromptV835(false);
+    }
+    setScannerStorePromptV828(null);
+    scannerStoreCheckDoneRefV791.current = false;
+    scannerInStoreRefV828.current = false;
+    scannerConfirmedStoreNameRefV828.current = "";
+  }, [eanModalOpen]);
+
   function resolveVoiceResultWaitV509(reason = "closed") {
     if (!voiceResultWaitResolverRefV509.current) return;
     pushVoiceDebugV507(`VOICE USER CLOSED RESULT ${reason}`);
