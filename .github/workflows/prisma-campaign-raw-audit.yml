@@ -2,6 +2,9 @@ name: Prisma Campaign Raw Audit
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-campaign-raw-audit.yml'
 
 permissions:
   contents: read
