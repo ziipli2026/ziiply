@@ -1,8 +1,8 @@
 const assert=require("node:assert/strict"),fs=require("node:fs");
 const card=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx","utf8");
 const page=fs.readFileSync("src/app/page.tsx","utf8");
-assert.match(card,/disabled=\{hasNoCounterpart\}/);
-assert.match(card,/if \(!hasNoCounterpart\) onSelectStore\(store\.id\)/);
+assert.match(card,/disabled=\{hasNoCounterpart \|\| resultPending\}/);
+assert.match(card,/if \(!hasNoCounterpart && !resultPending\) onSelectStore\(store\.id\)/);
 assert.match(card,/hasNoCounterpart \? "—" : formatEuro\(store\.totalPrice\)/);
 assert.match(page,/chosenResult\.foundItems <= 0 && chosenResult\.missingItems > 0/);
 assert.match(page,/Tästä kaupasta ei löytynyt ostettavia vastintuotteita/);
