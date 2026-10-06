@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import eurosparFeed from "../../../components/ziiply/offerSearch/providers/eurospar-feed.json";
+import eurosparFeed from "../../components/ziiply/offerSearch/providers/eurospar-feed.json";
 
 export const dynamic = "force-dynamic";
 
