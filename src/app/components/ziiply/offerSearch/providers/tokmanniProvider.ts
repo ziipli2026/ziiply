@@ -134,7 +134,7 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   const offerQuantity = multi ? Number(multi[1]) : null;
   const multiBuyTotalPrice = multi ? price(multi[2]) : null;
 
-  const priceToken = String.raw`(\\d+(?:(?:\\s+\\d{2})|(?:\\s*[,.]\\s*\\d{1,2}))?)`;
+  const priceToken = String.raw`(\d+(?:(?:\s+\d{2})|(?:\s*[,.]\s*\d{1,2}))?)`;
   const offerMarker = allText.match(new RegExp(`(?:Tarjoushinta|Klubitarjous!)\\s*${priceToken}`, "i"));
   const normalMarker = allText.match(new RegExp(`Normaalihinta\\s*${priceToken}`, "i"));
   // In multi-buy cards Tokmanni prints the ordinary single price after the
