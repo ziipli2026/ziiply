@@ -1249,9 +1249,9 @@ export default function ZiiplyMobileOfferSearchCard({
             >
               {title}
             </div>
-            {subtitle || shownQuery ? (
+            {subtitle ? (
               <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
-                {subtitle || `Gösta penkoi: ${shownQuery}`}
+                {subtitle}
               </div>
             ) : null}
 
