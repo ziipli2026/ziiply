@@ -10,6 +10,7 @@ const CHAINS=[
 type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;checked_at:string};
 type Pub={chain:string;publication_id:string;valid_from:string;valid_until:string;parsed_at:string;approval_state:string;offer_count:number;missing_price:number;missing_image:number;missing_category:number};
 type EanStats={total:number;with_image:number;classified:number;seen_24h:number;missing_image:number;missing_category:number;stale_30d:number;lidl_price_rows:number;lidl_price_eans:number;lidl_fresh_prices:number;lidl_verified_prices:number;lidl_stale_prices:number};
+type ScanStats={events_24h:number;unresolved_24h:number;unknown_24h:number;no_price_24h:number;chain_mismatch_24h:number};
 
 async function load(){
   const url=process.env.DATABASE_URL;
@@ -36,8 +37,10 @@ async function load(){
       COUNT(*) FILTER(WHERE last_seen_at<NOW()-INTERVAL '30 days')::int stale_30d
       FROM ziiply_ean_products`;
     const eanPrice=await sql`SELECT COUNT(*)::int price_rows,COUNT(DISTINCT ean)::int price_eans,COUNT(*) FILTER(WHERE fresh_until>NOW())::int fresh_prices,COUNT(*) FILTER(WHERE checkout_price_verified IS TRUE)::int verified_prices,COUNT(*) FILTER(WHERE fresh_until<=NOW())::int stale_prices FROM ziiply_lidl_ean_prices`;
+    let scan:ScanStats={events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0};
+    try { const rows=await sql`SELECT COUNT(*)::int events_24h,COUNT(*) FILTER(WHERE outcome IN ('unresolved','not_found','no_match'))::int unresolved_24h,COUNT(*) FILTER(WHERE outcome IN ('unknown','ean_unknown'))::int unknown_24h,COUNT(*) FILTER(WHERE outcome IN ('no_price','added_without_price'))::int no_price_24h,COUNT(*) FILTER(WHERE outcome IN ('chain_mismatch','wrong_chain'))::int chain_mismatch_24h FROM ziiply_ean_scan_event_log WHERE created_at>NOW()-INTERVAL '24 hours'`; if(rows[0]) scan=rows[0] as ScanStats; } catch { /* scanner event table is created lazily */ }
     const eanStats={...(ean[0] as EanStats),lidl_price_rows:Number(eanPrice[0]?.price_rows??0),lidl_price_eans:Number(eanPrice[0]?.price_eans??0),lidl_fresh_prices:Number(eanPrice[0]?.fresh_prices??0),lidl_verified_prices:Number(eanPrice[0]?.verified_prices??0),lidl_stale_prices:Number(eanPrice[0]?.stale_prices??0)};
-    return {error:null,runs:runs as Row[],pubs:pubs as Pub[],ean:eanStats};
+    return {error:null,runs:runs as Row[],pubs:pubs as Pub[],ean:eanStats,scan};
   }catch(e){return {error:e instanceof Error?e.message:"Tietokantavirhe",runs:[] as Row[],pubs:[] as Pub[],ean:null}}
 }
 
@@ -97,6 +100,7 @@ export default async function Page(){
   const eanStaleRatio=d.ean&&d.ean.lidl_price_rows?Math.round(d.ean.lidl_stale_prices/d.ean.lidl_price_rows*1000)/10:0;
   const eanUnpriced=d.ean?Math.max(0,d.ean.total-d.ean.lidl_price_eans):0;
   const eanUnpricedRatio=d.ean&&d.ean.total?Math.round(eanUnpriced/d.ean.total*1000)/10:0;
+  const scanRisk=d.scan.unresolved_24h+d.scan.unknown_24h+d.scan.chain_mismatch_24h>0;
   const eanImageCoverage=d.ean&&d.ean.total?Math.round(d.ean.with_image/d.ean.total*1000)/10:0;
   const eanCategoryCoverage=d.ean&&d.ean.total?Math.round(d.ean.classified/d.ean.total*1000)/10:0;
   const eanDataHealth=(d.ean?[(eanPriceCoverage>=75),(eanFreshCoverage>=75),(eanImageCoverage>=75),(eanCategoryCoverage>=75)]:[]).filter(Boolean).length;
@@ -243,8 +247,8 @@ export default async function Page(){
 
       <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
         <h2 style={{marginTop:0}}>EAN / skanneri</h2>
-        {d.ean?<>{metric("EAN-pankki",d.ean.total)}{metric("Kuvalliset",d.ean.with_image)}{metric("Luokitellut",d.ean.classified)}{metric("Nähty 24 h",d.ean.seen_24h)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Lidl-hinnat</div>{metric("Lidl EAN-hintarivejä",d.ean.lidl_price_rows)}{metric("EANeja hinnoilla",d.ean.lidl_price_eans)}{metric("Tuoreita hintoja",d.ean.lidl_fresh_prices)}{metric("Varmistettu kassalla",d.ean.lidl_verified_prices)}{metric("Vanhentuneita hintoja",d.ean.lidl_stale_prices)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Kattavuus</div>{coverage("Kuvat",d.ean.with_image,d.ean.total)}{coverage("Luokittelu",d.ean.classified,d.ean.total)}<div style={{marginTop:14}}>{metric("Kuva puuttuu",d.ean.missing_image)}{metric("Luokka puuttuu",d.ean.missing_category)}{metric("Ei nähty 30 vrk",d.ean.stale_30d)}</div></>:<div>Ei EAN-dataa.</div>}
-        <div style={{marginTop:18,padding:12,background:"#fff8e6",borderRadius:10,fontSize:13}}>🟡 Käyttäjien ratkaisemattomien skannausten tapahtumaloki ei ole vielä mukana V1:ssä.</div>
+        {d.ean?<>{metric("EAN-pankki",d.ean.total)}{metric("Kuvalliset",d.ean.with_image)}{metric("Luokitellut",d.ean.classified)}{metric("Nähty 24 h",d.ean.seen_24h)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Lidl-hinnat</div>{metric("Lidl EAN-hintarivejä",d.ean.lidl_price_rows)}{metric("EANeja hinnoilla",d.ean.lidl_price_eans)}{metric("Tuoreita hintoja",d.ean.lidl_fresh_prices)}{metric("Varmistettu kassalla",d.ean.lidl_verified_prices)}{metric("Vanhentuneita hintoja",d.ean.lidl_stale_prices)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Kattavuus</div>{coverage("Kuvat",d.ean.with_image,d.ean.total)}{coverage("Luokittelu",d.ean.classified,d.ean.total)}<div style={{marginTop:14}}>{metric("Kuva puuttuu",d.ean.missing_image)}{metric("Luokka puuttuu",d.ean.missing_category)}{metric("Ei nähty 30 vrk",d.ean.stale_30d)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Skanneri 24 h</div>{metric("Skannauksia",d.scan.events_24h)}{metric("Selvitettäviä",d.scan.unresolved_24h)}{metric("Tuntemattomia",d.scan.unknown_24h)}{metric("Ilman hintaa",d.scan.no_price_24h)}{metric("Väärä ketju",d.scan.chain_mismatch_24h)}</div></>:<div>Ei EAN-dataa.</div>}
+        <div style={{marginTop:18,padding:12,background:scanRisk?"#fee4e2":"#ecfdf3",borderRadius:10,fontSize:13}}>{scanRisk?"🔴 Skannerissa on viimeisen 24 h aikana selvitettäviä/tuntemattomia tapauksia.":"🟢 Ei kirjattuja selvitettäviä skannaustapauksia 24 h."}</div>
       </article>
     </section>
 
