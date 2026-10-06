@@ -121,12 +121,20 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   const normalMarker = allText.match(/Normaalihinta\s*(\d+(?:[,.]\d{1,2})?)/i);
   // In multi-buy cards Tokmanni prints the ordinary single price after the
   // badge. Preserve it as normalPrice while the offer itself is the total.
-  const ordinaryAfterMulti = multi
-    ? allText.slice((multi.index || 0) + multi[0].length).match(/\b(\d+(?:[,.]\d{1,2})?)\b/)
+  // Magento renders the ordinary per-item price in a price element. Never
+  // infer it from arbitrary text after the multi-buy badge: product weights
+  // such as "55 g" or "295 g" would otherwise become fake euro prices.
+  const priceElementValues = Array.from(
+    block.matchAll(/<(?:span|span[^>]*)[^>]*class=["'][^"']*(?:price-wrapper|price)[^"']*["'][^>]*>([\s\S]*?)<\/span>/gi),
+  )
+    .map((match) => price(textOf(match[1] || "")))
+    .filter((value): value is number => value != null);
+  const ordinaryCardPrice = multi
+    ? priceElementValues.find((value) => Math.abs(value - multiBuyTotalPrice!) > 0.0001) ?? null
     : null;
 
   const singleOfferPrice = price(offerMarker?.[1]);
-  const normalPrice = price(normalMarker?.[1]) ?? price(ordinaryAfterMulti?.[1]);
+  const normalPrice = price(normalMarker?.[1]) ?? ordinaryCardPrice;
   const offerPrice = multiBuyTotalPrice ?? singleOfferPrice;
   if (offerPrice == null) return null;
 
@@ -172,6 +180,7 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
     productUrl,
     ean,
     rawText: [name, cat, multiText, offerPrice, normalPrice].filter(Boolean).join(" "),
+    campaignType: "offer",
   };
 }
 
@@ -241,6 +250,16 @@ export async function fetchTokmanniOffers() {
         source: "tokmanni-viikkotarjoukset",
       })),
   );
+
+  // The source page itself is the authority for the active weekly-offer set.
+  // Surface a mismatch instead of silently accepting an incomplete parse.
+  if (total != null && dedupedItems.length !== total) {
+    console.warn("[tokmanni-offers] parsed count differs from advertised total", {
+      advertisedTotal: total,
+      parsed: dedupedItems.length,
+      pages: pageCount,
+    });
+  }
 
   return dedupedItems;
 }
