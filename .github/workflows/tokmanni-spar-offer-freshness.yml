@@ -3,11 +3,7 @@ name: Tokmanni SPAR offer freshness audit
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 4 * * *"
-    - cron: "17 10 * * *"
-    - cron: "17 16 * * *"
-    - cron: "10 15 * * 0"
-    - cron: "20 15 * * 0"
+    # Frequent prefetch: publication can appear before its validity starts.\n    - cron: "17 2,5,8,11,14,17,20,23 * * *"
   push:
     branches: [main, "fix/tokmanni-spar-offer-freshness"]
     paths:
@@ -48,7 +44,7 @@ jobs:
           if [ -f eurospar-feed.generated.json ]; then
             cp eurospar-feed.generated.json src/app/components/ziiply/offerSearch/providers/eurospar-feed.json
           fi
-      - run: node scripts/tokmanni-spar-offer-freshness-audit.mjs
+      - name: Audit promoted/current feed\n        run: node scripts/tokmanni-spar-offer-freshness-audit.mjs
       - name: Commit refreshed EUROSPAR feed
         if: always()
         run: |
