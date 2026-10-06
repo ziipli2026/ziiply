@@ -1816,6 +1816,14 @@ export function productGroupGate(sourceName: string, targetName: string) {
 
   if (source.includes("jauheliha") && !target.includes("jauheliha")) return false;
 
+  // Bread must never fall through to an unrelated grocery item. This is a hard
+  // product-group gate, not merely a ranking preference.
+  const sourceIsBread = /\b(?:paahtoleip|ruisleip|ruispal|nakkileip|sampyl|patonk|leip)/.test(source);
+  if (sourceIsBread) {
+    const targetIsBread = /\b(?:paahtoleip|ruisleip|ruispal|nakkileip|sampyl|patonk|leip)/.test(target);
+    if (!targetIsBread) return false;
+  }
+
   const sourceIsFishStick = hasAnyToken(source, ["kalapuikko", "kalapuikot", "fiskpinnar"]);
   if (sourceIsFishStick) {
     const targetIsFishStick = hasAnyToken(target, ["kalapuikko", "kalapuikot", "fiskpinnar"]);
@@ -3156,7 +3164,7 @@ function isBreadComparisonCompatible(sourceName: string, candidateName: string):
   // Tuotteen nimessä ilmaistu olennainen leipäominaisuus säilytetään.
   // Esim. moniviljapaahtoleipä ei saa muuttua valkoiseksi paahtoleiväksi.
   for (const attribute of ["monivilja", "taysjyva", "kaura", "ruis"]) {
-    if (new RegExp("\b" + attribute).test(source) && !new RegExp("\b" + attribute).test(candidate)) {
+    if (new RegExp("\\b" + attribute).test(source) && !new RegExp("\\b" + attribute).test(candidate)) {
       return false;
     }
   }
