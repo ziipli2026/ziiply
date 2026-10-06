@@ -15,7 +15,7 @@ export function classifyLidlPublicPriceCard(card) {
     (card?.validFrom && card?.validThrough);
 
   if (hasPlus) return { priceKind:"lidl_plus", reason:"lidl-plus" };
-  if (hasEra || hasMultiBuy || hasDiscount || hasDatedWindow)
-    return { priceKind:"offer", reason:hasEra?"limited-lot":hasMultiBuy?"multi-buy":hasDiscount?"discount":"dated-window" };
+  if (hasEra || hasMultiBuy || hasDiscount || hasSuperPrice || hasDatedWindow)
+    return { priceKind:"offer", reason:hasEra?"limited-lot":hasMultiBuy?"multi-buy":hasDiscount?"discount":hasSuperPrice?"super-price":"dated-window" };
   return { priceKind:"regular", reason:"no-promotion-marker" };
 }
