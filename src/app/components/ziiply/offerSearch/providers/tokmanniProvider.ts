@@ -140,8 +140,13 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
       return price(visiblePriceText);
     })
     .filter((value): value is number => value != null);
+  const multiBuyUnitPrice = offerQuantity && multiBuyTotalPrice != null ? multiBuyTotalPrice / offerQuantity : null;
   const ordinaryCardPrice = multi
-    ? priceElementValues.find((value) => Math.abs(value - multiBuyTotalPrice!) > 0.0001) ?? null
+    ? priceElementValues.find((value) =>
+        multiBuyUnitPrice != null &&
+        value > multiBuyUnitPrice + 0.0001 &&
+        Math.abs(value - multiBuyTotalPrice!) > 0.0001
+      ) ?? null
     : null;
 
   const singleOfferPrice = price(offerMarker?.[1]);
@@ -181,8 +186,8 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
     offerUnit: offerQuantity ? "kpl" : "",
     multiBuyTotalPrice,
     multiBuyQuantity: offerQuantity,
-    multiBuyUnitPrice: offerQuantity && multiBuyTotalPrice != null ? multiBuyTotalPrice / offerQuantity : null,
-    singleEquivalentPrice: offerQuantity && multiBuyTotalPrice != null ? multiBuyTotalPrice / offerQuantity : offerPrice,
+    multiBuyUnitPrice,
+    singleEquivalentPrice: multiBuyUnitPrice ?? offerPrice,
     benefitText: multiText || (/Klubitarjous!/i.test(allText) ? "Klubitarjous" : "Tarjoushinta"),
     discountText: multiText,
     imageUrl,
