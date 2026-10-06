@@ -125,3 +125,13 @@ assert.equal((source.match(/if \(event\.key === "Enter"\) void searchByEan\(\);/
 assert.ok((source.match(/searchScannerEnteredEanV830/g) || []).length >= 6, "manual/HID scanner routes use unified helper");
 assert.equal((source.match(/scannerStorePromptV828 &&/g) || []).length, 1, "store prompt is rendered once at scanner modal root");
 console.log("V830 unified scanner entry/store-session regression: PASS");
+
+
+// V831: closing scanner must cancel a pending 5 s default-Yes store prompt.
+const closeEanV831 = source.split("async function closeEanModal()")[1]?.split("function openEanModal()")[0];
+assert.ok(closeEanV831, "scanner close function exists");
+assert.match(closeEanV831, /clearInterval\(scannerStorePromptTimerRefV828\.current\)/);
+assert.match(closeEanV831, /resolvePendingStorePromptV831\(false\)/);
+assert.match(closeEanV831, /setScannerStorePromptV828\(null\)/);
+assert.match(closeEanV831, /scannerInStoreRefV828\.current = false/);
+console.log("V831 scanner close cancels store prompt regression: PASS");
