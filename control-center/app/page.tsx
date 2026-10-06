@@ -70,6 +70,7 @@ export default async function Page(){
   const failedRuns24h=d.runs.filter(r=>!r.ok&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
   const recoveredFailures=d.runs.filter((r,i)=>!r.ok&&d.runs.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
   const currentFailures=latestBySource.filter(r=>!r.ok);
+  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const previous=d.runs.find(x=>x.chain===r.chain&&x.source===r.source&&x!==r);const delta=previous&&previous.offer_count?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const level=!r.ok||r.offer_count===0?"red":ageH>36||delta!==null&&delta<=-50?"yellow":"green";return {...r,ageH,delta,level};});
   const attention=[
     ...activeCandidates.map(p=>({level:"red",title:p.chain+": aktiivinen candidate",detail:p.publication_id+" · "+p.offer_count+" tarjousta · "+p.valid_from+"–"+p.valid_until})),
     ...currentFailures.map(r=>({level:"red",title:r.chain+": viimeisin ajo epäonnistui",detail:r.source+" · "+r.offer_count+" · "+r.outcome})),
@@ -132,6 +133,11 @@ export default async function Page(){
     <section style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {statusCard("Virheitä 24 h",failedRuns24h.length,failedRuns24h.length?"red":"green",failedRuns24h.length?"Tuore automaatiovirhe vaatii tarkistuksen":"Ei tuoreita kirjattuja virheitä")}
       {statusCard("Palautuneet virheet",recoveredFailures.length,recoveredFailures.length?"yellow":"green",recoveredFailures.length?"Uudempi onnistunut ajo löytyy samalle lähteelle":"Ei palautumishistoriaa 14 vrk ikkunassa")}
+    </section>
+
+    <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Automaatiot / lähteet</h2>
+      {sourceHealth.length===0?<div style={{color:"#667085"}}>Ei health-lähteitä 14 vrk ajalta.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Lähde","Viimeisin ajo","Ikä","Tarjouksia","Muutos","Outcome"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{sourceHealth.map(r=><tr key={r.chain+"::"+r.source}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.source}</td><td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI")}</td><td style={{padding:8}}>{r.ageH.toLocaleString("fi-FI")} h</td><td style={{padding:8,fontWeight:800}}>{r.offer_count}</td><td style={{padding:8}}>{r.delta===null?"—":(r.delta>0?"+":"")+r.delta.toLocaleString("fi-FI")+" %"}</td><td style={{padding:8}}>{r.outcome}</td></tr>)}</tbody></table></div>}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
