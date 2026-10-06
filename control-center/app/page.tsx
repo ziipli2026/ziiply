@@ -96,6 +96,8 @@ export default async function Page(){
   const eanStaleRatio=d.ean&&d.ean.lidl_price_rows?Math.round(d.ean.lidl_stale_prices/d.ean.lidl_price_rows*1000)/10:0;
   const eanUnpriced=d.ean?Math.max(0,d.ean.total-d.ean.lidl_price_eans):0;
   const eanUnpricedRatio=d.ean&&d.ean.total?Math.round(eanUnpriced/d.ean.total*1000)/10:0;
+  const eanImageCoverage=d.ean&&d.ean.total?Math.round(d.ean.with_image/d.ean.total*1000)/10:0;
+  const eanCategoryCoverage=d.ean&&d.ean.total?Math.round(d.ean.classified/d.ean.total*1000)/10:0;
   const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
   const severeFailureStreaks=sourceHealth.filter(s=>s.streak>=3);
   const sourceCountAnomalies=sourceHealth.filter(s=>s.source!=="s-kaupat-protocol"&&s.delta!==null&&Math.abs(s.delta)>=50);
@@ -158,6 +160,8 @@ export default async function Page(){
       {statusCard("Vanhentuneiden osuus",eanStaleRatio+" %",eanStaleRatio>50?"red":eanStaleRatio>25?"yellow":"green","Lidl EAN-hintariveistä")}
       {statusCard("EAN-pankin nähty 24 h",d.ean?d.ean.seen_24h:0,d.ean&&d.ean.seen_24h>0?"green":"yellow","Käyttäjien viimeisen 24 h aikana skannaamat/esiin tuomat EANit")}
       {statusCard("Lidl EAN ilman hintaa",eanUnpricedRatio+" %",eanUnpricedRatio>50?"yellow":"green",eanUnpriced+" EANia ilman Lidl-hintariviä")}
+      {statusCard("EAN-kuvakattavuus",eanImageCoverage+" %",eanImageCoverage<75?"yellow":"green",d.ean?d.ean.missing_image+" EANia ilman kuvaa":"Ei EAN-dataa")}
+      {statusCard("EAN-kategoriakattavuus",eanCategoryCoverage+" %",eanCategoryCoverage<75?"yellow":"green",d.ean?d.ean.missing_category+" EANia ilman kategoriaa":"Ei EAN-dataa")}
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:14,marginBottom:18}}>
