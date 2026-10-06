@@ -82,14 +82,16 @@ export default async function Page(){
     ...(quality.missingCategory?[{level:"yellow",title:"Aktiivisista julkaisuista puuttuu kategorioita",detail:quality.missingCategory+" riviä"}]:[])
   ];
   const states=cards.map(c=>state(c.runs));
-  const overall=activeCandidates.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
+  const hasCriticalQuality=quality.missingPrice>0;
+  const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0;
+  const overall=activeCandidates.length||currentFailures.length||hasCriticalQuality||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length||hasQualityWarning?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
   return <main style={{maxWidth:1500,margin:"0 auto",padding:28}}>
     <header style={{display:"flex",justifyContent:"space-between",alignItems:"end",marginBottom:22}}>
       <div><div style={{fontSize:12,letterSpacing:2,fontWeight:800,color:"#64748b"}}>ZIIPLY / INTERNAL</div>
       <h1 style={{margin:"5px 0",fontSize:36}}>Control Center</h1>
       <div style={{color:"#64748b"}}>Tarjousjulkaisut · automaatiot · EAN-pankki</div></div>
-      <div style={{fontSize:19,fontWeight:850}}>{dot(overall[0])} {overall[1]}</div>
+      <div style={{textAlign:"right"}}><div style={{fontSize:19,fontWeight:850}}>{dot(overall[0])} {overall[1]}</div><div style={{fontSize:11,color:"#667085",marginTop:5}}>Päivitetty {new Date().toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</div></div>
     </header>
 
     {d.error&&<div style={{background:"#fee4e2",border:"1px solid #fecdca",padding:16,borderRadius:12,marginBottom:16}}>🔴 {d.error}</div>}
