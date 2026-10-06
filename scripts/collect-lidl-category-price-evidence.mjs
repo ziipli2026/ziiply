@@ -4,6 +4,8 @@
  * Reads official public category and campaign pages in bulk.
  * Never promotes display/campaign prices to verified checkout or regular prices.
  */
+import { classifyLidlPublicPriceCard } from "./lib/lidl-public-price-classifier.mjs";
+
 const urls=process.argv.slice(2).filter(x=>/^https:\/\/www\.lidl\.fi\/(?:h|c)\//.test(x));
 if(!urls.length) throw new Error("Pass one or more official Lidl category/campaign URLs");
 
@@ -164,7 +166,14 @@ for(const r of raw){
   const prev=byKey.get(key);
   if(!prev||priority(r)>priority(prev)) byKey.set(key,r);
 }
-const records=[...byKey.values()];
+const records=[...byKey.values()].map(r=>{
+  const classification=classifyLidlPublicPriceCard({
+    title:r.productName,evidenceText:r.evidenceText,promotionText:r.evidenceText,
+    isLidlPlus:r.isLidlPlus,isMultiBuy:r.isMultiBuy,
+    validFrom:r.validFrom,validThrough:r.validThrough
+  });
+  return {...r,priceKind:classification.priceKind,priceClassificationReason:classification.reason};
+});
 const strongRecords=records.filter(r=>r.availabilityKind==='continuous-listing'||r.availabilityKind==='continuous-api'||r.productMatchConfidence==='exact-name');
 const reviewQueue=records.filter(r=>r.availabilityKind==='dated-campaign'&&r.productMatchConfidence!=='exact-name');
 process.stdout.write(JSON.stringify({
