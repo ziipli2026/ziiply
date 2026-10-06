@@ -6,6 +6,7 @@
  */
 import { classifyLidlPublicPriceCard } from "./lib/lidl-public-price-classifier.mjs";
 import { lidlEvidenceFreshUntil } from "./lib/lidl-evidence-freshness.mjs";
+import { readFileSync } from "node:fs";
 
 const urls=process.argv.slice(2).filter(x=>/^https:\/\/www\.lidl\.fi\/(?:h|c)\//.test(x));
 if(!urls.length) throw new Error("Pass one or more official Lidl category/campaign URLs");
