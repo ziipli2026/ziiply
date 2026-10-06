@@ -84,7 +84,8 @@ export async function fetchPrismaCampaignOffersV1(
           matchScore:1,rawText:title+" "+sectionTitle,
           ean,category,categoryPath:[...hierarchy].reverse().join(" > ")||category,
           mainCategory:category,productGroup:hierarchy[hierarchy.length-2]||"",subCategory:hierarchy[0]||"",
-          campaignType:"campaign",campaignSection:sectionTitle,storeId
+          campaignType:"campaign",campaignSection:sectionTitle,storeId,
+          validUntil:String(pricing.campaignPriceValidUntil??"").trim()||undefined
         } as ZiiplyOfferSearchResult);
       }
     }
