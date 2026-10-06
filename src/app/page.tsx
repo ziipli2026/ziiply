@@ -14036,6 +14036,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ean,
       };
       const nextCart = [...baseCart, newItem];
+      // V814: uusi oikealla skannerilla kaupassa lisätty EAN on samalla kerätty.
+      // Käsin syötetty/liitetty EAN ei saa tätä kuittausta.
+      if (isScannerAddV787 && String(newItem.id || "")) {
+        setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
+      }
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
@@ -16113,6 +16118,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return normalize(item.name) === normalize(productName);
         })
       : undefined;
+
+    // V814: etänä koriin lisätyn EAN-tuotteen ensimmäinen fyysinen skannaus
+    // kuittaa tuotteen kerätyksi muuttamatta määrää. Vasta seuraava skannaus +1.
+    if (isScannerAddV787 && scannerExistingItemV798) {
+      const collectionKeyV814 = String(scannerExistingItemV798.id ?? "");
+      if (collectionKeyV814 && !checkedCartItems[collectionKeyV814]) {
+        setCheckedCartItems((current) => ({ ...current, [collectionKeyV814]: true }));
+        triggerHaptic();
+        setEanInput("");
+        setEanResults([]);
+        setEanLoading(false);
+        setEanSearchStartedAutomatically(false);
+        eanAutoSearchActiveRef.current = false;
+        setLastAutoEanSearch("");
+        setEanMessage("Tuote kerätty.");
+        setEanScannerMessage("✓ Kerätty");
+        window.setTimeout(() => {
+          setEanScannerMessage((current) => current === "✓ Kerätty" ? "" : current);
+        }, 2200);
+        return;
+      }
+    }
 
     triggerHaptic();
     // V798: repeat-scan ei saa näyttää uuden tuotteen vihreää "Lisätty koriin" -flashia.
@@ -22957,6 +22984,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
             onToggleItem={(item: any) => {
               const key = String(item.id ?? "");
+              const itemEanV814 = normalizeEan(item.ean || item.product?.ean || "");
+              // V814: EAN-tuotetta ei koskaan kuitata käsin kerätyksi tai takaisin.
+              // Fyysisen EAN-tuotteen keräilykuittaus syntyy vain oikeasta skannauksesta.
+              if (isUsableEan(itemEanV814)) {
+                showCartToast("EAN-tuote kuitataan kerätyksi vain skannaamalla viivakoodi.");
+                return;
+              }
+              // EANiton käsin lisätty ostoslistatuote voidaan kuitata normaalisti.
               setCheckedCartItems((current) => ({
                 ...current,
                 [key]: !current[key],
