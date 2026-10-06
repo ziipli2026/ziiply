@@ -20,3 +20,4 @@ function mapBlock(block){
 }
 (async()=>{let all=[];for(let p=1;p<=5;p++){const u=new URL(URL0);if(p>1)u.searchParams.set("p",p);const res=await fetch(u,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"}});const html=await res.text();const bs=blocks(html), mapped=bs.map(mapBlock), ok=mapped.filter(Boolean);console.log("PAGE",p,{blocks:bs.length,mapped:ok.length,rejected:mapped.length-ok.length,rejectedSamples:bs.filter((_,i)=>!mapped[i]).slice(0,3).map(textOf)});all.push(...ok)}
 const seen=new Set(),ded=all.filter(x=>{const k=[norm(x.name),x.price,x.normalPrice,x.qty].join("|");if(seen.has(k))return false;seen.add(k);return true});console.log("FINAL",{mapped:all.length,deduped:ded.length});console.log("SAMPLES",ded.slice(0,10)); if(ded.length<180)process.exitCode=3;})();
+// trigger workflow
