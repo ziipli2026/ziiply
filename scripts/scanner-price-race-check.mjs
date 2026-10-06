@@ -7,7 +7,7 @@ assert.ok(section, "scanner S/K enrichment block exists");
 assert.match(section, /requestedSEpochV806/);
 assert.match(section, /requestedKEpochV806/);
 assert.match(section, /isSameEan\(candidate\.ean, getEanSearchVariants\(ean\)\)/);
-assert.equal((section.match(/comparisonUserStartedRefV768\.current\) scheduleComparisonUpdate\(nextCart\)/g)||[]).length,2,"both async updates respect manual Halpuuta");
+assert.equal((section.match(/comparisonUserStartedRefV768\.current\) scheduleComparisonUpdate\(nextCart\)/g)||[]).length,3,"all S/Lidl/K async price updates respect manual Halpuuta");
 assert.equal((section.match(/persistCartImmediately\(nextCart\)/g)||[]).length,0,"cart persistence remains in effect");
 
 function storeTracker(initial) {
