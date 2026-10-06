@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'scripts/collect-lidl-category-price-evidence.mjs'
+      - 'scripts/build-lidl-ean-price-plan.mjs'
+      - 'scripts/lib/lidl-public-price-classifier.mjs'
+      - 'scripts/lib/lidl-evidence-freshness.mjs'
+      - 'data/lidl/verified-ean-links.json'
       - '.github/workflows/lidl-category-price-evidence.yml'
   workflow_dispatch:
   schedule:
