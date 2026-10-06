@@ -19,7 +19,7 @@ function stripTags(s){return decodeHtml(s.replace(/<br\s*\/?>/gi,"\n").replace(/
 function isoDate(d,m,y){return String(y).padStart(4,"0")+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");}
 
 const seoEscaped=frameHtml.match(/\\\\\"seoPageText\\\\\"\s*:\s*\\\\\"([\\s\\S]*?)\\\\\"\s*,\\\\\"metaDescription/i)?.[1]??"";
-const seoRaw=seoEscaped||frameHtml.match(/["']seoPageText["']\s*:\s*["']([\s\S]*?)["']\s*[,}]/i)?.[1]??frameHtml.match(/seoPageText[^>]*>([\s\S]*?)<\//i)?.[1]??"";
+const seoRaw=seoEscaped || (frameHtml.match(/["']seoPageText["']\s*:\s*["']([\s\S]*?)["']\s*[,}]/i)?.[1] ?? frameHtml.match(/seoPageText[^>]*>([\s\S]*?)<\//i)?.[1] ?? "");
 const seoText=stripTags(seoRaw.replace(/\\\\n/g,"\n").replace(/\\\\u003[cC]/g,"<").replace(/\\\\u003[eE]/g,">").replace(/\\\\\"/g,'"').replace(/\\\\\\\\/g,"\\"));
 const issue=seoText.match(/\b(\d{1,2})\/(\d{2})\b/)?.[0]??null;
 const validityMatch=seoText.match(/\b(\d{1,2})[.]\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.](20\d{2})\b/);
