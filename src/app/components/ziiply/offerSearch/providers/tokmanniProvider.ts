@@ -327,7 +327,7 @@ async function fetchTokmanniOffersFresh() {
     return true;
   });
 
-  const datedItems = dedupedItems.map((item) => ({
+  const datedItems: TokmanniOffer[] = dedupedItems.map((item: TokmanniOffer): TokmanniOffer => ({
     ...item,
     validitySource: "tokmanni-current-weekly-listing",
     validFrom: weeklyValidity.validFrom,
