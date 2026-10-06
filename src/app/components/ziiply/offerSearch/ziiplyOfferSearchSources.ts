@@ -956,13 +956,19 @@ export async function searchZiiplyOffers(
   // Prisma CMS/DISCOUNTED overlap V1: suppress only an offer-tab copy that
   // is independently present in this same Prisma store's CMS dataset with
   // the same EAN and numeric price. CMS remains the campaign-tab copy.
+  const prismaOverlapPriceV1 = (row: any) => {
+    const direct = Number(row?.price);
+    if (row?.price != null && row?.price !== "" && Number.isFinite(direct) && direct > 0) return direct;
+    const parsed = Number(String(row?.priceText ?? "").replace(/[^0-9,.-]/g, "").replace(",", "."));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
   const prismaCmsOverlapKeysV1 = new Set(
     (prismaCampaignResults as any[])
       .map((row) => {
         const ean = String(row?.ean ?? "").trim();
-        const price = Number(row?.price);
+        const price = prismaOverlapPriceV1(row);
         const store = normalizeOfferUniqueText(row?.storeLabel ?? "");
-        return ean && Number.isFinite(price) && price > 0 && store
+        return ean && price != null && store
           ? `${store}|ean:${ean}|price:${price.toFixed(4)}`
           : "";
       })
@@ -972,7 +978,7 @@ export async function searchZiiplyOffers(
     const ean = String(row?.ean ?? "").trim();
     const price = Number(row?.price);
     const store = normalizeOfferUniqueText(row?.storeLabel ?? "");
-    if (!ean || !Number.isFinite(price) || price <= 0 || !store) return true;
+    if (!ean || price == null || !store) return true;
     return !prismaCmsOverlapKeysV1.has(`${store}|ean:${ean}|price:${price.toFixed(4)}`);
   }) as ZiiplyOfferSearchResult[];
 
