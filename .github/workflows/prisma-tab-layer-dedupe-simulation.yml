@@ -1,4 +1,5 @@
 name: Prisma Tab Layer Dedupe Simulation
+# V826 test-branch rerun: presentation-boundary verification
 on:
   workflow_dispatch:
   push:
