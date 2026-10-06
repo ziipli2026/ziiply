@@ -13635,6 +13635,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     void searchByEan(code, { fromScanner: true, collectionEligible: false });
   }
 
+  async function logEanScanEventV845(ean: string, outcome: string, message?: string, details: Record<string, unknown> = {}) {
+    try {
+      await fetch("/api/ean-scan-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ean, outcome, message, source: "physical-scanner", details }),
+        keepalive: true,
+      });
+    } catch {
+      // Scanner analytics must never affect the scan flow.
+    }
+  }
+
   async function finishScannedEan(code: string) {
     const normalizedCode = normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
@@ -13704,6 +13717,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerOpen(true);
     setEanScannerMessage("");
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
+    void logEanScanEventV845(normalizedCode, "scan_started", "Fyysinen EAN-skannaus aloitettu", { collectionEligible: scannerInStoreV828 });
     void searchByEan(normalizedCode, { fromScanner: true, collectionEligible: scannerInStoreV828 });
   }
 
@@ -15665,6 +15679,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
         setEanMessage(scannerNoResultMessageV525);
+        void logEanScanEventV845(ean, "unresolved", scannerNoResultMessageV525, { reason: "s-k-off-no-result" });
         pushScannerDebugV493(`STOP scanner mode: S/K/OFF no result ean=${ean}`);
         setEanScannerMessage(scannerNoResultMessageV525);
         window.setTimeout(() => {
@@ -15676,6 +15691,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
+      if (isPhysicalSearchScanV825 || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
+        void logEanScanEventV845(ean, "unknown", "Tuotetta ei tunnistettu", { reason: "unknown-ean" });
+      }
 
       // Täysin tunnistamatonta EANia ei lisätä koriin. EAN voidaan edelleen
       // havaita/tallentaa taustalla, mutta korissa pitää olla vähintään tuotteen nimi.
