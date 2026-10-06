@@ -3,9 +3,11 @@ import catalog from "../../data/lidl/official-grocery-candidates-v44-2026-10-01.
 import stapleEvidence from "../../data/lidl/independent-staple-ean-evidence-2026-10-02.json";
 import officialImages from "../../data/lidl/official-product-images.generated.json";
 import paistopistePriceAnnouncement from "../../data/lidl/official-paistopiste-price-announcement-2026-04-20.json";
+import verifiedEanLinks from "../../data/lidl/verified-ean-links.json";
 
 const historicalPaistopistePriceById = new Map(paistopistePriceAnnouncement.records.map(record => [record.lidlProductId, record]));
 const officialImageByProductId = new Map(officialImages.records.map(record => [record.lidlProductId, record.imageUrl]));
+const verifiedEanByProductId = new Map(verifiedEanLinks.map(record => [String(record.lidlProductId).trim(), String(record.ean).trim()]));
 
 const quarantined = new Set(catalog.quarantinedProductIds.map(id => String(id).trim()));
 const norm = (s: string) => s.toLocaleLowerCase("fi-FI").normalize("NFKD")
@@ -97,10 +99,12 @@ export function searchLidlResearch(query:string,limit=15){
   historicalAnnouncedPriceEur:historicalPaistopistePriceById.get(r.lidlProductId.trim())?.announcedNewPriceEur ?? null,
   historicalPriceEffectiveFrom:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.effectiveFrom : null,
   historicalPriceSource:historicalPaistopistePriceById.has(r.lidlProductId.trim()) ? paistopistePriceAnnouncement.source : null,
-  ean:null,price:null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
+  // Keep `ean` null so research rows cannot become checkout/cart identities by accident.
+  // `verifiedEan` is a separately evidenced identity hint and carries no price/stock claim.
+  ean:null,verifiedEan:verifiedEanByProductId.get(r.lidlProductId.trim()) ?? null,price:null,observedPriceEur:"displayedPriceEur" in r ? r.displayedPriceEur ?? null : null,
   observedUnitPriceText:"unitPriceText" in r ? r.unitPriceText ?? null : null,
   storeItems:[],source:"lidl.fi-public-research",priceVerified:false,
-  storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:"unverified",
+  storeAvailability:"unknown",observedDate:r.observedDate,eanMatchStatus:verifiedEanByProductId.has(r.lidlProductId.trim()) ? "verified_external_evidence" : "unverified",
   evidenceSource:"evidenceSource" in r ? r.evidenceSource : null,
   assortmentEvidence:"assortmentEvidence" in r ? r.assortmentEvidence : "lidl-public-catalog-observation",
   note:"assortmentEvidence" in r && r.assortmentEvidence==="lidl-national-range-announcement"
