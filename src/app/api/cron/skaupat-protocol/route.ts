@@ -22,8 +22,10 @@ export async function GET(request: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await recordPublicationRun({ chain: "S", source: "s-kaupat-protocol", ok: false, count: 0, outcome: "protocol-cron-error", details: { error: message } }).catch(() => undefined);
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : String(error) },
+      { ok: false, error: message },
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
