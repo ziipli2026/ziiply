@@ -13444,7 +13444,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function confirmPhysicalScannerStoreV818(): Promise<boolean> {
-    if (scannerStoreCheckDoneRefV791.current) return scannerInStoreRefV828.current;
+    const currentSelectedScannerNamesV832 = [
+      selectedChains.s ? String(activeStores.sStoreName || "").trim() : "",
+      selectedChains.k ? String(activeStores.kStoreName || "").trim() : "",
+      selectedChains.lidl ? String(selectedLidlStoreV750?.name || "").trim() : "",
+      selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
+    ].filter((name) => name && !name.startsWith("Valitse ensin"));
+    if (scannerStoreCheckDoneRefV791.current) {
+      const confirmedName = normalize(scannerConfirmedStoreNameRefV828.current);
+      const stillMatchesCurrentStore = !confirmedName || currentSelectedScannerNamesV832.some((name) => normalize(name) === confirmedName);
+      if (stillMatchesCurrentStore) return scannerInStoreRefV828.current;
+      // V832: store context changed while scanner stayed open. Never inherit
+      // the previous store's collection permission into the new store.
+      scannerStoreCheckDoneRefV791.current = false;
+      scannerInStoreRefV828.current = false;
+      scannerConfirmedStoreNameRefV828.current = "";
+    }
 
     const eanCartItems = mergeCartPoolsByIdV129(cartRefV124.current).filter((item) =>
       isUsableEan(normalizeEan(item.ean || (item.product as any)?.ean || "")),
