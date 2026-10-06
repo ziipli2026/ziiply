@@ -308,5 +308,10 @@
     "lidlProductId": "10038547",
     "ean": "0000020010447",
     "evidence": "Lidl Finland identifies ITALIAMO Ilmakuivattu kinkku productId 10038547 as 100 g. Current Swedish Lidl store product data identifies ITALIAMO Prosciutto crudo 100 g with EAN 0000020010447; exact brand, product type and pack size match."
+  },
+  {
+    "lidlProductId": "10038567",
+    "ean": "4335619372030",
+    "evidence": "Lidl Finland identifies ITALIAMO Pikkuleipälajitelma productId 10038567 as Toscana Style 450 g. Independent product data identifies Italiamo Tuscan Style Pastry Mix 450 g with EAN 4335619372030; exact brand, product name/theme and pack size match."
   }
 ]
