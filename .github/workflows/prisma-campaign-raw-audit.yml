@@ -35,10 +35,10 @@ jobs:
               path: "tuotteet/kampanjat",
               platform: "WEB",
               availabilityDate: date,
-              userConsent: { marketing: false }
+              userConsent: { marketing: false, marketingId: "ziiply-gosta", useCustomerId: false, sessionId: "ziiply-gosta", loop54: true }
             }
           };
-          const extensions = { persistedQuery: { version: 1, sha256Hash: hash } };
+          const extensions = { clientLibrary: { name: "@apollo/client", version: "4.2.12" }, persistedQuery: { version: 1, sha256Hash: hash } };
           const qs = new URLSearchParams({
             operationName: "RemoteGetPageContent",
             variables: JSON.stringify(variables),
@@ -47,7 +47,8 @@ jobs:
 
           const res = await fetch("https://api.s-kaupat.fi/?" + qs, {
             headers: {
-              "accept": "application/json",
+              "accept": "application/graphql-response+json,application/json;q=0.9",
+              "accept-language": "fi",
               "x-client-name": "skaupat-web",
               "x-client-version": "production-14a82a5b48cd1dd42c0592db0037514ed3c84de8",
               "origin": "https://www.s-kaupat.fi",
