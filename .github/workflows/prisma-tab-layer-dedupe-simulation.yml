@@ -21,9 +21,15 @@ jobs:
           cat > scripts/.tmp-tab-layer-dedupe.mts <<'TS'
           import { searchSelectedSKaupatOffersV11 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
           import { fetchPrismaCampaignOffersV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider";
-          import { hidePrismaOfferCopiesAlreadyInCampaignTabV804 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore";
           const storeName="Prisma Hyvinkää",storeId="634976534",MASTER="__ziiply_all_offers__";
           const ctx={storeName,sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
+          const hidePrismaOfferCopiesAlreadyInCampaignTabV804=(visibleResults:any[],masterResults:any[])=>{
+            const numericPrice=(item:any)=>{const direct=Number(item?.price);if(Number.isFinite(direct))return direct;const parsed=Number(String(item?.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."));return Number.isFinite(parsed)?parsed:null};
+            const identity=(item:any)=>{const ean=String(item?.ean??item?.gtin??item?.barcode??"").trim();const price=numericPrice(item);return ean&&price!==null?ean+"|"+price.toFixed(4):""};
+            const prismaCampaignKeys=new Set(masterResults.filter((item:any)=>item?.campaignType==="campaign"&&/^prisma(?:\\s|$)/i.test(String(item?.storeLabel??item?.storeName??""))).map(identity).filter(Boolean));
+            if(!prismaCampaignKeys.size)return visibleResults;
+            return visibleResults.filter((item:any)=>item?.campaignType==="campaign"||!prismaCampaignKeys.has(identity(item)));
+          };
           const offers:any[]=await searchSelectedSKaupatOffersV11(MASTER,ctx as any);
           const campaigns:any[]=await fetchPrismaCampaignOffersV1(MASTER,{storeLabel:"S-kaupat",url:"https://www.s-kaupat.fi/tuotteet/kampanjat"} as any,storeName);
           const price=(x:any)=>{const n=Number(x.price);if(Number.isFinite(n))return n;return Number(String(x.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."))};
