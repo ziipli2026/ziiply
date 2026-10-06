@@ -14,3 +14,5 @@ jobs:
         with:
           node-version: '20'
       - run: node scripts/simulate-tokmanni-mapblock-live-20261006.cjs
+
+# trigger-v2
