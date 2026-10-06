@@ -12609,7 +12609,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 15,
+      schema: 16,
       items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -12644,7 +12644,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v14",
+      "matcher-v15",
       item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
@@ -12680,11 +12680,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const productItemName = fixText(String(item.product?.name || ""));
       const cartItemSize = parseMetricSize(cartItemName);
       const productItemSize = parseMetricSize(productItemName);
-      const comparisonSourceName =
+      let comparisonSourceName =
         productItemName && (!cartItemName || (!cartItemSize && productItemSize))
           ? productItemName
           : cartItemName || productItemName;
       const comparisonSourceEan = normalizeEan(item.ean || item.product?.ean);
+
+      // Scanner/OFF/bank rows can carry a shortened or stale cart label. Before
+      // semantic replacement matching, refresh the authoritative identity from
+      // Ziiply's EAN bank. Otherwise an unknown EAN can be compared using the
+      // wrong source semantics and yield unrelated products.
+      if (comparisonSourceEan && (!comparisonSourceName || Number(item.price || 0) <= 0)) {
+        try {
+          const identityResponse = await fetch(`/api/ean-bank?ean=${encodeURIComponent(comparisonSourceEan)}`, { cache: "no-store" });
+          const identityData = identityResponse.ok ? await identityResponse.json().catch(() => null) : null;
+          const identityName = fixText(String(identityData?.product?.name || "")).trim();
+          if (identityName) comparisonSourceName = identityName;
+        } catch {}
+      }
 
       if (withinS) {
         const hyperId = activeArea.sStoreId;
