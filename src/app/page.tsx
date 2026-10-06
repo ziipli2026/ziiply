@@ -8913,44 +8913,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V146: Göstan tarjoushaun orkestrointi, dedupe ja näkyvien tulosten suodatus
   // on siirretty offerSearch/ziiplyOfferSearchCore.ts -moduuliin.
 
-  const dedupeCrossTabIdenticalOffersV167 = (items: any[]) => {
-    const campaignKeys = new Set<string>();
-
-    const normalizeCrossTab = (value: unknown) =>
-      String(value ?? "")
-        .normalize("NFD")
-        .replace(/[\\u0300-\\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9åäö\\s.-]/gi, " ")
-        .replace(/\\s+/g, " ")
-        .trim();
-
-    const makeCommercialKey = (item: any) => {
-      const ean = normalizeCrossTab(item?.ean || item?.gtin || item?.barcode || "");
-      const store = normalizeCrossTab(item?.storeLabel || item?.storeName || item?.storeType || item?.shopName || "");
-      const chain = normalizeCrossTab(item?.chain || "");
-      const price = normalizeCrossTab(item?.priceText || item?.offerPrice || item?.price || "");
-      const from = normalizeCrossTab(item?.validFrom || item?.startDate || "");
-      const until = normalizeCrossTab(item?.validUntil || item?.endDate || "");
-      const name = normalizeCrossTab(item?.title || item?.name || item?.productName || "");
-      const identity = ean ? `ean:${ean}` : `name:${name}`;
-      if (!identity || identity === "name:") return "";
-      return `${chain}|store:${store}|${identity}|price:${price}|from:${from}|until:${until}`;
-    };
-
-    for (const item of items) {
-      if (item?.campaignType === "campaign") {
-        const key = makeCommercialKey(item);
-        if (key) campaignKeys.add(key);
-      }
-    }
-
-    return items.filter((item) => {
-      if (item?.campaignType === "campaign") return true;
-      const key = makeCommercialKey(item);
-      return !key || !campaignKeys.has(key);
-    });
-  };
   const cleanOfferSearchResultsV106 = useMemo(() => {
     // V533: Kun käyttäjä avaa tuoteryhmän, näkyvä lista suodatetaan samasta
     // master-datasetistä kuin tuoteryhmälistan määrät. Näin kategoriapainikkeen
@@ -8960,8 +8922,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? gostaMasterOfferResultsV528
         : offerSearchResults;
 
-    const crossTabDeduped = dedupeCrossTabIdenticalOffersV167(visibleSourceResults);
-    return cleanZiiplyGostaOfferResultsV146(crossTabDeduped.filter((item: any) =>
+    return cleanZiiplyGostaOfferResultsV146(visibleSourceResults.filter((item: any) =>
       gostaContentTabV1 === "campaigns" ? item?.campaignType === "campaign" : item?.campaignType !== "campaign"
     ));
   }, [offerSearchResults, offerCardFilterV106, gostaMasterOfferResultsV528, gostaContentTabV1]);
