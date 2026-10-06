@@ -12609,7 +12609,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 16,
+      schema: 17,
       items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -12644,7 +12644,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v15",
+      "matcher-v16",
       item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
@@ -12694,10 +12694,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         try {
           const identityResponse = await fetch(`/api/ean-bank?ean=${encodeURIComponent(comparisonSourceEan)}`, { cache: "no-store" });
           const identityData = identityResponse.ok ? await identityResponse.json().catch(() => null) : null;
-          const identityName = fixText(String(identityData?.product?.name || "")).trim();
+          const bankProduct = identityData?.product || null;
+          const bankName = fixText(String(bankProduct?.name || "")).trim();
+          const bankBrand = fixText(String(bankProduct?.brand || "")).trim();
+          const bankQuantity = fixText(String(bankProduct?.quantity || "")).trim();
+          const identityName = [bankBrand, bankName, bankQuantity]
+            .filter(Boolean)
+            .filter((part, index, all) => index === 0 || normalize(part) !== normalize(all[index - 1] || ""))
+            .join(" ")
+            .trim();
           if (identityName) comparisonSourceName = identityName;
         } catch {}
       }
+
+      // Hard safety invariant for comparison: if the source identity itself is
+      // still not specific enough to establish a product family, do not invent a
+      // substitute from arbitrary provider results. Unknown is safer than Piltti/chicken.
+      const sourceFamilyKnownV823 = /\b(?:paahtoleip|ruisleip|ruispal|nakkileip|sampyl|patonk|leip|maito|piima|jogur|juusto|voi|margari|kahvi|tee|kana|broileri|nauta|sika|jauheliha|makkara|kala|lohi|pasta|riisi|muro|mysli|mehu|limonadi|vesi|olut|siideri|suklaa|keksi|sose|lastenruoka)\b/.test(normalize(comparisonSourceName));
 
       if (withinS) {
         const hyperId = activeArea.sStoreId;
@@ -12847,7 +12860,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               ? sCandidates.find((candidate) =>
                   normalizeEan(candidate.ean) === comparisonSourceEan && getProductPrice(candidate) > 0)
               : undefined;
-            const best = exactS || pickBestSProduct(sCandidates, comparisonSourceName, comparisonSourceEan);
+            const best = exactS || (sourceFamilyKnownV823
+              ? pickBestSProduct(sCandidates, comparisonSourceName, comparisonSourceEan)
+              : undefined);
             if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: normalizeEan(best.ean) === comparisonSourceEan && comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
           } catch { failed = true; }
         }
@@ -12855,7 +12870,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
-            const best = await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan, true);
+            const best = sourceFamilyKnownV823
+              ? await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan, true)
+              : undefined;
             if (best) {
               const product = convertKProductToProduct(best);
               k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
