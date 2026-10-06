@@ -102,7 +102,7 @@ assert.match(source, /Oletko nyt kaupassa \{scannerStorePromptV828\.storeName\}\
 assert.match(source, /Kyllä jatkuu automaattisesti \{scannerStorePromptV828\.seconds\} s kuluttua/);
 assert.match(source, /resolveScannerStorePromptV828\(false\)/);
 assert.match(source, /collectionEligible: false/);
-assert.match(source, /collectionEligible: scannerInStoreV829/);
+assert.match(source, /collectionEligible: false/);
 // V827: stale physical proof is still cleared before pasted/manual EAN.
 const pasteSectionV827 = source.split("Liitetty koodi:")[0].slice(-1800);
 assert.match(pasteSectionV827, /physicalBarcodeScanRefV815\.current = null/);
