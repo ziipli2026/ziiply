@@ -804,7 +804,7 @@ export async function GET(request: Request) {
       const storeName = getParam(searchParams, "tokmanniStoreName") || "Tokmanni";
       const fetched = await fetchTokmanniOffers();
       const results = (fetched as unknown as UnknownRecord[])
-        .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName }))
+        .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName, availabilityScope: "chain-wide-online-offer", storeAvailabilityVerified: false }))
         .filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
         { ok: true, query: q, provider: "tokmanni", storeName, results },
