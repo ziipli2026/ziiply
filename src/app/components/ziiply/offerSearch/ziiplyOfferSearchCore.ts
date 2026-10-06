@@ -362,7 +362,9 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(productTitle)) return "Muut";
     if (/lihapulla/.test(productTitle)) return "Liha & makkarat";
     if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(productTitle)) return "Juomat";
-    if (/keitto|pata\\b|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(productTitle)) return "Valmisruoka";
+    if (/maustekur|hapankurk|hapankaali|ajvar|paprikapyree/.test(productTitle)) return "Kuivatuotteet";
+    if (/valkokaalisalaatti/.test(productTitle)) return "Valmisruoka";
+    if (/keitto|lihapata|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(productTitle)) return "Valmisruoka";
     if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(productTitle)) return "Leipomo";
 
     const providerCategory = String(sourceItem?.category || "").trim();
