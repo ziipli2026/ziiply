@@ -2,6 +2,9 @@ name: Tokmanni live parser diagnostic
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/tokmanni-live-parser-diagnostic.yml'
 
 jobs:
   diagnose:
