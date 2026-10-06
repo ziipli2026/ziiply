@@ -15677,7 +15677,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLastAutoEanSearch(ean);
       setEanSearchStartedAutomatically(true);
       eanAutoSearchActiveRef.current = true;
-      void searchByEan(ean, { fromScanner: Boolean(eanScannerOpen || eanHtml5ScannerRef.current) });
+      // V833: this debounce belongs only to ordinary manual EAN search.
+      // Scanner input always goes through the store-session-aware scanner helpers.
+      void searchByEan(ean);
     }, delay);
 
     return () => {
