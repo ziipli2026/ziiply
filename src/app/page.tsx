@@ -14441,7 +14441,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V816: fyysisen skannauksen ensimmäinen osuma etänä tehtyyn EAN-riviin
     // on keräilykuittaus, ei määrän kasvatus. Tämä tehdään ennen vanhaa +1-oikopolkua.
-    if (options.fromScanner && existingCartItemForEanV122) {
+    const physicalExistingScanV824 = physicalBarcodeScanRefV815.current;
+    const isPhysicalExistingScanV824 = Boolean(
+      options.fromScanner &&
+      (eanScannerOpen || eanHtml5ScannerRef.current) &&
+      physicalExistingScanV824 &&
+      getEanVariantKeysV126(physicalExistingScanV824.code).some((variant) =>
+        getEanVariantKeysV126(ean).includes(variant),
+      ) &&
+      Date.now() - physicalExistingScanV824.at < 10000
+    );
+    if (isPhysicalExistingScanV824 && existingCartItemForEanV122) {
       const collectionKeyV816 = String(existingCartItemForEanV122.id ?? "");
       if (collectionKeyV816 && !checkedCartItems[collectionKeyV816]) {
         setCheckedCartItems((current) => ({ ...current, [collectionKeyV816]: true }));
