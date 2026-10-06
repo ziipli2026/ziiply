@@ -510,7 +510,7 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
   // This is intentionally a product-family rule, not a one-product exception:
   // piparkakut, piparit, pikkuleivät, keksit and cookies all beat e.g.
   // a stale "Maitotuotteet" category supplied by the source.
-  if (/(?:piparkak\w*|pipari\w*|pikkuleip\w*|keksi\w*|cookie\w*)/.test(title)) {
+  if (/(?:piparkak\w*|pipari\w*|pikkulei[vp]\w*|keksi\w*|cookie\w*)/.test(title)) {
     return "Makeiset & keksit";
   }
 
