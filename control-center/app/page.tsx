@@ -83,16 +83,16 @@ export default async function Page(){
   const recoveredFailures24h=failedRuns24h.filter(r=>!latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
   const recoveredFailures=d.runs.filter((r,i)=>!r.ok&&d.runs.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
   const monitoredChains=cards.filter(c=>c.runs.length>0).length;
+  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const streak=recent.findIndex(x=>x.ok)!==-1?recent.findIndex(x=>x.ok):recent.length;const isProbe=r.source==="s-kaupat-protocol";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
   const severeFailureStreaks=sourceHealth.filter(s=>s.streak>=3);
   const sourceCountAnomalies=sourceHealth.filter(s=>s.source!=="s-kaupat-protocol"&&s.delta!==null&&Math.abs(s.delta)>=50);
   const sourceCountCrashes=sourceHealth.filter(s=>s.source!=="s-kaupat-protocol"&&s.delta!==null&&s.delta<=-75);
   const silentSources=sourceHealth.filter(s=>s.ageH>48);
   const criticallySilentSources=sourceHealth.filter(s=>s.ageH>72);
-  const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=!latest?"gray":!latest.ok||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.chain,latest,lastOk,ageH,okAgeH,level};});
+  const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=!latest?"gray":!latest.ok||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.key,latest,lastOk,ageH,okAgeH,level};});
   const missingMonitoring=cards.filter(c=>c.runs.length===0);
   const currentFailures=latestBySource.filter(r=>!r.ok);
-  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const streak=recent.findIndex(x=>x.ok)!==-1?recent.findIndex(x=>x.ok):recent.length;const isProbe=r.source==="s-kaupat-protocol";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const latestSuccessBySource=sourceHealth.map(s=>{const okRun=d.runs.find(r=>r.chain===s.chain&&r.source===s.source&&r.ok);const successAgeH=okRun?(Date.now()-new Date(okRun.checked_at).getTime())/3600000:null;return {...s,lastSuccess:okRun?.checked_at??null,successAgeH};});
   const successStale=latestSuccessBySource.filter(s=>s.successAgeH!==null&&s.successAgeH>48);
   const neverSuccessful=latestSuccessBySource.filter(s=>s.lastSuccess===null);
