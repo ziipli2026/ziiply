@@ -70,6 +70,8 @@ export default async function Page(){
   const chainQuality=publicationGroups.map(([chain,pubs])=>({chain,offers:pubs.reduce((n,p)=>n+p.offer_count,0),missingPrice:pubs.reduce((n,p)=>n+p.missing_price,0),missingImage:pubs.reduce((n,p)=>n+p.missing_image,0),missingCategory:pubs.reduce((n,p)=>n+p.missing_category,0),publications:pubs.length}));
   const rolloverGaps=rolloverChains.filter(r=>r.gap);
   const rolloverWithoutNext=rolloverChains.filter(r=>r.current&&r.current.valid_until<=todayFi&&!r.future);
+  const thinNext=rolloverChains.filter(r=>r.current&&r.future&&r.future.offer_count<Math.max(3,Math.floor(r.current.offer_count*.5)));
+  const nextCandidates=rolloverChains.filter(r=>r.future?.approval_state==="candidate");
   const failedRuns24h=d.runs.filter(r=>!r.ok&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
   const latestRunKeys=new Set(latestBySource.map(r=>r.chain+"::"+r.source+"::"+r.checked_at));
   const unresolvedFailures24h=failedRuns24h.filter(r=>latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
@@ -87,6 +89,8 @@ export default async function Page(){
     ...overlappingApproved.map(p=>({level:"yellow",title:p.chain+": useita aktiivisia approved-julkaisuja",detail:p.publication_id+" · "+p.offer_count+" tarjousta"})),
     ...rolloverGaps.map(r=>({level:"red",title:r.chain+": julkaisuvaihtoon jää katkos",detail:(r.current?.valid_until||"—")+" → "+(r.future?.valid_from||"—")})),
     ...rolloverWithoutNext.map(r=>({level:"yellow",title:r.chain+": päättyvälle julkaisulle ei ole seuraajaa",detail:"Nykyinen päättyy "+r.current?.valid_until})),
+    ...thinNext.map(r=>({level:"yellow",title:r.chain+": seuraavan julkaisun määrä epäilyttävän pieni",detail:(r.current?.offer_count||0)+" → "+(r.future?.offer_count||0)+" tarjousta"})),
+    ...nextCandidates.map(r=>({level:"yellow",title:r.chain+": seuraava julkaisu odottaa hyväksyntää",detail:(r.future?.valid_from||"—")+" · "+(r.future?.offer_count||0)+" tarjousta"})),
     ...(quality.missingPrice?[{level:"red",title:"Aktiivisista julkaisuista puuttuu hintoja",detail:quality.missingPrice+" riviä"}]:[]),
     ...(quality.missingImage?[{level:"yellow",title:"Aktiivisista julkaisuista puuttuu kuvia",detail:quality.missingImage+" riviä"}]:[]),
     ...(quality.missingCategory?[{level:"yellow",title:"Aktiivisista julkaisuista puuttuu kategorioita",detail:quality.missingCategory+" riviä"}]:[]),
@@ -94,7 +98,7 @@ export default async function Page(){
   ];
   const states=cards.map(c=>state(c.runs));
   const hasCriticalQuality=quality.missingPrice>0;
-  const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0;
+  const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0||thinNext.length>0||nextCandidates.length>0;
   const overall=activeCandidates.length||currentFailures.length||hasCriticalQuality||rolloverGaps.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length||hasQualityWarning?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
   return <main style={{maxWidth:1500,margin:"0 auto",padding:28}}>
@@ -146,7 +150,7 @@ export default async function Page(){
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
       <h2 style={{marginTop:0}}>Julkaisuvaihdon valmius</h2>
-      {rolloverChains.length===0?<div style={{color:"#667085"}}>Ei julkaisuvaraston ketjuja.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Nykyinen päättyy","Seuraava alkaa","Seuraavan tila","Seuraavan määrä"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{rolloverChains.map(r=><tr key={r.chain}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.current?.valid_until||"Ei aktiivista approved-julkaisua"}</td><td style={{padding:8}}>{r.future?.valid_from||"—"}</td><td style={{padding:8}}>{r.future?.approval_state||"—"}{r.gap?" · KATKOS":""}</td><td style={{padding:8,fontWeight:800}}>{r.future?.offer_count??"—"}</td></tr>)}</tbody></table></div>}
+      {rolloverChains.length===0?<div style={{color:"#667085"}}>Ei julkaisuvaraston ketjuja.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Nykyinen päättyy","Seuraava alkaa","Seuraavan tila","Seuraavan määrä"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{rolloverChains.map(r=><tr key={r.chain}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.current?.valid_until||"Ei aktiivista approved-julkaisua"}</td><td style={{padding:8}}>{r.future?.valid_from||"—"}</td><td style={{padding:8}}>{r.future?.approval_state||"—"}{r.gap?" · KATKOS":""}</td><td style={{padding:8,fontWeight:800}}>{r.future?.offer_count??"—"}{r.current&&r.future&&r.future.offer_count<Math.max(3,Math.floor(r.current.offer_count*.5))?" ⚠️":""}</td></tr>)}</tbody></table></div>}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
