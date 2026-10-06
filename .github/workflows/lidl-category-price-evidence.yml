@@ -70,7 +70,7 @@ jobs:
             > tmp/lidl/category-price-evidence.json
           node -e 'const x=require("./tmp/lidl/category-price-evidence.json"); if((x.records?.length||0)<20) throw new Error(`Too few strong Lidl price observations: ${x.records?.length||0}`); console.log("strong",x.strongCount,"review",x.reviewCount,"statusCounts",x.statusCounts,"matchCounts",x.matchCounts,"officialApi",x.officialApi)'
           node scripts/build-lidl-ean-price-plan.mjs tmp/lidl/category-price-evidence.json > tmp/lidl/ean-price-plan.json
-          node -e 'const x=require("./tmp/lidl/ean-price-plan.json"); console.log("exact EAN price plan",x.count)'
+          node -e 'const x=require("./tmp/lidl/ean-price-plan.json"); console.log("exact EAN price plan",x.count,"counts",JSON.stringify(x.counts||{}));'
       - uses: actions/upload-artifact@v4
         with:
           name: lidl-category-price-evidence
