@@ -8969,30 +8969,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return cleanZiiplyGostaOfferResultsV146(presentationResultsV826);
   }, [offerSearchResults, offerCardFilterV106, gostaMasterOfferResultsV528, gostaContentTabV1]);
 
-  const prismaPresentationDedupeAuditV827 = useMemo(() => {
-    const master = gostaMasterOfferResultsV528;
-    const offersBefore = master.filter((item: any) => item?.campaignType !== "campaign");
-    const campaignsBefore = master.filter((item: any) => item?.campaignType === "campaign");
-    const offersAfter = dedupePrismaOfferCopiesForPresentationV826(master, offersBefore);
-
-    const removed = offersBefore.filter((item: any) => !offersAfter.includes(item));
-    return {
-      masterCount: master.length,
-      offersBefore: offersBefore.length,
-      campaignsBefore: campaignsBefore.length,
-      exactMatchesRemoved: removed.length,
-      offersAfter: offersAfter.length,
-      campaignsAfter: campaignsBefore.length,
-      invariantMasterUnchanged: master.length === offersBefore.length + campaignsBefore.length,
-      invariantCampaignsUnchanged: campaignsBefore.length === master.filter((item: any) => item?.campaignType === "campaign").length,
-      removedSamples: removed.slice(0, 12).map((item: any) => ({
-        ean: item?.ean || item?.__sourceOfferSearchResult?.ean || null,
-        price: item?.offerPrice ?? item?.price ?? item?.__sourceOfferSearchResult?.offerPrice ?? item?.__sourceOfferSearchResult?.price ?? null,
-        title: item?.title || item?.name || item?.__sourceOfferSearchResult?.title || null,
-      })),
-    };
-  }, [gostaMasterOfferResultsV528]);
-
   const visibleOfferSearchResultsV106 = useMemo(() => {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
@@ -23733,10 +23709,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             testedEmptyCategories={gostaContentTabV1 === "campaigns" ? {} : gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={gostaContentTabV1 === "campaigns" ? (offerShowingAllAreaOffersV106 ? "Valitun kaupan kampanjoita ei löytynyt vielä." : "Gösta ei löytänyt kampanjoita tälle rajaukselle.") : (offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle.")}
-            kruokaDebug={{
-              ...(gostaKruokaDebugV550 || {}),
-              prismaPresentationDedupeAuditV827,
-            } as any}
+            kruokaDebug={gostaKruokaDebugV550}
             storeTraceV787={{
               storeMode,
               usingOwnLocation,
