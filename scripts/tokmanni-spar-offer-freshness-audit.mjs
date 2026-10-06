@@ -27,7 +27,18 @@ const totalMatch=text.match(/(?:Tuotteet\s+\d+\s*[-–]\s*\d+\s*\/\s*|)(\d+)\s+t
 const total=totalMatch?Number(totalMatch[1]):null;
 const cards=(html.match(/<li\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/gi)||[]).length;
 const expectedFirstPage=Math.min(total??40,40);
-const tokmanni={http:response.status,total,cards,expectedFirstPage,source:url.href,healthy:response.ok&&Number.isFinite(total)&&total>0&&cards>=expectedFirstPage};
+let page2=null;
+if(Number.isFinite(total)&&total>40){
+  const page2Url=new URL(url); page2Url.searchParams.set("p","2");
+  const r2=await fetch(page2Url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)});
+  const h2=r2.ok?await r2.text():"";
+  const cards2=(h2.match(/<li\\b[^>]*class=["'][^"']*product-item[^"']*["'][^>]*>/gi)||[]).length;
+  const firstUrls=[...html.matchAll(/href=["']([^"']*\\/products?\\/[^"']+|[^"']*\\/p\\/[^"']+)["']/gi)].map(m=>m[1]).slice(0,40);
+  const secondUrls=[...h2.matchAll(/href=["']([^"']*\\/products?\\/[^"']+|[^"']*\\/p\\/[^"']+)["']/gi)].map(m=>m[1]).slice(0,40);
+  const distinct=firstUrls.length&&secondUrls.length?secondUrls.some(x=>!firstUrls.includes(x)):cards2>0;
+  page2={http:r2.status,cards:cards2,distinct,source:page2Url.href,healthy:r2.ok&&cards2>0&&distinct};
+}
+const tokmanni={http:response.status,total,cards,expectedFirstPage,page2,source:url.href,healthy:response.ok&&Number.isFinite(total)&&total>0&&cards>=expectedFirstPage&&(!page2||page2.healthy)};
 
 const report={checkedAt:new Date().toISOString(),dateFi:now,eurospar,tokmanni};
 writeFileSync("tokmanni-spar-offer-freshness.json",JSON.stringify(report,null,2));
