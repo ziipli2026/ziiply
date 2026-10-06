@@ -1,6 +1,9 @@
 name: Prisma Tab Layer Dedupe Simulation
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/prisma-tab-layer-dedupe-simulation.yml'
   push:
     paths:
       - '.github/workflows/prisma-tab-layer-dedupe-simulation.yml'
