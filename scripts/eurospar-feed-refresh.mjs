@@ -30,6 +30,33 @@ const offerText=seoText.replace(/\s+/g," ").trim();
 const productStarts=[...offerText.matchAll(/(?=(ATRIA|VALIO|BILLYS|TAMSIN|MAKEA|KELTAINEN|SNELLMAN|MAATILAN PARHAAT|HERKKUTILAN|POROKYLÄN|HK BURGERI|MUNKKIMIEHET|PIZZADONITSI|FLORA|FAZER|OULULAINEN|SAARIOINEN|EMMA)\b)/gi)].map(m=>m.index);
 const offerSegments=productStarts.map((s,i)=>offerText.slice(s,productStarts[i+1]??offerText.length).trim()).filter(x=>x.length>10&&/\d+[,.]\d{2}/.test(x));
 const storeHits=["Iisalmi","Joensuu","Järvenpää","Masku","Tornio","Ylöjärvi"].filter(x=>seoText.toLocaleLowerCase("fi").includes(x.toLocaleLowerCase("fi")));
+const storeNames=["Iisalmi","Joensuu","Järvenpää","Masku","Tornio","Ylöjärvi"];
+const toPrice=(whole,dec)=>Number((String(whole)+"."+String(dec).padStart(2,"0")).replace(",", "."));
+function parseOfferSegment(segment,index){
+  const s=segment.replace(/\s+/g," ").trim();
+  const normalMatch=s.match(/Norm\.\s*(\d{1,2}[,.]\d{2})(?:\s*[–-]\s*(\d{1,2}[,.]\d{2}))?(?:\s*\/\s*(kpl|pkt|kg))?/i);
+  const unitMatch=s.match(/\((\d{1,3}[,.]\d{2})(?:\s*[–-]\s*(\d{1,3}[,.]\d{2}))?\s*\/\s*(kg|l|kpl)\)/i);
+  const multi=[...s.matchAll(/(\d+)\s+(kpl|pkt|ps|rs|rasia|pussi|kilo)\s+(\d{1,2})\s+(\d{2})(?:\s*-\s*(\d{1,2})\s*%)?/gi)].at(-1);
+  const single=[...s.matchAll(/(?:^|\s)(\d{1,2})\s+(\d{2})\s+(kpl|pkt|ps|rs|rasia|pussi|kilo)(?:\s|$)/gi)].at(-1);
+  const compact=[...s.matchAll(/(?:^|\s)(\d{1,2}[,.]\d{2})\s+(kpl|pkt|ps|rs|rasia|pussi|kilo)(?:\s|$)/gi)].at(-1);
+  let offerPrice=null,multiUnit=null;
+  if(multi){offerPrice=toPrice(multi[3],multi[4]);multiUnit={quantity:Number(multi[1]),unit:multi[2].toLowerCase()};}
+  else if(single){offerPrice=toPrice(single[1],single[2]);}
+  else if(compact){offerPrice=Number(compact[1].replace(",", "."));}
+  const discountMatch=s.match(/(?:^|\s)-\s*(\d{1,2})\s*%/);
+  const discount=discountMatch?Number(discountMatch[1]):null;
+  const size=s.match(/\b(\d+(?:[.,]\d+)?\s*(?:g|kg)|n\.\s*\d+(?:[.,]\d+)?\s*kg|\d+(?:[.,]\d+)?\s*[–-]\s*\d+(?:[.,]\d+)?\s*(?:g|kg))\b/i)?.[1]??null;
+  const firstPrice=s.match(/^(.+?)(?:\s+\(\d+[,.]\d{2}(?:\s*[–-]\s*\d+[,.]\d{2})?\s*\/\s*(?:kg|l|kpl)\)|\s+Norm\.)/i);
+  const title=(firstPrice?.[1]??s).replace(/^EUROSPAR\s+41\/26\s+/i,"").trim();
+  const unitPrice=unitMatch?unitMatch[1]+(unitMatch[2]?("-"+unitMatch[2]):""):null;
+  const unitPriceUnit=unitMatch?.[3]??null;
+  const normal=normalMatch?normalMatch[1]+(normalMatch[2]?("-"+normalMatch[2]):""):null;
+  const category=/salaatti|luumu|kiivi|hevi/i.test(title)?"Hevi":/jogurtti|raejuusto|juustoraaste|juustoviipale/i.test(title)?"Maitotuotteet":/leike|jauheliha|reisikoipi|burgeri/i.test(title)?"Liha & makkarat":/ruis|pikkueväs|munkki|donitsi/i.test(title)?"Leipomo":/pizz|mikroateria/i.test(title)?"Valmisruoka":"Muut";
+  return {name:title.toLocaleLowerCase("fi-FI"),category,size,packCount:null,unitPrice,unitPriceUnit,normalPrice:normal,normalUnit:normalMatch?.[3]??null,discountPercent:discount,restriction:null,offerPrice,multiUnit,eans:[],identityStatus:"leaflet-only",identityReason:"EUROSPAR fresh-food catalog identity is not exposed by Tokmanni web/Klevu; do not infer EAN",id:"eurospar:"+issue+":1:"+(index+1),chain:"EUROSPAR",storeType:"EUROSPAR",source:"EUROSPAR tarjouslehti",priceBasis:multiUnit?"multi-buy-total":"single-unit",issue,validFrom:validity?.from??null,validTo:validity?.to??null,stores:storeNames,page:1};
+}
+const parsedOffers=offerSegments.map(parseOfferSegment);
+const parseErrors=parsedOffers.filter(x=>!x.name||!(x.offerPrice>0)||!x.validFrom||!x.validTo);
+
 
 
 const candidate={
@@ -51,8 +78,8 @@ const candidate={
     scriptSources:[...frameHtml.matchAll(/<script\b[^>]*src=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]).slice(0,30),
     dataAttributes:[...frameHtml.matchAll(/\bdata-[a-z0-9_-]+=["']([^"']{1,300})["']/gi)].map(m=>m[0]).slice(0,40)
   },
-  ready:Boolean(issue&&validity&&priceTokens.length>=5&&storeHits.length>=1&&offerSegments.length>=15),
-  reason:issue&&validity&&priceTokens.length>=5?"EUROSPAR publication metadata parsed; offer row parser pending validation.":"EUROSPAR viewer found but publication metadata is not yet sufficiently validated; keep existing feed fail-closed."
+  ready:Boolean(issue&&validity&&priceTokens.length>=5&&storeHits.length>=1&&parsedOffers.length===15&&parseErrors.length===0),
+  reason:parseErrors.length===0&&parsedOffers.length===15?"EUROSPAR publication and 15 offer rows parsed; candidate can be promoted after validation.":"EUROSPAR publication found but one or more offer rows lack a reliable offer price; keep existing feed fail-closed."
 };
 
 writeFileSync("eurospar-feed-candidate.json",JSON.stringify(candidate,null,2));
