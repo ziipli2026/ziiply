@@ -270,7 +270,13 @@ async function fetchTokmanniOffersFresh() {
 
   const seen = new Set<string>();
   const dedupedItems = items.filter((item) => {
-    const key = [normalize(item.title), item.price, item.normalPrice, item.offerQuantity].join("|");
+    // Do not collapse distinct product variants that happen to share the same
+    // title/price. Prefer the stable product identity from the source.
+    const key = item.ean
+      ? `ean:${item.ean}`
+      : item.productUrl
+        ? `url:${item.productUrl}`
+        : `fallback:${normalize(item.title)}|${item.price}|${item.normalPrice}|${item.offerQuantity}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
