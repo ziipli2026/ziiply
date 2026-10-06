@@ -20,8 +20,14 @@ const text=strip(html);
 const labels={eurospar:/\bEUROSPAR\b/i.test(text),ruokasanomat:/\bRuokasanomat\b/i.test(text),tarjoussanomat:/\bTarjoussanomat\b/i.test(text)};
 const candidateUrls=[...new Set(evidence.filter(x=>/eurospar|ruokasanomat|tarjous|leaflet|catalog|publication|viewer|tjek|incito/i.test(x)))];
 const publicationFrames=iframeDetails.filter(x=>/eurospar|ruokasanomat|tarjoussanomat/i.test(x.title+" "+x.src));
-const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames};
+const classifiedFrames={
+  eurospar:publicationFrames.filter(x=>/eurospar/i.test(x.title+" "+x.src)),
+  ruokasanomat:publicationFrames.filter(x=>/ruokasanomat/i.test(x.title+" "+x.src)),
+  tarjoussanomat:publicationFrames.filter(x=>/tarjoussanomat/i.test(x.title+" "+x.src)),
+};
+const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames,classifiedFrames};
 writeFileSync("tokmanni-leaflet-discovery.json",JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(!labels.eurospar||!labels.ruokasanomat){console.error("Expected EUROSPAR/Ruokasanomat labels missing from official leaflet hub");process.exitCode=1;}
 if(publicationFrames.length===0){console.error("No identifiable publication iframe sources found");process.exitCode=1;}
+if(classifiedFrames.eurospar.length===0||classifiedFrames.ruokasanomat.length===0){console.error("EUROSPAR or Ruokasanomat iframe could not be classified");process.exitCode=1;}
