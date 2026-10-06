@@ -56,6 +56,7 @@ function category(title: string) {
   if (/leipä|näkkileip|hapankorppu|korppu|sämpyl|pull|croissant|patonki|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
   if (/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if (/pizza|ateria|keitto|valmisruoka|wrap|caesar|salaattiateria|välipala/.test(s)) return "Valmisruoka";
+  if (/lihaliemikuutio|lihaliemivalmiste|kanaliemikuutio|kanaliemivalmiste|liemikuutio|liemivalmiste/.test(s)) return "Kuivatuotteet";
   if (/kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|lihavalmiste|liha/.test(s)) return "Liha & makkarat";
   if (/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if (/maito|juusto|jogur|rahka|kerma|voi\b|margariin|raejuusto|viili|piim|kefir|vanukas/.test(s)) return "Maitotuotteet";
