@@ -50,15 +50,18 @@ function dot(s:string){return s==="green"?"🟢":s==="yellow"?"🟡":s==="red"?"
 export default async function Page(){
   const d=await load();
   const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim()))}));
-  const activePubs=d.pubs.filter(p=>p.approval_state==="approved"&&new Date(p.valid_from+"T00:00:00")<=new Date()&&new Date(p.valid_until+"T23:59:59")>=new Date());
+  const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const activePubs=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const candidatePubs=d.pubs.filter(p=>p.approval_state==="candidate");
   const activeOfferTotal=activePubs.reduce((n,p)=>n+p.offer_count,0);
-  const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
   const latestBySource=[...new Map(d.runs.map(r=>[`${r.chain}::${r.source}`,r])).values()];
   const staleRuns=latestBySource.filter(r=>Date.now()-new Date(r.checked_at).getTime()>36*60*60*1000);
   const latestRun=d.runs[0];
+  const nextApproved=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
+  const activeChains=new Set(activePubs.map(p=>p.chain));
+  const overlappingApproved=activePubs.filter((p,i,a)=>a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
   const failedRuns24h=d.runs.filter(r=>!r.ok&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
   const recoveredFailures=d.runs.filter((r,i)=>!r.ok&&d.runs.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
   const currentFailures=latestBySource.filter(r=>!r.ok);
@@ -66,7 +69,8 @@ export default async function Page(){
     ...activeCandidates.map(p=>({level:"red",title:p.chain+": aktiivinen candidate",detail:p.publication_id+" · "+p.offer_count+" tarjousta · "+p.valid_from+"–"+p.valid_until})),
     ...currentFailures.map(r=>({level:"red",title:r.chain+": viimeisin ajo epäonnistui",detail:r.source+" · "+r.offer_count+" · "+r.outcome})),
     ...staleRuns.map(r=>({level:"yellow",title:r.chain+": health-ajo vanhentunut",detail:r.source+" · "+new Date(r.checked_at).toLocaleString("fi-FI")})),
-    ...expiringToday.map(p=>({level:"yellow",title:p.chain+": julkaisu päättyy tänään",detail:p.publication_id+" · "+p.offer_count+" tarjousta"}))
+    ...expiringToday.map(p=>({level:"yellow",title:p.chain+": julkaisu päättyy tänään",detail:p.publication_id+" · "+p.offer_count+" tarjousta"})),
+    ...overlappingApproved.map(p=>({level:"yellow",title:p.chain+": useita aktiivisia approved-julkaisuja",detail:p.publication_id+" · "+p.offer_count+" tarjousta"}))
   ];
   const states=cards.map(c=>state(c.runs));
   const overall=activeCandidates.length||states.some(x=>x[0]==="red")?["red","TOIMINTA VAATII TOIMIA"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||staleRuns.length?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
@@ -98,11 +102,12 @@ export default async function Page(){
       {metricCard("Candidate / odottaa",candidatePubs.length,activeCandidates.length?"red":candidatePubs.length?"yellow":"green")}
     </section>
 
-    <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
+    <section style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {statusCard("Aktiivinen candidate",activeCandidates.length,activeCandidates.length?"red":"green",activeCandidates.length?"Voimassa oleva julkaisu odottaa hyväksyntää":"Ei jumissa olevia aktiivisia candidateja")}
       {statusCard("Päättyy tänään",expiringToday.length,expiringToday.length?"yellow":"green",expiringToday.length?"Tarkista seuraavan julkaisun valmius":"Ei tänään päättyviä hyväksyttyjä julkaisuja")}
       {statusCard("Vanhentuneet ajot",staleRuns.length,staleRuns.length?"yellow":"green","Raja 36 h / vain lähteen viimeisin ajo")}
       {statusCard("Viimeisin health-ajo",latestRun?new Date(latestRun.checked_at).toLocaleString("fi-FI"):"—",latestRun?.ok?"green":"yellow",latestRun?.source||"Ei ajohistoriaa")}
+      {statusCard("Seuraava approved",nextApproved?nextApproved.valid_from:"—",nextApproved?"green":"gray",nextApproved?nextApproved.chain+" · "+nextApproved.publication_id:"Ei tulevaa approved-julkaisua varastossa")}
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:14,marginBottom:18}}>
