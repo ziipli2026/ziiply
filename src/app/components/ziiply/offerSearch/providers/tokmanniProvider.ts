@@ -135,7 +135,10 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   const priceElementValues = Array.from(
     block.matchAll(/<(?:span|span[^>]*)[^>]*class=["'][^"']*(?:price-wrapper|price)[^"']*["'][^>]*>([\s\S]*?)<\/span>/gi),
   )
-    .map((match) => price(textOf(match[1] || "")))
+    .map((match) => {
+      const visiblePriceText = textOf(match[1] || "").replace(/(\d)\s+([,.])\s*(\d{1,2})\b/g, "$1$2$3");
+      return price(visiblePriceText);
+    })
     .filter((value): value is number => value != null);
   const ordinaryCardPrice = multi
     ? priceElementValues.find((value) => Math.abs(value - multiBuyTotalPrice!) > 0.0001) ?? null
