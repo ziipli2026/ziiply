@@ -3,7 +3,7 @@ import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/public
 import { NextResponse } from "next/server";
 import { fetchLidlDatedOffersForStaging } from "@/app/components/ziiply/offerSearch/providers/lidlProvider";
 import { fetchLidlPublicLeafletOffers } from "@/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
-import { storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
+import { approvePublication, storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { finnishPublicationDate, publicationState } from "@/app/components/ziiply/offerSearch/publicationLifecycle";
 import { inspectOfferPublication } from "@/app/components/ziiply/offerSearch/publicationDiagnostics";
 
@@ -77,16 +77,25 @@ export async function GET(request: Request) {
       const fingerprint = createHash("sha256").update(JSON.stringify(
         offers.map((offer) => offer).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
       )).digest("hex").slice(0, 20);
+      const publicationId = `official-combined:${period}:${fingerprint}`;
       const outcome = await storeParsedPublication({
         chain: "LIDL:FI0218",
-        id: `official-combined:${period}:${fingerprint}`,
+        id: publicationId,
         validFrom, validUntil, parsedAt: new Date().toISOString(), offers,
       }, { approvalState: "candidate" });
+
+      // This cron is the automated Lidl publication pipeline. A candidate that
+      // passes the publication quality gate is safe to approve immediately:
+      // readActivePublicationOffers still enforces valid_from/valid_until, so an
+      // upcoming edition cannot become visible before its start date. Failed or
+      // empty source runs never reach this point and therefore preserve the last
+      // known-good approved edition.
+      const approved = await approvePublication("LIDL:FI0218", publicationId);
       outcomes.push({
         period, count: offers.length,
         structuredCount: offers.filter(row => row.source === "lidl-plus").length,
         publicCount: offers.filter(row => row.source === "lidl-fi-public").length,
-        outcome, publicationId: `official-combined:${period}:${fingerprint}`, approvalState: "candidate", quality,
+        outcome, publicationId, approvalState: approved ? "approved" : "already-approved-or-unchanged", quality,
       });
     }
 
