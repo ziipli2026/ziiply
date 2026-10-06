@@ -189,8 +189,8 @@ export default async function Page(){
   const overallDataHealthState=overallDataHealth>=7?"green":overallDataHealth>=5?"yellow":"red";
   const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
   const severeFailureStreaks=sourceHealth.filter(s=>s.streak>=3);
-  const sourceCountAnomalies=sourceHealth.filter(s=>s.source!=="s-kaupat-protocol"&&s.delta!==null&&Math.abs(s.delta)>=50);
-  const sourceCountCrashes=sourceHealth.filter(s=>s.source!=="s-kaupat-protocol"&&s.delta!==null&&s.delta<=-75);
+  const sourceCountAnomalies=sourceHealth.filter(s=>!["s-kaupat-protocol","future-publication-discovery"].includes(s.source)&&s.delta!==null&&Math.abs(s.delta)>=50);
+  const sourceCountCrashes=sourceHealth.filter(s=>!["s-kaupat-protocol","future-publication-discovery"].includes(s.source)&&s.delta!==null&&s.delta<=-75);
   const silentSources=sourceHealth.filter(s=>s.ageH>48);
   const criticallySilentSources=sourceHealth.filter(s=>s.ageH>72);
   const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=!latest?"gray":!latest.ok||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.key,latest,lastOk,ageH,okAgeH,level};});
