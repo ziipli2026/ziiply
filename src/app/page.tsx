@@ -14341,7 +14341,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             pushScannerDebugV493(
               `K-WEIGHT learned fallback hit plu=${kWeightLabelV730.plu} canonical=${kWeightLabelV730.canonicalEan}`,
             );
-            addWeightProductToCartV733(learnedProductV790, kWeightLabelV730.scannedEan);
+            addWeightProductToCartV733(learnedProductV790, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
             setEanMessage(
               `Vaakatuote tunnistettu: ${learnedNameV790}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
             );
@@ -14377,7 +14377,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           price: kWeightLabelV730.price,
         };
 
-        addWeightProductToCartV733(fallbackProductV731, kWeightLabelV730.scannedEan);
+        addWeightProductToCartV733(fallbackProductV731, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
 
         setEanMessage(
           `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}.`,
@@ -14401,7 +14401,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ean: kWeightLabelV730.scannedEan,
           price: kWeightLabelV730.price,
         };
-        addWeightProductToCartV733(fallbackProductV736, kWeightLabelV730.scannedEan);
+        addWeightProductToCartV733(fallbackProductV736, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
 
         setEanMessage(
           `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}. Tuotenimeä ei saatu haettua.`,
