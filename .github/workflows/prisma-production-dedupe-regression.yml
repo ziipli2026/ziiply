@@ -20,7 +20,7 @@ jobs:
         run: |
           cat > scripts/.tmp-prisma-prod-regression.mts <<'TS'
           import { searchZiiplyOffers } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
-          const rows:any[]=await searchZiiplyOffers("__ziiply_all_offers__",{storeName:"Prisma Hyvinkää",sStoreName:"Prisma Hyvinkää",sStoreNames:["Prisma Hyvinkää"],storeCompareScope:"within_chain",withinChain:"S",selectedChain:"S"} as any);
+          const rows:any[]=await searchZiiplyOffers("__ziiply_all_offers__",{storeName:"Prisma Hyvinkää",sStoreId:"634976534",sStoreIds:["634976534"],sStoreName:"Prisma Hyvinkää",sStoreNames:["Prisma Hyvinkää"],storeCompareScope:"within_chain",withinChain:"S",selectedChain:"S"} as any);
           const offers=rows.filter(x=>x.campaignType!=="campaign"),campaigns=rows.filter(x=>x.campaignType==="campaign");
           const muikku=rows.filter(x=>String(x.ean)==="2004657500003").map(x=>({type:x.campaignType??"offer",price:x.priceText,validUntil:x.validUntil,storeId:x.storeId,title:x.title}));
           const campaignMissingValidity=campaigns.filter(x=>!String(x.validUntil??"").trim()).length;
