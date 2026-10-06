@@ -311,6 +311,7 @@ export async function GET(request: NextRequest) {
           ok: true,
           product: {
             ean: verifiedLidl.ean,
+            lidlProductId: verifiedLidl.lidlProductId,
             name: verifiedLidl.name,
             brand: null,
             quantity: null,
