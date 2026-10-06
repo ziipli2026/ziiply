@@ -1,7 +1,7 @@
 name: SPAR search integration check
 on:
   push:
-    branches: [fix/spar-search-current-main]
+    branches: [main, fix/spar-search-current-main]
   pull_request:
     branches: [main]
 jobs:
