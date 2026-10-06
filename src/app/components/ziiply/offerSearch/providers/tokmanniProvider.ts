@@ -50,8 +50,9 @@ function category(title: string) {
   if (/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli|grilli|työkalu|valaisin|lamppu|liimapuulevy|kasteluletku|moppi|pesuri|liina|käsine|kenkä|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|lanka|asuste|lelu/.test(s)) return "Koti & vapaa-aika";
   if (/kaurajuoma/.test(s)) return "Juomat";
   if (/piparkakku|piparipallo|pikkuleip/.test(s)) return "Leipomo";
+  if (/piltti|lastenateria|lastenruoka|hedelmäsose|marjasose|luumua .*\b\d+ kk\b/.test(s)) return "Valmisruoka";
   if (/snack pot|kuppiateria|spaghetti|mac & cheese|bolognese/.test(s)) return "Kuivatuotteet";
-  if (/suklaa|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|patuk|tikkari|kismet|tupla\b|da capo|fazerina|geisha|dumle|pantteri|ässä|aarrearkku|remix|suffeli|julia\b|aakkoset|tv mix|daim\b|japp\b|pändy|fisherman|funky fish|super salty|giant strawberries|pätkis/.test(s)) return "Makeiset & keksit";
+  if (/suklaa|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|patuk|tikkari|kismet|tupla\b|da capo|fazerina|geisha|dumle|pantteri|ässä|aarrearkku|remix|suffeli|julia\b|aakkoset|tv mix|daim\b|japp\b|pändy|fisherman|funky fish|super salty|giant strawberries|pätkis|metrilaku/.test(s)) return "Makeiset & keksit";
   if (/leipä|näkkileip|hapankorppu|korppu|sämpyl|pull|croissant|patonki|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
   if (/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if (/pizza|ateria|keitto|valmisruoka|wrap|caesar|salaattiateria|välipala/.test(s)) return "Valmisruoka";
