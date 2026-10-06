@@ -13,6 +13,7 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/eurospar-feed.json"
+      - "scripts/tokmanni-leaflet-discovery.mjs"
       - "scripts/tokmanni-spar-offer-freshness-audit.mjs"
       - ".github/workflows/tokmanni-spar-offer-freshness.yml"
 jobs:
@@ -24,10 +25,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: node scripts/tokmanni-leaflet-discovery.mjs\n      - run: node scripts/tokmanni-spar-offer-freshness-audit.mjs
+      - run: node scripts/tokmanni-leaflet-discovery.mjs
+      - run: node scripts/tokmanni-spar-offer-freshness-audit.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: tokmanni-spar-offer-freshness
-          path: |\n            tokmanni-spar-offer-freshness.json\n            tokmanni-leaflet-discovery.json
+          path: |
+            tokmanni-spar-offer-freshness.json
+            tokmanni-leaflet-discovery.json
           if-no-files-found: ignore
