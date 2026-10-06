@@ -40,7 +40,8 @@ for(const [kind,frames] of Object.entries(classifiedFrames)){
         hasTjek:/tjek/i.test(body),
         hasIncito:/incito/i.test(body),
       };
-      const scriptSources=[...new Set([...body.matchAll(/<script\\b[^>]*src=["\x27]([^"\x27]+)["\x27]/gi)].map(m=>new URL(decode(m[1]),r.url).href))].slice(0,30);\n      frameProbes.push({kind,frameUrl,finalUrl:r.url,http:r.status,bytes:body.length,markers,discovered,scriptSources});
+      const scriptSources=[...new Set([...body.matchAll(/<script\\b[^>]*src=["\x27]([^"\x27]+)["\x27]/gi)].map(m=>new URL(decode(m[1]),r.url).href))].slice(0,30);
+      frameProbes.push({kind,frameUrl,finalUrl:r.url,http:r.status,bytes:body.length,markers,discovered,scriptSources});
     }catch(error){
       frameProbes.push({kind,frameUrl:frame.src,error:String(error)});
     }
