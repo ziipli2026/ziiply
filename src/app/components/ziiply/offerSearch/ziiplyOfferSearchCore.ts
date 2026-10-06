@@ -929,10 +929,12 @@ export async function searchZiiplyGostaOffersV146(options: {
       ? dedupeZiiplyGostaOfferResultsV146(nextResults)
       : cleanZiiplyGostaOfferResultsV146(nextResults);
 
-  const prismaCrossTabMasterV804 =
-    searchAllAreaOffers || searchByCategory
-      ? await fetchGostaMasterOfferResultsV156(options.context)
-      : results;
+  const selectedSStoreNameV804 = options.context?.sStoreName;
+  const shouldRunPrismaCrossTabDedupeV804 =
+    /^prisma(?:\s|$)/i.test(String(selectedSStoreNameV804 ?? "").trim());
+  const prismaCrossTabMasterV804 = shouldRunPrismaCrossTabDedupeV804
+    ? await fetchGostaMasterOfferResultsV156(options.context)
+    : results;
   const finalResults = hidePrismaOfferCopiesAlreadyInCampaignTabV804(
     results,
     prismaCrossTabMasterV804,
