@@ -14110,10 +14110,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, 0);
   }
 
-  function addWeightProductToCartV733(product: Product, scannedEan: string) {
+  function addWeightProductToCartV733(product: Product, scannedEan: string, options: { physicalScan?: boolean } = {}) {
     const ean = normalizeEan(scannedEan);
     const productName = fixText(product.name);
-    const addKey = `K-weight-${ean}-${product.id}`;
+    const physicalScan = Boolean(options.physicalScan);
+    const cartPrice = physicalScan ? getProductPrice(product) : 0;
+    const addKey = `K-weight-${ean}-${product.id}-${physicalScan ? "scan" : "remote"}`;
     const now = Date.now();
 
     if (
@@ -14123,44 +14125,70 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     lastEanCartAddRef.current = { key: addKey, at: now };
 
     trackZiiplyEvent("product_added_to_cart", {
-      source: "barcode_scanner",
+      source: physicalScan ? "barcode_scanner" : "ean_search",
       productName,
       ean,
       chain: "K",
       storeName: activeStores.kStoreName || "K-kauppa",
-      price: getProductPrice(product),
+      price: cartPrice,
     });
 
     triggerHaptic();
-    showScanSuccessFlash();
+    if (physicalScan) showScanSuccessFlash();
 
     setCart((currentCart) => {
       const baseCart = mergeCartPoolsByIdV129(currentCart);
-      const existingItem = baseCart.find((item) =>
-        (isUsableEan(ean) && cartItemMatchesEanLooseV129(item, ean)) ||
-        normalize(item.name) === normalize(productName)
-      );
-      if (existingItem) {
-        const nextCart = baseCart.map((item) =>
-          item.id === existingItem.id
-            ? { ...item, quantity: Number(item.quantity || 1) + 1, ean }
-            : item
+      const weightIdentityV823 = resolvePriceWeightLabel(ean);
+      const existingItem = baseCart.find((item) => {
+        const itemEan = normalizeEan(item.ean || (item.product as any)?.ean || "");
+        const itemWeightIdentityV823 = itemEan ? resolvePriceWeightLabel(itemEan) : null;
+        return (
+          (isUsableEan(ean) && cartItemMatchesEanLooseV129(item, ean)) ||
+          (weightIdentityV823 && itemWeightIdentityV823 && weightIdentityV823.plu === itemWeightIdentityV823.plu) ||
+          normalize(item.name) === normalize(productName)
         );
+      });
+
+      if (existingItem) {
+        const existingKey = String(existingItem.id || "");
+        const firstPhysicalCollection = physicalScan && existingKey && !checkedCartItems[existingKey];
+        const nextCart = baseCart.map((item) => {
+          if (item.id !== existingItem.id) return item;
+          const nextProduct = {
+            ...(item.product || product),
+            ...product,
+            ziiplyWeightLabel: true,
+            price: physicalScan ? cartPrice : 0,
+          } as Product;
+          return {
+            ...item,
+            name: productName || item.name,
+            price: physicalScan ? cartPrice : 0,
+            quantity: firstPhysicalCollection ? Number(item.quantity || 1) : Number(item.quantity || 1) + (physicalScan ? 1 : 0),
+            ean,
+            product: nextProduct,
+          } as CartItem;
+        });
+        if (firstPhysicalCollection) {
+          setCheckedCartItems((current) => ({ ...current, [existingKey]: true }));
+        }
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
-        showCartToast(`Määrä +1: ${existingItem.name}`);
+        showCartToast(firstPhysicalCollection ? "✓ Vaakatuote kerätty" : physicalScan ? `Määrä +1: ${existingItem.name}` : "Vaakatuote on jo ostoskorissa");
         return nextCart;
       }
+
       if (baseCart.length >= MAX_ITEMS) return currentCart;
       const weightProductV738 = {
         ...product,
+        price: cartPrice,
         ziiplyWeightLabel: true,
       } as Product;
       const newItem: CartItem = {
         id: `k-weight-${product.id}-${Date.now()}`,
         name: productName,
-        price: getProductPrice(product),
+        price: cartPrice,
         image: product.pictureUrl,
         chain: "K",
         storeName: activeStores.kStoreName || "K-kauppa",
@@ -14170,15 +14198,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ean,
       };
       const nextCart = [...baseCart, newItem];
-      // V814: uusi oikealla skannerilla kaupassa lisätty EAN on samalla kerätty.
-      // Käsin syötetty/liitetty EAN ei saa tätä kuittausta.
-      if (String(newItem.id || "")) {
+      if (physicalScan && String(newItem.id || "")) {
         setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
       }
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      showCartToast("✓ Lisätty ostoskoriin");
+      showCartToast(physicalScan ? "✓ Lisätty ostoskoriin" : "Vaakatuote lisätty ilman hintaa");
       return nextCart;
     });
 
@@ -14188,10 +14214,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
-
-    // V820: vaakatuote käyttää samaa vahvistettua keräilysessiota kuin muutkin
-    // fyysiset EAN-skannaukset. Erillinen vanha GPS-tarkistus ei saa kuitata
-    // sessiota tarkistetuksi ennen etäkorin kauppa + 50 m -päättelyä.
   }
 
   async function searchByEan(
@@ -14234,7 +14256,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ean: genericWeightLabelV737.scannedEan,
         price: genericWeightLabelV737.price,
       };
-      addWeightProductToCartV733(unknownWeightProductV737, genericWeightLabelV737.scannedEan);
+      addWeightProductToCartV733(unknownWeightProductV737, genericWeightLabelV737.scannedEan, { physicalScan: Boolean(options.fromScanner) });
       setEanMessage(`Punnittu tuote lisätty tarran hinnalla ${genericWeightLabelV737.price.toFixed(2).replace(".", ",")} €.`);
       setEanScannerMessage("Vaakatuote lisätty");
       window.setTimeout(() => {
@@ -14277,7 +14299,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             price: kWeightLabelV730.price,
           };
 
-          addWeightProductToCartV733(weighedProductV732, kWeightLabelV730.scannedEan);
+          addWeightProductToCartV733(weighedProductV732, kWeightLabelV730.scannedEan, { physicalScan: Boolean(options.fromScanner) });
 
           setEanMessage(
             `Vaakatuote tunnistettu: ${resolvedNameV732}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
