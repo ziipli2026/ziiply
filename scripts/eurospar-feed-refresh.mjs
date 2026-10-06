@@ -58,6 +58,25 @@ const parsedOffers=offerSegments.map(parseOfferSegment);
 const parseErrors=parsedOffers.filter(x=>!x.name||x.name.length<5||!(x.offerPrice>0)||x.offerPrice>100||!x.validFrom||!x.validTo);
 const uniqueNames=new Set(parsedOffers.map(x=>x.name));
 const validityCurrentOrFuture=Boolean(validity?.to && validity.to>=today);
+const previousIssue=String(oldFeed?.issue??"");
+const previousOfferCount=Array.isArray(oldFeed?.offers)?oldFeed.offers.length:0;
+const sameIssue=Boolean(issue&&previousIssue&&issue===previousIssue);
+const minimumOfferCount=sameIssue
+  ? previousOfferCount
+  : previousOfferCount>0
+    ? Math.max(5,Math.ceil(previousOfferCount*0.85))
+    : 5;
+const coverageHealthy=parsedOffers.length>=minimumOfferCount;
+
+// Images are only safe to publish when they are attached to the matching offer.
+// Publication-level image assets discovered above are diagnostics only: never
+// assign them to offer rows by array position.
+const parsedImageCount=parsedOffers.filter(x=>Boolean(x.imageUrl)).length;
+const previousImageCount=Array.isArray(oldFeed?.offers)
+  ? oldFeed.offers.filter(x=>Boolean(x?.imageUrl)).length
+  : 0;
+const imageCoverageHealthy=previousImageCount===0 || parsedImageCount>=previousImageCount;
+
 
 
 
