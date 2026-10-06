@@ -11754,14 +11754,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  // V784: if the selected S/K store changes while Gösta is already open
-  // (for example a boot/GPS refresh finishes after the first request started),
-  // immediately issue a fresh request for the now-visible store. The request
-  // sequence guard above prevents the older store response from winning.
+  // V825: if the selected offer store changes while Gösta is already open,
+  // immediately issue a fresh request for the now-visible store. This applies
+  // to independent chains too: warmup fills the core cache but does not publish
+  // its rows into React state after the selection-signature effect clears the
+  // previous store's visible results.
   useEffect(() => {
-    if (activeResult !== "offers" || searchPanelOpen || !storeModeChosenV299) return;
+    if (activeResult !== "offers" || searchPanelOpen) return;
     const selectedChain = gostaSelectedOfferChainRefV547.current;
-    if (selectedChain !== "S" && selectedChain !== "K") return;
+    if (!selectedChain) return;
+
+    if ((selectedChain === "S" || selectedChain === "K") && !storeModeChosenV299) return;
+    if (selectedChain === "LIDL" && !selectedLidlStoreV750) return;
+    if (selectedChain === "TOKMANNI" && !selectedTokmanniStoreV756) return;
+    if (selectedChain === "EUROSPAR" && !selectedEurosparStoreV751) return;
 
     void searchOffers();
   }, [
@@ -11777,6 +11783,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     activeArea.kStoreName,
     activeArea.kLocalStoreId,
     activeArea.kLocalStoreName,
+    selectedLidlStoreV750?.id,
+    selectedLidlStoreV750?.name,
+    selectedTokmanniStoreV756?.id,
+    selectedTokmanniStoreV756?.name,
+    selectedEurosparStoreV751?.id,
+    selectedEurosparStoreV751?.name,
   ]);
 
   function handleGostaFilterChangeV136(value: string) {
