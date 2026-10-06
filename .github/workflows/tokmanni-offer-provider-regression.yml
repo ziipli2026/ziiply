@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts'
       - 'scripts/audit-tokmanni-offer-provider-20261006.cjs'
+      - 'scripts/test-tokmanni-spaced-prices-20261006.cjs'
       - '.github/workflows/tokmanni-offer-provider-regression.yml'
 
 jobs:
