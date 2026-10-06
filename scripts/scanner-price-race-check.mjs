@@ -72,20 +72,20 @@ assert.ok(searchByEanSectionV825, "searchByEan weight-label block exists");
 assert.match(searchByEanSectionV825, /const isPhysicalSearchScanV825 = Boolean\(/);
 assert.match(searchByEanSectionV825, /options\.fromScanner &&/);
 assert.match(searchByEanSectionV825, /options\.collectionEligible &&/);
-assert.match(searchByEanSectionV825, /options\.manualScannerEntry/);
+assert.doesNotMatch(searchByEanSectionV825, /options\.manualScannerEntry/);
 assert.match(searchByEanSectionV825, /desktopKeyboardScannerOpen/);
 assert.match(searchByEanSectionV825, /physicalSearchScanV825 &&/);
 assert.match(searchByEanSectionV825, /Date\.now\(\) - physicalSearchScanV825\.at < 10000/);
 assert.equal((searchByEanSectionV825.match(/physicalScan: Boolean\(options\.fromScanner\)/g) || []).length, 0, "weight paths cannot trust fromScanner alone");
 assert.ok((searchByEanSectionV825.match(/physicalScan: isPhysicalSearchScanV825/g) || []).length >= 5, "all weight add paths use verified physical scan proof");
-function physicalProofV825({inStore, fromScanner, manualScannerEntry=false, scannerActive, refMatches, ageMs}) {
-  return Boolean(inStore && fromScanner && (manualScannerEntry || (scannerActive && refMatches && ageMs < 10000)));
+function physicalProofV825({collectionEligible, fromScanner, scannerActive, refMatches, ageMs}) {
+  return Boolean(collectionEligible && fromScanner && scannerActive && refMatches && ageMs < 10000);
 }
-assert.equal(physicalProofV825({inStore:false,fromScanner:true,manualScannerEntry:true,scannerActive:true,refMatches:true,ageMs:10}), false, "scanner use outside store cannot collect");
-assert.equal(physicalProofV825({inStore:true,fromScanner:true,manualScannerEntry:true,scannerActive:false,refMatches:false,ageMs:99999}), true, "manual/pasted EAN inside confirmed store collects");
-assert.equal(physicalProofV825({inStore:true,fromScanner:true,scannerActive:true,refMatches:false,ageMs:10}), false, "different physical EAN cannot collect");
-assert.equal(physicalProofV825({inStore:true,fromScanner:true,scannerActive:true,refMatches:true,ageMs:10001}), false, "expired physical scan cannot collect");
-assert.equal(physicalProofV825({inStore:true,fromScanner:true,scannerActive:true,refMatches:true,ageMs:10}), true, "fresh physical scan inside confirmed store collects");
+assert.equal(physicalProofV825({collectionEligible:false,fromScanner:true,scannerActive:true,refMatches:true,ageMs:10}), false, "non-eligible scanner use cannot collect");
+assert.equal(physicalProofV825({collectionEligible:true,fromScanner:true,scannerActive:false,refMatches:false,ageMs:10}), false, "manual/pasted EAN without an active physical scanner cannot collect");
+assert.equal(physicalProofV825({collectionEligible:true,fromScanner:true,scannerActive:true,refMatches:false,ageMs:10}), false, "different physical EAN cannot collect");
+assert.equal(physicalProofV825({collectionEligible:true,fromScanner:true,scannerActive:true,refMatches:true,ageMs:10001}), false, "expired physical scan cannot collect");
+assert.equal(physicalProofV825({collectionEligible:true,fromScanner:true,scannerActive:true,refMatches:true,ageMs:10}), true, "fresh eligible physical scan collects");
 console.log("V825 physical weight-scan proof regression: PASS");
 
 
