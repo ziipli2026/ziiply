@@ -46,7 +46,19 @@ for(const [kind,frames] of Object.entries(classifiedFrames)){
     }
   }
 }
-const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames,classifiedFrames,frameProbes};
+const backendCandidates=[];
+for(const probe of frameProbes.filter(x=>x.kind==="eurospar"&&Array.isArray(x.scriptSources))){
+  for(const scriptUrl of probe.scriptSources.slice(0,10)){
+    try{
+      const r=await fetch(scriptUrl,{headers:{"user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(15000)});
+      if(!r.ok)continue;
+      const js=await r.text();
+      const hits=[...new Set([...js.matchAll(/https?:\\?\/\\?\/[^"'<>\s]+/gi)].map(m=>decode(m[0].replace(/\\\//g,"/"))).filter(x=>/publication|catalog|leaflet|viewer|api|json|tjek|incito/i.test(x)))].slice(0,50);
+      if(hits.length)backendCandidates.push({scriptUrl,hits});
+    }catch{}
+  }
+}
+const report={checkedAt:new Date().toISOString(),source:SOURCE,http:response.status,labels,candidateUrls,publicationFrames,classifiedFrames,frameProbes,backendCandidates};
 writeFileSync("tokmanni-leaflet-discovery.json",JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(!labels.eurospar||!labels.ruokasanomat){console.error("Expected EUROSPAR/Ruokasanomat labels missing from official leaflet hub");process.exitCode=1;}
