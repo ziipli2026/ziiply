@@ -236,7 +236,7 @@ for(const r of byKey.values()){
 }
 const records=[];
 const suppressionDebug=[];
-for(const r of byKey.values(){
+for(const r of byKey.values()){
   const continuous=r.availabilityKind==="continuous-listing"||r.availabilityKind==="continuous-api";
   const classification=classifyLidlPublicPriceCard({
     title:r.productName,evidenceText:r.evidenceText,promotionText:r.evidenceText,
