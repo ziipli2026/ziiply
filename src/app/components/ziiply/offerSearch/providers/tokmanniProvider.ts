@@ -121,12 +121,12 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   const ean = eanFromProductUrl(productUrl);
 
   const allText = textOf(block);
-  const multi = allText.match(/(\d+)\s*kpl\s*\/\s*(\d+(?:[,.]\d{1,2})?)\s*€/i);
+  const multi = allText.match(/(\d+)\s*kpl\s*\/\s*(\d+\s*(?:[,.]\s*\d{1,2})?)\s*€/i);
   const offerQuantity = multi ? Number(multi[1]) : null;
-  const multiBuyTotalPrice = multi ? Number(multi[2].replace(",", ".")) : null;
+  const multiBuyTotalPrice = multi ? price(multi[2]) : null;
 
-  const offerMarker = allText.match(/(?:Tarjoushinta|Klubitarjous!)\s*(\d+(?:[,.]\d{1,2})?)/i);
-  const normalMarker = allText.match(/Normaalihinta\s*(\d+(?:[,.]\d{1,2})?)/i);
+  const offerMarker = allText.match(/(?:Tarjoushinta|Klubitarjous!)\s*(\d+\s*(?:[,.]\s*\d{1,2})?)/i);
+  const normalMarker = allText.match(/Normaalihinta\s*(\d+\s*(?:[,.]\s*\d{1,2})?)/i);
   // In multi-buy cards Tokmanni prints the ordinary single price after the
   // badge. Preserve it as normalPrice while the offer itself is the total.
   // Magento renders the ordinary per-item price in a price element. Never
