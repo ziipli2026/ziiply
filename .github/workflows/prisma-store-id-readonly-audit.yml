@@ -1,0 +1,36 @@
+name: Prisma Store ID Read-only Audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-store-id-readonly-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare S-kaupat store IDs
+        run: |
+          node <<'NODE'
+          const ids=["634976534","666706775"];
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+          const hash="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
+          const version="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          for(const storeId of ids) for(const path of ["tuotteet/kampanjat","sivu/halvempi-hinta"]){
+            const variables={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path,platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+            const url=new URL("https://api.s-kaupat.fi/");
+            url.searchParams.set("operationName","RemoteGetPageContent");
+            url.searchParams.set("variables",JSON.stringify(variables));
+            url.searchParams.set("extensions",JSON.stringify({clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:hash}}));
+            const response=await fetch(url,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":version}});
+            const body=await response.json();
+            const page=body?.data?.pageContent??body?.data?.remoteGetPageContent??body?.data;
+            const sections=page?.pageContent?.sections??page?.sections??[];
+            const products=sections.flatMap(s=>(s.products??s.items??s.productList?.products??[]).map(p=>({section:s.title,id:p.id,ean:p.ean??p.product?.ean,title:p.name??p.title??p.product?.name,pricing:p.pricing??p.store?.pricing})));
+            const raw=JSON.stringify(body);
+            console.log(JSON.stringify({storeId,path,http:response.status,errors:body.errors?.map(e=>e.message),rootKeys:Object.keys(body?.data??{}),pageKeys:Object.keys(page??{}),sectionCount:sections.length,productCount:products.length,sectionTitles:sections.map(s=>s.title),muikku:products.filter(p=>String(p.ean)==="2004657500003"),containsHyvinkaa:/hyvink/i.test(raw),hyvinkaaFragments:(raw.match(/.{0,80}hyvink.{0,120}/ig)||[]).slice(0,8)},null,2));
+          }
+          NODE
