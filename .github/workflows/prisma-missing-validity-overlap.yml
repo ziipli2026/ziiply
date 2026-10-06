@@ -1,0 +1,41 @@
+name: Prisma Missing Validity Overlap
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prisma-missing-validity-overlap.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --legacy-peer-deps
+      - name: Compare CMS no-validity rows to DISCOUNTED
+        run: |
+          cat > scripts/.tmp-missing-overlap.mts <<'TS'
+          import { searchSelectedSKaupatOffersV11 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
+          const storeName="Prisma Hyvinkää",storeId="634976534",MASTER="__ziiply_all_offers__";
+          const ctx={storeName,sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
+          const d:any[]=await searchSelectedSKaupatOffersV11(MASTER,ctx as any);
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+          const variables={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+          const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:"f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1"}};
+          const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+          const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8"}});
+          const b=await r.json(),sections=b?.data?.pageContent?.sections??[],seen=new Set<string>(),missing:any[]=[];
+          for(const s of sections)for(const p of (s.products??[])){const e=String(p.ean??"");if(!e||seen.has(e))continue;seen.add(e);const pr=p.pricing??p.store?.pricing??{};if(pr.campaignPriceValidUntil)continue;const price=Number(pr.campaignPrice??pr.currentPrice??p.price);missing.push({ean:e,title:p.name,section:s.title,price,campaignPrice:pr.campaignPrice??null,currentPrice:pr.currentPrice??null,regularPrice:pr.regularPrice??null});}
+          const dp=(x:any)=>{const n=Number(x.price);if(Number.isFinite(n))return n;const z=Number(String(x.priceText??"").replace(/[^0-9,.-]/g,"").replace(",","."));return z};
+          const dv=(x:any)=>String(x?.validUntil??x?.debugOfferEvidenceV226?.campaignPriceValidUntil??"");
+          const dm=new Map(d.map(x=>[String(x.ean),x]));
+          const overlap=missing.filter(x=>dm.has(x.ean)).map(x=>{const q:any=dm.get(x.ean);return {...x,discountedTitle:q.title,discountedPrice:dp(q),discountedValidity:dv(q),samePrice:Math.abs(x.price-dp(q))<.005}});
+          const same=overlap.filter(x=>x.samePrice),diff=overlap.filter(x=>!x.samePrice);
+          console.log("MISSING_OVERLAP_REPORT",JSON.stringify({date,counts:{cmsMissingValidity:missing.length,discounted:d.length,eanOverlap:overlap.length,samePrice:same.length,differentPrice:diff.length,samePriceWithDiscountedValidity:same.filter(x=>x.discountedValidity).length,samePriceWithoutDiscountedValidity:same.filter(x=>!x.discountedValidity).length},samePriceRows:same,differentPriceRows:diff,notInDiscounted:missing.filter(x=>!dm.has(x.ean)).map(x=>({ean:x.ean,title:x.title,section:x.section,price:x.price}))},null,2));
+          TS
+          npx tsx scripts/.tmp-missing-overlap.mts
+          rm scripts/.tmp-missing-overlap.mts
