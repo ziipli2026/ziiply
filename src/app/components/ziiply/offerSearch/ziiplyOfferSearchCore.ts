@@ -836,7 +836,7 @@ export function filterZiiplyGostaOfferResultsV146(
   });
 }
 
-function hidePrismaOfferCopiesAlreadyInCampaignTabV804(
+export function hidePrismaOfferCopiesAlreadyInCampaignTabV804(
   visibleResults: ZiiplyGostaOfferLike[],
   masterResults: ZiiplyGostaOfferLike[],
 ) {
