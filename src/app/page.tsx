@@ -4806,7 +4806,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
-  const [scannerStoreMismatchV801, setScannerStoreMismatchV801] = useState<{ name: string; searchTerm: string; selectedName: string } | null>(null);
+  const [scannerStoreMismatchV801, setScannerStoreMismatchV801] = useState<{ name: string; searchTerm: string; selectedName: string; reason?: "foreign_private_label" | "not_found" } | null>(null);
   const [scannerEquivalentNoticeV813, setScannerEquivalentNoticeV813] = useState("");
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
 
@@ -14831,6 +14831,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           name: bankIdentityNameV789,
           searchTerm: bankIdentityNameV789.replace(/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow|milbona|cien|chef select|favorina)\s+/i, "").replace(/\s+\d+\s*(?:kpl|g|kg|ml|l)\b.*$/i, "").trim(),
           selectedName: selectedKeysV801.map((key) => key === "s" ? (activeStores.sStoreName || "S-kauppa") : key === "k" ? (activeStores.kStoreName || "K-kauppa") : key === "lidl" ? (selectedLidlStoreV750?.name || "Lidl") : (selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR/Tokmanni")).join(" / "),
+          reason: "foreign_private_label",
         } : null);
         // A private-label product from an unselected chain must never enter
         // the selected store's basket. Keep the scanner open for user choice.
@@ -23120,7 +23121,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   cameraOverlay={(scannerStoreMismatchV801 || scannerEquivalentNoticeV813) ? (
                     <div role="status" className="flex w-full max-w-[340px] flex-col items-center gap-3 rounded-2xl border-2 border-[#e3c477] bg-[#fff6dd] p-3 text-center text-[#203c32] shadow-xl">
                       <p className="text-[15px] font-black leading-snug">
-                        {scannerEquivalentNoticeV813 || "Tuote ei kuulu valittuun kauppaketjuun."}
+                        {scannerEquivalentNoticeV813 || (scannerStoreMismatchV801?.reason === "foreign_private_label"
+                          ? `Tuote ei ole valitun kaupan tuote (${scannerStoreMismatchV801.selectedName}).`
+                          : "Tuotetta ei löytynyt valitun kaupan valikoimasta.")}
                       </p>
                       {scannerEquivalentNoticeV813 ? (
                         <div className="grid w-full grid-cols-2 gap-2">
