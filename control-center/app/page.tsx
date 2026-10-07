@@ -259,7 +259,7 @@ export default async function Page(){
           <div style={{fontSize:12,color:"#667085"}}>{monitoredChains}/{CHAINS.length} ketjua valvonnassa · {latestBySource.length} lähdettä</div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginTop:18}}>
-          <div><div style={{fontSize:11,color:"#667085"}}>Julkaisuvaraston aktiiviset tarjoukset</div><b style={{fontSize:22}}>{activeOfferTotal.toLocaleString("fi-FI")}</b></div>
+          <div><div style={{fontSize:11,color:"#667085"}}>Lidlin aktiiviset tarjoukset julkaisuvarastossa</div><b style={{fontSize:22}}>{activeOfferTotal.toLocaleString("fi-FI")}</b></div>
           <div><div style={{fontSize:11,color:"#667085"}}>Avoimet lähdevirheet</div><b style={{fontSize:22}}>{currentFailures.length}</b></div>
           <div><div style={{fontSize:11,color:"#667085"}}>Toimintajono</div><b style={{fontSize:22}}>{actionQueue.length}</b></div>
           <div><div style={{fontSize:11,color:"#667085"}}>EAN-pankki</div><b style={{fontSize:22}}>{d.ean?d.ean.total.toLocaleString("fi-FI"):"—"}</b></div>
@@ -299,7 +299,7 @@ export default async function Page(){
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {metricCard("Aktiiviset hyväksytyt julkaisut",activePubs.length,activePubs.length?"green":"yellow")}
-      {metricCard("Aktiivisten julkaisujen tarjoukset",activeOfferTotal,activeOfferTotal?"green":"yellow")}
+      {metricCard("Lidlin aktiivisten julkaisujen tarjoukset",activeOfferTotal,activeOfferTotal?"green":"yellow")}
       {metricCard("Candidate / odottaa",candidatePubs.length,activeCandidates.length?"red":candidatePubs.length?"yellow":"green")}
     </section>
 
