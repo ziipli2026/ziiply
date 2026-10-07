@@ -300,6 +300,16 @@
     "evidence": "Lidl Finland product 10038504 is FAZER Pihlajamunkki 3 kpl, 108 g. S-kaupat exact Fazer Pihlaja-munkki 108 g gives consumer EAN 2006582500004 and matching product description/nutrition. The previous 2001436500001 linkage was not sufficiently supported and was removed."
   },
   {
+    "lidlProductId": "10038515",
+    "ean": "6409100072872",
+    "evidence": "Lidl Finland productId 10038515 identifies KARINIEMEN Kananpojan kypsät ja helpot suikaleet 200 g with Fajitas or uunipaahdettu variants. HKFoods/Kariniemen official product data identifies the exact Fajitas suikaleet 200 g variant, product code 7287, with consumer EAN 6409100072872. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038515",
+    "ean": "6409100076399",
+    "evidence": "Lidl Finland productId 10038515 identifies KARINIEMEN Kananpojan kypsät ja helpot suikaleet 200 g with Fajitas or uunipaahdettu variants. Kariniemen and HKFoods official product data identify the exact uunipaahdetut/paahdetut suikaleet 200 g variant, product code 7639, with consumer EAN 6409100076399; S-kaupat independently confirms the same EAN. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
     "lidlProductId": "10038518",
     "ean": "6407800019265",
     "evidence": "Lidl Finland productId 10038518 identifies ATRIA Rahkaohukainen 380 g and shows Omena-Kaneli and Kaakao-Vadelma variants. Atria's 2026 trade product catalogue identifies Kaakao-Vadelma 380 g consumer package EAN 6407800019265; S-kaupat independently confirms the same EAN. Exact brand, variant and pack size match; GTIN-13 checksum valid."
