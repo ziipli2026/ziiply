@@ -1,0 +1,44 @@
+name: Prisma V238 resolver-only 83 audit
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-v238-resolver-only-83.yml'
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Resolve all Prisma identities only
+        run: |
+          set -o pipefail
+          cat > scripts/.tmp-prisma-resolver-only-83.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search=Prisma",{headers:{Accept:"application/json"}});
+          if(!rr.ok) throw new Error("inventory "+rr.status);
+          const raw:any=await rr.json();
+          const arr=Array.isArray(raw)?raw:(raw.stores||raw.data||raw.results||[]);
+          const stores=arr.filter((x:any)=>String(x.chain||"").toLowerCase()==="prisma");
+          const out:any[]=[];
+          for(const st of stores){
+            const name=String(st.name||"").trim();
+            if(!name) continue;
+            const actual=await resolvePrismaCampaignStoreIdV1(name);
+            out.push({name,externalId:String(st.externalId||st.storeId||st.id||""),actual});
+            console.log("R83",JSON.stringify(out.at(-1)));
+            await new Promise(r=>setTimeout(r,250));
+          }
+          const unresolved=out.filter(x=>!x.actual).map(x=>x.name);
+          console.log("R83_SUMMARY",JSON.stringify({inventory:stores.length,tested:out.length,resolved:out.length-unresolved.length,unresolved}));
+          if(stores.length!==83) throw new Error("expected 83 Prisma, got "+stores.length);
+          TS
+          npx tsx scripts/.tmp-prisma-resolver-only-83.mts 2>&1 | tee prisma-v238-resolver-only-83.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prisma-v238-resolver-only-83
+          path: prisma-v238-resolver-only-83.txt
