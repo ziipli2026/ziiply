@@ -1,4 +1,4 @@
-name: Prisma Finland nationwide ID audit (read-only)
+name: Prisma Finland nationwide ID audit V238 (read-only)
 
 on:
   push:
