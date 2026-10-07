@@ -6,7 +6,8 @@ import { fetchPrismaCampaignOffersV1 } from "../src/app/components/ziiply/offerS
 
 const MASTER="__ziiply_all_offers__";
 const storeName=process.argv[2]||"Prisma Hyvinkää";
-const ctx={storeName,sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
+const storeId=process.argv[3]||"634976534";
+const ctx={storeName,storeId,sStoreId:storeId,sStoreIds:[storeId],sStoreName:storeName,storeNames:[storeName],sStoreNames:[storeName],storeCompareScope:"within_chain",withinChain:"S"};
 const cfg={id:"skaupat",chain:"S",storeLabel:"S-kaupat",url:"https://www.s-kaupat.fi/tuotteet/kampanjat"};
 
 const norm=(v:any)=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9åäö\s-]/gi," ").replace(/\s+/g," ").trim();
