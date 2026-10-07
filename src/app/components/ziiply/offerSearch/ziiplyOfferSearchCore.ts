@@ -860,7 +860,7 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
       raw?.debugPrismaCampaignEvidenceV2?.campaignPriceValidUntil ??
       raw?.debugOfferEvidenceV226?.campaignPriceValidUntil,
     );
-    const isoDate = rawValidity.match(/^\\d{4}-\\d{2}-\\d{2}/)?.[0];
+    const isoDate = rawValidity.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
     return isoDate || rawValidity;
   };
 
