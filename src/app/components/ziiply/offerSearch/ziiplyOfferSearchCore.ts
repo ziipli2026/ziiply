@@ -854,12 +854,14 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
 
   const validity = (item: ZiiplyGostaOfferLike) => {
     const raw = (item as any)?.__sourceOfferSearchResult ?? item;
-    return text(
+    const rawValidity = text(
       raw?.validUntil ??
       raw?.validTo ??
       raw?.debugPrismaCampaignEvidenceV2?.campaignPriceValidUntil ??
       raw?.debugOfferEvidenceV226?.campaignPriceValidUntil,
     );
+    const isoDate = rawValidity.match(/^\\d{4}-\\d{2}-\\d{2}/)?.[0];
+    return isoDate || rawValidity;
   };
 
   const storeIdentity = (item: ZiiplyGostaOfferLike) => {
