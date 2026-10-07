@@ -420,6 +420,11 @@
     "evidence": "Lidl Finland identifies TROLLI Makeissekoitus productId 10038583 as 360 g. Independent product data identifies Trolli Halloween Sweet & Sour Mix 360 g with GTIN 4000512365020; multiple current retail listings independently corroborate the same exact 360 g Halloween Sweet & Sour product and GTIN."
   },
   {
+    "lidlProductId": "10038584",
+    "ean": "5907205007597",
+    "evidence": "Lidl Finland identifies SOUR MADNESS Kirpeä makeinen productId 10038584 as 60 g. Finnish product data Kalori.info identifies Sour Madness 60 g with EAN 5907205007597 and manufacturer ZPH ARGO Sp. z o.o.; exact product name and pack size match. GTIN-13 checksum valid."
+  },
+  {
     "lidlProductId": "10038585",
     "ean": "4000512363729",
     "evidence": "Lidl Finland identifies TROLLI Vaahtokarkkisilmät productId 10038585 as 75 g, described as eye-shaped foam/gummy candies with sour filling. S-kaupat identifies Trolli Pop Eye 75 g with EAN 4000512363729 and matching product description; multiple European retailers independently corroborate the same 75 g GTIN."
