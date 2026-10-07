@@ -21,7 +21,7 @@ jobs:
           cache: npm
       - run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Triggered audit revision 2026-10-07T04:00
-        run: echo "Prisma multi-store audit trigger revision active - store IDs"
+        run: echo "Prisma multi-store audit trigger revision active - store IDs + pickup city/street fix"
       - name: Run Prisma multi-store deep audit
         run: |
           cat > scripts/.tmp-prisma-multi-store-audit.mts <<'TS'
