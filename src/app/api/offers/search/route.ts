@@ -616,10 +616,22 @@ export async function GET(request: Request) {
       // FI0218 is the first deep-tested publication-staging store. Stored rows combine
       // the Lidl Plus feed with the official Lidl.fi public leaflet/category source.
       // If staging is unavailable, foreground structured + verified manual fallback still works.
+      // The staged publication is parsed from Lidl's national leaflet.
+      // FI0218 is only the publication-storage/pilot identity (Hyvinkää), not
+      // an availability restriction. Every selected Finnish Lidl must consume
+      // the same active national publication; store identity is rebound below.
       let staged: UnknownRecord[] = [];
-      if (storeKey === "FI0218") {
-        try { staged = await readActivePublicationOffers<UnknownRecord>("LIDL:FI0218"); }
-        catch (error) { console.warn("[Ziiply offers] Lidl staged publication unavailable", error); }
+      try {
+        const nationalStaged = await readActivePublicationOffers<UnknownRecord>("LIDL:FI0218");
+        staged = nationalStaged.map((offer) => ({
+          ...offer,
+          storeKey,
+          storeName,
+          storeLabel: storeName,
+          shopName: storeName,
+        }));
+      } catch (error) {
+        console.warn("[Ziiply offers] Lidl staged national publication unavailable", error);
       }
       // Fill manual verified-leaflet rows from the staged official Lidl.fi image when
       // product identity is strong: same normalized product key + same price + overlapping validity.
