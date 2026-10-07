@@ -6,6 +6,7 @@ import { fetchLidlPublicLeafletOffers } from "@/app/components/ziiply/offerSearc
 import { approvePublication, storeParsedPublication } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { finnishPublicationDate, publicationState } from "@/app/components/ziiply/offerSearch/publicationLifecycle";
 import { inspectOfferPublication } from "@/app/components/ziiply/offerSearch/publicationDiagnostics";
+import { LIDL_NATIONAL_PUBLICATION_CHAIN } from "@/app/components/ziiply/offerSearch/lidlPublicationConfig";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
       )).digest("hex").slice(0, 20);
       const publicationId = `official-combined:${period}:${fingerprint}`;
       const outcome = await storeParsedPublication({
-        chain: "LIDL:FI0218",
+        chain: LIDL_NATIONAL_PUBLICATION_CHAIN,
         id: publicationId,
         validFrom, validUntil, parsedAt: new Date().toISOString(), offers,
       }, { approvalState: "candidate" });
@@ -90,7 +91,7 @@ export async function GET(request: Request) {
       // upcoming edition cannot become visible before its start date. Failed or
       // empty source runs never reach this point and therefore preserve the last
       // known-good approved edition.
-      const approved = await approvePublication("LIDL:FI0218", publicationId);
+      const approved = await approvePublication(LIDL_NATIONAL_PUBLICATION_CHAIN, publicationId);
       outcomes.push({
         period, count: offers.length,
         structuredCount: offers.filter(row => row.source === "lidl-plus").length,
@@ -102,7 +103,7 @@ export async function GET(request: Request) {
     const qualityOk = outcomes.length > 0 && outcomes.every(({ quality }) => quality.severity !== "error");
     const sourceHealthy = structured.length > 0 && publicOffers.length > 0;
     await recordPublicationRun({
-      chain: "LIDL:FI0218", source: "official-lidl-combined", ok: qualityOk && sourceHealthy,
+      chain: LIDL_NATIONAL_PUBLICATION_CHAIN, source: "official-lidl-combined", ok: qualityOk && sourceHealthy,
       count: structured.length + publicOffers.length,
       outcome: qualityOk && sourceHealthy ? "candidate-staging-completed" : "staging-partial-or-quality-error",
       details: {
@@ -122,7 +123,7 @@ export async function GET(request: Request) {
     }, { status: qualityOk && sourceHealthy ? 200 : 503, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     await recordPublicationRun({
-      chain: "LIDL:FI0218", source: "official-lidl-combined", ok: false,
+      chain: LIDL_NATIONAL_PUBLICATION_CHAIN, source: "official-lidl-combined", ok: false,
       count: 0, outcome: "staging-failed", details: { errorType: error instanceof Error ? error.name : "Unknown" },
     }).catch(() => undefined);
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Staging failed" },
