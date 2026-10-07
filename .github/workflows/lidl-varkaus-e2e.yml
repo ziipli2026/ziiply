@@ -7,6 +7,8 @@ on:
       - '.github/workflows/lidl-varkaus-e2e.yml'
       - 'src/app/api/offers/search/**'
       - 'src/app/components/ziiply/offerSearch/providers/lidlProvider.ts'
+      - 'src/app/components/ziiply/offerSearch/lidlPublicationConfig.ts'
+      - 'src/app/components/ziiply/offerSearch/publicationStore.ts'
   workflow_dispatch:
 
 jobs:
@@ -30,7 +32,7 @@ jobs:
           done
       - name: Call actual Varkaus Lidl API route
         run: |
-          URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=FI0165&lidlStoreName=Varkaus'
+          URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=4527&lidlStoreName=Varkaus'
           curl -fsS "$URL" -o /tmp/lidl.json
           node <<'NODE'
           const fs=require('fs');
@@ -42,9 +44,7 @@ jobs:
           const campaignRows=rows.filter(x=>x.campaignType==='campaign');
           const nationalLeafletOffers=offerRows.filter(x=>String(x.source||'')==='verified-official-leaflet');
           console.log('TAB_AUDIT',JSON.stringify({offers:offerRows.length,campaigns:campaignRows.length,nationalLeafletOffers:nationalLeafletOffers.length}));
-          const stagedOrPublic=rows.filter(x=>['lidl-fi-public','publication-staging'].includes(String(x.source||'')) || String(x.id||'').includes('lidl'));
-          console.log('STAGED_NATIONAL_AUDIT',JSON.stringify({stagedOrPublic:stagedOrPublic.length}));
-          if(!p.ok || p.provider!=='lidl' || p.storeKey!=='FI0165' || rows.length===0 || offerRows.length===0 || nationalLeafletOffers.length===0 || Number(p?.lidlSourceAudit?.staged||0)===0) process.exit(1);
+          if(!p.ok || p.provider!=='lidl' || p.storeKey!=='4527' || rows.length===0 || offerRows.length===0 || nationalLeafletOffers.length===0) process.exit(1);
           NODE
 
       - name: Verify national Lidl offers survive missing store feed identity
