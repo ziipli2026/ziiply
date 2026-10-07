@@ -1,0 +1,23 @@
+name: Control Center live-data guard
+
+on:
+  push:
+    paths:
+      - "control-center/**"
+      - ".github/workflows/control-center-live-data-guard.yml"
+  pull_request:
+    paths:
+      - "control-center/**"
+      - ".github/workflows/control-center-live-data-guard.yml"
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require dynamic Control Center rendering
+        run: |
+          grep -Fq 'export const dynamic="force-dynamic";' control-center/app/page.tsx || {
+            echo "::error::Control Center must stay force-dynamic so refresh reads live Neon data."
+            exit 1
+          }
