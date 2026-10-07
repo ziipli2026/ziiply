@@ -58,7 +58,7 @@ function dot(s:string){return s==="green"?"🟢":s==="yellow"?"🟡":s==="red"?"
 
 export default async function Page(){
   const d=await load();
-  const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim()))}));
+  const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim())&&!["future-publication-discovery","s-kaupat-protocol"].includes(r.source))}));
   const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const activePubs=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const candidatePubs=d.pubs.filter(p=>p.approval_state==="candidate");
