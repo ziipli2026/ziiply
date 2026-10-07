@@ -112,11 +112,11 @@ export default async function Page(){
   const futureDiscoveryStale=futureDiscovery.filter(x=>x.run&&Date.now()-new Date(x.run.checked_at).getTime()>12*60*60*1000).length;
   const futureDiscoveryHealthy=futureDiscovery.filter(x=>x.run?.ok&&Date.now()-new Date(x.run.checked_at).getTime()<=12*60*60*1000).length;
   const latestRun=d.runs[0];
-  const nextApproved=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
+  const nextApproved=currentPubs.filter(p=>p.approval_state==="approved"&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
   const overlappingApproved=activePubs.filter((p,i,a)=>!CHAINS.find(ch=>ch.key==="Lidl")!.match(p.chain.trim())&&a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
-  const rolloverChains=[...new Set(d.pubs.map(p=>p.chain).filter(chain=>!CHAINS[0].match(chain.trim())))].map(chain=>{const pubs=d.pubs.filter(p=>p.chain===chain);const current=pubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0];const future=pubs.filter(p=>p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];const nextDay=current?new Date(current.valid_until+"T12:00:00Z"):null;if(nextDay)nextDay.setUTCDate(nextDay.getUTCDate()+1);const expected=nextDay?nextDay.toISOString().slice(0,10):null;const gap=Boolean(current&&future&&expected&&future.valid_from>expected);const level=!current?"red":gap?"red":!future&&current.valid_until<=todayFi?"yellow":future?.approval_state==="candidate"?"yellow":"green";return {chain,current,future,gap,level};});
+  const rolloverChains=[...new Set(currentPubs.map(p=>p.chain).filter(chain=>!CHAINS[0].match(chain.trim())))].map(chain=>{const pubs=currentPubs.filter(p=>p.chain===chain);const current=pubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0];const future=pubs.filter(p=>p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];const nextDay=current?new Date(current.valid_until+"T12:00:00Z"):null;if(nextDay)nextDay.setUTCDate(nextDay.getUTCDate()+1);const expected=nextDay?nextDay.toISOString().slice(0,10):null;const gap=Boolean(current&&future&&expected&&future.valid_from>expected);const level=!current?"red":gap?"red":!future&&current.valid_until<=todayFi?"yellow":future?.approval_state==="candidate"?"yellow":"green";return {chain,current,future,gap,level};});
   const publicationPipeline=CHAINS.filter(ch=>ch.key==="Lidl").map(ch=>{
-    const current=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
+    const current=currentPubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
     const future=currentPubs.filter(p=>ch.match(p.chain.trim())&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]??null;
     const discovery=d.runs.find(r=>ch.match(r.chain.trim())&&r.source==="future-publication-discovery")??null;
     const discoveryApplicable=["K","Tokmanni"].includes(ch.key);
@@ -140,7 +140,7 @@ export default async function Page(){
   const actionQueue=[
     ...rolloverRisk.filter(x=>x.risk==="red").map(x=>({level:"red",priority:x.hoursLeft??0,title:x.name,detail:x.reason+(x.hoursLeft===null?"":" · "+x.hoursLeft+" h jäljellä")})),
     ...rolloverRisk.filter(x=>x.risk==="yellow").map(x=>({level:"yellow",priority:100+(x.hoursLeft??99),title:x.name,detail:x.reason+(x.hoursLeft===null?"":" · "+x.hoursLeft+" h jäljellä")})),
-    ...futureDiscovery.filter(x=>x.run&&!x.run.ok).map(x=>({level:"yellow",priority:160,title:x.chain,detail:"Future discovery -tarkistus epäonnistui · "+x.run!.outcome})),
+    ...futureDiscovery.filter(x=>x.run&&!x.run.ok).map(x=>({level:"yellow",priority:160,title:x.chain,detail:"Tulevan tarjouslehden tarkistus ei onnistunut"+(x.run!.outcome==="future-discovery-http-error"?" (HTTP-virhe)":"")})),
     ...parserRegressions.filter(x=>x.level==="red").map(x=>({level:"red",priority:20,title:x.name,detail:"Vakava parseriregressio · "+x.signals.join(" · ")})),
     ...parserRegressions.filter(x=>x.level==="yellow").map(x=>({level:"yellow",priority:140,title:x.name,detail:"Parseriregressiovaroitus · "+x.signals.join(" · ")})),
     ...futureDiscovery.filter(x=>!x.run).map(x=>({level:"yellow",priority:180,title:x.chain,detail:"Future discoveryn ensimmäinen ajo puuttuu"})),
@@ -244,7 +244,7 @@ export default async function Page(){
           <div style={{fontSize:12,color:"#667085"}}>{monitoredChains}/{CHAINS.length} ketjua valvonnassa · {latestBySource.length} lähdettä</div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginTop:18}}>
-          <div><div style={{fontSize:11,color:"#667085"}}>Aktiiviset tarjoukset</div><b style={{fontSize:22}}>{activeOfferTotal.toLocaleString("fi-FI")}</b></div>
+          <div><div style={{fontSize:11,color:"#667085"}}>Julkaisuvaraston aktiiviset tarjoukset</div><b style={{fontSize:22}}>{activeOfferTotal.toLocaleString("fi-FI")}</b></div>
           <div><div style={{fontSize:11,color:"#667085"}}>Avoimet lähdevirheet</div><b style={{fontSize:22}}>{currentFailures.length}</b></div>
           <div><div style={{fontSize:11,color:"#667085"}}>Toimintajono</div><b style={{fontSize:22}}>{actionQueue.length}</b></div>
           <div><div style={{fontSize:11,color:"#667085"}}>EAN-pankki</div><b style={{fontSize:22}}>{d.ean?d.ean.total.toLocaleString("fi-FI"):"—"}</b></div>
@@ -261,17 +261,17 @@ export default async function Page(){
         <div style={{fontWeight:800,fontSize:16}}>{dot(s)} {c.name}</div>
         <div style={{marginTop:7,fontWeight:800,color:s==="red"?"#b42318":s==="yellow"?"#a15c00":s==="green"?"#087443":"#667085"}}>{label}</div>
         <div style={{fontSize:31,fontWeight:900,marginTop:14}}>{r?(r.source==="s-kaupat-protocol"?(r.ok?"OK":"VIRHE"):r.offer_count):"—"}</div>
-        <div style={{fontSize:12,color:"#667085"}}>{r?.source==="s-kaupat-protocol"?"protokollan health-probe":"viimeisin tarjousmäärä"}</div>
+        <div style={{fontSize:12,color:"#667085"}}>{r?.source==="s-kaupat-protocol"?"protokollan health-probe":"viimeisin parseritulos"}</div>
         <div style={{fontSize:12,color:"#667085",marginTop:9}}>{r?new Date(r.checked_at).toLocaleString("fi-FI"):"Ei ajoa 14 vrk"}</div>
         {r&&<div style={{fontSize:13,marginTop:7}}>{r.outcome}</div>}
       </article>})}
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {statusCard("Future discovery kunnossa",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors?"red":futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Tuore onnistunut tarkistus ≤12 h")}
+      {statusCard("Future discovery kunnossa",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors||futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Tuore onnistunut tarkistus ≤12 h")}
       {statusCard("Tulevia lehtiä löydetty",futureFound,futureFound?"green":"gray","Digitaalisesta lähteestä löytyneet tulevat jaksot")}
       {statusCard("Future discovery puuttuu",futureDiscoveryMissing,futureDiscoveryMissing?"yellow":"green","Ketjut, joilta ensimmäinen tarkistus ei ole vielä kirjautunut")}
-      {statusCard("Future discovery virheet",futureDiscoveryErrors,futureDiscoveryErrors?"red":"green","Vain itse tarkistuksen epäonnistuminen on virhe")}
+      {statusCard("Future discovery varoitukset",futureDiscoveryErrors,futureDiscoveryErrors?"yellow":"green","Ennakkotarkistus epäonnistui; ei tarkoita parseri- tai tarjousdatavirhettä")}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
