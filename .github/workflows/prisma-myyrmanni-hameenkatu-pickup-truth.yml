@@ -1,0 +1,31 @@
+name: Prisma Myyrmanni Hameenkatu pickup truth probe
+on:
+  push:
+    paths: ['.github/workflows/prisma-myyrmanni-hameenkatu-pickup-truth.yml']
+permissions: {contents: read}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node <<'NODE'
+          const H="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+          const C="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki"}).format(new Date());
+          const end=new Date(date+"T12:00:00Z"); end.setUTCDate(end.getUTCDate()+7);
+          async function q(lat,lon,label){
+            const u=new URL("https://api.s-kaupat.fi/");
+            u.searchParams.set("operationName","remotePickupSlots");
+            u.searchParams.set("variables",JSON.stringify({startDate:date,endDate:end.toISOString().slice(0,10),location:{latitude:lat,longitude:lon},limit:50}));
+            u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":C}});
+            const d=await r.json(); const rows=d?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+            console.log("\n### "+label+" HTTP "+r.status+" errors="+JSON.stringify(d?.errors||null));
+            console.log(JSON.stringify(rows.map(x=>({storeId:x?.store?.id,brand:x?.store?.brand,pickupName:x?.pickupPoint?.name,street:x?.pickupPoint?.address?.street||x?.pickupPoint?.address?.streetAddress,city:x?.pickupPoint?.address?.city,postal:x?.pickupPoint?.address?.postalCode,distance:x?.distance})),null,2));
+          }
+          (async()=>{
+            await q(60.2615,24.8535,"Myyrmanni Iskoskuja 3 Vantaa");
+            await q(61.4981,23.7608,"Hameenkatu 21 Tampere");
+          })()
+          NODE
