@@ -130,6 +130,24 @@ for(const x of campaignRows){const item=x as any;const e=String(item?.ean??"").t
 const crossTab=[...offerEan.entries()].filter(([e])=>campaignEan.has(e)).map(([e,os])=>({ean:e,offers:os.map(row),campaigns:(campaignEan.get(e)||[]).map(row)}));
 const samePriceCrossTab=crossTab.filter((g:any)=>g.offers.some((o:any)=>g.campaigns.some((c:any)=>o.price&&o.price===c.price)));
 
+
+function eanMapV2(rows:any[]){const m=new Map<string,any>();for(const x of rows){const e=String(x?.ean??x?.gtin??x?.barcode??"").trim();if(e)m.set(e,x);}return m;}
+const discountedMapV2=eanMapV2(discounted as any[]), campaignMapV2=eanMapV2(campaigns as any[]);
+const offerOnlyV2=[...discountedMapV2].filter(([e])=>!campaignMapV2.has(e)).map(([,x])=>row(x));
+const campaignOnlyV2=[...campaignMapV2].filter(([e])=>!discountedMapV2.has(e)).map(([,x])=>row(x));
+const overlapV2=[...discountedMapV2].filter(([e])=>campaignMapV2.has(e)).map(([e,x])=>({ean:e,offer:row(x),campaign:row(campaignMapV2.get(e))}));
+const foodReV2=/(kahvi|tee|maito|juust|jogurt|rahka|kananmuna|voi|kerma|liha|makkar|kala|leip|hedel|vihann|juoma|pakaste|valmisruo|kuivatuot|makeis|keksi|lastenruo)/i;
+const isFoodV2=(x:any)=>foodReV2.test(String(x?.category??"")+" "+String(x?.mainCategory??"")+" "+String(x?.title??""));
+const sourceComparisonV2={
+ discountedRows:discounted.length,campaignRows:campaigns.length,
+ discountedUniqueEan:discountedMapV2.size,campaignUniqueEan:campaignMapV2.size,
+ overlapEan:overlapV2.length,offerOnlyEan:offerOnlyV2.length,campaignOnlyEan:campaignOnlyV2.length,
+ unionEan:new Set([...discountedMapV2.keys(),...campaignMapV2.keys()]).size,
+ discountedFood:discounted.filter(isFoodV2).length,campaignFood:campaigns.filter(isFoodV2).length,
+ offerOnlyFood:offerOnlyV2.filter(isFoodV2).length,campaignOnlyFood:campaignOnlyV2.filter(isFoodV2).length
+};
+console.log("PRISMA_SOURCE_COMPARISON",JSON.stringify({sourceComparisonV2,offerOnlyFood:offerOnlyV2.filter(isFoodV2),campaignOnlyFood:campaignOnlyV2.filter(isFoodV2),campaignOnly:campaignOnlyV2,overlap:overlapV2},null,2));
+
 const report={
  audit:"PRISMA_PIPELINE_DROP_TRACE_V1",storeName,
  counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,offerMobileCardsAfterDedupe:offerMobileDedupe.kept.length,offerMobileCardsDropped:offerMobileDedupe.removed.length,offerCategoryTotalSum,campaignCategoryTotalSum,campaignMobileCardsAfterDedupe:campaignMobileDedupe.kept.length,campaignMobileCardsDropped:campaignMobileDedupe.removed.length,offerUnknownUiCategories:offerCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),offerMissingFromOwnCategory:offerCategoryCoverage.missing.length,campaignUnknownUiCategories:campaignCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),campaignMissingFromOwnCategory:campaignCategoryCoverage.missing.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
