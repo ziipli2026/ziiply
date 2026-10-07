@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 type RawStore = Record<string, any>;
 
+const LEGACY_S_STORE_EXTERNAL_IDS = new Set(["501604912", "653574384", "512045139"]);
+
+function storeDedupeKey(store: RawStore) {
+  const name = String(store.name || "");
+  const externalId = String(store.externalId || "").trim();
+  if (/^(?:S-market|Sale\b|Alepa\b)/i.test(name) && externalId) return `s:${externalId}`;
+  return `id:${String(store.id ?? "")}`;
+}
+
 function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const rad = (value: number) => (value * Math.PI) / 180;
   const dLat = rad(lat2 - lat1);
@@ -67,6 +76,7 @@ export async function GET(request: NextRequest) {
         .filter((store) => {
           const name = String(store.name || "");
           if (store.delistedAt) return false;
+          if (LEGACY_S_STORE_EXTERNAL_IDS.has(String(store.externalId || "").trim())) return false;
           if (!/^(?:S-market|Sale\b|Alepa\b|K-Market\b|K-Supermarket\b|Prisma\b|K-Citymarket\b)/i.test(name)) return false;
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
           const country = String(store.country || store.countryCode || "").trim().toUpperCase();
@@ -75,7 +85,7 @@ export async function GET(request: NextRequest) {
           const lon = Number(store.long ?? store.lon ?? store.lng ?? store.longitude);
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
           if (distanceKm(latitude, longitude, lat, lon) > 100) return false;
-          const key = String(store.id ?? `${name}:${lat}:${lon}`);
+          const key = storeDedupeKey(store) || `${name}:${lat}:${lon}`;
           if (seen.has(key)) return false;
           seen.add(key);
           return true;
@@ -126,7 +136,15 @@ export async function GET(request: NextRequest) {
     const apiSearch = query === "ii" ? search.trim() + " " : search;
     const data = await fetchRuoanhinta(apiSearch);
     const manualStores = data;
-    const live = manualStores.filter((store) => !store.delistedAt);
+    const liveSeen = new Set<string>();
+    const live = manualStores.filter((store) => {
+      if (store.delistedAt) return false;
+      if (LEGACY_S_STORE_EXTERNAL_IDS.has(String(store.externalId || "").trim())) return false;
+      const key = storeDedupeKey(store);
+      if (liveSeen.has(key)) return false;
+      liveSeen.add(key);
+      return true;
+    });
     const exactCity = live.filter((store) => normalizeText(store.city) === query);
 
     const nameMatches = live.filter((store) => {
