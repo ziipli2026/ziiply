@@ -72,7 +72,7 @@ export default async function Page(){
   const candidatePubs=d.pubs.filter(p=>p.approval_state==="candidate");
   const activeOfferTotal=activePubs.reduce((n,p)=>n+p.offer_count,0);
   const quality={missingPrice:activePubs.reduce((n,p)=>n+p.missing_price,0),missingImage:activePubs.reduce((n,p)=>n+p.missing_image,0),missingCategory:activePubs.reduce((n,p)=>n+p.missing_category,0)};
-  const publicationQuality=CHAINS.map(ch=>{
+  const publicationQuality=CHAINS.filter(ch=>ch.key==="Lidl").map(ch=>{
     const current=activePubs.filter(p=>ch.match(p.chain.trim())).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
     const next=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]??null;
     const pct=(p:Pub|null,k:"missing_price"|"missing_image"|"missing_category")=>p&&p.offer_count?Math.round(p[k]/p.offer_count*1000)/10:null;
@@ -112,9 +112,9 @@ export default async function Page(){
   const futureDiscoveryHealthy=futureDiscovery.filter(x=>x.run?.ok&&Date.now()-new Date(x.run.checked_at).getTime()<=12*60*60*1000).length;
   const latestRun=d.runs[0];
   const nextApproved=d.pubs.filter(p=>p.approval_state==="approved"&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
-  const overlappingApproved=activePubs.filter((p,i,a)=>a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
+  const overlappingApproved=activePubs.filter((p,i,a)=>!CHAINS.find(ch=>ch.key==="Lidl")!.match(p.chain.trim())&&a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
   const rolloverChains=[...new Set(d.pubs.map(p=>p.chain).filter(chain=>!CHAINS[0].match(chain.trim())))].map(chain=>{const pubs=d.pubs.filter(p=>p.chain===chain);const current=pubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0];const future=pubs.filter(p=>p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];const nextDay=current?new Date(current.valid_until+"T12:00:00Z"):null;if(nextDay)nextDay.setUTCDate(nextDay.getUTCDate()+1);const expected=nextDay?nextDay.toISOString().slice(0,10):null;const gap=Boolean(current&&future&&expected&&future.valid_from>expected);const level=!current?"red":gap?"red":!future&&current.valid_until<=todayFi?"yellow":future?.approval_state==="candidate"?"yellow":"green";return {chain,current,future,gap,level};});
-  const publicationPipeline=CHAINS.filter(ch=>ch.key!=="S").map(ch=>{
+  const publicationPipeline=CHAINS.filter(ch=>ch.key==="Lidl").map(ch=>{
     const current=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
     const future=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]??null;
     const discovery=d.runs.find(r=>ch.match(r.chain.trim())&&r.source==="future-publication-discovery")??null;
