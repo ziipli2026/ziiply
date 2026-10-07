@@ -168,38 +168,13 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute left-[44%] top-[10%] h-[190px] w-[190px] rotate-12 rounded-[44px] border border-[#8c7042]/10 bg-[#fff7df]/18 shadow-[0_30px_80px_rgba(70,60,35,0.05)]" />
 
       <div className="relative mx-auto flex h-[100dvh] w-full max-w-[1560px] flex-col px-8 py-5 xl:px-12 xl:py-6">
-        <header className="grid grid-cols-[auto_minmax(520px,1fr)_minmax(380px,0.72fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
+        <header className="grid grid-cols-[auto_minmax(380px,0.72fr)_minmax(520px,1fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
             <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
             <div>
               <div className="text-[12px] font-black uppercase tracking-[0.22em] text-[#6d765f]">Yksi haku. Kaikki hinnat.</div>
               <div className="mt-0.5 text-[17px] font-black text-[#314633]">Ziiply</div>
             </div>
-          </div>
-
-          <div className="mx-auto grid w-full max-w-[760px] grid-cols-4 gap-2.5">
-            {[
-              ["☀️", "SÄÄ", weather.value, weather.detail, "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
-              ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
-              ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
-            ].map(([icon, title, value, detail, theme]) => (
-              <button key={title} type="button" className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
-                <span className="text-[27px] drop-shadow-sm">{icon}</span>
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
-                  <span className="mt-0.5 block text-[19px] font-black leading-none text-[#102a24]">{value}</span>
-                  <span className="mt-1 block truncate text-[9px] font-black text-[#706a58]">{detail}</span>
-                </span>
-              </button>
-            ))}
-            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
-              <span>
-                <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{month}</span>
-                <span className="mt-0.5 block text-[14px] font-black leading-none text-[#102a24]">Kalenteri</span>
-                <span className="mt-1 block text-[9px] font-black text-[#8a5b1d]">Avaa kalenteri →</span>
-              </span>
-            </button>
           </div>
 
           <div className="grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
@@ -215,7 +190,31 @@ export default function DesktopPreviewPage() {
               <img src="/icons/ziiply-compass.png" alt="Avaa kartta" className="h-[43px] w-[43px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,.24)] transition group-hover:scale-105" />
             </button>
           </div>
-          
+
+          <div className="ml-auto grid w-full max-w-[760px] grid-cols-4 gap-2.5">
+            {[
+              ["☀️", "SÄÄ", weather.value, weather.detail, "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
+              ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
+              ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
+            ].map(([icon, title, value, detail, theme]) => (
+              <div key={title} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
+                <span className="text-[27px] drop-shadow-sm">{icon}</span>
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
+                  <span className="mt-0.5 block text-[19px] font-black leading-none text-[#102a24]">{value}</span>
+                  <span className="mt-1 block truncate text-[9px] font-black text-[#706a58]">{detail}</span>
+                </span>
+              </div>
+            ))}
+            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
+              <span>
+                <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{month}</span>
+                <span className="mt-0.5 block text-[14px] font-black leading-none text-[#102a24]">Kalenteri</span>
+                <span className="mt-1 block text-[9px] font-black text-[#8a5b1d]">Avaa kalenteri →</span>
+              </span>
+            </button>
+          </div>
         </header>
 
         
