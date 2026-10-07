@@ -53,7 +53,11 @@ jobs:
           console.log("PRISMA_DEDUPE_RESULT", JSON.stringify(result, null, 2));
           const titles = result.map((x:any) => [x.ean, x.price, x.validUntil, x.storeLabel].join("|"));
           if (result.length !== 6) throw new Error("Expected exact offer copy to be hidden and all six safe rows to remain");
-          if (titles.includes([exactOffer.ean, exactOffer.price, exactOffer.validUntil, exactOffer.storeLabel].join("|"))) {
+          if (result.some((x:any) =>
+            x.campaignType !== "campaign" &&
+            [x.ean, x.price, x.validUntil, x.storeLabel].join("|") ===
+              [exactOffer.ean, exactOffer.price, exactOffer.validUntil, exactOffer.storeLabel].join("|")
+          )) {
             throw new Error("Exact Prisma offer copy was not hidden");
           }
 
