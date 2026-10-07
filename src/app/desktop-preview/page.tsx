@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -36,6 +36,18 @@ const assistants = [
 
 export default function DesktopPreviewPage() {
   const [active, setActive] = useState<Assistant>("justiina");
+  const [scannerMode, setScannerMode] = useState<"checking" | "camera" | "external">("checking");
+
+  useEffect(() => {
+    let cancelled = false;
+    navigator.mediaDevices?.enumerateDevices().then((devices) => {
+      const cameras = devices.filter((d) => d.kind === "videoinput");
+      const rear = cameras.some((d) => /(back|rear|environment|world|takakamera)/i.test(d.label));
+      const touch = navigator.maxTouchPoints > 1;
+      if (!cancelled) setScannerMode(rear || (touch && cameras.length > 0) ? "camera" : "external");
+    }).catch(() => { if (!cancelled) setScannerMode("external"); });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <main
@@ -195,7 +207,7 @@ export default function DesktopPreviewPage() {
 
         <footer className="flex items-center justify-between border-t border-[#64745f]/15 pt-3 text-[12px] font-bold text-[#747d6e]">
           <span>Ziiply Oy</span>
-          <span>One search. All prices.</span>
+          <span>One search. All prices. · {scannerMode === "camera" ? "📷 Tablet-skannaus valmis" : scannerMode === "external" ? "⌨ HID/EAN-lukija valmis" : "Skanneria tarkistetaan…"}</span>
         </footer>
       </div>
     </main>
