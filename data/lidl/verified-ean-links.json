@@ -353,5 +353,35 @@
     "lidlProductId": "10038600",
     "ean": "6409100072216",
     "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kinkku-salami, pack size 210 g, EAN 6409100072216. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038596",
+    "ean": "6409620017698",
+    "evidence": "Lidl Finland productId 10038596 identifies SNELLMAN Murea & lihaisa kinkku 120 g and shows the smoked and oven-roasted variants. Snellman's official product page identifies Murea & lihaisa leppäsavukinkku 120 g with EAN 6409620017698. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038596",
+    "ean": "6409620017704",
+    "evidence": "Lidl Finland productId 10038596 identifies SNELLMAN Murea & lihaisa kinkku 120 g and shows the smoked and oven-roasted variants. Snellman's official product page identifies Murea & lihaisa Uunipaahdettu kinkku 120 g with EAN 6409620017704; S-kaupat independently confirms the same EAN. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038523",
+    "ean": "6413467666704",
+    "evidence": "Lidl Finland productId 10038523 identifies FAZER Lemppari Paahto-bagel 260 g and shows the Juusto and Seesaminsiemen variants. S-kaupat identifies Fazer Lemppari Paahtobagel Juusto 4 kpl 260 g with EAN 6413467666704. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038523",
+    "ean": "6413467666605",
+    "evidence": "Lidl Finland productId 10038523 identifies FAZER Lemppari Paahto-bagel 260 g and shows the Juusto and Seesaminsiemen variants. S-kaupat identifies Fazer Lemppari Paahtobagel Seesaminsiemen 4 kpl 260 g with EAN 6413467666605. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038594",
+    "ean": "6409620015564",
+    "evidence": "Lidl Finland productId 10038594 identifies SNELLMAN Maatiaispossun nopea ja murea fileepihvi 460 g and shows Original and Piri Piri variants. S-kaupat identifies the exact Original 4 kpl 460 g variant with EAN 6409620015564. Exact brand, product line, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038594",
+    "ean": "6409620016219",
+    "evidence": "Lidl Finland productId 10038594 identifies SNELLMAN Maatiaispossun nopea ja murea fileepihvi 460 g and shows Original and Piri Piri variants. Snellman's official product page identifies the exact Piri Piri 4 kpl 460 g variant with EAN 6409620016219; S-kaupat independently confirms the EAN. Exact brand, product line, variant and pack size match; GTIN-13 checksum valid."
   }
 ]
