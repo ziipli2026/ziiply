@@ -1,0 +1,59 @@
+name: Prisma resolver suspect truth probe
+on:
+  push:
+    paths: ['.github/workflows/prisma-resolver-suspect-truth.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          set -o pipefail
+          node <<'NODE' | tee prisma-resolver-suspect-truth.txt
+          const H="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+          const C="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const suspects=[
+            ["Prisma Jumbo","Vantaanportinkatu 3, 01510 Vantaa"],
+            ["Prisma Kangasala","Mäkirinteentie 10, 36220 Kangasala"],
+            ["Prisma Malmi","Malmin Kauppatie 18, 00700 Helsinki"],
+            ["Prisma Tikkurila","Unikkotie 13, 01300 Vantaa"],
+            ["Prisma Tuusula","Autoasemankatu 4, 04300 Tuusula"],
+            ["Prisma Lappee","Puhakankatu 9-11, Lappeenranta"],
+            ["Prisma Lohja","Laurinkatu 37-41, 08100 Lohja"],
+            ["Prisma Limingantulli Oulu","Nuottasaarentie 1, 90400 Oulu"],
+            ["Prisma Heinola","Tähtiniementie 7, 18100 Heinola"],
+            ["Prisma Palokka","Palokanorsi 1, Jyväskylä"],
+            ["Prisma Raahe","Saloinen, Raahe"],
+            ["Prisma Seinäjoki","Hyllykalliontie 2, 60510 Hyllykallio"],
+            ["Prisma Syke","Kauppakatu 18, 15140 Lahti"]
+          ];
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki"}).format(new Date());
+          const end=new Date(date+"T12:00:00Z"); end.setUTCDate(end.getUTCDate()+7);
+          async function geo(q){
+            const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=fi&q="+encodeURIComponent(q),{headers:{"user-agent":"Ziiply-Prisma-Audit/1.0"}});
+            const a=await r.json(); return a[0]?{lat:+a[0].lat,lon:+a[0].lon,display:a[0].display_name}:null;
+          }
+          async function pickup(lat,lon){
+            const u=new URL("https://api.s-kaupat.fi/");
+            u.searchParams.set("operationName","remotePickupSlots");
+            u.searchParams.set("variables",JSON.stringify({startDate:date,endDate:end.toISOString().slice(0,10),location:{latitude:lat,longitude:lon},limit:20}));
+            u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":C}});
+            const d=await r.json(); const rows=d?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+            return {status:r.status,rows:rows.filter(x=>x?.store?.brand==="prisma").slice(0,6).map(x=>({storeId:x?.store?.id,pickupName:x?.pickupPoint?.name,street:x?.pickupPoint?.address?.street||x?.pickupPoint?.address?.streetAddress,city:x?.pickupPoint?.address?.city,postal:x?.pickupPoint?.address?.postalCode,distance:x?.distance}))};
+          }
+          (async()=>{
+            for(const [name,address] of suspects){
+              const g=await geo(address); await new Promise(r=>setTimeout(r,1100));
+              if(!g){console.log("TRUTH",JSON.stringify({name,address,geo:null}));continue}
+              const p=await pickup(g.lat,g.lon);
+              console.log("TRUTH",JSON.stringify({name,address,geo:g,pickupHttp:p.status,candidates:p.rows}));
+              await new Promise(r=>setTimeout(r,700));
+            }
+          })().catch(e=>{console.error(e);process.exit(1)})
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: prisma-resolver-suspect-truth, path: prisma-resolver-suspect-truth.txt}
