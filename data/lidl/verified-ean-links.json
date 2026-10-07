@@ -383,5 +383,15 @@
     "lidlProductId": "10038594",
     "ean": "6409620016219",
     "evidence": "Lidl Finland productId 10038594 identifies SNELLMAN Maatiaispossun nopea ja murea fileepihvi 460 g and shows Original and Piri Piri variants. Snellman's official product page identifies the exact Piri Piri 4 kpl 460 g variant with EAN 6409620016219; S-kaupat independently confirms the EAN. Exact brand, product line, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038518",
+    "ean": "6407850056487",
+    "evidence": "Lidl Finland productId 10038518 identifies ATRIA Rahkaohukainen 380 g and shows Omena-Kaneli and Kaakao-Vadelma variants. Atria confirms the Omena-Kaneli 380 g product; S-kaupat identifies the exact consumer EAN 6407850056487. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038518",
+    "ean": "6407800019265",
+    "evidence": "Lidl Finland productId 10038518 identifies ATRIA Rahkaohukainen 380 g and shows Omena-Kaneli and Kaakao-Vadelma variants. Atria's 2026 trade product catalogue identifies Kaakao-Vadelma 380 g consumer package EAN 6407800019265; S-kaupat independently confirms the same EAN. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   }
 ]
