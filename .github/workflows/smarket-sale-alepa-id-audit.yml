@@ -1,0 +1,54 @@
+name: S-market Sale Alepa nationwide ID audit
+on:
+  push:
+    paths: ['.github/workflows/smarket-sale-alepa-id-audit.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Audit Finnish S-market Sale Alepa identities
+        run: |
+          set -o pipefail
+          cat > scripts/.tmp-ssa-id-audit.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          const chains=["S-market","Sale","Alepa"];
+          const all:any[]=[];
+          for(const chain of chains){
+            const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(chain),{headers:{Accept:"application/json"}});
+            if(!r.ok) throw new Error(chain+" inventory "+r.status);
+            const raw:any=await r.json(); const arr=Array.isArray(raw)?raw:(raw.stores||raw.data||raw.results||[]);
+            const seen=new Set<string>();
+            const rows=arr.filter((x:any)=>{
+              const name=String(x.name||"").trim(), pc=String(x.postalCode||"").replace(/\s/g,"");
+              const lat=Number(x.latitude??x.lat),lon=Number(x.longitude??x.long??x.lng);
+              const geo=Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=59.5&&lat<=70.2&&lon>=19&&lon<=32;
+              const post=/^\d{5}$/.test(pc);
+              const brand=chain==="S-market"?/^s-market\b/i.test(name):chain==="Sale"?/^sale\b/i.test(name):/^alepa\b/i.test(name);
+              const exclude=/verkkokauppa|keräilykeskus|henkilökuntamyymälä/i.test(name);
+              const key=name.toLowerCase()+"|"+String(x.externalId||x.storeId||x.id||"");
+              if(!brand||exclude||(!geo&&!post)||seen.has(key)) return false; seen.add(key); return true;
+            });
+            let resolved=0,different=0; const unresolved:any[]=[]; const changed:any[]=[];
+            for(const st of rows){
+              const name=String(st.name).trim(), sourceId=String(st.externalId||st.storeId||st.id||"");
+              const actual=await resolvePrismaCampaignStoreIdV1(name,sourceId);
+              if(actual) resolved++; else unresolved.push({name,sourceId});
+              if(actual&&actual!==sourceId){different++;changed.push({name,sourceId,actual});}
+              console.log("SSA",JSON.stringify({chain,name,sourceId,actual}));
+              await new Promise(r=>setTimeout(r,650));
+            }
+            const summary={chain,inventory:arr.length,filtered:rows.length,resolved,different,unresolvedCount:unresolved.length,unresolved,changed};
+            all.push(summary); console.log("SSA_CHAIN_SUMMARY",JSON.stringify(summary));
+          }
+          console.log("SSA_TOTAL_SUMMARY",JSON.stringify(all.map(x=>({chain:x.chain,filtered:x.filtered,resolved:x.resolved,different:x.different,unresolvedCount:x.unresolvedCount}))));
+          TS
+          npx tsx scripts/.tmp-ssa-id-audit.mts 2>&1 | tee smarket-sale-alepa-id-audit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: smarket-sale-alepa-id-audit, path: smarket-sale-alepa-id-audit.txt}
