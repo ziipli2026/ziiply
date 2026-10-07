@@ -3303,6 +3303,8 @@ export default function Page() {
           // CacheStorage marker missing: old manual S/K locks must not pin stale stores
           // after browser cache clear. Ordinary reload preserves these locks.
           writeManualStoreOverridesV786({});
+          window.localStorage.removeItem("ziiply-independent-manual-stores-v791");
+          independentManualStoreRefV791.current = {};
 
           // Cache-clear = uusi valinta. Älä anna juuri hydratetun localStorage-tilan
           // jäädä ruudulle, vaikka async CacheStorage-tarkistus valmistuu bootin jälkeen.
@@ -7210,6 +7212,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 : Boolean(restoredAreaV814?.sLocalStoreId || restoredAreaV814?.kLocalStoreId ||
                     restoredAreaV814?.sLocalStoreName || restoredAreaV814?.kLocalStoreName);
               setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299 || hasRestoredStoreV814));
+              if (parsedStoreSelection.selectedLidlStoreV750 && typeof parsedStoreSelection.selectedLidlStoreV750 === "object") {
+                setSelectedLidlStoreV750({ ...parsedStoreSelection.selectedLidlStoreV750, chain: "Lidl", type: "Lidl" });
+              }
               if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
                 setSelectedChains(current => ({ ...current, ...parsedStoreSelection.selectedChains }));
               }
