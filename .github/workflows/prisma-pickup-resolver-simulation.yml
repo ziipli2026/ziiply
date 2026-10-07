@@ -1,4 +1,4 @@
-name: Prisma pickup resolver fix simulation (read-only)
+name: Prisma pickup resolver fix simulation (read-only v2)
 on:
   push:
     paths:
