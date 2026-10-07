@@ -226,7 +226,7 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute left-[44%] top-[10%] h-[190px] w-[190px] rotate-12 rounded-[44px] border border-[#8c7042]/10 bg-[#fff7df]/18 shadow-[0_30px_80px_rgba(70,60,35,0.05)]" />
 
       <div className="relative mx-auto flex h-[100dvh] w-full max-w-[1560px] flex-col px-8 py-5 xl:px-12 xl:py-6">
-        <header className="grid grid-cols-[auto_minmax(380px,0.72fr)_minmax(520px,1fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
+        <header className="grid grid-cols-[auto_minmax(360px,0.68fr)_minmax(650px,1fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
             <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
             <div>
@@ -249,7 +249,7 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full max-w-[760px] grid-cols-4 gap-2.5">
+          <div className="ml-auto grid w-full max-w-[900px] grid-cols-5 gap-2.5">
             {[
               ["☀️", "SÄÄ", weather.value, weather.detail, "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
@@ -272,12 +272,16 @@ export default function DesktopPreviewPage() {
                 <span className="mt-1 block text-[9px] font-black text-[#8a5b1d]">Avaa kalenteri →</span>
               </span>
             </button>
+            <button type="button" onClick={()=>setCartOpen(true)} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#5d8b6c] bg-gradient-to-b from-[#eff9e8] to-[#cfe8bd] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
+              <span className="relative text-[27px]">🛒{cartItems.length>0&&<span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-[#12683f] px-1 text-[9px] font-black text-white">{cartItems.length}</span>}</span>
+              <span className="min-w-0"><span className="block text-[9px] font-black tracking-[0.12em] text-[#53634f]">VIHKONEN</span><span className="mt-0.5 block text-[14px] font-black leading-none text-[#153e2c]">Ostoslista</span><span className="mt-1 block text-[9px] font-black text-[#51705a]">{cartItems.length?cartItems.length+" tuotetta":"Avaa lista →"}</span></span>
+            </button>
           </div>
         </header>
 
         
 
-        {cartOpen && <div className="absolute inset-0 z-[90] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]"><div className="w-full max-w-[720px] rounded-[30px] bg-[#fff8df] p-6 shadow-2xl"><div className="flex items-center justify-between"><div><div className="text-[11px] font-black uppercase tracking-[.15em] text-[#7d745e]">Ziiply</div><div className="text-[27px] font-black">🛒 Ostosvihko</div></div><button onClick={()=>setCartOpen(false)} className="rounded-full bg-white px-4 py-2 font-black">Sulje ×</button></div><div className="mt-5 max-h-[430px] overflow-y-auto rounded-[22px] border border-[#b89552]/30 bg-white/60 p-5"><div className="text-center text-[18px] font-black">{cartItems.length ? `${cartItems.length} tuotetta` : "Vihko on vielä tyhjä"}</div>{cartItems.length>0&&<div className="mt-4 space-y-2">{cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="flex items-center gap-3 rounded-[16px] border border-[#d4bd86] bg-[#fffaf0] p-3">{p.pictureUrl&&<img src={p.pictureUrl} alt="" className="h-12 w-12 rounded-lg bg-white object-contain"/>}<div className="min-w-0 flex-1"><div className="line-clamp-2 text-[12px] font-black">{p.title||p.name}</div>{p.price!=null&&<div className="text-[12px] font-black text-[#174c3a]">{String(p.price).replace(".",",")}{typeof p.price==="number"?" €":""}</div>}</div><button onClick={()=>setCartItems(current=>current.filter(x=>desktopCartKey(x)!==desktopCartKey(p)))} className="rounded-full border border-[#a57b55] px-3 py-1 text-[11px] font-black">Poista</button></div>)}</div>}<div className="mt-3 text-center text-[12px] font-bold text-[#737768]">Justiinan ja Göstan tuotteet tulevat samaan ostosvihkoon.</div></div></div></div>}
+        {cartOpen && <div className="fixed bottom-[24px] left-[24px] right-[24px] top-[128px] z-[90] flex flex-col overflow-hidden rounded-[30px] border-[3px] border-[#315d45] bg-[#f7efd7] p-5 shadow-[0_30px_90px_rgba(20,40,31,.35)]"><div className="flex items-center justify-between border-b border-[#b89552]/35 pb-4"><div><div className="text-[10px] font-black uppercase tracking-[.18em] text-[#7d745e]">Ziiply · Vihkonen</div><div className="font-serif text-[30px] font-black italic text-[#174c3a]">Ostoslista</div></div><div className="flex items-center gap-4"><div className="rounded-full bg-[#dfead4] px-5 py-2 text-[13px] font-black text-[#174c3a]">{cartItems.length} tuotetta</div><button onClick={()=>setCartOpen(false)} aria-label="Sulje" className="rounded-full border-2 border-[#5a321b] bg-[#9a612d] px-4 py-2 text-[18px] font-black leading-none text-[#fff0c8]">×</button></div></div>{cartItems.length===0?<div className="grid min-h-0 flex-1 place-items-center"><div className="text-center"><div className="text-[54px]">🛒</div><div className="mt-3 text-[22px] font-black text-[#174c3a]">Ostoslista on vielä tyhjä</div><div className="mt-1 text-[13px] font-bold text-[#737768]">Lisää tuotteita Göstan tarjouksista tai Justiinan hausta.</div></div></div>:<div className="mt-4 min-h-0 flex-1 overflow-y-auto"><div className="grid grid-cols-1 gap-3 xl:grid-cols-2">{cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-4 rounded-[20px] border-2 border-[#d0aa58] bg-[#fffaf0] p-3 shadow-[0_4px_0_rgba(72,73,48,.08)]">{p.pictureUrl?<img src={p.pictureUrl} alt="" className="h-[72px] w-[72px] rounded-[14px] bg-white object-contain"/>:<div className="grid h-[72px] w-[72px] place-items-center rounded-[14px] bg-[#f1ead7] text-[28px]">🛍️</div>}<div className="min-w-0"><div className="line-clamp-2 text-[14px] font-black leading-tight text-[#26352b]">{p.title||p.name}</div><div className="mt-1 text-[11px] font-bold text-[#76684f]">{p.storeName||"Ziiply"}</div>{p.discountText&&<div className="mt-1 line-clamp-1 text-[10px] font-bold text-[#8a6437]">{p.discountText}</div>}</div><div className="text-right">{p.price!=null&&<div className="text-[19px] font-black text-[#174c3a]">{String(p.price).replace(".",",")}{typeof p.price==="number"?" €":""}</div>}<button onClick={()=>setCartItems(current=>current.filter(x=>desktopCartKey(x)!==desktopCartKey(p)))} className="mt-2 rounded-full border border-[#a57b55] bg-white px-3 py-1.5 text-[10px] font-black text-[#6d4c32]">Poista</button></div></div>)}</div></div>}</div>}
 
         {mapOpen && (
           <div className="absolute inset-0 z-[80] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]">
