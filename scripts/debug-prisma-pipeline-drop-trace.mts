@@ -3,7 +3,7 @@ import {
   searchZiiplyOffers,
 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
 import { fetchPrismaCampaignOffersV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider";
-import { dedupeZiiplyGostaOfferResultsV146, cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore";
+import { dedupeZiiplyGostaOfferResultsV146, cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147, filterZiiplyGostaOfferResultsV146, GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore";
 
 const MASTER="__ziiply_all_offers__";
 const storeName=process.argv[2]||"Prisma Hyvinkää";
@@ -65,6 +65,28 @@ const campaignCards=campaignCleaned.map((x:any)=>mapZiiplyGostaOfferToCardOfferV
 const offerPageDedupe=pageCardDedupeTrace(offerCards);
 const campaignPageDedupe=pageCardDedupeTrace(campaignCards);
 
+
+function categoryCoverageTrace(rows:any[]){
+  const cards=rows.map((x:any)=>mapZiiplyGostaOfferToCardOfferV147(x as any));
+  const byCategory=new Map<string,any[]>();
+  for(const card of cards){const cat=String((card as any)?.category||"").trim();byCategory.set(cat,[...(byCategory.get(cat)||[]),card]);}
+  const known=new Set((GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 as readonly string[]).map(x=>norm(x)));
+  const unknownCategories=[...byCategory.entries()].filter(([cat])=>!cat||!known.has(norm(cat))).map(([category,items])=>({category,count:items.length,sample:items.slice(0,10).map((x:any)=>row(x.__sourceOfferSearchResult||x))}));
+  const missing:any[]=[];
+  for(const source of rows){
+    const card:any=mapZiiplyGostaOfferToCardOfferV147(source as any);
+    const category=String(card?.category||"").trim();
+    const filtered=filterZiiplyGostaOfferResultsV146(rows as any,category);
+    const sourceId=String(source?.id||"");
+    const sourceEan=String(source?.ean||"");
+    const found=filtered.some((x:any)=>String(x?.id||"")===sourceId || (!!sourceEan&&String(x?.ean||"")===sourceEan));
+    if(!found)missing.push({category,product:row(source),filteredCount:filtered.length});
+  }
+  return {cards,byCategory,unknownCategories,missing};
+}
+const offerCategoryCoverage=categoryCoverageTrace(offerCleaned);
+const campaignCategoryCoverage=categoryCoverageTrace(campaignCleaned);
+
 const offerEan=new Map<string,any[]>(), campaignEan=new Map<string,any[]>();
 for(const x of offers){const item=x as any;const e=String(item?.ean??"").trim();if(e)offerEan.set(e,[...(offerEan.get(e)||[]),item])}
 for(const x of campaignRows){const item=x as any;const e=String(item?.ean??"").trim();if(e)campaignEan.set(e,[...(campaignEan.get(e)||[]),item])}
@@ -73,12 +95,16 @@ const samePriceCrossTab=crossTab.filter((g:any)=>g.offers.some((o:any)=>g.campai
 
 const report={
  audit:"PRISMA_PIPELINE_DROP_TRACE_V1",storeName,
- counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
+ counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,offerUnknownUiCategories:offerCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),offerMissingFromOwnCategory:offerCategoryCoverage.missing.length,campaignUnknownUiCategories:campaignCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),campaignMissingFromOwnCategory:campaignCategoryCoverage.missing.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
  dropped:dropped.slice(0,200).map(row),
  unexpected:unexpected.slice(0,100).map(row),
  samePriceCrossTab:samePriceCrossTab.slice(0,100),
  offerPageDedupeRemoved:offerPageDedupe.removed.slice(0,200),
  campaignPageDedupeRemoved:campaignPageDedupe.removed.slice(0,200),
+ offerUnknownUiCategories:offerCategoryCoverage.unknownCategories,
+ offerMissingFromOwnCategory:offerCategoryCoverage.missing.slice(0,200),
+ campaignUnknownUiCategories:campaignCategoryCoverage.unknownCategories,
+ campaignMissingFromOwnCategory:campaignCategoryCoverage.missing.slice(0,200),
  pass:dropped.length===0&&unexpected.length===0
 };
 console.log(JSON.stringify(report,null,2));
