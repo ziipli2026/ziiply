@@ -33,7 +33,7 @@ jobs:
             const name=String(row.name||"").trim();
             const country=String(row.country||row.countryCode||"").trim().toUpperCase();
             if(row.delistedAt) continue;
-            if(!/^Prisma\\b/i.test(name)) continue;
+            if(!/^Prisma\b/i.test(name)) continue;
             if(/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) continue;
             if(country && !["FI","FIN","FINLAND","SUOMI"].includes(country)) continue;
             const publicId=String(row.externalId||row.id||"").trim();
