@@ -947,6 +947,24 @@ async function resolveEffectiveSKaupatStoreIdV174(
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
+  // V239: some Prisma public/source IDs are already the real S-kaupat
+  // product-store ID. Prefer an explicitly supplied ID only when it has been
+  // independently proven to be the online ID. Syke is one such case:
+  // Ruoanhinta source metadata and the S-kaupat pickup both identify 726170469.
+  // Keep this whitelist deliberately tiny; most Prisma public IDs are NOT
+  // RemoteFilteredProducts IDs (e.g. Myyrmanni/Jumbo/Tuusula).
+  const directVerifiedPrismaIdsV239: Record<string, string> = {
+    "prisma syke": "726170469",
+  };
+  const directVerifiedV239 = directVerifiedPrismaIdsV239[
+    normalizeSKaupatStoreNameForMatchV198(storeName)
+  ];
+  if (directVerifiedV239 && raw === directVerifiedV239) {
+    console.warn("[GOSTA V239] using independently verified direct Prisma online ID", {
+      storeName, inputStoreId: raw, resolvedStoreId: directVerifiedV239,
+    });
+    return directVerifiedV239;
+  }
 
   // V219 experiment: resolve the selected shop via its online pickup point first.
   // The pickup response contains store.id, unlike the public /myymala URL.
@@ -2645,8 +2663,11 @@ export async function fetchSKaupatOffers(
  * Uses the same dynamically resolved pickup/store identity as Gösta, but does
  * not apply Gösta's offer-only filtering. Never borrows another store's price.
  */
-export async function resolvePrismaCampaignStoreIdV1(storeName: string): Promise<string | null> {
-  return getEffectiveSKaupatStoreIdV174({ storeName });
+export async function resolvePrismaCampaignStoreIdV1(
+  storeName: string,
+  storeId?: string | number | null,
+): Promise<string | null> {
+  return getEffectiveSKaupatStoreIdV174({ storeName, storeId });
 }
 
 export async function fetchSKaupatNormalProductsV220(query: string, storeName: string) {
