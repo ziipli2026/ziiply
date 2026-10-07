@@ -1,7 +1,7 @@
 name: Tokmanni EUROSPAR nationwide store audit
 on:
   push:
-    paths: ['.github/workflows/tokmanni-eurospar-nationwide-store-audit.yml']
+    paths: ['.github/workflows/tokmanni-eurospar-nationwide-store-audit.yml', 'src/app/api/eurospar-stores/tokmanni-store-feed.json']
 permissions: {contents: read}
 jobs:
   audit:
