@@ -833,10 +833,22 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     const bestPickup = best ? normalizeSKaupatStoreNameForMatchV198(best.candidate.pickupName) : "";
     const nameHit = wantedPlaceTokens.some((token) => bestPickup.includes(token));
     const brandOk = !!best && (!wantedBrand || best.candidate.brand === wantedBrand);
+    const bestStreet = best ? getStreetBaseV225(best.candidate.street) : "";
+    const normalizedStoreName = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
+    const wantedCity = normalizeSKaupatStoreNameForMatchV198(
+      cleanStoreName.split(/\s+/).at(-1) || "",
+    );
+    const addressHit = Boolean(
+      best &&
+      bestStreet &&
+      normalizeSKaupatStoreNameForMatchV198(best.candidate.city) === wantedCity &&
+      normalizedStoreName.includes(bestStreet)
+    );
 
     // A geographically close pickup point is NOT proof that it belongs to
-    // the selected store. Require matching place and brand for all S stores.
-    if (!best || !brandOk || !nameHit || best.score < 100) {
+    // the selected store. Accept a matching place token OR an exact street
+    // match for cases such as Prisma Hämeenkatu -> Sokos Tampere pickup name.
+    if (!best || !brandOk || (!nameHit && !addressHit) || best.score < 100) {
       console.warn("[GOSTA V216] no safe S-kaupat pickup candidate", {
         storeName: cleanStoreName, coords,
         candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
