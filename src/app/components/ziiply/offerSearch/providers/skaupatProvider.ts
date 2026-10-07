@@ -873,6 +873,58 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
   }
 }
 
+async function verifyRawPrismaStoreIdV237(
+  storeName: string,
+  rawStoreId: string,
+): Promise<string | null> {
+  const cleanStoreName = String(storeName || "").trim();
+  const cleanRawId = String(rawStoreId || "").trim();
+  if (!/^prisma\\b/i.test(cleanStoreName) || !/^\\d{5,}$/.test(cleanRawId)) return null;
+
+  const normalizedWanted = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
+  const slug = normalizedWanted.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!slug) return null;
+
+  const url = `https://www.s-kaupat.fi/myymala/${slug}/${cleanRawId}`;
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: "text/html,application/xhtml+xml",
+        "accept-language": "fi",
+        "user-agent": "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",
+      },
+    });
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const normalizedHtml = normalizeSKaupatStoreNameForMatchV198(
+      html.replace(/<[^>]*>/g, " "),
+    );
+    const wantedTokens = getPrismaPlaceTokensV225(cleanStoreName);
+    const tokenHits = wantedTokens.filter((token) => normalizedHtml.includes(token)).length;
+
+    // The raw externalId becomes a product-search ID only when the official
+    // S-kaupat store page at that exact ID also confirms the selected Prisma.
+    if (
+      normalizedHtml.includes(normalizedWanted) ||
+      (wantedTokens.length > 0 && tokenHits === wantedTokens.length)
+    ) {
+      console.warn("[GOSTA V237] verified raw Prisma externalId via official store page", {
+        storeName: cleanStoreName,
+        rawStoreId: cleanRawId,
+        url,
+      });
+      return cleanRawId;
+    }
+  } catch {
+    // Direct verification is a safe optional resolver; failure must not guess.
+  }
+
+  return null;
+}
+
 async function resolveEffectiveSKaupatStoreIdV174(
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<string | null> {
@@ -939,6 +991,12 @@ async function resolveEffectiveSKaupatStoreIdV174(
       return resolvedFromPickupSlotsV215;
     }
   }
+
+  // V237: if the resolver chain is temporarily unavailable (e.g. 429),
+  // verify the caller's 9-digit Prisma externalId against its exact official
+  // S-kaupat store page before allowing it into RemoteFilteredProducts.
+  const verifiedRawPrismaStoreId = await verifyRawPrismaStoreIdV237(storeName, raw);
+  if (verifiedRawPrismaStoreId) return verifiedRawPrismaStoreId;
 
   // A public S-kaupat externalId is NOT a verified RemoteFilteredProducts
   // product-store ID. Never fall back to it when the name resolvers fail.
