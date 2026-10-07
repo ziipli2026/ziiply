@@ -43,6 +43,10 @@ export default function DesktopPreviewPage() {
   const [appliedLocation, setAppliedLocation] = useState("Hyvinkää");
   const [locationStatus, setLocationStatus] = useState("Valittu sijainti: Hyvinkää");
   const [mapOpen, setMapOpen] = useState(false);
+  const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
+  const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
+  const now = new Date();
+  const month = ["TAMMIKUU","HELMIKUU","MAALISKUU","HUHTIKUU","TOUKOKUU","KESÄKUU","HEINÄKUU","ELOKUU","SYYSKUU","LOKAKUU","MARRASKUU","JOULUKUU"][now.getMonth()];
 
   function applyLocation() {
     const value = location.trim();
@@ -69,6 +73,29 @@ export default function DesktopPreviewPage() {
     );
   }
 
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("https://api.porssisahko.net/v1/latest-prices.json", { cache: "no-store" }).then(r => r.json()).then(data => {
+      const prices = Array.isArray(data?.prices) ? data.prices : [];
+      const t = Date.now();
+      const current = prices.find((p: any) => { const a = new Date(p.startDate ?? p.start).getTime(); const b = new Date(p.endDate ?? p.end).getTime(); return a <= t && t < b; });
+      const n = Number(current?.price ?? current?.value ?? current?.priceWithTax);
+      if (!cancelled && Number.isFinite(n)) setElectricity({ value: n.toLocaleString("fi-FI",{maximumFractionDigits:1}), detail: "c/kWh nyt" });
+    }).catch(() => { if (!cancelled) setElectricity({value:"—",detail:"ei saatavilla"}); });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async ({coords}) => {
+      try {
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=temperature_2m,weather_code&timezone=auto`, {cache:"no-store"});
+        const d = await r.json(); const temp = Number(d?.current?.temperature_2m);
+        if (Number.isFinite(temp)) setWeather({value:`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`,detail: appliedLocation});
+      } catch {}
+    }, () => setWeather({value:"—",detail:appliedLocation}), {maximumAge:300000,timeout:5500});
+  }, [appliedLocation]);
 
   useEffect(() => {
     const value = location.trim();
@@ -129,8 +156,8 @@ export default function DesktopPreviewPage() {
 
           <div className="mx-auto grid w-full max-w-[760px] grid-cols-4 gap-2.5">
             {[
-              ["☀️", "SÄÄ", "+18°", "Hyvinkää", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
-              ["⚡", "SÄHKÖ", "—", "c/kWh", "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
+              ["☀️", "SÄÄ", weather.value, weather.detail, "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
+              ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
               <button key={title} type="button" className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
@@ -142,10 +169,10 @@ export default function DesktopPreviewPage() {
                 </span>
               </button>
             ))}
-            <button type="button" onClick={() => { window.location.href = "webcal://"; }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">7</span>
+            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
               <span>
-                <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">LOKAKUU</span>
+                <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{month}</span>
                 <span className="mt-0.5 block text-[14px] font-black leading-none text-[#102a24]">Kalenteri</span>
                 <span className="mt-1 block text-[9px] font-black text-[#8a5b1d]">Avaa kalenteri →</span>
               </span>
@@ -178,7 +205,7 @@ export default function DesktopPreviewPage() {
                 <div><div className="text-[11px] font-black uppercase tracking-[.15em] text-[#7d745e]">Ziiply · kartta</div><div className="mt-1 text-[27px] font-black text-[#17352a]">{appliedLocation}</div></div>
                 <button onClick={() => setMapOpen(false)} className="rounded-full border border-[#6f806a]/25 bg-white px-4 py-2 text-[13px] font-black">Sulje ×</button>
               </div>
-              <div className="mt-5 grid h-[430px] place-items-center overflow-hidden rounded-[24px] border border-[#7b8b75]/25 bg-[radial-gradient(circle_at_center,#dce8cf_0,#c8ddc8_35%,#eadfbf_100%)]">
+              <div className="relative mt-5 grid h-[430px] place-items-center overflow-hidden rounded-[24px] border border-[#7b8b75]/25 bg-[linear-gradient(30deg,#dce8cf_25%,#f1e7c9_25%,#f1e7c9_50%,#d5e3cf_50%,#d5e3cf_75%,#efe1bd_75%)] bg-[length:90px_90px]">
                 <div className="text-center"><img src="/icons/ziiply-compass.png" alt="" className="mx-auto h-24 w-24"/><div className="mt-4 text-[18px] font-black text-[#244b38]">Kauppakartta</div><div className="mt-1 text-[13px] font-bold text-[#687267]">Sijainti: {appliedLocation}</div><div className="mt-4 text-[12px] font-bold text-[#7b745f]">Seuraavaksi tähän kytketään Ziiplyn kauppapisteet ja etäisyydet.</div></div>
               </div>
             </div>
