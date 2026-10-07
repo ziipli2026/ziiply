@@ -2119,8 +2119,8 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   const listItems = getSProductListItems(data);
 
   const mappedResults = listItems
-    .map((item, index) =>
-      mapSProductListItemToOfferResult(item, {
+    .map((item, index) => {
+      const mapped = mapSProductListItemToOfferResult(item, {
         query,
         config,
         fallbackFacetNames,
@@ -2128,8 +2128,37 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
         selectedStoreId,
         selectedStoreName,
         discountedOnly,
-      }),
-    )
+      });
+      if (!mapped && discountedOnly) {
+        const product = getProductFromListItem(item);
+        const title = product ? firstString(product.name) : "";
+        const reason = !product
+          ? "NO_PRODUCT"
+          : !title
+            ? "NO_TITLE"
+            : isSponsoredSProductListItem(item, product)
+              ? "SPONSORED"
+              : isUnavailableSOfferV237(item, product)
+                ? "UNAVAILABLE"
+                : "OTHER";
+        const pricing = product ? getPricing(product) : {};
+        console.warn("[GOSTA RAW DROP TRACE]", JSON.stringify({
+          offset,
+          index,
+          reason,
+          ean: product ? firstString(product.ean, product.id, product.sokId) : "",
+          title,
+          labels: product ? getLabels(item, product) : "",
+          campaignPrice: pricing.campaignPrice ?? null,
+          currentPrice: pricing.currentPrice ?? null,
+          regularPrice: pricing.regularPrice ?? null,
+          campaignPriceValidUntil: firstString(pricing.campaignPriceValidUntil),
+          typename: firstString(item.__typename),
+          sponsored: Boolean(item.sponsored || item.isSponsored || product?.sponsored || product?.isSponsored),
+        }));
+      }
+      return mapped;
+    })
     .filter(Boolean) as ZiiplyOfferSearchResult[];
 
   return {
