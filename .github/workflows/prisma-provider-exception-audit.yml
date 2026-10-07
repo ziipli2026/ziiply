@@ -1,0 +1,39 @@
+name: Prisma provider exception diagnostics (read-only)
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-provider-exception-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - run: |
+          cat > scripts/.tmp-prisma-exception.mts <<'TS'
+          import { fetchSKaupatOffers } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          const stores=[
+            ["Prisma Hämeenkatu Tampere","726413330"],["Prisma Raksila Oulu","516528759"],
+            ["Prisma Myyrmanni Vantaa","726435566"],["Prisma Jumbo Vantaa","613761030"],
+            ["Prisma Limingantulli Oulu","627829302"],["Prisma Lielahti Tampere","697940575"],
+            ["Prisma Kaleva Tampere","517609418"]];
+          const cfg:any={id:"skaupat",chain:"S",storeLabel:"S-kaupat",url:"https://www.s-kaupat.fi/tuotteet/kampanjat"};
+          for(const [name,id] of stores){
+            try{
+              const rows:any[]=await fetchSKaupatOffers("__ziiply_all_offers__",cfg,{storeName:name,sStoreName:name,storeId:id,sStoreId:id});
+              console.log("RESULT",JSON.stringify({name,id,count:rows.length,first:rows[0]??null}));
+            }catch(e){console.log("ERROR",JSON.stringify({name,id,error:String(e),stack:e instanceof Error?e.stack:null}))}
+          }
+          TS
+          npx tsx scripts/.tmp-prisma-exception.mts 2>&1 | tee prisma-provider-exception-audit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prisma-provider-exception-audit
+          path: prisma-provider-exception-audit.txt
