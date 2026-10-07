@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Run Prisma multi-store deep audit
         run: |
           cat > scripts/.tmp-prisma-multi-store-audit.mts <<'TS'
