@@ -70,6 +70,7 @@ export type ZiiplyMobileScannerCardProps = {
   flashState?: ZiiplyMobileScannerFlashState;
   loading?: boolean;
   scannerMessage?: string;
+  successMessage?: string;
   cameraOverlay?: React.ReactNode;
   torchOn?: boolean;
   manualInputOpen?: boolean;
@@ -90,6 +91,7 @@ export default function ZiiplyMobileScannerCard({
   flashState = "idle",
   loading = false,
   scannerMessage = "",
+  successMessage = "Lisätty ostoskoriin",
   cameraOverlay,
   torchOn = false,
   manualInputOpen = false,
@@ -120,7 +122,7 @@ export default function ZiiplyMobileScannerCard({
     loading
       ? "Haetaan tuotetta"
       : flashState === "success"
-        ? "Lisätty koriin"
+        ? successMessage
         : scannerMessage
           ? scannerMessage
           : flashState === "error"
