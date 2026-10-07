@@ -413,5 +413,20 @@
     "lidlProductId": "10037651",
     "ean": "20000684",
     "evidence": "Lidl Finland productId 10037651 is MARIBEL Hillo 450 g with blueberry or mixed-berry variants. Exact Maribel mixed-berry/forest-fruit jam 450 g is independently identified with GTIN 20000684; variant-level identity matches the Lidl row and must be kept separate from the blueberry variant."
+  },
+  {
+    "lidlProductId": "10014992",
+    "ean": "2002676900002",
+    "evidence": "Lidl.fi canonical product page identifies FAZER Dallaspulla as a Paistopiste product; S-kaupat exact consumer product is Fazer Dallaspulla 85 g, EAN 2002676900002, with matching product identity and nutrition."
+  },
+  {
+    "lidlProductId": "10032835",
+    "ean": "2000343200004",
+    "evidence": "Lidl.fi canonical product page identifies FAZER Berliininmunkki as a Paistopiste product; K-Ruoka exact consumer product is Fazer berliininmunkki 115 g, EAN 2000343200004, matching Lidl product identity and nutrition."
+  },
+  {
+    "lidlProductId": "10037407",
+    "ean": "2001447100009",
+    "evidence": "Lidl.fi canonical product page identifies Fazer Raspberry Kiss -munkki as a Paistopiste product; Finnish retail data identifies the exact Fazer Raspberry Kiss munkki 108 g consumer EAN 2001447100009, matching the Lidl product identity."
   }
 ]
