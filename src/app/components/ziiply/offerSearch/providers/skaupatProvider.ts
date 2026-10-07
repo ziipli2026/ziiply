@@ -829,9 +829,9 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
 
     // Require the right chain and either a name hit or a very near pickup point.
     const wantedBrand = getStoreBrandFromNameV215(cleanStoreName);
-    const wantedPlace = getStorePlaceTokenV215(cleanStoreName);
+    const wantedPlaceTokens = getPrismaPlaceTokensV225(cleanStoreName);
     const bestPickup = best ? normalizeSKaupatStoreNameForMatchV198(best.candidate.pickupName) : "";
-    const nameHit = !!(wantedPlace && bestPickup.includes(wantedPlace));
+    const nameHit = wantedPlaceTokens.some((token) => bestPickup.includes(token));
     const brandOk = !!best && (!wantedBrand || best.candidate.brand === wantedBrand);
 
     // A geographically close pickup point is NOT proof that it belongs to
