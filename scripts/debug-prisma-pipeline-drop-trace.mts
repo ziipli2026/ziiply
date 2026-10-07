@@ -36,8 +36,8 @@ const unexpected=master.filter(x=>!inputTyped.has(typed(x)));
 const offers=master.filter((x:any)=>type(x)==="offer");
 const campaignRows=master.filter((x:any)=>type(x)==="campaign");
 const offerEan=new Map<string,any[]>(), campaignEan=new Map<string,any[]>();
-for(const x of offers){const e=String(x?.ean??"").trim();if(e)offerEan.set(e,[...(offerEan.get(e)||[]),x])}
-for(const x of campaignRows){const e=String(x?.ean??"").trim();if(e)campaignEan.set(e,[...(campaignEan.get(e)||[]),x])}
+for(const x of offers){const item=x as any;const e=String(item?.ean??"").trim();if(e)offerEan.set(e,[...(offerEan.get(e)||[]),item])}
+for(const x of campaignRows){const item=x as any;const e=String(item?.ean??"").trim();if(e)campaignEan.set(e,[...(campaignEan.get(e)||[]),item])}
 const crossTab=[...offerEan.entries()].filter(([e])=>campaignEan.has(e)).map(([e,os])=>({ean:e,offers:os.map(row),campaigns:(campaignEan.get(e)||[]).map(row)}));
 const samePriceCrossTab=crossTab.filter((g:any)=>g.offers.some((o:any)=>g.campaigns.some((c:any)=>o.price&&o.price===c.price)));
 
