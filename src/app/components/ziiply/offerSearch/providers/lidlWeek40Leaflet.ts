@@ -48,7 +48,11 @@ export function addVerifiedLidlWeek40Leaflet(
   // Lidl.fi identifies the 5.–7.10. publication as "Koko Suomen tarjoukset".
   // The verified leaflet rows are therefore valid for every Finnish Lidl store,
   // not only the Hyvinkää store used during the original image verification.
-  if (!/^FI\d{4}$/.test(storeKey) || today < "2026-10-01" || today > "2026-10-07") return structured;
+  // This publication is explicitly national ("Koko Suomen tarjoukset").
+  // Do not gate the national offer body on a store-specific Lidl Plus key:
+  // the selected store is display/context metadata, while the leaflet itself
+  // must remain available even if the store feed/key is missing or unavailable.
+  if (today < "2026-10-01" || today > "2026-10-07") return structured;
   const rows: LidlLeafletEnrichment[] = reference.records
     .filter(row => independentlyVerifiedIds.has(row.id) && typeof row.validThrough === "string")
     .map(row => ({
