@@ -50,6 +50,12 @@ function state(rows:Row[]){
   if(!rows.length)return ["gray","EI DATAA"];
   const a=rows[0];
   if(!a.ok)return ["red","VIRHE"];
+  const ageH=(Date.now()-new Date(a.checked_at).getTime())/3600000;
+  const isLidl=/^lidl(?::|$)/i.test(a.chain.trim());
+  const warnAfterH=isLidl?30:8;
+  const failAfterH=isLidl?48:24;
+  if(ageH>failAfterH)return ["red","DATA VANHENTUNUT"];
+  if(ageH>warnAfterH)return ["yellow","DATA VANHENEE"];
   if(a.source==="future-publication-discovery")return ["green",a.outcome==="future-publication-found"?"TULEVA LÖYDETTY":"TARKISTETTU"];
   if(a.offer_count===0)return ["red","0 TARJOUSTA"];
   const b=rows[1];
@@ -74,7 +80,7 @@ export default async function Page(){
     const nextBad=next?next.missing_price+next.missing_image+next.missing_category:0;
     const currentRate=current&&current.offer_count?currentBad/(current.offer_count*3):null;
     const nextRate=next&&next.offer_count?nextBad/(next.offer_count*3):null;
-    const level=!current?"red":!next?"gray":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.15?"red":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.05?"yellow":"green";
+    const level=!current||!next?"gray":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.15?"red":nextRate!==null&&currentRate!==null&&nextRate>currentRate+.05?"yellow":"green";
     return {key:ch.key,name:ch.name,current,next,level,priceNow:pct(current,"missing_price"),priceNext:pct(next,"missing_price"),imageNow:pct(current,"missing_image"),imageNext:pct(next,"missing_image"),categoryNow:pct(current,"missing_category"),categoryNext:pct(next,"missing_category")};
   });
   const parserRegressions=publicationQuality.map(x=>{
