@@ -18,3 +18,4 @@ jobs:
           const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(v));u.searchParams.set("extensions",JSON.stringify({clientLibrary:{name:"@apollo/client",version:"4.3.1"},persistedQuery:{version:1,sha256Hash:H}}));
           (async()=>{const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":C}});const d=await r.json();console.log(JSON.stringify({http:r.status,errors:d?.errors||null,count:d?.data?.store?.products?.productListItems?.length||0,total:d?.data?.store?.products?.total||d?.data?.store?.products?.paging?.total||null,first:d?.data?.store?.products?.productListItems?.[0]||null},null,2))})()
           NODE
+# trigger
