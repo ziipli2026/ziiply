@@ -1,0 +1,123 @@
+name: Prisma Multi-store Deep Audit (read-only)
+
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-multi-store-deep-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Run Prisma multi-store deep audit
+        run: |
+          cat > scripts/.tmp-prisma-multi-store-audit.mts <<'TS'
+          import { fetchSKaupatOffers } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          import { fetchPrismaCampaignOffersV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider";
+
+          const config:any = {
+            id: "skaupat",
+            chain: "S",
+            storeLabel: "S-kaupat",
+            url: "https://www.s-kaupat.fi/tuotteet/kampanjat",
+          };
+
+          const stores = [
+            "Prisma Hyvinkää",
+            "Prisma Helsinki",
+            "Prisma Sello",
+            "Prisma Jumbo",
+            "Prisma Kaleva Tampere",
+            "Prisma Länsikeskus Turku",
+            "Prisma Limingantulli Oulu",
+            "Prisma Seppälä Jyväskylä",
+            "Prisma Päiväranta Kuopio",
+            "Prisma Laune Lahti",
+            "Prisma Mikkola Pori",
+          ];
+
+          const master="__ziiply_all_offers__";
+          const sleep=(ms:number)=>new Promise(r=>setTimeout(r,ms));
+          const norm=(x:any)=>String(x??"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9åäö\\s-]/gi," ").replace(/\\s+/g," ").trim();
+          const price=(x:any)=>Number(x?.price ?? String(x?.priceText??"").replace(",","." ).replace(/[^0-9.]/g,""));
+          const ean=(x:any)=>String(x?.ean??"").trim();
+
+          const results:any[]=[];
+          for (const storeName of stores) {
+            const started=Date.now();
+            let offers:any[]=[]; let pasta:any[]=[]; let campaigns:any[]=[]; let error="";
+            try {
+              offers=await fetchSKaupatOffers(master,config,{storeName,storeId:null,sStoreName:storeName,sStoreId:null});
+              await sleep(900);
+              pasta=await fetchSKaupatOffers("pasta",config,{storeName,storeId:null,sStoreName:storeName,sStoreId:null});
+              await sleep(900);
+              campaigns=await fetchPrismaCampaignOffersV1(master,config,storeName);
+            } catch(e) { error=String(e); }
+
+            const offerByEan=new Map<string,any>();
+            for(const x of offers) if(ean(x)) offerByEan.set(ean(x),x);
+            const campaignByEan=new Map<string,any>();
+            for(const x of campaigns) if(ean(x)) campaignByEan.set(ean(x),x);
+            let overlap=0, exact=0;
+            for(const [id,o] of offerByEan) {
+              const c=campaignByEan.get(id); if(!c) continue;
+              overlap++;
+              const op=price(o), cp=price(c);
+              const ov=String(o.validUntil??o.validityText??"").slice(0,10);
+              const cv=String(c.validUntil??c.validityText??"").slice(0,10);
+              if(Number.isFinite(op)&&Number.isFinite(cp)&&Math.abs(op-cp)<0.005 && ov && cv && ov===cv) exact++;
+            }
+            const ratio=campaigns.length ? offers.length/campaigns.length : null;
+            results.push({
+              storeName,
+              elapsedMs:Date.now()-started,
+              offerCount:offers.length,
+              pastaControlCount:pasta.length,
+              campaignCount:campaigns.length,
+              offerToCampaignRatio:ratio===null?null:Number(ratio.toFixed(3)),
+              eanOverlap:overlap,
+              exactEanPriceValidity:exact,
+              suspiciousLowOffers:offers.length<50 && pasta.length>0,
+              suspiciousZeroOffers:offers.length===0 && pasta.length>0,
+              error:error||null,
+              sampleOffers:offers.slice(0,3).map(x=>({ean:ean(x),title:x.title,price:x.price,validUntil:x.validUntil??x.validityText})),
+              sampleCampaigns:campaigns.slice(0,3).map(x=>({ean:ean(x),title:x.title,price:x.price,validUntil:x.validUntil??x.validityText}))
+            });
+            console.log(JSON.stringify(results.at(-1)));
+            await sleep(1200);
+          }
+
+          const valid=results.filter(x=>!x.error && x.pastaControlCount>0);
+          console.log("\\n=== PRISMA MULTI-STORE DEEP AUDIT ===");
+          console.log(JSON.stringify({
+            tested:results.length,
+            validForComparison:valid.length,
+            suspiciousLow:valid.filter(x=>x.suspiciousLowOffers).map(x=>x.storeName),
+            suspiciousZero:valid.filter(x=>x.suspiciousZeroOffers).map(x=>x.storeName),
+            totals:{
+              offers:valid.reduce((n,x)=>n+x.offerCount,0),
+              campaigns:valid.reduce((n,x)=>n+x.campaignCount,0),
+              pastaControls:valid.reduce((n,x)=>n+x.pastaControlCount,0)
+            },
+            stores:results
+          },null,2));
+          TS
+          npx tsx scripts/.tmp-prisma-multi-store-audit.mts | tee prisma-multi-store-audit.txt
+          rm scripts/.tmp-prisma-multi-store-audit.mts
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prisma-multi-store-deep-audit
+          path: prisma-multi-store-audit.txt
