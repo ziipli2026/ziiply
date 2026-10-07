@@ -804,11 +804,11 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
 
     const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
     // V221: exact pickup-place match wins over a closer unrelated Prisma.
-    const wantedPlaceV221 = getStorePlaceTokenV215(cleanStoreName);
+    const wantedPlaceTokensV221 = getPrismaPlaceTokensV225(cleanStoreName);
     const ranked = candidates
       .map((candidate) => {
-        const placeMatch = Boolean(wantedPlaceV221 &&
-          normalizeSKaupatStoreNameForMatchV198(candidate.pickupName).includes(wantedPlaceV221));
+        const pickupNameNormalizedV221 = normalizeSKaupatStoreNameForMatchV198(candidate.pickupName);
+        const placeMatch = wantedPlaceTokensV221.some((token) => pickupNameNormalizedV221.includes(token));
         return { candidate, score: scorePickupCandidateV216(cleanStoreName, candidate) + (placeMatch ? 500 : 0) };
       })
       .sort((a, b) => b.score - a.score || (a.candidate.distance ?? 999999) - (b.candidate.distance ?? 999999));
@@ -829,14 +829,26 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
 
     // Require the right chain and either a name hit or a very near pickup point.
     const wantedBrand = getStoreBrandFromNameV215(cleanStoreName);
-    const wantedPlace = getStorePlaceTokenV215(cleanStoreName);
+    const wantedPlaceTokens = getPrismaPlaceTokensV225(cleanStoreName);
     const bestPickup = best ? normalizeSKaupatStoreNameForMatchV198(best.candidate.pickupName) : "";
-    const nameHit = !!(wantedPlace && bestPickup.includes(wantedPlace));
+    const nameHit = wantedPlaceTokens.some((token) => bestPickup.includes(token));
     const brandOk = !!best && (!wantedBrand || best.candidate.brand === wantedBrand);
+    const bestStreet = best ? getStreetBaseV225(best.candidate.street) : "";
+    const normalizedStoreName = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
+    const wantedCity = normalizeSKaupatStoreNameForMatchV198(
+      cleanStoreName.split(/\s+/).at(-1) || "",
+    );
+    const addressHit = Boolean(
+      best &&
+      bestStreet &&
+      normalizeSKaupatStoreNameForMatchV198(best.candidate.city) === wantedCity &&
+      normalizedStoreName.includes(bestStreet)
+    );
 
     // A geographically close pickup point is NOT proof that it belongs to
-    // the selected store. Require matching place and brand for all S stores.
-    if (!best || !brandOk || !nameHit || best.score < 100) {
+    // the selected store. Accept a matching place token OR an exact street
+    // match for cases such as Prisma Hämeenkatu -> Sokos Tampere pickup name.
+    if (!best || !brandOk || (!nameHit && !addressHit) || best.score < 100) {
       console.warn("[GOSTA V216] no safe S-kaupat pickup candidate", {
         storeName: cleanStoreName, coords,
         candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
@@ -2261,7 +2273,14 @@ function makeGostaZeroResultDiagnosticV208(
 }
 
 function getPrismaPlaceTokensV225(storeName: string): string[] {
-  return getStorePlaceTokenV215(storeName).split(" ").filter((token) => token.length > 3);
+  const tokens = getStorePlaceTokenV215(storeName)
+    .split(" ")
+    .filter((token) => token.length > 3);
+  // Prisma display names are commonly "<Prisma> <place> <city>".
+  // Pickup names usually contain the place but omit the city.
+  // Keep one-token places intact, but strip the trailing city token when
+  // there is more than one token.
+  return tokens.length > 1 ? tokens.slice(0, -1) : tokens;
 }
 
 function getStreetBaseV225(value: string): string {
@@ -2323,10 +2342,12 @@ async function verifySelectedSOfferStoreV230(storeName: string, productStoreId: 
     const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
     if (!candidates.length) return { status: "unavailable" };
     const brand = getStoreBrandFromNameV215(storeName);
-    const place = getStorePlaceTokenV215(storeName);
+    const placeTokens = /^prisma\b/i.test(storeName)
+      ? getPrismaPlaceTokensV225(storeName)
+      : [getStorePlaceTokenV215(storeName)];
     const matched = candidates.filter((candidate) =>
       (!brand || candidate.brand === brand) &&
-      Boolean(place && normalizeSKaupatStoreNameForMatchV198(candidate.pickupName).includes(place))
+      placeTokens.some((token) => normalizeSKaupatStoreNameForMatchV198(candidate.pickupName).includes(token))
     );
     const matchingIds = Array.from(new Set(matched.map((candidate) => candidate.storeId)));
     if (matchingIds.length !== 1) return { status: "unavailable" };
