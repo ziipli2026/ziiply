@@ -413,7 +413,7 @@ export default async function Page(){
           <thead><tr>{["Aika","Ketju","Lähde","Tulos","Määrä","Outcome"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
           <tbody>{d.runs.slice(0,80).map((r,i)=><tr key={i}>
             <td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI")}</td><td style={{padding:8,fontWeight:700}}>{r.chain}</td><td style={{padding:8}}>{r.source}</td>
-            <td style={{padding:8}}>{r.ok?"🟢":"🔴"}</td><td style={{padding:8,fontWeight:800}}>{r.offer_count}</td><td style={{padding:8}}>{r.outcome}</td>
+            <td style={{padding:8}}>{r.ok?"🟢":"🔴"}</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"probe":r.offer_count}</td><td style={{padding:8}}>{r.outcome}</td>
           </tr>)}</tbody>
         </table></div>
       </article>
