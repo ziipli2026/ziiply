@@ -1,0 +1,40 @@
+name: Prisma V238 resolver regression
+on:
+  push:
+    paths: ['.github/workflows/prisma-v238-resolver-regression.yml']
+permissions: {contents: read}
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - run: |
+          set -o pipefail
+          cat > scripts/.tmp-prisma-v238.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          const cases = [
+            ["Prisma Palokka","631792405"],
+            ["Prisma Raahe","726668937"],
+            ["Prisma Seinäjoki","516242633"],
+            ["Prisma Syke",null],
+            ["Prisma Heinola",null],
+            ["Prisma Raksila Oulu",null],
+            ["Prisma Myyrmanni","726452067"],
+            ["Prisma Hämeenkatu Tampere","726491474"],
+            ["Prisma Limingantulli Oulu","726760153"],
+          ] as const;
+          let fail=0;
+          for(const [name,expected] of cases){
+            const actual=await resolvePrismaCampaignStoreIdV1(name);
+            const ok=actual===expected;
+            console.log("V238_CASE",JSON.stringify({name,expected,actual,ok}));
+            if(!ok) fail++;
+            await new Promise(r=>setTimeout(r,1400));
+          }
+          console.log("V238_SUMMARY",JSON.stringify({tested:cases.length,fail}));
+          if(fail) process.exitCode=1;
+          TS
+          npx tsx scripts/.tmp-prisma-v238.mts 2>&1 | tee prisma-v238-resolver-regression.txt
