@@ -38,6 +38,7 @@ export default function DesktopPreviewPage() {
   const [active, setActive] = useState<Assistant>("justiina");
   const [scannerMode, setScannerMode] = useState<"checking" | "camera" | "external">("checking");
   const [workspace, setWorkspace] = useState<Assistant | null>(null);
+  const [gostaChainPicker, setGostaChainPicker] = useState(false);
   const [location, setLocation] = useState("");
   const [gpsOn, setGpsOn] = useState(false);
   const [gpsCoords, setGpsCoords] = useState<{latitude:number;longitude:number}|null>(null);
@@ -183,7 +184,7 @@ export default function DesktopPreviewPage() {
           </div>
 
           <div className="relative grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
-            <div className="relative grid h-[52px] w-[52px] place-items-center"><span className={`pointer-events-none absolute -top-[20px] left-1/2 z-30 w-max -translate-x-1/2 text-[7px] font-black uppercase tracking-[.05em] ${gpsOn?"text-[#14723d]":"text-[#8a5d4d]"}`}>{gpsOn?"GPS päällä":"GPS ei päällä"}</span><button type="button" onClick={() => { if(gpsOn){setGpsOn(false);setGpsCoords(null);setGpsToast("GPS ei päällä")} else useGps(); }} title={gpsOn ? "GPS päällä" : "GPS pois"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
+            <span className={`pointer-events-none absolute -top-[15px] left-[31px] z-30 w-max -translate-x-1/2 text-[7px] font-black uppercase tracking-[.05em] ${gpsOn?"text-[#14723d]":"text-[#8a5d4d]"}`}>{gpsOn?"GPS päällä":"GPS ei päällä"}</span><div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { if(gpsOn){setGpsOn(false);setGpsCoords(null);setGpsToast("GPS ei päällä")} else useGps(); }} title={gpsOn ? "GPS päällä" : "GPS pois"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
               <span className="text-[23px]">📍</span>{gpsToast&&<span className="absolute left-[58px] top-1/2 z-50 w-max -translate-y-1/2 rounded-full border border-[#6f806a]/20 bg-[#fffaf0] px-3 py-1.5 text-[10px] font-black text-[#536252] shadow-lg">{gpsToast}</span>}
               <span className={`absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white shadow-sm ${gpsOn?"bg-[#159447]":"bg-[#a44f4f]"}`} />
             </button></div>
@@ -259,7 +260,7 @@ export default function DesktopPreviewPage() {
                   <button
                     key={item.key}
                     type="button"
-                    onClick={() => { setActive(item.key); setWorkspace(item.key); }}
+                    onClick={() => { setActive(item.key); if(item.key==="gosta"){setWorkspace(null);setGostaChainPicker(true)}else{setGostaChainPicker(false);setWorkspace(item.key)} }}
                     className={[
                       "group relative min-h-[0] h-[clamp(330px,46vh,430px)] overflow-hidden rounded-[34px] border-[3px] p-5 text-center transition duration-200 hover:-translate-y-2 hover:rotate-[0.3deg] hover:shadow-[0_28px_54px_rgba(35,54,42,0.22)] active:translate-y-0",
                       item.frame,
@@ -288,6 +289,8 @@ export default function DesktopPreviewPage() {
                 );
               })}
             </div>
+
+            {gostaChainPicker && (()=>{const chosen=Object.values(selectedStores) as any[];const chainOf=(s:any)=>{const k=storeKind(s);return k.startsWith("s")?"S":k.startsWith("k")?"K":k==="lidl"?"LIDL":"SPAR"};const unique=[...new Map(chosen.map((s:any)=>[chainOf(s),s])).values()] as any[];return <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8"><div className="flex items-center justify-between border-b border-[#71806d]/20 pb-4"><div><div className="text-[11px] font-black uppercase tracking-[.16em] text-[#7a806e]">Gösta · tarjoukset</div><div className="mt-1 text-[30px] font-black text-[#14291f]">Valitse kauppaketju</div></div><button onClick={()=>setGostaChainPicker(false)} className="rounded-full border border-[#71806d]/25 bg-white px-4 py-2 text-[13px] font-black">← Takaisin</button></div><div className="grid flex-1 place-items-center"><div className="w-full max-w-[680px]"><div className="mb-5 text-center text-[13px] font-bold text-[#667064]">{betweenMode==="one"?"Valittuna yksi kauppaketju":"Valitse yksi pääruudulla valituista kauppaketjuista"}</div><div className="grid grid-cols-2 gap-4">{unique.map((s:any)=>{const ch=chainOf(s);return <button key={ch} onClick={()=>{setGostaChainPicker(false);setWorkspace("gosta")}} className="rounded-[24px] border-2 border-[#d2b267] bg-[#fffaf0] px-5 py-6 text-left shadow-sm"><div className="text-[18px] font-black text-[#14291f]">{ch==="S"?"S-ryhmä":ch==="K"?"K-ryhmä":ch==="LIDL"?"Lidl":"Tokmanni / Spar"}</div><div className="mt-1 text-[12px] font-bold text-[#6b7467]">{s.name}</div></button>})}</div>{unique.length===0&&<div className="rounded-[20px] border border-[#d2b267] bg-[#fffaf0] p-5 text-center text-[14px] font-black">Valitse ensin kauppaketju pääruudulta.</div>}</div></div></div>})()}
 
             {workspace && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
