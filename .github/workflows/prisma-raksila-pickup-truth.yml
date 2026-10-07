@@ -26,3 +26,5 @@ jobs:
           }
           (async()=>{await q(65.0126,25.4848,"Raksila Tehtaankatu"); await q(64.9977,25.4650,"Limingantulli control")})()
           NODE
+
+# trigger
