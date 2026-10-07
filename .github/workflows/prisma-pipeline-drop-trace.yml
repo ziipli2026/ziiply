@@ -1,0 +1,25 @@
+name: Prisma pipeline drop trace
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/debug-prisma-pipeline-drop-trace.mts'
+      - '.github/workflows/prisma-pipeline-drop-trace.yml'
+      - 'src/app/components/ziiply/offerSearch/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Trace Prisma Hyvinkää
+        run: npx --yes tsx scripts/debug-prisma-pipeline-drop-trace.mts "Prisma Hyvinkää"
