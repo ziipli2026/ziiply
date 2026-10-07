@@ -1,0 +1,40 @@
+name: Lidl Finland store/offers audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lidl-finland-store-offers-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Audit Lidl store IDs and active offer counts
+        shell: bash
+        run: |
+          node <<'NODE'
+          const storesUrl='https://stores.lidlplus.com/api/v4/FI';
+          const offersBase='https://offers.lidlplus.com/app/api/v4/FI';
+          const headers={accept:'application/json','accept-language':'fi-FI,fi;q=0.9','user-agent':'LidlPlus/17.0.5 Android okhttp/4.12.0','x-client-version':'17.0.5','x-client-platform':'android'};
+          const cities=['Varkaus','Helsinki','Hyvinkää','Järvenpää','Kuopio','Tampere','Turku','Oulu','Jyväskylä','Lahti','Mikkeli','Joensuu'];
+          const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          const r=await fetch(storesUrl,{headers});
+          if(!r.ok) throw new Error('stores '+r.status);
+          const stores=await r.json();
+          console.log('STORE_ROWS',stores.length,'TODAY',today);
+          for(const city of cities){
+            const matches=stores.filter(s=>norm(s.locality)===norm(city));
+            if(!matches.length){ console.log('AUDIT',city,'NO_STORE'); continue; }
+            for(const s of matches.slice(0,3)){
+              const key=String(s.storeKey||'');
+              const rr=await fetch(offersBase+'/'+encodeURIComponent(key)+'/offers',{headers});
+              let rows=[]; if(rr.ok){const raw=await rr.json(); rows=Array.isArray(raw)?raw:Array.isArray(raw?.offers)?raw.offers:Array.isArray(raw?.items)?raw.items:[];}
+              const active=rows.filter(x=>{const a=String(x.startValidityDate||'').slice(0,10),b=String(x.endValidityDate||'').slice(0,10); return (!a||today>=a)&&(!b||today<=b)});
+              const ids=new Set(active.flatMap(x=>Array.isArray(x.productIds)?x.productIds.map(String):[]));
+              console.log('AUDIT',JSON.stringify({city,name:s.name,address:s.address,storeKey:key,status:rr.status,raw:rows.length,active:active.length,productIds:ids.size}));
+            }
+          }
+          NODE
