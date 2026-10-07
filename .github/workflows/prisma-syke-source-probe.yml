@@ -1,0 +1,13 @@
+name: Prisma Syke source metadata probe
+on:
+  push:
+    paths: ['.github/workflows/prisma-syke-source-probe.yml']
+permissions: {contents: read}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          node - <<'NODE'
+          fetch("https://api.ruoanhinta.fi/api/stores?search=Prisma%20Syke",{headers:{accept:"application/json"}}).then(r=>r.json()).then(x=>console.log(JSON.stringify(x,null,2)))
+          NODE
