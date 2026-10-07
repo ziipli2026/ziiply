@@ -78,6 +78,13 @@ export default function DesktopPreviewPage() {
   }, [location]);
 
   useEffect(() => {
+    const value = location.trim();
+    if (!value || value === appliedLocation) return;
+    const timer = window.setTimeout(() => applyLocation(), 1200);
+    return () => window.clearTimeout(timer);
+  }, [location]);
+
+  useEffect(() => {
     let cancelled = false;
     navigator.mediaDevices?.enumerateDevices().then((devices) => {
       const cameras = devices.filter((d) => d.kind === "videoinput");
