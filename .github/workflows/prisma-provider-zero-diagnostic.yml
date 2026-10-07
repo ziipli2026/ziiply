@@ -1,0 +1,52 @@
+name: Prisma provider zero-result diagnostics (read-only)
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-provider-zero-diagnostic.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Run provider diagnostics
+        run: |
+          cat > scripts/.tmp-prisma-provider-zero.mts <<'TS'
+          import { searchSelectedSKaupatOffersV11 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
+          const stores=[
+            ["Prisma Hämeenkatu Tampere","726413330"],
+            ["Prisma Raksila Oulu","516528759"],
+            ["Prisma Myyrmanni Vantaa","726435566"],
+            ["Prisma Jumbo Vantaa","613761030"],
+            ["Prisma Limingantulli Oulu","627829302"],
+            ["Prisma Lielahti Tampere","697940575"],
+            ["Prisma Kaleva Tampere","517609418"],
+          ];
+          for(const [storeName,storeId] of stores){
+            const rows:any[]=await searchSelectedSKaupatOffersV11("__ziiply_all_offers__",{
+              storeName,sStoreName:storeName,storeId,sStoreId:storeId,
+              storeNames:[storeName],sStoreNames:[storeName],sStoreIds:[storeId],
+              storeCompareScope:"within_chain",withinChain:"S"
+            } as any);
+            const debug=rows.find(x=>String(x?.title||"").includes("GOSTA_V214_ZERO_RESULT_DIAGNOSTIC")||String(x?.rawText||"").includes("GOSTA_V214_ZERO_RESULT_DIAGNOSTIC"));
+            console.log(JSON.stringify({storeName,storeId,count:rows.length,debug:debug?{
+              title:debug.title,
+              rawText:debug.rawText,
+              benefitText:debug.benefitText,
+              priceText:debug.priceText
+            }:null}));
+          }
+          TS
+          npx tsx scripts/.tmp-prisma-provider-zero.mts | tee prisma-provider-zero-diagnostic.txt
+          rm scripts/.tmp-prisma-provider-zero.mts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prisma-provider-zero-diagnostic
+          path: prisma-provider-zero-diagnostic.txt
