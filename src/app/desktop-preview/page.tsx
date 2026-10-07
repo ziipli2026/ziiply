@@ -71,6 +71,13 @@ export default function DesktopPreviewPage() {
 
 
   useEffect(() => {
+    const value = location.trim();
+    if (!value || value === appliedLocation) return;
+    const timer = window.setTimeout(() => applyLocation(), 1200);
+    return () => window.clearTimeout(timer);
+  }, [location]);
+
+  useEffect(() => {
     let cancelled = false;
     navigator.mediaDevices?.enumerateDevices().then((devices) => {
       const cameras = devices.filter((d) => d.kind === "videoinput");
@@ -138,7 +145,7 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px_44px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
+          <div className="grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
             <button type="button" onClick={() => gpsOn ? setGpsOn(false) : useGps()} title={gpsOn ? "GPS päällä" : "GPS pois"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
               <span className="text-[23px]">📍</span>
               <span className="absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white bg-[#159447] shadow-sm" />
@@ -150,7 +157,6 @@ export default function DesktopPreviewPage() {
             <button type="button" onClick={() => setMapOpen(true)} title="Avaa kartta" className="group grid h-[52px] w-[64px] place-items-center rounded-[16px] border-2 border-[#65a99c] bg-gradient-to-b from-[#c8eee8] to-[#86cabf] shadow-[inset_0_1px_0_rgba(255,255,255,.65)]">
               <img src="/icons/ziiply-compass.png" alt="Avaa kartta" className="h-[43px] w-[43px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,.24)] transition group-hover:scale-105" />
             </button>
-            <button type="button" onClick={applyLocation} title="Hae paikkakunta" className="flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[#6d8069]/25 bg-[#fffaf0]/80 text-[18px] font-black shadow-sm">↵</button>
           </div>
           <div className="absolute right-12 top-[94px] z-20 flex items-center gap-2 rounded-full border border-[#6f806a]/20 bg-[#fffaf0]/90 px-3 py-1.5 text-[10px] font-black text-[#536252] shadow-sm">
             <span className={`h-2 w-2 rounded-full ${gpsOn ? "bg-[#159447]" : "bg-[#c08b35]"}`} />
