@@ -403,5 +403,15 @@
     "lidlProductId": "10038324",
     "ean": "6407800020124",
     "evidence": "Lidl Finland productId 10038324 is ATRIA Pizza 2 kpl, 200 g. The Lidl product image explicitly shows Atria Srirachapizza Salami and Srirachapizza Kana-Pekoni. Atria's 2026 product catalogue gives consumer GTIN 6407800020124 for Srirachapizza Kana-Pekoni 200 g; Atria's official product page and S-kaupat independently confirm the same EAN. Exact variant is visible in Lidl's product image."
+  },
+  {
+    "lidlProductId": "10037651",
+    "ean": "20000660",
+    "evidence": "Lidl Finland productId 10037651 is MARIBEL Hillo 450 g with blueberry or mixed-berry variants. Exact Maribel blueberry jam 450 g is independently identified with GTIN 20000660; variant-level identity matches the Lidl row and must be kept separate from the mixed-berry variant."
+  },
+  {
+    "lidlProductId": "10037651",
+    "ean": "20000684",
+    "evidence": "Lidl Finland productId 10037651 is MARIBEL Hillo 450 g with blueberry or mixed-berry variants. Exact Maribel mixed-berry/forest-fruit jam 450 g is independently identified with GTIN 20000684; variant-level identity matches the Lidl row and must be kept separate from the blueberry variant."
   }
 ]
