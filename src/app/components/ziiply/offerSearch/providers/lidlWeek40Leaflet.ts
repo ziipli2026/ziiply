@@ -48,8 +48,10 @@ export function addVerifiedLidlWeek40Leaflet(
   storeName: string,
   today: string,
 ): Record<string, any>[] {
-  // This leaflet was supplied for Hyvinkää; do not apply to other cities.
-  if (storeKey !== "FI0218" || today < "2026-10-01" || today > "2026-10-07") return structured;
+  // Lidl.fi identifies the 5.–7.10. publication as "Koko Suomen tarjoukset".
+  // The verified leaflet rows are therefore valid for every Finnish Lidl store,
+  // not only the Hyvinkää store used during the original image verification.
+  if (!/^FI\d{4}$/.test(storeKey) || today < "2026-10-01" || today > "2026-10-07") return structured;
   const rows: LidlLeafletEnrichment[] = reference.records
     .filter(row => independentlyVerifiedIds.has(row.id) && typeof row.validThrough === "string")
     .map(row => ({
