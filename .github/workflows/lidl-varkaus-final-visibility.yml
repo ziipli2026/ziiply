@@ -1,0 +1,29 @@
+name: Lidl Varkaus final visibility audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lidl-varkaus-final-visibility.yml'
+      - 'src/app/components/ziiply/offerSearch/providers/lidlProvider.ts'
+      - 'src/app/api/offers/search/route.ts'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Audit final Lidl provider transformations
+        run: |
+          node <<'NODE'
+          const headers={accept:'application/json','accept-language':'fi-FI,fi;q=0.9','user-agent':'LidlPlus/17.0.5 Android okhttp/4.12.0','x-client-version':'17.0.5','x-client-platform':'android'};
+          const raw=await (await fetch('https://offers.lidlplus.com/app/api/v4/FI/FI0165/offers',{headers})).json();
+          const rows=Array.isArray(raw)?raw:Array.isArray(raw?.offers)?raw.offers:Array.isArray(raw?.items)?raw.items:[];
+          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          const active=rows.filter(x=>(!x.startValidityDate||today>=String(x.startValidityDate).slice(0,10))&&(!x.endValidityDate||today<=String(x.endValidityDate).slice(0,10)));
+          console.log('ACTIVE',active.length);
+          for(const x of active) console.log('ROW',JSON.stringify({id:x.id,title:x.title,brand:x.brand,start:x.startValidityDate,end:x.endValidityDate,price:x.priceBox,productIds:x.productIds}));
+          NODE
