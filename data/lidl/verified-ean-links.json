@@ -428,5 +428,10 @@
     "lidlProductId": "10037407",
     "ean": "2001447100009",
     "evidence": "Lidl.fi canonical product page identifies Fazer Raspberry Kiss -munkki as a Paistopiste product; Finnish retail data identifies the exact Fazer Raspberry Kiss munkki 108 g consumer EAN 2001447100009, matching the Lidl product identity."
+  },
+  {
+    "lidlProductId": "10038257",
+    "ean": "2008108300006",
+    "evidence": "Lidl Finland candidate 10038257 is Osteen-mango; S-kaupat exact product is Mango Osteen with EAN 2008108300006. Exact product name/variety match; this is a variable-weight produce EAN."
   }
 ]
