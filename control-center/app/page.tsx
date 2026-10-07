@@ -72,9 +72,24 @@ export default async function Page(){
   const activePubs=currentPubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const candidatePubs=currentPubs.filter(p=>p.approval_state==="candidate");
   const activeOfferTotal=activePubs.reduce((n,p)=>n+p.offer_count,0);
+  const aggregateActive=(ch:(typeof CHAINS)[number])=>{
+    const rows=activePubs.filter(p=>ch.match(p.chain.trim()));
+    if(!rows.length)return null;
+    const first=rows.reduce((a,b)=>a.valid_from<b.valid_from?a:b);
+    const last=rows.reduce((a,b)=>a.valid_until>b.valid_until?a:b);
+    return {...last,
+      valid_from:first.valid_from,
+      valid_until:last.valid_until,
+      offer_count:rows.reduce((n,p)=>n+p.offer_count,0),
+      missing_price:rows.reduce((n,p)=>n+p.missing_price,0),
+      missing_image:rows.reduce((n,p)=>n+p.missing_image,0),
+      missing_category:rows.reduce((n,p)=>n+p.missing_category,0),
+      publication_id:rows.length+" aktiivista segmenttiä"
+    } as Pub;
+  };
   const quality={missingPrice:activePubs.reduce((n,p)=>n+p.missing_price,0),missingImage:activePubs.reduce((n,p)=>n+p.missing_image,0),missingCategory:activePubs.reduce((n,p)=>n+p.missing_category,0)};
   const publicationQuality=CHAINS.filter(ch=>ch.key==="Lidl").map(ch=>{
-    const current=activePubs.filter(p=>ch.match(p.chain.trim())).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
+    const current=aggregateActive(ch);
     const next=current?currentPubs.filter(p=>ch.match(p.chain.trim())&&p.valid_from>current.valid_until).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]??null:null;
     const pct=(p:Pub|null,k:"missing_price"|"missing_image"|"missing_category")=>p&&p.offer_count?Math.round(p[k]/p.offer_count*1000)/10:null;
     const currentBad=current?current.missing_price+current.missing_image+current.missing_category:0;
@@ -116,7 +131,7 @@ export default async function Page(){
   const overlappingApproved=activePubs.filter((p,i,a)=>!CHAINS.find(ch=>ch.key==="Lidl")!.match(p.chain.trim())&&a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
   const rolloverChains=[...new Set(currentPubs.map(p=>p.chain).filter(chain=>!CHAINS[0].match(chain.trim())))].map(chain=>{const pubs=currentPubs.filter(p=>p.chain===chain);const current=pubs.filter(p=>p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0];const future=current?pubs.filter(p=>p.valid_from>current.valid_until).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]:pubs.filter(p=>p.valid_from>todayFi).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];const nextDay=current?new Date(current.valid_until+"T12:00:00Z"):null;if(nextDay)nextDay.setUTCDate(nextDay.getUTCDate()+1);const expected=nextDay?nextDay.toISOString().slice(0,10):null;const gap=Boolean(current&&future&&expected&&future.valid_from>expected);const level=!current?"red":gap?"red":!future&&current.valid_until<=todayFi?"yellow":future?.approval_state==="candidate"?"yellow":"green";return {chain,current,future,gap,level};});
   const publicationPipeline=CHAINS.filter(ch=>ch.key==="Lidl").map(ch=>{
-    const current=currentPubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved"&&p.valid_from<=todayFi&&p.valid_until>=todayFi).sort((a,b)=>b.valid_until.localeCompare(a.valid_until))[0]??null;
+    const current=aggregateActive(ch);
     const future=current?currentPubs.filter(p=>ch.match(p.chain.trim())&&p.valid_from>current.valid_until).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0]??null:null;
     const discovery=d.runs.find(r=>ch.match(r.chain.trim())&&r.source==="future-publication-discovery")??null;
     const discoveryApplicable=["K","Tokmanni"].includes(ch.key);
@@ -378,7 +393,7 @@ export default async function Page(){
         <tbody>{publicationPipeline.map(x=>{const candidate=x.future?.approval_state==="candidate"?x.future:null;const approved=x.future?.approval_state==="approved"?x.future:null;return <tr key={x.key}>
           <td style={{padding:8}}>{dot(x.level)}</td>
           <td style={{padding:8,fontWeight:800}}>{x.name}</td>
-          <td style={{padding:8}}>{x.current?x.current.valid_from+"–"+x.current.valid_until+" · "+x.current.offer_count:"—"}</td>
+          <td style={{padding:8}}>{x.current?x.current.valid_from+"–"+x.current.valid_until+" · "+x.current.publication_id+" · "+x.current.offer_count+" tarjousta":"—"}</td>
           <td style={{padding:8}}>{!x.discoveryApplicable?"Ei erillistä future-probea":!x.discovery?"Ei vielä ajoa":!x.discovery.ok?"🔴 Virhe":x.discoveryFound?"🟢 Löydetty":"🟡 Ei vielä digijulkaisua"}{x.discovery&&<div style={{fontSize:11,color:"#667085"}}>{new Date(x.discovery.checked_at).toLocaleString("fi-FI")}</div>}</td>
           <td style={{padding:8}}>{candidate?"🟡 "+candidate.valid_from+"–"+candidate.valid_until+" · "+candidate.offer_count:"—"}</td>
           <td style={{padding:8}}>{approved?"🟢 "+approved.valid_from+"–"+approved.valid_until+" · "+approved.offer_count:"—"}</td>
