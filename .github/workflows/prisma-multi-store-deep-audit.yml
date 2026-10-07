@@ -36,17 +36,16 @@ jobs:
           };
 
           const stores = [
-            "Prisma Hyvinkää",
-            "Prisma Helsinki",
-            "Prisma Sello",
-            "Prisma Jumbo",
-            "Prisma Kaleva Tampere",
-            "Prisma Länsikeskus Turku",
-            "Prisma Limingantulli Oulu",
-            "Prisma Seppälä Jyväskylä",
-            "Prisma Päiväranta Kuopio",
-            "Prisma Laune Lahti",
-            "Prisma Mikkola Pori",
+            ["Prisma Hyvinkää","634976534"],
+            ["Prisma Jumbo Vantaa","613761030"],
+            ["Prisma Lohja","603212895"],
+            ["Prisma Tuusula","726753948"],
+            ["Prisma Limingantulli Oulu","627829302"],
+            ["Prisma Raksila Oulu","516528759"],
+            ["Prisma Lielahti Tampere","697940575"],
+            ["Prisma Kaleva Tampere","517609418"],
+            ["Prisma Hämeenkatu Tampere","726413330"],
+            ["Prisma Myyrmanni Vantaa","726435566"],
           ];
 
           const master="__ziiply_all_offers__";
@@ -56,13 +55,13 @@ jobs:
           const ean=(x:any)=>String(x?.ean??"").trim();
 
           const results:any[]=[];
-          for (const storeName of stores) {
+          for (const [storeName, storeId] of stores) {
             const started=Date.now();
             let offers:any[]=[]; let pasta:any[]=[]; let campaigns:any[]=[]; let error="";
             try {
-              offers=await fetchSKaupatOffers(master,config,{storeName,storeId:null,sStoreName:storeName,sStoreId:null});
+              offers=await fetchSKaupatOffers(master,config,{storeName,storeId,sStoreName:storeName,sStoreId:storeId});
               await sleep(900);
-              pasta=await fetchSKaupatOffers("pasta",config,{storeName,storeId:null,sStoreName:storeName,sStoreId:null});
+              pasta=await fetchSKaupatOffers("pasta",config,{storeName,storeId,sStoreName:storeName,sStoreId:storeId});
               await sleep(900);
               campaigns=await fetchPrismaCampaignOffersV1(master,config,storeName);
             } catch(e) { error=String(e); }
@@ -83,6 +82,7 @@ jobs:
             const ratio=campaigns.length ? offers.length/campaigns.length : null;
             results.push({
               storeName,
+              storeId,
               elapsedMs:Date.now()-started,
               offerCount:offers.length,
               pastaControlCount:pasta.length,
