@@ -20,6 +20,7 @@ jobs:
       - run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Audit every official Prisma identity
         run: |
+          set -o pipefail
           cat > scripts/.tmp-prisma-finland-id-audit.mts <<'TS'
           import { resolvePrismaCampaignStoreIdV1, fetchSKaupatOffers } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
 
@@ -31,13 +32,13 @@ jobs:
             const url=queue.shift()!; if(seenPages.has(url)) continue; seenPages.add(url);
             const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0 (compatible; Ziiply audit)","accept-language":"fi"}});
             const html=await r.text();
-            for(const m of html.matchAll(/\\/myymala\\/(prisma-[a-z0-9%._~-]+)\\/(\\d{5,})/gi)){
+            for(const m of html.matchAll(new RegExp("\\/myymala\\/(prisma-[a-z0-9%._~-]+)\\/(\\\\d{5,})","gi"))){
               const slug=decodeURIComponent(m[1]);
               const publicId=m[2];
               const name=slug.split("-").map(x=>x?x[0].toUpperCase()+x.slice(1):x).join(" ").replace(/^Prisma /,"Prisma ");
               stores.set(publicId,{name,publicId,slug});
             }
-            for(const m of html.matchAll(/(?:href=\\?["']|\\")([^"' ]*\\?cursor=[^"' <\\\\]+)[\"']/gi)){
+            for(const m of html.matchAll(new RegExp("([^\\\"\\' ]*\\\\?cursor=[^\\\"\\' <]+)","gi"))){
               let href=norm(m[1]).replace(/\\\\u0026/g,"&").replace(/\\\\/g,"");
               if(href.startsWith("/myymalat/prisma")) queue.push("https://www.s-kaupat.fi"+href);
               else if(href.startsWith("?cursor=")) queue.push(base+href);
