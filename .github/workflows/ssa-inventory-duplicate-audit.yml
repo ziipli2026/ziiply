@@ -1,0 +1,31 @@
+name: SSA inventory duplicate audit
+on:
+  push:
+    paths: ['.github/workflows/ssa-inventory-duplicate-audit.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Analyze source inventory only
+        run: |
+          cat > /tmp/a.mjs <<'JS'
+          const chains=["S-market","Sale","Alepa"];
+          for(const chain of chains){
+            const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(chain));
+            const raw=await r.json(), a=Array.isArray(raw)?raw:(raw.stores||raw.data||raw.results||[]);
+            const rows=a.filter(x=>chain==="S-market"?/^s-market\b/i.test(String(x.name||"")):chain==="Sale"?/^sale\b/i.test(String(x.name||"")):/^alepa\b/i.test(String(x.name||"")));
+            const byId=new Map();
+            for(const x of rows){const id=String(x.externalId||x.storeId||x.id||"");if(!id)continue;(byId.get(id)||byId.set(id,[]).get(id)).push(x)}
+            const dup=[...byId].filter(([,v])=>v.length>1).map(([id,v])=>({id,rows:v.map(x=>({name:x.name,address:x.address,postalCode:x.postalCode,city:x.city}))}));
+            const suspicious=rows.filter(x=>/vanha|uusi|old|sulj|lopet|entinen/i.test(String(x.name||""))).map(x=>({name:x.name,id:String(x.externalId||x.storeId||x.id||""),address:x.address,postalCode:x.postalCode,city:x.city}));
+            console.log("INV_AUDIT",JSON.stringify({chain,total:rows.length,uniqueIds:byId.size,duplicateExtraRows:dup.reduce((n,[...v])=>n,0),duplicateGroups:dup.length,duplicates:dup,suspicious}));
+          }
+          JS
+          node /tmp/a.mjs | tee ssa-inventory-duplicate-audit.txt
+      - uses: actions/upload-artifact@v4
+        with: {name: ssa-inventory-duplicate-audit, path: ssa-inventory-duplicate-audit.txt}
