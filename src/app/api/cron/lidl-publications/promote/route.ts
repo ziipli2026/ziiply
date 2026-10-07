@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { approvePublication, publicationApprovalState, readPublicationCandidate } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { inspectOfferPublication } from "@/app/components/ziiply/offerSearch/publicationDiagnostics";
+import { LIDL_NATIONAL_PUBLICATION_CHAIN } from "@/app/components/ziiply/offerSearch/lidlPublicationConfig";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
   if (!publicationId || body.regressionPassed !== true || !/^[0-9a-f]{7,40}$/i.test(regressionCommit))
     return NextResponse.json({ ok: false, error: "Verified parser regression proof required" }, { status: 412 });
 
-  const chain = "LIDL:FI0218";
+  const chain = LIDL_NATIONAL_PUBLICATION_CHAIN;
   const candidate = await readPublicationCandidate<OfferRow>(chain, publicationId);
   if (!candidate) {
     const state = await publicationApprovalState(chain, publicationId);
