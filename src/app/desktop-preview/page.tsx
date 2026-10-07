@@ -62,6 +62,11 @@ export default function DesktopPreviewPage() {
   const [pickerChain, setPickerChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems] = useState<any[]>([]);
+  const [justiinaQuery, setJustiinaQuery] = useState("");
+  const [justiinaDelay, setJustiinaDelay] = useState<0|1|2>(2);
+  const [justiinaLoading, setJustiinaLoading] = useState(false);
+  const [justiinaResults, setJustiinaResults] = useState<any[]>([]);
+  const [justiinaMessage, setJustiinaMessage] = useState("");
   const now = new Date();
   const month = ["TAMMIKUU","HELMIKUU","MAALISKUU","HUHTIKUU","TOUKOKUU","KESÄKUU","HEINÄKUU","ELOKUU","SYYSKUU","LOKAKUU","MARRASKUU","JOULUKUU"][now.getMonth()];
 
@@ -81,6 +86,24 @@ export default function DesktopPreviewPage() {
     setGpsCoords(null);
     setLocationStatus(`Valittu sijainti: ${value}`);
     loadIndependentStores(value); fetch(`/api/store-search?search=${encodeURIComponent(value)}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items) }).catch(()=>setStores([]));
+  }
+
+  async function runDesktopJustiinaSearch(raw=justiinaQuery) {
+    const query=String(raw||"").trim(); if(!query)return;
+    const selected=Object.values(selectedStores) as any[];
+    const s=selected.find(x=>{const k=storeKind(x);return k==="sHyper"||k==="sLocal"});
+    const k=selected.find(x=>{const t=storeKind(x);return t==="kHyper"||t==="kLocal"});
+    if(!s&&!k){setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
+    setJustiinaLoading(true);setJustiinaMessage("");setJustiinaResults([]);
+    if(justiinaDelay) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
+    try{
+      const calls:any[]=[];
+      if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
+      if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.externalId||k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
+      const batches=await Promise.all(calls);const rows:any[]=[];
+      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of items.slice(0,8)){const p=Number(x?.price??x?.storeItems?.[0]?.price??x?.storeItem?.price??0);rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:p})}}
+      setJustiinaResults(rows);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
+    }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
   }
 
   async function loadIndependentStores(search:string, coords?:{latitude:number;longitude:number}) { const lp=new URLSearchParams(); if(search) lp.set("search",search); if(coords){lp.set("lat",String(coords.latitude));lp.set("lon",String(coords.longitude));lp.set("gps","1")} try{const r=await fetch(`/api/lidl/store-search?${lp}`,{cache:"no-store"});const d=await r.json();setLidlStores(Array.isArray(d?.items)?d.items:[])}catch{setLidlStores([])} const sp=new URLSearchParams(); if(search)sp.set("search",search);if(coords){sp.set("lat",String(coords.latitude));sp.set("lon",String(coords.longitude))} try{const r=await fetch(`/api/eurospar-stores?${sp}`,{cache:"no-store"});const d=await r.json();setSparStores(Array.isArray(d?.items)?d.items:[])}catch{setSparStores([])} }
@@ -307,9 +330,9 @@ export default function DesktopPreviewPage() {
                 <div className="mx-auto mt-5 flex w-full max-w-[820px] flex-1 flex-col">
                   <div className="grid grid-cols-[1fr_130px] items-center gap-5">
                     <div className="rounded-[24px] border-2 border-[#d0aa58] bg-[#fff8dd] p-4 text-center"><img src="/assistants/justiina.png" alt="Justiina" className="mx-auto h-[145px] w-[145px] object-contain"/><div className="mt-1 font-serif text-[20px] font-black italic text-[#174c3a]">Justiina</div></div>
-                    <div className="rounded-[22px] border-2 border-[#d0aa58] bg-[#fff8dd] p-4 text-center"><div className="mx-auto grid h-[70px] w-[70px] place-items-center rounded-full border-[7px] border-[#8b7145] bg-[#d8c18b] text-[28px]">⏱</div><div className="mt-2 text-[10px] font-black uppercase tracking-[.18em] text-[#174c3a]">Hakutahti</div><div className="text-[13px] font-black text-[#75664e]">Normaali · 2 s</div></div>
+                    <button type="button" onClick={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} className="rounded-[22px] border-2 border-[#d0aa58] bg-[#fff8dd] p-4 text-center"><div className="mx-auto grid h-[70px] w-[70px] place-items-center rounded-full border-[7px] border-[#8b7145] bg-[#d8c18b] text-[28px]">⏱</div><div className="mt-2 text-[10px] font-black uppercase tracking-[.18em] text-[#174c3a]">Hakutahti</div><div className="text-[13px] font-black text-[#75664e]">{justiinaDelay===2?"Normaali · 2 s":justiinaDelay===1?"Nopea · 1 s":"Heti · 0 s"}</div></button>
                   </div>
-                  <input autoFocus placeholder="maito, kahvi" className="mt-5 w-full rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-6 py-5 text-center font-serif text-[26px] font-black text-[#6f6657] outline-none placeholder:text-[#8b806e]"/>
+                  <form onSubmit={e=>{e.preventDefault();void runDesktopJustiinaSearch()}} className="mt-5 flex gap-3"><input autoFocus value={justiinaQuery} onChange={e=>setJustiinaQuery(e.target.value)} placeholder="maito, kahvi" className="min-w-0 flex-1 rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-6 py-4 text-center font-serif text-[26px] font-black text-[#6f6657] outline-none placeholder:text-[#8b806e]"/><button type="submit" disabled={justiinaLoading||!justiinaQuery.trim()} className="rounded-[22px] border-[3px] border-[#0d633a] bg-[#118545] px-7 text-[17px] font-black text-white disabled:opacity-40">{justiinaLoading?"Haetaan…":"Hae"}</button></form>{justiinaMessage&&<div className="mt-3 text-center text-[13px] font-black text-[#765f3f]">{justiinaMessage}</div>}{justiinaResults.length>0&&<div className="mt-3 grid max-h-[210px] grid-cols-2 gap-2 overflow-auto pr-1">{justiinaResults.map((p:any,i)=><div key={String(p.id||p.ean||i)} className="flex min-h-[82px] items-center gap-3 rounded-[18px] border-2 border-[#d0aa58] bg-[#fffaf0] p-2 text-left">{(p.pictureUrl||p.imageUrl||p.image)&&<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-14 w-14 rounded-xl object-contain bg-white"/>}<div className="min-w-0 flex-1"><div className="line-clamp-2 text-[12px] font-black text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-1 text-[10px] font-bold text-[#76684f]">{p.__store}</div></div>{p.__price>0&&<div className="text-[15px] font-black text-[#174c3a]">{p.__price.toFixed(2).replace(".",",")} €</div>}</div>)}</div>}
                   <div className="mt-6 grid grid-cols-2 gap-6">
                     <button className="rounded-[24px] border-[4px] border-[#6e5b32] bg-[#2c3429] p-5 text-[20px] font-black text-[#ffe0a0] shadow-lg"><div className="mb-2 text-[38px]">🎙️</div>Äänitä</button>
                     <button className="rounded-[24px] border-[4px] border-[#6e5b32] bg-[#2c3429] p-5 text-[20px] font-black text-[#ffe0a0] shadow-lg"><div className="mb-2 text-[38px]">📷</div>Filmaa</button>
