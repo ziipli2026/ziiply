@@ -598,7 +598,19 @@ export async function GET(request: Request) {
     if (provider === "lidl") {
       const storeKey = getParam(searchParams, "lidlStoreKey") || "";
       const storeName = getParam(searchParams, "lidlStoreName") || "Lidl";
-      const fetched = storeKey ? await fetchLidlOffers(storeKey, storeName) : [];
+      let fetched: UnknownRecord[] = [];
+      let structuredFeedError = "";
+      if (storeKey) {
+        try {
+          fetched = await fetchLidlOffers(storeKey, storeName) as UnknownRecord[];
+        } catch (error) {
+          // Lidl may reject Next/Vercel server fetches even while the same official
+          // endpoint is healthy from an ordinary client. Never turn a known national
+          // verified leaflet into an empty/500 Gösta view because of that transport failure.
+          structuredFeedError = error instanceof Error ? error.message : String(error);
+          console.warn("[Ziiply offers] Lidl structured feed unavailable; using verified national/public fallback", structuredFeedError);
+        }
+      }
       const todayFi = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
       const enriched = addVerifiedLidlWeek40Leaflet(fetched as Record<string, any>[], storeKey, storeName, todayFi);
       // FI0218 is the first deep-tested publication-staging store. Stored rows combine
@@ -787,6 +799,7 @@ export async function GET(request: Request) {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
           lidlSourceAudit: {
             structuredAndManual: enriched.length,
+            structuredFeedError: structuredFeedError || null,
             staged: staged.length,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
