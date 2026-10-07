@@ -805,7 +805,11 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
     // V221: exact pickup-place match wins over a closer unrelated Prisma.
     const wantedPlaceTokensV221 = getPrismaPlaceTokensV225(cleanStoreName);
+    const wantedBrandV238 = getStoreBrandFromNameV215(cleanStoreName);
     const ranked = candidates
+      // V238: rank the selected chain before applying place-name bonuses.
+      // Otherwise e.g. Prisma Seinäjoki can be outranked by S-market Peräseinäjoki.
+      .filter((candidate) => !wantedBrandV238 || candidate.brand === wantedBrandV238)
       .map((candidate) => {
         const pickupNameNormalizedV221 = normalizeSKaupatStoreNameForMatchV198(candidate.pickupName);
         const placeMatch = wantedPlaceTokensV221.some((token) => pickupNameNormalizedV221.includes(token));
@@ -848,7 +852,19 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     // A geographically close pickup point is NOT proof that it belongs to
     // the selected store. Accept a matching place token OR an exact street
     // match for cases such as Prisma Hämeenkatu -> Sokos Tampere pickup name.
-    if (!best || !brandOk || (!nameHit && !addressHit) || best.score < 100) {
+    // V238: a same-chain pickup within 300 m of a successful full-store geocode
+    // is strong identity evidence even when S-kaupat names the pickup after a
+    // district or uses an inflected place name (Palokka/Palokan,
+    // Raahe/Mettalanmäki, Seinäjoki/Hyllykallio). Do not use this rule for
+    // generic fallback geocodes such as "syke, Finland".
+    const geocodeWasFullStoreV238 = normalizeSKaupatStoreNameForMatchV198(coords.queryUsed)
+      .includes(normalizeSKaupatStoreNameForMatchV198(cleanStoreName));
+    const nearSameBrandHitV238 = Boolean(
+      best && brandOk && geocodeWasFullStoreV238 &&
+      best.candidate.distance != null && best.candidate.distance <= 300
+    );
+
+    if (!best || !brandOk || (!nameHit && !addressHit && !nearSameBrandHitV238) || best.score < 100) {
       console.warn("[GOSTA V216] no safe S-kaupat pickup candidate", {
         storeName: cleanStoreName, coords,
         candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
@@ -945,7 +961,12 @@ async function resolveEffectiveSKaupatStoreIdV174(
       placeV219 &&
       normalizeSKaupatStoreNameForMatchV198(pickupNameV219).includes(placeV219)
     );
-    if (pickupStoreIdV219 && pickupMatchesV219) {
+    const pickupSafelyResolvedV238 = Boolean(
+      pickupStoreIdV219 &&
+      lastPickupResolverDiagnosticV216?.bestStoreId === pickupStoreIdV219 &&
+      !lastPickupResolverDiagnosticV216?.fetchError
+    );
+    if (pickupStoreIdV219 && (pickupMatchesV219 || pickupSafelyResolvedV238)) {
       console.warn("[GOSTA V219] using matching pickup store.id", {
         storeName, inputStoreId: raw || null,
         pickupName: pickupNameV219, resolvedStoreId: pickupStoreIdV219,
