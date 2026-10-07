@@ -208,7 +208,11 @@ console.log("PRISMA_QUERY_PROBE_EXPIRY_AUDIT",JSON.stringify({
 
 const multiProbeTermsV7=["ateria","laatikko","keitto","pizza","leikkele","nakki","jauheliha","broileri","kana","kinkku","juusto","jogurtti","rahka","vanukas","maito","kerma","voi","leipä","sämpylä","kahvi","tee","mehu","limonadi","vesi","pasta","riisi","kastike","muro","mysli","keksi","suklaa","jäätelö","pakaste","peruna","tomaatti","omena","banaani"];
 const multiProbeRowsV7:any[]=[];
-for(const q of multiProbeTermsV7){const rows=await searchSelectedSKaupatOffersV11(q,ctx as any);for(const x of rows as any[])multiProbeRowsV7.push({...x,_probe:q});}
+for(let i=0;i<multiProbeTermsV7.length;i+=6){
+ const batch=multiProbeTermsV7.slice(i,i+6);
+ const results=await Promise.all(batch.map(async q=>({q,rows:await searchSelectedSKaupatOffersV11(q,ctx as any)})));
+ for(const {q,rows} of results)for(const x of rows as any[])multiProbeRowsV7.push({...x,_probe:q});
+}
 const multiMapV7=new Map<string,any>();for(const x of multiProbeRowsV7){const e=String(x?.ean||"").trim();if(e&&!multiMapV7.has(e))multiMapV7.set(e,x);}
 const activeOutsideV7=[...multiMapV7].filter(([e,x]:any)=>!discountedMapV2.has(e)&&String(x?.debugOfferEvidenceV226?.campaignPriceValidUntil||"")>=todayV6).map(([,x]:any)=>({probe:x._probe,...row(x),evidence:x.debugOfferEvidenceV226||null,benefitText:String(x?.benefitText||"")}));
 console.log("PRISMA_ACTIVE_OUTSIDE_BULK_AUDIT",JSON.stringify({terms:multiProbeTermsV7.length,rows:multiProbeRowsV7.length,uniqueEan:multiMapV7.size,activeOutsideCount:activeOutsideV7.length,multiBuyActiveOutside:activeOutsideV7.filter((x:any)=>/kpl\s*=|\d+\s*kpl/i.test(String(x?.evidence?.rawLabels||"")+" "+x.benefitText)).length,activeOutside:activeOutsideV7},null,2));
