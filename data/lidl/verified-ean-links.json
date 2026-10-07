@@ -343,5 +343,15 @@
     "lidlProductId": "10038593",
     "ean": "6407800017070",
     "evidence": "Lidl Finland identifies ATRIA Nauta-kanajauheliha productId 10038593 as the 400 g, 10% fat product. Atria's current product page confirms Atria Nauta-Kana Jauheliha 10% 400 g, and independent Finnish retail offer data repeatedly identifies the exact same Atria 400 g product with EAN 6407800017070. GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038600",
+    "ean": "6409100073114",
+    "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kana-cheddar, pack size 210 g, EAN 6409100073114. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038600",
+    "ean": "6409100072216",
+    "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kinkku-salami, pack size 210 g, EAN 6409100072216. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   }
 ]
