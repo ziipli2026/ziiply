@@ -24,29 +24,24 @@ jobs:
           cat > scripts/.tmp-prisma-finland-id-audit.mts <<'TS'
           import { resolvePrismaCampaignStoreIdV1, fetchSKaupatOffers } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
 
-          const base="https://www.s-kaupat.fi/myymalat/prisma";
-          const seenPages=new Set<string>(), queue=[base];
+          const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search=Prisma",{headers:{Accept:"application/json"}});
+          if(!rr.ok) throw new Error("Ruoanhinta Prisma inventory failed: "+rr.status);
+          const raw:any=await rr.json();
+          const input:any[]=Array.isArray(raw)?raw:(raw.items||[]);
           const stores=new Map<string,{name:string,publicId:string,slug:string}>();
-          const norm=(s:string)=>s.replace(/\\u0026/g,"&").replace(/&amp;/g,"&");
-          while(queue.length && seenPages.size<20){
-            const url=queue.shift()!; if(seenPages.has(url)) continue; seenPages.add(url);
-            const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0 (compatible; Ziiply audit)","accept-language":"fi"}});
-            const html=await r.text();
-            for(const m of html.matchAll(new RegExp("\\/myymala\\/(prisma-[a-z0-9%._~-]+)\\/(\\\\d{5,})","gi"))){
-              const slug=decodeURIComponent(m[1]);
-              const publicId=m[2];
-              const name=slug.split("-").map(x=>x?x[0].toUpperCase()+x.slice(1):x).join(" ").replace(/^Prisma /,"Prisma ");
-              stores.set(publicId,{name,publicId,slug});
-            }
-            for(const m of html.matchAll(new RegExp("([^\\\"\\' ]*\\\\?cursor=[^\\\"\\' <]+)","gi"))){
-              let href=norm(m[1]).replace(/\\\\u0026/g,"&").replace(/\\\\/g,"");
-              if(href.startsWith("/myymalat/prisma")) queue.push("https://www.s-kaupat.fi"+href);
-              else if(href.startsWith("?cursor=")) queue.push(base+href);
-            }
-            console.log("PAGE",url,"stores",stores.size,"queue",queue.length);
+          for(const row of input){
+            const name=String(row.name||"").trim();
+            const country=String(row.country||row.countryCode||"").trim().toUpperCase();
+            if(row.delistedAt) continue;
+            if(!/^Prisma\\b/i.test(name)) continue;
+            if(/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) continue;
+            if(country && !["FI","FIN","FINLAND","SUOMI"].includes(country)) continue;
+            const publicId=String(row.externalId||row.id||"").trim();
+            if(!publicId) continue;
+            stores.set(publicId,{name,publicId,slug:""});
           }
-
-          console.log("DISCOVERED",stores.size,"official Prisma IDs");
+          if(stores.size<50) throw new Error("Inventory suspiciously small: "+stores.size);
+          console.log("DISCOVERED",stores.size,"active Finland Prisma rows from Ziiply store source");
           const cfg:any={id:"skaupat",chain:"S",storeLabel:"S-kaupat",url:"https://www.s-kaupat.fi/tuotteet/kampanjat"};
           const rows:any[]=[];
           for(const s of [...stores.values()].sort((a,b)=>a.name.localeCompare(b.name,"fi"))){
