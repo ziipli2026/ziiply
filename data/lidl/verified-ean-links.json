@@ -473,5 +473,15 @@
     "lidlProductId": "10038600",
     "ean": "6409100073114",
     "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kana-cheddar, pack size 210 g, EAN 6409100073114. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038557",
+    "ean": "40877464",
+    "evidence": "Lidl Finland productId 10038557 identifies ITALIAMO Risotto 175 g and its current product image shows the saffron Risotto alla Milanese variant. Independent product data identifies ITALIAMO Risotto alla Milanese with saffron, 175 g, EAN/GTIN-8 40877464; Lidl France official consumer product data independently lists 40877464 among Italiamo Risotto assortis 175 g. Exact brand, variant and pack size match; GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038557",
+    "ean": "40877457",
+    "evidence": "Lidl Finland productId 10038557 identifies ITALIAMO Risotto 175 g and its current product image shows the four-cheese variant. Independent product data identifies ITALIAMO Risotto ai Quattro Formaggi / four cheeses, 175 g, EAN/GTIN-8 40877457; Lidl France official consumer product data independently lists 40877457 among Italiamo Risotto assortis 175 g. Exact brand, variant and pack size match; GTIN-8 checksum valid."
   }
 ]
