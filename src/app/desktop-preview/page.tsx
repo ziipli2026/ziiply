@@ -281,7 +281,7 @@ export default function DesktopPreviewPage() {
             </button>
             <button type="button" onClick={()=>setCartOpen(true)} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#5d8b6c] bg-gradient-to-b from-[#eff9e8] to-[#cfe8bd] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
               <span className="relative text-[27px]">🛒{desktopCartCount>0&&<span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-[#12683f] px-1 text-[9px] font-black text-white">{desktopCartCount}</span>}</span>
-              <span className="min-w-0"><span className="block text-[9px] font-black tracking-[0.12em] text-[#53634f]">OSTOSKORI</span><span className="mt-0.5 block text-[14px] font-black leading-none text-[#153e2c]">Kori</span><span className="mt-1 block text-[9px] font-black text-[#51705a]">{desktopCartCount?desktopCartCount+" kpl":"Avaa kori →"}</span></span>
+              <span className="min-w-0"><span className="mt-0.5 block text-[14px] font-black leading-none text-[#153e2c]">Kori</span><span className="mt-1 block text-[9px] font-black text-[#51705a]">{desktopCartCount?desktopCartCount+" kpl":"Avaa kori →"}</span></span>
             </button>
           </div>
         </header>
