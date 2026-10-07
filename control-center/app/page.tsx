@@ -101,8 +101,8 @@ export default async function Page(){
   const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count>0?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source==="s-kaupat-protocol"||r.source==="future-publication-discovery";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const latestSuccessBySource=sourceHealth.map(s=>{const okRun=d.runs.find(r=>r.chain===s.chain&&r.source===s.source&&r.ok);const successAgeH=okRun?(Date.now()-new Date(okRun.checked_at).getTime())/3600000:null;return {...s,lastSuccess:okRun?.checked_at??null,successAgeH};});
   const successStale=latestSuccessBySource.filter(s=>s.successAgeH!==null&&s.successAgeH>48);
-  const neverSuccessful=latestSuccessBySource.filter(s=>s.lastSuccess===null);
-  const staleRuns=latestBySource.filter(r=>Date.now()-new Date(r.checked_at).getTime()>36*60*60*1000);
+  const neverSuccessful=latestSuccessBySource.filter(s=>s.source!=="future-publication-discovery"&&s.lastSuccess===null);
+  const staleRuns=latestBySource.filter(r=>r.source!=="future-publication-discovery"&&Date.now()-new Date(r.checked_at).getTime()>36*60*60*1000);
   const futureDiscoveryChains=["K-SUPERMARKET","K-MARKET","TOKMANNI-SPAR"];
   const futureDiscovery=futureDiscoveryChains.map(chain=>({chain,run:d.runs.find(r=>r.chain===chain&&r.source==="future-publication-discovery")??null}));
   const futureFound=futureDiscovery.filter(x=>x.run?.outcome==="future-publication-found").length;
@@ -165,7 +165,7 @@ export default async function Page(){
   const approvedNext=rolloverChains.filter(r=>r.future?.approval_state==="approved"&&r.current);
   const severeNextDrop=approvedNext.filter(r=>r.future!.offer_count<Math.max(1,Math.floor(r.current!.offer_count*.25)));
   const healthyNext=approvedNext.filter(r=>!r.gap&&!severeNextDrop.includes(r));
-  const failedRuns24h=d.runs.filter(r=>!r.ok&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
+  const failedRuns24h=d.runs.filter(r=>!r.ok&&r.source!=="future-publication-discovery"&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
   const latestRunKeys=new Set(latestBySource.map(r=>r.chain+"::"+r.source+"::"+r.checked_at));
   const unresolvedFailures24h=failedRuns24h.filter(r=>latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
   const recoveredFailures24h=failedRuns24h.filter(r=>!latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
@@ -195,8 +195,8 @@ export default async function Page(){
   const currentFailures=latestBySource.filter(r=>!r.ok&&r.source!=="future-publication-discovery");
   const overallDataHealth=(d.ean?eanDataHealth:0)+(quality.missingPrice===0?1:0)+(currentFailures.length===0?1:0)+(rolloverGaps.length===0?1:0);
   const overallDataHealthState=overallDataHealth>=7?"green":overallDataHealth>=5?"yellow":"red";
-  const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
-  const severeFailureStreaks=sourceHealth.filter(s=>s.streak>=3);
+  const failureStreaks=sourceHealth.filter(s=>s.source!=="future-publication-discovery"&&s.streak>=2);
+  const severeFailureStreaks=sourceHealth.filter(s=>s.source!=="future-publication-discovery"&&s.streak>=3);
   const sourceCountAnomalies=sourceHealth.filter(s=>!["s-kaupat-protocol","future-publication-discovery"].includes(s.source)&&s.delta!==null&&Math.abs(s.delta)>=50);
   const sourceCountCrashes=sourceHealth.filter(s=>!["s-kaupat-protocol","future-publication-discovery"].includes(s.source)&&s.delta!==null&&s.delta<=-75);
   const silentSources=sourceHealth.filter(s=>s.ageH>48);
@@ -223,7 +223,7 @@ export default async function Page(){
   const states=cards.map(c=>state(c.runs));
   const hasCriticalQuality=quality.missingPrice>0;
   const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0||thinNext.length>0||nextCandidates.length>0||Boolean(eanPriceRisk);
-  const overall=activeCandidates.length||currentFailures.length||futureDiscoveryErrors||hasCriticalQuality||rolloverGaps.length||unreadyExpiring.length||severeNextDrop.length||neverSuccessful.length||severeFailureStreaks.length||sourceCountCrashes.length||criticallySilentSources.length||states.some(x=>x[0]==="red")?["red","VAATII TOIMENPITEITÄ"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||futureDiscoveryMissing||futureDiscoveryStale||staleRuns.length||hasQualityWarning?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
+  const overall=activeCandidates.length||currentFailures.length||hasCriticalQuality||rolloverGaps.length||unreadyExpiring.length||severeNextDrop.length||neverSuccessful.length||severeFailureStreaks.length||sourceCountCrashes.length||criticallySilentSources.length||states.some(x=>x[0]==="red")?["red","VAATII TOIMENPITEITÄ"]:states.some(x=>x[0]==="yellow"||x[0]==="gray")||futureDiscoveryErrors||futureDiscoveryMissing||futureDiscoveryStale||staleRuns.length||hasQualityWarning?["yellow","VAROITUKSIA / SEURANTA PUUTTUU"]:["green","KAIKKI SEURANNAT OK"];
 
   return <main style={{maxWidth:1500,margin:"0 auto",padding:28}}>
     <header style={{display:"flex",justifyContent:"space-between",alignItems:"end",marginBottom:22}}>
