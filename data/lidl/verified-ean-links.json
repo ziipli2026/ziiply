@@ -438,5 +438,10 @@
     "lidlProductId": "10038504",
     "ean": "2001436500001",
     "evidence": "Lidl.fi canonical product 10038504 is FAZER Pihlajamunkki 3 kpl, 108 g and is a Paistopiste product; K-Ruoka exact consumer product is Fazer pihlajamunkki 108 g, EAN 2001436500001. Exact product/pack-size match."
+  },
+  {
+    "lidlProductId": "10037645",
+    "ean": "4056489654926",
+    "evidence": "Lidl Finland productId 10037645 is MILBONA Proteiinivanukas 200 g with the displayed variants kahvi tai kookos. Exact Milbona High Protein Pudding Coconut 200 g is independently identified by F+S Milchwerk product registry with consumer EAN 4056489654926; the same exact EAN/product is corroborated by current product databases. Added only for the coconut variant; coffee remains unresolved and is not inferred."
   }
 ]
