@@ -5,41 +5,60 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/lidl-finland-store-offers-audit.yml'
+      - 'src/app/api/offers/search/**'
+      - 'src/app/components/ziiply/offerSearch/lidlPublicationConfig.ts'
   workflow_dispatch:
 
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ZIIPLY_BASE_URL: ${{ secrets.ZIIPLY_BASE_URL }}
     steps:
-      - name: Audit Lidl store IDs and active offer counts
+      - name: Audit every Finnish Lidl through Ziiply production
         shell: bash
         run: |
+          test -n "$ZIIPLY_BASE_URL"
           node <<'NODE'
-          const storesUrl='https://stores.lidlplus.com/api/v4/FI';
-          const offersBase='https://offers.lidlplus.com/app/api/v4/FI';
-          const headers={accept:'application/json','accept-language':'fi-FI,fi;q=0.9','user-agent':'LidlPlus/17.0.5 Android okhttp/4.12.0','x-client-version':'17.0.5','x-client-platform':'android'};
-          const cities=[];
-          const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-          const r=await fetch(storesUrl,{headers});
-          if(!r.ok) throw new Error('stores '+r.status);
-          const stores=await r.json();
-          console.log('STORE_ROWS',stores.length,'TODAY',today);
+          const base=process.env.ZIIPLY_BASE_URL.replace(/\/$/,'');
+          const headers={accept:'application/json','accept-language':'fi-FI,fi;q=0.9','user-agent':'Ziiply-Lidl-Finland-Audit/2.0'};
+          const sr=await fetch('https://stores.lidlplus.com/api/v4/FI',{headers});
+          if(!sr.ok) throw new Error('Lidl stores '+sr.status);
+          const stores=await sr.json();
+          if(!Array.isArray(stores)||stores.length<100) throw new Error('Unexpected Finnish Lidl store count '+(stores?.length||0));
           const results=[];
           for(const s of stores){
-            const city=String(s.locality||'');
-            const key=String(s.storeKey||'');
-            const rr=await fetch(offersBase+'/'+encodeURIComponent(key)+'/offers',{headers});
-            let rows=[]; if(rr.ok){const raw=await rr.json(); rows=Array.isArray(raw)?raw:Array.isArray(raw?.offers)?raw.offers:Array.isArray(raw?.items)?raw.items:[];}
-            const active=rows.filter(x=>{const a=String(x.startValidityDate||'').slice(0,10),b=String(x.endValidityDate||'').slice(0,10); return (!a||today>=a)&&(!b||today<=b)});
-            const productIds=new Set(active.flatMap(x=>Array.isArray(x.productIds)?x.productIds.map(String):[]));
-            const signature=active.map(x=>String(x.id||x.title||'')).sort().join('|');
-            results.push({city,name:s.name,address:s.address,storeKey:key,status:rr.status,raw:rows.length,active:active.length,productIds:productIds.size,signature});
+            const key=String(s.storeKey||'').trim();
+            const city=String(s.locality||'').trim();
+            const name=String(s.name||('Lidl '+city)).trim();
+            const url=base+'/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey='+encodeURIComponent(key)+'&lidlStoreName='+encodeURIComponent(name);
+            let p=null,status=0,error='';
+            try{
+              const r=await fetch(url,{headers}); status=r.status;
+              p=await r.json();
+            }catch(e){error=String(e)}
+            const rows=Array.isArray(p?.results)?p.results:[];
+            results.push({
+              key,city,name,status,error,ok:p?.ok===true,
+              results:rows.length,
+              staged:Number(p?.lidlSourceAudit?.staged||0),
+              structured:Number(p?.lidlSourceAudit?.structuredAndManual||0),
+              combined:Number(p?.lidlSourceAudit?.combined||0),
+              campaigns:Number(p?.lidlSourceAudit?.campaigns||0)
+            });
           }
-          const baseline=results.find(x=>x.storeKey==='FI0165')||results[0];
-          const anomalies=results.filter(x=>x.status!==200||x.active!==baseline.active||x.productIds!==baseline.productIds||x.signature!==baseline.signature);
-          console.log('BASELINE',JSON.stringify({...baseline,signature:undefined}));
-          console.log('SUMMARY',JSON.stringify({stores:results.length,ok:results.length-anomalies.length,anomalies:anomalies.length,activeBaseline:baseline.active,productIdsBaseline:baseline.productIds}));
-          for(const x of anomalies) console.log('ANOMALY',JSON.stringify({...x,signature:undefined}));
-          for(const x of results.filter(x=>['Varkaus','Hyvinkää','Helsinki','Kuopio','Oulu','Turku'].includes(x.city)).slice(0,20)) console.log('SAMPLE',JSON.stringify({...x,signature:undefined}));
+          const stagedCounts=[...new Set(results.map(x=>x.staged))];
+          const failures=results.filter(x=>x.status!==200||!x.ok||x.results===0||x.staged===0);
+          const stagedMismatch=stagedCounts.length!==1;
+          console.log('FINLAND_LIDL_AUDIT',JSON.stringify({
+            stores:results.length,passed:results.length-failures.length,failed:failures.length,
+            stagedCounts,stagedMismatch,
+            minResults:Math.min(...results.map(x=>x.results)),
+            maxResults:Math.max(...results.map(x=>x.results))
+          }));
+          for(const x of failures) console.log('FAIL',JSON.stringify(x));
+          for(const x of results.filter(x=>['Varkaus','Hyvinkää','Helsinki','Savonlinna','Uusikaupunki','Sodankylä','Oulu','Turku'].includes(x.city)).slice(0,30))
+            console.log('SAMPLE',JSON.stringify(x));
+          if(failures.length||stagedMismatch) process.exit(1);
           NODE
