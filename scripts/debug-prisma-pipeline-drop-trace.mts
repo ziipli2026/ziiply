@@ -113,6 +113,17 @@ const campaignMobileDedupe=mobileCardDedupeTrace(campaignCards);
 const offerCategoryCoverage=categoryCoverageTrace(offerCleaned);
 const campaignCategoryCoverage=categoryCoverageTrace(campaignCleaned);
 
+
+function categoryTotals(cards:any[]){
+  const counts:Record<string,number>={};
+  for(const card of cards){const category=String(card?.category||"").trim();if(!category||norm(category)==="kaikki")continue;counts[category]=(counts[category]||0)+1;}
+  return Object.fromEntries(Object.entries(counts).sort((a,b)=>a[0].localeCompare(b[0],"fi")));
+}
+const offerCategoryTotals=categoryTotals(offerMobileDedupe.kept);
+const campaignCategoryTotals=categoryTotals(campaignMobileDedupe.kept);
+const offerCategoryTotalSum=Object.values(offerCategoryTotals).reduce((a,b)=>a+b,0);
+const campaignCategoryTotalSum=Object.values(campaignCategoryTotals).reduce((a,b)=>a+b,0);
+
 const offerEan=new Map<string,any[]>(), campaignEan=new Map<string,any[]>();
 for(const x of offers){const item=x as any;const e=String(item?.ean??"").trim();if(e)offerEan.set(e,[...(offerEan.get(e)||[]),item])}
 for(const x of campaignRows){const item=x as any;const e=String(item?.ean??"").trim();if(e)campaignEan.set(e,[...(campaignEan.get(e)||[]),item])}
@@ -121,12 +132,13 @@ const samePriceCrossTab=crossTab.filter((g:any)=>g.offers.some((o:any)=>g.campai
 
 const report={
  audit:"PRISMA_PIPELINE_DROP_TRACE_V1",storeName,
- counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,offerMobileCardsAfterDedupe:offerMobileDedupe.kept.length,offerMobileCardsDropped:offerMobileDedupe.removed.length,campaignMobileCardsAfterDedupe:campaignMobileDedupe.kept.length,campaignMobileCardsDropped:campaignMobileDedupe.removed.length,offerUnknownUiCategories:offerCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),offerMissingFromOwnCategory:offerCategoryCoverage.missing.length,campaignUnknownUiCategories:campaignCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),campaignMissingFromOwnCategory:campaignCategoryCoverage.missing.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
+ counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,offerMobileCardsAfterDedupe:offerMobileDedupe.kept.length,offerMobileCardsDropped:offerMobileDedupe.removed.length,offerCategoryTotalSum,campaignCategoryTotalSum,campaignMobileCardsAfterDedupe:campaignMobileDedupe.kept.length,campaignMobileCardsDropped:campaignMobileDedupe.removed.length,offerUnknownUiCategories:offerCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),offerMissingFromOwnCategory:offerCategoryCoverage.missing.length,campaignUnknownUiCategories:campaignCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),campaignMissingFromOwnCategory:campaignCategoryCoverage.missing.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
  dropped:dropped.slice(0,200).map(row),
  unexpected:unexpected.slice(0,100).map(row),
  samePriceCrossTab:samePriceCrossTab.slice(0,100),
  offerPageDedupeRemoved:offerPageDedupe.removed.slice(0,200),
  campaignPageDedupeRemoved:campaignPageDedupe.removed.slice(0,200),
+ offerCategoryTotals,campaignCategoryTotals,
  offerMobileDedupeRemoved:offerMobileDedupe.removed.slice(0,200),
  campaignMobileDedupeRemoved:campaignMobileDedupe.removed.slice(0,200),
  offerUnknownUiCategories:offerCategoryCoverage.unknownCategories,
