@@ -43,7 +43,7 @@ const samePriceCrossTab=crossTab.filter((g:any)=>g.offers.some((o:any)=>g.campai
 
 const report={
  audit:"PRISMA_PIPELINE_DROP_TRACE_V1",storeName,
- counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
+ counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
  dropped:dropped.slice(0,200).map(row),
  unexpected:unexpected.slice(0,100).map(row),
  samePriceCrossTab:samePriceCrossTab.slice(0,100),
