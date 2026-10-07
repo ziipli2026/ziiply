@@ -9,6 +9,8 @@ on:
       - 'src/app/api/offers/search/route.ts'
   workflow_dispatch:
 
+# V2 deep trace
+
 jobs:
   audit:
     runs-on: ubuntu-latest
