@@ -1,0 +1,72 @@
+name: Prisma Raw DISCOUNTED Deep Audit (read-only)
+
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-raw-discounted-deep-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Raw Prisma DISCOUNTED pagination audit
+        run: |
+          node <<'NODE' | tee prisma-raw-discounted-audit.txt
+          const stores=[
+            ["Prisma Hyvinkää","634976534"],
+            ["Prisma Jumbo Vantaa","613761030"],
+            ["Prisma Lohja","603212895"],
+            ["Prisma Tuusula","726753948"],
+            ["Prisma Limingantulli Oulu","627829302"],
+            ["Prisma Raksila Oulu","516528759"],
+            ["Prisma Lielahti Tampere","697940575"],
+            ["Prisma Kaleva Tampere","517609418"],
+            ["Prisma Hämeenkatu Tampere","726413330"],
+            ["Prisma Myyrmanni Vantaa","726435566"]
+          ];
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881abd9e480";
+          const C="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          async function page(storeId,from,queryString=""){
+            const v={availabilityDate:new Date().toISOString().slice(0,10),facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,limit:48,queryString,sortForAvailabilityLabelDate:new Date().toISOString().slice(0,10),storeId:String(storeId),useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",from,offset:from,skip:from,page:Math.floor(from/48)+1};
+            const u=new URL("https://api.s-kaupat.fi/");
+            u.searchParams.set("operationName","RemoteFilteredProducts");
+            u.searchParams.set("variables",JSON.stringify(v));
+            u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":C}});
+            const d=await r.json();
+            return {http:r.status,rows:d?.data?.store?.products?.productListItems||[],errors:d?.errors||null};
+          }
+          for(const [name,id] of stores){
+            let total=0, first=0, pages=0, errors=[];
+            for(let from=0;from<1200;from+=48){
+              const q=await page(id,from);
+              pages++;
+              if(q.errors?.length) errors.push(q.errors);
+              if(from===0) first=q.rows.length;
+              total+=q.rows.length;
+              if(q.rows.length<48) break;
+              await sleep(650);
+            }
+            const pasta=await page(id,0,"pasta");
+            console.log(JSON.stringify({name,storeId:id,rawDiscountedTotal:total,firstPage:first,pages,pastaControlFirstPage:pasta.rows.length,http:pasta.http,errors:errors.length?errors:null}));
+            await sleep(800);
+          }
+          NODE
+      - name: Upload raw audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prisma-raw-discounted-deep-audit
+          path: prisma-raw-discounted-audit.txt
