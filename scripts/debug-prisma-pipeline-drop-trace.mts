@@ -180,6 +180,18 @@ for(const x of discountedSignalAuditV3){
 const promoGroupRowsV4=[...promoGroupsV4.entries()].map(([key,rows])=>({key,count:rows.length,categoryPath:rows[0]?.categoryPath,labels:rows[0]?.labels,validUntil:rows[0]?.validUntil,sample:rows.slice(0,12).map(x=>({ean:x.ean,title:x.title,campaignPrice:x.campaignPrice,currentPrice:x.currentPrice,regularPrice:x.regularPrice}))})).sort((a,b)=>b.count-a.count);
 console.log("PRISMA_PROMO_GROUP_AUDIT",JSON.stringify({eanRows:discountedSignalAuditV3.length,promoGroups:promoGroupRowsV4.length,multiVariantGroups:promoGroupRowsV4.filter(x=>x.count>1).length,rowsInMultiVariantGroups:promoGroupRowsV4.filter(x=>x.count>1).reduce((n,x)=>n+x.count,0),largest:promoGroupRowsV4.slice(0,50)},null,2));
 
+
+const probeTermsV5=["maito","kahvi","liha","juusto","leipä","voi","jogurtti","kana","kala","mehu","pasta","riisi","makkara","rahka","kerma","hedelmä","vihannes","pakaste","suklaa","keksi","limu","olut","muro","jauho"];
+const probeRowsV5:any[]=[];
+for(const q of probeTermsV5){
+ const rows=await searchSelectedSKaupatOffersV11(q,ctx as any);
+ for(const x of rows as any[]) probeRowsV5.push({...x,_probe:q});
+}
+const probeMapV5=new Map<string,any>();
+for(const x of probeRowsV5){const e=String(x?.ean||"").trim();if(e&&!probeMapV5.has(e))probeMapV5.set(e,x);}
+const probeOutsideDiscountedV5=[...probeMapV5].filter(([e])=>!discountedMapV2.has(e)).map(([,x])=>({probe:x._probe,...row(x),evidence:x.debugOfferEvidenceV226||null}));
+console.log("PRISMA_QUERY_PROBE_AUDIT",JSON.stringify({terms:probeTermsV5.length,rows:probeRowsV5.length,uniqueEan:probeMapV5.size,outsideDiscounted:probeOutsideDiscountedV5.length,outside:probeOutsideDiscountedV5},null,2));
+
 const report={
  audit:"PRISMA_PIPELINE_DROP_TRACE_V1",storeName,
  counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,offerMobileCardsAfterDedupe:offerMobileDedupe.kept.length,offerMobileCardsDropped:offerMobileDedupe.removed.length,offerCategoryTotalSum,campaignCategoryTotalSum,campaignMobileCardsAfterDedupe:campaignMobileDedupe.kept.length,campaignMobileCardsDropped:campaignMobileDedupe.removed.length,offerUnknownUiCategories:offerCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),offerMissingFromOwnCategory:offerCategoryCoverage.missing.length,campaignUnknownUiCategories:campaignCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),campaignMissingFromOwnCategory:campaignCategoryCoverage.missing.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
