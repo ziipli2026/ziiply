@@ -836,6 +836,89 @@ export function filterZiiplyGostaOfferResultsV146(
   });
 }
 
+export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
+  visibleResults: ZiiplyGostaOfferLike[],
+  masterResults: ZiiplyGostaOfferLike[],
+  selectedStoreName?: string,
+) {
+  const text = (value: unknown) => String(value ?? "").trim();
+  const norm = (value: unknown) => normalizeGostaCoreText(value);
+
+  const numericPrice = (item: ZiiplyGostaOfferLike) => {
+    const raw = (item as any)?.__sourceOfferSearchResult ?? item;
+    const direct = Number(raw?.price);
+    if (Number.isFinite(direct)) return direct;
+    const parsed = Number(text(raw?.priceText).replace(/[^0-9,.-]/g, "").replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const validity = (item: ZiiplyGostaOfferLike) => {
+    const raw = (item as any)?.__sourceOfferSearchResult ?? item;
+    const rawValidity = text(
+      raw?.validUntil ??
+      raw?.validTo ??
+      raw?.debugPrismaCampaignEvidenceV2?.campaignPriceValidUntil ??
+      raw?.debugOfferEvidenceV226?.campaignPriceValidUntil,
+    );
+    const isoDate = rawValidity.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+    return isoDate || rawValidity;
+  };
+
+  const storeIdentity = (item: ZiiplyGostaOfferLike) => {
+    const raw = (item as any)?.__sourceOfferSearchResult ?? item;
+    return norm(raw?.storeLabel ?? raw?.storeName ?? raw?.storeId ?? "");
+  };
+
+  const ean = (item: ZiiplyGostaOfferLike) => {
+    const raw = (item as any)?.__sourceOfferSearchResult ?? item;
+    return text(raw?.ean ?? raw?.gtin ?? raw?.barcode);
+  };
+
+  const selectedStore = norm(selectedStoreName);
+  if (!/^prisma(?:\s|$)/i.test(selectedStore)) return visibleResults;
+
+  const campaignKeys = new Set(
+    masterResults
+      .filter((item) => {
+        const raw = (item as any)?.__sourceOfferSearchResult ?? item;
+        const campaignStore = norm(raw?.storeLabel ?? raw?.storeName ?? raw?.storeId ?? "");
+        return raw?.campaignType === "campaign" &&
+          /^prisma(?:\s|$)/i.test(campaignStore) &&
+          campaignStore === selectedStore &&
+          Boolean(ean(item)) &&
+          numericPrice(item) !== null &&
+          Boolean(validity(item));
+      })
+      .map((item) => [
+        storeIdentity(item),
+        ean(item),
+        numericPrice(item)!.toFixed(4),
+        validity(item),
+      ].join("|")),
+  );
+
+  if (!campaignKeys.size) return visibleResults;
+
+  return visibleResults.filter((item) => {
+    const raw = (item as any)?.__sourceOfferSearchResult ?? item;
+    if (raw?.campaignType === "campaign") return true;
+
+    const price = numericPrice(item);
+    const validUntil = validity(item);
+    const itemEan = ean(item);
+    if (!itemEan || price === null || !validUntil) return true;
+
+    const key = [
+      storeIdentity(item),
+      itemEan,
+      price.toFixed(4),
+      validUntil,
+    ].join("|");
+
+    return !campaignKeys.has(key);
+  });
+}
+
 export async function searchZiiplyGostaOffersV146(options: {
   query: string;
   terms?: string[];
@@ -887,8 +970,23 @@ export async function searchZiiplyGostaOffersV146(options: {
       ? dedupeZiiplyGostaOfferResultsV146(nextResults)
       : cleanZiiplyGostaOfferResultsV146(nextResults);
 
+  const selectedStoreNameV805 = options.context?.sStoreName;
+  const isPrismaSelectionV805 = /^prisma(?:\s|$)/i.test(String(selectedStoreNameV805 ?? "").trim());
+  const prismaDedupeMasterV805 = isPrismaSelectionV805
+    ? (searchAllAreaOffers || searchByCategory
+        ? nextResults
+        : await fetchGostaMasterOfferResultsV156(options.context))
+    : results;
+  const finalResultsV805 = isPrismaSelectionV805
+    ? hidePrismaOfferCopiesAlreadyInCampaignTabV805(
+        results,
+        prismaDedupeMasterV805,
+        selectedStoreNameV805,
+      )
+    : results;
+
   return {
-    results,
+    results: finalResultsV805,
     querySnapshot: searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     cardFilter: searchAllAreaOffers ? "" : searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     showingAllAreaOffers: searchAllAreaOffers,
