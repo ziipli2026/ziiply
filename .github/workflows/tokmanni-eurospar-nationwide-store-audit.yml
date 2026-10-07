@@ -1,0 +1,26 @@
+name: Tokmanni EUROSPAR nationwide store audit
+on:
+  push:
+    paths: ['.github/workflows/tokmanni-eurospar-nationwide-store-audit.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit store feed
+        run: |
+          node <<'JS'
+          const f=require('./src/app/api/eurospar-stores/tokmanni-store-feed.json');
+          const rows=f.stores||[];
+          const ids=rows.map(x=>String(x.id));
+          const dupIds=[...new Set(ids.filter((x,i,a)=>a.indexOf(x)!==i))];
+          const euros=rows.filter(x=>x.chain==='EUROSPAR');
+          const expected=['Tornio','Iisalmi','Järvenpää','Masku','Ylöjärvi','Joensuu'];
+          const missing=expected.filter(n=>!euros.some(x=>(x.name+' '+x.city).toLocaleLowerCase('fi-FI').includes(n.toLocaleLowerCase('fi-FI'))));
+          const suolahti=rows.filter(x=>/suolahti/i.test(x.name+' '+x.city));
+          const badCoords=rows.filter(x=>!Number.isFinite(Number(x.latitude))||!Number.isFinite(Number(x.longitude)));
+          const report={generatedAt:f.generatedAt,count:f.count,actual:rows.length,tokmanni:rows.filter(x=>x.chain!=='EUROSPAR').length,eurospar:euros.length,eurosparNames:euros.map(x=>x.name),dupIds,missingExpectedEurospar:missing,suolahti,badCoords:badCoords.map(x=>x.name)};
+          console.log(JSON.stringify(report,null,2));
+          if(dupIds.length||missing.length||euros.length!==6||badCoords.length||suolahti.length)process.exitCode=1;
+          JS
