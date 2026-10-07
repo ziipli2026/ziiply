@@ -23,7 +23,7 @@ jobs:
             for(const x of rows){const id=String(x.externalId||x.storeId||x.id||"");if(!id)continue;(byId.get(id)||byId.set(id,[]).get(id)).push(x)}
             const dup=[...byId].filter(([,v])=>v.length>1).map(([id,v])=>({id,rows:v.map(x=>({name:x.name,address:x.address,postalCode:x.postalCode,city:x.city}))}));
             const suspicious=rows.filter(x=>/vanha|uusi|old|sulj|lopet|entinen/i.test(String(x.name||""))).map(x=>({name:x.name,id:String(x.externalId||x.storeId||x.id||""),address:x.address,postalCode:x.postalCode,city:x.city}));
-            console.log("INV_AUDIT",JSON.stringify({chain,total:rows.length,uniqueIds:byId.size,duplicateExtraRows:dup.reduce((n,[...v])=>n,0),duplicateGroups:dup.length,duplicates:dup,suspicious}));
+            console.log("INV_AUDIT",JSON.stringify({chain,total:rows.length,uniqueIds:byId.size,duplicateExtraRows:dup.reduce((n,g)=>n+g.rows.length-1,0),duplicateGroups:dup.length,duplicates:dup,suspicious}));
           }
           JS
           node /tmp/a.mjs | tee ssa-inventory-duplicate-audit.txt
