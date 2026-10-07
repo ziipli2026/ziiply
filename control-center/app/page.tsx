@@ -235,6 +235,26 @@ export default async function Page(){
 
     {d.error&&<div style={{background:"#fee4e2",border:"1px solid #fecdca",padding:16,borderRadius:12,marginBottom:16}}>🔴 {d.error}</div>}
 
+    <section style={{display:"grid",gridTemplateColumns:"minmax(0,1.45fr) minmax(320px,.55fr)",gap:14,marginBottom:18}}>
+      <article style={{background:overall[0]==="red"?"#fff1f0":overall[0]==="yellow"?"#fff8e6":"#ecfdf3",border:overall[0]==="red"?"1px solid #fecdca":overall[0]==="yellow"?"1px solid #fedf89":"1px solid #abefc6",borderRadius:20,padding:22}}>
+        <div style={{fontSize:12,fontWeight:900,letterSpacing:1.4,color:"#667085"}}>SYSTEM STATUS</div>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
+          <div style={{fontSize:30,fontWeight:950}}>{dot(overall[0])} {overall[1]}</div>
+          <div style={{fontSize:12,color:"#667085"}}>{monitoredChains}/{CHAINS.length} ketjua valvonnassa · {latestBySource.length} lähdettä</div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginTop:18}}>
+          <div><div style={{fontSize:11,color:"#667085"}}>Aktiiviset tarjoukset</div><b style={{fontSize:22}}>{activeOfferTotal.toLocaleString("fi-FI")}</b></div>
+          <div><div style={{fontSize:11,color:"#667085"}}>Avoimet lähdevirheet</div><b style={{fontSize:22}}>{currentFailures.length}</b></div>
+          <div><div style={{fontSize:11,color:"#667085"}}>Toimintajono</div><b style={{fontSize:22}}>{actionQueue.length}</b></div>
+          <div><div style={{fontSize:11,color:"#667085"}}>EAN-pankki</div><b style={{fontSize:22}}>{d.ean?d.ean.total.toLocaleString("fi-FI"):"—"}</b></div>
+        </div>
+      </article>
+      <article style={{background:"#0f172a",color:"#f8fafc",borderRadius:20,padding:22}}>
+        <div style={{fontSize:12,fontWeight:900,letterSpacing:1.4,color:"#94a3b8"}}>NEXT ACTION</div>
+        {actionQueue.length===0?<><div style={{fontSize:24,fontWeight:900,marginTop:10}}>Ei avoimia toimia</div><div style={{fontSize:13,color:"#cbd5e1",marginTop:8}}>Valvonta ei tällä hetkellä nosta julkaisuvaihdon tai parserin toimenpiteitä.</div></>:<><div style={{fontSize:24,fontWeight:900,marginTop:10}}>{dot(actionQueue[0].level)} {actionQueue[0].title}</div><div style={{fontSize:13,color:"#cbd5e1",marginTop:8,lineHeight:1.5}}>{actionQueue[0].detail}</div><div style={{fontSize:12,color:"#94a3b8",marginTop:14}}>{actionQueue.length>1?"+ "+(actionQueue.length-1)+" muuta jonossa":"Ainoa avoin toimenpide"}</div></>}
+      </article>
+    </section>
+
     <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {cards.map((c,i)=>{const [s,label]=states[i];const r=c.runs[0];return <article key={c.key} style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:18}}>
         <div style={{fontWeight:800,fontSize:16}}>{dot(s)} {c.name}</div>
