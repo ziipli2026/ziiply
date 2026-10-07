@@ -1,3 +1,5 @@
+"use client";
+
 import TopbarResponsiveCard from "../components/ziiply/cards/TopbarResponsiveCard";
 import { StoresResponsiveCard } from "../components/ziiply/cards/StoresResponsiveCard";
 import { SearchResponsiveCard } from "../components/ziiply/cards/SearchResponsiveCard";
