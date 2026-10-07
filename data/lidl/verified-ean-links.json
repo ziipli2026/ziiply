@@ -323,5 +323,15 @@
     "lidlProductId": "10038552",
     "ean": "20633257",
     "evidence": "Lidl Finland identifies current ITALIAMO Pistaasikreemi productId 10038552 as 190 g. Current barcode product data identifies ITALIAMO Crema da pistacchio 190 g with GTIN-8 20633257 and a 20% pistachio formulation; independent product data corroborates the same brand, product, pack size and barcode. An older Lidl-supplied record used the same GTIN-8 for an earlier formulation, supporting product-line continuity. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038285",
+    "ean": "20076573",
+    "evidence": "Lidl Finland package evidence identifies KULJANKA Savustettu makkara productId 10038285 as 600 g and cross-market Lidl article 185279. Independent barcode product data identifies Kuljanka/Lidl Silesian smoked sausage with GTIN-8 20076573; exact sausage identity and Lidl brand match. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038282",
+    "ean": "2508791003883",
+    "evidence": "Lidl Finland package evidence identifies NOSTJA Pancetta productId 10038282 as 100 g. Current PromoAzi product data identifies NOSTJA Panceta I.G.P., Dalmatia with EAN 2508791003883, while current Lidl catalogue evidence corroborates the NOSTJA Panceta I.G.P. Dalmatia product sold per 100 g."
   }
 ]
