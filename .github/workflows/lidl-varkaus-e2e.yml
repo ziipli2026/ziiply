@@ -1,0 +1,45 @@
+name: Lidl Varkaus end-to-end API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lidl-varkaus-e2e.yml'
+      - 'src/app/api/offers/search/**'
+      - 'src/app/components/ziiply/offerSearch/providers/lidlProvider.ts'
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Start Ziiply
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/ziiply.log 2>&1 &
+          echo $! > /tmp/ziiply.pid
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:3000/ >/dev/null && break
+            sleep 1
+          done
+      - name: Call actual Varkaus Lidl API route
+        run: |
+          URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=FI0165&lidlStoreName=Varkaus'
+          curl -fsS "$URL" -o /tmp/lidl.json
+          node <<'NODE'
+          const fs=require('fs');
+          const p=JSON.parse(fs.readFileSync('/tmp/lidl.json','utf8'));
+          const rows=Array.isArray(p.results)?p.results:[];
+          console.log('E2E',JSON.stringify({ok:p.ok,provider:p.provider,storeKey:p.storeKey,storeName:p.storeName,results:rows.length,audit:p.lidlSourceAudit}));
+          for(const x of rows.slice(0,40)) console.log('RESULT',JSON.stringify({id:x.id,title:x.title,name:x.name,category:x.category,price:x.price,priceText:x.priceText,campaignType:x.campaignType,source:x.source}));
+          if(!p.ok || p.provider!=='lidl' || p.storeKey!=='FI0165' || rows.length===0) process.exit(1);
+          NODE
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/ziiply.log || true
