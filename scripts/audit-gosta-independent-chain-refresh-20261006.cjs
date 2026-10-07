@@ -6,7 +6,7 @@ const block=s.slice(start,start+2600);
 const checks=[
  ["Tokmanni dependency",block.includes("selectedTokmanniStoreV756?.id")&&block.includes("selectedTokmanniStoreV756?.name")],
  ["EUROSPAR dependency",block.includes("selectedEurosparStoreV751?.id")&&block.includes("selectedEurosparStoreV751?.name")],
- ["Lidl dependency",block.includes("selectedLidlStoreV750?.id")&&block.includes("selectedLidlStoreV750?.name")],
+ ["Lidl dependency",block.includes("selectedLidlStoreV750?.id")&&block.includes("selectedLidlStoreV750?.name")&&block.includes("selectedLidlStoreV750 as any)?.storeKey")],
  ["Tokmanni readiness",block.includes('selectedChain === "TOKMANNI"')&&block.includes("!selectedTokmanniStoreV756")],
  ["refresh call",block.includes("void searchOffers();")],
  ["not S/K only",!block.includes('selectedChain !== "S" && selectedChain !== "K"')],
