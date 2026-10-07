@@ -1,0 +1,74 @@
+name: Prisma Finland nationwide V238 forced audit
+
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-finland-id-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Audit every official Prisma identity
+        run: |
+          set -o pipefail
+          cat > scripts/.tmp-prisma-finland-id-audit.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1, fetchSKaupatOffers } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+
+          const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search=Prisma",{headers:{Accept:"application/json"}});
+          if(!rr.ok) throw new Error("Ruoanhinta Prisma inventory failed: "+rr.status);
+          const raw:any=await rr.json();
+          const input:any[]=Array.isArray(raw)?raw:(raw.items||[]);
+          const stores=new Map<string,{name:string,publicId:string,slug:string}>();
+          for(const row of input){
+            const name=String(row.name||"").trim();
+            const country=String(row.country||row.countryCode||"").trim().toUpperCase();
+            if(row.delistedAt) continue;
+            if(!/^Prisma\b/i.test(name)) continue;
+            if(/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) continue;
+            if(country && !["FI","FIN","FINLAND","SUOMI"].includes(country)) continue;
+            const publicId=String(row.externalId||row.id||"").trim();
+            if(!publicId) continue;
+            stores.set(publicId,{name,publicId,slug:""});
+          }
+          if(stores.size<50) throw new Error("Inventory suspiciously small: "+stores.size);
+          console.log("DISCOVERED",stores.size,"active Finland Prisma rows from Ziiply store source");
+          const cfg:any={id:"skaupat",chain:"S",storeLabel:"S-kaupat",url:"https://www.s-kaupat.fi/tuotteet/kampanjat"};
+          const rows:any[]=[];
+          for(const s of [...stores.values()].sort((a,b)=>a.name.localeCompare(b.name,"fi"))){
+            let resolved:string|null=null,count:number|null=null,error:string|null=null;
+            try{
+              resolved=await resolvePrismaCampaignStoreIdV1(s.name);
+              if(resolved){
+                const offers:any[]=await fetchSKaupatOffers("__ziiply_all_offers__",cfg,{storeName:s.name,storeId:s.publicId,sStoreName:s.name,sStoreId:s.publicId});
+                count=offers.length;
+              }
+            }catch(e){error=String(e)}
+            const row={...s,resolvedProductStoreId:resolved,sameId:resolved===s.publicId,offerCount:count,error};
+            rows.push(row); console.log("AUDIT",JSON.stringify(row));
+            await new Promise(r=>setTimeout(r,1100));
+          }
+          console.log("SUMMARY",JSON.stringify({
+            official:stores.size,
+            resolved:rows.filter(x=>x.resolvedProductStoreId).length,
+            differentId:rows.filter(x=>x.resolvedProductStoreId&&x.resolvedProductStoreId!==x.publicId).length,
+            unresolved:rows.filter(x=>!x.resolvedProductStoreId).map(x=>x.name),
+            zeroOffers:rows.filter(x=>x.resolvedProductStoreId&&x.offerCount===0).map(x=>x.name),
+            errors:rows.filter(x=>x.error).map(x=>({name:x.name,error:x.error}))
+          },null,2));
+          TS
+          npx tsx scripts/.tmp-prisma-finland-id-audit.mts 2>&1 | tee prisma-finland-id-audit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prisma-finland-id-audit
+          path: prisma-finland-id-audit.txt
