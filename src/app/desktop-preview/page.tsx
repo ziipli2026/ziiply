@@ -39,9 +39,9 @@ export default function DesktopPreviewPage() {
   const [scannerMode, setScannerMode] = useState<"checking" | "camera" | "external">("checking");
   const [workspace, setWorkspace] = useState<Assistant | null>(null);
   const [location, setLocation] = useState("");
-  const [gpsOn, setGpsOn] = useState(true);
-  const [appliedLocation, setAppliedLocation] = useState("GPS");
-  const [locationStatus, setLocationStatus] = useState("Haetaan GPS-sijaintia…");
+  const [gpsOn, setGpsOn] = useState(false);
+  const [appliedLocation, setAppliedLocation] = useState("");
+  const [locationStatus, setLocationStatus] = useState("Kirjoita paikkakunta tai käytä GPS:ää");
   const [gpsToast, setGpsToast] = useState("");
   const [mapOpen, setMapOpen] = useState(false);
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
@@ -96,8 +96,6 @@ export default function DesktopPreviewPage() {
     );
   }
 
-
-  useEffect(() => { useGps(); }, []);
 
   useEffect(() => {
     let cancelled = false;
