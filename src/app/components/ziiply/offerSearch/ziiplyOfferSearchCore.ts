@@ -969,7 +969,7 @@ export async function searchZiiplyGostaOffersV146(options: {
       : cleanZiiplyGostaOfferResultsV146(nextResults);
 
   const selectedStoreNameV805 = options.context?.sStoreName;
-  const isPrismaSelectionV805 = /^prisma(?:\\s|$)/i.test(String(selectedStoreNameV805 ?? "").trim());
+  const isPrismaSelectionV805 = /^prisma(?:\s|$)/i.test(String(selectedStoreNameV805 ?? "").trim());
   const prismaDedupeMasterV805 = isPrismaSelectionV805
     ? (searchAllAreaOffers || searchByCategory
         ? nextResults
