@@ -1,0 +1,43 @@
+name: Prisma V239 pre-merge regression
+on:
+  push:
+    paths: ['.github/workflows/prisma-v239-premerge.yml']
+permissions: {contents: read}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Production build
+        run: npm run build
+      - name: Resolver controls
+        run: |
+          cat > scripts/.tmp-v239-controls.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          const cases:any[]=[
+            ["Prisma Palokka","631792405","631792405"],
+            ["Prisma Raahe","726668937","726668937"],
+            ["Prisma Seinäjoki","516242633","516242633"],
+            ["Prisma Syke","726170469","726170469"],
+            ["Prisma Heinola","726823796",null],
+            ["Prisma Raksila Oulu","516528759",null],
+            ["Prisma Myyrmanni","726435566","726452067"],
+            ["Prisma Hämeenkatu Tampere","726413330","726491474"]
+          ];
+          let fail=0;
+          for(const [name,sourceId,expected] of cases){
+            const actual=await resolvePrismaCampaignStoreIdV1(name,sourceId);
+            const ok=actual===expected; if(!ok) fail++;
+            console.log("CONTROL",JSON.stringify({name,sourceId,expected,actual,ok}));
+            await new Promise(r=>setTimeout(r,800));
+          }
+          console.log("CONTROL_SUMMARY",JSON.stringify({tested:cases.length,fail}));
+          if(fail) process.exit(1);
+          TS
+          npx tsx scripts/.tmp-v239-controls.mts
