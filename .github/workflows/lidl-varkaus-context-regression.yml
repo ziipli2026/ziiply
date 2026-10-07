@@ -1,0 +1,48 @@
+name: Lidl Varkaus context regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/app/page.tsx'
+      - 'src/app/api/lidl/store-search/route.ts'
+      - '.github/workflows/lidl-varkaus-context-regression.yml'
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Lidl store identity plumbing
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const route=fs.readFileSync('src/app/api/lidl/store-search/route.ts','utf8');
+          const page=fs.readFileSync('src/app/page.tsx','utf8');
+          const checks=[
+            ['store-search exposes storeKey', /storeKey:\s*id/.test(route)],
+            ['Lidl selection persisted', /selectedChains,[\s\S]{0,120}selectedLidlStoreV750/.test(page)],
+            ['Lidl selection restored', /parsedStoreSelection\.selectedLidlStoreV750[\s\S]{0,260}setSelectedLidlStoreV750/.test(page)],
+            ['manual Lidl picker locks identity', /setIndependentManualStoreV791\("LIDL",\s*sourceStore\)[\s\S]{0,120}setSelectedLidlStoreV750\(sourceStore\)/.test(page)],
+            ['offer context prefers storeKey', /lidlStoreKey:[\s\S]{0,180}storeKey\s*\|\|\s*selectedLidlStoreV750\.id/.test(page)],
+          ];
+          for(const [name,ok] of checks) console.log(ok?'PASS':'FAIL',name);
+          if(checks.some(x=>!x[1])) process.exit(1);
+          NODE
+      - name: Verify Varkaus official store feed
+        shell: bash
+        run: |
+          node <<'NODE'
+          const headers={accept:'application/json','accept-language':'fi-FI,fi;q=0.9','user-agent':'LidlPlus/17.0.5 Android okhttp/4.12.0','x-client-version':'17.0.5','x-client-platform':'android'};
+          const stores=await (await fetch('https://stores.lidlplus.com/api/v4/FI',{headers})).json();
+          const v=stores.find(s=>s.storeKey==='FI0165');
+          if(!v) throw new Error('FI0165 missing');
+          const r=await fetch('https://offers.lidlplus.com/app/api/v4/FI/FI0165/offers',{headers});
+          const rows=await r.json();
+          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          const active=rows.filter(x=>(!x.startValidityDate||today>=String(x.startValidityDate).slice(0,10))&&(!x.endValidityDate||today<=String(x.endValidityDate).slice(0,10)));
+          console.log(JSON.stringify({storeKey:v.storeKey,name:v.name,status:r.status,rows:rows.length,active:active.length}));
+          if(r.status!==200||active.length===0) process.exit(1);
+          NODE
