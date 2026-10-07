@@ -1,0 +1,61 @@
+name: SSA public S-kaupat ID audit
+on:
+  push:
+    paths: ['.github/workflows/ssa-public-skaupat-id-audit.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: [S-market, Sale, Alepa]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Audit public store pages
+        env:
+          CHAIN: "${{ matrix.chain }}"
+        run: |
+          cat > /tmp/audit.mjs <<'JS'
+          const chain=process.env.CHAIN;
+          const inv=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(chain)).then(r=>r.json());
+          const arr=Array.isArray(inv)?inv:(inv.stores||inv.data||inv.results||[]);
+          const seen=new Set();
+          const rows=arr.filter(x=>{
+            const n=String(x.name||"").trim(), id=String(x.externalId||x.storeId||x.id||"");
+            const brand=chain==="S-market"?/^s-market\b/i.test(n):chain==="Sale"?/^sale\b/i.test(n):/^alepa\b/i.test(n);
+            if(!brand||!id)return false;
+            const k=n.toLowerCase()+"|"+id;if(seen.has(k))return false;seen.add(k);return true;
+          });
+          const slug=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/å/g,"a").replace(/ä/g,"a").replace(/ö/g,"o").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+          let exact=0, mismatch=0, missing=0, blocked=0; const bad=[];
+          for(let i=0;i<rows.length;i+=8){
+            await Promise.all(rows.slice(i,i+8).map(async x=>{
+              const name=String(x.name),id=String(x.externalId||x.storeId||x.id);
+              const url="https://www.s-kaupat.fi/myymala/"+slug(name)+"/"+id;
+              try{
+                const r=await fetch(url,{redirect:"follow",headers:{"User-Agent":"Mozilla/5.0 (compatible; ZiiplyStoreAudit/1.0)","Accept":"text/html"}});
+                const body=await r.text();
+                if(r.status===403||r.status===429){blocked++;bad.push({name,id,status:r.status});return}
+                const title=(body.match(/<h1[^>]*>(.*?)<\/h1>/is)?.[1]||body.match(/<title[^>]*>(.*?)<\/title>/is)?.[1]||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();
+                const final=String(r.url);
+                const finalId=final.match(/\/myymala\/[^/?#]+\/(\d+)/)?.[1]||null;
+                const looks= r.ok && (/S-kaupat/i.test(body)||/Ruoan verkkokauppa/i.test(body)||/<h1/i.test(body));
+                if(looks && finalId===id){exact++;return}
+                if(looks && finalId && finalId!==id){mismatch++;bad.push({name,id,finalId,title,url:final});return}
+                missing++;bad.push({name,id,status:r.status,title,url:final});
+              }catch(e){missing++;bad.push({name,id,error:String(e)})}
+            }));
+            await new Promise(r=>setTimeout(r,500));
+          }
+          console.log("PUBLIC_ID_SUMMARY",JSON.stringify({chain,total:rows.length,exact,mismatch,missing,blocked,bad}));
+          JS
+          node /tmp/audit.mjs | tee public-id-${CHAIN}.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "public-id-${{ matrix.chain }}"
+          path: "public-id-*.txt"
