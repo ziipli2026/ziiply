@@ -174,7 +174,7 @@ export default function DesktopPreviewPage() {
                     <div className="relative z-10 mt-3 text-[13px] font-black uppercase tracking-[0.12em] text-[#1e2f2a]">
                       {item.title}
                     </div>
-                    <div className="relative z-10 mt-2 text-[14px] font-bold text-[#687285]">
+                    <div className="relative z-10 mt-1 text-[14px] font-bold text-[#687285]">
                       {item.subtitle}
                     </div>
                   </button>
