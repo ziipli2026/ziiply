@@ -40,6 +40,34 @@ export default function DesktopPreviewPage() {
   const [workspace, setWorkspace] = useState<Assistant | null>(null);
   const [location, setLocation] = useState("Hyvinkää");
   const [gpsOn, setGpsOn] = useState(true);
+  const [appliedLocation, setAppliedLocation] = useState("Hyvinkää");
+  const [locationStatus, setLocationStatus] = useState("Valittu sijainti: Hyvinkää");
+  const [mapOpen, setMapOpen] = useState(false);
+
+  function applyLocation() {
+    const value = location.trim();
+    if (!value) return;
+    setAppliedLocation(value);
+    setGpsOn(false);
+    setLocationStatus(`Valittu sijainti: ${value}`);
+  }
+
+  function useGps() {
+    if (!navigator.geolocation) {
+      setLocationStatus("Sijaintia ei tueta tällä laitteella");
+      return;
+    }
+    setLocationStatus("Haetaan sijaintia…");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setGpsOn(true);
+        setAppliedLocation(`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
+        setLocationStatus("GPS-sijainti käytössä");
+      },
+      () => setLocationStatus("Sijainnin käyttö ei onnistunut"),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }
 
 
   useEffect(() => {
@@ -111,20 +139,38 @@ export default function DesktopPreviewPage() {
           </div>
 
           <div className="grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px_44px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
-            <button type="button" onClick={() => setGpsOn((v) => !v)} title={gpsOn ? "GPS päällä" : "GPS pois"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
+            <button type="button" onClick={() => gpsOn ? setGpsOn(false) : useGps()} title={gpsOn ? "GPS päällä" : "GPS pois"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
               <span className="text-[23px]">📍</span>
               <span className="absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white bg-[#159447] shadow-sm" />
             </button>
             <label className="relative min-w-0 rounded-[15px] border border-[#b89552] bg-gradient-to-b from-[#fff8e7] to-[#efd79d] px-3 py-1.5 shadow-inner">
               <span className="block text-[8px] font-black uppercase tracking-[0.12em] text-[#756848]">Paikkakunta tai postinumero</span>
-              <input value={location} onChange={(e) => setLocation(e.target.value)} aria-label="Paikkakunta tai postinumero" className="mt-0.5 block w-full bg-transparent text-[15px] font-black text-[#241b13] outline-none placeholder:text-[#766e5c]" placeholder="05510 tai Hyvinkää" />
+              <input value={location} onChange={(e) => setLocation(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") applyLocation(); }} aria-label="Paikkakunta tai postinumero" className="mt-0.5 block w-full bg-transparent text-[15px] font-black text-[#241b13] outline-none placeholder:text-[#766e5c]" placeholder="05510 tai Hyvinkää" />
             </label>
-            <button type="button" title="Avaa kartta" className="group grid h-[52px] w-[64px] place-items-center rounded-[16px] border-2 border-[#65a99c] bg-gradient-to-b from-[#c8eee8] to-[#86cabf] shadow-[inset_0_1px_0_rgba(255,255,255,.65)]">
+            <button type="button" onClick={() => setMapOpen(true)} title="Avaa kartta" className="group grid h-[52px] w-[64px] place-items-center rounded-[16px] border-2 border-[#65a99c] bg-gradient-to-b from-[#c8eee8] to-[#86cabf] shadow-[inset_0_1px_0_rgba(255,255,255,.65)]">
               <img src="/icons/ziiply-compass.png" alt="Avaa kartta" className="h-[43px] w-[43px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,.24)] transition group-hover:scale-105" />
             </button>
-            <button type="button" title="Valikko" className="flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[#6d8069]/25 bg-[#fffaf0]/80 text-[18px] font-black shadow-sm">☰</button>
+            <button type="button" onClick={applyLocation} title="Hae paikkakunta" className="flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[#6d8069]/25 bg-[#fffaf0]/80 text-[18px] font-black shadow-sm">↵</button>
+          </div>
+          <div className="absolute right-12 top-[94px] z-20 flex items-center gap-2 rounded-full border border-[#6f806a]/20 bg-[#fffaf0]/90 px-3 py-1.5 text-[10px] font-black text-[#536252] shadow-sm">
+            <span className={`h-2 w-2 rounded-full ${gpsOn ? "bg-[#159447]" : "bg-[#c08b35]"}`} />
+            {locationStatus}
           </div>
         </header>
+
+        {mapOpen && (
+          <div className="absolute inset-0 z-[80] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]">
+            <div className="w-full max-w-[900px] rounded-[30px] border border-[#6e7d68]/25 bg-[#f8f3e7] p-6 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
+              <div className="flex items-center justify-between">
+                <div><div className="text-[11px] font-black uppercase tracking-[.15em] text-[#7d745e]">Ziiply · kartta</div><div className="mt-1 text-[27px] font-black text-[#17352a]">{appliedLocation}</div></div>
+                <button onClick={() => setMapOpen(false)} className="rounded-full border border-[#6f806a]/25 bg-white px-4 py-2 text-[13px] font-black">Sulje ×</button>
+              </div>
+              <div className="mt-5 grid h-[430px] place-items-center overflow-hidden rounded-[24px] border border-[#7b8b75]/25 bg-[radial-gradient(circle_at_center,#dce8cf_0,#c8ddc8_35%,#eadfbf_100%)]">
+                <div className="text-center"><img src="/icons/ziiply-compass.png" alt="" className="mx-auto h-24 w-24"/><div className="mt-4 text-[18px] font-black text-[#244b38]">Kauppakartta</div><div className="mt-1 text-[13px] font-bold text-[#687267]">Sijainti: {appliedLocation}</div><div className="mt-4 text-[12px] font-bold text-[#7b745f]">Seuraavaksi tähän kytketään Ziiplyn kauppapisteet ja etäisyydet.</div></div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <section className="grid min-h-0 flex-1 items-center gap-8 py-5 lg:grid-cols-[0.76fr_1.24fr] xl:gap-11">
           <div className="relative max-w-[570px]">
