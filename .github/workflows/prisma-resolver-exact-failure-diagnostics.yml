@@ -1,0 +1,29 @@
+name: Prisma resolver exact failure diagnostics
+on:
+  push:
+    paths: ['.github/workflows/prisma-resolver-exact-failure-diagnostics.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - run: |
+          set -o pipefail
+          cat > scripts/.tmp-prisma-resolver-diag.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          for(const name of ["Prisma Palokka","Prisma Raahe","Prisma Seinäjoki","Prisma Syke","Prisma Heinola","Prisma Raksila Oulu"]){
+            console.log("\n=== DIAG",name,"===");
+            const id=await resolvePrismaCampaignStoreIdV1(name);
+            console.log("RESULT",JSON.stringify({name,id}));
+            await new Promise(r=>setTimeout(r,1300));
+          }
+          TS
+          npx tsx scripts/.tmp-prisma-resolver-diag.mts 2>&1 | tee prisma-resolver-exact-failure-diagnostics.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: prisma-resolver-exact-failure-diagnostics, path: prisma-resolver-exact-failure-diagnostics.txt}
