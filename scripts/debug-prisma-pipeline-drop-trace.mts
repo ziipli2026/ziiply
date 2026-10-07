@@ -3,7 +3,7 @@ import {
   searchZiiplyOffers,
 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
 import { fetchPrismaCampaignOffersV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatPrismaCampaignProvider";
-import { dedupeZiiplyGostaOfferResultsV146, cleanZiiplyGostaOfferResultsV146 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore";
+import { dedupeZiiplyGostaOfferResultsV146, cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore";
 
 const MASTER="__ziiply_all_offers__";
 const storeName=process.argv[2]||"Prisma Hyvinkää";
@@ -40,6 +40,31 @@ const offerDeduped=dedupeZiiplyGostaOfferResultsV146(offers as any);
 const campaignDeduped=dedupeZiiplyGostaOfferResultsV146(campaignRows as any);
 const offerCleaned=cleanZiiplyGostaOfferResultsV146(offers as any);
 const campaignCleaned=cleanZiiplyGostaOfferResultsV146(campaignRows as any);
+
+function pageCardDedupeTrace(items:any[]){
+  const seen=new Map<string,any>(), seenRoots=new Map<string,any>(), kept:any[]=[], removed:any[]=[];
+  const root=(item:any)=>{
+    const stop=new Set(["snellman","snellmanin","atria","hk","kotimaista","pirkka","rainbow","xtra","coop","nopea","ohut","murea","suikale","pala","viipale","marinoitu","maustettu","grilli","grillattu","pakkaus","rasia","tuore","tuotettu","suomi","suomalainen","kg","g"]);
+    return norm(item?.name||item?.title||item?.productName||"").replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g," ").replace(/\b\d+\s*x\s*\d+\b/g," ").replace(/\s+/g," ").trim().split(/\s+/).filter((w:string)=>w.length>2&&!stop.has(w)).slice(0,2).join(" ");
+  };
+  for(const item of items){
+    const source=item?.__sourceOfferSearchResult||item;
+    const ean=norm(source?.ean||source?.gtin||source?.barcode||item?.ean||"");
+    const visibleName=norm(item?.name||item?.title||item?.productName||source?.name||source?.title||source?.productName||"").replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g," ").replace(/\b\d+\s*x\s*\d+\b/g," ").replace(/\s+/g," ").trim();
+    const visiblePrice=norm(item?.offerPrice??item?.price??source?.priceText??"");
+    const r=root(item), rootKey=r&&visiblePrice?`${r}|${visiblePrice}`:"";
+    const key=ean?`ean:${ean}`:(visibleName&&visiblePrice?`visible:${visibleName}|${visiblePrice}`:(r?`root:${r}`:""));
+    const collision=ean?(key&&seen.get(key)):((key&&seen.get(key))||(rootKey&&seenRoots.get(rootKey)));
+    if(collision){removed.push({reason:ean?"ean":(key&&seen.has(key)?"visible":"root"),key,rootKey,removed:row(source),kept:row(collision?.__sourceOfferSearchResult||collision)});continue;}
+    if(key)seen.set(key,item); if(rootKey)seenRoots.set(rootKey,item); kept.push(item);
+  }
+  return {kept,removed};
+}
+const offerCards=offerCleaned.map((x:any)=>mapZiiplyGostaOfferToCardOfferV147(x as any));
+const campaignCards=campaignCleaned.map((x:any)=>mapZiiplyGostaOfferToCardOfferV147(x as any));
+const offerPageDedupe=pageCardDedupeTrace(offerCards);
+const campaignPageDedupe=pageCardDedupeTrace(campaignCards);
+
 const offerEan=new Map<string,any[]>(), campaignEan=new Map<string,any[]>();
 for(const x of offers){const item=x as any;const e=String(item?.ean??"").trim();if(e)offerEan.set(e,[...(offerEan.get(e)||[]),item])}
 for(const x of campaignRows){const item=x as any;const e=String(item?.ean??"").trim();if(e)campaignEan.set(e,[...(campaignEan.get(e)||[]),item])}
@@ -48,10 +73,12 @@ const samePriceCrossTab=crossTab.filter((g:any)=>g.offers.some((o:any)=>g.campai
 
 const report={
  audit:"PRISMA_PIPELINE_DROP_TRACE_V1",storeName,
- counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
+ counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
  dropped:dropped.slice(0,200).map(row),
  unexpected:unexpected.slice(0,100).map(row),
  samePriceCrossTab:samePriceCrossTab.slice(0,100),
+ offerPageDedupeRemoved:offerPageDedupe.removed.slice(0,200),
+ campaignPageDedupeRemoved:campaignPageDedupe.removed.slice(0,200),
  pass:dropped.length===0&&unexpected.length===0
 };
 console.log(JSON.stringify(report,null,2));
