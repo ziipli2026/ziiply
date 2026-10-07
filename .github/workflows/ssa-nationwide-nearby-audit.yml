@@ -1,0 +1,62 @@
+name: SSA nationwide nearby audit
+on:
+  push:
+    paths: ['.github/workflows/ssa-nationwide-nearby-audit.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Audit nationwide S-group nearby inventory
+        run: |
+          cat >/tmp/audit.mjs <<'JS'
+          const chains=["S-market","Sale","Alepa"];
+          const legacy=new Set(["501604912","653574384","512045139"]);
+          const rad=x=>x*Math.PI/180;
+          const dist=(a,b)=>{const dlat=rad(b.lat-a.lat),dlon=rad(b.lon-a.lon);const h=Math.sin(dlat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dlon/2)**2;return 6371*2*Math.asin(Math.sqrt(h))}
+          const rows=[];
+          for(const chain of chains){
+            const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(chain),{headers:{Accept:"application/json"}});
+            if(!r.ok) throw new Error(chain+" HTTP "+r.status);
+            const raw=await r.json(), arr=Array.isArray(raw)?raw:(raw.items||raw.stores||raw.data||raw.results||[]);
+            for(const s of arr){
+              const n=String(s.name||"");
+              if(s.delistedAt||legacy.has(String(s.externalId||"").trim()))continue;
+              if(chain==="S-market"?!/^s-market\b/i.test(n):chain==="Sale"?!/^sale\b/i.test(n):!/^alepa\b/i.test(n))continue;
+              const country=String(s.country||s.countryCode||"").trim().toUpperCase();
+              if(country&&!["FI","FIN","FINLAND","SUOMI"].includes(country))continue;
+              const lat=Number(s.lat??s.latitude),lon=Number(s.long??s.lon??s.lng??s.longitude);
+              if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;
+              rows.push({...s,lat,lon,_chain:chain});
+            }
+          }
+          const seen=new Set(), clean=[];
+          for(const s of rows){const id=String(s.externalId||"").trim();const k=id?"s:"+id:"id:"+String(s.id??"");if(seen.has(k))continue;seen.add(k);clean.push(s)}
+          const points=[
+            ["Helsinki",60.1699,24.9384],["Espoo",60.2055,24.6559],["Hyvinkää",60.6330,24.8597],
+            ["Turku",60.4518,22.2666],["Pori",61.4851,21.7974],["Tampere",61.4978,23.7610],
+            ["Jyväskylä",62.2426,25.7473],["Kuopio",62.8924,27.6770],["Joensuu",62.6010,29.7636],
+            ["Vaasa",63.0951,21.6165],["Seinäjoki",62.7903,22.8403],["Kokkola",63.8385,23.1307],
+            ["Oulu",65.0121,25.4651],["Rovaniemi",66.5039,25.7294],["Kemi",65.7364,24.5637],
+            ["Kajaani",64.2273,27.7285],["Kuusamo",65.9646,29.1888],["Ivalo",68.6576,27.5397],
+            ["Mariehamn",60.0973,19.9348],["Savonlinna",61.8684,28.8862],["Lappeenranta",61.0587,28.1887],
+            ["Kotka",60.4664,26.9458],["Lahti",60.9827,25.6615],["Korpilahti",62.0184,25.5540],
+            ["Multia",62.4167,24.7833],["Pello",66.7738,23.9620],["Levi",67.8051,24.8029]
+          ];
+          const results=points.map(([name,lat,lon])=>{const a={lat,lon};const nearest=clean.map(s=>({s,d:dist(a,s)})).sort((x,y)=>x.d-y.d)[0];const within100=clean.filter(s=>dist(a,s)<=100).length;return {name,nearest:nearest?.s?.name,id:nearest?.s?.externalId,distanceKm:+(nearest?.d??9999).toFixed(1),within100}});
+          const dupIds=clean.map(x=>String(x.externalId||"")).filter((x,i,a)=>x&&a.indexOf(x)!==i);
+          const current=["726522642","726651375","726522638","726638046","726760136"];
+          const assertions={
+            noLegacy:clean.every(s=>!legacy.has(String(s.externalId||""))),
+            noDuplicateExternalIds:dupIds.length===0,
+            currentIdsPresent:current.every(id=>clean.some(s=>String(s.externalId||"")===id)),
+            everyPointHasSStoreWithin100km:results.every(x=>x.within100>0)
+          };
+          console.log(JSON.stringify({counts:Object.fromEntries(chains.map(c=>[c,clean.filter(x=>x._chain===c).length])),total:clean.length,assertions,results},null,2));
+          if(Object.values(assertions).some(v=>!v))process.exit(1);
+          JS
+          node /tmp/audit.mjs
