@@ -40,7 +40,7 @@ export default function DesktopPreviewPage() {
   const [workspace, setWorkspace] = useState<Assistant | null>(null);
   const [location, setLocation] = useState("Hyvinkää");
   const [gpsOn, setGpsOn] = useState(true);
-  const [calendarOpen, setCalendarOpen] = useState(false);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -100,7 +100,7 @@ export default function DesktopPreviewPage() {
                 </span>
               </button>
             ))}
-            <button type="button" onClick={() => setCalendarOpen((v) => !v)} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
+            <button type="button" onClick={() => { window.location.href = "webcal://"; }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
               <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">7</span>
               <span>
                 <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">LOKAKUU</span>
@@ -221,9 +221,7 @@ export default function DesktopPreviewPage() {
                 </div>
               </div>
             )}
-            {calendarOpen && <div className="absolute right-[32%] top-20 z-50 rounded-[22px] border border-[#c9a86d] bg-[#fffaf0] p-4 shadow-2xl"><div className="text-[11px] font-black uppercase text-[#806b45]">Lokakuu 2026</div><div className="mt-1 text-[24px] font-black">Keskiviikko 7.10.</div><button onClick={() => setCalendarOpen(false)} className="mt-3 text-[12px] font-black text-[#2f7750]">Sulje</button></div>}
-
-            <div className="mt-3 flex items-center justify-between rounded-[22px] border border-[#77856e]/15 bg-white/48 px-5 py-4">
+<div className="mt-3 flex items-center justify-between rounded-[22px] border border-[#77856e]/15 bg-white/48 px-5 py-4">
               <div className="text-[14px] font-bold text-[#657064]">
                 Valittuna <span className="font-black text-[#243a2b]">{assistants.find((x) => x.key === active)?.name}</span>
               </div>
