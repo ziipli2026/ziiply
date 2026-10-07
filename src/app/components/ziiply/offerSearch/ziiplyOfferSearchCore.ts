@@ -864,7 +864,7 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
 
   const storeIdentity = (item: ZiiplyGostaOfferLike) => {
     const raw = (item as any)?.__sourceOfferSearchResult ?? item;
-    return norm(raw?.storeId ?? raw?.storeName ?? raw?.storeLabel ?? "");
+    return norm(raw?.storeLabel ?? raw?.storeName ?? raw?.storeId ?? "");
   };
 
   const ean = (item: ZiiplyGostaOfferLike) => {
@@ -879,7 +879,7 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
     masterResults
       .filter((item) => {
         const raw = (item as any)?.__sourceOfferSearchResult ?? item;
-        const campaignStore = norm(raw?.storeId ?? raw?.storeName ?? raw?.storeLabel ?? "");
+        const campaignStore = norm(raw?.storeLabel ?? raw?.storeName ?? raw?.storeId ?? "");
         return raw?.campaignType === "campaign" &&
           /^prisma(?:\s|$)/i.test(campaignStore) &&
           campaignStore === selectedStore &&
