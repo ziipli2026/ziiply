@@ -192,7 +192,7 @@ export default async function Page(){
   const eanCategoryCoverage=d.ean&&d.ean.total?Math.round(d.ean.classified/d.ean.total*1000)/10:0;
   const eanDataHealth=(d.ean?[(eanPriceCoverage>=75),(eanFreshCoverage>=75),(eanImageCoverage>=75),(eanCategoryCoverage>=75)]:[]).filter(Boolean).length;
   const eanHealthState=eanDataHealth===4?"green":eanDataHealth>=2?"yellow":"red";
-  const currentFailures=latestBySource.filter(r=>!r.ok);
+  const currentFailures=latestBySource.filter(r=>!r.ok&&r.source!=="future-publication-discovery");
   const overallDataHealth=(d.ean?eanDataHealth:0)+(quality.missingPrice===0?1:0)+(currentFailures.length===0?1:0)+(rolloverGaps.length===0?1:0);
   const overallDataHealthState=overallDataHealth>=7?"green":overallDataHealth>=5?"yellow":"red";
   const failureStreaks=sourceHealth.filter(s=>s.streak>=2);
