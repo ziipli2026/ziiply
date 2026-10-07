@@ -1,0 +1,32 @@
+name: Prisma ID identity audit (read-only)
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-id-identity-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - run: |
+          cat > scripts/.tmp-prisma-id-identity.mts <<'TS'
+          import { searchSelectedSKaupatOffersV11 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
+          const T=[
+            ["Prisma Hyvinkää","634976534"],["Prisma Lohja","603212895"],["Prisma Tuusula","726753948"],
+            ["Prisma Hämeenkatu Tampere","726413330"],["Prisma Raksila Oulu","516528759"],
+            ["Prisma Myyrmanni Vantaa","726435566"],["Prisma Jumbo Vantaa","613761030"],
+            ["Prisma Limingantulli Oulu","627829302"],["Prisma Lielahti Tampere","697940575"],["Prisma Kaleva Tampere","517609418"]];
+          for(const [name,id] of T){
+            const rows:any[]=await searchSelectedSKaupatOffersV11("__ziiply_all_offers__",{storeName:name,sStoreName:name,storeId:id,sStoreId:id} as any);
+            console.log(JSON.stringify({name,id,count:rows.length,debug:rows[0]?.title||rows[0]?.rawText||null}));
+          }
+          TS
+          npx tsx scripts/.tmp-prisma-id-identity.mts 2>&1 | tee prisma-id-identity-audit.txt
+      - uses: actions/upload-artifact@v4
+        with: {name: prisma-id-identity-audit,path:prisma-id-identity-audit.txt}
