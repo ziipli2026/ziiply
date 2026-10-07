@@ -40,7 +40,8 @@ jobs:
           const v=stores.find(s=>s.storeKey==='FI0165');
           if(!v) throw new Error('FI0165 missing');
           const r=await fetch('https://offers.lidlplus.com/app/api/v4/FI/FI0165/offers',{headers});
-          const rows=await r.json();
+          const raw=await r.json();
+          const rows=Array.isArray(raw)?raw:Array.isArray(raw?.offers)?raw.offers:Array.isArray(raw?.items)?raw.items:[];
           const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
           const active=rows.filter(x=>(!x.startValidityDate||today>=String(x.startValidityDate).slice(0,10))&&(!x.endValidityDate||today<=String(x.endValidityDate).slice(0,10)));
           console.log(JSON.stringify({storeKey:v.storeKey,name:v.name,status:r.status,rows:rows.length,active:active.length}));
