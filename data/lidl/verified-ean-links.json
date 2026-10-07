@@ -1,38 +1,23 @@
 [
   {
-    "lidlProductId": "10037649",
-    "ean": "6409620011917",
-    "evidence": "Snellman Pro: Kotimainen palvikinkku, 0.4 kg, GTIN 6409620011917; Lidl.fi category observation: SNELLMAN Kotimainen palvikinkku 400 g, 5.19 EUR"
+    "lidlProductId": "10014992",
+    "ean": "2002676900002",
+    "evidence": "Lidl.fi canonical product page identifies FAZER Dallaspulla as a Paistopiste product; S-kaupat exact consumer product is Fazer Dallaspulla 85 g, EAN 2002676900002, with matching product identity and nutrition."
   },
   {
-    "lidlProductId": "10037647",
-    "ean": "6413467428401",
-    "evidence": "Lidl.fi: OULULAINEN Reissumies Tosi Ohut 210 g, 1.79 EUR; Fazer/Oululainen official catalog: Reissumies Tosi Ohut Kaura 5 kpl 210 g, GTIN 6413467428401"
+    "lidlProductId": "10032835",
+    "ean": "2000343200004",
+    "evidence": "Lidl.fi canonical product page identifies FAZER Berliininmunkki as a Paistopiste product; K-Ruoka exact consumer product is Fazer berliininmunkki 115 g, EAN 2000343200004, matching Lidl product identity and nutrition."
   },
   {
-    "lidlProductId": "10038274",
-    "ean": "7311070014631",
-    "evidence": "Lidl.fi: PÅGEN Hönösaaristolaisrieska 630 g; Pågen official product page: Hönö Saaristolaisrieska 630 g; Kespro product data: same Pågen Hönö Saaristolaisrieska 630 g, GTIN 7311070014631"
+    "lidlProductId": "10034796",
+    "ean": "6413467518508",
+    "evidence": "Lidl Finland canonical product 10034796 is FAZER Dumle-munkki. Fazer Pro and Valio Aimo identify the exact Fazer Dumle-munkki 12 x 106 g product with consumer-unit GTIN/EAN 6413467518508; Metro confirms the same EAN as the individual sales unit. Exact product identity and size match."
   },
   {
-    "lidlProductId": "10038312",
-    "ean": "6409100077884",
-    "evidence": "Lidl.fi Valmisateriat: HK Burgeri 6 kpl, 100 g each; HK official product page: HK Burgeri 100 g, product 7788, EAN 6409100077884"
-  },
-  {
-    "lidlProductId": "10037648",
-    "ean": "6413467449604",
-    "evidence": "Lidl.fi bread category: OULULAINEN Reissumies Tosi Ohut 175 g, 1.49 EUR; Fazer Pro official 2026 bakery page: Reissumies Tosi Ohut Ruis 5 kpl 175 g, EAN 6413467449604"
-  },
-  {
-    "lidlProductId": "10038269",
-    "ean": "6409290001492",
-    "evidence": "Lidl.fi week 40 offer: WURSTI Extrapalvikinkku 400 g; Wursti official product catalog: EXTRA PALVIKINKKU 400G, GTIN 6409290001492"
-  },
-  {
-    "lidlProductId": "10037646",
-    "ean": "6413467593802",
-    "evidence": "Lidl.fi official catalog observation: OULULAINEN Pullava Dallaspitko, 3.29 EUR; Oululainen official product page: Pullava Dallaspitko 400 g; Valio Aimo product data: same 400 g product, EAN 6413467593802"
+    "lidlProductId": "10037407",
+    "ean": "2001447100009",
+    "evidence": "Lidl.fi canonical product page identifies Fazer Raspberry Kiss -munkki as a Paistopiste product; Finnish retail data identifies the exact Fazer Raspberry Kiss munkki 108 g consumer EAN 2001447100009, matching the Lidl product identity."
   },
   {
     "lidlProductId": "10037642",
@@ -40,19 +25,69 @@
     "evidence": "Lidl official product path /p/oddlygood-barista-kaurajuoma/p10037642 identifies Oddlygood Barista-kaurajuoma; Valio official product data identifies Oddlygood Barista kaurajuoma 1 l UHT gluteeniton, EAN 6430081490041"
   },
   {
-    "lidlProductId": "10037650",
-    "ean": "8850987146619",
-    "evidence": "Lidl.fi official product path /p/mama-nuudeli-6-pack/p10037650 and Lidl dry-goods category identify MAMA Nuudeli 6-pack 330 g; S-kaupat product data identifies MAMA Kananmakuinen nuudeli 6x55 g = 330 g, EAN 8850987146619"
-  },
-  {
     "lidlProductId": "10037643",
     "ean": "9002490279875",
     "evidence": "Lidl catalog identifies Red Bull White Peach 250 ml; Metro-tukku confirms the consumer-unit EAN is 9002490279875 (90474132 is Metro's internal product number)."
   },
   {
-    "lidlProductId": "10038321",
-    "ean": "6405020033962",
-    "evidence": "Lidl paper-leaflet fixture and parser regression identify Kuusamon Juusto Eränkävijä-juusto 300 g at 4.39 EUR; Kuusamon Juusto official product page identifies Eränkävijä 300 g, EAN 6405020033962"
+    "lidlProductId": "10037644",
+    "ean": "4335619339798",
+    "evidence": "Lidl catalog identifies SOLEVITA Luomukofeiinishotti 150 ml; supplier/product database identifies Solevita Bio Koffein Shot Apfel-Mango-Limetten-Guarana, 150 ml, EAN 4335619339798."
+  },
+  {
+    "lidlProductId": "10037645",
+    "ean": "4056489654926",
+    "evidence": "Lidl Finland productId 10037645 is MILBONA Proteiinivanukas 200 g with the displayed variants kahvi tai kookos. Exact Milbona High Protein Pudding Coconut 200 g is independently identified by F+S Milchwerk product registry with consumer EAN 4056489654926; the same exact EAN/product is corroborated by current product databases. Added only for the coconut variant; coffee remains unresolved and is not inferred."
+  },
+  {
+    "lidlProductId": "10037646",
+    "ean": "6413467593802",
+    "evidence": "Lidl.fi official catalog observation: OULULAINEN Pullava Dallaspitko, 3.29 EUR; Oululainen official product page: Pullava Dallaspitko 400 g; Valio Aimo product data: same 400 g product, EAN 6413467593802"
+  },
+  {
+    "lidlProductId": "10037647",
+    "ean": "6413467428401",
+    "evidence": "Lidl.fi: OULULAINEN Reissumies Tosi Ohut 210 g, 1.79 EUR; Fazer/Oululainen official catalog: Reissumies Tosi Ohut Kaura 5 kpl 210 g, GTIN 6413467428401"
+  },
+  {
+    "lidlProductId": "10037648",
+    "ean": "6413467449604",
+    "evidence": "Lidl.fi bread category: OULULAINEN Reissumies Tosi Ohut 175 g, 1.49 EUR; Fazer Pro official 2026 bakery page: Reissumies Tosi Ohut Ruis 5 kpl 175 g, EAN 6413467449604"
+  },
+  {
+    "lidlProductId": "10037649",
+    "ean": "6409620011917",
+    "evidence": "Snellman Pro: Kotimainen palvikinkku, 0.4 kg, GTIN 6409620011917; Lidl.fi category observation: SNELLMAN Kotimainen palvikinkku 400 g, 5.19 EUR"
+  },
+  {
+    "lidlProductId": "10037650",
+    "ean": "8850987146619",
+    "evidence": "Lidl.fi official product path /p/mama-nuudeli-6-pack/p10037650 and Lidl dry-goods category identify MAMA Nuudeli 6-pack 330 g; S-kaupat product data identifies MAMA Kananmakuinen nuudeli 6x55 g = 330 g, EAN 8850987146619"
+  },
+  {
+    "lidlProductId": "10037651",
+    "ean": "20000660",
+    "evidence": "Lidl Finland productId 10037651 is MARIBEL Hillo 450 g with blueberry or mixed-berry variants. Exact Maribel blueberry jam 450 g is independently identified with GTIN 20000660; variant-level identity matches the Lidl row and must be kept separate from the mixed-berry variant."
+  },
+  {
+    "lidlProductId": "10037651",
+    "ean": "20000684",
+    "evidence": "Lidl Finland productId 10037651 is MARIBEL Hillo 450 g with blueberry or mixed-berry variants. Exact Maribel mixed-berry/forest-fruit jam 450 g is independently identified with GTIN 20000684; variant-level identity matches the Lidl row and must be kept separate from the blueberry variant."
+  },
+  {
+    "lidlProductId": "10038245",
+    "ean": "6413605151284",
+    "evidence": "Lidl Finland candidate 10038245 is HARTWALL Sokeriton Jaffa 6-pack 3 kpl, matching Hartwall Jaffa Ananas sokeriton 6x0.33 l consumer pack. S-kaupat and Kespro both give EAN 6413605151284 for the exact 6-pack; Lidl offer data shows the 3-pack promotion. The EAN is the consumer 6-pack unit, not the outer case GTIN."
+  },
+  {
+    "lidlProductId": "10038248",
+    "ean": "4032549039605",
+    "evidence": "Lidl Finland candidate TASCHKI Pelmeni is 1 kg; Dovgan official product page identifies Taschki Pelmeni XXL with turkey filling, 1 kg, EAN 4032549039605. Independent Lidl offer data identifies Taschki Pelmeni/Vareniki as the Lidl 1 kg product."
+  },
+  {
+    "lidlProductId": "10038257",
+    "ean": "2008108300006",
+    "evidence": "Lidl Finland candidate 10038257 is Osteen-mango; S-kaupat exact product is Mango Osteen with EAN 2008108300006. Exact product name/variety match; this is a variable-weight produce EAN."
   },
   {
     "lidlProductId": "10038264",
@@ -60,19 +95,99 @@
     "evidence": "Lidl official catalog and Hyvinkää W40 leaflet identify ATRIA Nauta-viljapossujauheliha 1 kg; Atria official consumer-pack catalog identifies 1 kg consumer package GTIN 6407830032371"
   },
   {
+    "lidlProductId": "10038269",
+    "ean": "6409290001492",
+    "evidence": "Lidl.fi week 40 offer: WURSTI Extrapalvikinkku 400 g; Wursti official product catalog: EXTRA PALVIKINKKU 400G, GTIN 6409290001492"
+  },
+  {
+    "lidlProductId": "10038271",
+    "ean": "5711953215698",
+    "evidence": "Lidl Finland official current product listing: ARLA Juustoviipale 270 g at 2.99 EUR; independent Finnish retail offer data identifies the exact 270 g Arla Maasdam Juustoviipale with consumer EAN 5711953215698, matching the Lidl price/size listing."
+  },
+  {
+    "lidlProductId": "10038272",
+    "ean": "5411188138099",
+    "evidence": "Lidl Finland candidate ALPRO Soijavalmiste 2 kpl is 400 g total; current Finnish retail sources identify the exact Alpro plain unsweetened 400 g consumer product as EAN 5411188138099. Lidl offer data shows the same 400 g item and 2-piece promotion."
+  },
+  {
+    "lidlProductId": "10038274",
+    "ean": "7311070014631",
+    "evidence": "Lidl.fi: PÅGEN Hönösaaristolaisrieska 630 g; Pågen official product page: Hönö Saaristolaisrieska 630 g; Kespro product data: same Pågen Hönö Saaristolaisrieska 630 g, GTIN 7311070014631"
+  },
+  {
+    "lidlProductId": "10038276",
+    "ean": "6415000116035",
+    "evidence": "Lidl 10038276 is MYLLÄRIN Murot, 300 g. The W40 Lidl candidate name is generic, but the official Finnish Myllärin range and current product/offer evidence identify Suklaarenkaat 300 g as the matching 300 g Myllärin cereal at this Lidl offer; EAN 6415000116035."
+  },
+  {
+    "lidlProductId": "10038279",
+    "ean": "6414301081226",
+    "evidence": "Lidl W40/2026 offer identifies SERLA Valkoinen talouspaperi 8 rullaa; Kespro identifies Serla talouspaperi 8rl valkoinen consumer GTIN 6414301081226; S-kaupat independently confirms EAN 6414301081226."
+  },
+  {
     "lidlProductId": "10038280",
     "ean": "6414301079759",
     "evidence": "Lidl W40 offer identifies SERLA Hellä-wc-paperi 16 rullaa; independent retailer product data identifies Serla Hellä WC-paperi 16 rll EAN 6414301079759"
   },
   {
-    "lidlProductId": "10038322",
-    "ean": "5410146401435",
-    "evidence": "Lidl official ready-meals listing identifies DANEROLLES Croissantit as 240 g; Danerolles official Finland lists Original Croissants sold at Lidl and Finnish Kespro/S-kaupat identify the 240 g 6-pack consumer GTIN 5410146401435"
+    "lidlProductId": "10038282",
+    "ean": "2508791003883",
+    "evidence": "Lidl Finland package evidence identifies NOSTJA Pancetta productId 10038282 as 100 g. Current PromoAzi product data identifies NOSTJA Panceta I.G.P., Dalmatia with EAN 2508791003883, while current Lidl catalogue evidence corroborates the NOSTJA Panceta I.G.P. Dalmatia product sold per 100 g."
   },
   {
-    "lidlProductId": "10038310",
-    "ean": "5900334000781",
-    "evidence": "Lidl catalog identifies TYMBARK Omena-kirsikkamehu product 10038310; current Lidl offer listing confirms 1 l size; Kespro identifies Tymbark kirsikka-omenamehujuoma 1 l consumer GTIN 5900334000781"
+    "lidlProductId": "10038284",
+    "ean": "20831851",
+    "evidence": "The Finnish queue identifies KULJANKA Borssikeitto (IAN 7701804). Independent Lidl offer history identifies the matching Kuljanka Borscht Soup with White Cabbage & Beetroot as an 800 g retail pack. CHOMP barcode product data identifies Kuljanka Borscht with barcode 20831851. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038285",
+    "ean": "20076573",
+    "evidence": "Lidl Finland package evidence identifies KULJANKA Savustettu makkara productId 10038285 as 600 g and cross-market Lidl article 185279. Independent barcode product data identifies Kuljanka/Lidl Silesian smoked sausage with GTIN-8 20076573; exact sausage identity and Lidl brand match. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038286",
+    "ean": "55006774",
+    "evidence": "Lidl Poland official product list identifies article 5500677 as white cabbage salad (Sałatka z białej kapusty), 410 g. Independent barcode food data identifies Kuljanka/Lidl Vegetable salad with cabbage with barcode 55006774 and matching cabbage/vegetable composition. The GTIN-8 is exactly Lidl article 5500677 plus its valid GS1 check digit 4."
+  },
+  {
+    "lidlProductId": "10038289",
+    "ean": "20544324",
+    "evidence": "Lidl.fi Finland identifies KULJANKA Hapankurkku 700 g (drained 400 g). Current Swedish Lidl price/product data identifies Kuljanka Syrad gurka 700 g with EAN 0000020544324, equivalent GTIN-8 20544324. Exact brand/product type/total pack weight and Lidl channel match; GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038292",
+    "ean": "4056489624455",
+    "evidence": "Lidl Finland candidate data identifies KULJANKA Gulassikeitto productId 10038292, IAN 175056; Lidl.fi Finland lists Kuljanka Gulassikeitto 400 ml; another Lidl market lists the same Kuljanka Goulash IAN 175056 as 400 ml; product database identifies Kuljanka Gulaschsuppe ungarische Art EAN 4056489624455. GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038295",
+    "ean": "4056489120087",
+    "evidence": "Finnish Lidl archive identifies the product as KULJANKA Suklaakuorrutettu vaahtomakeinen. Swedish Lidl retail data identifies the same Kuljanka chocolate-coated marshmallow product as a 380 g pack with EAN 4056489120087. Independent barcode/product data names EAN 4056489120087 as Kuljanka Vanilla Flavoured Marshmallows Coated In Dark Chocolate; nutrition data (396 kcal/100 g) matches the Kuljanka product record. GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038297",
+    "ean": "20755775",
+    "evidence": "Lidl.fi Finland identifies KULJANKA Paprikapyree 160 g. Independent Lidl product review identifies KULJANKA Paprikacreme scharf 160 g, manufacturer Univer Product Zrt. Hungary, EAN 20755775. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038298",
+    "ean": "20342173",
+    "evidence": "Lidl Finland queue identifies KULJANKA Maustesuola, IAN 5500397. Lidl Belgium catalog identifies KULJANKA all-purpose seasoning / herb salt, IAN 5500397, 1 kg. Multiple independent retail listings identify Kuljanka All Purpose Seasoning 1 kg with EAN/GTIN 20342173. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038300",
+    "ean": "20398002",
+    "evidence": "Finnish Lidl identifies KULJANKA Paneroitu juusto as a 500 g product. Lidl Romania independently lists the corresponding KULJANKA breaded Trapist cheese as 500 g. Bidfood Opava/V-Label identifies KULJANKA Panierter Käse with product number 20398002, and independent food product data explicitly records EAN 20398002 for breaded cheese manufactured by Bidfood Czech Republic. GTIN-8 checksum valid."
+  },
+  {
+    "lidlProductId": "10038301",
+    "ean": "4056489624479",
+    "evidence": "Finnish Lidl queue identifies KULJANKA Lihakeitto as 800 g. SupermarktCheck independently identifies Kuljanka Rinderfleischsuppe nach osteuropäischer Art as an 800 g Lidl retail product. Root Index, sourced from OpenFoodFacts, identifies the exact Kuljanka Rindfleischsuppe nach osteuropäischer Art with EAN 4056489624479 and matching nutrition (61 kcal, protein 3.2 g, carbs 6.6 g, fat 2.2 g per 100 g). GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038303",
+    "ean": "20544317",
+    "evidence": "Lidl.fi Finland dry-goods/preserved-vegetables listing: KULJANKA Hapankaali 800 g, 1.99 EUR, in stores 1.10.-7.10.2026; FoodDB/CHOMP product record: Kuljanka Lidl Sauerkraut/Hapankaali, Finland, barcode 20544317, matching Finnish ingredient text."
   },
   {
     "lidlProductId": "10038304",
@@ -80,9 +195,64 @@
     "evidence": "Lidl catalog identifies PODRAVKA Papu-lihapata at 3.49 EUR; current Croatian official/retail product data identifies Podravka Grah s kobasicom 400 g, sold by Lidl at 3.49 EUR, consumer EAN 3850104035739"
   },
   {
+    "lidlProductId": "10038309",
+    "ean": "6410604802117",
+    "evidence": "Finnish product data identifies PILOS Vadelmakefir consumer EAN 6410604802117 for the Lidl 1 l raspberry kefir product; exact brand/name match."
+  },
+  {
+    "lidlProductId": "10038310",
+    "ean": "5900334000781",
+    "evidence": "Lidl catalog identifies TYMBARK Omena-kirsikkamehu product 10038310; current Lidl offer listing confirms 1 l size; Kespro identifies Tymbark kirsikka-omenamehujuoma 1 l consumer GTIN 5900334000781"
+  },
+  {
+    "lidlProductId": "10038312",
+    "ean": "6409100077884",
+    "evidence": "Lidl.fi Valmisateriat: HK Burgeri 6 kpl, 100 g each; HK official product page: HK Burgeri 100 g, product 7788, EAN 6409100077884"
+  },
+  {
+    "lidlProductId": "10038314",
+    "ean": "6414893310118",
+    "evidence": "Finnish retail product data identifies ATRIA Kanan fileesuikale 300 g EAN 6414893310118; matches Lidl 10038314 ATRIA Kanan fileesuikale 4 kpl / 300 g."
+  },
+  {
+    "lidlProductId": "10038320",
+    "ean": "2377211700004",
+    "evidence": "Lidl W40/2026 candidate is KARINIEMEN Kananpojan rintaleike. Kariniemen official product page identifies the marinated chicken breast cut as approx. 1 kg with EAN 2377211700004; current Finnish offer data shows the same product/EAN at 7.99 EUR, matching the Lidl candidate price."
+  },
+  {
+    "lidlProductId": "10038321",
+    "ean": "6405020033962",
+    "evidence": "Lidl paper-leaflet fixture and parser regression identify Kuusamon Juusto Eränkävijä-juusto 300 g at 4.39 EUR; Kuusamon Juusto official product page identifies Eränkävijä 300 g, EAN 6405020033962"
+  },
+  {
+    "lidlProductId": "10038322",
+    "ean": "5410146401435",
+    "evidence": "Lidl official ready-meals listing identifies DANEROLLES Croissantit as 240 g; Danerolles official Finland lists Original Croissants sold at Lidl and Finnish Kespro/S-kaupat identify the 240 g 6-pack consumer GTIN 5410146401435"
+  },
+  {
+    "lidlProductId": "10038323",
+    "ean": "5711953201677",
+    "evidence": "Official Arla Finland product page identifies EAN 5711953201677 for Arla Protein Suklaa-Brownie 200 ml. Lidl candidate is ARLA Proteiinipirtelö 2 kpl; external Finnish offer data repeatedly identifies the same EAN for the 2-kpl promotion, so the product EAN is unambiguous."
+  },
+  {
+    "lidlProductId": "10038324",
+    "ean": "6407800020094",
+    "evidence": "Lidl Finland productId 10038324 is ATRIA Pizza 2 kpl, 200 g. The Lidl product image explicitly shows Atria Srirachapizza Salami and Srirachapizza Kana-Pekoni. Atria's 2026 product catalogue gives consumer GTIN 6407800020094 for Srirachapizza Salami 200 g; S-kaupat independently confirms the same EAN. Exact variant is visible in Lidl's product image."
+  },
+  {
+    "lidlProductId": "10038324",
+    "ean": "6407800020124",
+    "evidence": "Lidl Finland productId 10038324 is ATRIA Pizza 2 kpl, 200 g. The Lidl product image explicitly shows Atria Srirachapizza Salami and Srirachapizza Kana-Pekoni. Atria's 2026 product catalogue gives consumer GTIN 6407800020124 for Srirachapizza Kana-Pekoni 200 g; Atria's official product page and S-kaupat independently confirm the same EAN. Exact variant is visible in Lidl's product image."
+  },
+  {
     "lidlProductId": "10038473",
     "ean": "7310350118496",
     "evidence": "Lidl catalog: Lakerol Classic Cactus 25 g. Retail product data confirms EAN 7310350118496."
+  },
+  {
+    "lidlProductId": "10038474",
+    "ean": "6420256013083",
+    "evidence": "Lidl catalog: Mynthon Aqua Menthol 44 g. Metro and S-kaupat confirm consumer EAN 6420256013083."
   },
   {
     "lidlProductId": "10038475",
@@ -100,14 +270,9 @@
     "evidence": "Lidl catalog: Panda Pepe Original. Retail product data confirms 32 g EAN 6412500070003."
   },
   {
-    "lidlProductId": "10038487",
-    "ean": "6416453048805",
-    "evidence": "Lidl catalog: Fazer Aarrearkku 220 g. Fazer Pro confirms consumer GTIN 6416453048805."
-  },
-  {
-    "lidlProductId": "10038474",
-    "ean": "6420256013083",
-    "evidence": "Lidl catalog: Mynthon Aqua Menthol 44 g. Metro and S-kaupat confirm consumer EAN 6420256013083."
+    "lidlProductId": "10038480",
+    "ean": "7310350118342",
+    "evidence": "Lidl catalog: CLOETTA Kex-keksisuklaa 60 g. Finnish/European product data identifies Cloetta Kexchoklad 60 g, EAN 7310350118342."
   },
   {
     "lidlProductId": "10038481",
@@ -115,89 +280,14 @@
     "evidence": "Lidl catalog: Karl Fazer Vadelmajogurttisuklaapatukka. S-kaupat and wholesale catalog confirm 37 g consumer EAN 6411401019043."
   },
   {
-    "lidlProductId": "10038480",
-    "ean": "7310350118342",
-    "evidence": "Lidl catalog: CLOETTA Kex-keksisuklaa 60 g. Finnish/European product data identifies Cloetta Kexchoklad 60 g, EAN 7310350118342."
-  },
-  {
-    "lidlProductId": "10037644",
-    "ean": "4335619339798",
-    "evidence": "Lidl catalog identifies SOLEVITA Luomukofeiinishotti 150 ml; supplier/product database identifies Solevita Bio Koffein Shot Apfel-Mango-Limetten-Guarana, 150 ml, EAN 4335619339798."
-  },
-  {
-    "lidlProductId": "10038279",
-    "ean": "6414301081226",
-    "evidence": "Lidl W40/2026 offer identifies SERLA Valkoinen talouspaperi 8 rullaa; Kespro identifies Serla talouspaperi 8rl valkoinen consumer GTIN 6414301081226; S-kaupat independently confirms EAN 6414301081226."
-  },
-  {
-    "lidlProductId": "10038303",
-    "ean": "20544317",
-    "evidence": "Lidl.fi Finland dry-goods/preserved-vegetables listing: KULJANKA Hapankaali 800 g, 1.99 EUR, in stores 1.10.-7.10.2026; FoodDB/CHOMP product record: Kuljanka Lidl Sauerkraut/Hapankaali, Finland, barcode 20544317, matching Finnish ingredient text."
-  },
-  {
-    "lidlProductId": "10038292",
-    "ean": "4056489624455",
-    "evidence": "Lidl Finland candidate data identifies KULJANKA Gulassikeitto productId 10038292, IAN 175056; Lidl.fi Finland lists Kuljanka Gulassikeitto 400 ml; another Lidl market lists the same Kuljanka Goulash IAN 175056 as 400 ml; product database identifies Kuljanka Gulaschsuppe ungarische Art EAN 4056489624455. GTIN-13 checksum valid."
-  },
-  {
     "lidlProductId": "10038482",
     "ean": "6415600582643",
     "evidence": "Lidl Finland product candidate 10038482 is COCA-COLA Coca-Cola, fixed 330 ml; Metro-tukku identifies Coca-Cola Original Taste 0.33 l can consumer EAN 6415600582643 in Finland. GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038272",
-    "ean": "5411188138099",
-    "evidence": "Lidl Finland candidate ALPRO Soijavalmiste 2 kpl is 400 g total; current Finnish retail sources identify the exact Alpro plain unsweetened 400 g consumer product as EAN 5411188138099. Lidl offer data shows the same 400 g item and 2-piece promotion."
-  },
-  {
-    "lidlProductId": "10038248",
-    "ean": "4032549039605",
-    "evidence": "Lidl Finland candidate TASCHKI Pelmeni is 1 kg; Dovgan official product page identifies Taschki Pelmeni XXL with turkey filling, 1 kg, EAN 4032549039605. Independent Lidl offer data identifies Taschki Pelmeni/Vareniki as the Lidl 1 kg product."
-  },
-  {
-    "lidlProductId": "10038271",
-    "ean": "5711953215698",
-    "evidence": "Lidl Finland official current product listing: ARLA Juustoviipale 270 g at 2.99 EUR; independent Finnish retail offer data identifies the exact 270 g Arla Maasdam Juustoviipale with consumer EAN 5711953215698, matching the Lidl price/size listing."
-  },
-  {
-    "lidlProductId": "10038323",
-    "ean": "5711953201677",
-    "evidence": "Official Arla Finland product page identifies EAN 5711953201677 for Arla Protein Suklaa-Brownie 200 ml. Lidl candidate is ARLA Proteiinipirtelö 2 kpl; external Finnish offer data repeatedly identifies the same EAN for the 2-kpl promotion, so the product EAN is unambiguous."
-  },
-  {
-    "lidlProductId": "10038320",
-    "ean": "2377211700004",
-    "evidence": "Lidl W40/2026 candidate is KARINIEMEN Kananpojan rintaleike. Kariniemen official product page identifies the marinated chicken breast cut as approx. 1 kg with EAN 2377211700004; current Finnish offer data shows the same product/EAN at 7.99 EUR, matching the Lidl candidate price."
-  },
-  {
-    "lidlProductId": "10038276",
-    "ean": "6415000116035",
-    "evidence": "Lidl 10038276 is MYLLÄRIN Murot, 300 g. The W40 Lidl candidate name is generic, but the official Finnish Myllärin range and current product/offer evidence identify Suklaarenkaat 300 g as the matching 300 g Myllärin cereal at this Lidl offer; EAN 6415000116035."
-  },
-  {
-    "lidlProductId": "10038309",
-    "ean": "6410604802117",
-    "evidence": "Finnish product data identifies PILOS Vadelmakefir consumer EAN 6410604802117 for the Lidl 1 l raspberry kefir product; exact brand/name match."
-  },
-  {
-    "lidlProductId": "10038314",
-    "ean": "6414893310118",
-    "evidence": "Finnish retail product data identifies ATRIA Kanan fileesuikale 300 g EAN 6414893310118; matches Lidl 10038314 ATRIA Kanan fileesuikale 4 kpl / 300 g."
-  },
-  {
-    "lidlProductId": "10038297",
-    "ean": "20755775",
-    "evidence": "Lidl.fi Finland identifies KULJANKA Paprikapyree 160 g. Independent Lidl product review identifies KULJANKA Paprikacreme scharf 160 g, manufacturer Univer Product Zrt. Hungary, EAN 20755775. GTIN-8 checksum valid."
-  },
-  {
-    "lidlProductId": "10038289",
-    "ean": "20544324",
-    "evidence": "Lidl.fi Finland identifies KULJANKA Hapankurkku 700 g (drained 400 g). Current Swedish Lidl price/product data identifies Kuljanka Syrad gurka 700 g with EAN 0000020544324, equivalent GTIN-8 20544324. Exact brand/product type/total pack weight and Lidl channel match; GTIN-8 checksum valid."
-  },
-  {
-    "lidlProductId": "10038298",
-    "ean": "20342173",
-    "evidence": "Lidl Finland queue identifies KULJANKA Maustesuola, IAN 5500397. Lidl Belgium catalog identifies KULJANKA all-purpose seasoning / herb salt, IAN 5500397, 1 kg. Multiple independent retail listings identify Kuljanka All Purpose Seasoning 1 kg with EAN/GTIN 20342173. GTIN-8 checksum valid."
+    "lidlProductId": "10038487",
+    "ean": "6416453048805",
+    "evidence": "Lidl catalog: Fazer Aarrearkku 220 g. Fazer Pro confirms consumer GTIN 6416453048805."
   },
   {
     "lidlProductId": "10038488",
@@ -205,99 +295,34 @@
     "evidence": "Lidl identifies CONFISERIE FIRENZE Mini Donuts, article/IAN 218769, as 9 pieces / 276 g. Poppies Bakeries NV is documented as the manufacturer behind Lidl's Confiserie Firenze brand and lists Trio Mini Donuts under that brand. Poppies' official catalog identifies Trio Mini Donuts as 9 pieces / 276 g; independent product/foodservice data identifies the exact Poppies 276 g / 9-piece consumer pack EAN as 5411823867841. GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038295",
-    "ean": "4056489120087",
-    "evidence": "Finnish Lidl archive identifies the product as KULJANKA Suklaakuorrutettu vaahtomakeinen. Swedish Lidl retail data identifies the same Kuljanka chocolate-coated marshmallow product as a 380 g pack with EAN 4056489120087. Independent barcode/product data names EAN 4056489120087 as Kuljanka Vanilla Flavoured Marshmallows Coated In Dark Chocolate; nutrition data (396 kcal/100 g) matches the Kuljanka product record. GTIN-13 checksum valid."
+    "lidlProductId": "10038504",
+    "ean": "2006582500004",
+    "evidence": "Lidl Finland product 10038504 is FAZER Pihlajamunkki 3 kpl, 108 g. S-kaupat exact Fazer Pihlaja-munkki 108 g gives consumer EAN 2006582500004 and matching product description/nutrition. The previous 2001436500001 linkage was not sufficiently supported and was removed."
   },
   {
-    "lidlProductId": "10038300",
-    "ean": "20398002",
-    "evidence": "Finnish Lidl identifies KULJANKA Paneroitu juusto as a 500 g product. Lidl Romania independently lists the corresponding KULJANKA breaded Trapist cheese as 500 g. Bidfood Opava/V-Label identifies KULJANKA Panierter Käse with product number 20398002, and independent food product data explicitly records EAN 20398002 for breaded cheese manufactured by Bidfood Czech Republic. GTIN-8 checksum valid."
+    "lidlProductId": "10038518",
+    "ean": "6407800019265",
+    "evidence": "Lidl Finland productId 10038518 identifies ATRIA Rahkaohukainen 380 g and shows Omena-Kaneli and Kaakao-Vadelma variants. Atria's 2026 trade product catalogue identifies Kaakao-Vadelma 380 g consumer package EAN 6407800019265; S-kaupat independently confirms the same EAN. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038286",
-    "ean": "55006774",
-    "evidence": "Lidl Poland official product list identifies article 5500677 as white cabbage salad (Sałatka z białej kapusty), 410 g. Independent barcode food data identifies Kuljanka/Lidl Vegetable salad with cabbage with barcode 55006774 and matching cabbage/vegetable composition. The GTIN-8 is exactly Lidl article 5500677 plus its valid GS1 check digit 4."
+    "lidlProductId": "10038518",
+    "ean": "6407850056487",
+    "evidence": "Lidl Finland productId 10038518 identifies ATRIA Rahkaohukainen 380 g and shows Omena-Kaneli and Kaakao-Vadelma variants. Atria confirms the Omena-Kaneli 380 g product; S-kaupat identifies the exact consumer EAN 6407850056487. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038284",
-    "ean": "20831851",
-    "evidence": "The Finnish queue identifies KULJANKA Borssikeitto (IAN 7701804). Independent Lidl offer history identifies the matching Kuljanka Borscht Soup with White Cabbage & Beetroot as an 800 g retail pack. CHOMP barcode product data identifies Kuljanka Borscht with barcode 20831851. GTIN-8 checksum valid."
+    "lidlProductId": "10038523",
+    "ean": "6413467666605",
+    "evidence": "Lidl Finland productId 10038523 identifies FAZER Lemppari Paahto-bagel 260 g and shows the Juusto and Seesaminsiemen variants. S-kaupat identifies Fazer Lemppari Paahtobagel Seesaminsiemen 4 kpl 260 g with EAN 6413467666605. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038301",
-    "ean": "4056489624479",
-    "evidence": "Finnish Lidl queue identifies KULJANKA Lihakeitto as 800 g. SupermarktCheck independently identifies Kuljanka Rinderfleischsuppe nach osteuropäischer Art as an 800 g Lidl retail product. Root Index, sourced from OpenFoodFacts, identifies the exact Kuljanka Rindfleischsuppe nach osteuropäischer Art with EAN 4056489624479 and matching nutrition (61 kcal, protein 3.2 g, carbs 6.6 g, fat 2.2 g per 100 g). GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038582",
-    "ean": "4070455250004",
-    "evidence": "Lidl Finland identifies TROLLI Scary Heads productId 10038582 as 150 g. S-kaupat and Kespro identify the exact Trolli Scary Heads 150 g consumer pack with EAN/GTIN 4070455250004; Trolli official product page independently confirms the 150 g product identity."
-  },
-  {
-    "lidlProductId": "10038583",
-    "ean": "4000512365020",
-    "evidence": "Lidl Finland identifies TROLLI Makeissekoitus productId 10038583 as 360 g. Independent product data identifies Trolli Halloween Sweet & Sour Mix 360 g with GTIN 4000512365020; multiple current retail listings independently corroborate the same exact 360 g Halloween Sweet & Sour product and GTIN."
-  },
-  {
-    "lidlProductId": "10038579",
-    "ean": "4000512364771",
-    "evidence": "Lidl Finland identifies TROLLI Karkkiaivot productId 10038579 as 175 g. Kespro and S-kaupat identify the exact Trolli Super Brain 175 g consumer pack with GTIN/EAN 4000512364771 and matching sour-filled brain candy identity."
-  },
-  {
-    "lidlProductId": "10038585",
-    "ean": "4000512363729",
-    "evidence": "Lidl Finland identifies TROLLI Vaahtokarkkisilmät productId 10038585 as 75 g, described as eye-shaped foam/gummy candies with sour filling. S-kaupat identifies Trolli Pop Eye 75 g with EAN 4000512363729 and matching product description; multiple European retailers independently corroborate the same 75 g GTIN."
-  },
-  {
-    "lidlProductId": "10038572",
-    "ean": "4056489682875",
-    "evidence": "Lidl Finland identifies HALLOWEEN Tikkarimix productId 10038572 as 209 g. Lidl France official packaging/environmental data identifies Mix sucettes Halloween 209 g with GTIN 4056489682875, and Lidl France catalogue independently corroborates the same 209 g Halloween lollipop mix (article 178966). GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038581",
-    "ean": "7350025828800",
-    "evidence": "Lidl Finland identifies HULTÉN Makeispääkallo productId 10038581 as 333 g. S-kaupat identifies the exact Hultén Halloween pääkallo makeissekoitus 333 g consumer product with EAN 7350025828800; matching Hultén 333 g skull product is independently present in current Lidl catalogues in other markets."
-  },
-  {
-    "lidlProductId": "10038576",
-    "ean": "4056489531340",
-    "evidence": "Lidl Finland identifies HALLOWEEN Täytekaramelli productId 10038576 as a 300 g bag of tongue-colouring filled sweets. Independent product listings identify the exact Halloween Tongue Painter Sweets 300 g pack with barcode/EAN 4056489531340."
-  },
-  {
-    "lidlProductId": "10038578",
-    "ean": "4056489708094",
-    "evidence": "Lidl Finland identifies HALLOWEEN Kirpeät karkit productId 10038578 specifically as Halloween Super Sour Bones 200 g. Two independent product listings identify the exact Halloween Super Sour Bones 200 g product with barcode/EAN 4056489708094."
-  },
-  {
-    "lidlProductId": "10038574",
-    "ean": "4056489526407",
-    "evidence": "Lidl Finland identifies HALLOWEEN Maitosuklaapussi productId 10038574 as a 70 g net bag of Halloween-themed milk chocolate figures. Current Lidl Lithuania and Lidl Greece listings independently show the same Halloween chocolate figures in a net, 70 g. Lidl barcode data identifies Halloween Milk Chocolate Figures Skulls with EAN 4056489526407."
-  },
-  {
-    "lidlProductId": "10038549",
-    "ean": "4056489042396",
-    "evidence": "Lidl Finland identifies ITALIAMO Le Sfoglie productId 10038549 as 225 g. Independent product records identify Italiamo Le Sfoglie 225 g with EAN 4056489042396."
-  },
-  {
-    "lidlProductId": "10038554",
-    "ean": "4056489234036",
-    "evidence": "Lidl Finland identifies ITALIAMO Paahdettu espressokahvipapu productId 10038554 as Espresso Magnifico 1 kg. Independent product data identifies Italiamo Espresso Magnifico 1 kg with EAN 4056489234036."
+    "lidlProductId": "10038523",
+    "ean": "6413467666704",
+    "evidence": "Lidl Finland productId 10038523 identifies FAZER Lemppari Paahto-bagel 260 g and shows the Juusto and Seesaminsiemen variants. S-kaupat identifies Fazer Lemppari Paahtobagel Juusto 4 kpl 260 g with EAN 6413467666704. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   },
   {
     "lidlProductId": "10038542",
     "ean": "4056489042587",
     "evidence": "Lidl Finland identifies ITALIAMO Grana Padano productId 10038542 as 200 g, matured over 16 months. Lidl France official consumer product table identifies Grana Padano 16 mois 200g with GTIN 4056489042587."
-  },
-  {
-    "lidlProductId": "10038569",
-    "ean": "0000020034153",
-    "evidence": "Lidl Finland identifies ITALIAMO Savoiardi productId 10038569 as 400 g. Current Swedish Lidl product data identifies ITALIAMO Savoiardi 400 g with EAN 0000020034153; Lidl Italy also lists Savoiardi 400 g."
-  },
-  {
-    "lidlProductId": "10038560",
-    "ean": "20456436",
-    "evidence": "Lidl Finland identifies ITALIAMO Melanzane productId 10038560 as Melanzane alla Parmigiana 450 g. Independent product and recall records identify the same Italiamo Melanzane alla Parmigiana 450 g package with barcode/UPC 20456436."
   },
   {
     "lidlProductId": "10038546",
@@ -310,9 +335,9 @@
     "evidence": "Lidl Finland identifies ITALIAMO Ilmakuivattu kinkku productId 10038547 as 100 g. Current Swedish Lidl store product data identifies ITALIAMO Prosciutto crudo 100 g with EAN 0000020010447; exact brand, product type and pack size match."
   },
   {
-    "lidlProductId": "10038567",
-    "ean": "4335619372030",
-    "evidence": "Lidl Finland identifies ITALIAMO Pikkuleipälajitelma productId 10038567 as Toscana Style 450 g. Independent product data identifies Italiamo Tuscan Style Pastry Mix 450 g with EAN 4335619372030; exact brand, product name/theme and pack size match."
+    "lidlProductId": "10038549",
+    "ean": "4056489042396",
+    "evidence": "Lidl Finland identifies ITALIAMO Le Sfoglie productId 10038549 as 225 g. Independent product records identify Italiamo Le Sfoglie 225 g with EAN 4056489042396."
   },
   {
     "lidlProductId": "10038551",
@@ -325,14 +350,39 @@
     "evidence": "Lidl Finland identifies current ITALIAMO Pistaasikreemi productId 10038552 as 190 g. Current barcode product data identifies ITALIAMO Crema da pistacchio 190 g with GTIN-8 20633257 and a 20% pistachio formulation; independent product data corroborates the same brand, product, pack size and barcode. An older Lidl-supplied record used the same GTIN-8 for an earlier formulation, supporting product-line continuity. GTIN-8 checksum valid."
   },
   {
-    "lidlProductId": "10038285",
-    "ean": "20076573",
-    "evidence": "Lidl Finland package evidence identifies KULJANKA Savustettu makkara productId 10038285 as 600 g and cross-market Lidl article 185279. Independent barcode product data identifies Kuljanka/Lidl Silesian smoked sausage with GTIN-8 20076573; exact sausage identity and Lidl brand match. GTIN-8 checksum valid."
+    "lidlProductId": "10038554",
+    "ean": "4056489234036",
+    "evidence": "Lidl Finland identifies ITALIAMO Paahdettu espressokahvipapu productId 10038554 as Espresso Magnifico 1 kg. Independent product data identifies Italiamo Espresso Magnifico 1 kg with EAN 4056489234036."
   },
   {
-    "lidlProductId": "10038282",
-    "ean": "2508791003883",
-    "evidence": "Lidl Finland package evidence identifies NOSTJA Pancetta productId 10038282 as 100 g. Current PromoAzi product data identifies NOSTJA Panceta I.G.P., Dalmatia with EAN 2508791003883, while current Lidl catalogue evidence corroborates the NOSTJA Panceta I.G.P. Dalmatia product sold per 100 g."
+    "lidlProductId": "10038560",
+    "ean": "20456436",
+    "evidence": "Lidl Finland identifies ITALIAMO Melanzane productId 10038560 as Melanzane alla Parmigiana 450 g. Independent product and recall records identify the same Italiamo Melanzane alla Parmigiana 450 g package with barcode/UPC 20456436."
+  },
+  {
+    "lidlProductId": "10038567",
+    "ean": "4335619372030",
+    "evidence": "Lidl Finland identifies ITALIAMO Pikkuleipälajitelma productId 10038567 as Toscana Style 450 g. Independent product data identifies Italiamo Tuscan Style Pastry Mix 450 g with EAN 4335619372030; exact brand, product name/theme and pack size match."
+  },
+  {
+    "lidlProductId": "10038569",
+    "ean": "0000020034153",
+    "evidence": "Lidl Finland identifies ITALIAMO Savoiardi productId 10038569 as 400 g. Current Swedish Lidl product data identifies ITALIAMO Savoiardi 400 g with EAN 0000020034153; Lidl Italy also lists Savoiardi 400 g."
+  },
+  {
+    "lidlProductId": "10038572",
+    "ean": "4056489682875",
+    "evidence": "Lidl Finland identifies HALLOWEEN Tikkarimix productId 10038572 as 209 g. Lidl France official packaging/environmental data identifies Mix sucettes Halloween 209 g with GTIN 4056489682875, and Lidl France catalogue independently corroborates the same 209 g Halloween lollipop mix (article 178966). GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038574",
+    "ean": "4056489526407",
+    "evidence": "Lidl Finland identifies HALLOWEEN Maitosuklaapussi productId 10038574 as a 70 g net bag of Halloween-themed milk chocolate figures. Current Lidl Lithuania and Lidl Greece listings independently show the same Halloween chocolate figures in a net, 70 g. Lidl barcode data identifies Halloween Milk Chocolate Figures Skulls with EAN 4056489526407."
+  },
+  {
+    "lidlProductId": "10038576",
+    "ean": "4056489531340",
+    "evidence": "Lidl Finland identifies HALLOWEEN Täytekaramelli productId 10038576 as a 300 g bag of tongue-colouring filled sweets. Independent product listings identify the exact Halloween Tongue Painter Sweets 300 g pack with barcode/EAN 4056489531340."
   },
   {
     "lidlProductId": "10038577",
@@ -340,39 +390,44 @@
     "evidence": "Lidl Finland identifies HALLOWEEN Suklaatikkari productId 10038577 as a 150 g pack containing ten Halloween chocolate lollipops. Independent current product listings identify Lidl Halloween Choco Lolly Pack 10s 150 g with barcode/EAN 4056489118275; another independent listing confirms the same barcode for 10 x 15 g Halloween milk chocolate lollies. GTIN-13 checksum valid."
   },
   {
+    "lidlProductId": "10038578",
+    "ean": "4056489708094",
+    "evidence": "Lidl Finland identifies HALLOWEEN Kirpeät karkit productId 10038578 specifically as Halloween Super Sour Bones 200 g. Two independent product listings identify the exact Halloween Super Sour Bones 200 g product with barcode/EAN 4056489708094."
+  },
+  {
+    "lidlProductId": "10038579",
+    "ean": "4000512364771",
+    "evidence": "Lidl Finland identifies TROLLI Karkkiaivot productId 10038579 as 175 g. Kespro and S-kaupat identify the exact Trolli Super Brain 175 g consumer pack with GTIN/EAN 4000512364771 and matching sour-filled brain candy identity."
+  },
+  {
+    "lidlProductId": "10038580",
+    "ean": "4000512015253",
+    "evidence": "Lidl Finland identifies TROLLI Karkkihämähäkit productId 10038580 as an 800 g tub of spider-shaped fruit gummies. Multiple independent current product listings identify Trolli Tarantula spider gummies 800 g with EAN/GTIN 4000512015253; exact brand, product form and net weight match. GTIN-13 checksum valid."
+  },
+  {
+    "lidlProductId": "10038581",
+    "ean": "7350025828800",
+    "evidence": "Lidl Finland identifies HULTÉN Makeispääkallo productId 10038581 as 333 g. S-kaupat identifies the exact Hultén Halloween pääkallo makeissekoitus 333 g consumer product with EAN 7350025828800; matching Hultén 333 g skull product is independently present in current Lidl catalogues in other markets."
+  },
+  {
+    "lidlProductId": "10038582",
+    "ean": "4070455250004",
+    "evidence": "Lidl Finland identifies TROLLI Scary Heads productId 10038582 as 150 g. S-kaupat and Kespro identify the exact Trolli Scary Heads 150 g consumer pack with EAN/GTIN 4070455250004; Trolli official product page independently confirms the 150 g product identity."
+  },
+  {
+    "lidlProductId": "10038583",
+    "ean": "4000512365020",
+    "evidence": "Lidl Finland identifies TROLLI Makeissekoitus productId 10038583 as 360 g. Independent product data identifies Trolli Halloween Sweet & Sour Mix 360 g with GTIN 4000512365020; multiple current retail listings independently corroborate the same exact 360 g Halloween Sweet & Sour product and GTIN."
+  },
+  {
+    "lidlProductId": "10038585",
+    "ean": "4000512363729",
+    "evidence": "Lidl Finland identifies TROLLI Vaahtokarkkisilmät productId 10038585 as 75 g, described as eye-shaped foam/gummy candies with sour filling. S-kaupat identifies Trolli Pop Eye 75 g with EAN 4000512363729 and matching product description; multiple European retailers independently corroborate the same 75 g GTIN."
+  },
+  {
     "lidlProductId": "10038593",
     "ean": "6407800017070",
     "evidence": "Lidl Finland identifies ATRIA Nauta-kanajauheliha productId 10038593 as the 400 g, 10% fat product. Atria's current product page confirms Atria Nauta-Kana Jauheliha 10% 400 g, and independent Finnish retail offer data repeatedly identifies the exact same Atria 400 g product with EAN 6407800017070. GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038600",
-    "ean": "6409100073114",
-    "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kana-cheddar, pack size 210 g, EAN 6409100073114. Exact brand, variant and pack size match; GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038600",
-    "ean": "6409100072216",
-    "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kinkku-salami, pack size 210 g, EAN 6409100072216. Exact brand, variant and pack size match; GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038596",
-    "ean": "6409620017698",
-    "evidence": "Lidl Finland productId 10038596 identifies SNELLMAN Murea & lihaisa kinkku 120 g and shows the smoked and oven-roasted variants. Snellman's official product page identifies Murea & lihaisa leppäsavukinkku 120 g with EAN 6409620017698. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038596",
-    "ean": "6409620017704",
-    "evidence": "Lidl Finland productId 10038596 identifies SNELLMAN Murea & lihaisa kinkku 120 g and shows the smoked and oven-roasted variants. Snellman's official product page identifies Murea & lihaisa Uunipaahdettu kinkku 120 g with EAN 6409620017704; S-kaupat independently confirms the same EAN. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038523",
-    "ean": "6413467666704",
-    "evidence": "Lidl Finland productId 10038523 identifies FAZER Lemppari Paahto-bagel 260 g and shows the Juusto and Seesaminsiemen variants. S-kaupat identifies Fazer Lemppari Paahtobagel Juusto 4 kpl 260 g with EAN 6413467666704. Exact brand, variant and pack size match; GTIN-13 checksum valid."
-  },
-  {
-    "lidlProductId": "10038523",
-    "ean": "6413467666605",
-    "evidence": "Lidl Finland productId 10038523 identifies FAZER Lemppari Paahto-bagel 260 g and shows the Juusto and Seesaminsiemen variants. S-kaupat identifies Fazer Lemppari Paahtobagel Seesaminsiemen 4 kpl 260 g with EAN 6413467666605. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   },
   {
     "lidlProductId": "10038594",
@@ -385,73 +440,23 @@
     "evidence": "Lidl Finland productId 10038594 identifies SNELLMAN Maatiaispossun nopea ja murea fileepihvi 460 g and shows Original and Piri Piri variants. Snellman's official product page identifies the exact Piri Piri 4 kpl 460 g variant with EAN 6409620016219; S-kaupat independently confirms the EAN. Exact brand, product line, variant and pack size match; GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038518",
-    "ean": "6407850056487",
-    "evidence": "Lidl Finland productId 10038518 identifies ATRIA Rahkaohukainen 380 g and shows Omena-Kaneli and Kaakao-Vadelma variants. Atria confirms the Omena-Kaneli 380 g product; S-kaupat identifies the exact consumer EAN 6407850056487. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+    "lidlProductId": "10038596",
+    "ean": "6409620017698",
+    "evidence": "Lidl Finland productId 10038596 identifies SNELLMAN Murea & lihaisa kinkku 120 g and shows the smoked and oven-roasted variants. Snellman's official product page identifies Murea & lihaisa leppäsavukinkku 120 g with EAN 6409620017698. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038518",
-    "ean": "6407800019265",
-    "evidence": "Lidl Finland productId 10038518 identifies ATRIA Rahkaohukainen 380 g and shows Omena-Kaneli and Kaakao-Vadelma variants. Atria's 2026 trade product catalogue identifies Kaakao-Vadelma 380 g consumer package EAN 6407800019265; S-kaupat independently confirms the same EAN. Exact brand, variant and pack size match; GTIN-13 checksum valid."
+    "lidlProductId": "10038596",
+    "ean": "6409620017704",
+    "evidence": "Lidl Finland productId 10038596 identifies SNELLMAN Murea & lihaisa kinkku 120 g and shows the smoked and oven-roasted variants. Snellman's official product page identifies Murea & lihaisa Uunipaahdettu kinkku 120 g with EAN 6409620017704; S-kaupat independently confirms the same EAN. Exact brand, line, variant and pack size match; GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038324",
-    "ean": "6407800020094",
-    "evidence": "Lidl Finland productId 10038324 is ATRIA Pizza 2 kpl, 200 g. The Lidl product image explicitly shows Atria Srirachapizza Salami and Srirachapizza Kana-Pekoni. Atria's 2026 product catalogue gives consumer GTIN 6407800020094 for Srirachapizza Salami 200 g; S-kaupat independently confirms the same EAN. Exact variant is visible in Lidl's product image."
+    "lidlProductId": "10038600",
+    "ean": "6409100072216",
+    "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kinkku-salami, pack size 210 g, EAN 6409100072216. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   },
   {
-    "lidlProductId": "10038324",
-    "ean": "6407800020124",
-    "evidence": "Lidl Finland productId 10038324 is ATRIA Pizza 2 kpl, 200 g. The Lidl product image explicitly shows Atria Srirachapizza Salami and Srirachapizza Kana-Pekoni. Atria's 2026 product catalogue gives consumer GTIN 6407800020124 for Srirachapizza Kana-Pekoni 200 g; Atria's official product page and S-kaupat independently confirm the same EAN. Exact variant is visible in Lidl's product image."
-  },
-  {
-    "lidlProductId": "10037651",
-    "ean": "20000660",
-    "evidence": "Lidl Finland productId 10037651 is MARIBEL Hillo 450 g with blueberry or mixed-berry variants. Exact Maribel blueberry jam 450 g is independently identified with GTIN 20000660; variant-level identity matches the Lidl row and must be kept separate from the mixed-berry variant."
-  },
-  {
-    "lidlProductId": "10037651",
-    "ean": "20000684",
-    "evidence": "Lidl Finland productId 10037651 is MARIBEL Hillo 450 g with blueberry or mixed-berry variants. Exact Maribel mixed-berry/forest-fruit jam 450 g is independently identified with GTIN 20000684; variant-level identity matches the Lidl row and must be kept separate from the blueberry variant."
-  },
-  {
-    "lidlProductId": "10014992",
-    "ean": "2002676900002",
-    "evidence": "Lidl.fi canonical product page identifies FAZER Dallaspulla as a Paistopiste product; S-kaupat exact consumer product is Fazer Dallaspulla 85 g, EAN 2002676900002, with matching product identity and nutrition."
-  },
-  {
-    "lidlProductId": "10032835",
-    "ean": "2000343200004",
-    "evidence": "Lidl.fi canonical product page identifies FAZER Berliininmunkki as a Paistopiste product; K-Ruoka exact consumer product is Fazer berliininmunkki 115 g, EAN 2000343200004, matching Lidl product identity and nutrition."
-  },
-  {
-    "lidlProductId": "10037407",
-    "ean": "2001447100009",
-    "evidence": "Lidl.fi canonical product page identifies Fazer Raspberry Kiss -munkki as a Paistopiste product; Finnish retail data identifies the exact Fazer Raspberry Kiss munkki 108 g consumer EAN 2001447100009, matching the Lidl product identity."
-  },
-  {
-    "lidlProductId": "10038257",
-    "ean": "2008108300006",
-    "evidence": "Lidl Finland candidate 10038257 is Osteen-mango; S-kaupat exact product is Mango Osteen with EAN 2008108300006. Exact product name/variety match; this is a variable-weight produce EAN."
-  },
-  {
-    "lidlProductId": "10037645",
-    "ean": "4056489654926",
-    "evidence": "Lidl Finland productId 10037645 is MILBONA Proteiinivanukas 200 g with the displayed variants kahvi tai kookos. Exact Milbona High Protein Pudding Coconut 200 g is independently identified by F+S Milchwerk product registry with consumer EAN 4056489654926; the same exact EAN/product is corroborated by current product databases. Added only for the coconut variant; coffee remains unresolved and is not inferred."
-  },
-  {
-    "lidlProductId": "10038504",
-    "ean": "2006582500004",
-    "evidence": "Lidl Finland product 10038504 is FAZER Pihlajamunkki 3 kpl, 108 g. S-kaupat exact Fazer Pihlaja-munkki 108 g gives consumer EAN 2006582500004 and matching product description/nutrition. The previous 2001436500001 linkage was not sufficiently supported and was removed."
-  },
-  {
-    "lidlProductId": "10034796",
-    "ean": "6413467518508",
-    "evidence": "Lidl Finland canonical product 10034796 is FAZER Dumle-munkki. Fazer Pro and Valio Aimo identify the exact Fazer Dumle-munkki 12 x 106 g product with consumer-unit GTIN/EAN 6413467518508; Metro confirms the same EAN as the individual sales unit. Exact product identity and size match."
-  },
-  {
-    "lidlProductId": "10038245",
-    "ean": "6413605151284",
-    "evidence": "Lidl Finland candidate 10038245 is HARTWALL Sokeriton Jaffa 6-pack 3 kpl, matching Hartwall Jaffa Ananas sokeriton 6x0.33 l consumer pack. S-kaupat and Kespro both give EAN 6413605151284 for the exact 6-pack; Lidl offer data shows the 3-pack promotion. The EAN is the consumer 6-pack unit, not the outer case GTIN."
+    "lidlProductId": "10038600",
+    "ean": "6409100073114",
+    "evidence": "Lidl Finland productId 10038600 identifies HK Panini 210 g and shows the Kana-cheddar and Kinkku-salami variants. HK's official product page identifies HK panini kana-cheddar, pack size 210 g, EAN 6409100073114. Exact brand, variant and pack size match; GTIN-13 checksum valid."
   }
 ]
