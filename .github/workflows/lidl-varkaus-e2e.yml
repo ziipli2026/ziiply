@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Start Ziiply
         run: |
           npm run dev -- --hostname 127.0.0.1 > /tmp/ziiply.log 2>&1 &
