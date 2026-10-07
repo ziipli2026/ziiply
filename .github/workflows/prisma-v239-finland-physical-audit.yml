@@ -1,0 +1,60 @@
+name: Prisma V239 Finland physical audit
+on:
+  push:
+    paths: ['.github/workflows/prisma-v239-finland-physical-audit.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Audit Finnish physical Prisma identities
+        run: |
+          set -o pipefail
+          cat > scripts/.tmp-prisma-v239-finland.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search=Prisma",{headers:{Accept:"application/json"}});
+          if(!rr.ok) throw new Error("inventory "+rr.status);
+          const raw:any=await rr.json();
+          const arr=Array.isArray(raw)?raw:(raw.stores||raw.data||raw.results||[]);
+          const seen=new Set<string>();
+          const stores=arr.filter((x:any)=>{
+            const name=String(x.name||"").trim();
+            const city=String(x.city||"").trim();
+            const pc=String(x.postalCode||"").replace(/\s/g,"");
+            const lat=Number(x.latitude??x.lat), lon=Number(x.longitude??x.long??x.lng);
+            const finlandGeo=Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=59.5&&lat<=70.2&&lon>=19&&lon<=32;
+            const finlandPc=/^\d{5}$/.test(pc);
+            const prismaName=/^prisma\b/i.test(name);
+            const exclude=/verkkokauppa|keräilykeskus|puutarha ja lemmikki/i.test(name);
+            const key=name.toLowerCase()+"|"+String(x.externalId||"");
+            if(!prismaName||exclude||(!finlandGeo&&!finlandPc)||seen.has(key)) return false;
+            seen.add(key); return true;
+          });
+          const out:any[]=[];
+          for(const st of stores){
+            const name=String(st.name).trim(), externalId=String(st.externalId||st.storeId||st.id||"");
+            const actual=await resolvePrismaCampaignStoreIdV1(name,externalId);
+            const row={name,externalId,actual}; out.push(row); console.log("V239",JSON.stringify(row));
+            await new Promise(r=>setTimeout(r,700));
+          }
+          const byName=(n:string)=>out.find(x=>x.name.toLowerCase()===n.toLowerCase())?.actual??null;
+          const controls:any={
+            palokka:byName("Prisma Palokka"), raahe:byName("Prisma Raahe"),
+            seinajoki:byName("Prisma Seinäjoki"), syke:byName("Prisma Syke"),
+            heinola:byName("Prisma Heinola"), raksila:byName("Prisma Raksila Oulu"),
+            myyrmanni:byName("Prisma Myyrmanni"), hameenkatu:byName("Prisma Hämeenkatu Tampere"),
+          };
+          const expected:any={palokka:"631792405",raahe:"726668937",seinajoki:"516242633",syke:"726170469",heinola:null,raksila:null,myyrmanni:"726452067",hameenkatu:"726491474"};
+          const failures=Object.keys(expected).filter(k=>controls[k]!==expected[k]);
+          console.log("V239_SUMMARY",JSON.stringify({inventory:arr.length,filtered:stores.length,resolved:out.filter(x=>x.actual).length,controls,failures}));
+          if(failures.length) throw new Error("control failures: "+failures.join(","));
+          TS
+          npx tsx scripts/.tmp-prisma-v239-finland.mts 2>&1 | tee prisma-v239-finland.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: prisma-v239-finland, path: prisma-v239-finland.txt}
