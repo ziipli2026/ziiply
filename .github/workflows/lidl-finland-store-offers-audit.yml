@@ -42,5 +42,4 @@ jobs:
           console.log('SUMMARY',JSON.stringify({stores:results.length,ok:results.length-anomalies.length,anomalies:anomalies.length,activeBaseline:baseline.active,productIdsBaseline:baseline.productIds}));
           for(const x of anomalies) console.log('ANOMALY',JSON.stringify({...x,signature:undefined}));
           for(const x of results.filter(x=>['Varkaus','Hyvinkää','Helsinki','Kuopio','Oulu','Turku'].includes(x.city)).slice(0,20)) console.log('SAMPLE',JSON.stringify({...x,signature:undefined}));
-}
           NODE
