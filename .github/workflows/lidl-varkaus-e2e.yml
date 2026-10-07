@@ -44,6 +44,20 @@ jobs:
           console.log('TAB_AUDIT',JSON.stringify({offers:offerRows.length,campaigns:campaignRows.length,nationalLeafletOffers:nationalLeafletOffers.length}));
           if(!p.ok || p.provider!=='lidl' || p.storeKey!=='FI0165' || rows.length===0 || offerRows.length===0 || nationalLeafletOffers.length===0) process.exit(1);
           NODE
+
+      - name: Verify national Lidl offers survive missing store feed identity
+        shell: bash
+        run: |
+          URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreName=Varkaus'
+          curl -fsS "$URL" -o /tmp/lidl-national.json
+          node <<'NODE'
+          const p=require('/tmp/lidl-national.json');
+          const rows=Array.isArray(p.results)?p.results:[];
+          const offers=rows.filter(x=>x.campaignType!=='campaign');
+          const national=offers.filter(x=>String(x.source||'')==='verified-official-leaflet');
+          console.log('NATIONAL_FALLBACK',JSON.stringify({rows:rows.length,offers:offers.length,national:national.length,storeKey:p.storeKey}));
+          if(!p.ok || offers.length===0 || national.length===0) process.exit(1);
+          NODE
       - name: Server log on failure
         if: failure()
         run: cat /tmp/ziiply.log || true
