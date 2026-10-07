@@ -1,0 +1,30 @@
+name: SSA source anomaly detail
+on:
+  push:
+    paths: ['.github/workflows/ssa-source-anomaly-detail.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Build anomaly inventory
+        run: |
+          cat >/tmp/a.mjs <<'JS'
+          const chains=["S-market","Sale","Alepa"];
+          const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\b(uusi|vanha)\b|[()]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+          for(const chain of chains){
+            const raw=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(chain)).then(r=>r.json());
+            const a=Array.isArray(raw)?raw:(raw.stores||raw.data||raw.results||[]);
+            const rows=a.filter(x=>chain==="S-market"?/^s-market\b/i.test(String(x.name||"")):chain==="Sale"?/^sale\b/i.test(String(x.name||"")):/^alepa\b/i.test(String(x.name||"")));
+            const byId=new Map(),byName=new Map();
+            for(const x of rows){const id=String(x.externalId||x.storeId||x.id||"");if(id)(byId.get(id)||byId.set(id,[]).get(id)).push(x);const n=norm(x.name);(byName.get(n)||byName.set(n,[]).get(n)).push(x)}
+            const iddups=[...byId].filter(([,v])=>v.length>1);
+            const namedups=[...byName].filter(([,v])=>new Set(v.map(x=>String(x.externalId||x.storeId||x.id||""))).size>1);
+            const suspicious=rows.filter(x=>/\b(vanha|uusi)\b/i.test(String(x.name||"")));
+            console.log("ANOM",JSON.stringify({chain,total:rows.length,uniqueIds:byId.size,iddups:iddups.map(([id,v])=>({id,rows:v.map(x=>({name:x.name,address:x.address,postalCode:x.postalCode,city:x.city}))})),nameVariants:namedups.map(([key,v])=>({key,rows:v.map(x=>({name:x.name,id:String(x.externalId||x.storeId||x.id||""),address:x.address,postalCode:x.postalCode,city:x.city}))})),suspicious:suspicious.map(x=>({name:x.name,id:String(x.externalId||x.storeId||x.id||""),address:x.address,postalCode:x.postalCode,city:x.city}))}));
+          }
+          JS
+          node /tmp/a.mjs
