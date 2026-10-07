@@ -3,7 +3,7 @@ name: Prisma Finland nationwide V238 forced audit
 on:
   push:
     paths:
-      - '.github/workflows/prisma-finland-id-audit.yml'
+      - '.github/workflows/prisma-v238-finland-forced-audit.yml'
   workflow_dispatch:
 
 permissions:
