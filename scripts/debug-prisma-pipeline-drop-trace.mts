@@ -148,6 +148,28 @@ const sourceComparisonV2={
 };
 console.log("PRISMA_SOURCE_COMPARISON",JSON.stringify({sourceComparisonV2,offerOnlyFood:offerOnlyV2.filter(isFoodV2),campaignOnlyFood:campaignOnlyV2.filter(isFoodV2),campaignOnly:campaignOnlyV2,overlap:overlapV2},null,2));
 
+
+const discountedSignalAuditV3=(discounted as any[]).map((x:any)=>{
+ const ev=x?.debugOfferEvidenceV226||{};
+ const cp=Number(ev.campaignPrice), cur=Number(ev.currentPrice), reg=Number(ev.regularPrice);
+ return {ean:String(x?.ean||""),title:String(x?.title||""),category:String(x?.category||""),categoryPath:String(x?.categoryPath||""),labels:String(ev.rawLabels||""),campaignPrice:Number.isFinite(cp)?cp:null,currentPrice:Number.isFinite(cur)?cur:null,regularPrice:Number.isFinite(reg)?reg:null,validUntil:String(ev.campaignPriceValidUntil||""),hasOfferSignal:Boolean(ev.hasOfferSignal),priceBelowRegular:Boolean(ev.priceBelowRegular)};
+});
+const signalSummaryV3={
+ total:discountedSignalAuditV3.length,
+ withCampaignPrice:discountedSignalAuditV3.filter(x=>x.campaignPrice!=null).length,
+ withValidUntil:discountedSignalAuditV3.filter(x=>!!x.validUntil).length,
+ priceBelowRegular:discountedSignalAuditV3.filter(x=>x.currentPrice!=null&&x.regularPrice!=null&&x.currentPrice<x.regularPrice-0.005).length,
+ labelDiscount:discountedSignalAuditV3.filter(x=>/discount|tarjous|kampanja/i.test(x.labels)).length,
+ noOfferSignal:discountedSignalAuditV3.filter(x=>!x.hasOfferSignal).length,
+ sameCurrentRegular:discountedSignalAuditV3.filter(x=>x.currentPrice!=null&&x.regularPrice!=null&&Math.abs(x.currentPrice-x.regularPrice)<0.005).length
+};
+const rootCategoryTotalsV3:Record<string,number>={};
+for(const x of discountedSignalAuditV3){const root=(x.categoryPath.split("/")[0]||x.category||"(empty)").trim();rootCategoryTotalsV3[root]=(rootCategoryTotalsV3[root]||0)+1;}
+const priceGroupsV3=new Map<string,any[]>();
+for(const x of discountedSignalAuditV3){const key=[x.categoryPath,x.campaignPrice,x.currentPrice,x.regularPrice,x.validUntil].join("|");priceGroupsV3.set(key,[...(priceGroupsV3.get(key)||[]),x]);}
+const largestVariantGroupsV3=[...priceGroupsV3.entries()].map(([key,rows])=>({key,count:rows.length,sample:rows.slice(0,12)})).sort((a,b)=>b.count-a.count).slice(0,30);
+console.log("PRISMA_DISCOUNTED_SIGNAL_AUDIT",JSON.stringify({signalSummaryV3,rootCategoryTotalsV3,largestVariantGroupsV3,noOfferSignal:discountedSignalAuditV3.filter(x=>!x.hasOfferSignal),sameCurrentRegular:discountedSignalAuditV3.filter(x=>x.currentPrice!=null&&x.regularPrice!=null&&Math.abs(x.currentPrice-x.regularPrice)<0.005).slice(0,100)},null,2));
+
 const report={
  audit:"PRISMA_PIPELINE_DROP_TRACE_V1",storeName,
  counts:{discounted:discounted.length,campaigns:campaigns.length,input:input.length,master:master.length,masterOffers:offers.length,masterCampaigns:campaignRows.length,offerDeduped:offerDeduped.length,campaignDeduped:campaignDeduped.length,offerCleaned:offerCleaned.length,campaignCleaned:campaignCleaned.length,droppedByOfferClean:offers.length-offerCleaned.length,droppedByCampaignClean:campaignRows.length-campaignCleaned.length,offerCards:offerCards.length,offerCardsAfterPageDedupe:offerPageDedupe.kept.length,offerCardsDroppedByPageDedupe:offerPageDedupe.removed.length,campaignCards:campaignCards.length,campaignCardsAfterPageDedupe:campaignPageDedupe.kept.length,campaignCardsDroppedByPageDedupe:campaignPageDedupe.removed.length,offerMobileCardsAfterDedupe:offerMobileDedupe.kept.length,offerMobileCardsDropped:offerMobileDedupe.removed.length,offerCategoryTotalSum,campaignCategoryTotalSum,campaignMobileCardsAfterDedupe:campaignMobileDedupe.kept.length,campaignMobileCardsDropped:campaignMobileDedupe.removed.length,offerUnknownUiCategories:offerCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),offerMissingFromOwnCategory:offerCategoryCoverage.missing.length,campaignUnknownUiCategories:campaignCategoryCoverage.unknownCategories.reduce((n:any,g:any)=>n+g.count,0),campaignMissingFromOwnCategory:campaignCategoryCoverage.missing.length,dropped:dropped.length,unexpected:unexpected.length,crossTabSameEan:crossTab.length,crossTabSameEanSamePrice:samePriceCrossTab.length},
