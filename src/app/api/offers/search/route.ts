@@ -70,6 +70,7 @@ import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../componen
 import { fetchLidlPublicCampaignOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
 import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
 import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
+import { LIDL_NATIONAL_PUBLICATION_CHAIN } from "../../../components/ziiply/offerSearch/lidlPublicationConfig";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
 import {
   searchZiiplyOffers,
@@ -622,7 +623,7 @@ export async function GET(request: Request) {
       // the same active national publication; store identity is rebound below.
       let staged: UnknownRecord[] = [];
       try {
-        const nationalStaged = await readActivePublicationOffers<UnknownRecord>("LIDL:FI0218");
+        const nationalStaged = await readActivePublicationOffers<UnknownRecord>(LIDL_NATIONAL_PUBLICATION_CHAIN);
         staged = nationalStaged.map((offer) => ({
           ...offer,
           storeKey,
