@@ -333,5 +333,10 @@
     "lidlProductId": "10038282",
     "ean": "2508791003883",
     "evidence": "Lidl Finland package evidence identifies NOSTJA Pancetta productId 10038282 as 100 g. Current PromoAzi product data identifies NOSTJA Panceta I.G.P., Dalmatia with EAN 2508791003883, while current Lidl catalogue evidence corroborates the NOSTJA Panceta I.G.P. Dalmatia product sold per 100 g."
+  },
+  {
+    "lidlProductId": "10038577",
+    "ean": "4056489118275",
+    "evidence": "Lidl Finland identifies HALLOWEEN Suklaatikkari productId 10038577 as a 150 g pack containing ten Halloween chocolate lollipops. Independent current product listings identify Lidl Halloween Choco Lolly Pack 10s 150 g with barcode/EAN 4056489118275; another independent listing confirms the same barcode for 10 x 15 g Halloween milk chocolate lollies. GTIN-13 checksum valid."
   }
 ]
