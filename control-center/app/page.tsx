@@ -95,7 +95,7 @@ export default async function Page(){
   });
   const parserRegressionRed=parserRegressions.filter(x=>x.level==="red").length;
   const parserRegressionYellow=parserRegressions.filter(x=>x.level==="yellow").length;
-  const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
+  const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi&&!d.pubs.some(q=>q.chain===p.chain&&q.valid_from===p.valid_from&&q.valid_until===p.valid_until&&q.approval_state==="approved"&&q.parsed_at>p.parsed_at));
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
   const latestBySource=[...new Map(d.runs.map(r=>[`${r.chain}::${r.source}`,r])).values()];
   const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count>0?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source==="s-kaupat-protocol"||r.source==="future-publication-discovery";const level=!r.ok||(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
