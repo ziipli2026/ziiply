@@ -805,7 +805,9 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
     // V221: exact pickup-place match wins over a closer unrelated Prisma.
     const wantedPlaceTokensV221 = getPrismaPlaceTokensV225(cleanStoreName);
+    const wantedBrandV238 = getStoreBrandFromNameV215(cleanStoreName);
     const ranked = candidates
+      .filter((candidate) => !wantedBrandV238 || candidate.brand === wantedBrandV238)
       .map((candidate) => {
         const pickupNameNormalizedV221 = normalizeSKaupatStoreNameForMatchV198(candidate.pickupName);
         const placeMatch = wantedPlaceTokensV221.some((token) => pickupNameNormalizedV221.includes(token));
@@ -848,7 +850,14 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     // A geographically close pickup point is NOT proof that it belongs to
     // the selected store. Accept a matching place token OR an exact street
     // match for cases such as Prisma Hämeenkatu -> Sokos Tampere pickup name.
-    if (!best || !brandOk || (!nameHit && !addressHit) || best.score < 100) {
+    const geocodeWasFullStoreV238 = normalizeSKaupatStoreNameForMatchV198(coords.queryUsed)
+      .includes(normalizeSKaupatStoreNameForMatchV198(cleanStoreName));
+    const nearSameBrandHitV238 = Boolean(
+      best && brandOk && geocodeWasFullStoreV238 &&
+      best.candidate.distance != null && best.candidate.distance <= 300
+    );
+
+    if (!best || !brandOk || (!nameHit && !addressHit && !nearSameBrandHitV238) || best.score < 100) {
       console.warn("[GOSTA V216] no safe S-kaupat pickup candidate", {
         storeName: cleanStoreName, coords,
         candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
@@ -879,6 +888,15 @@ async function resolveEffectiveSKaupatStoreIdV174(
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
+  const directVerifiedPrismaIdsV239: Record<string, string> = {
+    "prisma syke": "726170469",
+  };
+  const directVerifiedV239 = directVerifiedPrismaIdsV239[
+    normalizeSKaupatStoreNameForMatchV198(storeName)
+  ];
+  if (directVerifiedV239 && raw === directVerifiedV239) {
+    return directVerifiedV239;
+  }
 
   // V219 experiment: resolve the selected shop via its online pickup point first.
   // The pickup response contains store.id, unlike the public /myymala URL.
@@ -893,7 +911,12 @@ async function resolveEffectiveSKaupatStoreIdV174(
       placeV219 &&
       normalizeSKaupatStoreNameForMatchV198(pickupNameV219).includes(placeV219)
     );
-    if (pickupStoreIdV219 && pickupMatchesV219) {
+    const pickupSafelyResolvedV238 = Boolean(
+      pickupStoreIdV219 &&
+      lastPickupResolverDiagnosticV216?.bestStoreId === pickupStoreIdV219 &&
+      !lastPickupResolverDiagnosticV216?.fetchError
+    );
+    if (pickupStoreIdV219 && (pickupMatchesV219 || pickupSafelyResolvedV238)) {
       console.warn("[GOSTA V219] using matching pickup store.id", {
         storeName, inputStoreId: raw || null,
         pickupName: pickupNameV219, resolvedStoreId: pickupStoreIdV219,
@@ -2566,8 +2589,11 @@ export async function fetchSKaupatOffers(
  * Uses the same dynamically resolved pickup/store identity as Gösta, but does
  * not apply Gösta's offer-only filtering. Never borrows another store's price.
  */
-export async function resolvePrismaCampaignStoreIdV1(storeName: string): Promise<string | null> {
-  return getEffectiveSKaupatStoreIdV174({ storeName });
+export async function resolvePrismaCampaignStoreIdV1(
+  storeName: string,
+  storeId?: string | number | null,
+): Promise<string | null> {
+  return getEffectiveSKaupatStoreIdV174({ storeName, storeId });
 }
 
 export async function fetchSKaupatNormalProductsV220(query: string, storeName: string) {
