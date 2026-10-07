@@ -38,15 +38,15 @@ export default function DesktopPreviewPage() {
   const [active, setActive] = useState<Assistant>("justiina");
   const [scannerMode, setScannerMode] = useState<"checking" | "camera" | "external">("checking");
   const [workspace, setWorkspace] = useState<Assistant | null>(null);
-  const [location, setLocation] = useState("Hyvinkää");
+  const [location, setLocation] = useState("");
   const [gpsOn, setGpsOn] = useState(true);
-  const [appliedLocation, setAppliedLocation] = useState("Hyvinkää");
-  const [locationStatus, setLocationStatus] = useState("Valittu sijainti: Hyvinkää");
+  const [appliedLocation, setAppliedLocation] = useState("GPS");
+  const [locationStatus, setLocationStatus] = useState("Haetaan GPS-sijaintia…");
   const [mapOpen, setMapOpen] = useState(false);
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
   const [stores, setStores] = useState<any[]>([]);
-  const [selectedStore, setSelectedStore] = useState<any>(null);
+  const [selectedStores, setSelectedStores] = useState<Record<string, any>>({});
   const [storePickerOpen, setStorePickerOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems] = useState<any[]>([]);
@@ -59,7 +59,7 @@ export default function DesktopPreviewPage() {
     setAppliedLocation(value);
     setGpsOn(false);
     setLocationStatus(`Valittu sijainti: ${value}`);
-    fetch(`/api/store-search?search=${encodeURIComponent(value)}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items); if(items.length && !selectedStore) setSelectedStore(items[0]); }).catch(()=>setStores([]));
+    fetch(`/api/store-search?search=${encodeURIComponent(value)}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items); if(items.length) setSelectedStores({}); }).catch(()=>setStores([]));
   }
 
   function useGps() {
@@ -73,13 +73,15 @@ export default function DesktopPreviewPage() {
         setGpsOn(true);
         setAppliedLocation(`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
         setLocationStatus("GPS-sijainti käytössä");
-        fetch(`/api/store-search?gps=1&lat=${coords.latitude}&lon=${coords.longitude}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items); if(items.length) setSelectedStore(items[0]); }).catch(()=>setStores([]));
+        fetch(`/api/store-search?gps=1&lat=${coords.latitude}&lon=${coords.longitude}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items); if(items.length) setSelectedStores({}); }).catch(()=>setStores([]));
       },
       () => setLocationStatus("Sijainnin käyttö ei onnistunut"),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
   }
 
+
+  useEffect(() => { useGps(); }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -205,7 +207,7 @@ export default function DesktopPreviewPage() {
           </div>
         </header>
 
-        {storePickerOpen && <div className="absolute inset-0 z-[90] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]"><div className="w-full max-w-[760px] rounded-[30px] bg-[#f8f3e7] p-6 shadow-2xl"><div className="flex items-center justify-between"><div><div className="text-[11px] font-black uppercase tracking-[.15em] text-[#7d745e]">Kauppavalinta</div><div className="text-[25px] font-black">Kaupat · {appliedLocation}</div></div><button onClick={()=>setStorePickerOpen(false)} className="rounded-full bg-white px-4 py-2 font-black">Sulje ×</button></div><div className="mt-5 grid max-h-[430px] grid-cols-2 gap-3 overflow-auto">{stores.length ? stores.map((s:any)=><button key={String(s.id)} onClick={()=>{setSelectedStore(s);setStorePickerOpen(false)}} className={`rounded-[18px] border-2 p-4 text-left ${String(selectedStore?.id)===String(s.id)?"border-[#159447] bg-[#ecf8e9]":"border-[#b8a77e]/35 bg-white/70"}`}><span className="block text-[15px] font-black">{s.name}</span><span className="text-[11px] font-bold text-[#737768]">{s.city || ""} {s.postalCode || ""}</span></button>) : <div className="col-span-2 rounded-[18px] bg-white/60 p-8 text-center font-bold text-[#737768]">Kirjoita paikkakunta ylhäällä tai käytä GPS:ää.</div>}</div></div></div>}
+        {storePickerOpen && <div className="absolute inset-0 z-[90] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]"><div className="w-full max-w-[760px] rounded-[30px] bg-[#f8f3e7] p-6 shadow-2xl"><div className="flex items-center justify-between"><div><div className="text-[11px] font-black uppercase tracking-[.15em] text-[#7d745e]">Kauppavalinta</div><div className="text-[25px] font-black">Kaupat · {appliedLocation}</div></div><button onClick={()=>setStorePickerOpen(false)} className="rounded-full bg-white px-4 py-2 font-black">Sulje ×</button></div><div className="mt-4 flex items-center justify-between rounded-[16px] bg-white/55 px-4 py-3"><span className="text-[12px] font-black">Valitse yksi tai useampi kauppa</span><span className="text-[12px] font-black text-[#267348]">{Object.keys(selectedStores).length} valittu</span></div><div className="mt-3 grid max-h-[390px] grid-cols-2 gap-3 overflow-auto">{stores.length ? stores.map((s:any)=>{ const key=String(s.id); const selected=Boolean(selectedStores[key]); return <button key={key} onClick={()=>setSelectedStores(prev=>{const next={...prev}; if(next[key]) delete next[key]; else next[key]=s; return next;})} className={`rounded-[18px] border-2 p-4 text-left ${selected?"border-[#159447] bg-[#ecf8e9]":"border-[#b8a77e]/35 bg-white/70"}`}><span className="flex items-center justify-between"><span className="block text-[15px] font-black">{s.name}</span><span className={`grid h-7 w-7 place-items-center rounded-full font-black ${selected?"bg-[#159447] text-white":"bg-[#eee7d7] text-transparent"}`}>✓</span></span><span className="text-[11px] font-bold text-[#737768]">{s.city || ""} {s.postalCode || ""}</span></button>}) : <div className="col-span-2 rounded-[18px] bg-white/60 p-8 text-center font-bold text-[#737768]">Kirjoita paikkakunta ylhäällä tai käytä GPS:ää.</div>}</div></div></div>}
 
         {cartOpen && <div className="absolute inset-0 z-[90] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]"><div className="w-full max-w-[720px] rounded-[30px] bg-[#fff8df] p-6 shadow-2xl"><div className="flex items-center justify-between"><div><div className="text-[11px] font-black uppercase tracking-[.15em] text-[#7d745e]">Ziiply</div><div className="text-[27px] font-black">🛒 Ostosvihko</div></div><button onClick={()=>setCartOpen(false)} className="rounded-full bg-white px-4 py-2 font-black">Sulje ×</button></div><div className="mt-5 rounded-[22px] border border-[#b89552]/30 bg-white/60 p-8 text-center"><div className="text-[18px] font-black">{cartItems.length ? `${cartItems.length} tuotetta` : "Vihko on vielä tyhjä"}</div><div className="mt-2 text-[12px] font-bold text-[#737768]">Justiinan ja Göstan tuotteet tulevat samaan ostosvihkoon.</div></div></div></div>}
 
@@ -226,7 +228,7 @@ export default function DesktopPreviewPage() {
         <section className="grid min-h-0 flex-1 items-center gap-8 py-5 lg:grid-cols-[0.76fr_1.24fr] xl:gap-11">
           <div className="relative max-w-[570px]">
             <div className="mb-4 grid grid-cols-[1fr_170px] gap-3">
-              <button onClick={() => setStorePickerOpen(true)} className="rounded-[22px] border-2 border-[#4e775b] bg-[#fffaf0]/90 px-5 py-3 text-left shadow-sm"><span className="block text-[9px] font-black uppercase tracking-[.14em] text-[#788170]">Valittu kauppa</span><span className="mt-1 block truncate text-[16px] font-black text-[#17352a]">{selectedStore?.name || "Valitse kauppa"}</span><span className="block text-[10px] font-bold text-[#7b745f]">{selectedStore?.city || appliedLocation} · Vaihda →</span></button>
+              <button onClick={() => setStorePickerOpen(true)} className="rounded-[22px] border-2 border-[#4e775b] bg-[#fffaf0]/90 px-5 py-3 text-left shadow-sm"><span className="block text-[9px] font-black uppercase tracking-[.14em] text-[#788170]">Valittu kauppa</span><span className="mt-1 block truncate text-[16px] font-black text-[#17352a]">{Object.keys(selectedStores).length ? `${Object.keys(selectedStores).length} kauppaa valittu` : "Valitse kaupat"}</span><span className="block text-[10px] font-bold text-[#7b745f]">{appliedLocation} · Monivalinta →</span></button>
               <button onClick={() => setCartOpen(true)} className="rounded-[22px] border-2 border-[#b89552] bg-[#fff2c8] px-4 py-3 text-left shadow-sm"><span className="block text-[9px] font-black uppercase tracking-[.14em] text-[#786642]">Ostosvihko</span><span className="mt-1 block text-[17px] font-black">🛒 {cartItems.length} tuotetta</span><span className="block text-[10px] font-bold text-[#7b745f]">Avaa vihkonen →</span></button>
             </div>
             <div aria-hidden className="absolute -left-7 -top-10 -z-10 h-[118%] w-[112%] -rotate-2 rounded-[46px] border border-[#806b45]/10 bg-[#fffaf0]/26 shadow-[0_30px_80px_rgba(54,68,52,0.06)]" />
