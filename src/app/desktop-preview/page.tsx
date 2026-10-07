@@ -37,6 +37,10 @@ const assistants = [
 export default function DesktopPreviewPage() {
   const [active, setActive] = useState<Assistant>("justiina");
   const [scannerMode, setScannerMode] = useState<"checking" | "camera" | "external">("checking");
+  const [workspace, setWorkspace] = useState<Assistant | null>(null);
+  const [location, setLocation] = useState("Hyvinkää");
+  const [gpsOn, setGpsOn] = useState(true);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -96,7 +100,7 @@ export default function DesktopPreviewPage() {
                 </span>
               </button>
             ))}
-            <button type="button" className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
+            <button type="button" onClick={() => setCalendarOpen((v) => !v)} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
               <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">7</span>
               <span>
                 <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">LOKAKUU</span>
@@ -107,13 +111,13 @@ export default function DesktopPreviewPage() {
           </div>
 
           <div className="grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px_44px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
-            <button type="button" title="GPS päällä" className="relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad] shadow-[inset_0_1px_0_rgba(255,255,255,.72)]">
+            <button type="button" onClick={() => setGpsOn((v) => !v)} title={gpsOn ? "GPS päällä" : "GPS pois"} className="relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"} shadow-[inset_0_1px_0_rgba(255,255,255,.72)]">
               <span className="text-[23px]">📍</span>
               <span className="absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white bg-[#159447] shadow-sm" />
             </button>
             <label className="relative min-w-0 rounded-[15px] border border-[#b89552] bg-gradient-to-b from-[#fff8e7] to-[#efd79d] px-3 py-1.5 shadow-inner">
               <span className="block text-[8px] font-black uppercase tracking-[0.12em] text-[#756848]">Paikkakunta tai postinumero</span>
-              <input defaultValue="Hyvinkää" aria-label="Paikkakunta tai postinumero" className="mt-0.5 block w-full bg-transparent text-[15px] font-black text-[#241b13] outline-none placeholder:text-[#766e5c]" placeholder="05510 tai Hyvinkää" />
+              <input value={location} onChange={(e) => setLocation(e.target.value)} aria-label="Paikkakunta tai postinumero" className="mt-0.5 block w-full bg-transparent text-[15px] font-black text-[#241b13] outline-none placeholder:text-[#766e5c]" placeholder="05510 tai Hyvinkää" />
             </label>
             <button type="button" title="Avaa kartta" className="group grid h-[52px] w-[64px] place-items-center rounded-[16px] border-2 border-[#65a99c] bg-gradient-to-b from-[#c8eee8] to-[#86cabf] shadow-[inset_0_1px_0_rgba(255,255,255,.65)]">
               <img src="/icons/ziiply-compass.png" alt="Avaa kartta" className="h-[43px] w-[43px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,.24)] transition group-hover:scale-105" />
@@ -164,7 +168,7 @@ export default function DesktopPreviewPage() {
                   <button
                     key={item.key}
                     type="button"
-                    onClick={() => setActive(item.key)}
+                    onClick={() => { setActive(item.key); setWorkspace(null); }}
                     className={[
                       "group relative min-h-[0] h-[clamp(330px,46vh,430px)] overflow-hidden rounded-[34px] border-[3px] p-5 text-center transition duration-200 hover:-translate-y-2 hover:rotate-[0.3deg] hover:shadow-[0_28px_54px_rgba(35,54,42,0.22)] active:translate-y-0",
                       item.frame,
@@ -194,11 +198,36 @@ export default function DesktopPreviewPage() {
               })}
             </div>
 
+            {workspace && (
+              <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
+                <div className="flex items-center justify-between border-b border-[#71806d]/20 pb-4">
+                  <div><div className="text-[11px] font-black uppercase tracking-[.16em] text-[#7a806e]">Desktop-työtila</div><div className="mt-1 text-[30px] font-black text-[#14291f]">{assistants.find(x => x.key === workspace)?.name} · {assistants.find(x => x.key === workspace)?.title}</div></div>
+                  <button onClick={() => setWorkspace(null)} className="rounded-full border border-[#71806d]/25 bg-white/70 px-4 py-2 text-[13px] font-black">← Apurit</button>
+                </div>
+                <div className="grid min-h-0 flex-1 grid-cols-[1fr_300px] gap-5 pt-5">
+                  <div className="rounded-[26px] border border-[#7b876f]/18 bg-white/55 p-6">
+                    <div className="text-[12px] font-black uppercase tracking-[.14em] text-[#788170]">{workspace === "gosta" ? "Tarjoukset & kampanjat" : workspace === "justiina" ? "Tuotehaku & reseptit" : "Kaupat & asetukset"}</div>
+                    <h3 className="mt-2 text-[26px] font-black text-[#193429]">{workspace === "gosta" ? "Mitä tarjouksia etsitään?" : workspace === "justiina" ? "Mitä etsitään tänään?" : "Omat valinnat"}</h3>
+                    {workspace !== "arvo" ? <input autoFocus placeholder={workspace === "gosta" ? "Hae tarjouksista…" : "Hae tuotetta tai reseptiä…"} className="mt-5 w-full rounded-[18px] border-2 border-[#a88c58]/50 bg-[#fffdf5] px-5 py-4 text-[17px] font-black outline-none" /> : <div className="mt-5 grid grid-cols-2 gap-3"><button className="rounded-[18px] border border-[#82917d]/30 bg-[#f5f1e5] p-5 text-left font-black">🏪 Kaupat<br/><span className="text-[12px] text-[#788170]">{location}</span></button><button className="rounded-[18px] border border-[#82917d]/30 bg-[#f5f1e5] p-5 text-left font-black">⚙️ Asetukset<br/><span className="text-[12px] text-[#788170]">Omat valinnat</span></button></div>}
+                    {workspace === "gosta" && <div className="mt-4 flex gap-3"><button className="rounded-full bg-[#2f7750] px-5 py-3 text-[13px] font-black text-white">Tarjoukset</button><button className="rounded-full border border-[#2f7750]/30 bg-white px-5 py-3 text-[13px] font-black">Kampanjat</button></div>}
+                  </div>
+                  <aside className="rounded-[26px] border border-[#b89552]/30 bg-gradient-to-b from-[#fff8e7] to-[#efddb3] p-5">
+                    <div className="text-[11px] font-black uppercase tracking-[.14em] text-[#786642]">EAN / skanneri</div>
+                    <div className="mt-3 text-[19px] font-black text-[#1b382c]">{scannerMode === "camera" ? "Kameraskannaus" : scannerMode === "external" ? "HID / EAN-lukija" : "Tarkistetaan laitetta…"}</div>
+                    <p className="mt-2 text-[12px] font-bold leading-relaxed text-[#6d6654]">{scannerMode === "camera" ? "Tabletilla voit käyttää takakameraa tai ulkoista lukijaa." : "Skannaa Eyoyolla / USB-HID-lukijalla tai kirjoita EAN."}</p>
+                    <input inputMode="numeric" placeholder="Skannaa tai kirjoita EAN" className="mt-5 w-full rounded-[14px] border border-[#a88c58] bg-[#fffdf5] px-4 py-3 text-[14px] font-black outline-none" />
+                    {scannerMode === "camera" && <button className="mt-3 w-full rounded-[14px] bg-[#2f7750] px-4 py-3 text-[13px] font-black text-white">📷 Avaa skanneri</button>}
+                  </aside>
+                </div>
+              </div>
+            )}
+            {calendarOpen && <div className="absolute right-[32%] top-20 z-50 rounded-[22px] border border-[#c9a86d] bg-[#fffaf0] p-4 shadow-2xl"><div className="text-[11px] font-black uppercase text-[#806b45]">Lokakuu 2026</div><div className="mt-1 text-[24px] font-black">Keskiviikko 7.10.</div><button onClick={() => setCalendarOpen(false)} className="mt-3 text-[12px] font-black text-[#2f7750]">Sulje</button></div>}
+
             <div className="mt-3 flex items-center justify-between rounded-[22px] border border-[#77856e]/15 bg-white/48 px-5 py-4">
               <div className="text-[14px] font-bold text-[#657064]">
                 Valittuna <span className="font-black text-[#243a2b]">{assistants.find((x) => x.key === active)?.name}</span>
               </div>
-              <button className="rounded-full bg-[#214c32] px-6 py-3 text-[14px] font-black text-white shadow-[0_8px_18px_rgba(33,76,50,0.22)]">
+              <button onClick={() => setWorkspace(active)} className="rounded-full bg-[#214c32] px-6 py-3 text-[14px] font-black text-white shadow-[0_8px_18px_rgba(33,76,50,0.22)]">
                 Jatka →
               </button>
             </div>
