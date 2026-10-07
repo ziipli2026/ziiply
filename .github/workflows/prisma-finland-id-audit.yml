@@ -1,0 +1,78 @@
+name: Prisma Finland nationwide ID audit (read-only)
+
+on:
+  push:
+    paths:
+      - '.github/workflows/prisma-finland-id-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Audit every official Prisma identity
+        run: |
+          cat > scripts/.tmp-prisma-finland-id-audit.mts <<'TS'
+          import { resolvePrismaCampaignStoreIdV1, fetchSKaupatOffers } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+
+          const base="https://www.s-kaupat.fi/myymalat/prisma";
+          const seenPages=new Set<string>(), queue=[base];
+          const stores=new Map<string,{name:string,publicId:string,slug:string}>();
+          const norm=(s:string)=>s.replace(/\\u0026/g,"&").replace(/&amp;/g,"&");
+          while(queue.length && seenPages.size<20){
+            const url=queue.shift()!; if(seenPages.has(url)) continue; seenPages.add(url);
+            const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0 (compatible; Ziiply audit)","accept-language":"fi"}});
+            const html=await r.text();
+            for(const m of html.matchAll(/\\/myymala\\/(prisma-[a-z0-9%._~-]+)\\/(\\d{5,})/gi)){
+              const slug=decodeURIComponent(m[1]);
+              const publicId=m[2];
+              const name=slug.split("-").map(x=>x?x[0].toUpperCase()+x.slice(1):x).join(" ").replace(/^Prisma /,"Prisma ");
+              stores.set(publicId,{name,publicId,slug});
+            }
+            for(const m of html.matchAll(/(?:href=\\?["']|\\")([^"' ]*\\?cursor=[^"' <\\\\]+)[\"']/gi)){
+              let href=norm(m[1]).replace(/\\\\u0026/g,"&").replace(/\\\\/g,"");
+              if(href.startsWith("/myymalat/prisma")) queue.push("https://www.s-kaupat.fi"+href);
+              else if(href.startsWith("?cursor=")) queue.push(base+href);
+            }
+            console.log("PAGE",url,"stores",stores.size,"queue",queue.length);
+          }
+
+          console.log("DISCOVERED",stores.size,"official Prisma IDs");
+          const cfg:any={id:"skaupat",chain:"S",storeLabel:"S-kaupat",url:"https://www.s-kaupat.fi/tuotteet/kampanjat"};
+          const rows:any[]=[];
+          for(const s of [...stores.values()].sort((a,b)=>a.name.localeCompare(b.name,"fi"))){
+            let resolved:string|null=null,count:number|null=null,error:string|null=null;
+            try{
+              resolved=await resolvePrismaCampaignStoreIdV1(s.name);
+              if(resolved){
+                const offers:any[]=await fetchSKaupatOffers("__ziiply_all_offers__",cfg,{storeName:s.name,storeId:s.publicId,sStoreName:s.name,sStoreId:s.publicId});
+                count=offers.length;
+              }
+            }catch(e){error=String(e)}
+            const row={...s,resolvedProductStoreId:resolved,sameId:resolved===s.publicId,offerCount:count,error};
+            rows.push(row); console.log("AUDIT",JSON.stringify(row));
+            await new Promise(r=>setTimeout(r,1100));
+          }
+          console.log("SUMMARY",JSON.stringify({
+            official:stores.size,
+            resolved:rows.filter(x=>x.resolvedProductStoreId).length,
+            differentId:rows.filter(x=>x.resolvedProductStoreId&&x.resolvedProductStoreId!==x.publicId).length,
+            unresolved:rows.filter(x=>!x.resolvedProductStoreId).map(x=>x.name),
+            zeroOffers:rows.filter(x=>x.resolvedProductStoreId&&x.offerCount===0).map(x=>x.name),
+            errors:rows.filter(x=>x.error).map(x=>({name:x.name,error:x.error}))
+          },null,2));
+          TS
+          npx tsx scripts/.tmp-prisma-finland-id-audit.mts 2>&1 | tee prisma-finland-id-audit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prisma-finland-id-audit
+          path: prisma-finland-id-audit.txt
