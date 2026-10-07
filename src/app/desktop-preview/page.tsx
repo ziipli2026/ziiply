@@ -60,36 +60,53 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute left-[44%] top-[10%] h-[190px] w-[190px] rotate-12 rounded-[44px] border border-[#8c7042]/10 bg-[#fff7df]/18 shadow-[0_30px_80px_rgba(70,60,35,0.05)]" />
 
       <div className="relative mx-auto flex h-[100dvh] w-full max-w-[1560px] flex-col px-8 py-5 xl:px-12 xl:py-6">
-        <header className="grid grid-cols-[auto_1fr_auto] items-center gap-5 border-b border-[#64745f]/20 pb-4">
+        <header className="grid grid-cols-[auto_minmax(520px,1fr)_minmax(380px,0.72fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
-            <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[64px] w-[64px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
+            <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
             <div>
               <div className="text-[12px] font-black uppercase tracking-[0.22em] text-[#6d765f]">Yksi haku. Kaikki hinnat.</div>
               <div className="mt-0.5 text-[17px] font-black text-[#314633]">Ziiply</div>
             </div>
           </div>
 
-          <div className="mx-auto grid w-full max-w-[680px] grid-cols-4 gap-2.5">
+          <div className="mx-auto grid w-full max-w-[760px] grid-cols-4 gap-2.5">
             {[
-              ["☀️", "SÄÄ", "+18°", "Hyvinkää", "from-[#fffbe9] to-[#fff2c9] border-[#b5cbb4]"],
-              ["⚡", "SÄHKÖ", "—", "c/kWh", "from-[#fff5ca] to-[#ffe391] border-[#d2b363]"],
-              ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffd0aa] border-[#c78b63]"],
-              ["📅", "LOK", "7", "PVM", "from-[#fff9df] to-[#ffe8a6] border-[#c9a86d]"],
+              ["☀️", "SÄÄ", "+18°", "Hyvinkää", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
+              ["⚡", "SÄHKÖ", "—", "c/kWh", "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
+              ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
-              <button key={title} type="button" className={`relative flex h-[58px] items-center justify-center gap-2 rounded-[16px] border bg-gradient-to-b ${theme} px-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.85),0_3px_8px_rgba(52,48,32,.08)]`}>
-                <span className="text-[21px]">{icon}</span>
-                <span>
-                  <span className="block text-[9px] font-black tracking-[0.08em] text-[#625b43]">{title}</span>
-                  <span className="block text-[17px] font-black leading-none text-[#102a24]">{value}</span>
-                  <span className="mt-0.5 block text-[8px] font-black text-[#706a58]">{detail}</span>
+              <button key={title} type="button" className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
+                <span className="text-[27px] drop-shadow-sm">{icon}</span>
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
+                  <span className="mt-0.5 block text-[19px] font-black leading-none text-[#102a24]">{value}</span>
+                  <span className="mt-1 block truncate text-[9px] font-black text-[#706a58]">{detail}</span>
                 </span>
               </button>
             ))}
+            <button type="button" className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">7</span>
+              <span>
+                <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">LOKAKUU</span>
+                <span className="mt-0.5 block text-[14px] font-black leading-none text-[#102a24]">Kalenteri</span>
+                <span className="mt-1 block text-[9px] font-black text-[#8a5b1d]">Avaa kalenteri →</span>
+              </span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-2.5 text-sm font-black text-[#4e5d4d]">
-            <button className="rounded-full border border-[#6d8069]/25 bg-[#fffaf0]/72 px-4 py-3 shadow-sm">📍 Hyvinkää</button>
-            <button className="flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[#6d8069]/25 bg-[#fffaf0]/72 shadow-sm">☰</button>
+          <div className="grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px_44px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
+            <button type="button" title="GPS päällä" className="relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad] shadow-[inset_0_1px_0_rgba(255,255,255,.72)]">
+              <span className="text-[23px]">📍</span>
+              <span className="absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white bg-[#159447] shadow-sm" />
+            </button>
+            <label className="relative min-w-0 rounded-[15px] border border-[#b89552] bg-gradient-to-b from-[#fff8e7] to-[#efd79d] px-3 py-1.5 shadow-inner">
+              <span className="block text-[8px] font-black uppercase tracking-[0.12em] text-[#756848]">Paikkakunta tai postinumero</span>
+              <input defaultValue="Hyvinkää" aria-label="Paikkakunta tai postinumero" className="mt-0.5 block w-full bg-transparent text-[15px] font-black text-[#241b13] outline-none placeholder:text-[#766e5c]" placeholder="05510 tai Hyvinkää" />
+            </label>
+            <button type="button" title="Avaa kartta" className="group grid h-[52px] w-[64px] place-items-center rounded-[16px] border-2 border-[#65a99c] bg-gradient-to-b from-[#c8eee8] to-[#86cabf] shadow-[inset_0_1px_0_rgba(255,255,255,.65)]">
+              <img src="/icons/ziiply-compass.png" alt="Avaa kartta" className="h-[43px] w-[43px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,.24)] transition group-hover:scale-105" />
+            </button>
+            <button type="button" title="Valikko" className="flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[#6d8069]/25 bg-[#fffaf0]/80 text-[18px] font-black shadow-sm">☰</button>
           </div>
         </header>
 
