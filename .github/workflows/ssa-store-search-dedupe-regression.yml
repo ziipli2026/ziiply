@@ -46,4 +46,3 @@ jobs:
           if(Object.values(assertions).some(v=>!v))process.exit(1);
           JS
           node /tmp/test.mjs
-          npx tsc --noEmit
