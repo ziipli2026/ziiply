@@ -20,7 +20,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install --legacy-peer-deps --no-audit --no-fund
-      - name: Triggered audit revision 2026-10-07T04:00
+      - name: Triggered audit revision 2026-10-07T04:40 Linnanmaa
         run: echo "Prisma multi-store audit trigger revision active - store IDs + pickup city/street fix"
       - name: Run Prisma multi-store deep audit
         run: |
@@ -41,7 +41,7 @@ jobs:
             ["Prisma Lohja","603212895"],
             ["Prisma Tuusula","726753948"],
             ["Prisma Limingantulli Oulu","627829302"],
-            ["Prisma Raksila Oulu","516528759"],
+            ["Prisma Linnanmaa Oulu","603116906"],
             ["Prisma Lielahti Tampere","697940575"],
             ["Prisma Kaleva Tampere","517609418"],
             ["Prisma Hämeenkatu Tampere","726413330"],
