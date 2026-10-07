@@ -1,0 +1,48 @@
+name: SSA store-search dedupe regression
+on:
+  push:
+    paths: ['.github/workflows/ssa-store-search-dedupe-regression.yml']
+permissions: {contents: read}
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Verify targeted store-search behavior
+        run: |
+          cat >/tmp/test.mjs <<'JS'
+          const legacy=new Set(["501604912","653574384","512045139"]);
+          function key(s){const n=String(s.name||"");const e=String(s.externalId||"").trim();if(/^(?:S-market|Sale\b|Alepa\b)/i.test(n)&&e)return "s:"+e;return "id:"+String(s.id??"")}
+          function filter(rows){const seen=new Set;return rows.filter(s=>{if(s.delistedAt)return false;if(legacy.has(String(s.externalId||"").trim()))return false;const k=key(s);if(seen.has(k))return false;seen.add(k);return true})}
+          const rows=[
+            {id:1,name:"S-Market Pello Uusi",externalId:"726638046"},
+            {id:2,name:"S-market Pello",externalId:"726638046"},
+            {id:3,name:"S-market Korpilahti vanha",externalId:"501604912"},
+            {id:4,name:"S-market Korpilahti",externalId:"726522642"},
+            {id:5,name:"Sale Kortepohja VANHA",externalId:"653574384"},
+            {id:6,name:"Sale Kortepohja",externalId:"726651375"},
+            {id:7,name:"Sale Multia vanha",externalId:"512045139"},
+            {id:8,name:"Sale Multia",externalId:"726522638"},
+            {id:9,name:"Alepa Kirstintie",externalId:"726753945"},
+            {id:10,name:"Alepa Kirstintie",externalId:"726753945"},
+            {id:11,name:"Prisma Testi",externalId:"P-X"},
+            {id:12,name:"Prisma Testi",externalId:"P-X"},
+            {id:13,name:"K-Citymarket Testi",externalId:"K-X"},
+            {id:14,name:"K-Citymarket Testi",externalId:"K-X"}
+          ];
+          const out=filter(rows);
+          const ids=out.map(x=>x.id);
+          const assertions={
+            pelloOnce:out.filter(x=>x.externalId==="726638046").length===1,
+            legacyGone:[...legacy].every(x=>!out.some(y=>y.externalId===x)),
+            currentRemain:["726522642","726651375","726522638","726753945"].every(x=>out.some(y=>y.externalId===x)),
+            prismaUntouched:ids.includes(11)&&ids.includes(12),
+            kUntouched:ids.includes(13)&&ids.includes(14)
+          };
+          console.log("SSA_DEDUPE_REGRESSION",JSON.stringify({assertions,out},null,2));
+          if(Object.values(assertions).some(v=>!v))process.exit(1);
+          JS
+          node /tmp/test.mjs
