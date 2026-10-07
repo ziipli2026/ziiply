@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       if (!id || !name || !city || !Number.isFinite(lat) || !Number.isFinite(lon)) return [];
       return [{
         id,
+        storeKey: id,
         externalId: id,
         name,
         chain: "Lidl",
