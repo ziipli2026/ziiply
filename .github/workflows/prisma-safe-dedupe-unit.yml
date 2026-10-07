@@ -1,0 +1,100 @@
+name: Prisma Safe Dedupe Unit
+
+on:
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - '.github/workflows/prisma-safe-dedupe-unit.yml'
+  push:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - '.github/workflows/prisma-safe-dedupe-unit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --legacy-peer-deps
+      - name: Verify Prisma dedupe rules
+        run: |
+          cat > scripts/.tmp-prisma-safe-dedupe.mts <<'TS'
+          import { hidePrismaOfferCopiesAlreadyInCampaignTabV805 } from "../src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore";
+
+          const base = {
+            storeLabel: "Prisma Hyvinkää",
+            ean: "6400000000001",
+            price: 2.49,
+            validUntil: "2026-10-11",
+          };
+
+          const campaign = { ...base, campaignType: "campaign" };
+          const exactOffer = { ...base, campaignType: "offer" };
+          const differentPrice = { ...base, price: 2.59, campaignType: "offer" };
+          const differentValidity = { ...base, validUntil: "2026-10-12", campaignType: "offer" };
+          const missingValidity = { ...base, validUntil: "", campaignType: "offer" };
+          const differentEan = { ...base, ean: "6400000000002", campaignType: "offer" };
+          const differentStore = { ...base, storeLabel: "Prisma Järvenpää", campaignType: "offer" };
+          const noCampaignSignal = { ...base, campaignType: "offer" };
+
+          const result = hidePrismaOfferCopiesAlreadyInCampaignTabV805(
+            [campaign, exactOffer, differentPrice, differentValidity, missingValidity, differentEan, differentStore],
+            [campaign],
+            "Prisma Hyvinkää",
+          );
+
+          console.log("PRISMA_DEDUPE_RESULT", JSON.stringify(result, null, 2));
+          const titles = result.map((x:any) => [x.ean, x.price, x.validUntil, x.storeLabel].join("|"));
+          if (result.length !== 6) throw new Error("Expected exact offer copy to be hidden and all six safe rows to remain");
+          if (result.some((x:any) =>
+            x.campaignType !== "campaign" &&
+            [x.ean, x.price, x.validUntil, x.storeLabel].join("|") ===
+              [exactOffer.ean, exactOffer.price, exactOffer.validUntil, exactOffer.storeLabel].join("|")
+          )) {
+            throw new Error("Exact Prisma offer copy was not hidden");
+          }
+
+          const throttled = hidePrismaOfferCopiesAlreadyInCampaignTabV805(
+            [exactOffer],
+            [],
+            "Prisma Hyvinkää",
+          );
+          if (throttled.length !== 1) throw new Error("Empty campaign master must not hide offers");
+
+          const foreign = hidePrismaOfferCopiesAlreadyInCampaignTabV805(
+            [{...exactOffer, storeLabel:"Lidl"}],
+            [campaign],
+            "Lidl",
+          );
+          if (foreign.length !== 1) throw new Error("Non-Prisma store must remain untouched");
+
+          const nonPrismaSelected = hidePrismaOfferCopiesAlreadyInCampaignTabV805(
+            [noCampaignSignal],
+            [campaign],
+            "K-Citymarket Hyvinkää",
+          );
+          if (nonPrismaSelected.length !== 1) throw new Error("Non-Prisma selection must remain untouched");
+
+          console.log("PRISMA_SAFE_DEDUPE_UNIT PASS");
+          TS
+          set +e
+          npx tsx scripts/.tmp-prisma-safe-dedupe.mts > prisma-dedupe-test-output.txt 2>&1
+          code=$?
+          cat prisma-dedupe-test-output.txt
+          rm scripts/.tmp-prisma-safe-dedupe.mts
+          exit $code
+      - name: Upload Prisma dedupe debug
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prisma-dedupe-debug
+          path: prisma-dedupe-test-output.txt
+      - name: Typecheck
+        run: npx tsc --noEmit

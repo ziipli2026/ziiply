@@ -44,6 +44,10 @@
     {
       "path": "/api/cron/future-publications",
       "schedule": "35 2,8,14,20 * * *"
+    },
+    {
+      "path": "/api/cron/chain-parser-health",
+      "schedule": "50 3,9,15,21 * * *"
     }
   ]
 }

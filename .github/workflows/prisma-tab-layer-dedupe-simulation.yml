@@ -1,9 +1,10 @@
-name: Prisma Tab Layer Dedupe Simulation
+name: Prisma Tab Layer Dedupe Simulation (safe V805)
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/prisma-tab-layer-dedupe-simulation.yml'
+      - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
 permissions:
   contents: read
 jobs:
