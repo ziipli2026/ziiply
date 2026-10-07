@@ -3378,6 +3378,9 @@ export default function Page() {
 
         // V757: restore explicit SPAR/Tokmanni store choices before the store lookup refresh.
         // The lookup effect will reconcile these IDs against fresh options without replacing them with options[0].
+        if (parsedStoreSelection.selectedLidlStoreV750 && typeof parsedStoreSelection.selectedLidlStoreV750 === "object") {
+          setSelectedLidlStoreV750({ ...parsedStoreSelection.selectedLidlStoreV750, chain: "Lidl", type: "Lidl" });
+        }
         if (parsedStoreSelection.selectedEurosparStoreV751 && typeof parsedStoreSelection.selectedEurosparStoreV751 === "object") {
           setSelectedEurosparStoreV751({ ...parsedStoreSelection.selectedEurosparStoreV751, chain: "EUROSPAR" });
         }
@@ -7283,6 +7286,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           betweenChainSelectionModeV749,
           withinChain,
           selectedChains,
+          selectedLidlStoreV750,
           selectedEurosparStoreV751,
           selectedTokmanniStoreV756,
           gpsCoordsV320,
@@ -7300,6 +7304,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     betweenChainSelectionModeV749,
     withinChain,
     selectedChains,
+    selectedLidlStoreV750,
     selectedEurosparStoreV751,
     selectedTokmanniStoreV756,
     gpsCoordsV320,
@@ -21234,6 +21239,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         onSelectStore={(option) => {
                           const sourceIndex = Number((option as any).__sourceIndex);
                           const sourceStore = Number.isFinite(sourceIndex) ? lidlStoreOptionsV750[sourceIndex] : (option as StoreSearchItem);
+                          setIndependentManualStoreV791("LIDL", sourceStore);
                           setSelectedLidlStoreV750(sourceStore);
                           triggerHaptic();
                           window.setTimeout(() => setOpenStorePicker(null), 0);
