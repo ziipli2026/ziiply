@@ -4641,6 +4641,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V828: scanner session knows separately whether scans are collection scans.
   // "En" never blocks product lookup; it only disables automatic collected-state.
   const scannerInStoreRefV828 = useRef(false);
+  const scannerAddedDestinationV846 = () => scannerInStoreRefV828.current ? "ostoskoriin" : "ostoslistalle";
+  const scannerAddedMessageV846 = () => `✓ Lisätty ${scannerAddedDestinationV846()}`;
   const scannerConfirmedStoreNameRefV828 = useRef("");
   const scannerStorePromptResolverRefV828 = useRef<null | ((inStore: boolean) => void)>(null);
   const scannerStorePromptTimerRefV828 = useRef<number | null>(null);
@@ -16609,7 +16611,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       const scannerMessage = mergedExistingV129
         ? "Määrä +1 — hinta ei saatavilla"
-        : "✓ Lisätty koriin";
+        : scannerAddedMessageV846();
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
@@ -16857,10 +16859,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanScannerOpen(true);
       // V594: valintaikkunan kautta lisättäessä annetaan vain hiljainen, läpikuultava kuittaus.
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
-      const scannerAddMessageV794 =
-        result.chain === "S" && getProductPrice(result.product) <= 0
-          ? "✓ Lisätty koriin"
-          : "✓ Lisätty ostoskoriin";
+      const scannerAddMessageV794 = scannerAddedMessageV846();
       setEanScannerMessage(scannerAddMessageV794);
       window.setTimeout(() => {
         setEanScannerMessage((current) =>
@@ -23251,6 +23250,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
                   scannerMessage={eanLoading ? "Haetaan tuotetta" : eanScannerMessage}
+                  successMessage={scannerAddedMessageV846()}
                   cameraOverlay={(scannerStoreMismatchV801 || scannerEquivalentNoticeV813) ? (
                     <div role="status" className="flex w-full max-w-[340px] flex-col items-center gap-3 rounded-2xl border-2 border-[#e3c477] bg-[#fff6dd] p-3 text-center text-[#203c32] shadow-xl">
                       <p className="text-[15px] font-black leading-snug">
