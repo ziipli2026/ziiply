@@ -448,5 +448,10 @@
     "lidlProductId": "10034796",
     "ean": "6413467518508",
     "evidence": "Lidl Finland canonical product 10034796 is FAZER Dumle-munkki. Fazer Pro and Valio Aimo identify the exact Fazer Dumle-munkki 12 x 106 g product with consumer-unit GTIN/EAN 6413467518508; Metro confirms the same EAN as the individual sales unit. Exact product identity and size match."
+  },
+  {
+    "lidlProductId": "10038245",
+    "ean": "6413605151284",
+    "evidence": "Lidl Finland candidate 10038245 is HARTWALL Sokeriton Jaffa 6-pack 3 kpl, matching Hartwall Jaffa Ananas sokeriton 6x0.33 l consumer pack. S-kaupat and Kespro both give EAN 6413605151284 for the exact 6-pack; Lidl offer data shows the 3-pack promotion. The EAN is the consumer 6-pack unit, not the outer case GTIN."
   }
 ]
