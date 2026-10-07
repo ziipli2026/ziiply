@@ -34,7 +34,7 @@ async function probe(entry: typeof SOURCES[number]) {
   const checkedAt = new Date().toISOString();
   try {
     const response = await fetch(entry.url, {
-      headers: { accept: "text/html,application/xhtml+xml", "accept-language": "fi-FI,fi;q=0.9", "user-agent": "Ziiply/1.0" },
+      headers: { accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8", "accept-language": "fi-FI,fi;q=0.9,en;q=0.8", "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "upgrade-insecure-requests": "1" },
       cache: "no-store", signal: AbortSignal.timeout(20000),
     });
     const html = await response.text();
