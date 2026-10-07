@@ -1,0 +1,45 @@
+name: Prisma main 10-store live offers
+on:
+  push:
+    paths: ['.github/workflows/prisma-main-10-live-offers.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Ten Prisma live offer counts
+        run: |
+          set -o pipefail
+          cat > scripts/.tmp-prisma-main-10.mts <<'TS'
+          import { fetchSKaupatOffers, resolvePrismaCampaignStoreIdV1 } from "../src/app/components/ziiply/offerSearch/providers/skaupatProvider";
+          const stores=[
+            ["Prisma Palokka","631792405"],["Prisma Raahe","726668937"],
+            ["Prisma Seinäjoki","516242633"],["Prisma Syke","726170469"],
+            ["Prisma Naantali","726707572"],["Prisma Kotiranta Vaasa","518636626"],
+            ["Prisma Pieksämäki","708273362"],["Prisma Orimattila","726544075"],
+            ["Prisma Hollola","708269170"],["Prisma Pietarsaari","542859095"]
+          ];
+          const cfg:any={id:"skaupat",chain:"S",storeLabel:"Prisma",url:"https://www.s-kaupat.fi/"};
+          const out:any[]=[];
+          for(const [name,sourceId] of stores){
+            const resolvedId=await resolvePrismaCampaignStoreIdV1(name,sourceId);
+            const offers=await fetchSKaupatOffers("__ziiply_all_offers__",cfg,{storeName:name,storeId:sourceId});
+            const row={name,sourceId,resolvedId,offerCount:offers.length,sample:offers.slice(0,3).map((x:any)=>({title:x.title,price:x.priceText,validity:x.validityText}))};
+            out.push(row); console.log("LIVE10",JSON.stringify(row));
+            await new Promise(r=>setTimeout(r,900));
+          }
+          const counts=out.map(x=>x.offerCount).filter((n:number)=>n>0).sort((a:number,b:number)=>a-b);
+          const median=counts.length?counts[Math.floor(counts.length/2)]:0;
+          const suspicious=out.filter(x=>x.offerCount===0 || (median>0 && x.offerCount<Math.max(10,median*0.2)));
+          console.log("LIVE10_SUMMARY",JSON.stringify({tested:out.length,medianPositive:median,min:Math.min(...out.map(x=>x.offerCount)),max:Math.max(...out.map(x=>x.offerCount)),suspicious:suspicious.map(x=>({name:x.name,count:x.offerCount,resolvedId:x.resolvedId}))}));
+          if(suspicious.length) process.exitCode=2;
+          TS
+          npx tsx scripts/.tmp-prisma-main-10.mts 2>&1 | tee prisma-main-10-live-offers.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: prisma-main-10-live-offers, path: prisma-main-10-live-offers.txt}
