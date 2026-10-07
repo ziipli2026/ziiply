@@ -13,15 +13,12 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      ZIIPLY_BASE_URL: ${{ secrets.ZIIPLY_BASE_URL }}
     steps:
       - name: Audit every Finnish Lidl through Ziiply production
         shell: bash
         run: |
-          test -n "$ZIIPLY_BASE_URL"
           node <<'NODE'
-          const base=process.env.ZIIPLY_BASE_URL.replace(/\/$/,'');
+          const base='https://ziiply.vercel.app';
           const headers={accept:'application/json','accept-language':'fi-FI,fi;q=0.9','user-agent':'Ziiply-Lidl-Finland-Audit/2.0'};
           const sr=await fetch('https://stores.lidlplus.com/api/v4/FI',{headers});
           if(!sr.ok) throw new Error('Lidl stores '+sr.status);
