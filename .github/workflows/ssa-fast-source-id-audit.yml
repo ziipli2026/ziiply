@@ -1,0 +1,56 @@
+name: S-market Sale Alepa fast source-ID audit
+on:
+  push:
+    paths: ['.github/workflows/ssa-fast-source-id-audit.yml']
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: [S-market, Sale, Alepa]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Fast direct ID audit
+        env: {CHAIN: "${{ matrix.chain }}"}
+        run: |
+          cat > scripts/.tmp-ssa-fast.mts <<'TS'
+          const chain=process.env.CHAIN!;
+          const inv=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(chain)).then(r=>r.json()) as any;
+          const arr=Array.isArray(inv)?inv:(inv.stores||inv.data||inv.results||[]);
+          const seen=new Set<string>();
+          const rows=arr.filter((x:any)=>{
+            const n=String(x.name||"").trim(),pc=String(x.postalCode||"").replace(/\s/g,"");
+            const lat=Number(x.latitude??x.lat),lon=Number(x.longitude??x.long??x.lng);
+            const geo=Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=59.5&&lat<=70.2&&lon>=19&&lon<=32;
+            const brand=chain==="S-market"?/^s-market\b/i.test(n):chain==="Sale"?/^sale\b/i.test(n):/^alepa\b/i.test(n);
+            const id=String(x.externalId||x.storeId||x.id||""); const key=n.toLowerCase()+"|"+id;
+            if(!brand||(!geo&&!/^\d{5}$/.test(pc))||!id||seen.has(key))return false; seen.add(key);return true;
+          });
+          const endpoint=(id:string)=>"https://api.s-kaupat.fi/?operationName=RemoteFilteredProducts&variables="+encodeURIComponent(JSON.stringify({storeId:id,queryString:"",first:1,after:0,facets:[],useRandomId:false}))+"&extensions="+encodeURIComponent(JSON.stringify({persistedQuery:{version:1,sha256Hash:"7ca1e49f17a73e79f67b70ca976ed4980b2e3f26e18a5c84b536bf91c425702d"}}));
+          let ok=0,zero=0,err=0; const bad:any[]=[];
+          for(let i=0;i<rows.length;i+=20){
+            const batch=rows.slice(i,i+20);
+            await Promise.all(batch.map(async(st:any)=>{
+              const name=String(st.name),id=String(st.externalId||st.storeId||st.id);
+              try{const r=await fetch(endpoint(id),{headers:{"User-Agent":"Ziiply-ID-audit/1.0","Accept":"application/json"}}); const t=await r.text();
+                if(!r.ok){err++;bad.push({name,id,status:r.status});return;}
+                let j:any;try{j=JSON.parse(t)}catch{err++;bad.push({name,id,status:"json"});return;}
+                const root=j?.data?.remoteFilteredProducts??j?.data?.products??j?.data;
+                const count=Number(root?.totalCount??root?.total??root?.products?.totalCount??root?.edges?.length??root?.nodes?.length??0);
+                if(count>0)ok++;else{zero++;bad.push({name,id,status:"zero"});}
+              }catch(e:any){err++;bad.push({name,id,status:String(e?.message||e)})}
+            }));
+            await new Promise(r=>setTimeout(r,350));
+          }
+          console.log("FAST_SUMMARY",JSON.stringify({chain,inventory:arr.length,filtered:rows.length,directIdWorking:ok,zero,error:err,bad}));
+          TS
+          npx tsx scripts/.tmp-ssa-fast.mts | tee ssa-fast-${CHAIN// /_}.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: "ssa-fast-${{ matrix.chain }}", path: "ssa-fast-*.txt"}
