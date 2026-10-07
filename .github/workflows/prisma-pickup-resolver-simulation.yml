@@ -1,4 +1,4 @@
-name: Prisma pickup resolver fix simulation (read-only v6)
+name: Prisma pickup resolver fix simulation (read-only v7)
 on:
   push:
     paths:
@@ -32,7 +32,8 @@ jobs:
             await new Promise(r=>setTimeout(r,900));
           }
           TS
-          echo 'V6 Myyrmanni/Hameenkatu resolver verification'\n          npx tsx scripts/.tmp-prisma-pickup-sim.mts 2>&1 | tee prisma-pickup-resolver-simulation.txt
+          echo 'V7 Myyrmanni/Hameenkatu resolver verification'
+          npx tsx scripts/.tmp-prisma-pickup-sim.mts 2>&1 | tee prisma-pickup-resolver-simulation.txt
       - uses: actions/upload-artifact@v4
         with:
           name: prisma-pickup-resolver-simulation
