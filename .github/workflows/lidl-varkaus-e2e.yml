@@ -38,7 +38,11 @@ jobs:
           const rows=Array.isArray(p.results)?p.results:[];
           console.log('E2E',JSON.stringify({ok:p.ok,provider:p.provider,storeKey:p.storeKey,storeName:p.storeName,results:rows.length,audit:p.lidlSourceAudit}));
           for(const x of rows.slice(0,40)) console.log('RESULT',JSON.stringify({id:x.id,title:x.title,name:x.name,category:x.category,price:x.price,priceText:x.priceText,campaignType:x.campaignType,source:x.source}));
-          if(!p.ok || p.provider!=='lidl' || p.storeKey!=='FI0165' || rows.length===0) process.exit(1);
+          const offerRows=rows.filter(x=>x.campaignType!=='campaign');
+          const campaignRows=rows.filter(x=>x.campaignType==='campaign');
+          const nationalLeafletOffers=offerRows.filter(x=>String(x.source||'')==='verified-official-leaflet');
+          console.log('TAB_AUDIT',JSON.stringify({offers:offerRows.length,campaigns:campaignRows.length,nationalLeafletOffers:nationalLeafletOffers.length}));
+          if(!p.ok || p.provider!=='lidl' || p.storeKey!=='FI0165' || rows.length===0 || offerRows.length===0 || nationalLeafletOffers.length===0) process.exit(1);
           NODE
       - name: Server log on failure
         if: failure()
