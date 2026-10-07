@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-28T04:03:54.592Z",
-  "count": 209,
+  "generatedAt": "2026-10-07T16:35:55.919Z",
+  "count": 208,
   "stores": [
     {
       "id": "454170",
@@ -397,15 +397,6 @@
       "address": "Kauppakaari 4 44500 Viitasaari",
       "latitude": 63.088374,
       "longitude": 25.864023,
-      "chain": "TOKMANNI"
-    },
-    {
-      "id": "102470",
-      "name": "Tokmanni Suolahti",
-      "city": "Suolahti",
-      "address": "Asemakatu 7 44200 Suolahti",
-      "latitude": 62.566863,
-      "longitude": 25.853676,
       "chain": "TOKMANNI"
     },
     {
