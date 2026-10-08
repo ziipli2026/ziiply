@@ -156,6 +156,7 @@ export default function DesktopPreviewPage() {
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
     const cached=desktopCompareCache.current.get(key);
     if(cached&&Date.now()-desktopCompareCacheTime.current<60000){setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
+    if(cached)desktopCompareCache.current.delete(key);
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
