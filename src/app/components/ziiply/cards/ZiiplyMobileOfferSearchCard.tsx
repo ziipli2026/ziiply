@@ -633,7 +633,15 @@ function getSavingsText(offer: ZiiplyMobileOfferSearchItem) {
     if (parts.length) return parts.join(" · ");
   }
 
-  if (offer.discountText) return cleanRepeatedOfferTextV4(offer.discountText);
+  const discountText = String(offer.discountText || "").trim();
+  // V60: validity belongs only on the dedicated validity row. Some providers
+  // (notably Lidl, and historically Eurospar) map their validityText into
+  // discountText as well; rendering it here duplicates the same period and can
+  // expose raw ISO dates above the normalized Finnish validity line.
+  const discountLooksLikeValidity =
+    /^voimassa\b/i.test(discountText) ||
+    /^\d{4}-\d{2}-\d{2}\s*[–-]\s*\d{4}-\d{2}-\d{2}$/.test(discountText);
+  if (discountText && !discountLooksLikeValidity) return cleanRepeatedOfferTextV4(discountText);
 
   const explicit = normalizePrice(offer.savings);
   if (explicit) return `Säästö ${explicit}`;
