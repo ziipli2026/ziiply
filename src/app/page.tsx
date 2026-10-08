@@ -14318,6 +14318,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const ean = normalizeEan(scannedEan);
     const productName = fixText(product.name);
     const physicalScan = Boolean(options.physicalScan);
+    const selectedWeightChainV849 = selectedChains.s ? "S" : selectedChains.k ? "K" : selectedChains.lidl ? "Lidl" : "Tokmanni";
+    const selectedWeightStoreV849 = (selectedChains.s ? activeStores.sStoreName : selectedChains.k ? activeStores.kStoreName : selectedChains.lidl ? activeStores.lidlStoreName : activeStores.tokmanniStoreName) || "Valittu kauppa";
     const cartPrice = physicalScan ? getProductPrice(product) : 0;
     const addKey = `weight-${ean}-${product.id}-${physicalScan ? "scan" : "remote"}`;
     const now = Date.now();
@@ -14332,8 +14334,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       source: physicalScan ? "barcode_scanner" : "ean_search",
       productName,
       ean,
-      chain: "weight",
-      storeName: "Vaakatuote",
+      chain: selectedWeightChainV849,
+      storeName: selectedWeightStoreV849,
       price: cartPrice,
     });
 
@@ -14394,8 +14396,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         name: productName,
         price: cartPrice,
         image: product.pictureUrl,
-        chain: (selectedChains.s ? "S" : selectedChains.k ? "K" : selectedChains.lidl ? "Lidl" : "Tokmanni"),
-        storeName: (selectedChains.s ? activeStores.sStoreName : selectedChains.k ? activeStores.kStoreName : selectedChains.lidl ? activeStores.lidlStoreName : activeStores.tokmanniStoreName) || "Valittu kauppa",
+        chain: selectedWeightChainV849,
+        storeName: selectedWeightStoreV849,
         quantity: 1,
         source: "search",
         product: weightProductV738,
