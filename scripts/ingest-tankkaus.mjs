@@ -9,6 +9,14 @@ const url = new URL(endpoint);
 if (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname))) throw new Error("HTTPS endpoint required");
 if (url.username || url.password || url.searchParams.has("token") || url.searchParams.has("key")) throw new Error("Do not put credentials in ingestion URL");
 if (url.pathname !== "/api/tankkaus") throw new Error("Expected /api/tankkaus endpoint");
+// Avoid recording observations under a misleading location or silently using a default fuel.
+for (const coordinate of ["lat", "lon"]) {
+  const values = url.searchParams.getAll(coordinate);
+  if (values.length !== 1 || values[0].trim() === "" || !Number.isFinite(Number(values[0]))) throw new Error(`Exactly one valid ${coordinate} query parameter is required`);
+  const n = Number(values[0]);
+  if (coordinate === "lat" ? Math.abs(n) > 90 : Math.abs(n) > 180) throw new Error(`Invalid ${coordinate} coordinate`);
+}
+if (url.searchParams.getAll("fuel").length !== 1) throw new Error("Exactly one fuel query parameter is required");
 if (write && !process.env.DATABASE_URL) throw new Error("DATABASE_URL required for --write");
 // An explicit confirmation prevents accidental writes to an unverified database target.
 if (write && process.env.TANKKAUS_INGEST_WRITE_CONFIRM !== "YES_TEST_BRANCH") throw new Error("Set TANKKAUS_INGEST_WRITE_CONFIRM=YES_TEST_BRANCH after verifying the Neon test branch target");
