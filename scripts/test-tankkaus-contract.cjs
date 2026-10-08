@@ -29,11 +29,12 @@ const fillsDiesel = [
 ];
 let calls = [];
 let malformed = false;
+let upstreamFailure = false;
 const fetchMock = async (url, options) => {
   calls.push({ url, options });
-  return { ok: true, json: async () => malformed
+  return { ok: !upstreamFailure, status: upstreamFailure ? 503 : 200, json: async () => malformed
     ? (url.includes('/stations/') ? { invalid: true } : { fillsDiesel })
-    : (url.includes('/stations/') ? { stations } : { fillsDiesel }) };
+    : (url.includes('/stations/') ? { stations } : { fillsDiesel, fills95: fillsDiesel, fills98: fillsDiesel }) };
 };
 const routeExports = {};
 const routeModule = { exports: routeExports };
@@ -72,6 +73,14 @@ const get = (query) => routeModule.exports.GET({
   assert.equal(calls.length, 0);
   console.log('PASS: invalid coordinates never call upstream');
 
+  for (const fuel of ['95', '95e10', '98', '98e5']) {
+    const result = await get('lat=60&lon=24&fuel=' + fuel);
+    assert.equal(result.status, 200, fuel);
+    assert.equal(result.body.fuel, fuel);
+    assert.equal(result.body.observations.length, 2);
+  }
+  console.log('PASS: petrol fuel aliases select matching upstream observations');
+
   malformed = true;
   const originalError = console.error;
   console.error = () => {};
@@ -82,4 +91,15 @@ const get = (query) => routeModule.exports.GET({
     assert.ok(!JSON.stringify(upstream.body).includes('stations array'));
   } finally { console.error = originalError; }
   console.log('PASS: malformed upstream response safely rejected');
+
+  malformed = false;
+  upstreamFailure = true;
+  console.error = () => {};
+  try {
+    const unavailable = await get('lat=60&lon=24');
+    assert.equal(unavailable.status, 502);
+    assert.equal(unavailable.body.error, 'Tankkaus data temporarily unavailable');
+    assert.ok(!JSON.stringify(unavailable.body).includes('503'));
+  } finally { console.error = originalError; }
+  console.log('PASS: upstream HTTP failure is sanitized');
 })().catch(e => { console.error(e); process.exitCode = 1; });
