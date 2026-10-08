@@ -13,7 +13,7 @@ const { spawn } = require("node:child_process");
     res.end(JSON.stringify({
       ok: true, source: "Tankkaus.com", fuel: "diesel",
       stations: mode === "empty" ? [] : [{ id: 42, name: "Mock station", latitude: 60.6, longitude: 24.8 }],
-      observations: mode === "empty" ? [] : (mode === "duplicate" ? [0, 1] : [0]).map((index) => ({ stationId: 42, price: index ? 1.79901 : 1.799, observedAt: index ? new Date(Date.parse(fixedTime)).toISOString().replace("Z", "+00:00") : fixedTime }))
+      observations: mode === "empty" ? [] : (mode === "duplicate" ? [0, 1] : [0]).map((index) => ({ stationId: 42, price: index ? 1.79901 : 1.799, observedAt: mode === "ambiguous-time" ? fixedTime.replace("Z", "") : index ? new Date(Date.parse(fixedTime)).toISOString().replace("Z", "+00:00") : fixedTime }))
     }));
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -49,6 +49,23 @@ const { spawn } = require("node:child_process");
     assert.equal(duplicateResult.code, 0, duplicateResult.err);
     assert.deepEqual(JSON.parse(duplicateResult.out.trim()), { mode: "dry-run", stations: 1, observations: 1, fuel: "diesel" });
     console.log("PASS Tankkaus ingestion deduplicates identical observations");
+    // Timezone-free timestamps must not be persisted as absolute observations.
+    mode = "ambiguous-time";
+    const ambiguousResult = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs"], {
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      let out = "", err = "";
+      child.stdout.on("data", chunk => out += chunk);
+      child.stderr.on("data", chunk => err += chunk);
+      child.on("error", reject);
+      child.on("close", code => resolve({ code, out, err }));
+    });
+    assert.equal(ambiguousResult.code, 0, ambiguousResult.err);
+    assert.deepEqual(JSON.parse(ambiguousResult.out.trim()), { mode: "dry-run", stations: 1, observations: 0, fuel: "diesel" });
+    console.log("PASS Tankkaus ingestion rejects timezone-free observation timestamps");
+    mode = "normal";
     // Invalid collection coordinates and absent fuel must fail before any network/database access.
     for (const suffix of ["?lat=91&lon=24.8&fuel=diesel", "?lat=60.6&lon=24.8", "?lat=60.6&lon=24.8&fuel=diesel&fuel=95", "?lat=&lon=24.8&fuel=diesel"]) {
       const invalid = await new Promise((resolve, reject) => {
