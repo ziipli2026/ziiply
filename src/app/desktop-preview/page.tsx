@@ -117,7 +117,7 @@ export default function DesktopPreviewPage() {
     const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
     if(betweenMode==="one"){
       setDesktopCompareNotice(false);
-      if(selected.length!==1){flashCartNotice("Valitse yksi S- tai K-kauppa hintojen hakua varten.");return}
+      if(selected.length!==1){setDesktopCompareLoading(false);flashCartNotice("Valitse yksi S- tai K-kauppa hintojen hakua varten.");return}
       const store=selected[0];const isS=["sHyper","sLocal"].includes(storeKind(store));
       setDesktopCompareLoading(true);
       try{
