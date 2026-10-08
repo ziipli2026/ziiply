@@ -12,7 +12,7 @@ const { spawn } = require("node:child_process");
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({
       ok: true, source: "Tankkaus.com", fuel: "diesel",
-      stations: mode === "empty" ? [] : [{ id: 42, name: "Mock station", latitude: mode === "out-of-radius" ? 61.6 : 60.6, longitude: 24.8 }],
+      stations: mode === "empty" ? [] : mode === "conflicting-station" ? [{ id: 42, name: "Mock station", latitude: 60.6, longitude: 24.8 }, { id: 42, name: "Conflicting station", latitude: 60.7, longitude: 24.8 }] : [{ id: 42, name: "Mock station", latitude: mode === "out-of-radius" ? 61.6 : 60.6, longitude: 24.8 }],
       coverage: { radiusKm: 10, maxObservationsPerFuel: 10 },
       observations: mode === "empty" ? [] : (mode === "duplicate" ? [0, 1] : mode === "mostly-invalid" ? [0, 1, 2, 3, 4] : [0]).map((index) => ({ stationId: mode === "mostly-invalid" && index > 0 ? -1 : 42, price: index ? 1.79901 : 1.799, observedAt: mode === "ambiguous-time" ? fixedTime.replace("Z", "") : index ? new Date(Date.parse(fixedTime)).toISOString().replace("Z", "+00:00") : fixedTime }))
     }));
@@ -81,6 +81,20 @@ const { spawn } = require("node:child_process");
     assert.notEqual(radiusResult.code, 0);
     assert.match(radiusResult.err, /outside claimed collection radius/);
     console.log("PASS Tankkaus ingestion rejects stations outside claimed radius");
+    mode = "conflicting-station";
+    const conflictingStation = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused", TANKKAUS_INGEST_WRITE_CONFIRM: "YES_TEST_BRANCH" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      let err = "";
+      child.stderr.on("data", chunk => err += chunk);
+      child.on("error", reject);
+      child.on("close", code => resolve({ code, err }));
+    });
+    assert.notEqual(conflictingStation.code, 0);
+    assert.match(conflictingStation.err, /Conflicting coordinates/);
+    console.log("PASS Tankkaus ingestion refuses conflicting station IDs before database connection");
     mode = "normal";
     // Invalid collection coordinates and absent fuel must fail before any network/database access.
     for (const suffix of ["?lat=91&lon=24.8&fuel=diesel", "?lat=60.6&lon=24.8", "?lat=60.6&lon=24.8&fuel=diesel&fuel=95", "?lat=&lon=24.8&fuel=diesel"]) {
