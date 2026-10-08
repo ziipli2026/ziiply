@@ -281,8 +281,11 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               const quantity = Math.max(1, Number(match.quantity || cartItem.quantity || 1));
               const pendingWeight = Boolean(
                 cartItem.ziiplyWeightLabel || cartItem.product?.ziiplyWeightLabel ||
+                match.ziiplyWeightLabel || match.product?.ziiplyWeightLabel ||
                 cartItem.ziiplyPricePendingWeight || cartItem.product?.ziiplyPricePendingWeight ||
-                product.ziiplyWeightLabel || product.ziiplyPricePendingWeight
+                product.ziiplyWeightLabel || product.ziiplyPricePendingWeight ||
+                match.ziiplyPricePendingWeight || match.product?.ziiplyPricePendingWeight ||
+                String(cartItem.id || cartItemId).startsWith("weight-")
               ) && !(
                 cartItem.ziiplyWeightFinalPrice != null || cartItem.product?.ziiplyWeightFinalPrice != null
               );
