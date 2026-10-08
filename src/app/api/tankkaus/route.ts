@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
       stationById.set(station.id, station);
     }
     if (!Array.isArray(pricePayload?.[fuelConfig])) throw new Error("Tankkaus response missing expected fuel observations array");
+    if (pricePayload[fuelConfig].length > 10000) throw new Error("Tankkaus observations payload too large");
     const observations: Observation[] = [];
     for (const item of pricePayload[fuelConfig]) {
       const id = asNumber(item?.station_id ?? item?.station?.id);
