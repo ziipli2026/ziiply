@@ -50,6 +50,10 @@ export default function DesktopPreviewPage() {
   const [desktopScannerCameraOn,setDesktopScannerCameraOn]=useState(false);
   const [desktopScannerEan,setDesktopScannerEan]=useState("");
   const [desktopScannerMessage,setDesktopScannerMessage]=useState("");
+  const [desktopScannerLoading,setDesktopScannerLoading]=useState(false);
+  const [desktopScannerFlash,setDesktopScannerFlash]=useState<"idle"|"success"|"error">("idle");
+  const desktopScannerFlashTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+  function flashDesktopScanner(state:"success"|"error"){if(desktopScannerFlashTimer.current)clearTimeout(desktopScannerFlashTimer.current);setDesktopScannerFlash(state);desktopScannerFlashTimer.current=setTimeout(()=>setDesktopScannerFlash("idle"),1100)}
   const desktopHidBufferRef=useRef("");
   const desktopHidLastKeyRef=useRef(0);
   useEffect(()=>{
@@ -173,7 +177,9 @@ export default function DesktopPreviewPage() {
     finally{if(request===offerRequestId.current)setGostaLoading(false)}
   }
   async function runDesktopScannerEanSearch(code:string) {
-    setDesktopScannerMessage("Haetaan tuotetta: "+code);
+    setDesktopScannerFlash("idle");
+    setDesktopScannerLoading(true);
+    setDesktopScannerMessage("");
     const selected=Object.values(selectedStores) as any[];
     const stores=selected.filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
     try {
@@ -204,13 +210,17 @@ export default function DesktopPreviewPage() {
         const cents=Number(matched.__price||0);
         const priceEur=cents>0?cents/100:0;
         addDesktopCartItem({id:String(matched.id||code),ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:String(matched.__store||"").toLowerCase().includes("prisma")?"S":"K"});
-        setDesktopScannerMessage(name+" · Lisätty ostoskoriin"+(priceEur>0?" · "+priceEur.toFixed(2).replace(".",",")+" €":" · Hinta ei saatavilla"));
+        setDesktopScannerMessage("Tuote lisätty");
+        flashDesktopScanner("success");
       }else if(knownName){
-        setDesktopScannerMessage("Tunnistettu: "+knownName+". Kauppakohtaista hintaa ei vahvistettu.");
+        addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina"});
+        setDesktopScannerMessage("Lisätty koriin, ei mukana vertailussa");
+        flashDesktopScanner("success");
       }else{
-        setDesktopScannerMessage("EAN "+code+" luettu, mutta tuotetta ei löytynyt EAN-pankista tai valituista kaupoista.");
+        setDesktopScannerMessage("Ei löytynyt");
+        flashDesktopScanner("error");
       }
-    }catch{setDesktopScannerMessage("Tuotehaku epäonnistui. Yritä uudelleen.")}
+    }catch{setDesktopScannerMessage("Tuotehaku epäonnistui. Yritä uudelleen.");flashDesktopScanner("error")}finally{setDesktopScannerLoading(false)}
   }
 
   async function runDesktopJustiinaSearch(raw=justiinaQuery) {
@@ -405,7 +415,7 @@ export default function DesktopPreviewPage() {
         {saveListOpen&&<div className="fixed inset-0 z-[120] grid place-items-center bg-[#17352a]/35 p-10"><div className="w-full max-w-[560px] rounded-[26px] border-[3px] border-[#315d45] bg-[#fff6d9] p-6 shadow-2xl"><div className="font-serif text-[28px] font-black italic text-[#174c3a]">Tallenna Ostelusvihkoon</div><label className="mt-5 block text-[10px] font-black uppercase tracking-[.16em] text-[#756848]">Vihkon nimi</label><input autoFocus value={saveListName} onChange={e=>setSaveListName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")saveCartToNotebook()}} className="mt-2 w-full rounded-[16px] border-2 border-[#b89552] bg-white px-4 py-3 text-[16px] font-black outline-none"/><div className="mt-5 flex justify-end gap-3"><button onClick={()=>setSaveListOpen(false)} className="rounded-full border-2 border-[#9b8051] px-5 py-2 font-black">Peru</button><button onClick={saveCartToNotebook} className="rounded-full border-2 border-[#315d45] bg-[#dfead4] px-6 py-2 font-black text-[#174c3a]">Tallenna</button></div></div></div>}
         {reloadCartDecisionOpen&&<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#1c271c]/65 px-4"><div role="dialog" aria-modal="true" aria-label="Säilytetäänkö ostoskori?" className="w-full max-w-[420px] rounded-[22px] border-[3px] border-[#b89552] bg-[#fff3d3] p-6 text-center text-[#174c35] shadow-2xl"><h2 className="font-serif text-[24px] font-black">Säilytetäänkö ostoskorin tavarat?</h2><p className="mt-3 text-[15px]">Ostoskori sisältää {cartItems.length} tuotetta.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><button type="button" onClick={()=>{setReloadCartDecisionOpen(false);setCartOpen(true)}} className="rounded-full border-2 border-[#17573c] bg-[#17573c] px-5 py-3 font-black text-white">Säilytä tavarat</button><button type="button" onClick={()=>{setCartItems([]);setReloadCartDecisionOpen(false);setCartOpen(false);try{window.sessionStorage.removeItem("ziiply-desktop-current-cart-v1")}catch{}}} className="rounded-full border-2 border-[#b58a46] bg-[#fff9e9] px-5 py-3 font-black">Tyhjennä kori</button></div></div></div>}
         {desktopScannerOpen&&<div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black/65 p-4"><div className="relative h-[min(680px,92dvh)] w-[min(440px,95vw)] overflow-hidden rounded-[24px] bg-[#f4edda]">
-<ZiiplyDesktopScannerCard className="[&>footer]:hidden" regionId="ziiply-desktop-scanner-region" scannerMessage={desktopScannerMessage} onClose={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} cameraOverlay={!desktopScannerCameraOn?<div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#f7e7bd] px-5 text-center text-[#174c35]">{desktopScannerEan&&<div role="status" className="rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-4 py-3 text-center"><div className="text-xs font-bold">Luettu EAN-koodi</div><div className="break-all font-mono text-xl font-black">{desktopScannerEan}</div></div>}{desktopScannerMessage&&<div role="status" className="rounded-xl border-2 border-[#17573c] bg-[#d7ffd2] px-4 py-3 text-sm font-bold">{desktopScannerMessage}</div>}<button type="button" onClick={()=>{setDesktopScannerMessage("");setDesktopScannerCameraOn(true)}} className="rounded-full border-2 border-[#17573c] bg-[#e2edcf] px-5 py-3 font-black">Käynnistä kamera</button></div>:<button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerMessage("")}} className="absolute bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border-2 border-[#17573c] bg-[#fff4cf] px-5 py-3 font-black text-[#17573c] shadow-lg">Sulje kamera</button>} />
+<ZiiplyDesktopScannerCard className="[&>footer]:hidden" regionId="ziiply-desktop-scanner-region" loading={desktopScannerLoading} flashState={desktopScannerFlash} scannerMessage={desktopScannerMessage} onClose={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} cameraOverlay={!desktopScannerCameraOn?<div className="absolute inset-0 z-20 flex items-center justify-center bg-[#f7e7bd] px-5 text-center"><button type="button" onClick={()=>setDesktopScannerCameraOn(true)} className="rounded-full border-2 border-[#17573c] bg-[#e2edcf] px-5 py-3 font-black text-[#174c35]">Käynnistä kamera</button></div>:<button type="button" onClick={()=>setDesktopScannerCameraOn(false)} className="absolute bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border-2 border-[#17573c] bg-[#fff4cf] px-5 py-3 font-black text-[#17573c] shadow-lg">Sulje kamera</button>} />
 <div className="absolute bottom-3 left-3 right-3 z-[100] rounded-xl bg-[#fff5dc] p-3 shadow-xl"><div className="flex flex-wrap items-center justify-center gap-3"><button type="button" onClick={()=>{setDesktopScannerMessage("");void pasteDesktopScannerEan()}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#28492f] shadow-[inset_0_2px_0_rgba(255,255,255,0.7)]">Liitä EAN</button><button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#7d2b1d] bg-[linear-gradient(180deg,#c64235_0%,#922016_100%)] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#fff3dc] shadow-[inset_0_2px_0_rgba(255,255,255,0.20)]">Sulje kamera</button></div></div></div></div>}
         <ZiiplyDesktopNotebookCard open={notebookOpen} lists={savedLists} currentCartCount={cartItems.length} openedListId={openedSavedListId} onToggleList={(id)=>setOpenedSavedListId(openedSavedListId===id?null:id)} onSaveCurrentCart={beginSaveCart} onRestoreList={restoreSavedList} onDeleteList={(id)=>persistSavedLists(savedLists.filter((list:any)=>list.id!==id))} onClose={()=>setNotebookOpen(false)} />
         {cartNotice&&<div className="fixed left-1/2 top-[142px] z-[110] max-w-[760px] -translate-x-1/2 rounded-[18px] bg-[#08a36d] px-8 py-4 text-center text-[16px] font-black text-white shadow-2xl">{cartNotice}</div>}
