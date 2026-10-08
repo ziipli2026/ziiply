@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   if (!latRaw || !lonRaw || lat === null || lon === null || lat < -90 || lat > 90 || lon < -180 || lon > 180)
     return NextResponse.json({ ok: false, error: "Valid coordinates required" }, { status: 400 });
   const fuel = (params.get("fuel") ?? "diesel").toLowerCase().replace(/\s/g, "");
-  const fuelConfig = FUEL_KEYS[fuel];
+  const fuelConfig = Object.prototype.hasOwnProperty.call(FUEL_KEYS, fuel) ? FUEL_KEYS[fuel] : undefined;
   if (!fuelConfig) return NextResponse.json({ ok: false, error: "Unsupported fuel type" }, { status: 400 });
   try {
     const coords = `${lat}/${lon}`;
