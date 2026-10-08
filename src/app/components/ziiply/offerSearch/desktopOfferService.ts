@@ -23,7 +23,15 @@ export async function fetchDesktopGostaOffers(
     terms: query.trim() ? [query.trim()] : [],
     context: desktopOfferContext(chain, store),
   });
-  return (response.results || []).map(mapZiiplyGostaOfferToCardOfferV147);
+  return (response.results || []).map(item => ({
+    ...mapZiiplyGostaOfferToCardOfferV147(item),
+    __chain: chain,
+    __storeId: String(store.externalId ?? store.id ?? ""),
+    __validFrom: item.validFrom ?? null,
+    __validTo: item.validTo ?? null,
+    __validityText: item.validityText ?? "",
+    __offerSource: item,
+  }));
 }
 
 export function createDesktopGostaOfferLoader() {
