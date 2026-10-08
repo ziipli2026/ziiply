@@ -64,7 +64,10 @@ jobs:
               ['/api/tankkaus?lat=60&lon=Infinity', 400],
               ['/api/tankkaus?lat=-91&lon=24', 400],
               ['/api/tankkaus?lat=60&lon=181', 400],
-              ['/api/tankkaus?lat=&lon=24', 400]
+              ['/api/tankkaus?lat=&lon=24', 400],
+              ['/api/tankkaus?lat[]=60&lon=24', 400],
+              ['/api/tankkaus?lat=60&lon[]=24', 400],
+              ['/api/tankkaus?lat=60&lon=24&fuel=unknown', 400]
             ]) {
               const res = await fetch('http://localhost:3100' + path);
               const body = await res.json();
