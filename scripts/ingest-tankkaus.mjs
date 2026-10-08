@@ -51,6 +51,10 @@ const rows = payload.observations.filter(o => {
 // One provider response may contain duplicate observations. Keep a single canonical row per event.
 const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${new Date(o.observedAt).toISOString()}:${o.price.toFixed(3)}`, o])).values()];
 if (write && (stations.size === 0 || uniqueRows.length === 0)) throw new Error("Refusing empty ingestion write");
+// Guard against upstream shape regressions silently dropping most returned observations.
+if (write && payload.observations.length > 0 && uniqueRows.length / payload.observations.length < 0.5) {
+  throw new Error("Refusing ingestion: excessive invalid or duplicate observations");
+}
 // Reject a claimed collection radius if the provider includes stations outside that radius.
 // A future wider-coverage endpoint must be validated separately before ingestion.
 const radiusClaim = payload.coverage?.radiusKm;
