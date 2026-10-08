@@ -109,7 +109,7 @@ export default function DesktopPreviewPage() {
   currentCartStoreKeysRef.current=currentCartStoreKeys;
   const cartPriceRefreshRun=useRef(0);
   const cartRefreshPending=cartItems.filter(item=>item.__needsPriceRefresh===true)
-    .map(item=>[desktopCartIdentity(item),item.source,String(item.__chain??"")].join("|")).join(";");
+    .map(item=>[desktopCartIdentity(item),item.source,String(item.__chain??""),String(item.__storeId??item.storeId??"")].join("|")).join(";");
   useEffect(()=>{
     if(!desktopCartHydrated||!cartRefreshPending)return;
     const selected=Object.values(selectedStores);
@@ -445,7 +445,7 @@ export default function DesktopPreviewPage() {
 
  </div>
  <div className="absolute inset-x-[4.5%] bottom-[22%] top-[28%] overflow-y-auto">
- {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid min-h-[112px] grid-cols-[6.2%_59.6%_15%_19.2%] items-center border-b border-[#8f744f]/25 text-[#3c2c1b]">
+ {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={[desktopCartKey(p),p.source,String(p.__chain??p.chain??""),String(p.__storeId??p.storeId??"")].join("|")||i} className="grid min-h-[112px] grid-cols-[6.2%_59.6%_15%_19.2%] items-center border-b border-[#8f744f]/25 text-[#3c2c1b]">
   <span className="text-center font-serif text-[20px]">{i+1}</span>
   <div className="flex min-w-0 items-center gap-3 px-3">{p.pictureUrl&&<img src={p.pictureUrl} alt="" className="h-[78px] w-[78px] shrink-0 rounded-lg bg-[#fffaf0] object-contain" />}<div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{p.storeName||""}</div>{p.discountText&&<div className="truncate text-[14px] italic text-[#77513c]">{p.discountText}</div>}{p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{p.validityText&&<div className="text-[14px] text-[#66543d]">{p.validityText}</div>}</div></div>
   <div className="flex items-center justify-center gap-2"><button onClick={()=>changeDesktopCartQuantity(p,-1)} aria-label="Vähennä määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">−</button><span className="min-w-6 text-center text-[19px] font-bold">{Number(p.quantity||1)}</span><button onClick={()=>changeDesktopCartQuantity(p,1)} aria-label="Lisää määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">+</button></div>
