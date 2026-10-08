@@ -412,6 +412,7 @@ export default function ZiiplyMobileCartCard({
   const totalItemsV58 = items.length;
   const isCartCompleteV58 = hasItems && totalItemsV58 > 0 && collectedItemsV58 >= totalItemsV58;
   const [showCompletionCardV58, setShowCompletionCardV58] = React.useState(false);
+  const [remoteCompletionV850, setRemoteCompletionV850] = React.useState(false);
   const [clearCartConfirmOpen, setClearCartConfirmOpen] = React.useState(false);
   const [showCheckoutFutureNoticeV62, setShowCheckoutFutureNoticeV62] = React.useState(false);
   const [purchaseModeV739, setPurchaseModeV739] = React.useState<"instore" | "online" | null>(null);
@@ -466,12 +467,12 @@ export default function ZiiplyMobileCartCard({
       setShowCompletionCardV58(true);
     }
 
-    if (!isCartCompleteV58) {
+    if (!isCartCompleteV58 && !remoteCompletionV850) {
       setShowCompletionCardV58(false);
     }
 
     previousCompleteRefV58.current = isCartCompleteV58;
-  }, [isCartCompleteV58]);
+  }, [isCartCompleteV58, remoteCompletionV850]);
 
   return (
     <div
@@ -593,7 +594,7 @@ export default function ZiiplyMobileCartCard({
                 className="mx-auto mb-2 w-fit rounded-[0.52rem] border border-[#8a6b32]/64 bg-[#f5dfac]/70 px-3 py-[0.18rem] text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]"
                 style={{ fontFamily: copperplateFont }}
               >
-                Tavarainkeruu valmis
+                {remoteCompletionV850 ? "Ostoslista valmis" : "Tavarainkeruu valmis"}
               </div>
 
               <h3
@@ -607,7 +608,7 @@ export default function ZiiplyMobileCartCard({
                 className="mx-auto mt-2 w-fit rounded-[0.58rem] border-[1.8px] border-[#8a6b32]/72 bg-[#f8e6b9]/80 px-4 py-[0.34rem] text-[1.08rem] font-black text-[#3d301a] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48)]"
                 style={{ fontFamily: serifFont }}
               >
-                {totalItemsV58} tuotetta kerätty
+                {totalItemsV58} {remoteCompletionV850 ? "tuotetta ostoslistalla" : "tuotetta kerätty"}
               </div>
 
               <div
@@ -622,6 +623,7 @@ export default function ZiiplyMobileCartCard({
                   type="button"
                   onClick={() => {
                     setShowCompletionCardV58(false);
+                    setRemoteCompletionV850(false);
                     window.setTimeout(() => {
                       if (onAddMore) {
                         onAddMore();
@@ -758,7 +760,7 @@ export default function ZiiplyMobileCartCard({
 
               <button
                 type="button"
-                onClick={() => setShowCompletionCardV58(false)}
+                onClick={() => { setShowCompletionCardV58(false); setRemoteCompletionV850(false); }}
                 className="mx-auto mt-[0.42rem] block w-[13.8rem] max-w-full rounded-[0.56rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.38rem] text-[0.84rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
                 style={{ fontFamily: serifFont }}
               >
@@ -943,10 +945,9 @@ export default function ZiiplyMobileCartCard({
           <button
             type="button"
             onClick={() => {
-              setPurchaseModeV739("online");
-              setCheckoutPhaseV66("mode");
-              setPurchaseCountdownV66(5);
-              setShowCheckoutFutureNoticeV62(true);
+              setRemoteCompletionV850(true);
+              setShowCompletionCardV58(true);
+              setShowCheckoutFutureNoticeV62(false);
             }}
             className="absolute bottom-[2.94rem] left-[6.70rem] z-[35] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
             aria-label="Kassalle etäostoksilla"
