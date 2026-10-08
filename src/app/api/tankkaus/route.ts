@@ -48,7 +48,9 @@ export async function GET(req: NextRequest) {
     ]);
     const stationPayload = stationsData as any;
     const pricePayload = pricesData as any;
-    const stations = (Array.isArray(stationPayload) ? stationPayload : Array.isArray(stationPayload?.stations) ? stationPayload.stations : [])
+    const stationRows = Array.isArray(stationPayload) ? stationPayload : stationPayload?.stations;
+    if (!Array.isArray(stationRows)) throw new Error("Tankkaus response missing expected stations array");
+    const stations = stationRows
       .map(stationOf).filter((s: Station | null): s is Station => s !== null);
     const stationById = new Map<number, Station>(stations.map((s: Station) => [s.id, s]));
     if (!Array.isArray(pricePayload?.[fuelConfig])) throw new Error("Tankkaus response missing expected fuel observations array");
