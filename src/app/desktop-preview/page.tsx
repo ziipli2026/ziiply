@@ -332,9 +332,8 @@ export default function DesktopPreviewPage() {
         {cartOpen && cartPaperReady && <div className="fixed bottom-[24px] left-[24px] right-[24px] top-[128px] z-[90] flex overflow-hidden rounded-[30px] border-[3px] border-[#8a6c3d] bg-[#f7edcf] p-3 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
 <div className="relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-hidden" style={{backgroundImage:"url('/ui/cart/desktop-virtanen.svg')",backgroundSize:"100% 100%",backgroundPosition:"center",backgroundRepeat:"no-repeat"}}>
  <div className="absolute left-[4%] right-[4%] top-[2.5%] z-10 flex items-start justify-between gap-4">
-  <div className="rounded-xl border border-[#c4a16c] bg-[#fff5db]/95 px-4 py-2 font-serif text-[clamp(19px,1.8vw,29px)] font-black italic text-[#174c3a]">Ostoskori</div>
+  <h2 className="px-2 font-serif text-[clamp(25px,2.5vw,40px)] font-black italic text-[#174c3a]">Tavarainkeruu</h2>
   <div className="flex items-center gap-2 rounded-xl border border-[#c4a16c] bg-[#fff5db]/95 p-2">
-   <span className="px-2 text-[17px] font-black text-[#174c3a]">{desktopCartCount} kpl</span>
    <button onClick={()=>setCartOpen(false)} aria-label="Sulje ostoskori" className="rounded-full bg-[#9a612d] px-4 py-2 font-black text-white">×</button>
   </div>
  </div>
@@ -348,15 +347,16 @@ export default function DesktopPreviewPage() {
  </div>
  <div className="absolute bottom-[2.5%] left-[5%] right-[5%] z-10 rounded-[18px] border-2 border-[#ad8650] bg-[#fff3d3]/95 px-4 py-3 shadow-[0_4px_12px_#614a3022]">
  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#ad8650]/40 pb-2">
-  <span className="text-[15px] font-bold text-[#60472f]">{desktopCartCount} tuotetta{cartItems.some((p:any)=>desktopCartPrice(p.price)==null)&&" · Osa ilman hintaa"}</span>
+  <span className="text-[16px] font-bold text-[#60472f]">{cartItems.some((p:any)=>desktopCartPrice(p.price)==null)?"Osa tuotteista ilman hintaa":"YHT."}</span>
   <span className="font-serif text-[clamp(20px,1.6vw,27px)] font-black text-[#174c3a]">Yhteensä {cartItems.reduce((sum:number,p:any)=>sum+(desktopCartPrice(p.price)||0)*Number(p.quantity||1),0).toFixed(2).replace(".",",")} €</span>
  </div>
- <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+ <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
   <div className="flex flex-wrap gap-2">
-   <button onClick={beginSaveCart} className="rounded-full border-2 border-[#315d45] bg-[#fff8e6] px-4 py-2 text-[14px] font-black text-[#244e37]">Tallenna</button>
-   <button disabled={!cartItems.length} onClick={shareDesktopCart} className="rounded-full border-2 border-[#315d45] bg-[#fff8e6] px-4 py-2 text-[14px] font-black text-[#244e37] disabled:opacity-40">Lähetä / Jaa</button>
-   <button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} className="rounded-full border-2 border-[#315d45] bg-[#e1eccb] px-5 py-2 text-[14px] font-black text-[#244e37] disabled:opacity-40">Osta</button>
-   <button disabled={!cartItems.length} onClick={()=>setDesktopCompareNotice(true)} className="rounded-full border-2 border-[#315d45] bg-[#e1eccb] px-4 py-2 text-[14px] font-black text-[#244e37] disabled:opacity-40">⚖ Halpuusvertailu</button>
+   <button onClick={()=>{setCartOpen(false);setNotebookOpen(true)}} title="Ostoslistat" aria-label="Ostoslistat" className="grid h-12 w-14 place-items-center rounded-xl border-2 border-[#8e713e] bg-gradient-to-b from-[#fff1cb] to-[#d8b777] text-[#4e3a21] shadow-md"><span className="text-[26px]">▤</span></button>
+   <button onClick={beginSaveCart} title="Tallenna ostoslista" className="rounded-xl border-2 border-[#8e713e] bg-[#f4dfb0] px-3 py-3 text-[14px] font-black text-[#244e37]">Tallenna</button>
+   <button disabled={!cartItems.length} onClick={shareDesktopCart} title="Lähetä ostoskori" className="grid h-12 w-14 place-items-center rounded-xl border-2 border-[#8e713e] bg-gradient-to-b from-[#fff1cb] to-[#d8b777] text-[27px] text-[#4e3a21] shadow-md disabled:opacity-40">✉</button>
+   <button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} title="Osta" className="grid h-12 w-14 place-items-center rounded-xl border-2 border-[#8e713e] bg-gradient-to-b from-[#fff1cb] to-[#d8b777] text-[26px] text-[#4e3a21] shadow-md disabled:opacity-40">▣</button>
+   <button disabled={!cartItems.length} onClick={()=>setDesktopCompareNotice(true)} className="rounded-[18px] border-[4px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-8 py-2 font-serif text-[clamp(19px,1.7vw,29px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button>
   </div>
   <button onClick={clearDesktopCart} disabled={!cartItems.length} className="rounded-full border-2 border-[#9a4e3e] bg-[#fff8e6] px-4 py-2 text-[14px] font-black text-[#874a3c] disabled:opacity-40">Tyhjennä kori</button>
  </div>
