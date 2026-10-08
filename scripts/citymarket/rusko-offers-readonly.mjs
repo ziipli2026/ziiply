@@ -46,10 +46,10 @@ try{
     }
   }
   // Mirror Ziiply's local provider's validity, price and title acceptance rules.
-  const providerEligible=output.filter(x=>!x.error).filter(x=>x.name&&Number(x.price)>0&&Number.isFinite(Date.parse(x.validFrom))&&Number.isFinite(Date.parse(x.validUntil))&&Date.parse(x.validFrom)<=now&&Date.parse(x.validUntil)>=now);
+  const providerEligible=output.filter(x=>x&&!x.error).filter(x=>x.name&&Number(x.price)>0&&Number.isFinite(Date.parse(x?.validFrom))&&Number.isFinite(Date.parse(x?.validUntil))&&Date.parse(x.validFrom)<=now&&Date.parse(x.validUntil)>=now);
   const providerUnique=[...new Map(providerEligible.map(x=>[x.id,x])).values()];
-  const providerExcluded=output.filter(x=>!x.error&&!providerEligible.some(y=>y.id===x.id));
-  const unique=[...new Map(output.filter(x=>!x.error).map(x=>[x.id,x])).values()];
+  const providerExcluded=output.filter(x=>x&&!x.error&&!providerEligible.some(y=>y.id===x.id));
+  const unique=[...new Map(output.filter(x=>x&&!x.error).map(x=>[x.id,x])).values()];
   const failures=output.filter(x=>x.error);
   console.log(JSON.stringify({status:failures.length?"PARTIAL":"OK",storeId:store.id,storeName:store.name,publications:pubs.map(p=>({id:p.id,validFrom:p.validFrom,validUntil:p.validUntil})),pages,hotspots,uniqueOffers:unique.length,providerEligibleOffers:providerUnique.length,providerExcluded:providerExcluded.length,providerExcludedSamples:providerExcluded.slice(0,20),rejectedForeign,fetchFailures:failures.length,offers:unique,failures},null,2));
   if(failures.length)process.exitCode=1;
