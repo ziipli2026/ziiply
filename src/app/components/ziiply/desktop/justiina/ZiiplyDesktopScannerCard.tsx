@@ -116,18 +116,7 @@ export default function ZiiplyDesktopScannerCard({
     return "bg-transparent";
   }, [flashState]);
 
-  const visibleMessage =
-    loading
-      ? "Haetaan tuotetta"
-      : scannerMessage
-        ? scannerMessage
-        : flashState === "success"
-          ? "Lisätty koriin"
-          : scannerMessage
-          ? scannerMessage
-          : flashState === "error"
-            ? "Ei löytynyt"
-            : "";
+  const visibleMessage = loading ? "Haetaan tuotetta" : scannerMessage || (flashState === "success" ? "Lisätty koriin" : flashState === "error" ? "Ei löytynyt" : "");
 
   const weightAddedNotice = /vaakatuote lisätty/i.test(scannerMessage);
   const hasSelectionResults = selectionResults.length > 1;
@@ -387,9 +376,9 @@ export default function ZiiplyDesktopScannerCard({
           {!cameraOverlay && visibleMessage && (
             <div
               className={[
-                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[80%] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-[clamp(12px,2.5cqw,26px)] px-[3%] py-[3.5%] text-center text-[clamp(12px,2.9cqw,30px)] font-black uppercase leading-[1.45] tracking-[0.01em] shadow-[0_5px_14px_rgba(0,0,0,0.18)]",
+                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[80%] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-[4.4cqw] px-[3%] py-[3.7%] text-center text-[4.35cqw] font-black uppercase leading-[1.22] tracking-[0] shadow-[0_4px_12px_rgba(0,0,0,0.18)]",
                 weightAddedNotice
-                  ? "border-[clamp(2px,0.45cqw,4px)] border-[#21682d] bg-[#ccecc0] text-[#174c23]"
+                  ? "border-[0.5cqw] border-[#21682d] bg-[#ccecc0] text-[#174c23]"
                   : flashState === "success"
                   ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
                   : flashState === "error"
