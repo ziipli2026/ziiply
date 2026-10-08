@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     if (!Array.isArray(stationRows)) throw new Error("Tankkaus response missing expected stations array");
     // Derive distance from coordinates rather than trusting an undocumented upstream unit.
     // Exclude stations without usable coordinates; otherwise the 10 km claim cannot be enforced.
-    const stations = stationRows
+    const stations: Station[] = stationRows
       .map(stationOf).filter((s: Station | null): s is Station => s !== null)
       .filter((s: Station) => s.latitude !== null && s.longitude !== null && s.latitude >= -90 && s.latitude <= 90 && s.longitude >= -180 && s.longitude <= 180)
       .map((s: Station) => ({ ...s, distanceKm: distanceKmBetween(lat, lon, s.latitude!, s.longitude!) }))
