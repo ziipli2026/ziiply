@@ -136,9 +136,9 @@ export default function DesktopPreviewPage() {
           if(!currentCartStoreKeysRef.current.has(chain+":"+storeId))continue;
           if(price==null)continue;
           const key=desktopCartIdentity(item);
-          setCartItems(current=>current.map(x=>currentCartStoreKeysRef.current.has(chain+":"+storeId)&&desktopCartIdentity(x)===key&&x.source===item.source&&x.__needsPriceRefresh&&String(x.__chain??x.chain??"").toUpperCase()===chain&&(!String(x.__storeId??x.storeId??"").trim()||String(x.__storeId??x.storeId??"").trim()===storeId)?{
+          setCartItems(current=>{const candidates=current.filter(x=>desktopCartIdentity(x)===key&&x.source===item.source&&x.__needsPriceRefresh&&String(x.__chain??x.chain??"").toUpperCase()===chain&&String(x.__storeId??x.storeId??"").trim()===originalStoreId);if(candidates.length!==1)return current;return current.map(x=>x===candidates[0]&&currentCartStoreKeysRef.current.has(chain+":"+storeId)?{
             ...x,price,__price:price,__chain:chain,__storeId:storeId,__priceVerified:true,__needsPriceRefresh:false
-          }:x));
+          }:x)});
         }catch{}
       }
     })();
