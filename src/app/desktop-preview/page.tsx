@@ -104,6 +104,7 @@ export default function DesktopPreviewPage() {
   const [desktopCompareResults,setDesktopCompareResults]=useState<Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>({});
   const [desktopCompareError,setDesktopCompareError]=useState("");
   const desktopCompareCache=useRef<Map<string,Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>>(new Map());
+  const desktopCompareCacheTime=useRef(0);
   const desktopCompareIdentity=JSON.stringify([betweenMode,storeCompareScope,Object.values(selectedStores).map((store:any)=>[store.id,store.externalId,store.name]),cartItems.map((item:any)=>[item.id,item.ean,item.product?.ean,item.name,item.title,item.quantity,item.source,Boolean(item.product?.ziiplyWeightLabel)])]);
   const desktopCompareRunId=useRef(0);
   const desktopCompareRequestIdentity=useRef(desktopCompareIdentity);
@@ -154,7 +155,7 @@ export default function DesktopPreviewPage() {
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
     const cached=desktopCompareCache.current.get(key);
-    if(cached){setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
+    if(cached&&Date.now()-desktopCompareCacheTime.current<60000){setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
@@ -181,7 +182,7 @@ export default function DesktopPreviewPage() {
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
       }));
       if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
-      const next=Object.fromEntries(results);desktopCompareCache.current.set(key,next);setDesktopCompareResults(next);
+      const next=Object.fromEntries(results);desktopCompareCache.current.set(key,next);desktopCompareCacheTime.current=Date.now();setDesktopCompareResults(next);
     }catch{if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
   }
 
