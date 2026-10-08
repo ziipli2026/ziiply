@@ -340,7 +340,7 @@ export default function ZiiplyDesktopScannerCard({
       {/* Kamera-alue */}
       <main className="relative z-10 min-h-0 flex-1 px-3 pb-2">
         <div
-          className="relative h-full min-h-[250px] overflow-hidden rounded-[1.35rem] border-[4px] border-[#6c532c] bg-[#07100b] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.12),0_8px_18px_rgba(0,0,0,0.20)]"
+          className="relative h-full min-h-[250px] [container-type:inline-size] overflow-hidden rounded-[1.35rem] border-[4px] border-[#6c532c] bg-[#07100b] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.12),0_8px_18px_rgba(0,0,0,0.20)]"
           onPointerUp={onCameraTap}
         >
           {/* AINOA kameran mount-piste. Html5Qrcode saa täyttää tämän. */}
@@ -387,9 +387,9 @@ export default function ZiiplyDesktopScannerCard({
           {!cameraOverlay && visibleMessage && (
             <div
               className={[
-                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[82%] max-w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-[1.5rem] px-5 py-7 text-center text-[clamp(18px,2.2vw,28px)] font-black uppercase leading-[1.35] tracking-[0.02em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
+                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[80%] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-[clamp(12px,2.5cqw,26px)] px-[3%] py-[3.5%] text-center text-[clamp(12px,2.9cqw,30px)] font-black uppercase leading-[1.45] tracking-[0.01em] shadow-[0_5px_14px_rgba(0,0,0,0.18)]",
                 weightAddedNotice
-                  ? "border-[4px] border-[#21682d] bg-[#ccecc0] text-[#174c23] shadow-[0_8px_22px_rgba(0,0,0,0.20)]"
+                  ? "border-[clamp(2px,0.45cqw,4px)] border-[#21682d] bg-[#ccecc0] text-[#174c23]"
                   : flashState === "success"
                   ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
                   : flashState === "error"
@@ -399,7 +399,7 @@ export default function ZiiplyDesktopScannerCard({
                       : "border-[2px] border-[#245c28] bg-[#d7ffd2]/88 text-[#123d18] backdrop-blur-[2px]",
               ].join(" ")}
             >
-              {weightAddedNotice ? "VAAKATUOTE LISÄTTY OSTOSLISTALLE" : visibleMessage}
+              {weightAddedNotice ? <>VAAKATUOTE LISÄTTY<br />OSTOSLISTALLE</> : visibleMessage}
             </div>
           )}
 
