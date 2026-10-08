@@ -55,6 +55,13 @@ if (!write) {
 }
 const { neon } = await import("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL);
+// The confirmation flag alone is not proof of the target branch.
+// Refuse writes unless the connected database identifies as the isolated test branch.
+const expectedBranch = "br-weathered-meadow-b1bwpzst";
+const branchRows = await sql`SELECT current_setting('neon.branch_id', true) AS branch_id`;
+if (branchRows[0]?.branch_id !== expectedBranch) {
+  throw new Error("Refusing ingestion: DATABASE_URL does not identify the approved Neon test branch");
+}
 for (const s of stations.values()) {
   await sql`INSERT INTO ziiply_fuel_stations
     (source, source_station_id, name, chain, address, latitude, longitude, last_seen_at, updated_at)
