@@ -53,10 +53,12 @@ const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${new Date(o.obser
 if (write && (stations.size === 0 || uniqueRows.length === 0)) throw new Error("Refusing empty ingestion write");
 // The live route only exposes the ten closest priced stations per fuel.
 // Do not misrepresent a single coordinate sample as full-area or national coverage.
+const radius = payload.coverage?.radiusKm;
+const maxObservations = payload.coverage?.maxObservationsPerFuel;
 const collectionScope = {
   center: { lat: Number(url.searchParams.get("lat")), lon: Number(url.searchParams.get("lon")) },
-  radiusKm: Number(payload.coverage?.radiusKm) || null,
-  maxObservationsPerFuel: Number(payload.coverage?.maxObservationsPerFuel) || null
+  radiusKm: typeof radius === "number" && Number.isFinite(radius) && radius > 0 ? radius : null,
+  maxObservationsPerFuel: Number.isSafeInteger(maxObservations) && maxObservations > 0 ? maxObservations : null
 };
 if (!write) {
   console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: uniqueRows.length, fuel, collectionScope }));
