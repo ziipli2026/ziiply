@@ -333,9 +333,7 @@ export default function DesktopPreviewPage() {
 <div className="relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-hidden" style={{backgroundImage:"url('/ui/cart/desktop-virtanen.svg')",backgroundSize:"100% 100%",backgroundPosition:"center",backgroundRepeat:"no-repeat"}}>
  <div className="absolute left-[4%] right-[4%] top-[2.5%] z-10 flex items-start justify-between gap-4">
   <h2 className="px-2 font-serif text-[clamp(25px,2.5vw,40px)] font-black italic text-[#174c3a]">Tavarainkeruu</h2>
-  <div className="flex items-center gap-2 rounded-xl border border-[#c4a16c] bg-[#fff5db]/95 p-2">
-   <button onClick={()=>setCartOpen(false)} aria-label="Sulje ostoskori" className="rounded-full bg-[#9a612d] px-4 py-2 font-black text-white">×</button>
-  </div>
+
  </div>
  <div className="absolute inset-x-[4.5%] bottom-[22%] top-[28%] overflow-y-auto">
  {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid min-h-[112px] grid-cols-[6.2%_59.6%_15%_19.2%] items-center border-b border-[#8f744f]/25 text-[#3c2c1b]">
@@ -355,6 +353,7 @@ export default function DesktopPreviewPage() {
    <button disabled={!cartItems.length} onClick={()=>setDesktopCompareNotice(true)} className="rounded-[18px] border-[4px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-8 py-2 font-serif text-[clamp(19px,1.7vw,29px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button>
   </div>
   <button onClick={clearDesktopCart} disabled={!cartItems.length} title="Tyhjennä kori" aria-label="Tyhjennä kori" className="grid h-[56px] w-[60px] place-items-center rounded-[16px] border-2 border-[#a26950] bg-gradient-to-b from-[#fff3dd] to-[#e4c29f] text-[#844632] shadow-[0_4px_0_#ad8063,0_7px_12px_#46351b33] transition hover:-translate-y-1 disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 32 32" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 9h18M12 9V6h8v3M9 9l1.5 18h11L23 9M14 14v9M18 14v9"/></svg></button>
+  <button onClick={()=>setCartOpen(false)} title="Sulje ostoskori" aria-label="Sulje ostoskori" className="grid h-[56px] w-[60px] place-items-center rounded-[16px] border-2 border-[#916b45] bg-gradient-to-b from-[#fff1cf] to-[#c99458] text-[33px] font-black leading-none text-[#58361f] shadow-[0_4px_0_#9c744b,0_7px_12px_#46351b33] transition hover:-translate-y-1">×</button>
   <div className="whitespace-nowrap text-center font-serif text-[clamp(20px,1.6vw,27px)] font-black text-[#174c3a]" aria-label="Ostoskorin yhteishinta">Yhteensä {cartItems.reduce((sum:number,p:any)=>sum+(desktopCartPrice(p.price)||0)*Number(p.quantity||1),0).toFixed(2).replace(".",",")} €{cartItems.some((p:any)=>desktopCartPrice(p.price)==null)&&<div className="text-[11px] font-bold text-[#8b4e35]">Osa ilman hintaa</div>}</div>
 
  </div>
