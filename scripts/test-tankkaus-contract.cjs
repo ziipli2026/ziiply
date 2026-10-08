@@ -35,10 +35,10 @@ const fetchMock = async (url, options) => {
     ? (url.includes('/stations/') ? { invalid: true } : { fillsDiesel })
     : (url.includes('/stations/') ? { stations } : { fillsDiesel }) };
 };
-const exports = {};
-const module = { exports };
+const routeExports = {};
+const routeModule = { exports: routeExports };
 vm.runInNewContext(compiled, {
-  exports, module, require: (id) => {
+  exports: routeExports, module: routeModule, require: (id) => {
     assert.equal(id, 'next/server');
     return { NextResponse: { json: (body, options = {}) => ({
       body, status: options.status || 200, headers: options.headers || {}
@@ -48,7 +48,7 @@ vm.runInNewContext(compiled, {
   process: { env: { TANKKAUS_API_TOKEN: 'fake-test-token' } },
   AbortSignal, Date, Map, Set, Number, String, Math, Array, console,
 });
-const get = (query) => module.exports.GET({
+const get = (query) => routeModule.exports.GET({
   nextUrl: { searchParams: new URLSearchParams(query) }
 });
 (async () => {
