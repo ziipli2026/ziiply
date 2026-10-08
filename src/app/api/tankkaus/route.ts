@@ -57,6 +57,8 @@ export async function GET(req: NextRequest) {
     const stationPayload = stationsData as any;
     const pricePayload = pricesData as any;
     const stationRows = Array.isArray(stationPayload) ? stationPayload : stationPayload?.stations;
+    // Bound provider payload size before normalization to avoid unexpectedly large allocations.
+    if (Array.isArray(stationRows) && stationRows.length > 10000) throw new Error("Tankkaus stations payload too large");
     if (!Array.isArray(stationRows)) throw new Error("Tankkaus response missing expected stations array");
     // Derive distance from coordinates rather than trusting an undocumented upstream unit.
     // Exclude stations without usable coordinates; otherwise the 10 km claim cannot be enforced.
