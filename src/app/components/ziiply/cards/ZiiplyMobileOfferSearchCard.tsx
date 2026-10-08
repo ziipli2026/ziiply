@@ -696,13 +696,16 @@ function getOfferComparisonPrice(offer: ZiiplyMobileOfferSearchItem) {
     source.comparisonPrice;
   const text = String(value ?? "").trim();
   if (!text) return "";
-  if (/€\s*\/\s*(?:kg|l|kpl)/i.test(text)) return text;
-  const number = Number(text.replace(",", ".").replace(/[^0-9.-]/g, ""));
+  // Parse Finnish formatted values before trusting an already formatted €/kg label.
+  // E.g. "2 195,00 €/kg" must not bypass the malformed-price guard.
+  const numericText = text.replace(/\s/g, "").replace(/€.*$/, "").replace(",", ".").replace(/[^0-9.-]/g, "");
+  const number = Number(numericText);
   if (!Number.isFinite(number) || number <= 0) return text;
   // A source comparison price can be malformed (e.g. 2195 €/kg for a
   // 12.99 € fish offer). Never present an implausible unit price as fact.
   // Keep the actual offer price visible; do not invent a corrected €/kg.
   if (number > 500) return "";
+  if (/€\s*\/\s*(?:kg|l|kpl)/i.test(text)) return text;
   const unit = String(offer.comparisonUnit ?? source.comparisonUnit ?? "kg").trim().toLowerCase();
   return `${number.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/${unit || "kg"}`;
 }
