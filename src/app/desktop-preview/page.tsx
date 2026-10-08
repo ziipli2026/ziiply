@@ -109,7 +109,7 @@ export default function DesktopPreviewPage() {
   currentCartStoreKeysRef.current=currentCartStoreKeys;
   const cartPriceRefreshRun=useRef(0);
   const cartRefreshPending=cartItems.filter(item=>item.__needsPriceRefresh===true)
-    .map(item=>[desktopCartIdentity(item),item.source,String(item.__chain??""),String(item.__storeId??item.storeId??"")].join("|")).join(";");
+    .map(item=>[desktopCartIdentity(item),item.source,String(item.__chain??item.chain??"").toUpperCase(),String(item.__storeId??item.storeId??"")].join("|")).join(";");
   useEffect(()=>{
     if(!desktopCartHydrated||!cartRefreshPending)return;
     const selected=Object.values(selectedStores);
