@@ -14371,6 +14371,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     triggerHaptic();
     if (physicalScan) showScanSuccessFlash();
+    // Display the same acknowledgement for desktop HID and camera scans, even outside the store.
+    const weightAddedNoticeV851 = "Vaakatuote lisätty";
+    setEanScannerMessage(weightAddedNoticeV851);
+    setEanMessage(weightAddedNoticeV851);
 
     setCart((currentCart) => {
       const baseCart = mergeCartPoolsByIdV129(currentCart);
