@@ -32,7 +32,7 @@ const assistants = [
   },
 ];
 
-export default function DesktopAssistantCards({active,hasSelectedStores,gostaChooseStoresNotice,onSelect}:{active:Assistant|null;hasSelectedStores:boolean;gostaChooseStoresNotice:boolean;onSelect:(assistant:Assistant)=>void}){
+export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNotice,onSelect}:{active:Assistant|null;hasSelectedStores:boolean;chooseStoresNotice:boolean;onSelect:(assistant:Assistant)=>void}){
   return (
             <div className="grid grid-cols-3 gap-3 xl:gap-4 -mt-3">
               {assistants.map((item) => {
@@ -66,7 +66,7 @@ export default function DesktopAssistantCards({active,hasSelectedStores,gostaCho
                     <div className="relative z-10 mt-1 text-[14px] font-bold text-[#687285]">
                       {item.subtitle}
                     </div>
-                    {item.key==="gosta" && gostaChooseStoresNotice && !hasSelectedStores && (
+                    {(item.key==="gosta" || item.key==="justiina") && chooseStoresNotice && !hasSelectedStores && (
                       <div role="status" aria-live="polite" className="relative z-20 mt-4 w-full max-w-[270px] rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-3 py-2 text-center text-[16px] font-black leading-snug text-[#5d3c12] shadow-md">
                         Valitse ensin kaupat
                       </div>
