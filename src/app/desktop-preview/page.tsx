@@ -141,6 +141,15 @@ export default function DesktopPreviewPage() {
     }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
   }
 
+  useEffect(()=>{
+    if(workspace!=="justiina")return;
+    if(justiinaQuery.trim().length<2){setJustiinaResults([]);setJustiinaMessage("");return;}
+    const timer=window.setTimeout(()=>{void runDesktopJustiinaSearch(justiinaQuery)},550);
+    return ()=>window.clearTimeout(timer);
+  // Deliberately trigger only on user query edits, not result updates.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[justiinaQuery,workspace]);
+
   async function loadIndependentStores(search:string, coords?:{latitude:number;longitude:number}) { const lp=new URLSearchParams(); if(search) lp.set("search",search); if(coords){lp.set("lat",String(coords.latitude));lp.set("lon",String(coords.longitude));lp.set("gps","1")} try{const r=await fetch(`/api/lidl/store-search?${lp}`,{cache:"no-store"});const d=await r.json();setLidlStores(Array.isArray(d?.items)?d.items:[])}catch{setLidlStores([])} const sp=new URLSearchParams(); if(search)sp.set("search",search);if(coords){sp.set("lat",String(coords.latitude));sp.set("lon",String(coords.longitude))} try{const r=await fetch(`/api/eurospar-stores?${sp}`,{cache:"no-store"});const d=await r.json();setSparStores(Array.isArray(d?.items)?d.items:[])}catch{setSparStores([])} }
 
   function useGps() {
@@ -411,7 +420,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>)}</div>}</div></>}</div>})()}
 
-            {workspace==="justiina" && <DesktopJustiinaSearchCard onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={setJustiinaQuery} loading={justiinaLoading} onSearch={()=>{void runDesktopJustiinaSearch()}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} />}
+            {workspace==="justiina" && <DesktopJustiinaSearchCard onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={setJustiinaQuery} loading={justiinaLoading} onSearch={()=>{void runDesktopJustiinaSearch()}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} />}
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
                 <div className="flex items-center justify-between"><div className="text-[26px] font-black text-[#14291f]">{({ gosta: "Gösta", justiina: "Justiina", arvo: "Arvo" } as const)[workspace]}</div><button onClick={()=>setWorkspace(null)} className="rounded-full bg-white px-4 py-2 font-black">← Takaisin</button></div>
