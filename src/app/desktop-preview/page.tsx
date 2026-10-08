@@ -82,7 +82,7 @@ export default function DesktopPreviewPage() {
   const [saveListName, setSaveListName] = useState("");
   const [openedSavedListId, setOpenedSavedListId] = useState<string|null>(null);
   const [justiinaQuery, setJustiinaQuery] = useState("");
-  const [justiinaDelay, setJustiinaDelay] = useState<0|1|2>(2);
+  const [justiinaDelay, setJustiinaDelay] = useState<0|1|2>(0);
   const [justiinaLoading, setJustiinaLoading] = useState(false);
   const [justiinaResults, setJustiinaResults] = useState<any[]>([]);
   const [justiinaMessage, setJustiinaMessage] = useState("");
@@ -156,7 +156,7 @@ export default function DesktopPreviewPage() {
     const k=selected.find(x=>{const t=storeKind(x);return t==="kHyper"||t==="kLocal"});
     if(!s&&!k){setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
     setJustiinaLoading(true);setJustiinaMessage("");setJustiinaResults([]);
-    if(justiinaDelay) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
+    // No artificial delay: desktop search follows the production search timing.
     try{
       const calls:any[]=[];
       if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
