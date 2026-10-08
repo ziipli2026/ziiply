@@ -119,6 +119,7 @@ export default function DesktopPreviewPage() {
     const unsupportedSelected=allSelected.filter(x=>!["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
     if(betweenMode==="one"){
       setDesktopCompareNotice(false);
+      if(unsupportedSelected.length){setDesktopCompareLoading(false);flashCartNotice("Hintahaku ei vielä tue valittua kauppaa: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+".");return}
       if(selected.length!==1){setDesktopCompareLoading(false);flashCartNotice("Valitse yksi S- tai K-kauppa hintojen hakua varten.");return}
       const store=selected[0];const isS=["sHyper","sLocal"].includes(storeKind(store));
       setDesktopCompareLoading(true);
