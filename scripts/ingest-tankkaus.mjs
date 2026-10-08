@@ -33,14 +33,16 @@ const now = Date.now();
 // A successful but empty provider response must not erase cached station or price history.
 if (payload.stations.length > 10000 || payload.observations.length > 10000) throw new Error("Unexpectedly large provider response");
 const rows = payload.observations.filter(o => {
-  if (!o || typeof o !== "object") return false;
+  if (!o || typeof o !== "object" || typeof o.observedAt !== "string") return false;
   const t = Date.parse(o.observedAt);
   return stations.has(o.stationId) && typeof o.price === "number" && Number.isFinite(o.price) && o.price > 0 && o.price <= 5 &&
     Number.isFinite(t) && t <= now && now - t <= 5 * 86400000;
 });
-if (write && (stations.size === 0 || rows.length === 0)) throw new Error("Refusing empty ingestion write");
+// One provider response may contain duplicate observations. Keep a single canonical row per event.
+const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${o.observedAt}:${o.price}`, o])).values()];
+if (write && (stations.size === 0 || uniqueRows.length === 0)) throw new Error("Refusing empty ingestion write");
 if (!write) {
-  console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: rows.length, fuel }));
+  console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: uniqueRows.length, fuel }));
   process.exit(0);
 }
 const sql = neon(process.env.DATABASE_URL);
@@ -53,10 +55,10 @@ for (const s of stations.values()) {
       latitude=EXCLUDED.latitude, longitude=EXCLUDED.longitude,
       last_seen_at=NOW(), updated_at=NOW()`;
 }
-for (const o of rows) {
+for (const o of uniqueRows) {
   await sql`INSERT INTO ziiply_fuel_price_observations
     (source, source_station_id, fuel_type, price_eur_per_litre, observed_at)
     VALUES ('tankkaus.com', ${o.stationId}, ${fuel}, ${o.price}, ${o.observedAt}::timestamptz)
     ON CONFLICT (source, source_station_id, fuel_type, observed_at, price_eur_per_litre) DO NOTHING`;
 }
-console.log(JSON.stringify({ mode: "write", stations: stations.size, observationsAttempted: rows.length, fuel }));
+console.log(JSON.stringify({ mode: "write", stations: stations.size, observationsAttempted: uniqueRows.length, fuel }));
