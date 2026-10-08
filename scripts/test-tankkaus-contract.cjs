@@ -71,7 +71,10 @@ const get = (query) => routeModule.exports.GET({
   const bad = await get('lat=91&lon=24');
   assert.equal(bad.status, 400);
   assert.equal(calls.length, 0);
-  console.log('PASS: invalid coordinates never call upstream');
+  const whitespace = await get('lat=%20%20%20&lon=24');
+  assert.equal(whitespace.status, 400);
+  assert.equal(calls.length, 0);
+  console.log('PASS: invalid and whitespace-only coordinates never call upstream');
 
   for (const fuel of ['95', '95e10', '98', '98e5']) {
     const result = await get('lat=60&lon=24&fuel=' + fuel);
