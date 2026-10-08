@@ -231,7 +231,7 @@ export default function DesktopPreviewPage() {
       const canonical=kWeightLabel?.canonicalEan||scannedEan;
       const bank=await fetch("/api/ean-bank?ean="+encodeURIComponent(canonical),{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
       const name=String(bank?.product?.name||"").trim()||`Tuntematon punnittu tuote (PLU ${weightLabel.plu})`;
-      const price=physicalScan?weightLabel.price:null;
+      const price=null; // Never use the encoded weight-label total as a cart item price.
       setCartItems(current=>{
         const found=current.find((x:any)=>{
           const other=resolvePriceWeightLabel(String(x.ean||x.product?.ean||""));
@@ -254,7 +254,7 @@ export default function DesktopPreviewPage() {
           ziiplyWeightLabel:true,weightPlu:weightLabel.plu}];
       });
       setDesktopScannerLoading(false);
-      setDesktopScannerMessage(physicalScan?"Vaakatuote lisätty":"Vaakatuote lisätty ilman hintaa — punnitaan kaupassa");
+      setDesktopScannerMessage("Vaakatuote lisätty");
       if(physicalScan)flashDesktopScanner("success");
       return;
     }
