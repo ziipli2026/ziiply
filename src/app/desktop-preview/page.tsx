@@ -71,6 +71,8 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{let active=true;const img=new Image();img.decoding="async";img.onload=()=>{const done=()=>{if(active)setCartPaperReady(true)};if(typeof img.decode==="function")void img.decode().catch(()=>undefined).finally(done);else done()};img.onerror=()=>{if(active)setCartPaperReady(true)};img.src="/ui/cart/vihkonen.webp";return()=>{active=false}},[]);
 
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
+  const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
   const [cartNotice, setCartNotice] = useState("");
   const [cartIncrementKey, setCartIncrementKey] = useState("");
   const [notebookOpen, setNotebookOpen] = useState(false);
@@ -119,6 +121,7 @@ export default function DesktopPreviewPage() {
   }
   function changeDesktopCartQuantity(p:any,delta:number){const key=desktopCartKey(p);setCartItems(current=>current.flatMap(x=>desktopCartKey(x)!==key?[x]:Number(x.quantity||1)+delta<=0?[]:[{...x,quantity:Number(x.quantity||1)+delta}]))}
   function removeDesktopCartItem(p:any){const key=desktopCartKey(p);setCartItems(current=>current.filter(x=>desktopCartKey(x)!==key));flashCartNotice(`Poistettu ostoskorista: ${p?.title||p?.name||"tuote"}`)}
+  async function shareDesktopCart(){const lines=cartItems.map((p:any)=>Number(p.quantity||1)+" × "+String(p.title||p.name||"Tuote")+(p.storeName?" — "+p.storeName:""));const message="Ziiply ostoskori\\n"+lines.join("\\n");try{if(navigator.share)await navigator.share({title:"Ziiply ostoskori",text:message});else if(navigator.clipboard){await navigator.clipboard.writeText(message);flashCartNotice("Ostoskori kopioitu leikepöydälle")}else flashCartNotice("Jakaminen ei ole käytettävissä")}catch(e:any){if(e?.name!=="AbortError")flashCartNotice("Jakaminen epäonnistui")}}
   function clearDesktopCart(){setCartItems([]);flashCartNotice("Ostoskori tyhjennetty")}
   const desktopCartCount=cartItems.reduce((sum:number,p:any)=>sum+Number(p.quantity||1),0);
 
@@ -328,16 +331,14 @@ export default function DesktopPreviewPage() {
         {cartNotice&&<div className="fixed left-1/2 top-[142px] z-[110] max-w-[760px] -translate-x-1/2 rounded-[18px] bg-[#08a36d] px-8 py-4 text-center text-[16px] font-black text-white shadow-2xl">{cartNotice}</div>}
         {cartOpen && cartPaperReady && <div className="fixed bottom-[24px] left-[24px] right-[24px] top-[128px] z-[90] flex overflow-hidden rounded-[30px] border-[3px] border-[#8a6c3d] bg-[#f7edcf] p-3 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
 <div className="relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-hidden" style={{backgroundImage:"url('/ui/cart/desktop-virtanen.svg')",backgroundSize:"100% 100%",backgroundPosition:"center",backgroundRepeat:"no-repeat"}}>
- <div className="absolute left-[4.5%] right-[4.5%] top-[3.5%] z-10 flex items-center justify-between gap-3">
-  <h2 className="shrink-0 rounded-xl bg-[#f8e7c6]/90 px-3 py-1 font-serif text-[clamp(20px,2vw,31px)] font-black italic text-[#174c3a]">Ostoskori</h2>
-  <div className="flex flex-wrap items-center justify-end gap-2 rounded-xl bg-[#f8e7c6]/90 px-2 py-1">
+ <div className="absolute left-[4%] right-[4%] top-[2.5%] z-10 flex items-start justify-between gap-4">
+  <div className="rounded-xl border border-[#c4a16c] bg-[#fff5db]/95 px-4 py-2 font-serif text-[clamp(19px,1.8vw,29px)] font-black italic text-[#174c3a]">Ostoskori</div>
+  <div className="flex items-center gap-2 rounded-xl border border-[#c4a16c] bg-[#fff5db]/95 p-2">
    <span className="px-2 text-[17px] font-black text-[#174c3a]">{desktopCartCount} kpl</span>
-   <button onClick={beginSaveCart} className="rounded-full border-2 border-[#315d45] bg-[#fff7df] px-3 py-2 text-[14px] font-black">Tallenna Ostelusvihkoon</button>
-   {cartItems.length>0&&<button onClick={clearDesktopCart} className="rounded-full border-2 border-[#9a4e3e] bg-[#fff7df] px-3 py-2 text-[14px] font-black">Tyhjennä kori</button>}
-   <button onClick={()=>setCartOpen(false)} aria-label="Sulje" className="rounded-full bg-[#9a612d] px-4 py-2 text-[17px] font-black text-white">×</button>
+   <button onClick={()=>setCartOpen(false)} aria-label="Sulje ostoskori" className="rounded-full bg-[#9a612d] px-4 py-2 font-black text-white">×</button>
   </div>
  </div>
- <div className="absolute inset-x-[4.5%] bottom-[14%] top-[28%] overflow-y-auto">
+ <div className="absolute inset-x-[4.5%] bottom-[22%] top-[28%] overflow-y-auto">
  {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid min-h-[112px] grid-cols-[6.2%_59.6%_15%_19.2%] items-center border-b border-[#8f744f]/25 text-[#3c2c1b]">
   <span className="text-center font-serif text-[20px]">{i+1}</span>
   <div className="flex min-w-0 items-center gap-3 px-3">{p.pictureUrl&&<img src={p.pictureUrl} alt="" className="h-[78px] w-[78px] shrink-0 rounded-lg bg-[#fffaf0] object-contain" />}<div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{p.storeName||""}</div>{p.discountText&&<div className="truncate text-[14px] italic text-[#77513c]">{p.discountText}</div>}{p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{p.validityText&&<div className="text-[14px] text-[#66543d]">{p.validityText}</div>}</div></div>
@@ -345,12 +346,26 @@ export default function DesktopPreviewPage() {
   <div className="flex items-center justify-center px-2"><span className="whitespace-nowrap font-serif text-[clamp(17px,1.35vw,23px)] font-bold">{desktopCartPrice(p.price)!=null?desktopCartPrice(p.price)!.toFixed(2).replace(".",",")+" €":"—"}</span></div>
  </div>)}
  </div>
- <div className="absolute bottom-[5.5%] left-[8%] right-[8%] flex items-center justify-between gap-4 rounded-xl bg-[#f9e7bf]/90 px-5 py-2 text-[#3e3324]">
-  <div className="text-[15px] font-bold">Tuotteita yhteensä {desktopCartCount} kpl{cartItems.some((p:any)=>desktopCartPrice(p.price)==null)&&<span className="ml-3 text-[13px] text-[#8b4e35]">Osa tuotteista ilman hintaa</span>}</div>
-  <div className="font-serif text-[clamp(18px,1.6vw,26px)] font-black">Yhteensä {cartItems.reduce((sum:number,p:any)=>sum+(desktopCartPrice(p.price)||0)*Number(p.quantity||1),0).toFixed(2).replace(".",",")} €</div>
+ <div className="absolute bottom-[2.5%] left-[5%] right-[5%] z-10 rounded-[18px] border-2 border-[#ad8650] bg-[#fff3d3]/95 px-4 py-3 shadow-[0_4px_12px_#614a3022]">
+ <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#ad8650]/40 pb-2">
+  <span className="text-[15px] font-bold text-[#60472f]">{desktopCartCount} tuotetta{cartItems.some((p:any)=>desktopCartPrice(p.price)==null)&&" · Osa ilman hintaa"}</span>
+  <span className="font-serif text-[clamp(20px,1.6vw,27px)] font-black text-[#174c3a]">Yhteensä {cartItems.reduce((sum:number,p:any)=>sum+(desktopCartPrice(p.price)||0)*Number(p.quantity||1),0).toFixed(2).replace(".",",")} €</span>
+ </div>
+ <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+  <div className="flex flex-wrap gap-2">
+   <button onClick={beginSaveCart} className="rounded-full border-2 border-[#315d45] bg-[#fff8e6] px-4 py-2 text-[14px] font-black text-[#244e37]">Tallenna</button>
+   <button disabled={!cartItems.length} onClick={shareDesktopCart} className="rounded-full border-2 border-[#315d45] bg-[#fff8e6] px-4 py-2 text-[14px] font-black text-[#244e37] disabled:opacity-40">Lähetä / Jaa</button>
+   <button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} className="rounded-full border-2 border-[#315d45] bg-[#e1eccb] px-5 py-2 text-[14px] font-black text-[#244e37] disabled:opacity-40">Osta</button>
+   <button disabled={!cartItems.length} onClick={()=>setDesktopCompareNotice(true)} className="rounded-full border-2 border-[#315d45] bg-[#e1eccb] px-4 py-2 text-[14px] font-black text-[#244e37] disabled:opacity-40">⚖ Halpuusvertailu</button>
+  </div>
+  <button onClick={clearDesktopCart} disabled={!cartItems.length} className="rounded-full border-2 border-[#9a4e3e] bg-[#fff8e6] px-4 py-2 text-[14px] font-black text-[#874a3c] disabled:opacity-40">Tyhjennä kori</button>
+ </div>
  </div>
 </div>
 </div>}
+{desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Mobiilin kauppakohtaista Halpuusvertailua ei ole vielä kytketty desktop-esikatseluun. Vertailutulosta ei arvata.</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+
 
         {mapOpen && (
           <div className="absolute inset-0 z-[80] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]">
