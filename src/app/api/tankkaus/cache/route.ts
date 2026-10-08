@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
       !["95", "98", "diesel"].includes(fuel)) {
     return NextResponse.json({ ok: false, error: "Valid coordinates and fuel required" }, { status: 400 });
   }
+  // Do not expose seeded or unverified test-branch observations through public deployments.
+  if (process.env.TANKKAUS_CACHE_ENABLED !== "true") {
+    return NextResponse.json({ ok: false, error: "Fuel cache not enabled" }, { status: 503 });
+  }
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ ok: false, error: "Fuel cache not configured" }, { status: 503 });
   }
