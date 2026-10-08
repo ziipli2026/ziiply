@@ -939,6 +939,25 @@ export default function ZiiplyMobileCartCard({
         </footer>
         ) : null}
 
+        {hasItems && !showCompletionCardV58 && purchaseModeDefault !== "instore" ? (
+          <button
+            type="button"
+            onClick={() => {
+              setPurchaseModeV739("online");
+              setCheckoutPhaseV66("mode");
+              setPurchaseCountdownV66(5);
+              setShowCheckoutFutureNoticeV62(true);
+            }}
+            className="absolute bottom-[2.94rem] left-[6.70rem] z-[35] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
+            aria-label="Kassalle etäostoksilla"
+            title="Kassalle etäostoksilla"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.3rem] w-[1.3rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 9h16v11H4zM3 5h18v4H3zM7 2v3M17 2v3M7 13h4M15 13h2M7 17h10" />
+            </svg>
+          </button>
+        ) : null}
+
         {onBack ? (
           <button
             type="button"
