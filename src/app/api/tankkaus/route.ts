@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     const nearest = latest.slice(0, 10);
     return NextResponse.json({ ok: true, source: "Tankkaus.com", fuel, stations, observations: nearest, fetchedAt: new Date().toISOString(), coverage: { radiusKm: 10, observationMaxAgeDays: 5, maxObservationsPerFuel: 10 }, note: "User-submitted observations, not guaranteed pump prices" }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=300" } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Upstream error";
-    return NextResponse.json({ ok: false, error: message }, { status: 502 });
+    console.error("[tankkaus] upstream request or response validation failed", error instanceof Error ? error.name : "unknown");
+    return NextResponse.json({ ok: false, error: "Tankkaus data temporarily unavailable" }, { status: 502 });
   }
 }
