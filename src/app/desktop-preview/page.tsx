@@ -147,12 +147,13 @@ export default function DesktopPreviewPage() {
       return;
     }
     setDesktopCompareNotice(true);
+    setDesktopCompareLoading(false);
     if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua S- tai K-kauppaa.");return}
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.ean,x.id,x.name,x.quantity,x.source])]);
     const cached=desktopCompareCache.current.get(key);
-    if(cached){setDesktopCompareResults(cached);return}
+    if(cached){setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
