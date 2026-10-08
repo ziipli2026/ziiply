@@ -26,6 +26,7 @@ const payload = await response.json();
 if (payload?.ok !== true || payload.source !== "Tankkaus.com" || !Array.isArray(payload.stations) || !Array.isArray(payload.observations)) {
   throw new Error("Unexpected Tankkaus response contract");
 }
+if (payload.stations.length > 10000 || payload.observations.length > 10000) throw new Error("Unexpectedly large provider response");
 const stations = new Map();
 for (const s of payload.stations) {
   if (!Number.isSafeInteger(s.id) || s.id <= 0 || typeof s.name !== "string" || !s.name.trim() ||
@@ -44,7 +45,6 @@ if (!fuel) throw new Error("Unexpected fuel");
 if (url.searchParams.has("fuel") && ({ "95e10": "95", "98e5": "98" }[url.searchParams.get("fuel")] ?? url.searchParams.get("fuel")) !== fuel) throw new Error("Fuel mismatch between request and response");
 const now = Date.now();
 // A successful but empty provider response must not erase cached station or price history.
-if (payload.stations.length > 10000 || payload.observations.length > 10000) throw new Error("Unexpectedly large provider response");
 const rows = payload.observations.filter(o => {
   if (!o || typeof o !== "object" || typeof o.observedAt !== "string") return false;
   // Only timezone-explicit ISO timestamps are safe to persist as absolute events.
