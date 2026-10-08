@@ -14390,12 +14390,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ziiplyWeightLabel: true,
       } as Product;
       const newItem: CartItem = {
-        id: `k-weight-${product.id}-${Date.now()}`,
+        id: `weight-${product.id}-${Date.now()}`,
         name: productName,
         price: cartPrice,
         image: product.pictureUrl,
-        chain: "K",
-        storeName: activeStores.kStoreName || "K-kauppa",
+        chain: (selectedChains.s ? "S" : selectedChains.k ? "K" : selectedChains.lidl ? "Lidl" : "Tokmanni"),
+        storeName: (selectedChains.s ? activeStores.sStoreName : selectedChains.k ? activeStores.kStoreName : selectedChains.lidl ? activeStores.lidlStoreName : activeStores.tokmanniStoreName) || "Valittu kauppa",
         quantity: 1,
         source: "search",
         product: weightProductV738,
