@@ -119,7 +119,7 @@ export default function DesktopPreviewPage() {
       setDesktopCompareLoading(true);
       try{
         const updates=await Promise.all(cartItems.map(async item=>{
-          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel)return null;
+          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return null;
           const name=String(item.name||item.title||"").trim();if(!name)return null;
           const ean=String(item.ean||item.product?.ean||"").trim();
           const params=new URLSearchParams({search:name,store:String(store.externalId||store.id)});
@@ -134,7 +134,7 @@ export default function DesktopPreviewPage() {
         }));
         if(desktopCompareRequestIdentity.current!==requestIdentity)return;
         setCartItems(current=>current.map((item,i)=>{
-          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel)return item;
+          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
           return {...item,price:updates[i]??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]==null};
         }));
         flashCartNotice("Valitun kaupan hinnat päivitetty ostoskoriin.");
@@ -143,7 +143,7 @@ export default function DesktopPreviewPage() {
     }
     setDesktopCompareNotice(true);
     if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua S- tai K-kauppaa.");return}
-    const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel);
+    const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.ean,x.id,x.name,x.quantity,x.source])]);
     const cached=desktopCompareCache.current.get(key);
