@@ -76,6 +76,18 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{let active=true;const img=new Image();img.decoding="async";img.onload=()=>{const done=()=>{if(active)setCartPaperReady(true)};if(typeof img.decode==="function")void img.decode().catch(()=>undefined).finally(done);else done()};img.onerror=()=>{if(active)setCartPaperReady(true)};img.src="/ui/cart/vihkonen.webp";return()=>{active=false}},[]);
 
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const desktopCartHydrated=useRef(false);
+  useEffect(()=>{
+    try {
+      const raw=window.sessionStorage.getItem("ziiply-desktop-cart-v1");
+      if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed))setCartItems(parsed.filter(x=>x&&typeof x==="object").map(x=>({...x,quantity:Math.max(1,Number(x.quantity)||1),source:x.source==="justiina"?"justiina":"gosta"})));}
+    }catch{}
+    desktopCartHydrated.current=true;
+  },[]);
+  useEffect(()=>{
+    if(!desktopCartHydrated.current)return;
+    try{window.sessionStorage.setItem("ziiply-desktop-cart-v1",JSON.stringify(cartItems));}catch{}
+  },[cartItems]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
   const [cartNotice, setCartNotice] = useState("");
