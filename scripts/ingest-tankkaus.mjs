@@ -2,8 +2,6 @@
 // Explicit, one-shot ingestion. Dry-run by default. Never runs on ordinary page requests.
 // Usage: TANKKAUS_INGEST_URL=https://preview.example/api/tankkaus?lat=...\&lon=... node scripts/ingest-tankkaus.mjs
 // Write only after verifying live provider shape: DATABASE_URL=... TANKKAUS_INGEST_URL=... node scripts/ingest-tankkaus.mjs --write
-import { neon } from "@neondatabase/serverless";
-
 const endpoint = process.env.TANKKAUS_INGEST_URL;
 const write = process.argv.includes("--write");
 if (!endpoint) throw new Error("TANKKAUS_INGEST_URL is required");
@@ -45,6 +43,7 @@ if (!write) {
   console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: uniqueRows.length, fuel }));
   process.exit(0);
 }
+const { neon } = await import("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL);
 for (const s of stations.values()) {
   await sql`INSERT INTO ziiply_fuel_stations
