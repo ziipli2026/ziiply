@@ -5,7 +5,7 @@ import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopN
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
 import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
-import { desktopCartIdentity, appendDesktopCartItem, changeDesktopCartItemQuantity } from "../components/ziiply/cart/desktopCartCore";
+import { desktopCartIdentity, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -80,7 +80,7 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{
     try {
       const raw=window.sessionStorage.getItem("ziiply-desktop-cart-v1");
-      if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed))setCartItems(parsed.filter(x=>x&&typeof x==="object").map(x=>({...x,quantity:Math.max(1,Number(x.quantity)||1),source:x.source==="justiina"?"justiina":"gosta"})));}
+      if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed))setCartItems(restoreDesktopCartWithoutStalePrices(parsed));}
     }catch{}
     desktopCartHydrated.current=true;
   },[]);
@@ -126,7 +126,7 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{try{const raw=window.localStorage.getItem("ziiply-desktop-ostelusvihko-v1");if(raw)setSavedLists(JSON.parse(raw))}catch{}},[]);
   function persistSavedLists(next:any[]){setSavedLists(next);try{window.localStorage.setItem("ziiply-desktop-ostelusvihko-v1",JSON.stringify(next))}catch{}}
   function beginSaveCart(){if(!cartItems.length){flashCartNotice("Ostoskori on tyhjä");return}const d=new Date();setSaveListName(`Ostelusvihko ${d.toLocaleDateString("fi-FI")}`);setSaveListOpen(true)}
-  function restoreSavedList(list:any){setCartItems((list.items||[]).map((x:any)=>({...x})));setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko palautettu ostoskoriin")}
+  function restoreSavedList(list:any){setCartItems(restoreDesktopCartWithoutStalePrices(list.items));setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko palautettu ostoskoriin")}
   function saveCartToNotebook(){const name=saveListName.trim()||"Ostelusvihko";persistSavedLists([{id:String(Date.now()),name,createdAt:new Date().toISOString(),items:cartItems.map(x=>({...x}))},...savedLists]);setSaveListOpen(false);flashCartNotice(`Tallennettu Ostelusvihkoon: ${name}`)}
 
   function desktopCartPrice(value:any):number|null{if(value==null||value==="")return null;const normalized=String(value).replace(/\s/g,"").replace("€","").replace(",",".");const price=Number(normalized);return Number.isFinite(price)&&price>=0?price:null}
