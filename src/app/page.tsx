@@ -14565,7 +14565,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             );
             addWeightProductToCartV733(bankProductV842, kWeightLabelV730.scannedEan, { physicalScan: isPhysicalSearchScanV825 });
             setEanMessage(
-              isPhysicalSearchScanV825 ? `Vaakatuote tunnistettu: ${bankNameV842}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${bankNameV842}. Lisätty ilman hintaa — punnitaan kaupassa.`,
+              isPhysicalSearchScanV825 ? scannerWeightAddedMessageV847() : `Vaakatuote tunnistettu: ${bankNameV842}. Lisätty ilman hintaa — punnitaan kaupassa.`,
             );
             
             return;
@@ -14607,7 +14607,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           addWeightProductToCartV733(weighedProductV732, kWeightLabelV730.scannedEan, { physicalScan: isPhysicalSearchScanV825 });
 
           setEanMessage(
-            isPhysicalSearchScanV825 ? `Vaakatuote tunnistettu: ${resolvedNameV732}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${resolvedNameV732}. Lisätty ilman hintaa — punnitaan kaupassa.`,
+            isPhysicalSearchScanV825 ? scannerWeightAddedMessageV847() : `Vaakatuote tunnistettu: ${resolvedNameV732}. Lisätty ilman hintaa — punnitaan kaupassa.`,
           );
           
           return;
@@ -14643,7 +14643,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             );
             addWeightProductToCartV733(learnedProductV790, kWeightLabelV730.scannedEan, { physicalScan: isPhysicalSearchScanV825 });
             setEanMessage(
-              isPhysicalSearchScanV825 ? `Vaakatuote tunnistettu: ${learnedNameV790}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${learnedNameV790}. Lisätty ilman hintaa — punnitaan kaupassa.`,
+              isPhysicalSearchScanV825 ? scannerWeightAddedMessageV847() : `Vaakatuote tunnistettu: ${learnedNameV790}. Lisätty ilman hintaa — punnitaan kaupassa.`,
             );
             
             return;
