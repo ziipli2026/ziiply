@@ -266,7 +266,7 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full max-w-[900px] grid-cols-5 gap-2.5">
+          <div className="ml-auto grid w-full max-w-[900px] grid-cols-4 gap-2.5">
             {[
               ["☀️", "SÄÄ", weather.value, weather.detail, "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
@@ -289,10 +289,7 @@ export default function DesktopPreviewPage() {
                 <span className="mt-1 block text-[9px] font-black text-[#8a5b1d]">Avaa kalenteri →</span>
               </span>
             </button>
-            <button type="button" onClick={()=>setCartOpen(true)} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#5d8b6c] bg-gradient-to-b from-[#eff9e8] to-[#cfe8bd] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
-              <span className="relative text-[27px]">🛒{desktopCartCount>0&&<span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-[#12683f] px-1 text-[9px] font-black text-white">{desktopCartCount}</span>}</span>
-              <span className="min-w-0"><span className="mt-0.5 block text-[14px] font-black leading-none text-[#153e2c]">Kori</span><span className="mt-1 block text-[9px] font-black text-[#51705a]">{desktopCartCount?desktopCartCount+" kpl":"Avaa kori →"}</span></span>
-            </button>
+
           </div>
         </header>
 
@@ -343,7 +340,7 @@ export default function DesktopPreviewPage() {
                     type="button"
                     onClick={() => { setActive(item.key); if(item.key==="gosta"){setWorkspace(null);setGostaChainPicker(true)}else{setGostaChainPicker(false);setWorkspace(item.key)} }}
                     className={[
-                      "group relative min-h-[0] h-[clamp(330px,46vh,430px)] overflow-hidden rounded-[34px] border-[3px] p-5 text-center transition duration-200 hover:-translate-y-2 hover:rotate-[0.3deg] hover:shadow-[0_28px_54px_rgba(35,54,42,0.22)] active:translate-y-0",
+                      "group relative min-h-[0] h-[clamp(420px,57vh,590px)] overflow-hidden rounded-[34px] border-[3px] p-5 text-center transition duration-200 hover:-translate-y-2 hover:rotate-[0.3deg] hover:shadow-[0_28px_54px_rgba(35,54,42,0.22)] active:translate-y-0",
                       item.frame,
                       selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
                     ].join(" ")}
@@ -399,14 +396,7 @@ export default function DesktopPreviewPage() {
                 <div className="flex items-center justify-between"><div className="text-[26px] font-black text-[#14291f]">{assistants.find(x=>x.key===workspace)?.name}</div><button onClick={()=>setWorkspace(null)} className="rounded-full bg-white px-4 py-2 font-black">← Takaisin</button></div>
               </div>
             )}
-<div className="mt-3 flex items-center justify-between rounded-[22px] border border-[#77856e]/15 bg-white/48 px-5 py-4">
-              <div className="text-[14px] font-bold text-[#657064]">
-                Valittuna <span className="font-black text-[#243a2b]">{assistants.find((x) => x.key === active)?.name}</span>
-              </div>
-              <button onClick={() => setWorkspace(active)} className="rounded-full bg-[#214c32] px-6 py-3 text-[14px] font-black text-white shadow-[0_8px_18px_rgba(33,76,50,0.22)]">
-                Jatka →
-              </button>
-            </div>
+
           </div>
         </section>
 
