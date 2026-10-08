@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
 import DesktopAssistantCards from "../components/ziiply/desktop/DesktopAssistantCards";
@@ -222,6 +223,27 @@ export default function DesktopPreviewPage() {
     finally{if(request===offerRequestId.current)setGostaLoading(false)}
   }
   async function runDesktopScannerEanSearch(code:string) {
+    const weightLabel=resolvePriceWeightLabel(code);
+    const kWeightLabel=resolveKWeightLabel(code);
+    if(weightLabel){
+      const scannedEan=weightLabel.scannedEan;
+      const canonical=kWeightLabel?.canonicalEan||scannedEan;
+      const bank=await fetch("/api/ean-bank?ean="+encodeURIComponent(canonical),{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
+      const name=String(bank?.product?.name||"").trim()||`Tuntematon punnittu tuote (PLU ${weightLabel.plu})`;
+      const itemPrice=weightLabel.price;
+      const exists=cartItems.some(x=>String(x.ean||"")===scannedEan);
+      if(exists){
+        setCartItems(current=>current.map(x=>String(x.ean||"")===scannedEan?{...x,quantity:Number(x.quantity||1)+1}:x));
+        setDesktopScannerIncrement(true);
+        if(desktopScannerIncrementTimer.current)clearTimeout(desktopScannerIncrementTimer.current);
+        desktopScannerIncrementTimer.current=setTimeout(()=>setDesktopScannerIncrement(false),900);
+      }else{
+        addDesktopCartItem({id:scannedEan,ean:scannedEan,name,title:name,price:itemPrice,source:"scanner",product:{name,ean:scannedEan,ziiplyWeightLabel:true},ziiplyWeightLabel:true,weightPlu:weightLabel.plu});
+        setDesktopScannerMessage("Vaakatuote lisätty");
+        flashDesktopScanner("success");
+      }
+      return;
+    }
     const alreadyInCart=cartItems.some(item=>String(item.ean||item.product?.ean||"")===code);
     if(alreadyInCart){
       if(desktopScannerFlashTimer.current)clearTimeout(desktopScannerFlashTimer.current);
