@@ -26,7 +26,8 @@ async function tankkaus(path: string, token: string) {
     next: { revalidate: 300 },
   });
   if (!response.ok) throw new Error(`Tankkaus HTTP ${response.status}`);
-  return response.json();
+  const data: unknown = await response.json();
+  return data;
 }
 export async function GET(req: NextRequest) {
   const token = process.env.TANKKAUS_API_TOKEN?.trim();
@@ -45,9 +46,12 @@ export async function GET(req: NextRequest) {
       tankkaus(`/stations/stations-near/${coords}`, token),
       tankkaus(`/fills/home/${coords}`, token),
     ]);
-    const stations = (Array.isArray(stationsData) ? stationsData : Array.isArray(stationsData?.stations) ? stationsData.stations : [])
+    const stationPayload = stationsData as any;
+    const pricePayload = pricesData as any;
+    const stations = (Array.isArray(stationPayload) ? stationPayload : Array.isArray(stationPayload?.stations) ? stationPayload.stations : [])
       .map(stationOf).filter((s: Station | null): s is Station => s !== null);
     const stationById = new Map<number, Station>(stations.map((s: Station) => [s.id, s]));
+    if (!Array.isArray(pricePayload?.[fuelConfig])) throw new Error("Tankkaus response missing expected fuel observations array");
     const observations: Observation[] = [];
     for (const item of (Array.isArray(pricesData?.[fuelConfig]) ? pricesData[fuelConfig] : [])) {
       const id = asNumber(item?.station_id ?? item?.station?.id);
