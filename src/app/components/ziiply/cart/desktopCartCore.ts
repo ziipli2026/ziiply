@@ -26,3 +26,19 @@ export function changeDesktopCartItemQuantity(items: DesktopCartItem[], product:
     return quantity > 0 ? [{ ...item, quantity }] : [];
   });
 }
+
+/** Never treat a persisted price as current after reloading or changing store. */
+export function restoreDesktopCartWithoutStalePrices(raw: unknown): DesktopCartItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((item): item is Record<string, any> =>
+    Boolean(item) && typeof item === "object" && desktopCartIdentity(item) !== "name:"
+  ).map(item => ({
+    ...item,
+    source: item.source === "justiina" ? "justiina" as const : "gosta" as const,
+    quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
+    price: null,
+    __price: null,
+    __priceVerified: false,
+    __needsPriceRefresh: true,
+  }));
+}
