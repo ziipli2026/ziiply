@@ -93,7 +93,7 @@ export default function DesktopPreviewPage() {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [reloadCartDecisionOpen,setReloadCartDecisionOpen]=useState(false);
   const desktopCartHydratedRef=useRef(false);
-  useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items);const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
+  useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
@@ -224,14 +224,14 @@ export default function DesktopPreviewPage() {
         return items.filter((p:any)=>{
           const eans=[p.ean,p.eanCode,p.barcode,p.gtin,p.code,p.product?.ean].filter(Boolean).map(String);
           return eans.includes(code)||(knownName&&String(p.name||p.title||"").trim().toLocaleLowerCase("fi")===knownName.toLocaleLowerCase("fi"));
-        }).map((p:any)=>({...p,__store:store.name,__price:Number(p.price??p.storeItems?.[0]?.price??0),__chain:sChain?"S":"K"}));
+        }).map((p:any)=>({...p,__store:store.name,__price:Number(p.price??p.storeItems?.[0]?.price??0),__chain:sChain?"S":"K",__priceIsEuros:sChain&&data?.source==="s-kaupat-normal-v220"}));
       }));
       const matches=results.flat();
       if(matches.length){
         const matched=matches[0] as any;
         const name=String(matched.name||matched.title||knownName||"Tuote");
-        const cents=Number(matched.__price||0);
-        const priceEur=cents>0?cents/100:0;
+        const rawPrice=Number(matched.__price||0);
+        const priceEur=rawPrice>0?(matched.__priceIsEuros?rawPrice:rawPrice/100):0;
         if(knownName){
           if(priceEur>0)setCartItems(current=>current.map(item=>String(item.ean||"")===code?{...item,price:priceEur,storeName:String(matched.__store||""),chain:matched.__chain}:item));
         }else{
@@ -259,7 +259,7 @@ export default function DesktopPreviewPage() {
       if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.externalId||k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
-      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of items.slice(0,8)){const cents=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const euro=Number.isFinite(cents)&&cents>0?cents/100:null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro})}}
+      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of items.slice(0,8)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
       setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
     }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
   }
