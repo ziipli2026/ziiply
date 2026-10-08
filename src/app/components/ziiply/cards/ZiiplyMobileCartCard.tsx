@@ -1073,6 +1073,61 @@ export default function ZiiplyMobileCartCard({
                             {weightItemCount} vaakatuotetta ei voida siirtää verkko-ostoon. Ne jätetään pois verkkotilauksesta.
                           </div>
                         ) : null}
+                        <button
+                          type="button"
+                          disabled={!purchaseModeV739}
+                          onClick={() => purchaseModeV739 && setCheckoutPhaseV66("future")}
+                          className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.50rem] text-[0.88rem] font-black italic text-[#244525] disabled:opacity-45 active:translate-y-[1px]"
+                          style={{ fontFamily: cooperFont }}
+                        >
+                          Jatka
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowCheckoutFutureNoticeV62(false)}
+                          className="mt-3 block w-full text-[0.76rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                          style={{ fontFamily: serifFont }}
+                        >
+                          Peruuta
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                          {purchaseModeV739 === "instore" ? "Olet nyt ostamassa myymälässä" : "Olet nyt ostamassa verkko-ostoksena"}
+                        </div>
+                        <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                          Jatketaan automaattisesti {purchaseCountdownV66}…
+                        </div>
+                        {purchaseModeV739 === "online" && weightItemCount > 0 ? (
+                          <div className="mt-3 rounded-[0.48rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/72 px-2 py-2 text-[0.74rem] font-extrabold leading-snug text-[#7b3215]" style={{ fontFamily: serifFont }}>
+                            {weightItemCount} vaakatuotetta ei voida siirtää verkko-ostoon. Ne jätetään pois verkkotilauksesta.
+                          </div>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPurchaseModeV739((mode) => mode === "online" ? "instore" : "online");
+                            setCheckoutPhaseV66("future");
+                          }}
+                          className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-4 py-[0.55rem] text-[0.84rem] font-black italic text-[#244525] active:translate-y-[1px]"
+                          style={{ fontFamily: cooperFont }}
+                        >
+                          Vaihda ostotapa
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowCheckoutFutureNoticeV62(false)}
+                          className="mt-3 block w-full text-[0.76rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                          style={{ fontFamily: serifFont }}
+                        >
+                          Peruuta
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : null}
 
         {clearCartConfirmOpen && (
           <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="clear-cart-title">
