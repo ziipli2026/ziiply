@@ -5,7 +5,7 @@ import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopN
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
 import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, refreshDesktopCartProductPrice, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
-import { desktopCartIdentity, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
+import { desktopCartIdentity, desktopCartSameStore, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -210,13 +210,13 @@ export default function DesktopPreviewPage() {
       price:null,
       __price:null,
     };
-    const found=cartItems.some(x=>desktopCartKey(x)===key&&x.source===source);
+    const found=cartItems.some(x=>desktopCartKey(x)===key&&x.source===source&&desktopCartSameStore(x,cartProduct));
     setCartItems(current=>appendDesktopCartItem(current,cartProduct,source));
     if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900)}
     flashCartNotice(`Lisätty ostoskoriin: ${cartProduct.title||cartProduct.name||"tuote"}`);
   }
   function changeDesktopCartQuantity(p:any,delta:number){setCartItems(current=>changeDesktopCartItemQuantity(current,p,delta))}
-  function removeDesktopCartItem(p:any){const key=desktopCartKey(p);setCartItems(current=>current.filter(x=>!(desktopCartKey(x)===key&&x.source===p.source)));flashCartNotice(`Poistettu ostoskorista: ${p?.title||p?.name||"tuote"}`)}
+  function removeDesktopCartItem(p:any){const key=desktopCartKey(p);setCartItems(current=>current.filter(x=>!(desktopCartKey(x)===key&&x.source===p.source&&desktopCartSameStore(x,p))));flashCartNotice(`Poistettu ostoskorista: ${p?.title||p?.name||"tuote"}`)}
   async function shareDesktopCart(){const lines=cartItems.map((p:any)=>Number(p.quantity||1)+" × "+String(p.title||p.name||"Tuote")+(p.storeName?" — "+p.storeName:""));const message="Ziiply ostoskori\\n"+lines.join("\\n");try{if(navigator.share)await navigator.share({title:"Ziiply ostoskori",text:message});else if(navigator.clipboard){await navigator.clipboard.writeText(message);flashCartNotice("Ostoskori kopioitu leikepöydälle")}else flashCartNotice("Jakaminen ei ole käytettävissä")}catch(e:any){if(e?.name!=="AbortError")flashCartNotice("Jakaminen epäonnistui")}}
   function clearDesktopCart(){setCartItems([]);flashCartNotice("Ostoskori tyhjennetty")}
   const desktopCartCount=cartItems.reduce((sum:number,p:any)=>sum+Number(p.quantity||1),0);
