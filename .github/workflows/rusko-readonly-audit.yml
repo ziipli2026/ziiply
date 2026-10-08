@@ -7,6 +7,7 @@ on:
       - scripts/citymarket/rusko-offers-readonly.mjs
       - .github/workflows/rusko-readonly-audit.yml
       - scripts/citymarket/rusko-real-provider-readonly.mjs
+      - scripts/citymarket/rusko-kruoka-benefits-readonly.mjs
   workflow_dispatch:
 jobs:
   audit:
@@ -17,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Probe K-Ruoka Rusko benefits API read-only
+        run: node scripts/citymarket/rusko-kruoka-benefits-readonly.mjs
       - name: Run live read-only Rusko audit
         run: node scripts/citymarket/rusko-offers-readonly.mjs
       - name: Probe deployed Ziiply offers API read-only
