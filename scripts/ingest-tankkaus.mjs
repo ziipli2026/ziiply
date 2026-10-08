@@ -30,11 +30,14 @@ const fuel = Object.prototype.hasOwnProperty.call(fuelTypes, payload.fuel) ? fue
 if (!fuel) throw new Error("Unexpected fuel");
 if (url.searchParams.has("fuel") && ({ "95e10": "95", "98e5": "98" }[url.searchParams.get("fuel")] ?? url.searchParams.get("fuel")) !== fuel) throw new Error("Fuel mismatch between request and response");
 const now = Date.now();
+// A successful but empty provider response must not erase cached station or price history.
+if (payload.stations.length > 10000 || payload.observations.length > 10000) throw new Error("Unexpectedly large provider response");
 const rows = payload.observations.filter(o => {
   const t = Date.parse(o.observedAt);
   return stations.has(o.stationId) && Number.isFinite(o.price) && o.price > 0 && o.price <= 5 &&
     Number.isFinite(t) && t <= now && now - t <= 5 * 86400000;
 });
+if (write && (stations.size === 0 || rows.length === 0)) throw new Error("Refusing empty ingestion write");
 if (!write) {
   console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: rows.length, fuel }));
   process.exit(0);
