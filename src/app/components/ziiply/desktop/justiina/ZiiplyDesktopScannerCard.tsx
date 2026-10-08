@@ -119,9 +119,11 @@ export default function ZiiplyDesktopScannerCard({
   const visibleMessage =
     loading
       ? "Haetaan tuotetta"
-      : flashState === "success"
-        ? "Lisätty koriin"
-        : scannerMessage
+      : scannerMessage
+        ? scannerMessage
+        : flashState === "success"
+          ? "Lisätty koriin"
+          : scannerMessage
           ? scannerMessage
           : flashState === "error"
             ? "Ei löytynyt"
