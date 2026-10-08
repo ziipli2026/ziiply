@@ -31,6 +31,11 @@ for (const s of payload.stations) {
   if (!Number.isSafeInteger(s.id) || s.id <= 0 || typeof s.name !== "string" || !s.name.trim() ||
       !Number.isFinite(s.latitude) || Math.abs(s.latitude) > 90 ||
       !Number.isFinite(s.longitude) || Math.abs(s.longitude) > 180) continue;
+  const previous = stations.get(s.id);
+  // Reject ambiguous station identity before any database write.
+  if (previous && (previous.latitude !== s.latitude || previous.longitude !== s.longitude)) {
+    throw new Error("Conflicting coordinates for the same Tankkaus station ID");
+  }
   stations.set(s.id, s);
 }
 const fuelTypes = { "95": "95", "95e10": "95", "98": "98", "98e5": "98", diesel: "diesel" };
