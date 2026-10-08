@@ -401,6 +401,12 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b\w*mysli\w*\b/.test(productTitle)) return "Kuivatuotteet";
   if (/\bleivoskeksi\w*\b/.test(productTitle)) return "Makeiset & keksit";
 
+  // V74: Cross-store leaflet audit: specific food identities override a misleading
+  // Tjek department (e.g. pork kassler / sausage incorrectly tagged as fish).
+  // Match the product title only, never unrelated brochure descriptions.
+  if (/\b(?:kassler\w*|uunilenk\w*|lenkkimakkara\w*|siskonmakkara\w*|grillimakkara\w*)\b/.test(productTitle)) return "Liha & makkarat";
+  if (/\b(?:tortellon\w*|tortellin\w*|raviol\w*|gnocch\w*)\b/.test(productTitle)) return "Kuivatuotteet";
+
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
 
