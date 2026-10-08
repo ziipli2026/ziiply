@@ -14489,10 +14489,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Tarran PPPP on tämän nimenomaisen punnituksen oikea kokonaishinta.
     const kWeightLabelV730 = resolveKWeightLabel(ean);
     if (kWeightLabelV730) {
-      setEanLoading(true);
+      setEanLoading(false);
       setEanMessage("");
       setEanResults([]);
-      setEanScannerMessage("Vaakatuote — haetaan K-tuotetietoa");
+      // Acknowledge the valid scale barcode immediately; identity enrichment may take time.
+      const immediateWeightMessageV848 = scannerWeightAddedMessageV847();
+      setEanScannerMessage(immediateWeightMessageV848);
+      window.setTimeout(() => {
+        setEanScannerMessage((current) => current === immediateWeightMessageV848 ? "" : current);
+      }, 2200);
 
       try {
         // V842: oma pysyvä Neon EAN-pankki on vaakatuotteen ensimmäinen identiteettilähde.
@@ -14522,11 +14527,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setEanMessage(
               isPhysicalSearchScanV825 ? `Vaakatuote tunnistettu: ${bankNameV842}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${bankNameV842}. Lisätty ilman hintaa — punnitaan kaupassa.`,
             );
-            const scannerWeightMessageV847 = scannerWeightAddedMessageV847();
-      setEanScannerMessage(scannerWeightMessageV847);
-      window.setTimeout(() => {
-        setEanScannerMessage((current) => current === scannerWeightMessageV847 ? "" : current);
-      }, 2200);
+            
             return;
           }
           pushScannerDebugV493(
@@ -14568,11 +14569,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           setEanMessage(
             isPhysicalSearchScanV825 ? `Vaakatuote tunnistettu: ${resolvedNameV732}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${resolvedNameV732}. Lisätty ilman hintaa — punnitaan kaupassa.`,
           );
-          const scannerWeightMessageV847 = scannerWeightAddedMessageV847();
-      setEanScannerMessage(scannerWeightMessageV847);
-      window.setTimeout(() => {
-        setEanScannerMessage((current) => current === scannerWeightMessageV847 ? "" : current);
-      }, 2200);
+          
           return;
         }
 
@@ -14608,11 +14605,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setEanMessage(
               isPhysicalSearchScanV825 ? `Vaakatuote tunnistettu: ${learnedNameV790}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.` : `Vaakatuote tunnistettu: ${learnedNameV790}. Lisätty ilman hintaa — punnitaan kaupassa.`,
             );
-            const scannerWeightMessageV847 = scannerWeightAddedMessageV847();
-      setEanScannerMessage(scannerWeightMessageV847);
-      window.setTimeout(() => {
-        setEanScannerMessage((current) => current === scannerWeightMessageV847 ? "" : current);
-      }, 2200);
+            
             return;
           }
 
@@ -14644,11 +14637,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setEanMessage(
           isPhysicalSearchScanV825 ? `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}.` : `Punnittava tuote (PLU ${kWeightLabelV730.plu}) lisätty ilman hintaa — punnitaan kaupassa.`,
         );
-        const scannerWeightMessageV847 = scannerWeightAddedMessageV847();
-      setEanScannerMessage(scannerWeightMessageV847);
-      window.setTimeout(() => {
-        setEanScannerMessage((current) => current === scannerWeightMessageV847 ? "" : current);
-      }, 2200);
+        
         return;
       } catch (error) {
         console.error("K weight-label lookup failed", error);
@@ -14667,11 +14656,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setEanMessage(
           isPhysicalSearchScanV825 ? `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}. Tuotenimeä ei saatu haettua.` : `Punnittava tuote (PLU ${kWeightLabelV730.plu}) lisätty ilman hintaa — punnitaan kaupassa. Tuotenimeä ei saatu haettua.`,
         );
-        const scannerWeightMessageV847 = scannerWeightAddedMessageV847();
-      setEanScannerMessage(scannerWeightMessageV847);
-      window.setTimeout(() => {
-        setEanScannerMessage((current) => current === scannerWeightMessageV847 ? "" : current);
-      }, 2200);
+        
         return;
       }
     }
