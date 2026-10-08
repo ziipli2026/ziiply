@@ -108,7 +108,7 @@ export default function DesktopPreviewPage() {
   const desktopCompareRunId=useRef(0);
   const desktopCompareRequestIdentity=useRef(desktopCompareIdentity);
   desktopCompareRequestIdentity.current=desktopCompareIdentity;
-  useEffect(()=>{desktopCompareRunId.current+=1;desktopCompareCache.current.clear();setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);},[desktopCompareIdentity]);
+  useEffect(()=>{desktopCompareRunId.current+=1;desktopCompareCache.current.clear();setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
   async function openDesktopComparison(){
     const requestIdentity=desktopCompareIdentity;
     const runId=++desktopCompareRunId.current;
@@ -177,7 +177,7 @@ export default function DesktopPreviewPage() {
       }));
       if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
       const next=Object.fromEntries(results);desktopCompareCache.current.set(key,next);setDesktopCompareResults(next);
-    }catch{setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
+    }catch{if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
   }
 
   const [cartNotice, setCartNotice] = useState("");
