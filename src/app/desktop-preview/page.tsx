@@ -134,7 +134,7 @@ export default function DesktopPreviewPage() {
             const data=await response.json();const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
             const exact=ean?products.find((p:any)=>[p.ean,p.gtin,p.eanCode,p.barcode,p.product?.ean,p.item?.ean].some(v=>String(v||"").trim()===ean)):null;
             const byName=products.find((p:any)=>String(p.name||p.title||"").trim().replace(/\s+/g," ").toLocaleLowerCase("fi")===name.replace(/\s+/g," ").toLocaleLowerCase("fi"));
-            const matched=exact||byName;const raw=Number((Array.isArray(matched?.storeItems)&&matched.storeItems.length?matched.storeItems.find((entry:any)=>String(entry.storeId??entry.store?.id??entry.store??"")===String(store.externalId||store.id))?.price:matched?.price)??0);
+            const matched=exact||byName;const raw=Number((matched?.price??matched?.storeItems?.[0]?.price)??0);
             return matched&&Number.isFinite(raw)&&raw>0?(isS&&data?.source==="s-kaupat-normal-v220"?raw:raw/100):null;
           }catch{return null}
         }));
@@ -179,7 +179,7 @@ export default function DesktopPreviewPage() {
             // No speculative substitutes: name match must be exact, not a loose keyword hit.
             const byName=products.find((p:any)=>String(p.name||p.title||"").trim().replace(/\s+/g," ").toLocaleLowerCase("fi")===name.replace(/\s+/g," ").toLocaleLowerCase("fi"));
             const matched=exact||byName;
-            const raw=Number((Array.isArray(matched?.storeItems)&&matched.storeItems.length?matched.storeItems.find((entry:any)=>String(entry.storeId??entry.store?.id??entry.store??"")===String(store.externalId||store.id))?.price:matched?.price)??0);
+            const raw=Number((matched?.price??matched?.storeItems?.[0]?.price)??0);
             const price=matched&&Number.isFinite(raw)&&raw>0?(isS&&data?.source==="s-kaupat-normal-v220"?raw:raw/100):null;
             return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,match:(exact?"ean":byName?"name":"none") as "ean"|"name"|"none"};
           }catch{return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
