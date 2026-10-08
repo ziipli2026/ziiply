@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
-import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
+import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, refreshDesktopCartProductPrice, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
 import { desktopCartIdentity, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
@@ -102,6 +102,36 @@ export default function DesktopPreviewPage() {
       return next.every((item,i)=>item===current[i])?current:next;
     });
   },[selectedStores,desktopCartHydrated]);
+  const cartPriceRefreshRun=useRef(0);
+  useEffect(()=>{
+    if(!desktopCartHydrated)return;
+    const pending=cartItems.filter(item=>item.__needsPriceRefresh===true);
+    if(!pending.length)return;
+    const selected=Object.values(selectedStores);
+    const run=++cartPriceRefreshRun.current;
+    let cancelled=false;
+    void (async()=>{
+      for(const item of pending){
+        if(cancelled||run!==cartPriceRefreshRun.current)return;
+        const chain=String(item.__chain??"") as DesktopNormalSearchChain;
+        if(chain!=="S"&&chain!=="K")continue;
+        const store=selected.find(x=>desktopOfferChainFromStoreKind(storeKind(x),x)===chain);
+        if(!store)continue;
+        const storeId=String(store.externalId??store.id??"").trim();
+        if(!storeId)continue;
+        try{
+          const price=await refreshDesktopCartProductPrice(item,chain,store);
+          if(cancelled||run!==cartPriceRefreshRun.current)return;
+          if(price==null)continue;
+          const key=desktopCartIdentity(item);
+          setCartItems(current=>current.map(x=>desktopCartIdentity(x)===key&&x.source===item.source&&x.__needsPriceRefresh?{
+            ...x,price,__price:price,__chain:chain,__storeId:storeId,__priceVerified:true,__needsPriceRefresh:false
+          }:x));
+        }catch{}
+      }
+    })();
+    return()=>{cancelled=true};
+  },[selectedStores,desktopCartHydrated,cartItems]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
   const [cartNotice, setCartNotice] = useState("");
