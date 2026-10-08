@@ -16,6 +16,7 @@ const stations = [
   { id: 3, name: 'No coordinates' },
   { id: 4, name: 'Second near', latitude: 60.005, longitude: 24 },
   { id: 5, name: 'Invalid latitude', latitude: 999, longitude: 24 },
+  { id: Number.MAX_SAFE_INTEGER + 1, name: 'Unsafe ID', latitude: 60, longitude: 24 },
 ];
 const fillsDiesel = [
   { station_id: 1, price_liter: '1.79', created: at(1) },
@@ -26,6 +27,8 @@ const fillsDiesel = [
   { station_id: 4, price_liter: '1.72', created: at(1) },
   { station_id: 4, price_liter: '1.80', created: at(-1) },
   { station_id: 5, price_liter: '1.20', created: at(1) },
+  { station_id: 4, price_liter: '1.11', created: at(0).replace('Z', '') },
+  { station_id: Number.MAX_SAFE_INTEGER + 1, price_liter: '1.01', created: at(1) },
 ];
 let calls = [];
 let malformed = false;
@@ -61,11 +64,12 @@ const get = (query) => routeModule.exports.GET({
   assert.equal(ok.body.observations[0].price, 1.79);
   assert.equal(ok.body.observations[1].price, 1.72);
   assert.equal(ok.body.stations.length, 2);
+  assert.ok(!ok.body.observations.some(o => o.price === 1.11 || o.price === 1.01));
   assert.ok(ok.body.stations.every(s => s.distanceKm <= 10));
   assert.equal(calls.length, 2);
   assert.ok(calls.every(x => x.options.headers.Authorization === 'Token fake-test-token'));
   assert.ok(!JSON.stringify(ok.body).includes('fake-test-token'));
-  console.log('PASS: distance, freshness, deduplication, ordering, token isolation');
+  console.log('PASS: distance, freshness, deduplication, unsafe IDs, timezone validation, ordering, token isolation');
 
   calls = [];
   const bad = await get('lat=91&lon=24');
