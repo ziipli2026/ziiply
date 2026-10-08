@@ -88,8 +88,21 @@ const get = (query) => routeModule.exports.GET({
   }
   console.log('PASS: petrol fuel aliases select matching upstream observations');
 
-  malformed = true;
+  // Conflicting coordinates for one upstream station ID must fail closed.
+  stations.push({ id: 1, name: 'Conflicting location', latitude: 60.002, longitude: 24.002 });
   const originalError = console.error;
+  console.error = () => {};
+  try {
+    const conflicting = await get('lat=60&lon=24&fuel=diesel');
+    assert.equal(conflicting.status, 502);
+    assert.equal(conflicting.body.ok, false);
+  } finally {
+    console.error = originalError;
+    stations.pop();
+  }
+  console.log('PASS: conflicting coordinates for the same station ID are rejected');
+
+  malformed = true;
   console.error = () => {};
   try {
     const upstream = await get('lat=60&lon=24');
