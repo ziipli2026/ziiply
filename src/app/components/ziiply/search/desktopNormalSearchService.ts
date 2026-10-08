@@ -76,3 +76,26 @@ export function normalizeDesktopNormalResults(
     };
   });
 }
+
+/** Conservative exact-product refresh. Never substitute a similarly named product. */
+export async function refreshDesktopCartProductPrice(
+  item: Record<string, any>,
+  chain: DesktopNormalSearchChain,
+  store: DesktopNormalSearchStore,
+): Promise<number | null> {
+  if (chain === "LIDL" || chain === "TOKMANNI" || chain === "EUROSPAR") return null;
+  const ean = String(item.ean ?? "").trim();
+  const id = String(item.id ?? "").trim();
+  if (!ean && !id) return null;
+  const term = String(item.title ?? item.name ?? item.productName ?? "").trim();
+  if (!term) return null;
+  const results = await fetchDesktopNormalProducts(term, chain, store);
+  const exact = results.filter(p => {
+    if (ean) return String(p.ean ?? p.barcode ?? "").trim() === ean;
+    return String(p.id ?? "").trim() === id;
+  });
+  if (exact.length !== 1) return null;
+  const candidate = exact[0]?.price ?? exact[0]?.storeItems?.[0]?.price ?? exact[0]?.storeItem?.price;
+  const price = Number(String(candidate ?? "").replace(",", "."));
+  return Number.isFinite(price) && price > 0 ? price : null;
+}
