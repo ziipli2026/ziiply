@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Explicit, one-shot ingestion. Dry-run by default. Never runs on ordinary page requests.
 // Usage: TANKKAUS_INGEST_URL=https://preview.example/api/tankkaus?lat=...\&lon=... node scripts/ingest-tankkaus.mjs
-// Write only after verifying live provider shape: DATABASE_URL=... TANKKAUS_INGEST_URL=... node scripts/ingest-tankkaus.mjs --write
+// Write only after verifying live provider shape and test branch: DATABASE_URL=... TANKKAUS_INGEST_WRITE_CONFIRM=YES_TEST_BRANCH TANKKAUS_INGEST_URL=... node scripts/ingest-tankkaus.mjs --write
 const endpoint = process.env.TANKKAUS_INGEST_URL;
 const write = process.argv.includes("--write");
 if (!endpoint) throw new Error("TANKKAUS_INGEST_URL is required");
