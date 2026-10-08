@@ -66,12 +66,14 @@ export function normalizeDesktopNormalResults(
     const numeric = typeof candidate === "number" ? candidate :
       Number(String(candidate ?? "").replace(",", "."));
     const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+    const localPriceVerified = (chain === "S" || chain === "K") && price > 0;
     return {
       ...item,
       __chain: chain,
       __store: store.name || chain,
       __price: chain === "LIDL" ? 0 : price,
-      __priceVerified: chain !== "LIDL" && price > 0,
+      __priceVerified: localPriceVerified,
+      __storeId: String(store.externalId ?? store.id ?? ""),
       __catalogOnly: chain === "LIDL" || chain === "TOKMANNI" || chain === "EUROSPAR",
     };
   });
@@ -84,6 +86,7 @@ export async function refreshDesktopCartProductPrice(
   store: DesktopNormalSearchStore,
 ): Promise<number | null> {
   if (chain === "LIDL" || chain === "TOKMANNI" || chain === "EUROSPAR") return null;
+  if (!String(store.externalId ?? store.id ?? "").trim()) return null;
   const ean = String(item.ean ?? "").trim();
   const id = String(item.id ?? "").trim();
   if (!ean && !id) return null;
