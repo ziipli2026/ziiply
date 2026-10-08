@@ -114,7 +114,9 @@ export default function DesktopPreviewPage() {
     const requestIdentity=desktopCompareIdentity;
     const runId=++desktopCompareRunId.current;
     setDesktopCompareError("");
-    const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
+    const allSelected=Object.values(selectedStores) as any[];
+    const selected=allSelected.filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
+    const unsupportedSelected=allSelected.filter(x=>!["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
     if(betweenMode==="one"){
       setDesktopCompareNotice(false);
       if(selected.length!==1){setDesktopCompareLoading(false);flashCartNotice("Valitse yksi S- tai K-kauppa hintojen hakua varten.");return}
@@ -150,6 +152,7 @@ export default function DesktopPreviewPage() {
     setDesktopCompareNotice(true);
     setDesktopCompareLoading(false);
     setDesktopCompareResults({});
+    if(unsupportedSelected.length){setDesktopCompareError("Vertailu ei vielä tue kaikkia valittuja ketjuja: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+". Valitse vain S- ja K-kauppoja.");return}
     if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua S- tai K-kauppaa.");return}
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
