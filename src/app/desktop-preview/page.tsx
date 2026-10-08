@@ -121,7 +121,12 @@ export default function DesktopPreviewPage() {
         if(cancelled||run!==cartPriceRefreshRun.current)return;
         const chain=String(item.__chain??"") as DesktopNormalSearchChain;
         if(chain!=="S"&&chain!=="K")continue;
-        const store=selected.find(x=>desktopOfferChainFromStoreKind(storeKind(x),x)===chain);
+        const chainStores=selected.filter(x=>desktopOfferChainFromStoreKind(storeKind(x),x)===chain);
+        const originalStoreId=String(item.__storeId??item.storeId??"").trim();
+        const store=originalStoreId
+          ?chainStores.find(x=>String(x.externalId??x.id??"").trim()===originalStoreId)
+          :(chainStores.length===1?chainStores[0]:undefined);
+        // Never guess a store price when multiple shops of the same chain are selected.
         if(!store)continue;
         const storeId=String(store.externalId??store.id??"").trim();
         if(!storeId)continue;
