@@ -204,6 +204,14 @@ export default function DesktopPreviewPage() {
       const bankData=bankResponse.ok?await bankResponse.json().catch(()=>null):null;
       const bankProduct=bankData?.product;
       const knownName=String(bankProduct?.name||"").trim();
+      // Known Neon EAN identity must never wait for chain price searches.
+      if(knownName){
+        addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina"});
+        setDesktopScannerLoading(false);
+        setDesktopScannerMessage("TUOTE LISÄTTY");
+        flashDesktopScanner("success");
+      }
+      // Store-specific price discovery is independent and must not block recognition.
       const results=await Promise.all(stores.map(async store=>{
         const kind=storeKind(store);
         const sChain=kind==="sHyper"||kind==="sLocal";
@@ -216,7 +224,7 @@ export default function DesktopPreviewPage() {
         return items.filter((p:any)=>{
           const eans=[p.ean,p.eanCode,p.barcode,p.gtin,p.code,p.product?.ean].filter(Boolean).map(String);
           return eans.includes(code)||(knownName&&String(p.name||p.title||"").trim().toLocaleLowerCase("fi")===knownName.toLocaleLowerCase("fi"));
-        }).map((p:any)=>({...p,__store:store.name,__price:Number(p.price??p.storeItems?.[0]?.price??0)}));
+        }).map((p:any)=>({...p,__store:store.name,__price:Number(p.price??p.storeItems?.[0]?.price??0),__chain:sChain?"S":"K"}));
       }));
       const matches=results.flat();
       if(matches.length){
@@ -224,14 +232,14 @@ export default function DesktopPreviewPage() {
         const name=String(matched.name||matched.title||knownName||"Tuote");
         const cents=Number(matched.__price||0);
         const priceEur=cents>0?cents/100:0;
-        addDesktopCartItem({id:String(matched.id||code),ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:String(matched.__store||"").toLowerCase().includes("prisma")?"S":"K"});
-        setDesktopScannerMessage("TUOTE LISÄTTY");
-        flashDesktopScanner("success");
-      }else if(knownName){
-        addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina"});
-        setDesktopScannerMessage("TUOTE LISÄTTY");
-        flashDesktopScanner("success");
-      }else{
+        if(knownName){
+          if(priceEur>0)setCartItems(current=>current.map(item=>String(item.ean||"")===code?{...item,price:priceEur,storeName:String(matched.__store||""),chain:matched.__chain}:item));
+        }else{
+          addDesktopCartItem({id:code,ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:matched.__chain});
+          setDesktopScannerMessage("TUOTE LISÄTTY");
+          flashDesktopScanner("success");
+        }
+      }else if(!knownName){
         setDesktopScannerMessage("❌ Tuotetta ei tunnistettu — ei lisätty koriin");
         flashDesktopScanner("error");
       }
