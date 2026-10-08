@@ -53,3 +53,26 @@ export async function fetchDesktopNormalProducts(
   return Array.isArray(data?.products) ? data.products :
     Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
 }
+
+/** Convert API result shapes into the desktop result contract without inventing prices. */
+export function normalizeDesktopNormalResults(
+  items: any[],
+  chain: DesktopNormalSearchChain,
+  store: DesktopNormalSearchStore,
+  limit = 8,
+) {
+  return items.slice(0, limit).map((item) => {
+    const candidate = item?.price ?? item?.storeItems?.[0]?.price ?? item?.storeItem?.price;
+    const numeric = typeof candidate === "number" ? candidate :
+      Number(String(candidate ?? "").replace(",", "."));
+    const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+    return {
+      ...item,
+      __chain: chain,
+      __store: store.name || chain,
+      __price: chain === "LIDL" ? 0 : price,
+      __priceVerified: chain !== "LIDL" && price > 0,
+      __catalogOnly: chain === "LIDL" || chain === "TOKMANNI" || chain === "EUROSPAR",
+    };
+  });
+}
