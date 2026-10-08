@@ -51,6 +51,23 @@ const rows = payload.observations.filter(o => {
 // One provider response may contain duplicate observations. Keep a single canonical row per event.
 const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${new Date(o.observedAt).toISOString()}:${o.price.toFixed(3)}`, o])).values()];
 if (write && (stations.size === 0 || uniqueRows.length === 0)) throw new Error("Refusing empty ingestion write");
+// Reject a claimed collection radius if the provider includes stations outside that radius.
+// A future wider-coverage endpoint must be validated separately before ingestion.
+const radiusClaim = payload.coverage?.radiusKm;
+if (typeof radiusClaim === "number" && Number.isFinite(radiusClaim) && radiusClaim > 0) {
+  const centerLat = Number(url.searchParams.get("lat"));
+  const centerLon = Number(url.searchParams.get("lon"));
+  const toRadians = n => n * Math.PI / 180;
+  const distanceKm = (a, b) => {
+    const dLat = toRadians(b.latitude - a.latitude);
+    const dLon = toRadians(b.longitude - a.longitude);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRadians(a.latitude)) * Math.cos(toRadians(b.latitude)) * Math.sin(dLon / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
+  };
+  if ([...stations.values()].some(station => distanceKm({ latitude: centerLat, longitude: centerLon }, station) > radiusClaim + 0.05)) {
+    throw new Error("Provider station outside claimed collection radius");
+  }
+}
 // The live route only exposes the ten closest priced stations per fuel.
 // Do not misrepresent a single coordinate sample as full-area or national coverage.
 const radius = payload.coverage?.radiusKm;
