@@ -413,6 +413,7 @@ export default function ZiiplyMobileCartCard({
   const isCartCompleteV58 = hasItems && totalItemsV58 > 0 && collectedItemsV58 >= totalItemsV58;
   const [showCompletionCardV58, setShowCompletionCardV58] = React.useState(false);
   const [clearCartConfirmOpen, setClearCartConfirmOpen] = React.useState(false);
+  const [onlineCheckoutNoticeOpen, setOnlineCheckoutNoticeOpen] = React.useState(false);
   const [showCheckoutFutureNoticeV62, setShowCheckoutFutureNoticeV62] = React.useState(false);
   const [purchaseModeV739, setPurchaseModeV739] = React.useState<"instore" | "online" | null>(null);
   const [checkoutPhaseV66, setCheckoutPhaseV66] = React.useState<"mode" | "future">("mode");
@@ -943,10 +944,7 @@ export default function ZiiplyMobileCartCard({
           <button
             type="button"
             onClick={() => {
-              setPurchaseModeV739("online");
-              setCheckoutPhaseV66("mode");
-              setPurchaseCountdownV66(5);
-              setShowCheckoutFutureNoticeV62(true);
+              setOnlineCheckoutNoticeOpen(true);
             }}
             className="absolute bottom-[2.94rem] left-[6.70rem] z-[35] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
             aria-label="Kassalle etäostoksilla"
@@ -1018,6 +1016,15 @@ export default function ZiiplyMobileCartCard({
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
 
+        {onlineCheckoutNoticeOpen && (
+          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="online-checkout-title">
+            <div className="w-full max-w-[23rem] rounded-[1.35rem] border-[3px] border-[#886635] bg-[#fff4d8] p-5 text-[#214b33] shadow-[0_12px_35px_rgba(28,19,8,0.35),inset_0_0_0_2px_#fff9e8]">
+              <h2 id="online-checkout-title" className="text-center text-[1.3rem] font-black" style={{ fontFamily: cooperFont }}>Kassalle</h2>
+              <p className="mt-3 text-center text-[0.92rem] font-bold text-[#655235]">Ziiply-maksaminen on tulossa. Etäostoksilla tuotteita ei tarvitse merkitä kerätyiksi.</p>
+              <button type="button" autoFocus onClick={() => setOnlineCheckoutNoticeOpen(false)} className="mt-5 min-h-[2.9rem] w-full rounded-[0.75rem] border-2 border-[#8b713e] bg-[#fff9e8] font-black text-[#214b33]">Selvä</button>
+            </div>
+          </div>
+        )}
         {clearCartConfirmOpen && (
           <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="clear-cart-title">
             <div className="w-full max-w-[23rem] rounded-[1.35rem] border-[3px] border-[#886635] bg-[#fff4d8] p-5 text-[#214b33] shadow-[0_12px_35px_rgba(28,19,8,0.35),inset_0_0_0_2px_#fff9e8]">
