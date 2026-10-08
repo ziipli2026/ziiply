@@ -6,7 +6,7 @@ import { neon } from "@neondatabase/serverless";
 export async function GET(req: NextRequest) {
   const lat = Number(req.nextUrl.searchParams.get("lat"));
   const lon = Number(req.nextUrl.searchParams.get("lon"));
-  const fuelInput = req.nextUrl.searchParams.get("fuel") ?? "diesel";
+  const fuelInput = (req.nextUrl.searchParams.get("fuel") ?? "diesel").toLowerCase().replace(/\s/g, "");
   const fuel = ({ "95e10": "95", "98e5": "98" } as Record<string, string>)[fuelInput] ?? fuelInput;
   if (!req.nextUrl.searchParams.has("lat") || !req.nextUrl.searchParams.has("lon") ||
       !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180 ||
