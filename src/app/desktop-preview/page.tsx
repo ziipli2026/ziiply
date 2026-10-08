@@ -135,6 +135,9 @@ export default function DesktopPreviewPage() {
           }catch{return null}
         }));
         if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
+        const eligibleCount=cartItems.filter(item=>String(item.source||"").toLowerCase()!=="offer"&&!item?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))).length;
+        const pricedCount=updates.filter(price=>price!=null).length;
+        if(eligibleCount>0&&pricedCount===0){flashCartNotice("Hintoja ei löytynyt valitusta kaupasta. Ostoskorin aiempia hintoja ei muutettu.");return;}
         setCartItems(current=>current.map((item,i)=>{
           if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
           return {...item,price:updates[i]??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]==null};
