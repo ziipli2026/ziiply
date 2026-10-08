@@ -4813,6 +4813,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   );
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
+  // Desktop HID: only a rapid uninterrupted digit burst ending in Enter is a physical scan.
+  // Typed, pasted and button-submitted EANs remain manual searches.
+  const desktopHidBurstRefV850 = useRef({ count: 0, started: 0, last: 0 });
+  function handleDesktopHidKeyV850(event: React.KeyboardEvent<HTMLInputElement>) {
+    const burst = desktopHidBurstRefV850.current;
+    if (/^[0-9]$/.test(event.key) && !event.repeat && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      const now = Date.now();
+      if (!burst.count || now - burst.last > 100) {
+        burst.count = 0;
+        burst.started = now;
+      }
+      burst.count += 1;
+      burst.last = now;
+      return;
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const code = normalizeEan(event.currentTarget.value);
+      const now = Date.now();
+      const isHid = burst.count >= 8 && burst.count === code.length &&
+        now - burst.last <= 150 && now - burst.started <= 1500 && isUsableEan(code);
+      desktopHidBurstRefV850.current = { count: 0, started: 0, last: 0 };
+      if (isHid) void finishScannedEan(code);
+      else void searchScannerEnteredEanV830(code);
+      return;
+    }
+    desktopHidBurstRefV850.current = { count: 0, started: 0, last: 0 };
+  }
+
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [scannerStoreMismatchV801, setScannerStoreMismatchV801] = useState<{ name: string; searchTerm: string; selectedName: string; reason?: "foreign_private_label" | "not_found" } | null>(null);
   const [scannerEquivalentNoticeV813, setScannerEquivalentNoticeV813] = useState("");
@@ -22050,7 +22079,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                               setEanInput(event.target.value.replace(/\D/g, ""))
                             }
                             onKeyDown={(event) => {
-                              if (event.key === "Enter") void searchScannerEnteredEanV830();
+                              handleDesktopHidKeyV850(event);
                             }}
                             inputMode="numeric"
                             placeholder="Syötä EAN, esim. 641..."
@@ -22088,13 +22117,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                                 setEanInput(event.target.value.replace(/\D/g, ""))
                               }
                               onKeyDown={(event) => {
-                                if (event.key === "Enter") void searchScannerEnteredEanV830();
+                                handleDesktopHidKeyV850(event);
                               }}
                               inputMode="numeric"
                               autoComplete="off"
                               placeholder="Skannaa EAN-koodi"
                               className="min-w-0 flex-1 rounded-[1.25rem] border-[3px] border-[#b99e67] bg-[#fff8df] px-5 py-5 text-center text-2xl font-black tracking-[0.22em] text-[#172016] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10)] outline-none placeholder:tracking-normal placeholder:text-[#8b846f] focus:border-[#2f7c3f] focus:ring-4 focus:ring-[#c4dfbd]"
                               onPaste={(event) => {
+                                 desktopHidBurstRefV850.current = { count: 0, started: 0, last: 0 };
                                 const pastedText = event.clipboardData.getData("text");
                                 const code = normalizeEan(pastedText);
                                 if (!code) return;
@@ -23153,13 +23183,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         setEanInput(event.target.value.replace(/\D/g, ""))
                       }
                       onKeyDown={(event) => {
-                        if (event.key === "Enter") void searchScannerEnteredEanV830();
+                        handleDesktopHidKeyV850(event);
                       }}
                       inputMode="numeric"
                       autoComplete="off"
                       placeholder="Skannaa tai syötä EAN-koodi"
                       className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-4 text-lg font-black tracking-[0.18em] text-slate-950 outline-none transition placeholder:tracking-normal placeholder:text-[#b7aa8d] focus:border-green-600 focus:ring-4 focus:ring-green-100"
                       onPaste={(event) => {
+                         desktopHidBurstRefV850.current = { count: 0, started: 0, last: 0 };
                         const pastedText = event.clipboardData.getData("text");
                         const code = normalizeEan(pastedText);
 
