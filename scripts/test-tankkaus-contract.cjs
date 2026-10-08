@@ -56,9 +56,9 @@ const get = (query) => routeModule.exports.GET({
   assert.equal(ok.status, 200);
   assert.equal(ok.body.ok, true);
   assert.equal(ok.body.source, 'Tankkaus.com');
-  assert.deepEqual(Array.from(ok.body.observations, x => x.stationId), [4, 1]);
-  assert.equal(ok.body.observations[0].price, 1.72);
-  assert.equal(ok.body.observations[1].price, 1.79);
+  assert.deepEqual(Array.from(ok.body.observations, x => x.stationId), [1, 4]);
+  assert.equal(ok.body.observations[0].price, 1.79);
+  assert.equal(ok.body.observations[1].price, 1.72);
   assert.equal(ok.body.stations.length, 2);
   assert.ok(ok.body.stations.every(s => s.distanceKm <= 10));
   assert.equal(calls.length, 2);
