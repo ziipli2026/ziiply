@@ -9,13 +9,13 @@ on:
       - 'scripts/test-tankkaus-contract.cjs'
       - 'scripts/ingest-tankkaus.mjs'
       - 'db/migrations/003_tankkaus_fuel_cache.sql'
-      - 'scripts/ingest-tankkaus.mjs'
-      - 'db/migrations/003_tankkaus_fuel_cache.sql'
       - '.github/workflows/tankkaus-contract-smoke.yml'
   pull_request:
     paths:
       - 'src/app/api/tankkaus/**'
       - 'scripts/test-tankkaus-contract.cjs'
+      - 'scripts/ingest-tankkaus.mjs'
+      - 'db/migrations/003_tankkaus_fuel_cache.sql'
       - '.github/workflows/tankkaus-contract-smoke.yml'
 jobs:
   build-and-smoke:
