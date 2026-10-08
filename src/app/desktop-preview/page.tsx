@@ -232,7 +232,7 @@ export default function DesktopPreviewPage() {
         setDesktopScannerMessage("TUOTE LISÄTTY");
         flashDesktopScanner("success");
       }else{
-        setDesktopScannerMessage("Ei löytynyt");
+        setDesktopScannerMessage("❌ Tuotetta ei tunnistettu — ei lisätty koriin");
         flashDesktopScanner("error");
       }
     }catch{setDesktopScannerMessage("Tuotehaku epäonnistui. Yritä uudelleen.");flashDesktopScanner("error")}finally{setDesktopScannerLoading(false)}
