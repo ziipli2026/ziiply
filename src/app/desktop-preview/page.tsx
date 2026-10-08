@@ -176,23 +176,35 @@ export default function DesktopPreviewPage() {
     setDesktopScannerMessage("Haetaan tuotetta: "+code);
     const selected=Object.values(selectedStores) as any[];
     const stores=selected.filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
-    if(!stores.length){setDesktopScannerMessage("Valitse ensin S- tai K-kauppa.");return}
-    try{
-      const batches=await Promise.all(stores.map(async store=>{
+    try {
+      // Mobile scanner's first identity source: persistent EAN bank. The bank
+      // identifies the product, not its price or store availability.
+      const bankResponse=await fetch("/api/ean-bank?ean="+encodeURIComponent(code),{cache:"no-store"});
+      const bankData=bankResponse.ok?await bankResponse.json().catch(()=>null):null;
+      const bankProduct=bankData?.product;
+      const knownName=String(bankProduct?.name||"").trim();
+      const results=await Promise.all(stores.map(async store=>{
         const kind=storeKind(store);
-        const url=kind==="sHyper"||kind==="sLocal"
-          ? `/api/s-products?search=${encodeURIComponent(code)}&store=${encodeURIComponent(String(store.externalId||store.id))}&storeName=${encodeURIComponent(String(store.name||""))}`
-          : `/api/k-products?search=${encodeURIComponent(code)}&store=${encodeURIComponent(String(store.externalId||store.id))}`;
-        const response=await fetch(url,{cache:"no-store"});
+        const sChain=kind==="sHyper"||kind==="sLocal";
+        const params=new URLSearchParams({search:knownName||code,store:String(store.externalId||store.id)});
+        if(sChain)params.set("storeName",String(store.name||""));
+        const response=await fetch((sChain?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
         const items=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
-        return items.filter((p:any)=>[p.ean,p.eanCode,p.barcode,p.gtin,p.code,p.product?.ean].some(v=>String(v||"")===code)).map((p:any)=>({...p,__store:store.name,__price:Number(p.price??p.storeItems?.[0]?.price??0)}));
+        return items.filter((p:any)=>{
+          const eans=[p.ean,p.eanCode,p.barcode,p.gtin,p.code,p.product?.ean].filter(Boolean).map(String);
+          return eans.includes(code)||(knownName&&String(p.name||p.title||"").trim().toLocaleLowerCase("fi")===knownName.toLocaleLowerCase("fi"));
+        }).map((p:any)=>({...p,__store:store.name,__price:Number(p.price??p.storeItems?.[0]?.price??0)}));
       }));
-      const matches=batches.flat();
-      setDesktopScannerMessage(matches.length
-        ? matches.slice(0,3).map((p:any)=>`${p.name||p.title||"Tuote"} · ${p.__store||""} · ${p.__price? p.__price.toFixed(2).replace(".",",")+" €":"Hinta ei saatavilla"}`).join(" | ")
-        : "EAN "+code+" luettu, mutta tuotetta ei löytynyt valituista kaupoista.");
+      const matches=results.flat();
+      if(matches.length){
+        setDesktopScannerMessage(matches.slice(0,3).map((p:any)=>`${p.name||p.title||knownName} · ${p.__store||""} · ${p.__price>0?p.__price.toFixed(2).replace(".",",")+" €":"Hinta ei saatavilla"}`).join(" | "));
+      }else if(knownName){
+        setDesktopScannerMessage("Tunnistettu: "+knownName+". Kauppakohtaista hintaa ei vahvistettu.");
+      }else{
+        setDesktopScannerMessage("EAN "+code+" luettu, mutta tuotetta ei löytynyt EAN-pankista tai valituista kaupoista.");
+      }
     }catch{setDesktopScannerMessage("Tuotehaku epäonnistui. Yritä uudelleen.")}
   }
 
