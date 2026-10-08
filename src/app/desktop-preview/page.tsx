@@ -105,8 +105,11 @@ export default function DesktopPreviewPage() {
   const [desktopCompareError,setDesktopCompareError]=useState("");
   const desktopCompareCache=useRef<Map<string,Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>>(new Map());
   const desktopCompareIdentity=JSON.stringify([betweenMode,storeCompareScope,Object.values(selectedStores).map((store:any)=>[store.id,store.externalId,store.name]),cartItems.map((item:any)=>[item.id,item.ean,item.name,item.quantity,item.source])]);
+  const desktopCompareRequestIdentity=useRef(desktopCompareIdentity);
+  desktopCompareRequestIdentity.current=desktopCompareIdentity;
   useEffect(()=>{desktopCompareCache.current.clear();setDesktopCompareResults({});setDesktopCompareNotice(false);},[desktopCompareIdentity]);
   async function openDesktopComparison(){
+    const requestIdentity=desktopCompareIdentity;
     setDesktopCompareError("");
     const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
     if(betweenMode==="one"){
@@ -129,6 +132,7 @@ export default function DesktopPreviewPage() {
             return matched&&raw>0?(isS&&data?.source==="s-kaupat-normal-v220"?raw:raw/100):null;
           }catch{return null}
         }));
+        if(desktopCompareRequestIdentity.current!==requestIdentity)return;
         setCartItems(current=>current.map((item,i)=>{
           if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel)return item;
           return {...item,price:updates[i]??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]==null};
@@ -169,6 +173,7 @@ export default function DesktopPreviewPage() {
         }));
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
       }));
+      if(desktopCompareRequestIdentity.current!==requestIdentity)return;
       const next=Object.fromEntries(results);desktopCompareCache.current.set(key,next);setDesktopCompareResults(next);
     }catch{setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{setDesktopCompareLoading(false)}
   }
