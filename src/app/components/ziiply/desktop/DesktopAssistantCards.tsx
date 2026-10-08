@@ -67,8 +67,8 @@ export default function DesktopAssistantCards({active,hasSelectedStores,gostaCho
                       {item.subtitle}
                     </div>
                     {item.key==="gosta" && gostaChooseStoresNotice && !hasSelectedStores && (
-                      <div role="status" aria-live="polite" className="relative z-20 mt-5 rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-4 py-3 text-center text-[17px] font-black text-[#5d3c12] shadow-md">
-                        Valitse ensin kaupat, niin Gösta voi näyttää ja vertailla tarjoukset.
+                      <div role="status" aria-live="polite" className="relative z-20 mt-4 w-full max-w-[270px] rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-3 py-2 text-center text-[16px] font-black leading-snug text-[#5d3c12] shadow-md">
+                        Valitse ensin kaupat
                       </div>
                     )}
                   </button>
