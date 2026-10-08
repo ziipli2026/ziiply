@@ -33,12 +33,12 @@ jobs:
         run: |
           node --check scripts/ingest-tankkaus.mjs
           node --check scripts/test-tankkaus-ingest.cjs
+      - name: Mocked Tankkaus ingestion dry-run
+        run: node scripts/test-tankkaus-ingest.cjs
       - name: Install dependencies (existing project resolution)
         run: npm install --no-package-lock --legacy-peer-deps --no-audit --no-fund
       - name: Check Tankkaus ingestion script syntax
         run: node --check scripts/ingest-tankkaus.mjs
-      - name: Mocked Tankkaus ingestion dry-run
-        run: node scripts/test-tankkaus-ingest.cjs
       - name: Independently transpile Tankkaus route
         run: |
           node <<'JS'
