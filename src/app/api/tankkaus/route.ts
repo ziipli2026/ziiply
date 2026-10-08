@@ -11,6 +11,7 @@ type Station = { id: number; name: string; latitude: number | null; longitude: n
 type Observation = { stationId: number; fuel: string; price: number; observedAt: string; station: Station };
 const asNumber = (v: unknown): number | null => {
   if (v === null || v === undefined || v === "") return null;
+  if (typeof v !== "number" && typeof v !== "string") return null;
   const n = Number(String(v).replace(",", "."));
   return Number.isFinite(n) ? n : null;
 };
