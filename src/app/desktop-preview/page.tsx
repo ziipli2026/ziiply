@@ -14,7 +14,7 @@ export default function DesktopPreviewPage() {
   const [scannerMode, setScannerMode] = useState<"checking" | "camera" | "external">("checking");
   const [workspace, setWorkspace] = useState<Assistant | null>(null);
   const [gostaChainPicker, setGostaChainPicker] = useState(false);
-  const [chooseStoresNoticeFor, setChooseStoresNoticeFor] = useState(false);
+  const [chooseStoresNoticeFor, setChooseStoresNoticeFor] = useState<Assistant|null>(null);
   const [gostaChain, setGostaChain] = useState<"S"|"K"|"LIDL"|"TOKMANNI"|"EUROSPAR"|null>(null);
   const [gostaOffers, setGostaOffers] = useState<any[]>([]);
   const [gostaTab, setGostaTab] = useState<"offers"|"campaigns">("offers");
@@ -373,7 +373,7 @@ export default function DesktopPreviewPage() {
             <DesktopAssistantCards
               active={active}
               hasSelectedStores={Object.values(selectedStores).some(Boolean)}
-              chooseStoresNotice={chooseStoresNoticeFor === "gosta" || chooseStoresNoticeFor === "justiina"}
+              chooseStoresNoticeFor={chooseStoresNoticeFor}
               onSelect={(key) => {
                 if((key==="gosta" || key==="justiina") && !Object.values(selectedStores).some(Boolean)){
                   setChooseStoresNoticeFor(key);
@@ -381,7 +381,7 @@ export default function DesktopPreviewPage() {
                   setWorkspace(null);
                   return;
                 }
-                setChooseStoresNoticeFor(false);
+                setChooseStoresNoticeFor(null);
                 setActive(key);
                 if(key==="gosta"){setWorkspace(null);setGostaChainPicker(true)}
                 else{setGostaChainPicker(false);setWorkspace(key)}
