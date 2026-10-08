@@ -439,7 +439,7 @@ export default function DesktopPreviewPage() {
   {p.discountText&&<div className="mt-3 font-serif text-[13px] font-bold italic text-[#796b4d]">{p.discountText}</div>}
   {(p.validUntil||p.validityText)&&<div className="mt-2 text-[12px] font-bold text-[#796b4d]">{p.validityText||("Voimassa "+p.validUntil)}</div>}
 </div>
-</div>)})}</div>}</div>}</div>})()}
+</div>)}</div>}</div>}</div>})()}
 
             {workspace && workspace==="justiina" && (
               <div className="fixed left-1/2 top-[152px] z-50 flex h-[min(620px,calc(100dvh-190px))] w-[min(1120px,92vw)] -translate-x-1/2 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#174c3a] bg-[#fff3cf] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)]">
