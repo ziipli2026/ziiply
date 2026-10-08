@@ -53,7 +53,7 @@ export default function DesktopPreviewPage() {
   const [desktopScannerLoading,setDesktopScannerLoading]=useState(false);
   const [desktopScannerFlash,setDesktopScannerFlash]=useState<"idle"|"success"|"error">("idle");
   const desktopScannerFlashTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
-  function flashDesktopScanner(state:"success"|"error"){if(desktopScannerFlashTimer.current)clearTimeout(desktopScannerFlashTimer.current);setDesktopScannerFlash(state);desktopScannerFlashTimer.current=setTimeout(()=>setDesktopScannerFlash("idle"),1100)}
+  function flashDesktopScanner(state:"success"|"error"){if(desktopScannerFlashTimer.current)clearTimeout(desktopScannerFlashTimer.current);setDesktopScannerFlash(state);desktopScannerFlashTimer.current=setTimeout(()=>{setDesktopScannerFlash("idle");setDesktopScannerMessage("")},1100)}
   const desktopHidBufferRef=useRef("");
   const desktopHidLastKeyRef=useRef(0);
   useEffect(()=>{
@@ -210,11 +210,11 @@ export default function DesktopPreviewPage() {
         const cents=Number(matched.__price||0);
         const priceEur=cents>0?cents/100:0;
         addDesktopCartItem({id:String(matched.id||code),ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:String(matched.__store||"").toLowerCase().includes("prisma")?"S":"K"});
-        setDesktopScannerMessage("Tuote lisätty");
+        setDesktopScannerMessage("TUOTE LISÄTTY");
         flashDesktopScanner("success");
       }else if(knownName){
         addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina"});
-        setDesktopScannerMessage("Lisätty koriin, ei mukana vertailussa");
+        setDesktopScannerMessage("TUOTE LISÄTTY");
         flashDesktopScanner("success");
       }else{
         setDesktopScannerMessage("Ei löytynyt");
