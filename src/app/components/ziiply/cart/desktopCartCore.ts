@@ -42,3 +42,18 @@ export function restoreDesktopCartWithoutStalePrices(raw: unknown): DesktopCartI
     __needsPriceRefresh: true,
   }));
 }
+
+/** Only a matching chain AND exact selected store can authorize a stored price. */
+export function invalidateDesktopCartPricesForStoreSelection(
+  items: DesktopCartItem[],
+  selectedStoreKeys: ReadonlySet<string>,
+): DesktopCartItem[] {
+  return items.map(item => {
+    const chain = String(item.__chain ?? item.chain ?? "").toUpperCase();
+    const storeId = String(item.__storeId ?? item.storeId ?? "").trim();
+    const verified = item.__priceVerified === true && Boolean(chain && storeId);
+    if (verified && selectedStoreKeys.has(chain + ":" + storeId)) return item;
+    if (item.price == null && item.__price == null && item.__needsPriceRefresh) return item;
+    return { ...item, price: null, __price: null, __priceVerified: false, __needsPriceRefresh: true };
+  });
+}
