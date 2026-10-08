@@ -52,6 +52,7 @@ const rows = payload.observations.filter(o => {
 const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${new Date(o.observedAt).toISOString()}:${o.price.toFixed(3)}`, o])).values()];
 if (write && (stations.size === 0 || uniqueRows.length === 0)) throw new Error("Refusing empty ingestion write");
 // Guard against upstream shape regressions silently dropping most returned observations.
+// Repeated identical observations are valid duplicates and must not count as malformed records.
 if (write && payload.observations.length > 0 && uniqueRows.length / payload.observations.length < 0.5) {
   throw new Error("Refusing ingestion: excessive invalid or duplicate observations");
 }
