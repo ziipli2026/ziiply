@@ -25,7 +25,7 @@ if (write && process.env.TANKKAUS_INGEST_WRITE_CONFIRM !== "YES_TEST_BRANCH") th
 const headers = { Accept: "application/json" };
 const bypass = process.env.TANKKAUS_VERCEL_AUTOMATION_BYPASS?.trim();
 if (bypass) {
-  if (!url.hostname.endsWith(".vercel.app") || !url.hostname.startsWith("ziiply-")) {
+  if (!/^ziiply(?:-[a-z0-9-]+)?-ziipli2026s-projects\.vercel\.app$/.test(url.hostname)) {
     throw new Error("Vercel automation bypass may only be used with Ziiply preview deployments");
   }
   headers["x-vercel-protection-bypass"] = bypass;
