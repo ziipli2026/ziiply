@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
-import { fetchDesktopNormalProducts, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
+import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -174,10 +174,7 @@ export default function DesktopPreviewPage() {
       for(const batch of batches){
         if(batch.status!=="fulfilled"){failures++;continue}
         const {chain,store,items}=batch.value;
-        for(const x of items.slice(0,8)){
-          const price=Number(x?.price??x?.storeItems?.[0]?.price??x?.storeItem?.price??0);
-          rows.push({...x,__chain:chain,__store:store?.name,__price:price});
-        }
+        rows.push(...normalizeDesktopNormalResults(items,chain,store));
       }
       setJustiinaResults(rows);
       if(!rows.length)setJustiinaMessage(failures?"Tuotehaku epäonnistui valituissa kaupoissa.":`Hakemaasi "${query}" ei löydy.`);
