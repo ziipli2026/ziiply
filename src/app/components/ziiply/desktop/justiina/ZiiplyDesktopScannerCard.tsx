@@ -129,6 +129,7 @@ export default function ZiiplyDesktopScannerCard({
             ? "Ei löytynyt"
             : "";
 
+  const weightAddedNotice = /vaakatuote lisätty/i.test(scannerMessage);
   const hasSelectionResults = selectionResults.length > 1;
 
   function getSelectionName(result: ZiiplyDesktopScannerSelectionResult) {
@@ -386,8 +387,10 @@ export default function ZiiplyDesktopScannerCard({
           {!cameraOverlay && visibleMessage && (
             <div
               className={[
-                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] px-4 py-3 text-center text-[15px] font-black uppercase tracking-[0.05em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
-                flashState === "success"
+                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[82%] max-w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-[1.5rem] px-5 py-7 text-center text-[clamp(18px,2.2vw,28px)] font-black uppercase leading-[1.35] tracking-[0.02em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
+                weightAddedNotice
+                  ? "border-[4px] border-[#21682d] bg-[#ccecc0] text-[#174c23] shadow-[0_8px_22px_rgba(0,0,0,0.20)]"
+                  : flashState === "success"
                   ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
                   : flashState === "error"
                     ? "border-[2px] border-[#7a1b15] bg-[#ffd6cf]/95 text-[#61130e]"
@@ -396,7 +399,7 @@ export default function ZiiplyDesktopScannerCard({
                       : "border-[2px] border-[#245c28] bg-[#d7ffd2]/88 text-[#123d18] backdrop-blur-[2px]",
               ].join(" ")}
             >
-              {visibleMessage}
+              {weightAddedNotice ? "VAAKATUOTE LISÄTTY OSTOSLISTALLE" : visibleMessage}
             </div>
           )}
 
