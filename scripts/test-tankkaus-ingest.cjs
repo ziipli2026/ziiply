@@ -95,6 +95,21 @@ const { spawn } = require("node:child_process");
     assert.notEqual(conflictingStation.code, 0);
     assert.match(conflictingStation.err, /Conflicting coordinates/);
     console.log("PASS Tankkaus ingestion refuses conflicting station IDs before database connection");
+    // Bypass credentials must never be sent to a non-Ziiply destination.
+    const unsafeBypass = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs"], {
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, TANKKAUS_VERCEL_AUTOMATION_BYPASS: "test-only-secret", DATABASE_URL: "" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      let err = "";
+      child.stderr.on("data", chunk => err += chunk);
+      child.on("error", reject);
+      child.on("close", code => resolve({ code, err }));
+    });
+    assert.notEqual(unsafeBypass.code, 0);
+    assert.match(unsafeBypass.err, /may only be used with Ziiply preview/);
+    assert.doesNotMatch(unsafeBypass.err, /test-only-secret/);
+    console.log("PASS Tankkaus ingestion never forwards Vercel bypass to arbitrary hosts");
     mode = "normal";
     // Invalid collection coordinates and absent fuel must fail before any network/database access.
     for (const suffix of ["?lat=91&lon=24.8&fuel=diesel", "?lat=60.6&lon=24.8", "?lat=60.6&lon=24.8&fuel=diesel&fuel=95", "?lat=&lon=24.8&fuel=diesel"]) {
