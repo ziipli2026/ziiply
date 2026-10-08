@@ -49,6 +49,21 @@ const { spawn } = require("node:child_process");
     assert.equal(duplicateResult.code, 0, duplicateResult.err);
     assert.deepEqual(JSON.parse(duplicateResult.out.trim()), { mode: "dry-run", stations: 1, observations: 1, fuel: "diesel" });
     console.log("PASS Tankkaus ingestion deduplicates identical observations");
+    // An explicit write confirmation must be required even with a nonempty response.
+    mode = "normal";
+    const unconfirmedWrite = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused", TANKKAUS_INGEST_WRITE_CONFIRM: "" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      let err = "";
+      child.stderr.on("data", chunk => err += chunk);
+      child.on("error", reject);
+      child.on("close", code => resolve({ code, err }));
+    });
+    assert.notEqual(unconfirmedWrite.code, 0, "unconfirmed --write must fail");
+    assert.match(unconfirmedWrite.err, /TANKKAUS_INGEST_WRITE_CONFIRM/);
+    console.log("PASS Tankkaus ingestion rejects unconfirmed database writes");
     mode = "empty";
     const emptyResult = await new Promise((resolve, reject) => {
       const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
