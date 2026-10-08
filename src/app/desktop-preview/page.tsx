@@ -243,7 +243,7 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute -right-40 bottom-[-80px] h-[620px] w-[620px] rounded-full bg-[#8ead91]/25 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute left-[44%] top-[10%] h-[190px] w-[190px] rotate-12 rounded-[44px] border border-[#8c7042]/10 bg-[#fff7df]/18 shadow-[0_30px_80px_rgba(70,60,35,0.05)]" />
 
-      <div className="relative mx-auto flex h-[100dvh] w-full max-w-[1560px] flex-col px-8 py-5 xl:px-12 xl:py-6">
+      <div className="relative mx-auto flex h-[100dvh] w-full max-w-[1800px] flex-col px-8 py-5 xl:px-12 xl:py-6">
         <header className="grid grid-cols-[auto_minmax(360px,0.68fr)_minmax(650px,1fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
             <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
@@ -295,7 +295,6 @@ export default function DesktopPreviewPage() {
               <span className="min-w-0"><span className="mt-0.5 block text-[14px] font-black leading-none text-[#153e2c]">Kori</span><span className="mt-1 block text-[9px] font-black text-[#51705a]">{desktopCartCount?desktopCartCount+" kpl":"Avaa kori →"}</span></span>
             </button>
           </div>
-          <button type="button" onClick={()=>setNotebookOpen(true)} className="absolute right-0 top-[78px] z-20 flex items-center gap-2 rounded-full border-2 border-[#315d45] bg-[#fff6d9] px-4 py-2 text-[11px] font-black text-[#174c3a] shadow-md"><span>📒</span><span>Ostelusvihko</span>{savedLists.length>0&&<span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#315d45] px-1 text-[9px] text-white">{savedLists.length}</span>}</button>
         </header>
 
         
@@ -319,7 +318,7 @@ export default function DesktopPreviewPage() {
           </div>
         )}
 
-        <section className="grid min-h-0 flex-1 items-stretch gap-8 py-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-11">
+        <section className="grid min-h-0 flex-1 items-stretch gap-4 py-5 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
           <div className="relative max-w-none flex h-full flex-col justify-start self-stretch">
             <div className="relative h-full min-h-0 overflow-visible rounded-[28px] border-[3px] border-[#b38a4a] bg-[#fcf5de] p-4 shadow-[0_5px_0_rgba(105,72,28,.14),inset_0_0_0_2px_rgba(255,255,255,.48)]">
 <div className="grid grid-cols-[1fr_46px_1fr] items-center gap-3"><button disabled={storeCompareScope==="within_chain"} onClick={()=>{setStoreMode("hyper");setStoreModeChosen(true);applyModeDefaults("hyper")}} className={`h-[40px] rounded-[17px] border-2 px-3 text-[12px] font-black ${storeModeChosen&&storeMode==="hyper"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}>🏬 Tavaratalot</button><div className="text-center"><span className="block text-[8px] font-black">Yksi</span><button onClick={()=>{setBetweenMode(v=>v==="one"?"many":"one");setSelectedStores({})}} className={`relative mx-auto h-[30px] w-[17px] rounded-full ${betweenMode==="many"?"bg-[#0a6d39]":"bg-[#d8c69d]"}`}><span className={`absolute left-[2px] h-[11px] w-[11px] rounded-full bg-white ${betweenMode==="many"?"top-[17px]":"top-[2px]"}`}/></button><span className="block text-[8px] font-black">Monta</span></div><button disabled={storeCompareScope==="within_chain"} onClick={()=>{setStoreMode("local");setStoreModeChosen(true);applyModeDefaults("local")}} className={`h-[40px] rounded-[17px] border-2 px-3 text-[12px] font-black ${storeModeChosen&&storeMode==="local"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}>🏪 Lähikaupat</button></div>
@@ -328,10 +327,15 @@ export default function DesktopPreviewPage() {
 </div>
                       </div>
 
-          <div className="relative max-h-[calc(100dvh-150px)] rounded-[42px] border border-[#756443]/15 bg-[#f8f5ed]/92 p-5 shadow-[0_34px_90px_rgba(34,54,43,0.22)] ring-1 ring-[#fffaf0]/95 xl:p-8">
+          <nav aria-label="Ostokset ja vertailu" className="relative z-20 flex flex-col items-stretch justify-center gap-4">
+            <button type="button" onClick={()=>setCartOpen(true)} className="group relative flex min-h-[112px] flex-col items-center justify-center rounded-[25px] border-[3px] border-[#4b815e] bg-gradient-to-b from-[#f0ffe4] to-[#b9ddb2] p-2 text-[#174c35] shadow-[0_8px_0_#6d9270,0_16px_26px_#254d3529] transition hover:-translate-y-1"><span className="text-[44px] drop-shadow-md">🛒</span><span className="text-[14px] font-black">Kori</span>{desktopCartCount>0&&<span className="absolute right-2 top-2 rounded-full bg-[#147a49] px-2 py-1 text-[11px] font-black text-white">{desktopCartCount}</span>}</button>
+            <button type="button" onClick={()=>setWorkspace("justiina")} className="flex min-h-[112px] flex-col items-center justify-center rounded-[25px] border-[3px] border-[#c39b50] bg-gradient-to-b from-[#fff8df] to-[#eed49c] p-2 text-[#59411f] shadow-[0_8px_0_#b49a68,0_16px_26px_#5e4c2929] transition hover:-translate-y-1"><span className="text-[43px]">⚖️</span><span className="text-[13px] font-black">Vertailu</span></button>
+            <button type="button" onClick={()=>setNotebookOpen(true)} className="relative flex min-h-[112px] flex-col items-center justify-center rounded-[25px] border-[3px] border-[#8d663f] bg-gradient-to-b from-[#fff2c8] to-[#d8b77b] p-2 text-[#51391f] shadow-[0_8px_0_#987c50,0_16px_26px_#5e4c2929] transition hover:-translate-y-1"><span className="text-[43px] drop-shadow-md">📜</span><span className="text-[13px] font-black">Ostelusvihko</span>{savedLists.length>0&&<span className="absolute right-2 top-2 rounded-full bg-[#79552d] px-2 py-1 text-[11px] font-black text-white">{savedLists.length}</span>}</button>
+          </nav>
+          <div className="relative max-h-[calc(100dvh-150px)] rounded-[42px] border border-[#756443]/15 bg-[#f8f5ed]/92 p-3 shadow-[0_34px_90px_rgba(34,54,43,0.22)] ring-1 ring-[#fffaf0]/95 xl:p-4">
             <div aria-hidden className="absolute -right-4 -top-5 h-24 w-24 rotate-6 rounded-[26px] border border-[#8b7145]/15 bg-[#fff0bd]/55 shadow-[0_16px_35px_rgba(91,67,30,0.10)]" />
             <div aria-hidden className="absolute -bottom-5 left-12 h-16 w-40 -rotate-2 rounded-[22px] border border-[#61785d]/12 bg-[#dce8d8]/60 shadow-[0_14px_30px_rgba(41,67,46,0.08)]" />
-            <div className="grid grid-cols-3 gap-4 xl:gap-5 -mt-3">
+            <div className="grid grid-cols-3 gap-2 xl:gap-3 -mt-3">
               {assistants.map((item) => {
                 const selected = active === item.key;
                 return (
