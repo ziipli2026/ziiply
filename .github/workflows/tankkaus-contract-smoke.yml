@@ -8,6 +8,7 @@ on:
       - 'src/app/api/tankkaus/**'
       - 'scripts/test-tankkaus-contract.cjs'
       - 'scripts/ingest-tankkaus.mjs'
+      - 'scripts/test-tankkaus-ingest.cjs'
       - 'db/migrations/003_tankkaus_fuel_cache.sql'
       - '.github/workflows/tankkaus-contract-smoke.yml'
   pull_request:
@@ -15,6 +16,7 @@ on:
       - 'src/app/api/tankkaus/**'
       - 'scripts/test-tankkaus-contract.cjs'
       - 'scripts/ingest-tankkaus.mjs'
+      - 'scripts/test-tankkaus-ingest.cjs'
       - 'db/migrations/003_tankkaus_fuel_cache.sql'
       - '.github/workflows/tankkaus-contract-smoke.yml'
 jobs:
@@ -30,6 +32,8 @@ jobs:
       - run: npm install --no-package-lock --legacy-peer-deps --no-audit --no-fund
       - name: Check Tankkaus ingestion script syntax
         run: node --check scripts/ingest-tankkaus.mjs
+      - name: Mocked Tankkaus ingestion dry-run
+        run: node scripts/test-tankkaus-ingest.cjs
       - name: Independently transpile Tankkaus route
         run: |
           node <<'JS'
