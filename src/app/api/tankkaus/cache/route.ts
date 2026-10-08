@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
   // A 10 km longitude span grows toward northern latitudes.
   const latitudeWindow = 10 / 111.0;
   const longitudeWindow = Math.min(180, 10 / (111.0 * Math.max(0.01, Math.cos(lat * Math.PI / 180))));
+  const minLongitude = lon - longitudeWindow;
+  const maxLongitude = lon + longitudeWindow;
   try {
     const sql = neon(process.env.DATABASE_URL);
     const rows = await sql`
@@ -35,7 +37,12 @@ export async function GET(req: NextRequest) {
           ))) AS distance_km
         FROM ziiply_fuel_stations s WHERE s.source = 'tankkaus.com'
           AND s.latitude BETWEEN ${lat - latitudeWindow} AND ${lat + latitudeWindow}
-          AND s.longitude BETWEEN ${lon - longitudeWindow} AND ${lon + longitudeWindow}
+          AND (
+            ${longitudeWindow >= 180}
+            OR s.longitude BETWEEN ${Math.max(-180, minLongitude)} AND ${Math.min(180, maxLongitude)}
+            OR (${minLongitude < -180} AND s.longitude >= ${minLongitude + 360})
+            OR (${maxLongitude > 180} AND s.longitude <= ${maxLongitude - 360})
+          )
       )
       SELECT n.source_station_id AS "stationId", n.name, n.chain, n.address,
         n.latitude, n.longitude, n.distance_km AS "distanceKm",
