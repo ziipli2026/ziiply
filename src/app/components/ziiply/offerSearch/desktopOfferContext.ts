@@ -19,3 +19,20 @@ export function desktopOfferCacheKey(chain: DesktopOfferChain, store: DesktopOff
   const context = desktopOfferContext(chain, store);
   return JSON.stringify([chain, context]);
 }
+
+/** Identify the offer feed from a selected store without guessing from its display name. */
+export function desktopOfferChainFromStoreKind(kind: string, store: DesktopOfferStore | null | undefined): DesktopOfferChain {
+  if (kind === "sHyper" || kind === "sLocal") return "S";
+  if (kind === "kHyper" || kind === "kLocal") return "K";
+  if (kind === "lidl") return "LIDL";
+  return String(store?.chain || "").toUpperCase() === "EUROSPAR" ? "EUROSPAR" : "TOKMANNI";
+}
+
+/** Do not reuse cached offers from a different store or a different chain. */
+export function desktopOfferCacheMatchesStore(
+  cachedKey: string,
+  chain: DesktopOfferChain,
+  store: DesktopOfferStore | null | undefined,
+): boolean {
+  return cachedKey === desktopOfferCacheKey(chain, store);
+}
