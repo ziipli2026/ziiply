@@ -92,6 +92,7 @@ export default function DesktopPreviewPage() {
 
   useEffect(()=>{if(!desktopScannerOpen||!desktopScannerCameraOn)return;let stream:MediaStream|null=null;let video:HTMLVideoElement|null=null;let stopped=false;let scanTimer:ReturnType<typeof setInterval>|null=null;const region=document.getElementById("ziiply-desktop-scanner-region");if(!region)return;video=document.createElement("video");video.autoplay=true;video.muted=true;video.playsInline=true;video.style.cssText="width:100%;height:100%;object-fit:cover;";region.appendChild(video);const el=video;void navigator.mediaDevices?.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}).then(async media=>{if(stopped){media.getTracks().forEach(t=>t.stop());return}stream=media;el.srcObject=media;await el.play().catch(()=>{});const Detector=(window as any).BarcodeDetector;if(Detector){const detector=new Detector({formats:["ean_13","ean_8","upc_a","upc_e"]});let busy=false;scanTimer=setInterval(async()=>{if(busy||stopped||el.readyState<2)return;busy=true;try{const codes=await detector.detect(el);const code=String(codes?.[0]?.rawValue||"");if(code){setDesktopScannerEan(code);setDesktopScannerMessage("EAN tunnistettu: "+code);void runDesktopScannerEanSearch(code,true);if(scanTimer)clearInterval(scanTimer)}}catch{}finally{busy=false}},350)}else setDesktopScannerMessage("Kameran automaattinen EAN-tunnistus ei ole käytettävissä tässä selaimessa. Syötä EAN käsin.")}).catch(()=>setDesktopScannerMessage("Kameraa ei saatu käyttöön. Voit syöttää EAN-koodin käsin."));return()=>{stopped=true;if(scanTimer)clearInterval(scanTimer);stream?.getTracks().forEach(t=>t.stop());el.srcObject=null;el.remove()}},[desktopScannerOpen,desktopScannerCameraOn]);
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [desktopCheckedCartItems,setDesktopCheckedCartItems]=useState<Record<string,boolean>>({});
   const [reloadCartDecisionOpen,setReloadCartDecisionOpen]=useState(false);
   const desktopCartHydratedRef=useRef(false);
   useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
@@ -237,13 +238,18 @@ export default function DesktopPreviewPage() {
           return other?.plu===weightLabel.plu||String(x.ean||"")===scannedEan;
         });
         if(found){
+          const key=String(found.id||"");
+          const firstCollection=physicalScan&&key&&!desktopCheckedCartItems[key];
+          if(firstCollection)setDesktopCheckedCartItems(previous=>({...previous,[key]:true}));
           return current.map((x:any)=>x!==found?x:{
-            ...x,name,title:name,ean:scannedEan,price,quantity:Number(x.quantity||1)+(physicalScan?1:0),
+            ...x,name,title:name,ean:scannedEan,price,quantity:firstCollection?Number(x.quantity||1):Number(x.quantity||1)+(physicalScan?1:0),
             product:{...(x.product||{}),name,ean:scannedEan,ziiplyWeightLabel:true},
             ziiplyWeightLabel:true,weightPlu:weightLabel.plu
           });
         }
-        return [...current,{id:"weight-"+weightLabel.plu,name,title:name,ean:scannedEan,price,
+        const id="weight-"+weightLabel.plu;
+        if(physicalScan)setDesktopCheckedCartItems(previous=>({...previous,[id]:true}));
+        return [...current,{id,name,title:name,ean:scannedEan,price,
           quantity:1,source:"search",product:{name,ean:scannedEan,ziiplyWeightLabel:true},
           ziiplyWeightLabel:true,weightPlu:weightLabel.plu}];
       });
