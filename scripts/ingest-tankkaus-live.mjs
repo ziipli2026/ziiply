@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // One-shot live Tankkaus.com -> Neon test-branch ingestion.
+// Retrigger after preview environment flags were provisioned.
 // Enabled only with TANKKAUS_LIVE_INGEST=true. Never targets production.
 if (process.env.TANKKAUS_LIVE_INGEST !== "true") process.exit(0);
 if (process.env.TANKKAUS_INGEST_WRITE_CONFIRM !== "YES_TEST_BRANCH") throw new Error("Live ingestion requires explicit test-branch confirmation");
