@@ -67,7 +67,7 @@ export default function DesktopPreviewPage() {
       if(event.key==="Enter"){
         const code=desktopHidBufferRef.current;
         desktopHidBufferRef.current="";
-        if(/^\d{8,14}$/.test(code)){setDesktopScannerEan(code);setDesktopScannerMessage("");void runDesktopScannerEanSearch(code);event.preventDefault()}
+        if(/^\d{8,14}$/.test(code)){setDesktopScannerEan(code);setDesktopScannerMessage("");void runDesktopScannerEanSearch(code,true);event.preventDefault()}
         return;
       }
       if(!/^\d$/.test(event.key))return;
@@ -90,7 +90,7 @@ export default function DesktopPreviewPage() {
     }catch{setDesktopScannerMessage("Leikepöydän lukeminen estetty. Salli leikepöydän käyttö selaimessa.")}
   };
 
-  useEffect(()=>{if(!desktopScannerOpen||!desktopScannerCameraOn)return;let stream:MediaStream|null=null;let video:HTMLVideoElement|null=null;let stopped=false;let scanTimer:ReturnType<typeof setInterval>|null=null;const region=document.getElementById("ziiply-desktop-scanner-region");if(!region)return;video=document.createElement("video");video.autoplay=true;video.muted=true;video.playsInline=true;video.style.cssText="width:100%;height:100%;object-fit:cover;";region.appendChild(video);const el=video;void navigator.mediaDevices?.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}).then(async media=>{if(stopped){media.getTracks().forEach(t=>t.stop());return}stream=media;el.srcObject=media;await el.play().catch(()=>{});const Detector=(window as any).BarcodeDetector;if(Detector){const detector=new Detector({formats:["ean_13","ean_8","upc_a","upc_e"]});let busy=false;scanTimer=setInterval(async()=>{if(busy||stopped||el.readyState<2)return;busy=true;try{const codes=await detector.detect(el);const code=String(codes?.[0]?.rawValue||"");if(code){setDesktopScannerEan(code);setDesktopScannerMessage("EAN tunnistettu: "+code);if(scanTimer)clearInterval(scanTimer)}}catch{}finally{busy=false}},350)}else setDesktopScannerMessage("Kameran automaattinen EAN-tunnistus ei ole käytettävissä tässä selaimessa. Syötä EAN käsin.")}).catch(()=>setDesktopScannerMessage("Kameraa ei saatu käyttöön. Voit syöttää EAN-koodin käsin."));return()=>{stopped=true;if(scanTimer)clearInterval(scanTimer);stream?.getTracks().forEach(t=>t.stop());el.srcObject=null;el.remove()}},[desktopScannerOpen,desktopScannerCameraOn]);
+  useEffect(()=>{if(!desktopScannerOpen||!desktopScannerCameraOn)return;let stream:MediaStream|null=null;let video:HTMLVideoElement|null=null;let stopped=false;let scanTimer:ReturnType<typeof setInterval>|null=null;const region=document.getElementById("ziiply-desktop-scanner-region");if(!region)return;video=document.createElement("video");video.autoplay=true;video.muted=true;video.playsInline=true;video.style.cssText="width:100%;height:100%;object-fit:cover;";region.appendChild(video);const el=video;void navigator.mediaDevices?.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}).then(async media=>{if(stopped){media.getTracks().forEach(t=>t.stop());return}stream=media;el.srcObject=media;await el.play().catch(()=>{});const Detector=(window as any).BarcodeDetector;if(Detector){const detector=new Detector({formats:["ean_13","ean_8","upc_a","upc_e"]});let busy=false;scanTimer=setInterval(async()=>{if(busy||stopped||el.readyState<2)return;busy=true;try{const codes=await detector.detect(el);const code=String(codes?.[0]?.rawValue||"");if(code){setDesktopScannerEan(code);setDesktopScannerMessage("EAN tunnistettu: "+code);void runDesktopScannerEanSearch(code,true);if(scanTimer)clearInterval(scanTimer)}}catch{}finally{busy=false}},350)}else setDesktopScannerMessage("Kameran automaattinen EAN-tunnistus ei ole käytettävissä tässä selaimessa. Syötä EAN käsin.")}).catch(()=>setDesktopScannerMessage("Kameraa ei saatu käyttöön. Voit syöttää EAN-koodin käsin."));return()=>{stopped=true;if(scanTimer)clearInterval(scanTimer);stream?.getTracks().forEach(t=>t.stop());el.srcObject=null;el.remove()}},[desktopScannerOpen,desktopScannerCameraOn]);
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [reloadCartDecisionOpen,setReloadCartDecisionOpen]=useState(false);
   const desktopCartHydratedRef=useRef(false);
@@ -222,7 +222,7 @@ export default function DesktopPreviewPage() {
     catch{if(request===offerRequestId.current)setGostaOffers([])}
     finally{if(request===offerRequestId.current)setGostaLoading(false)}
   }
-  async function runDesktopScannerEanSearch(code:string) {
+  async function runDesktopScannerEanSearch(code:string,physicalScan=false) {
     const weightLabel=resolvePriceWeightLabel(code);
     const kWeightLabel=resolveKWeightLabel(code);
     if(weightLabel){
@@ -230,18 +230,26 @@ export default function DesktopPreviewPage() {
       const canonical=kWeightLabel?.canonicalEan||scannedEan;
       const bank=await fetch("/api/ean-bank?ean="+encodeURIComponent(canonical),{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
       const name=String(bank?.product?.name||"").trim()||`Tuntematon punnittu tuote (PLU ${weightLabel.plu})`;
-      const itemPrice=weightLabel.price;
-      const exists=cartItems.some(x=>String(x.ean||"")===scannedEan);
-      if(exists){
-        setCartItems(current=>current.map(x=>String(x.ean||"")===scannedEan?{...x,quantity:Number(x.quantity||1)+1}:x));
-        setDesktopScannerIncrement(true);
-        if(desktopScannerIncrementTimer.current)clearTimeout(desktopScannerIncrementTimer.current);
-        desktopScannerIncrementTimer.current=setTimeout(()=>setDesktopScannerIncrement(false),900);
-      }else{
-        addDesktopCartItem({id:scannedEan,ean:scannedEan,name,title:name,price:itemPrice,source:"scanner",product:{name,ean:scannedEan,ziiplyWeightLabel:true},ziiplyWeightLabel:true,weightPlu:weightLabel.plu});
-        setDesktopScannerMessage("Vaakatuote lisätty");
-        flashDesktopScanner("success");
-      }
+      const price=physicalScan?weightLabel.price:null;
+      setCartItems(current=>{
+        const found=current.find((x:any)=>{
+          const other=resolvePriceWeightLabel(String(x.ean||x.product?.ean||""));
+          return other?.plu===weightLabel.plu||String(x.ean||"")===scannedEan;
+        });
+        if(found){
+          return current.map((x:any)=>x!==found?x:{
+            ...x,name,title:name,ean:scannedEan,price,quantity:Number(x.quantity||1)+(physicalScan?1:0),
+            product:{...(x.product||{}),name,ean:scannedEan,ziiplyWeightLabel:true},
+            ziiplyWeightLabel:true,weightPlu:weightLabel.plu
+          });
+        }
+        return [...current,{id:"weight-"+weightLabel.plu,name,title:name,ean:scannedEan,price,
+          quantity:1,source:"search",product:{name,ean:scannedEan,ziiplyWeightLabel:true},
+          ziiplyWeightLabel:true,weightPlu:weightLabel.plu}];
+      });
+      setDesktopScannerLoading(false);
+      setDesktopScannerMessage(physicalScan?"Vaakatuote lisätty":"Vaakatuote lisätty ilman hintaa — punnitaan kaupassa");
+      if(physicalScan)flashDesktopScanner("success");
       return;
     }
     const alreadyInCart=cartItems.some(item=>String(item.ean||item.product?.ean||"")===code);
