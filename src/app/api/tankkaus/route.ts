@@ -24,7 +24,7 @@ const distanceKmBetween = (lat1: number, lon1: number, lat2: number, lon2: numbe
 };
 const stationOf = (v: any): Station | null => {
   const id = asNumber(v?.id ?? v?.station_id);
-  if (id === null || !Number.isInteger(id) || id <= 0) return null;
+  if (id === null || !Number.isSafeInteger(id) || id <= 0) return null;
   return { id, name: String(v?.name ?? ""), latitude: asNumber(v?.latitude ?? v?.lat), longitude: asNumber(v?.longitude ?? v?.lon), distanceKm: asNumber(v?.distance ?? v?.distanceKm), chain: v?.chain?.name ? String(v.chain.name) : (typeof v?.chain === "string" ? v.chain : null), address: v?.address ? String(v.address) : null };
 };
 async function tankkaus(path: string, token: string) {
