@@ -1019,6 +1019,61 @@ export default function ZiiplyMobileCartCard({
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
 
+              {showCheckoutFutureNoticeV62 && !showCompletionCardV58 ? (
+                <div className="absolute inset-0 z-[100] flex items-center justify-center rounded-[1.0rem] bg-[#fff0c7]/72 px-4 backdrop-blur-[1.5px]">
+                  <div className="w-[17.8rem] max-w-full rounded-[0.82rem] border-[2px] border-[#496443]/80 bg-[#f3e8cc] px-3 py-4 text-center shadow-[0_5px_18px_rgba(62,43,20,0.22),inset_0_0_0_1px_rgba(255,250,224,0.72)]">
+                    {checkoutPhaseV66 === "future" ? (
+                      <>
+                        <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                          Ziiply-maksaminen on tulossa
+                        </div>
+                        <div className="mt-2 text-[0.84rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                          Tulevaisuudessa voit maksaa ostoksesi suoraan Ziiplyn avulla.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCheckoutFutureNoticeV62(false);
+                            setShowCompletionCardV58(false);
+                          }}
+                          className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.50rem] text-[0.88rem] font-black italic text-[#244525] active:translate-y-[1px]"
+                          style={{ fontFamily: cooperFont }}
+                        >
+                          Selvä
+                        </button>
+                      </>
+                    ) : purchaseModeDefault === "ask" ? (
+                      <>
+                        <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                          Miten haluat ostaa?
+                        </div>
+                        <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                          Sijaintisi perusteella ostotapaa ei voida päätellä. Valitse ostotapa.
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPurchaseModeV739("instore")}
+                            className={`rounded-[0.52rem] border-[2px] px-2 py-[0.58rem] text-[0.78rem] font-black italic active:translate-y-[1px] ${purchaseModeV739 === "instore" ? "border-[#496443] bg-[#d8e4c4] text-[#244525]" : "border-[#8a6b32] bg-[#f6e5b9] text-[#533819]"}`}
+                            style={{ fontFamily: cooperFont }}
+                          >
+                            Ostan myymälässä
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPurchaseModeV739("online")}
+                            className={`rounded-[0.52rem] border-[2px] px-2 py-[0.58rem] text-[0.78rem] font-black italic active:translate-y-[1px] ${purchaseModeV739 === "online" ? "border-[#496443] bg-[#d8e4c4] text-[#244525]" : "border-[#8a6b32] bg-[#f6e5b9] text-[#533819]"}`}
+                            style={{ fontFamily: cooperFont }}
+                          >
+                            Tilaan verkosta
+                          </button>
+                        </div>
+                        {purchaseModeV739 === "online" && weightItemCount > 0 ? (
+                          <div className="mt-3 rounded-[0.48rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/72 px-2 py-2 text-[0.74rem] font-extrabold leading-snug text-[#7b3215]" style={{ fontFamily: serifFont }}>
+                            {weightItemCount} vaakatuotetta ei voida siirtää verkko-ostoon. Ne jätetään pois verkkotilauksesta.
+                          </div>
+                        ) : null}
+
         {clearCartConfirmOpen && (
           <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="clear-cart-title">
             <div className="w-full max-w-[23rem] rounded-[1.35rem] border-[3px] border-[#886635] bg-[#fff4d8] p-5 text-[#214b33] shadow-[0_12px_35px_rgba(28,19,8,0.35),inset_0_0_0_2px_#fff9e8]">
