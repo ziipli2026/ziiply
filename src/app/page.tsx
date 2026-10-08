@@ -14376,7 +14376,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           } as CartItem;
         });
         if (firstPhysicalCollection) {
-          setCheckedCartItems((current) => ({ ...current, [existingKey]: true }));
+          setCheckedCartItems((current) => {
+            const next = { ...current, [existingKey]: true };
+            persistShoppingChecksImmediately(next);
+            return next;
+          });
         }
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
@@ -14405,7 +14409,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
       const nextCart = [...baseCart, newItem];
       if (physicalScan && String(newItem.id || "")) {
-        setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
+        setCheckedCartItems((current) => {
+          const next = { ...current, [String(newItem.id)]: true };
+          persistShoppingChecksImmediately(next);
+          return next;
+        });
       }
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
