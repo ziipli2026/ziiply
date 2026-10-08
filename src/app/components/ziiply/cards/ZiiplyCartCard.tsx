@@ -275,16 +275,17 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
           <div className="space-y-3 pb-3">
             {listItems.map((match, index) => {
               const key = keys[index];
+              const matchItem: AnyItem = match;
               const product = match.product || match;
               const cartItemId = getCartItemIdFromMatch(match) || String(cart[index]?.id || key);
               const cartItem = cart.find((item) => String(item.id) === String(cartItemId)) || cart[index] || {};
               const quantity = Math.max(1, Number(match.quantity || cartItem.quantity || 1));
               const pendingWeight = Boolean(
                 cartItem.ziiplyWeightLabel || cartItem.product?.ziiplyWeightLabel ||
-                match.ziiplyWeightLabel || match.product?.ziiplyWeightLabel ||
+                matchItem.ziiplyWeightLabel || matchItem.product?.ziiplyWeightLabel ||
                 cartItem.ziiplyPricePendingWeight || cartItem.product?.ziiplyPricePendingWeight ||
                 product.ziiplyWeightLabel || product.ziiplyPricePendingWeight ||
-                match.ziiplyPricePendingWeight || match.product?.ziiplyPricePendingWeight ||
+                matchItem.ziiplyPricePendingWeight || matchItem.product?.ziiplyPricePendingWeight ||
                 String(cartItem.id || cartItemId).startsWith("weight-")
               ) && !(
                 cartItem.ziiplyWeightFinalPrice != null || cartItem.product?.ziiplyWeightFinalPrice != null
