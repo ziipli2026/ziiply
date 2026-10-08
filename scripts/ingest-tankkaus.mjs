@@ -90,6 +90,13 @@ const branchRows = await sql`SELECT current_setting('neon.branch_id', true) AS b
 if (branchRows[0]?.branch_id !== expectedBranch) {
   throw new Error("Refusing ingestion: DATABASE_URL does not identify the approved Neon test branch");
 }
+// Verify both migration tables before starting non-transactional writes.
+const schemaRows = await sql`SELECT
+  to_regclass('public.ziiply_fuel_stations') IS NOT NULL AS stations_ready,
+  to_regclass('public.ziiply_fuel_price_observations') IS NOT NULL AS observations_ready`;
+if (schemaRows[0]?.stations_ready !== true || schemaRows[0]?.observations_ready !== true) {
+  throw new Error('Refusing ingestion: Tankkaus database migration is not installed');
+}
 for (const s of stations.values()) {
   await sql`INSERT INTO ziiply_fuel_stations
     (source, source_station_id, name, chain, address, latitude, longitude, last_seen_at, updated_at)
