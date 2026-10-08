@@ -125,7 +125,7 @@ const { spawn } = require("node:child_process");
       child.on("close", code => resolve({ code, err }));
     });
     assert.notEqual(mostlyInvalid.code, 0);
-    assert.match(mostlyInvalid.err, /excessive invalid or duplicate observations/);
+    assert.match(mostlyInvalid.err, /excessive invalid observations/);
     console.log("PASS Tankkaus ingestion refuses mostly-invalid writes before database connection");
     mode = "empty";
     const emptyResult = await new Promise((resolve, reject) => {
