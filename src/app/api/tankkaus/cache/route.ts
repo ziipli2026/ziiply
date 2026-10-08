@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ ok: false, error: "Fuel cache not configured" }, { status: 503 });
   }
+  // A 10 km longitude span grows toward northern latitudes.
+  const latitudeWindow = 10 / 111.0;
+  const longitudeWindow = Math.min(180, 10 / (111.0 * Math.max(0.01, Math.cos(lat * Math.PI / 180))));
   try {
     const sql = neon(process.env.DATABASE_URL);
     const rows = await sql`
@@ -31,8 +34,8 @@ export async function GET(req: NextRequest) {
             POWER(SIN(RADIANS((s.longitude - ${lon}) / 2)), 2)
           ))) AS distance_km
         FROM ziiply_fuel_stations s WHERE s.source = 'tankkaus.com'
-          AND s.latitude BETWEEN ${lat - 0.1} AND ${lat + 0.1}
-          AND s.longitude BETWEEN ${lon - 0.2} AND ${lon + 0.2}
+          AND s.latitude BETWEEN ${lat - latitudeWindow} AND ${lat + latitudeWindow}
+          AND s.longitude BETWEEN ${lon - longitudeWindow} AND ${lon + longitudeWindow}
       )
       SELECT n.source_station_id AS "stationId", n.name, n.chain, n.address,
         n.latitude, n.longitude, n.distance_km AS "distanceKm",
