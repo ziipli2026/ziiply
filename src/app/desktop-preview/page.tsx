@@ -200,6 +200,7 @@ export default function DesktopPreviewPage() {
       __chain:p.__chain,
       __storeId:String(p.__storeId??p.storeId??""),
       __priceVerified:p.__priceVerified===true,
+      __needsPriceRefresh:p.__priceVerified!==true,
     }:{
       ...p,
       __priceVerified:false,
