@@ -194,7 +194,15 @@ export default function DesktopPreviewPage() {
       __chain:p.__chain,
       __storeId:String(p.__storeId??p.storeId??""),
       __priceVerified:p.__priceVerified===true,
-    }:p;
+    }:{
+      ...p,
+      __priceVerified:false,
+      __needsPriceRefresh:true,
+      __chain:p.__chain??p.chain,
+      __storeId:String(p.__storeId??p.storeId??""),
+      price:null,
+      __price:null,
+    };
     const found=cartItems.some(x=>desktopCartKey(x)===key&&x.source===source);
     setCartItems(current=>appendDesktopCartItem(current,cartProduct,source));
     if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900)}
