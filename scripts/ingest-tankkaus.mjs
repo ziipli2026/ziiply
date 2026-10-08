@@ -18,9 +18,6 @@ for (const coordinate of ["lat", "lon"]) {
 }
 if (url.searchParams.getAll("fuel").length !== 1) throw new Error("Exactly one fuel query parameter is required");
 if (write && !process.env.DATABASE_URL) throw new Error("DATABASE_URL required for --write");
-if (write && process.env.TANKKAUS_PROVIDER_SCHEMA_VERIFIED !== "YES") {
-  throw new Error("Live provider schema must be verified before ingestion writes");
-}
 // An explicit confirmation prevents accidental writes to an unverified database target.
 if (write && process.env.TANKKAUS_INGEST_WRITE_CONFIRM !== "YES_TEST_BRANCH") throw new Error("Set TANKKAUS_INGEST_WRITE_CONFIRM=YES_TEST_BRANCH after verifying the Neon test branch target");
 // An automation bypass, when explicitly configured, is sent only to the trusted Ziiply deployment.
@@ -103,6 +100,9 @@ const collectionScope = {
 if (!write) {
   console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: uniqueRows.length, fuel, collectionScope }));
   process.exit(0);
+}
+if (process.env.TANKKAUS_PROVIDER_SCHEMA_VERIFIED !== "YES") {
+  throw new Error("Live provider schema must be verified before ingestion writes");
 }
 const { neon } = await import("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL);
