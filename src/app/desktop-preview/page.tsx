@@ -50,6 +50,8 @@ export default function DesktopPreviewPage() {
   const [desktopScannerCameraOn,setDesktopScannerCameraOn]=useState(false);
   const [desktopScannerEan,setDesktopScannerEan]=useState("");
   const [desktopScannerMessage,setDesktopScannerMessage]=useState("");
+  const [desktopScannerIncrement,setDesktopScannerIncrement]=useState(false);
+  const desktopScannerIncrementTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const [desktopScannerLoading,setDesktopScannerLoading]=useState(false);
   const [desktopScannerFlash,setDesktopScannerFlash]=useState<"idle"|"success"|"error">("idle");
   const desktopScannerFlashTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -177,6 +179,19 @@ export default function DesktopPreviewPage() {
     finally{if(request===offerRequestId.current)setGostaLoading(false)}
   }
   async function runDesktopScannerEanSearch(code:string) {
+    const alreadyInCart=cartItems.some(item=>String(item.ean||item.product?.ean||"")===code);
+    if(alreadyInCart){
+      if(desktopScannerFlashTimer.current)clearTimeout(desktopScannerFlashTimer.current);
+      if(desktopScannerIncrementTimer.current)clearTimeout(desktopScannerIncrementTimer.current);
+      setDesktopScannerLoading(false);
+      setDesktopScannerFlash("idle");
+      setDesktopScannerMessage("");
+      setDesktopScannerIncrement(true);
+      setCartItems(current=>current.map(item=>String(item.ean||item.product?.ean||"")===code?{...item,quantity:Number(item.quantity||1)+1}:item));
+      desktopScannerIncrementTimer.current=setTimeout(()=>setDesktopScannerIncrement(false),900);
+      return;
+    }
+    setDesktopScannerIncrement(false);
     setDesktopScannerFlash("idle");
     setDesktopScannerLoading(true);
     setDesktopScannerMessage("");
@@ -416,6 +431,7 @@ export default function DesktopPreviewPage() {
         {reloadCartDecisionOpen&&<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#1c271c]/65 px-4"><div role="dialog" aria-modal="true" aria-label="Säilytetäänkö ostoskori?" className="w-full max-w-[420px] rounded-[22px] border-[3px] border-[#b89552] bg-[#fff3d3] p-6 text-center text-[#174c35] shadow-2xl"><h2 className="font-serif text-[24px] font-black">Säilytetäänkö ostoskorin tavarat?</h2><p className="mt-3 text-[15px]">Ostoskori sisältää {cartItems.length} tuotetta.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><button type="button" onClick={()=>{setReloadCartDecisionOpen(false);setCartOpen(true)}} className="rounded-full border-2 border-[#17573c] bg-[#17573c] px-5 py-3 font-black text-white">Säilytä tavarat</button><button type="button" onClick={()=>{setCartItems([]);setReloadCartDecisionOpen(false);setCartOpen(false);try{window.sessionStorage.removeItem("ziiply-desktop-current-cart-v1")}catch{}}} className="rounded-full border-2 border-[#b58a46] bg-[#fff9e9] px-5 py-3 font-black">Tyhjennä kori</button></div></div></div>}
         {desktopScannerOpen&&<div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black/65 p-4"><div className="relative h-[min(680px,92dvh)] w-[min(440px,95vw)] overflow-hidden rounded-[24px] bg-[#f4edda]">
 <ZiiplyDesktopScannerCard className="[&>footer]:hidden" regionId="ziiply-desktop-scanner-region" loading={desktopScannerLoading} flashState={desktopScannerFlash} scannerMessage={desktopScannerMessage} onClose={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} />
+{desktopScannerIncrement&&<div className="pointer-events-none absolute inset-0 z-[90] flex items-center justify-center"><span className="rounded-2xl border-[3px] border-[#245c28] bg-[#d7ffd2] px-12 py-6 text-[48px] font-black text-[#123d18] shadow-xl">+1</span></div>}
 <div className="pointer-events-none absolute inset-x-0 bottom-[112px] z-[70] flex justify-center"><button type="button" className="pointer-events-auto rounded-full border-2 border-[#17573c] bg-[#e2edcf] px-5 py-3 font-black text-[#174c35]" onClick={()=>setDesktopScannerCameraOn(v=>!v)}>{desktopScannerCameraOn?"Sulje kamera":"Käynnistä kamera"}</button></div>
 <div className="absolute bottom-3 left-3 right-3 z-[100] rounded-xl bg-[#fff5dc] p-3 shadow-xl"><div className="flex flex-wrap items-center justify-center gap-3"><button type="button" onClick={()=>{setDesktopScannerMessage("");void pasteDesktopScannerEan()}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#28492f] shadow-[inset_0_2px_0_rgba(255,255,255,0.7)]">Liitä EAN</button><button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#7d2b1d] bg-[linear-gradient(180deg,#c64235_0%,#922016_100%)] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#fff3dc] shadow-[inset_0_2px_0_rgba(255,255,255,0.20)]">Sulje kamera</button></div></div></div></div>}
         <ZiiplyDesktopNotebookCard open={notebookOpen} lists={savedLists} currentCartCount={cartItems.length} openedListId={openedSavedListId} onToggleList={(id)=>setOpenedSavedListId(openedSavedListId===id?null:id)} onSaveCurrentCart={beginSaveCart} onRestoreList={restoreSavedList} onDeleteList={(id)=>persistSavedLists(savedLists.filter((list:any)=>list.id!==id))} onClose={()=>setNotebookOpen(false)} />
