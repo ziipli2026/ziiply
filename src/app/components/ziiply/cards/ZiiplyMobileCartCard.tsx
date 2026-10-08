@@ -817,7 +817,7 @@ export default function ZiiplyMobileCartCard({
                       style={{ fontFamily: serifFont }}
                       aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
                     >
-                      {checked ? "✓" : `${index + 1}.`}
+                      {checked ? <span className="inline-grid h-[1.65rem] w-[1.65rem] place-items-center rounded-full bg-[#21834b] text-[1.05rem] font-black leading-none text-white shadow-[0_1px_3px_rgba(0,0,0,0.18)]" aria-hidden="true">✓</span> : `${index + 1}.`}
                     </button>
 
                     <div
