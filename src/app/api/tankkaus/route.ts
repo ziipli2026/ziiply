@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       .map(stationOf).filter((s: Station | null): s is Station => s !== null);
     const stationById = new Map<number, Station>(stations.map((s: Station) => [s.id, s]));
     const observations: Observation[] = [];
-    for (const item of (Array.isArray(pricesData?.[fuelConfig]) ? pricesData[fuelConfig.key] : [])) {
+    for (const item of (Array.isArray(pricesData?.[fuelConfig]) ? pricesData[fuelConfig] : [])) {
       const id = asNumber(item?.station_id ?? item?.station?.id);
       const station = id !== null ? (stationById.get(id) ?? stationOf(item?.station)) : null;
       const price = asNumber(item?.price_liter);
