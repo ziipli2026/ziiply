@@ -124,8 +124,10 @@ export async function GET(request: NextRequest) {
 
     const query = normalizeText(search);
     const apiSearch = query === "ii" ? search.trim() + " " : search;
-    const data = await fetchRuoanhinta(apiSearch);
-    const manualStores = data;
+    const searchTerms = [apiSearch, "S-market", "Sale", "Alepa", "K-Market", "K-Supermarket", "Prisma", "K-Citymarket"];
+    const batches = await Promise.allSettled(searchTerms.map(fetchRuoanhinta));
+    const manualStores = batches.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+    if (batches.every((result) => result.status === "rejected")) throw new Error("Store lookup unavailable");
     const live = manualStores.filter((store) => !store.delistedAt);
     const exactCity = live.filter((store) => normalizeText(store.city) === query);
 
