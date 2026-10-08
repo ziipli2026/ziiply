@@ -39,7 +39,7 @@ const rows = payload.observations.filter(o => {
     Number.isFinite(t) && t <= now && now - t <= 5 * 86400000;
 });
 // One provider response may contain duplicate observations. Keep a single canonical row per event.
-const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${o.observedAt}:${o.price}`, o])).values()];
+const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${new Date(o.observedAt).toISOString()}:${o.price.toFixed(3)}`, o])).values()];
 if (write && (stations.size === 0 || uniqueRows.length === 0)) throw new Error("Refusing empty ingestion write");
 if (!write) {
   console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: uniqueRows.length, fuel }));
