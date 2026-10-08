@@ -32,7 +32,7 @@ const { spawn } = require("node:child_process");
     });
     assert.equal(result.code, 0, result.err);
     const data = JSON.parse(result.out.trim());
-    assert.deepEqual(data, { mode: "dry-run", stations: 1, observations: 1, fuel: "diesel" });
+    assert.deepEqual(data, { mode: "dry-run", stations: 1, observations: 1, fuel: "diesel", collectionScope: { center: { lat: 60.6, lon: 24.8 }, radiusKm: null, maxObservationsPerFuel: null } });
     console.log("PASS Tankkaus ingestion dry-run: validated mock station and observation, no database writes");
     mode = "duplicate";
     const duplicateResult = await new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ const { spawn } = require("node:child_process");
       child.on("close", code => resolve({ code, out, err }));
     });
     assert.equal(duplicateResult.code, 0, duplicateResult.err);
-    assert.deepEqual(JSON.parse(duplicateResult.out.trim()), { mode: "dry-run", stations: 1, observations: 1, fuel: "diesel" });
+    assert.deepEqual(JSON.parse(duplicateResult.out.trim()), { mode: "dry-run", stations: 1, observations: 1, fuel: "diesel", collectionScope: { center: { lat: 60.6, lon: 24.8 }, radiusKm: null, maxObservationsPerFuel: null } });
     console.log("PASS Tankkaus ingestion deduplicates identical observations");
     // Timezone-free timestamps must not be persisted as absolute observations.
     mode = "ambiguous-time";
@@ -63,7 +63,7 @@ const { spawn } = require("node:child_process");
       child.on("close", code => resolve({ code, out, err }));
     });
     assert.equal(ambiguousResult.code, 0, ambiguousResult.err);
-    assert.deepEqual(JSON.parse(ambiguousResult.out.trim()), { mode: "dry-run", stations: 1, observations: 0, fuel: "diesel" });
+    assert.deepEqual(JSON.parse(ambiguousResult.out.trim()), { mode: "dry-run", stations: 1, observations: 0, fuel: "diesel", collectionScope: { center: { lat: 60.6, lon: 24.8 }, radiusKm: null, maxObservationsPerFuel: null } });
     console.log("PASS Tankkaus ingestion rejects timezone-free observation timestamps");
     mode = "normal";
     // Invalid collection coordinates and absent fuel must fail before any network/database access.
