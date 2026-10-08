@@ -104,9 +104,37 @@ export default function DesktopPreviewPage() {
   const [desktopCompareError,setDesktopCompareError]=useState("");
   const desktopCompareCache=useRef<Map<string,Record<string,{store:any;rows:Array<{name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>>(new Map());
   async function openDesktopComparison(){
-    setDesktopCompareNotice(true);setDesktopCompareError("");
-    if(betweenMode==="one"&&storeCompareScope==="between_chains"){setDesktopCompareResults({});setDesktopCompareError("Yksi-tilassa ei tehdä ketjujen välistä Halpuusvertailua.");return}
+    setDesktopCompareError("");
     const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
+    if(betweenMode==="one"){
+      setDesktopCompareNotice(false);
+      if(selected.length!==1){flashCartNotice("Valitse yksi S- tai K-kauppa hintojen hakua varten.");return}
+      const store=selected[0];const isS=["sHyper","sLocal"].includes(storeKind(store));
+      setDesktopCompareLoading(true);
+      try{
+        const updates=await Promise.all(cartItems.map(async item=>{
+          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel)return null;
+          const name=String(item.name||item.title||"").trim();if(!name)return null;
+          const ean=String(item.ean||item.product?.ean||"").trim();
+          const params=new URLSearchParams({search:name,store:String(store.externalId||store.id)});
+          if(isS)params.set("storeName",String(store.name||""));
+          try{const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});if(!response.ok)return null;
+            const data=await response.json();const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+            const exact=ean?products.find((p:any)=>[p.ean,p.gtin,p.eanCode,p.barcode].some(v=>String(v||"")===ean)):null;
+            const byName=products.find((p:any)=>String(p.name||"").trim().toLocaleLowerCase("fi")===name.toLocaleLowerCase("fi"));
+            const matched=exact||byName;const raw=Number(matched?.storeItems?.[0]?.price??matched?.price??0);
+            return matched&&raw>0?(isS&&data?.source==="s-kaupat-normal-v220"?raw:raw/100):null;
+          }catch{return null}
+        }));
+        setCartItems(current=>current.map((item,i)=>{
+          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel)return item;
+          return {...item,price:updates[i]??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]==null};
+        }));
+        flashCartNotice("Valitun kaupan hinnat päivitetty ostoskoriin.");
+      }finally{setDesktopCompareLoading(false)}
+      return;
+    }
+    setDesktopCompareNotice(true);
     if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua S- tai K-kauppaa.");return}
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel);
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
