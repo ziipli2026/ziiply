@@ -61,7 +61,7 @@ export function invalidateDesktopCartPricesForStoreSelection(
     const storeId = String(item.__storeId ?? item.storeId ?? "").trim();
     const verified = item.__priceVerified === true && Boolean(chain && storeId);
     if (verified && selectedStoreKeys.has(chain + ":" + storeId)) return item;
-    if (item.price == null && item.__price == null && item.__needsPriceRefresh) return item;
+    if (item.price == null && item.__price == null && item.__needsPriceRefresh && (!storeId || selectedStoreKeys.has(chain + ":" + storeId))) return item;
     return { ...item, price: null, __price: null, __priceVerified: false, __needsPriceRefresh: true };
   });
 }
