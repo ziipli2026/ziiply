@@ -121,16 +121,29 @@ export default function DesktopPreviewPage() {
   function clearDesktopCart(){setCartItems([]);flashCartNotice("Ostoskori tyhjennetty")}
   const desktopCartCount=cartItems.reduce((sum:number,p:any)=>sum+Number(p.quantity||1),0);
 
+  // One immutable result set per actual chain/store, independent of selector mode.
   const offerWarmCache=useRef<Map<string,{time:number;results:any[]}>>(new Map());
   const offerWarmPending=useRef<Map<string,Promise<any[]>>>(new Map());
-  function offerContext(chain:string,store:any){const ctx:any={storeMode,storeCompareScope,withinChain};if(chain==="S"){ctx.sStoreId=store?.externalId||store?.id;ctx.sStoreName=store?.name}if(chain==="K"){ctx.kStoreId=store?.externalId||store?.id;ctx.kStoreName=store?.name}if(chain==="LIDL"){ctx.lidlStoreKey=store?.storeKey||store?.externalId||store?.id;ctx.lidlStoreName=store?.name||"Lidl"}if(chain==="TOKMANNI"){ctx.tokmanniStoreId=store?.externalId||store?.id;ctx.tokmanniStoreName=store?.name||"Tokmanni"}if(chain==="EUROSPAR"){ctx.eurosparStoreId=store?.externalId||store?.id;ctx.eurosparStoreName=store?.name||"Eurospar";ctx.eurosparStoreChain=store?.chain}return ctx}
-  function warmOffers(chain:string,store:any){const ctx=offerContext(chain,store);const key=JSON.stringify(ctx);const hit=offerWarmCache.current.get(key);if(hit&&Date.now()-hit.time<300000)return Promise.resolve(hit.results);const pending=offerWarmPending.current.get(key);if(pending)return pending;const promise=searchZiiplyGostaOffersV146({query:"",terms:[],context:ctx}).then(r=>{const results=(r.results||[]).map(mapZiiplyGostaOfferToCardOfferV147);offerWarmCache.current.set(key,{time:Date.now(),results});return results}).finally(()=>offerWarmPending.current.delete(key));offerWarmPending.current.set(key,promise);return promise}
-  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":String(store?.chain||"").toUpperCase()==="EUROSPAR"?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores,storeMode,storeCompareScope,withinChain]);
+  const offerRequestId=useRef(0);
+  const offerViewState=useRef<Map<string,{tab:"offers"|"campaigns";category:string}>>(new Map());
+  const activeOfferKey=useRef("");
+  useEffect(()=>{try{const saved=JSON.parse(window.sessionStorage.getItem("ziiply-desktop-offers-cache-v1")||"[]");if(Array.isArray(saved))for(const [key,value] of saved){if(typeof key==="string"&&Array.isArray(value?.results))offerWarmCache.current.set(key,value)}}catch{}},[]);
+  function offerContext(chain:string,store:any){const ctx:any={};if(chain==="S"){ctx.sStoreId=store?.externalId||store?.id;ctx.sStoreName=store?.name}if(chain==="K"){ctx.kStoreId=store?.externalId||store?.id;ctx.kStoreName=store?.name}if(chain==="LIDL"){ctx.lidlStoreKey=store?.storeKey||store?.externalId||store?.id;ctx.lidlStoreName=store?.name||"Lidl"}if(chain==="TOKMANNI"){ctx.tokmanniStoreId=store?.externalId||store?.id;ctx.tokmanniStoreName=store?.name||"Tokmanni"}if(chain==="EUROSPAR"){ctx.eurosparStoreId=store?.externalId||store?.id;ctx.eurosparStoreName=store?.name||"Eurospar";ctx.eurosparStoreChain=store?.chain}return ctx}
+  function offerKey(chain:string,store:any){const ctx=offerContext(chain,store);return JSON.stringify([chain,ctx.sStoreId||ctx.kStoreId||ctx.lidlStoreKey||ctx.tokmanniStoreId||ctx.eurosparStoreId||store?.id||store?.name])}
+  function warmOffers(chain:string,store:any){const ctx=offerContext(chain,store);const key=offerKey(chain,store);const hit=offerWarmCache.current.get(key);if(hit)return Promise.resolve(hit.results);const pending=offerWarmPending.current.get(key);if(pending)return pending;const promise=searchZiiplyGostaOffersV146({query:"",terms:[],context:ctx}).then(r=>{const results=(r.results||[]).map(mapZiiplyGostaOfferToCardOfferV147);offerWarmCache.current.set(key,{time:Date.now(),results});try{window.sessionStorage.setItem("ziiply-desktop-offers-cache-v1",JSON.stringify([...offerWarmCache.current]))}catch{}return results}).finally(()=>offerWarmPending.current.delete(key));offerWarmPending.current.set(key,promise);return promise}
+  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":String(store?.chain||"").toUpperCase()==="EUROSPAR"?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
   async function openDesktopGostaChain(chain:"S"|"K"|"LIDL"|"TOKMANNI"|"EUROSPAR", store:any) {
-    setGostaChainPicker(false);setGostaChain(chain);setGostaTab("offers");setGostaCategory("");setGostaOffers([]);setGostaLoading(true);
-    try{setGostaOffers(await warmOffers(chain,store))}catch{setGostaOffers([])}finally{setGostaLoading(false)}
+    const key=offerKey(chain,store);const request=++offerRequestId.current;
+    if(activeOfferKey.current)offerViewState.current.set(activeOfferKey.current,{tab:gostaTab,category:gostaCategory});
+    activeOfferKey.current=key;const previous=offerViewState.current.get(key);
+    setGostaChainPicker(false);setGostaChain(chain);setGostaTab(previous?.tab||"offers");setGostaCategory(previous?.category||"");
+    const cached=offerWarmCache.current.get(key);
+    if(cached){setGostaOffers(cached.results);setGostaLoading(false);return}
+    setGostaOffers([]);setGostaLoading(true);
+    try{const results=await warmOffers(chain,store);if(request===offerRequestId.current)setGostaOffers(results)}
+    catch{if(request===offerRequestId.current)setGostaOffers([])}
+    finally{if(request===offerRequestId.current)setGostaLoading(false)}
   }
-
   async function runDesktopJustiinaSearch(raw=justiinaQuery) {
     const query=String(raw||"").trim(); if(!query)return;
     const selected=Object.values(selectedStores) as any[];
