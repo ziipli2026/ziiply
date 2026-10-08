@@ -14,7 +14,7 @@ const { spawn } = require("node:child_process");
       ok: true, source: "Tankkaus.com", fuel: "diesel",
       stations: mode === "empty" ? [] : [{ id: 42, name: "Mock station", latitude: mode === "out-of-radius" ? 61.6 : 60.6, longitude: 24.8 }],
       coverage: { radiusKm: 10, maxObservationsPerFuel: 10 },
-      observations: mode === "empty" ? [] : (mode === "duplicate" ? [0, 1] : [0]).map((index) => ({ stationId: 42, price: index ? 1.79901 : 1.799, observedAt: mode === "ambiguous-time" ? fixedTime.replace("Z", "") : index ? new Date(Date.parse(fixedTime)).toISOString().replace("Z", "+00:00") : fixedTime }))
+      observations: mode === "empty" ? [] : (mode === "duplicate" ? [0, 1] : mode === "mostly-invalid" ? [0, 1, 2, 3, 4] : [0]).map((index) => ({ stationId: mode === "mostly-invalid" && index > 0 ? -1 : 42, price: index ? 1.79901 : 1.799, observedAt: mode === "ambiguous-time" ? fixedTime.replace("Z", "") : index ? new Date(Date.parse(fixedTime)).toISOString().replace("Z", "+00:00") : fixedTime }))
     }));
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -113,6 +113,20 @@ const { spawn } = require("node:child_process");
     assert.notEqual(unconfirmedWrite.code, 0, "unconfirmed --write must fail");
     assert.match(unconfirmedWrite.err, /TANKKAUS_INGEST_WRITE_CONFIRM/);
     console.log("PASS Tankkaus ingestion rejects unconfirmed database writes");
+    mode = "mostly-invalid";
+    const mostlyInvalid = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused", TANKKAUS_INGEST_WRITE_CONFIRM: "YES_TEST_BRANCH" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      let err = "";
+      child.stderr.on("data", chunk => err += chunk);
+      child.on("error", reject);
+      child.on("close", code => resolve({ code, err }));
+    });
+    assert.notEqual(mostlyInvalid.code, 0);
+    assert.match(mostlyInvalid.err, /excessive invalid or duplicate observations/);
+    console.log("PASS Tankkaus ingestion refuses mostly-invalid writes before database connection");
     mode = "empty";
     const emptyResult = await new Promise((resolve, reject) => {
       const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
