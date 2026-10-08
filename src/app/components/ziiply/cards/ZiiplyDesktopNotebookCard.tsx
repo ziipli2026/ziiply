@@ -6,7 +6,7 @@ type Props={open:boolean;lists:DesktopSavedList[];currentCartCount:number;opened
 export default function ZiiplyDesktopNotebookCard({open,lists,currentCartCount,openedListId,onToggleList,onSaveCurrentCart,onRestoreList,onDeleteList,onClose}:Props){
 if(!open)return null;
 return <div className="fixed inset-0 z-[95] bg-[#17352a]/10">
-<section role="dialog" aria-modal="true" aria-label="Ostelusvihko" className="fixed left-1/2 top-[16vh] flex h-[min(76vh,760px)] w-[min(91vh,910px)] max-h-[calc(100dvh-48px)] max-w-[calc(100vw-32px)] -translate-x-1/2 flex-col overflow-hidden rounded-[32px] border-[4px] border-[#76502e] bg-[#f8edd7] shadow-[0_30px_90px_rgba(20,40,31,.35)]">
+<section role="dialog" aria-modal="true" aria-label="Ostelusvihko" className="fixed left-1/2 top-[calc(16vh+20px)] flex h-[min(76vh,760px)] w-[min(91vh,910px)] max-h-[calc(100dvh-48px)] max-w-[calc(100vw-32px)] -translate-x-1/2 flex-col overflow-hidden rounded-[32px] border-[4px] border-[#76502e] bg-[#f8edd7] shadow-[0_30px_90px_rgba(20,40,31,.35)]">
 
 
 <header className="relative z-10 shrink-0 mx-9 border-b border-[#cbb583] px-8 pb-[18px] pt-[24px] text-center"><div className="text-[clamp(13px,1.1vw,17px)] font-black uppercase tracking-[.14em] text-[#7d6241]">TALLENNETUT OSTOSLISTAT</div><h2 className="mt-1 font-serif text-[clamp(38px,3vw,48px)] font-black italic leading-tight text-[#174c3a]">Ostelusvihko</h2></header>
