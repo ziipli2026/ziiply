@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV147, searchZiiplyGostaOffersV146 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
+import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -133,10 +134,10 @@ export default function DesktopPreviewPage() {
   const offerViewState=useRef<Map<string,{tab:"offers"|"campaigns";category:string}>>(new Map());
   const activeOfferKey=useRef("");
   useEffect(()=>{try{const saved=JSON.parse(window.sessionStorage.getItem("ziiply-desktop-offers-cache-v1")||"[]");if(Array.isArray(saved))for(const [key,value] of saved){if(typeof key==="string"&&Array.isArray(value?.results))offerWarmCache.current.set(key,value)}}catch{}},[]);
-  function offerContext(chain:string,store:any){const ctx:any={};if(chain==="S"){ctx.sStoreId=store?.externalId||store?.id;ctx.sStoreName=store?.name}if(chain==="K"){ctx.kStoreId=store?.externalId||store?.id;ctx.kStoreName=store?.name}if(chain==="LIDL"){ctx.lidlStoreKey=store?.storeKey||store?.externalId||store?.id;ctx.lidlStoreName=store?.name||"Lidl"}if(chain==="TOKMANNI"){ctx.tokmanniStoreId=store?.externalId||store?.id;ctx.tokmanniStoreName=store?.name||"Tokmanni"}if(chain==="EUROSPAR"){ctx.eurosparStoreId=store?.externalId||store?.id;ctx.eurosparStoreName=store?.name||"Eurospar";ctx.eurosparStoreChain=store?.chain}return ctx}
-  function offerKey(chain:string,store:any){const ctx=offerContext(chain,store);return JSON.stringify([chain,ctx.sStoreId||ctx.kStoreId||ctx.lidlStoreKey||ctx.tokmanniStoreId||ctx.eurosparStoreId||store?.id||store?.name])}
+  function offerContext(chain:string,store:any){return desktopOfferContext(chain as DesktopOfferChain,store)}
+  function offerKey(chain:string,store:any){return desktopOfferCacheKey(chain as DesktopOfferChain,store)}
   function warmOffers(chain:string,store:any){const ctx=offerContext(chain,store);const key=offerKey(chain,store);const hit=offerWarmCache.current.get(key);if(hit)return Promise.resolve(hit.results);const pending=offerWarmPending.current.get(key);if(pending)return pending;const promise=searchZiiplyGostaOffersV146({query:"",terms:[],context:ctx}).then(r=>{const results=(r.results||[]).map(mapZiiplyGostaOfferToCardOfferV147);offerWarmCache.current.set(key,{time:Date.now(),results});try{window.sessionStorage.setItem("ziiply-desktop-offers-cache-v1",JSON.stringify([...offerWarmCache.current]))}catch{}return results}).finally(()=>offerWarmPending.current.delete(key));offerWarmPending.current.set(key,promise);return promise}
-  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":String(store?.chain||"").toUpperCase()==="EUROSPAR"?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
+  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=desktopOfferChainFromStoreKind(kind,store);void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
   async function openDesktopGostaChain(chain:"S"|"K"|"LIDL"|"TOKMANNI"|"EUROSPAR", store:any) {
     const key=offerKey(chain,store);const request=++offerRequestId.current;
     if(activeOfferKey.current)offerViewState.current.set(activeOfferKey.current,{tab:gostaTab,category:gostaCategory});
