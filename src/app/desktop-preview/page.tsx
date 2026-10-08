@@ -188,6 +188,17 @@ export default function DesktopPreviewPage() {
   }
 
 
+  // GPS is the default on desktop; geolocation permission still belongs to the browser.
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationStatus("Sijaintia ei tueta tällä laitteella");
+      return;
+    }
+    useGps();
+    // Run once on mount; do not reset manually selected stores on subsequent renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     fetch("/api/desktop-electricity", { cache: "no-store" }).then(r => r.json()).then(data => {
