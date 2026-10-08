@@ -33,8 +33,9 @@ const now = Date.now();
 // A successful but empty provider response must not erase cached station or price history.
 if (payload.stations.length > 10000 || payload.observations.length > 10000) throw new Error("Unexpectedly large provider response");
 const rows = payload.observations.filter(o => {
+  if (!o || typeof o !== "object") return false;
   const t = Date.parse(o.observedAt);
-  return stations.has(o.stationId) && Number.isFinite(o.price) && o.price > 0 && o.price <= 5 &&
+  return stations.has(o.stationId) && typeof o.price === "number" && Number.isFinite(o.price) && o.price > 0 && o.price <= 5 &&
     Number.isFinite(t) && t <= now && now - t <= 5 * 86400000;
 });
 if (write && (stations.size === 0 || rows.length === 0)) throw new Error("Refusing empty ingestion write");
