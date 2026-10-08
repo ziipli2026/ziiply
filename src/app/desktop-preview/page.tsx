@@ -102,6 +102,11 @@ export default function DesktopPreviewPage() {
       return next.every((item,i)=>item===current[i])?current:next;
     });
   },[selectedStores,desktopCartHydrated]);
+  const currentCartStoreKeys=new Set(Object.values(selectedStores).map(store=>
+    desktopOfferChainFromStoreKind(storeKind(store),store)+":"+String(store?.externalId??store?.id??"")
+  ));
+  const currentCartStoreKeysRef=useRef(currentCartStoreKeys);
+  currentCartStoreKeysRef.current=currentCartStoreKeys;
   const cartPriceRefreshRun=useRef(0);
   const cartRefreshPending=cartItems.filter(item=>item.__needsPriceRefresh===true)
     .map(item=>[desktopCartIdentity(item),item.source,String(item.__chain??"")].join("|")).join(";");
@@ -123,9 +128,10 @@ export default function DesktopPreviewPage() {
         try{
           const price=await refreshDesktopCartProductPrice(item,chain,store);
           if(cancelled||run!==cartPriceRefreshRun.current)return;
+          if(!currentCartStoreKeysRef.current.has(chain+":"+storeId))continue;
           if(price==null)continue;
           const key=desktopCartIdentity(item);
-          setCartItems(current=>current.map(x=>desktopCartIdentity(x)===key&&x.source===item.source&&x.__needsPriceRefresh?{
+          setCartItems(current=>current.map(x=>currentCartStoreKeysRef.current.has(chain+":"+storeId)&&desktopCartIdentity(x)===key&&x.source===item.source&&x.__needsPriceRefresh?{
             ...x,price,__price:price,__chain:chain,__storeId:storeId,__priceVerified:true,__needsPriceRefresh:false
           }:x));
         }catch{}
