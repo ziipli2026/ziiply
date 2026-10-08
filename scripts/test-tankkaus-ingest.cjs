@@ -52,7 +52,7 @@ const { spawn } = require("node:child_process");
     mode = "empty";
     const emptyResult = await new Promise((resolve, reject) => {
       const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
-        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused" },
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused", TANKKAUS_INGEST_WRITE_CONFIRM: "YES_TEST_BRANCH" },
         stdio: ["ignore", "pipe", "pipe"]
       });
       let err = "";
