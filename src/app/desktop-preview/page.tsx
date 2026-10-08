@@ -1,40 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import DesktopAssistantCards from "../components/ziiply/desktop/DesktopAssistantCards";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV147, searchZiiplyGostaOffersV146 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
-const assistants = [
-  {
-    key: "gosta" as const,
-    name: "Gösta",
-    title: "Tarjoukset",
-    subtitle: "Hinnat ja tarjoukset",
-    image: "/assistants/gosta.png",
-    frame: "border-[#8bb56d] bg-gradient-to-b from-[#f4ffe3] via-[#e0f0bd] to-[#c6dc91]",
-    ink: "text-[#244a28]",
-  },
-  {
-    key: "justiina" as const,
-    name: "Justiina",
-    title: "Reseptit",
-    subtitle: "Ruokaideat ja haku",
-    image: "/assistants/justiina.png",
-    frame: "border-[#c69655] bg-gradient-to-b from-[#fff6da] via-[#ffe9a2] to-[#edc66c]",
-    ink: "text-[#6b331e]",
-  },
-  {
-    key: "arvo" as const,
-    name: "Arvo",
-    title: "Asetukset",
-    subtitle: "Omat valinnat",
-    image: "/assistants/arvo.png",
-    frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]",
-    ink: "text-[#314633]",
-  },
-];
 
 export default function DesktopPreviewPage() {
   const [active, setActive] = useState<Assistant | null>(null);
@@ -397,47 +369,23 @@ export default function DesktopPreviewPage() {
           <div className="relative max-h-[calc(100dvh-150px)] rounded-[42px] border border-[#756443]/15 bg-[#f8f5ed]/92 p-3 shadow-[0_34px_90px_rgba(34,54,43,0.22)] ring-1 ring-[#fffaf0]/95 xl:p-4">
             <div aria-hidden className="absolute -right-4 -top-5 h-24 w-24 rotate-6 rounded-[26px] border border-[#8b7145]/15 bg-[#fff0bd]/55 shadow-[0_16px_35px_rgba(91,67,30,0.10)]" />
             <div aria-hidden className="absolute -bottom-5 left-12 h-16 w-40 -rotate-2 rounded-[22px] border border-[#61785d]/12 bg-[#dce8d8]/60 shadow-[0_14px_30px_rgba(41,67,46,0.08)]" />
-            <div className="grid grid-cols-3 gap-3 xl:gap-4 -mt-3">
-              {assistants.map((item) => {
-                const selected = active === item.key;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => { if(item.key==="gosta" && !Object.values(selectedStores).some(Boolean)){setGostaChooseStoresNotice(true);setGostaChainPicker(false);setWorkspace(null);return} setGostaChooseStoresNotice(false);setActive(item.key); if(item.key==="gosta"){setWorkspace(null);setGostaChainPicker(true)}else{setGostaChainPicker(false);setWorkspace(item.key)} }}
-                    className={[
-                      "group relative flex min-h-[0] h-[clamp(420px,57vh,590px)] flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-6 pt-5 text-center transition duration-200 hover:-translate-y-2 hover:rotate-[0.3deg] hover:shadow-[0_28px_54px_rgba(35,54,42,0.22)] active:translate-y-0",
-                      item.frame,
-                      selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
-                    ].join(" ")}
-                  >
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#7f6a3e_1px,transparent_1px)] [background-size:12px_12px]" />
-                    {selected && (
-                      <div className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-[#0a7f3a] text-lg font-black text-white shadow-md">
-                        ✓
-                      </div>
-                    )}
-                    <div className="relative z-10 mt-5 shrink-0 h-[clamp(150px,19vh,205px)] w-[clamp(150px,19vh,205px)] self-center overflow-hidden rounded-full border-[6px] border-[#f7e7c4] bg-[#f5e5c1] shadow-[0_11px_0_rgba(65,45,20,0.16),0_24px_38px_rgba(40,55,38,0.18)]">
-                      <img src={item.image} alt={item.name} className="h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.025]" />
-                    </div>
-                    <div className={["relative z-10 mt-6 text-[36px] font-black leading-none tracking-[-0.045em] drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]", item.ink].join(" ")}>
-                      {item.name}
-                    </div>
-                    <div className="relative z-10 mt-3 text-[13px] font-black uppercase tracking-[0.12em] text-[#1e2f2a]">
-                      {item.title}
-                    </div>
-                    <div className="relative z-10 mt-1 text-[14px] font-bold text-[#687285]">
-                      {item.subtitle}
-                    </div>
-                    {item.key==="gosta" && gostaChooseStoresNotice && !Object.values(selectedStores).some(Boolean) && (
-                      <div role="status" aria-live="polite" className="relative z-20 mt-5 rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-4 py-3 text-center text-[17px] font-black text-[#5d3c12] shadow-md">
-                        Valitse ensin kaupat, niin Gösta voi näyttää ja vertailla tarjoukset.
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <DesktopAssistantCards
+              active={active}
+              hasSelectedStores={Object.values(selectedStores).some(Boolean)}
+              gostaChooseStoresNotice={gostaChooseStoresNotice}
+              onSelect={(key) => {
+                if(key==="gosta" && !Object.values(selectedStores).some(Boolean)){
+                  setGostaChooseStoresNotice(true);
+                  setGostaChainPicker(false);
+                  setWorkspace(null);
+                  return;
+                }
+                setGostaChooseStoresNotice(false);
+                setActive(key);
+                if(key==="gosta"){setWorkspace(null);setGostaChainPicker(true)}
+                else{setGostaChainPicker(false);setWorkspace(key)}
+              }}
+            />
 
             {gostaChainPicker && <div className="fixed bottom-0 left-0 right-0 top-[112px] z-[49] bg-[#e8eadf]/95" onClick={e=>e.stopPropagation()} />}
             {gostaChainPicker && (()=>{const chainOf=(s:any)=>{const k=storeKind(s);const raw=String(s?.chain||s?.type||s?.brand||s?.name||"").toLowerCase();if(k==="spar"||raw.includes("tokmanni")||raw.includes("spar"))return "SPAR";if(k==="lidl"||raw.includes("lidl"))return "LIDL";if(k.startsWith("s"))return "S";if(k.startsWith("k"))return "K";return ""};const selectedByChain=new Map<string,any>();Object.values(selectedStores).forEach((s:any)=>selectedByChain.set(chainOf(s),s));const order=["S","K","SPAR","LIDL"];const visible=order.map(ch=>selectedByChain.get(ch)).filter(Boolean) as any[];const meta:any={S:["/storelogos/s-group.png","S-ryhmä"],K:["/storelogos/k-group.png","K-ryhmä"],SPAR:["/storelogos/spar.png","Tokmanni / Spar"],LIDL:["/storelogos/lidl.png","Lidl"]};return <div className="fixed bottom-[24px] left-1/2 top-[128px] z-50 flex w-[min(1040px,calc(100vw-48px))] -translate-x-1/2 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]"><div className="relative rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-4 py-2.5 text-center"><div className="font-serif text-[22px] font-black italic text-[#174c35]">Tarjous- ja kampanjahaku</div></div><div className="mx-auto mt-3 flex min-h-0 w-full flex-1 flex-col rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4"><div className="text-center font-serif text-[23px] font-black italic text-[#174c35]">Valitse kaupparyhmä</div><div className="mt-1 text-center text-[13px] font-black text-[#6d604c]">Mistä kaupparyhmästä haetaan tarjoukset?</div><div className="mx-auto mt-3 grid min-h-0 w-full max-w-[860px] flex-1 grid-cols-2 gap-3">{visible.map((store:any)=>{const ch=chainOf(store);const m=meta[ch];const offerChain:any=ch==="SPAR"?(String(store?.chain||"").toUpperCase()==="EUROSPAR"?"EUROSPAR":"TOKMANNI"):ch;return <button key={ch} onClick={()=>void openDesktopGostaChain(offerChain,store)} className="grid min-h-0 place-items-center rounded-[20px] border-[3px] border-[#17573c] bg-[#fff8d9] p-3 shadow-[0_7px_0_rgba(72,73,48,.18)]"><img src={m[0]} alt="" className="h-[116px] w-[164px] max-w-full object-contain"/><div className="mt-1 text-[16px] font-black text-[#17573c]">{m[1]}</div></button>})}</div>{visible.length===0&&<div className="m-auto rounded-[20px] border-2 border-[#b58a46] bg-[#fff9e7] p-6 text-center text-[15px] font-black">Valitse ensin kauppaketju pääruudulta.</div>}</div></div>})()}
