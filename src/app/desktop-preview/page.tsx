@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
+import { fetchDesktopNormalProducts, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -154,19 +155,35 @@ export default function DesktopPreviewPage() {
   async function runDesktopJustiinaSearch(raw=justiinaQuery) {
     const query=String(raw||"").trim(); if(!query)return;
     const selected=Object.values(selectedStores) as any[];
-    const s=selected.find(x=>{const k=storeKind(x);return k==="sHyper"||k==="sLocal"});
-    const k=selected.find(x=>{const t=storeKind(x);return t==="kHyper"||t==="kLocal"});
-    if(!s&&!k){setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
+    const unique=new Map<string,{chain:DesktopNormalSearchChain;store:any}>();
+    for(const store of selected){
+      const kind=storeKind(store);
+      const chain=desktopOfferChainFromStoreKind(kind,store) as DesktopNormalSearchChain;
+      const id=String(store?.externalId??store?.id??store?.storeKey??"");
+      if(!id && chain!=="TOKMANNI" && chain!=="EUROSPAR")continue;
+      unique.set(chain+":"+id,{chain,store});
+    }
+    if(!unique.size){setJustiinaMessage("Valitse ensin kauppa.");return}
     setJustiinaLoading(true);setJustiinaMessage("");setJustiinaResults([]);
-    // No artificial delay: desktop search follows the production search timing.
     try{
-      const calls:any[]=[];
-      if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
-      if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.externalId||k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
-      const batches=await Promise.all(calls);const rows:any[]=[];
-      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of items.slice(0,8)){const p=Number(x?.price??x?.storeItems?.[0]?.price??x?.storeItem?.price??0);rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:p})}}
-      setJustiinaResults(rows);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
-    }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
+      const batches=await Promise.allSettled([...unique.values()].map(async ({chain,store})=>({
+        chain,store,items:await fetchDesktopNormalProducts(query,chain,store)
+      })));
+      const rows:any[]=[];
+      let failures=0;
+      for(const batch of batches){
+        if(batch.status!=="fulfilled"){failures++;continue}
+        const {chain,store,items}=batch.value;
+        for(const x of items.slice(0,8)){
+          const price=Number(x?.price??x?.storeItems?.[0]?.price??x?.storeItem?.price??0);
+          rows.push({...x,__chain:chain,__store:store?.name,__price:price});
+        }
+      }
+      setJustiinaResults(rows);
+      if(!rows.length)setJustiinaMessage(failures?"Tuotehaku epäonnistui valituissa kaupoissa.":`Hakemaasi "${query}" ei löydy.`);
+      else if(failures)setJustiinaMessage("Osan kauppojen haku epäonnistui.");
+    }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}
+    finally{setJustiinaLoading(false)}
   }
 
   async function loadIndependentStores(search:string, coords?:{latitude:number;longitude:number}) { const lp=new URLSearchParams(); if(search) lp.set("search",search); if(coords){lp.set("lat",String(coords.latitude));lp.set("lon",String(coords.longitude));lp.set("gps","1")} try{const r=await fetch(`/api/lidl/store-search?${lp}`,{cache:"no-store"});const d=await r.json();setLidlStores(Array.isArray(d?.items)?d.items:[])}catch{setLidlStores([])} const sp=new URLSearchParams(); if(search)sp.set("search",search);if(coords){sp.set("lat",String(coords.latitude));sp.set("lon",String(coords.longitude))} try{const r=await fetch(`/api/eurospar-stores?${sp}`,{cache:"no-store"});const d=await r.json();setSparStores(Array.isArray(d?.items)?d.items:[])}catch{setSparStores([])} }
