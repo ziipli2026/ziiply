@@ -59,6 +59,7 @@ export default function DesktopPreviewPage() {
   const [justiinaDelay, setJustiinaDelay] = useState<0|1|2>(2);
   const [justiinaLoading, setJustiinaLoading] = useState(false);
   const [justiinaResults, setJustiinaResults] = useState<any[]>([]);
+  const [justiinaResultsOpen, setJustiinaResultsOpen] = useState(false);
   const [justiinaMessage, setJustiinaMessage] = useState("");
   const now = new Date();
   const month = ["TAMMIKUU","HELMIKUU","MAALISKUU","HUHTIKUU","TOUKOKUU","KESÄKUU","HEINÄKUU","ELOKUU","SYYSKUU","LOKAKUU","MARRASKUU","JOULUKUU"][now.getMonth()];
@@ -137,7 +138,7 @@ export default function DesktopPreviewPage() {
       if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.externalId||k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
       for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of items.slice(0,8)){const p=Number(x?.price??x?.storeItems?.[0]?.price??x?.storeItem?.price??0);rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:p})}}
-      setJustiinaResults(rows);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
+      setJustiinaResults(rows);setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
     }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
   }
 
@@ -420,7 +421,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>)}</div>}</div></>}</div>})()}
 
-            {workspace==="justiina" && <DesktopJustiinaSearchCard onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={setJustiinaQuery} loading={justiinaLoading} onSearch={()=>{void runDesktopJustiinaSearch()}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} />}
+            {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={setJustiinaQuery} loading={justiinaLoading} onSearch={()=>{void runDesktopJustiinaSearch()}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} />}
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
                 <div className="flex items-center justify-between"><div className="text-[26px] font-black text-[#14291f]">{({ gosta: "Gösta", justiina: "Justiina", arvo: "Arvo" } as const)[workspace]}</div><button onClick={()=>setWorkspace(null)} className="rounded-full bg-white px-4 py-2 font-black">← Takaisin</button></div>
