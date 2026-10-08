@@ -1,6 +1,12 @@
 name: Tankkaus.com isolated contract smoke
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/tankkaus-com-native-20261008
+    paths:
+      - 'src/app/api/tankkaus/**'
+      - '.github/workflows/tankkaus-contract-smoke.yml'
   pull_request:
     paths:
       - 'src/app/api/tankkaus/**'
