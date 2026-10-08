@@ -103,13 +103,14 @@ export default function DesktopPreviewPage() {
     });
   },[selectedStores,desktopCartHydrated]);
   const cartPriceRefreshRun=useRef(0);
+  const cartRefreshPending=cartItems.filter(item=>item.__needsPriceRefresh===true)
+    .map(item=>[desktopCartIdentity(item),item.source,String(item.__chain??"")].join("|")).join(";");
   useEffect(()=>{
-    if(!desktopCartHydrated)return;
-    const pending=cartItems.filter(item=>item.__needsPriceRefresh===true);
-    if(!pending.length)return;
+    if(!desktopCartHydrated||!cartRefreshPending)return;
     const selected=Object.values(selectedStores);
     const run=++cartPriceRefreshRun.current;
     let cancelled=false;
+    const pending=cartItems.filter(item=>item.__needsPriceRefresh===true);
     void (async()=>{
       for(const item of pending){
         if(cancelled||run!==cartPriceRefreshRun.current)return;
@@ -131,7 +132,7 @@ export default function DesktopPreviewPage() {
       }
     })();
     return()=>{cancelled=true};
-  },[selectedStores,desktopCartHydrated,cartItems]);
+  },[selectedStores,desktopCartHydrated,cartRefreshPending]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
   const [cartNotice, setCartNotice] = useState("");
