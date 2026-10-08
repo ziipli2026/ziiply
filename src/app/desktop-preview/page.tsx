@@ -41,6 +41,7 @@ export default function DesktopPreviewPage() {
   const [scannerMode, setScannerMode] = useState<"checking" | "camera" | "external">("checking");
   const [workspace, setWorkspace] = useState<Assistant | null>(null);
   const [gostaChainPicker, setGostaChainPicker] = useState(false);
+  const [gostaChooseStoresNotice, setGostaChooseStoresNotice] = useState(false);
   const [gostaChain, setGostaChain] = useState<"S"|"K"|"LIDL"|"TOKMANNI"|"EUROSPAR"|null>(null);
   const [gostaOffers, setGostaOffers] = useState<any[]>([]);
   const [gostaTab, setGostaTab] = useState<"offers"|"campaigns">("offers");
@@ -403,7 +404,7 @@ export default function DesktopPreviewPage() {
                   <button
                     key={item.key}
                     type="button"
-                    onClick={() => { setActive(item.key); if(item.key==="gosta"){setWorkspace(null);setGostaChainPicker(true)}else{setGostaChainPicker(false);setWorkspace(item.key)} }}
+                    onClick={() => { if(item.key==="gosta" && !Object.values(selectedStores).some(Boolean)){setGostaChooseStoresNotice(true);setGostaChainPicker(false);setWorkspace(null);return} setGostaChooseStoresNotice(false);setActive(item.key); if(item.key==="gosta"){setWorkspace(null);setGostaChainPicker(true)}else{setGostaChainPicker(false);setWorkspace(item.key)} }}
                     className={[
                       "group relative flex min-h-[0] h-[clamp(420px,57vh,590px)] flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-6 pt-5 text-center transition duration-200 hover:-translate-y-2 hover:rotate-[0.3deg] hover:shadow-[0_28px_54px_rgba(35,54,42,0.22)] active:translate-y-0",
                       item.frame,
@@ -428,6 +429,11 @@ export default function DesktopPreviewPage() {
                     <div className="relative z-10 mt-1 text-[14px] font-bold text-[#687285]">
                       {item.subtitle}
                     </div>
+                    {item.key==="gosta" && gostaChooseStoresNotice && !Object.values(selectedStores).some(Boolean) && (
+                      <div role="status" aria-live="polite" className="relative z-20 mt-5 rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-4 py-3 text-center text-[17px] font-black text-[#5d3c12] shadow-md">
+                        Valitse ensin kaupat, niin Gösta voi näyttää ja vertailla tarjoukset.
+                      </div>
+                    )}
                   </button>
                 );
               })}
