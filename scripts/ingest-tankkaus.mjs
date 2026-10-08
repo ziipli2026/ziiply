@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+// Explicit, one-shot ingestion. Dry-run by default. Never runs on ordinary page requests.
+// Usage: TANKKAUS_INGEST_URL=https://preview.example/api/tankkaus?lat=...\&lon=... node scripts/ingest-tankkaus.mjs
+// Write only after verifying live provider shape: DATABASE_URL=... TANKKAUS_INGEST_URL=... node scripts/ingest-tankkaus.mjs --write
+import { neon } from "@neondatabase/serverless";
+
+const endpoint = process.env.TANKKAUS_INGEST_URL;
+const write = process.argv.includes("--write");
+if (!endpoint) throw new Error("TANKKAUS_INGEST_URL is required");
+const url = new URL(endpoint);
+if (url.protocol !== "https:" && url.hostname !== "localhost") throw new Error("HTTPS endpoint required");
+if (url.pathname !== "/api/tankkaus") throw new Error("Expected /api/tankkaus endpoint");
+if (write && !process.env.DATABASE_URL) throw new Error("DATABASE_URL required for --write");
+const response = await fetch(url, { signal: AbortSignal.timeout(15000), headers: { Accept: "application/json" } });
+if (!response.ok) throw new Error(`Tankkaus endpoint HTTP ${response.status}`);
+const payload = await response.json();
+if (payload?.ok !== true || payload.source !== "Tankkaus.com" || !Array.isArray(payload.stations) || !Array.isArray(payload.observations)) {
+  throw new Error("Unexpected Tankkaus response contract");
+}
+const stations = new Map();
+for (const s of payload.stations) {
+  if (!Number.isSafeInteger(s.id) || s.id <= 0 || typeof s.name !== "string" || !s.name.trim() ||
+      !Number.isFinite(s.latitude) || Math.abs(s.latitude) > 90 ||
+      !Number.isFinite(s.longitude) || Math.abs(s.longitude) > 180) continue;
+  stations.set(s.id, s);
+}
+const fuel = ({ "95": "95", "95e10": "95", "98": "98", "98e5": "98", diesel: "diesel" })[payload.fuel];
+if (!fuel) throw new Error("Unexpected fuel");
+const now = Date.now();
+const rows = payload.observations.filter(o => {
+  const t = Date.parse(o.observedAt);
+  return stations.has(o.stationId) && Number.isFinite(o.price) && o.price > 0 && o.price <= 5 &&
+    Number.isFinite(t) && t <= now && now - t <= 5 * 86400000;
+});
+if (!write) {
+  console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: rows.length, fuel }));
+  process.exit(0);
+}
+const sql = neon(process.env.DATABASE_URL);
+for (const s of stations.values()) {
+  await sql`INSERT INTO ziiply_fuel_stations
+    (source, source_station_id, name, chain, address, latitude, longitude, last_seen_at, updated_at)
+    VALUES ('tankkaus.com', ${s.id}, ${s.name}, ${s.chain ?? null}, ${s.address ?? null}, ${s.latitude}, ${s.longitude}, NOW(), NOW())
+    ON CONFLICT (source, source_station_id) DO UPDATE SET
+      name=EXCLUDED.name, chain=EXCLUDED.chain, address=EXCLUDED.address,
+      latitude=EXCLUDED.latitude, longitude=EXCLUDED.longitude,
+      last_seen_at=NOW(), updated_at=NOW()`;
+}
+for (const o of rows) {
+  await sql`INSERT INTO ziiply_fuel_price_observations
+    (source, source_station_id, fuel_type, price_eur_per_litre, observed_at)
+    VALUES ('tankkaus.com', ${o.stationId}, ${fuel}, ${o.price}, ${o.observedAt}::timestamptz)
+    ON CONFLICT (source, source_station_id, fuel_type, observed_at, price_eur_per_litre) DO NOTHING`;
+}
+console.log(JSON.stringify({ mode: "write", stations: stations.size, observationsAttempted: rows.length, fuel }));
