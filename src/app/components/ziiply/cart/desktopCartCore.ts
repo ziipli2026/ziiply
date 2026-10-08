@@ -8,12 +8,20 @@ export function desktopCartIdentity(item: Record<string, any>) {
   if (id) return "id:" + id;
   return "name:" + String(item.title ?? item.name ?? item.productName ?? "").trim().toLowerCase();
 }
+/** Keep the same EAN from different selected shops as separate cart rows. */
+export function desktopCartSameStore(a: Record<string, any>, b: Record<string, any>) {
+  const aChain = String(a.__chain ?? a.chain ?? "").toUpperCase();
+  const bChain = String(b.__chain ?? b.chain ?? "").toUpperCase();
+  const aStore = String(a.__storeId ?? a.storeId ?? "").trim();
+  const bStore = String(b.__storeId ?? b.storeId ?? "").trim();
+  return aChain === bChain && aStore === bStore;
+}
 export function appendDesktopCartItem(
   items: DesktopCartItem[], product: Record<string, any>, source: DesktopCartSource,
 ): DesktopCartItem[] {
   const key = desktopCartIdentity(product);
   if (key === "name:") return items;
-  const index = items.findIndex(item => desktopCartIdentity(item) === key && item.source === source);
+  const index = items.findIndex(item => desktopCartIdentity(item) === key && item.source === source && desktopCartSameStore(item, product));
   if (index < 0) return [...items, { ...product, source, quantity: 1 }];
   return items.map((item, i) => i === index ? { ...item, quantity: item.quantity + 1 } : item);
 }
@@ -21,7 +29,7 @@ export function changeDesktopCartItemQuantity(items: DesktopCartItem[], product:
   const key = desktopCartIdentity(product);
   const source = product.source;
   return items.flatMap(item => {
-    if (desktopCartIdentity(item) !== key || (source && item.source !== source)) return [item];
+    if (desktopCartIdentity(item) !== key || (source && item.source !== source) || !desktopCartSameStore(item, product)) return [item];
     const quantity = item.quantity + delta;
     return quantity > 0 ? [{ ...item, quantity }] : [];
   });
