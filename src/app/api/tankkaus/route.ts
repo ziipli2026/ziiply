@@ -14,6 +14,13 @@ const asNumber = (v: unknown): number | null => {
   const n = Number(String(v).replace(",", "."));
   return Number.isFinite(n) ? n : null;
 };
+const distanceKmBetween = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const radians = (degrees: number) => degrees * Math.PI / 180;
+  const dLat = radians(lat2 - lat1);
+  const dLon = radians(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(a)));
+};
 const stationOf = (v: any): Station | null => {
   const id = asNumber(v?.id ?? v?.station_id);
   if (id === null || !Number.isInteger(id) || id <= 0) return null;
@@ -50,14 +57,19 @@ export async function GET(req: NextRequest) {
     const pricePayload = pricesData as any;
     const stationRows = Array.isArray(stationPayload) ? stationPayload : stationPayload?.stations;
     if (!Array.isArray(stationRows)) throw new Error("Tankkaus response missing expected stations array");
+    // Derive distance from coordinates rather than trusting an undocumented upstream unit.
+    // Exclude stations without usable coordinates; otherwise the 10 km claim cannot be enforced.
     const stations = stationRows
-      .map(stationOf).filter((s: Station | null): s is Station => s !== null);
+      .map(stationOf).filter((s: Station | null): s is Station => s !== null)
+      .filter((s: Station) => s.latitude !== null && s.longitude !== null && s.latitude >= -90 && s.latitude <= 90 && s.longitude >= -180 && s.longitude <= 180)
+      .map((s: Station) => ({ ...s, distanceKm: distanceKmBetween(lat, lon, s.latitude!, s.longitude!) }))
+      .filter((s: Station) => s.distanceKm !== null && s.distanceKm <= 10);
     const stationById = new Map<number, Station>(stations.map((s: Station) => [s.id, s]));
     if (!Array.isArray(pricePayload?.[fuelConfig])) throw new Error("Tankkaus response missing expected fuel observations array");
     const observations: Observation[] = [];
     for (const item of pricePayload[fuelConfig]) {
       const id = asNumber(item?.station_id ?? item?.station?.id);
-      const station = id !== null ? (stationById.get(id) ?? stationOf(item?.station)) : null;
+      const station = id !== null ? stationById.get(id) : null;
       const price = asNumber(item?.price_liter);
       if (!station || price === null || price <= 0 || price > 5 || !item?.created) continue;
       observations.push({ stationId: station.id, fuel, price, observedAt: String(item.created), station });
