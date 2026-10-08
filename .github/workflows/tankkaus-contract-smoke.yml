@@ -16,6 +16,25 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm install --no-package-lock --legacy-peer-deps --no-audit --no-fund
+      - name: Independently transpile Tankkaus route
+        run: |
+          node <<'JS'
+          const ts = require('typescript');
+          const fs = require('node:fs');
+          const source = fs.readFileSync('src/app/api/tankkaus/route.ts', 'utf8');
+          const output = ts.transpileModule(source, {
+            fileName: 'src/app/api/tankkaus/route.ts',
+            reportDiagnostics: true,
+            compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 }
+          });
+          const errors = (output.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error);
+          if (errors.length) {
+            for (const error of errors) console.error(ts.flattenDiagnosticMessageText(error.messageText, '\\n'));
+            process.exit(1);
+          }
+          if (!output.outputText.includes('distanceKmBetween')) throw new Error('Missing distance calculation');
+          console.log('PASS Tankkaus route TypeScript transpilation');
+          JS
       - run: npm run build
         env:
           TANKKAUS_API_TOKEN: placeholder-for-local-validation-only
