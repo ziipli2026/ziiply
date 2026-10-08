@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import DesktopAssistantCards from "../components/ziiply/desktop/DesktopAssistantCards";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV147, searchZiiplyGostaOffersV146 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
@@ -410,23 +411,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>)}</div>}</div></>}</div>})()}
 
-            {workspace && workspace==="justiina" && (
-              <div className="fixed left-1/2 top-[152px] z-50 flex h-[min(620px,calc(100dvh-190px))] w-[min(1120px,92vw)] -translate-x-1/2 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#174c3a] bg-[#fff3cf] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)]">
-                <div className="relative flex items-start justify-between"><button onClick={()=>setWorkspace(null)} aria-label="Sulje" className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full border-2 border-[#5a321b] bg-[#9a612d] px-3 py-1.5 text-[17px] font-black leading-none text-[#fff0c8]">×</button><div className="pl-16"><div className="text-[11px] font-black uppercase tracking-[.28em] text-[#7c745d]">HAKU</div><h2 className="font-serif text-[38px] font-black italic leading-none text-[#174c3a]">Tuotteet ja vertailu</h2></div><button onClick={()=>setCartOpen(true)} className="rounded-full border-[3px] border-[#0d633a] bg-[#118545] px-7 py-3 font-serif text-[20px] font-black italic text-[#fff3d2] shadow-[inset_0_-5px_0_rgba(0,0,0,.12)]">Vihkonen</button></div>
-                <div className="mx-auto mt-5 flex w-full max-w-[820px] flex-1 flex-col">
-                  <div className="grid grid-cols-[1fr_130px] items-center gap-5">
-                    <div className="rounded-[24px] border-2 border-[#d0aa58] bg-[#fff8dd] p-4 text-center"><img src="/assistants/justiina.png" alt="Justiina" className="mx-auto h-[145px] w-[145px] object-contain"/><div className="mt-1 font-serif text-[20px] font-black italic text-[#174c3a]">Justiina</div></div>
-                    <button type="button" onClick={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} className="rounded-[22px] border-2 border-[#d0aa58] bg-[#fff8dd] p-4 text-center"><div className="mx-auto grid h-[70px] w-[70px] place-items-center rounded-full border-[7px] border-[#8b7145] bg-[#d8c18b] text-[28px]">⏱</div><div className="mt-2 text-[10px] font-black uppercase tracking-[.18em] text-[#174c3a]">Hakutahti</div><div className="text-[13px] font-black text-[#75664e]">{justiinaDelay===2?"Normaali · 2 s":justiinaDelay===1?"Nopea · 1 s":"Heti · 0 s"}</div></button>
-                  </div>
-                  <form onSubmit={e=>{e.preventDefault();void runDesktopJustiinaSearch()}} className="mt-5 flex gap-3"><input autoFocus value={justiinaQuery} onChange={e=>setJustiinaQuery(e.target.value)} placeholder="maito, kahvi" className="min-w-0 flex-1 rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-6 py-4 text-center font-serif text-[26px] font-black text-[#6f6657] outline-none placeholder:text-[#8b806e]"/><button type="submit" disabled={justiinaLoading||!justiinaQuery.trim()} className="rounded-[22px] border-[3px] border-[#0d633a] bg-[#118545] px-7 text-[17px] font-black text-white disabled:opacity-40">{justiinaLoading?"Haetaan…":"Hae"}</button></form>{justiinaMessage&&<div className="mt-3 text-center text-[13px] font-black text-[#765f3f]">{justiinaMessage}</div>}{justiinaResults.length>0&&<div className="mt-3 grid max-h-[210px] grid-cols-2 gap-2 overflow-auto pr-1">{justiinaResults.map((p:any,i)=><div key={String(p.id||p.ean||i)} className="flex min-h-[82px] items-center gap-3 rounded-[18px] border-2 border-[#d0aa58] bg-[#fffaf0] p-2 text-left">{(p.pictureUrl||p.imageUrl||p.image)&&<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-14 w-14 rounded-xl object-contain bg-white"/>}<div className="min-w-0 flex-1"><div className="line-clamp-2 text-[12px] font-black text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-1 text-[10px] font-bold text-[#76684f]">{p.__store}</div></div>{p.__price>0&&<div className="text-[15px] font-black text-[#174c3a]">{p.__price.toFixed(2).replace(".",",")} €</div>}</div>)}</div>}
-                  <div className="mt-6 grid grid-cols-2 gap-6">
-                    <button className="rounded-[24px] border-[4px] border-[#6e5b32] bg-[#2c3429] p-5 text-[20px] font-black text-[#ffe0a0] shadow-lg"><div className="mb-2 text-[38px]">🎙️</div>Äänitä</button>
-                    <button className="rounded-[24px] border-[4px] border-[#6e5b32] bg-[#2c3429] p-5 text-[20px] font-black text-[#ffe0a0] shadow-lg"><div className="mb-2 text-[38px]">📷</div>Filmaa</button>
-                  </div>
-                </div>
-                
-              </div>
-            )}
+            {workspace==="justiina" && <DesktopJustiinaSearchCard onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={setJustiinaQuery} loading={justiinaLoading} onSearch={()=>{void runDesktopJustiinaSearch()}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} />}
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
                 <div className="flex items-center justify-between"><div className="text-[26px] font-black text-[#14291f]">{({ gosta: "Gösta", justiina: "Justiina", arvo: "Arvo" } as const)[workspace]}</div><button onClick={()=>setWorkspace(null)} className="rounded-full bg-white px-4 py-2 font-black">← Takaisin</button></div>
