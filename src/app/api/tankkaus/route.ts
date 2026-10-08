@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Never expose TANKKAUS_API_TOKEN or call Tankkaus.com from the browser.
  */
 const BASE = "https://api.tankkaus.com/mobile";
-const FUEL_KEYS: Record<string, { key: string; id: number }> = { "95": { key: "fills95", id: 1 }, "95e10": { key: "fills95", id: 1 }, "98": { key: "fills98", id: 2 }, "98e5": { key: "fills98", id: 2 }, diesel: { key: "fillsDiesel", id: 6 } };
+const FUEL_KEYS: Record<string, string> = { "95": "fills95", "95e10": "fills95", "98": "fills98", "98e5": "fills98", diesel: "fillsDiesel" };
 type Station = { id: number; name: string; latitude: number | null; longitude: number | null; distanceKm: number | null; chain: string | null; address: string | null };
 type Observation = { stationId: number; fuel: string; price: number; observedAt: string; station: Station };
 const asNumber = (v: unknown): number | null => {
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       .map(stationOf).filter((s: Station | null): s is Station => s !== null);
     const stationById = new Map<number, Station>(stations.map((s: Station) => [s.id, s]));
     const observations: Observation[] = [];
-    for (const item of (Array.isArray(pricesData?.[fuelConfig.key]) ? pricesData[fuelConfig.key] : [])) {
+    for (const item of (Array.isArray(pricesData?.[fuelConfig]) ? pricesData[fuelConfig.key] : [])) {
       const id = asNumber(item?.station_id ?? item?.station?.id);
       const station = id !== null ? (stationById.get(id) ?? stationOf(item?.station)) : null;
       const price = asNumber(item?.price_liter);
@@ -59,7 +59,16 @@ export async function GET(req: NextRequest) {
     // Latest observation per station; the API may return repeated observations.
     observations.sort((a, b) => (Date.parse(b.observedAt) || 0) - (Date.parse(a.observedAt) || 0));
     const seen = new Set<number>();
-    const latest = observations.filter(o => !seen.has(o.stationId) && (seen.add(o.stationId), true));
+    const maxAgeMs = 5 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const latest = observations.filter(o => {
+      const observedMs = Date.parse(o.observedAt);
+      if (!Number.isFinite(observedMs) || observedMs > now || now - observedMs > maxAgeMs) return false;
+      if (o.station.distanceKm !== null && (o.station.distanceKm < 0 || o.station.distanceKm > 10)) return false;
+      if (seen.has(o.stationId)) return false;
+      seen.add(o.stationId);
+      return true;
+    }).slice(0, 10);
     latest.sort((a, b) => (a.station.distanceKm ?? Infinity) - (b.station.distanceKm ?? Infinity));
     return NextResponse.json({ ok: true, source: "Tankkaus.com", fuel, stations, observations: latest, fetchedAt: new Date().toISOString(), coverage: { radiusKm: 10, observationMaxAgeDays: 5, maxObservationsPerFuel: 10 }, note: "User-submitted observations, not guaranteed pump prices" }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=300" } });
   } catch (error) {
