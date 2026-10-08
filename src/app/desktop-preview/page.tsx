@@ -606,7 +606,7 @@ export default function DesktopPreviewPage() {
   onBack={()=>setDesktopCompareNotice(false)}
   onBackToCart={()=>setDesktopCompareNotice(false)}
   onClose={()=>setDesktopCompareNotice(false)}
-  onSelectStore={(id)=>{const chosen=desktopCompareResults[id];if(!chosen)return;if(!chosen.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan vertailukorissa ei ole yhtään vahvistettua hintaa.");return;}const byId=new Map(chosen.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price,storeName:String(chosen.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(chosen.store?.name||"kauppa")}`)}}
+  onSelectStore={(id)=>{const chosen=desktopCompareResults[id];if(!chosen)return;if(!chosen.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan vertailukorissa ei ole yhtään vahvistettua hintaa.");return;}const byId=new Map(chosen.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price??null,storeName:String(chosen.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(chosen.store?.name||"kauppa")} (${chosen.rows.filter(row=>row.price!=null).length}/${chosen.rows.length} hintaa).`)}}
  /></div></div>}
 
 
