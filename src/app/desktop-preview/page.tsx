@@ -109,7 +109,7 @@ export default function DesktopPreviewPage() {
   const desktopCompareRunId=useRef(0);
   const desktopCompareRequestIdentity=useRef(desktopCompareIdentity);
   desktopCompareRequestIdentity.current=desktopCompareIdentity;
-  useEffect(()=>{desktopCompareRunId.current+=1;desktopCompareCache.current.clear();setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
+  useEffect(()=>{desktopCompareRunId.current+=1;desktopCompareCache.current.clear();desktopCompareCacheTime.current=0;setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
   async function openDesktopComparison(){
     const requestIdentity=desktopCompareIdentity;
     const runId=++desktopCompareRunId.current;
