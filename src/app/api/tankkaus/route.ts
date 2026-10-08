@@ -65,7 +65,15 @@ export async function GET(req: NextRequest) {
       .filter((s: Station) => s.latitude !== null && s.longitude !== null && s.latitude >= -90 && s.latitude <= 90 && s.longitude >= -180 && s.longitude <= 180)
       .map((s: Station) => ({ ...s, distanceKm: distanceKmBetween(lat, lon, s.latitude!, s.longitude!) }))
       .filter((s: Station) => s.distanceKm !== null && s.distanceKm <= 10);
-    const stationById = new Map<number, Station>(stations.map((s: Station) => [s.id, s]));
+    // Do not accept duplicate station IDs with conflicting coordinates in one provider response.
+    const stationById = new Map<number, Station>();
+    for (const station of stations) {
+      const existing = stationById.get(station.id);
+      if (existing && (existing.latitude !== station.latitude || existing.longitude !== station.longitude)) {
+        throw new Error("Tankkaus response has conflicting station coordinates");
+      }
+      stationById.set(station.id, station);
+    }
     if (!Array.isArray(pricePayload?.[fuelConfig])) throw new Error("Tankkaus response missing expected fuel observations array");
     const observations: Observation[] = [];
     for (const item of pricePayload[fuelConfig]) {
