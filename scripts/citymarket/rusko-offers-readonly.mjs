@@ -37,6 +37,7 @@ try{
           if(item.error){output.push({id:item.id,error:item.error});continue}
           const o=item.offer;
           if(String(o?.publicationPublicId??pub.id)!==String(pub.id)){rejectedForeign++;continue}
+          if(!o||typeof o!=="object"){output.push({id:item.id,error:"null or invalid offer response"});continue}
           const a=Date.parse(o.validFrom??pub.validFrom),b=Date.parse(o.validUntil??pub.validUntil);
           if(!o?.name||!Number.isFinite(a)||!Number.isFinite(b)||a>now||b<now)continue;
           output.push({id:item.id,name:o.name,publicationId:pub.id,price:o.appPrice??o.membershipPrice??o.price??o.fromPrice,validFrom:o.validFrom??pub.validFrom,validUntil:o.validUntil??pub.validUntil});
@@ -50,7 +51,7 @@ try{
   const providerUnique=[...new Map(providerEligible.map(x=>[x.id,x])).values()];
   const providerExcluded=output.filter(x=>x&&!x.error&&!providerEligible.some(y=>y.id===x.id));
   const unique=[...new Map(output.filter(x=>x&&!x.error).map(x=>[x.id,x])).values()];
-  const failures=output.filter(x=>x.error);
+  const failures=output.filter(x=>x&&x.error);
   console.log(JSON.stringify({status:failures.length?"PARTIAL":"OK",storeId:store.id,storeName:store.name,publications:pubs.map(p=>({id:p.id,validFrom:p.validFrom,validUntil:p.validUntil})),pages,hotspots,uniqueOffers:unique.length,providerEligibleOffers:providerUnique.length,providerExcluded:providerExcluded.length,providerExcludedSamples:providerExcluded.slice(0,20),rejectedForeign,fetchFailures:failures.length,offers:unique,failures},null,2));
   if(failures.length)process.exitCode=1;
 }catch(e){console.error("AUDIT_FAILED",String(e));process.exitCode=1}
