@@ -10,6 +10,8 @@ if (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "12
 if (url.username || url.password || url.searchParams.has("token") || url.searchParams.has("key")) throw new Error("Do not put credentials in ingestion URL");
 if (url.pathname !== "/api/tankkaus") throw new Error("Expected /api/tankkaus endpoint");
 if (write && !process.env.DATABASE_URL) throw new Error("DATABASE_URL required for --write");
+// An explicit confirmation prevents accidental writes to an unverified database target.
+if (write && process.env.TANKKAUS_INGEST_WRITE_CONFIRM !== "YES_TEST_BRANCH") throw new Error("Set TANKKAUS_INGEST_WRITE_CONFIRM=YES_TEST_BRANCH after verifying the Neon test branch target");
 const response = await fetch(url, { signal: AbortSignal.timeout(15000), headers: { Accept: "application/json" } });
 if (!response.ok) throw new Error(`Tankkaus endpoint HTTP ${response.status}`);
 const payload = await response.json();
