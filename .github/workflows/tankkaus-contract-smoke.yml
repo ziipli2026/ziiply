@@ -20,6 +20,20 @@ on:
       - 'db/migrations/003_tankkaus_fuel_cache.sql'
       - '.github/workflows/tankkaus-contract-smoke.yml'
 jobs:
+  ingestion-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check dependency-free ingestion syntax
+        run: |
+          node --check scripts/ingest-tankkaus.mjs
+          node --check scripts/test-tankkaus-ingest.cjs
+      - name: Validate ingestion, deduplication and write safety
+        run: node scripts/test-tankkaus-ingest.cjs
   build-and-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
