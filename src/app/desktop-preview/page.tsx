@@ -199,7 +199,12 @@ export default function DesktopPreviewPage() {
       }));
       const matches=results.flat();
       if(matches.length){
-        setDesktopScannerMessage(matches.slice(0,3).map((p:any)=>`${p.name||p.title||knownName} · ${p.__store||""} · ${p.__price>0?(p.__price/100).toFixed(2).replace(".",",")+" €":"Hinta ei saatavilla"}`).join(" | "));
+        const matched=matches[0] as any;
+        const name=String(matched.name||matched.title||knownName||"Tuote");
+        const cents=Number(matched.__price||0);
+        const priceEur=cents>0?cents/100:0;
+        addDesktopCartItem({id:String(matched.id||code),ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:String(matched.__store||"").toLowerCase().includes("prisma")?"S":"K"});
+        setDesktopScannerMessage(name+" · Lisätty ostoskoriin"+(priceEur>0?" · "+priceEur.toFixed(2).replace(".",",")+" €":" · Hinta ei saatavilla"));
       }else if(knownName){
         setDesktopScannerMessage("Tunnistettu: "+knownName+". Kauppakohtaista hintaa ei vahvistettu.");
       }else{
