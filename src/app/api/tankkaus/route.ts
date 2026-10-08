@@ -72,7 +72,9 @@ export async function GET(req: NextRequest) {
       const id = asNumber(item?.station_id ?? item?.station?.id);
       const station = id !== null ? stationById.get(id) : null;
       const price = asNumber(item?.price_liter);
-      if (!station || price === null || price <= 0 || price > 5 || !item?.created) continue;
+      if (!station || price === null || price <= 0 || price > 5 || typeof item?.created !== "string") continue;
+// A timezone-free timestamp must not be interpreted using the server's local timezone.
+if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(item.created)) continue;
       observations.push({ stationId: station.id, fuel, price, observedAt: String(item.created), station });
     }
     // Latest observation per station; the API may return repeated observations.
