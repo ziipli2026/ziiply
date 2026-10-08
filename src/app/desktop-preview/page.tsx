@@ -367,8 +367,8 @@ export default function DesktopPreviewPage() {
                         ✓
                       </div>
                     )}
-                    <div className="relative z-10 mx-auto mt-5 h-[clamp(150px,19vh,205px)] w-[clamp(150px,19vh,205px)] overflow-hidden rounded-full border-[6px] border-[#f7e7c4] bg-[#f5e5c1] shadow-[0_11px_0_rgba(65,45,20,0.16),0_24px_38px_rgba(40,55,38,0.18)] xl:h-[clamp(170px,21vh,220px)] xl:w-[clamp(170px,21vh,220px)]">
-                      <img src={item.image} alt={item.name} className="h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.025]" />
+                    <div className="relative z-10 mx-auto mt-5 grid aspect-square w-[min(100%,230px)] place-items-center overflow-hidden rounded-full border-[6px] border-[#f7e7c4] bg-[#314633] shadow-[0_11px_0_rgba(65,45,20,0.16),0_24px_38px_rgba(40,55,38,0.18)]">
+                      <img src={item.image} alt={item.name} className="block h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.025]" />
                     </div>
                     <div className={["relative z-10 mt-6 text-[36px] font-black leading-none tracking-[-0.045em] drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]", item.ink].join(" ")}>
                       {item.name}
