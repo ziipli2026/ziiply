@@ -5,7 +5,7 @@ import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopN
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
 import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
-import { desktopCartIdentity, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices } from "../components/ziiply/cart/desktopCartCore";
+import { desktopCartIdentity, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -89,6 +89,19 @@ export default function DesktopPreviewPage() {
     if(!desktopCartHydrated)return;
     try{window.sessionStorage.setItem("ziiply-desktop-cart-v1",JSON.stringify(cartItems));}catch{}
   },[cartItems,desktopCartHydrated]);
+  useEffect(()=>{
+    if(!desktopCartHydrated)return;
+    const keys=new Set<string>();
+    for(const store of Object.values(selectedStores)){
+      const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
+      const id=String(store?.externalId??store?.id??"").trim();
+      if(id)keys.add(chain+":"+id);
+    }
+    setCartItems(current=>{
+      const next=invalidateDesktopCartPricesForStoreSelection(current,keys);
+      return next.every((item,i)=>item===current[i])?current:next;
+    });
+  },[selectedStores,desktopCartHydrated]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
   const [cartNotice, setCartNotice] = useState("");
@@ -140,7 +153,10 @@ export default function DesktopPreviewPage() {
       ...p,
       title:p.title||p.name||p.productName,
       storeName:p.__store||p.storeName,
-      price:Number(p.__price||0),
+      price:p.__priceVerified?Number(p.__price):null,
+      __chain:p.__chain,
+      __storeId:String(p.__storeId??p.storeId??""),
+      __priceVerified:p.__priceVerified===true,
     }:p;
     const found=cartItems.some(x=>desktopCartKey(x)===key&&x.source===source);
     setCartItems(current=>appendDesktopCartItem(current,cartProduct,source));
