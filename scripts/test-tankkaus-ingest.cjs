@@ -3,16 +3,16 @@
 // Does not use Tankkaus credentials or write to Neon.
 const assert = require("node:assert/strict");
 const http = require("node:http");
-const { spawnSync } = require("node:child_process");
 const { spawn } = require("node:child_process");
 
 (async () => {
+  let mode = "normal";
   const server = http.createServer((req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({
       ok: true, source: "Tankkaus.com", fuel: "diesel",
-      stations: [{ id: 42, name: "Mock station", latitude: 60.6, longitude: 24.8 }],
-      observations: [{ stationId: 42, price: 1.799, observedAt: new Date().toISOString() }]
+      stations: mode === "empty" ? [] : [{ id: 42, name: "Mock station", latitude: 60.6, longitude: 24.8 }],
+      observations: mode === "empty" ? [] : [{ stationId: 42, price: 1.799, observedAt: new Date().toISOString() }]
     }));
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -33,6 +33,21 @@ const { spawn } = require("node:child_process");
     const data = JSON.parse(result.out.trim());
     assert.deepEqual(data, { mode: "dry-run", stations: 1, observations: 1, fuel: "diesel" });
     console.log("PASS Tankkaus ingestion dry-run: validated mock station and observation, no database writes");
+    mode = "empty";
+    const emptyResult = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      let err = "";
+      child.stderr.on("data", chunk => err += chunk);
+      child.on("error", reject);
+      child.on("close", code => resolve({ code, err }));
+    });
+    assert.notEqual(emptyResult.code, 0, "empty --write must fail");
+    assert.match(emptyResult.err, /Refusing empty ingestion write/);
+    console.log("PASS Tankkaus ingestion rejects empty write before database connection");
+
   } finally {
     await new Promise(resolve => server.close(resolve));
   }
