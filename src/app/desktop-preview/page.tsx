@@ -332,7 +332,7 @@ export default function DesktopPreviewPage() {
 
           <div className="ml-auto grid w-full max-w-[900px] grid-cols-4 gap-2.5">
             {[
-              ["☀️", "SÄÄ", weather.value, weather.detail, "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
+              ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
