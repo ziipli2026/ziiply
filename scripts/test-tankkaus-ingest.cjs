@@ -13,7 +13,7 @@ const { spawn } = require("node:child_process");
     res.end(JSON.stringify({
       ok: true, source: "Tankkaus.com", fuel: "diesel",
       stations: mode === "empty" ? [] : [{ id: 42, name: "Mock station", latitude: 60.6, longitude: 24.8 }],
-      observations: mode === "empty" ? [] : (mode === "duplicate" ? [0, 1] : [0]).map(() => ({ stationId: 42, price: 1.799, observedAt: fixedTime }))
+      observations: mode === "empty" ? [] : (mode === "duplicate" ? [0, 1] : [0]).map((index) => ({ stationId: 42, price: index ? 1.79901 : 1.799, observedAt: index ? new Date(Date.parse(fixedTime)).toISOString().replace("Z", "+00:00") : fixedTime }))
     }));
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
