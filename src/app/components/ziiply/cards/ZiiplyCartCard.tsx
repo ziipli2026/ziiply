@@ -376,39 +376,52 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
       </div>
 
       {isSaveOpen && (
-        <div className="absolute inset-2 z-30 flex flex-col overflow-hidden rounded-[34px] border-[4px] border-[#754b2a] bg-[#f5e1b1] px-6 py-5 text-[#164d3d] shadow-[0_18px_45px_rgba(45,28,10,0.32)]">
-          <header className="shrink-0 border-b border-[#b99d64] pb-4 text-center">
-            <div className="text-[clamp(13px,1.2vw,19px)] font-black uppercase tracking-[0.20em] text-[#806345]">Tallennetut ostoslistat</div>
-            <h2 className="mt-1 text-[clamp(38px,4.5vw,72px)] font-black italic leading-tight text-[#07513e]" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>Ostelusvihko</h2>
-          </header>
-          {savedShoppingLists.length === 0 ? (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center">
-              <div aria-hidden="true" className="text-[clamp(72px,10vw,130px)] leading-none drop-shadow-lg">📒</div>
-              <h3 className="text-[clamp(25px,3vw,46px)] font-black italic leading-tight text-[#07513e]" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>Ostelusvihko on vielä tyhjä</h3>
-              <p className="text-[clamp(14px,1.5vw,22px)] font-bold text-[#806b50]">Tallenna nykyinen kori, niin löydät sen myöhemmin täältä.</p>
+        <div className="absolute inset-4 z-30 flex flex-col overflow-hidden rounded-[30px] border-[4px] border-[#6f5732] bg-gradient-to-b from-[#f7edcf] to-[#ead7ad] p-4 shadow-2xl shadow-black/35">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-[13px] font-black uppercase tracking-[0.32em] text-[#68705a]">Vihkonen</div>
+              <div className="text-[28px] font-black italic text-[#28402a]" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>
+                Tallenna tai avaa ostoslista
+              </div>
             </div>
-          ) : (
-            <div className="mt-5 min-h-0 flex-1 space-y-3 overflow-y-auto px-2">
-              {savedShoppingLists.map((list) => (
-                <div key={list.id} className="flex items-center gap-3 rounded-[18px] border-2 border-[#c7a66d] bg-[#fff3d4] p-4">
-                  <button type="button" onClick={() => handleChooseSavedList(String(list.id))} className="min-w-0 flex-1 text-left">
-                    <div className="truncate text-[clamp(17px,1.7vw,25px)] font-black text-[#07513e]">{list.name}</div>
-                    <div className="text-[15px] font-bold text-[#806b50]">{Array.isArray(list.items) ? list.items.length : 0} tuotetta · Avaa ostoslista</div>
-                  </button>
-                  <button type="button" onClick={() => onDeleteSavedShoppingList?.(String(list.id))} className="rounded-full border-2 border-[#754b2a] bg-[#a56a35] px-4 py-2 font-black text-white">Poista</button>
-                </div>
-              ))}
-            </div>
-          )}
-          <footer className="flex shrink-0 flex-col items-center gap-3 pt-4">
-            <div className="flex w-full max-w-[650px] gap-3">
-              <input value={savedListName} onChange={(event) => setSavedListName?.(event.target.value)} placeholder="Ostoslistan nimi (valinnainen)" aria-label="Ostoslistan nimi" className="min-h-[46px] min-w-0 flex-1 rounded-full border-2 border-[#9eaa83] bg-[#fff4d9] px-5 text-[16px] font-bold text-[#07513e] outline-none" />
-            </div>
-            <div className="flex items-center justify-center gap-4">
-              <button type="button" onClick={handleSaveCurrent} disabled={!hasItems} className="min-h-[52px] rounded-full border-[3px] border-[#5c896c] bg-[#fff0ca] px-7 text-[clamp(15px,1.5vw,21px)] font-black text-[#07513e] disabled:cursor-not-allowed disabled:opacity-45">↓ Tallenna nykyinen kori</button>
-              <button type="button" onClick={closeSavePanel} aria-label="Sulje ostelusvihko" title="Sulje" className="grid h-[56px] w-[56px] place-items-center rounded-full border-[3px] border-[#66391f] bg-[#a56a35] text-[28px] font-black text-white">×</button>
-            </div>
-          </footer>
+            <button type="button" onClick={closeSavePanel} className="rounded-full border-[2px] border-[#b99d64] bg-[#fff6df] px-4 py-2 text-[13px] font-black uppercase leading-none tracking-[0.08em] text-[#283926]">
+              Sulje
+            </button>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <input
+              value={savedListName}
+              onChange={(event) => setSavedListName?.(event.target.value)}
+              placeholder="Nimeä vihkonen"
+              className="min-h-[46px] min-w-0 flex-1 rounded-[16px] border-[2px] border-[#c8ad72] bg-[#fff8e8] px-4 text-[16px] font-black outline-none"
+            />
+            <button type="button" onClick={handleSaveCurrent} disabled={!hasItems} className="rounded-[16px] border-[2px] border-[#087434] bg-[#0b8c3d] px-5 text-[15px] font-black uppercase leading-none tracking-[0.08em] text-[#fff6df] disabled:opacity-35">
+              Tallenna
+            </button>
+          </div>
+
+          <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+            {savedShoppingLists.length === 0 ? (
+              <div className="rounded-[18px] border border-dashed border-[#b99d64] bg-[#fff6df] p-4 text-center font-bold text-[#6b6656]">
+                Ei tallennettuja vihkosia vielä.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedShoppingLists.map((list) => (
+                  <div key={list.id} className="flex items-center justify-between gap-3 rounded-[18px] border border-[#d0b77e] bg-[#fff6df] p-3">
+                    <button type="button" onClick={() => handleChooseSavedList(String(list.id))} className="min-w-0 flex-1 text-left">
+                      <div className="truncate text-[17px] font-black text-[#28402a]">{list.name}</div>
+                      <div className="text-sm font-bold text-[#6b6656]">{Array.isArray(list.items) ? list.items.length : 0} tuotetta</div>
+                    </button>
+                    <button type="button" onClick={() => onDeleteSavedShoppingList?.(String(list.id))} className="rounded-[12px] border-[2px] border-[#7b3516] bg-[#934519] px-3 py-2 text-[12px] font-black uppercase leading-none tracking-[0.06em] text-[#fff6df]">
+                      Poista
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </section>
