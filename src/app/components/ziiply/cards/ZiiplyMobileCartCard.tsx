@@ -930,7 +930,7 @@ export default function ZiiplyMobileCartCard({
             onClick={onCompare}
             disabled={!hasItems}
             className={cx(
-              "relative -top-[8px] ml-[5.15rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
+              "relative top-[8px] ml-[5.15rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
               !hasItems && "cursor-not-allowed opacity-45",
             )}
             style={{ fontFamily: cooperFont }}
@@ -950,8 +950,9 @@ export default function ZiiplyMobileCartCard({
             aria-label="Kassalle etäostoksilla"
             title="Kassalle etäostoksilla"
           >
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.3rem] w-[1.3rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 9h16v11H4zM3 5h18v4H3zM7 2v3M17 2v3M7 13h4M15 13h2M7 17h10" />
+            <svg aria-hidden="true" viewBox="0 0 32 32" className="h-[1.45rem] w-[1.45rem]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 12h20v15H6zM4 8h24v4H4zM9 5h14v3M10 17h5v5h-5zM19 17h4M19 21h4M9 25h14" />
+              <path d="M23 3v5M20.5 5.5H25.5" strokeWidth="1.3" />
             </svg>
           </button>
         ) : null}
@@ -960,7 +961,7 @@ export default function ZiiplyMobileCartCard({
           <button
             type="button"
             onClick={onBack}
-            className="absolute bottom-[1.05rem] left-[1.18rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute bottom-[0.35rem] left-[1.18rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Takaisin"
             title="Takaisin"
           >
@@ -1005,7 +1006,7 @@ export default function ZiiplyMobileCartCard({
         <button
           type="button"
           onClick={onClose}
-          className="absolute bottom-[1.05rem] right-[1.18rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+          className="absolute bottom-[0.35rem] right-[1.18rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
           aria-label="Sulje"
           title="Sulje vihko"
         >
