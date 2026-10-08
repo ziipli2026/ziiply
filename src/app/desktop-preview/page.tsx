@@ -95,7 +95,7 @@ export default function DesktopPreviewPage() {
   const [desktopCheckedCartItems,setDesktopCheckedCartItems]=useState<Record<string,boolean>>({});
   const [reloadCartDecisionOpen,setReloadCartDecisionOpen]=useState(false);
   const desktopCartHydratedRef=useRef(false);
-  useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
+  useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{if(item?.ziiplyWeightLabel||item?.product?.ziiplyWeightLabel||String(item?.id||"").startsWith("weight-"))return {...item,price:null,product:{...(item.product||{}),price:null,ziiplyWeightLabel:true}};const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
@@ -239,7 +239,7 @@ export default function DesktopPreviewPage() {
         });
         if(found){
           const key=String(found.id||"");
-          const firstCollection=physicalScan&&key&&!desktopCheckedCartItems[key];
+          const firstCollection=false; // HID scan alone does not establish in-store collection.
           if(firstCollection)setDesktopCheckedCartItems(previous=>({...previous,[key]:true}));
           return current.map((x:any)=>x!==found?x:{
             ...x,name,title:name,ean:scannedEan,price,quantity:firstCollection?Number(x.quantity||1):Number(x.quantity||1)+(physicalScan?1:0),
@@ -248,7 +248,7 @@ export default function DesktopPreviewPage() {
           });
         }
         const id="weight-"+weightLabel.plu;
-        if(physicalScan)setDesktopCheckedCartItems(previous=>({...previous,[id]:true}));
+        // Do not auto-collect a weighed item merely because a HID reader was used.
         return [...current,{id,name,title:name,ean:scannedEan,price,
           quantity:1,source:"search",product:{name,ean:scannedEan,ziiplyWeightLabel:true},
           ziiplyWeightLabel:true,weightPlu:weightLabel.plu}];
