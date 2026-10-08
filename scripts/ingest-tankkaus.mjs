@@ -8,7 +8,8 @@ const endpoint = process.env.TANKKAUS_INGEST_URL;
 const write = process.argv.includes("--write");
 if (!endpoint) throw new Error("TANKKAUS_INGEST_URL is required");
 const url = new URL(endpoint);
-if (url.protocol !== "https:" && url.hostname !== "localhost") throw new Error("HTTPS endpoint required");
+if (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname))) throw new Error("HTTPS endpoint required");
+if (url.username || url.password || url.searchParams.has("token") || url.searchParams.has("key")) throw new Error("Do not put credentials in ingestion URL");
 if (url.pathname !== "/api/tankkaus") throw new Error("Expected /api/tankkaus endpoint");
 if (write && !process.env.DATABASE_URL) throw new Error("DATABASE_URL required for --write");
 const response = await fetch(url, { signal: AbortSignal.timeout(15000), headers: { Accept: "application/json" } });
@@ -24,8 +25,10 @@ for (const s of payload.stations) {
       !Number.isFinite(s.longitude) || Math.abs(s.longitude) > 180) continue;
   stations.set(s.id, s);
 }
-const fuel = ({ "95": "95", "95e10": "95", "98": "98", "98e5": "98", diesel: "diesel" })[payload.fuel];
+const fuelTypes = { "95": "95", "95e10": "95", "98": "98", "98e5": "98", diesel: "diesel" };
+const fuel = Object.prototype.hasOwnProperty.call(fuelTypes, payload.fuel) ? fuelTypes[payload.fuel] : undefined;
 if (!fuel) throw new Error("Unexpected fuel");
+if (url.searchParams.has("fuel") && ({ "95e10": "95", "98e5": "98" }[url.searchParams.get("fuel")] ?? url.searchParams.get("fuel")) !== fuel) throw new Error("Fuel mismatch between request and response");
 const now = Date.now();
 const rows = payload.observations.filter(o => {
   const t = Date.parse(o.observedAt);
