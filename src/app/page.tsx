@@ -14319,7 +14319,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const productName = fixText(product.name);
     const physicalScan = Boolean(options.physicalScan);
     const cartPrice = physicalScan ? getProductPrice(product) : 0;
-    const addKey = `K-weight-${ean}-${product.id}-${physicalScan ? "scan" : "remote"}`;
+    const addKey = `weight-${ean}-${product.id}-${physicalScan ? "scan" : "remote"}`;
     const now = Date.now();
 
     if (
@@ -14332,8 +14332,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       source: physicalScan ? "barcode_scanner" : "ean_search",
       productName,
       ean,
-      chain: "K",
-      storeName: activeStores.kStoreName || "K-kauppa",
+      chain: "weight",
+      storeName: "Vaakatuote",
       price: cartPrice,
     });
 
