@@ -42,6 +42,8 @@ const now = Date.now();
 if (payload.stations.length > 10000 || payload.observations.length > 10000) throw new Error("Unexpectedly large provider response");
 const rows = payload.observations.filter(o => {
   if (!o || typeof o !== "object" || typeof o.observedAt !== "string") return false;
+  // Only timezone-explicit ISO timestamps are safe to persist as absolute events.
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(o.observedAt)) return false;
   const t = Date.parse(o.observedAt);
   return stations.has(o.stationId) && typeof o.price === "number" && Number.isFinite(o.price) && o.price > 0 && o.price <= 5 &&
     Number.isFinite(t) && t <= now && now - t <= 5 * 86400000;
