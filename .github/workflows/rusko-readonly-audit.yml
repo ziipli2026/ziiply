@@ -1,0 +1,20 @@
+name: Oulu Rusko read-only audit
+on:
+  push:
+    branches:
+      - audit/kcitymarket-rusko-store-offers-20261008
+    paths:
+      - scripts/citymarket/rusko-offers-readonly.mjs
+      - .github/workflows/rusko-readonly-audit.yml
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run live read-only Rusko audit
+        run: node scripts/citymarket/rusko-offers-readonly.mjs
