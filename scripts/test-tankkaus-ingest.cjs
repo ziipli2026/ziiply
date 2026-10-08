@@ -127,6 +127,22 @@ const { spawn } = require("node:child_process");
       assert.match(invalid.err, /coordinate|query parameter/i);
     }
     console.log("PASS Tankkaus ingestion rejects invalid or missing collection coordinates/fuel");
+    // Live provider-schema confirmation must be required before any database import.
+    mode = "normal";
+    const unverifiedSchemaWrite = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["scripts/ingest-tankkaus.mjs", "--write"], {
+        env: { ...process.env, TANKKAUS_INGEST_URL: `http://127.0.0.1:${port}/api/tankkaus?lat=60.6&lon=24.8&fuel=diesel`, DATABASE_URL: "postgresql://unused:unused@localhost:5432/unused", TANKKAUS_INGEST_WRITE_CONFIRM: "YES_TEST_BRANCH", TANKKAUS_PROVIDER_SCHEMA_VERIFIED: "" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      let err = "";
+      child.stderr.on("data", chunk => err += chunk);
+      child.on("error", reject);
+      child.on("close", code => resolve({ code, err }));
+    });
+    assert.notEqual(unverifiedSchemaWrite.code, 0);
+    assert.match(unverifiedSchemaWrite.err, /Live provider schema must be verified/);
+    console.log("PASS Tankkaus ingestion rejects unverified provider schema before Neon writes");
+
     // An explicit write confirmation must be required even with a nonempty response.
     mode = "normal";
     const unconfirmedWrite = await new Promise((resolve, reject) => {
