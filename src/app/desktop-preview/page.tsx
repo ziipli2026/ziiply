@@ -71,6 +71,9 @@ export default function DesktopPreviewPage() {
   const [betweenMode, setBetweenMode] = useState<"one" | "many">("one");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [pickerChain, setPickerChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
+  const [fuelOpen, setFuelOpen] = useState(false);
+  const [fuelCompareScope, setFuelCompareScope] = useState<"between"|"within">("between");
+  const [fuelWithinChain, setFuelWithinChain] = useState<"ABC"|"Neste"|"St1">("ABC");
   const [cartOpen, setCartOpen] = useState(false);
   const [cartPaperReady,setCartPaperReady]=useState(false);
   useEffect(()=>{let active=true;const img=new Image();img.decoding="async";img.onload=()=>{const done=()=>{if(active)setCartPaperReady(true)};if(typeof img.decode==="function")void img.decode().catch(()=>undefined).finally(done);else done()};img.onerror=()=>{if(active)setCartPaperReady(true)};img.src="/ui/cart/vihkonen.webp";return()=>{active=false}},[]);
@@ -410,7 +413,6 @@ export default function DesktopPreviewPage() {
             {[
               ["☀️", "SÄÄ", weather.value, weather.detail, "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
-              ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
               <div key={title} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
@@ -421,6 +423,14 @@ export default function DesktopPreviewPage() {
                 </span>
               </div>
             ))}
+            <button type="button" onClick={()=>setFuelOpen(true)} aria-label="Ajoainehinnat" className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b from-[#fff1da] to-[#ffc795] border-[#c78b63] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
+              <span className="text-[27px] drop-shadow-sm">⛽</span>
+              <span className="min-w-0">
+                <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">AJOAINE</span>
+                <span className="mt-0.5 block text-[17px] font-black leading-none text-[#102a24]">DI 2,51</span>
+                <span className="mt-1 block truncate text-[10px] font-black text-[#706a58]">BE 2,33 / 2,41</span>
+              </span>
+            </button>
             <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
               <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
               <span>
@@ -472,6 +482,18 @@ export default function DesktopPreviewPage() {
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 {desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Mobiilin kauppakohtaista Halpuusvertailua ei ole vielä kytketty desktop-esikatseluun. Vertailutulosta ei arvata.</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 
+
+        {fuelOpen && (()=>{const all=[
+          {chain:"ABC",name:"ABC Hyvinkää 1",distance:0.8,di:2.51,be1:2.33,be2:2.41},
+          {chain:"Neste",name:"Neste Hyvinkää",distance:1.1,di:2.52,be1:2.34,be2:2.42},
+          {chain:"ABC",name:"ABC Hyvinkää 2",distance:1.4,di:2.54,be1:2.35,be2:2.43},
+          {chain:"St1",name:"St1 Hyvinkää",distance:2.8,di:2.55,be1:2.36,be2:2.44},
+          {chain:"ABC",name:"ABC Hyvinkää 3",distance:3.0,di:2.56,be1:2.37,be2:2.45},
+          {chain:"ABC",name:"ABC Hyvinkää 4",distance:4.2,di:2.58,be1:2.38,be2:2.46},
+          {chain:"ABC",name:"ABC Hyvinkää 5",distance:5.1,di:2.61,be1:2.39,be2:2.47},
+          {chain:"Neste",name:"Neste Riihimäki",distance:9.4,di:2.57,be1:2.40,be2:2.48},
+          {chain:"St1",name:"St1 Riihimäki",distance:8.8,di:2.59,be1:2.41,be2:2.49}
+        ];const source=fuelCompareScope==="within"?all.filter(x=>x.chain===fuelWithinChain):all;const rows=source.slice().sort((a,b)=>a.distance-b.distance).slice(0,5);return <div className="fixed inset-0 z-[135] grid place-items-center bg-[#172e23]/55 p-5"><div className="flex max-h-[calc(100dvh-70px)] w-[min(1180px,94vw)] flex-col overflow-hidden rounded-[28px] border-[3px] border-[#9a7047] bg-[#fff3d3] shadow-[0_30px_90px_rgba(20,40,31,.35)]"><div className="flex items-center justify-between border-b-2 border-[#d0b273] bg-[#f7e4b6] px-5 py-3"><div><div className="text-[10px] font-black uppercase tracking-[.18em] text-[#756848]">AJOAINEET</div><div className="font-serif text-[25px] font-black italic text-[#174c3a]">Lähimmät asemat ja hinnat</div></div><button onClick={()=>setFuelOpen(false)} aria-label="Sulje" className="rounded-full border-2 border-[#704b2c] bg-[#fff8e3] px-4 py-1 text-[22px] font-black">×</button></div><div className="flex items-center justify-center gap-2 border-b border-[#d0b273] bg-[#fff8e2] p-3"><button onClick={()=>setFuelCompareScope("between")} className={`rounded-full border-2 px-5 py-2 text-[12px] font-black ${fuelCompareScope==="between"?"border-[#17573c] bg-[#17573c] text-white":"border-[#c7a867] bg-white text-[#174c3a]"}`}>Ketjujen väliltä</button><button onClick={()=>setFuelCompareScope("within")} className={`rounded-full border-2 px-5 py-2 text-[12px] font-black ${fuelCompareScope==="within"?"border-[#17573c] bg-[#17573c] text-white":"border-[#c7a867] bg-white text-[#174c3a]"}`}>Ketjun sisältä</button>{fuelCompareScope==="within"&&(["ABC","Neste","St1"] as const).map(ch=><button key={ch} onClick={()=>setFuelWithinChain(ch)} className={`rounded-full border-2 px-4 py-2 text-[11px] font-black ${fuelWithinChain===ch?"border-[#a96f34] bg-[#f0c98f]":"border-[#d1bd91] bg-[#fffdf2]"}`}>{ch}</button>)}</div><div className="grid grid-cols-[1.4fr_.55fr_.55fr_.55fr] gap-0 overflow-y-auto p-4">{rows.map((s,i)=><div key={s.name} className="contents"><div className="border-b border-[#d8c9a8] px-4 py-3"><div className="font-black text-[#26352b]">{i+1}. {s.name}</div><div className="text-[11px] font-bold text-[#7a705d]">{s.chain} · {s.distance.toFixed(1)} km</div></div><div className="border-b border-[#d8c9a8] px-3 py-3 text-center"><div className="text-[10px] font-black text-[#756848]">DI</div><div className="font-serif text-[20px] font-black">{s.di.toFixed(2).replace(".",",")}</div><div className="text-[9px] text-[#837862]">06:10</div></div><div className="border-b border-[#d8c9a8] px-3 py-3 text-center"><div className="text-[10px] font-black text-[#756848]">95E10</div><div className="font-serif text-[20px] font-black">{s.be1.toFixed(2).replace(".",",")}</div><div className="text-[9px] text-[#837862]">06:11</div></div><div className="border-b border-[#d8c9a8] px-3 py-3 text-center"><div className="text-[10px] font-black text-[#756848]">98E5</div><div className="font-serif text-[20px] font-black">{s.be2.toFixed(2).replace(".",",")}</div><div className="text-[9px] text-[#837862]">06:12</div></div></div>)}</div><div className="border-t border-[#d0b273] bg-[#fff8e2] px-5 py-3 text-center text-[11px] font-bold text-[#756848]">Vertailu näyttää enintään 5 lähintä asemaa. Gösta avataan erikseen, kun haluat tarjous-/kampanjahinnat.</div></div></div>})()}
 
         {mapOpen && (
           <div className="absolute inset-0 z-[80] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]">
