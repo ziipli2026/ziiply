@@ -585,6 +585,7 @@ export default function DesktopPreviewPage() {
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 {desktopCompareNotice&&<div className="fixed inset-0 z-[140] overflow-auto bg-[#172e23]/70 p-3"><div className="mx-auto w-full max-w-[1250px]"><ZiiplyMobileCompareCard
+  className="sm:!flex sm:!z-[150]"
   open
   stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows}))}
   loading={desktopCompareLoading}
