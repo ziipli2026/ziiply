@@ -136,7 +136,7 @@ export default function DesktopPreviewPage() {
           if(!currentCartStoreKeysRef.current.has(chain+":"+storeId))continue;
           if(price==null)continue;
           const key=desktopCartIdentity(item);
-          setCartItems(current=>current.map(x=>currentCartStoreKeysRef.current.has(chain+":"+storeId)&&desktopCartIdentity(x)===key&&x.source===item.source&&x.__needsPriceRefresh?{
+          setCartItems(current=>current.map(x=>currentCartStoreKeysRef.current.has(chain+":"+storeId)&&desktopCartIdentity(x)===key&&x.source===item.source&&x.__needsPriceRefresh&&String(x.__chain??x.chain??"").toUpperCase()===chain&&(!String(x.__storeId??x.storeId??"").trim()||String(x.__storeId??x.storeId??"").trim()===storeId)?{
             ...x,price,__price:price,__chain:chain,__storeId:storeId,__priceVerified:true,__needsPriceRefresh:false
           }:x));
         }catch{}
