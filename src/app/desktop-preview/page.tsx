@@ -199,7 +199,7 @@ export default function DesktopPreviewPage() {
       }));
       const matches=results.flat();
       if(matches.length){
-        setDesktopScannerMessage(matches.slice(0,3).map((p:any)=>`${p.name||p.title||knownName} · ${p.__store||""} · ${p.__price>0?p.__price.toFixed(2).replace(".",",")+" €":"Hinta ei saatavilla"}`).join(" | "));
+        setDesktopScannerMessage(matches.slice(0,3).map((p:any)=>`${p.name||p.title||knownName} · ${p.__store||""} · ${p.__price>0?(p.__price/100).toFixed(2).replace(".",",")+" €":"Hinta ei saatavilla"}`).join(" | "));
       }else if(knownName){
         setDesktopScannerMessage("Tunnistettu: "+knownName+". Kauppakohtaista hintaa ei vahvistettu.");
       }else{
