@@ -2174,17 +2174,18 @@ function KauppiasMobileTopBar({
     async function loadFuelV744() {
       try {
         const response = await fetch(
-          `/api/fuel?lat=${encodeURIComponent(gpsCoords!.latitude)}&lon=${encodeURIComponent(gpsCoords!.longitude)}&fuel=diesel`,
+          `/api/tankkaus?lat=${encodeURIComponent(gpsCoords!.latitude)}&lon=${encodeURIComponent(gpsCoords!.longitude)}&fuel=diesel`,
           { cache: "no-store", signal: controller.signal },
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
-        const price = Number(data?.item?.price);
+        const nearest = Array.isArray(data?.observations) ? data.observations[0] : null;
+        const price = Number(nearest?.price);
         if (!Number.isFinite(price) || price <= 0 || cancelled) throw new Error("ei hintaa");
 
-        const station = String(data?.item?.station || "").trim();
-        const distance = Number(data?.item?.distanceKm);
+        const station = String(nearest?.station?.name || "").trim();
+        const distance = nearest?.station?.distanceKm == null ? NaN : Number(nearest.station.distanceKm);
         const detail = station
           ? Number.isFinite(distance)
             ? `${station} · ${distance.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
