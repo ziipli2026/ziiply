@@ -279,6 +279,13 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               const cartItemId = getCartItemIdFromMatch(match) || String(cart[index]?.id || key);
               const cartItem = cart.find((item) => String(item.id) === String(cartItemId)) || cart[index] || {};
               const quantity = Math.max(1, Number(match.quantity || cartItem.quantity || 1));
+              const pendingWeight = Boolean(
+                cartItem.ziiplyWeightLabel || cartItem.product?.ziiplyWeightLabel ||
+                cartItem.ziiplyPricePendingWeight || cartItem.product?.ziiplyPricePendingWeight ||
+                product.ziiplyWeightLabel || product.ziiplyPricePendingWeight
+              ) && !(
+                cartItem.ziiplyWeightFinalPrice != null || cartItem.product?.ziiplyWeightFinalPrice != null
+              );
               const price = Number(match.price || cartItem.price || product.price || 0);
               const checked = Boolean(checkedCartItems[key]);
               const name = fixText(normalizeName(product.name || cartItem.name));
@@ -325,16 +332,16 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                         {name}
                       </div>
                       <div className="mt-1 text-[13px] font-black uppercase tracking-[0.08em] text-[#776d55]">
-                        {quantity} kpl · {price > 0 ? formatEuro(price) : "hinta —"}
+                        {quantity} kpl{pendingWeight ? "" : ` · ${price > 0 ? formatEuro(price) : "hinta —"}`}
                       </div>
                     </div>
 
                     <div className="shrink-0 text-right">
                       <div className="text-[18px] font-black leading-none text-[#28402a]">
-                        {price > 0 ? formatEuro(price * quantity) : "—"}
+                        {pendingWeight ? "" : price > 0 ? formatEuro(price * quantity) : "—"}
                       </div>
                       <div className="mt-1 text-[11px] font-black uppercase tracking-[0.10em] text-[#776d55]">
-                        yhteensä
+                        {pendingWeight ? "" : "yhteensä"}
                       </div>
                     </div>
                   </div>
