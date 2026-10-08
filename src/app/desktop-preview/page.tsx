@@ -142,7 +142,7 @@ export default function DesktopPreviewPage() {
           if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
           return {...item,price:updates[i]??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]==null};
         }));
-        flashCartNotice("Valitun kaupan hinnat päivitetty ostoskoriin.");
+        flashCartNotice(`Valitun kaupan hinnat päivitetty: ${pricedCount}/${eligibleCount} tuotetta.${pricedCount<eligibleCount?" Puuttuvat hinnat merkitty tarkistettaviksi.":""}`);
       }finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
       return;
     }
