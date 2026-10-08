@@ -599,7 +599,7 @@ export default function DesktopPreviewPage() {
 {desktopCompareNotice&&<div className="fixed inset-0 z-[140] overflow-auto bg-[#172e23]/70 p-3"><div className="mx-auto w-full max-w-[1250px]"><ZiiplyMobileCompareCard
   className="sm:!flex sm:!z-[150]"
   open
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row,i)=>({id:String(i),cartItemId:row.cartItemId,name:row.name,quantity:row.quantity,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null}))}))}
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row,i)=>({id:String(i),cartItemId:row.cartItemId,name:row.name,quantity:row.quantity,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null}))}))}
   loading={desktopCompareLoading}
   title="Halpuusvertailu"
   subtitle={desktopCompareError||"Kauppakohtaiset hinnat ja ostoskorit"}
