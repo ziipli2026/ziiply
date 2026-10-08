@@ -6,6 +6,7 @@ import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/Des
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
 import DesktopAssistantCards from "../components/ziiply/desktop/DesktopAssistantCards";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
+import ZiiplyMobileCompareCard from "../components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV147, searchZiiplyGostaOffersV146 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -583,11 +584,17 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
-{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/70 p-5"><div className="flex max-h-[92dvh] w-full max-w-[1250px] flex-col overflow-hidden rounded-[26px] border-[3px] border-[#967344] bg-[#fff4d6] p-6 shadow-2xl">
-<div className="mb-5 flex items-center justify-between gap-4"><div><h2 className="font-serif text-[clamp(26px,3vw,42px)] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="text-sm text-[#59482f]">Kauppakohtaiset tuotetiedot ja hinnat rinnakkain</p></div><button onClick={()=>setDesktopCompareNotice(false)} className="rounded-full bg-[#315d45] px-6 py-3 font-bold text-white">Takaisin ostoskoriin</button></div>
-{desktopCompareLoading?<p className="py-16 text-center text-xl font-bold">Haetaan kauppojen hintoja…</p>:desktopCompareError?<p className="py-12 text-center font-bold text-[#7d4933]">{desktopCompareError}</p>:<div className="grid min-h-0 flex-1 gap-4 overflow-auto" style={{gridTemplateColumns:`repeat(${Math.max(1,Object.keys(desktopCompareResults).length)},minmax(280px,1fr))`}}>{Object.entries(desktopCompareResults).map(([id,result])=><section key={id} className="flex min-w-0 flex-col rounded-2xl border-2 border-[#b89c69] bg-[#fff9e8] p-4"><h3 className="mb-2 text-center font-serif text-xl font-black text-[#174c3a]">{String(result.store?.name||"Kauppa")}</h3><div className="flex-1 space-y-2">{result.rows.map((row,i)=><div key={i} className="flex justify-between gap-3 border-b border-[#d7c59e] py-2 text-sm"><span className="min-w-0">{row.quantity} × {row.name}</span><span className="shrink-0 font-bold">{row.price==null?"Ei vahvistettua hintaa":(row.price*row.quantity).toFixed(2).replace(".",",")+" €"}</span></div>)}</div><div className="mt-4 border-t-2 border-[#ad9163] pt-3 text-right text-xl font-black text-[#174c3a]">{result.missing?"Osasumma":"Yhteensä"} {result.total.toFixed(2).replace(".",",")} €</div>{result.missing>0&&<p className="text-right text-xs text-[#8b4e35]">{result.missing} tuotetta ilman vahvistettua hintaa — ei sijoitusta</p>}</section>)}</div>}
-<p className="mt-3 text-center text-xs text-[#795e42]">Vain vahvistetut tuoteosumat. Puuttuva hinta ei ole nolla eikä osasumma ole vertailukelpoinen täyteen koriin.</p>
-</div></div>}
+{desktopCompareNotice&&<div className="fixed inset-0 z-[140] overflow-auto bg-[#172e23]/70 p-3"><div className="mx-auto w-full max-w-[1250px]"><ZiiplyMobileCompareCard
+  open
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows}))}
+  loading={desktopCompareLoading}
+  title="Halpuusvertailu"
+  subtitle={desktopCompareError||"Kauppakohtaiset hinnat ja ostoskorit"}
+  onBack={()=>setDesktopCompareNotice(false)}
+  onBackToCart={()=>setDesktopCompareNotice(false)}
+  onClose={()=>setDesktopCompareNotice(false)}
+  onSelectStore={()=>setDesktopCompareNotice(false)}
+ /></div></div>}
 
 
         {mapOpen && (
