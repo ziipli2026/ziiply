@@ -6,6 +6,7 @@ on:
     paths:
       - scripts/citymarket/rusko-offers-readonly.mjs
       - .github/workflows/rusko-readonly-audit.yml
+      - scripts/citymarket/rusko-real-provider-readonly.mjs
   workflow_dispatch:
 jobs:
   audit:
@@ -26,3 +27,7 @@ jobs:
             curl --silent --show-error --location --max-time 30 --output /tmp/ziiply-rusko-response.json --write-out 'HTTP_STATUS=%{http_code} CONTENT_TYPE=%{content_type} SIZE=%{size_download}\n' --get "$base/api/offers/search" --data-urlencode 'q=' --data-urlencode 'kStoreName=K-Citymarket Oulu Rusko' || true
             node -e 'const fs=require("fs");try{const s=fs.readFileSync("/tmp/ziiply-rusko-response.json","utf8");const v=JSON.parse(s);const arrays=[];function walk(x,p="",d=0){if(d>4||!x||typeof x!=="object")return;if(Array.isArray(x)){arrays.push({path:p,length:x.length,firstKeys:x[0]&&typeof x[0]==="object"?Object.keys(x[0]).slice(0,15):[]});return}for(const [k,y] of Object.entries(x))walk(y,p+"."+k,d+1)}walk(v);console.log("API_JSON_SHAPE",JSON.stringify({topKeys:Object.keys(v).slice(0,30),arrays:arrays.slice(0,12)}))}catch(e){console.log("API_JSON_UNAVAILABLE",String(e))}'
           done
+      - name: Install project dependencies for actual provider test
+        run: npm ci --legacy-peer-deps --ignore-scripts
+      - name: Execute actual Citymarket local provider read-only
+        run: node scripts/citymarket/rusko-real-provider-readonly.mjs
