@@ -5,6 +5,7 @@ import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopN
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
 import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
+import { desktopCartIdentity, appendDesktopCartItem, changeDesktopCartItemQuantity } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -117,13 +118,13 @@ export default function DesktopPreviewPage() {
   function saveCartToNotebook(){const name=saveListName.trim()||"Ostelusvihko";persistSavedLists([{id:String(Date.now()),name,createdAt:new Date().toISOString(),items:cartItems.map(x=>({...x}))},...savedLists]);setSaveListOpen(false);flashCartNotice(`Tallennettu Ostelusvihkoon: ${name}`)}
 
   function desktopCartPrice(value:any):number|null{if(value==null||value==="")return null;const normalized=String(value).replace(/\s/g,"").replace("€","").replace(",",".");const price=Number(normalized);return Number.isFinite(price)&&price>=0?price:null}
-  function desktopCartKey(p:any){return String(p?.ean||p?.id||p?.offerId||p?.title||p?.name||"").trim()}
+  function desktopCartKey(p:any){return desktopCartIdentity(p)}
   function flashCartNotice(message:string){setCartNotice(message);window.setTimeout(()=>setCartNotice(current=>current===message?"":current),2200)}
   function addDesktopCartItem(p:any){
     const key=desktopCartKey(p);if(!key)return;
-    setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return current.map(x=>desktopCartKey(x)===key?{...x,quantity:Number(x.quantity||1)+1}:x)}flashCartNotice(`Lisätty ostoskoriin: ${p?.title||p?.name||"tuote"}`);return [...current,{...p,source:"gosta",quantity:1}]});
+    setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return appendDesktopCartItem(current,p,"gosta")}flashCartNotice(`Lisätty ostoskoriin: ${p?.title||p?.name||"tuote"}`);return appendDesktopCartItem(current,p,"gosta")});
   }
-  function changeDesktopCartQuantity(p:any,delta:number){const key=desktopCartKey(p);setCartItems(current=>current.flatMap(x=>desktopCartKey(x)!==key?[x]:Number(x.quantity||1)+delta<=0?[]:[{...x,quantity:Number(x.quantity||1)+delta}]))}
+  function changeDesktopCartQuantity(p:any,delta:number){const key=desktopCartKey(p);setCartItems(current=>changeDesktopCartItemQuantity(current,p,delta))}
   function removeDesktopCartItem(p:any){const key=desktopCartKey(p);setCartItems(current=>current.filter(x=>desktopCartKey(x)!==key));flashCartNotice(`Poistettu ostoskorista: ${p?.title||p?.name||"tuote"}`)}
   async function shareDesktopCart(){const lines=cartItems.map((p:any)=>Number(p.quantity||1)+" × "+String(p.title||p.name||"Tuote")+(p.storeName?" — "+p.storeName:""));const message="Ziiply ostoskori\\n"+lines.join("\\n");try{if(navigator.share)await navigator.share({title:"Ziiply ostoskori",text:message});else if(navigator.clipboard){await navigator.clipboard.writeText(message);flashCartNotice("Ostoskori kopioitu leikepöydälle")}else flashCartNotice("Jakaminen ei ole käytettävissä")}catch(e:any){if(e?.name!=="AbortError")flashCartNotice("Jakaminen epäonnistui")}}
   function clearDesktopCart(){setCartItems([]);flashCartNotice("Ostoskori tyhjennetty")}
