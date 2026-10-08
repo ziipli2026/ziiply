@@ -102,6 +102,32 @@ const get = (query) => routeModule.exports.GET({
   }
   console.log('PASS: conflicting coordinates for the same station ID are rejected');
 
+  // Oversized provider arrays must fail before normalization.
+  const oversizedStation = { id: 9001, name: 'Overflow', latitude: 60, longitude: 24 };
+  const originalStations = stations.length;
+  stations.push(...Array(10001 - originalStations).fill(oversizedStation));
+  console.error = () => {};
+  try {
+    const tooManyStations = await get('lat=60&lon=24&fuel=diesel');
+    assert.equal(tooManyStations.status, 502);
+  } finally {
+    console.error = originalError;
+    stations.length = originalStations;
+  }
+  console.log('PASS: oversized station payload rejected');
+
+  const originalFills = fillsDiesel.length;
+  fillsDiesel.push(...Array(10001 - originalFills).fill(fillsDiesel[0]));
+  console.error = () => {};
+  try {
+    const tooManyFills = await get('lat=60&lon=24&fuel=diesel');
+    assert.equal(tooManyFills.status, 502);
+  } finally {
+    console.error = originalError;
+    fillsDiesel.length = originalFills;
+  }
+  console.log('PASS: oversized fuel observation payload rejected');
+
   malformed = true;
   console.error = () => {};
   try {
