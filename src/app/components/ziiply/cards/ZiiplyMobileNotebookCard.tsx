@@ -184,6 +184,7 @@ export default function ZiiplyMobileNotebookCard({
   const defaultSaveName = useMemo(() => getOstelusvihkoDefaultName(lists), [lists]);
   const [savePanelOpen, setSavePanelOpen] = useState(false);
   const [draftName, setDraftName] = useState("");
+  const [pendingDeleteList, setPendingDeleteList] = useState<ZiiplySavedShoppingList | null>(null);
 
   const effectiveDraftName = draftName.trim() || defaultSaveName;
 
@@ -303,7 +304,7 @@ export default function ZiiplyMobileNotebookCard({
                         type="button"
                         onClick={(event) => {
                           event.stopPropagation();
-                          onDeleteList(list);
+                          setPendingDeleteList(list);
                         }}
                         className="absolute right-[0.56rem] top-1/2 grid h-[2.0rem] w-[2.0rem] -translate-y-1/2 place-items-center rounded-[0.45rem] border-[1.5px] border-[#8b3c27] bg-[#f3d4a1]/80 text-[0.82rem] font-black text-[#8d2718] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.35)] active:translate-y-[calc(-50%+1px)]"
                         aria-label={`Poista ${title}`}
@@ -379,6 +380,19 @@ export default function ZiiplyMobileNotebookCard({
         </footer>
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
+
+        {pendingDeleteList && (
+          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="delete-saved-list-title">
+            <div className="w-full max-w-[23rem] rounded-[1.35rem] border-[3px] border-[#886635] bg-[#fff4d8] p-5 text-[#214b33] shadow-[0_12px_35px_rgba(28,19,8,0.35),inset_0_0_0_2px_#fff9e8]">
+              <h2 id="delete-saved-list-title" className="text-center text-[1.3rem] font-black" style={{ fontFamily: cooperFont }}>Poistetaanko ostoslista?</h2>
+              <p className="mt-3 text-center text-[0.92rem] font-bold text-[#655235]">{String(pendingDeleteList.name || pendingDeleteList.title || "Tallennettu lista")} ({getListItemCount(pendingDeleteList)} tuotetta). Tätä ei voi perua.</p>
+              <div className="mt-5 flex gap-3">
+                <button type="button" autoFocus onClick={() => setPendingDeleteList(null)} className="min-h-[2.9rem] flex-1 rounded-[0.75rem] border-2 border-[#8b713e] bg-[#fff9e8] font-black text-[#214b33]">Peruuta</button>
+                <button type="button" onClick={() => { onDeleteList?.(pendingDeleteList); setPendingDeleteList(null); }} className="min-h-[2.9rem] flex-1 rounded-[0.75rem] border-2 border-[#74442c] bg-[linear-gradient(180deg,#e8b888,#c88958)] font-black text-[#422819]">Poista</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <style jsx>{`
           @keyframes ziiplyNotebookPop {
