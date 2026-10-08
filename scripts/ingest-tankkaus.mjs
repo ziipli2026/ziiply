@@ -51,8 +51,15 @@ const rows = payload.observations.filter(o => {
 // One provider response may contain duplicate observations. Keep a single canonical row per event.
 const uniqueRows = [...new Map(rows.map(o => [`${o.stationId}:${new Date(o.observedAt).toISOString()}:${o.price.toFixed(3)}`, o])).values()];
 if (write && (stations.size === 0 || uniqueRows.length === 0)) throw new Error("Refusing empty ingestion write");
+// The live route only exposes the ten closest priced stations per fuel.
+// Do not misrepresent a single coordinate sample as full-area or national coverage.
+const collectionScope = {
+  center: { lat: Number(url.searchParams.get("lat")), lon: Number(url.searchParams.get("lon")) },
+  radiusKm: Number(payload.coverage?.radiusKm) || null,
+  maxObservationsPerFuel: Number(payload.coverage?.maxObservationsPerFuel) || null
+};
 if (!write) {
-  console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: uniqueRows.length, fuel }));
+  console.log(JSON.stringify({ mode: "dry-run", stations: stations.size, observations: uniqueRows.length, fuel, collectionScope }));
   process.exit(0);
 }
 const { neon } = await import("@neondatabase/serverless");
@@ -79,4 +86,4 @@ for (const o of uniqueRows) {
     VALUES ('tankkaus.com', ${o.stationId}, ${fuel}, ${o.price}, ${o.observedAt}::timestamptz)
     ON CONFLICT (source, source_station_id, fuel_type, observed_at, price_eur_per_litre) DO NOTHING`;
 }
-console.log(JSON.stringify({ mode: "write", stations: stations.size, observationsAttempted: uniqueRows.length, fuel }));
+console.log(JSON.stringify({ mode: "write", stations: stations.size, observationsAttempted: uniqueRows.length, fuel, collectionScope }));
