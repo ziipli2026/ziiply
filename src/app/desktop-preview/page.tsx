@@ -353,7 +353,7 @@ export default function DesktopPreviewPage() {
  <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
   <div className="flex flex-wrap gap-2">
    <button onClick={()=>{setCartOpen(false);setNotebookOpen(true)}} title="Ostoslistat" aria-label="Ostoslistat" className="grid h-12 w-14 place-items-center rounded-xl border-2 border-[#8e713e] bg-gradient-to-b from-[#fff1cb] to-[#d8b777] text-[#4e3a21] shadow-md"><span className="text-[26px]">▤</span></button>
-   <button onClick={beginSaveCart} title="Tallenna ostoslista" className="rounded-xl border-2 border-[#8e713e] bg-[#f4dfb0] px-3 py-3 text-[14px] font-black text-[#244e37]">Tallenna</button>
+   
    <button disabled={!cartItems.length} onClick={shareDesktopCart} title="Lähetä ostoskori" className="grid h-12 w-14 place-items-center rounded-xl border-2 border-[#8e713e] bg-gradient-to-b from-[#fff1cb] to-[#d8b777] text-[27px] text-[#4e3a21] shadow-md disabled:opacity-40">✉</button>
    <button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} title="Osta" className="grid h-12 w-14 place-items-center rounded-xl border-2 border-[#8e713e] bg-gradient-to-b from-[#fff1cb] to-[#d8b777] text-[26px] text-[#4e3a21] shadow-md disabled:opacity-40">▣</button>
    <button disabled={!cartItems.length} onClick={()=>setDesktopCompareNotice(true)} className="rounded-[18px] border-[4px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-8 py-2 font-serif text-[clamp(19px,1.7vw,29px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button>
