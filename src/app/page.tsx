@@ -17623,15 +17623,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ]);
 
   function deleteSavedShoppingList(id: string) {
-    const list = savedShoppingLists.find((item) => item.id === id);
-    const label = list ? `”${list.name}”` : "tämä tallennettu lista";
-    const itemCount = list?.items.length || 0;
-
-    const ok = window.confirm(
-      `Poistetaanko tallennettu lista ${label}${itemCount ? ` (${itemCount} tuotetta)` : ""}? Tätä ei voi perua.`,
-    );
-    if (!ok) return;
-
     setSavedShoppingLists((current) =>
       current.filter((list) => list.id !== id),
     );
