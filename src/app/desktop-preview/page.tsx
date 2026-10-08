@@ -119,7 +119,7 @@ export default function DesktopPreviewPage() {
     void (async()=>{
       for(const item of pending){
         if(cancelled||run!==cartPriceRefreshRun.current)return;
-        const chain=String(item.__chain??"") as DesktopNormalSearchChain;
+        const chain=String(item.__chain??item.chain??"").toUpperCase() as DesktopNormalSearchChain;
         if(chain!=="S"&&chain!=="K")continue;
         const chainStores=selected.filter(x=>desktopOfferChainFromStoreKind(storeKind(x),x)===chain);
         const originalStoreId=String(item.__storeId??item.storeId??"").trim();
