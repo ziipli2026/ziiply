@@ -32,6 +32,8 @@ export default function DesktopPreviewPage() {
   const [locationStatus, setLocationStatus] = useState("Kirjoita paikkakunta tai käytä GPS:ää");
   const [gpsToast, setGpsToast] = useState("GPS ei päällä");
   const [mapOpen, setMapOpen] = useState(false);
+  const [fuelSelected, setFuelSelected] = useState(false);
+  const [fuelMode, setFuelMode] = useState<"nearby" | "compare">("nearby");
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
   const [stores, setStores] = useState<any[]>([]);
@@ -540,7 +542,7 @@ export default function DesktopPreviewPage() {
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", "DI 2,51", "BE 2,33 / 2,41", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
-              <div key={title} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
+              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") setFuelSelected(v => !v); }} aria-pressed={title === "AJOAINE" ? fuelSelected : undefined} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5 ${title === "AJOAINE" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${fuelSelected ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
                 {title === "AJOAINE" ? (
                   <span className="min-w-0 flex-1">
@@ -557,7 +559,7 @@ export default function DesktopPreviewPage() {
                     <span className="mt-1 block truncate text-[9px] font-black text-[#706a58]">{detail}</span>
                   </span>
                 )}
-              </div>
+              </button>
             ))}
             <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
               <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
@@ -573,6 +575,14 @@ export default function DesktopPreviewPage() {
 
         
 
+        {fuelSelected && <section role="dialog" aria-label="Ajoaineiden vertailu" className="fixed inset-0 z-[130] grid place-items-center bg-[#172e23]/55 p-5">
+          <div className="w-[min(620px,94vw)] rounded-[28px] border-[3px] border-[#9a7047] bg-[#fff3d3] p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-4"><div><div className="text-[11px] font-black tracking-widest text-[#756848]">⛽ AJOAINE</div><h2 className="text-[24px] font-black text-[#174c3a]">Polttoainehinnat</h2></div><button type="button" onClick={()=>setFuelSelected(false)} aria-label="Sulje ajoaine" className="rounded-full border-2 border-[#704b2c] bg-white px-4 py-1 text-xl font-black">×</button></div>
+            <div className="mt-4 flex gap-2"><button type="button" onClick={()=>setFuelMode("nearby")} aria-pressed={fuelMode==="nearby"} className={`rounded-full border-2 px-4 py-2 font-black ${fuelMode==="nearby"?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>Lähimmät asemat</button><button type="button" onClick={()=>setFuelMode("compare")} aria-pressed={fuelMode==="compare"} className={`rounded-full border-2 px-4 py-2 font-black ${fuelMode==="compare"?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>Hintavertailu</button></div>
+            <div className="mt-4 rounded-2xl border border-[#d0b273] bg-white/70 p-5 text-[#174c3a]"><p className="font-black">{fuelMode==="nearby"?"Lähimmät asemat":"Polttoaineiden hintavertailu"}</p><p className="mt-2 text-sm">Sijainti: {appliedLocation || location || (gpsOn ? "GPS käytössä" : "ei valittu")}</p><p className="mt-3 text-sm">Tankkaus.comin asema- ja hintatietoja ei ole vielä kytketty tähän desktop-näkymään. Napin esimerkkihinnat eivät ole live-hintoja.</p></div>
+            <p className="mt-4 text-xs font-semibold text-[#756848]">Göstan tarjoushaku käynnistyy vain erikseen Gösta-painikkeesta.</p>
+          </div>
+        </section>}
         {saveListOpen&&<div className="fixed inset-0 z-[120] grid place-items-center bg-[#17352a]/35 p-10"><div className="w-full max-w-[560px] rounded-[26px] border-[3px] border-[#315d45] bg-[#fff6d9] p-6 shadow-2xl"><div className="font-serif text-[28px] font-black italic text-[#174c3a]">Tallenna Ostelusvihkoon</div><label className="mt-5 block text-[10px] font-black uppercase tracking-[.16em] text-[#756848]">Vihkon nimi</label><input autoFocus value={saveListName} onChange={e=>setSaveListName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")saveCartToNotebook()}} className="mt-2 w-full rounded-[16px] border-2 border-[#b89552] bg-white px-4 py-3 text-[16px] font-black outline-none"/><div className="mt-5 flex justify-end gap-3"><button onClick={()=>setSaveListOpen(false)} className="rounded-full border-2 border-[#9b8051] px-5 py-2 font-black">Peru</button><button onClick={saveCartToNotebook} className="rounded-full border-2 border-[#315d45] bg-[#dfead4] px-6 py-2 font-black text-[#174c3a]">Tallenna</button></div></div></div>}
         {reloadCartDecisionOpen&&<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#1c271c]/65 px-4"><div role="dialog" aria-modal="true" aria-label="Säilytetäänkö ostoskori?" className="w-full max-w-[420px] rounded-[22px] border-[3px] border-[#b89552] bg-[#fff3d3] p-6 text-center text-[#174c35] shadow-2xl"><h2 className="font-serif text-[24px] font-black">Säilytetäänkö ostoskorin tavarat?</h2><p className="mt-3 text-[15px]">Ostoskori sisältää {cartItems.length} tuotetta.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><button type="button" onClick={()=>{setReloadCartDecisionOpen(false);setCartOpen(true)}} className="rounded-full border-2 border-[#17573c] bg-[#17573c] px-5 py-3 font-black text-white">Säilytä tavarat</button><button type="button" onClick={()=>{setCartItems([]);setReloadCartDecisionOpen(false);setCartOpen(false);try{window.sessionStorage.removeItem("ziiply-desktop-current-cart-v1")}catch{}}} className="rounded-full border-2 border-[#b58a46] bg-[#fff9e9] px-5 py-3 font-black">Tyhjennä kori</button></div></div></div>}
         {desktopScannerOpen&&<div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black/65 p-4"><div className="relative h-[min(680px,92dvh)] w-[min(440px,95vw)] overflow-hidden rounded-[24px] bg-[#f4edda]">
