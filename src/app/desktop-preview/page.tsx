@@ -639,6 +639,29 @@ export default function DesktopPreviewPage() {
     }catch{setDesktopScannerMessage("Tuotehaku epäonnistui. Yritä uudelleen.");flashDesktopScanner("error")}finally{setDesktopScannerLoading(false)}
   }
 
+  // Search results are not subject to the eight-item shopping basket limit.
+  function rankDesktopJustiinaResults(products:any[], query:string):any[]{
+    const normalize=(value:string)=>String(value||"").toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+    const needle=normalize(query);
+    const words=needle.split(" ").filter(Boolean);
+    const score=(product:any)=>{
+      const name=normalize(String(product.name||product.title||product.product?.name||""));
+      if(!name)return -100;
+      if(name===needle)return 1000;
+      let value=0;
+      if(name.startsWith(needle))value+=500;
+      else if(name.includes(needle))value+=300;
+      const matched=words.filter(w=>name.split(" ").some(token=>token===w||token.startsWith(w)));
+      value+=matched.length*80;
+      if(words.length&&matched.length===words.length)value+=120;
+      if(words.length&&matched.length===0)value-=250;
+      value-=Math.max(0,name.length-needle.length)*0.08;
+      return value;
+    };
+    return products.map((product,index)=>({product,index,rank:score(product)}))
+      .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
+  }
+
   async function runDesktopJustiinaSearch(raw=justiinaQuery) {
     const query=String(raw||"").trim(); if(!query)return;
     const selected=Object.values(selectedStores) as any[];
@@ -652,7 +675,7 @@ export default function DesktopPreviewPage() {
       if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.externalId||k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
-      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of items.slice(0,8)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
+      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankDesktopJustiinaResults(items,query).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
       setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
     }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
   }
