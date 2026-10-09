@@ -234,7 +234,8 @@ export default function DesktopPreviewPage() {
         }
       }
       if(!cancelled){if(!searchFailed){
-        desktopCompareCacheRef.current[signature]={matches,expiresAt:Date.now()+5*60*1000};
+        const validatedMatches=sanitizeDesktopComparisonMatches(matches,selectedKeys,eligibleKeys);
+        if(validatedMatches)desktopCompareCacheRef.current[signature]={matches:validatedMatches,expiresAt:Date.now()+5*60*1000};
         try{
           const valid=Object.fromEntries(Object.entries(desktopCompareCacheRef.current).filter(([key,entry])=>{try{return JSON.parse(key)?.version===2&&entry.expiresAt>Date.now();}catch{return false;}}));
           window.sessionStorage.setItem("ziiply-desktop-comparison-v1",JSON.stringify(valid));
