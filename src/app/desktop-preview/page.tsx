@@ -6,7 +6,7 @@ import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/Des
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
 import DesktopAssistantCards from "../components/ziiply/desktop/DesktopAssistantCards";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
-import ZiiplyMobileCompareCard from "../components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
+import ZiiplyDesktopCompareCard from "../components/ziiply/desktop/ZiiplyDesktopCompareCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV147, searchZiiplyGostaOffersV146 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -823,10 +823,9 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
-{desktopCompareNotice&&<div className="fixed inset-0 z-[140] overflow-auto bg-[#172e23]/70 p-3"><div className="mx-auto w-full max-w-[1250px]"><ZiiplyMobileCompareCard
-  className="sm:!flex sm:!z-[150]"
+{desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row,i)=>({id:String(i),cartItemId:row.cartItemId,name:row.name,quantity:row.quantity,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null}))}))}
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing}))}
   loading={desktopCompareLoading}
   title="Halpuusvertailu"
   subtitle={desktopCompareError||"Kauppakohtaiset hinnat ja ostoskorit"}
@@ -834,7 +833,7 @@ export default function DesktopPreviewPage() {
   onBackToCart={()=>setDesktopCompareNotice(false)}
   onClose={()=>setDesktopCompareNotice(false)}
   onSelectStore={(id)=>{const chosen=desktopCompareResults[id];if(!chosen)return;if(!chosen.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan vertailukorissa ei ole yhtään vahvistettua hintaa.");return;}const byId=new Map(chosen.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price??null,storeName:String(chosen.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(chosen.store?.name||"kauppa")} (${chosen.rows.filter(row=>row.price!=null).length}/${chosen.rows.length} hintaa).`)}}
- /></div></div>}
+/>}
 
 
         {mapOpen && (
