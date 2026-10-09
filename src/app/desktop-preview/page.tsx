@@ -167,7 +167,7 @@ export default function DesktopPreviewPage() {
       if(saved&&typeof saved==="object"){
         for(const [key,value] of Object.entries(saved)){
           const entry=value as {matches?:Record<string,Record<string,number>>;expiresAt?:number};
-          if(entry&&typeof entry.expiresAt==="number"&&entry.expiresAt>Date.now()&&entry.matches&&typeof entry.matches==="object")
+          if((()=>{try{return JSON.parse(key)?.version===2;}catch{return false;}})()&&entry&&typeof entry.expiresAt==="number"&&entry.expiresAt>Date.now()&&entry.matches&&typeof entry.matches==="object")
             desktopCompareCacheRef.current[key]={matches:entry.matches,expiresAt:entry.expiresAt};
         }
       }
