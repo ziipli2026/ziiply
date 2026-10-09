@@ -1,0 +1,48 @@
+name: K-Citymarket 41LV preproduction probe
+on:
+  push:
+    paths:
+      - '.github/workflows/kcitymarket-41lv-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Parse 41LV independently without publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-parser.mjs
+          node scripts/citymarket/export-leaflet.mjs "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/" /tmp/kcm-41lv-probe /tmp/kcm-41lv-parser.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const dir='/tmp/kcm-41lv-probe/';
+          const manifest=JSON.parse(fs.readFileSync(dir+'archive-manifest.json','utf8'));
+          const evidence=JSON.parse(fs.readFileSync(dir+'parser-evidence.json','utf8'));
+          const all=evidence.rows||[];
+          const resolved=all.filter(r=>r.spatialResolved?.value>0&&!r.spatialResolved?.displayOnlyUnitPrice);
+          const percentages=all.filter(r=>Number(r.percentageOffer?.percent)>0);
+          const multibuy=resolved.filter(r=>Number(r.spatialResolved.quantity)>1);
+          const bad=resolved.filter(r=>!Number.isFinite(Number(r.spatialResolved.value))||Number(r.spatialResolved.value)<=0||Number(r.spatialResolved.value)>1000);
+          const unique=new Set(resolved.map(r=>[r.page,r.title,r.spatialResolved.value].join('|')));
+          const report={leaflet:manifest.publisherUrl||manifest.leafletUrl||manifest.entry,sha256:manifest.pdfSha256,pages:manifest.pageCount,rows:all.length,resolved:resolved.length,percentages:percentages.length,multibuy:multibuy.length,duplicates:resolved.length-unique.size,bad:bad.length,multibuySample:multibuy.slice(0,20).map(r=>({title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity,unit:r.spatialResolved.unit})),unresolvedSample:all.filter(r=>!r.spatialResolved&&!r.percentageOffer).slice(0,15).map(r=>({page:r.page,title:r.title}))};
+          console.log('KCM_41LV_PROBE',JSON.stringify(report,null,2));
+          if(!/41LV_KCM/i.test(JSON.stringify(manifest)))throw Error('Publisher is not 41LV: refuse release');
+          if(manifest.pageCount<1||resolved.length<15||bad.length)throw Error('41LV insufficient or invalid parser coverage');
+          fs.writeFileSync(dir+'probe-report.json',JSON.stringify(report,null,2));
+          NODE
+      - name: Preserve probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcitymarket-41lv-preproduction-probe
+          path: /tmp/kcm-41lv-probe/
+          retention-days: 90
+          if-no-files-found: warn
