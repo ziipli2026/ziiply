@@ -40,7 +40,7 @@ export default function DesktopPreviewPage() {
   const [fuelType, setFuelType] = useState<"diesel" | "price95" | "price98">("diesel");
   useEffect(() => {
     if (!fuelSelected) return;
-    if (!gpsCoords) { setFuelStations([]); setFuelError("Käynnistä GPS, jotta lähimmät asemat voidaan järjestää etäisyyden mukaan."); return; }
+    if (!gpsCoords) { setFuelStations([]); setFuelLoading(false); setFuelError("Käynnistä GPS, jotta lähimmät asemat voidaan järjestää etäisyyden mukaan."); return; }
     const controller = new AbortController();
     setFuelLoading(true); setFuelError("");
     fetch(`/api/fuel/stations?lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}`, { signal: controller.signal, cache: "no-store" })
