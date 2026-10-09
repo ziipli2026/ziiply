@@ -28,7 +28,7 @@ function FuelStationCardDetails({ chain, station }: { chain: string; station: an
   const compact = chain.includes("Gulf") || chain.includes("Ritoil") || chain === "Muut";
   return <div className="pointer-events-none absolute inset-x-0 top-1 z-10 flex h-[calc(100%-8px)] min-w-0 flex-col items-center text-center">
     <div className="flex w-[calc(100%-128px)] min-w-0 flex-col items-center">
-      <div className={`w-full text-center font-black leading-[1.05] text-[#111827] ${compact ? "text-[clamp(11px,.88vw,14px)]" : "text-[clamp(12px,1vw,16px)]"}`}>{chain}</div>
+      <div className={`w-full text-center font-black leading-[1.05] text-[#111827] ${compact ? "text-[clamp(11px,.88vw,14px)]" : "text-[clamp(12px,1vw,16px)]"}`}>{compact ? <>Gulf / Ritoil<br />Muu</> : chain}</div>
       <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei asemaa 50 km säteellä"}</div>
       {station && <div className="text-[12px] font-bold leading-[1.1] text-black">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
     </div>
