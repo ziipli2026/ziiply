@@ -7,7 +7,8 @@ export function desktopCartIdentity(item: Record<string, any>) {
   const rawId = item.id ?? item.offerId;
   const id = typeof rawId === "string" || typeof rawId === "number" ? String(rawId).trim() : "";
   if (id) return "id:" + id;
-  return "name:" + String(item.title ?? item.name ?? item.productName ?? "").trim().toLowerCase();
+  const rawName = item.title ?? item.name ?? item.productName;
+  return "name:" + (typeof rawName === "string" ? rawName.trim().toLowerCase() : "");
 }
 /** Keep the same EAN from different selected shops as separate cart rows. */
 export function desktopCartSameStore(a: Record<string, any>, b: Record<string, any>) {
