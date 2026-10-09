@@ -542,11 +542,21 @@ export default function DesktopPreviewPage() {
             ].map(([icon, title, value, detail, theme]) => (
               <div key={title} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
-                  <span className={`mt-0.5 block font-black leading-none text-[#102a24] ${title === "AJOAINE" ? "text-[14px] whitespace-nowrap" : "text-[19px]"}`}>{value}</span>
-                  <span className={`mt-1 block truncate font-black ${title === "AJOAINE" ? "text-[14px] leading-none text-[#102a24] !overflow-visible !text-clip whitespace-nowrap" : "text-[9px] text-[#706a58]"}`}>{detail}</span>
-                </span>
+                {title === "AJOAINE" ? (
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">AJOAINE</span>
+                    <span className="mt-0.5 grid grid-cols-[20px_minmax(0,1fr)] items-baseline gap-x-1 text-[13px] font-black leading-[1.15] text-[#102a24] tabular-nums">
+                      <span>DI</span><span className="whitespace-nowrap">2,51</span>
+                      <span className="mt-0.5">BE</span><span className="mt-0.5 whitespace-nowrap">2,33 / 2,41</span>
+                    </span>
+                  </span>
+                ) : (
+                  <span className="min-w-0">
+                    <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
+                    <span className="mt-0.5 block text-[19px] font-black leading-none text-[#102a24]">{value}</span>
+                    <span className="mt-1 block truncate text-[9px] font-black text-[#706a58]">{detail}</span>
+                  </span>
+                )}
               </div>
             ))}
             <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5">
