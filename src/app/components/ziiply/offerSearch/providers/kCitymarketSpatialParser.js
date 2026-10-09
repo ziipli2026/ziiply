@@ -204,15 +204,23 @@ function resolveCards(rows,rawBoxes){
         Math.max(1,Number(previous.resolved.value)*.35)&&
       price.anchor.height>=.045&&
       !oldUnitProof&&!arithmetic&&!publisherBundleProof;
-    card.row.spatialResolved=conflictingOwnedPrice?null:previous.resolved;
-    if(twoBagSameColumn&&card.row.spatialResolved){
-      card.row.spatialResolved={...card.row.spatialResolved,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total'};
+    // When publisher text proves the large glyph belongs to this offer,
+    // promote that glyph instead of retaining the previously assigned nearby price.
+    // Mixed-set totals are not the WC-paper unit price, so keep them as bundle
+    // metadata only; two-bag totals remain a resolved offer with quantity 2.
+    if(explicitBundleContext){
+      card.row.spatialResolved=null;
+      card.row.debugPublisherBundlePrice={value:Number(price.value),currency:'EUR',offerKind:'mixed-set-total'};
+    } else if(explicitTwoBagContext) {
+      card.row.spatialResolved={...price,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total'};
+    } else {
+      card.row.spatialResolved=conflictingOwnedPrice?null:previous.resolved;
     }
     card.row.unitPrice=previous.unitPrice;card.row.normal=previous.normal;card.row.nearby=previous.nearby;card.row.percentageOffer=previous.percentageOffer;card.row.debugRejectedCardPrice=price;
     if(publisherBundleProof)card.row.debugPublisherBundle={
       type:explicitBundleContext?'mixed-set':'two-bag-multibuy',
       evidence:explicitBundleContext?'YHTEISHINTAAN + SETTI':'2 SÄKKIÄ',
-      totalPrice:previous.resolved.value,
+      totalPrice:Number(price.value),
       requiresBundlePresentation:true
     };
     if(conflictingOwnedPrice)card.row.debugPriceOwnershipConflict={
