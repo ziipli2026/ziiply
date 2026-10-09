@@ -235,8 +235,9 @@ function resolveCards(rows,rawBoxes){
  // Final pack-semantics pass after all competing price candidates have been reconciled.
  // The explicit publisher label "2 SÄKKIÄ" plus the rejected large price glyph
  // must win over a weak neighbouring-card match (e.g. 6.10 EUR).
- for(const row of rows){
-   const context=(row.nearby||[]).join(' ').replace(/\s+/g,' ').toUpperCase();
+ for(const card of cards){
+   const row=card.row;
+   const context=[...(row.nearby||[]),...(row.spatialGroups||[]).map(g=>g.text||'')].join(' ').replace(/\s+/g,' ').toUpperCase();
    if(/\b2\s*SÄKKIÄ\b/.test(context)){
      const totalCandidate=(row.spatialCandidates||[]).find(c=>Math.abs(Number(c.value)-29.9)<0.005) || row.debugRejectedCardPrice;
      if(totalCandidate&&Number(totalCandidate.value)>0) row.spatialResolved={...totalCandidate,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
