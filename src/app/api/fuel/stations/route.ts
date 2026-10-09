@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       WHERE lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
         AND lower(coalesce(s.name, '')) NOT LIKE '%teboil%'
     `;
-    const stations = rows.map((r) => ({
+    const stations = rows.filter((r) => !/\bteboil\b/i.test(String(r.chain ?? "") + " " + String(r.name ?? ""))).map((r) => ({
       id: String(r.source_station_id), name: String(r.name), chain: r.chain,
       address: r.address, latitude: Number(r.latitude), longitude: Number(r.longitude),
       distanceKm: distanceKm(lat, lon, Number(r.latitude), Number(r.longitude)),
