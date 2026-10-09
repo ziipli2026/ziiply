@@ -592,11 +592,11 @@ export default function DesktopPreviewPage() {
 
         
 
-        {fuelSelected && <section role="dialog" aria-label="Ajoaineiden vertailu" className="fixed inset-0 z-[130] grid place-items-center bg-[#172e23]/55 p-5">
-          <div className="w-[min(620px,94vw)] rounded-[28px] border-[3px] border-[#9a7047] bg-[#fff3d3] p-5 shadow-2xl">
+        {fuelSelected && <section aria-label="Ajoaineiden vertailu" className="mx-auto mt-3 w-full max-w-[1280px] px-4">
+          <div className="w-full rounded-[22px] border-2 border-[#9a7047] bg-[#fff3d3] p-4 shadow-md">
             <div className="flex items-start justify-between gap-4"><div><div className="text-[11px] font-black tracking-widest text-[#756848]">⛽ AJOAINE</div><h2 className="text-[24px] font-black text-[#174c3a]">Polttoainehinnat</h2></div><button type="button" onClick={()=>setFuelSelected(false)} aria-label="Sulje ajoaine" className="rounded-full border-2 border-[#704b2c] bg-white px-4 py-1 text-xl font-black">×</button></div>
             <div className="mt-4 flex gap-2"><button type="button" onClick={()=>setFuelMode("nearby")} aria-pressed={fuelMode==="nearby"} className={`rounded-full border-2 px-4 py-2 font-black ${fuelMode==="nearby"?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>Lähimmät asemat</button><button type="button" onClick={()=>setFuelMode("compare")} aria-pressed={fuelMode==="compare"} className={`rounded-full border-2 px-4 py-2 font-black ${fuelMode==="compare"?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>Hintavertailu</button></div>
-            <div className="mt-4 max-h-[55vh] overflow-y-auto rounded-2xl border border-[#d0b273] bg-white/70 p-4 text-[#174c3a]">
+            <div className="mt-3 max-h-[360px] overflow-y-auto rounded-2xl border border-[#d0b273] bg-white/70 p-3 text-[#174c3a]">
               <p className="mb-2 text-sm font-black">Sijainti: {appliedLocation || location || (gpsOn ? "GPS käytössä" : "ei valittu")}</p>
               <div className="mb-3 flex flex-wrap gap-2">{([["diesel","Diesel"],["price95","95E10"],["price98","98E5"]] as const).map(([key,label])=><button key={key} type="button" onClick={()=>setFuelType(key)} aria-pressed={fuelType===key} className={`rounded-full border px-3 py-1 text-xs font-black ${fuelType===key?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>{label}</button>)}</div>
               {fuelLoading ? <p>Haetaan asemia…</p> : fuelError ? <p role="alert">{fuelError}</p> : fuelStations.length===0 ? <p>Asemia ei löytynyt.</p> : fuelMode==="compare" && !fuelStations.some((s:any)=>s[fuelType]!=null) ? <p>Valitulle polttoaineelle ei ole vielä tallennettu hintahavaintoja.</p> :
