@@ -57,7 +57,7 @@ const DESKTOP_CATEGORY_PRIORITY = [
 function desktopCategoryRank(category: string): number {
   const normalized = category.toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
   if (normalized === "muu" || normalized === "muut" || normalized === "other") return DESKTOP_CATEGORY_PRIORITY.length - 1;
-  const idx = DESKTOP_CATEGORY_PRIORITY.findIndex((terms, index) => index !== DESKTOP_CATEGORY_PRIORITY.length - 1 && terms.some(term => normalized.includes(term.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))));
+  const idx = DESKTOP_CATEGORY_PRIORITY.findIndex((terms, index) => index !== DESKTOP_CATEGORY_PRIORITY.length - 1 && terms.some(term => { const needle = term.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return needle === "tee" ? normalized.split(" ").includes("tee") : normalized.includes(needle); }));
   return idx >= 0 ? idx : DESKTOP_CATEGORY_PRIORITY.length - 2;
 }
 function sortDesktopCategories(categories: string[]): string[] {
