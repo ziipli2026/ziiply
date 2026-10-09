@@ -1306,6 +1306,24 @@ title=cleanOfferTitle(title);
 if(pk&&/\b(?:cl|dl)\b/i.test(pk.raw))spatialResolved=null;
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,initialExpectedSingle:expectedAtStart==null?null:Number(expectedAtStart.toFixed(3)),candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}
 resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
+// Preserve multi-buy quantities independently verified by the product's own
+// unit-price arithmetic, without hardcoding any product or offer amount.
+for(const row of out.rows.filter(r=>r.page===p)){
+ const single=Number(row.initialExpectedSingle??row.expectedSingle);
+ const verified=(row.spatialCandidates||[]).filter(candidate=>{
+  const q=Number(candidate.quantity),value=Number(candidate.value);
+  return Number.isFinite(single)&&single>0&&Number.isInteger(q)&&q>=2&&q<=12&&
+   Number.isFinite(value)&&Math.abs(value-single*q)<=Math.max(.035,value*.008);
+ });
+ const unique=[...new Map(verified.map(candidate=>[Number(candidate.value).toFixed(2)+":"+Number(candidate.quantity),candidate])).values()];
+ if(unique.length===1){
+  const match=unique[0],current=row.spatialResolved;
+  if(!current||Math.abs(Number(current.value)-Number(match.value))<.035){
+   row.spatialResolved={value:Number(match.value),quantity:Number(match.quantity),unit:match.unit||null,
+    source:"verified-candidate-total-quantity",sanity:"pass",confidence:"high"};
+  }
+ }
+}
 // Apply publisher bundle ownership to the actual returned output rows, after
 // resolveCards has finished. Its internal return value is not consumed by the caller.
 for(const row of out.rows.filter(r=>r.page===p)){
