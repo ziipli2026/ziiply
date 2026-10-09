@@ -197,7 +197,7 @@ function resolveCards(rows,rawBoxes){
     const twoBagSameColumn=explicitTwoBagContext&&titleAnchor&&priceAnchor&&
       Math.abs((priceAnchor.left+priceAnchor.width/2)-(titleAnchor.left+(titleAnchor.right-titleAnchor.left)/2))<.22&&
       Math.abs(priceAnchor.top-titleAnchor.top)<.09;
-    const publisherBundleProof=explicitBundleContext||twoBagSameColumn;
+    const publisherBundleProof=explicitBundleContext||explicitTwoBagContext;
     const conflictingOwnedPrice=previous.resolved&&
       Number(previous.resolved.value)>0&&
       Math.abs(Number(price.value)-Number(previous.resolved.value))>
