@@ -8,7 +8,7 @@ import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, refreshDeskt
 import { desktopCartIdentity, desktopCartSameStore, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 import { rankComparisonResults } from "../components/ziiply/cart/comparisonRankingCore";
-import { isComparisonAttributeCompatible, pickBestSProduct, getProductPrice } from "../components/ziiply/ziiplyCore";
+import { isComparisonAttributeCompatible, pickBestSProduct } from "../components/ziiply/ziiplyCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -201,10 +201,12 @@ export default function DesktopPreviewPage() {
               // Mobile parity: use its attribute checks and ranked matching when exact EAN is absent.
               // A substitute is a comparison-only price, never a replacement for the original basket item.
               const candidates=exact.length===1?exact:products;
-              const chosen=exact.length===1?exact[0]:pickBestSProduct(
-                candidates.filter((p:any)=>isComparisonAttributeCompatible(title,String(p.name??p.title??""))).map((p:any)=>({
-                  ...p,name:String(p.name??p.title??""),price:Number(p.price??p.storeItems?.[0]?.price??p.storeItem?.price??0)
-                })).filter((p:any)=>Number.isFinite(getProductPrice(p))&&getProductPrice(p)>0),title
+              // Normalize provider prices before ranking; never treat a catalog-only row as a store quote.
+              const pricedCandidates=normalizeDesktopNormalResults(candidates,chain,store,candidates.length)
+                .filter((p:any)=>p.__priceVerified===true && p.__catalogOnly!==true && Number(p.__price)>0)
+                .map((p:any)=>({...p,name:String(p.name??p.title??""),price:Number(p.__price)}));
+              const chosen=exact.length===1?pricedCandidates[0]:pickBestSProduct(
+                pricedCandidates.filter((p:any)=>isComparisonAttributeCompatible(title,p.name)),title
               );
               if(!chosen)return;
               const normalized=normalizeDesktopNormalResults([chosen],chain,store,1)[0];
