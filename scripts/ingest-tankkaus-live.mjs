@@ -85,6 +85,11 @@ const newestObservedAtByFuel=Object.fromEntries(fuelConfigs.map(([fuel])=>[fuel,
 const freshnessWarnings=fuelConfigs.filter(([fuel])=>acceptedByFuel[fuel]>0 && fresh24hByFuel[fuel]===0).map(([fuel])=>fuel);
 if(freshnessWarnings.length) console.warn("Tankkaus: no observations newer than 24h for "+freshnessWarnings.join(", "));
 if (!unique.length) throw new Error(`No valid live price observations: ${JSON.stringify(diagnostics)}`);
+const report={stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],area,center:{lat,lon},radiusKm:10,acceptedByFuel,fresh24hByFuel,newestObservedAtByFuel,freshnessWarnings,diagnostics};
+if (process.env.TANKKAUS_DRY_RUN === "true") {
+  console.log(JSON.stringify({ok:true,mode:"live-test-branch-dry-run",...report}));
+  process.exit(0);
+}
 for (const s of stations.values()) {
   await sql`INSERT INTO ziiply_fuel_stations
     (source,source_station_id,name,chain,address,latitude,longitude,last_seen_at,updated_at)
@@ -99,4 +104,4 @@ for (const o of unique) {
     VALUES ('tankkaus.com',${o.stationId},${o.fuel},${o.price},${o.observedAt}::timestamptz)
     ON CONFLICT (source,source_station_id,fuel_type,observed_at,price_eur_per_litre) DO NOTHING`;
 }
-console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],area,center:{lat,lon},radiusKm:10,acceptedByFuel,fresh24hByFuel,newestObservedAtByFuel,freshnessWarnings,diagnostics}));
+console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",...report}));
