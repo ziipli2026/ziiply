@@ -97,3 +97,18 @@ test("exact cart price refresh recognizes nested EAN from selected store", async
     globalThis.fetch = originalFetch;
   }
 });
+
+test("exact refresh supports nested cart product identity and title", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({
+    products: [{ product: { ean: "6412345678901" }, price: 3.19 }]
+  }) });
+  try {
+    const price = await refreshDesktopCartProductPrice(
+      { product: { ean: "6412345678901", name: "Testituote" } }, "K", store
+    );
+    assert.equal(price, 3.19);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
