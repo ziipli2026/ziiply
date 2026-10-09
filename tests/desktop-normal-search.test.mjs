@@ -484,7 +484,7 @@ test("desktop comparison cache signature includes store identity, quantity and p
   assert.ok(start >= 0 && end > start);
   const signature = page.slice(start, end);
   assert.match(signature, /store\?\.id\?\?store\?\.externalId/);
-  assert.match(signature, /desktopCartIdentity\(item\)/);
+  assert.match(signature, /desktopComparisonRowKey\(item\)/);
   assert.match(signature, /Number\(item\.quantity \?\? 1\)/);
   assert.match(signature, /item\.ean/);
   assert.match(signature, /\.sort\(/);
@@ -533,7 +533,7 @@ test("desktop comparison counts quantities in totals and excludes invalid quanti
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
   assert.match(page, /Number\.isFinite\(Number\(item\.quantity \?\? 1\)\)/);
   assert.match(page, /Number\(item\.quantity \?\? 1\)>0/);
-  assert.match(page, /verified\[desktopCartIdentity\(item\)\]\*Number\(item\.quantity \?\? 1\)/);
+  assert.match(page, /verified\[desktopComparisonRowKey\(item\)\]\*Number\(item\.quantity \?\? 1\)/);
 });
 
 test("same EAN in two stores remains separate while repeat in one store increments quantity", async () => {
@@ -646,4 +646,14 @@ test("desktop comparison does not turn zero quantity into one", () => {
   assert.match(page, /Number\(item\.quantity \?\? 1\)/);
   assert.equal(Number(0 ?? 1), 0);
   assert.equal(Number(undefined ?? 1), 1);
+});
+
+test("comparison row keys distinguish identical barcodes from separate shops", async () => {
+  const source = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { desktopComparisonRowKey } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+  const a = { ean: "6410405124517", source: "justiina", __chain: "K", __storeId: "100" };
+  const b = { ...a, __storeId: "200" };
+  assert.notEqual(desktopComparisonRowKey(a), desktopComparisonRowKey(b));
+  assert.equal(desktopComparisonRowKey(a), desktopComparisonRowKey({ ...a, quantity: 3 }));
 });
