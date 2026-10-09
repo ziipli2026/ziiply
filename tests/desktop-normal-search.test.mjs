@@ -147,3 +147,36 @@ test("cart price refresh retries exact EAN after unsuccessful name search", asyn
     globalThis.fetch = originalFetch;
   }
 });
+
+test("cart refresh can find exact EAN without a product title", async () => {
+  const originalFetch = globalThis.fetch;
+  const searches = [];
+  globalThis.fetch = async url => {
+    searches.push(new URL(String(url), "https://example.test").searchParams.get("search"));
+    return { ok: true, json: async () => ({ products: [{ ean: "6412345678901", price: 1.79 }] }) };
+  };
+  try {
+    const price = await refreshDesktopCartProductPrice(
+      { ean: "6412345678901" }, "S", store
+    );
+    assert.equal(price, 1.79);
+    assert.deepEqual(searches, ["6412345678901"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("EAN fallback never substitutes a different barcode", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({
+    products: [{ ean: "6412345678902", price: 0.99 }]
+  }) });
+  try {
+    const price = await refreshDesktopCartProductPrice(
+      { ean: "6412345678901", title: "Testituote" }, "K", store
+    );
+    assert.equal(price, null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
