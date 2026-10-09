@@ -215,3 +215,19 @@ test("nested single storeItem for selected store remains verified", () => {
   assert.equal(item.__price, 2.49);
   assert.equal(item.__priceVerified, true);
 });
+
+test("direct product price scoped to another store is rejected", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeId: "other", price: 1.09
+  }], "S", store);
+  assert.equal(item.__price, 0);
+  assert.equal(item.__priceVerified, false);
+});
+
+test("direct product price scoped to selected store is accepted", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeId: "123", price: 2.09
+  }], "K", store);
+  assert.equal(item.__price, 2.09);
+  assert.equal(item.__priceVerified, true);
+});
