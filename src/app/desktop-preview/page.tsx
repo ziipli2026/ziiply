@@ -44,7 +44,7 @@ function FuelStationTypeIllustration({ kind, className }: { kind: "traffic" | "c
     cold: "/fuel-icons/cold-station.png",
     pump: "/fuel-icons/fuel-pump.png",
   };
-  return <img src={images[kind]} alt="" aria-hidden="true" className={className} style={{ objectFit: "contain", mixBlendMode: kind === "traffic" || kind === "cold" ? "multiply" : "normal" }} loading="eager" draggable={false} />;
+  return <img src={images[kind]} alt="" aria-hidden="true" className={className} style={{ objectFit: "contain" }} loading="eager" draggable={false} />;
 }
 
 function FuelStationCardDetails({ chain, station }: { chain: string; station: any }) {
