@@ -1,4 +1,6 @@
 name: Tankkaus scheduled isolated collection
+# PILOT ONLY: four 10 km circles. NOT nationwide coverage.
+# Nationwide collection requires provider-approved bulk coverage and a verified tiling plan.
 on:
   schedule:
     # UTC hourly window covers all Finnish target hours in winter and summer.
