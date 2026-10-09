@@ -132,13 +132,17 @@ jobs:
           const localIds=new Set(local.map(x=>x.id));
           const jumboIds=new Set(jumbo.map(x=>x.id));
           const foreign=campaigns.filter(x=>jumboIds.has(x.id));
-          const missing=local.filter(x=>!visible.some(y=>y.id===x.id));
+          // Only local campaign rows are expected in the campaign tab.
+          // Weekly/local offers belong to the offers tab and must not inflate
+          // the campaign "missing" metric.
+          const expectedLocalCampaigns=local.filter(x=>x.campaignType==='campaign');
+          const missing=expectedLocalCampaigns.filter(x=>!visible.some(y=>y.id===x.id));
           const wrongTab=offers.filter(x=>localIds.has(x.id));
           const badCampaignCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
           const badOfferCategories=offers.filter(x=>!x.category||x.category==='Muut');
           const badCategories=[...badOfferCategories,...badCampaignCategories];
           const unexpectedFallbacks=badCategories.map(x=>x.title);
-          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),offerFallbacks:badOfferCategories.map(x=>x.title),campaignFallbacks:badCampaignCategories.map(x=>x.title),unexpectedFallbacks},null,2));
+          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,expectedLocalCampaigns:expectedLocalCampaigns.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,missingTitles:missing.map(x=>x.title),wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),offerFallbacks:badOfferCategories.map(x=>x.title),campaignFallbacks:badCampaignCategories.map(x=>x.title),unexpectedFallbacks},null,2));
           if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
