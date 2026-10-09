@@ -7,6 +7,8 @@ on:
       - ".github/workflows/kcitymarket-40av-audit.yml"
       - "scripts/citymarket/leaflet-regression-publications.json"
       - "tests/fixtures/citymarket/**"
+      - "tests/kcitymarket-category-regression.test.cjs"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
       - "src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts"
       - "tests/k-offer-tab-policy.test.cjs"
@@ -21,6 +23,8 @@ jobs:
           node-version: 20
       - name: Run K offer tab policy regression
         run: node --test tests/k-offer-tab-policy.test.cjs
+      - name: Run Citymarket category regression
+        run: node --test tests/kcitymarket-category-regression.test.cjs
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
