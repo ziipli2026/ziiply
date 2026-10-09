@@ -374,3 +374,14 @@ test("price verification uses internal API store ID when external ID differs", (
   assert.equal(item.__price, 2.15);
   assert.equal(item.__priceVerified, true);
 });
+
+test("price rows prefer internal storeId when externalId differs", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeItems: [
+      { externalId: "external-store-999", storeId: "417", price: 2.35 },
+      { externalId: "417", storeId: "external-store-999", price: 1.05 }
+    ]
+  }], "S", { id: 417, externalId: "external-store-999", name: "Prisma Tuusula" });
+  assert.equal(item.__price, 2.35);
+  assert.equal(item.__priceVerified, true);
+});
