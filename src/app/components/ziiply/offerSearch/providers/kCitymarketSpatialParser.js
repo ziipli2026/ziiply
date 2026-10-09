@@ -132,7 +132,10 @@ function resolveCards(rows,rawBoxes){
   const candidates=(owned.get(card)||[]).sort((a,b)=>a.score-b.score);
   const pkProof=card.row.package,rateProof=card.row.unitPrice;
   const proven=pkProof&&rateProof?candidates.filter(p=>Math.abs(pkProof.min*rateProof.max*(p.quantity||1)-p.value)<.08&&Math.abs(pkProof.max*rateProof.min*(p.quantity||1)-p.value)<.08):[];
-  const price=proven[0]||candidates[0];
+  // A publisher price must not replace a separately resolved same-card offer
+   // solely on geometric proximity. Prefer independently verified package/unit
+   // arithmetic; otherwise leave conflicting glyph ownership for review.
+   const price=proven[0]||candidates[0];
   const previous={resolved:card.row.spatialResolved,unitPrice:card.row.unitPrice,normal:card.row.normal,nearby:card.row.nearby,percentageOffer:card.row.percentageOffer};
   card.row.nearby=context.get(card).sort((a,b)=>a.top-b.top||a.left-b.left).map(g=>repairText(g.text));
   if(price){card.row.percentageOffer=null;card.row.spatialResolved={value:Number(price.value.toFixed(2)),quantity:price.quantity,unit:price.unit,source:'owned-publisher-price-glyph',sanity:'pass',confidence:'high'};card.row.debugCardPrice=price;}
