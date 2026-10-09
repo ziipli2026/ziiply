@@ -91,6 +91,9 @@ export async function GET(request: NextRequest) {
         AND s.is_traffic_station = TRUE
         AND s.latitude BETWEEN ${latitude - 0.25} AND ${latitude + 0.25}
         AND s.longitude BETWEEN ${longitude - 0.35} AND ${longitude + 0.35}
+      ORDER BY
+        power(s.latitude - ${latitude}, 2) +
+        power((s.longitude - ${longitude}) * cos(radians(${latitude})), 2)
       LIMIT 500
     ` as PriceRow[];
 
