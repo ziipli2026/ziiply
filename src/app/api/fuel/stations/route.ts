@@ -70,6 +70,8 @@ export async function GET(req: NextRequest) {
       }
     }
     const deduplicated = [...unique.values()].sort((a,b) => a.distanceKm-b.distanceKm);
+    // Never expose the count or identities of excluded providers in the response.
+    // Keep the station list stable and sorted by distance.
     return NextResponse.json({ ok: true, stations: deduplicated, source: "Neon / tankkaus.com observations" });
   } catch {
     return NextResponse.json({ ok: false, error: "Fuel stations unavailable" }, { status: 503 });
