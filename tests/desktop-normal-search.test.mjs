@@ -127,3 +127,23 @@ test("exact refresh rejects unscoped store even with matching EAN", async () => 
     globalThis.fetch = originalFetch;
   }
 });
+
+test("cart price refresh retries exact EAN after unsuccessful name search", async () => {
+  const originalFetch = globalThis.fetch;
+  const searches = [];
+  globalThis.fetch = async url => {
+    const query = new URL(String(url), "https://example.test").searchParams.get("search");
+    searches.push(query);
+    return { ok: true, json: async () => ({ products: query === "6412345678901"
+      ? [{ ean: "6412345678901", price: 4.29 }] : [] }) };
+  };
+  try {
+    const price = await refreshDesktopCartProductPrice(
+      { ean: "6412345678901", title: "Testituote" }, "K", store
+    );
+    assert.equal(price, 4.29);
+    assert.deepEqual(searches, ["Testituote", "6412345678901"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
