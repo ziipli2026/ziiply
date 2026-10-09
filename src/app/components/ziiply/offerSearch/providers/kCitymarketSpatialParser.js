@@ -409,7 +409,7 @@ for(const emb of productBlock){
 const packageNumbers=new Set((title.match(/\d+(?:[,.]\d+)?/g)||[]).map(x=>Number(x.replace(",","."))));
 
 // Recover large-font transaction prices from the coordinate layer. These are visually distinct from package sizes/unit prices.
-for(const euro of spatialPriceBoxes.filter(x=>/^\\d{1,2}[.]?$/.test(String(x.text).trim())&&Number(x.height||0)>=.05&&anchor&&boxDistance(anchor,x)<.23)){
+for(const euro of spatialPriceBoxes.filter(x=>/^\\d{1,2}[.]?$/.test(String(x.text).trim())&&Number(x.height||0)>=.05&&anchor&&boxDistance(anchor,x)<.31)){
  const value=Number(String(euro.text).replace(/[.]$/,"")); if(!(value>=1&&value<30)||packageNumbers.has(value))continue;
  const qUnits=[]; for(const u of productBlock.filter(x=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(x.text).trim()))){const q=productBlock.filter(x=>/^[2-5]$/.test(String(x.text).trim())).map(x=>({...x,dq:Math.hypot(x.left-u.left,x.top-u.top)})).sort((a,b)=>a.dq-b.dq)[0];if(q&&q.dq<.10){const de=Math.hypot(((q.left+u.left)/2)-euro.left,((q.top+u.top)/2)-euro.top);if(de<.20)qUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),de})}}
  const qu=qUnits.sort((a,b)=>a.de-b.de)[0]; if(qu||(!expected&&boxDistance(anchor,euro)<.11))spatialCandidates.push({value,quantity:qu?qu.quantity:null,unit:qu?qu.unit:null,parts:[String(euro.text)],score:Number((boxDistance(anchor,euro)*.35+(qu?qu.de*.15:0)).toFixed(6)),kind:"large-visual-whole-euro"});
