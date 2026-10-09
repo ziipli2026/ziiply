@@ -1,6 +1,6 @@
 "use client";
 
-/** Desktop assistant cards with always-visible mobile-equivalent descriptions. */
+/** Desktop assistant cards: all three cards fill the full large frame, with descriptions always visible and no text backplates. */
 type Assistant = "gosta" | "justiina" | "arvo";
 const assistants = [
   {
@@ -37,7 +37,7 @@ const assistants = [
 
 export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false}:{onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
   return (
-    <div className="grid grid-cols-3 gap-3 xl:gap-4 -mt-3">
+    <div className="grid h-full min-h-0 grid-cols-3 gap-3 xl:gap-4 -mt-3">
       {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
         const selected = active === item.key;
         return (
@@ -46,7 +46,7 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
             type="button"
             onClick={() => onSelect(item.key)}
             className={[
-              "group relative flex min-h-[0] h-[clamp(420px,57vh,590px)] flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-0 pt-5 text-center transition duration-200 active:translate-y-[2px]",
+              "group relative flex h-full min-h-0 flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-0 pt-5 text-center transition duration-200 active:translate-y-[2px]",
               item.frame,
               selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
             ].join(" ")}
