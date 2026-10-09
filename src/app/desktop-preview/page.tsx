@@ -151,12 +151,58 @@ export default function DesktopPreviewPage() {
   const [gostaChooseStoresNotice,setGostaChooseStoresNotice]=useState(false);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
+  const [desktopCompareMatches,setDesktopCompareMatches]=useState<Record<string,Record<string,number>>>({});
+  const [desktopCompareLoading,setDesktopCompareLoading]=useState(false);
+  const desktopCompareSignature=JSON.stringify({
+    stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.externalId??store?.id??"")]),
+    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??""])
+  });
+  const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
+  useEffect(()=>{
+    if(!desktopCompareNotice)return;
+    let cancelled=false;
+    const signature=desktopCompareSignature;
+    setDesktopCompareLoading(true);
+    setDesktopCompareMatches({});
+    setDesktopCompareResolvedSignature("");
+    void (async()=>{
+      const matches:Record<string,Record<string,number>>={};
+      const eligible=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true);
+      for(const store of Object.values(selectedStores) as any[]){
+        if(cancelled)return;
+        const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
+        const storeId=String(store?.externalId??store?.id??"").trim();
+        if(!storeId||!(chain==="S"||chain==="K"))continue;
+        const key=chain+":"+storeId;
+        matches[key]={};
+        for(const item of eligible){
+          if(cancelled)return;
+          const ean=String(item.ean??"").trim();
+          if(!ean)continue;
+          try{
+            const products=await fetchDesktopNormalProducts(String(item.title??item.name??item.productName??""),chain,store);
+            const exact=products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
+            if(exact.length!==1)continue;
+            const normalized=normalizeDesktopNormalResults(exact,chain,store,1)[0];
+            const price=Number(normalized?.__price);
+            if(normalized?.__priceVerified&&Number.isFinite(price)&&price>0)
+              matches[key][desktopCartIdentity(item)]=price;
+          }catch{}
+        }
+      }
+      if(!cancelled){setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
+    })();
+    return()=>{cancelled=true};
+  // Only rerun when basket/store identity changes or the comparison is reopened.
+  },[desktopCompareNotice,desktopCompareSignature]);
+
   const desktopCompareResults = rankComparisonResults(Object.values(selectedStores).map((store:any)=>{
     const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
     const storeId=String(store?.externalId??store?.id??"").trim();
     const comparable=cartItems.filter((item:any)=>item.source==="justiina" && item.ziiplyWeightLabel!==true && item.product?.ziiplyWeightLabel!==true);
-    const matched=comparable.filter((item:any)=>String(item.__chain??item.chain??"").toUpperCase()===chain&&String(item.__storeId??item.storeId??"").trim()===storeId&&item.__priceVerified===true&&desktopCartPrice(item.price)!=null);
-    return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+(desktopCartPrice(item.price)??0)*Number(item.quantity||1),0)};
+    const verified=desktopCompareResolvedSignature===desktopCompareSignature?desktopCompareMatches[chain+":"+storeId]??{}:{};
+    const matched=comparable.filter((item:any)=>verified[desktopCartIdentity(item)]!=null);
+    return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+verified[desktopCartIdentity(item)]*Number(item.quantity||1),0)};
   }));
   const desktopCompareComplete = desktopCompareResults.filter(result=>result.missingItems===0 && result.foundItems>0 && result.totalPrice>0);
   const desktopCompareBestPrice = desktopCompareComplete.length>=2 ? Math.min(...desktopCompareComplete.map(result=>result.totalPrice)) : null;
@@ -490,7 +536,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
-{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Vertailussa näytetään vain vahvistetut, valittuun kauppaan kuuluvat normaalihinnat. Puuttuvien tuotteiden hintoja ei arvata.</p><div className="mt-4 max-h-[45vh] space-y-3 overflow-y-auto text-left">{desktopCompareResults.map(result=><div key={result.chain+":"+result.storeId} className="rounded-xl border border-[#b9a078] bg-white/60 p-3"><div className="flex justify-between gap-4 font-bold"><span>{result.storeName}</span><span>{result.foundItems>0?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</span></div><p className="text-sm">{result.foundItems} löytyi · {result.missingItems} puuttuu{result.missingItems>0?" · summa ei ole vertailukelpoinen":desktopCompareBestPrice==null?" · vertailuun tarvitaan vähintään kaksi täydellistä koria":Math.abs(result.totalPrice-desktopCompareBestPrice)<0.005?" · paras vahvistettu hinta":" · +"+(result.totalPrice-desktopCompareBestPrice).toFixed(2).replace(".",",")+" € kalliimpi"}</p></div>)}</div><p className="mt-3 text-sm text-[#8b4e35]">Muiden kauppojen tuotevastineiden haku on vielä kytkemättä. Näytetyt summat eivät ole täydellinen Halpuusvertailu.</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Vertailussa näytetään vain vahvistetut, valittuun kauppaan kuuluvat normaalihinnat. Puuttuvien tuotteiden hintoja ei arvata.</p><div className="mt-4 max-h-[45vh] space-y-3 overflow-y-auto text-left">{desktopCompareResults.map(result=><div key={result.chain+":"+result.storeId} className="rounded-xl border border-[#b9a078] bg-white/60 p-3"><div className="flex justify-between gap-4 font-bold"><span>{result.storeName}</span><span>{result.foundItems>0?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</span></div><p className="text-sm">{result.foundItems} löytyi · {result.missingItems} puuttuu{result.missingItems>0?" · summa ei ole vertailukelpoinen":desktopCompareBestPrice==null?" · vertailuun tarvitaan vähintään kaksi täydellistä koria":Math.abs(result.totalPrice-desktopCompareBestPrice)<0.005?" · paras vahvistettu hinta":" · +"+(result.totalPrice-desktopCompareBestPrice).toFixed(2).replace(".",",")+" € kalliimpi"}</p></div>)}</div><p className="mt-3 text-sm text-[#8b4e35]">{desktopCompareLoading?"Haetaan valittujen S- ja K-kauppojen tarkkoja EAN-osumia…":"Haku tunnistaa tässä vaiheessa vain täsmälliset EAN-osumat S- ja K-kaupoista. Vastaavien tuotteiden ja muiden ketjujen haku on vielä kesken."}</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 
 
         {fuelOpen && (()=>{const all=[
