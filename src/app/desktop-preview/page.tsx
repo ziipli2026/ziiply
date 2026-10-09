@@ -403,7 +403,7 @@ export default function DesktopPreviewPage() {
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
             const price=matched?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
-            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,image:String(matched?.image||matched?.imageUrl||matched?.product?.image||matched?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none"};
+            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,image:String((matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none"};
           }catch{return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
