@@ -38,6 +38,7 @@ jobs:
           if(manifest.pageCount<1||resolved.length<15||bad.length)throw Error('41LV insufficient or invalid parser coverage');
           const suspicious=multibuy.filter(r=>Number(r.spatialResolved.quantity)>=4 || Number(r.spatialResolved.value)/Number(r.spatialResolved.quantity)<1.5 || /\\b(?:ja|tai)\\b/i.test(String(r.title)) && Number(r.spatialResolved.quantity)>2);
           console.log('KCM_41LV_MANUAL_REVIEW_REQUIRED',JSON.stringify(suspicious.map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity,unit:r.spatialResolved.unit})),null,2));
+          fs.writeFileSync(dir+'manual-review.json',JSON.stringify(suspicious.map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity,unit:r.spatialResolved.unit,source:r.spatialResolved.source,nearby:r.nearby,spatialCandidates:r.spatialCandidates,spatialPriceBoxes:r.spatialPriceBoxes})),null,2));
           if(suspicious.length)throw Error('41LV HOLD: ambiguous multibuy prices require comparison against the original leaflet before production');
 
           fs.writeFileSync(dir+'probe-report.json',JSON.stringify(report,null,2));
