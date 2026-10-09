@@ -52,6 +52,23 @@ jobs:
             spatialCandidates:r.spatialCandidates,spatialPriceBoxes:r.spatialPriceBoxes
           }));
           fs.writeFileSync(dir+'page5-wc-spatial-diagnostics.json',JSON.stringify(page5Diagnostics,null,2));
+          // Preserve exact geometry for rejected large prices so that a
+          // publisher-owned price is not accidentally rescued by proximity.
+          const rejectedGeometry=page5Diagnostics.map(r=>({
+            title:r.title,
+            titleAnchor:r.cardAnchor,
+            rejectedPrice:r.previous?{
+              value:r.previous.value,quantity:r.previous.quantity,unit:r.previous.unit,
+              priceAnchor:r.previous.anchor,score:r.previous.score,
+              parts:r.previous.parts
+            }:null,
+            chosenPrice:r.selected?{
+              value:r.selected.value,quantity:r.selected.quantity,unit:r.selected.unit,
+              priceAnchor:r.selected.anchor,score:r.selected.score
+            }:null,
+            nearby:r.nearby
+          }));
+          fs.writeFileSync(dir+'page5-rejected-price-geometry.json',JSON.stringify(rejectedGeometry,null,2));
           const page5Failures=knownPage5.flatMap(({title,expected})=>{
             const match=all.find(r=>r.page===5&&title.test(String(r.title)));
             const actual=match?.spatialResolved?.value==null?null:Number(match.spatialResolved.value);
