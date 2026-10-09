@@ -4,6 +4,10 @@ on:
     paths:
       - '.github/workflows/kcitymarket-41lv-probe.yml'
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js'
+  pull_request:
+    paths:
+      - '.github/workflows/kcitymarket-41lv-probe.yml'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js'
   workflow_dispatch:
 permissions:
   contents: read
