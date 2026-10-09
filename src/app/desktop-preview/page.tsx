@@ -874,9 +874,9 @@ export default function DesktopPreviewPage() {
   loading={desktopCompareLoading}
   title="Halpuusvertailu"
   subtitle={desktopCompareError||"Kauppakohtaiset hinnat ja ostoskorit"}
-  onBack={()=>setDesktopCompareNotice(false)}
-  onBackToCart={()=>setDesktopCompareNotice(false)}
-  onClose={()=>setDesktopCompareNotice(false)}
+  onBack={()=>{setDesktopCompareNotice(false);setJustiinaResultsOpen(false);setWorkspace(null)}}
+  onBackToCart={()=>{setDesktopCompareNotice(false);setJustiinaResultsOpen(false);setWorkspace(null)}}
+  onClose={()=>{setDesktopCompareNotice(false);setJustiinaResultsOpen(false);setWorkspace(null)}}
   onSelectStore={(id)=>{const chosen=desktopCompareResults[id];if(!chosen)return;if(!chosen.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan vertailukorissa ei ole yhtään vahvistettua hintaa.");return;}const byId=new Map(chosen.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price??null,storeName:String(chosen.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(chosen.store?.name||"kauppa")} (${chosen.rows.filter(row=>row.price!=null).length}/${chosen.rows.length} hintaa).`)}}
 />}
 
