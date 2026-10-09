@@ -285,14 +285,13 @@ export default function DesktopPreviewPage() {
     const base=name.trim();
     const withoutBrand=base.replace(/^(?:kotimaista|coop|xtra|pirkka|k-menu)\s+/i,"").trim();
     const terms=[base,withoutBrand];
-    const milk=withoutBrand.match(/^(kevytmaito|rasvaton maito|täysmaito)\s+(1\s*l|1\s*lit(?:ra)?)$/i);
-    if(milk)terms.push(milk[1]);
+    if(/\bkevyt\s*maito\b/i.test(withoutBrand))terms.push("kevytmaito","kevyt maito");
     return [...new Set(terms.filter(Boolean))];
   }
   function desktopCompareCompatibleName(source:string,candidate:string):boolean{
     const norm=(v:string)=>v.toLocaleLowerCase("fi").replace(/,/g,".").replace(/\s+/g," ").trim();
     const a=norm(source),b=norm(candidate);
-    const milkType=(v:string)=>/\bkevytmaito\b/.test(v)?"kevytmaito":/\brasvaton\s+maito\b/.test(v)?"rasvaton maito":/\btäysmaito\b/.test(v)?"täysmaito":"";
+    const milkType=(v:string)=>/\bkevyt\s*maito\b/.test(v)?"kevytmaito":/\brasvaton\s*maito\b/.test(v)?"rasvaton maito":/\btäys\s*maito\b/.test(v)?"täysmaito":"";
     const type=milkType(a);
     if(!type||milkType(b)!==type)return false;
     const volume=(v:string)=>{const m=v.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*(l|dl|ml)(?=\s|$)/);return m?Number(m[1])*(m[2]==="l"?1000:m[2]==="dl"?100:1):null;};
@@ -360,7 +359,7 @@ export default function DesktopPreviewPage() {
           const ean=String(item.ean||item.product?.ean||"").trim();
           const queries=desktopCompareSearchTerms(name);
           try{
-            const responses=await Promise.all(queries.map(async search=>{
+            const responses=(await Promise.allSettled(queries.map(async search=>{
               const params=new URLSearchParams({search,store:String(store.externalId||store.id)});
               if(isS)params.set("storeName",String(store.name||""));
               const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
@@ -368,7 +367,7 @@ export default function DesktopPreviewPage() {
               const data=await response.json();
               const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
               return {products,source:String(data?.source||"")};
-            }));
+            }))).filter((result):result is PromiseFulfilledResult<{products:any[];source:string}>=>result.status==="fulfilled").map(result=>result.value);
             const all=responses.flatMap(({products,source})=>products.map((product:any)=>({product,source})));
             const exact=ean?all.find(({product:p})=>[p.ean,p.gtin,p.eanCode,p.barcode,p.product?.ean,p.item?.ean].some(v=>String(v||"").trim()===ean)):null;
             const normalized=(v:string)=>v.trim().replace(/\s+/g," ").toLocaleLowerCase("fi");
