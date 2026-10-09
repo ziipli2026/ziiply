@@ -222,9 +222,8 @@ export default function DesktopPreviewPage() {
                 pricedCandidates.filter((p:any)=>isComparisonAttributeCompatible(title,p.name)),title
               ):null);
               if(!chosen)return;
-              const normalized=normalizeDesktopNormalResults([chosen],chain,store,1)[0];
-              const price=Number(normalized?.__price);
-              if(normalized?.__priceVerified&&normalized?.__catalogOnly!==true&&Number.isFinite(price)&&price>0)
+              const price=Number(chosen.__price);
+              if(chosen.__priceVerified===true&&chosen.__catalogOnly!==true&&Number.isFinite(price)&&price>0)
                 matches[key][desktopCartIdentity(item)]=price;
             }catch{searchFailed=true;}
           }));
