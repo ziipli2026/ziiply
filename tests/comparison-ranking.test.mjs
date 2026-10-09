@@ -52,3 +52,27 @@ test("coming-soon basket cannot win even with more matched products", () => {
   const result = rankComparisonResults([row("future", 10, 0, 1, true), row("current", 1, 4, 12)]);
   assert.equal(result[0].store, "current");
 });
+
+test("desktop comparison uses the shared ranking rules used by the mobile flow", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /import \{ rankComparisonResults \} from ["']\.\.\/components\/ziiply\/cart\/comparisonRankingCore["']/);
+  assert.match(desktop, /rankComparisonResults\(Object\.values\(selectedStores\)/);
+});
+
+test("desktop comparison excludes weight-labelled rows and offer-only rows like the mobile comparison", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /item\.source===["']justiina["']&&item\.ziiplyWeightLabel!==true&&item\.product\?\.ziiplyWeightLabel!==true/);
+  assert.match(desktop, /Number\.isFinite\(Number\(item\.quantity \?\? 1\)\)&&Number\(item\.quantity \?\? 1\)>0/);
+});
+
+test("desktop comparison prices remain scoped to the selected chain and store identity", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /const key=chain\+\":\"\+storeId/);
+  assert.match(desktop, /matches\[key\]\[desktopComparisonRowKey\(item\)\]=price/);
+  assert.match(desktop, /sanitizeDesktopComparisonMatches\(cached\.matches,selectedKeys,eligibleKeys\)/);
+});
+
+test("desktop comparison cache signature is independent of basket row order", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /items:cartItems\.filter\(\(item:any\)=>item\.source===["']justiina["']\).*\.sort\(\(a,b\)=>JSON\.stringify\(a\)\.localeCompare\(JSON\.stringify\(b\)\)\)/);
+});
