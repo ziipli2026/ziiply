@@ -242,7 +242,10 @@ function resolveCards(rows,rawBoxes){
      if(totalCandidate&&Number(totalCandidate.value)>0) row.spatialResolved={...totalCandidate,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
      delete row.debugPriceOwnershipConflict;
    }
-   if(/YHTEIS[\s-]*HINTAAN/.test(context)&&/\bSETTI\b/.test(context)){
+   // Nearby text can span adjacent cards. Only mark the mixed set on the
+   // 6-roll WC-paper row; otherwise the shared "SETTI 10" text from the
+   // left-hand offer can erase the right-hand 40-roll / 2-bag price.
+   if(/WC-PAPERI\s*6\s*rl/i.test(String(row.title||''))&&/YHTEIS[\s-]*HINTAAN/.test(context)&&/\bSETTI\b/.test(context)){
      row.spatialResolved=null;
      row.debugPublisherBundle={type:'mixed-set',evidence:'YHTEISHINTAAN + SETTI',totalPrice:Number(row.debugPublisherBundlePrice?.value||row.debugRejectedCardPrice?.value||0),requiresBundlePresentation:true};
    }
