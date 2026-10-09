@@ -2,9 +2,10 @@
 export type DesktopCartSource = "gosta" | "justiina";
 export type DesktopCartItem = Record<string, any> & { quantity: number; source: DesktopCartSource };
 export function desktopCartIdentity(item: Record<string, any>) {
-  const ean = String(item.ean ?? "").trim();
+  const ean = typeof item.ean === "string" || typeof item.ean === "number" ? String(item.ean).trim() : "";
   if (ean) return "ean:" + ean;
-  const id = String(item.id ?? item.offerId ?? "").trim();
+  const rawId = item.id ?? item.offerId;
+  const id = typeof rawId === "string" || typeof rawId === "number" ? String(rawId).trim() : "";
   if (id) return "id:" + id;
   return "name:" + String(item.title ?? item.name ?? item.productName ?? "").trim().toLowerCase();
 }
