@@ -246,7 +246,7 @@ export default function DesktopPreviewPage() {
     const storeId=String(store?.externalId??store?.id??"").trim();
     const comparable=cartItems.filter((item:any)=>item.source==="justiina" && item.ziiplyWeightLabel!==true && item.product?.ziiplyWeightLabel!==true);
     const verified=desktopCompareResolvedSignature===desktopCompareSignature?desktopCompareMatches[chain+":"+storeId]??{}:{};
-    const matched=comparable.filter((item:any)=>verified[desktopCartIdentity(item)]!=null);
+    const matched=comparable.filter((item:any)=>Number.isFinite(verified[desktopCartIdentity(item)])&&verified[desktopCartIdentity(item)]>0);
     return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+verified[desktopCartIdentity(item)]*Number(item.quantity||1),0)};
   }));
   const desktopCompareComplete = desktopCompareResults.filter(result=>result.missingItems===0 && result.foundItems>0 && result.totalPrice>0);
