@@ -1197,7 +1197,7 @@ if(anchor){
 // Safe arithmetic recovery when the leaflet prints a fixed package size and unit rate but no normal price.
 // Both operands belong to the same parsed product row, so this does not borrow a neighbouring price.
 if(!spatialResolved&&pk&&ur&&!nr&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9&&Math.abs(Number(ur.max)-Number(ur.min))<1e-9){
- const pkgUnit=String(pk.raw||"").match(/(kg|g|l|ml)\\b/i)?.[1]?.toLowerCase()||"";
+ const pkgUnit=String(pk.raw||"").match(/(kg|g|l|ml)\b/i)?.[1]?.toLowerCase()||"";
  const rateUnit=String(ur.raw||"").match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()||"";
  const pkgKind=/^(?:kg|g)$/.test(pkgUnit)?"kg":/^(?:l|ml)$/.test(pkgUnit)?"l":"";
  const value=Number((Number(pk.min)*Number(ur.min)).toFixed(2));
