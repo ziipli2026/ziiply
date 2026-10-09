@@ -112,3 +112,18 @@ test("exact refresh supports nested cart product identity and title", async () =
     globalThis.fetch = originalFetch;
   }
 });
+
+test("exact refresh rejects unscoped store even with matching EAN", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw Error("unexpected fetch"); };
+  try {
+    const price = await refreshDesktopCartProductPrice(
+      { ean: "6412345678901", title: "Testituote" }, "S", { name: "Unknown" }
+    );
+    assert.equal(price, null);
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
