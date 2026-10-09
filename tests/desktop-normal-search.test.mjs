@@ -385,3 +385,11 @@ test("price rows prefer internal storeId when externalId differs", () => {
   assert.equal(item.__price, 2.35);
   assert.equal(item.__priceVerified, true);
 });
+
+test("cart price refresh prefers internal API store ID over external ID", () => {
+  const refreshStart = source.indexOf("export async function refreshDesktopCartProductPrice");
+  const refreshEnd = source.indexOf("/**", refreshStart + 10);
+  const refreshSource = source.slice(refreshStart, refreshEnd > refreshStart ? refreshEnd : undefined);
+  assert.match(refreshSource, /store\.id\s*\?\?\s*store\.externalId/);
+  assert.doesNotMatch(refreshSource, /store\.externalId\s*\?\?\s*store\.id/);
+});
