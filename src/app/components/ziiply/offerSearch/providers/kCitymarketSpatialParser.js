@@ -1236,6 +1236,22 @@ if(!spatialResolved&&anchor&&nr){
  if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:nr.unit||null,source:"same-card-large-glyph-normal-bounded",sanity:"pass",confidence:"high"};
 }
 
+// Shared promotion cards can list several products under one large whole-euro badge.
+// Bind the large digit to the card's right-side price badge, not nearby OCR fragments.
+if(anchor&&!spatialResolved){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
+ const badgeDigits=wordBoxes.filter(b=>{
+  const t=String(b.text||"").trim(),x=Number(b.left)||0,y=Number(b.top)||0,h=Number(b.height)||0;
+  if(!/^\d{1,2}$/.test(t)||h<.04||x<=ax+.10||x>=ax+.34||y<ay-.015||y>ay+.105)return false;
+  const cents=wordBoxes.some(z=>/^\d{2}$/.test(String(z.text||"").trim())&&Number(z.height||0)>=.025&&
+   (Number(z.left)||0)>x&&Math.abs((Number(z.top)||0)-y)<.055&&(Number(z.left)||0)-x<.12);
+  return !cents;
+ }).map(b=>({value:Number(String(b.text).trim()),b}));
+ const uniqueBadge=[...new Map(badgeDigits.map(x=>[x.value,x])).values()];
+ if(uniqueBadge.length===1&&uniqueBadge[0].value>=1&&uniqueBadge[0].value<=29){
+  spatialResolved={value:uniqueBadge[0].value,quantity:null,unit:null,source:"same-card-right-whole-euro-badge",sanity:"pass",confidence:"medium"};
+ }
+}
 // Final normal-price-bounded arithmetic fallback. If the row's package × unit-rate price is below
 // every printed normal-price endpoint, it is independently safe even when the normal range varies.
 if(!spatialResolved&&nr&&expected&&Number(expected)>0&&Number(expected)<Number(nr.min)*.995){
