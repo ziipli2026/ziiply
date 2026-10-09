@@ -30,7 +30,14 @@ jobs:
             echo "::error::Missing GitHub Actions secret TANKKAUS_TEST_DATABASE_URL"
             exit 1
           fi
-      - run: npm ci
+      - name: Install isolated Neon client without modifying application dependencies
+        run: |
+          mkdir -p /tmp/tankkaus-neon-client
+          cd /tmp/tankkaus-neon-client
+          printf '{"private":true,"type":"module"}\n' > package.json
+          npm install --no-save --ignore-scripts --no-audit --no-fund @neondatabase/serverless@1.2.0
+          mkdir -p "$GITHUB_WORKSPACE/node_modules/@neondatabase"
+          ln -s /tmp/tankkaus-neon-client/node_modules/@neondatabase/serverless "$GITHUB_WORKSPACE/node_modules/@neondatabase/serverless"
       - name: Run isolated live ingestion
         env:
           TANKKAUS_API_TOKEN: ${{ secrets.TANKKAUS_API_TOKEN }}
