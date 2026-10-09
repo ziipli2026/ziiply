@@ -50,7 +50,7 @@ function resolveKStoreId(store: string) {
 
   if (store === "k-citymarket-hyvinkaa") return 3221;
 
-  return 3221;
+  return null;
 }
 
 export async function GET(request: Request) {
@@ -59,6 +59,10 @@ export async function GET(request: Request) {
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "3221";
   const storeId = resolveKStoreId(store);
+  if (storeId === null) {
+    return NextResponse.json({ error: "Unknown K store identifier", store }, { status: 400 });
+  }
+
 
   if (search.length > 120 || store.length > 32) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
