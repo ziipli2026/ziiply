@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430">
-<defs><linearGradient id="wall" x2="0" y2="1"><stop stop-color="#e6e9e0"/><stop offset="1" stop-color="#b6c5b7"/></linearGradient><linearGradient id="glass" x2="0" y2="1"><stop stop-color="#94b7b2"/><stop offset="1" stop-color="#547e78"/></linearGradient></defs>
-<rect width="900" height="430" fill="none"/>
-<path d="M68 142H832V370H68Z" fill="url(#wall)" stroke="#779687" stroke-width="7"/>
-<path d="M54 129H846V165H54Z" fill="#18894e"/><path d="M54 164H846V176H54Z" fill="#d6e5d9"/>
-<rect x="290" y="73" width="320" height="85" rx="8" fill="#f6f8ef" stroke="#168448" stroke-width="9"/>
-<text x="450" y="131" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="53" fill="#13884b">PRISMA</text>
-<g fill="url(#glass)" stroke="#dce7e1" stroke-width="8"><rect x="102" y="215" width="148" height="110"/><rect x="264" y="215" width="146" height="110"/><rect x="490" y="215" width="146" height="110"/><rect x="650" y="215" width="148" height="110"/></g>
-<rect x="411" y="207" width="78" height="163" fill="#527e76" stroke="#e7f2e9" stroke-width="8"/><path d="M450 208V367" stroke="#e7f2e9" stroke-width="5"/>
-<path d="M36 374H864" stroke="#7c978b" stroke-width="11"/><path d="M130 398H775" stroke="#c3d2c6" stroke-width="5"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430"><rect width="900" height="430" fill="none"/><path d="M40 195L795 195L855 215L855 366L40 366Z" fill="#c8d4ce"/><path d="M40 184L790 184L855 212L855 241L40 215Z" fill="#087e45"/><path d="M40 225L855 251" stroke="#e9f4e9" stroke-width="12"/><rect x="64" y="258" width="203" height="83" fill="#8ea8a4"/><rect x="280" y="258" width="195" height="83" fill="#8ea8a4"/><rect x="630" y="265" width="192" height="76" fill="#8ea8a4"/><path d="M488 238H614V366H488Z" fill="#567b74"/><path d="M551 238V366" stroke="#e8efeb" stroke-width="7"/><rect x="302" y="128" width="297" height="72" rx="6" fill="#f3f7f0" stroke="#078647" stroke-width="7"/><text x="450" y="177" text-anchor="middle" font-family="Arial" font-size="52" font-weight="900" fill="#078647">PRISMA</text><path d="M25 369H872" stroke="#829e8b" stroke-width="12"/></svg>
