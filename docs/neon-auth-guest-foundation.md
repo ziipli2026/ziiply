@@ -4,7 +4,7 @@ Tarkastus 9.10.2026. Päähaaran lähtöcommit `9dc95022db91992d2cadf9b284323aaa
 Desktop tarkastettu haarasta `preview/legacy-desktop-ui`, commit `ffd40c93c6ecb16eb27c3ef59d4a5184d069419b`.
 Kehityshaara `dev/neon-auth-guest-foundation` perustuu mainiin; desktop-haaraa ei yhdistetä tai muuteta.
 
-## Nykyinen tila
+## Tarkastettu lähtötilanne
 
 Repossa ei ollut käyttäjien kirjautumista, henkilökohtaista omistajuusmallia tai Auth-riippuvuutta. Next 15.5.9, React 19.1.1, Neon serverless SQL. PWA-asennus ei luo tunnusta eikä takaa saman localStoragen jakamista Safarin ja asennetun PWA:n välillä. Tallennus on selain-/origin-kohtaista; preview-osoitteella ei näy tuotanto-originin vieraskoria.
 
@@ -28,7 +28,7 @@ Neon: projektin `floral-recipe-40673204` oletuskannasta luettiin vain informatio
 - `/account-lab`: vapaaehtoinen kehitysnäkymä. Vierastila, sähköpostirekisteröinti ja kirjautuminen, Google, istunnon palautus ja uloskirjautuminen SDK:n kautta. Ei pakollista kirjautumista eikä globaalia redirect-middlewarea.
 - `/api/auth/[...path]`: Neonin oma same-origin Next SDK -proxy; SDK hoitaa HTTP-only-session/callback-käytännöt. Ei salasanoja/JWT:tä localStorageen.
 - `guest.ts`: paikallinen satunnainen vierastunniste, estetty/corrupt storage sallii käytön edelleen. Tunniste ei ole palvelimen käyttöoikeus. Moduulia ei asenneta nykyisten näkymien mount-polkuun.
-- `/api/account/import`: vain käyttäjän erikseen käynnistämä POST, same-origin tarkistus ja palvelimen SDK-istunto. user_id tulee istunnosta, ei pyynnöstä. Tallentaa deduplikoidun snapshotin; ei poista paikallista dataa eikä korvaa tilin koria. Tiedot ovat varmuuskopio, eivät vielä aktiivinen pilvikori.
+- `/api/account/import`: GET palauttaa vain palvelimella tunnistetun käyttäjän 20 viimeisintä tuontia ilman jaettua cachea. POST on vain käyttäjän erikseen käynnistämä, same-origin tarkistus ja palvelimen SDK-istunto. user_id tulee istunnosta, ei pyynnöstä. Tallentaa deduplikoidun snapshotin; ei poista paikallista dataa eikä korvaa tilin koria. Tiedot ovat varmuuskopio, eivät vielä aktiivinen pilvikori.
 - Tiukka tuontiavainten sallintalista, formaatti- ja kokorajat. Ei kauppavalinta/GPS-, analytiikka-, hintavertailu- tai cache-avainten massatuontia. Korin omat hinnat voivat olla snapshotissa historiallisina tietoina, mutta niitä ei saa myöhemmin ottaa nykyhinnoiksi ilman alkuperäisen kaupan ja tuoreuden tarkistusta.
 - Manuaalinen SQL-tiedosto omaan `ziiply_accounts`-skeemaan. Sovellus ei tee DDL:ää. RLS päällä ilman selainroolille annettuja policyja; palvelinroolin käyttö ja omistajuus pitää auditoida ennen lisä-CRUDia. Neon SQL-omistajarooli voi ohittaa RLS:n, joten palvelimen user_id-rajaus on aina pakollinen.
 - Flag oletusarvoisesti pois; VERCEL_ENV=production estää tämän toteutuksen myös flagin ollessa päällä. Tuonti käyttää yksinomaan erillistä ZIIPLY_ACCOUNT_DATABASE_URL:ia ja ennalta määritettyä endpoint-hostia; sama tuote-endpoint estetään myös pooled/direct-osoitteen eroista huolimatta.
@@ -41,15 +41,19 @@ Vieraan paikallinen aineisto kopioidaan vasta todennetulle tilille. Käyttäjän
 
 Jos Apple on ehdoton, ratkaise ennen Auth-tuotantovalintaa: vahvista Managed Apple -tuki Neonilta tai käytä Neoniin tallentavaa itse hallittua Better Authia tuetulla Apple-providerilla. Tämä on tietoinen vaihtoehtoinen arkkitehtuuripäätös, ei tässä toteutettu integraatio. Google/sähköpostitilien linkitys jo olemassa olevaan tiliin pitää testata erikseen; pelkkä sama sähköpostiosoite ei oikeuta yhdistämistä.
 
-## Kehityksen käyttöönotto — tekemättä
+## Kehityksen käyttöönotto — toteutettu 9.10.2026
 
-1. Luo erillinen Neon-kehityshaara / tietokanta. Vahvista endpoint ja AWS/verkkoasetukset, ota Auth käyttöön vain sillä haaralla. Tässä työssä ei luotu haaraa, aktivoitu Authia tai ajettu migraatiota.
-2. Aseta vain paikalliseen testiin tai erilliseen preview-ympäristöön: ZIIPLY_ACCOUNT_LAB=true, NEON_AUTH_BASE_URL, NEON_AUTH_COOKIE_SECRET (32+ merkkiä), ZIIPLY_ACCOUNT_DATABASE_URL, ZIIPLY_ACCOUNT_DATABASE_HOST. Älä muuta olemassa olevaa DATABASE_URL:ia. Authin ja tilikannan pitää kuulua samaan kehityshaaraan; host-guard ei yksin todista koko Neon-projektin identiteettiä.
-3. Tarkista kohde ja aja `migrations/manual/001-account-foundation.sql` käsin kehityskantaan. Sitä ei saa kytkeä automaattiseen tuotantodeployhin.
-4. Salli testiorigin Neonin trusted domains -asetuksessa. Googlen callback on Auth-haaran `/callback/google`; kehityksen shared credentials eivät sovellu tuotantobrändille. Vahvista sähköpostivarmennus ja toimitus. Production vaatii omat Google OAuth -tunnukset ja SMTP-asetukset.
-5. Avaa `/account-lab` samalla originilla kuin testattavat paikalliset korit. Desktopin aktiivisen sessionStorage-korin tuonti vaatii saman välilehden. Ei tietojen siirtoa originien välillä.
+Erillinen Neon-kehityshaara `dev-ziiply-auth-20261009`, id `br-spring-truth-b137mloi`, luotiin projektin main-haarasta. Managed Better Auth aktivoitiin ja manuaalinen migraatio ajettiin vain kehityshaaraan. `neon_auth` ja `ziiply_accounts.guest_imports` ovat testikannassa. Tuotannon main-haarasta tehty read-only-jälkitarkastus vahvisti, ettei sinne tullut kumpaakaan skeemaa.
 
-SDK lukittu versioon 0.5.0-beta. Sen Next-peer on >=16, kun Ziiply on 15.5.9. Ei päivitetty Nextiä sivuvaikutuksena. `.npmrc` sallii kehityshaaraan legacy-peer-deps-asennuksen; käännös ja build tarkastetaan nykyversiolla, mutta nämä eivät ole SDK-valmistajan Next15-tukilupaus. Ennen tuotantokäyttöä valitaan tuettu SDK/Next-yhdistelmä ja todennetaan cookie/OAuth-polut end-to-end. `.npmrc` ei ole itsenäisesti tuotantoon vietävä muutos.
+Kehitystestissä käytetään erillisiä asetuksia: ZIIPLY_ACCOUNT_LAB=true, VERCEL_ENV=preview, NEON_AUTH_BASE_URL, NEON_AUTH_COOKIE_SECRET (32+ merkkiä), ZIIPLY_ACCOUNT_DATABASE_URL, ZIIPLY_ACCOUNT_DATABASE_HOST ja ZIIPLY_ACCOUNT_ORIGIN. Esimerkiksi testiorigin `http://127.0.0.1:3222` pitää asettaa täsmälleen ja sallia Neonin trusted domains -asetuksessa. POST ei luota pyynnön Host/forwarded-host-arvoon. Kehityksen alkuperäistä DATABASE_URL:ia ei käytetä käyttäjätilien yhteyteen.
+
+Neon-kehityshaaran sähköpostirekisteröinti on käytössä ilman varmennusta ja Google käyttää Neonin jaettuja kehitystunnuksia. Integraatiotestit loivat synteettisiä `example.invalid`-käyttäjiä; oikeille ihmisille ei lähetetty viestejä. Tuotanto edellyttää sähköpostivarmennuksen ja toimituksen testaamista, omia Google OAuth -tunnuksia ja SMTP-asetuksia. Googlen palveluntarjoajan callback on Auth-haaran `/callback/google`, myöhempi sovelluksen callback on `/account-lab`.
+
+SDK on lukittu versioon 0.5.0-beta ja kehityshaara Next 16.4.0:aan SDK:n ilmoittaman Next-peer-vaatimuksen mukaisesti. React säilyi 19.1.1:ssä. Build käyttää Webpackia ja ESLint-konfiguraatio päivitettiin Next 16:n flat-muotoon. `.npmrc`-poikkeus poistettiin; tavallinen `npm ci --dry-run --ignore-scripts` hyväksyttiin. Transitiivinen API-key-paketti on rajattu SDK:n Better Auth 1.6.23 -versioon. Käyttämättömän UI-riippuvuuden better-call-peer-varoitus jää asennukseen; tämä riippuvuusketju pitää tarkistaa vielä ennen tuotantomuutosta.
+
+Next-päivitys on vain käyttäjähallinnan kehityshaarassa. Mainia tai desktop-preview-haaraa ei päivitetty tai yhdistetty. Next-päivityksen tuotantovalmiutta ei päätellä pelkästä buildista; koko olemassa oleva mobiili- ja desktop-käyttö pitää testata ennen mahdollista myöhempää yhdistämistä.
+
+Kehitysnäkymä luo vierastunnisteen vain paikallisesti ja näyttää tallennuksen saatavuuden Reactin ulkoisen store-rajapinnan kautta. Tilin varmuuskopioiden määrä sidotaan näytössä nykyiseen käyttäjään. Testinäkymää ei ole kytketty pääruutujen pakolliseksi vaiheeksi.
 
 ## Seuraava vaihe
 
@@ -57,10 +61,17 @@ Yhteinen versioitu kori/lista/keräily-sopimus; palvelimen user_id-kohtaiset CRU
 
 Valinnat synkronoidaan erillisellä sallintalistalla myöhemmin. GPS:n lupaa/koordinaatteja, tämän laitteen käsivalintaa tai hintacachea ei siirretä automaattisesti toiselle laitteelle. Ei muuteta Yksi/Monta-vertailun sääntöjä tai Göstan preloadeja.
 
-Pakollinen jatkotestimatriisi: Safari + iOS asennettu PWA + Android PWA + desktop; vapaaehtoinen kirjautuminen; email-verification/OAuth callback ja reload; offline/vanhentunut istunto; kahden tilin eristys; olemassa olevan tilin tuonti, toistot ja rinnakkaispyynnöt; uloskirjautuminen ja tilinvaihto; mobiili/desktop-korit, painotuotteet, keräily ja vertailu ennen/jälkeen. Live Auth, sähköpostit, SQL-tuonti, Apple ja laitesynkronointi eivät ole vielä todennettuja.
+Pakollinen jatkotestimatriisi: Safari + iOS asennettu PWA + Android PWA + desktop; vapaaehtoinen kirjautuminen; email-verification/OAuth callback ja reload; offline/vanhentunut istunto; kahden tilin eristys; olemassa olevan tilin tuonti, toistot ja rinnakkaispyynnöt; uloskirjautuminen ja tilinvaihto; mobiili/desktop-korit, painotuotteet, keräily ja vertailu ennen/jälkeen. Sähköpostivarmennus/toimitus, Googlen varsinainen suostumus/callback selaimessa, Apple ja aktiivisten korien laitesynkronointi eivät ole vielä todennettuja.
 
 Lähteet: https://neon.com/docs/auth/guides/setup-oauth.md ; https://neon.com/docs/auth/quick-start/nextjs-api-only.md ; https://neon.com/docs/auth/guides/plugins.md ; asennetun SDK:n tyyppimäärittelyt.
 
 ## Toteutuksen tarkastukset
 
-`npm run test:account`: 6/6 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag). `npx tsc --noEmit` ja `npm run build` hyväksytty nykyisellä Next-versiolla. Paikallisen palvelimen flag-off HTTP-tarkastus: /account-lab 404, /api/auth/get-session 404, /api/account/import POST 404. Ei Auth-/SQL-verkkokutsuja näissä testeissä. Live-kirjautumista ja tuonnin SQL-idempotenssia ei ole testattu.
+- `npm run test:account`: 6/6 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag).
+- `npm run test:account:neon`: 19/19 oikeaa integraatiotarkastusta kehityshaarassa. Ei-kirjautuneen luku/kirjoitus estyvät; vieras origin estyy; sähköpostirekisteröinti ja cookie-istunnon palautus toimivat; korituonti ja idempotentti retry toimivat; omat varmuuskopiot palautuvat ilman jaettua cachea; väärennetyt cookiet, väärä salasana, virheellinen ja liian suuri tuonti estyvät; toinen käyttäjä ei voi lukea ensimmäisen tietoja edes user_id-parametrilla; pyynnön user_id ei muuta omistajaa; sama sisältö kuuluu erikseen kummallekin käyttäjälle; uloskirjautuminen estää pääsyn ja uudelleenkirjautuminen palauttaa omat tiedot. Google OAuth -aloitus palauttaa odotetun Neonin `/sign-in/social/init`-osoitteen.
+- TypeScript, account-tiedostojen kohdennettu ESLint ja Next 16 -build hyväksytty. Npm-asennuksen dry-run hyväksytty ilman legacy-peer-deps-asetusta.
+- Kolme olemassa olevaa eristettyä regressioajoa hyväksytty: painotuotteen koripalautus, vertailun sentti/euro-rajat ja Göstan monipakkaushinnat. Nämä ovat lähde-/yksikkötarkastuksia, eivät laajaa selainregressiota.
+- `npm run test:account:http`: 12/12 HTTP-tarkastusta hyväksytty Next 16 -palvelimella. Sekä oletusarvoisesti pois päältä että tuotantoflagin kanssa pääruutu ja PWA-manifest pysyvät julkisina (200); account-lab, Auth ja korituonnin GET/POST pysyvät estettyinä (404). Testissä ei ollut Auth-/SQL-yhteysasetuksia.
+- Tuotanto-mainin read-only-skeematarkastus: neon_auth=false, ziiply_accounts=false.
+
+Integraatiotestit käyttävät oikeaa Auth- ja SQL-palvelua vain erillisessä kehityshaarassa. Selaimen OAuth-suostumusta, iOS/Android-PWA:ta ja aktiivisen korin laitesynkronointia ei näillä HTTP-testeillä todenneta. Tuodut snapshotit ovat tilin varmuuskopioita, eivät vielä nykyisten mobiili-/desktop-korien automaattinen pilvisynkronointi.

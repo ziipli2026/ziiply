@@ -6,7 +6,8 @@ import { validateGuestSnapshot } from "@/lib/account/guest";
 export async function POST(request: Request) {
   if (!accountLabEnabled()) return new Response(null, { status: 404 });
   // Same-origin POST plus server-side session. Guest IDs never grant authorization.
-  if (request.headers.get("origin") !== new URL(request.url).origin) return new Response(null, { status: 403 });
+  const origin = process.env.ZIIPLY_ACCOUNT_ORIGIN;
+  if (!origin || request.headers.get("origin") !== origin) return new Response(null, { status: 403 });
   try {
     const { data: session } = await getAccountAuth().getSession();
     if (!session?.user) return new Response(null, { status: 401 });
@@ -38,5 +39,19 @@ export async function POST(request: Request) {
     return Response.json({ id: rows[0].id }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ error: "Account import unavailable" }, { status: 503 });
+  }
+}
+
+export async function GET() {
+  if (!accountLabEnabled()) return new Response(null, { status: 404 });
+  try {
+    const { data: session } = await getAccountAuth().getSession();
+    if (!session?.user) return new Response(null, { status: 401 });
+    const sql = neon(isolatedAccountDatabase(process.env));
+    const rows = await sql`SELECT id, snapshot, created_at FROM ziiply_accounts.guest_imports
+      WHERE user_id = ${session.user.id} ORDER BY id DESC LIMIT 20`;
+    return Response.json({ imports: rows }, { headers: { "Cache-Control": "private, no-store" } });
+  } catch {
+    return Response.json({ error: "Account imports unavailable" }, { status: 503 });
   }
 }

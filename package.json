@@ -4,16 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test:account": "node --experimental-strip-types --test tests/account/foundation.test.mjs"
+    "test:account": "node --experimental-strip-types --test tests/account/foundation.test.mjs",
+    "test:account:neon": "node --env-file=.env.account-test tests/account/neon-e2e.mjs",
+    "test:account:http": "node tests/account/disabled-http.mjs"
   },
   "dependencies": {
     "@neondatabase/auth": "0.5.0-beta",
     "@neondatabase/serverless": "^1.0.2",
     "@vercel/analytics": "^2.0.1",
-    "next": "15.5.9",
+    "next": "16.4.0",
     "posthog-js": "^1.374.2",
     "react": "19.1.1",
     "react-dom": "19.1.1"
@@ -25,8 +27,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.9",
+    "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@better-auth/api-key": "1.6.23"
   }
 }
