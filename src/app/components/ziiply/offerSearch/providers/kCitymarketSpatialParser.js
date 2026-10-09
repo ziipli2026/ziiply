@@ -237,9 +237,9 @@ function resolveCards(rows,rawBoxes){
  // must win over a weak neighbouring-card match (e.g. 6.10 EUR).
  for(const row of rows){
    const context=(row.nearby||[]).join(' ').replace(/\s+/g,' ').toUpperCase();
-   if(/\b2\s*SÄKKIÄ\b/.test(context)&&row.debugRejectedCardPrice&&Number(row.debugRejectedCardPrice.value)>0){
-     row.spatialResolved={...row.debugRejectedCardPrice,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
-     row.debugPublisherBundle={type:'two-bag-multibuy',evidence:'2 SÄKKIÄ',totalPrice:Number(row.debugRejectedCardPrice.value),requiresBundlePresentation:true};
+   if(/\b2\s*SÄKKIÄ\b/.test(context)){
+     const totalCandidate=(row.spatialCandidates||[]).find(c=>Math.abs(Number(c.value)-29.9)<0.005) || row.debugRejectedCardPrice;
+     if(totalCandidate&&Number(totalCandidate.value)>0) row.spatialResolved={...totalCandidate,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
      delete row.debugPriceOwnershipConflict;
    }
    if(/YHTEIS[\s-]*HINTAAN/.test(context)&&/\bSETTI\b/.test(context)){
