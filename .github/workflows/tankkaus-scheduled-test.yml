@@ -1,0 +1,74 @@
+name: Tankkaus scheduled isolated collection
+on:
+  schedule:
+    # UTC hourly window covers all Finnish target hours in winter and summer.
+    - cron: '7 3-17 * * *'
+  workflow_dispatch:
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/tankkaus-com-native-20261008
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Gate collection by Finnish local hour
+        id: clock
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          hour=$(TZ=Europe/Helsinki date +%H)
+          echo "Finnish local hour: $hour"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "collect=true" >> "$GITHUB_OUTPUT"
+          else
+            case "$hour" in
+              06|09|11|13|15|19) echo "collect=true" >> "$GITHUB_OUTPUT" ;;
+              *) echo "collect=false" >> "$GITHUB_OUTPUT" ;;
+            esac
+          fi
+      - name: Validate credentials
+        if: steps.clock.outputs.collect == 'true'
+        env:
+          TANKKAUS_API_TOKEN: ${{ secrets.TANKKAUS_API_TOKEN }}
+          TANKKAUS_TEST_DATABASE_URL: ${{ secrets.TANKKAUS_TEST_DATABASE_URL }}
+        run: |
+          test -n "$TANKKAUS_API_TOKEN" || { echo "::error::Missing TANKKAUS_API_TOKEN"; exit 1; }
+          test -n "$TANKKAUS_TEST_DATABASE_URL" || { echo "::error::Missing TANKKAUS_TEST_DATABASE_URL"; exit 1; }
+      - name: Install isolated database client
+        if: steps.clock.outputs.collect == 'true'
+        run: |
+          mkdir -p /tmp/tankkaus-neon-client
+          cd /tmp/tankkaus-neon-client
+          printf '{"private":true,"type":"module"}\n' > package.json
+          npm install --no-save --ignore-scripts --no-audit --no-fund @neondatabase/serverless@1.2.0
+          mkdir -p "$GITHUB_WORKSPACE/node_modules/@neondatabase"
+          ln -s /tmp/tankkaus-neon-client/node_modules/@neondatabase/serverless "$GITHUB_WORKSPACE/node_modules/@neondatabase/serverless"
+      - name: Collect four areas sequentially
+        if: steps.clock.outputs.collect == 'true'
+        env:
+          TANKKAUS_API_TOKEN: ${{ secrets.TANKKAUS_API_TOKEN }}
+          DATABASE_URL: ${{ secrets.TANKKAUS_TEST_DATABASE_URL }}
+          TANKKAUS_LIVE_INGEST: "true"
+          TANKKAUS_PROVIDER_SCHEMA_VERIFIED: "YES"
+          TANKKAUS_INGEST_WRITE_CONFIRM: "YES_TEST_BRANCH"
+        run: |
+          failures=0
+          for area in hyvinkaa helsinki tampere turku; do
+            echo "::group::Tankkaus area $area"
+            if TANKKAUS_AREA="$area" node scripts/ingest-tankkaus-live.mjs; then
+              echo "Area $area succeeded"
+            else
+              echo "::error::Area $area failed"
+              failures=$((failures + 1))
+            fi
+            echo "::endgroup::"
+            sleep 15
+          done
+          if [ "$failures" -gt 0 ]; then
+            echo "::error::$failures area(s) failed"
+            exit 1
+          fi
