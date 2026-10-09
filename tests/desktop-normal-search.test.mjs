@@ -419,3 +419,32 @@ test("desktop cart and comparison keys prefer internal store ID consistently", (
   assert.doesNotMatch(page, /x\.externalId\s*\?\?\s*x\.id/);
   assert.match(page, /store\?\.id\s*\?\?\s*store\?\.externalId/);
 });
+
+test("two selected stores keep distinct verified prices for the same EAN", () => {
+  const products = [{
+    ean: "6410405124517",
+    price: 0.99,
+    storeItems: [
+      { storeId: "417", price: 1.48 },
+      { storeId: "9876", price: 1.79 }
+    ]
+  }];
+  const [prisma] = normalizeDesktopNormalResults(products, "S", { id: 417, name: "Prisma Tuusula" });
+  const [citymarket] = normalizeDesktopNormalResults(products, "K", { id: 9876, name: "K-Citymarket Testi" });
+  assert.equal(prisma.__priceVerified, true);
+  assert.equal(citymarket.__priceVerified, true);
+  assert.equal(prisma.__price, 1.48);
+  assert.equal(citymarket.__price, 1.79);
+  assert.equal(prisma.__storeId, "417");
+  assert.equal(citymarket.__storeId, "9876");
+});
+
+test("foreign store price never becomes a valid basket total", () => {
+  const [missing] = normalizeDesktopNormalResults([{
+    ean: "6410405124517",
+    price: 1.48,
+    storeItems: [{ storeId: "417", price: 1.48 }]
+  }], "K", { id: 9876, name: "K-Citymarket Testi" });
+  assert.equal(missing.__priceVerified, false);
+  assert.equal(missing.__price, 0);
+});
