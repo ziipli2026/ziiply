@@ -591,13 +591,13 @@ export default function DesktopPreviewPage() {
         loadIndependentStores("", {latitude:coords.latitude,longitude:coords.longitude});
         fetch(`/api/store-search?gps=1&lat=${coords.latitude}&lon=${coords.longitude}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items) }).catch(()=>setStores([]));
       },
-      () => setLocationStatus("Sijainnin käyttö ei onnistunut"),
+      (error) => { setGpsOn(false); setLocationStatus(error.code===1?"Sijaintilupa estetty selaimessa – salli sijainti tai hae paikkakunnalla.":error.code===3?"GPS aikakatkaistiin – kokeile uudelleen tai hae paikkakunnalla.":"Sijainnin haku epäonnistui – hae paikkakunnalla.");setGpsToast("GPS ei käytettävissä");loadIndependentStores("");fetch("/api/store-search?search=",{cache:"no-store"}).then(r=>r.json()).then(d=>setStores(Array.isArray(d?.items)?d.items:[])).catch(()=>setStores([])); },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
   }
 
 
-  // GPS is the default on desktop; geolocation permission still belongs to the browser.
+  // Load store directories even if browser geolocation is denied.\n  useEffect(()=>{loadIndependentStores("");fetch("/api/store-search?search=",{cache:"no-store"}).then(r=>r.json()).then(d=>setStores(current=>current.length?current:(Array.isArray(d?.items)?d.items:[]))).catch(()=>undefined)},[]);\n  // GPS is the default on desktop; geolocation permission still belongs to the browser.
   useEffect(() => {
     if (!navigator.geolocation) {
       setLocationStatus("Sijaintia ei tueta tällä laitteella");
