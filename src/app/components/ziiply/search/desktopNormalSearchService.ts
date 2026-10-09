@@ -66,7 +66,7 @@ export function normalizeDesktopNormalResults(
     const numeric = typeof candidate === "number" ? candidate :
       Number(String(candidate ?? "").replace(",", "."));
     const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
-    const localPriceVerified = (chain === "S" || chain === "K") && price > 0;
+    const localPriceVerified = (chain === "S" || chain === "K") && Boolean(String(store.externalId ?? store.id ?? "").trim()) && price > 0;
     return {
       ...item,
       __chain: chain,
