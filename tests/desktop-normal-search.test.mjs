@@ -589,3 +589,9 @@ test("desktop comparison excludes Gosta offers from search and totals", () => {
   assert.match(page, /const comparable=cartItems\.filter\(\(item:any\)=>item\.source==="justiina"/);
   assert.match(page, /items:cartItems\.filter\(\(item:any\)=>item\.source==="justiina"/);
 });
+
+test("weight-label basket items are excluded from desktop price comparison", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /item\.ziiplyWeightLabel!==true&&item\.product\?\.ziiplyWeightLabel!==true/);
+  assert.match(page, /item\.ziiplyWeightLabel!==true && item\.product\?\.ziiplyWeightLabel!==true/);
+});
