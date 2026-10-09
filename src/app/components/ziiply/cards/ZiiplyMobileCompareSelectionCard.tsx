@@ -256,7 +256,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                       </div>
                     </div>
 
-                    {onChangeMatchMode && !missing ? (
+                    {onChangeMatchMode ? (
                       <div className="grid grid-cols-3 gap-1.5 px-3 py-2">
                         {QUALITY_MODES.map(({ mode, label }) => {
                           const active = currentMode === mode;
