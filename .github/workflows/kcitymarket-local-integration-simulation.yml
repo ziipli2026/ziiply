@@ -7,8 +7,6 @@ on:
       - 'src/app/api/offers/search/route.ts'
       - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
       - 'tests/**'
-      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
-      - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
       - 'src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx'
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
       - '.github/workflows/kcitymarket-local-integration-simulation.yml'
