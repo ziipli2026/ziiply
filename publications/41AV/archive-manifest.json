@@ -6,10 +6,11 @@
   "pdfSha256": "b14d8a27004e6984037b0c7cbe42e4575ed9f403c060bda67e2a77f9475eb54e",
   "pageCount": 19,
   "offerCount": 46,
-  "archivedAt": "2026-10-09T14:21:53.182Z",
+  "archivedAt": "2026-10-09T14:27:02.468Z",
   "files": [
     "leaflet.pdf",
     "leaflet.json",
-    "parser-evidence.json"
+    "parser-evidence.json",
+    "publisher-responses.json"
   ]
 }
