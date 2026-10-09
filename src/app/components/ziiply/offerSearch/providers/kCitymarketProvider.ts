@@ -117,6 +117,13 @@ export function category(t:string){
   if(/sävytteet|hiusväri|pesulappu|ruokalappu|vuodesuoja|vaippa|shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
   if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
   if(/calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|kerä|lanka|asuste/.test(s)) return "Koti & vapaa-aika";
+  // Leaflet-specific product-family coverage found by the live Gösta simulation.
+  if(/pyykkietikka|puhdistuspyyhe|tahranpoistaja|huuhteluaine|astianpesu|konetiski|pesuaine/.test(s)) return "Kodinhoito";
+  if(/proteiinivaahto|proteiinipirtelö/.test(s)) return "Maitotuotteet";
+  if(/vanulappu|vanupuikko|puuvillalappu/.test(s)) return "Hygienia & kosmetiikka";
+  if(/t-?paitoja?|t-?paita|varsi-imuri|ergorapido|käsityövalo|luk(u|u- ja)valo|askarteluvalo|korjausvalo/.test(s)) return "Koti & vapaa-aika";
+  if(/vihreät teet|twinings|tee\b/.test(s)) return "Kahvi & tee";
+  if(/maksalaatikko|maksalaatikot/.test(s)) return "Valmisruoka";
   // Complete the remaining leaflet taxonomy without product/price-specific overrides.
   if(/vaseline|mascara|meikk|hiustenkuivain|oneblade|vaihtoterä|vanulappu|vanupuikko|hammasharja|teippi- ja housuvaipat|vaippa|shampoo|suihke|wc-geeli|tahranpoistaja|pyykkietikka|huuhteluaine|puhdistuspyyhe|konetiski|astianpesu|tuulilasinpesuneste/.test(s)) return /vaseline|mascara|meikk|oneblade|vaihtoterä|vanulappu|vanupuikko|hammasharja|vaippa|shampoo/.test(s) ? "Hygienia & kosmetiikka" : "Kodinhoito";
   if(/naudan|ulkofilee|savusauna|palvirouhe|punajuuri|poron paisti|kebab|arkimeetvursti|suosikkisalaatit|korvapuusti|kuorrutemunkki|pirtelö|proteiinivaahto|bonbon|gold & green|fasupalat|kanatuotteet|pähkinät|aakkoset|sriracha|cashewpähkinä|salsa|maala(is)?nakit|proteiinipirtelö|maksalaatikko|smoothiet|salaatit/.test(s)) {
