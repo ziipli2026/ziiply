@@ -520,13 +520,17 @@ test("desktop comparison validates both cache read and cache write", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
   assert.match(page, /sanitizeDesktopComparisonMatches\(cached\.matches,selectedKeys,eligibleKeys\)/);
   assert.match(page, /sanitizeDesktopComparisonMatches\(matches,selectedKeys,eligibleKeys\)/);
-  assert.match(page, /if\(validatedMatches\)desktopCompareCacheRef\.current\[signature\]/);
+  assert.match(page, /if\(!lookupHadErrors&&validatedMatches\)/);
+  assert.match(page, /desktopCompareCacheRef\.current\[signature\]=\{matches:validatedMatches/);
 });
 
-test("failed desktop comparison search never resolves partial basket prices", () => {
+test("failed desktop comparison search preserves verified matches but never displays partial totals as complete", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /setDesktopCompareMatches\(searchFailed\?\{\}:matches\)/);
-  assert.match(page, /setDesktopCompareResolvedSignature\(searchFailed\?"":signature\)/);
+  assert.match(page, /setDesktopCompareMatches\(validatedMatches\?\?matches\)/);
+  assert.match(page, /setDesktopCompareResolvedSignature\(signature\)/);
+  assert.match(page, /result\.missingItems===0&&result\.foundItems>0/);
+  assert.match(page, /result\.missingItems>0\?" · summa ei ole vertailukelpoinen"/);
+  assert.match(page, /setDesktopCompareSearchWarning\(lookupHadErrors\)/);
 });
 
 test("desktop comparison counts quantities in totals and excludes invalid quantities", () => {
