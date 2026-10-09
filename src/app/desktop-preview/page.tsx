@@ -792,18 +792,44 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
-{desktopCompareNotice&&<div className="fixed inset-0 z-[140] overflow-auto bg-[#172e23]/70 p-3"><div className="mx-auto w-full max-w-[1250px]"><ZiiplyMobileCompareCard
-  className="sm:!flex sm:!z-[150]"
-  open
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row,i)=>({id:String(i),cartItemId:row.cartItemId,name:row.name,quantity:row.quantity,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null}))}))}
-  loading={desktopCompareLoading}
-  title="Halpuusvertailu"
-  subtitle={desktopCompareError||"Kauppakohtaiset hinnat ja ostoskorit"}
-  onBack={()=>setDesktopCompareNotice(false)}
-  onBackToCart={()=>setDesktopCompareNotice(false)}
-  onClose={()=>setDesktopCompareNotice(false)}
-  onSelectStore={(id)=>{const chosen=desktopCompareResults[id];if(!chosen)return;if(!chosen.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan vertailukorissa ei ole yhtään vahvistettua hintaa.");return;}const byId=new Map(chosen.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price??null,storeName:String(chosen.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(chosen.store?.name||"kauppa")} (${chosen.rows.filter(row=>row.price!=null).length}/${chosen.rows.length} hintaa).`)}}
- /></div></div>}
+{desktopCompareNotice&&<div className="fixed inset-0 z-[140] flex items-center justify-center bg-[#172e23]/65 p-3 sm:p-5">
+  <section role="dialog" aria-modal="true" aria-labelledby="desktop-compare-heading" className="flex max-h-[calc(100dvh-32px)] w-full max-w-[850px] flex-col overflow-hidden rounded-[26px] border-[3px] border-[#967344] bg-[#fff4d6] shadow-[0_24px_80px_rgba(19,35,25,.35)]">
+    <header className="flex shrink-0 items-center justify-between gap-3 border-b-2 border-[#d8bb7c] bg-[#f5e5bc] px-4 py-3 sm:px-6">
+      <div><div className="text-[11px] font-black uppercase tracking-[.13em] text-[#806742]">Ziiply · Ostosten vertailu</div><h2 id="desktop-compare-heading" className="font-serif text-[clamp(23px,2vw,32px)] font-black italic text-[#174c3a]">Halpuusvertailu</h2></div>
+      <button type="button" aria-label="Sulje vertailu" onClick={()=>setDesktopCompareNotice(false)} className="rounded-full border-2 border-[#c9aa6c] bg-[#fff9e9] px-4 py-2 text-xl font-black text-[#174c3a]">×</button>
+    </header>
+    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
+      {desktopCompareLoading&&<p role="status" className="rounded-xl border border-[#d8bb7c] bg-white/70 p-4 font-bold text-[#174c3a]">Haetaan kauppojen vahvistettuja hintoja…</p>}
+      {desktopCompareError&&<p role="alert" className="rounded-xl border border-[#d1a66b] bg-[#fff0d6] p-4 font-bold text-[#8b4e35]">{desktopCompareError}</p>}
+      {(()=>{
+        const entries=Object.entries(desktopCompareResults).map(([id,result])=>({id,...result}));
+        const complete=entries.filter(result=>result.rows.length>0&&result.missing===0&&Number.isFinite(result.total)&&result.total>0);
+        const bestTotal=complete.length>=2?Math.min(...complete.map(result=>result.total)):null;
+        return <>{entries.map(result=>{
+          const isComplete=result.rows.length>0&&result.missing===0&&Number.isFinite(result.total)&&result.total>0;
+          const best=isComplete&&bestTotal!==null&&Math.abs(result.total-bestTotal)<0.005;
+          return <article key={result.id} className={`rounded-[18px] border-2 p-4 shadow-sm ${best?"border-[#1e7745] bg-[#eaf3dc]":"border-[#d4b77d] bg-[#fffaf0]"}`}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1"><h3 className="break-words text-[clamp(17px,1.5vw,22px)] font-black text-[#233c31]">{String(result.store?.name||"Kauppa")}</h3><p className="mt-1 text-sm text-[#625840]">{result.rows.length-result.missing} löytyi · {result.missing} puuttuu</p></div>
+              <div className="text-right"><div className="text-[clamp(19px,2vw,27px)] font-black tabular-nums text-[#174c3a]">{isComplete?result.total.toFixed(2).replace(".",",")+" €":"—"}</div>{best&&<div className="text-sm font-black text-[#146d3c]">Paras vahvistettu hinta</div>}{isComplete&&bestTotal!==null&&!best&&<div className="text-sm font-bold text-[#80623b]">+{(result.total-bestTotal).toFixed(2).replace(".",",")} € kalliimpi</div>}</div>
+            </div>
+            {!isComplete&&<p className="mt-2 rounded-lg bg-[#fff0d2] px-3 py-2 text-sm font-bold text-[#8a4b2d]">Puutteellinen kori – kokonaishinta ei ole vertailukelpoinen.</p>}
+            {isComplete&&bestTotal===null&&<p className="mt-2 text-sm text-[#63563f]">Vain täydellisten ostoskorien keskinäinen hintaero voidaan vahvistaa.</p>}
+            <button type="button" onClick={()=>{if(!result.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan korissa ei ole vahvistettuja hintoja.");return;}const byId=new Map(result.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price??null,storeName:String(result.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(result.store?.name||"kauppa")} (${result.rows.filter(row=>row.price!=null).length}/${result.rows.length} hintaa).`)}} className="mt-3 rounded-xl border-2 border-[#17613e] bg-[#17613e] px-5 py-2 text-sm font-black text-white">Avaa kori / Valitse</button>
+          </article>;
+        })}
+        {!desktopCompareLoading&&!desktopCompareError&&entries.length===0&&<p className="rounded-xl bg-white/70 p-4 text-sm">Vertailutuloksia ei ole saatavilla.</p>}
+        {!desktopCompareLoading&&entries.length>0&&complete.length<2&&<p className="text-sm font-bold text-[#806742]">Vähintään kaksi täydellistä ostoskoria tarvitaan edullisimman kaupan vahvistamiseen.</p>}</>;
+      })()}
+      <p className="text-xs leading-relaxed text-[#806742]">Puutteellisia ostoskoreja ei merkitä halvimmiksi. Vertailussa käytetään nykyisen hintahaun vahvistettuja tuloksia.</p>
+    </div>
+    <footer className="flex shrink-0 flex-wrap justify-end gap-2 border-t-2 border-[#d8bb7c] bg-[#f5e5bc] px-4 py-3 sm:px-6">
+      <button type="button" onClick={()=>{setDesktopCompareNotice(false);setCartOpen(true)}} className="rounded-xl border-2 border-[#ad8650] bg-[#fffaf0] px-5 py-2 font-black text-[#243d34]">Paluu</button>
+      <button type="button" disabled={!cartItems.length} onClick={()=>{setDesktopCompareNotice(false);void shareDesktopCart()}} className="rounded-xl border-2 border-[#ad8650] bg-[#fffaf0] px-5 py-2 font-black text-[#243d34] disabled:opacity-50">Lähetä</button>
+      <button type="button" disabled={!cartItems.length} onClick={()=>{setDesktopCompareNotice(false);setDesktopCheckoutOpen(true)}} className="rounded-xl border-2 border-[#17613e] bg-[#17613e] px-5 py-2 font-black text-white disabled:opacity-50">Osta</button>
+    </footer>
+  </section>
+</div>}
 
 
         {mapOpen && (
