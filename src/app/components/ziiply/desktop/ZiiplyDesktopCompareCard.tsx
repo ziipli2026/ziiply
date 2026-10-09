@@ -92,7 +92,7 @@ export default function ZiiplyDesktopCompareCard({
                       </div>
                       <div className="flex min-w-0 flex-col items-end justify-center gap-2 text-right">
                         {isBest ? <span className="rounded-full border border-[#07572e] bg-[#07883c] px-3 py-1 text-[11px] font-black uppercase text-white">Paras hinta</span> : missing > 0 ? <span className="rounded-full bg-[#e9d9b4] px-3 py-1 text-[11px] font-black uppercase text-[#746344]">Puutteellinen</span> : null}
-                        <span className={`font-serif text-[clamp(23px,2.5vw,35px)] font-black italic leading-none ${isBest ? "text-[#08783b]" : "#29271e"}`}>{hasPrice ? euro(store.totalPrice) : "—"}</span>
+                        <span className={`font-serif text-[clamp(23px,2.5vw,35px)] font-black italic leading-none ${isBest ? "text-[#08783b]" : "text-[#29271e]"}`}>{hasPrice ? euro(store.totalPrice) : "—"}</span>
                         {hasPrice && diff !== null && diff > 0 && <span className="text-xs font-extrabold text-[#76684e]">+{euro(diff)} kalliimpi</span>}
                         <button type="button" disabled={!onSelectStore || !hasPrice || found === 0}
                           onClick={() => onSelectStore?.(store.id)} aria-label={`Valitse ${store.name} ostoskori`}
