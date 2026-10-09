@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import ZiiplyMobileCompareSelectionCard from "../cards/ZiiplyMobileCompareSelectionCard";
 
 export type DesktopCompareStore = {
   id: string;
@@ -22,6 +23,9 @@ type Props = {
   onBack?: () => void;
   onBackToCart?: () => void;
   onClose?: () => void;
+  items?: unknown[];
+  onChangeMatchMode?: (storeId: string, match: unknown, mode: "cheapest" | "same_quality" | "own_brands" | "same_brand") => unknown[] | void | Promise<unknown[] | void>;
+  onSelectMatchAlternative?: (storeId: string, match: unknown, alternative: unknown) => void | Promise<void>;
 };
 
 const euro = (cents?: number | null) =>
@@ -30,8 +34,9 @@ const euro = (cents?: number | null) =>
 export default function ZiiplyDesktopCompareCard({
   open = true, stores, title = "Halpuusvertailu",
   subtitle = "Kauppakohtaiset hinnat ja ostoskorit", loading = false,
-  onSelectStore, onBack, onBackToCart, onClose,
+  onSelectStore, onBack, onBackToCart, onClose, items = [], onChangeMatchMode, onSelectMatchAlternative,
 }: Props) {
+  const [detailsStoreId, setDetailsStoreId] = useState<string | null>(null);
   if (!open) return null;
   const complete = stores.filter((store) =>
     Number(store.missingItems || 0) === 0 &&
@@ -40,7 +45,8 @@ export default function ZiiplyDesktopCompareCard({
     Number.isFinite(store.totalPrice)
   );
   const bestPrice = complete.length ? Math.min(...complete.map((store) => Number(store.totalPrice))) : null;
-  const back = onBack || onBackToCart || onClose;
+  const back = detailsStoreId ? () => setDetailsStoreId(null) : (onBack || onBackToCart || onClose);
+  const detailStore = stores.find((store) => store.id === detailsStoreId);
 
   return (
     <div className="fixed inset-0 z-[150] grid place-items-center bg-[#172e23]/65 p-5">
@@ -53,6 +59,20 @@ export default function ZiiplyDesktopCompareCard({
           <button type="button" onClick={onClose || back} aria-label="Sulje vertailu" title="Sulje vertailu"
             className="absolute right-4 top-3 z-10 grid h-14 w-16 place-items-center rounded-[15px] border-[3px] border-[#3d2415] bg-gradient-to-b from-[#80512c] to-[#3b2416] text-2xl font-black text-[#fff0c9] shadow-[inset_0_0_0_2px_rgba(255,214,139,.15),0_3px_6px_rgba(0,0,0,.22)]">×</button>
 
+          {detailStore ? (
+            <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
+                <div>
+                  <div className="font-serif text-xs font-bold uppercase tracking-[.16em] text-[#7e6c4d]">Ostoskorin erittely</div>
+                  <h2 className="font-serif text-2xl font-black italic text-[#174c3a]">{detailStore.name}</h2>
+                </div>
+                <button type="button" onClick={() => setDetailsStoreId(null)} className="rounded-xl border-2 border-[#765126] bg-[#f1dfb7] px-4 py-2 font-bold text-[#51361a]">← Vertailuun</button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto rounded-xl">
+                <ZiiplyMobileCompareSelectionCard open embedded store={{...detailStore, matches: detailStore.matches || []}} items={items} onBack={() => setDetailsStoreId(null)} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
+              </div>
+            </div>
+          ) : <>
           <header className="shrink-0 px-20 text-center">
             <div className="font-serif text-[13px] font-bold uppercase tracking-[.22em] text-[#7e6c4d]">Justiina · Tuotehaku</div>
             <h2 className="mt-1 font-serif text-[clamp(28px,3vw,43px)] font-black italic leading-tight text-[#174c3a]">{title}</h2>
@@ -85,7 +105,7 @@ export default function ZiiplyDesktopCompareCard({
                           {missing > 0 ? ` · ${missing} tuotetta puuttuu` : found > 0 ? " · Täysi kori" : " · Ei vahvistettuja hintoja"}
                         </p>
                         {missing > 0 && <p className="mt-1 text-xs font-bold text-[#8b4e35]">Puutteellinen kori – ei verrattavissa täyteen koriin.</p>}
-                        <button type="button" onClick={back}
+                        <button type="button" onClick={() => setDetailsStoreId(store.id)}
                           className="mt-2 rounded-[13px] border-[3px] border-[#536b4d] bg-gradient-to-b from-[#fff4d6] to-[#dfd0a8] px-5 py-2 font-serif text-[15px] font-black italic text-[#214d36] shadow-[0_2px_0_#8c9b7b] active:translate-y-px">
                           Muuta valintoja
                         </button>
@@ -108,6 +128,7 @@ export default function ZiiplyDesktopCompareCard({
             )}
           </div>
           <footer className="mt-4 shrink-0 border-t border-[#b69a68]/70 pt-3 text-center font-serif text-sm italic text-[#776548]">Vertailu perustuu löytyneisiin ja vahvistettuihin hintoihin.</footer>
+          </>}
         </div>
       </section>
     </div>
