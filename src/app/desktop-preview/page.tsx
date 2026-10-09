@@ -38,7 +38,7 @@ export default function DesktopPreviewPage() {
   const [fuelLoading, setFuelLoading] = useState(false);
   const [fuelError, setFuelError] = useState("");
   const [fuelType, setFuelType] = useState<"diesel" | "price95" | "price98">("diesel");
-  const [fuelGroups,setFuelGroups]=useState<string[]>(["Neste","St1","Muut","ABC","SEO"]);
+  const [fuelGroups,setFuelGroups]=useState<string[]>(["Neste","ABC","St1","SEO","Gulf","Ritoil","Muut"]);
   const [fuelTraffic,setFuelTraffic]=useState(true);
   const [fuelCold,setFuelCold]=useState(true);
   const [fuelScope,setFuelScope]=useState<"between"|"within">("between");
@@ -50,7 +50,7 @@ export default function DesktopPreviewPage() {
   const fuelChangeStation=(group:string)=>{setFuelStationIndex(prev=>({...prev,[group]:((prev[group]||0)+1)%Math.max(1,fuelCandidates(group).length)}));setFuelCompared(false);};
   const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>fuelStations.find((s:any)=>Number(s.distanceKm)<=50&&s[type]!=null)?.[type];
 
-  const fuelGroupOf=(s:any)=>{const t=String(s.chain||"").toLowerCase();return t.includes("neste")?"Neste":t.includes("st1")||t.includes("shell")?"St1":t.includes("abc")?"ABC":t.includes("seo")?"SEO":"Muut";};
+  const fuelGroupOf=(s:any)=>{const t=String(s.chain||"").toLowerCase();return t.includes("neste")?"Neste":t.includes("st1")||t.includes("shell")?"St1":t.includes("abc")?"ABC":t.includes("seo")?"SEO":t.includes("gulf")?"Gulf":t.includes("ritoil")?"Ritoil":"Muut";};
   const fuelIsTraffic=(s:any)=>/liikenneasema|service station|huoltoasema/i.test(String(s.name||"")+" "+String(s.chain||""));
   const fuelVisible=fuelStations.filter((s:any)=>fuelGroups.includes(fuelGroupOf(s))&&((fuelTraffic&&fuelIsTraffic(s))||(fuelCold&&!fuelIsTraffic(s))));
 
@@ -679,14 +679,14 @@ export default function DesktopPreviewPage() {
 
         <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 py-5 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
           <div className="relative max-w-none flex h-full flex-col justify-start self-stretch">
-            {fuelSelected ? <div className="relative h-full min-h-0 rounded-[28px] border-[3px] border-[#b38a4a] bg-[#fcf5de] p-4 shadow-[0_5px_0_rgba(105,72,28,.14),inset_0_0_0_2px_rgba(255,255,255,.48)]">
+            {fuelSelected ? <div className="relative h-full min-h-0 overflow-y-auto rounded-[28px] border-[3px] border-[#b38a4a] bg-[#fcf5de] p-4 shadow-[0_5px_0_rgba(105,72,28,.14),inset_0_0_0_2px_rgba(255,255,255,.48)]">
 <div className="grid grid-cols-[1fr_46px_1fr] items-center gap-3">
 <button type="button" onClick={()=>{setFuelStationSide("traffic");setFuelCompared(false)}} className={`h-[64px] rounded-[17px] border-2 px-3 font-black ${fuelStationSide==="traffic"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df]"}`}>🏠 Liikenneasemat</button>
 <button type="button" title="Näytä molemmat asematyypit" onClick={()=>{setFuelStationSide("both");setFuelCompared(false)}} className="grid h-[48px] w-[46px] place-items-center rounded-full border-2 border-[#c9a869] bg-[#fff8df] text-2xl font-black">{fuelStationSide==="traffic"?"←":fuelStationSide==="cold"?"→":"↔"}</button>
 <button type="button" onClick={()=>{setFuelStationSide("cold");setFuelCompared(false)}} className={`h-[64px] rounded-[17px] border-2 px-3 font-black ${fuelStationSide==="cold"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df]"}`}>⛽ Kylmäasemat / muut</button></div>
 <div className="my-1 text-center text-[14px] font-black uppercase tracking-[.14em] text-[#66543a]">Hakutapa</div>
 <div className="grid grid-cols-[1fr_46px_1fr] gap-3"><button type="button" onClick={()=>{setFuelScope("between");setFuelCompared(false)}} className={`h-[52px] rounded-[17px] border-2 font-black ${fuelScope==="between"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df]"}`}>Ketjujen väliltä</button><span/><button type="button" onClick={()=>{setFuelScope("within");setFuelCompared(false)}} className={`h-[52px] rounded-[17px] border-2 font-black ${fuelScope==="within"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df]"}`}>Ketjun sisältä</button></div>
-<div className="mt-4 grid grid-cols-2 gap-4">{(["Neste","St1","ABC","SEO","Muut"] as const).map((group,i)=>{const station=fuelSelectedStation(group);const chosen=fuelGroups.includes(group);return <div key={group} className={`relative flex h-[155px] flex-col items-center rounded-[20px] border-[2.5px] bg-[#fff9e8] px-2 py-2 text-center shadow-[0_5px_10px_rgba(52,38,14,.08)] ${chosen?"border-[#c3a76a]":"border-[#d9c18e] opacity-65"}`} style={i===4?{gridColumn:"1 / -1",width:"calc(50% - 8px)",justifySelf:"center"}:{}}>
+<div className="mt-4 grid grid-cols-2 gap-4">{(["Neste","ABC","St1","SEO","Gulf","Ritoil","Muut"] as const).map((group,i)=>{const station=fuelSelectedStation(group);const chosen=fuelGroups.includes(group);return <div key={group} className={`relative flex h-[155px] flex-col items-center rounded-[20px] border-[2.5px] bg-[#fff9e8] px-2 py-2 text-center shadow-[0_5px_10px_rgba(52,38,14,.08)] ${chosen?"border-[#c3a76a]":"border-[#d9c18e] opacity-65"}`} style={i===6?{gridColumn:"1 / -1",width:"calc(50% - 8px)",justifySelf:"center"}:{}}>
 <button type="button" onClick={()=>{setFuelGroups(prev=>fuelScope==="within"?[group]:prev.includes(group)?prev.filter(x=>x!==group):[...prev,group]);setFuelCompared(false)}} aria-label={`Valitse ${group}`} className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full border border-[#d0b577] bg-[#fff7da] font-black">{chosen?"✓":""}</button>
 <div className="self-start rounded-lg border border-[#d0b577] bg-white px-2 py-1 text-[16px] font-black">{group}</div>
 <div className="mt-1 max-w-full truncate text-[14px] font-black">{station?.name||"Ei asemaa 50 km säteellä"}</div>
