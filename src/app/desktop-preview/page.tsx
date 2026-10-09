@@ -189,7 +189,14 @@ export default function DesktopPreviewPage() {
             try{
               const products=await fetchDesktopNormalProducts(title,chain,store);
               if(cancelled)return;
-              const exact=products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
+              let exact=products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
+              // Some APIs do not return the exact product in a name-search window.
+              // Retry by EAN, but never use a different barcode as a substitute.
+              if(exact.length===0){
+                const byEan=await fetchDesktopNormalProducts(ean,chain,store);
+                if(cancelled)return;
+                exact=byEan.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
+              }
               if(exact.length!==1)return;
               const normalized=normalizeDesktopNormalResults(exact,chain,store,1)[0];
               const price=Number(normalized?.__price);
