@@ -92,6 +92,30 @@ jobs:
           const suspicious=multibuy.filter(r=>Number(r.spatialResolved.quantity)>=4 || Number(r.spatialResolved.value)/Number(r.spatialResolved.quantity)<1.5 || /\\b(?:ja|tai)\\b/i.test(String(r.title)) && Number(r.spatialResolved.quantity)>2);
           console.log('KCM_41LV_MANUAL_REVIEW_REQUIRED',JSON.stringify(suspicious.map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity,unit:r.spatialResolved.unit})),null,2));
           fs.writeFileSync(dir+'manual-review.json',JSON.stringify(suspicious.map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity,unit:r.spatialResolved.unit,source:r.spatialResolved.source,nearby:r.nearby,spatialCandidates:r.spatialCandidates,spatialPriceBoxes:r.spatialPriceBoxes})),null,2));
+          // Independent visual audit of original publisher PDF pages 4, 6, 15, 16 and 18.
+          // Keep incorrect quantity associations blocked even when spatial confidence is high.
+          const verifiedMultibuy=[
+            {page:4,title:/^VASELINE 40 g$/i,price:3.50,quantity:2},
+            {page:6,title:/^SUIHKEET 600 ml/i,price:5,quantity:2},
+            {page:6,title:/^TIIVISTEET 1 l/i,price:5,quantity:2},
+            {page:6,title:/^WC-GEELIT 750 ml/i,price:5,quantity:2},
+            {page:6,title:/^PYYKINPESUNESTEET 840/i,price:12,quantity:3},
+            {page:15,title:/^PROTEIINI- 3\. PIRTELÖT 200 ml/i,price:2.50,quantity:2},
+            {page:16,title:/^PROTEIINIVAAHDOLLA 200 g/i,price:5,quantity:4},
+            {page:16,title:/^MAKUPALA VANUKKAAT 120 g/i,price:2.50,quantity:4},
+            {page:16,title:/^ACTIMEL JOGURTTI-/i,price:3.69,quantity:1},
+            {page:16,title:/^JUOMAT 8 x 100 g/i,price:3.69,quantity:1},
+            {page:18,title:/^POHJOISEN MAUT ATERIAT/i,price:5,quantity:4},
+            {page:18,title:/^NATURE HFC KISSAN MÄRKÄRUOAT/i,price:4.20,quantity:4}
+          ];
+          const verifiedMultibuyFailures=verifiedMultibuy.flatMap(v=>{
+            const row=all.find(r=>r.page===v.page&&v.title.test(String(r.title)));
+            const actual=Number(row?.spatialResolved?.value);
+            const quantity=Number(row?.spatialResolved?.quantity||1);
+            return row&&Math.abs(actual-v.price)<0.005&&quantity===v.quantity?[]:[{page:v.page,title:String(v.title),expectedPrice:v.price,expectedQuantity:v.quantity,actualPrice:row?.spatialResolved?.value??null,actualQuantity:quantity,found:Boolean(row)}];
+          });
+          fs.writeFileSync(dir+'verified-multibuy-audit.json',JSON.stringify({source:'Original 41LV PDF pages 4, 6, 15, 16, 18; manually verified',failures:verifiedMultibuyFailures},null,2));
+          if(verifiedMultibuyFailures.length)throw Error('41LV HOLD: publisher-verified multibuy mismatch: '+JSON.stringify(verifiedMultibuyFailures));
           if(page5Failures.length)throw Error('41LV HOLD: verified page-5 WC-paper prices do not match spatial parser: '+JSON.stringify(page5Failures));
           if(suspicious.length)throw Error('41LV HOLD: ambiguous multibuy prices require comparison against the original leaflet before production');
 
