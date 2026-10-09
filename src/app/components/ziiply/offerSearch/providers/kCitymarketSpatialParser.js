@@ -135,19 +135,7 @@ function resolveCards(rows,rawBoxes){
   // A publisher price must not replace a separately resolved same-card offer
    // solely on geometric proximity. Prefer independently verified package/unit
    // arithmetic; otherwise leave conflicting glyph ownership for review.
-   // Discount percentage digits (for example "-22 %") are not sale prices.
-// If the candidate looks like repeated discount digits, prefer an independently
-// printed, large three-digit euro/cents glyph in the same horizontal card band.
-const discountDigits=(card.row.nearby||[]).join(" ").match(/[-–](\d{2})\s*%/);
-const printedLarge=discountDigits?boxes.filter(b=>/^\d{3}$/.test(String(b.text||""))&&
- b.height>=.04&&b.left>card.anchor.left&&b.left<card.anchor.left+.30&&
- b.top>=card.anchor.top-.025&&b.top<card.anchor.top+.11).map(b=>({
- value:Number(b.text)/100,quantity:null,unit:null,parts:[b],anchor:b,
- score:distance(card.anchor,b)
-})).filter(p=>p.value>=1&&p.value<30).sort((a,b)=>a.score-b.score):[];
-const discountValue=discountDigits?Number(discountDigits[1].split("").join(".")):null;
-const price=printedLarge.length===1&&candidates[0]&&
- Math.abs(candidates[0].value-discountValue)<.005?printedLarge[0]:(proven[0]||candidates[0]);
+   const price=proven[0]||candidates[0];
   const previous={resolved:card.row.spatialResolved,unitPrice:card.row.unitPrice,normal:card.row.normal,nearby:card.row.nearby,percentageOffer:card.row.percentageOffer};
   card.row.nearby=context.get(card).sort((a,b)=>a.top-b.top||a.left-b.left).map(g=>repairText(g.text));
   if(price){card.row.percentageOffer=null;card.row.spatialResolved={value:Number(price.value.toFixed(2)),quantity:price.quantity,unit:price.unit,source:'owned-publisher-price-glyph',sanity:'pass',confidence:'high'};card.row.debugCardPrice=price;}
