@@ -223,7 +223,7 @@ export default function DesktopPreviewPage() {
               if(!chosen)return;
               const normalized=normalizeDesktopNormalResults([chosen],chain,store,1)[0];
               const price=Number(normalized?.__price);
-              if(normalized?.__priceVerified&&Number.isFinite(price)&&price>0)
+              if(normalized?.__priceVerified&&normalized?.__catalogOnly!==true&&Number.isFinite(price)&&price>0)
                 matches[key][desktopCartIdentity(item)]=price;
             }catch{searchFailed=true;}
           }));
