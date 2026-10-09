@@ -246,3 +246,20 @@ test("S and K search refuse missing store ID without making API request", async 
     globalThis.fetch = originalFetch;
   }
 });
+
+test("known numeric S/K store IDs still reach their respective API routes", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async url => {
+    requests.push(String(url));
+    return { ok: true, json: async () => ({ items: [] }) };
+  };
+  try {
+    await fetchDesktopNormalProducts("kahvi", "S", { id: 292, name: "Prisma Hyvinkää" });
+    await fetchDesktopNormalProducts("kahvi", "K", { id: 3221, name: "K-Citymarket Hyvinkää" });
+    assert.equal(new URL(requests[0], "https://example.test").searchParams.get("store"), "292");
+    assert.equal(new URL(requests[1], "https://example.test").searchParams.get("store"), "3221");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
