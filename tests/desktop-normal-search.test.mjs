@@ -363,3 +363,14 @@ test("S/K search prefers internal API store ID over external ID", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test("price verification uses internal API store ID when external ID differs", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeItems: [
+      { storeId: "external-store-999", price: 1.05 },
+      { storeId: "417", price: 2.15 }
+    ]
+  }], "S", { id: 417, externalId: "external-store-999", name: "Prisma Tuusula" });
+  assert.equal(item.__price, 2.15);
+  assert.equal(item.__priceVerified, true);
+});
