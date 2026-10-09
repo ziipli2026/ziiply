@@ -268,6 +268,7 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
+  const [desktopCompareExpandedStore,setDesktopCompareExpandedStore]=useState<string|null>(null);
   const [desktopCompareLoading,setDesktopCompareLoading]=useState(false);
   const [desktopCompareResults,setDesktopCompareResults]=useState<Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>({});
   const [desktopCompareError,setDesktopCompareError]=useState("");
@@ -815,6 +816,8 @@ export default function DesktopPreviewPage() {
             </div>
             {!isComplete&&<p className="mt-2 rounded-lg bg-[#fff0d2] px-3 py-2 text-sm font-bold text-[#8a4b2d]">Puutteellinen kori – kokonaishinta ei ole vertailukelpoinen.</p>}
             {isComplete&&bestTotal===null&&<p className="mt-2 text-sm text-[#63563f]">Vain täydellisten ostoskorien keskinäinen hintaero voidaan vahvistaa.</p>}
+            <button type="button" aria-expanded={desktopCompareExpandedStore===result.id} onClick={()=>setDesktopCompareExpandedStore(current=>current===result.id?null:result.id)} className="mt-3 w-full rounded-xl border-2 border-[#c8a66a] bg-[#fff4d8] px-4 py-2 text-left text-sm font-black text-[#3b4b36]">{desktopCompareExpandedStore===result.id?"Piilota tuotteet ▲":"Näytä tuotteet ja hinnat ▼"}</button>
+            {desktopCompareExpandedStore===result.id&&<div className="mt-2 max-h-[230px] space-y-1 overflow-y-auto overscroll-contain rounded-xl border border-[#ddc89b] bg-white/65 p-2">{result.rows.map((row,index)=><div key={row.cartItemId+":"+index} className="flex items-start justify-between gap-3 border-b border-[#e9dfc6] px-2 py-2 text-sm last:border-0"><span className="min-w-0 flex-1 break-words text-[#263c32]">{row.quantity} × {row.name}</span><span className={`shrink-0 font-black tabular-nums ${row.price==null?"text-[#9a4e36]":"text-[#17543a]"}`}>{row.price==null?"Ei hintaa":(row.price*row.quantity).toFixed(2).replace(".",",")+" €"}</span></div>)}</div>}
             <button type="button" onClick={()=>{if(!result.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan korissa ei ole vahvistettuja hintoja.");return;}const byId=new Map(result.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price??null,storeName:String(result.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(result.store?.name||"kauppa")} (${result.rows.filter(row=>row.price!=null).length}/${result.rows.length} hintaa).`)}} className="mt-3 rounded-xl border-2 border-[#17613e] bg-[#17613e] px-5 py-2 text-sm font-black text-white">Avaa kori / Valitse</button>
           </article>;
         })}
