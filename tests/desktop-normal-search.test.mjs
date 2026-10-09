@@ -411,3 +411,11 @@ test("mismatched singular storeItem cannot lend generic price to selected store"
   assert.equal(item.__price, 0);
   assert.equal(item.__priceVerified, false);
 });
+
+test("desktop cart and comparison keys prefer internal store ID consistently", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(page, /store\?\.externalId\s*\?\?\s*store\?\.id/);
+  assert.doesNotMatch(page, /store\.externalId\s*\?\?\s*store\.id/);
+  assert.doesNotMatch(page, /x\.externalId\s*\?\?\s*x\.id/);
+  assert.match(page, /store\?\.id\s*\?\?\s*store\?\.externalId/);
+});
