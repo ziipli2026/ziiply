@@ -199,3 +199,19 @@ test("multi-store results without matching store do not verify a price", () => {
   assert.equal(item.__price, 0);
   assert.equal(item.__priceVerified, false);
 });
+
+test("nested single storeItem from another store is not verified", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeItem: { storeId: "other", price: 1.49 }
+  }], "S", store);
+  assert.equal(item.__price, 0);
+  assert.equal(item.__priceVerified, false);
+});
+
+test("nested single storeItem for selected store remains verified", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeItem: { storeId: "123", price: 2.49 }
+  }], "K", store);
+  assert.equal(item.__price, 2.49);
+  assert.equal(item.__priceVerified, true);
+});
