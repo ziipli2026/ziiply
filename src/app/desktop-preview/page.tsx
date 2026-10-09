@@ -34,6 +34,23 @@ export default function DesktopPreviewPage() {
   const [mapOpen, setMapOpen] = useState(false);
   const [fuelSelected, setFuelSelected] = useState(false);
   const [fuelMode, setFuelMode] = useState<"nearby" | "compare">("nearby");
+  const [fuelStations, setFuelStations] = useState<any[]>([]);
+  const [fuelLoading, setFuelLoading] = useState(false);
+  const [fuelError, setFuelError] = useState("");
+  const [fuelType, setFuelType] = useState<"diesel" | "price95" | "price98">("diesel");
+  useEffect(() => {
+    if (!fuelSelected) return;
+    if (!gpsCoords) { setFuelStations([]); setFuelError("Käynnistä GPS, jotta lähimmät asemat voidaan järjestää etäisyyden mukaan."); return; }
+    const controller = new AbortController();
+    setFuelLoading(true); setFuelError("");
+    fetch(`/api/fuel/stations?lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}`, { signal: controller.signal, cache: "no-store" })
+      .then(async response => { const data = await response.json(); if (!response.ok || !data.ok) throw new Error(data.error || "Asematietojen haku epäonnistui"); return data; })
+      .then(data => setFuelStations(data.stations || []))
+      .catch(error => { if (!controller.signal.aborted) { setFuelStations([]); setFuelError(String(error.message || error)); } })
+      .finally(() => { if (!controller.signal.aborted) setFuelLoading(false); });
+    return () => controller.abort();
+  }, [fuelSelected, gpsCoords?.latitude, gpsCoords?.longitude]);
+
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
   const [stores, setStores] = useState<any[]>([]);
@@ -579,7 +596,16 @@ export default function DesktopPreviewPage() {
           <div className="w-[min(620px,94vw)] rounded-[28px] border-[3px] border-[#9a7047] bg-[#fff3d3] p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-4"><div><div className="text-[11px] font-black tracking-widest text-[#756848]">⛽ AJOAINE</div><h2 className="text-[24px] font-black text-[#174c3a]">Polttoainehinnat</h2></div><button type="button" onClick={()=>setFuelSelected(false)} aria-label="Sulje ajoaine" className="rounded-full border-2 border-[#704b2c] bg-white px-4 py-1 text-xl font-black">×</button></div>
             <div className="mt-4 flex gap-2"><button type="button" onClick={()=>setFuelMode("nearby")} aria-pressed={fuelMode==="nearby"} className={`rounded-full border-2 px-4 py-2 font-black ${fuelMode==="nearby"?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>Lähimmät asemat</button><button type="button" onClick={()=>setFuelMode("compare")} aria-pressed={fuelMode==="compare"} className={`rounded-full border-2 px-4 py-2 font-black ${fuelMode==="compare"?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>Hintavertailu</button></div>
-            <div className="mt-4 rounded-2xl border border-[#d0b273] bg-white/70 p-5 text-[#174c3a]"><p className="font-black">{fuelMode==="nearby"?"Lähimmät asemat":"Polttoaineiden hintavertailu"}</p><p className="mt-2 text-sm">Sijainti: {appliedLocation || location || (gpsOn ? "GPS käytössä" : "ei valittu")}</p><p className="mt-3 text-sm">Tankkaus.comin asema- ja hintatietoja ei ole vielä kytketty tähän desktop-näkymään. Napin esimerkkihinnat eivät ole live-hintoja.</p></div>
+            <div className="mt-4 max-h-[55vh] overflow-y-auto rounded-2xl border border-[#d0b273] bg-white/70 p-4 text-[#174c3a]">
+              <p className="mb-2 text-sm font-black">Sijainti: {appliedLocation || location || (gpsOn ? "GPS käytössä" : "ei valittu")}</p>
+              <div className="mb-3 flex flex-wrap gap-2">{([["diesel","Diesel"],["price95","95E10"],["price98","98E5"]] as const).map(([key,label])=><button key={key} type="button" onClick={()=>setFuelType(key)} aria-pressed={fuelType===key} className={`rounded-full border px-3 py-1 text-xs font-black ${fuelType===key?"border-[#17573c] bg-[#17573c] text-white":"border-[#b58a46] bg-white"}`}>{label}</button>)}</div>
+              {fuelLoading ? <p>Haetaan asemia…</p> : fuelError ? <p role="alert">{fuelError}</p> : fuelStations.length===0 ? <p>Asemia ei löytynyt.</p> :
+                <div className="space-y-2">{fuelStations.slice().sort((a:any,b:any)=>fuelMode==="compare" ? ((a[fuelType] ?? Infinity)-(b[fuelType] ?? Infinity)) : a.distanceKm-b.distanceKm).map((s:any)=><div key={s.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-[#ddc99d] bg-white p-3">
+                  <div className="min-w-0"><div className="font-black">{s.chain ? s.chain+" " : ""}{s.name}</div><div className="text-xs text-[#756848]">{s.address || "Osoite puuttuu"} · {Number(s.distanceKm).toFixed(1).replace(".",",")} km</div></div>
+                  <div className="text-right"><div className="font-black">{s[fuelType] == null ? "Ei hintaa" : Number(s[fuelType]).toFixed(3).replace(".",",")+" €/l"}</div><div className="text-[10px] text-[#756848]">{s[fuelType] == null ? "" : (s[fuelType==="diesel"?"observedDiesel":fuelType==="price95"?"observed95":"observed98"] ? new Date(s[fuelType==="diesel"?"observedDiesel":fuelType==="price95"?"observed95":"observed98"]).toLocaleString("fi-FI") : "Havaintoaika puuttuu")}</div></div>
+                </div>)}</div>}
+              <p className="mt-3 text-[11px] text-[#756848]">Tankkaus.com-havaintoja Neon-tietokannasta. Hinnat voivat olla vanhentuneita; puuttuvaa hintaa ei arvioida.</p>
+            </div>
             <p className="mt-4 text-xs font-semibold text-[#756848]">Göstan tarjoushaku käynnistyy vain erikseen Gösta-painikkeesta.</p>
           </div>
         </section>}
