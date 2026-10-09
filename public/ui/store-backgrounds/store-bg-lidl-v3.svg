@@ -21,10 +21,7 @@
   <!-- pitkät Lidlille tyypilliset julkisivuikkunat -->
   <rect x="493" y="245" width="92" height="61" rx="4" fill="url(#glass)"/>
   <rect x="598" y="245" width="91" height="61" rx="4" fill="url(#glass)"/>
-  <!-- pieni sinikeltainen myymäläkyltti ilman tekstiä/logoa -->
-  <rect x="195" y="224" width="58" height="46" rx="7" fill="#315b91" opacity=".72"/>
-  <circle cx="224" cy="247" r="19" fill="#f2d45d" opacity=".88"/>
-  <circle cx="224" cy="247" r="12" fill="#d55b4f" opacity=".58"/>
+
   <!-- pysäköinti / kärryt -->
   <g opacity=".27"><circle cx="265" cy="352" r="20" fill="none" stroke="#504638" stroke-width="5"/><circle cx="311" cy="349" r="20" fill="none" stroke="#504638" stroke-width="5"/><path d="M279 347 h17 l25 -38" stroke="#504638" stroke-width="4" fill="none"/></g>
   <g opacity=".22"><circle cx="111" cy="305" r="27" fill="#667b54"/><rect x="107" y="321" width="8" height="43" fill="#604623"/><circle cx="791" cy="303" r="29" fill="#667b54"/><rect x="787" y="320" width="8" height="43" fill="#604623"/></g>
