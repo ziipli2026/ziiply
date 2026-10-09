@@ -53,6 +53,22 @@
         "kcm:spatial:12:foliovuoat kansineen 0,4–1,5 l:3": "/citymarket-leaflets/b14d8a27004e6984037b0c7cbe42e4575ed9f403c060bda67e2a77f9475eb54e/images.svg#e94755db72e35d14bbcb",
         "kcm:spatial:13:wc-paperi 8 rl:3.59": "/citymarket-leaflets/b14d8a27004e6984037b0c7cbe42e4575ed9f403c060bda67e2a77f9475eb54e/images.svg#b08a9e202c4ec5a6d3d4"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/82qjhs6_tarjouslehti_41LV_KCM/index.html": {
+      "pdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "pageCount": 20,
+      "offerCount": 99,
+      "images": {
+        "kcm:spatial:5:wc-paperi 40 rl:6.1": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#678b48942058f62857b5",
+        "kcm:spatial:11:kertakäyttö- käsineet 100 kpl/pkt engångshandskar:16.1": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#98b4dd9f9ac730144edf",
+        "kcm:spatial:13:pertsa & pirre salaattisekoitus 75 g (20,00/kg):3": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3195a85a219f6b05a2b7",
+        "kcm:spatial:13:2 kpl porkkana 2 kg, lanttu 2 kg 49:1.49": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#95fbb32bfba5eea71263",
+        "kcm:spatial:15:täysmehut 900 ml/pl:3.79": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#8aa6ff43f6189d7c2d8a",
+        "kcm:spatial:18:vital hyvinvointimehut 1 l:4.5": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#75ec413520e4c60b4035",
+        "kcm:spatial:19:maissikakut 130 g:2.4": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#e7093577381734c9904f",
+        "kcm:spatial:19:aakkoset 280–340 g:4.5": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#5e29a0437078fc923ad2",
+        "kcm:spatial:20:original nachips 450 g:1.15": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#5b6f6ed4497e2410b494"
+      }
     }
   }
 }
