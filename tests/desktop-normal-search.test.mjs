@@ -301,3 +301,38 @@ test("matching store row wins over generic direct price", () => {
   assert.equal(item.__price, 1.15);
   assert.equal(item.__priceVerified, true);
 });
+
+test("S store search forwards both exact store ID and store name", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestUrl = "";
+  globalThis.fetch = async url => {
+    requestUrl = String(url);
+    return { ok: true, json: async () => ({ items: [] }) };
+  };
+  try {
+    await fetchDesktopNormalProducts("kahvi", "S", { id: 417, name: "Prisma Tuusula" });
+    const parsed = new URL(requestUrl, "https://example.test");
+    assert.equal(parsed.pathname, "/api/s-products");
+    assert.equal(parsed.searchParams.get("store"), "417");
+    assert.equal(parsed.searchParams.get("storeName"), "Prisma Tuusula");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("K store search preserves numeric store ID exactly", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestUrl = "";
+  globalThis.fetch = async url => {
+    requestUrl = String(url);
+    return { ok: true, json: async () => ({ items: [] }) };
+  };
+  try {
+    await fetchDesktopNormalProducts("maito", "K", { id: 9876, name: "K-Citymarket Testi" });
+    const parsed = new URL(requestUrl, "https://example.test");
+    assert.equal(parsed.pathname, "/api/k-products");
+    assert.equal(parsed.searchParams.get("store"), "9876");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
