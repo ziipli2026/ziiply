@@ -110,6 +110,15 @@ def build(folder,manifest_path,public_folder,review_path):
     options.sort()
     if len(options)==1 or len(options)>1 and options[1][0]-options[0][0]>.08:
      accepted[options[0][1]].append(b)
+  # Keep review evidence for unmatched cards, including publisher image bounds.
+  # A reviewer can then identify missing package photos without guessing
+  # which neighboring product image belongs to the offer.
+  for row in rows:
+   if row['id'] not in accepted or accepted[row['id']]:continue
+   if not re.search(r'\\bWC[ -]?PAPERI\\b',row['title'],re.I):continue
+   report.append({'id':row['id'],'title':row['title'],'page':row['page'],
+                  'candidateImageRectangles':[list(b['bbox']) for b in blocks],
+                  'status':'manual-review-needed'})
   for row in rows:
    selection=reviewed.get(row['id'])
    if selection:
