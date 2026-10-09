@@ -231,3 +231,18 @@ test("direct product price scoped to selected store is accepted", () => {
   assert.equal(item.__price, 2.09);
   assert.equal(item.__priceVerified, true);
 });
+
+test("S and K search refuse missing store ID without making API request", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw Error("unexpected request"); };
+  try {
+    for (const chain of ["S", "K"]) {
+      await assert.rejects(fetchDesktopNormalProducts("maito", chain, { name: "Unknown" }),
+        /Selected store identifier missing/);
+    }
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
