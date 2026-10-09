@@ -115,6 +115,15 @@ jobs:
             return row&&Math.abs(actual-v.price)<0.005&&quantity===v.quantity?[]:[{page:v.page,title:String(v.title),expectedPrice:v.price,expectedQuantity:v.quantity,actualPrice:row?.spatialResolved?.value??null,actualQuantity:quantity,found:Boolean(row)}];
           });
           fs.writeFileSync(dir+'verified-multibuy-audit.json',JSON.stringify({source:'Original 41LV PDF pages 4, 6, 15, 16, 18; manually verified',failures:verifiedMultibuyFailures},null,2));
+          // Keep full parser evidence for every failed publisher-verified case.
+          // This allows geometric ownership fixes instead of page-specific price overrides.
+          fs.writeFileSync(dir+'multibuy-mismatch-diagnostics.json',JSON.stringify(verifiedMultibuyFailures.map(f=>{
+            const row=all.find(r=>r.page===f.page&&String(f.title).slice(1).length&&new RegExp(String(f.title).slice(1,String(f.title).lastIndexOf('/')),'i').test(String(r.title)));
+            return {...f,cardAnchor:row?.debugCardAnchor,imageAnchor:row?.imageAnchor,nearby:row?.nearby,
+              chosenPrice:row?.debugCardPrice,rejectedPrice:row?.debugRejectedCardPrice,
+              spatialCandidates:row?.spatialCandidates,spatialPriceBoxes:row?.spatialPriceBoxes,
+              spatialGroups:row?.spatialGroups};
+          }),null,2));
           if(verifiedMultibuyFailures.length)throw Error('41LV HOLD: publisher-verified multibuy mismatch: '+JSON.stringify(verifiedMultibuyFailures));
           if(page5Failures.length)throw Error('41LV HOLD: verified page-5 WC-paper prices do not match spatial parser: '+JSON.stringify(page5Failures));
           if(suspicious.length)throw Error('41LV HOLD: ambiguous multibuy prices require comparison against the original leaflet before production');
