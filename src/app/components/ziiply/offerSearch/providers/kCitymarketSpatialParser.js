@@ -232,6 +232,21 @@ function resolveCards(rows,rawBoxes){
   card.row.title=card.row.title.replace(/^\d+(?=[A-ZÅÄÖ]{4})/,'').replace(/\s+-\d{1,2}\s*%/g,'');
   card.row.debugCardAnchor=card.anchor;
  }
+ // Final pack-semantics pass after all competing price candidates have been reconciled.
+ // The explicit publisher label "2 SÄKKIÄ" plus the rejected large price glyph
+ // must win over a weak neighbouring-card match (e.g. 6.10 EUR).
+ for(const row of rows){
+   const context=(row.nearby||[]).join(' ').replace(/\\s+/g,' ').toUpperCase();
+   if(/\\b2\\s*SÄKKIÄ\\b/.test(context)&&row.debugRejectedCardPrice&&Number(row.debugRejectedCardPrice.value)>0){
+     row.spatialResolved={...row.debugRejectedCardPrice,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
+     row.debugPublisherBundle={type:'two-bag-multibuy',evidence:'2 SÄKKIÄ',totalPrice:Number(row.debugRejectedCardPrice.value),requiresBundlePresentation:true};
+     delete row.debugPriceOwnershipConflict;
+   }
+   if(/YHTEIS[\\s-]*HINTAAN/.test(context)&&/\\bSETTI\\b/.test(context)){
+     row.spatialResolved=null;
+     row.debugPublisherBundle={type:'mixed-set',evidence:'YHTEISHINTAAN + SETTI',totalPrice:Number(row.debugPublisherBundlePrice?.value||row.debugRejectedCardPrice?.value||0),requiresBundlePresentation:true};
+   }
+ }
  return {rows,cards,prices};
 }
 
