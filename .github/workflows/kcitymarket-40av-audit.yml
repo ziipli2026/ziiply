@@ -97,3 +97,38 @@ jobs:
           // cannot establish that all unapproved rows are false positives.
           if(missing.length) throw new Error(`${current.id}: missing approved offers (${matched.length}/${expectedKeys.size})`);
           NODE
+
+  archive-current:
+    needs: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Preserve original publisher PDF and parser evidence
+        shell: bash
+        run: |
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-archive-parser.mjs
+          ENTRY=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.url")
+          node scripts/citymarket/export-leaflet.mjs "$ENTRY" /tmp/kcm-leaflet-archive /tmp/kcm-archive-parser.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const dir='/tmp/kcm-leaflet-archive/';
+          const manifest=JSON.parse(fs.readFileSync(dir+'archive-manifest.json','utf8'));
+          const digest=createHash('sha256').update(fs.readFileSync(dir+'leaflet.pdf')).digest('hex');
+          if(digest!==manifest.pdfSha256)throw Error('Archive PDF hash mismatch');
+          const fixture=JSON.parse(fs.readFileSync('tests/fixtures/citymarket/41AV.approved.json','utf8'));
+          if(fixture.pdfSha256!==digest)throw Error('Archived PDF does not match approved fixture');
+          if(fixture.pageCount!==manifest.pageCount)throw Error('Archived PDF page count mismatch');
+          console.log('KCM_ARCHIVE_VERIFIED',JSON.stringify({pdfSha256:digest,pages:manifest.pageCount,offers:manifest.offerCount}));
+          NODE
+      - name: Upload source archive for future regression recovery
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcitymarket-41av-source-archive
+          path: /tmp/kcm-leaflet-archive/
+          retention-days: 90
+          if-no-files-found: error
