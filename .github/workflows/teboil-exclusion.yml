@@ -13,6 +13,7 @@ on:
   pull_request:
     paths:
       - scripts/test-teboil-exclusion.mjs
+      - scripts/test-fuel-station-dedup.mjs
       - src/app/api/fuel/**
       - src/app/desktop-preview/page.tsx
       - .github/workflows/teboil-exclusion.yml
