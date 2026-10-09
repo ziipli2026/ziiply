@@ -336,3 +336,9 @@ test("K store search preserves numeric store ID exactly", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test("desktop comparison exact EAN matcher accepts nested provider product identifiers", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode/);
+  assert.match(page, /byEan\.filter\(\(p:any\)=>String\(p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode/);
+});
