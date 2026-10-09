@@ -156,7 +156,7 @@ export default function DesktopPreviewPage() {
   const [desktopCompareLoading,setDesktopCompareLoading]=useState(false);
   const desktopCompareSignature=JSON.stringify({
     stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.externalId??store?.id??""),String(store?.name??store?.title??"")]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
-    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??"",item.title??item.name??item.productName??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true])
+    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??"",item.title??item.name??item.productName??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
   });
   const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
   const desktopCompareCacheRef=useRef<Record<string,{matches:Record<string,Record<string,number>>;expiresAt:number}>>({});
