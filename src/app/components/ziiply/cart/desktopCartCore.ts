@@ -75,3 +75,13 @@ export function invalidateDesktopCartPricesForStoreSelection(
     return { ...item, price: null, __price: null, __priceVerified: false, __needsPriceRefresh: true };
   });
 }
+
+/** Comparison price key includes the originating store, not only the barcode. */
+export function desktopComparisonRowKey(item: Record<string, any>) {
+  return JSON.stringify([
+    desktopCartIdentity(item),
+    String(item.source ?? "justiina"),
+    String(item.__chain ?? item.chain ?? "").toUpperCase(),
+    String(item.__storeId ?? item.storeId ?? "").trim(),
+  ]);
+}
