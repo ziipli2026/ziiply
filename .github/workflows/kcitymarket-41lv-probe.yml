@@ -55,7 +55,7 @@ jobs:
           const page5Failures=knownPage5.flatMap(({title,expected})=>{
             const match=all.find(r=>r.page===5&&title.test(String(r.title)));
             const actual=match?.spatialResolved?.value==null?null:Number(match.spatialResolved.value);
-            return match&&actual!==null&&Math.abs(actual-expected)<0.005?:[{title:String(title),expected,actual:Number.isFinite(actual)?actual:null,found:Boolean(match)}];
+            return match&&actual!==null&&Math.abs(actual-expected)<0.005?[]:[{title:String(title),expected,actual:Number.isFinite(actual)?actual:null,found:Boolean(match)}];
           });
           fs.writeFileSync(dir+'verified-page5-prices.json',JSON.stringify({source:'41LV original PDF page 5, visually checked',expected:[{product:'Lotus Just1 WC-PAPERI 6 rl plus household-paper 6 rl, set',price:10},{product:'Lotus Soft Embo WC-PAPERI 40 rl, 2 bags',price:29.90}],failures:page5Failures},null,2));
           fs.writeFileSync(dir+'probe-report.json',JSON.stringify({...report,verifiedPage5Failures:page5Failures},null,2));
