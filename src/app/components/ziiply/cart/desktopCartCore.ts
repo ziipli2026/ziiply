@@ -35,7 +35,8 @@ export function changeDesktopCartItemQuantity(items: DesktopCartItem[], product:
   return items.flatMap(item => {
     if (matched || desktopCartIdentity(item) !== key || (source && item.source !== source) || !desktopCartSameStore(item, product)) return [item];
     matched = true;
-    const quantity = item.quantity + delta;
+    const quantity = Number(item.quantity) + delta;
+    if (!Number.isSafeInteger(quantity)) return [item];
     return quantity > 0 ? [{ ...item, quantity }] : [];
   });
 }
