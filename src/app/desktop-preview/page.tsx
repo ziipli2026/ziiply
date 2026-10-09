@@ -39,52 +39,12 @@ function FuelBrandLogo({ brand }: { brand: "Neste" | "ABC" | "St1" | "SEO" | "Mu
 }
 
 function FuelStationTypeIllustration({ kind, className }: { kind: "traffic" | "cold" | "pump"; className: string }) {
-  const id = kind === "traffic" ? "fuelTrafficArt" : kind === "cold" ? "fuelColdArt" : "fuelPumpArt";
-  return <svg aria-hidden="true" viewBox="0 0 96 80" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id={id+"roof"} x1="0" y1="0" x2="0.9" y2="1"><stop stopColor="#ffb69c"/><stop offset=".45" stopColor="#d84937"/><stop offset="1" stopColor="#9e2726"/></linearGradient>
-      <linearGradient id={id+"metal"} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#ffffff"/><stop offset=".5" stopColor="#dce2df"/><stop offset="1" stopColor="#8d9b99"/></linearGradient>
-      <linearGradient id={id+"glass"} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#d9f8f1"/><stop offset="1" stopColor="#569a98"/></linearGradient>
-      <filter id={id+"shadow"} x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="1.7" floodColor="#483b2c" floodOpacity=".32"/></filter>
-    </defs>
-    <g filter={`url(#${id}shadow)`}>
-      {kind === "traffic" && <>
-        <path d="M5 67H91" stroke="#8e887c" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M8 35H52V66H8Z" fill={`url(#${id}metal)`} stroke="#87908a" strokeWidth="1"/>
-        <path d="M11 39H29V62H11Z" fill={`url(#${id}glass)`}/><path d="M32 39H48V62H32Z" fill={`url(#${id}glass)`}/>
-        <path d="M9 39H50M30 39V65" stroke="#f6faf5" strokeWidth="2"/>
-        <path d="M4 29 11 23H55L61 29V36H4Z" fill={`url(#${id}roof)`} stroke="#8e3029" strokeWidth="1"/>
-        <path d="M7 30H58" stroke="#ffe9c5" strokeWidth="2"/>
-        <path d="M48 21H91L95 29H45Z" fill={`url(#${id}roof)`} stroke="#8e3029" strokeWidth="1"/>
-        <path d="M51 29H91V34H51Z" fill="#f5f0e6"/>
-        <path d="M56 34V66M88 34V66" stroke={`url(#${id}metal)`} strokeWidth="5"/>
-        <rect x="66" y="40" width="12" height="25" rx="2" fill="#c93930" stroke="#832b28" strokeWidth="1"/>
-        <rect x="68" y="43" width="8" height="9" rx="1" fill="#d8f6ec"/><path d="M78 46h4l2 4v11" stroke="#343d3a" strokeWidth="2.5" strokeLinecap="round"/>
-        <path d="M68 59h8" stroke="#f8ead4" strokeWidth="2"/>
-        <path d="M14 25H37" stroke="#ffe9d1" strokeWidth="1.5"/>
-      </>}
-      {kind === "cold" && <>
-        <path d="M5 69H91" stroke="#8e887c" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M9 19 17 12H83L92 19V28H9Z" fill={`url(#${id}roof)`} stroke="#91342e" strokeWidth="1.2"/>
-        <path d="M12 21H89" stroke="#fff1d8" strokeWidth="3"/>
-        <path d="M17 28H84V32H17Z" fill={`url(#${id}metal)`}/>
-        <path d="M21 32V68M81 32V68" stroke={`url(#${id}metal)`} strokeWidth="6"/>
-        {[35,58].map((x)=><g key={x}><rect x={x} y="38" width="16" height="29" rx="2" fill="#c83a33" stroke="#812a26" strokeWidth="1.2"/><rect x={x+2.5} y="41" width="11" height="10" rx="1" fill={`url(#${id}glass)`}/><path d={`M${x+16} 45h4l2 5v12q0 3-3 3`} stroke="#343c3a" strokeWidth="2.5" strokeLinecap="round"/><path d={`M${x+4} 59h8`} stroke="#ffe9c9" strokeWidth="2"/></g>)}
-        <path d="M17 14H83" stroke="#ffcab1" strokeWidth="2"/>
-      </>}
-      {kind === "pump" && <>
-        <path d="M20 72H77" stroke="#a39a88" strokeWidth="2" strokeLinecap="round"/>
-        <rect x="27" y="8" width="39" height="62" rx="6" fill={`url(#${id}roof)`} stroke="#812923" strokeWidth="2"/>
-        <rect x="32" y="14" width="29" height="28" rx="3" fill={`url(#${id}metal)`} stroke="#7b8b88" strokeWidth="1.3"/>
-        <rect x="36" y="18" width="21" height="15" rx="1.5" fill={`url(#${id}glass)`}/>
-        <path d="M39 23h15M39 28h11" stroke="#397b78" strokeWidth="2" strokeLinecap="round"/>
-        <rect x="35" y="47" width="23" height="5" rx="2" fill="#f9e7c3"/>
-        <path d="M66 20h6l8 11v26q0 8-9 8h-5" stroke="#303c39" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M32 60h29" stroke="#ffccab" strokeWidth="2"/>
-        <path d="M31 12h31" stroke="#ffd6b9" strokeWidth="2" strokeLinecap="round"/>
-      </>}
-    </g>
-  </svg>;
+  const images = {
+    traffic: "/fuel-icons/traffic-station.png",
+    cold: "/fuel-icons/cold-station.png",
+    pump: "/fuel-icons/fuel-pump.png",
+  };
+  return <img src={images[kind]} alt="" aria-hidden="true" className={className} style={{ objectFit: "contain" }} loading="eager" draggable={false} />;
 }
 
 function FuelStationCardDetails({ chain, station }: { chain: string; station: any }) {
