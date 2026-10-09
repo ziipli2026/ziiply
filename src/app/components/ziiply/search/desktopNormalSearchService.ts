@@ -87,10 +87,10 @@ export async function refreshDesktopCartProductPrice(
 ): Promise<number | null> {
   if (chain === "LIDL" || chain === "TOKMANNI" || chain === "EUROSPAR") return null;
   if (!String(store.externalId ?? store.id ?? "").trim()) return null;
-  const ean = String(item.ean ?? "").trim();
-  const id = String(item.id ?? "").trim();
+  const ean = String(item.ean ?? item.barcode ?? item.product?.ean ?? item.product?.barcode ?? "").trim();
+  const id = String(item.id ?? item.product?.id ?? "").trim();
   if (!ean && !id) return null;
-  const term = String(item.title ?? item.name ?? item.productName ?? "").trim();
+  const term = String(item.title ?? item.name ?? item.productName ?? item.product?.name ?? item.product?.title ?? "").trim();
   if (!term) return null;
   const results = await fetchDesktopNormalProducts(term, chain, store);
   const exact = results.filter(p => {
