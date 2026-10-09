@@ -280,21 +280,22 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{desktopCompareRunId.current+=1;desktopCompareCache.current.clear();desktopCompareCacheTime.current=0;setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
   // Cross-chain comparison: try the source name first, then brand-neutral
   // descriptions. A candidate must still match the milk type and package size.
+  // Cross-chain comparison: search without store-specific brands, then verify milk type and volume.
   function desktopCompareSearchTerms(name:string):string[]{
     const base=name.trim();
-    const withoutBrand=base.replace(/^(?:kotimaista|coop|xtra|pirkka|k-menu)\\s+/i,"").trim();
+    const withoutBrand=base.replace(/^(?:kotimaista|coop|xtra|pirkka|k-menu)\s+/i,"").trim();
     const terms=[base,withoutBrand];
-    const milk=withoutBrand.match(/^(kevytmaito|rasvaton maito|täysmaito)\\s+(1\\s*l|1\\s*lit(?:ra)?)$/i);
+    const milk=withoutBrand.match(/^(kevytmaito|rasvaton maito|täysmaito)\s+(1\s*l|1\s*lit(?:ra)?)$/i);
     if(milk)terms.push(milk[1]);
     return [...new Set(terms.filter(Boolean))];
   }
   function desktopCompareCompatibleName(source:string,candidate:string):boolean{
-    const norm=(v:string)=>v.toLocaleLowerCase("fi").replace(/,/g,".").replace(/\\s+/g," ").trim();
+    const norm=(v:string)=>v.toLocaleLowerCase("fi").replace(/,/g,".").replace(/\s+/g," ").trim();
     const a=norm(source),b=norm(candidate);
-    const milkType=(v:string)=>/\\bkevytmaito\\b/.test(v)?"kevytmaito":/\\brasvaton\\s+maito\\b/.test(v)?"rasvaton maito":/\\btäysmaito\\b/.test(v)?"täysmaito":"";
+    const milkType=(v:string)=>/\bkevytmaito\b/.test(v)?"kevytmaito":/\brasvaton\s+maito\b/.test(v)?"rasvaton maito":/\btäysmaito\b/.test(v)?"täysmaito":"";
     const type=milkType(a);
     if(!type||milkType(b)!==type)return false;
-    const volume=(v:string)=>{const m=v.match(/(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s*(l|dl|ml)(?=\\s|$)/);return m?Number(m[1])*(m[2]==="l"?1000:m[2]==="dl"?100:1):null;};
+    const volume=(v:string)=>{const m=v.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*(l|dl|ml)(?=\s|$)/);return m?Number(m[1])*(m[2]==="l"?1000:m[2]==="dl"?100:1):null;};
     const sourceVolume=volume(a),candidateVolume=volume(b);
     return sourceVolume!==null&&candidateVolume===sourceVolume;
   }
@@ -370,7 +371,7 @@ export default function DesktopPreviewPage() {
             }));
             const all=responses.flatMap(({products,source})=>products.map((product:any)=>({product,source})));
             const exact=ean?all.find(({product:p})=>[p.ean,p.gtin,p.eanCode,p.barcode,p.product?.ean,p.item?.ean].some(v=>String(v||"").trim()===ean)):null;
-            const normalized=(v:string)=>v.trim().replace(/\\s+/g," ").toLocaleLowerCase("fi");
+            const normalized=(v:string)=>v.trim().replace(/\s+/g," ").toLocaleLowerCase("fi");
             const byName=all.find(({product:p})=>normalized(String(p.name||p.title||""))===normalized(name));
             const byEquivalent=all.find(({product:p})=>desktopCompareCompatibleName(name,String(p.name||p.title||"")));
             const matched=exact||byName||byEquivalent;
