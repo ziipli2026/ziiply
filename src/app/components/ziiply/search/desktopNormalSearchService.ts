@@ -22,7 +22,8 @@ export async function fetchDesktopNormalProducts(
   const term = query.trim();
   if (!term) return [];
   const params = new URLSearchParams({ search: term });
-  const storeId = String(store.externalId ?? store.id ?? "");
+  const storeId = String(store.externalId ?? store.id ?? "").trim();
+  if ((chain === "S" || chain === "K") && !storeId) throw new Error("Selected store identifier missing");
   let url: string;
   switch (chain) {
     case "S":
