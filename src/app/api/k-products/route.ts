@@ -57,7 +57,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   const search = searchParams.get("search") || "";
-  const store = searchParams.get("store") || "3221";
+  const store = searchParams.get("store") || "";
   const storeId = resolveKStoreId(store);
   if (storeId === null) {
     return NextResponse.json({ error: "Unknown K store identifier", store }, { status: 400 });
