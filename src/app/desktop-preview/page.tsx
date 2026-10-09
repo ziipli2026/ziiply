@@ -382,6 +382,15 @@ export default function DesktopPreviewPage() {
 
   function distanceKm(s:any){ if(!gpsCoords)return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const lat=Number(s?.latitude ?? s?.lat); const lon=Number(s?.longitude ?? s?.lon ?? s?.lng); if(!Number.isFinite(lat)||!Number.isFinite(lon))return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const r=6371, p1=gpsCoords.latitude*Math.PI/180, p2=lat*Math.PI/180, dp=(lat-gpsCoords.latitude)*Math.PI/180, dl=(lon-gpsCoords.longitude)*Math.PI/180; const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2; return 2*r*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
   function byDistance(items:any[]){return [...items].sort((a,b)=>distanceKm(a)-distanceKm(b));}
+  // One shared desktop picker rule for S, K, Lidl and Tokmanni/Spar: ten nearest,
+  // plus the currently selected store when it falls outside that group.
+  function desktopPickerNearest(items:any[], current:any){
+    const nearest=byDistance(items).slice(0,10);
+    if(current && items.some((s:any)=>String(s.id)===String(current.id)) && !nearest.some((s:any)=>String(s.id)===String(current.id))){
+      return [current,...nearest];
+    }
+    return nearest;
+  }
   function storeKind(s:any){const chain=String(s?.chain||s?.type||s?.brand||"").toLowerCase();const n=String(s?.name||"").toLowerCase();if(chain==="lidl")return "lidl";if(chain.includes("tokmanni")||chain.includes("spar"))return "spar";if(n.includes("prisma"))return "sHyper";if(n.includes("citymarket"))return "kHyper";if(n.includes("s-market")||n.includes("sale")||n.includes("alepa"))return "sLocal";if(n.includes("k-market")||n.includes("k-supermarket"))return "kLocal";if(n.includes("lidl"))return "lidl";if(n.includes("tokmanni")||n.includes("spar"))return "spar";return ""}
   function applyModeDefaults(nextMode:"hyper"|"local"){const wanted=[nextMode==="hyper"?"sHyper":"sLocal",nextMode==="hyper"?"kHyper":"kLocal","lidl","spar"];const defaults=wanted.map(k=>stores.find((s:any)=>storeKind(s)===k)).filter(Boolean);setSelectedStores(prev=>{const selectedKinds=new Set(Object.values(prev).map((s:any)=>storeKind(s)));const next:any={};for(const s of defaults as any[]){const k=storeKind(s);if(selectedKinds.has(k))next[String(s.id)]=s}return next})}
 
@@ -833,7 +842,7 @@ export default function DesktopPreviewPage() {
       <button type="button" onClick={()=>setPickerChain(null)} aria-label="Sulje kauppavalinta" className="grid h-9 w-9 place-items-center rounded-full border border-[#d7bd78] bg-[#fffdf5] text-[22px] font-black text-[#34445c]">×</button>
     </div>
     <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
-      {byDistance((chain==="LIDL"?lidlStores:chain==="SPAR"?sparStores:stores).filter((s:any)=>{const k=storeKind(s);return chain==="S"?k===(storeMode==="hyper"?"sHyper":"sLocal"):chain==="K"?k===(storeMode==="hyper"?"kHyper":"kLocal"):chain==="LIDL"?k==="lidl":k==="spar"})).map((s:any)=>{
+      {desktopPickerNearest((chain==="LIDL"?lidlStores:chain==="SPAR"?sparStores:stores).filter((s:any)=>{const k=storeKind(s);return chain==="S"?k===(storeMode==="hyper"?"sHyper":"sLocal"):chain==="K"?k===(storeMode==="hyper"?"kHyper":"kLocal"):chain==="LIDL"?k==="lidl":k==="spar"}),store).map((s:any)=>{
         const isCurrent=String(store?.id)===String(s.id);
         const distance=distanceKm(s);
         return <button key={String(s.id)} type="button" onClick={()=>{setSelectedStores(prev=>{const next:any={};for(const [id,x] of Object.entries(prev)){const k=storeKind(x);if(chain==="S"?(k!=="sHyper"&&k!=="sLocal"):chain==="K"?(k!=="kHyper"&&k!=="kLocal"):chain==="LIDL"?k!=="lidl":k!=="spar")next[id]=x}next[String(s.id)]=s;return next});setPickerChain(null)}} className={`flex w-full items-center justify-between gap-3 rounded-[15px] border px-3 py-3 text-left shadow-sm ${isCurrent?"border-[#0b6f35] bg-[#0a6d39] text-white":"border-[#ead9aa] bg-[#fffdf6] text-[#24324a] hover:bg-[#f5edcf]"}`}>
