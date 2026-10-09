@@ -60,16 +60,15 @@ export default function ZiiplyDesktopCompareCard({
             className="absolute right-4 top-3 z-10 grid h-14 w-16 place-items-center rounded-[15px] border-[3px] border-[#3d2415] bg-gradient-to-b from-[#80512c] to-[#3b2416] text-2xl font-black text-[#fff0c9] shadow-[inset_0_0_0_2px_rgba(255,214,139,.15),0_3px_6px_rgba(0,0,0,.22)]">×</button>
 
           {detailStore ? (
-            <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
+            <div className="mt-16 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="mb-3 flex shrink-0 items-center justify-center gap-3 text-center">
                 <div>
                   <div className="font-serif text-xs font-bold uppercase tracking-[.16em] text-[#7e6c4d]">Ostoskorin erittely</div>
                   <h2 className="font-serif text-2xl font-black italic text-[#174c3a]">{detailStore.name}</h2>
                 </div>
-                <button type="button" onClick={() => setDetailsStoreId(null)} className="rounded-xl border-2 border-[#765126] bg-[#f1dfb7] px-4 py-2 font-bold text-[#51361a]">← Vertailuun</button>
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto rounded-xl">
-                <ZiiplyMobileCompareSelectionCard open embedded store={{...detailStore, matches: detailStore.matches || []}} items={items} onBack={() => setDetailsStoreId(null)} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
+                <ZiiplyMobileCompareSelectionCard open embedded store={{...detailStore, matches: detailStore.matches || []}} items={items} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
               </div>
             </div>
           ) : <>
