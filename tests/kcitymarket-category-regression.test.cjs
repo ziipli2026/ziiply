@@ -13,6 +13,7 @@ const cases = [
   ["Friggs maissikakut", "Kuivatuotteet"],
   ["Riisikakut 100 g", "Kuivatuotteet"],
   ["Pakastemuusiperuna 500 g", "Pakasteet"],
+  ["Oolannin MUUSIPERUNA", "Pakasteet"],
   ["Pakasteperunat 1 kg", "Pakasteet"],
   ["Ingman Creamy jäätelö 850 ml", "Pakasteet"],
   ["Jäätelötuutit 6 kpl", "Pakasteet"],
