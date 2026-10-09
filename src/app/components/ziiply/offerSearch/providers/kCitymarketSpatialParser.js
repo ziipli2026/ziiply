@@ -428,7 +428,7 @@ if(expected&&anchor){
  if(closeCents&&saleUnit&&!rangeTitle&&euros>=1&&euros<=29&&!packageNumbers.has(rounded))spatialCandidates.push({value:rounded,quantity:null,unit:String(saleUnit.text).toUpperCase(),parts:["expected",String(closeCents.text)],score:Number((boxDistance(anchor,closeCents)*.28).toFixed(6)),kind:"expected-large-cents-unit"});
 }
 // Reconstruct large-font spaced cents such as ERÄ 1 8 9 => 1.89, while ignoring package-count rows.
-for(const g of spatialGroups(spatial).filter(g=>/\\b[1-9]\\s+[0-9]\\s+[0-9]\\b/.test(String(g.text)))){const m=String(g.text).match(/\\b([1-9])\\s+([0-9])\\s+([0-9])\\b/);if(!m)continue;const value=Number(m[1]+"."+m[2]+m[3]);if(value>=.5&&value<30&&!packageNumbers.has(value))spatialCandidates.push({value,quantity:null,unit:null,parts:[m[0]],score:Number((Math.abs(g.top-anchor.top)*.25).toFixed(6)),kind:"spaced-large-cents"});}
+for(const g of spatialGroups(spatial).filter(g=>/\b[1-9]\s+[0-9]\s+[0-9]\b/.test(String(g.text)))){const m=String(g.text).match(/\\b([1-9])\\s+([0-9])\\s+([0-9])\\b/);if(!m)continue;const value=Number(m[1]+"."+m[2]+m[3]);if(value>=.5&&value<30&&!packageNumbers.has(value))spatialCandidates.push({value,quantity:null,unit:null,parts:[m[0]],score:Number((Math.abs(g.top-anchor.top)*.25).toFixed(6)),kind:"spaced-large-cents"});}
 // Split euro/cents inside the product's visual row/card band.
 // Require a significant title hit and price digits to the right in the same narrow vertical band.
 if(anchor){
@@ -471,7 +471,7 @@ if(expected){
   if(value>=1&&value<50&&Math.abs(value-raw)<Math.max(.18,expected*.12)) spatialCandidates.push({value,quantity:q.quantity,unit:q.unit,parts:["unitprice",String(q.quantity),q.unit],score:Number((.42+Math.abs(value-raw)).toFixed(6)),kind:"unitprice-derived-multibuy"});
  }
 }
-for(const g of spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[])){const m=String(g.text||"").match(/(?:^|\\bERÄ\\s+)([0-9])\\s+([0-9])\\s+([0-9])(?:\\b|$)/i);if(m){const v=Number(m[1]+"."+m[2]+m[3]);if(v>=.5&&v<20&&!title.replace(/\\D/g,"").includes(m[1]+m[2]+m[3]))spatialCandidates.push({value:v,quantity:null,unit:null,parts:[m[1],m[2],m[3]],score:.08,kind:"spaced-large-cents"});}} const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
+for(const g of spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[])){const m=String(g.text||"").match(/(?:^|\bERÄ\s+)([0-9])\s+([0-9])\s+([0-9])(?:\b|$)/i);if(m){const v=Number(m[1]+"."+m[2]+m[3]);if(v>=.5&&v<20&&!title.replace(/\\D/g,"").includes(m[1]+m[2]+m[3]))spatialCandidates.push({value:v,quantity:null,unit:null,parts:[m[1],m[2],m[3]],score:.08,kind:"spaced-large-cents"});}} const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
 let spatialResolved=null,percentageOffer=null;
 // Same-card fragmented unit rate can also be read directly from aligned word boxes.
 if(!spatialResolved&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
