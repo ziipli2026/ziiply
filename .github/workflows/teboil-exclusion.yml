@@ -1,0 +1,29 @@
+name: Teboil exclusion regression
+
+on:
+  push:
+    branches:
+      - preview/legacy-desktop-ui
+    paths:
+      - scripts/test-teboil-exclusion.mjs
+      - src/app/api/fuel/**
+      - src/app/desktop-preview/page.tsx
+      - .github/workflows/teboil-exclusion.yml
+  pull_request:
+    paths:
+      - scripts/test-teboil-exclusion.mjs
+      - src/app/api/fuel/**
+      - src/app/desktop-preview/page.tsx
+      - .github/workflows/teboil-exclusion.yml
+  workflow_dispatch:
+
+jobs:
+  teboil-exclusion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check excluded station variants
+        run: node scripts/test-teboil-exclusion.mjs
