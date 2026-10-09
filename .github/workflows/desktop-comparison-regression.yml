@@ -1,0 +1,37 @@
+name: Desktop comparison regression
+on:
+  push:
+    branches:
+      - feature/desktop-mobile-parity-20261008
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/app/components/ziiply/search/desktopNormalSearchService.ts"
+      - "src/app/desktop-preview/page.tsx"
+      - "src/app/api/s-products/route.ts"
+      - "src/app/api/k-products/route.ts"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/desktop-comparison-regression.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      # Isolated regression tests only transpile TypeScript; avoid the application's
+      # currently inconsistent package-lock.json until dependencies are reconciled.
+      - name: Install isolated TypeScript test dependency
+        run: npm install --no-save --no-package-lock --ignore-scripts --legacy-peer-deps typescript@5
+      - run: npm run test:comparison

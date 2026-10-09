@@ -694,6 +694,7 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import { rankComparisonResults } from "./components/ziiply/cart/comparisonRankingCore";
 
 // PAGE_V442_MOBILE_LANDSCAPE_BLOCK_IGNORE_KEYBOARD_VISUAL_VIEWPORT
 // Korjaus: iPhone/mobile landscape ei saa avata vanhaa sm/desktop-page-näkymää.
@@ -9313,26 +9314,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return visibleResults;
     }
 
-    return visibleResults
-      .sort((a, b) => {
-        if (a.comingSoon && !b.comingSoon) return 1;
-        if (!a.comingSoon && b.comingSoon) return -1;
-        const aComplete = a.missingItems === 0 && a.totalPrice > 0;
-        const bComplete = b.missingItems === 0 && b.totalPrice > 0;
-        if (aComplete && !bComplete) return -1;
-        if (!aComplete && bComplete) return 1;
-
-        // Jos molemmat korit ovat vajaita, suurempi tuotekattavuus ratkaisee
-        // järjestyksen ennen hintaa. Muuten halvempi mutta enemmän tuotteita
-        // puuttuva kori voisi näkyä Vertailussa virheellisesti sijalla #1.
-        if (!aComplete && !bComplete && a.foundItems !== b.foundItems) {
-          return b.foundItems - a.foundItems;
-        }
-
-        if (a.totalPrice === 0) return 1;
-        if (b.totalPrice === 0) return -1;
-        return a.totalPrice - b.totalPrice;
-      });
+    return rankComparisonResults(visibleResults);
   }, [
     cart.length,
     comparableCart,

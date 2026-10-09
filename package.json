@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:comparison": "node --test tests/comparison-ranking.test.mjs tests/desktop-normal-search.test.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
