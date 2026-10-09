@@ -55,9 +55,29 @@ Next-päivitys on vain käyttäjähallinnan kehityshaarassa. Mainia tai desktop-
 
 Kehitysnäkymä luo vierastunnisteen vain paikallisesti ja näyttää tallennuksen saatavuuden Reactin ulkoisen store-rajapinnan kautta. Tilin varmuuskopioiden määrä sidotaan näytössä nykyiseen käyttäjään. Testinäkymää ei ole kytketty pääruutujen pakolliseksi vaiheeksi.
 
+## Versioitu pilvitallennus — kehitystoteutus
+
+`/api/account/documents` lisää käyttäjäkohtaisen dokumenttitallennuksen kehitysnäkymään. Uusi dokumentti luodaan odotetulla versiolla 0; palvelin palauttaa version 1. Muutos vaatii palvelimella olevan revision täsmäämistä. Vanha versio palauttaa HTTP 409, eikä palvelin ylikirjoita toisen laitteen muutosta.
+
+| Kenttä | Sopimus |
+|---|---|
+| id | Koridokumentin UUID; omistaja rajataan aina erikseen SDK-istunnosta |
+| mutationId | Yhden tallennusyrityksen UUID; retry käyttää samaa tunnistetta ja sisältöä |
+| expectedRevision | Asiakkaan viimeksi lukema palvelinversio; 0 vain luonnissa |
+| snapshot | Nykyisen mobiili-/desktop-tallennuksen sallittujen avainten sisältö |
+| replayed | Kuittaus aiemmin tallennetusta operaatiosta; asiakkaan pitää hakea nykyinen versio |
+
+SQL-funktio lukitsee käyttäjän kirjoitusoperaatiot transaktion ajaksi ja säilyttää operaatiokuitin. Sama mutationId ja sama sisältö palauttavat alkuperäisen kuittauksen myös myöhemmän tallennuksen jälkeen muuttamatta nykyistä dokumenttia. Tunnisteen uudelleenkäyttö eri sisällölle estyy. Omistajuuden rajaus koskee dokumentteja ja kuitteja. Funktio on SECURITY INVOKER, sen PUBLIC-execute-oikeus on poistettu ja taulujen RLS on päällä; palvelinroolin käyttö vaatii edelleen istunnosta johdetun user_id:n joka kutsussa.
+
+Snapshotin päivitys korvaa vain pyynnössä mukana olevat sallintalistan avaimet. Poissa oleva mobiiliavain säilyy desktop-tallennuksessa ja päinvastoin. Tämä ei yhdistä saman korin tuoterivejä tai muuta määriä automaattisesti. Yhdistetyn snapshotin kokoraja tarkistetaan ennen mitään tallennusta. Migraatio `002-account-documents.sql` ajettiin vain Neon-kehityshaaraan `br-spring-truth-b137mloi`.
+
+Kehitysnäkymässä voi luoda pilvikorin, hakea sen viimeisimmän version ja päivittää sen. Epävarman verkkokuittauksen jälkeen sama operaatio säilyy komponentin muistissa uudelleenyritystä varten. Konflikti säilyttää paikallisen korin ja vaatii palvelinversion hakemista ennen uutta tallennusta. Tilin vaihtuminen luo uuden komponentin ilman edellisen tilin dokumentti- tai retry-tilaa. Pending-operaatio ei vielä säily selaimen uudelleenlatauksessa tai uloskirjautumisessa; pysyvä offline-jono on jatkotyö.
+
+Nykyisiä pääruutujen localStorage-/sessionStorage-efektejä ei korvattu. Pilvidokumenttia ei vielä palauteta aktiiviseksi koriin eikä sen historiallisia hintoja oteta nykyisiksi vertailuhinnoiksi. Yhteinen mobiili-/desktop-CartItem-sopimus, turvallinen palautus ja pääruutujen kytkentä tehdään ennen varsinaista automaattista synkronointia.
+
 ## Seuraava vaihe
 
-Yhteinen versioitu kori/lista/keräily-sopimus; palvelimen user_id-kohtaiset CRUD-reitit; revision/optimistic-locking ja offline-jonon idempotenssi. Tuonti on käyttäjäkohtainen, uudelleenyrityksessä deduplikoitu ja lähdekohtainen; olemassa olevan tilin ja vieraan koreja ei yhdistetä rivikohtaisesti automaattisesti. Säilytä lähde ja tuotetyyppi (tarjous/normaalihaku/tuntematon/painotuote), määrä ja keräilymerkinnät. Tilinvaihdossa omat namespace-avaimet, vanhan käyttäjän datan tyhjennys muistista, vierastilan palautus ilman toisen tilin tietoja.
+Yhteinen kori/lista/keräily-sopimus ja sen mobiili-/desktop-adapterit; pääruutujen kytkentä testattuun user_id- ja revision-rajapintaan; pysyvä käyttäjäkohtainen offline-jono, joka käyttää palvelimen operaatiokuitteja. Tuonti on käyttäjäkohtainen, uudelleenyrityksessä deduplikoitu ja lähdekohtainen; olemassa olevan tilin ja vieraan koreja ei yhdistetä rivikohtaisesti automaattisesti. Säilytä lähde ja tuotetyyppi (tarjous/normaalihaku/tuntematon/painotuote), määrä ja keräilymerkinnät. Tilinvaihdossa omat namespace-avaimet, vanhan käyttäjän datan tyhjennys muistista, vierastilan palautus ilman toisen tilin tietoja.
 
 Valinnat synkronoidaan erillisellä sallintalistalla myöhemmin. GPS:n lupaa/koordinaatteja, tämän laitteen käsivalintaa tai hintacachea ei siirretä automaattisesti toiselle laitteelle. Ei muuteta Yksi/Monta-vertailun sääntöjä tai Göstan preloadeja.
 
@@ -67,11 +87,11 @@ Lähteet: https://neon.com/docs/auth/guides/setup-oauth.md ; https://neon.com/do
 
 ## Toteutuksen tarkastukset
 
-- `npm run test:account`: 6/6 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag).
-- `npm run test:account:neon`: 19/19 oikeaa integraatiotarkastusta kehityshaarassa. Ei-kirjautuneen luku/kirjoitus estyvät; vieras origin estyy; sähköpostirekisteröinti ja cookie-istunnon palautus toimivat; korituonti ja idempotentti retry toimivat; omat varmuuskopiot palautuvat ilman jaettua cachea; väärennetyt cookiet, väärä salasana, virheellinen ja liian suuri tuonti estyvät; toinen käyttäjä ei voi lukea ensimmäisen tietoja edes user_id-parametrilla; pyynnön user_id ei muuta omistajaa; sama sisältö kuuluu erikseen kummallekin käyttäjälle; uloskirjautuminen estää pääsyn ja uudelleenkirjautuminen palauttaa omat tiedot. Google OAuth -aloitus palauttaa odotetun Neonin `/sign-in/social/init`-osoitteen.
+- `npm run test:account`: 11/11 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag).
+- `npm run test:account:neon`: 36/36 oikeaa integraatiotarkastusta kehityshaarassa. Ei-kirjautuneen luku/kirjoitus estyvät; vieras origin estyy; sähköpostirekisteröinti ja cookie-istunnon palautus toimivat; korituonti ja idempotentti retry toimivat; omat varmuuskopiot palautuvat ilman jaettua cachea; väärennetyt cookiet, väärä salasana, virheellinen ja liian suuri tuonti estyvät; toinen käyttäjä ei voi lukea ensimmäisen tietoja edes user_id-parametrilla; pyynnön user_id ei muuta omistajaa; sama sisältö kuuluu erikseen kummallekin käyttäjälle; uloskirjautuminen estää pääsyn ja uudelleenkirjautuminen palauttaa omat tiedot. Versioidut dokumentit testattiin kahdella erillisellä istunnolla: mobiili- ja desktop-avaimet säilyvät, vanha versio hylätään, samanaikaisista kirjoituksista yksi onnistuu, viivästynyt retry ei palauta vanhaa sisältöä, operaatiotunnisteen uudelleenkäyttö eri sisällöllä estyy ja yhdistetty kokoraja ei jätä osittaista tallennusta. Google OAuth -aloitus palauttaa odotetun Neonin `/sign-in/social/init`-osoitteen.
 - TypeScript, account-tiedostojen kohdennettu ESLint ja Next 16 -build hyväksytty. Npm-asennuksen dry-run hyväksytty ilman legacy-peer-deps-asetusta.
 - Kolme olemassa olevaa eristettyä regressioajoa hyväksytty: painotuotteen koripalautus, vertailun sentti/euro-rajat ja Göstan monipakkaushinnat. Nämä ovat lähde-/yksikkötarkastuksia, eivät laajaa selainregressiota.
-- `npm run test:account:http`: 12/12 HTTP-tarkastusta hyväksytty Next 16 -palvelimella. Sekä oletusarvoisesti pois päältä että tuotantoflagin kanssa pääruutu ja PWA-manifest pysyvät julkisina (200); account-lab, Auth ja korituonnin GET/POST pysyvät estettyinä (404). Testissä ei ollut Auth-/SQL-yhteysasetuksia.
+- `npm run test:account:http`: 16/16 HTTP-tarkastusta hyväksytty Next 16 -palvelimella. Sekä oletusarvoisesti pois päältä että tuotantoflagin kanssa pääruutu ja PWA-manifest pysyvät julkisina (200); account-lab, Auth ja korituonnin ja dokumenttien GET/POST pysyvät estettyinä (404). Testissä ei ollut Auth-/SQL-yhteysasetuksia.
 - Tuotanto-mainin read-only-skeematarkastus: neon_auth=false, ziiply_accounts=false.
 
 Integraatiotestit käyttävät oikeaa Auth- ja SQL-palvelua vain erillisessä kehityshaarassa. Selaimen OAuth-suostumusta, iOS/Android-PWA:ta ja aktiivisen korin laitesynkronointia ei näillä HTTP-testeillä todenneta. Tuodut snapshotit ovat tilin varmuuskopioita, eivät vielä nykyisten mobiili-/desktop-korien automaattinen pilvisynkronointi.

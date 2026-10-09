@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test:account": "node --experimental-strip-types --test tests/account/foundation.test.mjs",
+    "test:account": "node --experimental-strip-types --test tests/account/*.test.mjs",
     "test:account:neon": "node --env-file=.env.account-test tests/account/neon-e2e.mjs",
     "test:account:http": "node tests/account/disabled-http.mjs"
   },

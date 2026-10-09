@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import CloudCartLab from "./cloud";
 import { createAuthClient } from "@neondatabase/auth/next";
 import { getGuestStatus, getServerGuestStatus, initializeGuestStatus, subscribeGuestStatus } from "@/lib/account/guestStatus";
 import { captureGuestSnapshot } from "@/lib/account/guest";
@@ -66,6 +67,7 @@ export default function AccountLab() {
         if (!response.ok) throw new Error("Tuonti ei onnistunut. Paikalliset korit säilyvät.");
         setMessage("Korit kopioitu tilille. Paikallinen tallennus säilyi.");
       })}>Tuo paikalliset korit tilille</button>{" "}
+      <CloudCartLab key={user} />
       <button disabled={busy} onClick={() => void run(async () => check(await auth.signOut()))}>Kirjaudu ulos</button>
     </>}
     <p role="status">{busy ? "Odota…" : message}</p>
