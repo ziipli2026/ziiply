@@ -677,7 +677,7 @@ export default function DesktopPreviewPage() {
           </div>
         )}
 
-        <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 py-5 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
+        <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 overflow-y-auto overscroll-contain pb-3 pt-2 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
           <div className="relative max-w-none flex h-full flex-col justify-start self-stretch">
             {fuelSelected ? <div className="relative h-full min-h-0 overflow-y-auto rounded-[28px] border-[3px] border-[#b38a4a] bg-[#fcf5de] p-4 shadow-[0_5px_0_rgba(105,72,28,.14),inset_0_0_0_2px_rgba(255,255,255,.48)]">
 <div className="grid grid-cols-[1fr_46px_1fr] items-center gap-3">
@@ -765,7 +765,7 @@ export default function DesktopPreviewPage() {
           </div>
         </section>
 
-        <footer className="pointer-events-none absolute bottom-2 left-8 right-8 z-30 flex items-center justify-between border-t border-[#64745f]/15 bg-[#e4e9df]/90 px-2 py-2 text-[12px] font-bold text-[#747d6e] xl:left-12 xl:right-12">
+        <footer className="relative z-10 flex shrink-0 items-center justify-between border-t border-[#64745f]/15 bg-[#e4e9df] px-2 py-1.5 text-[12px] font-bold text-[#747d6e]">
           <span>Ziiply Oy</span>
           <span>One search. All prices.</span>
         </footer>
