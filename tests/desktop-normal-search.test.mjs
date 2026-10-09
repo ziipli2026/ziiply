@@ -5,7 +5,7 @@ import ts from "typescript";
 
 const source = readFileSync(new URL("../src/app/components/ziiply/search/desktopNormalSearchService.ts", import.meta.url), "utf8");
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { normalizeDesktopNormalResults, fetchDesktopNormalProducts } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+const { normalizeDesktopNormalResults, fetchDesktopNormalProducts, refreshDesktopCartProductPrice } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 const store = { id: "123", name: "Testikauppa" };
 
 test("S and K store results retain positive numeric prices", () => {
@@ -80,5 +80,20 @@ test("local price without a selected store identifier is not verified", () => {
     const [item] = normalizeDesktopNormalResults([{ price: 2.49 }], chain, { name: "Unknown" });
     assert.equal(item.__priceVerified, false);
     assert.equal(item.__storeId, "");
+  }
+});
+
+test("exact cart price refresh recognizes nested EAN from selected store", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({
+    products: [{ product: { ean: "6412345678901" }, price: 2.59 }]
+  }) });
+  try {
+    const price = await refreshDesktopCartProductPrice(
+      { ean: "6412345678901", title: "Testituote" }, "S", store
+    );
+    assert.equal(price, 2.59);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
