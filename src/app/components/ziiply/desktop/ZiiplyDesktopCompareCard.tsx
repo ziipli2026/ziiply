@@ -51,7 +51,7 @@ export default function ZiiplyDesktopCompareCard({
   return (
     <div className="fixed inset-0 z-[150] grid place-items-center bg-[#172e23]/65 p-5">
       <section role="dialog" aria-modal="true" aria-label="Hintavertailu"
-        className="relative flex h-[min(86vh,850px)] w-[min(1120px,calc(100vw-40px))] min-h-[430px] flex-col overflow-hidden rounded-[30px] border-[9px] border-[#3d2415] bg-[#ead7ad] p-2 shadow-[0_18px_0_rgba(52,36,23,.35),0_30px_70px_rgba(0,0,0,.35)]">
+        className={`relative flex ${detailStore ? "h-[min(520px,calc(100dvh-40px))] w-[min(760px,calc(100vw-40px))] min-h-0" : "h-[min(86vh,850px)] w-[min(1120px,calc(100vw-40px))] min-h-[430px]"} flex-col overflow-hidden rounded-[30px] border-[9px] border-[#3d2415] bg-[#ead7ad] p-2 shadow-[0_18px_0_rgba(52,36,23,.35),0_30px_70px_rgba(0,0,0,.35)]`}>
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border-[2px] border-dashed border-[#c9ad76] px-7 pb-7 pt-6 md:px-9"
           style={{backgroundColor:"#f5e7c7",backgroundImage:"repeating-linear-gradient(to bottom, transparent 0, transparent 35px, rgba(151,125,79,.16) 36px, transparent 37px),linear-gradient(110deg,rgba(255,250,230,.93),rgba(230,202,151,.56))"}}>
           <button type="button" onClick={back} aria-label="Takaisin" title="Takaisin"
