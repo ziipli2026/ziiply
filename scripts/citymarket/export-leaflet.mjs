@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 const [entry,folder,parserPath='src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js']=process.argv.slice(2);
 if(!entry||!folder)throw Error('Usage: export-leaflet.mjs entry output-folder [parser-path]');
 const requested=new URL(entry);
@@ -22,6 +23,7 @@ if(!pdfResponse.ok)throw Error('PDF HTTP '+pdfResponse.status);
 const pdf=Buffer.from(await pdfResponse.arrayBuffer());
 if(pdf.length>32*1024*1024||!pdf.subarray(0,5).equals(Buffer.from('%PDF-')))throw Error('Invalid or oversized PDF');
 await fs.writeFile(path.join(folder,'leaflet.pdf'),pdf);
+const pdfSha256=createHash('sha256').update(pdf).digest('hex');
 const clean=s=>String(s??'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim();
 const rows=parsed.rows.flatMap(row=>{
  const title=clean(row.title),resolved=row.spatialResolved,percent=Number(row.percentageOffer?.percent);
@@ -31,5 +33,9 @@ const rows=parsed.rows.flatMap(row=>{
  return [{id:`kcm:spatial:${row.page}:${title.toLowerCase()}:${priced?Number(resolved.value):'percent:'+percent}`,
   page:row.page,title,anchor:row.imageAnchor??null,nearby:row.nearby??[]}];
 });
-await fs.writeFile(path.join(folder,'leaflet.json'),JSON.stringify({leaflet:leaflet.href,pdfUrl:pdfUrl.href,pageCount:parsed.pageCount,rows},null,2));
+await fs.writeFile(path.join(folder,'leaflet.json'),JSON.stringify({leaflet:leaflet.href,pdfUrl:pdfUrl.href,pdfSha256,pageCount:parsed.pageCount,rows},null,2));
+// Retain the complete parser output (including geometry/price candidates) so
+// future parser revisions can be diagnosed against the original PDF and evidence.
+await fs.writeFile(path.join(folder,'parser-evidence.json'),JSON.stringify(parsed,null,2));
+await fs.writeFile(path.join(folder,'archive-manifest.json'),JSON.stringify({schemaVersion:1,sourceUrl:entry,publisherUrl:leaflet.href,pdfUrl:pdfUrl.href,pdfSha256,pageCount:parsed.pageCount,offerCount:rows.length,archivedAt:new Date().toISOString(),files:['leaflet.pdf','leaflet.json','parser-evidence.json']},null,2));
 console.log('Exported',rows.length,'offers from',parsed.pageCount,'pages:',leaflet.href);
