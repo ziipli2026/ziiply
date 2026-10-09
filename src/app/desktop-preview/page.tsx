@@ -32,7 +32,7 @@ function FuelStationCardDetails({ chain, station }: { chain: string; station: an
       <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei asemaa 50 km säteellä"}</div>
       {station && <div className="text-[12px] font-bold leading-[1.1] text-black">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
     </div>
-    {station && <div className="absolute bottom-1.5 left-2 flex w-28 shrink-0 flex-col items-center text-[clamp(10px,.8vw,13px)] font-extrabold leading-[1.05] text-[#172b24]">
+    {station && <div className="absolute bottom-1.5 left-2 flex w-14 shrink-0 flex-col items-center whitespace-nowrap text-[clamp(10px,.8vw,13px)] font-extrabold leading-[1.05] text-[#172b24]">
       <div className="flex items-center justify-center gap-1"><span>DI</span><span>{price(station.diesel)}</span></div>
       <div className="flex items-center justify-center gap-1"><span>BE</span><span>{price(station.price95)} / {price(station.price98)}</span></div>
     </div>}
