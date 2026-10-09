@@ -278,6 +278,27 @@ export default function DesktopPreviewPage() {
   const desktopCompareRequestIdentity=useRef(desktopCompareIdentity);
   desktopCompareRequestIdentity.current=desktopCompareIdentity;
   useEffect(()=>{desktopCompareRunId.current+=1;desktopCompareCache.current.clear();desktopCompareCacheTime.current=0;setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
+  // Cross-chain comparison: try the source name first, then brand-neutral
+  // descriptions. A candidate must still match the milk type and package size.
+  function desktopCompareSearchTerms(name:string):string[]{
+    const base=name.trim();
+    const withoutBrand=base.replace(/^(?:kotimaista|coop|xtra|pirkka|k-menu)\\s+/i,"").trim();
+    const terms=[base,withoutBrand];
+    const milk=withoutBrand.match(/^(kevytmaito|rasvaton maito|täysmaito)\\s+(1\\s*l|1\\s*lit(?:ra)?)$/i);
+    if(milk)terms.push(milk[1]);
+    return [...new Set(terms.filter(Boolean))];
+  }
+  function desktopCompareCompatibleName(source:string,candidate:string):boolean{
+    const norm=(v:string)=>v.toLocaleLowerCase("fi").replace(/,/g,".").replace(/\\s+/g," ").trim();
+    const a=norm(source),b=norm(candidate);
+    const milkType=(v:string)=>/\\bkevytmaito\\b/.test(v)?"kevytmaito":/\\brasvaton\\s+maito\\b/.test(v)?"rasvaton maito":/\\btäysmaito\\b/.test(v)?"täysmaito":"";
+    const type=milkType(a);
+    if(!type||milkType(b)!==type)return false;
+    const volume=(v:string)=>{const m=v.match(/(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s*(l|dl|ml)(?=\\s|$)/);return m?Number(m[1])*(m[2]==="l"?1000:m[2]==="dl"?100:1):null;};
+    const sourceVolume=volume(a),candidateVolume=volume(b);
+    return sourceVolume!==null&&candidateVolume===sourceVolume;
+  }
+
   async function openDesktopComparison(){
     const requestIdentity=desktopCompareIdentity;
     const runId=++desktopCompareRunId.current;
@@ -336,20 +357,26 @@ export default function DesktopPreviewPage() {
         const rows=await Promise.all(eligible.map(async item=>{
           const name=String(item.name||item.title||"").trim();
           const ean=String(item.ean||item.product?.ean||"").trim();
-          const params=new URLSearchParams({search:name,store:String(store.externalId||store.id)});
-          if(isS)params.set("storeName",String(store.name||""));
+          const queries=desktopCompareSearchTerms(name);
           try{
-            const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
-            if(!response.ok)throw Error(String(response.status));
-            const data=await response.json();
-            const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
-            const exact=ean?products.find((p:any)=>[p.ean,p.gtin,p.eanCode,p.barcode,p.product?.ean,p.item?.ean].some(v=>String(v||"").trim()===ean)):null;
-            // No speculative substitutes: name match must be exact, not a loose keyword hit.
-            const byName=products.find((p:any)=>String(p.name||p.title||"").trim().replace(/\s+/g," ").toLocaleLowerCase("fi")===name.replace(/\s+/g," ").toLocaleLowerCase("fi"));
-            const matched=exact||byName;
-            const raw=Number((matched?.price??matched?.storeItems?.[0]?.price)??0);
-            const price=matched&&Number.isFinite(raw)&&raw>0?(isS&&data?.source==="s-kaupat-normal-v220"?raw:raw/100):null;
-            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,match:(exact?"ean":byName?"name":"none") as "ean"|"name"|"none"};
+            const responses=await Promise.all(queries.map(async search=>{
+              const params=new URLSearchParams({search,store:String(store.externalId||store.id)});
+              if(isS)params.set("storeName",String(store.name||""));
+              const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
+              if(!response.ok)throw Error(String(response.status));
+              const data=await response.json();
+              const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+              return {products,source:String(data?.source||"")};
+            }));
+            const all=responses.flatMap(({products,source})=>products.map((product:any)=>({product,source})));
+            const exact=ean?all.find(({product:p})=>[p.ean,p.gtin,p.eanCode,p.barcode,p.product?.ean,p.item?.ean].some(v=>String(v||"").trim()===ean)):null;
+            const normalized=(v:string)=>v.trim().replace(/\\s+/g," ").toLocaleLowerCase("fi");
+            const byName=all.find(({product:p})=>normalized(String(p.name||p.title||""))===normalized(name));
+            const byEquivalent=all.find(({product:p})=>desktopCompareCompatibleName(name,String(p.name||p.title||"")));
+            const matched=exact||byName||byEquivalent;
+            const raw=Number((matched?.product?.price??matched?.product?.storeItems?.[0]?.price)??0);
+            const price=matched&&Number.isFinite(raw)&&raw>0?(isS&&matched.source==="s-kaupat-normal-v220"?raw:raw/100):null;
+            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,match:(exact?"ean":byName||byEquivalent?"name":"none") as "ean"|"name"|"none"};
           }catch{return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
