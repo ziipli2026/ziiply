@@ -240,7 +240,7 @@ export default function DesktopPreviewPage() {
           const valid=Object.fromEntries(Object.entries(desktopCompareCacheRef.current).filter(([key,entry])=>{try{return JSON.parse(key)?.version===2&&entry.expiresAt>Date.now();}catch{return false;}}));
           window.sessionStorage.setItem("ziiply-desktop-comparison-v1",JSON.stringify(valid));
         }catch{}
-      }setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
+      }setDesktopCompareMatches(searchFailed?{}:matches);setDesktopCompareResolvedSignature(searchFailed?"":signature);setDesktopCompareLoading(false);}
     })();
     return()=>{cancelled=true};
   // Only rerun when basket/store identity changes or the comparison is reopened.
