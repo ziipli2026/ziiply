@@ -535,3 +535,17 @@ test("desktop comparison counts quantities in totals and excludes invalid quanti
   assert.match(page, /Number\(item\.quantity\|\|1\)>0/);
   assert.match(page, /verified\[desktopCartIdentity\(item\)\]\*Number\(item\.quantity\|\|1\)/);
 });
+
+test("same EAN in two stores remains separate while repeat in one store increments quantity", async () => {
+  const source = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { appendDesktopCartItem } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+  const first = { ean: "6410405124517", __chain: "K", __storeId: "100", price: 1.48 };
+  const second = { ...first, __storeId: "200", price: 1.79 };
+  let cart = appendDesktopCartItem([], first, "justiina");
+  cart = appendDesktopCartItem(cart, second, "justiina");
+  cart = appendDesktopCartItem(cart, first, "justiina");
+  assert.equal(cart.length, 2);
+  assert.equal(cart.find(item => item.__storeId === "100").quantity, 2);
+  assert.equal(cart.find(item => item.__storeId === "200").quantity, 1);
+});
