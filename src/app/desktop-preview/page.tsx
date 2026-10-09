@@ -202,7 +202,7 @@ export default function DesktopPreviewPage() {
             try{
               const products=await fetchDesktopNormalProducts(title,chain,store);
               if(cancelled)return;
-              let exact=products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
+              let exact=ean?products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean):[];
               // Some APIs do not return the exact product in a name-search window.
               // Retry by EAN, but never use a different barcode as a substitute.
               if(ean&&exact.length===0){
