@@ -25,7 +25,11 @@ export function appendDesktopCartItem(
   if (key === "name:") return items;
   const index = items.findIndex(item => desktopCartIdentity(item) === key && item.source === source && desktopCartSameStore(item, product));
   if (index < 0) return [...items, { ...product, source, quantity: 1 }];
-  return items.map((item, i) => i === index ? { ...item, quantity: item.quantity + 1 } : item);
+  return items.map((item, i) => {
+    if (i !== index) return item;
+    const quantity = Number(item.quantity) + 1;
+    return Number.isSafeInteger(quantity) && quantity > 0 ? { ...item, quantity } : item;
+  });
 }
 export function changeDesktopCartItemQuantity(items: DesktopCartItem[], product: Record<string, any>, delta: number) {
   const key = desktopCartIdentity(product);
