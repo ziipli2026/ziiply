@@ -199,9 +199,9 @@ export default function DesktopPreviewPage() {
           await Promise.all(eligible.slice(offset,offset+4).map(async(item:any)=>{
             const ean=String(item.ean??"").trim();
             const title=String(item.title??item.name??item.productName??"").trim();
-            if(!title)return;
+            if(!title&&!ean)return;
             try{
-              const products=await fetchDesktopNormalProducts(title,chain,store);
+              const products=title?await fetchDesktopNormalProducts(title,chain,store):[];
               if(cancelled)return;
               let exact=ean?products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean):[];
               // Some APIs do not return the exact product in a name-search window.
@@ -218,9 +218,9 @@ export default function DesktopPreviewPage() {
               const pricedCandidates=normalizeDesktopNormalResults(candidates,chain,store,candidates.length)
                 .filter((p:any)=>p.__priceVerified===true && p.__catalogOnly!==true && Number(p.__price)>0)
                 .map((p:any)=>({...p,name:String(p.name??p.title??""),price:Number(p.__price)}));
-              const chosen=exact.length>0?pricedCandidates.slice().sort((a:any,b:any)=>Number(a.__price)-Number(b.__price))[0]:pickBestSProduct(
+              const chosen=exact.length>0?pricedCandidates.slice().sort((a:any,b:any)=>Number(a.__price)-Number(b.__price))[0]:(title?pickBestSProduct(
                 pricedCandidates.filter((p:any)=>isComparisonAttributeCompatible(title,p.name)),title
-              );
+              ):null);
               if(!chosen)return;
               const normalized=normalizeDesktopNormalResults([chosen],chain,store,1)[0];
               const price=Number(normalized?.__price);
