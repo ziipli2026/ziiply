@@ -414,8 +414,8 @@ export default function DesktopPreviewPage() {
         price:Number(product.price),product:{...(product.product||{}),id:product.id||product.ean||index,name:product.name,ean:product.ean},
         sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false
       }));
-      const originalBrand=name.split(/\\s+/)[0]?.toLocaleLowerCase("fi")||"";
-      const ownBrand=isS?/(^|\\s)(coop|xtra|kotimaista)(\\s|$)/i:/(^|\\s)(pirkka|k-menu)(\\s|$)/i;
+      const originalBrand=name.split(/\s+/)[0]?.toLocaleLowerCase("fi")||"";
+      const ownBrand=isS?/(^|\s)(coop|xtra|kotimaista)(\s|$)/i:/(^|\s)(pirkka|k-menu)(\s|$)/i;
       let filtered=candidates;
       if(mode==="own_brands")filtered=candidates.filter((p:any)=>ownBrand.test(p.name));
       if(mode==="same_brand")filtered=candidates.filter((p:any)=>p.name.toLocaleLowerCase("fi").includes(originalBrand));
