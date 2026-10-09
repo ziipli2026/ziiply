@@ -549,3 +549,20 @@ test("same EAN in two stores remains separate while repeat in one store incremen
   assert.equal(cart.find(item => item.__storeId === "100").quantity, 2);
   assert.equal(cart.find(item => item.__storeId === "200").quantity, 1);
 });
+
+test("quantity update and removal affect only matching store EAN row", async () => {
+  const source = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { appendDesktopCartItem, changeDesktopCartItemQuantity } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+  const a = { ean: "6410405124517", __chain: "K", __storeId: "100", source: "justiina" };
+  const b = { ...a, __storeId: "200" };
+  let cart = appendDesktopCartItem([], a, "justiina");
+  cart = appendDesktopCartItem(cart, b, "justiina");
+  cart = changeDesktopCartItemQuantity(cart, a, 2);
+  assert.equal(cart.find(x => x.__storeId === "100").quantity, 3);
+  assert.equal(cart.find(x => x.__storeId === "200").quantity, 1);
+  cart = changeDesktopCartItemQuantity(cart, a, -3);
+  assert.equal(cart.length, 1);
+  assert.equal(cart[0].__storeId, "200");
+  assert.equal(cart[0].quantity, 1);
+});
