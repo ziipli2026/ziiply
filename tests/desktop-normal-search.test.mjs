@@ -657,3 +657,21 @@ test("comparison row keys distinguish identical barcodes from separate shops", a
   assert.notEqual(desktopComparisonRowKey(a), desktopComparisonRowKey(b));
   assert.equal(desktopComparisonRowKey(a), desktopComparisonRowKey({ ...a, quantity: 3 }));
 });
+
+test("comparison totals keep identical EAN store rows and their quantities independent", async () => {
+  const cartSource = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const cacheSource = readFileSync(new URL("../src/app/components/ziiply/cart/desktopComparisonCacheCore.ts", import.meta.url), "utf8");
+  const compile = (source) => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const load = (source) => import("data:text/javascript;base64," + Buffer.from(compile(source)).toString("base64"));
+  const { desktopComparisonRowKey: key } = await load(cartSource);
+  const { sanitizeDesktopComparisonMatches: sanitize } = await load(cacheSource);
+  const first = { ean: "6410405124517", source: "justiina", __chain: "K", __storeId: "100", quantity: 2 };
+  const second = { ...first, __storeId: "200", quantity: 3 };
+  const rows = { "K:100": { [key(first)]: 1.5, [key(second)]: 2 }, "K:200": { [key(first)]: 1.6, [key(second)]: 2.1 } };
+  const clean = sanitize(rows, ["K:100", "K:200"], [key(first), key(second)]);
+  assert.ok(clean);
+  const total = (store) => [first, second].reduce((sum, item) => sum + clean[store][key(item)] * item.quantity, 0);
+  assert.equal(total("K:100"), 9);
+  assert.equal(total("K:200"), 9.5);
+  assert.equal(sanitize(rows, ["K:100", "K:200"], [key(first)]), null);
+});
