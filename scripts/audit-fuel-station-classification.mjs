@@ -27,6 +27,7 @@ const conflicts=[...groups.entries()].filter(([,rs]) =>
 ).map(([address,stations])=>({address,stations:stations.map(s=>({id:s.source_station_id,chain:s.chain,traffic:s.is_traffic_station}))}));
 const summary={total:rows.length,verified:rows.filter(r=>r.traffic_station_verified).length,
 traffic:rows.filter(r=>r.traffic_station_verified&&r.is_traffic_station).length,
-unverified:rows.filter(r=>!r.traffic_station_verified).length,conflicts};
+unverified:rows.filter(r=>!r.traffic_station_verified).length,
+ unverifiedByChain:Object.fromEntries([...new Set(rows.map(r=>r.chain))].sort().map(chain=>[chain,rows.filter(r=>r.chain===chain&&!r.traffic_station_verified).map(r=>({id:r.source_station_id,name:r.name,address:r.address}))])),conflicts};
 console.log(JSON.stringify(summary,null,2));
 if(conflicts.length) process.exitCode=2;
