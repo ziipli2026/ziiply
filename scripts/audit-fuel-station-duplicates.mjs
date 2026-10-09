@@ -25,4 +25,10 @@ for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++){
  b:{source:b.source,id:b.source_station_id,name:b.name,address:b.address},
  distanceMeters:Math.round(meters),sameAddress,sameName,status:"manual-review-only"});
 }
-console.log(JSON.stringify({checked:rows.length,candidatePairs:candidates.length,candidates},null,2));
+const saved=await sql`SELECT source,source_station_id_a,source_station_id_b,review_status
+ FROM public.ziiply_fuel_station_identity_candidates ORDER BY source_station_id_a`;
+const idKey=(source,a,b)=>[source,...[String(a),String(b)].sort((x,y)=>Number(x)-Number(y))].join(":");
+const detected=new Set(candidates.map(x=>idKey(x.a.source,x.a.id,x.b.id)));
+const stored=saved.map(x=>({a:x.source_station_id_a,b:x.source_station_id_b,
+ status:x.review_status,stillDetected:detected.has(idKey(x.source,x.source_station_id_a,x.source_station_id_b))}));
+console.log(JSON.stringify({checked:rows.length,candidatePairs:candidates.length,candidates,stored},null,2));
