@@ -129,6 +129,11 @@ def build(folder,manifest_path,public_folder,review_path):
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
                   'status':'manual-review-needed'})
+  # Render a source-faithful review sheet for unresolved WC paper offers.
+  # This is diagnostic evidence only: it never approves a product image.
+  if any(re.search(r'\\bWC[ -]?PAPERI\\b',r['title'],re.I) and not accepted[r['id']] for r in rows):
+   sheet=page.get_pixmap(matrix=fitz.Matrix(1.4,1.4),alpha=False)
+   sheet.save(str(folder/f'wc-paper-review-page-{number+1}.png'))
   for row in rows:
    selection=reviewed.get(row['id'])
    if selection:
