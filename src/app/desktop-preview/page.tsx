@@ -203,13 +203,13 @@ export default function DesktopPreviewPage() {
             try{
               const products=title?await fetchDesktopNormalProducts(title,chain,store):[];
               if(cancelled)return;
-              let exact=ean?products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean):[];
+              let exact=ean?products.filter((p:any)=>String(p.ean??p.barcode??p.product?.ean??p.product?.barcode??"").trim()===ean):[];
               // Some APIs do not return the exact product in a name-search window.
               // Retry by EAN, but never use a different barcode as a substitute.
               if(ean&&exact.length===0){
                 const byEan=await fetchDesktopNormalProducts(ean,chain,store);
                 if(cancelled)return;
-                exact=byEan.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
+                exact=byEan.filter((p:any)=>String(p.ean??p.barcode??p.product?.ean??p.product?.barcode??"").trim()===ean);
               }
               // Mobile parity: use its attribute checks and ranked matching when exact EAN is absent.
               // A substitute is a comparison-only price, never a replacement for the original basket item.
