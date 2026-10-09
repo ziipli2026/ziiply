@@ -6,6 +6,7 @@ on:
       - preview/legacy-desktop-ui
     paths:
       - scripts/test-teboil-exclusion.mjs
+      - scripts/test-fuel-station-dedup.mjs
       - src/app/api/fuel/**
       - src/app/desktop-preview/page.tsx
       - .github/workflows/teboil-exclusion.yml
@@ -26,4 +27,6 @@ jobs:
         with:
           node-version: '22'
       - name: Check excluded station variants
-        run: node scripts/test-teboil-exclusion.mjs
+        run: |
+          node scripts/test-teboil-exclusion.mjs
+          node scripts/test-fuel-station-dedup.mjs
