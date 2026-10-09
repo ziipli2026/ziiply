@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       price95: r.price95 == null ? null : Number(r.price95),
       price98: r.price98 == null ? null : Number(r.price98),
       observedDiesel: r.observed_diesel, observed95: r.observed95, observed98: r.observed98,
-    })).sort((a,b) => a.distanceKm-b.distanceKm).slice(0, 10);
+    })).sort((a,b) => a.distanceKm-b.distanceKm);
     return NextResponse.json({ ok: true, stations, source: "Neon / tankkaus.com observations" });
   } catch {
     return NextResponse.json({ ok: false, error: "Fuel stations unavailable" }, { status: 503 });
