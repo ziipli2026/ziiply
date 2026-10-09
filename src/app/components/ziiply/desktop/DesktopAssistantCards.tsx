@@ -1,6 +1,6 @@
 "use client";
 
-/** Desktop assistant cards with always-visible descriptions matching the mobile assistant panels. */
+/** Desktop assistant cards with always-visible mobile-equivalent descriptions. */
 type Assistant = "gosta" | "justiina" | "arvo";
 const assistants = [
   {
@@ -12,7 +12,6 @@ const assistants = [
     image: "/assistants/gosta.png",
     frame: "border-[#8bb56d] bg-gradient-to-b from-[#f4ffe3] via-[#e0f0bd] to-[#c6dc91]",
     ink: "text-[#244a28]",
-    panel: "border-[#8bb56d]/60 bg-[#f7ffe9]/85",
   },
   {
     key: "justiina" as const,
@@ -23,7 +22,6 @@ const assistants = [
     image: "/assistants/justiina.png",
     frame: "border-[#c69655] bg-gradient-to-b from-[#fff6da] via-[#ffe9a2] to-[#edc66c]",
     ink: "text-[#6b331e]",
-    panel: "border-[#c69655]/60 bg-[#fff8e5]/88",
   },
   {
     key: "arvo" as const,
@@ -34,7 +32,6 @@ const assistants = [
     image: "/assistants/arvo.png",
     frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]",
     ink: "text-[#314633]",
-    panel: "border-[#b99d62]/65 bg-[#fff7e2]/88",
   },
 ];
 
@@ -49,7 +46,7 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
             type="button"
             onClick={() => onSelect(item.key)}
             className={[
-              "group relative flex min-h-[0] h-[clamp(420px,57vh,590px)] flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-6 pt-5 text-center transition duration-200 active:translate-y-[2px]",
+              "group relative flex min-h-[0] h-[clamp(420px,57vh,590px)] flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-0 pt-5 text-center transition duration-200 active:translate-y-[2px]",
               item.frame,
               selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
             ].join(" ")}
@@ -77,10 +74,10 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
                 Valitse ensin kaupat
               </div>
             )}
-            <div className="relative z-10 mt-auto -mx-5 -mb-6 mt-6 flex min-h-[132px] w-[calc(100%+2.5rem)] items-center justify-center border-t-2 border-[#8d805e]/25 px-4 py-5">
-              <div className={["w-full rounded-[20px] border-2 px-4 py-4 text-[15px] font-bold leading-snug text-[#3f4654] shadow-[0_3px_8px_rgba(62,52,31,0.07)]", item.panel].join(" ")}>
+            <div className="relative z-10 mt-auto -mx-5 mt-5 flex min-h-[145px] w-[calc(100%+2.5rem)] flex-1 items-center justify-center border-t-2 border-[#8d805e]/25 px-5 py-5">
+              <p className="w-full text-[15px] font-bold leading-snug text-[#3f4654]">
                 {item.description}
-              </div>
+              </p>
             </div>
           </button>
         );
