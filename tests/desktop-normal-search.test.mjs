@@ -485,7 +485,7 @@ test("desktop comparison cache signature includes store identity, quantity and p
   const signature = page.slice(start, end);
   assert.match(signature, /store\?\.id\?\?store\?\.externalId/);
   assert.match(signature, /desktopCartIdentity\(item\)/);
-  assert.match(signature, /Number\(item\.quantity\|\|1\)/);
+  assert.match(signature, /Number\(item\.quantity \?\? 1\)/);
   assert.match(signature, /item\.ean/);
   assert.match(signature, /\.sort\(/);
 });
@@ -642,7 +642,7 @@ test("real shared comparison gate rejects 1l versus 500ml and milk versus yoghur
 
 test("desktop comparison does not turn zero quantity into one", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(page, /Number\(item\.quantity\|\|1\)/);
+  assert.doesNotMatch(page, /Number\(item\.quantity \?\? 1\)/);
   assert.match(page, /Number\(item\.quantity \?\? 1\)/);
   assert.equal(Number(0 ?? 1), 0);
   assert.equal(Number(undefined ?? 1), 1);
