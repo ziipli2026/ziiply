@@ -566,3 +566,19 @@ test("quantity update and removal affect only matching store EAN row", async () 
   assert.equal(cart[0].__storeId, "200");
   assert.equal(cart[0].quantity, 1);
 });
+
+test("same EAN offer and normal-price items remain separate basket rows", async () => {
+  const source = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { appendDesktopCartItem, changeDesktopCartItemQuantity } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+  const product = { ean: "6410405124517", __chain: "K", __storeId: "100" };
+  let cart = appendDesktopCartItem([], product, "gosta");
+  cart = appendDesktopCartItem(cart, product, "justiina");
+  cart = appendDesktopCartItem(cart, product, "gosta");
+  assert.equal(cart.length, 2);
+  assert.equal(cart.find(x => x.source === "gosta").quantity, 2);
+  assert.equal(cart.find(x => x.source === "justiina").quantity, 1);
+  cart = changeDesktopCartItemQuantity(cart, { ...product, source: "gosta" }, -2);
+  assert.equal(cart.length, 1);
+  assert.equal(cart[0].source, "justiina");
+});
