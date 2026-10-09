@@ -37,6 +37,8 @@ export async function GET(req: NextRequest) {
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
         WHERE p.source=s.source AND p.source_station_id=s.source_station_id AND p.fuel_type='diesel'
         ORDER BY observed_at DESC LIMIT 1) pd ON TRUE
+      WHERE lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
+        AND lower(coalesce(s.name, '')) NOT LIKE '%teboil%'
     `;
     const stations = rows.map((r) => ({
       id: String(r.source_station_id), name: String(r.name), chain: r.chain,
