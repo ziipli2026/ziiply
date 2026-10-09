@@ -475,7 +475,7 @@ if(expected){
  }
 }
 // Do not create a high-priority price from arbitrary nearby single digits.\n// The grouped-glyph path above is retained for later geometry validation.
- const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||""))); const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
+ const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
 let spatialResolved=null,percentageOffer=null;
 // Same-card fragmented unit rate can also be read directly from aligned word boxes.
 if(!spatialResolved&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
