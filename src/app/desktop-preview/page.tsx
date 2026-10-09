@@ -249,7 +249,7 @@ export default function DesktopPreviewPage() {
     const matched=comparable.filter((item:any)=>Number.isFinite(verified[desktopCartIdentity(item)])&&verified[desktopCartIdentity(item)]>0);
     return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+verified[desktopCartIdentity(item)]*Number(item.quantity||1),0)};
   }));
-  const desktopCompareComplete = desktopCompareResults.filter(result=>result.missingItems===0 && result.foundItems>0 && result.totalPrice>0);
+  const desktopCompareComplete = desktopCompareResults.filter(result=>result.missingItems===0 && result.foundItems>0 && Number.isFinite(result.totalPrice) && result.totalPrice>0);
   const desktopCompareBestPrice = desktopCompareComplete.length>=2 ? Math.min(...desktopCompareComplete.map(result=>result.totalPrice)) : null;
   const [cartNotice, setCartNotice] = useState("");
   const [cartIncrementKey, setCartIncrementKey] = useState("");
