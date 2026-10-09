@@ -13,7 +13,7 @@ type Assistant = "gosta" | "justiina" | "arvo";
 
 
 // Preload fuel brand images once on the persistent desktop page, before fuel cards mount.
-const FUEL_LOGO_URLS = ["https://commons.wikimedia.org/wiki/Special:FilePath/Neste_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/ABC_Fuel_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/St1_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg"];
+const FUEL_LOGO_URLS = ["/storelogos/Neste.png","/storelogos/ABC.png","/storelogos/St1.png","https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg"];
 const fuelLogoPreloads: HTMLImageElement[] = [];
 function preloadFuelLogos() {
   if (typeof window === "undefined" || fuelLogoPreloads.length) return;
@@ -27,12 +27,13 @@ function preloadFuelLogos() {
 
 function FuelBrandLogo({ brand }: { brand: "Neste" | "ABC" | "St1" | "SEO" | "Muut" }) {
   const logos: Record<string,string> = {
-    Neste: "https://commons.wikimedia.org/wiki/Special:FilePath/Neste_logo.svg",
-    ABC: "https://commons.wikimedia.org/wiki/Special:FilePath/ABC_Fuel_logo.svg",
-    St1: "https://commons.wikimedia.org/wiki/Special:FilePath/St1_logo.svg",
+    Neste: "/storelogos/Neste.png",
+    ABC: "/storelogos/ABC.png",
+    St1: "/storelogos/St1.png",
   };
   const [failed, setFailed] = useState(false);
   useEffect(() => { preloadFuelLogos(); }, []);
+  if (brand === "SEO" && !failed) return <img src="/storelogos/SEO.jpeg" alt="SEO" className="h-full w-full object-contain p-1" loading="eager" fetchPriority="high" onError={() => setFailed(true)} />;
   if (!logos[brand] || failed) return <span>{brand === "Muut" ? "G/R" : brand}</span>;
   return <img src={logos[brand]} alt={brand} onError={() => setFailed(true)} className="h-full w-full object-contain p-1" loading="eager" fetchPriority="high" />;
 }
