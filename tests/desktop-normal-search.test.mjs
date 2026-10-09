@@ -180,3 +180,22 @@ test("EAN fallback never substitutes a different barcode", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test("multi-store results use the selected store price rather than first row", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeItems: [
+      { storeId: "other", price: 1.25 },
+      { storeId: "123", price: 2.75 }
+    ]
+  }], "S", store);
+  assert.equal(item.__price, 2.75);
+  assert.equal(item.__priceVerified, true);
+});
+
+test("multi-store results without matching store do not verify a price", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    storeItems: [{ storeId: "other", price: 1.25 }]
+  }], "K", store);
+  assert.equal(item.__price, 0);
+  assert.equal(item.__priceVerified, false);
+});
