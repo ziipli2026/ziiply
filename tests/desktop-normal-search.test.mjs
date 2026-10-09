@@ -582,3 +582,10 @@ test("same EAN offer and normal-price items remain separate basket rows", async 
   assert.equal(cart.length, 1);
   assert.equal(cart[0].source, "justiina");
 });
+
+test("desktop comparison excludes Gosta offers from search and totals", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /const eligible=cartItems\.filter\(\(item:any\)=>item\.source==="justiina"/);
+  assert.match(page, /const comparable=cartItems\.filter\(\(item:any\)=>item\.source==="justiina"/);
+  assert.match(page, /items:cartItems\.filter\(\(item:any\)=>item\.source==="justiina"/);
+});
