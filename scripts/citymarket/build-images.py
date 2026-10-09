@@ -116,8 +116,18 @@ def build(folder,manifest_path,public_folder,review_path):
   for row in rows:
    if row['id'] not in accepted or accepted[row['id']]:continue
    if not re.search(r'\\bWC[ -]?PAPERI\\b',row['title'],re.I):continue
+   anchor=row.get('anchor')
+   candidates=[]
+   for block in blocks:
+    x0,y0,x1,y1=block['bbox']
+    cx=(x0+x1)/(2*page.rect.width);cy=(y0+y1)/(2*page.rect.height)
+    distance=(math.hypot((cx-(anchor['left']+anchor['width']/2))*1.4,
+                         (cy-anchor['top'])*1.3) if anchor else None)
+    candidates.append({'rectangle':list(block['bbox']),'distance':round(distance,4) if distance is not None else None,
+                       'blocked':blocked(page,anchor,block['bbox']) if anchor else None})
+   candidates.sort(key=lambda c:c['distance'] if c['distance'] is not None else 999)
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
-                  'candidateImageRectangles':[list(b['bbox']) for b in blocks],
+                  'candidateImageRectangles':candidates[:15],
                   'status':'manual-review-needed'})
   for row in rows:
    selection=reviewed.get(row['id'])
