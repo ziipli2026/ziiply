@@ -74,7 +74,7 @@ function resolveCards(rows,rawBoxes){
   const right=Math.max(...parts.map(b=>b.left+b.width));
   const units=boxes.filter(b=>/^(KPL|PKT|PS|RS|TLK|PL|PRK|PARI|KG|KIMPPUA)$/i.test(b.text)&&b.left>=euro.left-.015&&b.left<right+.16&&b.top>euro.top&&b.top<euro.top+euro.height+.035);
   const saleUnit=units.sort((a,b)=>distance(a,{left:right,top:euro.top+euro.height*.6})-distance(b,{left:right,top:euro.top+euro.height*.6}))[0];
-  if(saleUnit){unit=saleUnit.text.toUpperCase();const q=boxes.filter(b=>/^[2-9]$/.test(b.text)&&b.height<euro.height*.8&&Math.abs(b.left-saleUnit.left)<.04&&b.top<saleUnit.top&&saleUnit.top-b.top<.035).sort((a,b)=>Math.abs(saleUnit.top-a.top)-Math.abs(saleUnit.top-b.top))[0];if(q&&!parts.includes(q)){quantity=Number(q.text);parts.push(q);/* A quantity glyph is not independent evidence of a euro amount. */}}
+  if(saleUnit){unit=saleUnit.text.toUpperCase();const q=boxes.filter(b=>/^[2-9]$/.test(b.text)&&b.height<euro.height*.8&&Math.abs(b.left-saleUnit.left)<.04&&b.top<saleUnit.top&&saleUnit.top-b.top<.035).sort((a,b)=>Math.abs(saleUnit.top-a.top)-Math.abs(saleUnit.top-b.top))[0];if(q&&!parts.includes(q)){quantity=Number(q.text);parts.push(q);if(value===null)value=Number(euro.text)}}
   if(value===null)continue;
   prices.push({value,quantity,unit,parts,anchor:euro});
  }
