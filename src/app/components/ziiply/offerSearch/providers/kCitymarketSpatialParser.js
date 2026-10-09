@@ -1273,7 +1273,7 @@ resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
 // resolveCards has finished. Its internal return value is not consumed by the caller.
 for(const row of out.rows.filter(r=>r.page===p)){
  // Fail closed if a final multi-buy total contradicts the product's expected single price.
- const finalQty=Number(row.spatialResolved?.quantity||1),finalPrice=Number(row.spatialResolved?.value),finalSingle=Number(row.expectedSingle);
+ const finalQty=Number(row.spatialResolved?.quantity||1),finalPrice=Number(row.spatialResolved?.value),finalSingle=Number(row.initialExpectedSingle??row.expectedSingle);
  if(finalQty>1&&Number.isFinite(finalPrice)&&Number.isFinite(finalSingle)&&finalSingle>0){const tol=Math.max(.06,finalSingle*.035);if(Math.abs(finalPrice-finalSingle)>tol&&Math.abs(finalPrice-finalSingle*finalQty)>tol){row.debugRejectedFinalBundle={value:finalPrice,quantity:finalQty,expectedSingle:finalSingle,reason:"final-total-conflicts-with-owned-single-price"};row.spatialResolved=null;}}
  const context=[...(row.nearby||[]),...(row.spatialGroups||[]).map(g=>g.text||'')].join(' ').replace(/\s+/g,' ').toUpperCase();
  if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/(?:^|\s)2\s*SÄKKIÄ(?=\s|$)/.test(context)){
