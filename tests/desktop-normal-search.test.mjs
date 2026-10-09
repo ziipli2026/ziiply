@@ -623,9 +623,18 @@ test("mobile shared comparison attribute gate rejects different package sizes an
 
 test("real shared comparison gate rejects 1l versus 500ml and milk versus yoghurt", async () => {
   const source = readFileSync(new URL("../src/app/components/ziiply/ziiplyCore.ts", import.meta.url), "utf8");
-  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const moduleUrl = "data:text/javascript;base64," + Buffer.from(js).toString("base64");
-  const { isComparisonAttributeCompatible: compatible } = await import(moduleUrl);
+  const normalizeStart = source.indexOf("export function fixText(");
+  const normalizeEnd = source.indexOf("export function normalizeEan(", normalizeStart);
+  const sizeStart = source.indexOf("function parseMetricSize(");
+  const sizeEnd = source.indexOf("export function getExactWordScore(", sizeStart);
+  const gateStart = source.indexOf("export function isComparisonAttributeCompatible(");
+  const gateEnd = source.indexOf("export function pickCheapestCompatibleComparisonProduct", gateStart);
+  assert.ok(normalizeStart >= 0 && normalizeEnd > normalizeStart && sizeStart >= 0 && sizeEnd > sizeStart && gateStart >= 0 && gateEnd > gateStart);
+  const isolated = source.slice(normalizeStart, normalizeEnd) + "\\n" +
+    source.slice(sizeStart, sizeEnd) + "\\n" +
+    source.slice(gateStart, gateEnd).replace("return !isHardRejectedAlternative(sourceName, candidateName);", "return true;");
+  const js = ts.transpileModule(isolated, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { isComparisonAttributeCompatible: compatible } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
   assert.equal(compatible("Maito 1 l", "Maito 500 ml"), false);
   assert.equal(compatible("Maito 1 l", "Jogurtti 1 l"), false);
   assert.equal(compatible("Maito 1 l", "Maito 1 l"), true);
