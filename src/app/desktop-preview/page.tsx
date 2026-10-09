@@ -216,7 +216,7 @@ export default function DesktopPreviewPage() {
               const candidates=exact.length>0?exact:products;
               // Normalize provider prices before ranking; never treat a catalog-only row as a store quote.
               const pricedCandidates=normalizeDesktopNormalResults(candidates,chain,store,candidates.length)
-                .filter((p:any)=>p.__priceVerified===true && p.__catalogOnly!==true && Number(p.__price)>0)
+                .filter((p:any)=>p.__priceVerified===true && p.__catalogOnly!==true && Number.isFinite(Number(p.__price)) && Number(p.__price)>0)
                 .map((p:any)=>({...p,name:String(p.name??p.title??""),price:Number(p.__price)}));
               const chosen=exact.length>0?pricedCandidates.slice().sort((a:any,b:any)=>Number(a.__price)-Number(b.__price))[0]:(title?pickBestSProduct(
                 pricedCandidates.filter((p:any)=>isComparisonAttributeCompatible(title,p.name)),title
