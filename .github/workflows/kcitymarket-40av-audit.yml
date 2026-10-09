@@ -57,30 +57,39 @@ jobs:
           const out=await parser(current.url);
           const rows=Array.isArray(out?.rows)?out.rows:[];
           const resolved=rows.filter(r=>Number(r?.spatialResolved?.value)>0);
-          if(!rows.length||!resolved.length) throw new Error(`${current.id}: live parser returned no usable rows`);
+          const percentages=rows.filter(r=>Number(r?.percentageOffer?.percent)>0);
+          if(!rows.length||(!resolved.length&&!percentages.length)) throw new Error(`${current.id}: live parser returned no usable rows`);
 
-          const liveKeys=new Set(resolved.map(r=>{
-            const page=Number(r.page)||0;
-            const title=String(r.title||"").trim().toLowerCase();
-            const price=Number(r.spatialResolved.value);
-            return `kcm:spatial:${page}:${title}:${Number.isFinite(price)?price:""}`;
-          }));
+          const liveKeys=new Set([
+            ...resolved.map(r=>{
+              const page=Number(r.page)||0;
+              const title=String(r.title||"").trim().toLowerCase();
+              const price=Number(r.spatialResolved.value);
+              return `kcm:spatial:${page}:${title}:${Number.isFinite(price)?price:""}`;
+            }),
+            ...percentages.filter(r=>!r?.spatialResolved).map(r=>{
+              const page=Number(r.page)||0;
+              const title=String(r.title||"").trim().toLowerCase();
+              return `kcm:spatial:${page}:${title}:percent:${Number(r.percentageOffer.percent)}`;
+            })
+          ]);
           const expectedKeys=new Set(expected.offers.map(x=>x.key));
           const matched=[...expectedKeys].filter(k=>liveKeys.has(k));
           const missing=[...expectedKeys].filter(k=>!liveKeys.has(k));
-          const coverage=expectedKeys.size?matched.length/expectedKeys.size:0;
+          const extra=[...liveKeys].filter(k=>!expectedKeys.has(k));
           console.log("KCM_CURRENT_LIVE",JSON.stringify({
             id:current.id,
             expected:expectedKeys.size,
             liveResolved:resolved.length,
+            livePercentages:percentages.length,
             matched:matched.length,
             missing:missing.length,
-            coverage:Number(coverage.toFixed(4)),
-            missingSample:missing.slice(0,10)
+            extra:extra.length,
+            missingSample:missing.slice(0,10),
+            extraSample:extra.slice(0,10)
           },null,2));
-
-          // The approved fixture is the publication contract. Exact equality is intentionally
-          // not required because parser titles can retain harmless publisher text variants,
-          // but a material loss of approved cards must fail the gate.
-          if(coverage<0.90) throw new Error(`${current.id}: approved live coverage fell below 90% (${matched.length}/${expectedKeys.size})`);
+          // Every approved offer (including percent campaigns) is mandatory.
+          // Extra rows are reported for manual source verification; a frozen fixture
+          // cannot establish that all unapproved rows are false positives.
+          if(missing.length) throw new Error(`${current.id}: missing approved offers (${matched.length}/${expectedKeys.size})`);
           NODE
