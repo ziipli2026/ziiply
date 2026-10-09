@@ -359,6 +359,48 @@ export default function DesktopPreviewPage() {
     }catch{if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
   }
 
+  async function desktopChangeCompareMatchMode(storeId:string, match:any, mode:"cheapest"|"same_quality"|"own_brands"|"same_brand") {
+    const result=desktopCompareResults[storeId]; if(!result)return [];
+    const rowId=String(match?.id||match?.cartItemId||"");
+    const cartItem=cartItems.find((item:any)=>String(item.id||"")===rowId);
+    const name=String(match?.sourceProductName||match?.name||cartItem?.name||cartItem?.title||"").trim();
+    if(!name)return [];
+    const store=result.store;const kind=storeKind(store);const isS=kind==="sHyper"||kind==="sLocal";
+    const params=new URLSearchParams({search:name,store:String(store.externalId||store.id)});
+    if(isS)params.set("storeName",String(store.name||""));
+    try{
+      const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
+      if(!response.ok)throw new Error("alternative search failed");
+      const data=await response.json();
+      const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+      const sourceIsEuro=isS&&data?.source==="s-kaupat-normal-v220";
+      const candidates=products.map((product:any,index:number)=>{
+        const raw=Number(product?.price??product?.storeItems?.[0]?.price??0);
+        const priceEuros=raw>0&&Number.isFinite(raw)?(sourceIsEuro?raw:raw/100):null;
+        return {...product,id:String(product?.id||product?.ean||product?.gtin||index),name:String(product?.name||product?.title||"").trim(),price:priceEuros==null?null:Math.round(priceEuros*100),product:{...(product?.product||{}),id:product?.id||product?.ean||index,name:String(product?.name||product?.title||""),ean:String(product?.ean||product?.gtin||product?.barcode||"")},sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false};
+      }).filter((product:any)=>product.name&&Number(product.price)>0);
+      const originalBrand=name.split(/\\s+/)[0]?.toLocaleLowerCase("fi")||"";
+      const ownBrand=isS?/(^|\\s)(coop|xtra|kotimaista)(\\s|$)/i:/(^|\\s)(pirkka|k-menu)(\\s|$)/i;
+      let filtered=candidates;
+      if(mode==="own_brands")filtered=candidates.filter((p:any)=>ownBrand.test(p.name));
+      if(mode==="same_brand")filtered=candidates.filter((p:any)=>p.name.toLocaleLowerCase("fi").includes(originalBrand));
+      filtered=filtered.sort((a:any,b:any)=>Number(a.price)-Number(b.price));
+      if(mode==="cheapest"&&filtered[0]){await desktopSelectCompareAlternative(storeId,match,filtered[0]);return filtered;}
+      return filtered.slice(0,20);
+    }catch{flashCartNotice("Vaihtoehtoisia tuotteita ei saatu haettua. Kokeile uudelleen.");return []}
+  }
+  async function desktopSelectCompareAlternative(storeId:string, match:any, alternative:any) {
+    const chosen=desktopCompareResults[storeId];if(!chosen)return;
+    const rowId=String(match?.id||match?.cartItemId||"");
+    const priceCents=Number(alternative?.price);
+    if(!Number.isFinite(priceCents)||priceCents<=0){flashCartNotice("Valitun vaihtoehdon hinta ei ole kelvollinen.");return}
+    const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,match:"name" as const}:row);
+    const next={...chosen,rows,total:rows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:rows.filter((row:any)=>row.price==null).length};
+    setDesktopCompareResults(current=>({...current,[storeId]:next}));
+    desktopCompareCache.current.clear();
+    flashCartNotice("Tuotevaihtoehto päivitetty vertailuun.");
+  }
+
   const [cartNotice, setCartNotice] = useState("");
   const [cartIncrementKey, setCartIncrementKey] = useState("");
   const [notebookOpen, setNotebookOpen] = useState(false);
@@ -825,7 +867,10 @@ export default function DesktopPreviewPage() {
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 {desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing}))}
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),product:{name:row.name},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
+  items={cartItems}
+  onChangeMatchMode={desktopChangeCompareMatchMode}
+  onSelectMatchAlternative={desktopSelectCompareAlternative}
   loading={desktopCompareLoading}
   title="Halpuusvertailu"
   subtitle={desktopCompareError||"Kauppakohtaiset hinnat ja ostoskorit"}
