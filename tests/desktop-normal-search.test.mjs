@@ -639,3 +639,11 @@ test("real shared comparison gate rejects 1l versus 500ml and milk versus yoghur
   assert.equal(compatible("Maito 1 l", "Jogurtti 1 l"), false);
   assert.equal(compatible("Maito 1 l", "Maito 1 l"), true);
 });
+
+test("desktop comparison does not turn zero quantity into one", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(page, /Number\(item\.quantity\|\|1\)/);
+  assert.match(page, /Number\(item\.quantity \?\? 1\)/);
+  assert.equal(Number(0 ?? 1), 0);
+  assert.equal(Number(undefined ?? 1), 1);
+});
