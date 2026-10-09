@@ -342,3 +342,24 @@ test("desktop comparison exact EAN matcher accepts nested provider product ident
   assert.match(page, /p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode/);
   assert.match(page, /byEan\.filter\(\(p:any\)=>String\(p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode/);
 });
+
+test("S/K search prefers internal API store ID over external ID", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async url => {
+    requests.push(String(url));
+    return { ok: true, json: async () => ({ items: [] }) };
+  };
+  try {
+    await fetchDesktopNormalProducts("kahvi", "S", {
+      id: 417, externalId: "external-s-999", name: "Prisma Tuusula"
+    });
+    await fetchDesktopNormalProducts("kahvi", "K", {
+      id: 9876, externalId: "external-k-888", name: "K-Citymarket Testi"
+    });
+    assert.equal(new URL(requests[0], "https://example.test").searchParams.get("store"), "417");
+    assert.equal(new URL(requests[1], "https://example.test").searchParams.get("store"), "9876");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
