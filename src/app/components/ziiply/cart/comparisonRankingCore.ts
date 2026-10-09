@@ -9,8 +9,8 @@ export function rankComparisonResults<T extends RankedComparisonResult>(results:
   return [...results].sort((a, b) => {
     if (a.comingSoon && !b.comingSoon) return 1;
     if (!a.comingSoon && b.comingSoon) return -1;
-    const aComplete = a.missingItems === 0 && a.totalPrice > 0;
-    const bComplete = b.missingItems === 0 && b.totalPrice > 0;
+    const aComplete = a.missingItems === 0 && a.foundItems > 0 && Number.isFinite(a.totalPrice) && a.totalPrice > 0;
+    const bComplete = b.missingItems === 0 && b.foundItems > 0 && Number.isFinite(b.totalPrice) && b.totalPrice > 0;
     if (aComplete && !bComplete) return -1;
     if (!aComplete && bComplete) return 1;
     if (!aComplete && !bComplete && a.foundItems !== b.foundItems)
