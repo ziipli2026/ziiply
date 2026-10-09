@@ -581,8 +581,8 @@ export default function DesktopPreviewPage() {
                   <span className="min-w-0 flex-1">
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">AJOAINE</span>
                     <span className="mt-0.5 grid grid-cols-[20px_minmax(0,1fr)] items-baseline gap-x-1 text-[13px] font-black leading-[1.15] text-[#102a24] tabular-nums">
-                      <span>DI</span><span className="whitespace-nowrap">2,51</span>
-                      <span className="mt-0.5">BE</span><span className="mt-0.5 whitespace-nowrap">2,33 / 2,41</span>
+                      <span>DI</span><span className="whitespace-nowrap">{fuelClosestPrice("diesel")!=null?Number(fuelClosestPrice("diesel")).toFixed(2).replace(".",","):"—"}</span>
+                      <span className="mt-0.5">BE</span><span className="mt-0.5 whitespace-nowrap">{fuelClosestPrice("price95")!=null?Number(fuelClosestPrice("price95")).toFixed(2).replace(".",","):"—"} / {fuelClosestPrice("price98")!=null?Number(fuelClosestPrice("price98")).toFixed(2).replace(".",","):"—"}</span>
                     </span>
                   </span>
                 ) : (
