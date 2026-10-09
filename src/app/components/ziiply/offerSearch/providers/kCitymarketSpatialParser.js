@@ -1182,7 +1182,7 @@ if(anchor){
   const inCard=(b)=>{
     const t=String(b.text||"").trim(),x=Number(b.left)||0,y=Number(b.top)||0,h=Number(b.height)||0;
     if(!/^\d{1,2}[-.]?$/.test(t)||h<.065||x<ax+.08||x>ax+.82||y<ay-.02||y>ay+.28)return false;
-    const nearLabel=wordBoxes.some(z=>/^(KPL|PKT|PRK|PL)$/i.test(String(z.text||"").trim())&&Math.abs((Number(z.top)||0)-y)<.012&&Math.abs((Number(z.left)||0)-x)<.11);
+    const nearLabel=wordBoxes.some(z=>/^(KPL|PKT|PRK|PL)$/i.test(String(z.text||"").trim())&&Number(z.height||0)>=h*.70&&Math.abs((Number(z.top)||0)-y)<.012&&Math.abs((Number(z.left)||0)-x)<.11);
     const nearDiscount=wordBoxes.some(z=>/^(PLUSSA-ETU|%|30%|31%|28%|23%)$/i.test(String(z.text||"").trim())&&Math.abs((Number(z.top)||0)-y)<.055&&Math.abs((Number(z.left)||0)-x)<.10);
     return !nearLabel&&!nearDiscount;
   };
