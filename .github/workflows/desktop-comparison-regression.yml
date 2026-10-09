@@ -30,5 +30,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
+      # Isolated regression tests only transpile TypeScript; avoid the application's
+      # currently inconsistent package-lock.json until dependencies are reconciled.
+      - name: Install isolated TypeScript test dependency
+        run: npm install --no-save --no-package-lock --ignore-scripts --legacy-peer-deps typescript@5
       - run: npm run test:comparison
