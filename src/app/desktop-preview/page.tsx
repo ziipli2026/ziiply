@@ -193,7 +193,7 @@ export default function DesktopPreviewPage() {
     setFuelLoading(true); setFuelError("");
     fetch(`/api/fuel/stations?lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}`, { signal: controller.signal, cache: "no-store" })
       .then(async response => { const data = await response.json(); if (!response.ok || !data.ok) throw new Error(data.error || "Asematietojen haku epäonnistui"); return data; })
-      .then(data => setFuelStations(data.stations || []))
+      .then(data => setFuelStations((Array.isArray(data.stations) ? data.stations : []).filter((station: any) => !/\bteboil\b/i.test(String(station?.chain ?? "") + " " + String(station?.name ?? "")))))
       .catch(error => { if (!controller.signal.aborted) { setFuelStations([]); setFuelError(String(error.message || error)); } })
       .finally(() => { if (!controller.signal.aborted) setFuelLoading(false); });
     return () => controller.abort();
