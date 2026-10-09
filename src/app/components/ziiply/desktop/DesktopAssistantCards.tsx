@@ -32,10 +32,10 @@ const assistants = [
   },
 ];
 
-export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect}:{active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
+export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false}:{onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
   return (
-            <div className="grid grid-cols-3 gap-3 xl:gap-4 -mt-3">
-              {assistants.map((item) => {
+            <div className={onlyGosta ? "grid grid-cols-1 gap-3 xl:gap-4 -mt-3" : "grid grid-cols-3 gap-3 xl:gap-4 -mt-3"}>
+              {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
                 const selected = active === item.key;
                 return (
                   <button
