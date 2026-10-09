@@ -70,6 +70,8 @@ for (const [fuel,key] of fuelConfigs) {
 }
 // Canonical event identity; latest per station/fuel is what the app cache consumes.
 const unique=[...new Map(observations.map(o=>[`${o.stationId}:${o.fuel}:${new Date(o.observedAt).toISOString()}:${o.price.toFixed(3)}`,o])).values()];
+// Report the exact accepted count by fuel and avoid silently treating sparse coverage as comprehensive.
+const acceptedByFuel=Object.fromEntries(fuelConfigs.map(([fuel])=>[fuel,unique.filter(o=>o.fuel===fuel).length]));
 if (!unique.length) throw new Error(`No valid live price observations: ${JSON.stringify(diagnostics)}`);
 for (const s of stations.values()) {
   await sql`INSERT INTO ziiply_fuel_stations
@@ -85,4 +87,4 @@ for (const o of unique) {
     VALUES ('tankkaus.com',${o.stationId},${o.fuel},${o.price},${o.observedAt}::timestamptz)
     ON CONFLICT (source,source_station_id,fuel_type,observed_at,price_eur_per_litre) DO NOTHING`;
 }
-console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],center:{lat,lon},radiusKm:10,diagnostics}));
+console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],center:{lat,lon},radiusKm:10,acceptedByFuel,diagnostics}));
