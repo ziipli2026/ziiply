@@ -213,12 +213,12 @@ export default function DesktopPreviewPage() {
               }
               // Mobile parity: use its attribute checks and ranked matching when exact EAN is absent.
               // A substitute is a comparison-only price, never a replacement for the original basket item.
-              const candidates=exact.length===1?exact:products;
+              const candidates=exact.length>0?exact:products;
               // Normalize provider prices before ranking; never treat a catalog-only row as a store quote.
               const pricedCandidates=normalizeDesktopNormalResults(candidates,chain,store,candidates.length)
                 .filter((p:any)=>p.__priceVerified===true && p.__catalogOnly!==true && Number(p.__price)>0)
                 .map((p:any)=>({...p,name:String(p.name??p.title??""),price:Number(p.__price)}));
-              const chosen=exact.length===1?pricedCandidates[0]:pickBestSProduct(
+              const chosen=exact.length>0?pricedCandidates[0]:pickBestSProduct(
                 pricedCandidates.filter((p:any)=>isComparisonAttributeCompatible(title,p.name)),title
               );
               if(!chosen)return;
