@@ -155,6 +155,7 @@ export default function DesktopPreviewPage() {
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
   const [desktopCompareMatches,setDesktopCompareMatches]=useState<Record<string,Record<string,number>>>({});
   const [desktopCompareLoading,setDesktopCompareLoading]=useState(false);
+  const [desktopCompareSearchWarning,setDesktopCompareSearchWarning]=useState(false);
   const desktopCompareSignature=JSON.stringify({
     version:2,
     stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.id??store?.externalId??""),String(store?.name??store?.title??"")]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
@@ -184,11 +185,12 @@ export default function DesktopPreviewPage() {
     const validatedCache=cached&&cached.expiresAt>Date.now()?sanitizeDesktopComparisonMatches(cached.matches,selectedKeys,eligibleKeys):null;
     if(validatedCache){setDesktopCompareMatches(validatedCache);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);return;}
     setDesktopCompareLoading(true);
+    setDesktopCompareSearchWarning(false);
     setDesktopCompareMatches({});
     setDesktopCompareResolvedSignature("");
     void (async()=>{
       const matches:Record<string,Record<string,number>>={};
-      let searchFailed=false;
+      let lookupHadErrors=false;
       const eligible=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true);
       for(const store of Object.values(selectedStores) as any[]){
         if(cancelled)return;
@@ -229,18 +231,26 @@ export default function DesktopPreviewPage() {
               const price=Number(chosen.__price);
               if(chosen.__priceVerified===true&&chosen.__catalogOnly!==true&&Number.isFinite(price)&&price>0)
                 matches[key][desktopComparisonRowKey(item)]=price;
-            }catch{searchFailed=true;}
+            }catch{lookupHadErrors=true;}
           }));
         }
       }
-      if(!cancelled){if(!searchFailed){
+      if(!cancelled){
         const validatedMatches=sanitizeDesktopComparisonMatches(matches,selectedKeys,eligibleKeys);
-        if(validatedMatches)desktopCompareCacheRef.current[signature]={matches:validatedMatches,expiresAt:Date.now()+5*60*1000};
-        try{
-          const valid=Object.fromEntries(Object.entries(desktopCompareCacheRef.current).filter(([key,entry])=>{try{return JSON.parse(key)?.version===2&&entry.expiresAt>Date.now();}catch{return false;}}));
-          window.sessionStorage.setItem("ziiply-desktop-comparison-v1",JSON.stringify(valid));
-        }catch{}
-      }setDesktopCompareMatches(searchFailed?{}:matches);setDesktopCompareResolvedSignature(searchFailed?"":signature);setDesktopCompareLoading(false);}
+        // Keep independently verified prices even if one product lookup failed.
+        // Do not cache a partial/error result; a later open can retry it.
+        if(!lookupHadErrors&&validatedMatches){
+          desktopCompareCacheRef.current[signature]={matches:validatedMatches,expiresAt:Date.now()+5*60*1000};
+          try{
+            const valid=Object.fromEntries(Object.entries(desktopCompareCacheRef.current).filter(([key,entry])=>{try{return JSON.parse(key)?.version===2&&entry.expiresAt>Date.now();}catch{return false;}}));
+            window.sessionStorage.setItem("ziiply-desktop-comparison-v1",JSON.stringify(valid));
+          }catch{}
+        }
+        setDesktopCompareMatches(validatedMatches??matches);
+        setDesktopCompareResolvedSignature(signature);
+        setDesktopCompareSearchWarning(lookupHadErrors);
+        setDesktopCompareLoading(false);
+      }
     })();
     return()=>{cancelled=true};
   // Only rerun when basket/store identity changes or the comparison is reopened.
@@ -575,7 +585,7 @@ export default function DesktopPreviewPage() {
    
    <button disabled={!cartItems.length} onClick={shareDesktopCart} title="Lähetä ostoskori" className="grid h-[64px] w-[84px] place-items-center rounded-[16px] border-[3px] border-[#9c763b] bg-[linear-gradient(150deg,#fff9df_0%,#f0d59c_52%,#b98d4b_100%)] text-[#543b20] shadow-[inset_0_2px_2px_#ffffffaa,0_5px_0_#8c6a39,0_9px_16px_#46351b44] transition hover:brightness-105 active:translate-y-[2px] active:shadow-sm disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[49px] w-[49px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#624522" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="16" width="50" height="34" rx="5" fill="#fff3d1"/><path d="m9 19 23 18 23-18" strokeWidth="3"/><path d="m10 47 17-15m27 15L37 32" stroke="#b18a4d"/><path d="M40 8h15m-5-5 5 5-5 5" stroke="#28644b" strokeWidth="3"/></svg></button>
    <button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} title="Osta" className="grid h-[64px] w-[84px] place-items-center rounded-[16px] border-[3px] border-[#9c763b] bg-[linear-gradient(150deg,#fff9df_0%,#f0d59c_52%,#b98d4b_100%)] text-[#543b20] shadow-[inset_0_2px_2px_#ffffffaa,0_5px_0_#8c6a39,0_9px_16px_#46351b44] transition hover:brightness-105 active:translate-y-[2px] active:shadow-sm disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[52px] w-[52px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#58381b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 26 Q9 13 22 12 H45 Q55 13 55 26 V49 H9Z" fill="#c99b51"/><path d="M11 27 Q12 17 23 16 H44 Q52 17 53 27" fill="#e6c17d"/><rect x="21" y="6" width="26" height="12" rx="3" fill="#a97735"/><rect x="25" y="8" width="18" height="7" rx="1" fill="#fff0b6"/><path d="M29 12h10" stroke="#68451f"/><path d="M12 28H52" strokeWidth="2.5"/><rect x="15" y="32" width="34" height="15" rx="3" fill="#e6bc72"/><g fill="#8b5d2a" stroke="#553617" strokeWidth="1"><circle cx="21" cy="36" r="2.2"/><circle cx="30" cy="36" r="2.2"/><circle cx="39" cy="36" r="2.2"/><circle cx="21" cy="43" r="2.2"/><circle cx="30" cy="43" r="2.2"/><circle cx="39" cy="43" r="2.2"/></g><path d="M8 49h48v9H8z" fill="#91632f"/><rect x="13" y="51" width="38" height="4" rx="1" fill="#dcb878"/><path d="M13 22h38" stroke="#fff0b5" strokeWidth="1.4"/><path d="M9 49h46" stroke="#5a391c" strokeWidth="2.5"/></svg></button>
-   <button disabled={!cartItems.length} onClick={()=>{const count=Object.values(selectedStores).length;if(betweenMode==="one"||count<2){flashCartNotice(count===0?"Valitse ensin kauppa.":"Yksi-tila: hinnat päivitetään ostoskoriin.");return;}setDesktopCompareNotice(true)}} className="rounded-[18px] border-[4px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-8 py-2 font-serif text-[clamp(19px,1.7vw,29px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button>
+   <button disabled={!cartItems.length} onClick={()=>{const count=Object.values(selectedStores).length;const eligibleCount=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true).length;if(betweenMode==="one"||count<2){flashCartNotice(count===0?"Valitse ensin kauppa.":"Yksi-tila: hinnat päivitetään ostoskoriin.");return;}if(eligibleCount===0){flashCartNotice("Lisää ensin Justiinan normaalihintahaun tuote koriin.");return;}setDesktopCompareNotice(true)}} className="rounded-[18px] border-[4px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-8 py-2 font-serif text-[clamp(19px,1.7vw,29px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button>
   </div>
   <button onClick={clearDesktopCart} disabled={!cartItems.length} title="Tyhjennä kori" aria-label="Tyhjennä kori" className="grid h-[56px] w-[60px] place-items-center rounded-[16px] border-2 border-[#a26950] bg-gradient-to-b from-[#fff3dd] to-[#e4c29f] text-[#844632] shadow-[0_4px_0_#ad8063,0_7px_12px_#46351b33] transition disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 32 32" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 9h18M12 9V6h8v3M9 9l1.5 18h11L23 9M14 14v9M18 14v9"/></svg></button>
   <button onClick={()=>setCartOpen(false)} title="Sulje ostoskori" aria-label="Sulje ostoskori" className="grid h-[56px] w-[60px] place-items-center rounded-[16px] border-2 border-[#916b45] bg-gradient-to-b from-[#fff1cf] to-[#c99458] text-[33px] font-black leading-none text-[#58361f] shadow-[0_4px_0_#9c744b,0_7px_12px_#46351b33] transition">×</button>
@@ -586,7 +596,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
-{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Vertailussa näytetään vain vahvistetut, valittuun kauppaan kuuluvat normaalihinnat. Puuttuvien tuotteiden hintoja ei arvata.</p><div className="mt-4 max-h-[45vh] space-y-3 overflow-y-auto text-left">{desktopCompareResults.map(result=><div key={result.chain+":"+result.storeId} className="rounded-xl border border-[#b9a078] bg-white/60 p-3"><div className="flex justify-between gap-4 font-bold"><span>{result.storeName}</span><span>{!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&result.missingItems===0&&result.foundItems>0?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</span></div><p className="text-sm">{desktopCompareLoading?"Haetaan hintoja…":result.foundItems+" löytyi · "+result.missingItems+" puuttuu"}{desktopCompareLoading?"":result.missingItems>0?" · summa ei ole vertailukelpoinen":desktopCompareBestPrice==null?" · vertailuun tarvitaan vähintään kaksi täydellistä koria":Math.abs(result.totalPrice-desktopCompareBestPrice)<0.005?" · paras vahvistettu hinta":" · +"+(result.totalPrice-desktopCompareBestPrice).toFixed(2).replace(".",",")+" € kalliimpi"}</p></div>)}</div><p className="mt-3 text-sm text-[#8b4e35]">{desktopCompareLoading?"Haetaan valittujen S- ja K-kauppojen tuotehintoja ja turvallisia vastineita…":"Vertailu käyttää S- ja K-kauppojen vahvistettuja hintoja sekä mobiilin tuotevastineiden yhteensopivuustarkistusta. Muiden ketjujen hintavertailu on vielä kesken."}</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Vertailussa näytetään vain vahvistetut, valittuun kauppaan kuuluvat normaalihinnat. Puuttuvien tuotteiden hintoja ei arvata.</p><div className="mt-4 max-h-[45vh] space-y-3 overflow-y-auto text-left">{desktopCompareResults.map(result=><div key={result.chain+":"+result.storeId} className="rounded-xl border border-[#b9a078] bg-white/60 p-3"><div className="flex justify-between gap-4 font-bold"><span>{result.storeName}</span><span>{!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&result.missingItems===0&&result.foundItems>0?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</span></div><p className="text-sm">{desktopCompareLoading?"Haetaan hintoja…":result.foundItems+" löytyi · "+result.missingItems+" puuttuu"}{desktopCompareLoading?"":result.missingItems>0?" · summa ei ole vertailukelpoinen":desktopCompareBestPrice==null?" · vertailuun tarvitaan vähintään kaksi täydellistä koria":Math.abs(result.totalPrice-desktopCompareBestPrice)<0.005?" · paras vahvistettu hinta":" · +"+(result.totalPrice-desktopCompareBestPrice).toFixed(2).replace(".",",")+" € kalliimpi"}</p></div>)}</div><p className="mt-3 text-sm text-[#8b4e35]">{desktopCompareLoading?"Haetaan valittujen S- ja K-kauppojen tuotehintoja ja turvallisia vastineita…":desktopCompareSearchWarning?"Osa tuotehauista epäonnistui. Näytetään vain vahvistetut löydöt; puuttuvia hintoja ei arvata. Sulje vertailu ja avaa se uudelleen yrittääksesi uudestaan.":"Vertailu käyttää S- ja K-kauppojen vahvistettuja hintoja sekä mobiilin tuotevastineiden yhteensopivuustarkistusta. Muiden ketjujen hintavertailu on vielä kesken."}</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 
 
         {fuelOpen && (()=>{const all=[
