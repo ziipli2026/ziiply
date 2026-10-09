@@ -9,7 +9,7 @@ import { desktopCartIdentity, desktopComparisonRowKey, desktopCartSameStore, app
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 import { rankComparisonResults } from "../components/ziiply/cart/comparisonRankingCore";
 import { sanitizeDesktopComparisonMatches } from "../components/ziiply/cart/desktopComparisonCacheCore";
-import { isComparisonAttributeCompatible, pickBestSProduct } from "../components/ziiply/ziiplyCore";
+import { getNormalSearchQueries, isComparisonAttributeCompatible, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -192,6 +192,7 @@ export default function DesktopPreviewPage() {
       const matches:Record<string,Record<string,number>>={};
       let lookupHadErrors=false;
       const eligible=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true);
+      const hasKnownProductFamily=(name:string)=>/\\b(?:paahtoleip|paahtis|ruisleip|ruispal|nakkileip|sampyl|patonk|leip|maito|piima|jogur|juusto|voi|margari|kahvi|tee|kana|broileri|nauta|sika|jauheliha|makkara|kala|lohi|pasta|riisi|muro|mysli|mehu|limonadi|vesi|olut|siideri|suklaa|keksi|sose|lastenruoka)\\b/.test(name.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase());
       for(const store of Object.values(selectedStores) as any[]){
         if(cancelled)return;
         const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
@@ -199,39 +200,48 @@ export default function DesktopPreviewPage() {
         if(!storeId||!(chain==="S"||chain==="K"))continue;
         const key=chain+":"+storeId;
         matches[key]={};
-        // Keep API traffic bounded while avoiding a slow serial request per basket item.
-        for(let offset=0;offset<eligible.length;offset+=4){
+        // Match the mobile search order: authoritative EAN first, then the
+        // original product name and the same normal-search query variants.
+        for(let offset=0;offset<eligible.length;offset+=3){
           if(cancelled)return;
-          await Promise.all(eligible.slice(offset,offset+4).map(async(item:any)=>{
-            const ean=String(item.ean??item.product?.ean??item.product?.barcode??"").trim();
-            const title=String(item.title??item.name??item.productName??item.product?.name??item.product?.title??"").trim();
+          await Promise.all(eligible.slice(offset,offset+3).map(async(item:any)=>{
+            const ean=normalizeEan(String(item.ean??item.product?.ean??item.product?.barcode??""));
+            let title=String(item.title??item.name??item.productName??item.product?.name??item.product?.title??"").trim();
+            if(ean&&(!title||Number(item.price||0)<=0)){
+              try{
+                const identityResponse=await fetch("/api/ean-bank?ean="+encodeURIComponent(ean),{cache:"no-store"});
+                const identityData=identityResponse.ok?await identityResponse.json().catch(()=>null):null;
+                const bank=identityData?.product;
+                const bankName=[bank?.brand,bank?.name,bank?.quantity].map((v:any)=>String(v??"").trim()).filter(Boolean).join(" ").trim();
+                if(bankName)title=bankName;
+              }catch{lookupHadErrors=true;}
+            }
             if(!title&&!ean)return;
-            try{
-              const products=title?await fetchDesktopNormalProducts(title,chain,store):[];
-              if(cancelled)return;
-              let exact=ean?products.filter((p:any)=>String(p.ean??p.barcode??p.product?.ean??p.product?.barcode??"").trim()===ean):[];
-              // Some APIs do not return the exact product in a name-search window.
-              // Retry by EAN, but never use a different barcode as a substitute.
-              if(ean&&exact.length===0){
-                const byEan=await fetchDesktopNormalProducts(ean,chain,store);
-                if(cancelled)return;
-                exact=byEan.filter((p:any)=>String(p.ean??p.barcode??p.product?.ean??p.product?.barcode??"").trim()===ean);
+            const terms=Array.from(new Map([ean,title,...getNormalSearchQueries(title).slice(0,6)].map((q:any)=>String(q??"").trim()).filter(Boolean).map((q:string)=>[q.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase(),q])).values()).slice(0,8);
+            const batches=await Promise.all(terms.map(async(term:string)=>{
+              try{return await fetchDesktopNormalProducts(term,chain as DesktopNormalSearchChain,store);}
+              catch{lookupHadErrors=true;return [];}
+            }));
+            const rawCandidates=batches.flat();
+            const normalized=normalizeDesktopNormalResults(rawCandidates,chain as DesktopNormalSearchChain,store,rawCandidates.length)
+              .filter((p:any)=>p.__priceVerified===true&&p.__catalogOnly!==true&&Number.isFinite(Number(p.__price))&&Number(p.__price)>0)
+              .map((p:any)=>({...p,name:String(p.name??p.title??""),price:Number(p.__price),storeItems:[{price:Number(p.__price)}]}));
+            let chosen:any=null;
+            if(ean){
+              // Exact EAN always wins across every query, not just the first response.
+              chosen=normalized.find((p:any)=>normalizeEan(String(p.ean??p.barcode??p.product?.ean??p.product?.barcode??""))===ean)??null;
+            }
+            if(!chosen&&hasKnownProductFamily(title)){
+              const compatible=normalized.filter((p:any)=>productGroupGate(title,String(p.name??""))&&isComparisonAttributeCompatible(title,String(p.name??"")));
+              if(chain==="S"){
+                chosen=pickBestSProduct(compatible,title,ean);
+              }else{
+                chosen=pickBestKProduct(compatible.map((p:any)=>({...p,price:Number(p.price)})),title,ean);
               }
-              // Mobile parity: use its attribute checks and ranked matching when exact EAN is absent.
-              // A substitute is a comparison-only price, never a replacement for the original basket item.
-              const candidates=exact.length>0?exact:products;
-              // Normalize provider prices before ranking; never treat a catalog-only row as a store quote.
-              const pricedCandidates=normalizeDesktopNormalResults(candidates,chain,store,candidates.length)
-                .filter((p:any)=>p.__priceVerified===true && p.__catalogOnly!==true && Number.isFinite(Number(p.__price)) && Number(p.__price)>0)
-                .map((p:any)=>({...p,name:String(p.name??p.title??""),price:Number(p.__price)}));
-              const chosen=exact.length>0?pricedCandidates.slice().sort((a:any,b:any)=>Number(a.__price)-Number(b.__price))[0]:(title?pickBestSProduct(
-                pricedCandidates.filter((p:any)=>isComparisonAttributeCompatible(title,p.name)),title
-              ):null);
-              if(!chosen)return;
-              const price=Number(chosen.__price);
-              if(chosen.__priceVerified===true&&chosen.__catalogOnly!==true&&Number.isFinite(price)&&price>0)
-                matches[key][desktopComparisonRowKey(item)]=price;
-            }catch{lookupHadErrors=true;}
+            }
+            if(!chosen)return;
+            const price=Number(chosen.price??chosen.__price);
+            if(Number.isFinite(price)&&price>0)matches[key][desktopComparisonRowKey(item)]=price;
           }));
         }
       }
@@ -262,7 +272,7 @@ export default function DesktopPreviewPage() {
     const comparable=cartItems.filter((item:any)=>item.source==="justiina" && item.ziiplyWeightLabel!==true && item.product?.ziiplyWeightLabel!==true);
     const verified=desktopCompareResolvedSignature===desktopCompareSignature?desktopCompareMatches[chain+":"+storeId]??{}:{};
     const matched=comparable.filter((item:any)=>Number.isFinite(verified[desktopComparisonRowKey(item)])&&verified[desktopComparisonRowKey(item)]>0&&Number.isFinite(Number(item.quantity ?? 1))&&Number(item.quantity ?? 1)>0);
-    return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+verified[desktopComparisonRowKey(item)]*Number(item.quantity ?? 1),0)};
+    const supported=chain==="S"||chain==="K";return {storeName:String(store?.name??store?.title??chain),chain,storeId,comingSoon:!supported,foundItems:supported?matched.length:0,missingItems:supported?comparable.length:0,totalPrice:supported?matched.reduce((sum:number,item:any)=>sum+verified[desktopComparisonRowKey(item)]*Number(item.quantity ?? 1),0):0};
   }));
   const desktopCompareComplete = desktopCompareResults.filter(result=>result.missingItems===0 && result.foundItems>0 && Number.isFinite(result.totalPrice) && result.totalPrice>0);
   const desktopCompareBestPrice = desktopCompareComplete.length>=2 ? Math.min(...desktopCompareComplete.map(result=>result.totalPrice)) : null;
@@ -585,7 +595,7 @@ export default function DesktopPreviewPage() {
    
    <button disabled={!cartItems.length} onClick={shareDesktopCart} title="Lähetä ostoskori" className="grid h-[64px] w-[84px] place-items-center rounded-[16px] border-[3px] border-[#9c763b] bg-[linear-gradient(150deg,#fff9df_0%,#f0d59c_52%,#b98d4b_100%)] text-[#543b20] shadow-[inset_0_2px_2px_#ffffffaa,0_5px_0_#8c6a39,0_9px_16px_#46351b44] transition hover:brightness-105 active:translate-y-[2px] active:shadow-sm disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[49px] w-[49px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#624522" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="16" width="50" height="34" rx="5" fill="#fff3d1"/><path d="m9 19 23 18 23-18" strokeWidth="3"/><path d="m10 47 17-15m27 15L37 32" stroke="#b18a4d"/><path d="M40 8h15m-5-5 5 5-5 5" stroke="#28644b" strokeWidth="3"/></svg></button>
    <button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} title="Osta" className="grid h-[64px] w-[84px] place-items-center rounded-[16px] border-[3px] border-[#9c763b] bg-[linear-gradient(150deg,#fff9df_0%,#f0d59c_52%,#b98d4b_100%)] text-[#543b20] shadow-[inset_0_2px_2px_#ffffffaa,0_5px_0_#8c6a39,0_9px_16px_#46351b44] transition hover:brightness-105 active:translate-y-[2px] active:shadow-sm disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[52px] w-[52px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#58381b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 26 Q9 13 22 12 H45 Q55 13 55 26 V49 H9Z" fill="#c99b51"/><path d="M11 27 Q12 17 23 16 H44 Q52 17 53 27" fill="#e6c17d"/><rect x="21" y="6" width="26" height="12" rx="3" fill="#a97735"/><rect x="25" y="8" width="18" height="7" rx="1" fill="#fff0b6"/><path d="M29 12h10" stroke="#68451f"/><path d="M12 28H52" strokeWidth="2.5"/><rect x="15" y="32" width="34" height="15" rx="3" fill="#e6bc72"/><g fill="#8b5d2a" stroke="#553617" strokeWidth="1"><circle cx="21" cy="36" r="2.2"/><circle cx="30" cy="36" r="2.2"/><circle cx="39" cy="36" r="2.2"/><circle cx="21" cy="43" r="2.2"/><circle cx="30" cy="43" r="2.2"/><circle cx="39" cy="43" r="2.2"/></g><path d="M8 49h48v9H8z" fill="#91632f"/><rect x="13" y="51" width="38" height="4" rx="1" fill="#dcb878"/><path d="M13 22h38" stroke="#fff0b5" strokeWidth="1.4"/><path d="M9 49h46" stroke="#5a391c" strokeWidth="2.5"/></svg></button>
-   <button disabled={!cartItems.length} onClick={()=>{const count=Object.values(selectedStores).length;const eligibleCount=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true).length;if(betweenMode==="one"||count<2){flashCartNotice(count===0?"Valitse ensin kauppa.":"Yksi-tila: hinnat päivitetään ostoskoriin.");return;}if(eligibleCount===0){flashCartNotice("Lisää ensin Justiinan normaalihintahaun tuote koriin.");return;}setDesktopCompareNotice(true)}} className="rounded-[18px] border-[4px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-8 py-2 font-serif text-[clamp(19px,1.7vw,29px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button>
+   <button disabled={!cartItems.length} onClick={()=>{const selected=Object.values(selectedStores) as any[];const count=selected.length;const eligibleCount=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true).length;const selectedChains=selected.map((store:any)=>desktopOfferChainFromStoreKind(storeKind(store),store));if(betweenMode==="one"||count<2){flashCartNotice(count===0?"Valitse ensin kaupat.":"Vaihda Yksi/Monta-kytkin Monta-asentoon.");return;}if(!selectedChains.includes("S")||!selectedChains.includes("K")){flashCartNotice("Vertailu toimii tällä hetkellä S- ja K-kauppojen välillä. Valitse molemmat ketjut.");return;}if(eligibleCount===0){flashCartNotice("Lisää ensin Justiinan normaalihintahaun tuote koriin.");return;}setDesktopCompareNotice(true)}} className="rounded-[18px] border-[4px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-8 py-2 font-serif text-[clamp(19px,1.7vw,29px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button>
   </div>
   <button onClick={clearDesktopCart} disabled={!cartItems.length} title="Tyhjennä kori" aria-label="Tyhjennä kori" className="grid h-[56px] w-[60px] place-items-center rounded-[16px] border-2 border-[#a26950] bg-gradient-to-b from-[#fff3dd] to-[#e4c29f] text-[#844632] shadow-[0_4px_0_#ad8063,0_7px_12px_#46351b33] transition disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 32 32" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 9h18M12 9V6h8v3M9 9l1.5 18h11L23 9M14 14v9M18 14v9"/></svg></button>
   <button onClick={()=>setCartOpen(false)} title="Sulje ostoskori" aria-label="Sulje ostoskori" className="grid h-[56px] w-[60px] place-items-center rounded-[16px] border-2 border-[#916b45] bg-gradient-to-b from-[#fff1cf] to-[#c99458] text-[33px] font-black leading-none text-[#58361f] shadow-[0_4px_0_#9c744b,0_7px_12px_#46351b33] transition">×</button>
@@ -596,7 +606,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
-{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Vertailussa näytetään vain vahvistetut, valittuun kauppaan kuuluvat normaalihinnat. Puuttuvien tuotteiden hintoja ei arvata.</p><div className="mt-4 max-h-[45vh] space-y-3 overflow-y-auto text-left">{desktopCompareResults.map(result=><div key={result.chain+":"+result.storeId} className="rounded-xl border border-[#b9a078] bg-white/60 p-3"><div className="flex justify-between gap-4 font-bold"><span>{result.storeName}</span><span>{!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&result.missingItems===0&&result.foundItems>0?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</span></div><p className="text-sm">{desktopCompareLoading?"Haetaan hintoja…":result.foundItems+" löytyi · "+result.missingItems+" puuttuu"}{desktopCompareLoading?"":result.missingItems>0?" · summa ei ole vertailukelpoinen":desktopCompareBestPrice==null?" · vertailuun tarvitaan vähintään kaksi täydellistä koria":Math.abs(result.totalPrice-desktopCompareBestPrice)<0.005?" · paras vahvistettu hinta":" · +"+(result.totalPrice-desktopCompareBestPrice).toFixed(2).replace(".",",")+" € kalliimpi"}</p></div>)}</div><p className="mt-3 text-sm text-[#8b4e35]">{desktopCompareLoading?"Haetaan valittujen S- ja K-kauppojen tuotehintoja ja turvallisia vastineita…":desktopCompareSearchWarning?"Osa tuotehauista epäonnistui. Näytetään vain vahvistetut löydöt; puuttuvia hintoja ei arvata. Sulje vertailu ja avaa se uudelleen yrittääksesi uudestaan.":"Vertailu käyttää S- ja K-kauppojen vahvistettuja hintoja sekä mobiilin tuotevastineiden yhteensopivuustarkistusta. Muiden ketjujen hintavertailu on vielä kesken."}</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Vertailussa näytetään vain vahvistetut, valittuun kauppaan kuuluvat normaalihinnat. Puuttuvien tuotteiden hintoja ei arvata.</p><div className="mt-4 max-h-[45vh] space-y-3 overflow-y-auto text-left">{desktopCompareResults.map(result=><div key={result.chain+":"+result.storeId} className="rounded-xl border border-[#b9a078] bg-white/60 p-3"><div className="flex justify-between gap-4 font-bold"><span>{result.storeName}</span><span>{!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&result.missingItems===0&&result.foundItems>0?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</span></div><p className="text-sm">{desktopCompareLoading?"Haetaan hintoja…":result.foundItems+" löytyi · "+result.missingItems+" puuttuu"}{desktopCompareLoading?"":result.missingItems>0?" · summa ei ole vertailukelpoinen":desktopCompareBestPrice==null?" · vertailuun tarvitaan vähintään kaksi täydellistä koria":Math.abs(result.totalPrice-desktopCompareBestPrice)<0.005?" · paras vahvistettu hinta":" · +"+(result.totalPrice-desktopCompareBestPrice).toFixed(2).replace(".",",")+" € kalliimpi"}</p></div>)}</div><p className="mt-3 text-sm text-[#8b4e35]">{desktopCompareLoading?"Haetaan valittujen S- ja K-kauppojen tuotehintoja ja mobiilin hakutermien mukaisia vastineita…":desktopCompareSearchWarning?"Osa tuotehauista epäonnistui. Näytetään vain vahvistetut löydöt; puuttuvia hintoja ei arvata. Sulje vertailu ja avaa se uudelleen yrittääksesi uudestaan.":"Vertailu käyttää S- ja K-kauppojen vahvistettuja hintoja sekä mobiilin tuotevastineiden yhteensopivuustarkistusta. Muiden ketjujen hintavertailu on vielä kesken."}</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 
 
         {fuelOpen && (()=>{const all=[
