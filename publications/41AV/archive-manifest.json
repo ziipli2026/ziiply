@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "sourceUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html",
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/index.html",
+  "pdfUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/81ev5v9_tarjouslehti_41AV_KCM/files/extfile/DownloadURL.pdf",
+  "pdfSha256": "b14d8a27004e6984037b0c7cbe42e4575ed9f403c060bda67e2a77f9475eb54e",
+  "pageCount": 19,
+  "offerCount": 46,
+  "archivedAt": "2026-10-09T14:20:21.982Z",
+  "files": [
+    "leaflet.pdf",
+    "leaflet.json",
+    "parser-evidence.json"
+  ]
+}
