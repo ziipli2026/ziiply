@@ -179,19 +179,24 @@ export default function DesktopPreviewPage() {
         if(!storeId||!(chain==="S"||chain==="K"))continue;
         const key=chain+":"+storeId;
         matches[key]={};
-        for(const item of eligible){
+        // Keep API traffic bounded while avoiding a slow serial request per basket item.
+        for(let offset=0;offset<eligible.length;offset+=4){
           if(cancelled)return;
-          const ean=String(item.ean??"").trim();
-          if(!ean)continue;
-          try{
-            const products=await fetchDesktopNormalProducts(String(item.title??item.name??item.productName??""),chain,store);
-            const exact=products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
-            if(exact.length!==1)continue;
-            const normalized=normalizeDesktopNormalResults(exact,chain,store,1)[0];
-            const price=Number(normalized?.__price);
-            if(normalized?.__priceVerified&&Number.isFinite(price)&&price>0)
-              matches[key][desktopCartIdentity(item)]=price;
-          }catch{searchFailed=true;}
+          await Promise.all(eligible.slice(offset,offset+4).map(async(item:any)=>{
+            const ean=String(item.ean??"").trim();
+            const title=String(item.title??item.name??item.productName??"").trim();
+            if(!ean||!title)return;
+            try{
+              const products=await fetchDesktopNormalProducts(title,chain,store);
+              if(cancelled)return;
+              const exact=products.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
+              if(exact.length!==1)return;
+              const normalized=normalizeDesktopNormalResults(exact,chain,store,1)[0];
+              const price=Number(normalized?.__price);
+              if(normalized?.__priceVerified&&Number.isFinite(price)&&price>0)
+                matches[key][desktopCartIdentity(item)]=price;
+            }catch{searchFailed=true;}
+          }));
         }
       }
       if(!cancelled){if(!searchFailed)desktopCompareCacheRef.current[signature]={matches,expiresAt:Date.now()+5*60*1000};setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
