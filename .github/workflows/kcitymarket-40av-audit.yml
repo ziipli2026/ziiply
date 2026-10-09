@@ -38,6 +38,23 @@ jobs:
           git fetch --depth=1 origin archive/citymarket-publications
           git worktree add --detach /tmp/kcm-frozen FETCH_HEAD
           node scripts/citymarket/verify-frozen-archive.mjs /tmp/kcm-frozen
+      - name: Replay archived publisher geometry with current parser
+        shell: bash
+        run: |
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const manifest=JSON.parse(fs.readFileSync('scripts/citymarket/leaflet-regression-publications.json','utf8'));
+          for(const entry of manifest.historicalFixtures||[]){
+            const folder='/tmp/kcm-frozen/publications/'+entry.id;
+            if(!fs.existsSync(folder+'/publisher-responses.json')){
+              console.log('KCM_REPLAY_PENDING_CAPTURE',entry.id);
+              continue;
+            }
+            execFileSync('node',['scripts/citymarket/replay-frozen-parser.mjs',folder,entry.fixture,'/tmp/kcm-replay-parser.mjs'],{stdio:'inherit'});
+          }
+          NODE
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
@@ -138,6 +155,12 @@ jobs:
           if(fixture.pageCount!==manifest.pageCount)throw Error('Archived PDF page count mismatch');
           console.log('KCM_ARCHIVE_VERIFIED',JSON.stringify({pdfSha256:digest,pages:manifest.pageCount,offers:manifest.offerCount}));
           NODE
+      - name: Replay newly captured publication without network
+        shell: bash
+        run: |
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
+          FIXTURE=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.fixture")
+          node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-leaflet-archive "$FIXTURE" /tmp/kcm-replay-parser.mjs
       - name: Commit verified source to permanent archive branch
         shell: bash
         run: |
