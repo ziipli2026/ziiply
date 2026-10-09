@@ -76,3 +76,43 @@ test("desktop comparison cache signature is independent of basket row order", ()
   const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
   assert.match(desktop, /items:cartItems\.filter\(\(item:any\)=>item\.source===["']justiina["']\).*\.sort\(\(a,b\)=>JSON\.stringify\(a\)\.localeCompare\(JSON\.stringify\(b\)\)\)/);
 });
+
+const cacheSource = readFileSync(new URL("../src/app/components/ziiply/cart/desktopComparisonCacheCore.ts", import.meta.url), "utf8");
+const cacheJs = ts.transpileModule(cacheSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+const { sanitizeDesktopComparisonMatches } = await import("data:text/javascript;base64," + Buffer.from(cacheJs).toString("base64"));
+
+test("desktop cache accepts only selected store identities and eligible comparison rows", () => {
+  const valid = sanitizeDesktopComparisonMatches(
+    { "S:store-1": { "ean:111": 2.49 }, "K:store-2": { "ean:111": 2.79 } },
+    ["S:store-1", "K:store-2"],
+    ["ean:111"]
+  );
+  assert.deepEqual(valid, { "S:store-1": { "ean:111": 2.49 }, "K:store-2": { "ean:111": 2.79 } });
+  assert.equal(sanitizeDesktopComparisonMatches(
+    { "S:old-store": { "ean:111": 2.49 } },
+    ["S:store-1"],
+    ["ean:111"]
+  ), null);
+  assert.equal(sanitizeDesktopComparisonMatches(
+    { "S:store-1": { "ean:offer-only": 1.99 } },
+    ["S:store-1"],
+    ["ean:111"]
+  ), null);
+});
+
+test("desktop cache rejects non-positive, non-finite, and malformed comparison prices", () => {
+  for (const price of [0, -0.01, NaN, Infinity, "2.49", null]) {
+    assert.equal(sanitizeDesktopComparisonMatches(
+      { "S:store-1": { "ean:111": price } },
+      ["S:store-1"],
+      ["ean:111"]
+    ), null);
+  }
+});
+
+test("desktop cache initializes empty rows for selected stores with no matches", () => {
+  assert.deepEqual(
+    sanitizeDesktopComparisonMatches({ "S:store-1": { "ean:111": 2.49 } }, ["S:store-1", "K:store-2"], ["ean:111"]),
+    { "S:store-1": { "ean:111": 2.49 }, "K:store-2": {} }
+  );
+});
