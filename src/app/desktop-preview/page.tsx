@@ -155,6 +155,7 @@ export default function DesktopPreviewPage() {
   const [desktopCompareMatches,setDesktopCompareMatches]=useState<Record<string,Record<string,number>>>({});
   const [desktopCompareLoading,setDesktopCompareLoading]=useState(false);
   const desktopCompareSignature=JSON.stringify({
+    version:2,
     stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.externalId??store?.id??""),String(store?.name??store?.title??"")]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
     items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??"",item.title??item.name??item.productName??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
   });
