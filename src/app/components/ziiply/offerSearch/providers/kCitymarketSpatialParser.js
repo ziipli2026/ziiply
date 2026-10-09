@@ -170,7 +170,22 @@ function resolveCards(rows,rawBoxes){
    const preserveMulti=oldQ>1&&q===1&&oldUnitProof;
    const preserveCents=previous.resolved&&q===oldQ&&Math.abs(previous.resolved.value-price.value)<.08&&price.parts.length===1&&price.parts[0].text.length<3;
    if(preserveExactUnit||preserveMulti||preserveCents||(!arithmetic&&!smallExplicit&&!independentMulti&&!weightPrice&&!same)){
-    card.row.spatialResolved=previous.resolved;card.row.unitPrice=previous.unitPrice;card.row.normal=previous.normal;card.row.nearby=previous.nearby;card.row.percentageOffer=previous.percentageOffer;card.row.debugRejectedCardPrice=price;
+    // Fail closed on a major conflict between a publisher-owned large price
+    // glyph and an earlier weakly assigned price. Keeping the weak price
+    // would silently publish a neighbouring product's offer (41LV WC paper).
+    // Do not guess the rejected price either: independent proof is required.
+    const conflictingOwnedPrice=previous.resolved&&
+      Number(previous.resolved.value)>0&&
+      Math.abs(Number(price.value)-Number(previous.resolved.value))>
+        Math.max(1,Number(previous.resolved.value)*.35)&&
+      price.anchor.height>=.045&&
+      !oldUnitProof&&!arithmetic;
+    card.row.spatialResolved=conflictingOwnedPrice?null:previous.resolved;
+    card.row.unitPrice=previous.unitPrice;card.row.normal=previous.normal;card.row.nearby=previous.nearby;card.row.percentageOffer=previous.percentageOffer;card.row.debugRejectedCardPrice=price;
+    if(conflictingOwnedPrice)card.row.debugPriceOwnershipConflict={
+      rejectedOwnedPrice:price.value,earlierPrice:previous.resolved.value,
+      reason:'publisher-glyph-conflicts-with-unproven-price',requiresReview:true
+    };
    }
   }
   card.row.title=card.row.title.replace(/^\d+(?=[A-ZÅÄÖ]{4})/,'').replace(/\s+-\d{1,2}\s*%/g,'');
