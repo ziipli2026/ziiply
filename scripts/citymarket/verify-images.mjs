@@ -13,5 +13,7 @@ for(const [leaflet,publication] of Object.entries(manifest.publications)){
   assert.ok(svg.includes('<view id="'+fragment+'" viewBox="0 '));
   assert.ok(!/<script|onload=|onclick=|https?:\/\//i.test(svg.replace('http://www.w3.org/2000/svg','')));
  }
+ const missingWC=['kcm:spatial:5:wc-paperi 6 rl:6.1','kcm:spatial:5:wc-paperi 40 rl:6.1'].filter(id=>leaflet.includes('41LV_KCM')&&!publication.images[id]);
+ if(missingWC.length)console.warn('KCM_IMAGE_REVIEW_REQUIRED',JSON.stringify({leaflet,missingWC}));
  console.log(leaflet,Object.keys(publication.images).length+'/'+publication.offerCount,'verified image links');
 }
