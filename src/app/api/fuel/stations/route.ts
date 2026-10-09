@@ -48,8 +48,29 @@ export async function GET(req: NextRequest) {
       price95: r.price95 == null ? null : Number(r.price95),
       price98: r.price98 == null ? null : Number(r.price98),
       observedDiesel: r.observed_diesel, observed95: r.observed95, observed98: r.observed98,
-    })).sort((a,b) => a.distanceKm-b.distanceKm);
-    return NextResponse.json({ ok: true, stations, source: "Neon / tankkaus.com observations" });
+    }));
+    // Collapse duplicate provider records at response time; keep database IDs and history intact.
+    // Prefer the lowest source ID for a stable public station identifier.
+    const unique = new Map<string, (typeof stations)[number]>();
+    for (const station of stations.sort((a, b) => Number(a.id) - Number(b.id))) {
+      const address = String(station.address ?? "").trim().toLowerCase().replace(/\\s+/g, " ");
+      const chain = String(station.chain ?? "").trim().toLowerCase();
+      const key = address && chain ? chain + "|" + address : "id|" + station.id;
+      const previous = unique.get(key);
+      if (!previous) { unique.set(key, station); continue; }
+      for (const [priceKey, dateKey] of [
+        ["diesel", "observedDiesel"], ["price95", "observed95"], ["price98", "observed98"],
+      ] as const) {
+        const candidateTime = Date.parse(String(station[dateKey] ?? "")) || 0;
+        const previousTime = Date.parse(String(previous[dateKey] ?? "")) || 0;
+        if (station[priceKey] != null && (previous[priceKey] == null || candidateTime > previousTime)) {
+          (previous as Record<string, unknown>)[priceKey] = station[priceKey];
+          (previous as Record<string, unknown>)[dateKey] = station[dateKey];
+        }
+      }
+    }
+    const deduplicated = [...unique.values()].sort((a,b) => a.distanceKm-b.distanceKm);
+    return NextResponse.json({ ok: true, stations: deduplicated, source: "Neon / tankkaus.com observations" });
   } catch {
     return NextResponse.json({ ok: false, error: "Fuel stations unavailable" }, { status: 503 });
   }
