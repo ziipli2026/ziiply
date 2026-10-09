@@ -7,6 +7,7 @@ import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/deskto
 import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, refreshDesktopCartProductPrice, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
 import { desktopCartIdentity, desktopCartSameStore, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
+import { rankComparisonResults } from "../components/ziiply/cart/comparisonRankingCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -150,6 +151,13 @@ export default function DesktopPreviewPage() {
   const [gostaChooseStoresNotice,setGostaChooseStoresNotice]=useState(false);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
+  const desktopCompareResults = rankComparisonResults(Object.values(selectedStores).map((store:any)=>{
+    const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
+    const storeId=String(store?.externalId??store?.id??"").trim();
+    const comparable=cartItems.filter((item:any)=>item.source==="justiina");
+    const matched=comparable.filter((item:any)=>String(item.__chain??item.chain??"").toUpperCase()===chain&&String(item.__storeId??item.storeId??"").trim()===storeId&&item.__priceVerified===true&&desktopCartPrice(item.price)!=null);
+    return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+(desktopCartPrice(item.price)??0)*Number(item.quantity||1),0)};
+  }));
   const [cartNotice, setCartNotice] = useState("");
   const [cartIncrementKey, setCartIncrementKey] = useState("");
   const [notebookOpen, setNotebookOpen] = useState(false);
@@ -480,7 +488,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
-{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Mobiilin kauppakohtaista Halpuusvertailua ei ole vielä kytketty desktop-esikatseluun. Vertailutulosta ei arvata.</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+{desktopCompareNotice&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-4 text-[17px] text-[#59482f]">Vertailussa näytetään vain vahvistetut, valittuun kauppaan kuuluvat normaalihinnat. Puuttuvien tuotteiden hintoja ei arvata.</p><div className="mt-4 max-h-[45vh] space-y-3 overflow-y-auto text-left">{desktopCompareResults.map(result=><div key={result.chain+":"+result.storeId} className="rounded-xl border border-[#b9a078] bg-white/60 p-3"><div className="flex justify-between gap-4 font-bold"><span>{result.storeName}</span><span>{result.foundItems>0?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</span></div><p className="text-sm">{result.foundItems} löytyi · {result.missingItems} puuttuu{result.missingItems>0?" · summa ei ole vertailukelpoinen":""}</p></div>)}</div><p className="mt-3 text-sm text-[#8b4e35]">Muiden kauppojen tuotevastineiden haku on vielä kytkemättä. Näytetyt summat eivät ole täydellinen Halpuusvertailu.</p><button onClick={()=>setDesktopCompareNotice(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 
 
         {fuelOpen && (()=>{const all=[
