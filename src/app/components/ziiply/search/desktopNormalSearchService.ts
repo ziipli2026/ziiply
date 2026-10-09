@@ -22,7 +22,9 @@ export async function fetchDesktopNormalProducts(
   const term = query.trim();
   if (!term) return [];
   const params = new URLSearchParams({ search: term });
-  const storeId = String(store.externalId ?? store.id ?? "").trim();
+  // /api/s-products and /api/k-products resolve Ruoanhinta internal store IDs.
+  // Keep externalId for cross-system identity, but never send it ahead of the API store id.
+  const storeId = String(store.id ?? store.externalId ?? "").trim();
   if ((chain === "S" || chain === "K") && !storeId) throw new Error("Selected store identifier missing");
   let url: string;
   switch (chain) {
