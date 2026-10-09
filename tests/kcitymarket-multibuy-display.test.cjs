@@ -7,7 +7,7 @@ const vm=require("node:vm");
 const src=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx","utf8");
 function extract(start,end){const a=src.indexOf(start),b=src.indexOf(end,a);assert.ok(a>=0&&b>a,start);return src.slice(a,b);}
 const normalize=extract("function normalizePrice(price: unknown) {","function getNumericPrice").replace("price: unknown","price");
-const display=extract("function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {","// Shared display-only price layout").replace("offer: ZiiplyMobileOfferSearchItem","offer");
+const display=extract("function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {","function splitOfferDisplayPrice(value: string) {").replace("offer: ZiiplyMobileOfferSearchItem","offer");
 const split=extract("function splitOfferDisplayPrice(value: string) {","function getNormalPrice").replace("value: string","value");
 const ctx={};vm.runInNewContext(normalize+display+split+"\nthis.getOfferPrice=getOfferPrice;this.splitOfferDisplayPrice=splitOfferDisplayPrice;",ctx);
 const cases=[
