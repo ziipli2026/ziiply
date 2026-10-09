@@ -1,13 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430">
-<defs><linearGradient id="wall" x2="0" y2="1"><stop stop-color="#f0e5d9"/><stop offset="1" stop-color="#c9b9aa"/></linearGradient><linearGradient id="glass" x2="0" y2="1"><stop stop-color="#91a7b4"/><stop offset="1" stop-color="#4f6877"/></linearGradient></defs>
-<rect width="900" height="430" fill="none"/>
-<path d="M105 161H795V370H105Z" fill="url(#wall)" stroke="#aa988a" stroke-width="7"/>
-<path d="M80 146H820L786 108H116Z" fill="#404d5b"/><path d="M80 146H820V177H80Z" fill="#34485b"/>
-<rect x="293" y="71" width="314" height="79" rx="7" fill="#f8f8f6" stroke="#6d7e8a" stroke-width="5"/>
-<text x="333" y="127" font-family="Arial,sans-serif" font-weight="900" font-size="63" fill="#ed262b">K</text>
-<text x="395" y="121" font-family="Arial,sans-serif" font-weight="800" font-size="30" fill="#293f54">CITYMARKET</text>
-<path d="M127 205H773V239H127Z" fill="#eae2d9"/>
-<g fill="url(#glass)" stroke="#e6e9e7" stroke-width="7"><rect x="131" y="242" width="150" height="110"/><rect x="291" y="242" width="124" height="110"/><rect x="485" y="242" width="124" height="110"/><rect x="619" y="242" width="150" height="110"/></g>
-<path d="M416 235H484V369H416Z" fill="#4c6a7c" stroke="#e6e9e7" stroke-width="8"/><path d="M450 239V367" stroke="#e6e9e7" stroke-width="5"/>
-<path d="M48 374H852" stroke="#b7a99c" stroke-width="11"/><path d="M120 400H784" stroke="#c4c1bb" stroke-width="5"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430"><rect width="900" height="430" fill="none"/><path d="M75 182L650 146L821 216L821 370L75 370Z" fill="#d4c7ba"/><path d="M75 181L650 145L820 216L810 249L648 184L75 220Z" fill="#465465"/><path d="M77 227L637 195V368H77Z" fill="#b4b9b8"/><path d="M638 195L814 253V368H638Z" fill="#a7b0b7"/><path d="M102 259L276 248V345H102Z" fill="#637e89"/><path d="M290 247L465 236V345H290Z" fill="#637e89"/><path d="M660 272L785 311V347H660Z" fill="#5d7784"/><path d="M473 221L620 214V368H473Z" fill="#4a6675"/><path d="M547 216V368" stroke="#e8e9e7" stroke-width="7"/><rect x="166" y="115" width="343" height="82" rx="4" fill="#f3f1ee" stroke="#7b8790" stroke-width="5"/><text x="190" y="173" font-family="Arial" font-size="64" font-weight="900" fill="#e22d30">K</text><text x="257" y="166" font-family="Arial" font-size="33" font-weight="800" fill="#35465a">CITYMARKET</text><path d="M50 374H840" stroke="#999e9f" stroke-width="12"/></svg>
