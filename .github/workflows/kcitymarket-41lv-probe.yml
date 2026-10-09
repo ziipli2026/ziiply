@@ -41,9 +41,12 @@ jobs:
           // Just1 6-roll + household-paper set = 10 EUR; Soft Embo 40-roll
           // two-bag offer = 29.90 EUR. Never allow the spatial parser's
           // erroneous 6.10 EUR association to pass a release gate.
+          // These are two distinct promotion types, not two unit-price offers.
+          // 6-roll is a mixed WC + household paper SET at EUR 10.
+          // 40-roll is TWO bags at EUR 29.90 total (EUR 14.95 per bag).
           const knownPage5=[
-            {title:/^WC-PAPERI 6 rl$/i,expected:10},
-            {title:/^WC-PAPERI 40 rl$/i,expected:29.90}
+            {title:/^WC-PAPERI 6 rl$/i,expected:10,kind:'mixed-set',quantity:2},
+            {title:/^WC-PAPERI 40 rl$/i,expected:29.90,kind:'same-product-multibuy',quantity:2}
           ];
           const page5Diagnostics=all.filter(r=>r.page===5&&/WC-PAPERI/i.test(String(r.title))).map(r=>({
             title:r.title,actual:r.spatialResolved,previous:r.debugRejectedCardPrice,
@@ -69,10 +72,19 @@ jobs:
             nearby:r.nearby
           }));
           fs.writeFileSync(dir+'page5-rejected-price-geometry.json',JSON.stringify(rejectedGeometry,null,2));
-          const page5Failures=knownPage5.flatMap(({title,expected})=>{
+          const page5Failures=knownPage5.flatMap(({title,expected,kind,quantity})=>{
             const match=all.find(r=>r.page===5&&title.test(String(r.title)));
             const actual=match?.spatialResolved?.value==null?null:Number(match.spatialResolved.value);
-            return match&&actual!==null&&Math.abs(actual-expected)<0.005?[]:[{title:String(title),expected,actual:Number.isFinite(actual)?actual:null,found:Boolean(match)}];
+            const q=Number(match?.spatialResolved?.quantity||1);
+            const context=[...(match?.nearby||[]),...(match?.spatialGroups||[]).map(g=>g.text)].join(' ').toUpperCase();
+            const semanticProof=kind==='mixed-set'
+              ? /TALOUSPAPERI/.test(context)&&/SETTI/.test(context)
+              : /2\\s*SÄKKIÄ/.test(context);
+            // A mixed set must not be published as the unit price of its WC component.
+            const valid=kind==='mixed-set'
+              ? (actual===null&&semanticProof)
+              : (actual!==null&&Math.abs(actual-expected)<.005&&q===quantity&&semanticProof);
+            return valid?[]:[{title:String(title),expected,kind,quantity,actual,actualQuantity:q,semanticProof,found:Boolean(match)}];
           });
           fs.writeFileSync(dir+'verified-page5-prices.json',JSON.stringify({source:'41LV original PDF page 5, visually checked',expected:[{product:'Lotus Just1 WC-PAPERI 6 rl plus household-paper 6 rl, set',price:10},{product:'Lotus Soft Embo WC-PAPERI 40 rl, 2 bags',price:29.90}],failures:page5Failures},null,2));
           fs.writeFileSync(dir+'probe-report.json',JSON.stringify({...report,verifiedPage5Failures:page5Failures},null,2));
