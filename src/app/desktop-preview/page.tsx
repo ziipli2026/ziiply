@@ -403,7 +403,7 @@ export default function DesktopPreviewPage() {
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
             const price=matched?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
-            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none"};
+            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,image:String(matched?.image||matched?.imageUrl||matched?.product?.image||matched?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none"};
           }catch{return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
@@ -442,7 +442,7 @@ export default function DesktopPreviewPage() {
     const rowId=String(match?.id||match?.cartItemId||"");
     const priceCents=Number(alternative?.price);
     if(!Number.isFinite(priceCents)||priceCents<=0){flashCartNotice("Valitun vaihtoehdon hinta ei ole kelvollinen.");return}
-    const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,match:"name" as const}:row);
+    const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
     const next={...chosen,rows,total:rows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:rows.filter((row:any)=>row.price==null).length};
     setDesktopCompareResults(current=>{
       const updated={...current,[storeId]:next};
@@ -921,7 +921,7 @@ export default function DesktopPreviewPage() {
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 {desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),product:{name:row.name},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
   items={cartItems}
   onChangeMatchMode={desktopChangeCompareMatchMode}
   onSelectMatchAlternative={desktopSelectCompareAlternative}
