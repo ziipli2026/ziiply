@@ -1,6 +1,6 @@
 "use client";
 
-/** Desktop assistant cards: full-height cards with description text aligned to one shared horizontal baseline. */
+/** Desktop assistant cards: full-height cards with stable description baselines; notices overlay instead of reflowing the card. */
 type Assistant = "gosta" | "justiina" | "arvo";
 const assistants = [
   { key: "gosta" as const, name: "Gösta", title: "Tarjoukset", subtitle: "Hinnat ja säästövinkit", description: "Tarjoukset, hintahavainnot, säästövinkit ja tarjousvahdit.", image: "/assistants/gosta.png", frame: "border-[#8bb56d] bg-gradient-to-b from-[#f4ffe3] via-[#e0f0bd] to-[#c6dc91]", ink: "text-[#244a28]" },
@@ -13,6 +13,7 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
     <div className="grid h-full min-h-0 grid-cols-3 gap-3 xl:gap-4 -mt-3">
       {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
         const selected = active === item.key;
+        const showStoreNotice = (item.key==="gosta" || item.key==="justiina") && chooseStoresNoticeFor===item.key && !hasSelectedStores;
         return (
           <button key={item.key} type="button" onClick={() => onSelect(item.key)} className={[
             "group relative flex h-full min-h-0 flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-0 pt-5 text-center transition duration-200 active:translate-y-[2px]",
@@ -27,8 +28,10 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
             <div className={["relative z-10 mt-6 text-[36px] font-black leading-none tracking-[-0.045em] drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]", item.ink].join(" ")}>{item.name}</div>
             <div className="relative z-10 mt-3 text-[13px] font-black uppercase tracking-[0.12em] text-[#1e2f2a]">{item.title}</div>
             <div className="relative z-10 mt-1 min-h-[2.5rem] text-[14px] font-bold leading-5 text-[#687285]">{item.subtitle}</div>
-            {(item.key==="gosta" || item.key==="justiina") && chooseStoresNoticeFor===item.key && !hasSelectedStores && (
-              <div role="status" aria-live="polite" className="relative z-20 mt-4 w-full max-w-[270px] rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-3 py-2 text-center text-[16px] font-black leading-snug text-[#5d3c12] shadow-md">Valitse ensin kaupat</div>
+            {showStoreNotice && (
+              <div role="status" aria-live="polite" className="absolute bottom-[155px] left-1/2 z-30 w-[calc(100%-2.5rem)] max-w-[270px] -translate-x-1/2 rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-3 py-2 text-center text-[16px] font-black leading-snug text-[#5d3c12] shadow-md">
+                Valitse ensin kaupat
+              </div>
             )}
             <div className="relative z-10 -mx-5 mt-auto flex h-[145px] w-[calc(100%+2.5rem)] shrink-0 items-start justify-center border-t-2 border-[#8d805e]/25 px-5 pt-5 pb-5">
               <p className="w-full text-[15px] font-bold leading-snug text-[#3f4654]">{item.description}</p>
