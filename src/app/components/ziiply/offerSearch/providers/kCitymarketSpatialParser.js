@@ -242,7 +242,7 @@ function resolveCards(rows,rawBoxes){
    // when the row's own price resolver has temporarily nulled the selection.
    if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/\b2\s*SÄKKIÄ\b/.test(context)){
      const evidenced=[row.spatialResolved,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean)
-       .find(c=>Number(c.value)>0&&Math.abs(Number(c.value)-29.9)<0.005);
+       .find(c=>Number(c.value)>0);
      if(evidenced) row.spatialResolved={...evidenced,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
    }
    if(/\b2\s*SÄKKIÄ\b/.test(context)){
@@ -1276,7 +1276,7 @@ for(const row of out.rows.filter(r=>r.page===p)){
  }
  if(/WC-PAPERI\s*6\s*rl/i.test(String(row.title||''))&&/YHTEIS[\s-]*HINTAAN/.test(context)&&/\bSETTI\b/.test(context)){
    row.spatialResolved=null;
-   row.debugPublisherBundle={type:'mixed-set',evidence:'YHTEISHINTAAN + SETTI',totalPrice:10,requiresBundlePresentation:true};
+   row.debugPublisherBundle={type:'mixed-set',evidence:'YHTEISHINTAAN + SETTI',totalPrice:Number(row.debugPublisherBundlePrice?.value||row.debugRejectedCardPrice?.value||row.spatialResolved?.value||0),requiresBundlePresentation:true};
  }
 }
 }
