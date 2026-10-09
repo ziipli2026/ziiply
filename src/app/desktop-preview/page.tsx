@@ -690,7 +690,7 @@ export default function DesktopPreviewPage() {
           </div>
         )}
 
-        <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 overflow-hidden pb-2 pt-1 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
+        <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 overflow-hidden pb-3 pt-1 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
           <div className="relative max-w-none flex h-full flex-col justify-start self-stretch">
             {fuelSelected ? <div className="relative h-full min-h-0 overflow-y-auto rounded-[28px] border-[3px] border-[#b38a4a] bg-[#fcf5de] p-4 shadow-[0_5px_0_rgba(105,72,28,.14),inset_0_0_0_2px_rgba(255,255,255,.48)]">
 <div className="grid grid-cols-[1fr_46px_1fr] items-center gap-3">
@@ -708,7 +708,7 @@ export default function DesktopPreviewPage() {
 </div>}
                       </div>
 
-          <nav aria-label="Ostokset ja vertailu" className={fuelSelected ? "relative z-20 flex h-full min-h-0 flex-col items-stretch justify-center gap-4 py-1" : "relative z-20 flex flex-col h-full min-h-0 items-stretch justify-between gap-4 py-1"}>
+          <nav aria-label="Ostokset ja vertailu" className={fuelSelected ? "relative z-20 flex h-full min-h-0 flex-col items-stretch justify-center gap-4 pb-0 pt-1" : "relative z-20 flex h-full min-h-0 flex-col items-stretch justify-between gap-4 pb-0 pt-1"}>
             {!fuelSelected && <>
             <button type="button" onClick={()=>setNotebookOpen(true)} className="relative flex h-[clamp(112px,16vh,154px)] min-h-0 flex-col items-center justify-center gap-1 rounded-[25px] border-[3px] border-[#8d663f] bg-gradient-to-b from-[#fff2c8] to-[#d8b77b] p-2 text-[#51391f] shadow-[0_8px_0_#987c50,0_16px_26px_#5e4c2929] transition hover:-translate-y-1"><span className="shrink-0 text-[48px] leading-none drop-shadow-md">📜</span><span className="shrink-0 text-[14px] font-black leading-tight">Ostelusvihko</span>{savedLists.length>0&&<span className="absolute right-2 top-2 rounded-full bg-[#79552d] px-2 py-1 text-[11px] font-black text-white">{savedLists.length}</span>}</button>
             <button type="button" onClick={()=>setCartOpen(true)} className="group relative flex h-[clamp(90px,12dvh,125px)] min-h-0 flex-col items-center justify-center rounded-[25px] border-[3px] border-[#4b815e] bg-gradient-to-b from-[#f0ffe4] to-[#b9ddb2] p-2 text-[#174c35] shadow-[0_8px_0_#6d9270,0_16px_26px_#254d3529] transition hover:-translate-y-1"><svg aria-hidden="true" viewBox="0 0 96 80" className="h-[65px] w-[83px] drop-shadow-[1px_3px_2px_#36563b55]" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M24 31C27 9 69 9 72 31" stroke="#86532e" strokeWidth="6"/><path d="M24 31C27 9 69 9 72 31" stroke="#d6a66a" strokeWidth="2.5"/><path d="M12 33h72l-9 36c-1 4-5 6-10 6H31c-5 0-9-2-10-6L12 33Z" fill="#bb8650" stroke="#704829" strokeWidth="3"/><path d="M17 39h62M20 50h56M23 61h50" stroke="#e4bb7d" strokeWidth="4"/><path d="m22 34 10 38m1-38 7 39m8-39v40m8-40-7 39m18-39-10 38m17-38-10 36" stroke="#7b522e" strokeWidth="3"/><path d="M12 33h72" stroke="#684329" strokeWidth="6"/><path d="M16 34h64" stroke="#e4b77d" strokeWidth="2"/></svg><span className="text-[14px] font-black">Kori</span>{desktopCartCount>0&&<span className="absolute right-2 top-2 rounded-full bg-[#147a49] px-2 py-1 text-[11px] font-black text-white">{desktopCartCount}</span>}</button>
@@ -716,7 +716,7 @@ export default function DesktopPreviewPage() {
             </>}
 
           </nav>
-          <div className="relative max-h-[calc(100dvh-150px)] rounded-[42px] border border-[#756443]/15 bg-[#f8f5ed]/92 p-3 shadow-[0_34px_90px_rgba(34,54,43,0.22)] ring-1 ring-[#fffaf0]/95 xl:p-4">
+          <div className="relative h-full min-h-0 overflow-hidden rounded-[42px] border border-[#756443]/15 bg-[#f8f5ed]/92 p-3 shadow-[0_34px_90px_rgba(34,54,43,0.22)] ring-1 ring-[#fffaf0]/95 xl:p-4">
             <DesktopAssistantCards
               active={active}
               onlyGosta={fuelSelected}
