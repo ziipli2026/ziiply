@@ -23,5 +23,5 @@ for(const [offer,expected] of cases)test("Citymarket multibuy "+expected,()=>{
 });
 test("Source multibuy metadata overrides misleading unit price",()=>{
  const actual=ctx.getOfferPrice({price:13.13,__sourceOfferSearchResult:{price:10,offerQuantity:3,offerUnit:"kpl",unitPrice:13.13}});
- assert.equal(actual,"13,13 € / 3 kpl"); // documents current precedence defect; change this expectation after fix
+ assert.equal(actual,"10,00 € / 3 kpl");
 });
