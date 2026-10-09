@@ -12,6 +12,19 @@ import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV1
 type Assistant = "gosta" | "justiina" | "arvo";
 
 
+// Preload fuel brand images once on the persistent desktop page, before fuel cards mount.
+const FUEL_LOGO_URLS = ["https://commons.wikimedia.org/wiki/Special:FilePath/Neste_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/ABC_Fuel_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/St1_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg","https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg"];
+const fuelLogoPreloads: HTMLImageElement[] = [];
+function preloadFuelLogos() {
+  if (typeof window === "undefined" || fuelLogoPreloads.length) return;
+  for (const url of FUEL_LOGO_URLS) {
+    const image = new window.Image();
+    image.decoding = "async";
+    image.src = url;
+    fuelLogoPreloads.push(image);
+  }
+}
+
 function FuelBrandLogo({ brand }: { brand: "Neste" | "ABC" | "St1" | "SEO" | "Muut" }) {
   const logos: Record<string,string> = {
     Neste: "https://commons.wikimedia.org/wiki/Special:FilePath/Neste_logo.svg",
@@ -19,8 +32,9 @@ function FuelBrandLogo({ brand }: { brand: "Neste" | "ABC" | "St1" | "SEO" | "Mu
     St1: "https://commons.wikimedia.org/wiki/Special:FilePath/St1_logo.svg",
   };
   const [failed, setFailed] = useState(false);
+  useEffect(() => { preloadFuelLogos(); }, []);
   if (!logos[brand] || failed) return <span>{brand === "Muut" ? "G/R" : brand}</span>;
-  return <img src={logos[brand]} alt={brand} onError={() => setFailed(true)} className="h-full w-full object-contain p-1" loading="lazy" />;
+  return <img src={logos[brand]} alt={brand} onError={() => setFailed(true)} className="h-full w-full object-contain p-1" loading="eager" fetchPriority="high" />;
 }
 
 function FuelStationTypeIllustration({ kind, className }: { kind: "traffic" | "cold" | "pump"; className: string }) {
