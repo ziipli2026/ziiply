@@ -605,8 +605,7 @@ test("comparison never substitutes a different EAN when an exact barcode exists"
   assert.match(page, /chosen=normalized\.find/);
   assert.match(page, /const batches=await Promise\.all\(terms\.map/);
   assert.match(page, /if\(!chosen&&hasKnownProductFamily\(title\)\)/);
-  assert.match(page, /const candidates=exact\.length>0\?exact:products/);
-  assert.match(page, /const chosen=exact\.length>0\?pricedCandidates/);
+  assert.match(page, /if\(ean\)\{[\s\S]*?chosen=normalized\.find/);
 });
 test("name-based comparison checks product attributes before choosing substitute", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
