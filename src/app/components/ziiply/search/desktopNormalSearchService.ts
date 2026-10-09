@@ -82,7 +82,7 @@ export function normalizeDesktopNormalResults(
     const candidate = directPrice ?? storeRow?.price ?? scopedSinglePrice;
     const numeric = typeof candidate === "number" ? candidate :
       Number(String(candidate ?? "").replace(",", "."));
-    const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+    const price = Number.isFinite(numeric) && numeric > 0 && numeric <= 100000 ? numeric : 0;
     const localPriceVerified = (chain === "S" || chain === "K") && Boolean(String(store.externalId ?? store.id ?? "").trim()) && price > 0;
     return {
       ...item,
