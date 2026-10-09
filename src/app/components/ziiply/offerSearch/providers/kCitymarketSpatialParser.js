@@ -192,7 +192,12 @@ function resolveCards(rows,rawBoxes){
     // Keep the price but mark the offer semantics for downstream display.
     const explicitBundleContext=/YHTEIS[\\s-]*HINTAAN/.test(nearbyOfferContext)&&/\\bSETTI\\b/.test(nearbyOfferContext);
     const explicitTwoBagContext=/\\b2\\s*SÄKKIÄ\\b/.test(nearbyOfferContext);
-    const publisherBundleProof=explicitBundleContext||explicitTwoBagContext;
+    const titleAnchor=card.anchor;
+    const priceAnchor=price.anchor;
+    const twoBagSameColumn=explicitTwoBagContext&&titleAnchor&&priceAnchor&&
+      Math.abs((priceAnchor.left+priceAnchor.width/2)-(titleAnchor.left+(titleAnchor.right-titleAnchor.left)/2))<.22&&
+      Math.abs(priceAnchor.top-titleAnchor.top)<.09;
+    const publisherBundleProof=explicitBundleContext||twoBagSameColumn;
     const conflictingOwnedPrice=previous.resolved&&
       Number(previous.resolved.value)>0&&
       Math.abs(Number(price.value)-Number(previous.resolved.value))>
@@ -200,6 +205,9 @@ function resolveCards(rows,rawBoxes){
       price.anchor.height>=.045&&
       !oldUnitProof&&!arithmetic&&!publisherBundleProof;
     card.row.spatialResolved=conflictingOwnedPrice?null:previous.resolved;
+    if(twoBagSameColumn&&card.row.spatialResolved){
+      card.row.spatialResolved={...card.row.spatialResolved,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total'};
+    }
     card.row.unitPrice=previous.unitPrice;card.row.normal=previous.normal;card.row.nearby=previous.nearby;card.row.percentageOffer=previous.percentageOffer;card.row.debugRejectedCardPrice=price;
     if(publisherBundleProof)card.row.debugPublisherBundle={
       type:explicitBundleContext?'mixed-set':'two-bag-multibuy',
