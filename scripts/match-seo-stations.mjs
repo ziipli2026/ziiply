@@ -8,10 +8,11 @@ const html=await fetch("https://seo.fi/asemat",{signal:AbortSignal.timeout(20000
  if(!r.ok) throw new Error("SEO directory HTTP "+r.status); return r.text();
 });
 const clean=s=>String(s??"").normalize("NFKD").toLowerCase().replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
+const officialText=clean(html);
 const stations=await sql`SELECT source_station_id,name,address FROM public.ziiply_fuel_stations WHERE lower(chain)='seo' ORDER BY name`;
 const report=stations.map(s=>{
- const name=clean(s.name),address=clean(s.address);
- const addressPresent=address.length>6&&clean(html).includes(address);
+ const address=clean(s.address);
+ const addressPresent=address.length>6&&officialText.includes(address);
  return {id:s.source_station_id,name:s.name,address:s.address,
   addressInOfficialDirectory:addressPresent,
   status:addressPresent?"address-candidate-needs-service-verification":"manual-review"};
