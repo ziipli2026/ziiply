@@ -49,9 +49,10 @@ if (!stations.size) throw new Error("No stations within 10 km");
 const fuelConfigs = [["95","fills95"],["98","fills98"],["diesel","fillsDiesel"]];
 const now=Date.now();
 const observations=[];
+// Fetch the common home payload once; all three fuel arrays belong to one snapshot.
+const fillsPayload = await get(`/fills/home/${lat}/${lon}`);
 for (const [fuel,key] of fuelConfigs) {
-  const payload=await get(`/fills/home/${lat}/${lon}`);
-  const rows=payload?.[key];
+  const rows=fillsPayload?.[key];
   if (!Array.isArray(rows)||rows.length>10000) throw new Error(`Missing or oversized ${key}`);
   for (const item of rows) {
     const id=Number(item?.station_id ?? item?.station?.id), price=Number(String(item?.price_liter??"").replace(",","."));
