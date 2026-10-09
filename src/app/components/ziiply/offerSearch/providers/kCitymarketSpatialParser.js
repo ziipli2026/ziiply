@@ -1324,6 +1324,27 @@ for(const row of out.rows.filter(r=>r.page===p)){
   }
  }
 }
+// A same-row printed euro/cents total can restore a lost multi-buy only
+// when its own printed unit rate independently verifies the integer pack count
+// AND the corresponding count is printed beside the price glyph.
+for(const row of out.rows.filter(r=>r.page===p)){
+ const single=Number(row.initialExpectedSingle??row.expectedSingle),anchor=row.debugAnchor;
+ if(!(single>0)||!anchor)continue;
+ const totals=[...new Map((row.spatialCandidates||[])
+  .filter(c=>c.kind==="same-row-euro-cents"&&Number(c.value)>single*1.5)
+  .map(c=>[Number(c.value).toFixed(2),c])).values()];
+ if(totals.length!==1)continue;
+ const total=Number(totals[0].value),quantity=Math.round(total/single);
+ if(quantity<2||quantity>12||Math.abs(total-single*quantity)>.035)continue;
+ const nearbyQuantity=wordBoxes.some(b=>String(b.text||"").trim()===String(quantity)&&
+  Math.abs(Number(b.left)-Number(anchor.left))<.30&&Math.abs(Number(b.top)-Number(anchor.top))<.12&&
+  wordBoxes.some(u=>/^(KPL|PRK|PKT|PS|TLK)$/i.test(String(u.text||"").trim())&&
+   Math.abs(Number(u.left)-Number(b.left))<.09&&Math.abs(Number(u.top)-Number(b.top))<.035));
+ if(!nearbyQuantity)continue;
+ const current=row.spatialResolved;
+ if(current&&Number(current.quantity||1)>1&&Math.abs(Number(current.value)-total)>.035)continue;
+ row.spatialResolved={value:total,quantity,unit:null,source:"same-row-total-with-printed-count-and-unit-rate",sanity:"pass",confidence:"high"};
+}
 // Apply publisher bundle ownership to the actual returned output rows, after
 // resolveCards has finished. Its internal return value is not consumed by the caller.
 for(const row of out.rows.filter(r=>r.page===p)){
