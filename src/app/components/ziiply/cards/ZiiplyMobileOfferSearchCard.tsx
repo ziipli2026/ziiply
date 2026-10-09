@@ -556,7 +556,12 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   const quantity = Number(source.offerQuantity ?? offer.offerQuantity ?? source.multiBuyQuantity ?? offer.multiBuyQuantity);
   const unit = String(source.offerUnit ?? offer.offerUnit ?? "kpl").trim() || "kpl";
   const rawPriceText = String(source.priceText ?? offer.priceText ?? "").trim();
-  // A structured publisher transaction price is authoritative for multi-buy offers.\n  // A flattened card price can accidentally carry the €/kg comparison value.\n  const hasSourceMultiBuy = Number(source.offerQuantity ?? source.multiBuyQuantity) > 1;\n  const numericPrice = hasSourceMultiBuy && (source.offerPrice != null || source.price != null)\n    ? (source.offerPrice ?? source.price)\n    : (offer.offerPrice ?? offer.price ?? source.offerPrice ?? source.price);
+  // A structured publisher transaction price is authoritative for multi-buy offers.
+  // A flattened card price can accidentally carry the €/kg comparison value.
+  const hasSourceMultiBuy = Number(source.offerQuantity ?? source.multiBuyQuantity) > 1;
+  const numericPrice = hasSourceMultiBuy && (source.offerPrice != null || source.price != null)
+    ? (source.offerPrice ?? source.price)
+    : (offer.offerPrice ?? offer.price ?? source.offerPrice ?? source.price);
 
   // Shared rule for every chain and for both Tarjoukset/Kampanjat:
   // preserve an explicit source multi-buy expression when it contains both
