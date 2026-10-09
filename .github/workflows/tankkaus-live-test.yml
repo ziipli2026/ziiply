@@ -6,6 +6,11 @@ on:
         description: "Type YES_TEST_BRANCH to allow one-shot ingestion"
         required: true
         type: string
+      dry_run:
+        description: "Read and validate provider data without writing to Neon"
+        required: true
+        type: boolean
+        default: true
 jobs:
   ingest:
     if: ${{ inputs.confirm == 'YES_TEST_BRANCH' }}
@@ -34,6 +39,7 @@ jobs:
           TANKKAUS_API_TOKEN: ${{ secrets.TANKKAUS_API_TOKEN }}
           DATABASE_URL: ${{ secrets.TANKKAUS_TEST_DATABASE_URL }}
           TANKKAUS_LIVE_INGEST: "true"
+          TANKKAUS_DRY_RUN: ${{ inputs.dry_run }}
           TANKKAUS_PROVIDER_SCHEMA_VERIFIED: "YES"
           TANKKAUS_INGEST_WRITE_CONFIRM: "YES_TEST_BRANCH"
         run: node scripts/ingest-tankkaus-live.mjs
