@@ -219,7 +219,7 @@ export default function DesktopPreviewPage() {
     flashCartNotice(`Lisätty ostoskoriin: ${cartProduct.title||cartProduct.name||"tuote"}`);
   }
   function changeDesktopCartQuantity(p:any,delta:number){setCartItems(current=>changeDesktopCartItemQuantity(current,p,delta))}
-  function removeDesktopCartItem(p:any){const key=desktopCartKey(p);setCartItems(current=>current.filter(x=>!(desktopCartKey(x)===key&&x.source===p.source&&desktopCartSameStore(x,p))));flashCartNotice(`Poistettu ostoskorista: ${p?.title||p?.name||"tuote"}`)}
+  function removeDesktopCartItem(p:any){const key=desktopCartKey(p);setCartItems(current=>{let removed=false;return current.filter(x=>{if(!removed&&desktopCartKey(x)===key&&x.source===p.source&&desktopCartSameStore(x,p)){removed=true;return false}return true})});flashCartNotice(`Poistettu ostoskorista: ${p?.title||p?.name||"tuote"}`)}
   async function shareDesktopCart(){const lines=cartItems.map((p:any)=>Number(p.quantity||1)+" × "+String(p.title||p.name||"Tuote")+(p.storeName?" — "+p.storeName:""));const message="Ziiply ostoskori\\n"+lines.join("\\n");try{if(navigator.share)await navigator.share({title:"Ziiply ostoskori",text:message});else if(navigator.clipboard){await navigator.clipboard.writeText(message);flashCartNotice("Ostoskori kopioitu leikepöydälle")}else flashCartNotice("Jakaminen ei ole käytettävissä")}catch(e:any){if(e?.name!=="AbortError")flashCartNotice("Jakaminen epäonnistui")}}
   function clearDesktopCart(){setCartItems([]);flashCartNotice("Ostoskori tyhjennetty")}
   const desktopCartCount=cartItems.reduce((sum:number,p:any)=>sum+Number(p.quantity||1),0);
