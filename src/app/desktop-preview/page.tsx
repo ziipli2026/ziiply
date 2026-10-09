@@ -23,6 +23,55 @@ function FuelBrandLogo({ brand }: { brand: "Neste" | "ABC" | "St1" | "SEO" | "Mu
   return <img src={logos[brand]} alt={brand} onError={() => setFailed(true)} className="h-full w-full object-contain p-1" loading="lazy" />;
 }
 
+function FuelStationTypeIllustration({ kind, className }: { kind: "traffic" | "cold" | "pump"; className: string }) {
+  const id = kind === "traffic" ? "fuelTrafficArt" : kind === "cold" ? "fuelColdArt" : "fuelPumpArt";
+  return <svg aria-hidden="true" viewBox="0 0 96 80" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id={id+"roof"} x1="0" y1="0" x2="0.9" y2="1"><stop stopColor="#ffb69c"/><stop offset=".45" stopColor="#d84937"/><stop offset="1" stopColor="#9e2726"/></linearGradient>
+      <linearGradient id={id+"metal"} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#ffffff"/><stop offset=".5" stopColor="#dce2df"/><stop offset="1" stopColor="#8d9b99"/></linearGradient>
+      <linearGradient id={id+"glass"} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#d9f8f1"/><stop offset="1" stopColor="#569a98"/></linearGradient>
+      <filter id={id+"shadow"} x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="1.7" floodColor="#483b2c" floodOpacity=".32"/></filter>
+    </defs>
+    <g filter={`url(#${id}shadow)`}>
+      {kind === "traffic" && <>
+        <path d="M5 67H91" stroke="#8e887c" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M8 35H52V66H8Z" fill={`url(#${id}metal)`} stroke="#87908a" strokeWidth="1"/>
+        <path d="M11 39H29V62H11Z" fill={`url(#${id}glass)`}/><path d="M32 39H48V62H32Z" fill={`url(#${id}glass)`}/>
+        <path d="M9 39H50M30 39V65" stroke="#f6faf5" strokeWidth="2"/>
+        <path d="M4 29 11 23H55L61 29V36H4Z" fill={`url(#${id}roof)`} stroke="#8e3029" strokeWidth="1"/>
+        <path d="M7 30H58" stroke="#ffe9c5" strokeWidth="2"/>
+        <path d="M48 21H91L95 29H45Z" fill={`url(#${id}roof)`} stroke="#8e3029" strokeWidth="1"/>
+        <path d="M51 29H91V34H51Z" fill="#f5f0e6"/>
+        <path d="M56 34V66M88 34V66" stroke={`url(#${id}metal)`} strokeWidth="5"/>
+        <rect x="66" y="40" width="12" height="25" rx="2" fill="#c93930" stroke="#832b28" strokeWidth="1"/>
+        <rect x="68" y="43" width="8" height="9" rx="1" fill="#d8f6ec"/><path d="M78 46h4l2 4v11" stroke="#343d3a" strokeWidth="2.5" strokeLinecap="round"/>
+        <path d="M68 59h8" stroke="#f8ead4" strokeWidth="2"/>
+        <path d="M14 25H37" stroke="#ffe9d1" strokeWidth="1.5"/>
+      </>}
+      {kind === "cold" && <>
+        <path d="M5 69H91" stroke="#8e887c" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M9 19 17 12H83L92 19V28H9Z" fill={`url(#${id}roof)`} stroke="#91342e" strokeWidth="1.2"/>
+        <path d="M12 21H89" stroke="#fff1d8" strokeWidth="3"/>
+        <path d="M17 28H84V32H17Z" fill={`url(#${id}metal)`}/>
+        <path d="M21 32V68M81 32V68" stroke={`url(#${id}metal)`} strokeWidth="6"/>
+        {[35,58].map((x)=><g key={x}><rect x={x} y="38" width="16" height="29" rx="2" fill="#c83a33" stroke="#812a26" strokeWidth="1.2"/><rect x={x+2.5} y="41" width="11" height="10" rx="1" fill={`url(#${id}glass)`}/><path d={`M${x+16} 45h4l2 5v12q0 3-3 3`} stroke="#343c3a" strokeWidth="2.5" strokeLinecap="round"/><path d={`M${x+4} 59h8`} stroke="#ffe9c9" strokeWidth="2"/></g>)}
+        <path d="M17 14H83" stroke="#ffcab1" strokeWidth="2"/>
+      </>}
+      {kind === "pump" && <>
+        <path d="M20 72H77" stroke="#a39a88" strokeWidth="2" strokeLinecap="round"/>
+        <rect x="27" y="8" width="39" height="62" rx="6" fill={`url(#${id}roof)`} stroke="#812923" strokeWidth="2"/>
+        <rect x="32" y="14" width="29" height="28" rx="3" fill={`url(#${id}metal)`} stroke="#7b8b88" strokeWidth="1.3"/>
+        <rect x="36" y="18" width="21" height="15" rx="1.5" fill={`url(#${id}glass)`}/>
+        <path d="M39 23h15M39 28h11" stroke="#397b78" strokeWidth="2" strokeLinecap="round"/>
+        <rect x="35" y="47" width="23" height="5" rx="2" fill="#f9e7c3"/>
+        <path d="M66 20h6l8 11v26q0 8-9 8h-5" stroke="#303c39" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M32 60h29" stroke="#ffccab" strokeWidth="2"/>
+        <path d="M31 12h31" stroke="#ffd6b9" strokeWidth="2" strokeLinecap="round"/>
+      </>}
+    </g>
+  </svg>;
+}
+
 function FuelStationCardDetails({ chain, station }: { chain: string; station: any }) {
   const price = (v: unknown) => v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v).toFixed(3).replace(".", ",") : "–";
   const compact = chain.includes("Gulf") || chain.includes("Ritoil") || chain === "Muut";
@@ -772,7 +821,7 @@ export default function DesktopPreviewPage() {
         <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 overflow-hidden pb-3 pt-1 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
           <div className="relative max-w-none flex h-full flex-col justify-start self-stretch">
             {fuelSelected ? <div className="relative flex h-0 min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#b38a4a] bg-[#fcf5de] p-4 shadow-[0_5px_0_rgba(105,72,28,.14),inset_0_0_0_2px_rgba(255,255,255,.48)]">
-<div className="grid grid-cols-[1fr_46px_1fr] items-center gap-3"><button type="button" onClick={()=>{setFuelStationSide("traffic");setFuelCompared(false)}} className={`h-[64px] rounded-[17px] border-2 px-3 text-[clamp(15px,1.1vw,19px)] font-black ${(fuelStationSide==="traffic"||fuelStationSide==="both")?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}><span className="inline-flex items-center justify-center gap-2"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-11 w-11 shrink-0" fill="none" strokeLinejoin="round"><path d="M7 27h50v29H7Z" fill="#f0d9ad" stroke="#765237" strokeWidth="3"/><path d="M4 27 13 13h38l9 14Z" fill="#b46b49" stroke="#765237" strokeWidth="3"/><path d="M13 27h38v8H13Z" fill="#faf0d6"/><path d="M16 40h14v16H16Z" fill="#90c0b1" stroke="#765237" strokeWidth="2"/><path d="M36 40h14v11H36Z" fill="#90c0b1" stroke="#765237" strokeWidth="2"/><path d="M10 17h44" stroke="#fff1d4" strokeWidth="2"/><text x="32" y="23" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#fff">XYZ</text></svg><span>Liikenneasemat</span></span></button><div className="flex h-[100px] flex-col items-center justify-between"><span title="Liikenneasemat" className="flex h-7 items-center justify-center text-[23px]">⛽</span><button type="button" aria-label="Asematyypin valinta" aria-pressed={fuelStationSide==="cold"} onClick={()=>{setFuelStationSide(v=>v==="traffic"?"cold":v==="cold"?"both":"traffic");setFuelCompared(false)}} className="relative mx-auto h-[22px] w-[46px] shrink-0 rounded-full bg-[#d8c69d]"><span className={`absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white transition-all ${fuelStationSide==="traffic"?"left-[3px]":fuelStationSide==="both"?"left-[15px]":"left-[27px]"}`}/></button><div className="flex h-7 items-center justify-center"><span className="text-[17px] font-black leading-none">{fuelStationSide==="traffic"?"←":fuelStationSide==="cold"?"→":"↔"}</span></div></div><button type="button" onClick={()=>{setFuelStationSide("cold");setFuelCompared(false)}} className={`h-[58px] rounded-[17px] border-2 px-3 text-[clamp(15px,1.1vw,19px)] font-black ${(fuelStationSide==="cold"||fuelStationSide==="both")?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}><span className="inline-flex w-full flex-nowrap items-center justify-center gap-1 whitespace-nowrap"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-9 w-9 shrink-0" fill="none"><rect x="15" y="12" width="30" height="44" rx="4" fill="#bf302d" stroke="#66231f" strokeWidth="3"/><rect x="20" y="19" width="20" height="16" rx="2" fill="#f9eee0"/><path d="M45 23h5l4 9v17q0 5-5 5" stroke="#262a29" strokeWidth="4" strokeLinecap="round"/><path d="M20 46h20" stroke="#fff" strokeWidth="3"/></svg><span>Kylmäasemat / muut</span></span></button></div>
+<div className="grid grid-cols-[1fr_46px_1fr] items-center gap-3"><button type="button" onClick={()=>{setFuelStationSide("traffic");setFuelCompared(false)}} className={`h-[64px] rounded-[17px] border-2 px-3 text-[clamp(15px,1.1vw,19px)] font-black ${(fuelStationSide==="traffic"||fuelStationSide==="both")?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}><span className="inline-flex items-center justify-center gap-2"><FuelStationTypeIllustration kind="traffic" className="h-11 w-11 shrink-0" /><span>Liikenneasemat</span></span></button><div className="flex h-[100px] flex-col items-center justify-between"><span title="Polttoainemittari" className="flex h-7 items-center justify-center"><FuelStationTypeIllustration kind="pump" className="h-8 w-9" /></span><button type="button" aria-label="Asematyypin valinta" aria-pressed={fuelStationSide==="cold"} onClick={()=>{setFuelStationSide(v=>v==="traffic"?"cold":v==="cold"?"both":"traffic");setFuelCompared(false)}} className="relative mx-auto h-[22px] w-[46px] shrink-0 rounded-full bg-[#d8c69d]"><span className={`absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white transition-all ${fuelStationSide==="traffic"?"left-[3px]":fuelStationSide==="both"?"left-[15px]":"left-[27px]"}`}/></button><div className="flex h-7 items-center justify-center"><span className="text-[17px] font-black leading-none">{fuelStationSide==="traffic"?"←":fuelStationSide==="cold"?"→":"↔"}</span></div></div><button type="button" onClick={()=>{setFuelStationSide("cold");setFuelCompared(false)}} className={`h-[58px] rounded-[17px] border-2 px-3 text-[clamp(15px,1.1vw,19px)] font-black ${(fuelStationSide==="cold"||fuelStationSide==="both")?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}><span className="inline-flex w-full flex-nowrap items-center justify-center gap-1 whitespace-nowrap"><FuelStationTypeIllustration kind="cold" className="h-9 w-9 shrink-0" /><span>Kylmäasemat / muut</span></span></button></div>
 <div className="my-1 text-center text-[14px] font-black uppercase tracking-[.14em] text-[#66543a]">Hakutapa</div>
 <div className="grid grid-cols-[1fr_46px_1fr] gap-3"><button type="button" onClick={()=>{setFuelScope("between");setFuelCompared(false)}} className={`h-[52px] rounded-[17px] border-2 px-3 text-[clamp(14px,1vw,18px)] font-black ${fuelScope==="between"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df]"}`}>Ketjujen väliltä</button><div aria-hidden /><button type="button" onClick={()=>{setFuelScope("within");setFuelCompared(false)}} className={`h-[52px] rounded-[17px] border-2 px-3 text-[clamp(14px,1vw,18px)] font-black ${fuelScope==="within"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df]"}`}>Ketjun sisältä</button></div>
 <div className="mt-4 grid h-0 min-h-0 flex-1 grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-4 overflow-hidden">
