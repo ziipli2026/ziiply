@@ -966,7 +966,7 @@ if(spatialResolved&&spatialResolved.quantity==null&&expected&&Number(spatialReso
 
 // Simulation: recover explicit quantity+unit near the final visual total even when unit-price metadata is unavailable.
 if(spatialResolved&&spatialResolved.quantity==null&&Number(spatialResolved.value)>=1){
- const cardGroups=spatialGroups(wordBoxes.filter(b=>anchor&&boxDistance(anchor,b)<.18)).map(g=>String(g.text||""));
+ const cardGroups=spatialGroups(productBlock).map(g=>String(g.text||""));
  const cardText=cardGroups.join(" ");
  const qu=cardGroups.map(t=>[...t.matchAll(/(?:^|\s)([2-5])\s+(RS|PS|PL|TLK|PKT|PRK|KPL)(?=\s|$)/ig)]).flat().map(m=>({quantity:Number(m[1]),unit:String(m[2]).toUpperCase()}))[0]||(()=>{const m=cardText.match(/Ilman\s+Plussa-korttia[^|]{0,45}?\b([2-5])(?:\s+\d)?\s+\d{1,2}\s*\d{2}\/(RS|PS|PL|TLK|PKT|PRK|KPL)\b/i);return m?{quantity:Number(m[1]),unit:String(m[2]).toUpperCase()}:null;})();
  if(qu&&(!expected||Math.abs(Number(spatialResolved.value)/qu.quantity-Number(expected))<=Math.max(.08,Number(spatialResolved.value)/qu.quantity*.08)))spatialResolved={...spatialResolved,quantity:qu.quantity,unit:qu.unit,source:"final-card-explicit-multibuy",sanity:"pass",confidence:"high",auditRatio:expected?1:null};
