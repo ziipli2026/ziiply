@@ -161,6 +161,17 @@ function resolveCards(rows,rawBoxes){
    const suffixCount=card.row.nearby.map(t=>t.match(/(?:^|\s)(\d{2})\/(rl|kpl)\b/i)).find(Boolean);
    if(!perCount&&suffixCount&&count&&suffixCount[2].toLowerCase()===count[2].toLowerCase())arithmetic=Math.abs(Number(suffixCount[1])/100*Number(count[1])*q-price.value)<=Number(count[1])*q*.005+.01;
    const smallExplicit=price.anchor.height>=.02&&price.anchor.height<.045&&price.parts.length===2&&Math.abs(price.anchor.left-card.anchor.left)<.015&&price.anchor.top>card.anchor.top&&price.anchor.top-card.anchor.top<.06;
+   // Publisher-owned large price with an explicitly printed multi-buy
+   // quantity may be accepted when the title and price occupy the same
+   // narrow column and the price sits immediately beneath the title.
+   // Do not accept a nearby unrelated large glyph on proximity alone.
+   const ownLargeMulti=price.quantity>=2&&price.quantity<=5&&
+     price.anchor.height>=.045&&
+     Math.abs(price.anchor.left-card.anchor.left)<.025&&
+     price.anchor.top>=card.anchor.top-.005&&
+     price.anchor.top-card.anchor.top<.12&&
+     !((card.row.normal?.unit||'')&&price.unit&&
+       String(card.row.normal.unit).toUpperCase()!==String(price.unit).toUpperCase());
    const independentMulti=!pk&&price.quantity>=2&&price.quantity<=5&&Math.abs(price.anchor.left-card.anchor.left)<.025&&price.anchor.top>card.anchor.top&&price.anchor.top-card.anchor.top<.12;
    const weightPrice=price.unit==='KG'&&Math.abs(price.anchor.left-card.anchor.left)<.02&&Math.abs(price.anchor.top-card.anchor.top)<.09;
    const same=previous.resolved&&Math.abs(previous.resolved.value-price.value)<.011&&(previous.resolved.quantity||1)===(price.quantity||1);
@@ -169,7 +180,7 @@ function resolveCards(rows,rawBoxes){
    const preserveExactUnit=q===oldQ&&previous.resolved&&oldUnitProof&&Math.abs(pk.min*rate.max*oldQ-previous.resolved.value)<.004&&Math.abs(pk.max*rate.min*oldQ-previous.resolved.value)<.004&&Math.abs(price.value-previous.resolved.value)>.011;
    const preserveMulti=oldQ>1&&q===1&&oldUnitProof;
    const preserveCents=previous.resolved&&q===oldQ&&Math.abs(previous.resolved.value-price.value)<.08&&price.parts.length===1&&price.parts[0].text.length<3;
-   if(preserveExactUnit||preserveMulti||preserveCents||(!arithmetic&&!smallExplicit&&!independentMulti&&!weightPrice&&!same)){
+   if(preserveExactUnit||preserveMulti||preserveCents||(!arithmetic&&!smallExplicit&&!independentMulti&&!ownLargeMulti&&!weightPrice&&!same)){
     // Fail closed on a major conflict between a publisher-owned large price
     // glyph and an earlier weakly assigned price. Keeping the weak price
     // would silently publish a neighbouring product's offer (41LV WC paper).
