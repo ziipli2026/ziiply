@@ -476,3 +476,24 @@ test("changing selected store invalidates old verified cart price", async () => 
   assert.equal(changed.__priceVerified, false);
   assert.equal(changed.__needsPriceRefresh, true);
 });
+
+test("desktop comparison cache signature includes store identity, quantity and product identity", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  const start = page.indexOf("const desktopCompareSignature=JSON.stringify(");
+  const end = page.indexOf("const [desktopCompareResolvedSignature", start);
+  assert.ok(start >= 0 && end > start);
+  const signature = page.slice(start, end);
+  assert.match(signature, /store\?\.id\?\?store\?\.externalId/);
+  assert.match(signature, /desktopCartIdentity\(item\)/);
+  assert.match(signature, /Number\(item\.quantity\|\|1\)/);
+  assert.match(signature, /item\.ean/);
+  assert.match(signature, /\.sort\(/);
+});
+
+test("desktop comparison cache rejects expired and old-version entries", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /JSON\.parse\(key\)\?\.version===2/);
+  assert.match(page, /entry\.expiresAt>Date\.now\(\)/);
+  assert.match(page, /cached\.expiresAt>Date\.now\(\)/);
+  assert.match(page, /desktopCompareResolvedSignature===desktopCompareSignature/);
+});
