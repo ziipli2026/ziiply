@@ -263,3 +263,17 @@ test("known numeric S/K store IDs still reach their respective API routes", asyn
     globalThis.fetch = originalFetch;
   }
 });
+
+test("nested direct product price honors nested selected-store identity", () => {
+  const [wrong] = normalizeDesktopNormalResults([{
+    store: { id: "other" }, price: 1.11
+  }], "S", store);
+  assert.equal(wrong.__priceVerified, false);
+  assert.equal(wrong.__price, 0);
+
+  const [right] = normalizeDesktopNormalResults([{
+    store: { id: "123" }, price: 2.22
+  }], "K", store);
+  assert.equal(right.__priceVerified, true);
+  assert.equal(right.__price, 2.22);
+});
