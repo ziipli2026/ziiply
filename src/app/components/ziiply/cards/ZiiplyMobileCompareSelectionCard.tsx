@@ -51,6 +51,7 @@ export type ZiiplyCompareSelectionItem = {
 export type ZiiplyMobileCompareSelectionCardProps = {
   open?: boolean;
   embedded?: boolean;
+  compact?: boolean;
   store: ZiiplyCompareSelectionStore;
   items?: unknown[];
   isBest?: boolean;
@@ -189,6 +190,7 @@ function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
 export default function ZiiplyMobileCompareSelectionCard({
   open = true,
   embedded = false,
+  compact = false,
   store,
   items = [],
   isBest = false,
@@ -223,7 +225,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                     key={String(item.id ?? item.product?.id ?? index)}
                     className="border-b border-[#d4bd86]/72"
                   >
-                    <div className="grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5">
+                    <div className={compact ? "grid min-h-[3.4rem] grid-cols-[minmax(0,1fr)_4.25rem] items-center border-b border-[#d4bd86]/72 px-1.5 py-1" : "grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5"}>
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
                         {image ? (
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.55rem] border border-[#b99d5c] bg-[#fff8e5]">
@@ -257,7 +259,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                     </div>
 
                     {onChangeMatchMode ? (
-                      <div className="grid grid-cols-3 gap-1.5 px-3 py-2">
+                      <div className={compact ? "grid grid-cols-3 gap-1 px-1 py-1.5" : "grid grid-cols-3 gap-1.5 px-3 py-2"}>
                         {QUALITY_MODES.map(({ mode, label }) => {
                           const active = currentMode === mode;
 
@@ -290,7 +292,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             >
                               <div className="text-[0.57rem] font-black uppercase leading-[1.08] tracking-[0.025em]">
                                 {active ? "✓ " : ""}
-                                {mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : mode === "same_brand" ? getProductBrandExample(item) : label}
+                                {compact && mode === "own_brands" ? "Oma merkki" : mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : compact && mode === "same_brand" ? "Sama merkki" : mode === "same_brand" ? getProductBrandExample(item) : label}
                               </div>
                             </button>
                           );
