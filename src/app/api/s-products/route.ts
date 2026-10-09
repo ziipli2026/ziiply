@@ -51,7 +51,7 @@ function resolveSStoreId(store: string) {
 
   if (store === "prisma-hyvinkaa") return 292;
 
-  return 292;
+  return null;
 }
 
 export async function GET(request: Request) {
@@ -61,6 +61,18 @@ export async function GET(request: Request) {
   const store = searchParams.get("store") || "292";
   const storeName = (searchParams.get("storeName") || "").trim();
   const storeId = resolveSStoreId(store);
+  if (storeId === null) {
+    if (search.trim() && storeName && /^(prisma|s[ -]?market)/i.test(storeName)) {
+      try {
+        const items = await fetchSKaupatNormalProductsV220(search, storeName);
+        return NextResponse.json({ store, storeName, source: "s-kaupat-normal-v220", items });
+      } catch (error) {
+        return NextResponse.json({ error: String(error), store }, { status: 502 });
+      }
+    }
+    return NextResponse.json({ error: "Unknown S store identifier", store }, { status: 400 });
+  }
+
 
   if (search.length > 120 || store.length > 32 || storeName.length > 120) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
