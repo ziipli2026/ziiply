@@ -1174,24 +1174,32 @@ if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
   const derived=Number((pk.min*Number(printed||0)).toFixed(2));
   if(printed&&unit&&Math.abs(derived-expected)<.03&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate")) spatialResolved={value:derived,quantity:null,unit:String(unit.text).toUpperCase(),kind:"own-unitprice-package-derived",source:"own-unitprice-package-derived",sanity:"pass"};
 }
-// Generic final authority pass: reconstruct the large printed card price after every
-// earlier resolver has run, so text-fragment candidates cannot overwrite it.
+// Generic final authority pass: bind the large sale-price glyph to the product's
+// own promotion card. The price can sit farther right than the product-name anchor;
+// exclude the smaller "2 KPL" badge and orange discount-percentage badge.
 if(anchor){
   const ax=Number(anchor.left)||0, ay=Number(anchor.top)||0;
-  const compact=wordBoxes.filter(b=>{const t=String(b.text).trim(),x=Number(b.left)||0,y=Number(b.top)||0;return t.length===3&&Number.isInteger(Number(t))&&Number(b.height||0)>=.09&&x>ax-.04&&x<ax+.20&&y>ay&&y<ay+.16;})
-    .map(b=>({v:Number(String(b.text).trim()[0]+"."+String(b.text).trim().slice(1)),d:boxDistance(anchor,b)})).filter(x=>x.v>=.5&&x.v<20).sort((a,b)=>a.d-b.d)[0];
-  const whole=wordBoxes.filter(b=>{const t=String(b.text).trim(),x=Number(b.left)||0,y=Number(b.top)||0;return t.length===1&&Number.isInteger(Number(t))&&Number(b.height||0)>=.09&&x>ax-.04&&x<ax+.20&&y>ay&&y<ay+.16;}).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
-  let split=null;
-  if(whole){
-    const cents=wordBoxes.filter(b=>{const t=String(b.text).trim(),x=Number(b.left)||0,y=Number(b.top)||0;return t.length===2&&Number.isInteger(Number(t))&&Number(b.height||0)>=.05&&x>Number(whole.left)&&x<Number(whole.left)+.14&&Math.abs(y-Number(whole.top))<.05;}).sort((a,b)=>boxDistance(whole,a)-boxDistance(whole,b))[0];
-    if(cents){const v=Number(String(whole.text).trim()+"."+String(cents.text).trim());if(v>=.5&&v<20)split={v,d:Math.max(boxDistance(anchor,whole),boxDistance(anchor,cents))};}
-  }
-  const direct=[compact,split].filter(Boolean).sort((a,b)=>a.d-b.d)[0];
+  const inCard=(b)=>{
+    const t=String(b.text||"").trim(),x=Number(b.left)||0,y=Number(b.top)||0,h=Number(b.height)||0;
+    if(!/^\\d{1,2}[-.]?$/.test(t)||h<.065||x<ax+.08||x>ax+.55||y<ay-.02||y>ay+.22)return false;
+    const nearLabel=wordBoxes.some(z=>/^(KPL|PKT|PRK|PL)$/i.test(String(z.text||"").trim())&&Math.abs((Number(z.top)||0)-y)<.045&&Math.abs((Number(z.left)||0)-x)<.11);
+    const nearDiscount=wordBoxes.some(z=>/^(PLUSSA-ETU|%|30%|31%|28%|23%)$/i.test(String(z.text||"").trim())&&Math.abs((Number(z.top)||0)-y)<.055&&Math.abs((Number(z.left)||0)-x)<.10);
+    return !nearLabel&&!nearDiscount;
+  };
+  const badgeCandidates=wordBoxes.filter(inCard).map(b=>{
+    const raw=String(b.text||"").trim().replace(/[-.]$/,"");
+    const value=Number(raw);
+    return {value,b,area:Number(b.height||0),distance:boxDistance(anchor,b)};
+  }).filter(x=>Number.isFinite(x.value)&&x.value>=1&&x.value<30)
+    .sort((a,b)=>b.area-a.area||a.distance-b.distance);
+  const best=badgeCandidates[0];
+  const second=badgeCandidates[1];
+  const unambiguous=best&&(!second||best.area>=second.area*1.25||Math.abs(best.value-second.value)<.005);
   const cur=Number(spatialResolved?.value);
   const badFragment=Number.isFinite(cur)&&cur>=20;
-  const badMulti=Number(spatialResolved?.quantity||0)>=2&&direct&&Math.abs(cur-direct.v)>Math.max(2,direct.v*.8);
-  if(direct&&(badFragment||badMulti)&&direct.d<.16){
-    spatialResolved={value:direct.v,quantity:null,unit:null,source:"final-card-large-price-correction",sanity:"pass"};
+  const badMulti=Number(spatialResolved?.quantity||0)>=2&&best&&Math.abs(cur-best.value)>Math.max(2,best.value*.8);
+  if(unambiguous&&best.area>=.085&&(badFragment||badMulti||!spatialResolved)){
+    spatialResolved={value:best.value,quantity:null,unit:null,source:"final-card-large-sale-glyph",sanity:"pass",confidence:"medium"};
   }
 }
 // Safe arithmetic recovery when the leaflet prints a fixed package size and unit rate but no normal price.
