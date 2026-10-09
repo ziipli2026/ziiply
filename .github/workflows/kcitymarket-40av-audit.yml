@@ -8,6 +8,8 @@ on:
       - "scripts/citymarket/leaflet-regression-publications.json"
       - "tests/fixtures/citymarket/**"
       - "tests/kcitymarket-category-regression.test.cjs"
+      - "tests/kcitymarket-multibuy-display.test.cjs"
+      - "src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
       - "src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts"
@@ -25,6 +27,8 @@ jobs:
         run: node --test tests/k-offer-tab-policy.test.cjs
       - name: Run Citymarket category regression
         run: node --test tests/kcitymarket-category-regression.test.cjs
+      - name: Run Citymarket multibuy display regression
+        run: node --test tests/kcitymarket-multibuy-display.test.cjs
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
