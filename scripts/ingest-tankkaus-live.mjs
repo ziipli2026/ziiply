@@ -7,14 +7,18 @@ if (process.env.TANKKAUS_INGEST_WRITE_CONFIRM !== "YES_TEST_BRANCH") throw new E
 if (process.env.TANKKAUS_PROVIDER_SCHEMA_VERIFIED !== "YES") throw new Error("Live provider schema is not verified");
 const token = process.env.TANKKAUS_API_TOKEN?.trim();
 if (!token) throw new Error("TANKKAUS_API_TOKEN is missing");
-if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is missing");
-const { neon } = await import("@neondatabase/serverless");
-const sql = neon(process.env.DATABASE_URL);
-const expectedBranch = "br-weathered-meadow-b1bwpzst";
-const branchRows = await sql`SELECT current_setting('neon.branch_id', true) AS branch_id`;
-if (branchRows[0]?.branch_id !== expectedBranch) throw new Error("Refusing live ingestion: database is not the approved Neon test branch");
-const schema = await sql`SELECT to_regclass('public.ziiply_fuel_stations') IS NOT NULL AS stations_ready, to_regclass('public.ziiply_fuel_price_observations') IS NOT NULL AS observations_ready`;
-if (schema[0]?.stations_ready !== true || schema[0]?.observations_ready !== true) throw new Error("Tankkaus tables are missing");
+const dryRun = process.env.TANKKAUS_DRY_RUN === "true";
+let sql;
+if (!dryRun) {
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is missing");
+  const { neon } = await import("@neondatabase/serverless");
+  sql = neon(process.env.DATABASE_URL);
+  const expectedBranch = "br-weathered-meadow-b1bwpzst";
+  const branchRows = await sql`SELECT current_setting('neon.branch_id', true) AS branch_id`;
+  if (branchRows[0]?.branch_id !== expectedBranch) throw new Error("Refusing live ingestion: database is not the approved Neon test branch");
+  const schema = await sql`SELECT to_regclass('public.ziiply_fuel_stations') IS NOT NULL AS stations_ready, to_regclass('public.ziiply_fuel_price_observations') IS NOT NULL AS observations_ready`;
+  if (schema[0]?.stations_ready !== true || schema[0]?.observations_ready !== true) throw new Error("Tankkaus tables are missing");
+}
 
 // Optional bounded area selection. One area per run; the workflow may later
 // invoke several explicit areas sequentially with a delay between calls.
@@ -86,7 +90,7 @@ const freshnessWarnings=fuelConfigs.filter(([fuel])=>acceptedByFuel[fuel]>0 && f
 if(freshnessWarnings.length) console.warn("Tankkaus: no observations newer than 24h for "+freshnessWarnings.join(", "));
 if (!unique.length) throw new Error(`No valid live price observations: ${JSON.stringify(diagnostics)}`);
 const report={stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],area,center:{lat,lon},radiusKm:10,acceptedByFuel,fresh24hByFuel,newestObservedAtByFuel,freshnessWarnings,diagnostics};
-if (process.env.TANKKAUS_DRY_RUN === "true") {
+if (dryRun) {
   console.log(JSON.stringify({ok:true,mode:"live-test-branch-dry-run",...report}));
   process.exit(0);
 }
