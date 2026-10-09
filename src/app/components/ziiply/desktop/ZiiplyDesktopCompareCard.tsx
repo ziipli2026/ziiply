@@ -77,7 +77,7 @@ export default function ZiiplyDesktopCompareCard({
                   </div>
                   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
                     {isOpen ? (
-                      <ZiiplyMobileCompareSelectionCard key={store.id} open embedded store={{...store,matches:rows}} items={items} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
+                      <ZiiplyMobileCompareSelectionCard key={store.id} open embedded compact store={{...store,matches:rows}} items={items} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
                     ) : (
                       <div className="divide-y divide-[#c9ad76]/55">
                         {rows.map((row,i)=>{
