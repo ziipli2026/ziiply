@@ -185,7 +185,7 @@ function resolveCards(rows,rawBoxes){
     // glyph and an earlier weakly assigned price. Keeping the weak price
     // would silently publish a neighbouring product's offer (41LV WC paper).
     // Do not guess the rejected price either: independent proof is required.
-    const nearbyOfferContext=[...(previous.nearby||[]),...(card.row.nearby||[])].join(' ').replace(/\\s+/g,' ').toUpperCase();
+    const nearbyOfferContext=[...(previous.nearby||[]),...(card.row.nearby||[])].join(' ').replace(/\s+/g,' ').toUpperCase();
     // Explicit publisher bundle labels ("YHTEISHINTAAN / SETTI",
     // "2 SÄKKIÄ") establish a multi-product/multi-pack offer even when
     // the large price glyph is not directly above the first product title.
