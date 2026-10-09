@@ -190,8 +190,8 @@ function resolveCards(rows,rawBoxes){
     // "2 SÄKKIÄ") establish a multi-product/multi-pack offer even when
     // the large price glyph is not directly above the first product title.
     // Keep the price but mark the offer semantics for downstream display.
-    const explicitBundleContext=/YHTEIS[\\s-]*HINTAAN/.test(nearbyOfferContext)&&/\\bSETTI\\b/.test(nearbyOfferContext);
-    const explicitTwoBagContext=/\\b2\\s*SÄKKIÄ\\b/.test(nearbyOfferContext);
+    const explicitBundleContext=/YHTEIS[\s-]*HINTAAN/.test(nearbyOfferContext)&&/\bSETTI\b/.test(nearbyOfferContext);
+    const explicitTwoBagContext=/\b2\s*SÄKKIÄ\b/.test(nearbyOfferContext);
     const titleAnchor=card.anchor;
     const priceAnchor=price.anchor;
     const twoBagSameColumn=explicitTwoBagContext&&titleAnchor&&priceAnchor&&
