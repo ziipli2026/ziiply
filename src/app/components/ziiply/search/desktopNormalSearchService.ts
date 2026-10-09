@@ -68,19 +68,19 @@ export function normalizeDesktopNormalResults(
     const selectedStoreId = String(store.id ?? store.externalId ?? "").trim();
     const storeRows = Array.isArray(item?.storeItems) ? item.storeItems : [];
     const matchingStoreRows = storeRows.filter((row: any) =>
-      String(row?.externalId ?? row?.storeId ?? row?.store?.externalId ?? row?.store?.id ?? "").trim() === selectedStoreId
+      String(row?.storeId ?? row?.store?.id ?? row?.externalId ?? row?.store?.externalId ?? "").trim() === selectedStoreId
     );
     // Do not borrow another store's price from an unscoped multi-store array.
     const storeRow = matchingStoreRows[0] ?? (storeRows.length === 1 &&
-      !String(storeRows[0]?.externalId ?? storeRows[0]?.storeId ?? storeRows[0]?.store?.externalId ?? storeRows[0]?.store?.id ?? "").trim()
+      !String(storeRows[0]?.storeId ?? storeRows[0]?.store?.id ?? storeRows[0]?.externalId ?? storeRows[0]?.store?.externalId ?? "").trim()
       ? storeRows[0] : undefined);
     const singleStoreRow = item?.storeItem;
-    const singleStoreRowId = String(singleStoreRow?.externalId ?? singleStoreRow?.storeId ??
-      singleStoreRow?.store?.externalId ?? singleStoreRow?.store?.id ?? "").trim();
+    const singleStoreRowId = String(singleStoreRow?.storeId ?? singleStoreRow?.store?.id ??
+      singleStoreRow?.externalId ?? singleStoreRow?.store?.externalId ?? "").trim();
     const scopedSinglePrice = !singleStoreRowId || singleStoreRowId === selectedStoreId
       ? singleStoreRow?.price : undefined;
-    const productStoreId = String(item?.externalId ?? item?.storeId ?? item?.store?.externalId ??
-      item?.store?.id ?? "").trim();
+    const productStoreId = String(item?.storeId ?? item?.store?.id ?? item?.externalId ??
+      item?.store?.externalId ?? "").trim();
     const directPrice = !productStoreId || productStoreId === selectedStoreId ? item?.price : undefined;
     const hasMultipleStoreRows = storeRows.length > 1;
     const candidate = storeRow?.price ??
