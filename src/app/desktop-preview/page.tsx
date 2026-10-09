@@ -155,21 +155,22 @@ export default function DesktopPreviewPage() {
   const [desktopCompareLoading,setDesktopCompareLoading]=useState(false);
   const desktopCompareSignature=JSON.stringify({
     stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.externalId??store?.id??"")]),
-    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??""])
+    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??"",item.title??item.name??item.productName??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true])
   });
   const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
-  const desktopCompareCacheRef=useRef<Record<string,Record<string,Record<string,number>>>>({});
+  const desktopCompareCacheRef=useRef<Record<string,{matches:Record<string,Record<string,number>>;expiresAt:number}>>({});
   useEffect(()=>{
     if(!desktopCompareNotice)return;
     let cancelled=false;
     const signature=desktopCompareSignature;
     const cached=desktopCompareCacheRef.current[signature];
-    if(cached){setDesktopCompareMatches(cached);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);return;}
+    if(cached&&cached.expiresAt>Date.now()){setDesktopCompareMatches(cached.matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);return;}
     setDesktopCompareLoading(true);
     setDesktopCompareMatches({});
     setDesktopCompareResolvedSignature("");
     void (async()=>{
       const matches:Record<string,Record<string,number>>={};
+      let searchFailed=false;
       const eligible=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true);
       for(const store of Object.values(selectedStores) as any[]){
         if(cancelled)return;
@@ -190,10 +191,10 @@ export default function DesktopPreviewPage() {
             const price=Number(normalized?.__price);
             if(normalized?.__priceVerified&&Number.isFinite(price)&&price>0)
               matches[key][desktopCartIdentity(item)]=price;
-          }catch{}
+          }catch{searchFailed=true;}
         }
       }
-      if(!cancelled){desktopCompareCacheRef.current[signature]=matches;setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
+      if(!cancelled){if(!searchFailed)desktopCompareCacheRef.current[signature]={matches,expiresAt:Date.now()+5*60*1000};setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
     })();
     return()=>{cancelled=true};
   // Only rerun when basket/store identity changes or the comparison is reopened.
