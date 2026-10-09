@@ -82,9 +82,16 @@ export function normalizeDesktopNormalResults(
     const productStoreId = String(item?.storeId ?? item?.store?.id ?? item?.externalId ??
       item?.store?.externalId ?? "").trim();
     const directPrice = !productStoreId || productStoreId === selectedStoreId ? item?.price : undefined;
-    const hasMultipleStoreRows = storeRows.length > 1;
+    // An explicitly scoped row for another store invalidates any generic price.
+    // The same applies to a mismatched singular storeItem.
+    const unmatchedStoreRows = storeRows.some((row: any) => {
+      const rowId = String(row?.storeId ?? row?.store?.id ?? row?.externalId ?? row?.store?.externalId ?? "").trim();
+      return rowId && rowId !== selectedStoreId;
+    });
+    const unmatchedSingleRow = Boolean(singleStoreRowId && singleStoreRowId !== selectedStoreId);
     const candidate = storeRow?.price ??
-      (hasMultipleStoreRows ? undefined : directPrice ?? scopedSinglePrice);
+      (storeRows.length > 1 || unmatchedStoreRows || unmatchedSingleRow
+        ? undefined : directPrice ?? scopedSinglePrice);
     const numeric = typeof candidate === "number" ? candidate :
       Number(String(candidate ?? "").replace(",", "."));
     const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
