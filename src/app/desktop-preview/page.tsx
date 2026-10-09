@@ -576,27 +576,36 @@ export default function DesktopPreviewPage() {
   function useGps() {
     if (!navigator.geolocation) {
       setLocationStatus("Sijaintia ei tueta tällä laitteella");
+      setGpsToast("GPS ei käytettävissä");
       return;
     }
     setLocationStatus("Haetaan sijaintia…");
     setGpsToast("GPS käynnistyy…");
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setGpsOn(true);
-        setUserLocationAction(true);
-        setLocationResolved(true);
-        setGpsCoords({latitude:coords.latitude,longitude:coords.longitude});
-        setGpsToast("GPS päällä"); window.setTimeout(()=>setGpsToast(""),1800);
-        setAppliedLocation(`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
-        setLocationStatus("GPS-sijainti käytössä");
-        loadIndependentStores("", {latitude:coords.latitude,longitude:coords.longitude});
-        fetch(`/api/store-search?gps=1&lat=${coords.latitude}&lon=${coords.longitude}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items) }).catch(()=>setStores([]));
-      },
-      (error) => { setGpsOn(false); setLocationStatus(error.code===1?"Sijaintilupa estetty selaimessa – salli sijainti tai hae paikkakunnalla.":error.code===3?"GPS aikakatkaistiin – kokeile uudelleen tai hae paikkakunnalla.":"Sijainnin haku epäonnistui – hae paikkakunnalla.");setGpsToast("GPS ei käytettävissä");loadIndependentStores("");fetch("/api/store-search?search=",{cache:"no-store"}).then(r=>r.json()).then(d=>setStores(Array.isArray(d?.items)?d.items:[])).catch(()=>setStores([])); },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-    );
+    const onSuccess = ({coords}:GeolocationPosition) => {
+      setGpsOn(true);
+      setUserLocationAction(true);
+      setLocationResolved(true);
+      setGpsCoords({latitude:coords.latitude,longitude:coords.longitude});
+      setGpsToast("GPS päällä");
+      window.setTimeout(()=>setGpsToast(""),1800);
+      setAppliedLocation(`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
+      setLocationStatus("GPS-sijainti käytössä");
+      loadIndependentStores("", {latitude:coords.latitude,longitude:coords.longitude});
+      fetch(`/api/store-search?gps=1&lat=${coords.latitude}&lon=${coords.longitude}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{
+        const items=Array.isArray(d?.items)?d.items:[];
+        if(items.length)setStores(items);
+      }).catch(()=>undefined);
+    };
+    const onError = (error:GeolocationPositionError) => {
+      setGpsOn(false);
+      const detail=error.code===1?"Selaimen sijaintilupa estetty.":error.code===3?"Sijainnin haku aikakatkaistiin.":"Sijaintia ei saatu laitteelta.";
+      setLocationStatus(detail+" Voit yrittää GPS-painikkeesta uudelleen.");
+      setGpsToast("GPS ei käytettävissä");
+    };
+    // Desktop browsers often fail a high-accuracy GPS request even when location is permitted.
+    // Start with network/Wi-Fi positioning, and keep the button available for retries.
+    navigator.geolocation.getCurrentPosition(onSuccess,onError,{enableHighAccuracy:false,timeout:20000,maximumAge:300000});
   }
-
 
   // Load store directories even if browser geolocation is denied.
   useEffect(()=>{loadIndependentStores("");fetch("/api/store-search?search=",{cache:"no-store"}).then(r=>r.json()).then(d=>setStores(current=>current.length?current:(Array.isArray(d?.items)?d.items:[]))).catch(()=>undefined)},[]);
