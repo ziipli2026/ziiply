@@ -49,24 +49,27 @@ if (!stations.size) throw new Error("No stations within 10 km");
 const fuelConfigs = [["95","fills95"],["98","fills98"],["diesel","fillsDiesel"]];
 const now=Date.now();
 const observations=[];
+const diagnostics={providerRows:{},rejected:{stationNotNearby:0,invalidPrice:0,invalidTimestamp:0,staleTimestamp:0}};
 // Fetch the common home payload once; all three fuel arrays belong to one snapshot.
 const fillsPayload = await get(`/fills/home/${lat}/${lon}`);
 for (const [fuel,key] of fuelConfigs) {
   const rows=fillsPayload?.[key];
   if (!Array.isArray(rows)||rows.length>10000) throw new Error(`Missing or oversized ${key}`);
+  diagnostics.providerRows[fuel]=rows.length;
   for (const item of rows) {
     const id=Number(item?.station_id ?? item?.station?.id), price=Number(String(item?.price_liter??"").replace(",","."));
     const observedAt=item?.created;
-    if (!stations.has(id)||!Number.isFinite(price)||price<=0||price>5||typeof observedAt!=="string") continue;
-    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(observedAt)) continue;
+    if (!stations.has(id)) { diagnostics.rejected.stationNotNearby++; continue; }
+    if (!Number.isFinite(price)||price<=0||price>5) { diagnostics.rejected.invalidPrice++; continue; }
+    if (typeof observedAt!=="string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(observedAt)) { diagnostics.rejected.invalidTimestamp++; continue; }
     const t=Date.parse(observedAt);
-    if (!Number.isFinite(t)||t>now||now-t>5*86400000) continue;
+    if (!Number.isFinite(t)||t>now||now-t>5*86400000) { diagnostics.rejected.staleTimestamp++; continue; }
     observations.push({stationId:id,fuel,price,observedAt});
   }
 }
 // Canonical event identity; latest per station/fuel is what the app cache consumes.
 const unique=[...new Map(observations.map(o=>[`${o.stationId}:${o.fuel}:${new Date(o.observedAt).toISOString()}:${o.price.toFixed(3)}`,o])).values()];
-if (!unique.length) throw new Error("No valid live price observations");
+if (!unique.length) throw new Error(`No valid live price observations: ${JSON.stringify(diagnostics)}`);
 for (const s of stations.values()) {
   await sql`INSERT INTO ziiply_fuel_stations
     (source,source_station_id,name,chain,address,latitude,longitude,last_seen_at,updated_at)
@@ -81,4 +84,4 @@ for (const o of unique) {
     VALUES ('tankkaus.com',${o.stationId},${o.fuel},${o.price},${o.observedAt}::timestamptz)
     ON CONFLICT (source,source_station_id,fuel_type,observed_at,price_eur_per_litre) DO NOTHING`;
 }
-console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],center:{lat,lon},radiusKm:10}));
+console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],center:{lat,lon},radiusKm:10,diagnostics}));
