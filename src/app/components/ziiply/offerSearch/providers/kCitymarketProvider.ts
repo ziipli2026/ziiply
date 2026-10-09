@@ -118,10 +118,10 @@ export function category(t:string){
   if(/jäätel|tuut|multipack|pakaste|palko\+/.test(s)) return "Pakasteet";
   if(/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastik|sriracha|ketsupp|hiiva|ruokaöljy|mauste|tortilla|pähkinä|cashew|bonbon|aakkoset|fasupalat|salsa/.test(s)) return "Kuivatuotteet";
   if(/omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
-  if(/tekstiilipesur|tuulilasinpesunest|puv|puhdistuspyyhke|konetiskitablet|astianpesutablet|fairy|foliovuo|leivinpaper|tuorekelmu|alumiinifolio|wc-paper|wc-geel|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietik|tahranpoist|huuhteluaine|biojätekassi|jätekassi|roskapussi|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
+  if(/konetiskitablet|astianpesutablet|fairy|foliovuo|leivinpaper|tuorekelmu|alumiinifolio|wc-paper|wc-geel|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietik|tahranpoist|huuhteluaine|biojätekassi|jätekassi|roskapussi|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
   if(/sävytteet|hiusväri|pesulappu|ruokalappu|vuodesuoja|vaippa|shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
   if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
-  if(/neule|t-paita|t-paitoja|trikoopaita|farkkuja|vaatteita|bokserit|tuulilasinpesunest|oneblade|trimmeri|varsi-imuri|hiustenkuivain|valomaski|pilateslauta|leikkisetti|sammutuspeite|öljylyhtykynttilä|mustang savustushake|pentualusta|mammut|topz|libero|calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|aterinsetti|sähkösavustin|muki|lakana|pyyhe|kerä|lanka|asuste/.test(s)) return "Koti & vapaa-aika";
+  if(/tekstiilipesur|tuulilasinpesunest|puhdistuspyyhke|neule|t-paita|t-paitoja|trikoopaita|farkkuja|vaatteita|bokserit|oneblade|trimmeri|varsi-imuri|hiustenkuivain|valomaski|pilateslauta|leikkisetti|sammutuspeite|öljylyhtykynttilä|mustang savustushake|pentualusta|mammut|topz|libero|calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|aterinsetti|sähkösavustin|muki|lakana|pyyhe|kerä|lanka|asuste/.test(s)) return "Koti & vapaa-aika";
   return "Muut";
 }
 function isNoiseLine(line:string){
