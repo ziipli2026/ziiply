@@ -44,6 +44,13 @@ jobs:
             {title:/^WC-PAPERI 6 rl$/i,expected:10},
             {title:/^WC-PAPERI 40 rl$/i,expected:29.90}
           ];
+          const page5Diagnostics=all.filter(r=>r.page===5&&/WC-PAPERI/i.test(String(r.title))).map(r=>({
+            title:r.title,actual:r.spatialResolved,previous:r.debugRejectedCardPrice,
+            selected:r.debugCardPrice,cardAnchor:r.debugCardAnchor,
+            imageAnchor:r.imageAnchor,nearby:r.nearby,unitPrice:r.unitPrice,
+            spatialCandidates:r.spatialCandidates,spatialPriceBoxes:r.spatialPriceBoxes
+          }));
+          fs.writeFileSync(dir+'page5-wc-spatial-diagnostics.json',JSON.stringify(page5Diagnostics,null,2));
           const page5Failures=knownPage5.flatMap(({title,expected})=>{
             const match=all.find(r=>r.page===5&&title.test(String(r.title)));
             const actual=Number(match?.spatialResolved?.value);
