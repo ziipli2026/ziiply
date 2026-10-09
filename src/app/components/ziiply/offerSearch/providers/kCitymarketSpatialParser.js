@@ -97,6 +97,18 @@ function resolveCards(rows,rawBoxes){
   }).filter(o=>o.score<.38).sort((a,b)=>a.score-b.score);
   if(!options.length)continue;
   const winner=options[0];
+  // A price that sits in another title's local column must not be rescued
+  // merely because the global distance score favours a neighbouring card.
+  // Restrict this guard to compact below-title prices: large artwork layouts
+  // use different typography and must retain the existing fallback scoring.
+  const e=price.anchor;
+  const compactBelow=cards.filter(c=>e.top>=c.anchor.top-.012&&e.top<c.anchor.top+.075&&Math.abs(e.left-c.anchor.left)<.04);
+  if(compactBelow.length>1){
+   const ranked=[...compactBelow].sort((a,b)=>Math.abs(e.left-a.anchor.left)+Math.abs(e.top-a.anchor.top)*.5-(Math.abs(e.left-b.anchor.left)+Math.abs(e.top-b.anchor.top)*.5));
+   const margin=(Math.abs(e.left-ranked[1].anchor.left)+Math.abs(e.top-ranked[1].anchor.top)*.5)-(Math.abs(e.left-ranked[0].anchor.left)+Math.abs(e.top-ranked[0].anchor.top)*.5);
+   if(margin<.008)continue;
+   if(winner.card!==ranked[0])continue;
+  }
   if(options[1]&&options[1].score-winner.score<.008&&options[1].card.anchor!==winner.card.anchor)continue;
   const list=owned.get(winner.card)||[];list.push({...price,score:winner.score});owned.set(winner.card,list);
  }
