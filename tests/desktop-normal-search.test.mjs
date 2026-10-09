@@ -515,3 +515,10 @@ test("desktop page sanitizes cached quotes before reuse", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
   assert.match(page, /sanitizeDesktopComparisonMatches\(cached\.matches,selectedKeys,eligibleKeys\)/);
 });
+
+test("desktop comparison validates both cache read and cache write", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /sanitizeDesktopComparisonMatches\(cached\.matches,selectedKeys,eligibleKeys\)/);
+  assert.match(page, /sanitizeDesktopComparisonMatches\(matches,selectedKeys,eligibleKeys\)/);
+  assert.match(page, /if\(validatedMatches\)desktopCompareCacheRef\.current\[signature\]/);
+});
