@@ -14,6 +14,9 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
       - "src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts"
       - "tests/k-offer-tab-policy.test.cjs"
+permissions:
+  contents: read
+
 jobs:
   audit:
     runs-on: ubuntu-latest
@@ -99,6 +102,9 @@ jobs:
           NODE
 
   archive-current:
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
     needs: audit
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -120,15 +126,39 @@ jobs:
           const manifest=JSON.parse(fs.readFileSync(dir+'archive-manifest.json','utf8'));
           const digest=createHash('sha256').update(fs.readFileSync(dir+'leaflet.pdf')).digest('hex');
           if(digest!==manifest.pdfSha256)throw Error('Archive PDF hash mismatch');
-          const fixture=JSON.parse(fs.readFileSync('tests/fixtures/citymarket/41AV.approved.json','utf8'));
+          const current=JSON.parse(fs.readFileSync('scripts/citymarket/leaflet-regression-publications.json','utf8')).current;
+          const fixture=JSON.parse(fs.readFileSync(current.fixture,'utf8'));
           if(fixture.pdfSha256!==digest)throw Error('Archived PDF does not match approved fixture');
           if(fixture.pageCount!==manifest.pageCount)throw Error('Archived PDF page count mismatch');
           console.log('KCM_ARCHIVE_VERIFIED',JSON.stringify({pdfSha256:digest,pages:manifest.pageCount,offers:manifest.offerCount}));
           NODE
+      - name: Commit verified source to permanent archive branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          PUB_ID=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.id")
+          ARCHIVE_BRANCH=archive/citymarket-publications
+          if git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null; then
+            git fetch origin "$ARCHIVE_BRANCH"
+            git worktree add --detach /tmp/kcm-permanent-archive FETCH_HEAD
+          else
+            git worktree add --detach /tmp/kcm-permanent-archive HEAD
+            git -C /tmp/kcm-permanent-archive switch --orphan "$ARCHIVE_BRANCH"
+            git -C /tmp/kcm-permanent-archive rm -rf -q . || true
+          fi
+          mkdir -p "/tmp/kcm-permanent-archive/publications/$PUB_ID"
+          cp -a /tmp/kcm-leaflet-archive/. "/tmp/kcm-permanent-archive/publications/$PUB_ID/"
+          git -C /tmp/kcm-permanent-archive add "publications/$PUB_ID"
+          if ! git -C /tmp/kcm-permanent-archive diff --cached --quiet; then
+            git -C /tmp/kcm-permanent-archive -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Archive verified Citymarket $PUB_ID source"
+            git -C /tmp/kcm-permanent-archive push origin "HEAD:refs/heads/$ARCHIVE_BRANCH"
+          else
+            echo "Permanent archive already contains identical $PUB_ID source"
+          fi
       - name: Upload source archive for future regression recovery
         uses: actions/upload-artifact@v4
         with:
-          name: kcitymarket-41av-source-archive
+          name: kcitymarket-source-archive
           path: /tmp/kcm-leaflet-archive/
           retention-days: 90
           if-no-files-found: error
