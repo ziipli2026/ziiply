@@ -522,3 +522,9 @@ test("desktop comparison validates both cache read and cache write", () => {
   assert.match(page, /sanitizeDesktopComparisonMatches\(matches,selectedKeys,eligibleKeys\)/);
   assert.match(page, /if\(validatedMatches\)desktopCompareCacheRef\.current\[signature\]/);
 });
+
+test("failed desktop comparison search never resolves partial basket prices", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /setDesktopCompareMatches\(searchFailed\?\{\}:matches\)/);
+  assert.match(page, /setDesktopCompareResolvedSignature\(searchFailed\?"":signature\)/);
+});
