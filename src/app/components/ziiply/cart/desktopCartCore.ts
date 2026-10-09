@@ -28,8 +28,10 @@ export function appendDesktopCartItem(
 export function changeDesktopCartItemQuantity(items: DesktopCartItem[], product: Record<string, any>, delta: number) {
   const key = desktopCartIdentity(product);
   const source = product.source;
+  let matched = false;
   return items.flatMap(item => {
-    if (desktopCartIdentity(item) !== key || (source && item.source !== source) || !desktopCartSameStore(item, product)) return [item];
+    if (matched || desktopCartIdentity(item) !== key || (source && item.source !== source) || !desktopCartSameStore(item, product)) return [item];
+    matched = true;
     const quantity = item.quantity + delta;
     return quantity > 0 ? [{ ...item, quantity }] : [];
   });
