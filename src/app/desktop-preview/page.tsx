@@ -544,8 +544,8 @@ export default function DesktopPreviewPage() {
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
                 <span className="min-w-0">
                   <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
-                  <span className={`mt-0.5 block font-black leading-none text-[#102a24] ${title === "AJOAINE" ? "text-[16px]" : "text-[19px]"}`}>{value}</span>
-                  <span className={`mt-1 block truncate font-black ${title === "AJOAINE" ? "text-[16px] leading-none text-[#102a24]" : "text-[9px] text-[#706a58]"}`}>{detail}</span>
+                  <span className={`mt-0.5 block font-black leading-none text-[#102a24] ${title === "AJOAINE" ? "text-[14px] whitespace-nowrap" : "text-[19px]"}`}>{value}</span>
+                  <span className={`mt-1 block truncate font-black ${title === "AJOAINE" ? "text-[14px] leading-none text-[#102a24] !overflow-visible !text-clip whitespace-nowrap" : "text-[9px] text-[#706a58]"}`}>{detail}</span>
                 </span>
               </div>
             ))}
