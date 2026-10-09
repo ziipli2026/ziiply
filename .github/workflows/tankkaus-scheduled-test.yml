@@ -3,8 +3,9 @@ name: Tankkaus scheduled isolated collection
 # Nationwide collection requires provider-approved bulk coverage and a verified tiling plan.
 on:
   schedule:
-    # UTC hourly window covers all Finnish target hours in winter and summer.
-    - cron: '7 3-17 * * *'
+    # Avoid GitHub Actions schedule congestion near the start of each hour.
+    # UTC hourly window covers Finnish target hours in winter and summer.
+    - cron: '17 3-17 * * *'
   workflow_dispatch:
 concurrency:
   group: tankkaus-isolated-test-collection
