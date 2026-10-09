@@ -62,7 +62,16 @@ export function normalizeDesktopNormalResults(
   limit = 8,
 ) {
   return items.slice(0, limit).map((item) => {
-    const candidate = item?.price ?? item?.storeItems?.[0]?.price ?? item?.storeItem?.price;
+    const selectedStoreId = String(store.externalId ?? store.id ?? "").trim();
+    const storeRows = Array.isArray(item?.storeItems) ? item.storeItems : [];
+    const matchingStoreRows = storeRows.filter((row: any) =>
+      String(row?.externalId ?? row?.storeId ?? row?.store?.externalId ?? row?.store?.id ?? "").trim() === selectedStoreId
+    );
+    // Do not borrow another store's price from an unscoped multi-store array.
+    const storeRow = matchingStoreRows[0] ?? (storeRows.length === 1 &&
+      !String(storeRows[0]?.externalId ?? storeRows[0]?.storeId ?? storeRows[0]?.store?.externalId ?? storeRows[0]?.store?.id ?? "").trim()
+      ? storeRows[0] : undefined);
+    const candidate = item?.price ?? storeRow?.price ?? item?.storeItem?.price;
     const numeric = typeof candidate === "number" ? candidate :
       Number(String(candidate ?? "").replace(",", "."));
     const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
