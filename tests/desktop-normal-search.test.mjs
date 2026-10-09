@@ -630,8 +630,8 @@ test("real shared comparison gate rejects 1l versus 500ml and milk versus yoghur
   const gateStart = source.indexOf("export function isComparisonAttributeCompatible(");
   const gateEnd = source.indexOf("export function pickCheapestCompatibleComparisonProduct", gateStart);
   assert.ok(normalizeStart >= 0 && normalizeEnd > normalizeStart && sizeStart >= 0 && sizeEnd > sizeStart && gateStart >= 0 && gateEnd > gateStart);
-  const isolated = source.slice(normalizeStart, normalizeEnd) + "\\n" +
-    source.slice(sizeStart, sizeEnd) + "\\n" +
+  const isolated = source.slice(normalizeStart, normalizeEnd) + "\n" +
+    source.slice(sizeStart, sizeEnd) + "\n" +
     source.slice(gateStart, gateEnd).replace("return !isHardRejectedAlternative(sourceName, candidateName);", "return true;");
   const js = ts.transpileModule(isolated, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
   const { isComparisonAttributeCompatible: compatible } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
