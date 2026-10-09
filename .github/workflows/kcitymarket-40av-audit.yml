@@ -32,6 +32,12 @@ jobs:
         run: node --test tests/kcitymarket-category-regression.test.cjs
       - name: Run Citymarket multibuy display regression
         run: node --test tests/kcitymarket-multibuy-display.test.cjs
+      - name: Verify permanently archived Citymarket sources offline
+        shell: bash
+        run: |
+          git fetch --depth=1 origin archive/citymarket-publications
+          git worktree add --detach /tmp/kcm-frozen FETCH_HEAD
+          node scripts/citymarket/verify-frozen-archive.mjs /tmp/kcm-frozen
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
