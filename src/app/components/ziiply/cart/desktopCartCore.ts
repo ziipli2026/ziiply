@@ -29,6 +29,7 @@ export function appendDesktopCartItem(
 }
 export function changeDesktopCartItemQuantity(items: DesktopCartItem[], product: Record<string, any>, delta: number) {
   const key = desktopCartIdentity(product);
+  if (key === "name:" || !Number.isInteger(delta) || delta === 0) return items;
   const source = product.source;
   let matched = false;
   return items.flatMap(item => {
