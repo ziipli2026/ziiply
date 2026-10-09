@@ -99,7 +99,7 @@ export default function DesktopPreviewPage() {
     const keys=new Set<string>();
     for(const store of Object.values(selectedStores)){
       const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
-      const id=String(store?.externalId??store?.id??"").trim();
+      const id=String(store?.id??store?.externalId??"").trim();
       if(id)keys.add(chain+":"+id);
     }
     setCartItems(current=>{
@@ -108,7 +108,7 @@ export default function DesktopPreviewPage() {
     });
   },[selectedStores,desktopCartHydrated]);
   const currentCartStoreKeys=new Set(Object.values(selectedStores).map(store=>
-    desktopOfferChainFromStoreKind(storeKind(store),store)+":"+String(store?.externalId??store?.id??"")
+    desktopOfferChainFromStoreKind(storeKind(store),store)+":"+String(store?.id??store?.externalId??"")
   ));
   const currentCartStoreKeysRef=useRef(currentCartStoreKeys);
   currentCartStoreKeysRef.current=currentCartStoreKeys;
@@ -129,11 +129,11 @@ export default function DesktopPreviewPage() {
         const chainStores=selected.filter(x=>desktopOfferChainFromStoreKind(storeKind(x),x)===chain);
         const originalStoreId=String(item.__storeId??item.storeId??"").trim();
         const store=originalStoreId
-          ?chainStores.find(x=>String(x.externalId??x.id??"").trim()===originalStoreId)
+          ?chainStores.find(x=>String(x.id??x.externalId??"").trim()===originalStoreId)
           :(chainStores.length===1?chainStores[0]:undefined);
         // Never guess a store price when multiple shops of the same chain are selected.
         if(!store)continue;
-        const storeId=String(store.externalId??store.id??"").trim();
+        const storeId=String(store.id??store.externalId??"").trim();
         if(!storeId)continue;
         try{
           const price=await refreshDesktopCartProductPrice(item,chain,store);
@@ -156,7 +156,7 @@ export default function DesktopPreviewPage() {
   const [desktopCompareLoading,setDesktopCompareLoading]=useState(false);
   const desktopCompareSignature=JSON.stringify({
     version:2,
-    stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.externalId??store?.id??""),String(store?.name??store?.title??"")]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
+    stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.id??store?.externalId??""),String(store?.name??store?.title??"")]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
     items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??item.product?.ean??item.product?.barcode??"",item.title??item.name??item.productName??item.product?.name??item.product?.title??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
   });
   const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
@@ -189,7 +189,7 @@ export default function DesktopPreviewPage() {
       for(const store of Object.values(selectedStores) as any[]){
         if(cancelled)return;
         const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
-        const storeId=String(store?.externalId??store?.id??"").trim();
+        const storeId=String(store?.id??store?.externalId??"").trim();
         if(!storeId||!(chain==="S"||chain==="K"))continue;
         const key=chain+":"+storeId;
         matches[key]={};
@@ -243,7 +243,7 @@ export default function DesktopPreviewPage() {
 
   const desktopCompareResults = rankComparisonResults(Object.values(selectedStores).map((store:any)=>{
     const chain=desktopOfferChainFromStoreKind(storeKind(store),store);
-    const storeId=String(store?.externalId??store?.id??"").trim();
+    const storeId=String(store?.id??store?.externalId??"").trim();
     const comparable=cartItems.filter((item:any)=>item.source==="justiina" && item.ziiplyWeightLabel!==true && item.product?.ziiplyWeightLabel!==true);
     const verified=desktopCompareResolvedSignature===desktopCompareSignature?desktopCompareMatches[chain+":"+storeId]??{}:{};
     const matched=comparable.filter((item:any)=>Number.isFinite(verified[desktopCartIdentity(item)])&&verified[desktopCartIdentity(item)]>0&&Number.isFinite(Number(item.quantity||1))&&Number(item.quantity||1)>0);
@@ -355,7 +355,7 @@ export default function DesktopPreviewPage() {
     for(const store of selected){
       const kind=storeKind(store);
       const chain=desktopOfferChainFromStoreKind(kind,store) as DesktopNormalSearchChain;
-      const id=String(store?.externalId??store?.id??store?.storeKey??"");
+      const id=String(store?.id??store?.externalId??store?.storeKey??"");
       if(!id && chain!=="TOKMANNI" && chain!=="EUROSPAR")continue;
       unique.set(chain+":"+id,{chain,store});
     }
