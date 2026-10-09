@@ -41,7 +41,7 @@ export function changeDesktopCartItemQuantity(items: DesktopCartItem[], product:
 export function restoreDesktopCartWithoutStalePrices(raw: unknown): DesktopCartItem[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter((item): item is Record<string, any> =>
-    Boolean(item) && typeof item === "object" && desktopCartIdentity(item) !== "name:"
+    Boolean(item) && typeof item === "object" && !Array.isArray(item) && desktopCartIdentity(item) !== "name:"
   ).map(item => ({
     ...item,
     source: item.source === "justiina" ? "justiina" as const : "gosta" as const,
