@@ -48,11 +48,14 @@ const distanceKm = (a,b) => {
   return 6371*2*Math.asin(Math.min(1,Math.sqrt(h)));
 };
 const stations = new Map();
+const excludedChains = new Set(["teboil", "teboil express"]);
+let excludedStations = 0;
 for (const v of stationRows) {
   const id=Number(v?.id ?? v?.station_id), latitude=Number(v?.latitude ?? v?.lat), longitude=Number(v?.longitude ?? v?.lon);
   if (!Number.isSafeInteger(id)||id<=0||!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180) continue;
   const s={id,name:String(v?.name??""),chain:v?.chain?.name?String(v.chain.name):(typeof v?.chain==="string"?v.chain:null),address:v?.address?String(v.address):null,latitude,longitude,distanceKm:distanceKm({latitude:lat,longitude:lon},{latitude,longitude})};
   if (!s.name || s.distanceKm>10) continue;
+  if (excludedChains.has((s.chain ?? "").trim().toLowerCase()) || /^teboil(?:\s|$)/i.test(s.name)) { excludedStations++; continue; }
   const prev=stations.get(id);
   if (prev && (prev.latitude!==s.latitude||prev.longitude!==s.longitude)) throw new Error("Conflicting station coordinates");
   stations.set(id,s);
@@ -89,7 +92,7 @@ const newestObservedAtByFuel=Object.fromEntries(fuelConfigs.map(([fuel])=>[fuel,
 const freshnessWarnings=fuelConfigs.filter(([fuel])=>acceptedByFuel[fuel]>0 && fresh24hByFuel[fuel]===0).map(([fuel])=>fuel);
 if(freshnessWarnings.length) console.warn("Tankkaus: no observations newer than 24h for "+freshnessWarnings.join(", "));
 if (!unique.length) throw new Error(`No valid live price observations: ${JSON.stringify(diagnostics)}`);
-const report={stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],area,center:{lat,lon},radiusKm:10,acceptedByFuel,fresh24hByFuel,newestObservedAtByFuel,freshnessWarnings,diagnostics};
+const report={excludedStations,stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],area,center:{lat,lon},radiusKm:10,acceptedByFuel,fresh24hByFuel,newestObservedAtByFuel,freshnessWarnings,diagnostics};
 if (dryRun) {
   console.log(JSON.stringify({ok:true,mode:"live-test-branch-dry-run",...report}));
   process.exit(0);
