@@ -79,7 +79,7 @@ jobs:
             const context=[...(match?.nearby||[]),...(match?.spatialGroups||[]).map(g=>g.text)].join(' ').toUpperCase();
             const semanticProof=kind==='mixed-set'
               ? /TALOUSPAPERI/.test(context)&&/SETTI/.test(context)
-              : /2\\s*SÄKKIÄ/.test(context);
+              : /2\s*SÄKKIÄ/.test(context);
             // A mixed set must not be published as the unit price of its WC component.
             const valid=kind==='mixed-set'
               ? (actual===null&&semanticProof)
