@@ -191,7 +191,7 @@ function resolveCards(rows,rawBoxes){
     // the large price glyph is not directly above the first product title.
     // Keep the price but mark the offer semantics for downstream display.
     const explicitBundleContext=/YHTEIS[\s-]*HINTAAN/.test(nearbyOfferContext)&&/\bSETTI\b/.test(nearbyOfferContext);
-    const explicitTwoBagContext=/\b2\s*SÄKKIÄ\b/.test(nearbyOfferContext);
+    const explicitTwoBagContext=/(?:^|\s)2\s*SÄKKIÄ(?=\s|$)/.test(nearbyOfferContext);
     const titleAnchor=card.anchor;
     const priceAnchor=price.anchor;
     const twoBagSameColumn=explicitTwoBagContext&&titleAnchor&&priceAnchor&&
@@ -240,12 +240,12 @@ function resolveCards(rows,rawBoxes){
    // The 41LV layout places the two-bag label below the product line, while
    // the 29.90 EUR glyph sits above it. Keep this publisher-evidenced total
    // when the row's own price resolver has temporarily nulled the selection.
-   if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/\b2\s*SÄKKIÄ\b/.test(context)){
+   if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/(?:^|\s)2\s*SÄKKIÄ(?=\s|$)/.test(context)){
      const evidenced=[row.spatialResolved,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean)
        .find(c=>Number(c.value)>0);
      if(evidenced) row.spatialResolved={...evidenced,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
    }
-   if(/\b2\s*SÄKKIÄ\b/.test(context)){
+   if(/(?:^|\s)2\s*SÄKKIÄ(?=\s|$)/.test(context)){
      const totalCandidate=(row.spatialCandidates||[]).find(c=>Math.abs(Number(c.value)-29.9)<0.005) || row.debugRejectedCardPrice;
      if(totalCandidate&&Number(totalCandidate.value)>0) row.spatialResolved={...totalCandidate,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
      delete row.debugPriceOwnershipConflict;
@@ -1269,7 +1269,7 @@ resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
 // resolveCards has finished. Its internal return value is not consumed by the caller.
 for(const row of out.rows.filter(r=>r.page===p)){
  const context=[...(row.nearby||[]),...(row.spatialGroups||[]).map(g=>g.text||'')].join(' ').replace(/\s+/g,' ').toUpperCase();
- if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/\b2\s*SÄKKIÄ\b/.test(context)){
+ if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/(?:^|\s)2\s*SÄKKIÄ(?=\s|$)/.test(context)){
    const evidenced=[row.spatialResolved,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean)
      .find(c=>Number(c.value)>0&&Math.abs(Number(c.value)-29.9)<0.005);
    if(evidenced)row.spatialResolved={...evidenced,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
