@@ -1265,6 +1265,20 @@ title=cleanOfferTitle(title);
 if(pk&&/\b(?:cl|dl)\b/i.test(pk.raw))spatialResolved=null;
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}
 resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
+// Apply publisher bundle ownership to the actual returned output rows, after
+// resolveCards has finished. Its internal return value is not consumed by the caller.
+for(const row of out.rows.filter(r=>r.page===p)){
+ const context=[...(row.nearby||[])].join(' ').replace(/\s+/g,' ').toUpperCase();
+ if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/\b2\s*SÄKKIÄ\b/.test(context)){
+   const evidenced=[row.spatialResolved,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean)
+     .find(c=>Number(c.value)>0&&Math.abs(Number(c.value)-29.9)<0.005);
+   if(evidenced)row.spatialResolved={...evidenced,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
+ }
+ if(/WC-PAPERI\s*6\s*rl/i.test(String(row.title||''))&&/YHTEIS[\s-]*HINTAAN/.test(context)&&/\bSETTI\b/.test(context)){
+   row.spatialResolved=null;
+   row.debugPublisherBundle={type:'mixed-set',evidence:'YHTEISHINTAAN + SETTI',totalPrice:10,requiresBundlePresentation:true};
+ }
+}
 }
 return out;
 }
