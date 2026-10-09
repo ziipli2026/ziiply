@@ -8,6 +8,7 @@ import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, refreshDeskt
 import { desktopCartIdentity, desktopCartSameStore, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 import { rankComparisonResults } from "../components/ziiply/cart/comparisonRankingCore";
+import { sanitizeDesktopComparisonMatches } from "../components/ziiply/cart/desktopComparisonCacheCore";
 import { isComparisonAttributeCompatible, pickBestSProduct } from "../components/ziiply/ziiplyCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
@@ -178,7 +179,10 @@ export default function DesktopPreviewPage() {
     let cancelled=false;
     const signature=desktopCompareSignature;
     const cached=desktopCompareCacheRef.current[signature];
-    if(cached&&cached.expiresAt>Date.now()){setDesktopCompareMatches(cached.matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);return;}
+    const selectedKeys=Object.values(selectedStores).map((store:any)=>desktopOfferChainFromStoreKind(storeKind(store),store)+":"+String(store?.id??store?.externalId??"").trim()).filter(key=>key.endsWith(":")===false);
+    const eligibleKeys=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true).map(desktopCartIdentity);
+    const validatedCache=cached&&cached.expiresAt>Date.now()?sanitizeDesktopComparisonMatches(cached.matches,selectedKeys,eligibleKeys):null;
+    if(validatedCache){setDesktopCompareMatches(validatedCache);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);return;}
     setDesktopCompareLoading(true);
     setDesktopCompareMatches({});
     setDesktopCompareResolvedSignature("");
