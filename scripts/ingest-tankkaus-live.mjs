@@ -16,9 +16,17 @@ if (branchRows[0]?.branch_id !== expectedBranch) throw new Error("Refusing live 
 const schema = await sql`SELECT to_regclass('public.ziiply_fuel_stations') IS NOT NULL AS stations_ready, to_regclass('public.ziiply_fuel_price_observations') IS NOT NULL AS observations_ready`;
 if (schema[0]?.stations_ready !== true || schema[0]?.observations_ready !== true) throw new Error("Tankkaus tables are missing");
 
-const lat = Number(process.env.TANKKAUS_PROBE_LAT ?? "60.633");
-const lon = Number(process.env.TANKKAUS_PROBE_LON ?? "24.866");
-if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat)>90 || Math.abs(lon)>180) throw new Error("Invalid probe coordinates");
+// Optional bounded area selection. One area per run; the workflow may later
+// invoke several explicit areas sequentially with a delay between calls.
+const approvedAreas = Object.freeze({
+  hyvinkaa: { lat: 60.633, lon: 24.866 },
+  helsinki: { lat: 60.170, lon: 24.940 },
+  tampere: { lat: 61.498, lon: 23.761 },
+  turku: { lat: 60.451, lon: 22.267 },
+});
+const area = process.env.TANKKAUS_AREA ?? "hyvinkaa";
+if (!Object.hasOwn(approvedAreas, area)) throw new Error("Unknown Tankkaus collection area");
+const { lat, lon } = approvedAreas[area];
 const base = "https://api.tankkaus.com/mobile";
 const get = async path => {
   const r = await fetch(base + path, { headers: { Accept: "application/json", Authorization: `Token ${token}` }, signal: AbortSignal.timeout(15000) });
@@ -87,4 +95,4 @@ for (const o of unique) {
     VALUES ('tankkaus.com',${o.stationId},${o.fuel},${o.price},${o.observedAt}::timestamptz)
     ON CONFLICT (source,source_station_id,fuel_type,observed_at,price_eur_per_litre) DO NOTHING`;
 }
-console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],center:{lat,lon},radiusKm:10,acceptedByFuel,diagnostics}));
+console.log(JSON.stringify({ok:true,mode:"live-test-branch-write",stations:stations.size,observations:unique.length,fuels:[...new Set(unique.map(x=>x.fuel))],area,center:{lat,lon},radiusKm:10,acceptedByFuel,diagnostics}));
