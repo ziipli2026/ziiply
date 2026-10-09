@@ -393,3 +393,21 @@ test("cart price refresh prefers internal API store ID over external ID", () => 
   assert.match(refreshSource, /store\.id\s*\?\?\s*store\.externalId/);
   assert.doesNotMatch(refreshSource, /store\.externalId\s*\?\?\s*store\.id/);
 });
+
+test("single mismatched store row cannot lend generic price to selected store", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    price: 1.29,
+    storeItems: [{ storeId: "other-store", price: 1.29 }]
+  }], "S", store);
+  assert.equal(item.__price, 0);
+  assert.equal(item.__priceVerified, false);
+});
+
+test("mismatched singular storeItem cannot lend generic price to selected store", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    price: 1.39,
+    storeItem: { storeId: "other-store", price: 1.39 }
+  }], "K", store);
+  assert.equal(item.__price, 0);
+  assert.equal(item.__priceVerified, false);
+});
