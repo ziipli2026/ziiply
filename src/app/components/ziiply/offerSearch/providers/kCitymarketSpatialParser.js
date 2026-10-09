@@ -1181,7 +1181,7 @@ if(anchor){
   const ax=Number(anchor.left)||0, ay=Number(anchor.top)||0;
   const inCard=(b)=>{
     const t=String(b.text||"").trim(),x=Number(b.left)||0,y=Number(b.top)||0,h=Number(b.height)||0;
-    if(!/^\\d{1,2}[-.]?$/.test(t)||h<.065||x<ax+.08||x>ax+.55||y<ay-.02||y>ay+.22)return false;
+    if(!/^\d{1,2}[-.]?$/.test(t)||h<.065||x<ax+.08||x>ax+.55||y<ay-.02||y>ay+.22)return false;
     const nearLabel=wordBoxes.some(z=>/^(KPL|PKT|PRK|PL)$/i.test(String(z.text||"").trim())&&Math.abs((Number(z.top)||0)-y)<.045&&Math.abs((Number(z.left)||0)-x)<.11);
     const nearDiscount=wordBoxes.some(z=>/^(PLUSSA-ETU|%|30%|31%|28%|23%)$/i.test(String(z.text||"").trim())&&Math.abs((Number(z.top)||0)-y)<.055&&Math.abs((Number(z.left)||0)-x)<.10);
     return !nearLabel&&!nearDiscount;
@@ -1193,7 +1193,7 @@ if(anchor){
     // (e.g. 5 + 50 => 5.50), not a separate candidate.
     const cents=wordBoxes.filter(z=>{
       const t=String(z.text||"").trim(),zx=Number(z.left)||0,zy=Number(z.top)||0,zh=Number(z.height)||0;
-      return /^\\d{2}$/.test(t)&&Number(t)<100&&zh>=.035&&zx>x&&zx<x+.15&&Math.abs(zy-y)<.06;
+      return /^\d{2}$/.test(t)&&Number(t)<100&&zh>=.035&&zx>x&&zx<x+.15&&Math.abs(zy-y)<.06;
     }).sort((a,b)=>(Number(a.left)||0)-(Number(b.left)||0))[0];
     const combined=cents?Number(value+"."+String(cents.text).trim()):value;
     return {value:combined,b,area,distance:boxDistance(anchor,b),hasCents:Boolean(cents)};
