@@ -675,3 +675,19 @@ test("comparison totals keep identical EAN store rows and their quantities indep
   assert.equal(total("K:200"), 9.5);
   assert.equal(sanitize(rows, ["K:100", "K:200"], [key(first)]), null);
 });
+
+test("comparison cache rejects legacy barcode-only prices after row-key migration", async () => {
+  const cartSource = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const cacheSource = readFileSync(new URL("../src/app/components/ziiply/cart/desktopComparisonCacheCore.ts", import.meta.url), "utf8");
+  const load = async (source) => {
+    const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+    return import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+  };
+  const { desktopComparisonRowKey: key } = await load(cartSource);
+  const { sanitizeDesktopComparisonMatches: sanitize } = await load(cacheSource);
+  const item = { ean: "6410405124517", source: "justiina", __chain: "K", __storeId: "100" };
+  const eligible = [key(item)];
+  assert.equal(sanitize({ "K:100": { "ean:6410405124517": 1.48 } }, ["K:100"], eligible), null);
+  assert.equal(sanitize({ "K:200": { [key(item)]: 1.48 } }, ["K:100"], eligible), null);
+  assert.deepEqual(sanitize({ "K:100": { [key(item)]: 1.48 } }, ["K:100"], eligible), { "K:100": { [key(item)]: 1.48 } });
+});
