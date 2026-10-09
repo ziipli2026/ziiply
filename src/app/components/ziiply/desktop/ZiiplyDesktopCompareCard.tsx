@@ -47,7 +47,7 @@ export default function ZiiplyDesktopCompareCard({
             <p className="mt-1 text-sm font-bold text-[#6b5839]">{subtitle}</p>
             {loading && <p role="status" className="text-sm font-bold text-[#17633c]">Päivitetään hintoja…</p>}
           </header>
-          <div className="mt-5 grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto lg:grid-cols-2 lg:overflow-hidden">
+          <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${expanded.length ? "flex-1 lg:items-stretch lg:overflow-hidden" : "content-start"}`}>
             {stores.length === 0 && <p className="col-span-full p-8 text-center font-bold">{loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole saatavilla."}</p>}
             {stores.map((store,index) => {
               const missing = Number(store.missingItems || 0);
@@ -58,7 +58,7 @@ export default function ZiiplyDesktopCompareCard({
               const isOpen = expanded.includes(store.id);
               const rows = (store.matches || []) as MatchRow[];
               return (
-                <article key={store.id} className={`flex min-h-[220px] min-w-0 flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] lg:min-h-0 ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
+                <article key={store.id} className={`flex min-w-0 flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isOpen ? "min-h-[260px] lg:h-full lg:min-h-0" : "h-auto"} ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
                   <div className="flex shrink-0 items-center gap-3 border-b border-[#c9ad76]/70 px-4 py-3">
                     <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : "border-[#85161c] bg-[#cf2028]"}`}>{store.chain || "•"}</div>
                     <div className="min-w-0 flex-1">
@@ -71,28 +71,14 @@ export default function ZiiplyDesktopCompareCard({
                       {diff !== null && diff > 0 && <div className="text-xs font-bold text-[#76684e]">+{euro(diff)} kalliimpi</div>}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center justify-between gap-2 px-4 py-2">
+                  <div className="flex shrink-0 items-center justify-start px-4 pb-3 pt-1">
                     <button type="button" aria-expanded={isOpen} onClick={()=>toggle(store.id)} className="rounded-xl border-2 border-[#536b4d] bg-[#f1e3c1] px-4 py-1.5 font-serif text-sm font-black italic text-[#214d36]">{isOpen ? "Sulje valinnat" : "Muuta valintoja"}</button>
-                    <button type="button" disabled={!onSelectStore || !isComplete} onClick={()=>onSelectStore?.(store.id)} aria-label={`Valitse ${store.name} ostoskori`} className="rounded-lg border-2 border-[#765126] bg-[#e7c58b] px-3 py-1.5 font-bold text-[#51361a] disabled:opacity-40">▣</button>
                   </div>
-                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
-                    {isOpen ? (
+                  {isOpen && (
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
                       <ZiiplyMobileCompareSelectionCard key={store.id} open embedded compact store={{...store,matches:rows}} items={items} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
-                    ) : (
-                      <div className="divide-y divide-[#c9ad76]/55">
-                        {rows.map((row,i)=>{
-                          const image = row.image || row.imageUrl || row.product?.image || row.product?.imageUrl || row.cartItem?.image || row.cartItem?.imageUrl || row.cartItem?.product?.image || row.cartItem?.product?.imageUrl;
-                          return <div key={String(row.id||i)} className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 py-2">
-                            <div className="grid h-11 w-11 place-items-center overflow-hidden rounded-md bg-white/70">
-                              {image ? <img src={image} alt="" className="h-full w-full object-contain" /> : <span className="text-lg text-[#b4a17c]">▧</span>}
-                            </div>
-                            <div className="min-w-0"><div className="line-clamp-2 text-[13px] font-bold leading-tight text-[#29271e]">{row.product?.name || row.name || "Tuote"}</div><div className="text-[11px] text-[#76684e]">{row.quantity||1} kpl</div></div>
-                            <div className={`whitespace-nowrap font-serif text-base font-black italic ${store.chain==="S"?"text-[#08783b]":"text-[#bb252a]"}`}>{row.isMissingComparisonItem ? "—" : euro(row.price)}</div>
-                          </div>;
-                        })}
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </article>
               );
             })}
