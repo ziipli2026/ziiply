@@ -98,7 +98,6 @@ export async function refreshDesktopCartProductPrice(
     return String(p.id ?? p.product?.id ?? "").trim() === id;
   });
   if (exact.length !== 1) return null;
-  const candidate = exact[0]?.price ?? exact[0]?.storeItems?.[0]?.price ?? exact[0]?.storeItem?.price;
-  const price = Number(String(candidate ?? "").replace(",", "."));
-  return Number.isFinite(price) && price > 0 ? price : null;
+  const [verified] = normalizeDesktopNormalResults(exact, chain, store, 1);
+  return verified.__priceVerified === true && verified.__catalogOnly !== true ? verified.__price : null;
 }
