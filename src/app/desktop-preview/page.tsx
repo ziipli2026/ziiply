@@ -183,7 +183,7 @@ export default function DesktopPreviewPage() {
     loadIndependentStores(value); fetch(`/api/store-search?search=${encodeURIComponent(value)}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items) }).catch(()=>setStores([]));
   }
 
-  useEffect(()=>{try{const raw=window.localStorage.getItem("ziiply-desktop-ostelusvihko-v1");if(raw)setSavedLists(JSON.parse(raw))}catch{}},[]);
+  useEffect(()=>{try{const raw=window.localStorage.getItem("ziiply-desktop-ostelusvihko-v1");if(raw){const parsed=JSON.parse(raw);setSavedLists(Array.isArray(parsed)?parsed.filter((list:any)=>list&&typeof list==="object"&&Array.isArray(list.items)):[])}}catch{}},[]);
   function persistSavedLists(next:any[]){setSavedLists(next);try{window.localStorage.setItem("ziiply-desktop-ostelusvihko-v1",JSON.stringify(next))}catch{}}
   function beginSaveCart(){if(!cartItems.length){flashCartNotice("Ostoskori on tyhjä");return}const d=new Date();setSaveListName(`Ostelusvihko ${d.toLocaleDateString("fi-FI")}`);setSaveListOpen(true)}
   function restoreSavedList(list:any){setCartItems(restoreDesktopCartWithoutStalePrices(list.items));setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko palautettu ostoskoriin")}
