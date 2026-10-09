@@ -43,7 +43,7 @@ export default function AccountLab() {
   return <main aria-busy={busy} className="mx-auto max-w-xl p-8 space-y-4">
     <h1 className="text-2xl font-bold">Ziiply käyttäjätilin kehitystesti</h1>
     <p>{guest}. Sovellusta voi käyttää kirjautumatta.</p>
-    <Link href="/">Jatka Ziiplyyn</Link>
+    <Link href="/">Jatka Ziiplyyn</Link>{" "}<Link href="/desktop-preview">Avaa desktop</Link>
     <p>Kirjautunut: {user || "ei"}</p>
     {!user ? <form className="space-y-3" onSubmit={e => { e.preventDefault(); void run(async () => check(await auth.signIn.email({ email, password }))); }}>
       <label className="block">Sähköposti<input className="block border p-2" type="email" disabled={busy} required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} /></label>

@@ -14,7 +14,7 @@ for (const [name, flag, deployment] of [['default-disabled','false','preview'],[
       try { await fetch(base+'/api/auth/get-session'); ready=true; break; } catch { await pause(250); }
     }
     assert.ok(ready,'Server startup');
-    for (const [path,method,status] of [['/','GET',200],['/manifest.webmanifest','GET',200],['/account-lab','GET',404],['/api/auth/get-session','GET',404],['/api/account/import','GET',404],['/api/account/import','POST',404],['/api/account/documents','GET',404],['/api/account/documents','POST',404]]) {
+    for (const [path,method,status] of [['/','GET',200],['/manifest.webmanifest','GET',200],['/account-lab','GET',404],['/desktop-preview','GET',404],['/api/auth/get-session','GET',404],['/api/account/import','GET',404],['/api/account/import','POST',404],['/api/account/documents','GET',404],['/api/account/documents','POST',404]]) {
       const response = await fetch(base+path,{method,redirect:'manual',signal:AbortSignal.timeout(15000)});
       assert.equal(response.status,status,`${name}: ${method} ${path}`);
       checks++;

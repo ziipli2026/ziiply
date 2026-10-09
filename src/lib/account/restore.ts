@@ -6,17 +6,19 @@ export function prepareCartRestore(snapshot: GuestSnapshot, source: CartSurface,
   const data = snapshot.values[source === "mobile" ? "ziiply-cart-v1" : "ziiply-desktop-current-cart-v1"];
   const raw = Array.isArray(data) ? data : data && typeof data === "object" ? (data as {items?: unknown}).items : undefined;
   if (!Array.isArray(raw) || raw.length > 1000) throw new Error("Valittua koria ei ole tai sen muoto on virheellinen.");
+  if (target === "mobile" && raw.length > 8) throw new Error("Mobiilikoriin mahtuu tässä versiossa enintään 8 tuotetta. Koria ei palautettu.");
   const items = raw.map(value => {
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Virheellinen tuote.");
     const item = value as Record<string, unknown>;
     const name = item.name || item.title || item.productName;
-    if (typeof item.id !== "string" || !item.id || typeof name !== "string" || !name.trim()) throw new Error("Tuotteen tunniste tai nimi puuttuu.");
+    const id = typeof item.id === "string" && item.id ? item.id : source === "desktop" ? String(item.ean || item.offerId || (typeof name === "string" && name.trim() ? "memo:" + name.trim().toLowerCase() : "")) : "";
+    if (!id || typeof name !== "string" || !name.trim()) throw new Error("Tuotteen tunniste tai nimi puuttuu.");
     const quantity = item.quantity === undefined ? 1 : item.quantity;
     if (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity <= 0 || quantity > 10000) throw new Error("Virheellinen tuotemäärä.");
-    const weight = !!item.ziiplyWeightLabel || !!(item.product as Record<string, unknown> | null)?.ziiplyWeightLabel || item.id.startsWith("weight-");
+    const weight = !!item.ziiplyWeightLabel || !!(item.product as Record<string, unknown> | null)?.ziiplyWeightLabel || id.startsWith("weight-");
     const product = item.product && typeof item.product === "object" && !Array.isArray(item.product) ? item.product as Record<string, unknown> : null;
     const mobileSource = item.source === "offer" ? "offer" : ["search","justiina","normal"].includes(String(item.source)) ? "search" : "manual";
-    return {...item, name, title:name, quantity, ...(target === "mobile" ? {source:mobileSource,image:item.image || item.pictureUrl || item.imageUrl} : {}), price:target === "mobile" ? 0 : null, unitPrice:null, __price:null,
+    return {...item, id, name, title:name, quantity, ...(target === "mobile" ? {source:mobileSource,image:item.image || item.pictureUrl || item.imageUrl} : {}), price:target === "mobile" ? 0 : null, unitPrice:null, __price:null,
       ...(product ? {product:{...product,price:0,unitPrice:null,__price:null}} : {}),
       ziiplyPriceFetchedAt:0, ziiplyPriceStoreName:"", ziiplyPriceRefreshPending:!weight, priceNeedsRefresh:!weight};
   });

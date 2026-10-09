@@ -28,10 +28,10 @@ export default function RestoreCartLab({document}:{document:AccountDocument}) {
     <h3 className="font-bold">Palauta aktiivinen kori</h3>
     <label>Pilvikorin lähde <select value={source} onChange={event=>{setSource(event.target.value as CartSurface);setPreview(null);}}><option value="mobile">Mobiili</option><option value="desktop">Desktop</option></select></label>{" "}
     <label>Paikallinen kohde <select value={target} onChange={event=>{setTarget(event.target.value as CartSurface);setPreview(null);}}><option value="mobile">Mobiili</option><option value="desktop">Desktop</option></select></label>
-    <p>Palautus korvaa vain aktiivisen korin. Tallennetut listat säilyvät. Mobiilin vanha hintavertailu ja keräilymerkinnät tyhjennetään. Desktop-näkymän kytkentä tähän kehityshaaraan on vielä kesken.</p>
+    <p>Palautus korvaa vain aktiivisen korin. Tallennetut listat säilyvät. Mobiilin vanha hintavertailu ja keräilymerkinnät tyhjennetään. Mobiilikorin enimmäiskoko on tässä versiossa 8 tuotetta.</p>
     <button onClick={inspect}>Esikatsele palautusta</button>
     {preview&&<div><p>Palautetaan {preview.count} tuotetta ilman vanhoja hintoja. Nykyinen kori varmuuskopioidaan ennen korvaamista.</p><button onClick={restore}>Hyväksy paikallisen korin korvaaminen</button><button onClick={()=>setPreview(null)}>Peruuta</button></div>}
     <p role="status">{message}</p>
-    <button onClick={()=>window.location.assign("/")}>Avaa mobiilisovellus samassa välilehdessä</button>
+    <button onClick={()=>window.location.assign(target === "mobile" ? "/" : "/desktop-preview")}>Avaa valittu sovellusnäkymä</button>
   </div>;
 }

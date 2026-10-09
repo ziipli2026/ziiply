@@ -2,7 +2,7 @@
 
 Tarkastus 9.10.2026. Päähaaran lähtöcommit `9dc95022db91992d2cadf9b284323aaa37ac666b`.
 Desktop tarkastettu haarasta `preview/legacy-desktop-ui`, commit `ffd40c93c6ecb16eb27c3ef59d4a5184d069419b`.
-Kehityshaara `dev/neon-auth-guest-foundation` perustuu mainiin; desktop-haaraa ei yhdistetä tai muuteta.
+Kehityshaara `dev/neon-auth-guest-foundation` perustuu mainiin; desktopin käyttöliittymästä on kopioitu erillinen kehitysnäkymä. Alkuperäistä desktop-haaraa ei muuteta.
 
 ## Tarkastettu lähtötilanne
 
@@ -51,7 +51,7 @@ Neon-kehityshaaran sähköpostirekisteröinti on käytössä ilman varmennusta j
 
 SDK on lukittu versioon 0.5.0-beta ja kehityshaara Next 16.4.0:aan SDK:n ilmoittaman Next-peer-vaatimuksen mukaisesti. React säilyi 19.1.1:ssä. Build käyttää Webpackia ja ESLint-konfiguraatio päivitettiin Next 16:n flat-muotoon. `.npmrc`-poikkeus poistettiin; tavallinen `npm ci --dry-run --ignore-scripts` hyväksyttiin. Transitiivinen API-key-paketti on rajattu SDK:n Better Auth 1.6.23 -versioon. Käyttämättömän UI-riippuvuuden better-call-peer-varoitus jää asennukseen; tämä riippuvuusketju pitää tarkistaa vielä ennen tuotantomuutosta.
 
-Next-päivitys on vain käyttäjähallinnan kehityshaarassa. Mainia tai desktop-preview-haaraa ei päivitetty tai yhdistetty. Next-päivityksen tuotantovalmiutta ei päätellä pelkästä buildista; koko olemassa oleva mobiili- ja desktop-käyttö pitää testata ennen mahdollista myöhempää yhdistämistä.
+Next-päivitys on vain käyttäjähallinnan kehityshaarassa. Mainin ja alkuperäisen desktop-preview-haaran Next-versioita ei päivitetty. Next-päivityksen tuotantovalmiutta ei päätellä pelkästä buildista; koko olemassa oleva mobiili- ja desktop-käyttö pitää testata ennen mahdollista myöhempää yhdistämistä.
 
 Kehitysnäkymä luo vierastunnisteen vain paikallisesti ja näyttää tallennuksen saatavuuden Reactin ulkoisen store-rajapinnan kautta. Tilin varmuuskopioiden määrä sidotaan näytössä nykyiseen käyttäjään. Testinäkymää ei ole kytketty pääruutujen pakolliseksi vaiheeksi.
 
@@ -81,17 +81,17 @@ Yhteinen kori/lista/keräily-sopimus ja sen mobiili-/desktop-adapterit; pääruu
 
 Valinnat synkronoidaan erillisellä sallintalistalla myöhemmin. GPS:n lupaa/koordinaatteja, tämän laitteen käsivalintaa tai hintacachea ei siirretä automaattisesti toiselle laitteelle. Ei muuteta Yksi/Monta-vertailun sääntöjä tai Göstan preloadeja.
 
-Pakollinen jatkotestimatriisi: Safari + iOS asennettu PWA + Android PWA + desktop; vapaaehtoinen kirjautuminen; email-verification/OAuth callback ja reload; offline/vanhentunut istunto; kahden tilin eristys; olemassa olevan tilin tuonti, toistot ja rinnakkaispyynnöt; uloskirjautuminen ja tilinvaihto; mobiili/desktop-korit, painotuotteet, keräily ja vertailu ennen/jälkeen. Sähköpostivarmennus/toimitus, Googlen varsinainen suostumus/callback selaimessa, Apple ja aktiivisten korien laitesynkronointi eivät ole vielä todennettuja.
+Pakollinen jatkotestimatriisi: Safari + iOS asennettu PWA + Android PWA + desktop; vapaaehtoinen kirjautuminen; email-verification/OAuth callback ja reload; offline/vanhentunut istunto; kahden tilin eristys; olemassa olevan tilin tuonti, toistot ja rinnakkaispyynnöt; uloskirjautuminen ja tilinvaihto; mobiili/desktop-korit, painotuotteet, keräily ja vertailu ennen/jälkeen. Sähköpostivarmennus/toimitus, Googlen varsinainen suostumus/callback selaimessa, Apple ja aktiivisten korien automaattinen synkronointi eivät ole vielä todennettuja.
 
 Lähteet: https://neon.com/docs/auth/guides/setup-oauth.md ; https://neon.com/docs/auth/quick-start/nextjs-api-only.md ; https://neon.com/docs/auth/guides/plugins.md ; asennetun SDK:n tyyppimäärittelyt.
 
 ## Toteutuksen tarkastukset
 
-- `npm run test:account`: 17/17 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag).
+- `npm run test:account`: 19/19 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag).
 - `npm run test:account:neon`: 36/36 oikeaa integraatiotarkastusta kehityshaarassa. Ei-kirjautuneen luku/kirjoitus estyvät; vieras origin estyy; sähköpostirekisteröinti ja cookie-istunnon palautus toimivat; korituonti ja idempotentti retry toimivat; omat varmuuskopiot palautuvat ilman jaettua cachea; väärennetyt cookiet, väärä salasana, virheellinen ja liian suuri tuonti estyvät; toinen käyttäjä ei voi lukea ensimmäisen tietoja edes user_id-parametrilla; pyynnön user_id ei muuta omistajaa; sama sisältö kuuluu erikseen kummallekin käyttäjälle; uloskirjautuminen estää pääsyn ja uudelleenkirjautuminen palauttaa omat tiedot. Versioidut dokumentit testattiin kahdella erillisellä istunnolla: mobiili- ja desktop-avaimet säilyvät, vanha versio hylätään, samanaikaisista kirjoituksista yksi onnistuu, viivästynyt retry ei palauta vanhaa sisältöä, operaatiotunnisteen uudelleenkäyttö eri sisällöllä estyy ja yhdistetty kokoraja ei jätä osittaista tallennusta. Google OAuth -aloitus palauttaa odotetun Neonin `/sign-in/social/init`-osoitteen.
 - TypeScript, account-tiedostojen kohdennettu ESLint ja Next 16 -build hyväksytty. Npm-asennuksen dry-run hyväksytty ilman legacy-peer-deps-asetusta.
 - Kolme olemassa olevaa eristettyä regressioajoa hyväksytty: painotuotteen koripalautus, vertailun sentti/euro-rajat ja Göstan monipakkaushinnat. Nämä ovat lähde-/yksikkötarkastuksia, eivät laajaa selainregressiota.
-- `npm run test:account:http`: 16/16 HTTP-tarkastusta hyväksytty Next 16 -palvelimella. Sekä oletusarvoisesti pois päältä että tuotantoflagin kanssa pääruutu ja PWA-manifest pysyvät julkisina (200); account-lab, Auth ja korituonnin ja dokumenttien GET/POST pysyvät estettyinä (404). Testissä ei ollut Auth-/SQL-yhteysasetuksia.
+- `npm run test:account:http`: 18/18 HTTP-tarkastusta hyväksytty Next 16 -palvelimella. Sekä oletusarvoisesti pois päältä että tuotantoflagin kanssa pääruutu ja PWA-manifest pysyvät julkisina (200); account-lab, desktop-preview, Auth sekä korituonnin ja dokumenttien GET/POST pysyvät estettyinä (404). Testissä ei ollut Auth-/SQL-yhteysasetuksia.
 - Tuotanto-mainin read-only-skeematarkastus: neon_auth=false, ziiply_accounts=false.
 
 Integraatiotestit käyttävät oikeaa Auth- ja SQL-palvelua vain erillisessä kehityshaarassa. Selaimen OAuth-suostumusta, iOS/Android-PWA:ta ja aktiivisen korin laitesynkronointia ei näillä HTTP-testeillä todenneta. Tuodut snapshotit ovat tilin varmuuskopioita, eivät vielä nykyisten mobiili-/desktop-korien automaattinen pilvisynkronointi.
@@ -99,8 +99,21 @@ Integraatiotestit käyttävät oikeaa Auth- ja SQL-palvelua vain erillisessä ke
 
 ### Aktiivisen korin palautus — seuraava kehitysvaihe
 
-`/account-lab` voi nyt valmistella valitun pilvidokumentin mobiili- tai desktop-korin palautuksen kumpaankin paikalliseen tallennusmuotoon. Käyttäjä valitsee lähteen ja kohteen, näkee tuotemäärän ja hyväksyy korvaamisen erikseen. Mobiilikorin voi avata tämän jälkeen pääsovelluksessa samassa välilehdessä. Desktop-kohteen tallennusadapteri on valmis, mutta desktop-sivua ei ole yhdistetty tähän haaraan eikä koko desktop-ketjua vielä vahvistettu.
+`/account-lab` voi nyt valmistella valitun pilvidokumentin mobiili- tai desktop-korin palautuksen kumpaankin paikalliseen tallennusmuotoon. Käyttäjä valitsee lähteen ja kohteen, näkee tuotemäärän ja hyväksyy korvaamisen erikseen. Mobiilikorin voi avata tämän jälkeen pääsovelluksessa samassa välilehdessä. Desktop-näkymä on nyt mukana kehityshaarassa; selainketjun vahvistus kuvataan alla.
 
 Palautus säilyttää tunnisteet, nimet, määrät ja tuotemetadataa, mutta poistaa nykyhinnan ja sen tuoreusmerkinnät. Punnitustuotteelle ei luvata taustahintaa: uusi fyysinen punnitus tarvitaan. Esikatselun jälkeen muuttunut paikallinen kori estää korvaamisen. Ennen kirjoitusta tehdään laitekohtainen varmuuskopio avaimelle `ziiply-account-restore-backup-v1`; tämä ei kuulu pilvituonnin sallintalistaan. Mobiilin vanha vertailusnapshot ja keräilymerkinnät varmuuskopioidaan ja poistetaan, tallennetut listat säilyvät. Kirjoitusvirheessä aiemmat arvot palautetaan mahdollisuuksien mukaan; varmuuskopio säilyy myös epäonnistumisessa. Selainstorage ei tarjoa monen avaimen atomista transaktiota eikä esikatselutarkistus lukitse muita välilehtiä.
 
-Kuusi uutta testiä vahvistavat muunnokset molempiin suuntiin, hintojen tyhjennyksen, määrien säilymisen, virheellisen sisällön hylkäyksen, paikallisen muutoskonfliktin, quota-virheen ja kirjoitusvirheen palautuksen. Yhteensä 17 yksikkötestiä. Tämä on manuaalinen palautus, ei automaattinen synkronointi. Keräilymerkintöjen siirtäminen laitteiden välillä, pysyvä verkkokatkojen jono, koko kirjautuminen–pääsovellus-selainketju sekä desktop-näkymän yhdistäminen jäävät seuraavaan vaiheeseen.
+Kuusi uutta testiä vahvistavat muunnokset molempiin suuntiin, hintojen tyhjennyksen, määrien säilymisen, virheellisen sisällön hylkäyksen, paikallisen muutoskonfliktin, quota-virheen ja kirjoitusvirheen palautuksen. Kaksi lisätestiä vahvistavat tarkoituksellisen mobiilirajan ja desktopin tekstituotteiden tunnisteen; yhteensä 19 yksikkötestiä. Tämä on manuaalinen palautus, ei automaattinen synkronointi. Keräilymerkintöjen siirtäminen laitteiden välillä, pysyvä verkkokatkojen jono, Safari-/PWA-selainketju jää seuraavaan vaiheeseen.
+
+
+### Desktop-näkymän erillinen kytkentä
+
+Auth-kehityshaaraan kopioitiin desktopin käyttöliittymä ja sen omat komponentit `preview/legacy-desktop-ui`-haaran commitista `4d05b2d9`. Mobiilin yhteisiä komponentteja tai pääsivua ei korvattu desktop-haaran versioilla. Desktopin vertailuvalintakomponentti ja muuttuneet taustakuvat ovat erillisiä kopioita. `/desktop-preview` avautuu tässä haarassa vain kehitysflagilla ja on tuotantoympäristössä aina 404. Kirjautumista ei vaadita desktop-näkymän käyttöön. Käyttäjätilin kehitysnäkymään pääsee sivulta ja palautuksen jälkeen voi avata kumman tahansa sovellusnäkymän samassa välilehdessä.
+
+Mobiilin nykyinen tarkoituksellinen 8 tuotteen raja säilyy. Desktop-korin mobiilipalautus hylätään näkyvästi, jos kori ylittää rajan; tuotteita ei leikata. Desktopin ilman `id`-kenttää lisätyille tekstituotteille muodostetaan mobiilipalautukseen tunniste EAN:sta, tarjous-ID:stä tai nimestä. Tallennetut listat ja keräilymerkintöjen siirto eivät vielä kuulu tämän ketjun toiminnalliseen vahvistukseen.
+
+`tests/account/browser-roundtrip.mjs` käyttää kahta erillistä Chromium-kontekstia, oikeaa Neon Auth -sähköpostitiliä ja kehityskantaa. Testi käyttää synteettistä osoitetta ja koria. Hinta-, kauppa- ja polttoainerajapinnat on eristetty mock-vastauksilla: tämä testi vahvistaa tilin, tallennuksen, palautuksen ja alkuperäisten korikomponenttien toiminnan, ei hintapäivityksiä. Mobiilin ketjuvalinta asetetaan paikalliseksi testifixtureksi; sitä ei tuoda pilvestä. Playwrightin ja selaimen on oltava asennettuna, tarvittaessa moduulin sijainti asetetaan `ZIIPLY_PLAYWRIGHT_MODULE`-muuttujalla. Testi ei tallenna cookieta tai salasanaa raporttiin.
+
+Esikatselun Vercel-projektin tarkastus estyi 403-vastaukseen Ziiplyn tiimissä. Auth-esikatselun ympäristöasetuksia ei muutettu eikä Auth-esikatselua aktivoitu. Git-haaran automaattinen esikatselubuild voi syntyä tavalliseen tapaan, mutta kehitysnäkymät ovat ilman flagia estettyjä.
+
+Selainketjun tulos: **10/10 hyväksytty Chromiumilla**. Oikea sähköpostirekisteröinti ja istunto, mobiilivieraan korin pilvitallennus, toisen selainkontekstin kirjautuminen, desktopin alkuperäisen korin näkyvä palautus, määrän muuttaminen 2 → 3, päivitys samaan pilvidokumenttiin, palautus mobiiliin ja näkyvä mobiilikoririvi sekä uloskirjautumisen jälkeinen 401 vahvistettiin. Tallennusvahvistuksen odotus käyttää tarvittaessa rajattua uudelleenyritystä samalla operaatiolla. Käyttöliittymän selainketju on vahvistettu Chromiumilla; iOS Safari, asennetut PWA:t, Google-suostumus/callback ja Apple ovat vielä testaamatta.

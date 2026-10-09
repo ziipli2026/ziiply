@@ -29,3 +29,10 @@ test('failed cart write rolls back cleared metadata',()=>{
  const failing={...store,setItem(k,v){if(v==='new')throw new Error('quota');store.setItem(k,v)}};
  assert.throws(()=>restoreActiveCart(failing,'mobile','new','old'));assert.equal(store.getItem('ziiply-cart-v1'),'old');assert.equal(store.getItem('ziiply-comparison-snapshot-v1'),'prices');
 });
+test('desktop carts exceeding native mobile limit cannot be silently truncated',()=>{
+ assert.throws(()=>prepareCartRestore({version:1,values:{'ziiply-desktop-current-cart-v1':Array.from({length:9},(_,i)=>({...item,id:String(i)}))}},'desktop','mobile'),/8 tuotetta/);
+});
+test('desktop handwritten memo receives stable mobile identifier',()=>{
+ const result=prepareCartRestore({version:1,values:{'ziiply-desktop-current-cart-v1':[{title:'Omenat',source:'justiina',quantity:1}]}},'desktop','mobile');
+ assert.equal(result.items[0].id,'memo:omenat');assert.equal(result.items[0].name,'Omenat');
+});
