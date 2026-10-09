@@ -175,8 +175,25 @@ jobs:
             git -C /tmp/kcm-permanent-archive switch --orphan "$ARCHIVE_BRANCH"
             git -C /tmp/kcm-permanent-archive rm -rf -q . || true
           fi
-          mkdir -p "/tmp/kcm-permanent-archive/publications/$PUB_ID"
-          cp -a /tmp/kcm-leaflet-archive/. "/tmp/kcm-permanent-archive/publications/$PUB_ID/"
+          ARCHIVE_DIR="/tmp/kcm-permanent-archive/publications/$PUB_ID"
+          if [ -f "$ARCHIVE_DIR/archive-manifest.json" ]; then
+            # First verified capture is immutable. Never silently replace
+            # historical evidence with a newly parsed version of the same issue.
+            node - "$ARCHIVE_DIR" /tmp/kcm-leaflet-archive <<'NODE'
+          const fs=require('node:fs');
+          const crypto=require('node:crypto');
+          const [oldDir,newDir]=process.argv.slice(2);
+          const old=JSON.parse(fs.readFileSync(oldDir+'/archive-manifest.json'));
+          const fresh=JSON.parse(fs.readFileSync(newDir+'/archive-manifest.json'));
+          const digest=crypto.createHash('sha256').update(fs.readFileSync(oldDir+'/leaflet.pdf')).digest('hex');
+          if(old.pdfSha256!==digest||fresh.pdfSha256!==digest)throw Error('Immutable Citymarket archive source differs from current publisher');
+          if(!fs.existsSync(oldDir+'/publisher-responses.json'))throw Error('Permanent archive missing original publisher responses');
+          console.log('KCM_ARCHIVE_IMMUTABLE',old.pdfSha256);
+          NODE
+          else
+            mkdir -p "$ARCHIVE_DIR"
+            cp -a /tmp/kcm-leaflet-archive/. "$ARCHIVE_DIR/"
+          fi
           git -C /tmp/kcm-permanent-archive add "publications/$PUB_ID"
           if ! git -C /tmp/kcm-permanent-archive diff --cached --quiet; then
             git -C /tmp/kcm-permanent-archive -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Archive verified Citymarket $PUB_ID source"
