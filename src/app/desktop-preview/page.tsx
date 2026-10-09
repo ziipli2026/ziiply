@@ -162,7 +162,7 @@ export default function DesktopPreviewPage() {
   const [locationResolved, setLocationResolved] = useState(false);
   const [userLocationAction, setUserLocationAction] = useState(false);
   const [locationStatus, setLocationStatus] = useState("Kirjoita paikkakunta tai käytä GPS:ää");
-  const [gpsToast, setGpsToast] = useState("GPS ei päällä");
+  const [gpsToast, setGpsToast] = useState("GPS käynnistyy…");
   const [mapOpen, setMapOpen] = useState(false);
   const [fuelSelected, setFuelSelected] = useState(false);
   const [fuelMode, setFuelMode] = useState<"nearby" | "compare">("nearby");
@@ -579,6 +579,7 @@ export default function DesktopPreviewPage() {
       return;
     }
     setLocationStatus("Haetaan sijaintia…");
+    setGpsToast("GPS käynnistyy…");
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         setGpsOn(true);
@@ -597,7 +598,9 @@ export default function DesktopPreviewPage() {
   }
 
 
-  // Load store directories even if browser geolocation is denied.\n  useEffect(()=>{loadIndependentStores("");fetch("/api/store-search?search=",{cache:"no-store"}).then(r=>r.json()).then(d=>setStores(current=>current.length?current:(Array.isArray(d?.items)?d.items:[]))).catch(()=>undefined)},[]);\n  // GPS is the default on desktop; geolocation permission still belongs to the browser.
+  // Load store directories even if browser geolocation is denied.
+  useEffect(()=>{loadIndependentStores("");fetch("/api/store-search?search=",{cache:"no-store"}).then(r=>r.json()).then(d=>setStores(current=>current.length?current:(Array.isArray(d?.items)?d.items:[]))).catch(()=>undefined)},[]);
+  // GPS is the default on desktop; geolocation permission still belongs to the browser.
   useEffect(() => {
     if (!navigator.geolocation) {
       setLocationStatus("Sijaintia ei tueta tällä laitteella");
@@ -690,7 +693,7 @@ export default function DesktopPreviewPage() {
           </div>
 
           <div className="relative grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
-            <div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { if(gpsOn){setGpsOn(false);setGpsCoords(null);setUserLocationAction(false);setLocationResolved(false);setAppliedLocation("");setStores([]);setLidlStores([]);setSparStores([]);setSelectedStores({});setGpsToast("GPS ei päällä");window.setTimeout(()=>setGpsToast(""),1800)} else useGps(); }} title={gpsOn ? "GPS päällä" : "GPS pois"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
+            <div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { useGps(); }} title={gpsOn ? "Päivitä GPS-sijainti" : "Käynnistä GPS uudelleen"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
               <span className="text-[23px]">📍</span>{gpsToast&&<span className="absolute left-1/2 top-[62px] z-50 w-max -translate-x-1/2 rounded-full border border-[#6f806a]/20 bg-[#fffaf0] px-3 py-1.5 text-[10px] font-black text-[#536252] shadow-lg">{gpsToast}</span>}
               <span className={`absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white shadow-sm ${gpsOn?"bg-[#159447]":"bg-[#a44f4f]"}`} />
             </button></div>
