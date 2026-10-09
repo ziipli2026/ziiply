@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const EXPECTED_TEST_BRANCH = "br-spring-truth-b137mloi";
-const MAX_PRICE_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const ALLOWED_FUELS = new Set(["95", "98", "diesel", "e85", "fuel_oil"]);
 
 type PriceRow = {
