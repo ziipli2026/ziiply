@@ -85,7 +85,7 @@ export function category(t:string){
   // Publication-wide product-form precedence: these must not inherit a broad
   // category from ingredient words or generic fresh-produce keywords.
   if(/maissikak|riisikak|näkkikak/.test(s)) return "Kuivatuotteet";
-  if(/pakastemuusi|pakasteperuna|perunapakaste|ranskanperuna|lohkoperuna.*pakaste|pakaste.*peruna/.test(s)) return "Pakasteet";
+  if(/muusiperuna|pakastemuusi|pakasteperuna|perunapakaste|ranskanperuna|lohkoperuna.*pakaste|pakaste.*peruna/.test(s)) return "Pakasteet";
   if(/jäätel|jaatel|jäätelö|tuutti|jäätelöpuikko/.test(s)) return "Pakasteet";
   // Explicit hygiene and beverages precede substrings in compound words.
   if(/ihonhoito|pesulappu|ruokalappu|vuodesuoja/.test(s)) return "Hygienia & kosmetiikka";
