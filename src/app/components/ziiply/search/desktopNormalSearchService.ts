@@ -80,7 +80,9 @@ export function normalizeDesktopNormalResults(
     const productStoreId = String(item?.externalId ?? item?.storeId ?? item?.store?.externalId ??
       item?.store?.id ?? "").trim();
     const directPrice = !productStoreId || productStoreId === selectedStoreId ? item?.price : undefined;
-    const candidate = directPrice ?? storeRow?.price ?? scopedSinglePrice;
+    const hasMultipleStoreRows = storeRows.length > 1;
+    const candidate = storeRow?.price ??
+      (hasMultipleStoreRows ? undefined : directPrice ?? scopedSinglePrice);
     const numeric = typeof candidate === "number" ? candidate :
       Number(String(candidate ?? "").replace(",", "."));
     const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
