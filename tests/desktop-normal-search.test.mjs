@@ -74,3 +74,11 @@ test("failed normal search rejects rather than returning a false empty catalog",
     globalThis.fetch = originalFetch;
   }
 });
+
+test("local price without a selected store identifier is not verified", () => {
+  for (const chain of ["S", "K"]) {
+    const [item] = normalizeDesktopNormalResults([{ price: 2.49 }], chain, { name: "Unknown" });
+    assert.equal(item.__priceVerified, false);
+    assert.equal(item.__storeId, "");
+  }
+});
