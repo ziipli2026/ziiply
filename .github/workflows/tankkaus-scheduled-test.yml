@@ -4,6 +4,9 @@ on:
     # UTC hourly window covers all Finnish target hours in winter and summer.
     - cron: '7 3-17 * * *'
   workflow_dispatch:
+concurrency:
+  group: tankkaus-isolated-test-collection
+  cancel-in-progress: false
 jobs:
   collect:
     runs-on: ubuntu-latest
