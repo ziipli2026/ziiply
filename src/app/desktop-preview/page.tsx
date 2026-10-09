@@ -218,7 +218,7 @@ export default function DesktopPreviewPage() {
               const pricedCandidates=normalizeDesktopNormalResults(candidates,chain,store,candidates.length)
                 .filter((p:any)=>p.__priceVerified===true && p.__catalogOnly!==true && Number(p.__price)>0)
                 .map((p:any)=>({...p,name:String(p.name??p.title??""),price:Number(p.__price)}));
-              const chosen=exact.length>0?pricedCandidates[0]:pickBestSProduct(
+              const chosen=exact.length>0?pricedCandidates.slice().sort((a:any,b:any)=>Number(a.__price)-Number(b.__price))[0]:pickBestSProduct(
                 pricedCandidates.filter((p:any)=>isComparisonAttributeCompatible(title,p.name)),title
               );
               if(!chosen)return;
