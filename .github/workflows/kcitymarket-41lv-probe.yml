@@ -36,6 +36,21 @@ jobs:
           console.log('KCM_41LV_PROBE',JSON.stringify(report,null,2));
           if(!/41LV_KCM/i.test(JSON.stringify(manifest)))throw Error('Publisher is not 41LV: refuse release');
           if(manifest.pageCount<1||resolved.length<15||bad.length)throw Error('41LV insufficient or invalid parser coverage');
+          // Verified directly against the publisher's page 5 artwork (41LV).
+          // Just1 6-roll + household-paper set = 10 EUR; Soft Embo 40-roll
+          // two-bag offer = 29.90 EUR. Never allow the spatial parser's
+          // erroneous 6.10 EUR association to pass a release gate.
+          const knownPage5=[
+            {title:/^WC-PAPERI 6 rl$/i,expected:10},
+            {title:/^WC-PAPERI 40 rl$/i,expected:29.90}
+          ];
+          const page5Failures=knownPage5.flatMap(({title,expected})=>{
+            const match=all.find(r=>r.page===5&&title.test(String(r.title)));
+            const actual=Number(match?.spatialResolved?.value);
+            return match&&Math.abs(actual-expected)<0.005?[]:[{title:String(title),expected,actual:Number.isFinite(actual)?actual:null,found:Boolean(match)}];
+          });
+          fs.writeFileSync(dir+'verified-page5-prices.json',JSON.stringify({source:'41LV original PDF page 5, visually checked',expected:[{product:'Lotus Just1 WC-PAPERI 6 rl plus household-paper 6 rl, set',price:10},{product:'Lotus Soft Embo WC-PAPERI 40 rl, 2 bags',price:29.90}],failures:page5Failures},null,2));
+          if(page5Failures.length)throw Error('41LV HOLD: verified page-5 WC-paper prices do not match spatial parser: '+JSON.stringify(page5Failures));
           const suspicious=multibuy.filter(r=>Number(r.spatialResolved.quantity)>=4 || Number(r.spatialResolved.value)/Number(r.spatialResolved.quantity)<1.5 || /\\b(?:ja|tai)\\b/i.test(String(r.title)) && Number(r.spatialResolved.quantity)>2);
           console.log('KCM_41LV_MANUAL_REVIEW_REQUIRED',JSON.stringify(suspicious.map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity,unit:r.spatialResolved.unit})),null,2));
           fs.writeFileSync(dir+'manual-review.json',JSON.stringify(suspicious.map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity,unit:r.spatialResolved.unit,source:r.spatialResolved.source,nearby:r.nearby,spatialCandidates:r.spatialCandidates,spatialPriceBoxes:r.spatialPriceBoxes})),null,2));
