@@ -91,12 +91,16 @@ export async function refreshDesktopCartProductPrice(
   const id = String(item.id ?? item.product?.id ?? "").trim();
   if (!ean && !id) return null;
   const term = String(item.title ?? item.name ?? item.productName ?? item.product?.name ?? item.product?.title ?? "").trim();
-  if (!term) return null;
-  const results = await fetchDesktopNormalProducts(term, chain, store);
-  const exact = results.filter(p => {
-    if (ean) return String(p.ean ?? p.barcode ?? p.product?.ean ?? p.product?.barcode ?? "").trim() === ean;
-    return String(p.id ?? p.product?.id ?? "").trim() === id;
-  });
+  if (!term && !ean) return null;
+  const matchesIdentity = (p: any) => ean
+    ? String(p.ean ?? p.barcode ?? p.product?.ean ?? p.product?.barcode ?? "").trim() === ean
+    : String(p.id ?? p.product?.id ?? "").trim() === id;
+  const byName = term ? await fetchDesktopNormalProducts(term, chain, store) : [];
+  let exact = byName.filter(matchesIdentity);
+  if (ean && exact.length === 0) {
+    const byEan = await fetchDesktopNormalProducts(ean, chain, store);
+    exact = byEan.filter(matchesIdentity);
+  }
   if (exact.length !== 1) return null;
   const [verified] = normalizeDesktopNormalResults(exact, chain, store, 1);
   return verified.__priceVerified === true && verified.__catalogOnly !== true ? verified.__price : null;
