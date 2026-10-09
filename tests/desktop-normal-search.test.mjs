@@ -620,3 +620,13 @@ test("mobile shared comparison attribute gate rejects different package sizes an
   assert.match(gate, /sourceSize\.unitGroup !== candidateSize\.unitGroup/);
   assert.match(gate, /sourceGroup && group\(candidate\) !== sourceGroup/);
 });
+
+test("real shared comparison gate rejects 1l versus 500ml and milk versus yoghurt", async () => {
+  const source = readFileSync(new URL("../src/app/components/ziiply/ziiplyCore.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const moduleUrl = "data:text/javascript;base64," + Buffer.from(js).toString("base64");
+  const { isComparisonAttributeCompatible: compatible } = await import(moduleUrl);
+  assert.equal(compatible("Maito 1 l", "Maito 500 ml"), false);
+  assert.equal(compatible("Maito 1 l", "Jogurtti 1 l"), false);
+  assert.equal(compatible("Maito 1 l", "Maito 1 l"), true);
+});
