@@ -73,7 +73,10 @@ function resolveCards(rows,rawBoxes){
   if(value!==null&&(value<=0||value>1000))continue;
   const right=Math.max(...parts.map(b=>b.left+b.width));
   const units=boxes.filter(b=>/^(KPL|PKT|PS|RS|TLK|PL|PRK|PARI|KG|KIMPPUA)$/i.test(b.text)&&b.left>=euro.left-.015&&b.left<right+.16&&b.top>euro.top&&b.top<euro.top+euro.height+.035);
-  const saleUnit=units.sort((a,b)=>distance(a,{left:right,top:euro.top+euro.height*.6})-distance(b,{left:right,top:euro.top+euro.height*.6}))[0];
+  // A promotion unit belongs to the price only when it is visually adjacent.
+  // The former .16-wide search could attach a neighbouring card's KPL/PKT,
+  // producing spurious 5-piece promotions for unrelated products.
+  const saleUnit=units.filter(b=>distance(b,{left:right,top:euro.top+euro.height*.6})<.09).sort((a,b)=>distance(a,{left:right,top:euro.top+euro.height*.6})-distance(b,{left:right,top:euro.top+euro.height*.6}))[0];
   if(saleUnit){unit=saleUnit.text.toUpperCase();const q=boxes.filter(b=>/^[2-9]$/.test(b.text)&&b.height<euro.height*.8&&Math.abs(b.left-saleUnit.left)<.04&&b.top<saleUnit.top&&saleUnit.top-b.top<.035).sort((a,b)=>saleUnit.top-a.top-(saleUnit.top-b.top))[0];if(q&&!parts.includes(q)){quantity=Number(q.text);parts.push(q);if(value===null)value=Number(euro.text)}}
   if(value===null)continue;
   prices.push({value,quantity,unit,parts,anchor:euro});
