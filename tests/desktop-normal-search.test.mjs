@@ -340,7 +340,7 @@ test("K store search preserves numeric store ID exactly", async () => {
 test("desktop comparison exact EAN matcher accepts nested provider product identifiers", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
   assert.match(page, /p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode/);
-  assert.match(page, /byEan\.filter\(\(p:any\)=>String\(p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode/);
+  assert.match(page, /chosen=normalized\.find\(\(p:any\)=>normalizeEan\(String\(p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode/);
 });
 
 test("S/K search prefers internal API store ID over external ID", async () => {
@@ -602,14 +602,15 @@ test("weight-label basket items are excluded from desktop price comparison", () 
 
 test("comparison never substitutes a different EAN when an exact barcode exists", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /exact=ean\?products\.filter/);
-  assert.match(page, /exact=byEan\.filter/);
+  assert.match(page, /chosen=normalized\.find/);
+  assert.match(page, /const batches=await Promise\.all\(terms\.map/);
+  assert.match(page, /if\(!chosen&&hasKnownProductFamily\(title\)\)/);
   assert.match(page, /const candidates=exact\.length>0\?exact:products/);
   assert.match(page, /const chosen=exact\.length>0\?pricedCandidates/);
 });
 test("name-based comparison checks product attributes before choosing substitute", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /pricedCandidates\.filter\(\(p:any\)=>isComparisonAttributeCompatible\(title,p\.name\)\)/);
+  assert.match(page, /normalized\.filter\(\(p:any\)=>productGroupGate\(title,String\(p\.name\?\?""\)\)&&isComparisonAttributeCompatible\(title,String\(p\.name\?\?""\)\)\)/);
 });
 
 test("mobile shared comparison attribute gate rejects different package sizes and milk types", () => {
