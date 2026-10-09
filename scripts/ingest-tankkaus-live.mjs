@@ -48,14 +48,13 @@ const distanceKm = (a,b) => {
   return 6371*2*Math.asin(Math.min(1,Math.sqrt(h)));
 };
 const stations = new Map();
-const excludedChains = new Set(["teboil", "teboil express"]);
 let excludedStations = 0;
 for (const v of stationRows) {
   const id=Number(v?.id ?? v?.station_id), latitude=Number(v?.latitude ?? v?.lat), longitude=Number(v?.longitude ?? v?.lon);
   if (!Number.isSafeInteger(id)||id<=0||!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180) continue;
   const s={id,name:String(v?.name??""),chain:v?.chain?.name?String(v.chain.name):(typeof v?.chain==="string"?v.chain:null),address:v?.address?String(v.address):null,latitude,longitude,distanceKm:distanceKm({latitude:lat,longitude:lon},{latitude,longitude})};
   if (!s.name || s.distanceKm>10) continue;
-  if (excludedChains.has((s.chain ?? "").trim().toLowerCase()) || /^teboil(?:\s|$)/i.test(s.name)) { excludedStations++; continue; }
+  if (/\bteboil\b/i.test(String(s.chain ?? "") + " " + s.name)) { excludedStations++; continue; }
   const prev=stations.get(id);
   if (prev && (prev.latitude!==s.latitude||prev.longitude!==s.longitude)) throw new Error("Conflicting station coordinates");
   stations.set(id,s);
