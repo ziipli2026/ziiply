@@ -277,3 +277,27 @@ test("nested direct product price honors nested selected-store identity", () => 
   assert.equal(right.__priceVerified, true);
   assert.equal(right.__price, 2.22);
 });
+
+test("unmatched multi-store rows cannot fall back to generic direct price", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    price: 0.89,
+    storeItems: [
+      { storeId: "other-a", price: 0.89 },
+      { storeId: "other-b", price: 0.95 }
+    ]
+  }], "S", store);
+  assert.equal(item.__price, 0);
+  assert.equal(item.__priceVerified, false);
+});
+
+test("matching store row wins over generic direct price", () => {
+  const [item] = normalizeDesktopNormalResults([{
+    price: 0.89,
+    storeItems: [
+      { storeId: "other", price: 0.89 },
+      { storeId: "123", price: 1.15 }
+    ]
+  }], "K", store);
+  assert.equal(item.__price, 1.15);
+  assert.equal(item.__priceVerified, true);
+});
