@@ -607,3 +607,16 @@ test("name-based comparison checks product attributes before choosing substitute
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
   assert.match(page, /pricedCandidates\.filter\(\(p:any\)=>isComparisonAttributeCompatible\(title,p\.name\)\)/);
 });
+
+test("mobile shared comparison attribute gate rejects different package sizes and milk types", () => {
+  const core = readFileSync(new URL("../src/app/components/ziiply/ziiplyCore.ts", import.meta.url), "utf8");
+  const start = core.indexOf("function isComparisonAttributeCompatible(");
+  const end = core.indexOf("export function pickCheapestCompatibleComparisonProduct", start);
+  assert.ok(start >= 0 && end > start);
+  const gate = core.slice(start, end);
+  assert.match(gate, /parseMetricSize\(sourceName\)/);
+  assert.match(gate, /parseMetricSize\(candidateName\)/);
+  assert.match(gate, /sourceSize\.amount !== candidateSize\.amount/);
+  assert.match(gate, /sourceSize\.unitGroup !== candidateSize\.unitGroup/);
+  assert.match(gate, /sourceGroup && group\(candidate\) !== sourceGroup/);
+});
