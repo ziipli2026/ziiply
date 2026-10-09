@@ -161,6 +161,18 @@ export default function DesktopPreviewPage() {
   const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
   const desktopCompareCacheRef=useRef<Record<string,{matches:Record<string,Record<string,number>>;expiresAt:number}>>({});
   useEffect(()=>{
+    try{
+      const saved=JSON.parse(window.sessionStorage.getItem("ziiply-desktop-comparison-v1")||"{}");
+      if(saved&&typeof saved==="object"){
+        for(const [key,value] of Object.entries(saved)){
+          const entry=value as {matches?:Record<string,Record<string,number>>;expiresAt?:number};
+          if(entry&&typeof entry.expiresAt==="number"&&entry.expiresAt>Date.now()&&entry.matches&&typeof entry.matches==="object")
+            desktopCompareCacheRef.current[key]={matches:entry.matches,expiresAt:entry.expiresAt};
+        }
+      }
+    }catch{}
+  },[]);
+  useEffect(()=>{
     if(!desktopCompareNotice)return;
     let cancelled=false;
     const signature=desktopCompareSignature;
@@ -217,7 +229,13 @@ export default function DesktopPreviewPage() {
           }));
         }
       }
-      if(!cancelled){if(!searchFailed)desktopCompareCacheRef.current[signature]={matches,expiresAt:Date.now()+5*60*1000};setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
+      if(!cancelled){if(!searchFailed){
+        desktopCompareCacheRef.current[signature]={matches,expiresAt:Date.now()+5*60*1000};
+        try{
+          const valid=Object.fromEntries(Object.entries(desktopCompareCacheRef.current).filter(([,entry])=>entry.expiresAt>Date.now()));
+          window.sessionStorage.setItem("ziiply-desktop-comparison-v1",JSON.stringify(valid));
+        }catch{}
+      }setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
     })();
     return()=>{cancelled=true};
   // Only rerun when basket/store identity changes or the comparison is reopened.
