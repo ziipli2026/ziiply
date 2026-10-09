@@ -116,3 +116,17 @@ test("desktop cache initializes empty rows for selected stores with no matches",
     { "S:store-1": { "ean:111": 2.49 }, "K:store-2": {} }
   );
 });
+test("desktop comparison opens only with two selected stores and comparable normal-price rows", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /const eligibleCount=cartItems\.filter\(\(item:any\)=>item\.source===["']justiina["']&&item\.ziiplyWeightLabel!==true&&item\.product\?\.ziiplyWeightLabel!==true\)\.length/);
+  assert.match(desktop, /if\(eligibleCount===0\)\{flashCartNotice\(["']Lisää ensin Justiinan normaalihintahaun tuote koriin/);
+});
+
+test("desktop comparison preserves verified partial prices when an individual product lookup fails", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /catch\{lookupHadErrors=true;\}/);
+  assert.match(desktop, /if\(!lookupHadErrors&&validatedMatches\)/);
+  assert.match(desktop, /setDesktopCompareMatches\(validatedMatches\?\?matches\)/);
+  assert.match(desktop, /setDesktopCompareSearchWarning\(lookupHadErrors\)/);
+  assert.doesNotMatch(desktop, /setDesktopCompareMatches\(searchFailed\?\{\}:matches\)/);
+});
