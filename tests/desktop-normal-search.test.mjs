@@ -691,3 +691,10 @@ test("comparison cache rejects legacy barcode-only prices after row-key migratio
   assert.equal(sanitize({ "K:200": { [key(item)]: 1.48 } }, ["K:100"], eligible), null);
   assert.deepEqual(sanitize({ "K:100": { [key(item)]: 1.48 } }, ["K:100"], eligible), { "K:100": { [key(item)]: 1.48 } });
 });
+
+test("desktop shared basket does not silently replace explicit zero quantity with one", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /Number\(p\.quantity \?\? 1\)\+" × "/);
+  assert.doesNotMatch(page, /Number\(p\.quantity\|\|1\)\+" × "/);
+  assert.equal(Number(0 ?? 1), 0);
+});
