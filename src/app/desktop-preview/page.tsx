@@ -582,19 +582,19 @@ export default function DesktopPreviewPage() {
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 {desktopCompareNotice&&<div className="fixed inset-0 z-[140] flex items-center justify-center bg-[#172e23]/65 p-3 sm:p-5" role="presentation">
-  <section role="dialog" aria-modal="true" aria-labelledby="desktop-comparison-title" className="flex max-h-[min(820px,calc(100dvh-32px))] w-full max-w-[760px] flex-col overflow-hidden rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] shadow-2xl">
+  <section role="dialog" aria-modal="true" aria-labelledby="desktop-comparison-title" className="flex max-h-[min(900px,calc(100dvh-32px))] w-full max-w-[1280px] flex-col overflow-hidden rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] shadow-2xl">
     <header className="flex shrink-0 items-start justify-between gap-4 border-b-2 border-[#d8bb7c] px-4 py-4 sm:px-6">
       <div><p className="text-xs font-black uppercase tracking-[.15em] text-[#806742]">Ziiply · Ostoskorin vertailu</p><h2 id="desktop-comparison-title" className="font-serif text-[clamp(24px,2.2vw,34px)] font-black italic text-[#174c3a]">Halpuusvertailu</h2><p className="mt-1 text-sm text-[#59482f]">Valittujen kauppojen normaalihinnat · Justiinan tuotteet</p></div>
       <button type="button" onClick={()=>setDesktopCompareNotice(false)} aria-label="Sulje vertailu" className="shrink-0 rounded-full border-2 border-[#caa764] bg-[#fffaf0] px-4 py-2 text-xl font-bold text-[#283c34]">×</button>
     </header>
-    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
-      {desktopCompareLoading&&<p role="status" className="rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm font-bold text-[#174c3a]">Haetaan vahvistettuja kauppakohtaisia hintoja…</p>}
-      {!desktopCompareLoading&&desktopCompareResolvedSignature!==desktopCompareSignature&&<p role="status" className="rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm">Vertailutuloksia päivitetään. Aiemman kauppavalinnan hintoja ei näytetä.</p>}
+    <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-3 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 md:grid-cols-2">
+      {desktopCompareLoading&&<p role="status" className="col-span-full rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm font-bold text-[#174c3a]">Haetaan vahvistettuja kauppakohtaisia hintoja…</p>}
+      {!desktopCompareLoading&&desktopCompareResolvedSignature!==desktopCompareSignature&&<p role="status" className="col-span-full rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm">Vertailutuloksia päivitetään. Aiemman kauppavalinnan hintoja ei näytetä.</p>}
       {desktopCompareResults.map(result=>{
         const resolved=!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature;
         const complete=resolved&&result.foundItems>0&&result.missingItems===0&&Number.isFinite(result.totalPrice)&&result.totalPrice>0;
         const best=complete&&desktopCompareBestPrice!==null&&Math.abs(result.totalPrice-desktopCompareBestPrice)<0.005;
-        return <article key={result.chain+":"+result.storeId} className={`rounded-[17px] border-2 p-4 shadow-sm ${best?"border-[#237449] bg-[#e6f4df]":"border-[#d5b77a] bg-[#fffaf0]"}`}>
+        return <article key={result.chain+":"+result.storeId} className={`flex min-h-[190px] flex-col justify-between rounded-[17px] border-2 p-4 shadow-sm ${best?"border-[#237449] bg-[#e6f4df]":"border-[#d5b77a] bg-[#fffaf0]"}`}>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0 flex-1"><h3 className="break-words text-[clamp(17px,1.5vw,22px)] font-black text-[#182f2b]">{result.storeName}</h3><p className="mt-1 text-sm text-[#63563f]">{resolved?`${result.foundItems} löytyi · ${result.missingItems} puuttuu`:"Tarkistetaan tuotteita…"}</p></div>
             <div className="text-right"><div className="text-[clamp(19px,1.8vw,27px)] font-black tabular-nums text-[#174c3a]">{complete?result.totalPrice.toFixed(2).replace(".",",")+" €":"—"}</div>{best&&<div className="text-sm font-black text-[#17633d]">Paras vahvistettu hinta</div>}{complete&&!best&&desktopCompareBestPrice!==null&&<div className="text-sm font-bold text-[#80623b]">+{(result.totalPrice-desktopCompareBestPrice).toFixed(2).replace(".",",")} € kalliimpi</div>}</div>
@@ -603,9 +603,9 @@ export default function DesktopPreviewPage() {
           {complete&&desktopCompareBestPrice===null&&<p className="mt-2 text-sm text-[#63563f]">Vahvistettu kokonaishinta. Hintajärjestys edellyttää vähintään kahta täydellistä ostoskoria.</p>}
         </article>;
       })}
-      {!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&desktopCompareComplete.length===0&&<p className="rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm font-bold text-[#805337]">Yhtään täydellistä ostoskoria ei löytynyt. Voittajaa ei valita.</p>}
-      {!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&desktopCompareComplete.length===1&&<p className="rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm text-[#63563f]">Vain yksi täydellinen ostoskori löytyi. Kauppojen välistä hintaeroa ei voida vahvistaa.</p>}
-      <p className="text-xs leading-relaxed text-[#806742]">Vertailu käyttää vahvistettuja paikallisia normaalihintoja ja tuotevastineiden tarkistuksia. Puuttuville tuotteille ei arvioida hintaa. Muiden kuin S- ja K-ketjujen hintakattavuus on vielä rajallinen.</p>
+      {!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&desktopCompareComplete.length===0&&<p className="col-span-full rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm font-bold text-[#805337]">Yhtään täydellistä ostoskoria ei löytynyt. Voittajaa ei valita.</p>}
+      {!desktopCompareLoading&&desktopCompareResolvedSignature===desktopCompareSignature&&desktopCompareComplete.length===1&&<p className="col-span-full rounded-xl border border-[#d9be85] bg-white/60 p-3 text-sm text-[#63563f]">Vain yksi täydellinen ostoskori löytyi. Kauppojen välistä hintaeroa ei voida vahvistaa.</p>}
+      <p className="col-span-full text-xs leading-relaxed text-[#806742]">Vertailu käyttää vahvistettuja paikallisia normaalihintoja ja tuotevastineiden tarkistuksia. Puuttuville tuotteille ei arvioida hintaa. Muiden kuin S- ja K-ketjujen hintakattavuus on vielä rajallinen.</p>
     </div>
     <footer className="flex shrink-0 flex-wrap justify-end gap-2 border-t-2 border-[#d8bb7c] bg-[#f8e9c5] px-4 py-3 sm:px-6">
       <button type="button" onClick={()=>{setDesktopCompareNotice(false);setCartOpen(true)}} className="rounded-xl border-2 border-[#ad8650] bg-[#fffaf0] px-5 py-2 font-black text-[#243d34]">Paluu koriin</button>
