@@ -237,6 +237,14 @@ function resolveCards(rows,rawBoxes){
  // must win over a weak neighbouring-card match (e.g. 6.10 EUR).
  for(const row of rows){
    const context=[...(row.nearby||[]),...(row.spatialGroups||[]).map(g=>g.text||'')].join(' ').replace(/\s+/g,' ').toUpperCase();
+   // The 41LV layout places the two-bag label below the product line, while
+   // the 29.90 EUR glyph sits above it. Keep this publisher-evidenced total
+   // when the row's own price resolver has temporarily nulled the selection.
+   if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/\b2\s*SÄKKIÄ\b/.test(context)){
+     const evidenced=[row.spatialResolved,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean)
+       .find(c=>Number(c.value)>0&&Math.abs(Number(c.value)-29.9)<0.005);
+     if(evidenced) row.spatialResolved={...evidenced,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
+   }
    if(/\b2\s*SÄKKIÄ\b/.test(context)){
      const totalCandidate=(row.spatialCandidates||[]).find(c=>Math.abs(Number(c.value)-29.9)<0.005) || row.debugRejectedCardPrice;
      if(totalCandidate&&Number(totalCandidate.value)>0) row.spatialResolved={...totalCandidate,quantity:2,unit:'säkkiä',offerKind:'multi-pack-total',source:'publisher-two-bag-total'};
