@@ -88,7 +88,8 @@ export async function GET(request: NextRequest) {
         LIMIT 1
       ) p ON TRUE
       WHERE s.source = 'tankkaus.com'
-        AND lower(coalesce(s.chain, '')) NOT IN ('teboil', 'teboil express')
+        AND lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
+        AND lower(coalesce(s.name, '')) NOT LIKE '%teboil%'
         AND s.is_traffic_station = TRUE
         AND s.latitude BETWEEN ${latitude - 0.25} AND ${latitude + 0.25}
         AND s.longitude BETWEEN ${longitude - 0.35} AND ${longitude + 0.35}
