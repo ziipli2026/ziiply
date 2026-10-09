@@ -571,7 +571,35 @@ export default function DesktopPreviewPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[justiinaQuery,workspace]);
 
-  async function loadIndependentStores(search:string, coords?:{latitude:number;longitude:number}) { const lp=new URLSearchParams(); /* Fetch the full Lidl store list for the desktop picker; local search must not restrict selectable stores. */ try{const r=await fetch(`/api/lidl/store-search?${lp}`,{cache:"no-store"});const d=await r.json();setLidlStores(Array.isArray(d?.items)?d.items:[])}catch{setLidlStores([])} const sp=new URLSearchParams(); if(search)sp.set("search",search);if(coords){sp.set("lat",String(coords.latitude));sp.set("lon",String(coords.longitude))} try{const r=await fetch(`/api/eurospar-stores?${sp}`,{cache:"no-store"});const d=await r.json();setSparStores(Array.isArray(d?.items)?d.items:[])}catch{setSparStores([])} }
+  const independentStoresRequestRef = useRef(0);
+  async function loadIndependentStores(search:string, coords?:{latitude:number;longitude:number}) {
+    // GPS lookup and the initial no-GPS directory lookup can overlap on mount.
+    // Only the newest request may update the visible store lists; otherwise a
+    // slower empty initial response can erase the GPS-ranked Tokmanni/Spar list.
+    const requestId = ++independentStoresRequestRef.current;
+    const lp = new URLSearchParams();
+    /* Fetch the full Lidl store list for the desktop picker; local search must not restrict selectable stores. */
+    try {
+      const response = await fetch(`/api/lidl/store-search?${lp}`, {cache:"no-store"});
+      const data = await response.json();
+      if (requestId === independentStoresRequestRef.current) setLidlStores(Array.isArray(data?.items) ? data.items : []);
+    } catch {
+      if (requestId === independentStoresRequestRef.current) setLidlStores([]);
+    }
+    const sp = new URLSearchParams();
+    if (search) sp.set("search", search);
+    if (coords) {
+      sp.set("lat", String(coords.latitude));
+      sp.set("lon", String(coords.longitude));
+    }
+    try {
+      const response = await fetch(`/api/eurospar-stores?${sp}`, {cache:"no-store"});
+      const data = await response.json();
+      if (requestId === independentStoresRequestRef.current) setSparStores(Array.isArray(data?.items) ? data.items : []);
+    } catch {
+      if (requestId === independentStoresRequestRef.current) setSparStores([]);
+    }
+  }
 
   function useGps() {
     if (!navigator.geolocation) {
