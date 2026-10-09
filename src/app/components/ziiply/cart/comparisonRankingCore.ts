@@ -15,8 +15,9 @@ export function rankComparisonResults<T extends RankedComparisonResult>(results:
     if (!aComplete && bComplete) return 1;
     if (!aComplete && !bComplete && a.foundItems !== b.foundItems)
       return b.foundItems - a.foundItems;
-    if (a.totalPrice === 0) return 1;
-    if (b.totalPrice === 0) return -1;
-    return a.totalPrice - b.totalPrice;
+    const aPrice = Number.isFinite(a.totalPrice) && a.totalPrice > 0 ? a.totalPrice : Number.POSITIVE_INFINITY;
+    const bPrice = Number.isFinite(b.totalPrice) && b.totalPrice > 0 ? b.totalPrice : Number.POSITIVE_INFINITY;
+    if (aPrice === bPrice) return 0;
+    return aPrice < bPrice ? -1 : 1;
   });
 }
