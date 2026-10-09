@@ -82,6 +82,13 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Normalize Finnish inflections using stems; keep these ahead of broad
+  // household/food matches so leaflet variants classify consistently.
+  if(/pyykkietik|puhdistuspyyh|tahranpoist|huuhteluaine|astianpesu|konetiski|pesuaine/.test(s)) return "Kodinhoito";
+  if(/proteiinivaah|proteiinipirtel/.test(s)) return "Maitotuotteet";
+  if(/vanulap|vanupuik|puuvillalap/.test(s)) return "Hygienia & kosmetiikka";
+  if(/tee\b|twinings|vihreät teet/.test(s)) return "Kahvi & tee";
+  if(/maksalaatik/.test(s)) return "Valmisruoka";
   // Explicit hygiene and beverages precede substrings in compound words.
   if(/ihonhoito|pesulappu|ruokalappu|vuodesuoja/.test(s)) return "Hygienia & kosmetiikka";
   if(/välipalajuoma/.test(s)) return "Juomat";
