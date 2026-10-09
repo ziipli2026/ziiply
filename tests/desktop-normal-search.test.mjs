@@ -497,3 +497,21 @@ test("desktop comparison cache rejects expired and old-version entries", () => {
   assert.match(page, /cached\.expiresAt>Date\.now\(\)/);
   assert.match(page, /desktopCompareResolvedSignature===desktopCompareSignature/);
 });
+
+test("comparison cache rejects foreign store, foreign item and invalid prices", async () => {
+  const source = readFileSync(new URL("../src/app/components/ziiply/cart/desktopComparisonCacheCore.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { sanitizeDesktopComparisonMatches: clean } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+  const stores = ["S:417"], items = ["ean:6410405124517"];
+  assert.deepEqual(clean({ "S:417": { "ean:6410405124517": 1.48 } }, stores, items), { "S:417": { "ean:6410405124517": 1.48 } });
+  assert.equal(clean({ "S:999": {} }, stores, items), null);
+  assert.equal(clean({ "S:417": { "ean:other": 1.48 } }, stores, items), null);
+  for (const price of [0, -1, NaN, Infinity, "1.48"]) {
+    assert.equal(clean({ "S:417": { "ean:6410405124517": price } }, stores, items), null);
+  }
+});
+
+test("desktop page sanitizes cached quotes before reuse", () => {
+  const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /sanitizeDesktopComparisonMatches\(cached\.matches,selectedKeys,eligibleKeys\)/);
+});
