@@ -1188,8 +1188,15 @@ if(anchor){
   };
   const badgeCandidates=wordBoxes.filter(inCard).map(b=>{
     const raw=String(b.text||"").trim().replace(/[-.]$/,"");
-    const value=Number(raw);
-    return {value,b,area:Number(b.height||0),distance:boxDistance(anchor,b)};
+    const value=Number(raw), area=Number(b.height||0), x=Number(b.left)||0, y=Number(b.top)||0;
+    // A cents glyph immediately to the right of the large euro glyph is part of the price
+    // (e.g. 5 + 50 => 5.50), not a separate candidate.
+    const cents=wordBoxes.filter(z=>{
+      const t=String(z.text||"").trim(),zx=Number(z.left)||0,zy=Number(z.top)||0,zh=Number(z.height)||0;
+      return /^\\d{2}$/.test(t)&&Number(t)<100&&zh>=.035&&zx>x&&zx<x+.15&&Math.abs(zy-y)<.06;
+    }).sort((a,b)=>(Number(a.left)||0)-(Number(b.left)||0))[0];
+    const combined=cents?Number(value+"."+String(cents.text).trim()):value;
+    return {value:combined,b,area,distance:boxDistance(anchor,b),hasCents:Boolean(cents)};
   }).filter(x=>Number.isFinite(x.value)&&x.value>=1&&x.value<30)
     .sort((a,b)=>b.area-a.area||a.distance-b.distance);
   const best=badgeCandidates[0];
@@ -1197,8 +1204,11 @@ if(anchor){
   const unambiguous=best&&(!second||best.area>=second.area*1.25||Math.abs(best.value-second.value)<.005);
   const cur=Number(spatialResolved?.value);
   const badFragment=Number.isFinite(cur)&&cur>=20;
-  const badMulti=Number(spatialResolved?.quantity||0)>=2&&best&&Math.abs(cur-best.value)>Math.max(2,best.value*.8);
-  if(unambiguous&&best.area>=.085&&(badFragment||badMulti||!spatialResolved)){
+  // When a product row carries a multi-buy quantity, a large same-card price badge
+  // outranks a small OCR fragment such as the leading "2" in "2 KPL".
+  const badMulti=Number(spatialResolved?.quantity||0)>=2&&best&&Math.abs(cur-best.value)>.05;
+  const weakCandidate=!spatialResolved||spatialResolved.sanity==="review"||["best-spatial-candidate","large-visual-price","same-card-right-whole-euro-badge"].includes(spatialResolved.source);
+  if(unambiguous&&best.area>=.085&&(badFragment||badMulti||weakCandidate)){
     spatialResolved={value:best.value,quantity:null,unit:null,source:"final-card-large-sale-glyph",sanity:"pass",confidence:"medium"};
   }
 }
