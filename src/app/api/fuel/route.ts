@@ -35,7 +35,7 @@ function normalizeCandidate(raw: any, requestedFuel: string, userLat: number, us
   const longitude = numberOrNull(raw.longitude ?? raw.lon ?? raw.lng);
   const observedAt = raw.observedAt ?? raw.updatedAt ?? raw.timestamp ?? raw.date ?? null;
 
-  if (!station || price == null || price <= 0 || price > 5) return null;
+  if (!station || /\bteboil\b/i.test(station) || /\bteboil\b/i.test(String(raw.chain ?? raw.brand ?? raw.operator ?? "")) || price == null || price <= 0 || price > 5) return null;
 
   const distanceKm =
     latitude != null && longitude != null
