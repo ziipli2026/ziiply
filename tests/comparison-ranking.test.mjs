@@ -39,3 +39,16 @@ test("input array is never mutated", () => {
   rankComparisonResults(original);
   assert.deepEqual(original.map(x => x.store), ["expensive", "cheap"]);
 });
+
+test("complete equal-price baskets retain deterministic input order", () => {
+  const result = rankComparisonResults([row("A", 3, 0, 12.45), row("B", 3, 0, 12.45)]);
+  assert.deepEqual(result.map(x => x.store), ["A", "B"]);
+});
+test("complete basket wins even if incomplete basket has lower apparent total", () => {
+  const result = rankComparisonResults([row("partial", 4, 1, 1.99), row("complete", 5, 0, 24.99)]);
+  assert.deepEqual(result.map(x => x.store), ["complete", "partial"]);
+});
+test("coming-soon basket cannot win even with more matched products", () => {
+  const result = rankComparisonResults([row("future", 10, 0, 1, true), row("current", 1, 4, 12)]);
+  assert.equal(result[0].store, "current");
+});
