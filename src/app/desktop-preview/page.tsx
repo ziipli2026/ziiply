@@ -538,7 +538,7 @@ export default function DesktopPreviewPage() {
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
-              ["⛽", "AJOAINE", "—", "€/l", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
+              ["⛽", "AJOAINE", "DI 2,51", "BE 2,33 / 2,41", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
               <div key={title} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition hover:-translate-y-0.5`}>
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
