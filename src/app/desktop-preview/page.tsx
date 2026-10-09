@@ -23,18 +23,33 @@ function FuelStationCardDetails({ chain, station }: { chain: string; station: an
 }
 
 function FuelStationBackdrop({ chain }: { chain: "Neste" | "ABC" | "St1" | "SEO" | "Muut" }) {
-  const accent = { Neste: "#407b72", ABC: "#176d47", St1: "#bd3434", SEO: "#407b38", Muut: "#b58a43" }[chain];
-  const roof = chain === "ABC" ? "M-10 43 L48 19 L265 19 L330 43" : chain === "Neste" ? "M-10 39 L45 12 L275 12 L330 39" : chain === "St1" ? "M-10 43 L52 24 L268 24 L330 43" : chain === "SEO" ? "M-10 40 L160 12 L330 40" : "M-10 41 L160 17 L330 41";
-  return <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] overflow-hidden opacity-60">
-    <svg viewBox="0 0 320 100" preserveAspectRatio="none" className="h-full w-full">
-      <path d="M0 45 H320 V100 H0Z" fill="#e6dcc7"/>
-      <path d={roof} stroke={accent} strokeWidth={chain === "ABC" ? 10 : 7} fill="none" strokeLinejoin="round" opacity=".55"/>
-      {chain === "ABC" ? <><path d="M32 32 H288 V43 H32Z" fill="#f0e6cd"/><path d="M40 43 V93 M280 43 V93" stroke="#b2a48d" strokeWidth="6"/><path d="M114 52 H208 V91 H114Z" fill="#d6ddcf"/><path d="M132 56 H152 V86 H132Z M168 56 H191 V86 H168Z" fill="#a4b8ad"/></> :
-      chain === "Neste" ? <><path d="M12 38 H308 V47 H12Z" fill="#e5e8e2"/><path d="M16 38 H304" stroke="#327b74" strokeWidth="5"/><path d="M34 47 V94 M286 47 V94" stroke="#a2aaa2" strokeWidth="6"/><path d="M92 52 H228 V94 H92Z" fill="#e1e8df"/><path d="M92 52 H228 V61 H92Z" fill="#4c9085" opacity=".75"/><path d="M110 66 H144 V90 H110Z M152 66 H185 V90 H152Z M193 66 H215 V90 H193Z" fill="#9fbeb9"/><path d="M47 73 H76 V93 H47Z M244 73 H273 V93 H244Z" fill="#e9ede6" stroke="#648f85" strokeWidth="3"/><path d="M49 73 H74 M246 73 H271" stroke="#43857b" strokeWidth="4"/></> :
-      chain === "St1" ? <><path d="M8 37 H312 V48 H8Z" fill="#e7e3dc"/><path d="M10 37 H310" stroke="#c33c37" strokeWidth="6"/><path d="M30 48 V94 M290 48 V94" stroke="#a8a5a0" strokeWidth="6"/><path d="M92 52 H228 V94 H92Z" fill="#e8e3df"/><path d="M92 52 H228 V61 H92Z" fill="#c6423c" opacity=".75"/><path d="M108 66 H144 V91 H108Z M153 66 H187 V91 H153Z M196 66 H216 V91 H196Z" fill="#aeb7b5"/><path d="M48 73 H75 V93 H48Z M245 73 H272 V93 H245Z" fill="#ece7e3" stroke="#b76a65" strokeWidth="3"/><path d="M50 73 H73 M247 73 H270" stroke="#c6423c" strokeWidth="4"/></> :
-      chain === "SEO" ? <><path d="M30 43 H290 V54 H30Z" fill="#e6e4ce"/><path d="M48 54 V95 M272 54 V95" stroke="#a9b69b" strokeWidth="6"/><path d="M116 62 H204 V95 H116Z" fill="#d9dfce"/><path d="M130 66 H155 V90 H130Z M167 66 H191 V90 H167Z" fill="#acbea8"/></> :
-      <><path d="M28 46 H292 V56 H28Z" fill="#e8dfca"/><path d="M50 56 V94 M270 56 V94" stroke="#b7a889" strokeWidth="6"/><path d="M118 61 H202 V95 H118Z" fill="#e1ddcd"/><path d="M132 66 H157 V90 H132Z M166 66 H191 V90 H166Z" fill="#b8bcb1"/></>}
-      <path d="M8 94 H312" stroke="#b8aa8c" strokeWidth="4" opacity=".6"/>
+  const palette = {
+    Neste: { trim:"#258e8a", dark:"#176a70", wall:"#d6e5e0", glass:"#8ebbb9", glow:"#b7e4d8" },
+    ABC: { trim:"#16834d", dark:"#075f3a", wall:"#e5e6d9", glass:"#a3c8b5", glow:"#c5e4b5" },
+    St1: { trim:"#d62c36", dark:"#a6222e", wall:"#e5e4e2", glass:"#aebfc6", glow:"#f4c8bf" },
+    SEO: { trim:"#377b42", dark:"#245b34", wall:"#e7e4d5", glass:"#a9bcb0", glow:"#d3e2ba" },
+    Muut: { trim:"#b48a48", dark:"#826534", wall:"#e5dfcf", glass:"#b8c4bf", glow:"#eee0b8" },
+  }[chain];
+  const largeShop = chain === "ABC" || chain === "Neste" || chain === "St1";
+  return <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[67%] overflow-hidden opacity-[.58]">
+    <svg viewBox="0 0 440 160" preserveAspectRatio="xMidYMax slice" className="h-full w-full">
+      <defs>
+        <linearGradient id={`fuel-glass-${chain}`} x1="0" y1="0" x2="0" y2="1"><stop stopColor="#eaf5ef"/><stop offset=".42" stopColor={palette.glass}/><stop offset="1" stopColor="#667f82"/></linearGradient>
+        <linearGradient id={`fuel-canopy-${chain}`} x1="0" y1="0" x2="0" y2="1"><stop stopColor="#fff9e7"/><stop offset=".42" stopColor={palette.trim}/><stop offset="1" stopColor={palette.dark}/></linearGradient>
+      </defs>
+      <path d="M0 151 H440 V160 H0Z" fill="#b9b09b" opacity=".4"/>
+      <path d="M80 61 L104 45 H345 L367 61 V150 H80Z" fill={palette.wall} stroke="#a79d89" strokeWidth="2"/>
+      <path d="M96 58 H351 V69 H96Z" fill={palette.trim} opacity=".82"/>
+      <path d="M104 72 H340 V139 H104Z" fill="#f4f1e8"/>
+      {Array.from({length:largeShop?7:5},(_,i)=><g key={i}><rect x={111+i*(largeShop?32:43)} y="76" width={largeShop?26:35} height="51" rx="2" fill={`url(#fuel-glass-${chain})`} stroke="#c4d0c7" strokeWidth="1.4"/><path d={`M${124+i*(largeShop?32:43)} 77 V127`} stroke="#f8faf4" strokeWidth="2" opacity=".7"/></g>)}
+      <path d="M105 135 H341 V146 H105Z" fill="#b8b8a6"/>
+      <path d="M0 63 L42 39 H395 L440 63 V81 H0Z" fill={`url(#fuel-canopy-${chain})`} stroke={palette.dark} strokeWidth="2.5"/>
+      <path d="M8 60 H432" stroke="#f5f4e7" strokeWidth="5" opacity=".8"/>
+      <path d="M23 81 V153 M415 81 V153" stroke="#a8aca2" strokeWidth="8"/>
+      <path d="M23 82 V150 M415 82 V150" stroke="#f5f5e9" strokeWidth="2.5"/>
+      <path d="M14 87 H427" stroke={palette.glow} strokeWidth="3" opacity=".75"/>
+      {[48,383].map((x)=><g key={x}><rect x={x-13} y="109" width="26" height="41" rx="3" fill="#dce4df" stroke={palette.dark} strokeWidth="2"/><rect x={x-9} y="114" width="18" height="14" rx="2" fill={palette.glass}/><path d={`M${x-9} 135 H${x+9}`} stroke={palette.trim} strokeWidth="4"/><path d={`M${x+13} 116 Q${x+24} 115 ${x+23} 128 V143`} fill="none" stroke="#545b58" strokeWidth="3"/></g>)}
+      <path d="M10 153 H430" stroke="#9a9988" strokeWidth="2" opacity=".6"/>
     </svg>
   </div>;
 }
