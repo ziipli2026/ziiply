@@ -56,9 +56,9 @@ test("S and K searches pass selected store identifier to the API", async () => {
   try {
     await fetchDesktopNormalProducts("kahvi", "S", { id: "S-123", name: "Prisma" });
     await fetchDesktopNormalProducts("kahvi", "K", { externalId: "K-456", name: "Citymarket" });
-    assert.match(requests[0].url, /^\\/api\\/s-products\\?/);
+    assert.equal(new URL(requests[0].url, "https://example.test").pathname, "/api/s-products");
     assert.equal(new URL(requests[0].url, "https://example.test").searchParams.get("store"), "S-123");
-    assert.match(requests[1].url, /^\\/api\\/k-products\\?/);
+    assert.equal(new URL(requests[1].url, "https://example.test").pathname, "/api/k-products");
     assert.equal(new URL(requests[1].url, "https://example.test").searchParams.get("store"), "K-456");
     assert.equal(requests[0].options.cache, "no-store");
   } finally {
