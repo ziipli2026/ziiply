@@ -107,10 +107,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ok: false, found: false, reason: "no_fresh_prices" }, { status: 404 });
     }
 
+    const ageHours = Math.max(0, (Date.now() - new Date(best.observedAt).getTime()) / (60 * 60 * 1000));
+    const freshness = ageHours <= 24 ? "fresh" : "stale";
+
     return NextResponse.json({
       ok: true,
       source: "tankkaus.com",
-      freshness: "fresh",
+      freshness,
+      ageHours: Math.round(ageHours * 10) / 10,
       item: {
         station: best.station,
         chain: best.chain,
