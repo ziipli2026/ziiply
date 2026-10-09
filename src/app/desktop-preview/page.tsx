@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
@@ -299,6 +300,33 @@ export default function DesktopPreviewPage() {
     return sourceVolume!==null&&candidateVolume===sourceVolume;
   }
 
+  // Use the same query expansion and ranking as the mobile comparison.
+  async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean){
+    const normalizedEan=normalizeEan(ean);
+    const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name)),name].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,12);
+    const responses=await Promise.all(queries.map(async search=>{
+      try{
+        const params=new URLSearchParams({search,store:String(store.externalId||store.id)});
+        if(isS)params.set("storeName",String(store.name||""));
+        const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
+        if(!response.ok)return [];
+        const data=await response.json();
+        const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+        return products.map((p:any)=>({
+          ...p,
+          name:String(p.name||p.title||"").trim(),
+          ean:String(p.ean||p.gtin||p.barcode||""),
+          price:isS&&data?.source==="s-kaupat-normal-v220"?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100):Number(p.price??p.storeItems?.[0]?.price??0)
+        })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
+      }catch{return []}
+    }));
+    return responses.flat();
+  }
+  function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
+    const best=isS?pickBestSProduct(candidates,name,normalizeEan(ean)):pickBestKProduct(candidates,name,normalizeEan(ean));
+    return best||null;
+  }
+
   async function openDesktopComparison(){
     const requestIdentity=desktopCompareIdentity;
     const runId=++desktopCompareRunId.current;
@@ -357,26 +385,12 @@ export default function DesktopPreviewPage() {
         const rows=await Promise.all(eligible.map(async item=>{
           const name=String(item.name||item.title||"").trim();
           const ean=String(item.ean||item.product?.ean||"").trim();
-          const queries=desktopCompareSearchTerms(name);
           try{
-            const responses=(await Promise.allSettled(queries.map(async search=>{
-              const params=new URLSearchParams({search,store:String(store.externalId||store.id)});
-              if(isS)params.set("storeName",String(store.name||""));
-              const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
-              if(!response.ok)throw Error(String(response.status));
-              const data=await response.json();
-              const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
-              return {products,source:String(data?.source||"")};
-            }))).filter((result):result is PromiseFulfilledResult<{products:any[];source:string}>=>result.status==="fulfilled").map(result=>result.value);
-            const all=responses.flatMap(({products,source})=>products.map((product:any)=>({product,source})));
-            const exact=ean?all.find(({product:p})=>[p.ean,p.gtin,p.eanCode,p.barcode,p.product?.ean,p.item?.ean].some(v=>String(v||"").trim()===ean)):null;
-            const normalized=(v:string)=>v.trim().replace(/\s+/g," ").toLocaleLowerCase("fi");
-            const byName=all.find(({product:p})=>normalized(String(p.name||p.title||""))===normalized(name));
-            const byEquivalent=all.find(({product:p})=>desktopCompareCompatibleName(name,String(p.name||p.title||"")));
-            const matched=exact||byName||byEquivalent;
-            const raw=Number((matched?.product?.price??matched?.product?.storeItems?.[0]?.price)??0);
-            const price=matched&&Number.isFinite(raw)&&raw>0?(isS&&matched.source==="s-kaupat-normal-v220"?raw:raw/100):null;
-            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,match:(exact?"ean":byName||byEquivalent?"name":"none") as "ean"|"name"|"none"};
+            const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
+            const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            const price=matched?Number(matched.price)/100:null;
+            const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
+            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none"};
           }catch{return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
@@ -393,19 +407,13 @@ export default function DesktopPreviewPage() {
     const name=String(match?.sourceProductName||match?.name||cartItem?.name||cartItem?.title||"").trim();
     if(!name)return [];
     const store=result.store;const kind=storeKind(store);const isS=kind==="sHyper"||kind==="sLocal";
-    const params=new URLSearchParams({search:name,store:String(store.externalId||store.id)});
-    if(isS)params.set("storeName",String(store.name||""));
     try{
-      const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
-      if(!response.ok)throw new Error("alternative search failed");
-      const data=await response.json();
-      const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
-      const sourceIsEuro=isS&&data?.source==="s-kaupat-normal-v220";
-      const candidates=products.map((product:any,index:number)=>{
-        const raw=Number(product?.price??product?.storeItems?.[0]?.price??0);
-        const priceEuros=raw>0&&Number.isFinite(raw)?(sourceIsEuro?raw:raw/100):null;
-        return {...product,id:String(product?.id||product?.ean||product?.gtin||index),name:String(product?.name||product?.title||"").trim(),price:priceEuros==null?null:Math.round(priceEuros*100),product:{...(product?.product||{}),id:product?.id||product?.ean||index,name:String(product?.name||product?.title||""),ean:String(product?.ean||product?.gtin||product?.barcode||"")},sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false};
-      }).filter((product:any)=>product.name&&Number(product.price)>0);
+      const products=await desktopFindCompareCandidates(name,String(cartItem?.ean||cartItem?.product?.ean||""),store,isS);
+      const candidates=products.filter((product:any)=>productGroupGate(name,product.name)).map((product:any,index:number)=>({
+        ...product,id:String(product.id||product.ean||index),name:product.name,
+        price:Number(product.price),product:{...(product.product||{}),id:product.id||product.ean||index,name:product.name,ean:product.ean},
+        sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false
+      }));
       const originalBrand=name.split(/\\s+/)[0]?.toLocaleLowerCase("fi")||"";
       const ownBrand=isS?/(^|\\s)(coop|xtra|kotimaista)(\\s|$)/i:/(^|\\s)(pirkka|k-menu)(\\s|$)/i;
       let filtered=candidates;
