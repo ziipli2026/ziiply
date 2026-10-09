@@ -45,7 +45,7 @@ export function restoreDesktopCartWithoutStalePrices(raw: unknown): DesktopCartI
   ).map(item => ({
     ...item,
     source: item.source === "justiina" ? "justiina" as const : "gosta" as const,
-    quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
+    quantity: Number.isFinite(Number(item.quantity)) ? Math.max(1, Math.floor(Number(item.quantity))) : 1,
     price: null,
     __price: null,
     __priceVerified: false,
