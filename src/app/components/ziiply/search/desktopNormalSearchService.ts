@@ -88,14 +88,14 @@ export function normalizeDesktopNormalResults(
     const numeric = typeof candidate === "number" ? candidate :
       Number(String(candidate ?? "").replace(",", "."));
     const price = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
-    const localPriceVerified = (chain === "S" || chain === "K") && Boolean(String(store.externalId ?? store.id ?? "").trim()) && price > 0;
+    const localPriceVerified = (chain === "S" || chain === "K") && Boolean(String(store.id ?? store.externalId ?? "").trim()) && price > 0;
     return {
       ...item,
       __chain: chain,
       __store: store.name || chain,
       __price: chain === "LIDL" ? 0 : price,
       __priceVerified: localPriceVerified,
-      __storeId: String(store.externalId ?? store.id ?? ""),
+      __storeId: String(store.id ?? store.externalId ?? ""),
       __catalogOnly: chain === "LIDL" || chain === "TOKMANNI" || chain === "EUROSPAR",
     };
   });
