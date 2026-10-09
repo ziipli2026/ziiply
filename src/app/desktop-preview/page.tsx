@@ -8,6 +8,7 @@ import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, refreshDeskt
 import { desktopCartIdentity, desktopCartSameStore, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 import { rankComparisonResults } from "../components/ziiply/cart/comparisonRankingCore";
+import { isComparisonAttributeCompatible, pickBestSProduct, getProductPrice } from "../components/ziiply/ziiplyCore";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -197,8 +198,16 @@ export default function DesktopPreviewPage() {
                 if(cancelled)return;
                 exact=byEan.filter((p:any)=>String(p.ean??p.barcode??"").trim()===ean);
               }
-              if(exact.length!==1)return;
-              const normalized=normalizeDesktopNormalResults(exact,chain,store,1)[0];
+              // Mobile parity: use its attribute checks and ranked matching when exact EAN is absent.
+              // A substitute is a comparison-only price, never a replacement for the original basket item.
+              const candidates=exact.length===1?exact:products;
+              const chosen=exact.length===1?exact[0]:pickBestSProduct(
+                candidates.filter((p:any)=>isComparisonAttributeCompatible(title,String(p.name??p.title??""))).map((p:any)=>({
+                  ...p,name:String(p.name??p.title??""),price:Number(p.price??p.storeItems?.[0]?.price??p.storeItem?.price??0)
+                })).filter((p:any)=>Number.isFinite(getProductPrice(p))&&getProductPrice(p)>0),title
+              );
+              if(!chosen)return;
+              const normalized=normalizeDesktopNormalResults([chosen],chain,store,1)[0];
               const price=Number(normalized?.__price);
               if(normalized?.__priceVerified&&Number.isFinite(price)&&price>0)
                 matches[key][desktopCartIdentity(item)]=price;
