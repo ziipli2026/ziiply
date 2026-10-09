@@ -80,13 +80,13 @@ export default function ZiiplyDesktopCompareCard({
             {loading && <p role="status" className="mt-2 text-sm font-extrabold text-[#17633c]">Päivitetään kauppakohtaisia hintoja…</p>}
           </header>
 
-          <div className="mt-6 min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
             {stores.length === 0 ? (
               <div className="rounded-[20px] border-2 border-[#c3a675] bg-[#fff8e5]/85 p-8 text-center font-bold text-[#665438]">
                 {loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole vielä saatavilla."}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:content-start">
                 {stores.map((store, index) => {
                   const missing = Math.max(0, Number(store.missingItems || 0));
                   const found = Math.max(0, Number(store.itemCount || 0));
@@ -96,29 +96,29 @@ export default function ZiiplyDesktopCompareCard({
                   const diff = hasPrice && bestPrice !== null ? Number(store.totalPrice) - bestPrice : null;
                   const chain = store.chain === "S" ? "S" : store.chain === "K" ? "K" : "•";
                   return (
-                    <article key={store.id} className={`relative grid grid-cols-[66px_minmax(0,1fr)_minmax(130px,190px)] items-center gap-4 rounded-[25px] border-[3px] px-5 py-4 shadow-[0_4px_8px_rgba(75,53,25,.12)] md:grid-cols-[72px_minmax(0,1fr)_minmax(150px,210px)] ${isBest ? "border-[#086a38] bg-[#e8f0d0]/95" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
-                      <div className={`grid h-[58px] w-[58px] place-items-center rounded-full border-[3px] text-[27px] font-black shadow-sm ${chain === "S" ? "border-[#07572e] bg-[#07883c] text-white" : chain === "K" ? "border-[#85161c] bg-[#cf2028] text-white" : "border-[#8a744b] bg-[#e7d3a8] text-[#5c4627]"}`}>{chain}</div>
+                    <article key={store.id} className={`relative grid grid-cols-[44px_minmax(0,1fr)_minmax(88px,112px)] items-center gap-2 rounded-[20px] border-[3px] px-3 py-3 shadow-[0_4px_8px_rgba(75,53,25,.12)] sm:grid-cols-[50px_minmax(0,1fr)_minmax(96px,120px)] sm:gap-3 sm:px-4 ${isBest ? "border-[#086a38] bg-[#e8f0d0]/95" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
+                      <div className={`grid h-10 w-10 place-items-center rounded-full border-[3px] text-[21px] font-black shadow-sm sm:h-12 sm:w-12 sm:text-[24px] ${chain === "S" ? "border-[#07572e] bg-[#07883c] text-white" : chain === "K" ? "border-[#85161c] bg-[#cf2028] text-white" : "border-[#8a744b] bg-[#e7d3a8] text-[#5c4627]"}`}>{chain}</div>
                       <div className="min-w-0">
-                        <h3 className="truncate text-[clamp(18px,1.8vw,27px)] font-black leading-tight text-[#29271e]">{store.name}</h3>
-                        <p className="mt-1 text-[12px] font-extrabold uppercase tracking-[.08em] text-[#7c725d]">
+                        <h3 className="break-words text-[clamp(15px,1.35vw,21px)] font-black leading-tight text-[#29271e]">{store.name}</h3>
+                        <p className="mt-1 text-[10px] font-extrabold uppercase leading-snug tracking-[.04em] text-[#7c725d] sm:text-[11px]">
                           #{index + 1} · {found} tuotetta löytynyt
                           {missing > 0 ? ` · ${missing} tuotetta puuttuu` : found > 0 ? " · Täysi kori" : " · Ei vahvistettuja hintoja"}
                         </p>
                         {missing > 0 && <p className="mt-1 text-xs font-bold text-[#8b4e35]">Puutteellinen kori – ei verrattavissa täyteen koriin.</p>}
                         <button type="button" onClick={() => setDetailsStoreId(store.id)}
-                          className="mt-2 rounded-[13px] border-[3px] border-[#536b4d] bg-gradient-to-b from-[#fff4d6] to-[#dfd0a8] px-5 py-2 font-serif text-[15px] font-black italic text-[#214d36] shadow-[0_2px_0_#8c9b7b] active:translate-y-px">
+                          className="mt-2 rounded-[11px] border-[2px] border-[#536b4d] bg-gradient-to-b from-[#fff4d6] to-[#dfd0a8] px-3 py-1.5 font-serif text-[12px] font-black italic text-[#214d36] shadow-[0_2px_0_#8c9b7b] active:translate-y-px sm:px-4 sm:text-[13px]">
                           Muuta valintoja
                         </button>
                       </div>
                       <div className="flex min-w-0 flex-col items-end justify-center gap-2 text-right">
-                        {isBest ? <span className="rounded-full border border-[#07572e] bg-[#07883c] px-3 py-1 text-[11px] font-black uppercase text-white">Paras hinta</span> : missing > 0 ? <span className="rounded-full bg-[#e9d9b4] px-3 py-1 text-[11px] font-black uppercase text-[#746344]">Puutteellinen</span> : null}
-                        <span className={`font-serif text-[clamp(23px,2.5vw,35px)] font-black italic leading-none ${isBest ? "text-[#08783b]" : "text-[#29271e]"}`}>{hasPrice ? euro(store.totalPrice) : "—"}</span>
-                        {hasPrice && diff !== null && diff > 0 && <span className="text-xs font-extrabold text-[#76684e]">+{euro(diff)} kalliimpi</span>}
+                        {isBest ? <span className="rounded-full border border-[#07572e] bg-[#07883c] px-2 py-1 text-[9px] font-black uppercase text-white">Paras hinta</span> : missing > 0 ? <span className="rounded-full bg-[#e9d9b4] px-2 py-1 text-[9px] font-black uppercase text-[#746344]">Puutteellinen</span> : null}
+                        <span className={`font-serif text-[clamp(19px,1.9vw,28px)] font-black italic leading-none ${isBest ? "text-[#08783b]" : "text-[#29271e]"}`}>{hasPrice ? euro(store.totalPrice) : "—"}</span>
+                        {hasPrice && diff !== null && diff > 0 && <span className="text-[10px] font-extrabold text-[#76684e] sm:text-xs">+{euro(diff)} kalliimpi</span>}
                         <button type="button" disabled={!onSelectStore || !hasPrice || found === 0}
                           onClick={() => onSelectStore?.(store.id)} aria-label={`Valitse ${store.name} ostoskori`}
                           title="Valitse tämän kaupan ostoskori"
-                          className="grid h-11 w-14 place-items-center rounded-[12px] border-[2px] border-[#765126] bg-gradient-to-b from-[#f4dba5] to-[#c9954d] text-[#51361a] shadow-[0_3px_0_#946a37] disabled:cursor-not-allowed disabled:opacity-40">
-                          <svg aria-hidden="true" viewBox="0 0 32 32" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h22v15H5zM9 12V5h14v7M10 18h4m4 0h4M10 23h4m4 0h4M3 29h26"/></svg>
+                          className="grid h-9 w-11 place-items-center rounded-[10px] border-[2px] border-[#765126] bg-gradient-to-b from-[#f4dba5] to-[#c9954d] text-[#51361a] shadow-[0_3px_0_#946a37] disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-12">
+                          <svg aria-hidden="true" viewBox="0 0 32 32" className="h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h22v15H5zM9 12V5h14v7M10 18h4m4 0h4M10 23h4m4 0h4M3 29h26"/></svg>
                         </button>
                       </div>
                     </article>
