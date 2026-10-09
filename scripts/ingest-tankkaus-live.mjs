@@ -18,6 +18,7 @@ if (schema[0]?.stations_ready !== true || schema[0]?.observations_ready !== true
 
 const lat = Number(process.env.TANKKAUS_PROBE_LAT ?? "60.633");
 const lon = Number(process.env.TANKKAUS_PROBE_LON ?? "24.866");
+if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat)>90 || Math.abs(lon)>180) throw new Error("Invalid probe coordinates");
 const base = "https://api.tankkaus.com/mobile";
 const get = async path => {
   const r = await fetch(base + path, { headers: { Accept: "application/json", Authorization: `Token ${token}` }, signal: AbortSignal.timeout(15000) });
