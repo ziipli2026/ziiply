@@ -531,9 +531,9 @@ test("failed desktop comparison search never resolves partial basket prices", ()
 
 test("desktop comparison counts quantities in totals and excludes invalid quantities", () => {
   const page = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /Number\.isFinite\(Number\(item\.quantity\|\|1\)\)/);
-  assert.match(page, /Number\(item\.quantity\|\|1\)>0/);
-  assert.match(page, /verified\[desktopCartIdentity\(item\)\]\*Number\(item\.quantity\|\|1\)/);
+  assert.match(page, /Number\.isFinite\(Number\(item\.quantity \?\? 1\)\)/);
+  assert.match(page, /Number\(item\.quantity \?\? 1\)>0/);
+  assert.match(page, /verified\[desktopCartIdentity\(item\)\]\*Number\(item\.quantity \?\? 1\)/);
 });
 
 test("same EAN in two stores remains separate while repeat in one store increments quantity", async () => {
