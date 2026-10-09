@@ -158,10 +158,13 @@ export default function DesktopPreviewPage() {
     items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??""])
   });
   const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
+  const desktopCompareCacheRef=useRef<Record<string,Record<string,Record<string,number>>>>({});
   useEffect(()=>{
     if(!desktopCompareNotice)return;
     let cancelled=false;
     const signature=desktopCompareSignature;
+    const cached=desktopCompareCacheRef.current[signature];
+    if(cached){setDesktopCompareMatches(cached);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);return;}
     setDesktopCompareLoading(true);
     setDesktopCompareMatches({});
     setDesktopCompareResolvedSignature("");
@@ -190,7 +193,7 @@ export default function DesktopPreviewPage() {
           }catch{}
         }
       }
-      if(!cancelled){setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
+      if(!cancelled){desktopCompareCacheRef.current[signature]=matches;setDesktopCompareMatches(matches);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);}
     })();
     return()=>{cancelled=true};
   // Only rerun when basket/store identity changes or the comparison is reopened.
