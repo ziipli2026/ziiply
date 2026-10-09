@@ -84,8 +84,9 @@ export function category(t:string){
 
   // Normalize Finnish inflections using stems; keep these ahead of broad
   // household/food matches so leaflet variants classify consistently.
-  if(/pyykkietik|puhdistuspyyh|tahranpoist|huuhteluaine|astianpesu|konetiski|pesuaine/.test(s)) return "Kodinhoito";
-  if(/proteiinivaah|proteiinipirtel/.test(s)) return "Maitotuotteet";
+  if(/pyykkietik|puhdistuspyyh|tahranpoist|huuhteluaine|astianpes|konetisk|pesuaine/.test(s)) return "Kodinhoito";
+  // Match inflected Finnish forms: vaahdolla, vanulaput, vanupuikot.
+  if(/proteiinivaahd|proteiinipirtel/.test(s)) return "Maitotuotteet";
   if(/vanulap|vanupuik|puuvillalap/.test(s)) return "Hygienia & kosmetiikka";
   if(/tee\b|twinings|vihreät teet/.test(s)) return "Kahvi & tee";
   if(/maksalaatik/.test(s)) return "Valmisruoka";
