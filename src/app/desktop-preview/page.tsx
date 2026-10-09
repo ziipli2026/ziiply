@@ -14,13 +14,15 @@ type Assistant = "gosta" | "justiina" | "arvo";
 
 function FuelStationCardDetails({ chain, station }: { chain: string; station: any }) {
   const price = (v: unknown) => v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v).toFixed(3).replace(".", ",") : "–";
-  return <div className="relative z-10 flex h-full min-h-0 w-full flex-col items-center justify-start pt-1 text-center">
-    <div className="max-w-[calc(100%-120px)] truncate text-[clamp(12px,1vw,16px)] font-black leading-tight">{chain}</div>
-    <div className="max-w-[calc(100%-120px)] truncate text-[clamp(11px,.9vw,14px)] font-bold leading-tight">{station?.name || "Ei asemaa 50 km säteellä"}</div>
-    {station && <div className="text-[12px] font-bold leading-tight text-[#111111]">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
-    {station && <div className="mt-1 flex flex-col items-start rounded-sm bg-[#f4d5a4]/90 px-2 py-0.5 text-[clamp(11px,.87vw,14px)] font-extrabold leading-[1.15] text-[#24342d] shadow-sm">
-      <div className="flex w-full justify-between gap-3"><span>DI</span><span>{price(station.diesel)}</span></div>
-      <div className="flex w-full justify-between gap-3"><span>BE</span><span>{price(station.price95)} / {price(station.price98)}</span></div>
+  return <div className="pointer-events-none absolute inset-x-0 top-2 z-10 flex min-w-0 flex-col items-center text-center">
+    <div className="flex w-[calc(100%-128px)] min-w-0 flex-col items-center">
+      <div className="w-full text-center text-[clamp(12px,1vw,16px)] font-black leading-[1.1] text-[#111827]">{chain}</div>
+      <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.15] text-[#111827]">{station?.name || "Ei asemaa 50 km säteellä"}</div>
+      {station && <div className="text-[12px] font-bold leading-[1.15] text-black">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
+    </div>
+    {station && <div className="mt-2 flex flex-col items-center rounded-md bg-[#fffaf0]/85 px-3 py-1 text-[clamp(11px,.87vw,14px)] font-extrabold leading-[1.2] text-[#172b24]">
+      <div className="flex items-center justify-center gap-3"><span>DI</span><span>{price(station.diesel)}</span></div>
+      <div className="flex items-center justify-center gap-3"><span>BE</span><span>{price(station.price95)} / {price(station.price98)}</span></div>
     </div>}
   </div>;
 }
