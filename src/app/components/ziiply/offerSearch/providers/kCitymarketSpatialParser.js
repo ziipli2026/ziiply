@@ -474,7 +474,7 @@ if(expected){
   if(value>=1&&value<50&&Math.abs(value-raw)<Math.max(.18,expected*.12)) spatialCandidates.push({value,quantity:q.quantity,unit:q.unit,parts:["unitprice",String(q.quantity),q.unit],score:Number((.42+Math.abs(value-raw)).toFixed(6)),kind:"unitprice-derived-multibuy"});
  }
 }
-for(const g of spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[])){const m=String(g.text||"").match(/(?:^|\bERÄ\s+)([0-9])\s+([0-9])\s+([0-9])(?:\b|$)/i);if(m){const v=Number(m[1]+"."+m[2]+m[3]);if(v>=.5&&v<20&&!title.replace(/\\D/g,"").includes(m[1]+m[2]+m[3]))spatialCandidates.push({value:v,quantity:null,unit:null,parts:[m[1],m[2],m[3]],score:.08,kind:"spaced-large-cents"});}} const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
+// Do not create a high-priority price from arbitrary nearby single digits.\n// The grouped-glyph path above is retained for later geometry validation. const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
 let spatialResolved=null,percentageOffer=null;
 // Same-card fragmented unit rate can also be read directly from aligned word boxes.
 if(!spatialResolved&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
