@@ -598,9 +598,9 @@ export default function DesktopPreviewPage() {
     };
     const onError = (error:GeolocationPositionError) => {
       setGpsOn(false);
-      const detail=error.code===1?"Selaimen sijaintilupa estetty.":error.code===3?"Sijainnin haku aikakatkaistiin.":"Sijaintia ei saatu laitteelta.";
+      const detail=error.code===1?"Sijaintilupa estetty tai selaimen asetuksissa kielletty.":error.code===3?"Sijainnin haku aikakatkaistiin.":"Sijaintia ei saatu laitteelta.";
       setLocationStatus(detail+" Voit yrittää GPS-painikkeesta uudelleen.");
-      setGpsToast("GPS ei käytettävissä");
+      setGpsToast(`GPS-virhe ${error.code}: ${detail}`);
     };
     // Desktop browsers often fail a high-accuracy GPS request even when location is permitted.
     // Start with network/Wi-Fi positioning, and keep the button available for retries.
@@ -702,7 +702,7 @@ export default function DesktopPreviewPage() {
           </div>
 
           <div className="relative grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
-            <div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { useGps(); }} title={gpsOn ? "Päivitä GPS-sijainti" : "Käynnistä GPS uudelleen"} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
+            <div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { useGps(); }} title={gpsOn ? "Päivitä GPS-sijainti" : locationStatus} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
               <span className="text-[23px]">📍</span>{gpsToast&&<span className="absolute left-1/2 top-[62px] z-50 w-max -translate-x-1/2 rounded-full border border-[#6f806a]/20 bg-[#fffaf0] px-3 py-1.5 text-[10px] font-black text-[#536252] shadow-lg">{gpsToast}</span>}
               <span className={`absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white shadow-sm ${gpsOn?"bg-[#159447]":"bg-[#a44f4f]"}`} />
             </button></div>
