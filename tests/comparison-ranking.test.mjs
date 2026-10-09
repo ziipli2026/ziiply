@@ -130,3 +130,17 @@ test("desktop comparison preserves verified partial prices when an individual pr
   assert.match(desktop, /setDesktopCompareSearchWarning\(lookupHadErrors\)/);
   assert.doesNotMatch(desktop, /setDesktopCompareMatches\(searchFailed\?\{\}:matches\)/);
 });
+test("desktop comparison uses mobile normal-search variants and exact EAN across all responses before name fallback", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /getNormalSearchQueries\(title\)\.slice\(0,6\)/);
+  assert.match(desktop, /const batches=await Promise\.all\(terms\.map/);
+  assert.match(desktop, /chosen=normalized\.find\(\(p:any\)=>normalizeEan\(String\(p\.ean\?\?p\.barcode\?\?p\.product\?\.ean\?\?p\.product\?\.barcode\?\?""\)\)===ean\)/);
+  assert.match(desktop, /if\(!chosen&&hasKnownProductFamily\(title\)\)/);
+  assert.match(desktop, /productGroupGate\(title,String\(p\.name\?\?""\)\)&&isComparisonAttributeCompatible\(title,String\(p\.name\?\?""\)\)/);
+});
+
+test("desktop compare requires both supported S and K chains and marks unsupported chains as coming soon", () => {
+  const desktop = readFileSync(new URL("../src/app/desktop-preview/page.tsx", import.meta.url), "utf8");
+  assert.match(desktop, /!selectedChains\.includes\("S"\)\|\|!selectedChains\.includes\("K"\)/);
+  assert.match(desktop, /comingSoon:!supported/);
+});
