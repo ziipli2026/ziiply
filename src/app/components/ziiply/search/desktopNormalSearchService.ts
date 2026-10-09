@@ -94,8 +94,8 @@ export async function refreshDesktopCartProductPrice(
   if (!term) return null;
   const results = await fetchDesktopNormalProducts(term, chain, store);
   const exact = results.filter(p => {
-    if (ean) return String(p.ean ?? p.barcode ?? "").trim() === ean;
-    return String(p.id ?? "").trim() === id;
+    if (ean) return String(p.ean ?? p.barcode ?? p.product?.ean ?? p.product?.barcode ?? "").trim() === ean;
+    return String(p.id ?? p.product?.id ?? "").trim() === id;
   });
   if (exact.length !== 1) return null;
   const candidate = exact[0]?.price ?? exact[0]?.storeItems?.[0]?.price ?? exact[0]?.storeItem?.price;
