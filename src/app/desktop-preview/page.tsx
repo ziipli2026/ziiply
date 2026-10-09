@@ -278,7 +278,21 @@ export default function DesktopPreviewPage() {
   const desktopCompareRunId=useRef(0);
   const desktopCompareRequestIdentity=useRef(desktopCompareIdentity);
   desktopCompareRequestIdentity.current=desktopCompareIdentity;
-  useEffect(()=>{desktopCompareRunId.current+=1;desktopCompareCache.current.clear();desktopCompareCacheTime.current=0;setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
+  useEffect(()=>{desktopCompareRunId.current+=1;setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
+  const desktopCompareStorageKey="ziiply-desktop-comparison-cache-v2";
+  function desktopReadSavedComparison(key:string){
+    try{
+      const raw=window.localStorage.getItem(desktopCompareStorageKey);
+      if(!raw)return null;
+      const saved=JSON.parse(raw);
+      return saved?.key===key&&saved?.results&&typeof saved.results==="object"?saved.results:null;
+    }catch{return null}
+  }
+  function desktopSaveComparison(key:string,results:Record<string,any>){
+    desktopCompareCache.current.set(key,results);
+    desktopCompareCacheTime.current=Date.now();
+    try{window.localStorage.setItem(desktopCompareStorageKey,JSON.stringify({key,results,savedAt:Date.now()}))}catch{}
+  }
   // Cross-chain comparison: try the source name first, then brand-neutral
   // descriptions. A candidate must still match the milk type and package size.
   // Cross-chain comparison: search without store-specific brands, then verify milk type and volume.
@@ -375,9 +389,8 @@ export default function DesktopPreviewPage() {
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
-    const cached=desktopCompareCache.current.get(key);
-    if(cached&&Date.now()-desktopCompareCacheTime.current<60000){setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
-    if(cached)desktopCompareCache.current.delete(key);
+    const cached=desktopCompareCache.current.get(key)||desktopReadSavedComparison(key);
+    if(cached){desktopCompareCache.current.set(key,cached);setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
@@ -396,7 +409,7 @@ export default function DesktopPreviewPage() {
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
       }));
       if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
-      const next=Object.fromEntries(results);desktopCompareCache.current.set(key,next);desktopCompareCacheTime.current=Date.now();setDesktopCompareResults(next);
+      const next=Object.fromEntries(results);desktopSaveComparison(key,next);setDesktopCompareResults(next);
     }catch{if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
   }
 
@@ -431,8 +444,14 @@ export default function DesktopPreviewPage() {
     if(!Number.isFinite(priceCents)||priceCents<=0){flashCartNotice("Valitun vaihtoehdon hinta ei ole kelvollinen.");return}
     const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,match:"name" as const}:row);
     const next={...chosen,rows,total:rows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:rows.filter((row:any)=>row.price==null).length};
-    setDesktopCompareResults(current=>({...current,[storeId]:next}));
-    desktopCompareCache.current.clear();
+    setDesktopCompareResults(current=>{
+      const updated={...current,[storeId]:next};
+      const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
+      const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
+      const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
+      desktopSaveComparison(key,updated);
+      return updated;
+    });
     flashCartNotice("Tuotevaihtoehto päivitetty vertailuun.");
   }
 
