@@ -1268,7 +1268,7 @@ resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
 // Apply publisher bundle ownership to the actual returned output rows, after
 // resolveCards has finished. Its internal return value is not consumed by the caller.
 for(const row of out.rows.filter(r=>r.page===p)){
- const context=[...(row.nearby||[])].join(' ').replace(/\s+/g,' ').toUpperCase();
+ const context=[...(row.nearby||[]),...(row.spatialGroups||[]).map(g=>g.text||'')].join(' ').replace(/\s+/g,' ').toUpperCase();
  if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/\b2\s*SÄKKIÄ\b/.test(context)){
    const evidenced=[row.spatialResolved,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean)
      .find(c=>Number(c.value)>0&&Math.abs(Number(c.value)-29.9)<0.005);
