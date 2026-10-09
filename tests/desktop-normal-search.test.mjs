@@ -448,3 +448,31 @@ test("foreign store price never becomes a valid basket total", () => {
   assert.equal(missing.__priceVerified, false);
   assert.equal(missing.__price, 0);
 });
+
+test("cart restore clears previously verified prices and preserves quantity", async () => {
+  const cartSource = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const cartJs = ts.transpileModule(cartSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { restoreDesktopCartWithoutStalePrices } = await import("data:text/javascript;base64," + Buffer.from(cartJs).toString("base64"));
+  const [restored] = restoreDesktopCartWithoutStalePrices([{
+    ean: "6410405124517", source: "justiina", quantity: 3,
+    price: 1.48, __price: 1.48, __priceVerified: true, __storeId: "417", __chain: "S"
+  }]);
+  assert.equal(restored.quantity, 3);
+  assert.equal(restored.price, null);
+  assert.equal(restored.__price, null);
+  assert.equal(restored.__priceVerified, false);
+  assert.equal(restored.__needsPriceRefresh, true);
+});
+
+test("changing selected store invalidates old verified cart price", async () => {
+  const cartSource = readFileSync(new URL("../src/app/components/ziiply/cart/desktopCartCore.ts", import.meta.url), "utf8");
+  const cartJs = ts.transpileModule(cartSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const { invalidateDesktopCartPricesForStoreSelection } = await import("data:text/javascript;base64," + Buffer.from(cartJs).toString("base64"));
+  const [changed] = invalidateDesktopCartPricesForStoreSelection([{
+    ean: "6410405124517", source: "justiina", quantity: 2,
+    price: 1.48, __price: 1.48, __priceVerified: true, __storeId: "417", __chain: "S"
+  }], new Set(["S:9876"]));
+  assert.equal(changed.price, null);
+  assert.equal(changed.__priceVerified, false);
+  assert.equal(changed.__needsPriceRefresh, true);
+});
