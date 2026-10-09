@@ -94,6 +94,24 @@ jobs:
           NODE
           npx --yes tsx citymarket-test-2.mts
 
+      - name: Finnish Citymarket category word-form regression
+        run: |
+          cat > citymarket-category-regression.mts <<'NODE'
+          import { category } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
+          const cases: Array<[string,string]> = [
+            ['PYYKKIETIKAT 475 ml','Kodinhoito'],
+            ['PROTEIINIVAAHDOLLA 200 g','Maitotuotteet'],
+            ['Topz VANULAPUT 80 kpl/pkt ja VANUPUIKOT 300 kpl/pkt','Hygienia & kosmetiikka'],
+            ['DUOPACK PUHDISTUSPYYHKEET 128 kpl/pkt','Kodinhoito'],
+          ];
+          for (const [title,wanted] of cases) {
+            const actual=category(title);
+            console.log(title, '=>', actual);
+            if (actual!==wanted) throw new Error(title+': expected '+wanted+', got '+actual);
+          }
+          console.log('CITYMARKET_CATEGORY_WORD_FORM_REGRESSION_OK');
+          NODE
+          npx --yes tsx citymarket-category-regression.mts
       - name: Simulate Gosta Citymarket tabs and category navigation
         shell: bash
         run: |
