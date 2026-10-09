@@ -746,9 +746,9 @@ export default function DesktopPreviewPage() {
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-[#64745f]/15 pt-3 text-[12px] font-bold text-[#747d6e]">
+        <footer className="pointer-events-none absolute bottom-2 left-8 right-8 z-30 flex items-center justify-between border-t border-[#64745f]/15 bg-[#e4e9df]/90 px-2 py-2 text-[12px] font-bold text-[#747d6e] xl:left-12 xl:right-12">
           <span>Ziiply Oy</span>
-          <span>One search. All prices. · {scannerMode === "camera" ? "📷 Tablet-skannaus valmis" : scannerMode === "external" ? "⌨ HID/EAN-lukija valmis" : "Skanneria tarkistetaan…"}</span>
+          <span>One search. All prices.</span>
         </footer>
       </div>
     </main>
