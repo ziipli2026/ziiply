@@ -157,7 +157,7 @@ export default function DesktopPreviewPage() {
   const desktopCompareSignature=JSON.stringify({
     version:2,
     stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.externalId??store?.id??""),String(store?.name??store?.title??"")]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
-    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??"",item.title??item.name??item.productName??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
+    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity||1),item.ean??item.product?.ean??item.product?.barcode??"",item.title??item.name??item.productName??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
   });
   const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
   const desktopCompareCacheRef=useRef<Record<string,{matches:Record<string,Record<string,number>>;expiresAt:number}>>({});
@@ -197,7 +197,7 @@ export default function DesktopPreviewPage() {
         for(let offset=0;offset<eligible.length;offset+=4){
           if(cancelled)return;
           await Promise.all(eligible.slice(offset,offset+4).map(async(item:any)=>{
-            const ean=String(item.ean??"").trim();
+            const ean=String(item.ean??item.product?.ean??item.product?.barcode??"").trim();
             const title=String(item.title??item.name??item.productName??"").trim();
             if(!title&&!ean)return;
             try{
