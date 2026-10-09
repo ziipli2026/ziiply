@@ -385,7 +385,7 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute -right-40 bottom-[-80px] h-[620px] w-[620px] rounded-full bg-[#8ead91]/25 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute left-[44%] top-[10%] h-[190px] w-[190px] rotate-12 rounded-[44px] border border-[#8c7042]/10 bg-[#fff7df]/18 shadow-[0_30px_80px_rgba(70,60,35,0.05)]" />
 
-      <div className="relative mx-auto flex h-[100dvh] w-full max-w-[1800px] flex-col px-8 py-5 xl:px-12 xl:py-6">
+      <div className="relative mx-auto flex h-[100dvh] min-h-0 w-full max-w-[1800px] flex-col px-8 pb-3 pt-5 xl:px-12 xl:pb-3 xl:pt-6">
         <header className="grid grid-cols-[auto_minmax(360px,0.68fr)_minmax(650px,1fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
             <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
@@ -509,7 +509,7 @@ export default function DesktopPreviewPage() {
           </div>
         )}
 
-        <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 py-5 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
+        <section data-desktop-card-row className="grid min-h-0 flex-1 items-stretch gap-4 overflow-y-auto py-4 lg:grid-cols-[minmax(0,0.95fr)_136px_minmax(0,1.05fr)] xl:gap-5">
           <div className="relative max-w-none flex h-full flex-col justify-start self-stretch">
             <div className="relative h-full min-h-0 overflow-visible rounded-[28px] border-[3px] border-[#b38a4a] bg-[#fcf5de] p-4 shadow-[0_5px_0_rgba(105,72,28,.14),inset_0_0_0_2px_rgba(255,255,255,.48)]">
 <div className="grid grid-cols-[1fr_46px_1fr] items-center gap-3"><button disabled={storeCompareScope==="within_chain"} onClick={()=>{setStoreMode("hyper");setStoreModeChosen(true);applyModeDefaults("hyper")}} className={`h-[40px] rounded-[17px] border-2 px-3 text-[12px] font-black ${storeModeChosen&&storeMode==="hyper"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}>🏬 Tavaratalot</button><div className="text-center"><span className="block text-[8px] font-black">Yksi</span><button onClick={()=>{if(betweenMode==="many"&&Object.keys(selectedStores).length>1)setSelectedStores({});setBetweenMode(v=>v==="one"?"many":"one")}} className={`relative mx-auto h-[30px] w-[17px] rounded-full ${betweenMode==="many"?"bg-[#0a6d39]":"bg-[#d8c69d]"}`}><span className={`absolute left-[2px] h-[11px] w-[11px] rounded-full bg-white ${betweenMode==="many"?"top-[17px]":"top-[2px]"}`}/></button><span className="block text-[8px] font-black">Monta</span></div><button disabled={storeCompareScope==="within_chain"} onClick={()=>{setStoreMode("local");setStoreModeChosen(true);applyModeDefaults("local")}} className={`h-[40px] rounded-[17px] border-2 px-3 text-[12px] font-black ${storeModeChosen&&storeMode==="local"?"border-[#07502c] bg-[#0a6d39] text-white":"border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}>🏪 Lähikaupat</button></div>
@@ -617,9 +617,9 @@ export default function DesktopPreviewPage() {
           </div>
         </section>
 
-        <footer className="flex items-center justify-between border-t border-[#64745f]/15 pt-3 text-[12px] font-bold text-[#747d6e]">
+        <footer className="relative z-10 flex shrink-0 items-center justify-between border-t border-[#64745f]/15 bg-[#e1e8dc] px-2 py-2 text-[12px] font-bold text-[#747d6e]">
           <span>Ziiply Oy</span>
-          <span>One search. All prices. · {scannerMode === "camera" ? "📷 Tablet-skannaus valmis" : scannerMode === "external" ? "⌨ HID/EAN-lukija valmis" : "Skanneria tarkistetaan…"}</span>
+          <span>One search. All prices.</span>
         </footer>
       </div>
     </main>
