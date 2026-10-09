@@ -1,4 +1,5 @@
 "use client";
+import RestoreCartLab from "./restore";
 import { useState } from "react";
 import { captureGuestSnapshot } from "@/lib/account/guest";
 import type { AccountDocument, DocumentWrite } from "@/lib/account/document";
@@ -42,12 +43,13 @@ export default function CloudCartLab() {
   }
   return <section className="space-y-3 border-t pt-4" aria-busy={busy}>
     <h2 className="text-xl font-bold">Pilvikorin kehitystesti</h2>
-    <p>Tallennus säilyttää paikalliset korit. Pilvikoria ei vielä palauteta automaattisesti sovellukseen.</p>
+    <p>Tallennus säilyttää paikalliset korit. Palautus tehdään erillisellä hyväksynnällä.</p>
     <button disabled={busy || !!pending} onClick={() => startSave(true)}>Tallenna uusi pilvikori</button>{" "}
     <button disabled={busy || !!pending} onClick={() => { setBusy(true); setMessage(""); load(document?.id).then(next => setMessage(next ? "Pilvikorin viimeisin versio haettu" : "Tilillä ei ole pilvikoreja")).catch(error => setMessage(error.message)).finally(() => setBusy(false)); }}>Hae viimeisin pilvikori</button>{" "}
     {document && <button disabled={busy || !!pending} onClick={() => startSave(false)}>Päivitä valittu pilvikori</button>}
     {pending && <button disabled={busy} onClick={() => void save(pending)}>Yritä samaa tallennusta uudelleen</button>}
     {document && <p>Valittu pilvikori: versio {document.revision}. Sisältöryhmiä: {Object.keys(document.snapshot.values).length}.</p>}
+    {document && !busy && !pending && <RestoreCartLab key={document.id + ":" + document.revision} document={document}/>}
     <p role="status">{busy ? "Odota…" : message}</p>
   </section>;
 }

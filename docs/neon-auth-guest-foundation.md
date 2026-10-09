@@ -87,7 +87,7 @@ Lähteet: https://neon.com/docs/auth/guides/setup-oauth.md ; https://neon.com/do
 
 ## Toteutuksen tarkastukset
 
-- `npm run test:account`: 11/11 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag).
+- `npm run test:account`: 17/17 hyväksytty (vierastunniste, estetty/corrupt storage, mobiili/desktop-snapshot, väärät avaimet/formaatti/kokoraja, kantaendpointin eristys, tuotantoeston flag).
 - `npm run test:account:neon`: 36/36 oikeaa integraatiotarkastusta kehityshaarassa. Ei-kirjautuneen luku/kirjoitus estyvät; vieras origin estyy; sähköpostirekisteröinti ja cookie-istunnon palautus toimivat; korituonti ja idempotentti retry toimivat; omat varmuuskopiot palautuvat ilman jaettua cachea; väärennetyt cookiet, väärä salasana, virheellinen ja liian suuri tuonti estyvät; toinen käyttäjä ei voi lukea ensimmäisen tietoja edes user_id-parametrilla; pyynnön user_id ei muuta omistajaa; sama sisältö kuuluu erikseen kummallekin käyttäjälle; uloskirjautuminen estää pääsyn ja uudelleenkirjautuminen palauttaa omat tiedot. Versioidut dokumentit testattiin kahdella erillisellä istunnolla: mobiili- ja desktop-avaimet säilyvät, vanha versio hylätään, samanaikaisista kirjoituksista yksi onnistuu, viivästynyt retry ei palauta vanhaa sisältöä, operaatiotunnisteen uudelleenkäyttö eri sisällöllä estyy ja yhdistetty kokoraja ei jätä osittaista tallennusta. Google OAuth -aloitus palauttaa odotetun Neonin `/sign-in/social/init`-osoitteen.
 - TypeScript, account-tiedostojen kohdennettu ESLint ja Next 16 -build hyväksytty. Npm-asennuksen dry-run hyväksytty ilman legacy-peer-deps-asetusta.
 - Kolme olemassa olevaa eristettyä regressioajoa hyväksytty: painotuotteen koripalautus, vertailun sentti/euro-rajat ja Göstan monipakkaushinnat. Nämä ovat lähde-/yksikkötarkastuksia, eivät laajaa selainregressiota.
@@ -95,3 +95,12 @@ Lähteet: https://neon.com/docs/auth/guides/setup-oauth.md ; https://neon.com/do
 - Tuotanto-mainin read-only-skeematarkastus: neon_auth=false, ziiply_accounts=false.
 
 Integraatiotestit käyttävät oikeaa Auth- ja SQL-palvelua vain erillisessä kehityshaarassa. Selaimen OAuth-suostumusta, iOS/Android-PWA:ta ja aktiivisen korin laitesynkronointia ei näillä HTTP-testeillä todenneta. Tuodut snapshotit ovat tilin varmuuskopioita, eivät vielä nykyisten mobiili-/desktop-korien automaattinen pilvisynkronointi.
+
+
+### Aktiivisen korin palautus — seuraava kehitysvaihe
+
+`/account-lab` voi nyt valmistella valitun pilvidokumentin mobiili- tai desktop-korin palautuksen kumpaankin paikalliseen tallennusmuotoon. Käyttäjä valitsee lähteen ja kohteen, näkee tuotemäärän ja hyväksyy korvaamisen erikseen. Mobiilikorin voi avata tämän jälkeen pääsovelluksessa samassa välilehdessä. Desktop-kohteen tallennusadapteri on valmis, mutta desktop-sivua ei ole yhdistetty tähän haaraan eikä koko desktop-ketjua vielä vahvistettu.
+
+Palautus säilyttää tunnisteet, nimet, määrät ja tuotemetadataa, mutta poistaa nykyhinnan ja sen tuoreusmerkinnät. Punnitustuotteelle ei luvata taustahintaa: uusi fyysinen punnitus tarvitaan. Esikatselun jälkeen muuttunut paikallinen kori estää korvaamisen. Ennen kirjoitusta tehdään laitekohtainen varmuuskopio avaimelle `ziiply-account-restore-backup-v1`; tämä ei kuulu pilvituonnin sallintalistaan. Mobiilin vanha vertailusnapshot ja keräilymerkinnät varmuuskopioidaan ja poistetaan, tallennetut listat säilyvät. Kirjoitusvirheessä aiemmat arvot palautetaan mahdollisuuksien mukaan; varmuuskopio säilyy myös epäonnistumisessa. Selainstorage ei tarjoa monen avaimen atomista transaktiota eikä esikatselutarkistus lukitse muita välilehtiä.
+
+Kuusi uutta testiä vahvistavat muunnokset molempiin suuntiin, hintojen tyhjennyksen, määrien säilymisen, virheellisen sisällön hylkäyksen, paikallisen muutoskonfliktin, quota-virheen ja kirjoitusvirheen palautuksen. Yhteensä 17 yksikkötestiä. Tämä on manuaalinen palautus, ei automaattinen synkronointi. Keräilymerkintöjen siirtäminen laitteiden välillä, pysyvä verkkokatkojen jono, koko kirjautuminen–pääsovellus-selainketju sekä desktop-näkymän yhdistäminen jäävät seuraavaan vaiheeseen.
