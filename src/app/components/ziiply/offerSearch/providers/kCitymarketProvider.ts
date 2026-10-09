@@ -682,28 +682,41 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   }
 }
 
-export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+export async function fetchKCitymarketOffers(options:{bypassCache?:boolean}={}):Promise<CitymarketOffer[]>{
   const active=getActiveKCitymarketPeriod();
 
+  // Integration simulations run outside a Next.js request context, where
+  // unstable_cache has no incrementalCache. Let those tests explicitly use
+  // the same validated fresh-parser path without producing a misleading
+  // cache-context warning. Production callers keep the default cached path.
   // The Wednesday/Sunday background warm-up parses the next leaflet after
   // 15:00 Europe/Helsinki. Once that period becomes active, serve the exact
   // validated cached parse instead of re-resolving the generic ENTRY URL.
   // If warm-up failed (publication late / parser regression), fall back to a
   // fresh parse so the request still has a recovery path.
   let offers:CitymarketOffer[];
-  try{
-    const payload=await readCachedPeriod(active);
-    offers=payload.offers;
-  }catch(error){
-    console.warn("[K-Citymarket] active period cache unavailable, parsing fresh",active.key,error);
+  if(options.bypassCache){
     const periodEntry=kCitymarketPeriodEntry(active);
     offers=await fetchKCitymarketOffersFresh(periodEntry);
-    // Never leak the other half-week leaflet through a redirecting entry URL.
-    // The cache path already validates the period; the recovery path must obey
-    // the exact same invariant.
     const freshLeafletUrl=String(citymarketHtmlDebugV8?.leafletUrl||offers[0]?.sourceUrl||"");
     if(!leafletMatchesPeriod(freshLeafletUrl,active)){
-      throw new Error('K-Citymarket fallback leaflet "'+(freshLeafletUrl||"(missing)")+'" does not match active '+active.key);
+      throw new Error('K-Citymarket test leaflet "'+(freshLeafletUrl||"(missing)")+'" does not match active '+active.key);
+    }
+  }else{
+    try{
+      const payload=await readCachedPeriod(active);
+      offers=payload.offers;
+    }catch(error){
+      console.warn("[K-Citymarket] active period cache unavailable, parsing fresh",active.key,error);
+      const periodEntry=kCitymarketPeriodEntry(active);
+      offers=await fetchKCitymarketOffersFresh(periodEntry);
+      // Never leak the other half-week leaflet through a redirecting entry URL.
+      // The cache path already validates the period; the recovery path must obey
+      // the exact same invariant.
+      const freshLeafletUrl=String(citymarketHtmlDebugV8?.leafletUrl||offers[0]?.sourceUrl||"");
+      if(!leafletMatchesPeriod(freshLeafletUrl,active)){
+        throw new Error('K-Citymarket fallback leaflet "'+(freshLeafletUrl||"(missing)")+'" does not match active '+active.key);
+      }
     }
   }
 
