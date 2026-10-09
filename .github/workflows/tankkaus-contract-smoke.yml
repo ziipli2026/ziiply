@@ -1,0 +1,116 @@
+name: Tankkaus.com isolated contract smoke
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/tankkaus-com-native-20261008
+    paths:
+      - 'src/app/api/tankkaus/**'
+      - 'scripts/test-tankkaus-contract.cjs'
+      - 'scripts/ingest-tankkaus.mjs'
+      - 'scripts/test-tankkaus-ingest.cjs'
+      - 'db/migrations/003_tankkaus_fuel_cache.sql'
+      - '.github/workflows/tankkaus-contract-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/app/api/tankkaus/**'
+      - 'scripts/test-tankkaus-contract.cjs'
+      - 'scripts/ingest-tankkaus.mjs'
+      - 'scripts/test-tankkaus-ingest.cjs'
+      - 'db/migrations/003_tankkaus_fuel_cache.sql'
+      - '.github/workflows/tankkaus-contract-smoke.yml'
+jobs:
+  ingestion-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check dependency-free ingestion syntax
+        run: |
+          node --check scripts/ingest-tankkaus.mjs
+          node --check scripts/test-tankkaus-ingest.cjs
+      - name: Validate ingestion, deduplication and write safety
+        run: node scripts/test-tankkaus-ingest.cjs
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Check ingestion JavaScript syntax without dependencies
+        run: |
+          node --check scripts/ingest-tankkaus.mjs
+          node --check scripts/test-tankkaus-ingest.cjs
+      - name: Mocked Tankkaus ingestion dry-run
+        run: node scripts/test-tankkaus-ingest.cjs
+      - name: Install dependencies (existing project resolution)
+        run: npm install --no-package-lock --legacy-peer-deps --no-audit --no-fund
+      - name: Check Tankkaus ingestion script syntax
+        run: node --check scripts/ingest-tankkaus.mjs
+      - name: Independently transpile Tankkaus route
+        run: |
+          node <<'JS'
+          const ts = require('typescript');
+          const fs = require('node:fs');
+          const source = fs.readFileSync('src/app/api/tankkaus/route.ts', 'utf8');
+          const output = ts.transpileModule(source, {
+            fileName: 'src/app/api/tankkaus/route.ts',
+            reportDiagnostics: true,
+            compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 }
+          });
+          const errors = (output.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error);
+          if (errors.length) {
+            for (const error of errors) console.error(ts.flattenDiagnosticMessageText(error.messageText, '\\n'));
+            process.exit(1);
+          }
+          if (!output.outputText.includes('distanceKmBetween')) throw new Error('Missing distance calculation');
+          console.log('PASS Tankkaus route TypeScript transpilation');
+          JS
+      - name: Mocked Tankkaus positive-path contract tests
+        run: node scripts/test-tankkaus-contract.cjs
+      - run: npm run build
+        env:
+          TANKKAUS_API_TOKEN: placeholder-for-local-validation-only
+      - name: Check invalid coordinates and unsupported fuel without external requests
+        env:
+          TANKKAUS_API_TOKEN: placeholder-for-local-validation-only
+        run: |
+          npm run start -- --port 3100 > /tmp/tankkaus-next.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:3100/ >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          node <<'JS'
+          const assert = require('node:assert/strict');
+          (async () => {
+            for (const [path, status] of [
+              ['/api/tankkaus', 400],
+              ['/api/tankkaus?lat=91&lon=24', 400],
+              ['/api/tankkaus?lat=60&lon=24&fuel=unleaded100', 400],
+              ['/api/tankkaus?lat=NaN&lon=24', 400],
+              ['/api/tankkaus?lat=60&lon=Infinity', 400],
+              ['/api/tankkaus?lat=-91&lon=24', 400],
+              ['/api/tankkaus?lat=60&lon=181', 400],
+              ['/api/tankkaus?lat=&lon=24', 400],
+              ['/api/tankkaus?lat=%20%20%20&lon=24', 400],
+              ['/api/tankkaus?lat=60&lon=%20%20%20', 400],
+              ['/api/tankkaus?lat[]=60&lon=24', 400],
+              ['/api/tankkaus?lat=60&lon[]=24', 400],
+              ['/api/tankkaus?lat=60&lon=24&fuel=unknown', 400],
+              ['/api/tankkaus?lat=60&lon=24&fuel=constructor', 400],
+              ['/api/tankkaus?lat=60&lon=24&fuel=toString', 400]
+            ]) {
+              const res = await fetch('http://localhost:3100' + path);
+              const body = await res.json();
+              assert.equal(res.status, status, path + ': ' + JSON.stringify(body));
+              assert.equal(body.ok, false);
+              console.log('PASS', path, res.status);
+            }
+          })().catch(e => { console.error(e); process.exitCode = 1; });
+          JS
