@@ -14,11 +14,14 @@ type Assistant = "gosta" | "justiina" | "arvo";
 
 function FuelStationCardDetails({ chain, station }: { chain: string; station: any }) {
   const price = (v: unknown) => v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v).toFixed(3).replace(".", ",") : "–";
-  return <div className="relative z-10 flex min-h-0 w-full flex-col items-center justify-center gap-0.5 px-[clamp(34px,4vw,62px)] text-center">
-    <div className="max-w-full truncate text-[clamp(12px,1vw,16px)] font-black leading-tight">{chain}</div>
-    <div className="max-w-full truncate text-[clamp(11px,.9vw,14px)] font-bold leading-tight">{station?.name || "Ei asemaa 50 km säteellä"}</div>
+  return <div className="relative z-10 flex h-full min-h-0 w-full flex-col items-center justify-start pt-1 text-center">
+    <div className="max-w-[calc(100%-120px)] truncate text-[clamp(12px,1vw,16px)] font-black leading-tight">{chain}</div>
+    <div className="max-w-[calc(100%-120px)] truncate text-[clamp(11px,.9vw,14px)] font-bold leading-tight">{station?.name || "Ei asemaa 50 km säteellä"}</div>
     {station && <div className="text-[12px] font-semibold leading-tight text-[#687366]">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
-    {station && <div className="mt-1 flex flex-wrap justify-center gap-x-2 text-[clamp(10px,.8vw,12px)] font-extrabold leading-tight text-[#273a32]"><span>DI {price(station.diesel)}</span><span>95E {price(station.price95)}</span><span>98E {price(station.price98)}</span></div>}
+    {station && <div className="mt-1 flex flex-col items-start rounded-sm bg-[#f4d5a4]/90 px-2 py-0.5 text-[clamp(11px,.87vw,14px)] font-extrabold leading-[1.15] text-[#24342d] shadow-sm">
+      <div className="flex w-full justify-between gap-3"><span>DI</span><span>{price(station.diesel)}</span></div>
+      <div className="flex w-full justify-between gap-3"><span>BE</span><span>{price(station.price95)} / {price(station.price98)}</span></div>
+    </div>}
   </div>;
 }
 
