@@ -1238,7 +1238,7 @@ if(!spatialResolved&&anchor&&nr){
 
 // Shared promotion cards can list several products under one large whole-euro badge.
 // Bind the large digit to the card's right-side price badge, not nearby OCR fragments.
-if(anchor&&!spatialResolved){
+if(anchor&&(!spatialResolved||spatialResolved.sanity==="review"||["best-spatial-candidate","large-visual-price"].includes(spatialResolved.source))){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
  const badgeDigits=wordBoxes.filter(b=>{
   const t=String(b.text||"").trim(),x=Number(b.left)||0,y=Number(b.top)||0,h=Number(b.height)||0;
