@@ -65,7 +65,7 @@ export function normalizeDesktopNormalResults(
   limit = 8,
 ) {
   return items.slice(0, limit).map((item) => {
-    const selectedStoreId = String(store.externalId ?? store.id ?? "").trim();
+    const selectedStoreId = String(store.id ?? store.externalId ?? "").trim();
     const storeRows = Array.isArray(item?.storeItems) ? item.storeItems : [];
     const matchingStoreRows = storeRows.filter((row: any) =>
       String(row?.externalId ?? row?.storeId ?? row?.store?.externalId ?? row?.store?.id ?? "").trim() === selectedStoreId
