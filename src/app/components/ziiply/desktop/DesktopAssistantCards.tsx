@@ -43,7 +43,7 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
                     type="button"
                     onClick={() => onSelect(item.key)}
                     className={[
-                      "group relative flex min-h-[0] h-[clamp(420px,57vh,590px)] flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-6 pt-5 text-center transition duration-200 hover:-translate-y-2 hover:rotate-[0.3deg] hover:shadow-[0_28px_54px_rgba(35,54,42,0.22)] active:translate-y-0",
+                      "group relative flex min-h-[0] h-[clamp(420px,57vh,590px)] flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-6 pt-5 text-center transition duration-200 active:translate-y-[2px]",
                       item.frame,
                       selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
                     ].join(" ")}
