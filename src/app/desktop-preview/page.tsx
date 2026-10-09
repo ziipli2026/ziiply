@@ -5,7 +5,7 @@ import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopN
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchDesktopGostaOffers } from "../components/ziiply/offerSearch/desktopOfferService";
 import { fetchDesktopNormalProducts, normalizeDesktopNormalResults, refreshDesktopCartProductPrice, type DesktopNormalSearchChain } from "../components/ziiply/search/desktopNormalSearchService";
-import { desktopCartIdentity, desktopCartSameStore, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
+import { desktopCartIdentity, desktopComparisonRowKey, desktopCartSameStore, appendDesktopCartItem, changeDesktopCartItemQuantity, restoreDesktopCartWithoutStalePrices, invalidateDesktopCartPricesForStoreSelection } from "../components/ziiply/cart/desktopCartCore";
 import { desktopOfferContext, desktopOfferCacheKey, desktopOfferChainFromStoreKind, type DesktopOfferChain } from "../components/ziiply/offerSearch/desktopOfferContext";
 import { rankComparisonResults } from "../components/ziiply/cart/comparisonRankingCore";
 import { sanitizeDesktopComparisonMatches } from "../components/ziiply/cart/desktopComparisonCacheCore";
@@ -158,7 +158,7 @@ export default function DesktopPreviewPage() {
   const desktopCompareSignature=JSON.stringify({
     version:2,
     stores:Object.values(selectedStores).map((store:any)=>[desktopOfferChainFromStoreKind(storeKind(store),store),String(store?.id??store?.externalId??""),String(store?.name??store?.title??"")]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
-    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopCartIdentity(item),Number(item.quantity ?? 1),item.ean??item.product?.ean??item.product?.barcode??"",item.title??item.name??item.productName??item.product?.name??item.product?.title??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
+    items:cartItems.filter((item:any)=>item.source==="justiina").map((item:any)=>[desktopComparisonRowKey(item),Number(item.quantity ?? 1),item.ean??item.product?.ean??item.product?.barcode??"",item.title??item.name??item.productName??item.product?.name??item.product?.title??"",item.ziiplyWeightLabel===true||item.product?.ziiplyWeightLabel===true]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
   });
   const [desktopCompareResolvedSignature,setDesktopCompareResolvedSignature]=useState("");
   const desktopCompareCacheRef=useRef<Record<string,{matches:Record<string,Record<string,number>>;expiresAt:number}>>({});
@@ -180,7 +180,7 @@ export default function DesktopPreviewPage() {
     const signature=desktopCompareSignature;
     const cached=desktopCompareCacheRef.current[signature];
     const selectedKeys=Object.values(selectedStores).map((store:any)=>desktopOfferChainFromStoreKind(storeKind(store),store)+":"+String(store?.id??store?.externalId??"").trim()).filter(key=>key.endsWith(":")===false);
-    const eligibleKeys=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true).map(desktopCartIdentity);
+    const eligibleKeys=cartItems.filter((item:any)=>item.source==="justiina"&&item.ziiplyWeightLabel!==true&&item.product?.ziiplyWeightLabel!==true).map(desktopComparisonRowKey);
     const validatedCache=cached&&cached.expiresAt>Date.now()?sanitizeDesktopComparisonMatches(cached.matches,selectedKeys,eligibleKeys):null;
     if(validatedCache){setDesktopCompareMatches(validatedCache);setDesktopCompareResolvedSignature(signature);setDesktopCompareLoading(false);return;}
     setDesktopCompareLoading(true);
@@ -228,7 +228,7 @@ export default function DesktopPreviewPage() {
               if(!chosen)return;
               const price=Number(chosen.__price);
               if(chosen.__priceVerified===true&&chosen.__catalogOnly!==true&&Number.isFinite(price)&&price>0)
-                matches[key][desktopCartIdentity(item)]=price;
+                matches[key][desktopComparisonRowKey(item)]=price;
             }catch{searchFailed=true;}
           }));
         }
@@ -251,8 +251,8 @@ export default function DesktopPreviewPage() {
     const storeId=String(store?.id??store?.externalId??"").trim();
     const comparable=cartItems.filter((item:any)=>item.source==="justiina" && item.ziiplyWeightLabel!==true && item.product?.ziiplyWeightLabel!==true);
     const verified=desktopCompareResolvedSignature===desktopCompareSignature?desktopCompareMatches[chain+":"+storeId]??{}:{};
-    const matched=comparable.filter((item:any)=>Number.isFinite(verified[desktopCartIdentity(item)])&&verified[desktopCartIdentity(item)]>0&&Number.isFinite(Number(item.quantity ?? 1))&&Number(item.quantity ?? 1)>0);
-    return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+verified[desktopCartIdentity(item)]*Number(item.quantity ?? 1),0)};
+    const matched=comparable.filter((item:any)=>Number.isFinite(verified[desktopComparisonRowKey(item)])&&verified[desktopComparisonRowKey(item)]>0&&Number.isFinite(Number(item.quantity ?? 1))&&Number(item.quantity ?? 1)>0);
+    return {storeName:String(store?.name??store?.title??chain),chain,storeId,foundItems:matched.length,missingItems:comparable.length-matched.length,totalPrice:matched.reduce((sum:number,item:any)=>sum+verified[desktopComparisonRowKey(item)]*Number(item.quantity ?? 1),0)};
   }));
   const desktopCompareComplete = desktopCompareResults.filter(result=>result.missingItems===0 && result.foundItems>0 && Number.isFinite(result.totalPrice) && result.totalPrice>0);
   const desktopCompareBestPrice = desktopCompareComplete.length>=2 ? Math.min(...desktopCompareComplete.map(result=>result.totalPrice)) : null;
