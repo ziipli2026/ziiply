@@ -118,7 +118,7 @@ jobs:
           import { fetchKCitymarketOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
           import { removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
           const [national, local, jumbo] = await Promise.all([
-            fetchKCitymarketOffers(),
+            fetchKCitymarketOffers({bypassCache:true}),
             fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää'),
             fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo')
           ]);
