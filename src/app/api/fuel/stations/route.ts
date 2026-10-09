@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     // Prefer the lowest source ID for a stable public station identifier.
     const unique = new Map<string, (typeof stations)[number]>();
     for (const station of stations.sort((a, b) => Number(a.id) - Number(b.id))) {
-      const address = String(station.address ?? "").trim().toLowerCase().replace(/\\s+/g, " ");
+      const address = String(station.address ?? "").trim().toLowerCase().replace(/\s+/g, " ");
       const chain = String(station.chain ?? "").trim().toLowerCase();
       const key = address && chain ? chain + "|" + address : "id|" + station.id;
       const previous = unique.get(key);
