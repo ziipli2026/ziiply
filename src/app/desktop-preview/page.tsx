@@ -427,7 +427,10 @@ export default function DesktopPreviewPage() {
 
   async function openDesktopComparison(){
     setDesktopDebugLines([]);setDesktopDebugOpen(true);
-    desktopDebug(`Vertailu käynnistyy: tila=${betweenMode}, korissa=${cartItems.length}`);
+    desktopDebug(`Vertailu käynnistyy: tila=${betweenMode}, korissa=${cartItems.length}, kauppanäkymä=${storeMode}`);
+    desktopDebug(`Tavaratalot-valinnat: ${Object.values(allStoreSelections.hyper).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
+    desktopDebug(`Lähikaupat-valinnat: ${Object.values(allStoreSelections.local).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
+    desktopDebug(`Hintahaun aktiiviset valinnat: ${Object.values(selectedStores).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
     const requestIdentity=desktopCompareIdentity;
     const runId=++desktopCompareRunId.current;
     setDesktopCompareError("");
