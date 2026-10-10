@@ -428,7 +428,8 @@ export default function DesktopPreviewPage() {
     // Muokattua vertailukoria ei koskaan saa käyttää uuden avauksen lähteenä.
     const mustRecompare=desktopComparisonEdited.current || (()=>{try{return window.localStorage.getItem(desktopComparisonEditedKey)===key}catch{return false}})();
     if(mustRecompare){desktopCompareCache.current.delete(key);desktopOriginalComparison.current=null;try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
-    const cached=mustRecompare?null:(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)||desktopReadSavedComparison(key));
+    const memoryFresh=Date.now()-desktopCompareCacheTime.current<24*60*60*1000;
+    const cached=mustRecompare?null:((memoryFresh?(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)):null)||desktopReadSavedComparison(key));
     if(cached){desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
