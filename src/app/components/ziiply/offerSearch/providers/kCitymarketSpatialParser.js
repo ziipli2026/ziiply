@@ -1373,7 +1373,7 @@ for(const row of out.rows.filter(r=>r.page===p)){
   const proofs=[];
   for(const price of wordBoxes){
    const px=Number(price.left)||0,py=Number(price.top)||0,ph=Number(price.height)||0;
-   if(!/^\\d{1,2}$/.test(String(price.text||"").trim())||ph<.045||px<ax+.18||px>ax+.32||py<ay-.055||py>ay+.065)continue;
+   if(!/^\d{1,2}$/.test(String(price.text||"").trim())||ph<.045||px<ax+.18||px>ax+.32||py<ay-.055||py>ay+.065)continue;
    for(const qty of wordBoxes){
     const qx=Number(qty.left)||0,qy=Number(qty.top)||0,qh=Number(qty.height)||0;
     if(!/^[2-5]$/.test(String(qty.text||"").trim())||qh<.012||qh>ph*.48||qx<px-.006||qx>px+.038||Math.abs(qy-py)>.012)continue;
