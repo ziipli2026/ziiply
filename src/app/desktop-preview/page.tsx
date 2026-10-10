@@ -421,8 +421,10 @@ export default function DesktopPreviewPage() {
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
+    // Aina kun avataan uusi vertailu, palautetaan ensin alkuperäisen korin tulos.
+    // Muokattua vertailukoria ei koskaan saa käyttää uuden avauksen lähteenä.
     const mustRecompare=desktopComparisonEdited.current || (()=>{try{return window.localStorage.getItem(desktopComparisonEditedKey)===key}catch{return false}})();
-    if(mustRecompare){desktopCompareCache.current.delete(key);try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
+    if(mustRecompare){desktopCompareCache.current.delete(key);desktopOriginalComparison.current=null;try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
     const cached=mustRecompare?null:(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)||desktopReadSavedComparison(key));
     if(cached){desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
