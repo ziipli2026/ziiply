@@ -4,6 +4,7 @@ on:
     paths:
       - ".github/workflows/kcitymarket-41lv-frozen-replay.yml"
       - "scripts/citymarket/replay-frozen-parser.mjs"
+      - "scripts/citymarket/verify-41lv-archive.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
   pull_request:
@@ -43,6 +44,8 @@ jobs:
           unzip -q /tmp/kcm-41lv.zip -d /tmp/kcm-41lv-archive
           test -s /tmp/kcm-41lv-archive/publisher-responses.json
           test -s /tmp/kcm-41lv-archive/archive-manifest.json
+          test -s /tmp/kcm-41lv-archive/parser-evidence.json
+          node scripts/citymarket/verify-41lv-archive.mjs /tmp/kcm-41lv-archive
       - name: Replay current parser against original frozen publisher responses
         shell: bash
         run: |
