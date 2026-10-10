@@ -348,7 +348,7 @@ export default function DesktopPreviewPage() {
     const responses=await Promise.all(queries.map(async search=>{
       try{
         const kStoreId=String(store.id||"");
-        const selectedStoreId=isS?String(store.externalId||store.id):(/^\d+$/.test(kStoreId)?kStoreId:"");
+        const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:"");
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
         if(isS){params.set("storeName",String(store.name||""));params.set("storeType",kind==="sLocal"?"local":"hyper");}
