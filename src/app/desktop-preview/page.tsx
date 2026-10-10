@@ -439,7 +439,7 @@ export default function DesktopPreviewPage() {
       setDesktopCompareLoading(true);
       try{
         const updates=await Promise.all(cartItems.map(async item=>{
-          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return null;
+          if((isS&&String(item.source||"").toLowerCase()==="offer")||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return null;
           const name=String(item.name||item.title||"").trim();if(!name)return null;
           const ean=String(item.ean||item.product?.ean||"").trim();
           try{
@@ -453,14 +453,14 @@ export default function DesktopPreviewPage() {
           }catch{return null}
         }));
         if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
-        const eligibleCount=cartItems.filter(item=>String(item.source||"").toLowerCase()!=="offer"&&!item?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))).length;
+        const eligibleCount=cartItems.filter(item=>(!isS||String(item.source||"").toLowerCase()!=="offer")&&!item?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))).length;
         const pricedCount=updates.filter(result=>result?.price!=null).length;
         setDesktopPackageProposals(updates.flatMap((result,i)=>result?.proposal?[{itemId:desktopCartKey(cartItems[i]),original:String(cartItems[i].name||cartItems[i].title||""),candidate:result.proposal,storeName}]:[]));
         // Zero matches is a valid result: keep all prices unknown rather than
         // leaving old prices visible under the newly selected store.
         if(eligibleCount>0&&pricedCount===0){flashCartNotice("Valitusta kaupasta ei löytynyt vahvistettuja hintoja.");}
         setCartItems(current=>current.map((item,i)=>{
-          if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
+          if((isS&&String(item.source||"").toLowerCase()==="offer")||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
           return {...item,price:updates[i]?.price??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]?.price==null};
         }));
         setDesktopCartPricesChecked(true);
