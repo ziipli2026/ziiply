@@ -281,6 +281,7 @@ export default function DesktopPreviewPage() {
   desktopCompareRequestIdentity.current=desktopCompareIdentity;
   useEffect(()=>{desktopCompareRunId.current+=1;setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
   const desktopComparisonEdited=useRef(false);
+  const desktopOriginalComparison=useRef<{key:string;results:Record<string,any>}|null>(null);
   const desktopComparisonEditedKey="ziiply-desktop-comparison-edited-v1";
   const desktopCompareStorageKey="ziiply-desktop-comparison-cache-v2";
   function desktopReadSavedComparison(key:string){
@@ -293,6 +294,7 @@ export default function DesktopPreviewPage() {
   }
   function desktopSaveComparison(key:string,results:Record<string,any>){
     desktopCompareCache.current.set(key,results);
+    desktopOriginalComparison.current={key,results};
     desktopCompareCacheTime.current=Date.now();
     try{window.localStorage.setItem(desktopCompareStorageKey,JSON.stringify({key,results,savedAt:Date.now()}))}catch{}
   }
@@ -421,8 +423,8 @@ export default function DesktopPreviewPage() {
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
     const mustRecompare=desktopComparisonEdited.current || (()=>{try{return window.localStorage.getItem(desktopComparisonEditedKey)===key}catch{return false}})();
     if(mustRecompare){desktopCompareCache.current.delete(key);try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
-    const cached=mustRecompare?null:(desktopCompareCache.current.get(key)||desktopReadSavedComparison(key));
-    if(cached){desktopCompareCache.current.set(key,cached);setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
+    const cached=mustRecompare?null:(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)||desktopReadSavedComparison(key));
+    if(cached){desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
@@ -441,7 +443,7 @@ export default function DesktopPreviewPage() {
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
       }));
       if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
-      const next=Object.fromEntries(results);desktopSaveComparison(key,next);desktopComparisonEdited.current=false;try{window.localStorage.removeItem(desktopComparisonEditedKey)}catch{}setDesktopCompareResults(next);
+      const next=Object.fromEntries(results);desktopSaveComparison(key,next);desktopComparisonEdited.current=false;try{window.localStorage.removeItem(desktopComparisonEditedKey)}catch{}setDesktopCompareResults(structuredClone(next));
     }catch{if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
   }
 
