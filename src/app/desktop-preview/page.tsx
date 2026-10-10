@@ -465,8 +465,10 @@ export default function DesktopPreviewPage() {
       return {amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:unit==="cl"?10:1),type:["kg","g"].includes(unit)?"weight":"volume"};
     };
     const a=parse(source),b=parse(candidate);
-    // Tuntematonta pakkauskokoa ei saa automaattisesti hyväksyä.
-    if(!a||!b||a.type!==b.type)return false;
+    // Eri tunnettuja pakkauskokoja ei rinnasteta. Puuttuva kokomerkintä
+    // ei kuitenkaan saa estää kaikkia tuotekohtaisia valintapainikkeita.
+    if(!a||!b)return true;
+    if(a.type!==b.type)return false;
     return Math.abs(a.amount-b.amount)/a.amount<=0.05;
   }
 
