@@ -377,7 +377,7 @@ export default function DesktopPreviewPage() {
     const runId=++desktopCompareRunId.current;
     setDesktopCompareError("");
     const allSelected=Object.values(selectedStores) as any[];
-    const selected=allSelected.filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));
+    const selected=allSelected.filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x))).sort((a,b)=>String(a.id).localeCompare(String(b.id)));
     const unsupportedSelected=allSelected.filter(x=>!["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));
     if(betweenMode==="one"){
       setDesktopCompareNotice(false);
