@@ -346,7 +346,10 @@ export default function DesktopPreviewPage() {
     const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name)),name].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,12);
     const responses=await Promise.all(queries.map(async search=>{
       try{
-        const params=new URLSearchParams({search,store:String(store.externalId||store.id)});
+        const kStoreId=String(store.id||"");
+        const selectedStoreId=isS?String(store.externalId||store.id):(/^\d+$/.test(kStoreId)?kStoreId:"");
+        if(!selectedStoreId)return [];
+        const params=new URLSearchParams({search,store:selectedStoreId});
         if(isS)params.set("storeName",String(store.name||""));
         const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
