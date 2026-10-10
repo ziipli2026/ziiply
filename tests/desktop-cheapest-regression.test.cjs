@@ -5,7 +5,8 @@ const vm = require('node:vm');
 const source = fs.readFileSync('src/app/desktop-preview/page.tsx', 'utf8');
 function extract(name, next) {
   const start = source.indexOf('  function '+name+'(');
-  const end = source.indexOf('  function '+next+'(', start+1);
+  let end = source.indexOf('  function '+next+'(', start+1);
+  if (end < 0) end = source.indexOf('  async function '+next+'(', start+1);
   assert.ok(start >= 0 && end > start, 'missing helper '+name);
   return source.slice(start,end);
 }
