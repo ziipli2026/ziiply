@@ -930,6 +930,7 @@ export default function DesktopPreviewPage() {
   <h2 className="px-2 font-serif text-[clamp(25px,2.5vw,40px)] font-black italic text-[#174c3a]">Tavarainkeruu</h2>
 
  </div>
+ {cartOpen && betweenMode==="one" && desktopCompareLoading && <div role="status" aria-live="polite" className="absolute left-[4.5%] right-[4.5%] top-[17%] z-20 rounded-xl border-2 border-[#b58a46] bg-[#fff4cf]/95 px-4 py-2 text-center text-[15px] font-black text-[#174c35] shadow-sm">⏳ Haetaan tai päivitetään valitun kaupan hintoja…</div>}
  <div className="absolute inset-x-[4.5%] bottom-[22%] top-[28%] overflow-y-auto">
  {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid min-h-[112px] grid-cols-[6.2%_59.6%_15%_19.2%] items-center border-b border-[#8f744f]/25 text-[#3c2c1b]">
   <span className="text-center font-serif text-[20px]">{i+1}</span>
