@@ -352,7 +352,7 @@ export default function DesktopPreviewPage() {
         const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:"");
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
-        if(isS){params.set("storeName",String(store.name||""));params.set("storeType",kind==="sLocal"?"local":"hyper");}
+        if(isS){params.set("storeName",String(store.name||""));}
         const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
