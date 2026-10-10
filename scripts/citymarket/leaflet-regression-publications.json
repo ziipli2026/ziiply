@@ -5,6 +5,10 @@
     {
       "id": "41AV",
       "fixture": "tests/fixtures/citymarket/41AV.approved.json"
+    },
+    {
+      "id": "41LV",
+      "fixture": "tests/fixtures/citymarket/41LV.approved.json"
     }
   ],
   "current": {
@@ -22,18 +26,6 @@
       "id": "40AV",
       "status": "publisher-url-expired",
       "note": "Historical regression was run in Git history; no complete frozen fixture exists."
-    },
-    {
-      "id": "41LV",
-      "status": "approved-actions-artifact-recovered",
-      "note": "Successful 41LV probe archive recovered and 91-key approved fixture generated locally. Fixture is not yet committed to this branch; do not claim offline parser regression passed until committed and replayed.",
-      "artifactId": 11659452422,
-      "workflowRunId": 38025052051,
-      "commit": "5b6d899e5ba01e836f3fc789416f1b8816493aaa",
-      "pdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
-      "pageCount": 20,
-      "parserRows": 102,
-      "approvedKeys": 91
     }
   ]
 }
