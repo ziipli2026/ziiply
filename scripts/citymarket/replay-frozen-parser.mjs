@@ -26,7 +26,7 @@ const extractedKeys=parsed.rows.flatMap(r=>{
  return !resolved&&percent>0&&percent<100?[`kcm:spatial:${page}:${title}:percent:${percent}`]:[];
 });
 const keys=new Set(extractedKeys);
-if(keys.size!==extractedKeys.length)throw Error('Current parser produced duplicate offer keys: '+(extractedKeys.length-keys.size));
+const duplicateKeys=extractedKeys.length-keys.size;
 const expected=new Set(fixture.offers.map(x=>x.key));
 const missing=[...expected].filter(k=>!keys.has(k));
 const extra=[...keys].filter(k=>!expected.has(k));
@@ -35,8 +35,8 @@ for(const row of parsed.rows){
  const title=String(row.title||'').trim().toLowerCase(),prefix='kcm:spatial:'+Number(row.page)+':'+title;
  if(targets.has(prefix))console.log('KCM_MISSING_ROW_DIAGNOSTIC',JSON.stringify({page:row.page,title:row.title,spatialResolved:row.spatialResolved,initialExpectedSingle:row.initialExpectedSingle,expectedSingle:row.expectedSingle,debugRejectedFinalBundle:row.debugRejectedFinalBundle,debugRejectedCardPrice:row.debugRejectedCardPrice,debugCardPrice:row.debugCardPrice,spatialCandidates:row.spatialCandidates}));
 }
-const report={id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys:extractedKeys.length-keys.size,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
+const report={id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
 const reportPath=process.env.KCM_REPLAY_REPORT;
 if(reportPath)fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\\n');
 console.log('KCM_REPLAY',JSON.stringify(report));
-if(parsed.pageCount!==fixture.pageCount||missing.length||extra.length)process.exitCode=1;
+if(parsed.pageCount!==fixture.pageCount||missing.length||extra.length||duplicateKeys)process.exitCode=1;
