@@ -51,7 +51,7 @@ function FuelStationTypeIllustration({ kind, className }: { kind: "traffic" | "c
 
 // Keep the desktop category order identical to the mobile Gösta category labels.
 function desktopCategoryRank(category: string): number {
-  const normalize = (value: string) => value.toLocaleLowerCase("fi").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  const normalize = (value: string) => value.toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
   const normalized = normalize(category);
   if (["muu", "muut", "other"].includes(normalized)) return GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147.length + 1;
   const index = GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147.findIndex(label => normalize(label) === normalized);
