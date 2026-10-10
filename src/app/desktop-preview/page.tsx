@@ -317,6 +317,10 @@ export default function DesktopPreviewPage() {
 
   // Use the same query expansion and ranking as the mobile comparison.
   async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean){
+    // The selected store is authoritative: never search S products for a K store (or vice versa).
+    const kind=storeKind(store);
+    if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
+    isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
     const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name)),name].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,12);
     const responses=await Promise.all(queries.map(async search=>{
