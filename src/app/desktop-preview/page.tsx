@@ -293,6 +293,8 @@ export default function DesktopPreviewPage() {
     }catch{return null}
   }
   function desktopSaveComparison(key:string,results:Record<string,any>){
+    // Only the latest comparison has a verified cache timestamp; do not extend older keys.
+    desktopCompareCache.current.clear();
     desktopCompareCache.current.set(key,results);
     desktopOriginalComparison.current={key,results};
     desktopCompareCacheTime.current=Date.now();
