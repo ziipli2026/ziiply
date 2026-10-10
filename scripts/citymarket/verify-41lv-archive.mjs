@@ -1,0 +1,32 @@
+import fs from "node:fs";
+import path from "node:path";
+import assert from "node:assert/strict";
+
+const dir=process.argv[2];
+if(!dir)throw Error("Usage: node scripts/citymarket/verify-41lv-archive.mjs <extracted-archive-dir>");
+const read=name=>JSON.parse(fs.readFileSync(path.join(dir,name),"utf8"));
+const manifest=read("archive-manifest.json");
+const evidence=read("parser-evidence.json");
+const report=read("probe-report.json");
+const multibuy=read("verified-multibuy-audit.json");
+const wc=read("verified-page5-prices.json");
+assert.match(manifest.publisherUrl,/41LV_KCM/);
+assert.equal(manifest.pdfSha256,"34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6");
+assert.equal(manifest.pageCount,20);
+assert.equal(evidence.pageCount,20);
+assert.equal(evidence.rows.length,102);
+const keys=evidence.rows.flatMap(r=>{
+ const page=Number(r.page)||0,title=String(r.title||"").trim().toLowerCase();
+ const resolved=r.spatialResolved;
+ if(resolved&&!resolved.displayOnlyUnitPrice&&Number(resolved.value)>0)return [`kcm:spatial:${page}:${title}:${Number(resolved.value)}`];
+ const percent=Number(r.percentageOffer?.percent);
+ return !resolved&&percent>0&&percent<100?[`kcm:spatial:${page}:${title}:percent:${percent}`]:[];
+});
+assert.equal(keys.length,91);
+assert.equal(new Set(keys).size,91);
+assert.equal(report.rows,102);
+assert.equal(report.bad,0);
+assert.equal(report.duplicates,0);
+assert.deepEqual(multibuy.failures,[]);
+assert.deepEqual(wc.failures,[]);
+console.log("41LV_ARCHIVE_VERIFIED",JSON.stringify({pages:20,rows:102,approvedKeys:91,sha256:manifest.pdfSha256}));
