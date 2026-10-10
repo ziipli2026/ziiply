@@ -60,6 +60,7 @@ export async function GET(request: Request) {
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "292";
   const storeName = (searchParams.get("storeName") || "").trim();
+  const storeType = searchParams.get("storeType") || "";
   const storeId = resolveSStoreId(store);
 
   if (search.length > 120 || store.length > 32 || storeName.length > 120) {
@@ -74,6 +75,22 @@ export async function GET(request: Request) {
       status: 200,
       items: [],
     });
+  }
+
+  // Local S-market prices must come from the selected S-kaupat store.
+  // Ruoanhinta's fallback ID 292 points to Prisma Hyvinkää and must never
+  // silently be used when the user switches from a hypermarket to S-market.
+  if (storeType === "local") {
+    if (!/^s[ -]?market\\b/i.test(storeName)) {
+      return NextResponse.json({ error: "S-market store name required" }, { status: 400 });
+    }
+    try {
+      const items = await fetchSKaupatNormalProductsV220(search, storeName);
+      return NextResponse.json({ store, storeName, source: "s-kaupat-normal-v220", status: 200, items });
+    } catch (error) {
+      console.warn("[S PRODUCTS] local store lookup failed", { storeName, error: String(error) });
+      return NextResponse.json({ store, storeName, source: "s-kaupat-normal-v220", items: [], error: "Local store lookup failed" }, { status: 502 });
+    }
   }
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
