@@ -263,6 +263,7 @@ export default function DesktopPreviewPage() {
   const desktopCartHydratedRef=useRef(false);
   useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{if(item?.ziiplyWeightLabel||item?.product?.ziiplyWeightLabel||String(item?.id||"").startsWith("weight-"))return {...item,price:null,product:{...(item.product||{}),price:null,ziiplyWeightLabel:true}};const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
+  const [desktopPackageProposals,setDesktopPackageProposals]=useState<Array<{itemId:string;original:string;candidate:any;storeName:string}>>([]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
   const [desktopCompareStoreWarning,setDesktopCompareStoreWarning]=useState(false);
@@ -417,18 +418,25 @@ export default function DesktopPreviewPage() {
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
             const cents=matched?Number(matched.price):NaN;
-            return Number.isFinite(cents)&&cents>0?cents/100:null;
+            if(Number.isFinite(cents)&&cents>0)return {price:cents/100,proposal:null};
+            const sourceSize=desktopPackageSize(name);
+            const sourceEan=normalizeEan(ean);
+            const alternatives=candidates.filter((p:any)=>desktopPackageSize(String(p.name||""))!==null&&desktopPackageSize(String(p.name||""))!==sourceSize&&normalizeEan(String(p.ean||""))!==sourceEan&&Number(p.price)>0);
+            const originalWords=name.toLocaleLowerCase("fi").replace(/\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl)\b/g,"").replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>3);
+            const alternative=alternatives.find((p:any)=>originalWords.filter(w=>String(p.name||"").toLocaleLowerCase("fi").includes(w)).length>=Math.min(2,originalWords.length));
+            return {price:null,proposal:alternative||null};
           }catch{return null}
         }));
         if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
         const eligibleCount=cartItems.filter(item=>String(item.source||"").toLowerCase()!=="offer"&&!item?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))).length;
-        const pricedCount=updates.filter(price=>price!=null).length;
+        const pricedCount=updates.filter(result=>result?.price!=null).length;
+        setDesktopPackageProposals(updates.flatMap((result,i)=>result?.proposal?[{itemId:String(cartItems[i].id||""),original:String(cartItems[i].name||cartItems[i].title||""),candidate:result.proposal,storeName}]:[]));
         // Zero matches is a valid result: keep all prices unknown rather than
         // leaving old prices visible under the newly selected store.
         if(eligibleCount>0&&pricedCount===0){flashCartNotice("Valitusta kaupasta ei löytynyt vahvistettuja hintoja.");}
         setCartItems(current=>current.map((item,i)=>{
           if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
-          return {...item,price:updates[i]??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]==null};
+          return {...item,price:updates[i]?.price??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]?.price==null};
         }));
         // Prices refresh in the open cart without a full-screen notification.
       }finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
@@ -1031,6 +1039,7 @@ export default function DesktopPreviewPage() {
   <h2 className="px-2 font-serif text-[clamp(25px,2.5vw,40px)] font-black italic text-[#174c3a]">Tavarainkeruu</h2>
 
  </div>
+ {cartOpen && desktopPackageProposals.length>0 && <div className="absolute left-[12%] right-[12%] top-[21%] z-[35] max-h-[62%] overflow-y-auto rounded-2xl border-2 border-[#8a6c3d] bg-[#fff4d6] p-5 shadow-2xl"><h3 className="font-serif text-xl font-bold text-[#174c3a]">Sama tuote eri pakkauskoossa</h3>{desktopPackageProposals.map(proposal=><div key={proposal.itemId} className="mt-3 border-t border-[#bca477] pt-3"><p className="text-sm">Ostoskorissa: {proposal.original}</p><p className="font-bold">Vaihtoehto: {proposal.candidate.name} — {(Number(proposal.candidate.price)/100).toFixed(2).replace(".",",")} €</p><div className="mt-2 flex gap-3"><button className="rounded-lg bg-[#24543c] px-4 py-2 font-bold text-white" onClick={()=>{setCartItems(current=>current.map(item=>String(item.id||"")!==proposal.itemId?item:{...item,name:String(proposal.candidate.name),title:String(proposal.candidate.name),ean:String(proposal.candidate.ean||""),pictureUrl:String(proposal.candidate.pictureUrl||proposal.candidate.imageUrl||""),price:Number(proposal.candidate.price)/100,storeName:proposal.storeName,priceNeedsRefresh:false}));setDesktopPackageProposals(current=>current.filter(x=>x.itemId!==proposal.itemId))}}>Hyväksy vaihto</button><button className="rounded-lg border border-[#8a6c3d] px-4 py-2" onClick={()=>setDesktopPackageProposals(current=>current.filter(x=>x.itemId!==proposal.itemId))}>Hylkää</button></div></div>)}</div>}
  {cartOpen && betweenMode==="one" && desktopCompareLoading && <div role="status" aria-live="polite" className="absolute left-[4.5%] right-[4.5%] top-[17%] z-20 rounded-xl border-2 border-[#b58a46] bg-[#fff4cf]/95 px-4 py-2 text-center text-[15px] font-black text-[#174c35] shadow-sm">⏳ Haetaan tai päivitetään valitun kaupan hintoja…</div>}
  <div className="absolute inset-x-[4.5%] bottom-[65px] top-[156px] overflow-y-auto">
  {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid min-h-[86px] grid-cols-[60px_minmax(0,1fr)_220px_220px] items-center border-b border-[#8f744f]/25 py-[4px] text-[#3c2c1b]">
