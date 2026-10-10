@@ -372,6 +372,11 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   }
 
   if (isKCitymarket) {
+    // A leaflet's spatial/OCR category is not authoritative for these unambiguous product forms.
+    // Apply before the trusted-category fast path for both mobile and desktop.
+    const productTitle = normalizeGostaCoreText(sourceItem?.title || sourceItem?.name || anyItem?.title || anyItem?.name || "");
+    if (/\\b(maissikakut|riisikakut|nakkileivat|hapankorput)\\b/.test(productTitle)) return "Kuivatuotteet";
+    if (/\\b(wc paperi|wc paperit|talouspaperi|nenaliina|nenaliinat)\\b/.test(productTitle)) return "Kodinhoito";
     const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "").split(" ").filter((part) => part !== "ja").join(" ");
     const trusted = new Map<string, string>([
       ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
