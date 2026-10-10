@@ -12941,7 +12941,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         } else {
           try {
             traceCompareV824("K-HAKUPÄÄTÖS", { sourceName: comparisonSourceName, familyKnown: sourceFamilyKnownV823, storeId: activeStores.kStoreId });
-            const best = sourceFamilyKnownV823
+            const best = (sourceFamilyKnownV823 || isUsableEan(comparisonSourceEan))
               ? await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan, true)
               : undefined;
             traceCompareV824("K-VALINTA", { sourceName: comparisonSourceName, selected: best ? { name: best.name, ean: best.ean, price: best.price } : null });
