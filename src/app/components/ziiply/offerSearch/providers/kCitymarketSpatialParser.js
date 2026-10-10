@@ -1365,6 +1365,23 @@ for(const row of out.rows.filter(r=>r.page===p)){
    row.spatialResolved={value:Number(glyphs[0].text)/100,quantity:1,unit:row.spatialResolved?.unit||null,source:"post-ownership-fused-publisher-glyph",sanity:"pass",confidence:"medium"};
   }
  }
+ // Shared multi-product card: a large whole-euro glyph with an immediately
+ // adjacent printed quantity and unit belongs to vertically stacked title rows.
+ // Require at least three nearby title anchors to avoid borrowing a single-product badge.
+ if(row.debugAnchor){
+  const ax=Number(row.debugAnchor.left)||0,ay=Number(row.debugAnchor.top)||0;
+  const siblings=out.rows.filter(other=>other.page===p&&other.debugAnchor&&Math.abs(Number(other.debugAnchor.left)-ax)<.012&&Math.abs(Number(other.debugAnchor.top)-ay)<.035);
+  if(siblings.length>=3){
+   const whole=wordBoxes.filter(b=>/^\\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04&&Number(b.left||0)>ax+.15&&Number(b.left||0)<ax+.32&&Number(b.top||0)>=ay-.012&&Number(b.top||0)<ay+.065);
+   const proofs=[];
+   for(const price of whole){
+    const qty=wordBoxes.filter(q=>/^[2-5]$/.test(String(q.text||"").trim())&&Math.abs(Number(q.left)-Number(price.left))<.04&&Math.abs(Number(q.top)-Number(price.top))<.018);
+    for(const q of qty){const unit=wordBoxes.find(u=>/^(KPL|PKT|PS|PRK|TLK)$/i.test(String(u.text||"").trim())&&Number(u.left)>Number(q.left)&&Number(u.left)-Number(q.left)<.045&&Math.abs(Number(u.top)-Number(q.top))<.009);if(unit)proofs.push({value:Number(price.text),quantity:Number(q.text),unit:String(unit.text).toUpperCase()});}
+   }
+   const unique=[...new Map(proofs.map(v=>[v.value+":"+v.quantity,v])).values()];
+   if(unique.length===1){const proof=unique[0];row.spatialResolved={...proof,source:"shared-card-printed-price-and-quantity",sanity:"pass",confidence:"high"};}
+  }
+ }
  // Fail closed if a final multi-buy total contradicts the product's expected single price.
  const finalQty=Number(row.spatialResolved?.quantity||1),finalPrice=Number(row.spatialResolved?.value),finalSingle=Number(row.initialExpectedSingle??row.expectedSingle);
  if(finalQty>1&&Number.isFinite(finalPrice)&&Number.isFinite(finalSingle)&&finalSingle>0){const tol=Math.max(.06,finalSingle*.035);if(Math.abs(finalPrice-finalSingle)>tol&&Math.abs(finalPrice-finalSingle*finalQty)>tol){row.debugRejectedFinalBundle={value:finalPrice,quantity:finalQty,expectedSingle:finalSingle,reason:"final-total-conflicts-with-owned-single-price"};row.spatialResolved=null;}}
