@@ -1218,7 +1218,7 @@ if(anchor){
 }
 // Fused three-digit publisher price (e.g. 369 = 3.69) on the same title row.
 // Require a single large glyph in a narrow vertical band; do not infer from scattered digits.
-if(anchor&&(!spatialResolved||spatialResolved.sanity==="review"||["best-spatial-candidate","large-visual-price","same-card-right-whole-euro-badge"].includes(spatialResolved.source))){
+if(anchor&&(!spatialResolved||spatialResolved.sanity==="review"||["best-spatial-candidate","large-visual-price","same-card-right-whole-euro-badge"].includes(spatialResolved.source)||(Number(spatialResolved.value)===1&&Number(spatialResolved.quantity||1)===1))){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
  const fused=wordBoxes.filter(b=>/^\\d{3}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&Number(b.left||0)>ax+.10&&Number(b.left||0)<ax+.35&&Number(b.top||0)>=ay-.005&&Number(b.top||0)<ay+.055).filter(b=>Number(b.text)>=100&&Number(b.text)<3000);
  if(fused.length===1){const value=Number(fused[0].text)/100;spatialResolved={value,quantity:null,unit:null,source:"same-card-fused-price-glyph",sanity:"pass",confidence:"medium"};}
