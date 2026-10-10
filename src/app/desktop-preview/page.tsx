@@ -344,7 +344,8 @@ export default function DesktopPreviewPage() {
     if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
-    const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name)),name].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,12);
+    const packageNeutral=name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
+    const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name)),name,packageNeutral,...(packageNeutral!==name?(isS?getNormalSearchQueries(packageNeutral):getKSearchTerms(packageNeutral)):[])].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,16);
     const responses=await Promise.all(queries.map(async search=>{
       try{
         const kStoreId=String(store.id||"");
@@ -398,7 +399,7 @@ export default function DesktopPreviewPage() {
     // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
     const sourceEan=normalizeEan(ean);
     if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b)}
-    const sameSize=candidates.filter((p:any)=>{const sourceSize=desktopPackageSize(name),candidateSize=desktopPackageSize(String(p.name||""));return sourceSize===null||candidateSize===null?true:sourceSize===candidateSize;});
+    const sameSize=candidates.filter((p:any)=>desktopPackageCompatible(name,String(p.name||"")));
     const best=isS?pickBestSProduct(sameSize,name,sourceEan):pickBestKProduct(sameSize,name,sourceEan);
     return best||null;
   }
