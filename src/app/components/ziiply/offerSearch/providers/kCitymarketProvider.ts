@@ -463,7 +463,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
 
     // When the leaflet explicitly prints the non-loyalty unit price, use
     // that evidence instead of a potentially unrelated spatial OCR value.
-    const explicitNonLoyalty = /ilman\\s+plussa[- ]korttia\\s+(\\d+[,.]\\d{2})\\s*\\/\\s*(kpl|pkt|ps|prk|plo)\\b/i.exec(title);
+    const explicitNonLoyalty = /ilman\s+plussa[- ]korttia\s+(\d+[,.]\d{2})\s*\/\s*(kpl|pkt|ps|prk|plo)\b/i.exec(title);
     const printedNormalUnit=explicitNonLoyalty?Number(explicitNonLoyalty[1].replace(",", ".")):NaN;
     const normalMin=Number(row?.normal?.min);
     const offerQuantity=useLoyaltyMultiBuy?loyaltyQuantity:resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
