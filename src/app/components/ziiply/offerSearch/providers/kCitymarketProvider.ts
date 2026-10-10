@@ -478,7 +478,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const unitMin=Number(row?.unitPrice?.min);
     const unitMax=Number(row?.unitPrice?.max);
     const unitPrice=
-      Number.isFinite(unitMin) && Number.isFinite(unitMax) && Math.abs(unitMin-unitMax)<0.001
+      !useLoyaltyMultiBuy && Number.isFinite(unitMin) && Number.isFinite(unitMax) && Math.abs(unitMin-unitMax)<0.001
         ? unitMin
         : null;
 
