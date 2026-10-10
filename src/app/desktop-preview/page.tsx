@@ -422,8 +422,9 @@ export default function DesktopPreviewPage() {
             const sourceSize=desktopPackageSize(name);
             const sourceEan=normalizeEan(ean);
             const alternatives=candidates.filter((p:any)=>desktopPackageSize(String(p.name||""))!==null&&desktopPackageSize(String(p.name||""))!==sourceSize&&normalizeEan(String(p.ean||""))!==sourceEan&&Number(p.price)>0);
-            const originalWords=name.toLocaleLowerCase("fi").replace(/\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl)\b/g,"").replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>3);
-            const alternative=alternatives.find((p:any)=>originalWords.filter(w=>String(p.name||"").toLocaleLowerCase("fi").includes(w)).length>=Math.min(2,originalWords.length));
+            const productWords=(value:string)=>String(value).toLocaleLowerCase("fi").replace(/\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/g," ").replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2&&!["kpl","pkt","pss"].includes(w));
+            const originalWords=productWords(name);
+            const alternative=alternatives.map((p:any)=>{const words=productWords(String(p.name||""));const overlap=originalWords.filter(w=>words.includes(w)).length;return {p,overlap,score:overlap/Math.max(originalWords.length,words.length,1)};}).filter(x=>x.overlap>=Math.min(2,originalWords.length)&&x.score>=0.5).sort((a,b)=>b.score-a.score)[0]?.p;
             return {price:null,proposal:alternative||null};
           }catch{return null}
         }));
