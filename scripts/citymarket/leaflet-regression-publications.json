@@ -25,8 +25,15 @@
     },
     {
       "id": "41LV",
-      "status": "approved-output-not-frozen",
-      "note": "User validated parser results on Wednesday–Thursday; preserve that exact approved output as a frozen fixture before claiming a current-code regression pass. Do not substitute a fresh live parse for the approved baseline."
+      "status": "approved-actions-artifact-recovered",
+      "note": "Successful 41LV probe archive recovered and 91-key approved fixture generated locally. Fixture is not yet committed to this branch; do not claim offline parser regression passed until committed and replayed.",
+      "artifactId": 11659452422,
+      "workflowRunId": 38025052051,
+      "commit": "5b6d899e5ba01e836f3fc789416f1b8816493aaa",
+      "pdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "pageCount": 20,
+      "parserRows": 102,
+      "approvedKeys": 91
     }
   ]
 }
