@@ -513,7 +513,7 @@ export default function DesktopPreviewPage() {
       }));
       const originalBrand=name.split(/\s+/)[0]?.toLocaleLowerCase("fi")||"";
       const ownBrand=kind==="spar"?/(^|\s)(spar|eurospar|first price)(\s|$)/i:kind==="lidl"?/(^|\s)(milbona|cien|chef select|pikok|combino)(\s|$)/i:isS?/(^|\s)(coop|xtra|kotimaista)(\s|$)/i:/(^|\s)(pirkka|k-menu)(\s|$)/i;
-      let filtered=candidates;
+      let filtered=candidates.filter((p:any)=>Number.isFinite(Number(p.price))&&Number(p.price)>0);
       if(mode==="own_brands")filtered=candidates.filter((p:any)=>ownBrand.test(p.name));
       if(mode==="same_brand")filtered=candidates.filter((p:any)=>p.name.toLocaleLowerCase("fi").includes(originalBrand));
       filtered=filtered.sort((a:any,b:any)=>Number(a.price)-Number(b.price));
