@@ -477,6 +477,7 @@ export default function DesktopPreviewPage() {
       if(!desktopIsFilterCoffee(candidate))return false;
       if(/kofeiiniton/.test(x)!==/kofeiiniton/.test(y))return false;
       if(/luomu/.test(x)!==/luomu/.test(y))return false;
+      if(/laktoositon/.test(x)!==/laktoositon/.test(y))return false;
       return true;
     }
     const attributes=[
@@ -513,8 +514,13 @@ export default function DesktopPreviewPage() {
       filtered=filtered.sort((a:any,b:any)=>Number(a.price)-Number(b.price));
       if(mode==="cheapest"){
         const compatible=filtered.filter((p:any)=>desktopCheapestCompatible(name,p.name));
-        if(!compatible.length){flashCartNotice("Saman kokoista ja ominaisuuksiltaan vastaavaa halvempaa tuotetta ei löytynyt.");return []}
-        await desktopSelectCompareAlternative(storeId,match,{...compatible[0],comparisonSelectionMode:"cheapest"});
+        if(!compatible.length){flashCartNotice("Saman kokoista ja ominaisuuksiltaan vastaavaa tuotetta ei löytynyt.");return []}
+        const currentPrice=Number(match?.price);
+        const cheapest=compatible.find((p:any)=>Number.isFinite(Number(p.price))&&Number(p.price)>0);
+        if(!cheapest){flashCartNotice("Vaihtoehdolle ei löytynyt kelvollista hintaa.");return []}
+        if(!Number.isFinite(currentPrice)||currentPrice<=0){flashCartNotice("Nykyisen tuotteen hintaa ei tunneta. Automaattista vaihtoa ei tehdä.");return compatible}
+        if(Number(cheapest.price)>=Math.round(currentPrice*100)){flashCartNotice("Nykyinen tuote on jo yhtä halpa tai halvempi.");return compatible}
+        await desktopSelectCompareAlternative(storeId,match,{...cheapest,comparisonSelectionMode:"cheapest"});
         return compatible;
       }
       return filtered.slice(0,20);
