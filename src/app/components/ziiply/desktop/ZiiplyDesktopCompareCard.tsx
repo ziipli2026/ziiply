@@ -36,7 +36,7 @@ export default function ZiiplyDesktopCompareCard({
   return (
     <div className="fixed inset-0 z-[150] grid place-items-center bg-[#172e23]/65 p-4">
       <section role="dialog" aria-modal="true" aria-label="Hintavertailu"
-        className="relative flex h-[min(96dvh,1100px)] min-h-[430px] w-[min(1400px,calc(100vw-32px))] flex-col overflow-hidden rounded-[30px] border-[9px] border-[#3d2415] bg-[#ead7ad] p-2 shadow-[0_18px_0_rgba(52,36,23,.35),0_30px_70px_rgba(0,0,0,.35)]">
+        className="relative flex h-[min(90dvh,920px)] min-h-[430px] w-[min(1400px,calc(100vw-32px))] flex-col overflow-hidden rounded-[30px] border-[9px] border-[#3d2415] bg-[#ead7ad] p-2 shadow-[0_18px_0_rgba(52,36,23,.35),0_30px_70px_rgba(0,0,0,.35)]">
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border-[2px] border-dashed border-[#c9ad76] px-5 pb-5 pt-6 md:px-8"
           style={{backgroundColor:"#f5e7c7",backgroundImage:"repeating-linear-gradient(to bottom, transparent 0, transparent 35px, rgba(151,125,79,.16) 36px, transparent 37px),linear-gradient(110deg,rgba(255,250,230,.93),rgba(230,202,151,.56))"}}>
           <button type="button" onClick={back} aria-label="Takaisin" className="absolute left-3 top-3 z-10 grid h-12 w-14 place-items-center rounded-xl border-[3px] border-[#3d2415] bg-[#654027] text-2xl text-[#fff0c9]">←</button>
@@ -47,7 +47,7 @@ export default function ZiiplyDesktopCompareCard({
             <p className="mt-1 text-sm font-bold text-[#6b5839]">{subtitle}</p>
             {loading && <p role="status" className="text-sm font-bold text-[#17633c]">Päivitetään hintoja…</p>}
           </header>
-          <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${stores.length>=3?"xl:grid-cols-3":""} ${stores.length>=4?"2xl:grid-cols-4":""} ${expanded.length ? "flex-1 content-start" : "content-start"}`}>
+          <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${stores.length>=3?"xl:grid-cols-3":""} ${stores.length>=4?"2xl:grid-cols-4":""} ${expanded.length ? "flex-1 content-start lg:overflow-hidden" : "content-start"}`}>
             {stores.length === 0 && <p className="col-span-full p-8 text-center font-bold">{loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole saatavilla."}</p>}
             {stores.map((store,index) => {
               const missing = Number(store.missingItems || 0);
@@ -58,7 +58,7 @@ export default function ZiiplyDesktopCompareCard({
               const isOpen = expanded.includes(store.id);
               const rows = (store.matches || []) as MatchRow[];
               return (
-                <article key={store.id} className={`flex min-w-0 flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isOpen ? "min-h-[440px] lg:min-h-[520px]" : "h-auto"} ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
+                <article key={store.id} className={`flex min-w-0 flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isOpen ? "min-h-[260px] lg:h-full lg:min-h-0" : "h-auto"} ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
                   <div className="flex shrink-0 items-center gap-3 border-b border-[#c9ad76]/70 px-4 py-3">
                     <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : store.chain === "K" ? "border-[#85161c] bg-[#cf2028]" : store.chain === "LIDL" ? "border-[#153c8a] bg-[#235ac2]" : "border-[#8b4321] bg-[#bc7032]"}`}>{store.chain || "•"}</div>
                     <div className="min-w-0 flex-1">
@@ -75,7 +75,7 @@ export default function ZiiplyDesktopCompareCard({
                     <button type="button" aria-expanded={isOpen} onClick={()=>toggle(store.id)} className="rounded-xl border-2 border-[#536b4d] bg-[#f1e3c1] px-4 py-1.5 font-serif text-sm font-black italic text-[#214d36]">{isOpen ? "Sulje valinnat" : "Muuta valintoja"}</button>
                   </div>
                   {isOpen && (
-                    <div className="min-h-[320px] flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
                       <ZiiplyMobileCompareSelectionCard key={store.id} open embedded compact store={{...store,matches:rows}} items={items} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
                     </div>
                   )}
