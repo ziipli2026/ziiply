@@ -24352,7 +24352,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {compareDebugEnabledV824 && (
-          <div style={{ position: "fixed", zIndex: 99999, left: 8, right: 8, bottom: 8, maxHeight: "48vh", overflow: "auto", background: "#fff9e6", color: "#182b20", border: "2px solid #74582b", borderRadius: 12, padding: 10, fontSize: 11, boxShadow: "0 2px 18px #0008" }}>
+          <div style={{ position: "fixed", zIndex: 99999, left: 8, right: 8, top: "max(8px, env(safe-area-inset-top))", maxHeight: "38vh", overflow: "auto", background: "#fff9e6", color: "#182b20", border: "2px solid #74582b", borderRadius: 12, padding: 10, fontSize: 11, boxShadow: "0 2px 18px #0008" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
               <strong>Halpuuta / K-haku debug ({compareDebugRowsV824.length})</strong>
               <button type="button" onClick={() => setCompareDebugRowsV824([])}>Tyhjennä</button>
