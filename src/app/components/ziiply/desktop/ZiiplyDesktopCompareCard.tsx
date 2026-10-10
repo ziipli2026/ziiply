@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import ZiiplyMobileCompareSelectionCard from "../cards/ZiiplyMobileCompareSelectionCard";
 
 export type DesktopCompareStore = {
-  id: string; name: string; chain?: "S" | "K"; totalPrice?: number;
+  id: string; name: string; chain?: "S" | "K" | "LIDL" | "SPAR"; totalPrice?: number;
   itemCount?: number; missingItems?: number; matches?: unknown[];
 };
 type Props = {
@@ -47,7 +47,7 @@ export default function ZiiplyDesktopCompareCard({
             <p className="mt-1 text-sm font-bold text-[#6b5839]">{subtitle}</p>
             {loading && <p role="status" className="text-sm font-bold text-[#17633c]">Päivitetään hintoja…</p>}
           </header>
-          <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${expanded.length ? "flex-1 lg:items-stretch lg:overflow-hidden" : "content-start"}`}>
+          <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${stores.length>=3?"xl:grid-cols-3":""} ${stores.length>=4?"2xl:grid-cols-4":""} ${expanded.length ? "flex-1 lg:items-stretch lg:overflow-hidden" : "content-start"}`}>
             {stores.length === 0 && <p className="col-span-full p-8 text-center font-bold">{loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole saatavilla."}</p>}
             {stores.map((store,index) => {
               const missing = Number(store.missingItems || 0);
@@ -60,9 +60,9 @@ export default function ZiiplyDesktopCompareCard({
               return (
                 <article key={store.id} className={`flex min-w-0 flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isOpen ? "min-h-[260px] lg:h-full lg:min-h-0" : "h-auto"} ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
                   <div className="flex shrink-0 items-center gap-3 border-b border-[#c9ad76]/70 px-4 py-3">
-                    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : "border-[#85161c] bg-[#cf2028]"}`}>{store.chain || "•"}</div>
+                    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : store.chain === "K" ? "border-[#85161c] bg-[#cf2028]" : store.chain === "LIDL" ? "border-[#153c8a] bg-[#235ac2]" : "border-[#8b4321] bg-[#bc7032]"}`}>{store.chain || "•"}</div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-[clamp(16px,1.5vw,22px)] font-black leading-tight text-[#29271e]">{store.name}</h3>
+                      <h3 className="text-[clamp(14px,1.2vw,20px)] font-black leading-tight text-[#29271e]">{store.name}</h3>
                       <p className="text-[10px] font-extrabold uppercase text-[#7c725d]">#{index+1} · {found} tuotetta löytynyt · {missing ? `${missing} puuttuu` : "Täysi kori"}</p>
                     </div>
                     <div className="shrink-0 text-right">
