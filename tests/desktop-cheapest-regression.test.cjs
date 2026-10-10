@@ -66,3 +66,32 @@ test('cheapest mode executes selection only for a strictly cheaper valid candida
   assert.equal(mixed.selected.length,1,'one valid cheaper candidate must swap');
   assert.equal(mixed.selected[0][2].price,199,'must select lowest valid price even with invalid prices');
 });
+
+test('selected alternative updates compare row price, quantity total and missing count', async () => {
+  const start=source.indexOf('  async function desktopSelectCompareAlternative(');
+  const end=source.indexOf('  const [cartNotice,',start);
+  assert.ok(start>=0 && end>start,'missing selection implementation');
+  let state={shop:{rows:[{cartItemId:'item',name:'Original',price:2.50,quantity:2},{cartItemId:'other',name:'Other',price:3,quantity:1}],total:8,missing:0}};
+  const notices=[];
+  const env=vm.createContext({
+    desktopCompareResults:state,
+    desktopComparisonEdited:{current:false},
+    cartItems:[],
+    selectedStores:{},
+    desktopComparisonEditedKey:'test',
+    window:{localStorage:{setItem(){}}},
+    storeKind:()=> 'sHyper',
+    resolvePriceWeightLabel:()=> '',
+    setDesktopCompareResults: updater=>{state=updater(state);env.desktopCompareResults=state},
+    flashCartNotice: message=>notices.push(message),
+  });
+  vm.runInContext(ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,env);
+  await env.desktopSelectCompareAlternative('shop',{id:'item'},{name:'Cheaper',price:199});
+  assert.equal(state.shop.rows[0].price,1.99);
+  assert.equal(state.shop.rows[0].name,'Cheaper');
+  assert.equal(state.shop.total,6.98,'2 x 1.99 + 3.00');
+  assert.equal(state.shop.missing,0);
+  assert.equal(env.desktopComparisonEdited.current,true);
+  await env.desktopSelectCompareAlternative('shop',{id:'item'},{name:'Invalid',price:0});
+  assert.equal(state.shop.total,6.98,'invalid price must not change total');
+});
