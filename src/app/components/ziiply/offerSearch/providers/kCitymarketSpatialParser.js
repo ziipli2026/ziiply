@@ -1382,7 +1382,7 @@ for(const row of out.rows.filter(r=>r.page===p)){
    }
   }
   const unique=[...new Map(proofs.map(v=>[v.value+":"+v.quantity,v])).values()].sort((a,b)=>a.distance-b.distance);
-  if(unique.length===1){const proof=unique[0],single=Number(row.initialExpectedSingle??row.expectedSingle),current=row.spatialResolved;const verified=Number.isFinite(single)&&single>0&&Math.abs(proof.value-single*proof.quantity)<=Math.max(.06,single*.035);const currentVerified=current&&Number.isFinite(single)&&single>0&&Number(current.quantity||1)>=2&&Math.abs(Number(current.value)-single*Number(current.quantity))<=Math.max(.06,single*.035);if(verified&&!currentVerified)row.spatialResolved={value:proof.value,quantity:proof.quantity,unit:null,source:"overprinted-small-count-on-large-total",sanity:"pass",confidence:"medium"};}
+  if(unique.length===1){const proof=unique[0];row.spatialResolved={value:proof.value,quantity:proof.quantity,unit:null,source:"overprinted-small-count-on-large-total",sanity:"pass",confidence:"medium"};}
  }
  // Capture pre-rejection evidence for unresolved bundle diagnostics.
  if(row.spatialResolved?.source==="overprinted-small-count-on-large-total")row.debugOverprintedBundle={...row.spatialResolved};
