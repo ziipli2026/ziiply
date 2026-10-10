@@ -37,6 +37,6 @@ for(const row of parsed.rows){
 }
 const report={id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
 const reportPath=process.env.KCM_REPLAY_REPORT;
-if(reportPath)fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\\n');
+if(reportPath)fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\n');
 console.log('KCM_REPLAY',JSON.stringify(report));
 if(parsed.pageCount!==fixture.pageCount||missing.length||extra.length||duplicateKeys)process.exitCode=1;
