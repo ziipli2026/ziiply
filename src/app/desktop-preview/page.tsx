@@ -1232,7 +1232,8 @@ export default function DesktopPreviewPage() {
       })}
     </div>
   </div>
-</div>}</div>})}</div>}
+</div>}</div>})}</div>
+</div>}
                       </div>
 
           <nav aria-label="Ostokset ja vertailu" className={fuelSelected ? "relative z-20 flex h-full min-h-0 flex-col items-stretch justify-center gap-4 pb-0 pt-1" : "relative z-20 flex h-full min-h-0 flex-col items-stretch justify-between gap-4 pb-0 pt-1"}>
