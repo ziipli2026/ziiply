@@ -45,7 +45,7 @@ jobs:
           test -s /tmp/kcm-41lv-archive/publisher-responses.json
           test -s /tmp/kcm-41lv-archive/archive-manifest.json
           test -s /tmp/kcm-41lv-archive/parser-evidence.json
-          node scripts/citymarket/verify-41lv-archive.mjs /tmp/kcm-41lv-archive
+          node scripts/citymarket/verify-41lv-archive.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json
       - name: Replay current parser against original frozen publisher responses
         shell: bash
         run: |
