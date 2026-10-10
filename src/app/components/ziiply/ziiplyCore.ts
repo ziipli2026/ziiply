@@ -1814,6 +1814,17 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
+  // A chocolate bar is not a biscuit, cookie or filled wafer, even when brand and weight match.
+  // Check the physical product type before any price-based ranking.
+  const sourceChocolateBar = /(?:suklaalevy|suklaalev|maitosuklaalevy|chocolate bar)/.test(source);
+  if (sourceChocolateBar) {
+    const targetChocolateBar = /(?:suklaalevy|suklaalev|chocolate bar)/.test(target);
+    const targetOtherType = /(?:keksi|cookie|biscuit|domino|vohveli|wafer|patukka|konvehti)/.test(target);
+    if (!targetChocolateBar || targetOtherType) return false;
+  }
+  const sourceBiscuit = /(?:keksi|cookie|biscuit|domino)/.test(source);
+  if (sourceBiscuit && /(?:suklaalevy|suklaalev|chocolate bar)/.test(target)) return false;
+
   if (source.includes("jauheliha") && !target.includes("jauheliha")) return false;
 
   // Bread must never fall through to an unrelated grocery item. This is a hard
@@ -3189,6 +3200,7 @@ export function pickBestSProduct(items: Product[], query: string, ean?: string) 
   return items
     .filter((item) => getProductPrice(item) > 0)
     .filter((item) => !isHardRejectedAlternative(query, item.name))
+    .filter((item) => productGroupGate(query, item.name))
     .filter((item) => isBreadComparisonCompatible(query, item.name))
     .filter((item) => !isBadNormalResult(item, query))
     .map((item) => ({ item, score: scoreNameMatch(query, item.name) }))
@@ -3362,7 +3374,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
     if (new RegExp("\\b" + attribute + "\\b").test(source) !== new RegExp("\\b" + attribute + "\\b").test(candidate)) return false;
   }
   if (/\bab.piima\b/.test(source) !== /\bab.piima\b/.test(candidate)) return false;
-  return !isHardRejectedAlternative(sourceName, candidateName);
+  return productGroupGate(sourceName, candidateName) && !isHardRejectedAlternative(sourceName, candidateName);
 }
 
 export function pickCheapestCompatibleComparisonProduct<T extends { name: string; price: number }>(
