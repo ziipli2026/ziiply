@@ -35,3 +35,31 @@ test('price comparison is in cents and only strictly cheaper',()=>{
   assert.equal(250 >= Math.round(2.50*100),true);
   assert.equal(251 >= Math.round(2.50*100),true);
 });
+
+test('cheapest mode executes selection only for a strictly cheaper valid candidate', async () => {
+  const start = source.indexOf('  async function desktopChangeCompareMatchMode(');
+  const end = source.indexOf('  async function desktopSelectCompareAlternative(', start);
+  assert.ok(start >= 0 && end > start, 'missing cheapest mode implementation');
+  const implementation = ts.transpileModule(source.slice(start,end), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  async function scenario(currentPrice, offers) {
+    const selected = [];
+    const notices = [];
+    const env = vm.createContext({
+      desktopCompareResults: { shop: { store: { id: 'shop' } } },
+      cartItems: [{ id: 'item', name: 'Laktoositon maito 1 l', quantity: 1 }],
+      storeKind: () => 'sHyper',
+      desktopFindCompareCandidates: async () => offers.map((price, index) => ({ id: 'p'+index, name: 'Laktoositon maito 1 l', price })),
+      productGroupGate: () => true,
+      flashCartNotice: message => notices.push(message),
+      desktopSelectCompareAlternative: async (...args) => selected.push(args),
+    });
+    vm.runInContext(ts.transpileModule(helpers, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText + implementation, env);
+    await env.desktopChangeCompareMatchMode('shop', { id: 'item', price: currentPrice }, 'cheapest');
+    return { selected, notices };
+  }
+  assert.equal((await scenario(2.50,[249])).selected.length,1,'cheaper price must swap');
+  assert.equal((await scenario(2.50,[250])).selected.length,0,'equal price must not swap');
+  assert.equal((await scenario(2.50,[251])).selected.length,0,'higher price must not swap');
+  assert.equal((await scenario(null,[249])).selected.length,0,'unknown current price must not swap');
+  assert.equal((await scenario(2.50,[0])).selected.length,0,'zero-price candidate must not swap');
+});
