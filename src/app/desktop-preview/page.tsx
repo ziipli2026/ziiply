@@ -398,7 +398,7 @@ export default function DesktopPreviewPage() {
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
     const sourceEan=normalizeEan(ean);
-    if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b)}
+    if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&desktopPackageCompatible(name,String(p.name||""))&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b)}
     const sameSize=candidates.filter((p:any)=>desktopPackageCompatible(name,String(p.name||"")));
     const best=isS?pickBestSProduct(sameSize,name,sourceEan):pickBestKProduct(sameSize,name,sourceEan);
     return best||null;
