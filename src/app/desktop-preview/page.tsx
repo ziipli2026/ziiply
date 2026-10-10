@@ -464,11 +464,22 @@ export default function DesktopPreviewPage() {
     const scale=unit==="kg"||unit==="l"?1000:unit==="dl"?100:unit==="cl"?10:1;
     return {amount:count*amount*scale,type:unit==="kg"||unit==="g"?"weight":"volume"};
   }
+  function desktopIsFilterCoffee(v:string){const n=v.toLocaleLowerCase("fi");return /kahvi/.test(n)&&/(suodatin|jauhat|jauhettu|jauhe|keskipaahto|tumma paahto|vaalea paahto)/.test(n)&&!/(kapseli|pikakahvi|papukahvi|kahvipapu|juoma|valmisjuoma)/.test(n);}
+  function desktopCheapestSearchQueries(name:string){
+    if(!desktopIsFilterCoffee(name))return [];
+    return ["suodatinkahvi 500g","suodatinkahvi 500 g","kahvi suodatin 500g","kahvi 500g","kahvi 500 g","suodatinjauhatus","jauhettu kahvi"];
+  }
   function desktopCheapestCompatible(source:string,candidate:string){
     const a=desktopCheapestPack(source),b=desktopCheapestPack(candidate);
     if(!a||!b||a.type!==b.type||Math.abs(a.amount-b.amount)>a.amount*0.02)return false;
     const n=(v:string)=>v.toLocaleLowerCase("fi").replace(/[-–]/g," ").replace(/\s+/g," ");
     const x=n(source),y=n(candidate);
+    if(desktopIsFilterCoffee(source)){
+      if(!desktopIsFilterCoffee(candidate))return false;
+      if(/kofeiiniton/.test(x)!==/kofeiiniton/.test(y))return false;
+      if(/luomu/.test(x)!==/luomu/.test(y))return false;
+      return true;
+    }
     const attributes=[
       /laktoositon/,/vähälaktoosinen/,/gluteeniton/,/rasvaton/,/kevyt/,/täysmaito/,
       /kofeiiniton/,/papu(?:kahvi)?/,/suodatin(?:kahvi)?/,/pika(?:kahvi)?/,
@@ -486,7 +497,11 @@ export default function DesktopPreviewPage() {
     const store=result.store;const kind=storeKind(store);const isS=kind==="sHyper"||kind==="sLocal";
     try{
       const products=await desktopFindCompareCandidates(name,String(cartItem?.ean||cartItem?.product?.ean||""),store,isS);
-      const candidates=products.filter((product:any)=>productGroupGate(name,product.name)).map((product:any,index:number)=>({
+      if(mode==="cheapest"&&desktopIsFilterCoffee(name)){
+        const extra=await Promise.all(desktopCheapestSearchQueries(name).map(async query=>desktopFindCompareCandidates(query,"",store,isS)));
+        products.push(...extra.flat());
+      }
+      const candidates=products.filter((product:any)=>mode==="cheapest"&&desktopIsFilterCoffee(name)?desktopIsFilterCoffee(String(product.name||"")):productGroupGate(name,product.name)).map((product:any,index:number)=>({
         ...product,id:String(product.id||product.ean||index),name:product.name,
         price:Number(product.price),product:{...(product.product||{}),id:product.id||product.ean||index,name:product.name,ean:product.ean},
         sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false
