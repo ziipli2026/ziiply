@@ -366,14 +366,12 @@ export default function DesktopPreviewPage() {
           if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return null;
           const name=String(item.name||item.title||"").trim();if(!name)return null;
           const ean=String(item.ean||item.product?.ean||"").trim();
-          const params=new URLSearchParams({search:name,store:String(store.externalId||store.id)});
-          if(isS)params.set("storeName",String(store.name||""));
-          try{const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});if(!response.ok)return null;
-            const data=await response.json();const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
-            const exact=ean?products.find((p:any)=>[p.ean,p.gtin,p.eanCode,p.barcode,p.product?.ean,p.item?.ean].some(v=>String(v||"").trim()===ean)):null;
-            const byName=products.find((p:any)=>String(p.name||p.title||"").trim().replace(/\s+/g," ").toLocaleLowerCase("fi")===name.replace(/\s+/g," ").toLocaleLowerCase("fi"));
-            const matched=exact||byName;const raw=Number((matched?.price??matched?.storeItems?.[0]?.price)??0);
-            return matched&&Number.isFinite(raw)&&raw>0?(isS&&data?.source==="s-kaupat-normal-v220"?raw:raw/100):null;
+          try{
+            // Reuse the same expanded queries and product matcher as the two-store comparison.
+            const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
+            const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            const cents=matched?Number(matched.price):NaN;
+            return Number.isFinite(cents)&&cents>0?cents/100:null;
           }catch{return null}
         }));
         if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
