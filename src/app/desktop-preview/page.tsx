@@ -201,6 +201,7 @@ export default function DesktopPreviewPage() {
   const [stores, setStores] = useState<any[]>([]);
   const [storeMode, setStoreMode] = useState<"hyper" | "local">("hyper");
   const [selectedChain, setSelectedChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
+  const [betweenMode, setBetweenMode] = useState<"one" | "many">("one");
   const [allStoreSelections, setAllStoreSelections] = useState<{hyper:Record<string,any>;local:Record<string,any>}>({hyper:{},local:{}});
   const selectedStores = (() => {
     const current=allStoreSelections[storeMode];
@@ -226,7 +227,7 @@ export default function DesktopPreviewPage() {
 
   const [storeModeChosen, setStoreModeChosen] = useState(false);
   const [storeCompareScope, setStoreCompareScope] = useState<"none" | "between_chains" | "within_chain">("none");
-  const [betweenMode, setBetweenMode] = useState<"one" | "many">("one");
+
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [pickerChain, setPickerChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
   const [pickerPlacement, setPickerPlacement] = useState({left: 0, top: 0, bottom: 0, width: 360});
