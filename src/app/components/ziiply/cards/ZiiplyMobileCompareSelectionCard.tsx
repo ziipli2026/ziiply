@@ -164,6 +164,8 @@ function getProductImage(item: unknown) {
 function getStoreOwnBrandExample(chain?: ZiiplyCompareSelectionStore["chain"]) {
   if (chain === "K") return "Pirkka / K-Menu";
   if (chain === "S") return "Coop / Xtra / Kotimaista";
+  if (chain === "LIDL") return "Milbona / Pikok / Combino";
+  if (chain === "SPAR") return "SPAR / First Price";
   return "Kaupan oma";
 }
 
