@@ -1,0 +1,19 @@
+name: Desktop cheapest regression
+on:
+  push:
+    branches:
+      - preview/legacy-desktop-ui
+    paths:
+      - src/app/desktop-preview/page.tsx
+      - tests/desktop-cheapest-regression.test.cjs
+      - .github/workflows/desktop-cheapest-regression.yml
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/desktop-cheapest-regression.test.cjs
