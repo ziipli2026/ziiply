@@ -216,7 +216,16 @@ export default function DesktopPreviewPage() {
       const name=String(store?.name||"").toLowerCase();
       return selectedChain==="S"?name.includes("prisma")||name.includes("s-market")||name.includes("alepa")||name.includes("sale"):selectedChain==="K"?name.includes("citymarket")||name.includes("k-supermarket")||name.includes("k-market"):selectedChain==="LIDL"?name.includes("lidl"):name.includes("tokmanni")||name.includes("spar");
     });
-    return previous?{[String((previous as any).id)]:previous}:{};
+    // Never reuse a hypermarket as the active local-store selection (or vice versa).
+    // Resolve the same nearest candidate that the visible chain card displays.
+    const pool=selectedChain==="LIDL"?lidlStores:selectedChain==="SPAR"?sparStores:stores;
+    const candidate=byDistance(pool.filter((store:any)=>{
+      const kind=storeKind(store);
+      return selectedChain==="S"?kind===(storeMode==="hyper"?"sHyper":"sLocal")
+        :selectedChain==="K"?kind===(storeMode==="hyper"?"kHyper":"kLocal")
+        :selectedChain==="LIDL"?kind==="lidl":kind==="spar";
+    }))[0];
+    return candidate?{[String(candidate.id)]:candidate}:{};
   })();
   const setSelectedStores = (update:Record<string,any>|((prev:Record<string,any>)=>Record<string,any>)) => {
     const mode=storeMode;
