@@ -523,6 +523,7 @@ export default function DesktopPreviewPage() {
         const currentPrice=Number(match?.price);
         const cheapest=compatible[0];
         if(Number.isFinite(currentPrice)&&currentPrice>0&&Number(cheapest.price)>=currentPrice){flashCartNotice("Nykyinen tuote on jo yhtä halpa tai halvempi.");return compatible}
+        if(!Number.isFinite(Number(cheapest.price))||Number(cheapest.price)<=0){flashCartNotice("Vaihtoehdolle ei löytynyt kelvollista hintaa.");return []}
         await desktopSelectCompareAlternative(storeId,match,{...cheapest,comparisonSelectionMode:"cheapest"});
         return compatible;
       }
