@@ -202,7 +202,21 @@ export default function DesktopPreviewPage() {
   const [storeMode, setStoreMode] = useState<"hyper" | "local">("hyper");
   const [selectedChain, setSelectedChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
   const [allStoreSelections, setAllStoreSelections] = useState<{hyper:Record<string,any>;local:Record<string,any>}>({hyper:{},local:{}});
-  const selectedStores = allStoreSelections[storeMode];
+  const selectedStores = (() => {
+    const current=allStoreSelections[storeMode];
+    if(betweenMode==="many" || !selectedChain)return current;
+    const selected=Object.values(current).find((store:any)=>{
+      const name=String(store?.name||"").toLowerCase();
+      return selectedChain==="S"?name.includes("prisma")||name.includes("s-market")||name.includes("alepa")||name.includes("sale"):selectedChain==="K"?name.includes("citymarket")||name.includes("k-supermarket")||name.includes("k-market"):selectedChain==="LIDL"?name.includes("lidl"):name.includes("tokmanni")||name.includes("spar");
+    });
+    if(selected)return {[String((selected as any).id)]:selected};
+    const other=allStoreSelections[storeMode==="hyper"?"local":"hyper"];
+    const previous=Object.values(other).find((store:any)=>{
+      const name=String(store?.name||"").toLowerCase();
+      return selectedChain==="S"?name.includes("prisma")||name.includes("s-market")||name.includes("alepa")||name.includes("sale"):selectedChain==="K"?name.includes("citymarket")||name.includes("k-supermarket")||name.includes("k-market"):selectedChain==="LIDL"?name.includes("lidl"):name.includes("tokmanni")||name.includes("spar");
+    });
+    return previous?{[String((previous as any).id)]:previous}:{};
+  })();
   const setSelectedStores = (update:Record<string,any>|((prev:Record<string,any>)=>Record<string,any>)) => {
     const mode=storeMode;
     setAllStoreSelections(prev=>({...prev,[mode]:typeof update==="function"?update(prev[mode]):update}));
