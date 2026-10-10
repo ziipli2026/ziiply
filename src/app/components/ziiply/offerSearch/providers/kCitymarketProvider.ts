@@ -450,7 +450,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // This is stronger evidence than a spatially neighbouring OCR price.
     const explicitOneKg = new RegExp(String.raw`(?:^|\s)1\s*kg\s*\(\s*(\d+[,.]\d{2})\s*/\s*kg\s*\)`, "i").exec(title);
     const printedOneKgPrice=explicitOneKg?Number(explicitOneKg[1].replace(",",".")):NaN;
-    const price=Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0
+    const price=Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0 && !(Number(resolved?.quantity)>1)
       ? printedOneKgPrice : spatialPrice;
 
     const normalMin=Number(row?.normal?.min);
