@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 const [folder,fixturePath,parserPath='src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js']=process.argv.slice(2);
 if(!folder||!fixturePath)throw Error('Usage: replay-frozen-parser.mjs archive-folder approved-fixture [parser-path]');
@@ -34,5 +35,8 @@ for(const row of parsed.rows){
  const title=String(row.title||'').trim().toLowerCase(),prefix='kcm:spatial:'+Number(row.page)+':'+title;
  if(targets.has(prefix))console.log('KCM_MISSING_ROW_DIAGNOSTIC',JSON.stringify({page:row.page,title:row.title,spatialResolved:row.spatialResolved,initialExpectedSingle:row.initialExpectedSingle,expectedSingle:row.expectedSingle,debugRejectedFinalBundle:row.debugRejectedFinalBundle,debugRejectedCardPrice:row.debugRejectedCardPrice,debugCardPrice:row.debugCardPrice,spatialCandidates:row.spatialCandidates}));
 }
-console.log('KCM_REPLAY',JSON.stringify({id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra}));
+const report={id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys:extractedKeys.length-keys.size,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
+const reportPath=process.env.KCM_REPLAY_REPORT;
+if(reportPath)fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\\n');
+console.log('KCM_REPLAY',JSON.stringify(report));
 if(parsed.pageCount!==fixture.pageCount||missing.length||extra.length)process.exitCode=1;
