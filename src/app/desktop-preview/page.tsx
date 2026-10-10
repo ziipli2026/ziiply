@@ -319,6 +319,25 @@ export default function DesktopPreviewPage() {
   async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean){
     // The selected store is authoritative: never search S products for a K store (or vice versa).
     const kind=storeKind(store);
+    if(kind==="spar"){
+      const queries=[...new Set([name,...getKSearchTerms(name)].filter(Boolean))].slice(0,6);
+      const responses=await Promise.all(queries.map(async search=>{
+        try{
+          const params=new URLSearchParams({search,intent:name});
+          const response=await fetch("/api/tokmanni/products?"+params.toString(),{cache:"no-store"});
+          if(!response.ok)return [];
+          const data=await response.json();
+          return (Array.isArray(data?.items)?data.items:[]).map((p:any)=>({
+            ...p,name:String(p.name||p.title||""),ean:String(p.ean||""),
+            price:Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100),
+            image:String(p.pictureUrl||p.imageUrl||"")
+          })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
+        }catch{return []}
+      }));
+      return responses.flat();
+    }
+    // Lidl normal-price search is not yet verified; never substitute another chain's prices.
+    if(kind==="lidl")return [];
     if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
@@ -351,8 +370,8 @@ export default function DesktopPreviewPage() {
     const runId=++desktopCompareRunId.current;
     setDesktopCompareError("");
     const allSelected=Object.values(selectedStores) as any[];
-    const selected=allSelected.filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
-    const unsupportedSelected=allSelected.filter(x=>!["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
+    const selected=allSelected.filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));
+    const unsupportedSelected=allSelected.filter(x=>!["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));
     if(betweenMode==="one"){
       setDesktopCompareNotice(false);
       setJustiinaResultsOpen(false);
@@ -394,7 +413,7 @@ export default function DesktopPreviewPage() {
     setDesktopCompareLoading(false);
     setDesktopCompareResults({});
     if(unsupportedSelected.length){setDesktopCompareError("Vertailu ei vielä tue kaikkia valittuja ketjuja: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+". Valitse vain S- ja K-kauppoja.");return}
-    if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua S- tai K-kauppaa.");return}
+    if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua kauppaa.");return}
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
@@ -961,7 +980,7 @@ export default function DesktopPreviewPage() {
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
 {desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":"K") as "S"|"K",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
   items={cartItems}
   onChangeMatchMode={desktopChangeCompareMatchMode}
   onSelectMatchAlternative={desktopSelectCompareAlternative}
