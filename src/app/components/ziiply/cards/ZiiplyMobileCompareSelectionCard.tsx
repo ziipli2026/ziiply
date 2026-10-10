@@ -168,7 +168,7 @@ function getStoreOwnBrandExample(chain?: "S" | "K") {
 
 function getProductBrandExample(item: unknown) {
   const data = item as ZiiplyCompareSelectionItem;
-  const name = String(data?.sourceProductName || data?.cartItem?.name || getItemName(item)).trim();
+  const name = String(getItemName(item) || data?.sourceProductName || data?.cartItem?.name || "").trim();
   const first = name.split(/\s+/).find((part) => /[A-Za-zÅÄÖåäö]/.test(part)) || "sama brändi";
   return first.replace(/[^\wÅÄÖåäö-]/g, "");
 }
