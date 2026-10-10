@@ -201,6 +201,19 @@ export default function ZiiplyMobileCompareSelectionCard({
   className = "",
 }: ZiiplyMobileCompareSelectionCardProps) {
   const [alternativeMenu, setAlternativeMenu] = React.useState<{ key: string; mode: QualityMode; items: ZiiplyCompareSelectionItem[]; loading: boolean } | null>(null);
+  const alternativeRequestRef = React.useRef(0);
+  const pendingScrollRowRef = React.useRef<Element | null>(null);
+  React.useLayoutEffect(() => {
+    if (!alternativeMenu || alternativeMenu.loading) return;
+    const row = pendingScrollRowRef.current;
+    if (!row) return;
+    const scroller = row.closest("[data-compare-products-scroll]") as HTMLElement | null;
+    if (!scroller) return;
+    // Allow the last product to rise above the viewport only while its alternatives are open.
+    const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    const target = scroller.scrollTop + offset + Math.min(72, row.getBoundingClientRect().height * 0.38);
+    scroller.scrollTo({ top: target, behavior: "smooth" });
+  }, [alternativeMenu]);
 
   if (!open) return null;
 
@@ -266,28 +279,23 @@ export default function ZiiplyMobileCompareSelectionCard({
                               key={mode}
                               type="button"
                               onClick={async (event) => {
-                                if (mode !== "cheapest") {
-                                  const row = event.currentTarget.closest("[data-compare-product-row]");
-                                  const scroller = row?.closest("[data-compare-products-scroll]");
-                                  if (row && scroller) {
-                                    const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-                                    scroller.scrollTo({ top: scroller.scrollTop + offset, behavior: "smooth" });
-                                  }
-                                }
+                                const requestId = ++alternativeRequestRef.current;
                                 if (mode === "cheapest") {
+                                  pendingScrollRowRef.current = null;
                                   setAlternativeMenu(null);
                                   await onChangeMatchMode(store.id, item, mode);
                                   return;
                                 }
+                                pendingScrollRowRef.current = event.currentTarget.closest("[data-compare-product-row]");
                                 const key = `${String(item.id ?? item.product?.id ?? index)}:${mode}`;
                                 setAlternativeMenu({ key, mode, items: [], loading: true });
-                                const result = await onChangeMatchMode(store.id, item, mode);
-                                setAlternativeMenu({
-                                  key,
-                                  mode,
-                                  items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [],
-                                  loading: false,
-                                });
+                                try {
+                                  const result = await onChangeMatchMode(store.id, item, mode);
+                                  if (requestId !== alternativeRequestRef.current) return;
+                                  setAlternativeMenu({ key, mode, items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [], loading: false });
+                                } catch {
+                                  if (requestId === alternativeRequestRef.current) setAlternativeMenu({ key, mode, items: [], loading: false });
+                                }
                               }}
                               className={`min-h-[2.05rem] rounded-[0.72rem] border-2 px-1.5 py-1 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
                                 active
@@ -304,7 +312,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                           );
                         })}
                         {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className="col-span-3 h-[11.5rem] min-h-0 overflow-y-scroll overscroll-contain rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 pb-[5rem] [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
+                          <div className={`col-span-3 min-h-0 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 ${alternativeMenu.loading || alternativeMenu.items.length === 0 ? "py-2" : "h-[11.5rem] overflow-y-auto overscroll-contain [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"}`}>
                             {alternativeMenu.loading ? (
                               <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
                             ) : alternativeMenu.items.length === 0 ? (
@@ -344,6 +352,7 @@ export default function ZiiplyMobileCompareSelectionCard({
         </button>
       ) : null}
       {productRows}
+      {alternativeMenu && !alternativeMenu.loading && <div aria-hidden="true" className="h-[14rem] shrink-0" />}
     </div>
   );
 
@@ -388,6 +397,7 @@ export default function ZiiplyMobileCompareSelectionCard({
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
             <div data-compare-products-scroll className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {productRows}
+            {alternativeMenu && !alternativeMenu.loading && <div aria-hidden="true" className="h-[14rem] shrink-0" />}
 
             </div>
             <div className="grid shrink-0 grid-cols-[2.30rem_minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 border-t border-[#d4bd86]/72 px-3 py-2.5">
