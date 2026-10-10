@@ -6,6 +6,12 @@ on:
       - "scripts/citymarket/replay-frozen-parser.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
+  pull_request:
+    paths:
+      - ".github/workflows/kcitymarket-41lv-frozen-replay.yml"
+      - "scripts/citymarket/replay-frozen-parser.mjs"
+      - "tests/fixtures/citymarket/41LV.approved.json"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,7 +32,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/kcm-41lv-archive
-          gh api -H "Accept: application/vnd.github+json" "/repos/${{ github.repository }}/actions/artifacts/11659452422/zip" > /tmp/kcm-41lv.zip
+          # This Actions artifact expires. A missing artifact is a hard failure, never a skipped regression.
+          curl --fail --location --retry 3 --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/11659452422/zip" \
+            --output /tmp/kcm-41lv.zip
+          unzip -tq /tmp/kcm-41lv.zip
           unzip -q /tmp/kcm-41lv.zip -d /tmp/kcm-41lv-archive
           test -s /tmp/kcm-41lv-archive/publisher-responses.json
           test -s /tmp/kcm-41lv-archive/archive-manifest.json
