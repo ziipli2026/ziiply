@@ -2,6 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const ts = require('typescript');
 const source = fs.readFileSync('src/app/desktop-preview/page.tsx', 'utf8');
 function extract(name, next) {
   const start = source.indexOf('  function '+name+'(');
@@ -11,7 +12,8 @@ function extract(name, next) {
   return source.slice(start,end);
 }
 const ctx = vm.createContext({});
-vm.runInContext(extract('desktopCheapestPack','desktopIsFilterCoffee') + extract('desktopIsFilterCoffee','desktopCheapestSearchQueries') + extract('desktopCheapestSearchQueries','desktopCheapestCompatible') + extract('desktopCheapestCompatible','desktopChangeCompareMatchMode'), ctx);
+const helpers = extract('desktopCheapestPack','desktopIsFilterCoffee') + extract('desktopIsFilterCoffee','desktopCheapestSearchQueries') + extract('desktopCheapestSearchQueries','desktopCheapestCompatible') + extract('desktopCheapestCompatible','desktopChangeCompareMatchMode');
+vm.runInContext(ts.transpileModule(helpers, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
 const compatible = (a,b) => vm.runInContext('desktopCheapestCompatible('+JSON.stringify(a)+','+JSON.stringify(b)+')',ctx);
 test('same pack and different brands',()=>assert.equal(compatible('Juhla Mokka suodatinkahvi 500 g','Kulta Katriina suodatinkahvi 500 g'),true));
 test('coffee type must remain filter',()=>assert.equal(compatible('Juhla Mokka suodatinkahvi 500 g','Bellarom papukahvi 500 g'),false));
