@@ -26,6 +26,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check offline regression scripts syntax
+        run: |
+          node --check scripts/citymarket/verify-41lv-archive.mjs
+          node --check scripts/citymarket/replay-frozen-parser.mjs
+          node --check src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js
       - name: Retrieve original successful 41LV Actions archive
         env:
           GH_TOKEN: ${{ github.token }}
