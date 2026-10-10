@@ -27,11 +27,11 @@ export default function ZiiplyDesktopCompareCard({
   loading = false, onSelectStore, onBack, onBackToCart, onClose, items = [],
   onChangeMatchMode, onSelectMatchAlternative,
 }: Props) {
-  const [expandedStoreId, setExpandedStoreId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string[]>([]);
   if (!open) return null;
   const complete = stores.filter(s => !s.missingItems && (s.itemCount || 0) > 0 && Number.isFinite(s.totalPrice));
   const bestPrice = complete.length ? Math.min(...complete.map(s => Number(s.totalPrice))) : null;
-  const toggle = (id: string) => setExpandedStoreId(current => current === id ? null : id);
+  const toggle = (id: string) => setExpanded(current => current.includes(id) ? current.filter(x => x !== id) : [...current, id]);
   const back = onBack || onBackToCart || onClose;
   return (
     <div className="fixed inset-0 z-[150] grid place-items-center bg-[#172e23]/65 p-4">
@@ -47,7 +47,7 @@ export default function ZiiplyDesktopCompareCard({
             <p className="mt-1 text-sm font-bold text-[#6b5839]">{subtitle}</p>
             {loading && <p role="status" className="text-sm font-bold text-[#17633c]">Päivitetään hintoja…</p>}
           </header>
-          <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${stores.length>=3?"xl:grid-cols-3":""} ${stores.length>=4?"2xl:grid-cols-4":""} ${expandedStoreId ? "flex-1 content-start lg:overflow-hidden" : "content-start"}`}>
+          <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${stores.length>=3?"xl:grid-cols-3":""} ${stores.length>=4?"2xl:grid-cols-4":""} ${expanded.length ? "flex-1 content-start lg:overflow-hidden" : "content-start"}`}>
             {stores.length === 0 && <p className="col-span-full p-8 text-center font-bold">{loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole saatavilla."}</p>}
             {stores.map((store,index) => {
               const missing = Number(store.missingItems || 0);
@@ -55,7 +55,7 @@ export default function ZiiplyDesktopCompareCard({
               const isComplete = missing === 0 && found > 0 && Number.isFinite(store.totalPrice);
               const isBest = isComplete && bestPrice !== null && Number(store.totalPrice) === bestPrice;
               const diff = isComplete && bestPrice !== null ? Number(store.totalPrice) - bestPrice : null;
-              const isOpen = expandedStoreId === store.id;
+              const isOpen = expanded.includes(store.id);
               const rows = (store.matches || []) as MatchRow[];
               return (
                 <article key={store.id} className={`flex min-w-0 flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isOpen ? "min-h-[260px] lg:h-full lg:min-h-0" : "h-auto"} ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
