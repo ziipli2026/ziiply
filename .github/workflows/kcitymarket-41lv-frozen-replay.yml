@@ -1,0 +1,38 @@
+name: K-Citymarket 41LV frozen replay
+on:
+  push:
+    paths:
+      - ".github/workflows/kcitymarket-41lv-frozen-replay.yml"
+      - "scripts/citymarket/replay-frozen-parser.mjs"
+      - "tests/fixtures/citymarket/41LV.approved.json"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Retrieve original successful 41LV Actions archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kcm-41lv-archive
+          gh api -H "Accept: application/vnd.github+json" "/repos/${{ github.repository }}/actions/artifacts/11659452422/zip" > /tmp/kcm-41lv.zip
+          unzip -q /tmp/kcm-41lv.zip -d /tmp/kcm-41lv-archive
+          test -s /tmp/kcm-41lv-archive/publisher-responses.json
+          test -s /tmp/kcm-41lv-archive/archive-manifest.json
+      - name: Replay current parser against original frozen publisher responses
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-current-parser.mjs
+          node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json /tmp/kcm-41lv-current-parser.mjs
