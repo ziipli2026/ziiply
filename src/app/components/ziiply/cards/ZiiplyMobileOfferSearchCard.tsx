@@ -579,7 +579,7 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   const percent = Number(source.discountPercent ?? offer.discountPercent);
   if (Number.isFinite(percent) && percent > 0 && percent < 100) return `−${percent} %`;
   const benefit = String(source.discountText ?? offer.discountText ?? source.benefitText ?? offer.benefitText ?? "").trim();
-  if (/^[−-]?\s*\d{1,2}\s*%$/.test(benefit)) return benefit;
+  if (/^[−–-]?\s*\d{1,2}\s*%$/.test(benefit)) return benefit;
   return "";
 }
 
