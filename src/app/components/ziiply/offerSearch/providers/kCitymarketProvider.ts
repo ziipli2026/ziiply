@@ -435,11 +435,18 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const resolved=row?.spatialResolved;
     if(!resolved || resolved.displayOnlyUnitPrice) continue;
 
-    const price=Number(resolved.value);
-    if(!Number.isFinite(price) || price<=0) continue;
+    const spatialPrice=Number(resolved.value);
+    if(!Number.isFinite(spatialPrice) || spatialPrice<=0) continue;
 
     const title=clean(row?.title||"");
     if(!title || isNoiseLine(title)) continue;
+    // If the leaflet explicitly identifies a 1 kg pack AND states its €/kg
+    // price in the same title, that printed price is also the pack price.
+    // This is stronger evidence than a spatially neighbouring OCR price.
+    const explicitOneKg=/(?:^|\\s)1\\s*kg\\s*\\(\\s*(\\d+[,.]\\d{2})\\s*\\/\\s*kg\\s*\\)/i.exec(title);
+    const printedOneKgPrice=explicitOneKg?Number(explicitOneKg[1].replace(",",".")):NaN;
+    const price=Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0
+      ? printedOneKgPrice : spatialPrice;
 
     const normalMin=Number(row?.normal?.min);
     const offerQuantity=resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
