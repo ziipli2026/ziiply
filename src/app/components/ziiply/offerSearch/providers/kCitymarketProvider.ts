@@ -85,14 +85,14 @@ export function category(t:string){
   // Product form must outrank incidental words and nearby leaflet categories.
   if(/maissikakut|riisikakut|riisikakku|maissikakku/.test(s)) return "Kuivatuotteet";
   if(/wc[- ]?paperi|talouspaperi|nenäliina|nenaliina/.test(s)) return "Kodinhoito";
-  if(/(?:^|\\s)kahvi(?:t|pavut|jauhe)?(?:\\s|$)|costa rica|premium blend/.test(s)) return "Kahvi & tee";
+  if(/(?:^|\s)kahvi(?:t|pavut|jauhe)?(?:\s|$)|costa rica|premium blend/.test(s)) return "Kahvi & tee";
 
   // Explicit hygiene and beverages precede substrings in compound words.
   if(/ihonhoito|pesulappu|ruokalappu|vuodesuoja/.test(s)) return "Hygienia & kosmetiikka";
   if(/välipalajuoma/.test(s)) return "Juomat";
   // Explicit non-food types precede generic matches (e.g. pussilakanasetti contains "kana").
   if(/pussilakana|aluslakana|lakana\b|lakanasetti|tyynyliina|koristetyyny|torkkupeit|peitto\b|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|saappaat|kengät|valaisin|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypuss|rikkasetti|ruusukimppu|terttuneilikka|erika|lankaköynnös|muki\b|vati\b|lautanen|kulho|ranneke|naamari|serpentiini|ilmapallo|hämähäkinverkko|halloween|luuranko|noita-asu|kurpitsa-asu|pehmo|nappikuulok|kuulok|bluetooth-kaiutin|kaiutin\b|aktiviteettikort|roosa nauha|ranneke|kirja\b|remes\s+kaaos\b/.test(s)) return "Koti & vapaa-aika";
-  if(/konetiskitablet|astianpesutablet|\\bfairy\\b/.test(s)) return "Kodinhoito";
+  if(/konetiskitablet|astianpesutablet|\bfairy\b/.test(s)) return "Kodinhoito";
   if(/kangasnaamio|kasvonaamio/.test(s)) return "Hygienia & kosmetiikka";
   if(/katkarav|jättikatkarav/.test(s)) return "Kala";
   if(/kypsät.*(?:peruna|lohko)|parisiinperuna|pikkuperuna/.test(s)) return "Valmisruoka";
