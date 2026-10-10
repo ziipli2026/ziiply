@@ -24,6 +24,14 @@ const keys=evidence.rows.flatMap(r=>{
 });
 assert.equal(keys.length,91);
 assert.equal(new Set(keys).size,91);
+const fixturePath=process.argv[3];
+if(!fixturePath)throw Error("Approved fixture path is required: verify-41lv-archive.mjs <archive-dir> <approved-fixture>");
+const fixture=JSON.parse(fs.readFileSync(fixturePath,"utf8"));
+assert.equal(fixture.id,"41LV");
+assert.equal(fixture.pdfSha256,manifest.pdfSha256);
+assert.equal(fixture.pageCount,evidence.pageCount);
+assert.equal(fixture.offerCount,91);
+assert.deepEqual([...new Set(keys)].sort(),fixture.offers.map(x=>x.key).sort(),"Frozen approved keys differ from archived parser evidence");
 assert.equal(report.rows,102);
 assert.equal(report.bad,0);
 assert.equal(report.duplicates,0);
