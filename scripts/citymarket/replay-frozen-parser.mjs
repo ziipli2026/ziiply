@@ -16,13 +16,16 @@ globalThis.fetch=async input=>{
  return {ok:true,status:200,url:item.url,text:async()=>item.body};
 };
 const parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);
-const keys=new Set(parsed.rows.flatMap(r=>{
+if(!Array.isArray(parsed?.rows))throw Error('Parser did not return rows');
+const extractedKeys=parsed.rows.flatMap(r=>{
  const title=String(r.title||'').trim().toLowerCase(),page=Number(r.page)||0;
  const resolved=r.spatialResolved;
  if(resolved&&!resolved.displayOnlyUnitPrice&&Number(resolved.value)>0)return [`kcm:spatial:${page}:${title}:${Number(resolved.value)}`];
  const percent=Number(r.percentageOffer?.percent);
  return !resolved&&percent>0&&percent<100?[`kcm:spatial:${page}:${title}:percent:${percent}`]:[];
-}));
+});
+const keys=new Set(extractedKeys);
+if(keys.size!==extractedKeys.length)throw Error('Current parser produced duplicate offer keys: '+(extractedKeys.length-keys.size));
 const expected=new Set(fixture.offers.map(x=>x.key));
 const missing=[...expected].filter(k=>!keys.has(k));
 const extra=[...keys].filter(k=>!expected.has(k));
