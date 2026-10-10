@@ -1273,7 +1273,8 @@ export default function DesktopPreviewPage() {
 <div className="flex min-w-0 flex-col gap-3">
   <div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2 shadow-[0_3px_5px_rgba(55,37,18,.15)]">{p.pictureUrl?<img src={p.pictureUrl} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="lazy"/>:<span className="text-[38px]">🛍️</span>}</div>
   <button type="button" onClick={()=>addDesktopCartItem(p)} aria-label="Lisää ostoskoriin" className="relative flex min-h-[88px] w-full cursor-pointer flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-center text-[#126a39] hover:bg-[#d3e9bc] focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#17573c]">
-    <span className="block max-w-full break-words px-1 text-center font-serif text-[clamp(17px,1.3vw,25px)] font-black leading-tight">{splitOfferDisplayPrice(getOfferPrice(p)).amount}</span>\n    {splitOfferDisplayPrice(getOfferPrice(p)).basis && <span className="block text-center text-[13px] font-black leading-tight">{splitOfferDisplayPrice(getOfferPrice(p)).basis}</span>}
+    <span className="block max-w-full break-words px-1 text-center font-serif text-[clamp(17px,1.3vw,25px)] font-black leading-tight">{splitOfferDisplayPrice(getOfferPrice(p)).amount}</span>
+    {splitOfferDisplayPrice(getOfferPrice(p)).basis && <span className="block text-center text-[13px] font-black leading-tight">{splitOfferDisplayPrice(getOfferPrice(p)).basis}</span>}
     <span className="mt-1 text-[12px] font-black text-[#264e32]">🛒 Lisää koriin</span>
     {cartIncrementKey===desktopCartKey(p)&&<span className="absolute -right-2 -top-2 grid h-8 min-w-8 place-items-center rounded-full bg-[#08a36d] px-2 text-[13px] font-black text-white shadow-lg">+1</span>}
   </button>
