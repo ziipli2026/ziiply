@@ -432,13 +432,13 @@ export default function DesktopPreviewPage() {
   function desktopFindSimilarAlternative(candidates:any[],name:string,ean:string){
     const original=String(name).toLocaleLowerCase("fi");
     const brand=original.split(/\s+/)[0];
-    const category=original.includes("ketsupp")?"ketsupp":null;
+    const category=/ketsupp|ketchup/.test(original)?"ketchup":null;
     if(!category)return null; // Do not substitute unrelated foods.
     const originalEan=normalizeEan(ean);
     const sourceSize=desktopPackageSize(name);
     return candidates.filter((p:any)=>{
       const n=String(p.name||"").toLocaleLowerCase("fi");
-      return n.startsWith(brand+" ")&&n.includes(category)&&Number(p.price)>0
+      return n.startsWith(brand+" ")&&/ketsupp|ketchup/.test(n)&&Number(p.price)>0
         &&normalizeEan(String(p.ean||""))!==originalEan;
     }).sort((a:any,b:any)=>{
       const aSize=desktopPackageSize(String(a.name||"")),bSize=desktopPackageSize(String(b.name||""));
