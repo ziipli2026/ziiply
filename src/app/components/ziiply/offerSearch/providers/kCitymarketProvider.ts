@@ -461,13 +461,20 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0 && !(Number(resolved?.quantity)>1)
       ? printedOneKgPrice : spatialPrice;
 
+    // When the leaflet explicitly prints the non-loyalty unit price, use
+    // that evidence instead of a potentially unrelated spatial OCR value.
+    const explicitNonLoyalty = /ilman\\s+plussa[- ]korttia\\s+(\\d+[,.]\\d{2})\\s*\\/\\s*(kpl|pkt|ps|prk|plo)\\b/i.exec(title);
+    const printedNormalUnit=explicitNonLoyalty?Number(explicitNonLoyalty[1].replace(",", ".")):NaN;
     const normalMin=Number(row?.normal?.min);
     const offerQuantity=useLoyaltyMultiBuy?loyaltyQuantity:resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
-    const normalPriceCandidate=Number.isFinite(normalMin)
-      ? Number((normalMin*(offerQuantity&&offerQuantity>1?offerQuantity:1)).toFixed(2))
+    const printedNormalMatchesUnit=useLoyaltyMultiBuy && explicitNonLoyalty?.[2]?.toLowerCase()===explicitLoyaltyMultiBuy?.[3]?.toLowerCase();
+    const normalUnit=printedNormalMatchesUnit && Number.isFinite(printedNormalUnit) && printedNormalUnit>0
+      ? printedNormalUnit : useLoyaltyMultiBuy ? NaN : normalMin;
+    const normalPriceCandidate=Number.isFinite(normalUnit)
+      ? Number((normalUnit*(offerQuantity&&offerQuantity>1?offerQuantity:1)).toFixed(2))
       : null;
     // A neighbouring card's normal price can occasionally leak into flattened
     // leaflet HTML. A genuine normal price must be strictly above the offer
