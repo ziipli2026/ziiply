@@ -384,17 +384,25 @@ export default function DesktopPreviewPage() {
   function desktopFindPackageAlternative(candidates:any[],name:string,ean:string){
     const sourceSize=desktopPackageSize(name);
     if(sourceSize===null)return null;
-    const tokens=(value:string)=>String(value).toLocaleLowerCase("fi").replace(/\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/g," ").replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2);
+    // Require the same manufacturer/brand AND the same product identity; weight alone is not sufficient.
+    const tokens=(value:string)=>String(value).toLocaleLowerCase("fi")
+      .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/g," ")
+      .replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2);
     const sourceWords=tokens(name);
     if(sourceWords.length<2)return null;
+    const sourceBrand=sourceWords[0];
     const sourceEan=normalizeEan(ean);
     return candidates.map((p:any)=>{
       const size=desktopPackageSize(String(p.name||""));
       const words=tokens(String(p.name||""));
       const overlap=sourceWords.filter(w=>words.includes(w)).length;
-      return {p,size,overlap,score:overlap/Math.max(sourceWords.length,words.length,1)};
-    }).filter(x=>x.size!==null&&x.size!==sourceSize&&Number(x.p.price)>0&&normalizeEan(String(x.p.ean||""))!==sourceEan&&x.overlap>=2&&x.score>=0.5)
-      .sort((a,b)=>b.score-a.score)[0]?.p||null;
+      const sameBrand=words[0]===sourceBrand || tokens(String(p.brandName||p.brand||"")).includes(sourceBrand);
+      const sameProduct=sourceWords.every(w=>words.includes(w));
+      return {p,size,sameBrand,sameProduct,overlap};
+    }).filter(x=>x.size!==null&&x.size!==sourceSize&&Number(x.p.price)>0
+      &&normalizeEan(String(x.p.ean||""))!==sourceEan&&x.sameBrand&&x.sameProduct)
+      .sort((a,b)=>Math.abs(a.size-sourceSize)-Math.abs(b.size-sourceSize)
+        ||a.size-b.size||Number(a.p.price)-Number(b.p.price))[0]?.p||null;
   }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
