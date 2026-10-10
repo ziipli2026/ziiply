@@ -10,7 +10,7 @@ import React from "react";
 export type ZiiplyCompareSelectionStore = {
   id: string;
   name: string;
-  chain?: "S" | "K";
+  chain?: "S" | "K" | "LIDL" | "SPAR";
   totalPrice?: number;
   itemCount?: number;
   savingsVsHighest?: number;
