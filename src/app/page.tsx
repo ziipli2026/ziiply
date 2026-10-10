@@ -12765,7 +12765,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Hard safety invariant for comparison: if the source identity itself is
       // still not specific enough to establish a product family, do not invent a
       // substitute from arbitrary provider results. Unknown is safer than Piltti/chicken.
-      const sourceFamilyKnownV823 = /\b(?:paahtoleip|paahtis|ruisleip|ruispal|nakkileip|sampyl|patonk|leip|maito|piima|jogur|juusto|voi|margari|kahvi|tee|kana|broileri|nauta|sika|jauheliha|makkara|kala|lohi|pasta|riisi|muro|mysli|mehu|limonadi|vesi|olut|siideri|suklaa|keksi|sose|lastenruoka)\b/.test(normalize(comparisonSourceName));
+      const sourceFamilyKnownV823 = /\b(?:paahtoleip|paahtis|ruisleip|ruispal|nakkileip|sampyl|patonk|leip|maito|piima|jogur|juusto|voi|margari|kahvi|tee|kana|broileri|nauta|sika|jauheliha|makkara|kala|lohi|pasta|riisi|muro|mysli|mehu|limonadi|virvoitusjuoma|cola|kokis|vesi|olut|siideri|suklaa|keksi|sose|lastenruoka)\b/.test(normalize(comparisonSourceName));
 
       if (withinS) {
         const hyperId = activeArea.sStoreId;
