@@ -221,7 +221,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                 return (
                   <article
                     key={String(item.id ?? item.product?.id ?? index)}
-                    className="border-b border-[#d4bd86]/72"
+                    data-compare-product-row className="border-b border-[#d4bd86]/72"
                   >
                     <div className="grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5">
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
@@ -265,7 +265,15 @@ export default function ZiiplyMobileCompareSelectionCard({
                             <button
                               key={mode}
                               type="button"
-                              onClick={async () => {
+                              onClick={async (event) => {
+                                if (mode !== "cheapest") {
+                                  const row = event.currentTarget.closest("[data-compare-product-row]");
+                                  const scroller = row?.closest("[data-compare-products-scroll]");
+                                  if (row && scroller) {
+                                    const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+                                    scroller.scrollTo({ top: scroller.scrollTop + offset, behavior: "smooth" });
+                                  }
+                                }
                                 if (mode === "cheapest") {
                                   setAlternativeMenu(null);
                                   await onChangeMatchMode(store.id, item, mode);
@@ -329,7 +337,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   </>);
 
   if (embedded) return (
-    <div className={`mt-2 min-h-0 flex-1 border-t border-[#d4bd86]/72 bg-transparent ${alternativeMenu ? "overflow-hidden" : "overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}`}>
+    <div data-compare-products-scroll className={`mt-2 min-h-0 flex-1 border-t border-[#d4bd86]/72 bg-transparent ${alternativeMenu ? "overflow-hidden" : "overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}`}>
       {onBack ? (
         <button type="button" onClick={onBack} className="ml-2 mt-2 inline-flex items-center gap-1 rounded-[0.42rem] border border-[#876b37] bg-[#efe1bd] px-2 py-1 text-[0.68rem] font-black text-[#28402a]" aria-label={`Palaa ${store.name} korin yhteenvetoon`}>
           <span aria-hidden="true">←</span> Paluu
@@ -378,7 +386,7 @@ export default function ZiiplyMobileCompareSelectionCard({
         <main className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-4 pt-[0.8rem]">
           <div className="flex min-h-0 flex-1 flex-col gap-2.5">
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
-            <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div data-compare-products-scroll className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {productRows}
 
             </div>
