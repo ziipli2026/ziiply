@@ -499,7 +499,7 @@ export default function DesktopPreviewPage() {
     setDesktopCompareResults(current=>{
       const updated={...current,[storeId]:next};
       const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
-      const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
+      const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));
       const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
       // Muokattu vertailukori on vain tämän näkymän tilaa; älä korvaa alkuperäistä välimuistia.
       return updated;
