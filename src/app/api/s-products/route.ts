@@ -81,7 +81,7 @@ export async function GET(request: Request) {
   // Ruoanhinta's fallback ID 292 points to Prisma Hyvinkää and must never
   // silently be used when the user switches from a hypermarket to S-market.
   if (storeType === "local") {
-    if (!/^s[ -]?market\\b/i.test(storeName)) {
+    if (!/^s[ -]?market\b/i.test(storeName)) {
       return NextResponse.json({ error: "S-market store name required" }, { status: 400 });
     }
     try {
