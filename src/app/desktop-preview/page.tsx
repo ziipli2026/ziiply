@@ -289,7 +289,7 @@ export default function DesktopPreviewPage() {
       const raw=window.localStorage.getItem(desktopCompareStorageKey);
       if(!raw)return null;
       const saved=JSON.parse(raw);
-      return saved?.key===key&&saved?.results&&typeof saved.results==="object"?saved.results:null;
+      return saved?.key===key&&Number.isFinite(saved?.savedAt)&&Date.now()-saved.savedAt<24*60*60*1000&&saved?.results&&typeof saved.results==="object"?saved.results:null;
     }catch{return null}
   }
   function desktopSaveComparison(key:string,results:Record<string,any>){
