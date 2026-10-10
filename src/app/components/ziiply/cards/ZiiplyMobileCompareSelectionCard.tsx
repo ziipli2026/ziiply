@@ -6,6 +6,7 @@
 // Selection-kortille EI lisätä jaa-koria; vain paluu vertailuun ja sulje.
 
 import React from "react";
+import { createPortal } from "react-dom";
 
 export type ZiiplyCompareSelectionStore = {
   id: string;
@@ -295,31 +296,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             </button>
                           );
                         })}
-                        {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className="col-span-3 h-[11.5rem] min-h-0 overflow-y-scroll overscroll-contain rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 pb-[5rem] [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
-                            {alternativeMenu.loading ? (
-                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
-                            ) : alternativeMenu.items.length === 0 ? (
-                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Ei sopivia vaihtoehtoja</div>
-                            ) : alternativeMenu.items.map((alternative, alternativeIndex) => (
-                              <button
-                                key={String(alternative.id ?? alternative.product?.id ?? alternativeIndex)}
-                                type="button"
-                                onClick={async () => {
-                                  await onSelectMatchAlternative?.(store.id, item, {
-                                    ...alternative,
-                                    comparisonSelectionMode: alternativeMenu.mode,
-                                  });
-                                  setAlternativeMenu(null);
-                                }}
-                                className="mb-1.5 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-3 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-3 py-2.5 text-left last:mb-0"
-                              >
-                                <span className="line-clamp-3 min-w-0 whitespace-normal break-words text-[0.69rem] font-black leading-[1.2] text-[#28402a]">{getItemName(alternative)}</span>
-                                <span className="text-right text-[0.67rem] font-black text-[#3e301c]">{formatComparePrice(alternative.price ?? alternative.product?.price)}</span>
-                              </button>
-                            ))}
-                          </div>
-                        ) : null}
+
                       </div>
                     ) : null}
                   </article>
@@ -327,6 +304,34 @@ export default function ZiiplyMobileCompareSelectionCard({
               })
             )}
   </>);
+
+  // Render the alternative picker above the comparison card, never inside its clipped scroll area.
+  const alternativePicker = alternativeMenu && typeof document !== "undefined" ? createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#21160d]/65 px-4 py-8" onClick={() => setAlternativeMenu(null)}>
+      <section role="dialog" aria-modal="true" aria-label="Valitse vastaava tuote" onClick={(event) => event.stopPropagation()}
+        className="flex max-h-[min(75dvh,38rem)] w-full max-w-[26rem] flex-col overflow-hidden rounded-[1.2rem] border-[3px] border-[#765628] bg-[#fff4d8] shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#b99d5c] px-4 py-3">
+          <h3 className="text-[0.92rem] font-black text-[#28402a]">Valitse vastaava tuote</h3>
+          <button type="button" onClick={() => setAlternativeMenu(null)} aria-label="Sulje tuotevalinta" className="rounded-lg border border-[#876b37] bg-[#efe1bd] px-3 py-1 font-black text-[#3e301c]">×</button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
+          {alternativeMenu.loading ? <div className="py-5 text-center">Haetaan vaihtoehtoja…</div> : alternativeMenu.items.length === 0 ? <div className="py-5 text-center">Ei sopivia vaihtoehtoja</div> : alternativeMenu.items.map((alternative, alternativeIndex) => (
+            <button key={String(alternative.id ?? alternative.product?.id ?? alternativeIndex)} type="button"
+              onClick={async () => {
+                const selected = rows.find((row, index) => alternativeMenu.key.startsWith(`${String(row.id ?? row.product?.id ?? index)}:`));
+                if (!selected) return;
+                await onSelectMatchAlternative?.(store.id, selected, { ...alternative, comparisonSelectionMode: alternativeMenu.mode });
+                setAlternativeMenu(null);
+              }}
+              className="mb-2 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-3 rounded-[0.7rem] border border-[#b99d5c] bg-[#f5e8c7] px-3 py-3 text-left last:mb-0">
+              <span className="min-w-0 break-words text-[0.78rem] font-black text-[#28402a]">{getItemName(alternative)}</span>
+              <span className="text-right text-[0.72rem] font-black text-[#3e301c]">{formatComparePrice(alternative.price ?? alternative.product?.price)}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>, document.body
+  ) : null;
 
   if (embedded) return (
     <div className={`mt-2 min-h-0 flex-1 border-t border-[#d4bd86]/72 bg-transparent ${alternativeMenu ? "overflow-hidden" : "overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}`}>
@@ -336,6 +341,7 @@ export default function ZiiplyMobileCompareSelectionCard({
         </button>
       ) : null}
       {productRows}
+      {alternativePicker}
     </div>
   );
 
@@ -470,6 +476,7 @@ export default function ZiiplyMobileCompareSelectionCard({
           </button>
         ) : null}
       </section>
+      {alternativePicker}
     </div>
   );
 }
