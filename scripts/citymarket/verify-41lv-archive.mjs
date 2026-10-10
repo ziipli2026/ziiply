@@ -8,6 +8,9 @@ if(!dir)throw Error("Usage: node scripts/citymarket/verify-41lv-archive.mjs <ext
 const read=name=>JSON.parse(fs.readFileSync(path.join(dir,name),"utf8"));
 const manifest=read("archive-manifest.json");
 const evidence=read("parser-evidence.json");
+const publisher=read("publisher-responses.json");
+assert.equal(Object.keys(publisher.responses||{}).length,43,"Expected 43 original publisher responses");
+assert.equal(publisher.entry,manifest.publisherUrl,"Frozen entry URL differs from archived publication");
 const report=read("probe-report.json");
 const multibuy=read("verified-multibuy-audit.json");
 const wc=read("verified-page5-prices.json");
