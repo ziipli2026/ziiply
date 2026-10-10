@@ -499,17 +499,16 @@ export default function DesktopPreviewPage() {
   async function desktopSelectCompareAlternative(storeId:string, match:any, alternative:any) {
     const chosen=desktopCompareResults[storeId];if(!chosen)return;
     const rowId=String(match?.id||match?.cartItemId||"");
+    if(!rowId||!chosen.rows.some((row:any)=>String(row.cartItemId)===rowId)){flashCartNotice("Vertailutuotetta ei löytynyt. Avaa vertailu uudelleen.");return}
     const priceCents=Number(alternative?.price);
     if(!Number.isFinite(priceCents)||priceCents<=0){flashCartNotice("Valitun vaihtoehdon hinta ei ole kelvollinen.");return}
     desktopComparisonEdited.current=true;
     try{const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);window.localStorage.setItem(desktopComparisonEditedKey,key)}catch{}
     const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
-    const next={...chosen,rows,total:rows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:rows.filter((row:any)=>row.price==null).length};
     setDesktopCompareResults(current=>{
-      const updated={...current,[storeId]:next};
-      const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
-      // Muokattu vertailukori on vain tämän näkymän tilaa; älä korvaa alkuperäistä välimuistia.
-      return updated;
+      const existing=current[storeId];if(!existing)return current;
+      const updatedRows=existing.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const,qualityMode:String(alternative?.comparisonSelectionMode||"cheapest")}:row);
+      return {...current,[storeId]:{...existing,rows:updatedRows,total:updatedRows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:updatedRows.filter((row:any)=>row.price==null).length}};
     });
     flashCartNotice("Tuotevaihtoehto päivitetty vertailuun.");
   }
