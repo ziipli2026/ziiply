@@ -346,7 +346,7 @@ export default function DesktopPreviewPage() {
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
     const packageNeutral=name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
-    const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name)),name,packageNeutral,...(packageNeutral!==name?(isS?getNormalSearchQueries(packageNeutral):getKSearchTerms(packageNeutral)):[])].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,16);
+    const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),name,packageNeutral,...(packageNeutral!==name?(isS?getNormalSearchQueries(packageNeutral):getKSearchTerms(packageNeutral)):[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,16);
     const responses=await Promise.all(queries.map(async search=>{
       try{
         const kStoreId=String(store.id||"");
