@@ -4717,6 +4717,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [comparisonLoading, setComparisonLoading] = useState(false);
   const [comparisonDiagnosticV800, setComparisonDiagnosticV800] = useState<string | null>(null);
   const comparisonRawCountsV801 = useRef({ s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 });
+  // Opt-in diagnostic: /?compareDebug=1 (not visible in ordinary sessions).
+  const [compareDebugEnabledV824, setCompareDebugEnabledV824] = useState(false);
+  const [compareDebugRowsV824, setCompareDebugRowsV824] = useState<string[]>([]);
+  useEffect(() => {
+    setCompareDebugEnabledV824(new URLSearchParams(window.location.search).get("compareDebug") === "1");
+  }, []);
+  function traceCompareV824(event: string, details: unknown) {
+    if (typeof window === "undefined" || new URLSearchParams(window.location.search).get("compareDebug") !== "1") return;
+    const row = new Date().toLocaleTimeString("fi-FI") + " " + event + " " + JSON.stringify(details);
+    setCompareDebugRowsV824((prev) => [...prev.slice(-79), row]);
+  }
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
   const comparisonCompletedKeyRef = useRef<string | null>(null);
@@ -12587,15 +12598,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const fetchKForMatchV801 = async (term: string) => {
       try {
         const products = await fetchKProducts(term, storeId);
+        traceCompareV824("K-HAKUTULOS", { term, storeId, count: products.length, candidates: products.slice(0, 30).map(p => ({ name: p.name, ean: p.ean, price: p.price })) });
         if (comparisonTraceV801) { comparisonRawCountsV801.current.kCalls++; comparisonRawCountsV801.current.k += products.length; }
         return products;
       } catch (error) {
+        traceCompareV824("K-HAKUVIRHE", { term, storeId, error: String(error) });
         if (comparisonTraceV801) { comparisonRawCountsV801.current.kCalls++; comparisonRawCountsV801.current.errors++; }
         throw error;
       }
     };
     const normalizedEan = normalizeEan(ean);
     const searchTerms = getKSearchTerms(query).filter(Boolean);
+    traceCompareV824("K-HAKU ALKAA", { query, ean: normalizedEan, storeId, searchTerms });
     const identityTerms = Array.from(
       new Set([
         ...(normalizedEan ? [normalizedEan] : []),
@@ -12740,6 +12754,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ? productItemName
           : cartItemName || productItemName;
       const comparisonSourceEan = normalizeEan(item.ean || item.product?.ean);
+      traceCompareV824("VERTAILUN LÄHTÖ", { item: item.name, productName: item.product?.name, ean: comparisonSourceEan, chain: item.chain, storeName: item.storeName, sourceName: comparisonSourceName, sourcePrice: item.price, kStoreId: activeStores.kStoreId, kStoreName: activeStores.kStoreName, scope: storeCompareScope });
 
       // Scanner/OFF/bank rows can carry a shortened or stale cart label. Before
       // semantic replacement matching, refresh the authoritative identity from
@@ -12925,9 +12940,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
+            traceCompareV824("K-HAKUPÄÄTÖS", { sourceName: comparisonSourceName, familyKnown: sourceFamilyKnownV823, storeId: activeStores.kStoreId });
             const best = sourceFamilyKnownV823
               ? await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan, true)
               : undefined;
+            traceCompareV824("K-VALINTA", { sourceName: comparisonSourceName, selected: best ? { name: best.name, ean: best.ean, price: best.price } : null });
             if (best) {
               const product = convertKProductToProduct(best);
               k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
@@ -24334,6 +24351,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
+        {compareDebugEnabledV824 && (
+          <div style={{ position: "fixed", zIndex: 99999, left: 8, right: 8, bottom: 8, maxHeight: "48vh", overflow: "auto", background: "#fff9e6", color: "#182b20", border: "2px solid #74582b", borderRadius: 12, padding: 10, fontSize: 11, boxShadow: "0 2px 18px #0008" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
+              <strong>Halpuuta / K-haku debug ({compareDebugRowsV824.length})</strong>
+              <button type="button" onClick={() => setCompareDebugRowsV824([])}>Tyhjennä</button>
+              <button type="button" onClick={() => navigator.clipboard?.writeText(compareDebugRowsV824.join("\\n"))}>Kopioi</button>
+              <button type="button" onClick={() => setCompareDebugEnabledV824(false)}>Sulje</button>
+            </div>
+            <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: 0 }}>{compareDebugRowsV824.join("\\n") || "Käynnistä Halpuuta-vertailu."}</pre>
+          </div>
+        )}
 
         {/* V506 GPS debug panel removed */}
 
