@@ -312,11 +312,11 @@ export default function ZiiplyMobileCompareSelectionCard({
                           );
                         })}
                         {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className={`col-span-3 min-h-0 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 ${alternativeMenu.loading || alternativeMenu.items.length === 0 ? "py-2" : "h-[11.5rem] overflow-y-auto overscroll-contain [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"}`}>
+                          <div className={`col-span-3 min-h-0 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 ${alternativeMenu.loading || alternativeMenu.items.length === 0 ? "py-0.5" : "h-[11.5rem] overflow-y-auto overscroll-contain [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"}`}>
                             {alternativeMenu.loading ? (
-                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
+                              <div className="py-1 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
                             ) : alternativeMenu.items.length === 0 ? (
-                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Ei sopivia vaihtoehtoja</div>
+                              <div className="py-1 text-center text-[0.65rem] font-black text-[#6b6048]">Ei sopivia vaihtoehtoja</div>
                             ) : alternativeMenu.items.map((alternative, alternativeIndex) => (
                               <button
                                 key={String(alternative.id ?? alternative.product?.id ?? alternativeIndex)}
