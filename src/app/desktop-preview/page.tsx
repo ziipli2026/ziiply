@@ -205,6 +205,12 @@ export default function DesktopPreviewPage() {
   const [allStoreSelections, setAllStoreSelections] = useState<{hyper:Record<string,any>;local:Record<string,any>}>({hyper:{},local:{}});
   const [lidlStores, setLidlStores] = useState<any[]>([]);
   const [sparStores, setSparStores] = useState<any[]>([]);
+  const [storeCompareScope, setStoreCompareScope] = useState<"none" | "between_chains" | "within_chain">("none");
+
+  const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
+  const [withinStoreSlots,setWithinStoreSlots]=useState<Record<"S"|"K",Array<any|null>>>({S:[null,null],K:[null,null]});
+  const [withinPicker,setWithinPicker]=useState<{chain:"S"|"K";slot:number}|null>(null);
+
   const selectedStores = (() => {
     if(storeCompareScope==="within_chain") { const chosen=withinChain?withinStoreSlots[withinChain].filter(Boolean):[]; return Object.fromEntries(chosen.map((store:any)=>[String(store.id),store])); }
     const current=allStoreSelections[storeMode];
@@ -236,11 +242,6 @@ export default function DesktopPreviewPage() {
   };
 
   const [storeModeChosen, setStoreModeChosen] = useState(false);
-  const [storeCompareScope, setStoreCompareScope] = useState<"none" | "between_chains" | "within_chain">("none");
-
-  const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
-  const [withinStoreSlots,setWithinStoreSlots]=useState<Record<"S"|"K",Array<any|null>>>({S:[null,null],K:[null,null]});
-  const [withinPicker,setWithinPicker]=useState<{chain:"S"|"K";slot:number}|null>(null);
 
   const [pickerChain, setPickerChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
   const [pickerPlacement, setPickerPlacement] = useState({left: 0, top: 0, bottom: 0, width: 360});
