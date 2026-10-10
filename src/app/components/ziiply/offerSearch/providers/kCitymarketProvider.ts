@@ -457,9 +457,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const loyaltyTotal=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[1].replace(",", ".")):NaN;
     const loyaltyQuantity=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[2]):NaN;
     const useLoyaltyMultiBuy=Number.isFinite(loyaltyTotal)&&loyaltyTotal>0&&Number.isInteger(loyaltyQuantity)&&loyaltyQuantity>1&&loyaltyQuantity<=100&&loyaltyTotal/loyaltyQuantity>=0.01;
-    // A nearest-neighbour OCR price marked for review is not verified ownership.
-    // Keep the row only when its own title explicitly proves the transaction price.
-    if(resolved.source==="best-spatial-candidate" && resolved.sanity==="review" && !useLoyaltyMultiBuy && !(Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0&&!(Number(resolved?.quantity)>1))) continue;
     const price=useLoyaltyMultiBuy?loyaltyTotal:
       Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0 && !(Number(resolved?.quantity)>1)
       ? printedOneKgPrice : spatialPrice;
