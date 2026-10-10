@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert/strict";
+import {createHash} from "node:crypto";
 
 const dir=process.argv[2];
 if(!dir)throw Error("Usage: node scripts/citymarket/verify-41lv-archive.mjs <extracted-archive-dir>");
@@ -13,6 +14,9 @@ const wc=read("verified-page5-prices.json");
 assert.match(manifest.publisherUrl,/41LV_KCM/);
 assert.equal(manifest.pdfSha256,"34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6");
 assert.equal(manifest.pageCount,20);
+const pdf=fs.readFileSync(path.join(dir,"leaflet.pdf"));
+const actualPdfSha256=createHash("sha256").update(pdf).digest("hex");
+assert.equal(actualPdfSha256,manifest.pdfSha256,"Original PDF bytes do not match approved archive digest");
 assert.equal(evidence.pageCount,20);
 assert.equal(evidence.rows.length,102);
 const keys=evidence.rows.flatMap(r=>{
