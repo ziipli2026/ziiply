@@ -482,6 +482,7 @@ export default function DesktopPreviewPage() {
       if(!desktopIsFilterCoffee(candidate))return false;
       if(/kofeiiniton/.test(x)!==/kofeiiniton/.test(y))return false;
       if(/luomu/.test(x)!==/luomu/.test(y))return false;
+      if(/laktoositon/.test(x)!==/laktoositon/.test(y))return false;
       return true;
     }
     const attributes=[
