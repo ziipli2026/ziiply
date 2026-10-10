@@ -1365,23 +1365,24 @@ for(const row of out.rows.filter(r=>r.page===p)){
    row.spatialResolved={value:Number(glyphs[0].text)/100,quantity:1,unit:row.spatialResolved?.unit||null,source:"post-ownership-fused-publisher-glyph",sanity:"pass",confidence:"medium"};
   }
  }
- // Publisher layout: large transaction glyph with a much smaller printed count
- // and its unit on the same baseline. Match the card band, not OCR text order.
+ // Publisher badge overlays the small count on the large transaction glyph.
+ // Require a unique large glyph and a visibly smaller 2-5 count at nearly the
+ // same baseline. The price must sit inside the product's own horizontal band.
  if(row.debugAnchor){
   const ax=Number(row.debugAnchor.left)||0,ay=Number(row.debugAnchor.top)||0;
   const proofs=[];
   for(const price of wordBoxes){
    const px=Number(price.left)||0,py=Number(price.top)||0,ph=Number(price.height)||0;
-   if(!/^\\d{1,2}$/.test(String(price.text||"").trim())||ph<.045||px<ax+.15||px>ax+.34||py<ay-.055||py>ay+.065)continue;
+   if(!/^\\d{1,2}$/.test(String(price.text||"").trim())||ph<.045||px<ax+.18||px>ax+.32||py<ay-.055||py>ay+.065)continue;
    for(const qty of wordBoxes){
     const qx=Number(qty.left)||0,qy=Number(qty.top)||0,qh=Number(qty.height)||0;
-    if(!/^[2-5]$/.test(String(qty.text||"").trim())||qh>ph*.48||qx<px||qx>px+.055||Math.abs(qy-py)>.012)continue;
-    const unit=wordBoxes.find(u=>/^(KPL|PKT|PS|PRK|TLK)$/i.test(String(u.text||"").trim())&&Number(u.left)>qx&&Number(u.left)-qx<.035&&Math.abs(Number(u.top)-qy)<.008&&Math.abs(Number(u.height)-qh)<.008);
-    if(unit)proofs.push({value:Number(price.text),quantity:Number(qty.text),unit:String(unit.text).toUpperCase(),distance:Math.abs(py-ay)});
+    if(!/^[2-5]$/.test(String(qty.text||"").trim())||qh<.012||qh>ph*.48||qx<px-.006||qx>px+.038||Math.abs(qy-py)>.012)continue;
+    if(qty===price)continue;
+    proofs.push({value:Number(price.text),quantity:Number(qty.text),distance:Math.abs(py-ay)});
    }
   }
   const unique=[...new Map(proofs.map(v=>[v.value+":"+v.quantity,v])).values()].sort((a,b)=>a.distance-b.distance);
-  if(unique.length===1){const proof=unique[0];row.spatialResolved={value:proof.value,quantity:proof.quantity,unit:proof.unit,source:"printed-large-total-small-count-unit",sanity:"pass",confidence:"high"};}
+  if(unique.length===1){const proof=unique[0];row.spatialResolved={value:proof.value,quantity:proof.quantity,unit:null,source:"overprinted-small-count-on-large-total",sanity:"pass",confidence:"medium"};}
  }
  // Fail closed if a final multi-buy total contradicts the product's expected single price.
  const finalQty=Number(row.spatialResolved?.quantity||1),finalPrice=Number(row.spatialResolved?.value),finalSingle=Number(row.initialExpectedSingle??row.expectedSingle);
