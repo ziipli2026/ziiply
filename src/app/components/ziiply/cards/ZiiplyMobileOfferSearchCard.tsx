@@ -572,7 +572,15 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
     return `${price} / ${quantity} ${unit}`;
   }
 
-  return rawPriceText && /€/.test(rawPriceText) ? rawPriceText : price;
+  if (rawPriceText && /€/.test(rawPriceText)) return rawPriceText;
+  if (price) return price;
+  // Some leaflet campaigns publish only a percentage discount, not a euro price.
+  // Display the published discount instead of an empty price or an invented amount.
+  const percent = Number(source.discountPercent ?? offer.discountPercent);
+  if (Number.isFinite(percent) && percent > 0 && percent < 100) return `−${percent} %`;
+  const benefit = String(source.benefitText ?? offer.benefitText ?? "").trim();
+  if (/^[−-]?\s*\d{1,2}\s*%$/.test(benefit)) return benefit;
+  return "";
 }
 
 // Shared display-only price layout for both Gösta offers and campaigns.
