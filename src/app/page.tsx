@@ -18874,6 +18874,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const matchQualityMode = forcedQualityMode || getMatchQualityMode(match, chainKey);
     const sourceCartItem = match.cartItemId ? cart.find((item) => item.id === match.cartItemId) : undefined;
     const sourceName = sourceCartItem?.name || sourceCartItem?.product?.name || match.product.name;
+    // Same-brand alternatives refer to the product currently displayed in this store,
+    // not the original basket product from another chain.
+    const comparisonBrand = matchQualityMode === "keep_brands"
+      ? (match.product.brandName || getPrimaryBrand(match.product.name))
+      : (sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName));
     let alternatives: Product[] = [];
 
     if (chainKey === "s") {
@@ -18907,7 +18912,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             product.name,
             matchQualityMode,
             "s",
-            sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName),
+            comparisonBrand,
             product.brandName,
           ),
         )
@@ -18994,7 +18999,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             product.name,
             matchQualityMode,
             "k",
-            sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName),
+            comparisonBrand,
             product.brandName,
           ),
         )
