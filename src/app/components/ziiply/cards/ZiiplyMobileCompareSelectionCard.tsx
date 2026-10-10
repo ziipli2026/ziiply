@@ -161,7 +161,7 @@ function getProductImage(item: unknown) {
   return data?.image || data?.imageUrl || data?.product?.image || data?.product?.imageUrl || "";
 }
 
-function getStoreOwnBrandExample(chain?: "S" | "K") {
+function getStoreOwnBrandExample(chain?: ZiiplyCompareSelectionStore["chain"]) {
   if (chain === "K") return "Pirkka / K-Menu";
   if (chain === "S") return "Coop / Xtra / Kotimaista";
   return "Kaupan oma";
@@ -174,7 +174,7 @@ function getProductBrandExample(item: unknown) {
   return first.replace(/[^\wÅÄÖåäö-]/g, "");
 }
 
-function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
+function getQualityHint(mode: QualityMode, item: unknown, chain?: ZiiplyCompareSelectionStore["chain"]) {
   switch (mode) {
     case "cheapest":
       return "Halvin sopiva";
