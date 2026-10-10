@@ -385,8 +385,9 @@ export default function DesktopPreviewPage() {
       if(unsupportedSelected.length){setDesktopCompareLoading(false);flashCartNotice("Hintahaku ei vielä tue valittua kauppaa: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+".");return}
       if(selected.length!==1){setDesktopCompareLoading(false);flashCartNotice("Valitse yksi kauppa hintojen hakua varten.");return}
       const store=selected[0];const storeName=String(store.name||"");
-      // Keep the saved cart visible immediately; cached prices belong only to this store.
-      setCartItems(current=>current.map(item=>item.storeName&&String(item.storeName)!==storeName?{...item,price:null,priceNeedsRefresh:true}:item));
+      // A store switch invalidates every previously displayed price, including items
+      // without storeName. Never attribute another store's cached price to this one.
+      setCartItems(current=>current.map(item=>isDesktopMemoItem(item)?item:{...item,price:null,storeName,priceNeedsRefresh:true}));
       const isS=["sHyper","sLocal"].includes(storeKind(store));
       setDesktopCompareLoading(true);
       try{
@@ -405,7 +406,9 @@ export default function DesktopPreviewPage() {
         if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
         const eligibleCount=cartItems.filter(item=>String(item.source||"").toLowerCase()!=="offer"&&!item?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))).length;
         const pricedCount=updates.filter(price=>price!=null).length;
-        if(eligibleCount>0&&pricedCount===0){return;}
+        // Zero matches is a valid result: keep all prices unknown rather than
+        // leaving old prices visible under the newly selected store.
+        if(eligibleCount>0&&pricedCount===0){flashCartNotice("Valitusta kaupasta ei löytynyt vahvistettuja hintoja.");}
         setCartItems(current=>current.map((item,i)=>{
           if(String(item.source||"").toLowerCase()==="offer"||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
           return {...item,price:updates[i]??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]==null};
