@@ -1356,6 +1356,15 @@ for(const row of out.rows.filter(r=>r.page===p)){
 // Apply publisher bundle ownership to the actual returned output rows, after
 // resolveCards has finished. Its internal return value is not consumed by the caller.
 for(const row of out.rows.filter(r=>r.page===p)){
+ // Recheck a unique fused price glyph after resolveCards changes card ownership.
+ const ownAnchor=row.debugAnchor;
+ if(ownAnchor&&Number(row.spatialResolved?.value)===1&&Number(row.spatialResolved?.quantity||1)===1){
+  const ax=Number(ownAnchor.left)||0,ay=Number(ownAnchor.top)||0;
+  const glyphs=wordBoxes.filter(b=>/^\d{3}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&Number(b.left||0)>ax+.10&&Number(b.left||0)<ax+.23&&Number(b.top||0)>=ay-.005&&Number(b.top||0)<ay+.055&&Number(b.text)>=100&&Number(b.text)<3000);
+  if(glyphs.length===1&&!String(row.title||"").includes(String(glyphs[0].text))){
+   row.spatialResolved={value:Number(glyphs[0].text)/100,quantity:1,unit:row.spatialResolved?.unit||null,source:"post-ownership-fused-publisher-glyph",sanity:"pass",confidence:"medium"};
+  }
+ }
  // Fail closed if a final multi-buy total contradicts the product's expected single price.
  const finalQty=Number(row.spatialResolved?.quantity||1),finalPrice=Number(row.spatialResolved?.value),finalSingle=Number(row.initialExpectedSingle??row.expectedSingle);
  if(finalQty>1&&Number.isFinite(finalPrice)&&Number.isFinite(finalSingle)&&finalSingle>0){const tol=Math.max(.06,finalSingle*.035);if(Math.abs(finalPrice-finalSingle)>tol&&Math.abs(finalPrice-finalSingle*finalQty)>tol){row.debugRejectedFinalBundle={value:finalPrice,quantity:finalQty,expectedSingle:finalSingle,reason:"final-total-conflicts-with-owned-single-price"};row.spatialResolved=null;}}
