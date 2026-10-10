@@ -264,6 +264,9 @@ export default function DesktopPreviewPage() {
   const desktopCartHydratedRef=useRef(false);
   useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{if(item?.ziiplyWeightLabel||item?.product?.ziiplyWeightLabel||String(item?.id||"").startsWith("weight-"))return {...item,price:null,product:{...(item.product||{}),price:null,ziiplyWeightLabel:true}};const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
+  const [desktopDebugOpen,setDesktopDebugOpen]=useState(false);
+  const [desktopDebugLines,setDesktopDebugLines]=useState<string[]>([]);
+  const desktopDebug=(message:string)=>setDesktopDebugLines(current=>[...current,`${new Date().toLocaleTimeString("fi-FI")} ${message}`].slice(-100));
   const [desktopPackageProposals,setDesktopPackageProposals]=useState<Array<{itemId:string;original:string;candidate:any;storeName:string}>>([]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
   const [desktopCompareNotice,setDesktopCompareNotice]=useState(false);
@@ -418,6 +421,8 @@ export default function DesktopPreviewPage() {
   }
 
   async function openDesktopComparison(){
+    setDesktopDebugLines([]);setDesktopDebugOpen(true);
+    desktopDebug(`Vertailu käynnistyy: tila=${betweenMode}, korissa=${cartItems.length}`);
     const requestIdentity=desktopCompareIdentity;
     const runId=++desktopCompareRunId.current;
     setDesktopCompareError("");
@@ -433,6 +438,7 @@ export default function DesktopPreviewPage() {
       if(unsupportedSelected.length){setDesktopCompareLoading(false);flashCartNotice("Hintahaku ei vielä tue valittua kauppaa: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+".");return}
       if(selected.length!==1){setDesktopCompareLoading(false);flashCartNotice("Valitse yksi kauppa hintojen hakua varten.");return}
       const store=selected[0];const storeName=String(store.name||"");
+      desktopDebug(`Kauppa: ${storeName}, id=${store.id}, externalId=${store.externalId}, ketju=${storeKind(store)}`);
       // A store switch invalidates every previously displayed price, including items
       // without storeName. Never attribute another store's cached price to this one.
       setCartItems(current=>current.map(item=>isDesktopMemoItem(item)?item:{...item,price:null,storeName,priceNeedsRefresh:true}));
@@ -445,15 +451,19 @@ export default function DesktopPreviewPage() {
           const ean=String(item.ean||item.product?.ean||"").trim();
           try{
             // Reuse the same expanded queries and product matcher as the two-store comparison.
+            desktopDebug(`Haku alkaa: ${name}, EAN=${ean}, source=${item.source}`);
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
+            desktopDebug(`API-ehdokkaita ${candidates.length}: ${name}; ${candidates.slice(0,8).map((p:any)=>`${p.name} [${p.ean}] ${p.price}c`).join(" | ")}`);
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            desktopDebug(`EAN-osuma: ${matched?`${matched.name} ${matched.price}c`:"EI"}`);
             const cents=matched?Number(matched.price):NaN;
             if(Number.isFinite(cents)&&cents>0)return {price:cents/100,proposal:null};
             const alternative=desktopFindPackageAlternative(candidates,name,ean);
+            desktopDebug(`Pakkausvaihtoehto: ${alternative?`${alternative.name} ${alternative.price}c`:"EI"}`);
             return {price:null,proposal:alternative||null};
-          }catch{return null}
+          }catch(error){desktopDebug(`HAKUVIRHE: ${String(error)}`);return null}
         }));
-        if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
+        if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId){desktopDebug("TULOKSET HYLÄTTY: korin tai kaupan identiteetti muuttui haun aikana");return;}
         const eligibleCount=cartItems.filter(item=>(!isS||String(item.source||"").toLowerCase()!=="offer")&&!item?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))).length;
         const pricedCount=updates.filter(result=>result?.price!=null).length;
         setDesktopPackageProposals(updates.flatMap((result,i)=>result?.proposal?[{itemId:desktopCartKey(cartItems[i]),original:String(cartItems[i].name||cartItems[i].title||""),candidate:result.proposal,storeName}]:[]));
@@ -1063,6 +1073,7 @@ export default function DesktopPreviewPage() {
 <div className="absolute bottom-3 left-3 right-3 z-[100] rounded-xl bg-[#fff5dc] p-3 shadow-xl"><div className="flex flex-wrap items-center justify-center gap-3"><button type="button" onClick={()=>{setDesktopScannerMessage("");void pasteDesktopScannerEan()}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#28492f] shadow-[inset_0_2px_0_rgba(255,255,255,0.7)]">Liitä EAN</button><button type="button" aria-label="Avaa ostoskori" title="Avaa ostoskori" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false);setCartOpen(true)}} className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border-[5px] border-[#7b6034] bg-[#d8c08c] shadow-[0_6px_16px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.55)]"><span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border-[3px] border-[#efe2b8] bg-[#16472c] text-[31px] leading-none text-[#fff6d9]">🧺</span></button><button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#7d2b1d] bg-[linear-gradient(180deg,#c64235_0%,#922016_100%)] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#fff3dc] shadow-[inset_0_2px_0_rgba(255,255,255,0.20)]">Sulje kamera</button></div></div></div></div>}
         <ZiiplyDesktopNotebookCard open={notebookOpen} lists={savedLists} currentCartCount={cartItems.length} openedListId={openedSavedListId} onToggleList={(id)=>setOpenedSavedListId(openedSavedListId===id?null:id)} onSaveCurrentCart={beginSaveCart} onRestoreList={restoreSavedList} onDeleteList={(id)=>persistSavedLists(savedLists.filter((list:any)=>list.id!==id))} onClose={()=>setNotebookOpen(false)} />
         {cartNotice&&<div className="fixed left-1/2 top-[142px] z-[110] max-w-[760px] -translate-x-1/2 rounded-[18px] bg-[#08a36d] px-8 py-4 text-center text-[16px] font-black text-white shadow-2xl">{cartNotice}</div>}
+        {desktopDebugOpen && <div className="fixed bottom-4 right-4 z-[250] w-[min(720px,95vw)] max-h-[60vh] overflow-hidden rounded-xl border-2 border-amber-500 bg-slate-950 p-3 text-white shadow-2xl"><div className="mb-2 flex items-center justify-between gap-2"><strong>Ziiply hintahaun DEBUG</strong><div className="flex gap-2"><button className="rounded bg-amber-600 px-3 py-1" onClick={()=>navigator.clipboard.writeText(desktopDebugLines.join("\n"))}>Kopioi loki</button><button className="rounded bg-slate-700 px-3 py-1" onClick={()=>setDesktopDebugOpen(false)}>Sulje</button></div></div><pre className="max-h-[48vh] overflow-auto whitespace-pre-wrap break-words text-xs">{desktopDebugLines.join("\n")||"Odotetaan hintahakua..."}</pre></div>}
         {cartOpen && cartPaperReady && <div className="fixed bottom-[24px] left-[24px] right-[24px] top-[var(--desktop-overlay-top)] z-[90] flex overflow-hidden rounded-[30px] border-[3px] border-[#8a6c3d] bg-[#f7edcf] p-3 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
 <div className="relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-hidden" style={{backgroundImage:"url('/ui/cart/desktop-virtanen.svg')",backgroundSize:"100% 100%",backgroundPosition:"center",backgroundRepeat:"no-repeat"}}>
  <div className="absolute left-[4%] right-[4%] top-[2.5%] z-10 flex items-start justify-between gap-4">
