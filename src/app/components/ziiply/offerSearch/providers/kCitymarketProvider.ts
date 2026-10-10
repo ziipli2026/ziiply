@@ -82,6 +82,11 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Product form must outrank incidental words and nearby leaflet categories.
+  if(/maissikakut|riisikakut|riisikakku|maissikakku/.test(s)) return "Kuivatuotteet";
+  if(/wc[- ]?paperi|talouspaperi|nenäliina|nenaliina/.test(s)) return "Kodinhoito";
+  if(/(?:^|\\s)kahvi(?:t|pavut|jauhe)?(?:\\s|$)|costa rica|premium blend/.test(s)) return "Kahvi & tee";
+
   // Explicit hygiene and beverages precede substrings in compound words.
   if(/ihonhoito|pesulappu|ruokalappu|vuodesuoja/.test(s)) return "Hygienia & kosmetiikka";
   if(/välipalajuoma/.test(s)) return "Juomat";
