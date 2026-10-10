@@ -62,4 +62,7 @@ test('cheapest mode executes selection only for a strictly cheaper valid candida
   assert.equal((await scenario(2.50,[251])).selected.length,0,'higher price must not swap');
   assert.equal((await scenario(null,[249])).selected.length,0,'unknown current price must not swap');
   assert.equal((await scenario(2.50,[0])).selected.length,0,'zero-price candidate must not swap');
+  const mixed = await scenario(2.50,[0,249,199,NaN]);
+  assert.equal(mixed.selected.length,1,'one valid cheaper candidate must swap');
+  assert.equal(mixed.selected[0][2].price,199,'must select lowest valid price even with invalid prices');
 });
