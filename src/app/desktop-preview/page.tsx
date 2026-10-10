@@ -441,6 +441,24 @@ export default function DesktopPreviewPage() {
     }catch{if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
   }
 
+  // Älä vertaa erikokoisia pakkauksia pelkän pakkaushinnan perusteella.
+  function desktopComparablePack(source: string, candidate: string) {
+    const parse = (name: string) => {
+      const normalized=name.toLocaleLowerCase("fi").replace(/(\\d),(\\d)/g,"$1.$2");
+      const multi=normalized.match(/(\\d+)\\s*[x×]\\s*(\\d+(?:\\.\\d+)?)\\s*(kg|g|l|ml|cl|dl)\\b/);
+      const single=normalized.match(/(\\d+(?:\\.\\d+)?)\\s*(kg|g|l|ml|cl|dl)\\b/);
+      const m=multi||single;
+      if(!m)return null;
+      const amount=Number(multi?m[1]:1)*Number(multi?m[2]:m[1]);
+      const unit=multi?m[3]:m[2];
+      return {amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:unit==="cl"?10:1),type:["kg","g"].includes(unit)?"weight":"volume"};
+    };
+    const a=parse(source),b=parse(candidate);
+    // Tuntematonta pakkauskokoa ei saa automaattisesti hyväksyä.
+    if(!a||!b||a.type!==b.type)return false;
+    return Math.abs(a.amount-b.amount)/a.amount<=0.05;
+  }
+
   async function desktopChangeCompareMatchMode(storeId:string, match:any, mode:"cheapest"|"same_quality"|"own_brands"|"same_brand") {
     const result=desktopCompareResults[storeId]; if(!result)return [];
     const rowId=String(match?.id||match?.cartItemId||"");
@@ -450,7 +468,7 @@ export default function DesktopPreviewPage() {
     const store=result.store;const kind=storeKind(store);const isS=kind==="sHyper"||kind==="sLocal";
     try{
       const products=await desktopFindCompareCandidates(name,String(cartItem?.ean||cartItem?.product?.ean||""),store,isS);
-      const candidates=products.filter((product:any)=>productGroupGate(name,product.name)).map((product:any,index:number)=>({
+      const candidates=products.filter((product:any)=>productGroupGate(name,product.name)&&desktopComparablePack(name,product.name)).map((product:any,index:number)=>({
         ...product,id:String(product.id||product.ean||index),name:product.name,
         price:Number(product.price),product:{...(product.product||{}),id:product.id||product.ean||index,name:product.name,ean:product.ean},
         sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false
