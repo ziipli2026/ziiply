@@ -578,7 +578,7 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   // Display the published discount instead of an empty price or an invented amount.
   const percent = Number(source.discountPercent ?? offer.discountPercent);
   if (Number.isFinite(percent) && percent > 0 && percent < 100) return `−${percent} %`;
-  const benefit = String(source.benefitText ?? offer.benefitText ?? "").trim();
+  const benefit = String(source.discountText ?? offer.discountText ?? source.benefitText ?? offer.benefitText ?? "").trim();
   if (/^[−-]?\s*\d{1,2}\s*%$/.test(benefit)) return benefit;
   return "";
 }
