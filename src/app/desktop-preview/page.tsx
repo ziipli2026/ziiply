@@ -401,8 +401,8 @@ export default function DesktopPreviewPage() {
       return {p,size,sameBrand,sameProduct,overlap};
     }).filter(x=>x.size!==null&&x.size!==sourceSize&&Number(x.p.price)>0
       &&normalizeEan(String(x.p.ean||""))!==sourceEan&&x.sameBrand&&x.sameProduct)
-      .sort((a,b)=>Math.abs(a.size-sourceSize)-Math.abs(b.size-sourceSize)
-        ||a.size-b.size||Number(a.p.price)-Number(b.p.price))[0]?.p||null;
+      .sort((a,b)=>Math.abs(Number(a.size)-sourceSize)-Math.abs(Number(b.size)-sourceSize)
+        ||Number(a.size)-Number(b.size)||Number(a.p.price)-Number(b.p.price))[0]?.p||null;
   }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
