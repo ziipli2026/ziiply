@@ -658,7 +658,14 @@ export default function DesktopPreviewPage() {
       value-=Math.max(0,name.length-needle.length)*0.08;
       return value;
     };
-    return products.map((product,index)=>({product,index,rank:score(product)}))
+    // API search may return related-category products (e.g. milk for "piimä").
+    // Only show products whose names actually match every search term.
+    const matchesQuery=(product:any)=>{
+      const name=normalize(String(product.name||product.title||product.product?.name||""));
+      const tokens=name.split(" ").filter(Boolean);
+      return words.length>0&&words.every(word=>tokens.some(token=>token===word||token.startsWith(word)));
+    };
+    return products.filter(matchesQuery).map((product,index)=>({product,index,rank:score(product)}))
       .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
   }
 
