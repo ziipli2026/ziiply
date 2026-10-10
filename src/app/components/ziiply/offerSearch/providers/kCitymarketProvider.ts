@@ -453,7 +453,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // Some leaflet text contains a complete, explicit loyalty-card transaction
     // (e.g. "Plussa-kortilla 4,00/2 pkt"). Prefer it to a neighbouring OCR
     // price only when both the amount and quantity are printed together.
-    const explicitLoyaltyMultiBuy = /plussa[- ]kortilla\s+(\d+[,.]\d{2})\s*\/\s*(\d+)\s*(kpl|pkt|ps|prk|plo)\b/i.exec(title);
+    const explicitLoyaltyMultiBuy = /plussa[-\s]kortilla\s+(\d+[,.]\d{2})\s*€?\s*\/\s*(\d+)\s*(kpl|pkt|ps|prk|plo)\b/i.exec(title);
     const loyaltyTotal=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[1].replace(",", ".")):NaN;
     const loyaltyQuantity=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[2]):NaN;
     const useLoyaltyMultiBuy=Number.isFinite(loyaltyTotal)&&loyaltyTotal>0&&Number.isInteger(loyaltyQuantity)&&loyaltyQuantity>1;
@@ -463,7 +463,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
 
     // When the leaflet explicitly prints the non-loyalty unit price, use
     // that evidence instead of a potentially unrelated spatial OCR value.
-    const explicitNonLoyalty = /ilman\s+plussa[- ]korttia\s+(\d+[,.]\d{2})\s*\/\s*(kpl|pkt|ps|prk|plo)\b/i.exec(title);
+    const explicitNonLoyalty = /ilman\s+plussa[-\s]korttia\s+(\d+[,.]\d{2})\s*€?\s*\/\s*(kpl|pkt|ps|prk|plo)\b/i.exec(title);
     const printedNormalUnit=explicitNonLoyalty?Number(explicitNonLoyalty[1].replace(",", ".")):NaN;
     const normalMin=Number(row?.normal?.min);
     const offerQuantity=useLoyaltyMultiBuy?loyaltyQuantity:resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
