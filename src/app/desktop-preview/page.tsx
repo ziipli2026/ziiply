@@ -379,6 +379,21 @@ export default function DesktopPreviewPage() {
     const a=desktopPackageSize(source),b=desktopPackageSize(candidate);
     return a!==null&&b!==null&&a===b;
   }
+  function desktopFindPackageAlternative(candidates:any[],name:string,ean:string){
+    const sourceSize=desktopPackageSize(name);
+    if(sourceSize===null)return null;
+    const tokens=(value:string)=>String(value).toLocaleLowerCase("fi").replace(/\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/g," ").replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2);
+    const sourceWords=tokens(name);
+    if(sourceWords.length<2)return null;
+    const sourceEan=normalizeEan(ean);
+    return candidates.map((p:any)=>{
+      const size=desktopPackageSize(String(p.name||""));
+      const words=tokens(String(p.name||""));
+      const overlap=sourceWords.filter(w=>words.includes(w)).length;
+      return {p,size,overlap,score:overlap/Math.max(sourceWords.length,words.length,1)};
+    }).filter(x=>x.size!==null&&x.size!==sourceSize&&Number(x.p.price)>0&&normalizeEan(String(x.p.ean||""))!==sourceEan&&x.overlap>=2&&x.score>=0.5)
+      .sort((a,b)=>b.score-a.score)[0]?.p||null;
+  }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
     const sourceEan=normalizeEan(ean);
@@ -419,12 +434,7 @@ export default function DesktopPreviewPage() {
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
             const cents=matched?Number(matched.price):NaN;
             if(Number.isFinite(cents)&&cents>0)return {price:cents/100,proposal:null};
-            const sourceSize=desktopPackageSize(name);
-            const sourceEan=normalizeEan(ean);
-            const alternatives=candidates.filter((p:any)=>desktopPackageSize(String(p.name||""))!==null&&desktopPackageSize(String(p.name||""))!==sourceSize&&normalizeEan(String(p.ean||""))!==sourceEan&&Number(p.price)>0);
-            const productWords=(value:string)=>String(value).toLocaleLowerCase("fi").replace(/\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/g," ").replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2&&!["kpl","pkt","pss"].includes(w));
-            const originalWords=productWords(name);
-            const alternative=alternatives.map((p:any)=>{const words=productWords(String(p.name||""));const overlap=originalWords.filter(w=>words.includes(w)).length;return {p,overlap,score:overlap/Math.max(originalWords.length,words.length,1)};}).filter(x=>x.overlap>=Math.min(2,originalWords.length)&&x.score>=0.5).sort((a,b)=>b.score-a.score)[0]?.p;
+            const alternative=desktopFindPackageAlternative(candidates,name,ean);
             return {price:null,proposal:alternative||null};
           }catch{return null}
         }));
@@ -470,7 +480,8 @@ export default function DesktopPreviewPage() {
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
             const price=matched?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
-            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,image:String((matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none"};
+            const alternative=matched?null:desktopFindPackageAlternative(candidates,name,ean);
+            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,image:String((matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative};
           }catch{return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
