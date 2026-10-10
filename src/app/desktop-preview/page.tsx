@@ -455,9 +455,9 @@ export default function DesktopPreviewPage() {
   // Älä vertaa erikokoisia pakkauksia pelkän pakkaushinnan perusteella.
   function desktopComparablePack(source: string, candidate: string) {
     const parse = (name: string) => {
-      const normalized=name.toLocaleLowerCase("fi").replace(/(\\d),(\\d)/g,"$1.$2");
-      const multi=normalized.match(/(\\d+)\\s*[x×]\\s*(\\d+(?:\\.\\d+)?)\\s*(kg|g|l|ml|cl|dl)\\b/);
-      const single=normalized.match(/(\\d+(?:\\.\\d+)?)\\s*(kg|g|l|ml|cl|dl)\\b/);
+      const normalized=name.toLocaleLowerCase("fi").replace(/(\d),(\d)/g,"$1.$2");
+      const multi=normalized.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(kg|g|l|ml|cl|dl)\b/);
+      const single=normalized.match(/(\d+(?:\.\d+)?)\s*(kg|g|l|ml|cl|dl)\b/);
       const m=multi||single;
       if(!m)return null;
       const amount=Number(multi?m[1]:1)*Number(multi?m[2]:m[1]);
