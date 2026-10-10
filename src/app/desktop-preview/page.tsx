@@ -365,7 +365,10 @@ export default function DesktopPreviewPage() {
     return responses.flat();
   }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
-    const best=isS?pickBestSProduct(candidates,name,normalizeEan(ean)):pickBestKProduct(candidates,name,normalizeEan(ean));
+    // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
+    const sourceEan=normalizeEan(ean);
+    if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b)}
+    const best=isS?pickBestSProduct(candidates,name,sourceEan):pickBestKProduct(candidates,name,sourceEan);
     return best||null;
   }
 
