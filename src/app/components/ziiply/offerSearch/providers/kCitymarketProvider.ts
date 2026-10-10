@@ -443,7 +443,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // If the leaflet explicitly identifies a 1 kg pack AND states its €/kg
     // price in the same title, that printed price is also the pack price.
     // This is stronger evidence than a spatially neighbouring OCR price.
-    const explicitOneKg=/(?:^|\\s)1\\s*kg\\s*\\(\\s*(\\d+[,.]\\d{2})\\s*\\/\\s*kg\\s*\\)/i.exec(title);
+    const explicitOneKg = new RegExp(String.raw`(?:^|\s)1\s*kg\s*\(\s*(\d+[,.]\d{2})\s*/\s*kg\s*\)`, "i").exec(title);
     const printedOneKgPrice=explicitOneKg?Number(explicitOneKg[1].replace(",",".")):NaN;
     const price=Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0
       ? printedOneKgPrice : spatialPrice;
