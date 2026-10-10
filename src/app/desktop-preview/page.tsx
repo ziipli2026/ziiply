@@ -1012,7 +1012,7 @@ export default function DesktopPreviewPage() {
 
  </div>
  {cartOpen && betweenMode==="one" && desktopCompareLoading && <div role="status" aria-live="polite" className="absolute left-[4.5%] right-[4.5%] top-[17%] z-20 rounded-xl border-2 border-[#b58a46] bg-[#fff4cf]/95 px-4 py-2 text-center text-[15px] font-black text-[#174c35] shadow-sm">⏳ Haetaan tai päivitetään valitun kaupan hintoja…</div>}
- <div className="absolute inset-x-[4.5%] bottom-[65px] top-[160px] overflow-y-auto">
+ <div className="absolute inset-x-[4.5%] bottom-[65px] top-[164px] overflow-y-auto">
  {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid min-h-[86px] grid-cols-[60px_minmax(0,1fr)_220px_220px] items-center border-b border-[#8f744f]/25 py-[4px] text-[#3c2c1b]">
   <span className="text-center font-serif text-[20px]">{i+1}</span>
   <div className="flex min-w-0 items-center gap-3 pl-[30px] pr-[12px]">{p.pictureUrl&&<img src={p.pictureUrl} alt="" className="h-[78px] w-[78px] shrink-0 rounded-lg bg-[#fffaf0] object-contain" />}<div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{p.storeName||""}</div>{p.discountText&&<div className="truncate text-[14px] italic text-[#77513c]">{p.discountText}</div>}{p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{p.validityText&&<div className="text-[14px] text-[#66543d]">{p.validityText}</div>}</div></div>
