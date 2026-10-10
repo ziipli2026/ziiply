@@ -365,11 +365,25 @@ export default function DesktopPreviewPage() {
     }));
     return responses.flat();
   }
+  // Never attach a different package's price to the original cart product.
+  // Unknown package sizes are not proof of equivalence.
+  function desktopPackageSize(name:string):number|null{
+    const matches=[...String(name).toLocaleLowerCase("fi").replace(/,/g,".").matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml)\b/g)];
+    if(!matches.length)return null;
+    const match=matches[matches.length-1];
+    const n=Number(match[1]);const unit=match[2];
+    return n*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1);
+  }
+  function desktopPackageCompatible(source:string,candidate:string):boolean{
+    const a=desktopPackageSize(source),b=desktopPackageSize(candidate);
+    return a!==null&&b!==null&&a===b;
+  }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
     const sourceEan=normalizeEan(ean);
     if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b)}
-    const best=isS?pickBestSProduct(candidates,name,sourceEan):pickBestKProduct(candidates,name,sourceEan);
+    const sameSize=candidates.filter((p:any)=>desktopPackageCompatible(name,String(p.name||"")));
+    const best=isS?pickBestSProduct(sameSize,name,sourceEan):pickBestKProduct(sameSize,name,sourceEan);
     return best||null;
   }
 
