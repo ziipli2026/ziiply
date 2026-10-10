@@ -292,7 +292,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             >
                               <div className="text-[0.57rem] font-black uppercase leading-[1.08] tracking-[0.025em]">
                                 {active ? "✓ " : ""}
-                                {compact && mode === "own_brands" ? "Oma merkki" : mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : compact && mode === "same_brand" ? "Sama merkki" : mode === "same_brand" ? getProductBrandExample(item) : label}
+                                {mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : mode === "same_brand" ? getProductBrandExample(item) : label}
                               </div>
                             </button>
                           );
