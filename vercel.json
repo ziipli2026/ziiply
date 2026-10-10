@@ -43,8 +43,10 @@
     },
     {
       "path": "/api/cron/future-publications",
-      "schedule": "35 2,8,14,20 * * *"
+      "schedule": "10 15 * * 0"
     },
+    {"path":"/api/cron/future-publications","schedule":"10 17 * * 3"},
+    {"path":"/api/cron/future-publications","schedule":"10 5 * * 1,4"},
     {
       "path": "/api/cron/chain-parser-health",
       "schedule": "50 3,9,15,21 * * *"
