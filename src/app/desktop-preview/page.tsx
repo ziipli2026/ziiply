@@ -453,6 +453,30 @@ export default function DesktopPreviewPage() {
   }
 
   // Älä vertaa erikokoisia pakkauksia pelkän pakkaushinnan perusteella.
+  // Halvin saa vaihtaa merkkiä, mutta ei tuotteen määrää tai olennaisia ominaisuuksia.
+  // Palautetaan null, jos pakkausmäärä puuttuu: silloin automaattista vaihtoa ei tehdä.
+  function desktopCheapestPack(name:string){
+    const n=name.toLocaleLowerCase("fi").replace(/(\d),(\d)/g,"$1.$2");
+    const m=n.match(/(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(kg|g|ml|l|dl|cl)\b/)||n.match(/(\d+(?:\.\d+)?)\s*(kg|g|ml|l|dl|cl)\b/);
+    if(!m)return null;
+    const multi=m.length===4;
+    const count=multi?Number(m[1]):1,amount=Number(multi?m[2]:m[1]),unit=multi?m[3]:m[2];
+    const scale=unit==="kg"||unit==="l"?1000:unit==="dl"?100:unit==="cl"?10:1;
+    return {amount:count*amount*scale,type:unit==="kg"||unit==="g"?"weight":"volume"};
+  }
+  function desktopCheapestCompatible(source:string,candidate:string){
+    const a=desktopCheapestPack(source),b=desktopCheapestPack(candidate);
+    if(!a||!b||a.type!==b.type||Math.abs(a.amount-b.amount)>a.amount*0.02)return false;
+    const n=(v:string)=>v.toLocaleLowerCase("fi").replace(/[-–]/g," ").replace(/\s+/g," ");
+    const x=n(source),y=n(candidate);
+    const attributes=[
+      /laktoositon/,/vähälaktoosinen/,/gluteeniton/,/rasvaton/,/kevyt/,/täysmaito/,
+      /kofeiiniton/,/papu(?:kahvi)?/,/suodatin(?:kahvi)?/,/pika(?:kahvi)?/,
+      /luomu/,/maustamaton/,/sokeriton/,/täysjyvä/
+    ];
+    return attributes.every(re=>re.test(x)===re.test(y));
+  }
+
   async function desktopChangeCompareMatchMode(storeId:string, match:any, mode:"cheapest"|"same_quality"|"own_brands"|"same_brand") {
     const result=desktopCompareResults[storeId]; if(!result)return [];
     const rowId=String(match?.id||match?.cartItemId||"");
@@ -473,7 +497,12 @@ export default function DesktopPreviewPage() {
       if(mode==="own_brands")filtered=candidates.filter((p:any)=>ownBrand.test(p.name));
       if(mode==="same_brand")filtered=candidates.filter((p:any)=>p.name.toLocaleLowerCase("fi").includes(originalBrand));
       filtered=filtered.sort((a:any,b:any)=>Number(a.price)-Number(b.price));
-      if(mode==="cheapest"&&filtered[0]){await desktopSelectCompareAlternative(storeId,match,filtered[0]);return filtered;}
+      if(mode==="cheapest"){
+        const compatible=filtered.filter((p:any)=>desktopCheapestCompatible(name,p.name));
+        if(!compatible.length){flashCartNotice("Saman kokoista ja ominaisuuksiltaan vastaavaa halvempaa tuotetta ei löytynyt.");return []}
+        await desktopSelectCompareAlternative(storeId,match,{...compatible[0],comparisonSelectionMode:"cheapest"});
+        return compatible;
+      }
       return filtered.slice(0,20);
     }catch{flashCartNotice("Vaihtoehtoisia tuotteita ei saatu haettua. Kokeile uudelleen.");return []}
   }
