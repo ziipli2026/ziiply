@@ -280,6 +280,7 @@ export default function DesktopPreviewPage() {
   const desktopCompareRequestIdentity=useRef(desktopCompareIdentity);
   desktopCompareRequestIdentity.current=desktopCompareIdentity;
   useEffect(()=>{desktopCompareRunId.current+=1;setDesktopCompareResults({});setDesktopCompareNotice(false);setDesktopCompareLoading(false);setDesktopCompareError("");},[desktopCompareIdentity]);
+  const desktopComparisonEdited=useRef(false);
   const desktopCompareStorageKey="ziiply-desktop-comparison-cache-v2";
   function desktopReadSavedComparison(key:string){
     try{
@@ -417,7 +418,10 @@ export default function DesktopPreviewPage() {
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([selected.map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
-    const cached=desktopCompareCache.current.get(key)||desktopReadSavedComparison(key);
+    const mustRecompare=desktopComparisonEdited.current;
+    desktopComparisonEdited.current=false;
+    if(mustRecompare){desktopCompareCache.current.delete(key);try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
+    const cached=mustRecompare?null:(desktopCompareCache.current.get(key)||desktopReadSavedComparison(key));
     if(cached){desktopCompareCache.current.set(key,cached);setDesktopCompareResults(cached);setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
@@ -488,6 +492,7 @@ export default function DesktopPreviewPage() {
     const rowId=String(match?.id||match?.cartItemId||"");
     const priceCents=Number(alternative?.price);
     if(!Number.isFinite(priceCents)||priceCents<=0){flashCartNotice("Valitun vaihtoehdon hinta ei ole kelvollinen.");return}
+    desktopComparisonEdited.current=true;
     const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
     const next={...chosen,rows,total:rows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:rows.filter((row:any)=>row.price==null).length};
     setDesktopCompareResults(current=>{
