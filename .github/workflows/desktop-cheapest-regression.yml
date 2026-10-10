@@ -7,6 +7,7 @@ on:
       - src/app/desktop-preview/page.tsx
       - tests/desktop-cheapest-regression.test.cjs
       - .github/workflows/desktop-cheapest-regression.yml
+      - src/app/api/**
   workflow_dispatch:
 jobs:
   test:
