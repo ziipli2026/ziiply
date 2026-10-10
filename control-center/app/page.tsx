@@ -64,7 +64,9 @@ function state(rows:Row[]){
 }
 function dot(s:string){return s==="green"?"🟢":s==="yellow"?"🟡":s==="red"?"🔴":"⚪"}
 
-export default async function Page(){
+export default async function Page({searchParams}:{searchParams:Promise<{view?:string}>}){
+  const requestedView=(await searchParams).view;
+  const view=requestedView==="publications"?"publications":requestedView==="data"?"data":"overview";
   const d=await load();
   const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim())&&!["future-publication-discovery","s-kaupat-protocol"].includes(r.source))}));
   const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
@@ -124,8 +126,14 @@ export default async function Page(){
   const futureFound=futureDiscovery.filter(x=>x.run?.outcome==="future-publication-found").length;
   const futureDiscoveryErrors=futureDiscovery.filter(x=>x.run&&!x.run.ok).length;
   const futureDiscoveryMissing=futureDiscovery.filter(x=>!x.run).length;
-  const futureDiscoveryStale=futureDiscovery.filter(x=>x.run&&Date.now()-new Date(x.run.checked_at).getTime()>12*60*60*1000).length;
-  const futureDiscoveryHealthy=futureDiscovery.filter(x=>x.run?.ok&&Date.now()-new Date(x.run.checked_at).getTime()<=12*60*60*1000).length;
+  const futureDiscoveryStale=futureDiscovery.filter(x=>x.run&&Date.now()-new Date(x.run.checked_at).getTime()>8*24*60*60*1000).length;
+  const futureDiscoveryHealthy=futureDiscovery.filter(x=>x.run?.ok&&Date.now()-new Date(x.run.checked_at).getTime()<=8*24*60*60*1000).length;
+  // Learn from actual parser-approved publication validity dates, not just discovery probes.
+  const expectedStartDays:Record<string,number[]>={"K-SUPERMARKET":[1,4],"K-MARKET":[1,4],"TOKMANNI-SPAR":[1,4]};
+  const fiWeekday=(iso:string)=>new Date(iso.slice(0,10)+"T12:00:00Z").getUTCDay();
+  const publicationScheduleObservations=[...new Map(d.pubs.filter(p=>p.approval_state==="approved"&&/^(K-SUPERMARKET|K-MARKET|TOKMANNI-SPAR|EUROSPAR|SPAR)/i.test(p.chain)).map(p=>[p.chain+"::"+p.publication_id+"::"+p.valid_from,p])).values()].map(p=>({chain:p.chain,publication:p.publication_id,validFrom:p.valid_from,weekday:fiWeekday(p.valid_from),parsedAt:p.parsed_at,unexpected:!expectedStartDays[/^(EUROSPAR|SPAR)/i.test(p.chain)?"TOKMANNI-SPAR":p.chain]?.includes(fiWeekday(p.valid_from))}));
+  const unexpectedPublicationDays=publicationScheduleObservations.filter(p=>p.unexpected);
+  const learnedWeekdays=[...new Set(unexpectedPublicationDays.map(p=>p.chain+"::"+p.weekday))];
   const latestRun=d.runs[0];
   const activeCoverageEnd=activePubs.reduce((max,p)=>p.valid_until>max?p.valid_until:max,todayFi); const nextApproved=currentPubs.filter(p=>p.approval_state==="approved"&&p.valid_from>activeCoverageEnd).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
   const overlappingApproved=activePubs.filter((p,i,a)=>!CHAINS.find(ch=>ch.key==="Lidl")!.match(p.chain.trim())&&a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
@@ -249,6 +257,7 @@ export default async function Page(){
       <div style={{textAlign:"right"}}><div style={{fontSize:19,fontWeight:850}}>{dot(overall[0])} {overall[1]}</div><div style={{fontSize:11,color:"#667085",marginTop:5}}>Päivitetty {new Date().toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</div></div>
     </header>
 
+    <nav aria-label="Control Center -näkymät" style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:20}}>{([{id:"overview",label:"Yleiskatsaus"},{id:"publications",label:"Tarjouslehdet ja parserit"},{id:"data",label:"Tuotedata ja järjestelmä"}] as const).map(tab=><a key={tab.id} href={tab.id==="overview"?"/":"/?view="+tab.id} aria-current={view===tab.id?"page":undefined} style={{padding:"12px 18px",borderRadius:12,textDecoration:"none",fontWeight:800,background:view===tab.id?"#0f172a":"#fff",color:view===tab.id?"#fff":"#334155",border:"1px solid #cbd5e1"}}>{tab.label}</a>)}</nav>
     {d.error&&<div style={{background:"#fee4e2",border:"1px solid #fecdca",padding:16,borderRadius:12,marginBottom:16}}>🔴 {d.error}</div>}
 
     <section style={{display:"grid",gridTemplateColumns:"minmax(0,1.45fr) minmax(320px,.55fr)",gap:14,marginBottom:18}}>
@@ -282,8 +291,9 @@ export default async function Page(){
       </article>})}
     </section>
 
+    {view==="publications"&&<>
     <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {statusCard("Future discovery kunnossa",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors||futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Tuore onnistunut tarkistus ≤12 h")}
+      {statusCard("Future discovery kunnossa",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors||futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Onnistunut tarkistus viimeisen 8 päivän aikana")}
       {statusCard("Tulevia lehtiä löydetty",futureFound,futureFound?"green":"gray","Digitaalisesta lähteestä löytyneet tulevat jaksot")}
       {statusCard("Future discovery puuttuu",futureDiscoveryMissing,futureDiscoveryMissing?"yellow":"green","Ketjut, joilta ensimmäinen tarkistus ei ole vielä kirjautunut")}
       {statusCard("Future discovery varoitukset",futureDiscoveryErrors,futureDiscoveryErrors?"yellow":"green","Ennakkotarkistus epäonnistui; ei tarkoita parseri- tai tarjousdatavirhettä")}
@@ -291,6 +301,8 @@ export default async function Page(){
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
       <h2 style={{marginTop:0}}>Tulevien tarjouslehtien valvonta</h2>
+      <div style={{marginBottom:12,fontSize:13}}>Ajastus: su-ilta, ke-ilta sekä ma/to-aamu. Puuttuva tuleva lehti on normaali tila. Todelliset alkupäivät kerätään hyväksytyistä parserijulkaisuista.</div>
+      <div style={{padding:12,border:"1px solid #e5e7eb",borderRadius:10,marginBottom:12}}><strong>Poikkeavat julkaisupäivät / oppimishistoria: {unexpectedPublicationDays.length}</strong><div style={{fontSize:12,marginTop:5}}>Havaitut uudet viikonpäivät: {learnedWeekdays.length}. Havainnot eivät muuta ajastusta automaattisesti ennen vahvistusta.</div>{unexpectedPublicationDays.slice(0,15).map((p,i)=><div key={p.publication+"-"+i} style={{fontSize:12,marginTop:5}}>⚠️ {p.chain} · {p.validFrom} · {["su","ma","ti","ke","to","pe","la"][p.weekday]} · {p.publication}</div>)}</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:12}}>
         {futureDiscovery.map(x=>{const r=x.run;const level=!r?"gray":!r.ok?"red":r.outcome==="future-publication-found"?"green":"yellow";const label=!r?"Ei vielä ajoa":!r.ok?"Tarkistus epäonnistui":r.outcome==="future-publication-found"?"Tuleva lehti löydetty":"Ei vielä julkaistu digitaalisena";return <div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900}}>{dot(level)} {x.chain}</div><div style={{fontSize:16,fontWeight:850,marginTop:8}}>{label}</div><div style={{fontSize:12,color:"#667085",marginTop:7}}>{r?"Viimeksi tarkistettu "+new Date(r.checked_at).toLocaleString("fi-FI"):"Ensimmäinen cron-ajo ei ole vielä kirjautunut"}</div><div style={{fontSize:12,color:"#667085",marginTop:4}}>{r?.outcome||"future-publication-discovery"}</div></div>})}
       </div>
@@ -454,6 +466,8 @@ export default async function Page(){
     </section>
 
 
+    </>}
+    {view==="data"&&<>
     <section style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:18}}>
       <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
         <h2 style={{marginTop:0}}>Julkaisujen ajohistoria</h2>
@@ -473,6 +487,8 @@ export default async function Page(){
       </article>
     </section>
 
+    </>}
+    {view==="publications"&&<>
     <section style={{marginTop:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
       <h2 style={{marginTop:0}}>Julkaisuvarasto / voimassaolo</h2>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
@@ -487,6 +503,7 @@ export default async function Page(){
       </table></div>
     </section>
 
+    </>}
     <section style={{marginTop:18,padding:16,background:"#eef6ff",borderRadius:12,fontSize:13,color:"#334155"}}>
       <b>Erillinen sovellus.</b> Control Center lukee Neonista health-lokia, julkaisuvarastoa ja EAN-pankkia. Se ei muuta Ziiplyn asiakassovelluksen käyttöliittymää eikä hyväksy julkaisuja automaattisesti.
     </section>
