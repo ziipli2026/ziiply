@@ -378,7 +378,7 @@ export default function DesktopPreviewPage() {
       setWorkspace(null);
       setCartOpen(true);
       if(unsupportedSelected.length){setDesktopCompareLoading(false);flashCartNotice("Hintahaku ei vielä tue valittua kauppaa: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+".");return}
-      if(selected.length!==1){setDesktopCompareLoading(false);flashCartNotice("Valitse yksi S- tai K-kauppa hintojen hakua varten.");return}
+      if(selected.length!==1){setDesktopCompareLoading(false);flashCartNotice("Valitse yksi kauppa hintojen hakua varten.");return}
       const store=selected[0];const storeName=String(store.name||"");
       // Keep the saved cart visible immediately; cached prices belong only to this store.
       setCartItems(current=>current.map(item=>item.storeName&&String(item.storeName)!==storeName?{...item,price:null,priceNeedsRefresh:true}:item));
@@ -412,7 +412,7 @@ export default function DesktopPreviewPage() {
     setDesktopCompareNotice(true);
     setDesktopCompareLoading(false);
     setDesktopCompareResults({});
-    if(unsupportedSelected.length){setDesktopCompareError("Vertailu ei vielä tue kaikkia valittuja ketjuja: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+". Valitse vain S- ja K-kauppoja.");return}
+    if(unsupportedSelected.length){setDesktopCompareError("Vertailu ei vielä tue valittuja kauppoja: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+". Valitse tuettuja kauppoja.");return}
     if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua kauppaa.");return}
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
@@ -456,7 +456,7 @@ export default function DesktopPreviewPage() {
         sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false
       }));
       const originalBrand=name.split(/\s+/)[0]?.toLocaleLowerCase("fi")||"";
-      const ownBrand=isS?/(^|\s)(coop|xtra|kotimaista)(\s|$)/i:/(^|\s)(pirkka|k-menu)(\s|$)/i;
+      const ownBrand=kind==="spar"?/(^|\s)(spar|eurospar|first price)(\s|$)/i:kind==="lidl"?/(^|\s)(milbona|cien|chef select|pikok|combino)(\s|$)/i:isS?/(^|\s)(coop|xtra|kotimaista)(\s|$)/i:/(^|\s)(pirkka|k-menu)(\s|$)/i;
       let filtered=candidates;
       if(mode==="own_brands")filtered=candidates.filter((p:any)=>ownBrand.test(p.name));
       if(mode==="same_brand")filtered=candidates.filter((p:any)=>p.name.toLocaleLowerCase("fi").includes(originalBrand));
