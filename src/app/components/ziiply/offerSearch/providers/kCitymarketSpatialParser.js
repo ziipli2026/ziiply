@@ -1382,7 +1382,7 @@ for(const row of out.rows.filter(r=>r.page===p)){
    }
   }
   const unique=[...new Map(proofs.map(v=>[v.value+":"+v.quantity,v])).values()].sort((a,b)=>a.distance-b.distance);
-  if(unique.length===1){const proof=unique[0];row.spatialResolved={value:proof.value,quantity:proof.quantity,unit:null,source:"overprinted-small-count-on-large-total",sanity:"pass",confidence:"medium"};}
+  if(unique.length===1){const proof=unique[0],current=row.spatialResolved,single=Number(row.initialExpectedSingle??row.expectedSingle);const protectedOwnedTotal=current?.source==="same-row-total-with-printed-count-and-unit-rate"&&Number(current.quantity)>1&&Number.isFinite(single)&&single>0&&Math.abs(Number(current.value)-single*Number(current.quantity))<=Math.max(.06,single*.035);if(!protectedOwnedTotal)row.spatialResolved={value:proof.value,quantity:proof.quantity,unit:null,source:"overprinted-small-count-on-large-total",sanity:"pass",confidence:"medium"};}
  }
  // Capture pre-rejection evidence for unresolved bundle diagnostics.
  if(row.spatialResolved?.source==="overprinted-small-count-on-large-total")row.debugOverprintedBundle={...row.spatialResolved};
