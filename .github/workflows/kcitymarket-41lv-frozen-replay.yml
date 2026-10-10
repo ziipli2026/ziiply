@@ -57,6 +57,15 @@ jobs:
           set -euo pipefail
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-current-parser.mjs
           KCM_REPLAY_REPORT=/tmp/kcm-41lv-replay-report.json node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json /tmp/kcm-41lv-current-parser.mjs
+      - name: Publish 41LV replay summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -s /tmp/kcm-41lv-replay-report.json ]; then
+            node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync("/tmp/kcm-41lv-replay-report.json","utf8"));fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,["## 41LV frozen parser replay","Matched: "+r.matched+"/"+r.expected,"Missing: "+r.missing.length,"Extra: "+r.extra.length,"Duplicates: "+r.duplicateKeys,"Pages: "+r.pages].join("\n")+"\n")'
+          else
+            echo "41LV replay report missing; inspect preceding steps." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Preserve exact 41LV regression differences
         if: always()
         uses: actions/upload-artifact@v4
