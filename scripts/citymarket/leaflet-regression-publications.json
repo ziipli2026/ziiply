@@ -22,6 +22,11 @@
       "id": "40AV",
       "status": "publisher-url-expired",
       "note": "Historical regression was run in Git history; no complete frozen fixture exists."
+    },
+    {
+      "id": "41LV",
+      "status": "approved-output-not-frozen",
+      "note": "User validated parser results on Wednesday–Thursday; preserve that exact approved output as a frozen fixture before claiming a current-code regression pass. Do not substitute a fresh live parse for the approved baseline."
     }
   ]
 }
