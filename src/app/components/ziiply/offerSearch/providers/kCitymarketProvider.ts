@@ -450,11 +450,19 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // This is stronger evidence than a spatially neighbouring OCR price.
     const explicitOneKg = new RegExp(String.raw`(?:^|\s)1\s*kg\s*\(\s*(\d+[,.]\d{2})\s*/\s*kg\s*\)`, "i").exec(title);
     const printedOneKgPrice=explicitOneKg?Number(explicitOneKg[1].replace(",",".")):NaN;
-    const price=Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0 && !(Number(resolved?.quantity)>1)
+    // Some leaflet text contains a complete, explicit loyalty-card transaction
+    // (e.g. "Plussa-kortilla 4,00/2 pkt"). Prefer it to a neighbouring OCR
+    // price only when both the amount and quantity are printed together.
+    const explicitLoyaltyMultiBuy = /plussa[- ]kortilla\s+(\d+[,.]\d{2})\s*\/\s*(\d+)\s*(kpl|pkt|ps|prk|plo)\b/i.exec(title);
+    const loyaltyTotal=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[1].replace(",", ".")):NaN;
+    const loyaltyQuantity=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[2]):NaN;
+    const useLoyaltyMultiBuy=Number.isFinite(loyaltyTotal)&&loyaltyTotal>0&&Number.isInteger(loyaltyQuantity)&&loyaltyQuantity>1;
+    const price=useLoyaltyMultiBuy?loyaltyTotal:
+      Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0 && !(Number(resolved?.quantity)>1)
       ? printedOneKgPrice : spatialPrice;
 
     const normalMin=Number(row?.normal?.min);
-    const offerQuantity=resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
+    const offerQuantity=useLoyaltyMultiBuy?loyaltyQuantity:resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
@@ -488,7 +496,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       packageSize:row?.package?.raw??null,
       offerQuantity,
-      offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
+      offerUnit:useLoyaltyMultiBuy?explicitLoyaltyMultiBuy![3].toUpperCase():resolved?.unit?String(resolved.unit).toUpperCase():null,
       resolutionSource:resolved?.source?String(resolved.source):null,
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
       plussa:/plussa/i.test(nearbyText),
