@@ -294,7 +294,6 @@ export default function DesktopPreviewPage() {
   const desktopCartHydratedRef=useRef(false);
   useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{if(item?.ziiplyWeightLabel||item?.product?.ziiplyWeightLabel||String(item?.id||"").startsWith("weight-"))return {...item,price:null,product:{...(item.product||{}),price:null,ziiplyWeightLabel:true}};const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
-  const [desktopDebugOpen,setDesktopDebugOpen]=useState(false);
   const [desktopDebugLines,setDesktopDebugLines]=useState<string[]>([]);
   const desktopDebug=(message:string)=>setDesktopDebugLines(current=>[...current,`${new Date().toLocaleTimeString("fi-FI")} ${message}`].slice(-100));
   const [desktopPackageProposals,setDesktopPackageProposals]=useState<Array<{itemId:string;original:string;candidate:any;storeName:string}>>([]);
