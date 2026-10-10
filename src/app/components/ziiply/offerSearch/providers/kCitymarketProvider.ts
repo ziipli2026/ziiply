@@ -456,7 +456,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const explicitLoyaltyMultiBuy = /plussa[-\s]kortilla\s+(\d+[,.]\d{2})\s*€?\s*\/\s*(\d+)\s*(kpl|pkt|ps|prk|plo)\b/i.exec(title);
     const loyaltyTotal=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[1].replace(",", ".")):NaN;
     const loyaltyQuantity=explicitLoyaltyMultiBuy?Number(explicitLoyaltyMultiBuy[2]):NaN;
-    const useLoyaltyMultiBuy=Number.isFinite(loyaltyTotal)&&loyaltyTotal>0&&Number.isInteger(loyaltyQuantity)&&loyaltyQuantity>1;
+    const useLoyaltyMultiBuy=Number.isFinite(loyaltyTotal)&&loyaltyTotal>0&&Number.isInteger(loyaltyQuantity)&&loyaltyQuantity>1&&loyaltyQuantity<=100&&loyaltyTotal/loyaltyQuantity>=0.01;
     const price=useLoyaltyMultiBuy?loyaltyTotal:
       Number.isFinite(printedOneKgPrice)&&printedOneKgPrice>0 && !(Number(resolved?.quantity)>1)
       ? printedOneKgPrice : spatialPrice;
