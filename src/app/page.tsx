@@ -4757,14 +4757,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     Number(Boolean(selectedChains.k)) +
     Number(Boolean(selectedChains.lidl)) +
     Number(Boolean(selectedChains.tokmanni));
+  // Within-chain mode selects one chain with two stores, not two separate chains.
+  const withinChainNavigationReady = storeCompareScope === "within_chain" && Boolean(withinChain);
   const cartSelectionEnabledV767 =
-    storeCompareScope === "between_chains" &&
-    ((betweenChainSelectionModeV749 === "one" && bottomNavSelectedChainCountV767 === 1) ||
-      (betweenChainSelectionModeV749 === "many" && bottomNavSelectedChainCountV767 >= 2));
+    withinChainNavigationReady ||
+    (storeCompareScope === "between_chains" &&
+      ((betweenChainSelectionModeV749 === "one" && bottomNavSelectedChainCountV767 === 1) ||
+        (betweenChainSelectionModeV749 === "many" && bottomNavSelectedChainCountV767 >= 2)));
   const compareSelectionEnabledV767 =
-    storeCompareScope === "between_chains" &&
-    betweenChainSelectionModeV749 === "many" &&
-    bottomNavSelectedChainCountV767 >= 2;
+    (withinChainNavigationReady && withinChainStoresReadyV320) ||
+    (storeCompareScope === "between_chains" &&
+      betweenChainSelectionModeV749 === "many" &&
+      bottomNavSelectedChainCountV767 >= 2);
 
   // V769: GPS:n löytämät kaupat eivät yksin vapauta Hae-nappia.
   // Haku käyttää samaa käyttäjän ketjuvalintaporttia kuin Kori.
