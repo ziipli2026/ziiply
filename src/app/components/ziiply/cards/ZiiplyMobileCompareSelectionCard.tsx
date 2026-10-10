@@ -225,7 +225,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                 return (
                   <article
                     key={String(item.id ?? item.product?.id ?? index)}
-                    className="border-b border-[#d4bd86]/72"
+                    data-compare-product-row className="border-b border-[#d4bd86]/72"
                   >
                     <div className={compact ? "grid min-h-[3.4rem] grid-cols-[minmax(0,1fr)_4.25rem] items-center border-b border-[#d4bd86]/72 px-1.5 py-1" : "grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5"}>
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
@@ -269,7 +269,15 @@ export default function ZiiplyMobileCompareSelectionCard({
                             <button
                               key={mode}
                               type="button"
-                              onClick={async () => {
+                              onClick={async (event) => {
+                                if (mode !== "cheapest") {
+                                  const row = event.currentTarget.closest("[data-compare-product-row]");
+                                  const scroller = row?.closest("[data-desktop-compare-products-scroll]");
+                                  if (row && scroller) {
+                                    const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+                                    scroller.scrollTo({ top: scroller.scrollTop + offset, behavior: "smooth" });
+                                  }
+                                }
                                 if (mode === "cheapest") {
                                   setAlternativeMenu(null);
                                   await onChangeMatchMode(store.id, item, mode);
