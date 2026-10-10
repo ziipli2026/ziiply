@@ -57,17 +57,20 @@
     "https://kcm-tarjouslehdet.k-ruoka.fi/82qjhs6_tarjouslehti_41LV_KCM/index.html": {
       "pdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
       "pageCount": 20,
-      "offerCount": 99,
+      "offerCount": 91,
       "images": {
-        "kcm:spatial:5:wc-paperi 40 rl:6.1": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#678b48942058f62857b5",
-        "kcm:spatial:11:kertakäyttö- käsineet 100 kpl/pkt engångshandskar:16.1": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#98b4dd9f9ac730144edf",
-        "kcm:spatial:13:pertsa & pirre salaattisekoitus 75 g (20,00/kg):3": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3195a85a219f6b05a2b7",
-        "kcm:spatial:13:2 kpl porkkana 2 kg, lanttu 2 kg 49:1.49": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#95fbb32bfba5eea71263",
-        "kcm:spatial:15:täysmehut 900 ml/pl:3.79": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#8aa6ff43f6189d7c2d8a",
+        "kcm:spatial:5:wc-paperi 40 rl:29.9": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#e9c05ad892a20b7d2533",
+        "kcm:spatial:11:kertakäyttö- käsineet 100 kpl/pkt engångshandskar:10.1": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#a8a20807ef90a31f2d8d",
+        "kcm:spatial:13:pertsa & pirre salaattisekoitus 75 g (20,00/kg):1.5": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#560002b2337afb8bb56b",
+        "kcm:spatial:13:2 kpl porkkana 2 kg, lanttu 2 kg 49:1": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3c50381696979ee05afa",
+        "kcm:spatial:15:täysmehut 900 ml/pl:3.59": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#a7614f6ea1dbf2316858",
+        "kcm:spatial:16:tuorejuustot 145–200 g:percent:28": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#07a88d59b9addeeb0a11",
         "kcm:spatial:18:vital hyvinvointimehut 1 l:4.5": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#75ec413520e4c60b4035",
-        "kcm:spatial:19:maissikakut 130 g:2.4": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#e7093577381734c9904f",
+        "kcm:spatial:18:nature hfc kissan märkäruoat 70 g (15,00/kg):4.2": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3f9e890655dbfdcb74ca",
+        "kcm:spatial:18:pikakahvi 180 g:6.99": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#7cfd9a430d88fb961fee",
+        "kcm:spatial:19:maissikakut 130 g:4": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#021c7b845008625cd3c6",
         "kcm:spatial:19:aakkoset 280–340 g:4.5": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#5e29a0437078fc923ad2",
-        "kcm:spatial:20:original nachips 450 g:1.15": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#5b6f6ed4497e2410b494"
+        "kcm:spatial:20:original nachips 450 g:2.99": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3b84cb250a41853aebb3"
       }
     }
   }
