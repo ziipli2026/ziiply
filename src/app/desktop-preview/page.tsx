@@ -49,18 +49,14 @@ function FuelStationTypeIllustration({ kind, className }: { kind: "traffic" | "c
   return <img src={images[kind]} alt="" aria-hidden="true" className={className} style={{ objectFit: "contain" }} loading="eager" draggable={false} />;
 }
 
-const DESKTOP_CATEGORY_PRIORITY = [
-  ["kahvi", "tee"], ["maitotuot", "maito"], ["liha", "makkar"], ["kala"], ["leip", "leivonn"],
-  ["hevi", "hedelm", "vihanne"], ["juoma"], ["valmisruo", "valmisateri"],
-  ["pakast"], ["kuivatuot", "kuiva"], ["makeis", "keksi"], ["lastenruo"],
-  ["vitamiin", "ravinte"], ["lemmik"], ["hygien", "kosmet"],
-  ["kodinhoi"], ["koti", "vapaa-aika"], ["muu"]
-] as const;
+// Use the same canonical category order as the mobile Gösta search.
+// Unknown provider categories stay visible after known categories, before Muut.
 function desktopCategoryRank(category: string): number {
-  const normalized = category.toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-  if (normalized === "muu" || normalized === "muut" || normalized === "other") return DESKTOP_CATEGORY_PRIORITY.length - 1;
-  const idx = DESKTOP_CATEGORY_PRIORITY.findIndex((terms, index) => index !== DESKTOP_CATEGORY_PRIORITY.length - 1 && terms.some(term => { const needle = term.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return needle === "tee" ? normalized.split(" ").includes("tee") : normalized.includes(needle); }));
-  return idx >= 0 ? idx : DESKTOP_CATEGORY_PRIORITY.length - 2;
+  const normalize = (value: string) => value.toLocaleLowerCase("fi").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  const normalized = normalize(category);
+  if (normalized === "muu" || normalized === "muut" || normalized === "other") return GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147.length + 1;
+  const index = GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147.findIndex(label => normalize(label) === normalized);
+  return index >= 0 ? index : GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147.length;
 }
 function sortDesktopCategories(categories: string[]): string[] {
   return [...categories].sort((a,b) => desktopCategoryRank(a) - desktopCategoryRank(b) || a.localeCompare(b, "fi"));
