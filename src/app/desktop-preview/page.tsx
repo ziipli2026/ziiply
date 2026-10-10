@@ -622,7 +622,13 @@ export default function DesktopPreviewPage() {
   function distanceKm(s:any){ if(!gpsCoords)return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const lat=Number(s?.latitude ?? s?.lat); const lon=Number(s?.longitude ?? s?.lon ?? s?.lng); if(!Number.isFinite(lat)||!Number.isFinite(lon))return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const r=6371, p1=gpsCoords.latitude*Math.PI/180, p2=lat*Math.PI/180, dp=(lat-gpsCoords.latitude)*Math.PI/180, dl=(lon-gpsCoords.longitude)*Math.PI/180; const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2; return 2*r*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
   function byDistance(items:any[]){return [...items].sort((a,b)=>distanceKm(a)-distanceKm(b));}
   function storeKind(s:any){const chain=String(s?.chain||s?.type||s?.brand||"").toLowerCase();const n=String(s?.name||"").toLowerCase();if(chain==="lidl")return "lidl";if(chain.includes("tokmanni")||chain.includes("spar"))return "spar";if(n.includes("prisma"))return "sHyper";if(n.includes("citymarket"))return "kHyper";if(n.includes("s-market")||n.includes("sale")||n.includes("alepa"))return "sLocal";if(n.includes("k-market")||n.includes("k-supermarket"))return "kLocal";if(n.includes("lidl"))return "lidl";if(n.includes("tokmanni")||n.includes("spar"))return "spar";return ""}
-  function applyModeDefaults(nextMode:"hyper"|"local"){const wanted=[nextMode==="hyper"?"sHyper":"sLocal",nextMode==="hyper"?"kHyper":"kLocal","lidl","spar"];const defaults=wanted.map(k=>stores.find((s:any)=>storeKind(s)===k)).filter(Boolean);setSelectedStores(prev=>{const selectedKinds=new Set(Object.values(prev).map((s:any)=>storeKind(s)));const next:any={};for(const s of defaults as any[]){const k=storeKind(s);if(selectedKinds.has(k))next[String(s.id)]=s}return next})}
+  const modeSelectionsRef=useRef<{hyper:Record<string,any>;local:Record<string,any>}>({hyper:{},local:{}});
+  function applyModeDefaults(nextMode:"hyper"|"local"){
+    if(nextMode===storeMode)return;
+    // Keep each mode\'s actual chosen stores, not merely the chain kind.
+    modeSelectionsRef.current[storeMode]={...selectedStores};
+    setSelectedStores({...modeSelectionsRef.current[nextMode]});
+  }
 
   function applyLocation() {
     const value = location.trim();
