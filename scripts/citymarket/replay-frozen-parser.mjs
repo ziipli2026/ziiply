@@ -26,5 +26,10 @@ const keys=new Set(parsed.rows.flatMap(r=>{
 const expected=new Set(fixture.offers.map(x=>x.key));
 const missing=[...expected].filter(k=>!keys.has(k));
 const extra=[...keys].filter(k=>!expected.has(k));
+const targets=new Set(missing.map(k=>k.split(':').slice(0,4).join(':')));
+for(const row of parsed.rows){
+ const title=String(row.title||'').trim().toLowerCase(),prefix='kcm:spatial:'+Number(row.page)+':'+title;
+ if(targets.has(prefix))console.log('KCM_MISSING_ROW_DIAGNOSTIC',JSON.stringify({page:row.page,title:row.title,spatialResolved:row.spatialResolved,initialExpectedSingle:row.initialExpectedSingle,expectedSingle:row.expectedSingle,debugRejectedFinalBundle:row.debugRejectedFinalBundle,debugRejectedCardPrice:row.debugRejectedCardPrice,debugCardPrice:row.debugCardPrice,spatialCandidates:row.spatialCandidates}));
+}
 console.log('KCM_REPLAY',JSON.stringify({id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra}));
 if(parsed.pageCount!==fixture.pageCount||missing.length||extra.length)process.exitCode=1;
