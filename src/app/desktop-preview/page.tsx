@@ -199,6 +199,7 @@ export default function DesktopPreviewPage() {
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
   const [stores, setStores] = useState<any[]>([]);
+  const [storeMode, setStoreMode] = useState<"hyper" | "local">("hyper");
   const [selectedStoresByMode, setSelectedStoresByMode] = useState<{hyper:Record<string,any>;local:Record<string,any>}>({hyper:{},local:{}});
   const selectedStores = selectedStoresByMode[storeMode];
   const setSelectedStores = (update:Record<string,any>|((prev:Record<string,any>)=>Record<string,any>)) => {
@@ -207,7 +208,7 @@ export default function DesktopPreviewPage() {
   };
   const [lidlStores, setLidlStores] = useState<any[]>([]);
   const [sparStores, setSparStores] = useState<any[]>([]);
-  const [storeMode, setStoreMode] = useState<"hyper" | "local">("hyper");
+
   const [storeModeChosen, setStoreModeChosen] = useState(false);
   const [storeCompareScope, setStoreCompareScope] = useState<"none" | "between_chains" | "within_chain">("none");
   const [betweenMode, setBetweenMode] = useState<"one" | "many">("one");
