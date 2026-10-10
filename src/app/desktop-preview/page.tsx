@@ -500,7 +500,25 @@ export default function DesktopPreviewPage() {
             desktopDebug(`EAN-osuma: ${matched?`${matched.name} ${matched.price}c`:"EI"}`);
             const cents=matched?Number(matched.price):NaN;
             if(Number.isFinite(cents)&&cents>0)return {price:cents/100,proposal:null};
-            const alternative=desktopFindPackageAlternative(candidates,name,ean)||desktopFindSimilarAlternative(candidates,name,ean);
+            let alternative=desktopFindPackageAlternative(candidates,name,ean)||desktopFindSimilarAlternative(candidates,name,ean);
+            if(!alternative&&isS&&/^felix\b/i.test(name)&&/ketsupp|ketchup/i.test(name)){
+              // Exact sugar-free search can return no rows; query the selected S-store again
+              // with short product-category terms, never with another store's prices.
+              const fallbackQueries=["Felix ketsuppi","Felix ketchup"];
+              const fallbackResponses=await Promise.all(fallbackQueries.map(async search=>{
+                try{
+                  const params=new URLSearchParams({search,store:String(store.id),storeName:String(store.name||"")});
+                  const response=await fetch("/api/s-products?"+params.toString(),{cache:"no-store"});
+                  if(!response.ok)return [];
+                  const data=await response.json();
+                  const rows=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:[];
+                  return rows.map((p:any)=>({...p,name:String(p.name||p.title||""),ean:String(p.ean||p.gtin||p.barcode||""),price:data?.source==="s-kaupat-normal-v220"?Math.round(Number(p.price||0)*100):Number(p.price||0)}));
+                }catch{return []}
+              }));
+              const fallbackCandidates=fallbackResponses.flat();
+              desktopDebug(`Korvaavan ketsupin lisähaku: ${fallbackCandidates.length} ehdokasta`);
+              alternative=desktopFindSimilarAlternative(fallbackCandidates,name,ean);
+            }
             desktopDebug(`Pakkausvaihtoehto: ${alternative?`${alternative.name} ${alternative.price}c`:"EI"}`);
             return {price:null,proposal:alternative||null};
           }catch(error){desktopDebug(`HAKUVIRHE: ${String(error)}`);return null}
