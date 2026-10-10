@@ -74,7 +74,7 @@ function resolveCards(rows,rawBoxes){
   const right=Math.max(...parts.map(b=>b.left+b.width));
   const units=boxes.filter(b=>/^(KPL|PKT|PS|RS|TLK|PL|PRK|PARI|KG|KIMPPUA)$/i.test(b.text)&&b.left>=euro.left-.015&&b.left<right+.16&&b.top>euro.top&&b.top<euro.top+euro.height+.035);
   const saleUnit=units.sort((a,b)=>distance(a,{left:right,top:euro.top+euro.height*.6})-distance(b,{left:right,top:euro.top+euro.height*.6}))[0];
-  if(saleUnit){unit=saleUnit.text.toUpperCase();const q=boxes.filter(b=>/^[2-9]$/.test(b.text)&&b.height<euro.height*.8&&Math.abs(b.left-saleUnit.left)<.04&&b.top<saleUnit.top&&saleUnit.top-b.top<.035).sort((a,b)=>saleUnit.top-a.top-(saleUnit.top-b.top))[0];if(q&&!parts.includes(q)){quantity=Number(q.text);parts.push(q);if(value===null)value=Number(euro.text)}}
+  if(saleUnit){unit=saleUnit.text.toUpperCase();const q=boxes.filter(b=>/^[2-9]$/.test(b.text)&&b.height<euro.height*.8&&Math.abs(b.left-saleUnit.left)<.04&&b.top<saleUnit.top&&saleUnit.top-b.top<.035).sort((a,b)=>Math.abs(saleUnit.top-a.top)-Math.abs(saleUnit.top-b.top))[0];if(q&&!parts.includes(q)){quantity=Number(q.text);parts.push(q);if(value===null)value=Number(euro.text)}}
   if(value===null)continue;
   prices.push({value,quantity,unit,parts,anchor:euro});
  }
@@ -97,6 +97,18 @@ function resolveCards(rows,rawBoxes){
   }).filter(o=>o.score<.38).sort((a,b)=>a.score-b.score);
   if(!options.length)continue;
   const winner=options[0];
+  // A price that sits in another title's local column must not be rescued
+  // merely because the global distance score favours a neighbouring card.
+  // Restrict this guard to compact below-title prices: large artwork layouts
+  // use different typography and must retain the existing fallback scoring.
+  const e=price.anchor;
+  const compactBelow=cards.filter(c=>e.top>=c.anchor.top-.012&&e.top<c.anchor.top+.075&&Math.abs(e.left-c.anchor.left)<.04);
+  if(compactBelow.length>1){
+   const ranked=[...compactBelow].sort((a,b)=>Math.abs(e.left-a.anchor.left)+Math.abs(e.top-a.anchor.top)*.5-(Math.abs(e.left-b.anchor.left)+Math.abs(e.top-b.anchor.top)*.5));
+   const margin=(Math.abs(e.left-ranked[1].anchor.left)+Math.abs(e.top-ranked[1].anchor.top)*.5)-(Math.abs(e.left-ranked[0].anchor.left)+Math.abs(e.top-ranked[0].anchor.top)*.5);
+   if(margin<.008)continue;
+   if(winner.card!==ranked[0])continue;
+  }
   if(options[1]&&options[1].score-winner.score<.008&&options[1].card.anchor!==winner.card.anchor)continue;
   const list=owned.get(winner.card)||[];list.push({...price,score:winner.score});owned.set(winner.card,list);
  }
@@ -120,7 +132,10 @@ function resolveCards(rows,rawBoxes){
   const candidates=(owned.get(card)||[]).sort((a,b)=>a.score-b.score);
   const pkProof=card.row.package,rateProof=card.row.unitPrice;
   const proven=pkProof&&rateProof?candidates.filter(p=>Math.abs(pkProof.min*rateProof.max*(p.quantity||1)-p.value)<.08&&Math.abs(pkProof.max*rateProof.min*(p.quantity||1)-p.value)<.08):[];
-  const price=proven[0]||candidates[0];
+  // A publisher price must not replace a separately resolved same-card offer
+   // solely on geometric proximity. Prefer independently verified package/unit
+   // arithmetic; otherwise leave conflicting glyph ownership for review.
+   const price=proven[0]||candidates[0];
   const previous={resolved:card.row.spatialResolved,unitPrice:card.row.unitPrice,normal:card.row.normal,nearby:card.row.nearby,percentageOffer:card.row.percentageOffer};
   card.row.nearby=context.get(card).sort((a,b)=>a.top-b.top||a.left-b.left).map(g=>repairText(g.text));
   if(price){card.row.percentageOffer=null;card.row.spatialResolved={value:Number(price.value.toFixed(2)),quantity:price.quantity,unit:price.unit,source:'owned-publisher-price-glyph',sanity:'pass',confidence:'high'};card.row.debugCardPrice=price;}
@@ -313,7 +328,7 @@ out.pageCount=publishedPageCount;
 out.validityText="";
 for(let p=1;p<=publishedPageCount;p++){
  const posUrl=new URL("files/search/text_position["+p+"].js",l.url).href; let wordBoxes=[]; try{const pr=await ft(posUrl);wordBoxes=parseWordBoxes(pr.text)}catch(e){}
-const u=p===1?basic:new URL("page"+p+".html",basic).href,lines=codeLines((await ft(u)).text),pageText=lines.map(x=>x.text).join(" | "),frags=priceFragments(lines);out.validityText+=" | "+lines.filter(x=>/HINNAT VOIMASSA|Sivun hinnat voimassa/i.test(x.text)).map(x=>x.text).join(" | ");for(let i=0;i<lines.length;i++){let title=lines[i].text;const nextTitle=lines.slice(i,i+5).map(x=>x.text);if(/^[A-ZÅÄÖ][a-zåäö]+$/.test(title)&&/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{5,}$/.test(nextTitle[1]||"")&&/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{4,}$/.test(nextTitle[2]||"")&&pkg(nextTitle[3]||""))title=[title,nextTitle[1].replace(/-$/,""),nextTitle[2],nextTitle[3]].join(" ");if(!productish(title))continue;const recipeImmediate=lines[i+1]&&/^Katso\s+resepti\s*»?/i.test(String(lines[i+1].text||"").trim());if(recipeImmediate)continue;const before=lines.slice(Math.max(0,i-10),i),after=lines.slice(i+1,Math.min(lines.length,i+16)),around=[...before,lines[i],...after],joined=around.map(x=>x.text).join(" | "),pk=pkg(title),promoStop=after.findIndex(x=>/Ilman Plussa-korttia/i.test(x.text)),promoAfter=after.slice(0,Math.max(0,promoStop<0?after.length:promoStop)),titleUr=unitRange(title),promoUr=unitRange(promoAfter.slice(0,4).map(x=>x.text).join(" | "));let ur=titleUr||promoUr;if(pk&&ur){const pu=String(pk.raw||"").match(/(kg|g|ml|cl|dl|l)\b/i)?.[1]?.toLowerCase()||"",ru=String(ur.raw||"").match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()||"",pkKind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml"||pu==="cl"||pu==="dl")?"l":"";if(pkKind&&ru&&pkKind!==ru)ur=null;}let nr=normal(after.slice(0,8).filter(x=>/Ilman Plussa-korttia/i.test(x.text)&&!/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{4,}(?:\s+\d|$)/.test(String(x.text||"").trim())).map(x=>x.text).join(" | "));if(pk&&nr){const pu=String(pk.raw||"").match(/(kg|g|ml|cl|dl|l)\b/i)?.[1]?.toLowerCase()||"";const pkKind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml"||pu==="cl"||pu==="dl")?"l":"";const normalText=after.slice(0,8).filter(x=>/Ilman Plussa-korttia/i.test(x.text)).map(x=>x.text).join(" ");const rateKind=(normalText.match(/\/(kg|l)\b/i)||[])[1]?.toLowerCase()||"";if(pkKind&&rateKind&&pkKind!==rateKind)nr=null;}let ex=around.flatMap(x=>explicit(x.text));let expected=null;if(pk&&ur)expected=((pk.min+pk.max)/2)*((ur.min+ur.max)/2);const recipeContextNoPrice=!pk&&!ur&&expected==null&&/Viikon\s+resepti\s*:/i.test(around.map(x=>String(x.text||"")).join(" "));if(recipeContextNoPrice)continue;let cand=ex.sort((a,b)=>Math.abs((a.line??i)-i)-Math.abs((b.line??i)-i))[0]||null;const direct=directPrices(around).sort((a,b)=>Math.abs(a.line-lines[i].i)-Math.abs(b.line-lines[i].i));if(!cand&&direct.length)cand=direct[0];const split=splitAround(around,Math.max(0,around.findIndex(z=>z.i===lines[i].i)));if(!cand&&split.length){const plausible=split.filter(x=>!nr||x.price<=(nr.max*(nr.unit?3:1)+.01));if(plausible.length)cand=plausible.sort((a,b)=>a.distance-b.distance)[0]}if(!cand&&expected){const localIdx=Math.max(0,around.findIndex(z=>z.i===lines[i].i));const q=nearbyQty(around,localIdx)[0];const local=priceFragments(around).filter(x=>x.price!=null&&Math.abs(x.line-i)<=10);if(!cand&&local.length)cand=local.map(x=>({...x,d:Math.abs(x.price-expected)})).sort((a,b)=>a.d-b.d)[0];if((!cand||cand.d>.12)){const suf=priceFragments(around).filter(x=>x.suffix!=null);if(suf.length){const z=suf.map(x=>({...x,...nearestSuffix(x.suffix,expected)})).sort((a,b)=>a.d-b.d)[0];if(!cand||z.d<cand.d)cand=z}}}
+const u=p===1?basic:new URL("page"+p+".html",basic).href,lines=codeLines((await ft(u)).text),pageText=lines.map(x=>x.text).join(" | "),frags=priceFragments(lines);out.validityText+=" | "+lines.filter(x=>/HINNAT VOIMASSA|Sivun hinnat voimassa/i.test(x.text)).map(x=>x.text).join(" | ");for(let i=0;i<lines.length;i++){let title=lines[i].text;const nextTitle=lines.slice(i,i+5).map(x=>x.text);if(/^[A-ZÅÄÖ][a-zåäö]+$/.test(title)&&/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{5,}$/.test(nextTitle[1]||"")&&/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{4,}$/.test(nextTitle[2]||"")&&pkg(nextTitle[3]||""))title=[title,nextTitle[1].replace(/-$/,""),nextTitle[2],nextTitle[3]].join(" ");if(!productish(title))continue;const recipeImmediate=lines[i+1]&&/^Katso\s+resepti\s*»?/i.test(String(lines[i+1].text||"").trim());if(recipeImmediate)continue;const before=lines.slice(Math.max(0,i-10),i),after=lines.slice(i+1,Math.min(lines.length,i+16)),around=[...before,lines[i],...after],joined=around.map(x=>x.text).join(" | "),pk=pkg(title),promoStop=after.findIndex(x=>/Ilman Plussa-korttia/i.test(x.text)),promoAfter=after.slice(0,Math.max(0,promoStop<0?after.length:promoStop)),titleUr=unitRange(title),promoUr=unitRange(promoAfter.slice(0,4).map(x=>x.text).join(" | "));let ur=titleUr||promoUr;if(pk&&ur){const pu=String(pk.raw||"").match(/(kg|g|ml|cl|dl|l)\b/i)?.[1]?.toLowerCase()||"",ru=String(ur.raw||"").match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()||"",pkKind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml"||pu==="cl"||pu==="dl")?"l":"";if(pkKind&&ru&&pkKind!==ru)ur=null;}let nr=normal(after.slice(0,8).filter(x=>/Ilman Plussa-korttia/i.test(x.text)&&!/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{4,}(?:\s+\d|$)/.test(String(x.text||"").trim())).map(x=>x.text).join(" | "));if(pk&&nr){const pu=String(pk.raw||"").match(/(kg|g|ml|cl|dl|l)\b/i)?.[1]?.toLowerCase()||"";const pkKind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml"||pu==="cl"||pu==="dl")?"l":"";const normalText=after.slice(0,8).filter(x=>/Ilman Plussa-korttia/i.test(x.text)).map(x=>x.text).join(" ");const rateKind=(normalText.match(/\/(kg|l)\b/i)||[])[1]?.toLowerCase()||"";if(pkKind&&rateKind&&pkKind!==rateKind)nr=null;}let ex=around.flatMap(x=>explicit(x.text));let expected=null;if(pk&&ur)expected=((pk.min+pk.max)/2)*((ur.min+ur.max)/2);const expectedAtStart=expected;const recipeContextNoPrice=!pk&&!ur&&expected==null&&/Viikon\s+resepti\s*:/i.test(around.map(x=>String(x.text||"")).join(" "));if(recipeContextNoPrice)continue;let cand=ex.sort((a,b)=>Math.abs((a.line??i)-i)-Math.abs((b.line??i)-i))[0]||null;const direct=directPrices(around).sort((a,b)=>Math.abs(a.line-lines[i].i)-Math.abs(b.line-lines[i].i));if(!cand&&direct.length)cand=direct[0];const split=splitAround(around,Math.max(0,around.findIndex(z=>z.i===lines[i].i)));if(!cand&&split.length){const plausible=split.filter(x=>!nr||x.price<=(nr.max*(nr.unit?3:1)+.01));if(plausible.length)cand=plausible.sort((a,b)=>a.distance-b.distance)[0]}if(!cand&&expected){const localIdx=Math.max(0,around.findIndex(z=>z.i===lines[i].i));const q=nearbyQty(around,localIdx)[0];const local=priceFragments(around).filter(x=>x.price!=null&&Math.abs(x.line-i)<=10);if(!cand&&local.length)cand=local.map(x=>({...x,d:Math.abs(x.price-expected)})).sort((a,b)=>a.d-b.d)[0];if((!cand||cand.d>.12)){const suf=priceFragments(around).filter(x=>x.suffix!=null);if(suf.length){const z=suf.map(x=>({...x,...nearestSuffix(x.suffix,expected)})).sort((a,b)=>a.d-b.d)[0];if(!cand||z.d<cand.d)cand=z}}}
 let packageRowAnchor=null;
 const packageTokenForAnchor=String(title).match(/\b(\d+(?:[,.]\d+)?)\s*(g|kg|ml|cl|l|kpl|pkt|ps|prk|tlk|pl)\b/i);
 if(packageTokenForAnchor){
@@ -359,7 +374,7 @@ const titleTokens=new Set((title.toUpperCase().match(/[A-ZÅÄÖ]{4,}/g)||[])); 
    nr=null;
  }
 }
- const spatial=anchor?wordBoxes.map(b=>({...b,d:Number(boxDistance(anchor,b).toFixed(6))})).filter(b=>b.d<0.34).sort((a,b)=>a.d-b.d).slice(0,100):[]; const blockLeft=anchor?Math.max(0,anchor.left-0.18):0,blockRight=anchor?Math.min(1,anchor.left+0.26):1,blockTop=anchor?Math.max(0,anchor.top-0.16):0,blockBottom=anchor?Math.min(1,anchor.top+0.16):1; const productTitleAnchors=(lines||[]).filter(z=>z&&z.i&&/[A-Za-zÅÄÖåäö]{4}/.test(String(z.i))).map(z=>String(z.i).replace(/<[^>]+>/g," ").replace(/\\s+/g," ").trim()).filter(s=>s.length>=10).map(s=>{const toks=[...new Set(s.split(/\\s+/).map(t=>t.replace(/[^A-Za-zÅÄÖåäö0-9-]/g,"")).filter(t=>t.length>=5))];const hits=wordBoxes.filter(b=>toks.some(t=>String(b.text).replace(/[^A-Za-zÅÄÖåäö0-9-]/g,"").toLowerCase()===t.toLowerCase()));const matched=[...new Set(hits.map(b=>String(b.text).toLowerCase()))];return hits.length>=2&&matched.length>=2?{left:hits.reduce((q,b)=>q+b.left,0)/hits.length,top:hits.reduce((q,b)=>q+b.top,0)/hits.length,text:s,matched:matched.length}:null}).filter(Boolean); const productBlock=anchor?wordBoxes.map(b=>({...b,d:Number(boxDistance(anchor,b).toFixed(6))})).filter(b=>{if(!(b.left>=blockLeft&&b.left<=blockRight&&b.top>=blockTop&&b.top<=blockBottom))return false;const own=Math.hypot((b.left-anchor.left)*1.15,(b.top-anchor.top)*1.8);const rival=productTitleAnchors.filter(t=>Math.hypot(t.left-anchor.left,t.top-anchor.top)>.05).map(t=>Math.hypot((b.left-t.left)*1.15,(b.top-t.top)*1.8)).sort((a,b)=>a-b)[0];return rival==null||own<=rival*1.03}):[]; const priceFrags=productBlock.filter(b=>{const t=String(b.text).trim(); if(/^(?:g|kg|l|rl|ml|cl|kpl)\b/i.test(t))return false; if(/^\d{3}$/.test(t)&&title.includes(t))return false; return /^(?:\d{1,3}|\d{1,2}[.,]\d{2}|\d{1,2}[-.]|[A-Za-zÅÄÖåäö]*\d[A-Za-zÅÄÖåäö]+)$/.test(t)}); const unitFrags=wordBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):999})).filter(b=>anchor&&b.d<0.34&&/^(?:RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())); const spatialCandidates=[]; for(const a of priceFrags){for(const b of priceFrags){if(a===b)continue;const ta=String(a.text).trim(),tb=String(b.text).trim();let value=null;if(/^\d{1,2}[-.]?$/.test(ta)&&/^\d{2}$/.test(tb))value=Number(ta.replace(/[-.]$/,"")+"."+tb);else if(/^\d{3}$/.test(ta))value=Number(ta.slice(0,-2)+"."+ta.slice(-2));if(value&&value<100&&value>=0.5){const u=unitFrags.map(x=>({...x,du:Math.hypot(x.left-b.left,x.top-b.top)})).sort((x,y)=>x.du-y.du)[0];spatialCandidates.push({value,parts:[ta,tb],score:Number((a.d+b.d+(u?u.du*.35:0)).toFixed(6)),unit:u&&u.du<.13?u.text:null})}}} // High-confidence visual geometry: euro + fused cents/quantity (e.g. 4 + 503 => 4.50 / 3)
+ const spatial=anchor?wordBoxes.map(b=>({...b,d:Number(boxDistance(anchor,b).toFixed(6))})).filter(b=>b.d<0.34).sort((a,b)=>a.d-b.d).slice(0,100):[]; const blockLeft=anchor?Math.max(0,anchor.left-0.10):0,blockRight=anchor?Math.min(1,anchor.left+0.34):1,blockTop=anchor?Math.max(0,anchor.top-0.10):0,blockBottom=anchor?Math.min(1,anchor.top+0.10):1; const productTitleAnchors=(lines||[]).filter(z=>z&&z.text&&/[A-Za-zÅÄÖåäö]{4}/.test(String(z.text))).map(z=>{const s=String(z.text).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();if(s.length<10)return null;const toks=[...new Set(s.split(/\s+/).map(t=>t.replace(/[^A-Za-zÅÄÖåäö0-9-]/g,"")).filter(t=>t.length>=3))];const hits=wordBoxes.filter(b=>toks.some(t=>String(b.text).replace(/[^A-Za-zÅÄÖåäö0-9-]/g,"").toLowerCase()===t.toLowerCase()));if(!hits.length)return null;const rows=[];for(const b of hits){let row=rows.find(r=>Math.abs(Number(r.top)-Number(b.top))<.018);if(!row){row={top:Number(b.top),boxes:[]};rows.push(row)}row.boxes.push(b)}const scored=rows.map(row=>{const matched=[...new Set(row.boxes.map(b=>String(b.text).toLowerCase()))];const hasNumericTitleToken=toks.some(t=>/\d/.test(t)),hasMatchedNumeric=matched.some(t=>/\d/.test(t)),hasMatchedWord=matched.some(t=>/[A-Za-zÅÄÖåäö]{4,}/.test(t));return {...row,matched:matched.length,valid:matched.length>=2&&(!hasNumericTitleToken||(hasMatchedNumeric&&hasMatchedWord)),score:matched.length*100+row.boxes.reduce((n,b)=>n+String(b.text).length,0)}}).filter(row=>row.valid).sort((a,b)=>b.score-a.score);const best=scored[0];return best?{left:best.boxes.reduce((q,b)=>q+Number(b.left||0),0)/best.boxes.length,top:best.boxes.reduce((q,b)=>q+Number(b.top||0),0)/best.boxes.length,text:s,matched:best.matched}:null}).filter(Boolean); const productBlock=anchor?wordBoxes.map(b=>({...b,d:Number(boxDistance(anchor,b).toFixed(6))})).filter(b=>{if(!(b.left>=blockLeft&&b.left<=blockRight&&b.top>=blockTop&&b.top<=blockBottom))return false;const own=Math.hypot((b.left-anchor.left)*1.15,(b.top-anchor.top)*1.8);const rival=productTitleAnchors.filter(t=>Math.hypot(t.left-anchor.left,t.top-anchor.top)>.05).map(t=>Math.hypot((b.left-t.left)*1.15,(b.top-t.top)*1.8)).sort((a,b)=>a-b)[0];const isSharedLargePriceBadge=Number(b.height||0)>=.045&&b.left>anchor.left+.18&&b.top>=anchor.top-.02&&b.top<=anchor.top+.10;const isSharedOfferQtyUnit=/^(?:[2-5]|RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text||"").trim())&&b.left>anchor.left+.12&&b.top>=anchor.top-.02&&b.top<=anchor.top+.10&&wordBoxes.some(p=>Number(p.height||0)>=.045&&p.left>anchor.left+.18&&p.left<anchor.left+.38&&Math.abs(Number(p.top)-Number(b.top))<.07&&/^\d{1,2}[.]?$/.test(String(p.text||"").trim()));return isSharedLargePriceBadge||isSharedOfferQtyUnit||rival==null||own<=rival*1.03}):[]; const priceFrags=productBlock.filter(b=>{const t=String(b.text).trim(); if(/^(?:g|kg|l|rl|ml|cl|kpl)\b/i.test(t))return false; if(/^\d{3}$/.test(t)&&title.includes(t))return false; return /^(?:\d{1,3}|\d{1,2}[.,]\d{2}|\d{1,2}[-.]|[A-Za-zÅÄÖåäö]*\d[A-Za-zÅÄÖåäö]+)$/.test(t)}); const unitFrags=productBlock.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):999})).filter(b=>anchor&&/^(?:RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())&&(b.d<0.22||(b.d<0.34&&b.left>anchor.left+.12&&wordBoxes.some(p=>Number(p.height||0)>=.045&&p.left>anchor.left+.18&&p.left<anchor.left+.38&&Math.abs(Number(p.top)-Number(b.top))<.07&&/^\d{1,2}[.]?$/.test(String(p.text||"").trim()))))); const spatialCandidates=[]; for(const a of priceFrags){for(const b of priceFrags){if(a===b)continue;const ta=String(a.text).trim(),tb=String(b.text).trim();let value=null;if(/^\d{1,2}[-.]?$/.test(ta)&&/^\d{2}$/.test(tb))value=Number(ta.replace(/[-.]$/,"")+"."+tb);else if(/^\d{3}$/.test(ta))value=Number(ta.slice(0,-2)+"."+ta.slice(-2));if(value&&value<100&&value>=0.5){const u=unitFrags.map(x=>({...x,du:Math.hypot(x.left-b.left,x.top-b.top)})).sort((x,y)=>x.du-y.du)[0];spatialCandidates.push({value,parts:[ta,tb],score:Number((a.d+b.d+(u?u.du*.35:0)).toFixed(6)),unit:u&&u.du<.13?u.text:null})}}} // High-confidence visual geometry: euro + fused cents/quantity (e.g. 4 + 503 => 4.50 / 3)
 for(const fused of productBlock.filter(x=>/^\d{3}$/.test(String(x.text).trim()))){
   const s=String(fused.text).trim(), cents=s.slice(0,2), qty=Number(s[2]);
   if(qty<2||qty>5)continue;
@@ -397,9 +412,9 @@ for(const emb of productBlock){
 const packageNumbers=new Set((title.match(/\d+(?:[,.]\d+)?/g)||[]).map(x=>Number(x.replace(",","."))));
 
 // Recover large-font transaction prices from the coordinate layer. These are visually distinct from package sizes/unit prices.
-for(const euro of spatialPriceBoxes.filter(x=>/^\\d{1,2}[.]?$/.test(String(x.text).trim())&&Number(x.height||0)>=.05&&anchor&&boxDistance(anchor,x)<.23)){
+for(const euro of spatialPriceBoxes.filter(x=>/^\d{1,2}[.]?$/.test(String(x.text).trim())&&Number(x.height||0)>=.05&&anchor&&boxDistance(anchor,x)<.31)){
  const value=Number(String(euro.text).replace(/[.]$/,"")); if(!(value>=1&&value<30)||packageNumbers.has(value))continue;
- const qUnits=[]; for(const u of wordBoxes.filter(x=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(x.text).trim()))){const q=wordBoxes.filter(x=>/^[2-5]$/.test(String(x.text).trim())).map(x=>({...x,dq:Math.hypot(x.left-u.left,x.top-u.top)})).sort((a,b)=>a.dq-b.dq)[0];if(q&&q.dq<.10){const de=Math.hypot(((q.left+u.left)/2)-euro.left,((q.top+u.top)/2)-euro.top);if(de<.20)qUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),de})}}
+ const qUnits=[]; for(const u of productBlock.filter(x=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(x.text).trim()))){const q=productBlock.filter(x=>/^[2-5]$/.test(String(x.text).trim())).map(x=>({...x,dq:Math.hypot(x.left-u.left,x.top-u.top)})).sort((a,b)=>a.dq-b.dq)[0];if(q&&q.dq<.10){const de=Math.hypot(((q.left+u.left)/2)-euro.left,((q.top+u.top)/2)-euro.top);if(de<.20)qUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),de})}}
  const qu=qUnits.sort((a,b)=>a.de-b.de)[0]; if(qu||(!expected&&boxDistance(anchor,euro)<.11))spatialCandidates.push({value,quantity:qu?qu.quantity:null,unit:qu?qu.unit:null,parts:[String(euro.text)],score:Number((boxDistance(anchor,euro)*.35+(qu?qu.de*.15:0)).toFixed(6)),kind:"large-visual-whole-euro"});
 }
 // Ranged package + ranged unit price can identify one fixed shelf price.
@@ -416,7 +431,7 @@ if(expected&&anchor){
  if(closeCents&&saleUnit&&!rangeTitle&&euros>=1&&euros<=29&&!packageNumbers.has(rounded))spatialCandidates.push({value:rounded,quantity:null,unit:String(saleUnit.text).toUpperCase(),parts:["expected",String(closeCents.text)],score:Number((boxDistance(anchor,closeCents)*.28).toFixed(6)),kind:"expected-large-cents-unit"});
 }
 // Reconstruct large-font spaced cents such as ERÄ 1 8 9 => 1.89, while ignoring package-count rows.
-for(const g of spatialGroups(spatial).filter(g=>/\\b[1-9]\\s+[0-9]\\s+[0-9]\\b/.test(String(g.text)))){const m=String(g.text).match(/\\b([1-9])\\s+([0-9])\\s+([0-9])\\b/);if(!m)continue;const value=Number(m[1]+"."+m[2]+m[3]);if(value>=.5&&value<30&&!packageNumbers.has(value))spatialCandidates.push({value,quantity:null,unit:null,parts:[m[0]],score:Number((Math.abs(g.top-anchor.top)*.25).toFixed(6)),kind:"spaced-large-cents"});}
+// Disabled: spatialGroups text order alone cannot establish three glyphs belong to the same printed price.\n// Keep independently positioned euro/cents and package-unit evidence as the supported paths.
 // Split euro/cents inside the product's visual row/card band.
 // Require a significant title hit and price digits to the right in the same narrow vertical band.
 if(anchor){
@@ -440,22 +455,14 @@ if(anchor){
  }
 }
 for(let i=spatialCandidates.length-1;i>=0;i--){const x=spatialCandidates[i];if(packageNumbers.has(Number(x.value))&&!x.quantity&&x.kind!=="embedded-productblock-price")spatialCandidates.splice(i,1)}
-// Prefer explicit quantity/unit geometry with a plausible transaction price near expected single * quantity.
-for(const q of productBlock.filter(x=>/^[2-5]$/.test(String(x.text).trim())&&Number(x.height||0)<.05)){
- // Simulation guard: a quantity printed on a "Rajoitus N unit/talous" row is a purchase limit, not a multibuy quantity.
- const qText=String(q.text).trim(),qTop=Number(q.top)||0;
- const purchaseLimit=wordBoxes.some(b=>/^rajoitus$/i.test(String(b.text).trim())&&Math.abs((Number(b.top)||0)-qTop)<.018&&Math.abs((Number(b.left)||0)-(Number(q.left)||0))<.16);
- if(purchaseLimit)continue;
- const unit=unitFrags.map(u=>({...u,du:Math.hypot(u.left-q.left,u.top-q.top)})).sort((a,b)=>a.du-b.du)[0]; if(!unit||unit.du>.13)continue; const sameRow=Math.abs((Number(unit.top)||0)-(Number(q.top)||0))<.035; if(!sameRow)continue;
- for(const p of spatialCandidates){if(!expected||p.quantity||p.value<1||p.value>30)continue; const err=Math.abs(p.value-expected*Number(qText)); const pd=Math.hypot((Number(p.left)||Number(anchor?.left)||0)-(Number(q.left)||0),(Number(p.top)||Number(anchor?.top)||0)-(Number(q.top)||0)); if(pd>.11)continue; if(err<Math.max(.18,expected*.12))p._qtyGeom={quantity:Number(qText),unit:String(unit.text).toUpperCase(),err};}
-}
+// Quantity is never inferred from distance to the title anchor alone; only explicit product-owned quantity/unit evidence may set it.
 for(const p of spatialCandidates.filter(x=>x._qtyGeom)){p.quantity=p._qtyGeom.quantity;p.unit=p._qtyGeom.unit;p.kind=p.kind||"quantity-validated-price";p.score=Math.min(p.score,p._qtyGeom.err*.1)}
 // Strong transaction-price guards: reject title/package echoes and require multi-buy consistency when unit-price evidence exists.
 for(let i=spatialCandidates.length-1;i>=0;i--){const x=spatialCandidates[i]; const parts=(x.parts||[]).map(String); if(parts.length&&parts.every(p=>title.includes(p)))spatialCandidates.splice(i,1)}
 
 if(expected){for(let i=spatialCandidates.length-1;i>=0;i--){const x=spatialCandidates[i]; if(x.quantity>=2&&Math.abs(x.value-expected*x.quantity)>Math.max(.30,expected*.18)&&x.kind!=="embedded-productblock-price")spatialCandidates.splice(i,1)}}
 
-spatialCandidates.sort((a,b)=>a.score-b.score); const compactQtyUnits=spatial.filter(x=>{const m=String(x.text||"").trim().match(/^([2-5])(RS|PS|PL|TLK|PKT|PRK|KPL)$/i);return !!m;}).map(x=>{const m=String(x.text).trim().match(/^([2-5])(RS|PS|PL|TLK|PKT|PRK|KPL)$/i);return {quantity:Number(m[1]),unit:m[2].toUpperCase(),left:x.left,top:x.top,d:0,compact:1};}); const qtyUnits=[...compactQtyUnits]; for(const u of unitFrags){const q=spatial.filter(x=>/^[2-5]$/.test(String(x.text).trim())&&!wordBoxes.some(b=>/^rajoitus$/i.test(String(b.text).trim())&&Math.abs((Number(b.top)||0)-(Number(x.top)||0))<.018&&Math.abs((Number(b.left)||0)-(Number(x.left)||0))<.16)).map(x=>({...x,dq:Math.hypot(x.left-u.left,x.top-u.top)})).sort((a,b)=>a.dq-b.dq)[0];if(q&&q.dq<.12&&Math.abs((Number(u.top)||0)-(Number(q.top)||0))<.035){const qText=String(q.text).trim(),uText=String(u.text).toUpperCase();const normalRowEcho=nr?.unit&&uText===String(nr.unit).toUpperCase()&&Number.isFinite(Number(nr.min))&&wordBoxes.some(b=>{const t=String(b.text||"").replace(",",".");return new RegExp("^"+Math.floor(Number(nr.min))+"$").test(t)&&Math.abs((Number(b.top)||0)-(Number(q.top)||0))<.018&&Math.abs((Number(b.left)||0)-(Number(q.left)||0))<.08;});if(!normalRowEcho)qtyUnits.push({quantity:Number(qText),unit:uText,left:u.left,top:u.top,d:u.d})}} // If visual price fragments are noisy but package size + promo unit price and an explicit qty/unit are present,
+spatialCandidates.sort((a,b)=>a.score-b.score); const compactQtyUnits=productBlock.filter(x=>{const m=String(x.text||"").trim().match(/^([2-5])(RS|PS|PL|TLK|PKT|PRK|KPL)$/i);return !!m;}).map(x=>{const m=String(x.text).trim().match(/^([2-5])(RS|PS|PL|TLK|PKT|PRK|KPL)$/i);return {quantity:Number(m[1]),unit:m[2].toUpperCase(),left:x.left,top:x.top,d:0,compact:1};}); const qtyUnits=[...compactQtyUnits]; for(const u of unitFrags){const q=productBlock.filter(x=>/^[2-5]$/.test(String(x.text).trim())&&!wordBoxes.some(b=>/^rajoitus$/i.test(String(b.text).trim())&&Math.abs((Number(b.top)||0)-(Number(x.top)||0))<.018&&Math.abs((Number(b.left)||0)-(Number(x.left)||0))<.16)).map(x=>({...x,dq:Math.hypot(x.left-u.left,x.top-u.top)})).sort((a,b)=>a.dq-b.dq)[0];if(q&&q.dq<.12&&Math.abs((Number(u.top)||0)-(Number(q.top)||0))<.035){const qText=String(q.text).trim(),uText=String(u.text).toUpperCase();const normalRowEcho=nr?.unit&&uText===String(nr.unit).toUpperCase()&&Number.isFinite(Number(nr.min))&&wordBoxes.some(b=>{const t=String(b.text||"").replace(",",".");return new RegExp("^"+Math.floor(Number(nr.min))+"$").test(t)&&Math.abs((Number(b.top)||0)-(Number(q.top)||0))<.018&&Math.abs((Number(b.left)||0)-(Number(q.left)||0))<.08;});if(!normalRowEcho)qtyUnits.push({quantity:Number(qText),unit:uText,left:u.left,top:u.top,d:u.d})}} // If visual price fragments are noisy but package size + promo unit price and an explicit qty/unit are present,
 // derive only a rounded transaction-price candidate; explicit clean visual prices still outrank this fallback.
 if(expected){
  for(const q of qtyUnits){
@@ -467,7 +474,8 @@ if(expected){
   if(value>=1&&value<50&&Math.abs(value-raw)<Math.max(.18,expected*.12)) spatialCandidates.push({value,quantity:q.quantity,unit:q.unit,parts:["unitprice",String(q.quantity),q.unit],score:Number((.42+Math.abs(value-raw)).toFixed(6)),kind:"unitprice-derived-multibuy"});
  }
 }
-for(const g of spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[])){const m=String(g.text||"").match(/(?:^|\\bERÄ\\s+)([0-9])\\s+([0-9])\\s+([0-9])(?:\\b|$)/i);if(m){const v=Number(m[1]+"."+m[2]+m[3]);if(v>=.5&&v<20&&!title.replace(/\\D/g,"").includes(m[1]+m[2]+m[3]))spatialCandidates.push({value:v,quantity:null,unit:null,parts:[m[1],m[2],m[3]],score:.08,kind:"spaced-large-cents"});}} const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
+// Do not create a high-priority price from arbitrary nearby single digits.\n// The grouped-glyph path above is retained for later geometry validation.
+ const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
 let spatialResolved=null,percentageOffer=null;
 // Same-card fragmented unit rate can also be read directly from aligned word boxes.
 if(!spatialResolved&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
@@ -501,7 +509,7 @@ if(!spatialResolved&&packageRowAnchor){
   }
  }
  proofs.sort((a,b)=>a.score-b.score);
- const uniqueProofs=proofs.filter((p,i,a)=>a.findIndex(x=>x.value===p.value&&x.quantity===p.quantity&&x.unit===p.unit)===i); if(uniqueProofs[0]&&(!uniqueProofs[1]||uniqueProofs[1].value===uniqueProofs[0].value||uniqueProofs[1].score-uniqueProofs[0].score>.02)){const p=uniqueProofs[0];const ownRate=unitRange(title)||unitRange(around.slice(0,8).map(x=>String(x.text||"")).join(" "));const arithmeticTx=pk&&ownRate&&ownRate.min===ownRate.max?Number((((pk.min+pk.max)/2)*ownRate.min*p.quantity).toFixed(2)):null;const visualAgrees=arithmeticTx==null||Math.abs(p.value-arithmeticTx)<=Math.max(.06,arithmeticTx*.025);if(visualAgrees)spatialResolved={value:p.value,quantity:p.quantity,unit:p.unit,source:"package-owned-visual-multibuy",sanity:"pass",confidence:"high"};else if(arithmeticTx>=1&&arithmeticTx<30)spatialResolved={value:arithmeticTx,quantity:p.quantity,unit:p.unit,source:"package-unitrate-multibuy-derived",sanity:"pass",confidence:"high"};}
+ const uniqueProofs=proofs.filter((p,i,a)=>a.findIndex(x=>x.value===p.value&&x.quantity===p.quantity&&x.unit===p.unit)===i); if(uniqueProofs[0]&&(!uniqueProofs[1]||uniqueProofs[1].value===uniqueProofs[0].value||uniqueProofs[1].score-uniqueProofs[0].score>.02)){const p=uniqueProofs[0];const ownRate=unitRange(title)||unitRange(around.slice(0,8).map(x=>String(x.text||"")).join(" "));const arithmeticTx=pk&&ownRate&&ownRate.min===ownRate.max?Number((((pk.min+pk.max)/2)*ownRate.min*p.quantity).toFixed(2)):null;const visualAgrees=arithmeticTx==null||Math.abs(p.value-arithmeticTx)<=Math.max(.06,arithmeticTx*.025);if(visualAgrees)spatialResolved={value:p.value,quantity:p.quantity,unit:p.unit,source:"package-owned-visual-multibuy",sanity:"pass",confidence:"high"};else if(arithmeticTx>=1&&arithmeticTx<30&&Math.abs(p.value-arithmeticTx)<=Math.max(.30,arithmeticTx*.12))spatialResolved={value:arithmeticTx,quantity:p.quantity,unit:p.unit,source:"package-unitrate-multibuy-derived",sanity:"pass",confidence:"high"};}
 }
 
 // Simulation: refine a strong visual transaction total with a geometrically witnessed unit and exact expected multiplier.
@@ -549,7 +557,7 @@ if(anchor){
 }
 
 // Add a quantity candidate only when expected unit pricing reconstructs a clean half-euro multibuy total.
-if(expected){for(const q of qtyUnits){const tx=Number((expected*q.quantity).toFixed(2));const half=Math.round(tx*2)/2;if(Math.abs(tx-half)<.08&&half>=1&&half<30&&!spatialCandidates.some(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity===q.quantity&&Math.abs(x.value-half)<.12))spatialCandidates.push({value:half,quantity:q.quantity,unit:q.unit,parts:["expected",String(q.quantity),q.unit],score:Number((.36+Math.abs(tx-half)).toFixed(6)),kind:"expected-validated-multibuy"});}} const largeVisual=spatialCandidates.filter(x=>x.kind==="large-visual-whole-euro"||x.kind==="spaced-large-cents"||x.kind==="same-row-euro-cents").filter(x=>{if(x.kind==="spaced-large-cents"||x.kind==="same-row-euro-cents")return true;if(!expected||!x.quantity)return true;return Math.abs(x.value-expected*x.quantity)<Math.max(.35,expected*.22)}).sort((a,b)=>a.score-b.score)[0]; const expectedTitleUnit=((title.match(/(?:^|\\s)(RS|PS|PKT|KPL|PRK|TLK|PL)(?:\\s|$)|\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[]).slice(1).find(Boolean)||"").toUpperCase(); const ownedQtyUnits=anchor?qtyUnits.filter(q=>{const dx=Number(q.left)-Number(anchor.left),dy=Number(q.top)-Number(anchor.top);const compact=Number(q.compact||0)===1;return compact?(dy>=-.04&&dy<.12&&dx>=-.06&&dx<.28):(dy>=-.025&&dy<.055&&dx>=-.06&&dx<.28);}):qtyUnits; const ownedQtySet=new Set(ownedQtyUnits.map(q=>`${q.quantity}:${String(q.unit||"").toUpperCase()}`)); const validatedMulti=expected?spatialCandidates.filter(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity>=2&&x.quantity<=5&&x.value>=.5&&x.value<50&&(!expectedTitleUnit||String(x.unit||"").toUpperCase()===expectedTitleUnit)&&Math.abs(x.value-expected*x.quantity)<Math.max(.22,expected*.14)&&(!x.kind||x.kind!=="expected-validated-multibuy"||ownedQtySet.has(`${x.quantity}:${String(x.unit||"").toUpperCase()}`))).sort((a,b)=>Math.abs(a.value-expected*a.quantity)-Math.abs(b.value-expected*b.quantity)||a.score-b.score)[0]:null;
+if(expected){for(const q of qtyUnits){const tx=Number((expected*q.quantity).toFixed(2));const half=Math.round(tx*2)/2;if(Math.abs(tx-half)<.08&&half>=1&&half<30&&!spatialCandidates.some(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity===q.quantity&&Math.abs(x.value-half)<.12))spatialCandidates.push({value:half,quantity:q.quantity,unit:q.unit,parts:["expected",String(q.quantity),q.unit],score:Number((.36+Math.abs(tx-half)).toFixed(6)),kind:"expected-validated-multibuy"});}} const largeVisual=spatialCandidates.filter(x=>x.kind==="large-visual-whole-euro"||x.kind==="spaced-large-cents"||x.kind==="same-row-euro-cents").filter(x=>{if(!expected)return true;const value=Number(x.value),qty=Number(x.quantity||1),singleDelta=Math.abs(value-Number(expected)),totalDelta=Math.abs(value-Number(expected)*qty),tol=Math.max(.06,Number(expected)*.035);return singleDelta<=tol||totalDelta<=tol}).sort((a,b)=>a.score-b.score)[0]; const expectedTitleUnit=((title.match(/(?:^|\\s)(RS|PS|PKT|KPL|PRK|TLK|PL)(?:\\s|$)|\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[]).slice(1).find(Boolean)||"").toUpperCase(); const ownedQtyUnits=anchor?qtyUnits.filter(q=>{const dx=Number(q.left)-Number(anchor.left),dy=Number(q.top)-Number(anchor.top);const compact=Number(q.compact||0)===1;return compact?(dy>=-.04&&dy<.12&&dx>=-.06&&dx<.28):(dy>=-.025&&dy<.055&&dx>=-.06&&dx<.28);}):qtyUnits; const ownedQtySet=new Set(ownedQtyUnits.map(q=>`${q.quantity}:${String(q.unit||"").toUpperCase()}`)); const validatedMulti=expected?spatialCandidates.filter(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity>=2&&x.quantity<=5&&x.value>=.5&&x.value<50&&(!expectedTitleUnit||String(x.unit||"").toUpperCase()===expectedTitleUnit)&&Math.abs(x.value-expected*x.quantity)<Math.max(.22,expected*.14)&&(!x.kind||x.kind!=="expected-validated-multibuy"||ownedQtySet.has(`${x.quantity}:${String(x.unit||"").toUpperCase()}`))).sort((a,b)=>Math.abs(a.value-expected*a.quantity)-Math.abs(b.value-expected*b.quantity)||a.score-b.score)[0]:null;
 // Simulation: prefer the normal-price sale unit for an inferred multibuy when the transaction total exactly matches expected*quantity.
 if(expected&&nr?.unit){
  for(const x of spatialCandidates){
@@ -574,7 +582,7 @@ const inferredMultiKinds=new Set(["expected-validated-multibuy","large-euro-quan
 const visualQtyMulti=expected?spatialCandidates.filter(x=>x.kind!=="unitprice-derived-multibuy"&&x.kind!=="expected-validated-multibuy"&&x.quantity>=2&&x.quantity<=5&&x.value>=.5&&x.value<50&&x.unit&&Math.abs(Number(x.value)-Number(expected)*Number(x.quantity))<=Math.max(.08,Number(expected)*.06)&&Number(x.score)<=.30).sort((a,b)=>Math.abs(Number(a.value)-Number(expected)*Number(a.quantity))-Math.abs(Number(b.value)-Number(expected)*Number(b.quantity))||a.score-b.score)[0]:null;
 const guardedValidatedMulti=visualQtyMulti||(validatedMulti&&strongDirect&&inferredMultiKinds.has(validatedMulti.kind)&&!(Number(validatedMulti.quantity)>1&&Number.isFinite(Number(expected))&&Math.abs(Number(strongDirect.value)-Number(expected)*Number(validatedMulti.quantity))<=Math.max(.06,Number(expected)*.035))?null:validatedMulti);
 // Avoid regex escaping entirely for strict visual digit glyphs.
-if(anchor&&expected){const cents=Math.round((expected-Math.floor(expected))*100);const largeCents=wordBoxes.filter(b=>{const t=String(b.text).trim();return boxDistance(anchor,b)<.18&&t.length===2&&Number.isInteger(Number(t))&&Number(b.height||0)>=.05&&Math.abs(Number(t)-cents)<=1;}).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];if(largeCents)spatialResolved={value:Number(expected.toFixed(2)),quantity:null,unit:null,kind:"large-cents-expected-visual",source:"large-cents-expected-visual",sanity:"pass"};}
+if(anchor&&expected&&!guardedValidatedMulti){const cents=Math.round((expected-Math.floor(expected))*100);const largeCents=wordBoxes.filter(b=>{const t=String(b.text).trim();return boxDistance(anchor,b)<.18&&t.length===2&&Number.isInteger(Number(t))&&Number(b.height||0)>=.05&&Math.abs(Number(t)-cents)<=1;}).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];if(largeCents)spatialResolved={value:Number(expected.toFixed(2)),quantity:null,unit:null,kind:"large-cents-expected-visual",source:"large-cents-expected-visual",sanity:"pass"};}
 
 // Same-card unit-price proof from coordinate geometry.
 // Bind a printed kg/l rate immediately below the title/package anchor to this card, derive the package price,
@@ -766,7 +774,7 @@ const visualOwnRate=anchor&&pk?spatialGroups(wordBoxes.filter(b=>Math.abs((Numbe
   // be ambiguous when a leaflet prints litre/kg pricing for a multi-buy. Keep the
   // candidate and mark disagreement for the audit layer instead.
   if(!unsupportedHighNoExpected)spatialResolved={...goodCand,source:"best-spatial-candidate",sanity:sane?"pass":"review"};
-} if(!strictVisualSource&&!protectedOwnRate&&largeVisual&&(!spatialResolved||largeVisual.quantity||["spaced-large-cents","same-row-euro-cents"].includes(largeVisual.kind))){const vm=guardedValidatedMulti&&Number(guardedValidatedMulti.quantity)>1&&Number.isFinite(Number(expected))&&Math.abs(Number(largeVisual.value)-Number(expected)*Number(guardedValidatedMulti.quantity))<=Math.max(.06,Number(expected)*.035)?guardedValidatedMulti:null;spatialResolved=vm?{...vm,source:"validated-geometric-multibuy",sanity:"pass"}:{...largeVisual,source:"large-visual-price",sanity:largeVisual?.quantity?"pass":largeVisual?.sanity??null};} if(!protectedOwnRate&&guardedValidatedMulti&&!["v308-own-column-large-price","v307-own-unitrow-large-price","v307-own-column-large-price","expected-matched-large-compact","expected-matched-large-split","large-cents-expected-visual"].includes(spatialResolved?.source))spatialResolved={...guardedValidatedMulti,source:"validated-geometric-multibuy",sanity:"pass"}; const titleSlashUnit=((title.match(/\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[])[1]||"").toUpperCase();const largeWhole=spatial.filter(b=>/^[3-9]$/.test(String(b.text).trim())&&b.height>.08&&b.width>.035&&b.top>anchor.top-.02&&b.top<anchor.top+.09).sort((a,b)=>Math.abs(a.left-anchor.left)-Math.abs(b.left-anchor.left))[0];if(largeWhole){const q=spatial.filter(b=>/^[2-5]$/.test(String(b.text).trim())&&b.height>.02&&b.height<.04&&b.top>largeWhole.top+.035&&b.top<largeWhole.top+.10&&b.left>largeWhole.left+.06&&b.left<largeWhole.left+.16).sort((a,b)=>Math.abs(a.top-(largeWhole.top+.06))-Math.abs(b.top-(largeWhole.top+.06)))[0];const u=unitFrags.filter(x=>/^(RS|PS|PL|TLK|PKT|PRK|KPL)$/i.test(String(x.text||""))&&q&&Math.abs(x.left-q.left)<.035&&x.top>q.top&&x.top<q.top+.04&&(titleSlashUnit?String(x.text).toUpperCase()===titleSlashUnit:true)).sort((a,b)=>Math.abs(a.left-q.left)-Math.abs(b.left-q.left))[0];if(q&&u){const existingDecimal=spatialResolved&&Number.isFinite(Number(spatialResolved.value))&&Math.abs(Number(spatialResolved.value)-Math.round(Number(spatialResolved.value)))>.001;const existingSameQty=spatialResolved&&Number(spatialResolved.quantity)===Number(q.text)&&String(spatialResolved.unit||"").toUpperCase()===String(u.text).toUpperCase();if(!(existingDecimal&&existingSameQty))spatialResolved={value:Number(largeWhole.text),quantity:Number(q.text),unit:String(u.text).toUpperCase(),source:"large-visual-price-qty-unit",sanity:"pass"};}}
+} if(!strictVisualSource&&!protectedOwnRate&&largeVisual&&(!expected||Math.abs(Number(largeVisual.value)-Number(expected))<=Math.max(.06,Number(expected)*.035)||(guardedValidatedMulti&&Number(guardedValidatedMulti.quantity)>1&&Math.abs(Number(largeVisual.value)-Number(expected)*Number(guardedValidatedMulti.quantity))<=Math.max(.06,Number(expected)*.035)))&&(!spatialResolved||largeVisual.quantity||["spaced-large-cents","same-row-euro-cents"].includes(largeVisual.kind))){const vm=guardedValidatedMulti&&Number(guardedValidatedMulti.quantity)>1&&Number.isFinite(Number(expected))&&Math.abs(Number(largeVisual.value)-Number(expected)*Number(guardedValidatedMulti.quantity))<=Math.max(.06,Number(expected)*.035)?guardedValidatedMulti:null;spatialResolved=vm?{...vm,source:"validated-geometric-multibuy",sanity:"pass"}:{...largeVisual,source:"large-visual-price",sanity:largeVisual?.quantity?"pass":largeVisual?.sanity??null};} const guardedMultiPrice=Number(guardedValidatedMulti?.value),guardedMultiQty=Number(guardedValidatedMulti?.quantity||1),guardedMultiTolerance=Math.max(.06,Number(expected)*.035),guardedMultiConsistent=!expected||(guardedMultiQty>1?Math.abs(guardedMultiPrice-Number(expected)*guardedMultiQty)<=guardedMultiTolerance:Math.abs(guardedMultiPrice-Number(expected))<=guardedMultiTolerance); if(!protectedOwnRate&&guardedValidatedMulti&&guardedMultiConsistent&&!["v308-own-column-large-price","v307-own-unitrow-large-price","v307-own-column-large-price","expected-matched-large-compact","expected-matched-large-split","large-cents-expected-visual"].includes(spatialResolved?.source))spatialResolved={...guardedValidatedMulti,source:"validated-geometric-multibuy",sanity:"pass"}; const titleSlashUnit=((title.match(/\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[])[1]||"").toUpperCase();const largeWhole=spatial.filter(b=>/^[3-9]$/.test(String(b.text).trim())&&b.height>.08&&b.width>.035&&b.top>anchor.top-.02&&b.top<anchor.top+.09).sort((a,b)=>Math.abs(a.left-anchor.left)-Math.abs(b.left-anchor.left))[0];if(largeWhole){const q=productBlock.filter(b=>/^[2-5]$/.test(String(b.text).trim())&&b.height>.02&&b.height<.04&&b.top>largeWhole.top+.035&&b.top<largeWhole.top+.10&&b.left>largeWhole.left+.06&&b.left<largeWhole.left+.16).sort((a,b)=>Math.abs(a.top-(largeWhole.top+.06))-Math.abs(b.top-(largeWhole.top+.06)))[0];const u=unitFrags.filter(x=>/^(RS|PS|PL|TLK|PKT|PRK|KPL)$/i.test(String(x.text||""))&&q&&Math.abs(x.left-q.left)<.035&&x.top>q.top&&x.top<q.top+.04&&(titleSlashUnit?String(x.text).toUpperCase()===titleSlashUnit:true)).sort((a,b)=>Math.abs(a.left-q.left)-Math.abs(b.left-q.left))[0];if(q&&u){const candidateValue=Number(largeWhole.text),candidateQty=Number(q.text),priceConsistent=!expected||Math.abs(candidateValue-Number(expected))<=Math.max(.06,Number(expected)*.035)||Math.abs(candidateValue-Number(expected)*candidateQty)<=Math.max(.06,Number(expected)*candidateQty*.035);const existingDecimal=spatialResolved&&Number.isFinite(Number(spatialResolved.value))&&Math.abs(Number(spatialResolved.value)-Math.round(Number(spatialResolved.value)))>.001;const existingSameQty=spatialResolved&&Number(spatialResolved.quantity)===candidateQty&&String(spatialResolved.unit||"").toUpperCase()===String(u.text).toUpperCase();if(priceConsistent&&!(existingDecimal&&existingSameQty))spatialResolved={value:candidateValue,quantity:candidateQty,unit:String(u.text).toUpperCase(),source:"large-visual-price-qty-unit",sanity:"pass"};}}
 // V20261001: removed unsafe bare-integer group discount fallback.
 // A nearby discount badge / percentage must never become a product offer price.
 // Keep only price resolvers that have explicit visual or arithmetic price evidence.
@@ -962,7 +970,7 @@ if(spatialResolved&&spatialResolved.quantity==null&&expected&&Number(spatialReso
 
 // Simulation: recover explicit quantity+unit near the final visual total even when unit-price metadata is unavailable.
 if(spatialResolved&&spatialResolved.quantity==null&&Number(spatialResolved.value)>=1){
- const cardGroups=spatialGroups(wordBoxes.filter(b=>anchor&&boxDistance(anchor,b)<.18)).map(g=>String(g.text||""));
+ const cardGroups=spatialGroups(productBlock).map(g=>String(g.text||""));
  const cardText=cardGroups.join(" ");
  const qu=cardGroups.map(t=>[...t.matchAll(/(?:^|\s)([2-5])\s+(RS|PS|PL|TLK|PKT|PRK|KPL)(?=\s|$)/ig)]).flat().map(m=>({quantity:Number(m[1]),unit:String(m[2]).toUpperCase()}))[0]||(()=>{const m=cardText.match(/Ilman\s+Plussa-korttia[^|]{0,45}?\b([2-5])(?:\s+\d)?\s+\d{1,2}\s*\d{2}\/(RS|PS|PL|TLK|PKT|PRK|KPL)\b/i);return m?{quantity:Number(m[1]),unit:String(m[2]).toUpperCase()}:null;})();
  if(qu&&(!expected||Math.abs(Number(spatialResolved.value)/qu.quantity-Number(expected))<=Math.max(.08,Number(spatialResolved.value)/qu.quantity*.08)))spatialResolved={...spatialResolved,quantity:qu.quantity,unit:qu.unit,source:"final-card-explicit-multibuy",sanity:"pass",confidence:"high",auditRatio:expected?1:null};
@@ -1170,30 +1178,55 @@ if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
   const derived=Number((pk.min*Number(printed||0)).toFixed(2));
   if(printed&&unit&&Math.abs(derived-expected)<.03&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate")) spatialResolved={value:derived,quantity:null,unit:String(unit.text).toUpperCase(),kind:"own-unitprice-package-derived",source:"own-unitprice-package-derived",sanity:"pass"};
 }
-// Generic final authority pass: reconstruct the large printed card price after every
-// earlier resolver has run, so text-fragment candidates cannot overwrite it.
+// Generic final authority pass: bind the large sale-price glyph to the product's
+// own promotion card. The price can sit farther right than the product-name anchor;
+// exclude the smaller "2 KPL" badge and orange discount-percentage badge.
 if(anchor){
   const ax=Number(anchor.left)||0, ay=Number(anchor.top)||0;
-  const compact=wordBoxes.filter(b=>{const t=String(b.text).trim(),x=Number(b.left)||0,y=Number(b.top)||0;return t.length===3&&Number.isInteger(Number(t))&&Number(b.height||0)>=.09&&x>ax-.04&&x<ax+.20&&y>ay&&y<ay+.16;})
-    .map(b=>({v:Number(String(b.text).trim()[0]+"."+String(b.text).trim().slice(1)),d:boxDistance(anchor,b)})).filter(x=>x.v>=.5&&x.v<20).sort((a,b)=>a.d-b.d)[0];
-  const whole=wordBoxes.filter(b=>{const t=String(b.text).trim(),x=Number(b.left)||0,y=Number(b.top)||0;return t.length===1&&Number.isInteger(Number(t))&&Number(b.height||0)>=.09&&x>ax-.04&&x<ax+.20&&y>ay&&y<ay+.16;}).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
-  let split=null;
-  if(whole){
-    const cents=wordBoxes.filter(b=>{const t=String(b.text).trim(),x=Number(b.left)||0,y=Number(b.top)||0;return t.length===2&&Number.isInteger(Number(t))&&Number(b.height||0)>=.05&&x>Number(whole.left)&&x<Number(whole.left)+.14&&Math.abs(y-Number(whole.top))<.05;}).sort((a,b)=>boxDistance(whole,a)-boxDistance(whole,b))[0];
-    if(cents){const v=Number(String(whole.text).trim()+"."+String(cents.text).trim());if(v>=.5&&v<20)split={v,d:Math.max(boxDistance(anchor,whole),boxDistance(anchor,cents))};}
-  }
-  const direct=[compact,split].filter(Boolean).sort((a,b)=>a.d-b.d)[0];
+  const inCard=(b)=>{
+    const t=String(b.text||"").trim(),x=Number(b.left)||0,y=Number(b.top)||0,h=Number(b.height)||0;
+    if(!/^\d{1,2}[-.]?$/.test(t)||h<.065||x<ax+.08||x>ax+.82||y<ay-.02||y>ay+.28)return false;
+    const nearLabel=wordBoxes.some(z=>/^(KPL|PKT|PRK|PL)$/i.test(String(z.text||"").trim())&&Number(z.height||0)>=h*.70&&Math.abs((Number(z.top)||0)-y)<.012&&Math.abs((Number(z.left)||0)-x)<.11);
+    const nearDiscount=wordBoxes.some(z=>/^(PLUSSA-ETU|%|\d{1,2}%|[-–]\d{1,2}%|[-–])$/i.test(String(z.text||"").trim())&&Math.abs((Number(z.top)||0)-y)<.055&&Math.abs((Number(z.left)||0)-x)<.10);
+    return !nearLabel&&!nearDiscount;
+  };
+  const badgeCandidates=wordBoxes.filter(inCard).map(b=>{
+    const raw=String(b.text||"").trim().replace(/[-.]$/,"");
+    const value=Number(raw), area=Number(b.height||0), x=Number(b.left)||0, y=Number(b.top)||0;
+    // A cents glyph immediately to the right of the large euro glyph is part of the price
+    // (e.g. 5 + 50 => 5.50), not a separate candidate.
+    const cents=wordBoxes.filter(z=>{
+      const t=String(z.text||"").trim(),zx=Number(z.left)||0,zy=Number(z.top)||0,zh=Number(z.height)||0;
+      return /^\d{2}$/.test(t)&&Number(t)<100&&zh>=.035&&zx>x&&zx<x+.15&&Math.abs(zy-y)<.06;
+    }).sort((a,b)=>(Number(a.left)||0)-(Number(b.left)||0))[0];
+    const combined=cents?Number(value+"."+String(cents.text).trim()):value;
+    return {value:combined,b,area,distance:boxDistance(anchor,b),hasCents:Boolean(cents)};
+  }).filter(x=>Number.isFinite(x.value)&&x.value>=1&&x.value<30)
+    .sort((a,b)=>b.area-a.area||a.distance-b.distance);
+  const best=badgeCandidates[0];
+  const second=badgeCandidates[1];
+  const unambiguous=best&&(!second||best.area>=second.area*1.25||Math.abs(best.value-second.value)<.005);
   const cur=Number(spatialResolved?.value);
   const badFragment=Number.isFinite(cur)&&cur>=20;
-  const badMulti=Number(spatialResolved?.quantity||0)>=2&&direct&&Math.abs(cur-direct.v)>Math.max(2,direct.v*.8);
-  if(direct&&(badFragment||badMulti)&&direct.d<.16){
-    spatialResolved={value:direct.v,quantity:null,unit:null,source:"final-card-large-price-correction",sanity:"pass"};
+  // When a product row carries a multi-buy quantity, a large same-card price badge
+  // outranks a small OCR fragment such as the leading "2" in "2 KPL".
+  const badMulti=Number(spatialResolved?.quantity||0)>=2&&best&&Math.abs(cur-best.value)>.05;
+  const weakCandidate=!spatialResolved||spatialResolved.sanity==="review"||["best-spatial-candidate","large-visual-price","same-card-right-whole-euro-badge"].includes(spatialResolved.source);
+  if(unambiguous&&best.area>=.085&&(badFragment||badMulti||weakCandidate)){
+    spatialResolved={value:best.value,quantity:null,unit:null,source:"final-card-large-sale-glyph",sanity:"pass",confidence:"medium"};
   }
+}
+// Fused three-digit publisher price (e.g. 369 = 3.69) on the same title row.
+// Require a single large glyph in a narrow vertical band; do not infer from scattered digits.
+if(anchor&&(!spatialResolved||spatialResolved.sanity==="review"||["best-spatial-candidate","large-visual-price","same-card-right-whole-euro-badge"].includes(spatialResolved.source)||(Number(spatialResolved.value)===1&&Number(spatialResolved.quantity||1)===1))){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
+ const fused=wordBoxes.filter(b=>/^\\d{3}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&Number(b.left||0)>ax+.10&&Number(b.left||0)<ax+.35&&Number(b.top||0)>=ay-.005&&Number(b.top||0)<ay+.055).filter(b=>Number(b.text)>=100&&Number(b.text)<3000);
+ if(fused.length===1){const value=Number(fused[0].text)/100;spatialResolved={value,quantity:null,unit:null,source:"same-card-fused-price-glyph",sanity:"pass",confidence:"medium"};}
 }
 // Safe arithmetic recovery when the leaflet prints a fixed package size and unit rate but no normal price.
 // Both operands belong to the same parsed product row, so this does not borrow a neighbouring price.
 if(!spatialResolved&&pk&&ur&&!nr&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9&&Math.abs(Number(ur.max)-Number(ur.min))<1e-9){
- const pkgUnit=String(pk.raw||"").match(/(kg|g|l|ml)\\b/i)?.[1]?.toLowerCase()||"";
+ const pkgUnit=String(pk.raw||"").match(/(kg|g|l|ml)\b/i)?.[1]?.toLowerCase()||"";
  const rateUnit=String(ur.raw||"").match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()||"";
  const pkgKind=/^(?:kg|g)$/.test(pkgUnit)?"kg":/^(?:l|ml)$/.test(pkgUnit)?"l":"";
  const value=Number((Number(pk.min)*Number(ur.min)).toFixed(2));
@@ -1232,6 +1265,22 @@ if(!spatialResolved&&anchor&&nr){
  if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:nr.unit||null,source:"same-card-large-glyph-normal-bounded",sanity:"pass",confidence:"high"};
 }
 
+// Shared promotion cards can list several products under one large whole-euro badge.
+// Bind the large digit to the card's right-side price badge, not nearby OCR fragments.
+if(anchor&&(!spatialResolved||spatialResolved.sanity==="review"||["best-spatial-candidate","large-visual-price"].includes(spatialResolved.source))){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
+ const badgeDigits=wordBoxes.filter(b=>{
+  const t=String(b.text||"").trim(),x=Number(b.left)||0,y=Number(b.top)||0,h=Number(b.height)||0;
+  if(!/^\d{1,2}$/.test(t)||h<.04||x<=ax+.10||x>=ax+.34||y<ay-.015||y>ay+.105)return false;
+  const cents=wordBoxes.some(z=>/^\d{2}$/.test(String(z.text||"").trim())&&Number(z.height||0)>=.025&&
+   (Number(z.left)||0)>x&&Math.abs((Number(z.top)||0)-y)<.055&&(Number(z.left)||0)-x<.12);
+  return !cents;
+ }).map(b=>({value:Number(String(b.text).trim()),b}));
+ const uniqueBadge=[...new Map(badgeDigits.map(x=>[x.value,x])).values()];
+ if(uniqueBadge.length===1&&uniqueBadge[0].value>=1&&uniqueBadge[0].value<=29){
+  spatialResolved={value:uniqueBadge[0].value,quantity:null,unit:null,source:"same-card-right-whole-euro-badge",sanity:"pass",confidence:"medium"};
+ }
+}
 // Final normal-price-bounded arithmetic fallback. If the row's package × unit-rate price is below
 // every printed normal-price endpoint, it is independently safe even when the normal range varies.
 if(!spatialResolved&&nr&&expected&&Number(expected)>0&&Number(expected)<Number(nr.min)*.995){
@@ -1263,11 +1312,83 @@ if(!spatialResolved&&anchor&&/KOKONAINEN\s+LOHI/i.test(title)){
 }
 title=cleanOfferTitle(title);
 if(pk&&/\b(?:cl|dl)\b/i.test(pk.raw))spatialResolved=null;
-out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}
+out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,initialExpectedSingle:expectedAtStart==null?null:Number(expectedAtStart.toFixed(3)),candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}
 resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
+// Preserve multi-buy quantities independently verified by the product's own
+// unit-price arithmetic, without hardcoding any product or offer amount.
+for(const row of out.rows.filter(r=>r.page===p)){
+ const single=Number(row.initialExpectedSingle??row.expectedSingle);
+ const verified=(row.spatialCandidates||[]).filter(candidate=>{
+  const q=Number(candidate.quantity),value=Number(candidate.value);
+  return Number.isFinite(single)&&single>0&&Number.isInteger(q)&&q>=2&&q<=12&&
+   Number.isFinite(value)&&Math.abs(value-single*q)<=Math.max(.035,value*.008);
+ });
+ const unique=[...new Map(verified.map(candidate=>[Number(candidate.value).toFixed(2)+":"+Number(candidate.quantity),candidate])).values()];
+ if(unique.length===1){
+  const match=unique[0],current=row.spatialResolved;
+  if(!current||Math.abs(Number(current.value)-Number(match.value))<.035){
+   row.spatialResolved={value:Number(match.value),quantity:Number(match.quantity),unit:match.unit||null,
+    source:"verified-candidate-total-quantity",sanity:"pass",confidence:"high"};
+  }
+ }
+}
+// A same-row printed euro/cents total can restore a lost multi-buy only
+// when its own printed unit rate independently verifies the integer pack count
+// AND the corresponding count is printed beside the price glyph.
+for(const row of out.rows.filter(r=>r.page===p)){
+ const single=Number(row.initialExpectedSingle??row.expectedSingle),anchor=row.debugAnchor;
+ if(!(single>0)||!anchor)continue;
+ const totals=[...new Map((row.spatialCandidates||[])
+  .filter(c=>c.kind==="same-row-euro-cents"&&Number(c.value)>single*1.5)
+  .map(c=>[Number(c.value).toFixed(2),c])).values()];
+ if(totals.length!==1)continue;
+ const total=Number(totals[0].value),quantity=Math.round(total/single);
+ if(quantity<2||quantity>12||Math.abs(total-single*quantity)>.035)continue;
+ const nearbyQuantity=wordBoxes.some(b=>String(b.text||"").trim()===String(quantity)&&
+  Math.abs(Number(b.left)-Number(anchor.left))<.30&&Math.abs(Number(b.top)-Number(anchor.top))<.12&&
+  wordBoxes.some(u=>/^(KPL|PRK|PKT|PS|TLK)$/i.test(String(u.text||"").trim())&&
+   Math.abs(Number(u.left)-Number(b.left))<.09&&Math.abs(Number(u.top)-Number(b.top))<.035));
+ if(!nearbyQuantity)continue;
+ const current=row.spatialResolved;
+ if(current&&Number(current.quantity||1)>1&&Math.abs(Number(current.value)-total)>.035)continue;
+ row.spatialResolved={value:total,quantity,unit:null,source:"same-row-total-with-printed-count-and-unit-rate",sanity:"pass",confidence:"high"};
+}
 // Apply publisher bundle ownership to the actual returned output rows, after
 // resolveCards has finished. Its internal return value is not consumed by the caller.
 for(const row of out.rows.filter(r=>r.page===p)){
+ // Recheck a unique fused price glyph after resolveCards changes card ownership.
+ const ownAnchor=row.debugAnchor;
+ if(ownAnchor&&Number(row.spatialResolved?.value)===1&&Number(row.spatialResolved?.quantity||1)===1){
+  const ax=Number(ownAnchor.left)||0,ay=Number(ownAnchor.top)||0;
+  const glyphs=wordBoxes.filter(b=>/^\d{3}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&Number(b.left||0)>ax+.10&&Number(b.left||0)<ax+.23&&Number(b.top||0)>=ay-.005&&Number(b.top||0)<ay+.055&&Number(b.text)>=100&&Number(b.text)<3000);
+  if(glyphs.length===1&&!String(row.title||"").includes(String(glyphs[0].text))){
+   row.spatialResolved={value:Number(glyphs[0].text)/100,quantity:1,unit:row.spatialResolved?.unit||null,source:"post-ownership-fused-publisher-glyph",sanity:"pass",confidence:"medium"};
+  }
+ }
+ // Publisher badge overlays the small count on the large transaction glyph.
+ // Require a unique large glyph and a visibly smaller 2-5 count at nearly the
+ // same baseline. The price must sit inside the product's own horizontal band.
+ if(row.debugAnchor){
+  const ax=Number(row.debugAnchor.left)||0,ay=Number(row.debugAnchor.top)||0;
+  const proofs=[];
+  for(const price of wordBoxes){
+   const px=Number(price.left)||0,py=Number(price.top)||0,ph=Number(price.height)||0;
+   if(!/^\d{1,2}$/.test(String(price.text||"").trim())||ph<.045||px<ax+.18||px>ax+.32||py<ay-.055||py>ay+.065)continue;
+   for(const qty of wordBoxes){
+    const qx=Number(qty.left)||0,qy=Number(qty.top)||0,qh=Number(qty.height)||0;
+    if(!/^[2-5]$/.test(String(qty.text||"").trim())||qh<.012||qh>ph*.48||qx<px-.006||qx>px+.038||Math.abs(qy-py)>.012)continue;
+    if(qty===price)continue;
+    proofs.push({value:Number(price.text),quantity:Number(qty.text),distance:Math.abs(py-ay)});
+   }
+  }
+  const unique=[...new Map(proofs.map(v=>[v.value+":"+v.quantity,v])).values()].sort((a,b)=>a.distance-b.distance);
+  if(unique.length===1){const proof=unique[0],current=row.spatialResolved,single=Number(row.initialExpectedSingle??row.expectedSingle);const protectedOwnedTotal=current?.source==="same-row-total-with-printed-count-and-unit-rate"&&Number(current.quantity)>1&&Number.isFinite(single)&&single>0&&Math.abs(Number(current.value)-single*Number(current.quantity))<=Math.max(.06,single*.035);if(!protectedOwnedTotal)row.spatialResolved={value:proof.value,quantity:proof.quantity,unit:null,source:"overprinted-small-count-on-large-total",sanity:"pass",confidence:"medium"};}
+ }
+ // Capture pre-rejection evidence for unresolved bundle diagnostics.
+ if(row.spatialResolved?.source==="overprinted-small-count-on-large-total")row.debugOverprintedBundle={...row.spatialResolved};
+ // Fail closed if a final multi-buy total contradicts the product's expected single price.
+ const finalQty=Number(row.spatialResolved?.quantity||1),finalPrice=Number(row.spatialResolved?.value),finalSingle=Number(row.initialExpectedSingle??row.expectedSingle);
+ if(finalQty>1&&Number.isFinite(finalPrice)&&Number.isFinite(finalSingle)&&finalSingle>0){const tol=Math.max(.06,finalSingle*.035);const printedBundle=row.debugCardPrice;const independentlyPrinted=printedBundle&&Number(printedBundle.value)===finalPrice&&Number(printedBundle.quantity)===finalQty&&/^(KPL|PL|TLK|PRK|PKT|PS)$/i.test(String(printedBundle.unit||""))&&Array.isArray(printedBundle.parts)&&printedBundle.parts.length>=2;if(!independentlyPrinted&&Math.abs(finalPrice-finalSingle)>tol&&Math.abs(finalPrice-finalSingle*finalQty)>tol){row.debugRejectedFinalBundle={value:finalPrice,quantity:finalQty,expectedSingle:finalSingle,reason:"final-total-conflicts-with-owned-single-price"};row.spatialResolved=null;}}
  const context=[...(row.nearby||[]),...(row.spatialGroups||[]).map(g=>g.text||'')].join(' ').replace(/\s+/g,' ').toUpperCase();
  if(/WC-PAPERI\s*40\s*rl/i.test(String(row.title||''))&&/(?:^|\s)2\s*SÄKKIÄ(?=\s|$)/.test(context)){
    const evidenced=[row.spatialResolved,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean)
