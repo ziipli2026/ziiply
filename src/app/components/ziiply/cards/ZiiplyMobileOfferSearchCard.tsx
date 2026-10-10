@@ -576,7 +576,7 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
 }
 
 // Shared display-only price layout for both Gösta offers and campaigns.
-function splitOfferDisplayPrice(value: string) {
+export function splitOfferDisplayPrice(value: string) {
   const clean = String(value || "").trim();
   const after = clean.match(/^(.+?€)\s*\/\s*(\d+(?:[,.]\d+)?\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml))$/i);
   if (after) return { amount: after[1].trim(), basis: `/ ${after[2].trim()}` };
