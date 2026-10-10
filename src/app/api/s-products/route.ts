@@ -77,20 +77,10 @@ export async function GET(request: Request) {
     });
   }
 
-  // Local S-market prices must come from the selected S-kaupat store.
-  // Ruoanhinta's fallback ID 292 points to Prisma Hyvinkää and must never
-  // silently be used when the user switches from a hypermarket to S-market.
-  if (storeType === "local") {
-    if (!/^s[ -]?market\b/i.test(storeName)) {
-      return NextResponse.json({ error: "S-market store name required" }, { status: 400 });
-    }
-    try {
-      const items = await fetchSKaupatNormalProductsV220(search, storeName);
-      return NextResponse.json({ store, storeName, source: "s-kaupat-normal-v220", status: 200, items });
-    } catch (error) {
-      console.warn("[S PRODUCTS] local store lookup failed", { storeName, error: String(error) });
-      return NextResponse.json({ store, storeName, source: "s-kaupat-normal-v220", items: [], error: "Local store lookup failed" }, { status: 502 });
-    }
+  // For a selected S-market, use its own Ruoanhinta ID first (same as mobile).
+  // Never use Prisma Hyvinkää's default ID for a local store.
+  if (storeType === "local" && (!/^s[ -]?market\\b/i.test(storeName) || !/^\\d+$/.test(store))) {
+    return NextResponse.json({ error: "Valid S-market store required" }, { status: 400 });
   }
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
@@ -130,6 +120,19 @@ export async function GET(request: Request) {
           },
         ],
       }));
+
+    if (storeType === "local") {
+      if (items.length > 0) {
+        return NextResponse.json({ store, storeId, storeName, source: "ruoanhinta-s", status: response.status, items });
+      }
+      try {
+        const fallbackItems = await fetchSKaupatNormalProductsV220(search, storeName);
+        return NextResponse.json({ store, storeId, storeName, source: "s-kaupat-normal-v220", status: 200, items: fallbackItems });
+      } catch (error) {
+        console.warn("[S PRODUCTS] selected S-market fallback failed", { storeName, error: String(error) });
+        return NextResponse.json({ store, storeId, storeName, items: [], error: "Selected S-market price lookup failed" }, { status: 502 });
+      }
+    }
 
     // V220: Ruoanhinta has no rows for some selectable S stores (e.g. Tuusula).
     // Try the selected store's own S-kaupat normal-product feed, not another
