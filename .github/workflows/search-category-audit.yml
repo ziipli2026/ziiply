@@ -35,6 +35,8 @@ jobs:
           mkdir -p search-audit-results
           set -o pipefail
           node scripts/audit-search-categories.cjs | tee search-audit-results/categories.json
+      - name: Report dependency lockfile drift without modifying it
+        run: node scripts/audit-dependency-lock.cjs | tee search-audit-results/dependency-lock.json
       - name: Full application TypeScript typecheck
         run: |
           npm install --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund
@@ -59,7 +61,7 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance', 'route-syntax'];
+          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance', 'route-syntax', 'dependency-lock'];
           let failed = false;
           for (const name of names) {
             const file = 'search-audit-results/' + name + '.json';
@@ -75,6 +77,8 @@ jobs:
                 !Array.isArray(report.unreviewedCollisions) ||
                 !Array.isArray(report.expandedLearningResults)
               )) throw new Error('Missing behavior test fields');
+              if (name === 'dependency-lock' && (!Array.isArray(report.issues) || report.issueCount !== report.issues.length || report.mutations !== 0))
+                throw new Error('Invalid dependency drift diagnostics');
               if (name === 'route-syntax' && (!Array.isArray(report.results) || report.results.length !== 3 || report.results.some(row => !row.pass)))
                 throw new Error('Search route syntax compilation failed');
               if (name === 'pagination-performance' && (!Array.isArray(report.results) || report.results.length !== 4 ||
@@ -115,6 +119,7 @@ jobs:
             const retail = data.retailRankingResults || [];
             const pagination = JSON.parse(fs.readFileSync('search-audit-results/pagination.json', 'utf8'));
             const paginationPerformance = JSON.parse(fs.readFileSync('search-audit-results/pagination-performance.json', 'utf8'));
+            const dependencyLock = JSON.parse(fs.readFileSync('search-audit-results/dependency-lock.json', 'utf8'));
             const routeSyntax = JSON.parse(fs.readFileSync('search-audit-results/route-syntax.json', 'utf8'));
             const routeSyntaxPass = routeSyntax.results?.length === 3 && routeSyntax.results.every(row => row.pass);
             const requestCountsPass = paginationPerformance.results?.length === 4 &&
@@ -145,6 +150,7 @@ jobs:
               '| Retail-style ranking fixtures | ' + retail.filter(x=>x.pass).length + '/' + retail.length + ' |',
               '| Provider pagination | ' + pagination.passed + '/' + pagination.total + ' |',
               '| Search route syntax (not full typecheck) | ' + (routeSyntaxPass ? 'PASS' : 'FAIL') + ' |',
+              '| Dependency lockfile drift (reported, not gated) | ' + dependencyLock.issueCount + ' entries |',
               '| Extra-request budget (simulated) | ' + (requestCountsPass ? 'PASS' : 'FAIL') + ' |',
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Registry audit | ' + (registryPass ? 'PASS' : 'FAIL (' + categories.issues.length + ' issues)') + ' |',
