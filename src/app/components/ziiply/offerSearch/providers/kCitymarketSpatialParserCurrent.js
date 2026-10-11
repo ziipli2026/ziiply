@@ -1,4 +1,4 @@
-import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle} from './kCitymarketPrintedBundleProof.js';
+import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
 const norm=s=>String(s).toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"");
 const distance=(a,b)=>Math.hypot((a.left-b.left)*1.5,(a.top-b.top)*2);
@@ -318,7 +318,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V129-KCITYMARKET-PRINTED-TRANSACTION-PROOFS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V130-KCITYMARKET-PRINTED-TRANSACTION-PROOFS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1404,10 +1404,10 @@ for(const row of out.rows.filter(r=>r.page===p)){
 }
 }
 for(const row of out.rows){
- const proof=verifiedPrintedBundle(row)||verifiedMissingCents(row)||verifiedDepositPack(row)||verifiedMergedEuroCents(row)||verifiedCompoundOfferCount(row)||verifiedDecimalBundle(row)||verifiedLargeHeadlineBundle(row);
+ const proof=verifiedPrintedBundle(row)||verifiedMissingCents(row)||verifiedDepositPack(row)||verifiedMergedEuroCents(row)||verifiedCompoundOfferCount(row)||verifiedDecimalBundle(row)||verifiedLargeHeadlineBundle(row)||verifiedSplitAcrossCardsSingle(row);
  if(proof){
   row.debugReplacedConflictingPrice=row.spatialResolved;row.spatialResolved=proof;row.percentageOffer=null;
-  if(/printed-merged|printed-compound|printed-decimal-bundle/.test(proof.source))row.unitPrice=verifiedOwnedUnitRate(row);
+  if(/printed-merged|printed-compound|printed-decimal-bundle|printed-split-card/.test(proof.source))row.unitPrice=verifiedOwnedUnitRate(row);
   if(proof.unit==='KG')row.unitPrice={min:proof.value,max:proof.value,raw:'('+proof.value.toFixed(2)+'/kg)'};
   if(proof.packageCount>1){
    const rate=Number((row.initialExpectedSingle/row.package.min).toFixed(2));

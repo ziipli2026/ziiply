@@ -9,7 +9,7 @@ export function verifiedOwnedUnitRate(row) {
     Math.abs(c.top-b.top)<.001&&Math.abs(c.height-b.height)<.002&&
     c.left<=b.left+.001&&c.left+c.width>=b.left+b.width-.001));
   const proofs=[];
-  for(const start of boxes.filter(b=>/^\(\d/.test(b.text)&&Math.abs(b.left-titleLeft)<.035&&
+  for(const start of boxes.filter(b=>/^(?:\(\d|\d+$)/.test(b.text)&&Math.abs(b.left-titleLeft)<.035&&
     b.top>=anchor.top-.002&&b.top-anchor.top<.045&&b.height<.02)) {
     if(boxes.some(b=>b.text==='Ilman'&&Math.abs(b.left-start.left)<.015&&
       b.top>anchor.top&&b.top<start.top))continue;
@@ -18,10 +18,35 @@ export function verifiedOwnedUnitRate(row) {
     const parts=[];let right=start.left;
     for(const b of line){if(b.left-right>.012)break;parts.push(b.text);right=b.left+b.width;if(/\/(kg|l)\)/i.test(b.text))break;}
     const text=parts.join(' ').replace(/(\d+)\s+(\d{2})(?=[–-]|\/(?:kg|l))/gi,'$1,$2');
-    const m=text.match(/^\((\d+[,.]\d{2})(?:[–-](\d+[,.]\d{2}))?\/(kg|l)\)$/i);
+    const m=text.match(/^\(?(\d+[,.]\d{2})(?:[–-](\d+[,.]\d{2}))?\/(kg|l)\)?$/i);
     if(m)proofs.push({min:Number(m[1].replace(',','.')),max:Number((m[2]||m[1]).replace(',','.')),raw:text});
   }
   const unique=[...new Map(proofs.map(p=>[p.raw,p])).values()];
+  return unique.length===1?unique[0]:null;
+}
+
+export function verifiedSplitAcrossCardsSingle(row) {
+  const pk=row.package,rate=verifiedOwnedUnitRate(row),anchor=row.debugAnchor;
+  if(!pk||!rate||!anchor||pk.min!==pk.max||rate.min!==rate.max)return null;
+  const expected=pk.min*rate.min,boxes=row.debugNearbyBoxes||[],proofs=[];
+  for(const cents of boxes.filter(b=>/^\d{2}$/.test(b.text)&&b.height>=.02&&b.height<.03&&
+    b.left>=anchor.left&&b.left-anchor.left<.25&&Math.abs(b.top-anchor.top)<.10)) {
+    const unit=boxes.find(b=>b.text==='KPL'&&Math.abs(b.left-cents.left)<.015&&
+      b.top>cents.top&&b.top-cents.top<.035);
+    if(!unit)continue;
+    const digits=new Set();
+    for(const glyph of boxes.filter(b=>b.width>.15&&b.height>=.045&&/^\d{1,3}[-–]?$/.test(b.text)&&
+      b.left<=cents.left&&b.left+b.width>=cents.left&&
+      cents.top>=b.top&&cents.top-b.top<b.height)){
+      for(const digit of glyph.text.match(/\d/g)||[])digits.add(Number(digit));
+    }
+    for(const digit of digits){
+      const value=digit+Number(cents.text)/100;
+      if(Math.abs(value-expected)<=.02)proofs.push({value,quantity:null,unit:'KPL',
+        source:'printed-split-card-euro-cents-and-owned-unit-rate',sanity:'pass',confidence:'high'});
+    }
+  }
+  const unique=[...new Map(proofs.map(p=>[p.value,p])).values()];
   return unique.length===1?unique[0]:null;
 }
 

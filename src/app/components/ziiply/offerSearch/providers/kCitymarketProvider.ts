@@ -83,7 +83,8 @@ export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
   if(/nachips|nachos|tortilla/.test(s)) return "Kuivatuotteet";
   if(/jogurttijuom|actimel/.test(s)) return "Maitotuotteet";
-  if(/pakaste.*kasvis|kasvis.*pakaste/.test(s)) return "Pakasteet";
+  if(/pakaste.*kasvis|kasvis.*pakaste|vihannessekoit/.test(s)) return "Pakasteet";
+  if(/puhdistus.*(?:tiiviste|suihke)|wc-geeli|käsitiski/.test(s)) return "Kodinhoito";
   // Leipäjuusto is a dairy cheese, not a bakery product.
   if(/leipäjuust/.test(s)) return "Maitotuotteet";
 
@@ -132,7 +133,7 @@ export function category(t:string){
   // Frozen vegetables must win over the generic "keitto" prepared-food match.
   if(/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if(/koira|kissa|lemmik|possunkorva|kissanhiekka/.test(s)) return "Lemmikit";
-  if(/little kids|lastenruo/.test(s)) return "Lastenruoat";
+  if(/little kids|lastenruo|\bpiltti\b/.test(s)) return "Lastenruoat";
   if(/proteiinivaa|maksalaatik|kiusaus|kiusauk|burger|kebab|härkis|härkäpapumursk|gold\s*&\s*green|suosikkisalaat|pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
   if(/(?:^|[^a-zåäö])kana(?:[^a-zåäö]|$)|kananpoika|kananpoj|kananuget|kanapuik|kanaransk|kanatuotte|broiler|nauta|naudan|ulkoilee|poron|sika|porsaa|porsas|jauheliha|makkara|nakki|meetvursti|palviro|savusaunapalvi|pekoni|kinkku|kokoliha|leikkele|fileepih|fileesuikale|liha/.test(s)) return "Liha & makkarat";
   if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
@@ -476,7 +477,16 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const price=Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
-    const title=clean(row?.title||"");
+    let title=clean(row?.title||"");
+    // Recover a wrapped uppercase prefix only within the same printed column.
+    // Never use the broad neighbourhood as a category or product identity.
+    const anchor=row?.debugCardAnchor;
+    if(anchor){
+      const prefixes=(row?.debugNearbyBoxes||[]).filter((box:any)=>
+        /^[A-ZÅÄÖ]+-$/.test(String(box.text||"")) && Math.abs(Number(box.left)-Number(anchor.left))<0.005 &&
+        Number(anchor.top)-Number(box.top)>0.005 && Number(anchor.top)-Number(box.top)<0.04);
+      if(prefixes.length===1 && !title.includes(prefixes[0].text)) title=prefixes[0].text+title;
+    }
     if(!title || isNoiseLine(title)) continue;
 
     const normalMin=Number(row?.normal?.min);
@@ -608,7 +618,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v129-publisher-archive":"standard"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v130-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
