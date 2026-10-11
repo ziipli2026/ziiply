@@ -20,7 +20,12 @@
       "status": "product-identity-verified-image-not-extracted",
       "offerId": "kcm:spatial:15:ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l):1.5",
       "approved": false,
-      "imageUrl": null
+      "imageUrl": null,
+      "additionalProductEvidenceUrls": [
+        "https://www.s-kaupat.fi/tuote/oatly-ikaffe-kaurajuoma-1l/7394376616037",
+        "https://www.minimani.fi/oatly-ikaffe-kaurajuoma-1l.html",
+        "https://www.metrotukku.fi/fi/EUR/tuotteet/vegaaniset-ja-kasviperaiset-tuotteet/oatly-ikaffe-kaurajuoma-1l/7394376616037"
+      ]
     }
   ]
 }
