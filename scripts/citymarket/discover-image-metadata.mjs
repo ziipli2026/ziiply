@@ -47,7 +47,10 @@ for(const candidate of source.candidates){
         }catch{}
       }
       const relevant = [...images,...ldImages].filter(url => !/logo|placeholder|default-image|favicon|social-share/i.test(new URL(url).pathname));
-      results.push({offerId:candidate.offerId,page,httpStatus:response.status,status:relevant.length?"metadata-image-found":"no-product-image-metadata",imageCandidates:[...new Set(relevant)],htmlTruncated:truncated,jsonLdProductImageCount:ldImages.length,excludedGenericImageCount:images.filter(url=>!relevant.includes(url)).length,approved:false});
+      const identityEvidence = { expectedEan:candidate.ean, eanPresentInHtml:html.includes(candidate.ean), structuredProductImageCount:ldImages.length };
+      // A social preview is not sufficient proof that the packshot matches the EAN.
+      const reviewRequired = true;
+      results.push({offerId:candidate.offerId,page,httpStatus:response.status,status:relevant.length?"metadata-image-found":"no-product-image-metadata",imageCandidates:[...new Set(relevant)],htmlTruncated:truncated,jsonLdProductImageCount:ldImages.length,identityEvidence,reviewRequired,excludedGenericImageCount:images.filter(url=>!relevant.includes(url)).length,approved:false});
     }catch(error){results.push({offerId:candidate.offerId,page,status:"fetch-failed",error:String(error),approved:false})}
     finally{clearTimeout(timer)}
   }
