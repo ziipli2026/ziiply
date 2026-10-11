@@ -81,7 +81,8 @@ for(const [index,item] of items.entries()){
  const pack=String(src.packageSize||"");
  const m=pack.match(/^(\d+(?:[,.]\d+)?)\s*(g|kg|ml|l)$/i);
  if(!page||!Number.isFinite(price)||price<=0||!Number.isFinite(unitPrice)||unitPrice<=0||!m||quantity>1)continue;
- const amount=Number(m[1].replace(",","."))*(m[2].toLowerCase()==="g"||m[2].toLowerCase()==="ml"?.001:1);
+ const isSmallUnit=["g","ml"].includes(m[2].toLowerCase());
+ const amount=Number(m[1].replace(",","."))*(isSmallUnit ? 0.001 : 1);
  const expected=Number((amount*unitPrice).toFixed(2));
  if(Math.abs(expected-price)<=Math.max(.15,expected*.08))continue;
  const key=page[1]+":"+price.toFixed(2);
