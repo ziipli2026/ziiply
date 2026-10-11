@@ -12,7 +12,10 @@ assert.equal(publication.pdfSha256, fixture.pdfSha256, "Leaflet hash mismatch");
 assert.equal(publication.offerCount, fixture.offerCount, "Offer count mismatch");
 const missing = fixture.offers.filter(offer => !publication.images[offer.key]);
 const ambiguous = /(?:^|\s)(?:tai|sekä|seka|valikoima|erilaiset|useita|lajitelma|ja)(?=\s|$)|\d+\s*[–-]\s*\d+\s*(?:g|kg|ml|l)\b/i;
-const cleanIdentity = identity => identity.replace(/\\([^)]*\\)/g, " ").replace(/\\s+/g, " ").trim();
+const cleanIdentity = identity => identity.replace(/[(][^)]*[)]/g, " ").replace(/\s+/g, " ").trim();
+const candidates = JSON.parse(fs.readFileSync("scripts/citymarket/41lv-image-source-candidates.json", "utf8")).candidates;
+const candidatesByOffer = new Map(candidates.map(candidate => [candidate.offerId, candidate]));
+assert.equal(candidatesByOffer.size, candidates.length, "Duplicate source candidate");
 const rows = missing.map(offer => ({
   offerId: offer.key,
   page: offer.page,
@@ -26,6 +29,8 @@ const rows = missing.map(offer => ({
   imageUrl: null,
   approved: false,
   imageEvidenceUrl: null,
+  productSourceUrl: candidatesByOffer.get(offer.key)?.url ?? null,
+  candidateEan: candidatesByOffer.get(offer.key)?.ean ?? null,
   evidence: "approved-leaflet-fixture",
 }));
 const report = {
