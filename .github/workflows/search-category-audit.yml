@@ -19,20 +19,24 @@ jobs:
       - name: Install isolated search test runtime
         run: npm ci --prefix scripts/search-test-runtime --ignore-scripts --no-audit --no-fund
       - name: Test real search intent and local learning logic
+        if: success() || failure()
         run: |
           mkdir -p search-audit-results
           set -o pipefail
           NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" npm run test:search --silent | tee search-audit-results/behavior.json
       - name: Test offline product category classification fixtures
+        if: success() || failure()
         run: |
           mkdir -p search-audit-results
           set -o pipefail
           node scripts/test-category-audit-fixtures.cjs | tee search-audit-results/category-fixtures.json
       - name: Validate Neon category findings snapshot offline
+        if: success() || failure()
         run: |
           set -o pipefail
           node scripts/audit-category-findings.cjs scripts/fixtures/category-findings-test-20261011.csv | tee search-audit-results/category-findings.json
       - name: Verify category audit rejects invalid data
+        if: success() || failure()
         run: node scripts/test-category-audit-negative.cjs
       - name: Report ambiguous category substrings
         if: success() || failure()
