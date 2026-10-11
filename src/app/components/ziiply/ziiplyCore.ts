@@ -214,6 +214,31 @@ export type SearchIntentCategory =
   | "snacks"
   | "buttermilk"
   | "cooking_oil"
+  | "mustard"
+  | "mayonnaise"
+  | "tomato_crush"
+  | "tomato_paste"
+  | "salad_dressing"
+  | "oatmeal"
+  | "porridge"
+  | "muesli"
+  | "breakfast_cereal"
+  | "flour"
+  | "sugar"
+  | "salt"
+  | "cookies"
+  | "candy"
+  | "chocolate"
+  | "jam"
+  | "honey"
+  | "canned_fish"
+  | "canned_vegetables"
+  | "toilet_paper"
+  | "paper_towels"
+  | "laundry_detergent"
+  | "dishwashing"
+  | "soap"
+  | "shampoo"
   | "generic";
 
 export type SearchIntent = {
@@ -588,6 +613,31 @@ export function uniqueNormalizedQueries(values: string[]) {
 }
 
 export const SEARCH_INTENTS: SearchIntent[] = [
+  { category: "mustard", label: "Sinapit", variants: ["sinappi","dijonsinappi","hunajasinappi"], requiredAny: ["sinappi","dijonsinappi","hunajasinappi"], bannedAny: ["majoneesi","sinappikastike"] },
+  { category: "mayonnaise", label: "Majoneesit", variants: ["majoneesi","mayonnaise","majo"], requiredAny: ["majoneesi","mayonnaise","majo"], bannedAny: ["sinappi","salaattikastike"] },
+  { category: "tomato_crush", label: "Tomaattimurskat", variants: ["tomaattimurska","tomaatti murska","passata"], requiredAny: ["tomaattimurska","tomaatti murska","passata"], bannedAny: ["ketsuppi","tomaattipyree"] },
+  { category: "tomato_paste", label: "Tomaattipyreet", variants: ["tomaattipyree","tomaattitahna"], requiredAny: ["tomaattipyree","tomaattitahna"], bannedAny: ["ketsuppi","tomaattimurska"] },
+  { category: "salad_dressing", label: "Salaattikastikkeet", variants: ["salaattikastike","salaatin kastike"], requiredAny: ["salaattikastike","salaatin kastike"], bannedAny: ["majoneesi"] },
+  { category: "oatmeal", label: "Kaurahiutaleet", variants: ["kaurahiutale","kaurahiutaleet","pikakaurahiutale"], requiredAny: ["kaurahiutale","kaurahiutaleet","pikakaurahiutale"], bannedAny: ["kaurajuoma","kauramaito"] },
+  { category: "porridge", label: "Puurot", variants: ["puuro","puurohiutale","mannapuuro","riisipuuro"], requiredAny: ["puuro","puurohiutale","mannapuuro","riisipuuro"], bannedAny: ["puuropata"] },
+  { category: "muesli", label: "Myslit", variants: ["mysli","müsli","granola"], requiredAny: ["mysli","müsli","granola"], bannedAny: ["myslipatukka"] },
+  { category: "breakfast_cereal", label: "Aamiaismurot", variants: ["aamiaismuro","murot","corn flakes","maissihiutale"], requiredAny: ["aamiaismuro","murot","corn flakes","maissihiutale"], bannedAny: ["suklaapatukka"] },
+  { category: "flour", label: "Jauhot", variants: ["vehnäjauho","ruisjauho","jauhot","sämpyläjauho"], requiredAny: ["vehnäjauho","ruisjauho","jauhot","sämpyläjauho"], bannedAny: ["jauheliha"] },
+  { category: "sugar", label: "Sokerit", variants: ["sokeri","hillosokeri","tomusokeri","ruokosokeri"], requiredAny: ["sokeri","hillosokeri","tomusokeri","ruokosokeri"], bannedAny: ["sokeriton"] },
+  { category: "salt", label: "Suolat", variants: ["suola","merisuola","hienosuola","vuorisuola"], requiredAny: ["suola","merisuola","hienosuola","vuorisuola"], bannedAny: ["suolapähkinä"] },
+  { category: "cookies", label: "Keksit", variants: ["keksi","keksit","digestive","piparkakku"], requiredAny: ["keksi","keksit","digestive","piparkakku"], bannedAny: ["keksijäätelö"] },
+  { category: "candy", label: "Makeiset", variants: ["karkki","makeiset","irtokarkki","lakritsi","salmiakki"], requiredAny: ["karkki","makeiset","irtokarkki","lakritsi","salmiakki"], bannedAny: ["karkkipussi koira"] },
+  { category: "chocolate", label: "Suklaat", variants: ["suklaalevy","suklaa","konvehti"], requiredAny: ["suklaalevy","suklaa","konvehti"], bannedAny: ["suklaamaito","suklaajäätelö"] },
+  { category: "jam", label: "Hillot", variants: ["hillo","mansikkahillo","vadelmahillo","marmeladi"], requiredAny: ["hillo","mansikkahillo","vadelmahillo","marmeladi"], bannedAny: ["hillosokeri"] },
+  { category: "honey", label: "Hunajat", variants: ["hunaja","juokseva hunaja"], requiredAny: ["hunaja","juokseva hunaja"], bannedAny: ["hunajasinappi"] },
+  { category: "canned_fish", label: "Kalasäilykkeet", variants: ["tonnikala","sardiini","makrilli säilyke"], requiredAny: ["tonnikala","sardiini","makrilli säilyke"], bannedAny: ["tonnikalapizza"] },
+  { category: "canned_vegetables", label: "Kasvissäilykkeet", variants: ["säilykemaissi","herne-maissi-paprika","säilykeherne","kidneypapu"], requiredAny: ["säilykemaissi","herne-maissi-paprika","säilykeherne","kidneypapu"], bannedAny: ["pakaste"] },
+  { category: "toilet_paper", label: "WC-paperit", variants: ["wc-paperi","vessapaperi","toalettipaperi"], requiredAny: ["wc-paperi","vessapaperi","toalettipaperi"], bannedAny: ["talouspaperi"] },
+  { category: "paper_towels", label: "Talouspaperit", variants: ["talouspaperi","keittiöpaperi"], requiredAny: ["talouspaperi","keittiöpaperi"], bannedAny: ["wc-paperi"] },
+  { category: "laundry_detergent", label: "Pyykinpesuaineet", variants: ["pyykinpesuaine","pyykkipulveri","pyykinpesuneste"], requiredAny: ["pyykinpesuaine","pyykkipulveri","pyykinpesuneste"], bannedAny: ["astianpesuaine"] },
+  { category: "dishwashing", label: "Astianpesuaineet", variants: ["astianpesuaine","konetiskitabletti","käsitiskiaine"], requiredAny: ["astianpesuaine","konetiskitabletti","käsitiskiaine"], bannedAny: ["pyykinpesuaine"] },
+  { category: "soap", label: "Saippuat", variants: ["saippua","nestesaippua","palasaippua"], requiredAny: ["saippua","nestesaippua","palasaippua"], bannedAny: ["astianpesuaine"] },
+  { category: "shampoo", label: "Shampoot", variants: ["shampoo","hiusshampoo"], requiredAny: ["shampoo","hiusshampoo"], bannedAny: ["suihkusaippua"] },
   {
     category: "milk",
     label: "Maidot",
