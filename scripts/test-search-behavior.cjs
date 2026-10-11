@@ -11,7 +11,14 @@ require.extensions[".ts"] = function(module, filename) {
   module._compile(compiled, filename);
 };
 const root = "../src/app/components/ziiply";
+const Module = require("node:module");
+const originalLoad = Module._load;
+Module._load = function(request, parent, isMain) {
+  if (request === "posthog-js") return { __esModule: true, default: {} };
+  return originalLoad.call(this, request, parent, isMain);
+};
 const core = require(root+"/ziiplyCore.ts");
+Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
   ["ketsuppi","ketchup"],["sinappi","mustard"],["majoneesi","mayonnaise"],
@@ -20,7 +27,7 @@ const samples = [
   ["pyykinpesuaine","laundry_detergent"],["astianpesuaine","dishwashing"],
   ["kahvi","coffee"],["maito","milk"],
   ["suolapähkinä","snacks"],["hunajasinappi","mustard"],
-  ["tomaattipyree","tomato_paste"],["ketsuppi","ketchup"]
+  ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
 const results=[];
 for (const [query,expected] of samples) {
