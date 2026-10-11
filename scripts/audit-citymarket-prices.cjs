@@ -64,8 +64,14 @@ for(const [index,item] of items.entries()){
  if(!Number.isInteger(packageCount)||packageCount<1||packageCount>48)continue;
  const amount=({kg:n,g:n/1000,l:n,dl:n/10,cl:n/100,ml:n/1000})[unit.toLowerCase()];
  const expected=unitPrice*amount*packageCount*(qty!=null&&Number.isFinite(qty)&&qty>1?qty:1);
- if(expected>0&&Math.abs(expected-price)>Math.max(.15,expected*.08))
-   issues.push({index,title,reason:'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,packageCount,expected:Number(expected.toFixed(2))});
+ if(expected>0&&Math.abs(expected-price)>Math.max(.15,expected*.08)){
+   // Beverage unit prices can exclude refundable container deposits.
+   // Treat a plausible 0.15 EUR/can deposit as a REVIEW, not proof.
+   const canPack=/\\b(?:tlk|t[oö]lkki|t[oö]lkit)\\b/i.test(title+' '+size);
+   const depositExpected=expected+packageCount*.15;
+   const depositPlausible=canPack&&packageCount>1&&Math.abs(depositExpected-price)<=.04;
+   issues.push({index,title,reason:depositPlausible?'possible-container-deposit-review':'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,packageCount,expected:Number(expected.toFixed(2)),...(depositPlausible?{withPossibleDeposit:Number(depositExpected.toFixed(2))}:{})});
+ }
 }
 // Review a same-page identical price when one item's €/kg or €/l agrees
 // and another item's does not. Do not infer or overwrite the true price.
