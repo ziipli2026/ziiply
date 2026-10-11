@@ -121,3 +121,43 @@ export function removeCampaignCopiesOfLeaflet<T extends KOfferTabRow>(
     !leafletOffers.some(offer => semanticSameProduct(offer, row))
   );
 }
+
+/** Suppress an incomplete national percentage card only with a unique,
+ * fully priced local counterpart on the same printed card and dates. */
+export function removeProvenPercentageCopies<T extends KOfferTabRow>(rows: readonly T[]): T[] {
+  const value = (row: T) => row as T & Record<string, unknown>;
+  const day = (raw: unknown): string => {
+    const text = String(raw ?? "");
+    if (/^\d{1,2}\.\d{1,2}\.$/.test(text)) return text.split(".").slice(0, 2).map(Number).join(".");
+    if (!/^\d{4}-\d{2}-\d{2}T/.test(text)) return "";
+    const date = new Date(text);
+    if (!Number.isFinite(date.getTime())) return "";
+    const parts = new Intl.DateTimeFormat("en-GB", {timeZone: "Europe/Helsinki", day: "numeric", month: "numeric"}).formatToParts(date);
+    return ["day", "month"].map(type => Number(parts.find(part => part.type === type)?.value)).join(".");
+  };
+  const crop = (raw: unknown): string => {
+    try {
+      const url = new URL(String(raw));
+      if (url.hostname !== "image-transformer-api.tjek.com") return "";
+      const page = url.searchParams.get("u")?.match(/\/p-(\d+)\.webp$/)?.[1];
+      const coords = ["x1r", "x2r", "y1r", "y2r"].map(key => url.searchParams.get(key));
+      return page && coords.every(x => x !== null && Number.isFinite(Number(x))) ? [page, ...coords.map(Number)].join("|") : "";
+    } catch { return ""; }
+  };
+  return rows.filter(row => {
+    const a = value(row), percent = Number(a.discountPercent), title = normalize(row.title || row.name || row.productName);
+    if (priceNumber(row) !== null || !Number.isFinite(percent) || percent <= 0 || percent >= 100 ||
+        a.source !== "K-Citymarket tarjouslehti" || !title || !crop(a.imageUrl)) return true;
+    const matches = rows.filter(candidate => {
+      const b = value(candidate), price = priceNumber(candidate), name = normalize(candidate.title || candidate.name || candidate.productName);
+      const ownPercent = String(b.additionalInfo ?? "").match(/Plussa-etu\s*[-–]\s*(\d+(?:[.,]\d+)?)\s*%/i);
+      return b.provider === "kcitymarket-local" && price !== null && price > 0 &&
+        (name === title || name.endsWith(" " + title)) && transactionCount(candidate) === transactionCount(row) &&
+        crop(b.imageUrl) === crop(a.imageUrl) &&
+        !!day(a.validFrom) && day(a.validFrom) === day(b.validFrom) &&
+        !!day(a.validTo) && day(a.validTo) === day(b.validUntil) &&
+        !!ownPercent && Number(ownPercent[1].replace(",", ".")) === percent;
+    });
+    return matches.length !== 1;
+  });
+}
