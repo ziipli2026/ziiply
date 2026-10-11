@@ -15,6 +15,8 @@ test('Full immutable 41LV source retains all other transactions',async()=>{
  assert.equal(percentages.length,2);for(const r of percentages){assert.equal(r.spatialResolved,null);assert.equal(r.percentageOffer.percent,40);}
  const wrapped=parsed.rows.filter(r=>r.percentageOffer?.source==='wrapped-column-printed-percentage');
  assert.deepEqual(wrapped.map(r=>[r.title,r.percentageOffer.percent,r.spatialResolved]),[
+ ['MAX FACTOR MEIKIT',30,null],
+ ['LUMENE IHONHOITO- ja PUHDISTUSTUOTTEET',40,null],
  ['BONDI SANDS ITSERUSKETTAVAT TUOTTEET',25,null],
  ['WELLAFLEX WELLA DELUXE ja SHOCKWAVES HIUSTENMUOTOILUTUOTTEET sekä CLAIROL HIUSVÄRIT',25,null],
  ['DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml',20,null]]);

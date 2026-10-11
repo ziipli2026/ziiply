@@ -148,10 +148,13 @@ export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
     }
     for(const l of block)consumed.add(l);
     const title=block.map(l=>l.words.map(b=>b.text).join(' ')).join(' ').replace(/- TUOTTEET/g,'TUOTTEET');
-    if(!/IHONHOITO|HIUSTENHOITO|HIUSTENMUOTOILU|ITSERUSKETTAVAT|PUUTERIT|KULMATUOTTEET/.test(title))continue;
+    if(!/IHONHOITO|HIUSTENHOITO|HIUSTENMUOTOILU|ITSERUSKETTAVAT|PUUTERIT|KULMATUOTTEET|MEIKIT/.test(title))continue;
     if(existingRows.some(r=>r.title===title))continue;
     const badges=unique.filter(b=>/^[-−–]\d{1,2}%$/.test(b.text)&&b.height>=.05&&
-      Math.abs(b.left-start.left)<.08&&b.top>=last.top+last.height&&b.top-last.top<.11);
+      ((Math.abs(b.left-start.left)<.08&&b.top>=last.top+last.height&&b.top-last.top<.11)||
+       (b.top>=start.top-.025&&b.top-last.top<.08&&
+        ((b.left+b.width<=start.left+.005&&start.left-(b.left+b.width)<.04)||
+         (b.left>=Math.max(...block.map(l=>l.right))&&b.left-Math.max(...block.map(l=>l.right))<.06)))));
     if(badges.length!==1)continue;
     if(unique.some(b=>/^\d+(?:[,.]\d+)?$/.test(b.text)&&b.height>=.03&&
       Math.abs(b.left-start.left)<.2&&b.top>=start.top&&b.top<badges[0].top+badges[0].height))continue;

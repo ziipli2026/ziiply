@@ -10,6 +10,8 @@ const categorySource = match[0].replace("export function category(t:string)", "f
 const context = {clean: (s) => String(s).trim()};
 vm.runInNewContext(categorySource + "\nthis.classify=category;", context);
 const cases = [
+  ["MAX FACTOR MEIKIT", "Hygienia & kosmetiikka"],
+  ["LUMENE IHONHOITO- ja PUHDISTUSTUOTTEET", "Hygienia & kosmetiikka"],
   ["BONDI SANDS ITSERUSKETTAVAT TUOTTEET", "Hygienia & kosmetiikka"],
   ["DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml", "Hygienia & kosmetiikka"],
   ["HIUSTENMUOTOILUTUOTTEET sekä HIUSVÄRIT", "Hygienia & kosmetiikka"],
