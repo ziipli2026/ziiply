@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   try {
     const sql = neon(connection);
     const rows = await sql`
-      SELECT s.source_station_id, s.name, s.chain, s.address, s.latitude, s.longitude,
+      SELECT s.source_station_id, s.name, s.chain, s.address, s.latitude, s.longitude, s.is_traffic_station, s.traffic_station_verified,
         p95.price_eur_per_litre AS price95, p95.observed_at AS observed95,
         p98.price_eur_per_litre AS price98, p98.observed_at AS observed98,
         pd.price_eur_per_litre AS diesel, pd.observed_at AS observed_diesel
@@ -39,9 +39,11 @@ export async function GET(req: NextRequest) {
         ORDER BY observed_at DESC LIMIT 1) pd ON TRUE
       WHERE lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
         AND lower(coalesce(s.name, '')) NOT LIKE '%teboil%'
+        AND s.source_station_id NOT IN (12564,12577,12683,554,3028,398,11828,11829,12579)
     `;
     const stations = rows.filter((r) => !/\bteboil\b/i.test(String(r.chain ?? "") + " " + String(r.name ?? ""))).map((r) => ({
       id: String(r.source_station_id), name: String(r.name), chain: r.chain,
+      isTrafficStation: r.traffic_station_verified === true ? r.is_traffic_station === true : null,
       address: r.address, latitude: Number(r.latitude), longitude: Number(r.longitude),
       distanceKm: distanceKm(lat, lon, Number(r.latitude), Number(r.longitude)),
       diesel: r.diesel == null ? null : Number(r.diesel),
