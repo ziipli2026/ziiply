@@ -15,7 +15,8 @@ export type ImageMatch = { accepted: boolean; reason: string };
 const clean = (v: unknown) => String(v ?? "").toLocaleLowerCase("fi-FI").normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 const code = (v: unknown) => String(v ?? "").trim();
 const validImage = (v: unknown) => {
-  if (typeof v !== "string" || !v.trim() || v.startsWith("//")) return false;
+  if (typeof v !== "string" || !v.trim() || v.startsWith("//") || v.startsWith("\\\\")) return false;
+  if (/[\\\\\\x00-\\x1f\\x7f]/.test(v)) return false;
   try {
     const url = new URL(v, "https://ziiply.fi");
     return (url.protocol === "https:" || (v.startsWith("/") && !v.startsWith("//"))) && !/\s/.test(v);
