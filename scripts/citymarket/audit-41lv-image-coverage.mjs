@@ -24,10 +24,14 @@ if (!entry) {
   const svg = fs.readFileSync(assetPath, "utf8");
   assert.ok(svg.startsWith("<svg "), "41LV image asset must be an SVG");
   const fragmentIds = new Set([...svg.matchAll(/<view\s+id="([^"]+)"/g)].map(match => match[1]));
+  assert.equal(fragmentIds.size, imageKeys.length, "Unexpected or duplicate 41LV SVG view IDs");
+  const usedFragments = new Set();
   for (const [key, image] of Object.entries(publication.images)) {
     assert.ok(image.startsWith(expectedAsset + "#"), "Unexpected 41LV image path for " + key);
     const fragment = image.slice(expectedAsset.length + 1);
     assert.ok(fragmentIds.has(fragment), "41LV SVG fragment missing for " + key + ": " + fragment);
+    assert.ok(!usedFragments.has(fragment), "41LV SVG fragment reused by multiple offers: " + fragment);
+    usedFragments.add(fragment);
   }
   const uncovered = fixture.offers.filter(row => !publication.images[row.key]);
   const unsafeName = /\b(tai|sekä|seka|ja|valikoima|erilaiset|useita|lajitelma)\b|\d+\s*[–-]\s*\d+\s*(?:g|kg|ml|l)\b|\b(?:plussa-kortilla|ilman plussa-korttia)\b/i;
