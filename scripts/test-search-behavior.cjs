@@ -42,6 +42,9 @@ const samples = [
   ["kahvi","coffee"],["maito","milk"],
   ["keksi","cookies"],["karkki","candy"],["suklaa","chocolate"],
   ["sipsit","snacks"],["chips","snacks"],
+  ["porkkana","fruit_veg"],["kananmuna","egg"],
+  ["hillosokeri","sugar"],["riisipuuro","porridge"],
+  ["puuroriisi","rice"],["ranskanperunat","frozen"],
   ["suolapähkinä","snacks"],["hunajasinappi","mustard"],
   ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
