@@ -34,9 +34,9 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
                 Valitse ensin kaupat
               </div>
             )}
-            <div className="relative z-10 -mx-5 mt-auto flex h-[145px] w-[calc(100%+2.5rem)] shrink-0 flex-col items-center justify-start gap-2 border-t-2 border-[#8d805e]/25 px-5 pt-3 pb-3">
-              <p className="w-full text-[15px] font-bold leading-snug text-[#3f4654]">{fuelMode && item.key==="gosta" ? "Valittujen ketjujen asemat, polttoainehinnat ja havaintoajat. Asemat lähimmästä kaukaisimpaan." : item.description}</p>
-              {fuelMode && item.key==="gosta" && onReportFuel && <button type="button" onClick={onReportFuel} className="relative z-30 rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-5 py-2 text-sm font-black text-[#174c35] shadow-[0_3px_0_rgba(23,87,60,.2)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">📷 Ilmoita hintoja</button>}
+            <div className={`relative z-10 -mx-5 mt-auto flex w-[calc(100%+2.5rem)] shrink-0 flex-col items-center justify-start gap-3 border-t-2 border-[#8d805e]/25 px-4 pt-3 pb-5 ${fuelMode && item.key==="gosta"?"min-h-[176px]":"h-[145px]"}`}>
+              <p className={`w-full font-bold text-[#3f4654] ${fuelMode && item.key==="gosta"?"text-[13px] leading-[1.35]":"text-[15px] leading-snug"}`}>{fuelMode && item.key==="gosta" ? "Valittujen asemien hinnat ja havaintoajat. Lähin ensin." : item.description}</p>
+              {fuelMode && item.key==="gosta" && onReportFuel && <button type="button" onClick={onReportFuel} className="relative z-30 shrink-0 whitespace-nowrap rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-5 py-2 text-sm font-black text-[#174c35] shadow-[0_3px_0_rgba(23,87,60,.2)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">📷 Ilmoita hintoja</button>}
             </div>
           </div>
         );
