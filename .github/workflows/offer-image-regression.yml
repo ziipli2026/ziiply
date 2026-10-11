@@ -4,14 +4,6 @@ on:
   push:
     branches:
       - preview/legacy-desktop-ui
-    paths:
-      - 'src/lib/offerImageEnrichment.ts'
-      - 'src/lib/offerImageEanLookup.ts'
-      - 'src/app/api/offers/search/route.ts'
-      - 'scripts/test-offer-image-enrichment.mts'
-      - 'package.json'
-      - 'tsconfig.json'
-      - '.github/workflows/offer-image-regression.yml'
   workflow_dispatch:
 
 permissions:
@@ -32,3 +24,6 @@ jobs:
         run: npm run test:offer-images
       - name: TypeScript check
         run: npx tsc --noEmit
+      - name: Regression summary
+        if: always()
+        run: echo 'Offer image checks finished; inspect preceding steps for result.' >> "$GITHUB_STEP_SUMMARY"
