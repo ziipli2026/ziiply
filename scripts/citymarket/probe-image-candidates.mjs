@@ -9,9 +9,11 @@ for (const candidate of input.candidates) {
     const response = await fetch(candidate.imageUrl, { method: "GET", redirect: "follow", signal: controller.signal, headers: { "Accept": "image/*" } });
     const type = response.headers.get("content-type") || "";
     const bytes = response.ok && type.toLowerCase().startsWith("image/") ? (await response.arrayBuffer()).byteLength : 0;
-    results.push({ offerId: candidate.offerId, httpStatus: response.status, contentType: type, bytes, reachableImage: response.ok && type.toLowerCase().startsWith("image/") && bytes > 0, approved: false });
+    const validImage = response.ok && /^image\/(jpeg|png|webp|gif|avif|svg\+xml)(?:;|$)/i.test(type) && bytes > 100;
+    const failureReason = validImage ? null : !response.ok ? "http-error" : !type.toLowerCase().startsWith("image/") ? "not-an-image" : bytes <= 100 ? "empty-or-tiny-image" : "unsupported-image-type";
+    results.push({ offerId: candidate.offerId, httpStatus: response.status, contentType: type, bytes, reachableImage: validImage, failureReason, approved: false });
   } catch (error) {
-    results.push({ offerId: candidate.offerId, reachableImage: false, error: String(error), approved: false });
+    results.push({ offerId: candidate.offerId, reachableImage: false, failureReason: "request-failed", error: String(error), approved: false });
   } finally { clearTimeout(timer); }
 }
 fs.writeFileSync("citymarket-image-probe.json", JSON.stringify({ checked: results.length, results }, null, 2) + "\n");
