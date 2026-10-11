@@ -12,7 +12,7 @@ const publisher=read("publisher-responses.json");
 assert.equal(Object.keys(publisher.responses||{}).length,43,"Expected 43 original publisher responses");
 for(const [url,response] of Object.entries(publisher.responses)){
  assert.match(url,/^https:\/\//,"Frozen request URL must be absolute HTTPS");
- if(response.status!==undefined)assert.equal(response.status,200,"Frozen HTTP response is not successful: "+url);
+ assert.equal(response.status,200,"Frozen HTTP response is not successful: "+url);
  assert.equal(typeof response.body,"string","Frozen response body missing: "+url);
  assert.ok(response.body.length>0,"Frozen response body empty: "+url);
  assert.match(response.url,/^https:\/\//,"Frozen resolved URL must be absolute HTTPS");
