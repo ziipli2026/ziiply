@@ -16,5 +16,7 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - name: Test real search intent and local learning logic
         run: node scripts/test-search-behavior.cjs
+      - name: Report ambiguous category substrings
+        run: node scripts/audit-search-collisions.cjs
       - name: Check registry and baseline queries
         run: node scripts/audit-search-categories.cjs
