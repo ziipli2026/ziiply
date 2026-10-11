@@ -139,10 +139,25 @@ const guardedLearning = {
   pass: blockedCoffeeBoost.boost === -100 && blockedCoffeeBoost.reason === "blocked_by_intent_guardrail"
 };
 memory.clearSearchIntentMemory();
+// Check that repeated events remain bounded and clearing the memory resets the boost.
+const saturationProduct = {id:301,name:"Felix Ketsuppi 500 g",ean:"6411234567890",brandName:"Felix",category:"Ketsupit"};
+for (let i=0;i<12;i++) memory.rememberSearchChoice("ketsuppi",saturationProduct,"added_to_cart");
+const saturated = memory.getLearnedSearchBoost("ketsuppi",saturationProduct);
+const saturatedCount = memory.loadSearchIntentMemory().entries[
+  Object.keys(memory.loadSearchIntentMemory().entries)[0]
+]?.positiveCount;
+memory.clearSearchIntentMemory();
+const reset = memory.getLearnedSearchBoost("ketsuppi",saturationProduct);
+const boundedLearning = {
+  saturatedBoost:saturated.boost,
+  saturatedCount,
+  resetBoost:reset.boost,
+  pass:saturated.boost===32 && saturatedCount===12 && reset.boost===0
+};
 const failures=results.filter(r=>!r.pass);
 assert.equal(results.length, samples.length, "Some category cases were not executed");
-console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,learning,guardedLearning},null,2));
-if(failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass){
+console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,learning,guardedLearning,boundedLearning},null,2));
+if(failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
  console.error("Search behavior regression failed", {failures,rankingResults,learning});
  process.exitCode=1;
 }
