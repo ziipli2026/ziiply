@@ -1,0 +1,34 @@
+name: Dependency lock reconciliation dry run
+on:
+  push:
+    branches:
+      - test/dependency-lock-reconcile-20261011
+  workflow_dispatch:
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate a lockfile in runner only
+        run: npm install --package-lock-only --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+      - name: Verify clean dependency installation
+        run: npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+      - name: Check application TypeScript
+        run: npx --no-install tsc --noEmit --incremental false
+      - name: Run search regressions
+        run: |
+          npm run test:search
+          node scripts/test-search-pagination.cjs
+          node scripts/test-search-pagination-performance.cjs
+      - name: Build Next.js application
+        run: npm run build
+      - name: Upload regenerated lockfile as inspection artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-package-lock
+          path: package-lock.json
+          retention-days: 7
