@@ -35,6 +35,7 @@ const powder=/juomajauhe.*cola/iu;
 const failures=[];
 const seen=new Set();
 for(const r of rows){
+  if(!/^\\d{8,14}$/.test(r.ean)||!r.name.trim()||!r.source.trim()||!r.source_category.trim()) failures.push({ean:r.ean,error:'Missing or malformed product identity'});
   const key=[r.ean,r.source,r.source_category,r.finding_type].join('|');
   if(seen.has(key))failures.push({ean:r.ean,error:'Duplicate finding'});
   seen.add(key);
@@ -51,5 +52,8 @@ for(const r of rows){
   }else failures.push({ean:r.ean,error:'Unknown finding type'});
 }
 const counts=Object.fromEntries(['source_misclassification','more_specific_subcategory','ambiguous_search_term'].map(t=>[t,rows.filter(r=>r.finding_type===t).length]));
+const expected={source_misclassification:1,more_specific_subcategory:37,ambiguous_search_term:11};
+for(const [type,n] of Object.entries(expected))if(counts[type]!==n)failures.push({error:'Snapshot count mismatch',type,expected:n,actual:counts[type]});
+if(rows.length!==49)failures.push({error:'Snapshot row count mismatch',expected:49,actual:rows.length});
 console.log(JSON.stringify({rows:rows.length,counts,failures,status:failures.length?'FAIL':'PASS'},null,2));
 if(failures.length)process.exitCode=1;
