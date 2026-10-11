@@ -89,7 +89,7 @@ export function category(t:string){
   if(/punajuuri/.test(s)) return "Hevi";
   if(/korvapuusti|kuorrutemunk|munkk|pullat/.test(s)) return "Leipomo";
   if(/palvirouhe|maalaisnakit|kanatuotteet|maksalaatikot/.test(s)) return "Liha & makkarat";
-  if(/vihreät teet|teet\b/.test(s)) return "Kahvi & tee";
+  if(/vihreät teet|(?:^|\s)teet(?:\s|$)/.test(s)) return "Kahvi & tee";
   if(/pähkin|cashew/.test(s)) return "Kuivatuotteet";
   if(/sriracha|salsat|kastikkeet/.test(s)) return "Kuivatuotteet";
   if(/bonbons|fasupalat/.test(s)) return "Makeiset & keksit";
