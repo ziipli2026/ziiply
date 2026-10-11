@@ -85,6 +85,11 @@ export function category(t:string){
   // Category-only handling of clearly identifiable product names in current and older leaflets.
   if(/suihkeet|wc[- ]?geelit|tahranpoistajat/.test(s)) return "Kodinhoito";
   if(/vaipat|housuvaipat|teippivaipat/.test(s)) return "Hygienia & kosmetiikka";
+  // Additional daily essentials surfaced by the live Citymarket fallback audit.
+  if(/gold\\s*&\\s*green.*(?:rouhe|palat)|proteiinivaahdolla/.test(s)) return "Valmisruoka";
+  if(/aakkoset/.test(s)) return "Makeiset & keksit";
+  if(/mascarat|vanulaput|vanupuikot|puhdistuspyyhkeet/.test(s)) return "Hygienia & kosmetiikka";
+  if(/pentualusta/.test(s)) return "Lemmikit";
   if(/suosikkisalaat/.test(s)) return "Valmisruoka";
   if(/punajuuri/.test(s)) return "Hevi";
   if(/korvapuusti|kuorrutemunk|munkk|pullat/.test(s)) return "Leipomo";
