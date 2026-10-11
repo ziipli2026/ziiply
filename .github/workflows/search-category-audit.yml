@@ -52,7 +52,8 @@ jobs:
                 !Array.isArray(report.rankingResults) ||
                 !Array.isArray(report.exclusionResults) ||
                 !Array.isArray(report.collisionResults) ||
-                !Array.isArray(report.unreviewedCollisions)
+                !Array.isArray(report.unreviewedCollisions) ||
+                !Array.isArray(report.expandedLearningResults)
               )) throw new Error('Missing behavior test fields');
               if (name === 'categories' && !Array.isArray(report.issues))
                 throw new Error('Missing category issues');
@@ -89,7 +90,8 @@ jobs:
               collisions.collisions.length === collisions.collisionCount &&
               Array.isArray(data.unreviewedCollisions) && data.unreviewedCollisions.length === 0 &&
               collisionTests.length > 0 && collisionTests.every(x => x.pass);
-            const ok = registryPass && diagnosticsPass && data.passed === data.total &&
+            const expandedLearning = data.expandedLearningResults || [];
+            const ok = expandedLearning.length > 0 && expandedLearning.every(x => x.pass) && registryPass && diagnosticsPass && data.passed === data.total &&
               ranking.length > 0 && ranking.every(x => x.pass) &&
               exclusion.length > 0 && exclusion.every(x => x.pass) &&
               data.learning?.pass === true && data.guardedLearning?.pass === true && data.boundedLearning?.pass === true;
@@ -105,6 +107,7 @@ jobs:
               '| Reviewed substring collisions | ' + collisions.collisionCount + ' |',
               '| Collision behavior tests | ' + collisionTests.filter(x=>x.pass).length + '/' + collisionTests.length + ' |',
               '| Unreviewed collisions | ' + (data.unreviewedCollisions?.length ?? 'MISSING') + ' |',
+              '| Expanded category learning | ' + expandedLearning.filter(x=>x.pass).length + '/' + expandedLearning.length + ' |',
               '| Learning | ' + (data.learning?.pass ? 'PASS' : 'FAIL') + ' |',
               '| Learning guardrails | ' + (data.guardedLearning?.pass ? 'PASS' : 'FAIL') + ' |',
               '| Learning saturation and reset | ' + (data.boundedLearning?.pass ? 'PASS' : 'FAIL') + ' |',

@@ -197,10 +197,35 @@ const unreviewedCollisions = diagnostics.collisions.filter(item =>
  !collisionCases.some(([term, category]) => term===item.term && category===item.expected));
 assert.equal(diagnostics.collisions.length, diagnostics.collisionCount,
  "Collision report was truncated; not all collisions were checked");
+const expandedLearningCases = [
+ ["raejuusto","Arla raejuusto 200 g","Raejuustosalaatti 200 g"],
+ ["tuorejuusto","Philadelphia tuorejuusto 200 g","Tuorejuustokakku 200 g"],
+ ["rahka","Valio maitorahka 250 g","Rahkapiirakka 250 g"],
+ ["omenamehu","Omenamehu 1 l","Omena 1 kg"],
+ ["tee","Vihreä tee 20 pussia","Proteesi 1 kpl"],
+ ["voi","Valio voi 500 g","Kosteusvoide 500 g"]
+];
+const expandedLearningResults = expandedLearningCases.map(([query, goodName, badName], index) => {
+ memory.clearSearchIntentMemory();
+ const good = {id:800+index*2,name:goodName};
+ const bad = {id:801+index*2,name:badName};
+ for(let i=0;i<8;i++) {
+  memory.rememberSearchChoice(query,good,"selected");
+  memory.rememberSearchChoice(query,bad,"selected");
+ }
+ const goodBoost=memory.getLearnedSearchBoost(query,good).boost;
+ const badBoost=memory.getLearnedSearchBoost(query,bad).boost;
+ const otherQueryBoost=memory.getLearnedSearchBoost("hammastahna",good).boost;
+ const suggestions=memory.getLearnedSuggestions(query);
+ const suggestionsPass=suggestions.some(s=>s.label===goodName) && !suggestions.some(s=>s.label===badName);
+ return {query,goodBoost,badBoost,otherQueryBoost,
+  pass:goodBoost>0 && badBoost<=0 && otherQueryBoost<=0 && suggestionsPass};
+});
+memory.clearSearchIntentMemory();
 const failures=results.filter(r=>!r.pass);
 assert.equal(results.length, samples.length, "Some category cases were not executed");
-console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,collisionResults,unreviewedCollisions,learning,guardedLearning,boundedLearning},null,2));
-if(unreviewedCollisions.length||collisionResults.some(r=>!r.pass)||failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
+console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,collisionResults,unreviewedCollisions,expandedLearningResults,learning,guardedLearning,boundedLearning},null,2));
+if(expandedLearningResults.some(r=>!r.pass)||unreviewedCollisions.length||collisionResults.some(r=>!r.pass)||failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
  console.error("Search behavior regression failed", {failures,rankingResults,learning});
  process.exitCode=1;
 }

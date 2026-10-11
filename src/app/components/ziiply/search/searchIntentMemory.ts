@@ -9,6 +9,8 @@
  * - Never overrides hard exclude rules from searchIntentAI.ts.
  */
 
+import { detectSearchIntent } from "../ziiplyCore";
+
 import {
   resolveSearchIntentAI,
   isProductAllowedByIntent,
@@ -318,10 +320,32 @@ export function clearSearchIntentMemory() {
   } catch {}
 }
 
+// The expanded registry owns guardrails for exact category queries. This also
+// prevents the older AI resolver interpreting apple juice as fresh fruit.
+function isAllowedForLearning(query: string, product: ZiiplySearchMemoryProduct) {
+  const registryIntent = detectSearchIntent(query);
+  const expanded = new Set([
+    "cream", "quark", "cottage_cheese", "cream_cheese", "butter", "margarine",
+    "tea", "juice", "sausage", "cold_cuts", "toothpaste", "deodorant",
+  ]);
+  if (expanded.has(registryIntent.category) &&
+      registryIntent.variants.some(term => normalizeFi(term) === normalizeFi(query))) {
+    const name = normalizeFi(product.name);
+    const matches = (registryIntent.requiredAny || []).some(term => {
+      const normalized = normalizeFi(term);
+      return normalized === "voi" || normalized === "tee"
+        ? name.split(/[^a-z0-9]+/).includes(normalized)
+        : name.includes(normalized);
+    });
+    return matches && !(registryIntent.bannedAny || []).some(term => name.includes(normalizeFi(term)));
+  }
+  return isProductAllowedByIntent(product, resolveSearchIntentAI(query));
+}
+
 export function getLearnedSearchBoost(query: string, product: ZiiplySearchMemoryProduct): ZiiplyLearnedBoost {
   const intent = resolveSearchIntentAI(query);
 
-  if (!isProductAllowedByIntent(product, intent)) {
+  if (!isAllowedForLearning(query, product)) {
     return { boost: -100, positiveCount: 0, negativeCount: 0, reason: "blocked_by_intent_guardrail" };
   }
 
@@ -384,7 +408,7 @@ export function getLearnedStructureBoost(query: string, product: ZiiplySearchMem
 
 export function scoreProductWithIntentMemory(product: ZiiplySearchMemoryProduct, query: string, baseScore = 0) {
   const intent = resolveSearchIntentAI(query);
-  if (!isProductAllowedByIntent(product, intent)) return -9999;
+  if (!isAllowedForLearning(query, product)) return -9999;
   const intentScore = scoreProductIntentFit(product, intent);
   const learned = getLearnedSearchBoost(query, product);
   return baseScore + intentScore + learned.boost;
@@ -413,6 +437,7 @@ export function getLearnedSuggestions(query: string, limit = 6): ZiiplySearchSug
       return entryQuery === canonical || entryQuery.startsWith(cleanQuery) || entry.productName.toLowerCase().includes(cleanQuery);
     })
     .filter((entry) => (entry.positiveCount || 0) > (entry.negativeCount || 0))
+    .filter((entry) => isAllowedForLearning(query, {name:entry.productName, category:entry.productCategory, brandName:entry.productBrand}))
     .sort((a, b) =>
       (b.positiveCount - b.negativeCount) - (a.positiveCount - a.negativeCount) || b.lastSeenAt - a.lastSeenAt
     )
