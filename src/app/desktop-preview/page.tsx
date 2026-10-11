@@ -214,6 +214,7 @@ export default function DesktopPreviewPage() {
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
   const [electricityOpen, setElectricityOpen] = useState(false);
+  const [electricityPrices, setElectricityPrices] = useState<{start:number;end:number;price:number}[]>([]);
   const [stores, setStores] = useState<any[]>([]);
   const [storeMode, setStoreMode] = useState<"hyper" | "local">("hyper");
   const [selectedChain, setSelectedChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
@@ -1067,6 +1068,8 @@ export default function DesktopPreviewPage() {
     let cancelled = false;
     fetch("/api/desktop-electricity", { cache: "no-store" }).then(r => r.json()).then(data => {
       const prices = Array.isArray(data?.prices) ? data.prices : [];
+      const chartPrices = prices.map((p:any)=>({start:new Date(p.startDate ?? p.start).getTime(),end:new Date(p.endDate ?? p.end).getTime(),price:Number(p.price ?? p.value ?? p.priceWithTax)})).filter((p:any)=>Number.isFinite(p.start)&&Number.isFinite(p.end)&&p.end>p.start&&Number.isFinite(p.price)).sort((a:any,b:any)=>a.start-b.start);
+      if(!cancelled)setElectricityPrices(chartPrices);
       const t = Date.now();
       const current = prices.find((p: any) => { const a = new Date(p.startDate ?? p.start).getTime(); const b = new Date(p.endDate ?? p.end).getTime(); return a <= t && t < b; });
       const n = Number(current?.price ?? current?.value ?? current?.priceWithTax);
@@ -1340,8 +1343,20 @@ export default function DesktopPreviewPage() {
                   <p className="mt-1 text-sm text-[#6d604c]">{electricity.detail}</p>
                 </section>
                 <section className="rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
-                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">Hintakuvaaja ja sähkötarjoukset</h3>
-                  <p className="mt-2 text-sm text-[#6d604c]">Hintakuvaaja sekä lähteisiin linkitetyt sähkönmyyntitarjoukset lisätään tähän seuraavaksi. Hintoja ei esitetä ilman tarkistettua lähdettä.</p>
+                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">Pörssisähkön hintakuvaaja</h3>
+                  {electricityPrices.length>0 ? <div className="mt-3">
+                    <div className="flex h-[220px] items-end gap-[2px] border-b-2 border-[#b58a46] pb-1" role="img" aria-label="Pörssisähkön hinnat aikajärjestyksessä">
+                      {electricityPrices.slice(0,192).map((p,i,arr)=>{
+                        const max=Math.max(1,...arr.map(x=>Math.abs(x.price)));
+                        const height=Math.max(3,Math.abs(p.price)/max*100);
+                        const now=Date.now();
+                        return <div key={p.start+"-"+i} title={new Date(p.start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})+": "+p.price.toFixed(2).replace(".",",")+" snt/kWh"} className={`min-w-0 flex-1 rounded-t-sm ${p.start<=now&&now<p.end?"bg-[#b4472c]":p.price<5?"bg-[#75a744]":p.price<12?"bg-[#d9a52c]":"bg-[#b85b35]"}`} style={{height:height+"%"}} />;
+                      })}
+                    </div>
+                    <div className="mt-2 flex justify-between text-xs font-bold text-[#6d604c]"><span>{new Date(electricityPrices[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>snt/kWh · lähde: Ziiplyn sähkörajapinta</span><span>{new Date(electricityPrices[Math.min(191,electricityPrices.length-1)].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
+                  </div> : <p className="mt-3 text-sm text-[#6d604c]">Hintakuvaajaa ei saatavilla. Esimerkkihintoja ei näytetä oikeina hintoina.</p>}
+                  <h3 className="mt-5 font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
+                  <p className="mt-2 text-sm text-[#6d604c]">Sähköyhtiöiden lähteisiin linkitetyt tarjoukset lisätään tähän erikseen.</p>
                 </section>
               </div>
             </div>}
