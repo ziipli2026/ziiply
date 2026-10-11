@@ -82,6 +82,10 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Specific everyday consumables must survive the non-grocery filter.
+  if(/teippi-?\\s*ja\\s*housuvaipat|housuvaipat|teippivaipat|vaipat\\s+koot/.test(s)) return "Hygienia & kosmetiikka";
+  if(/vanulaput|vanupuikot|topz/.test(s)) return "Hygienia & kosmetiikka";
+  if(/kasvipohjainen\\s+savu|savulauantai|savukalgguna/.test(s)) return "Valmisruoka";
   // Apparel and footwear are not daily groceries, even when the title contains food-like words.
   if(/collegehousut|collegepaita|collegeasu|housut|farkut|leggingsit|legginssit|sukat|alushousut|alusvaatteet|t-paita|t-paidat|huppari|neulepaita|takki\\b|takit\\b|kengät|saappaat|lenkkarit|vaatteet|pukeutuminen/.test(s)) return "Koti & vapaa-aika";
   // Mobile Citymarket preview: specific product forms before generic food keywords.
