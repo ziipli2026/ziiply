@@ -12412,20 +12412,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const rankedPair = rankNormalSearchResults(
             aOriginalQuery,
             [a, b],
+            product => getLearnedStructureBoost(aOriginalQuery, product).boost,
           );
 
           // Tuoteryhmän oikeellisuus / normaali relevance ratkaisee aina ensin.
           // Oppiminen ei saa nostaa väärää tuoteryhmää oikean tuotteen edelle.
           if (rankedPair[0]?.id === a.id && rankedPair[1]?.id === b.id) return -1;
           if (rankedPair[0]?.id === b.id && rankedPair[1]?.id === a.id) return 1;
-
-          // Vasta relevance-tasapelin jälkeen käytetään käyttäjän aiemmista
-          // valinnoista opittua EAN-riippumatonta rakenneprofiilia.
-          const aLearnedStructureBoost = getLearnedStructureBoost(aOriginalQuery, a).boost;
-          const bLearnedStructureBoost = getLearnedStructureBoost(bOriginalQuery, b).boost;
-          if (aLearnedStructureBoost !== bLearnedStructureBoost) {
-            return bLearnedStructureBoost - aLearnedStructureBoost;
-          }
 
           return (
             scoreNormalSResult(bOriginalQuery, b) -

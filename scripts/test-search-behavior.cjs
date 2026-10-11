@@ -222,10 +222,21 @@ const expandedLearningResults = expandedLearningCases.map(([query, goodName, bad
   pass:goodBoost>0 && badBoost<=0 && otherQueryBoost<=0 && suggestionsPass};
 });
 memory.clearSearchIntentMemory();
+memory.clearSearchIntentMemory();
+const learnedProfile = {id:900,name:"Raejuusto 200 g",category:"Raejuustot",brandName:"A"};
+const sameStructure = {id:901,name:"Raejuusto 200 g",category:"Raejuustot",brandName:"B",price:3};
+const otherStructure = {id:902,name:"Raejuusto 100 g",category:"Raejuustot",brandName:"C",price:1};
+const wrongCategory = {id:903,name:"Raejuustosalaatti 200 g",category:"Raejuustot",price:0.5};
+for(let i=0;i<3;i++) memory.rememberSearchChoice("raejuusto",learnedProfile,"selected");
+const integratedRank = core.rankNormalSearchResults("raejuusto",[otherStructure,wrongCategory,sameStructure],
+ product=>memory.getLearnedStructureBoost("raejuusto",product).boost);
+const integratedLearning = {ids:integratedRank.map(p=>p.id),
+ pass:integratedRank[0]?.id===901 && integratedRank[2]?.id===903};
+memory.clearSearchIntentMemory();
 const failures=results.filter(r=>!r.pass);
 assert.equal(results.length, samples.length, "Some category cases were not executed");
-console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,collisionResults,unreviewedCollisions,expandedLearningResults,learning,guardedLearning,boundedLearning},null,2));
-if(expandedLearningResults.some(r=>!r.pass)||unreviewedCollisions.length||collisionResults.some(r=>!r.pass)||failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
+console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,collisionResults,unreviewedCollisions,expandedLearningResults,integratedLearning,learning,guardedLearning,boundedLearning},null,2));
+if(!integratedLearning.pass||expandedLearningResults.some(r=>!r.pass)||unreviewedCollisions.length||collisionResults.some(r=>!r.pass)||failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
  console.error("Search behavior regression failed", {failures,rankingResults,learning});
  process.exitCode=1;
 }

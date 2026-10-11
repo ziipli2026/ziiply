@@ -2798,7 +2798,11 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
   return false;
 }
 
-export function rankNormalSearchResults(query: string, products: Product[]) {
+export function rankNormalSearchResults(
+  query: string,
+  products: Product[],
+  getTieBreakBoost?: (product: Product) => number,
+) {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
 
@@ -2883,6 +2887,10 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
       const nonFoodDifference = b.nonFoodPenalty - a.nonFoodPenalty;
       if (Math.abs(nonFoodDifference) > 100) return nonFoodDifference;
 
+      // Learned structure can resolve relevance ties, before the price fallback.
+      // Core intent, category and package relevance remain stronger guardrails.
+      const learnedDifference = (getTieBreakBoost?.(b.product) || 0) - (getTieBreakBoost?.(a.product) || 0);
+      if (learnedDifference !== 0) return learnedDifference;
       return getProductPrice(a.product) - getProductPrice(b.product);
     })
     .map(({ product }) => product);
