@@ -74,15 +74,36 @@ jobs:
           set -euo pipefail
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-current-parser.mjs
           KCM_REPLAY_REPORT=/tmp/kcm-41lv-replay-report.json node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json /tmp/kcm-41lv-current-parser.mjs
-      - name: Publish 41LV replay summary
+      - name: Publish historical and current replay summaries
         if: always()
         shell: bash
         run: |
-          if [ -s /tmp/kcm-41lv-replay-report.json ]; then
-            node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync("/tmp/kcm-41lv-replay-report.json","utf8"));fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,["## 41LV frozen parser replay","Matched: "+r.matched+"/"+r.expected,"Missing: "+r.missing.length,"Extra: "+r.extra.length,"Duplicates: "+r.duplicateKeys,"Pages: "+r.pages].join("\n")+"\n")'
-          else
-            echo "41LV replay report missing; inspect preceding steps." >> "$GITHUB_STEP_SUMMARY"
-          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const lines = ['## 41LV frozen parser comparison', '| Parser | Matched | Missing | Extra | Duplicates | Pages |', '|---|---:|---:|---:|---:|---:|'];
+          for (const [label, file] of [
+            ['Historical approved commit', '/tmp/kcm-41lv-historical-report.json'],
+            ['Current preview branch', '/tmp/kcm-41lv-replay-report.json']
+          ]) {
+            if (!fs.existsSync(file)) {
+              lines.push('| ' + label + ' | Report missing | — | — | — | — |');
+              continue;
+            }
+            const r = JSON.parse(fs.readFileSync(file, 'utf8'));
+            lines.push('| ' + label + ' | ' + r.matched + '/' + r.expected + ' | ' + r.missing.length + ' | ' + r.extra.length + ' | ' + r.duplicateKeys + ' | ' + r.pages + ' |');
+            for (const [kind, keys] of [['Missing', r.missing], ['Extra', r.extra]]) {
+              if (keys.length) {
+                lines.push('<details><summary>' + label + ': ' + kind + ' (' + keys.length + ')</summary>');
+                lines.push('');
+                lines.push('```text');
+                lines.push(...keys.slice(0, 100));
+                lines.push('```');
+                lines.push('</details>');
+              }
+            }
+          }
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\\n') + '\\n');
+          NODE
       - name: Enforce both replay results
         if: always()
         shell: bash
