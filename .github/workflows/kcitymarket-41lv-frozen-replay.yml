@@ -52,6 +52,8 @@ jobs:
           test -s /tmp/kcm-41lv-archive/parser-evidence.json
           node scripts/citymarket/verify-41lv-archive.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json
       - name: Replay originally approved parser as historical control
+        id: historical_replay
+        continue-on-error: true
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -65,6 +67,8 @@ jobs:
           test -s /tmp/kcm-41lv-approved-parser.mjs
           KCM_REPLAY_REPORT=/tmp/kcm-41lv-historical-report.json node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json /tmp/kcm-41lv-approved-parser.mjs
       - name: Replay current parser against original frozen publisher responses
+        id: current_replay
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -79,6 +83,14 @@ jobs:
           else
             echo "41LV replay report missing; inspect preceding steps." >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: Enforce both replay results
+        if: always()
+        shell: bash
+        run: |
+          echo "Historical replay: ${{ steps.historical_replay.outcome }}"
+          echo "Current replay: ${{ steps.current_replay.outcome }}"
+          test "${{ steps.historical_replay.outcome }}" = success
+          test "${{ steps.current_replay.outcome }}" = success
       - name: Preserve exact 41LV regression differences
         if: always()
         uses: actions/upload-artifact@v4
