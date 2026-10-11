@@ -275,10 +275,10 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   const scroller = row?.closest("[data-desktop-compare-products-scroll]");
                                   if (row && scroller) {
                                     const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-                                    // Keep the chosen product in a predictable upper-middle position,
-                                    // leaving room below for the alternatives menu to scroll immediately.
-                                    const targetTop = scroller.scrollTop + offset - scroller.clientHeight * 0.28;
-                                    scroller.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+                                    // Align the chosen product at the top, with the alternatives visible below.
+                                    // The desktop scroll container provides trailing space even for the last item.
+                                    const targetTop = scroller.scrollTop + offset;
+                                    scroller.scrollTo({ top: Math.max(0, targetTop), behavior: "auto" });
                                   }
                                 }
                                 if (mode === "cheapest") {
@@ -344,7 +344,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   </>);
 
   if (embedded) return (
-    <div className={`mt-2 min-h-0 flex-1 border-t border-[#d4bd86]/72 bg-transparent ${alternativeMenu ? "overflow-hidden" : "overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}`}>
+    <div className="mt-2 border-t border-[#d4bd86]/72 bg-transparent">
       {onBack ? (
         <button type="button" onClick={onBack} className="ml-2 mt-2 inline-flex items-center gap-1 rounded-[0.42rem] border border-[#876b37] bg-[#efe1bd] px-2 py-1 text-[0.68rem] font-black text-[#28402a]" aria-label={`Palaa ${store.name} korin yhteenvetoon`}>
           <span aria-hidden="true">←</span> Paluu
