@@ -52,11 +52,31 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
   const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
-  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const onlineInput=useRef<HTMLInputElement>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
+  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const videoRef=useRef<HTMLVideoElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
   const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;closeRef.current?.focus();return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
   useEffect(()=>{const timer=setInterval(()=>{if(autoTime.current)setObserved(localDateTime());},1000);return()=>clearInterval(timer);},[]);
+  function stopCamera(){streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraOpen(false);setCameraReady(false);}
+  useEffect(()=>{
+    if(!cameraOpen)return;
+    let cancelled=false;let stream:MediaStream|null=null;
+    async function open(){
+      try{
+        if(!navigator.mediaDevices?.getUserMedia)throw new Error("Kamera ei ole käytettävissä tässä selaimessa. Lisää kuva offline-valinnalla.");
+        stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
+        if(cancelled){stream.getTracks().forEach(track=>track.stop());return;}
+        streamRef.current=stream;
+        if(videoRef.current){videoRef.current.srcObject=stream;await videoRef.current.play();}
+      }catch(e){
+        if(cancelled)return;
+        stream?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraOpen(false);
+        setError(e instanceof DOMException&&e.name==="NotAllowedError"?"Salli kameran käyttö selaimen asetuksista ja kokeile uudelleen.":e instanceof DOMException&&e.name==="NotFoundError"?"Laitteesta ei löytynyt kameraa. Voit lisätä kuvan offline-valinnalla.":e instanceof Error?e.message:"Kameran avaaminen epäonnistui.");
+      }
+    }
+    void open();
+    return()=>{cancelled=true;stream?.getTracks().forEach(track=>track.stop());if(streamRef.current===stream)streamRef.current=null;};
+  },[cameraOpen]);
   async function findStations(location:{lat:number;lon:number;accuracy:number}|null){
     const id=++gpsRequest.current;setLocating(true);setStations([]);setStationId("");
     try{
@@ -68,15 +88,28 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Asemien haku epäonnistui.");}finally{if(alive.current&&id===gpsRequest.current)setLocating(false);}
   }
   function startManual(){
-    autoTime.current=true;setMode("manual");setPhoto("");setPrices({diesel:"",price95:"",price98:""});setObserved(localDateTime());setGps(null);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setConflictConfirmed(false);setTimeSource("manual");setLocationSource("manual");setPriceReview(false);setEditing(true);setSent(false);setError("");setStatus("");setRawText("");exifInstant.current=null;onlineCapture.current=null;requestId.current=crypto.randomUUID();void findStations(null);
+    stopCamera();autoTime.current=true;setMode("manual");setPhoto("");setPrices({diesel:"",price95:"",price98:""});setObserved(localDateTime());setGps(null);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setConflictConfirmed(false);setTimeSource("manual");setLocationSource("manual");setPriceReview(false);setEditing(true);setSent(false);setError("");setStatus("");setRawText("");exifInstant.current=null;onlineCapture.current=null;requestId.current=crypto.randomUUID();void findStations(null);
   }
   function startOnline(){
-    autoTime.current=false;setError("");setMode("online");setEditing(false);
+    autoTime.current=false;setError("");setMode("online");setEditing(false);setCameraReady(false);setCameraOpen(true);
+  }
+  async function capturePhoto(){
+    const video=videoRef.current;
+    if(!cameraReady||!video?.videoWidth||!video.videoHeight)return;
+    const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+    const context=canvas.getContext("2d");if(!context){setError("Kuvan ottaminen epäonnistui.");return;}
+    context.drawImage(video,0,0);
     const location=new Promise<{lat:number;lon:number;accuracy:number}|null>(resolve=>{
       if(!navigator.geolocation){resolve(null);return;}
       navigator.geolocation.getCurrentPosition(position=>resolve({lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy}),()=>resolve(null),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
     });
-    onlineCapture.current={time:localDateTime(),gps:location};onlineInput.current?.click();
+    onlineCapture.current={time:localDateTime(),gps:location};
+    stopCamera();setBusy(true);
+    canvas.toBlob(blob=>{
+      if(!alive.current)return;
+      if(!blob){setBusy(false);setError("Kuvan ottaminen epäonnistui. Kokeile uudelleen.");return;}
+      void readPhoto(new File([blob],"hintataulu.jpg",{type:"image/jpeg"}),"online");
+    },"image/jpeg",0.95);
   }
   async function readPhoto(file:File,source:"online"|"offline"){
     autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
@@ -132,16 +165,15 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       <header className="mb-4 flex items-center justify-between gap-3"><div><h2 id="fuel-report-title" className="text-2xl font-black text-[#174c35]">Ilmoita polttoainehintoja</h2><p className="text-sm text-[#6d604c]">Lisää hintataulun kuva tai syötä hinnat käsin.</p></div><button ref={closeRef} type="button" onClick={onClose} aria-label="Sulje hintailmoitus" className="h-10 w-10 shrink-0 rounded-full border-2 border-[#17573c] text-xl">×</button></header>
       <div className="min-h-0 overflow-y-auto">
         <div className="mb-3 grid grid-cols-3 gap-3">
-          <button type="button" disabled={busy||sent||locating} onClick={startOnline} className="min-h-[58px] rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] px-3 py-2 font-black text-[#174c35] disabled:opacity-40">Ota kuva online<span className="mt-1 block text-xs font-medium">Uusi kuva</span></button>
-          <button type="button" disabled={busy||sent||locating} onClick={()=>offlineInput.current?.click()} className="min-h-[58px] rounded-2xl border-2 border-[#9a7a47] bg-[#f7e7bd] px-3 py-2 font-black text-[#59411f] disabled:opacity-40">Lisää kuva offline<span className="mt-1 block text-xs font-medium">Aiempi kuva</span></button>
+          <button type="button" disabled={busy||sent||locating||cameraOpen} onClick={startOnline} className="min-h-[58px] rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] px-3 py-2 font-black text-[#174c35] disabled:opacity-40">Ota kuva online<span className="mt-1 block text-xs font-medium">Uusi kuva</span></button>
+          <button type="button" disabled={busy||sent||locating} onClick={()=>{stopCamera();offlineInput.current?.click();}} className="min-h-[58px] rounded-2xl border-2 border-[#9a7a47] bg-[#f7e7bd] px-3 py-2 font-black text-[#59411f] disabled:opacity-40">Lisää kuva offline<span className="mt-1 block text-xs font-medium">Aiempi kuva</span></button>
           <button type="button" disabled={busy||sent||locating} onClick={startManual} className="min-h-[58px] rounded-2xl border-2 border-[#9a7a47] bg-[#fff4cf] px-3 py-2 font-black text-[#59411f] disabled:opacity-40">Syötä käsin<span className="mt-1 block text-xs font-medium">Ilman kuvaa</span></button>
-          <input ref={onlineInput} aria-label="Ota uusi hintataulun kuva" type="file" accept="image/*" capture="environment" className="hidden" onChange={e=>{const file=e.target.files?.[0];e.target.value="";if(file)void readPhoto(file,"online");}}/>
           <input ref={offlineInput} aria-label="Valitse aiempi hintataulun kuva" type="file" accept="image/*" className="hidden" onChange={e=>{const file=e.target.files?.[0];e.target.value="";if(file)void readPhoto(file,"offline");}}/>
         </div>
         <div className="overflow-hidden rounded-[22px] border-[3px] border-[#8d6e3d] bg-[#17241e] p-3 shadow-[0_4px_0_#b49a68]">
           <div className="mb-3 text-center text-xs font-black uppercase tracking-[.12em] text-[#f5e5c1]">{mode==="manual"?"Hintojen käsinsyöttö":"Hintataulun kuvalukija"}</div>
           <div className="relative flex min-h-[300px] w-full items-center justify-center overflow-hidden rounded-xl bg-[#080e0b]">
-            {!photo&&mode!=="manual"?<div className="max-w-[320px] px-6 py-12 text-center text-[#f5e5c1]"><img src="/fuel/nozzle-photo.png" alt="" className="mx-auto mb-4 h-16 w-16 object-contain"/><p className="text-lg font-black">Lisää hintataulun kuva</p><p className="mt-2 text-sm leading-relaxed text-[#e5ddc6]">Ota uusi kuva tai valitse aiempi kuva yllä olevista napeista.</p></div>:busy&&photo?<img src={photo} alt="Ilmoituksen hintataulu" className="max-h-[360px] w-full object-contain"/>:<div className="w-full space-y-4 p-4 text-[#f5e5c1]">
+            {cameraOpen?<div className="w-full p-3 text-center text-[#f5e5c1]"><video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className="max-h-[360px] w-full rounded-lg object-contain" aria-label="Kameran esikatselu"/><p className="my-3 text-sm">{cameraReady?"Kohdista kamera hintatauluun.":"Avataan kameraa…"}</p><div className="flex justify-center gap-3"><button type="button" disabled={!cameraReady} onClick={()=>void capturePhoto()} className="rounded-xl bg-[#e3edc9] px-8 py-3 font-black text-[#174c35] disabled:opacity-40">Ota kuva</button><button type="button" onClick={stopCamera} className="rounded-xl border border-[#baa46a] px-4 py-3 font-bold">Peruuta</button></div></div>:!photo&&mode!=="manual"?<div className="max-w-[320px] px-6 py-12 text-center text-[#f5e5c1]"><img src="/fuel/nozzle-photo.png" alt="" className="mx-auto mb-4 h-16 w-16 object-contain"/><p className="text-lg font-black">Lisää hintataulun kuva</p><p className="mt-2 text-sm leading-relaxed text-[#e5ddc6]">Ota uusi kuva tai valitse aiempi kuva yllä olevista napeista.</p></div>:busy&&photo?<img src={photo} alt="Ilmoituksen hintataulu" className="max-h-[360px] w-full object-contain"/>:<div className="w-full space-y-4 p-4 text-[#f5e5c1]">
               {photo&&<img src={photo} alt="Ilmoituksen hintataulu" className="mx-auto max-h-[150px] w-full rounded-lg object-contain"/>}
               {sent?<div role="status" className="py-6 text-center"><p className="text-xl font-black">Kiitos! Ilmoitus vastaanotettu.</p><button type="button" onClick={onClose} className="mt-4 rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35]">OK</button></div>:<>
                 {selectedStation&&<p className="text-center text-sm font-bold">{selectedStation.chain} · {selectedStation.name}</p>}
