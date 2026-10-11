@@ -1,0 +1,30 @@
+name: Tankkaus nationwide preview probe
+on:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - scripts/lib/tankkaus-national.mjs
+      - scripts/ingest-tankkaus-national.mjs
+      - tests/tankkaus-national.test.mjs
+      - .github/workflows/tankkaus-national-preview.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tankkaus-national-preview
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Simulate pagination, validation and database branch isolation
+        run: node --test tests/tankkaus-national.test.mjs
+      - name: Read all available provider observation pages without database writes
+        env:
+          TANKKAUS_API_TOKEN: ${{ secrets.TANKKAUS_API_TOKEN }}
+        run: node scripts/ingest-tankkaus-national.mjs
