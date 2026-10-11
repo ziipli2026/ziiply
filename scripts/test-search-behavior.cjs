@@ -69,6 +69,9 @@ const makeProduct = (id, name, category) => ({id,name,category,price:2.5});
 const rankingCases = [
   {query:"ketsuppi", products:[makeProduct(1,"Ketsupin makuinen kastike","Kastikkeet"),makeProduct(2,"Felix Ketsuppi 500 g","Ketsupit")], first:2},
   {query:"kananmuna", products:[makeProduct(3,"Kananmunaton leivonnainen","Leivonta"),makeProduct(4,"Kotimainen kananmuna 10 kpl","Kananmunat")], first:4, excluded:[3]},
+  {query:"sinappi", products:[makeProduct(5,"Sinappikastike 250 ml","Kastikkeet"),makeProduct(6,"Turun sinappi 250 g","Sinapit")], first:6, excluded:[5]},
+  {query:"tomaattimurska", products:[makeProduct(7,"Tomaattipyree 200 g","Säilykkeet"),makeProduct(8,"Tomaattimurska 400 g","Säilykkeet")], first:8, excluded:[7]},
+  {query:"tomaattipyree", products:[makeProduct(9,"Tomaattimurska 400 g","Säilykkeet"),makeProduct(10,"Tomaattipyree 200 g","Säilykkeet")], first:10, excluded:[9]},
 ];
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
