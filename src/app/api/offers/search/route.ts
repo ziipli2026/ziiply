@@ -62,6 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
+import { enrichOfferImage, type OfferImageCandidate } from "../../../../lib/offerImageEnrichment";
 import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
@@ -912,12 +913,51 @@ export async function GET(request: Request) {
       return chain === "k" || chain.startsWith("k ");
     });
 
+    // Preview-only image enrichment experiment. Source parser and prices stay untouched.
+    // Reuse only independently verified matching images already in this response.
+    const imageBank: OfferImageCandidate[] = results.filter(row => row.imageUrl).map(row => ({
+      ean: typeof row.ean === "string" ? row.ean : null,
+      productCode: typeof row.productCode === "string" ? row.productCode : null,
+      name: String(row.title || row.name || ""),
+      brand: typeof row.brand === "string" ? row.brand : null,
+      packageSize: typeof row.packageSize === "string" ? row.packageSize : null,
+      imageUrl: String(row.imageUrl),
+      source: String(row.source || ""),
+    }));
+    let imageEnrichedCount = 0;
+    const previewResults = process.env.VERCEL_ENV === "preview"
+      ? results.map(row => {
+          if (row.imageUrl) return row;
+          const original = row.__sourceOfferSearchResult as UnknownRecord | undefined;
+          const enriched = enrichOfferImage({
+            ean: String(row.ean || original?.ean || ""),
+            productCode: String(row.productCode || original?.productCode || ""),
+            name: String(row.title || row.name || ""),
+            brand: String(row.brand || original?.brand || ""),
+            packageSize: String(row.packageSize || original?.packageSize || ""),
+            source: String(row.source || original?.source || ""),
+            imageUrl: "",
+          }, imageBank);
+          if (!enriched.imageUrl) return row;
+          imageEnrichedCount++;
+          return { ...row, imageUrl: enriched.imageUrl, image: enriched.imageUrl, pictureUrl: enriched.imageUrl };
+        })
+      : results;
+    const imageEnrichmentAudit = {
+      beforeMissing: results.filter(row => !row.imageUrl).length,
+      afterMissing: previewResults.filter(row => !row.imageUrl).length,
+      enriched: imageEnrichedCount,
+      candidateImages: imageBank.length,
+      mode: "verified-in-response-matches-only",
+    };
+
     return NextResponse.json(
       {
         ok: true,
         query: q,
         context,
-        results,
+        imageEnrichmentAudit,
+        results: previewResults,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
