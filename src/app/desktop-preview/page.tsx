@@ -1337,15 +1337,16 @@ export default function DesktopPreviewPage() {
                 <button type="button" onClick={()=>setElectricityOpen(false)} aria-label="Sulje sähkövertailu" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black text-[#fff0c8]">×</button>
               </div>
               <div className="mt-3 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-5">
-                <section className="rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
-                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">⚡ Pörssisähkön hinta nyt</h3>
-                  <p className="mt-2 text-3xl font-black text-[#174c35]">{electricity.value} <span className="text-base">snt/kWh</span></p>
-                  <p className="mt-1 text-sm text-[#6d604c]">{electricity.detail}</p>
-                </section>
-                <section className="rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
-                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">Pörssisähkön hintakuvaaja</h3>
+                <section className="relative min-h-[220px] rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-4">
+                  <div className="relative z-10 flex items-start justify-between gap-3">
+                    <h3 className="font-serif text-xl font-black italic text-[#174c35]">⚡ Pörssisähkön hinta nyt</h3>
+                    <div className="rounded-xl border border-[#caa15d] bg-[#fff4cf]/95 px-4 py-2 text-right shadow-sm">
+                      <div className="text-3xl font-black text-[#174c35]">{electricity.value} <span className="text-sm">snt/kWh</span></div>
+                      <div className="text-xs font-bold text-[#6d604c]">{electricity.detail}</div>
+                    </div>
+                  </div>
                   {electricityPrices.length>0 ? <div className="mt-3">
-                    <div className="flex h-[220px] items-end gap-[2px] border-b-2 border-[#b58a46] pb-1" role="img" aria-label="Pörssisähkön hinnat aikajärjestyksessä">
+                    <div className="flex h-[140px] items-end gap-[2px] border-b-2 border-[#b58a46] pb-1" role="img" aria-label="Pörssisähkön hinnat aikajärjestyksessä">
                       {electricityPrices.slice(0,192).map((p,i,arr)=>{
                         const max=Math.max(1,...arr.map(x=>Math.abs(x.price)));
                         const height=Math.max(3,Math.abs(p.price)/max*100);
@@ -1353,8 +1354,10 @@ export default function DesktopPreviewPage() {
                         return <div key={p.start+"-"+i} title={new Date(p.start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})+": "+p.price.toFixed(2).replace(".",",")+" snt/kWh"} className={`min-w-0 flex-1 rounded-t-sm ${p.start<=now&&now<p.end?"bg-[#b4472c]":p.price<5?"bg-[#75a744]":p.price<12?"bg-[#d9a52c]":"bg-[#b85b35]"}`} style={{height:height+"%"}} />;
                       })}
                     </div>
-                    <div className="mt-2 flex justify-between text-xs font-bold text-[#6d604c]"><span>{new Date(electricityPrices[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>snt/kWh · lähde: Ziiplyn sähkörajapinta</span><span>{new Date(electricityPrices[Math.min(191,electricityPrices.length-1)].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
-                  </div> : <p className="mt-3 text-sm text-[#6d604c]">Hintakuvaajaa ei saatavilla. Esimerkkihintoja ei näytetä oikeina hintoina.</p>}
+                    <div className="mt-2 flex justify-between gap-2 text-[11px] font-bold text-[#6d604c]"><span>{new Date(electricityPrices[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>Ziiplyn sähkörajapinta · snt/kWh</span><span>{new Date(electricityPrices[Math.min(191,electricityPrices.length-1)].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
+                  </div> : <p className="mt-8 text-sm text-[#6d604c]">Hintakuvaajaa ei saatavilla. Esimerkkihintoja ei näytetä oikeina hintoina.</p>}
+                </section>
+                <section className="rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
                   <h3 className="mt-5 font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
                   <p className="mt-2 text-sm text-[#6d604c]">Sähköyhtiöiden lähteisiin linkitetyt tarjoukset lisätään tähän erikseen.</p>
                 </section>
