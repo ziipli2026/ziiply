@@ -7,6 +7,7 @@ if(!folder||!fixturePath)throw Error('Usage: replay-frozen-parser.mjs archive-fo
 const frozen=JSON.parse(fs.readFileSync(path.join(folder,'publisher-responses.json'),'utf8'));
 if(!frozen.entry||!frozen.responses||!Object.keys(frozen.responses).length)throw Error('Missing frozen publisher responses');
 const fixture=JSON.parse(fs.readFileSync(fixturePath,'utf8'));
+console.log('KCM_FROZEN_ENTRY',JSON.stringify({entry:frozen.entry,sourceUrl:fixture.sourceUrl}));
 const {parseKCitymarketSpatialLeaflet}=await import(pathToFileURL(path.resolve(parserPath)));
 const visited=new Set();
 const missingRequests=[];
