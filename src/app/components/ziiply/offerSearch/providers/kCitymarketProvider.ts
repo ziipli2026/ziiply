@@ -619,7 +619,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v131-publisher-archive":"standard"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v132-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
