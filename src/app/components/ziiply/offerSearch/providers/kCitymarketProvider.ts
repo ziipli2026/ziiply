@@ -82,6 +82,11 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Specific 41LV product nouns: classify the product itself, not a nearby heading.
+  if(/\bvaseline\b|\bihovoide\b|\bihonhoitovoide\b/.test(s)) return "Hygienia & kosmetiikka";
+  if(/\bpyykkietik(?:ka|at)\b|\bhuuhteluaine(?:et)?\b|\btahranpoistaja(?:t)?\b|\bwc[- ]?geeli(?:t)?\b/.test(s)) return "Kodinhoito";
+  if(/proteiinipirtel|proteiini[\s-]*(?:\d+[\s.]*)?pirtel/.test(s)) return "Juomat";
+  if(/kebab|meetvursti|paistikäristys|naudan.*filee/.test(s)) return "Liha & makkarat";
   // Product form must outrank incidental words and nearby leaflet categories.
   if(/maissikakut|riisikakut|riisikakku|maissikakku/.test(s)) return "Kuivatuotteet";
   if(/wc[- ]?paperi|talouspaperi|nenäliina|nenaliina/.test(s)) return "Kodinhoito";
