@@ -17,7 +17,13 @@ globalThis.fetch=async input=>{
  visited.add(url);
  return {ok:true,status:200,url:item.url,text:async()=>item.body};
 };
-const parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);
+let parsed;
+try{parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);}catch(error){
+ const failure={id:fixture.id,error:String(error?.stack||error),requests:visited.size,missingRequests};
+ if(process.env.KCM_REPLAY_REPORT)fs.writeFileSync(process.env.KCM_REPLAY_REPORT,JSON.stringify(failure,null,2)+'\n');
+ console.error('KCM_REPLAY_FAILED',JSON.stringify(failure));
+ process.exit(1);
+}
 if(!Array.isArray(parsed?.rows))throw Error('Parser did not return rows');
 const extractedKeys=parsed.rows.flatMap(r=>{
  const title=String(r.title||'').trim().toLowerCase(),page=Number(r.page)||0;
