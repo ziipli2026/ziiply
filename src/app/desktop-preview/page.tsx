@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
+import { rankNormalSearchResults, getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
@@ -10,6 +10,8 @@ import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopN
 import ZiiplyDesktopCompareCard from "../components/ziiply/desktop/ZiiplyDesktopCompareCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV147, searchZiiplyGostaOffersV146, cleanZiiplyGostaOfferResultsV146, filterZiiplyGostaOfferResultsV146, hidePrismaOfferCopiesAlreadyInCampaignTabV805 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { getOfferPrice, splitOfferDisplayPrice } from "../components/ziiply/cards/ZiiplyMobileOfferSearchCard";
+
+import { getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -735,6 +737,7 @@ export default function DesktopPreviewPage() {
   function flashCartNotice(message:string){setCartNotice(message);window.setTimeout(()=>setCartNotice(current=>current===message?"":current),2200)}
   function addDesktopCartItem(p:any){
     const key=desktopCartKey(p);if(!key)return;
+    if(p.source==="justiina" && p.originalSearchTerm) rememberSearchChoice(p.originalSearchTerm,{...p,name:p.name||p.title},"added_to_cart");
     setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return isDesktopMemoItem(found)?current:current.map(x=>desktopCartKey(x)===key?{...x,quantity:Number(x.quantity||1)+1}:x)}flashCartNotice(`Lisätty ostoskoriin: ${p?.title||p?.name||"tuote"}`);return [...current,{...p,source:p?.source||"normal",quantity:1}]});
   }
   function changeDesktopCartQuantity(p:any,delta:number){const key=desktopCartKey(p);setCartItems(current=>current.flatMap(x=>desktopCartKey(x)!==key?[x]:Number(x.quantity||1)+delta<=0?[]:[{...x,quantity:Number(x.quantity||1)+delta}]))}
@@ -911,8 +914,9 @@ export default function DesktopPreviewPage() {
       if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
-      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankDesktopJustiinaResults(items,query).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
-      setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
+      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankDesktopJustiinaResults(items,query).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,originalSearchTerm:query,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
+      const rankedRows=rankNormalSearchResults(query,rows.map(p=>({...p,name:p.name||p.title||p.productName,price:p.__price})),p=>getLearnedStructureBoost(query,p).boost);
+      setJustiinaResults(rankedRows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
     }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
   }
 

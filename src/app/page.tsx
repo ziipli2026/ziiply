@@ -16967,7 +16967,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Tallenna käyttäjän onnistunut valinta ennen kuin hakukenttää muutetaan.
     // activeNormalSearchTerm on juuri valmistuneen tuloslistan hakutermi;
     // input on fallback esim. vanhemmissa/erikoisissa avauspoluissa.
-    const learnedQuery = (activeNormalSearchTerm || input).trim();
+    const learnedQuery = ((product as Product & { originalSearchTerm?: string }).originalSearchTerm || activeNormalSearchTerm || input).trim();
     if (learnedQuery) {
       learnZiiplyNormalSearchChoice(learnedQuery, product, "added_to_cart");
     }
