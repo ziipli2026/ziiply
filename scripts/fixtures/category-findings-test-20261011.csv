@@ -1,0 +1,50 @@
+ean,name,source,source_category,finding_type,proposed_category_id,review_status
+6408653129323,Juustoportti Hyvin proteiinijuoma 250ml kermatoffee laktoositon,ruoanhinta-k,Juomat,ambiguous_search_term,,candidate
+6408659990019,Juustoportti kaurajuoma 1l gluteeniton,ruoanhinta-k,Juomat,ambiguous_search_term,,candidate
+6410222008700,Kaurajuoma Fazer Aito 1 l Barista UHT,tokmanni-viikkotarjoukset,Juomat,ambiguous_search_term,,candidate
+6411200002642,Elovena tuorekaurajuoma 1l ESL,ruoanhinta-k,Juomat,ambiguous_search_term,,candidate
+6430042025121,Proteiinijuoma Big Pro 330 ml banaani,tokmanni-viikkotarjoukset,Juomat,ambiguous_search_term,,candidate
+6430056597379,Puls Energy BCAA+ aminohappojuomajauhe Cola 300g,ruoanhinta-k,Juomat,ambiguous_search_term,,candidate
+6430081490041,ODDLYGOOD Barista-kaurajuoma,lidl-verified-ean-master,Juomat,ambiguous_search_term,,candidate
+7070866042721,Proteiinijuoma Maxim 250 ml Caramel Latte,tokmanni-viikkotarjoukset,Juomat,ambiguous_search_term,,candidate
+7070866042752,Proteiinijuoma Maxim 250 ml Chocolate,tokmanni-viikkotarjoukset,Juomat,ambiguous_search_term,,candidate
+7070866042783,Proteiinijuoma Maxim 250 ml Vanilla Raspberry,tokmanni-viikkotarjoukset,Juomat,ambiguous_search_term,,candidate
+7394376621017,"Oatly kaurajuoma sokeriton 1,5% 1l UHT",ruoanhinta-k,Juomat,ambiguous_search_term,,candidate
+6410405176011,"Pirkka Cola sokeriton virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6410405230126,"Pirkka Cola 0,33l virvoitusjuoma 12-pack",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6410405328748,"K-Menu Cola sokeriton virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6410405349958,"Pirkka Cola virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6410405365064,"Pirkka First Choice Cola sokeriton virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413600265061,"Pepsi Max virvoitusjuoma 0,25l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413600283546,"Pepsi virvoitusjuoma 0,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413600307013,"Pepsi Max Lemon virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413600365204,"Pepsi Max Tropical sokeriton virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413600365211,"Pepsi Max Tropical sokeriton virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413600367963,"Pepsi Zero Sugar Cream Soda virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413605223943,"Pepsi Max Mango virvoitusjuoma 0,33l 6-pack",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413605266827,"Pepsi Max virvoitusjuoma 1,5l 6-pack",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413605283534,"Pepsi virvoitusjuoma 0,33l 6-pack",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413605283572,"Pepsi virvoitusjuoma 1,5l 2-pack",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6413605291584,"Pepsi Max virvoitusjuoma 0,33l 18-pack",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6415600507530,"Coca-Cola 1,5l 4-pack virvoitusjuoma",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6415600507554,"Coca-Cola Zero 1,5l 4-pack virvoitusjuoma",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6415600563697,"Coca-Cola Zero Sugar Vanilja 0,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6415600563727,"Coca-Cola Zero Sugar Vanilja 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6415600581813,"Coca-Cola Zero Sugar Lime virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6415600582643,COCA-COLA Original Taste 330 ml,lidl-verified-ean-master,Juomat,more_specific_subcategory,cola,candidate
+6415600591874,"Coca-Cola Original Taste Kirsikka virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6415600594899,"Coca-Cola Original Lime virvoitusjuoma 1,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6419800042952,"Jolly Cola sokeriton virvoitusjuoma 0,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6419800044109,"Juju Cola virvoitusjuoma 0,5l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6419800044970,"Juju Cola sokeriton virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6419806044974,"Juju Cola sokeriton virvoitusjuoma 0,33l 12-pack",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430055388053,"Gosh Tangerine Pear Cola Soda Pop virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057690079,"Coca-Cola Vanilla virvoitusjuoma 0,355l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057690086,"Coca-Cola Cherry virvoitusjuoma 0,355l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057694862,"Pepsi Twist Lemon virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057695692,"Pepsi Bamboo Pomelo virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057695715,"Pepsi Peach Oolong virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057697160,"Coca-Cola Lemon Zero virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057698945,"Chupa Chups Sparkling Cola virvoitusjuoma 0,345l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6430057699102,"Coca Cola Cherry Float virvoitujuoma 0,355l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+6410405262318,Pirkka Parhaat maito & toffee-lakritsi jäätelö 500ml/300g,ruoanhinta-k,Makeiset,source_misclassification,frozen,candidate
