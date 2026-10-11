@@ -12,6 +12,7 @@ on:
       - "scripts/citymarket/check-image-source-candidates.mjs"
       - "scripts/citymarket/probe-image-candidates.mjs"
       - "scripts/citymarket/discover-image-metadata.mjs"
+      - "scripts/citymarket/test-image-metadata-regex.mjs"
       - "scripts/citymarket/build-image-review-html.mjs"
       - "scripts/citymarket/test-image-review-html.mjs"
       - "scripts/citymarket/41lv-image-source-candidates.json"
@@ -46,6 +47,8 @@ jobs:
       - name: Probe external image candidates
         if: always()
         run: node scripts/citymarket/probe-image-candidates.mjs
+      - name: Verify JSON-LD product image extraction regex
+        run: node scripts/citymarket/test-image-metadata-regex.mjs
       - name: Discover product image URLs from source metadata
         if: always()
         run: node scripts/citymarket/discover-image-metadata.mjs
