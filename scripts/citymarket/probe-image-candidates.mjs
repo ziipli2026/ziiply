@@ -9,8 +9,9 @@ for (const candidate of input.candidates) {
   try {
     const response = await fetch(candidate.imageUrl, { method: "GET", redirect: "follow", signal: controller.signal, headers: { "Accept": "image/*" } });
     const type = response.headers.get("content-type") || "";
-    const declaredSize = Number(response.headers.get("content-length"));
-    const oversized = Number.isFinite(declaredSize) && declaredSize > MAX_IMAGE_BYTES;
+    const lengthHeader = response.headers.get("content-length");
+    const declaredSize = lengthHeader === null ? null : Number(lengthHeader);
+    const oversized = declaredSize !== null && Number.isFinite(declaredSize) && declaredSize > MAX_IMAGE_BYTES;
     let bytes = 0;
     if (response.ok && type.toLowerCase().startsWith("image/") && !oversized && response.body) {
       const reader = response.body.getReader();
