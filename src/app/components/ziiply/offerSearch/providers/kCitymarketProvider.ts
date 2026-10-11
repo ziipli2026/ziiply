@@ -632,11 +632,18 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     // Do not silently exclude older catalogue images merely because the EAN bank has grown.
     const index=new Map<string,typeof rows>();
     const byProductName=new Map<string,typeof rows>();
+    const byEan=new Map<string,typeof rows>();
     // Leaflet headlines and bank names commonly differ only by package notation.
     // Keep both indexes and require a unique EAN and matching package when available.
     const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
     const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," "));
     for(const row of rows){
+      const barcode=String(row.ean??"").trim();
+      if(/^\d{8,14}$/.test(barcode)){
+        const matches=byEan.get(barcode)||[];
+        matches.push(row);
+        byEan.set(barcode,matches);
+      }
       const keys=new Set([norm(row.name),norm([row.name,row.quantity].filter(Boolean).join(" "))]);
       for(const key of keys){
         if(!key)continue;
@@ -654,6 +661,17 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     const stats={total:offers.length,bankRows:rows.length,matched:0,ambiguous:0,missing:0,invalidImage:0,groupOffer:0};
     const enriched=offers.map(offer=>{
       if(offer.imageUrl)return offer;
+      // Prefer a supplied EAN over fuzzy title matching. This also works when
+      // a publisher title is abbreviated or contains OCR artifacts.
+      const knownEan=String(offer.ean??"").trim();
+      if(/^\d{8,14}$/.test(knownEan)){
+        const exact=byEan.get(knownEan)||[];
+        const urls=[...new Set(exact.map(row=>String(row.image_url??"")).filter(url=>/^https:\/\//i.test(url)))];
+        if(urls.length===1){stats.matched++;return {...offer,imageUrl:urls[0]};}
+        if(urls.length>1)stats.ambiguous++;
+        else stats.missing++;
+        return offer;
+      }
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
       if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title)){stats.groupOffer++;return offer;}
