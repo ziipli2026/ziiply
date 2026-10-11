@@ -1332,36 +1332,49 @@ export default function DesktopPreviewPage() {
             />
 
             {electricityOpen && <div role="dialog" aria-modal="true" aria-label="Göstan sähkövertailu" className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[70]`}>
-              <div className="relative flex shrink-0 items-center justify-center rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-14 py-3">
+              <div className="relative flex min-h-[64px] shrink-0 items-center justify-center rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-14 py-3">
                 <h2 className="font-serif text-[22px] font-black italic text-[#174c35]">Göstan sähkövertailu</h2>
                 <button type="button" onClick={()=>setElectricityOpen(false)} aria-label="Sulje sähkövertailu" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black text-[#fff0c8]">×</button>
               </div>
-              <div className="mt-3 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-5">
-                <section className="relative min-h-[220px] rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-4">
-                  <div className="relative z-10 flex items-start justify-between gap-3">
-                    <h3 className="font-serif text-xl font-black italic text-[#174c35]">⚡ Pörssisähkön hinta nyt</h3>
-                    <div className="rounded-xl border border-[#caa15d] bg-[#fff4cf]/95 px-4 py-2 text-right shadow-sm">
-                      <div className="text-3xl font-black text-[#174c35]">{electricity.value} <span className="text-sm">snt/kWh</span></div>
-                      <div className="text-xs font-bold text-[#6d604c]">{electricity.detail}</div>
+              <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">
+                <section className="min-h-0 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="font-serif text-[22px] font-black italic text-[#174c35]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h3>
+                    <div className="rounded-xl border border-[#caa15d] bg-[#fff4cf] px-4 py-2 text-right">
+                      <span className="text-xs font-black text-[#6d604c]">Hinta nyt </span>
+                      <span className="text-2xl font-black text-[#174c35]">{electricity.value}</span>
+                      <span className="ml-1 text-xs font-black text-[#174c35]">snt/kWh</span>
                     </div>
                   </div>
-                  {electricityPrices.length>0 ? <div className="mt-3">
-                    <div className="relative h-[140px]">
-                      {(()=>{const max=Math.max(10,...electricityPrices.slice(0,192).map(p=>Math.abs(p.price)));return <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#875e37]/70" style={{bottom:(10/max*100)+"%"}}><span className="absolute -top-5 left-0 rounded bg-[#fff9e7]/95 px-1 text-[11px] font-black text-[#875e37]">10 snt/kWh</span></div>})()}
-                    <div className="flex h-full items-end gap-[2px] border-b-2 border-[#b58a46] pb-1" role="img" aria-label="Pörssisähkön hinnat aikajärjestyksessä">
-                      {electricityPrices.slice(0,192).map((p,i,arr)=>{
-                        const max=Math.max(10,...arr.map(x=>Math.abs(x.price)));
-                        const height=Math.max(3,Math.abs(p.price)/max*100);
-                        const now=Date.now();
-                        return <div key={p.start+"-"+i} title={new Date(p.start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})+": "+p.price.toFixed(2).replace(".",",")+" snt/kWh"} className={`min-w-0 flex-1 rounded-t-sm ${p.start<=now&&now<p.end?"bg-[#b4472c]":p.price<5?"bg-[#75a744]":p.price<12?"bg-[#d9a52c]":"bg-[#b85b35]"}`} style={{height:height+"%"}} />;
-                      })}
-                    </div>
-                    </div>
-                    <div className="mt-2 flex justify-between gap-2 text-[11px] font-bold text-[#6d604c]"><span>{new Date(electricityPrices[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>Ziiplyn sähkörajapinta · snt/kWh</span><span>{new Date(electricityPrices[Math.min(191,electricityPrices.length-1)].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
-                  </div> : <p className="mt-8 text-sm text-[#6d604c]">Hintakuvaajaa ei saatavilla. Esimerkkihintoja ei näytetä oikeina hintoina.</p>}
+                  {(()=> {
+                    const now=Date.now();
+                    const available=electricityPrices.filter(p=>p.end>now&&p.start<now+24*60*60*1000).slice(0,96);
+                    if(!available.length)return <p className="mt-8 text-sm text-[#6d604c]">Ajantasaisia hintatietoja ei ole saatavilla. Esimerkkihintoja ei esitetä oikeina.</p>;
+                    const min=Math.min(0,...available.map(p=>p.price));
+                    const max=Math.max(10,...available.map(p=>p.price));
+                    const range=Math.max(1,max-min);
+                    const y=(value:number)=>(value-min)/range*100;
+                    return <div className="mt-4">
+                      <div className="relative h-[230px] border-b-2 border-[#b58a46]">
+                        <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#98734c]/70" style={{bottom:y(10)+"%"}}><span className="absolute -top-5 left-1 bg-[#fff9e7] px-1 text-[11px] font-black text-[#875e37]">10 snt/kWh</span></div>
+                        {min<0&&<div className="pointer-events-none absolute inset-x-0 z-10 border-t border-[#875e37]/70" style={{bottom:y(0)+"%"}}><span className="absolute -top-4 right-1 bg-[#fff9e7] px-1 text-[10px] text-[#875e37]">0</span></div>}
+                        <div className="absolute inset-0 flex gap-[2px]" role="img" aria-label="Seuraavan 24 tunnin pörssisähkön hinnat. Pylväät skaalautuvat automaattisesti.">
+                          {available.map((p,i)=>{
+                            const top=Math.max(y(p.price),y(0));
+                            const bottom=Math.min(y(p.price),y(0));
+                            const height=Math.max(1,top-bottom);
+                            return <div key={p.start+"-"+i} className="relative min-w-0 flex-1" title={new Date(p.start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})+" – "+p.price.toFixed(2).replace(".",",")+" snt/kWh"}>
+                              <div className={`absolute inset-x-0 rounded-t-[3px] ${p.start<=now&&now<p.end?"bg-[#b4472c]":p.price<0?"bg-[#4a8eb4]":p.price<5?"bg-[#75a744]":p.price<10?"bg-[#d9a52c]":"bg-[#b85b35]"}`} style={{bottom:bottom+"%",height:height+"%"}} />
+                            </div>;
+                          })}
+                        </div>
+                      </div>
+                      <div className="mt-2 flex justify-between gap-2 text-[11px] font-bold text-[#6d604c]"><span>{new Date(available[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>Ziiplyn sähkörajapinta · snt/kWh</span><span>{new Date(available[available.length-1].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
+                    </div>;
+                  })()}
                 </section>
-                <section className="rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
-                  <h3 className="mt-5 font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
+                <section className="min-h-[125px] rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
+                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
                   <p className="mt-2 text-sm text-[#6d604c]">Sähköyhtiöiden lähteisiin linkitetyt tarjoukset lisätään tähän erikseen.</p>
                 </section>
               </div>
