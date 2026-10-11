@@ -9,6 +9,8 @@ on:
       - "src/lib/offerImageEanLookup.ts"
       - "scripts/test-offer-image-enrichment.mts"
       - "scripts/citymarket/build-image-review-queue.mjs"
+      - "scripts/citymarket/check-image-source-candidates.mjs"
+      - "scripts/citymarket/41lv-image-source-candidates.json"
       - "scripts/citymarket/audit-41lv-image-coverage.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
       - "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json"
@@ -30,6 +32,8 @@ jobs:
         run: npx --yes tsx scripts/test-offer-image-enrichment.mts
       - name: Verify approved 41LV image asset and fragment coverage
         run: node scripts/citymarket/audit-41lv-image-coverage.mjs > /dev/null
+      - name: Verify external image candidate records
+        run: node scripts/citymarket/check-image-source-candidates.mjs
       - name: Generate missing image review queue
         if: always()
         run: node scripts/citymarket/build-image-review-queue.mjs > citymarket-image-review-queue.json
