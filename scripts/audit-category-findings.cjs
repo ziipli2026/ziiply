@@ -45,7 +45,7 @@ for(const r of rows){
       failures.push({ean:r.ean,name:r.name,error:'Invalid cola subcategory proposal'});
   }else if(r.finding_type==='source_misclassification'){
     if(!((r.proposed_category_id==='frozen'&&r.source_category==='Makeiset'&&/jäätelö|ice cream/iu.test(r.name))||(r.proposed_category_id===''&&r.source_category==='Maitotuotteet'&&/(maitohappobakteeri|proteiinipatukka|murokakku|kasvovoi|jugurttihiutale)/iu.test(r.name))))
-      failures.push({ean:r.ean,name:r.name,error:'Invalid frozen misclassification proposal'});
+      failures.push({ean:r.ean,name:r.name,error:'Invalid source category misclassification proposal'});
   }else if(r.finding_type==='ambiguous_search_term'){
     if(r.proposed_category_id||r.source_category!=='Juomat'||!(plant.test(r.name)||protein.test(r.name)||powder.test(r.name)))
       failures.push({ean:r.ean,name:r.name,error:'Invalid ambiguous term finding'});
