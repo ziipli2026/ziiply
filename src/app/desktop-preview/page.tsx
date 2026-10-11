@@ -213,6 +213,7 @@ export default function DesktopPreviewPage() {
 
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
+  const [electricityOpen, setElectricityOpen] = useState(false);
   const [stores, setStores] = useState<any[]>([]);
   const [storeMode, setStoreMode] = useState<"hyper" | "local">("hyper");
   const [selectedChain, setSelectedChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
@@ -1163,7 +1164,7 @@ export default function DesktopPreviewPage() {
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", "DI 2,51", "BE 2,33 / 2,41", "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
-              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setFuelSelected(v => !v);setFuelCompared(false);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : undefined} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${fuelSelected ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
+              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
                 {title === "AJOAINE" ? (
                   <span className="min-w-0 flex-1">
@@ -1327,6 +1328,23 @@ export default function DesktopPreviewPage() {
               }}
             />
 
+            {electricityOpen && <div role="dialog" aria-modal="true" aria-label="Göstan sähkövertailu" className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[70]`}>
+              <div className="relative flex shrink-0 items-center justify-center rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-14 py-3">
+                <h2 className="font-serif text-[22px] font-black italic text-[#174c35]">Göstan sähkövertailu</h2>
+                <button type="button" onClick={()=>setElectricityOpen(false)} aria-label="Sulje sähkövertailu" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black text-[#fff0c8]">×</button>
+              </div>
+              <div className="mt-3 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-5">
+                <section className="rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
+                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">⚡ Pörssisähkön hinta nyt</h3>
+                  <p className="mt-2 text-3xl font-black text-[#174c35]">{electricity.value} <span className="text-base">snt/kWh</span></p>
+                  <p className="mt-1 text-sm text-[#6d604c]">{electricity.detail}</p>
+                </section>
+                <section className="rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
+                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">Hintakuvaaja ja sähkötarjoukset</h3>
+                  <p className="mt-2 text-sm text-[#6d604c]">Hintakuvaaja sekä lähteisiin linkitetyt sähkönmyyntitarjoukset lisätään tähän seuraavaksi. Hintoja ei esitetä ilman tarkistettua lähdettä.</p>
+                </section>
+              </div>
+            </div>}
             {fuelSelected && fuelReportOpen && <DesktopFuelPhotoReport onClose={()=>setFuelReportOpen(false)}/>}
             {fuelSelected && fuelCompared && !fuelReportOpen && <div className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[60]`}>
               <div className="relative grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] py-2 pl-2 pr-12">
