@@ -82,6 +82,11 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Bring verified desktop daily-goods exceptions to the mobile preview.
+  if(/suosikkisalaat/.test(s)) return "Valmisruoka";
+  if(/gold\\s*&\\s*green.*(?:rouhe|palat)/.test(s)) return "Valmisruoka";
+  if(/puhdistuspyyhkeet|vanulaput|vanupuikot|mascarat/.test(s)) return "Hygienia & kosmetiikka";
+  if(/pentualusta/.test(s)) return "Lemmikit";
   // Specific everyday consumables must survive the non-grocery filter.
   if(/teippi-?\\s*ja\\s*housuvaipat|housuvaipat|teippivaipat|vaipat\\s+koot/.test(s)) return "Hygienia & kosmetiikka";
   if(/vanulaput|vanupuikot|topz/.test(s)) return "Hygienia & kosmetiikka";
