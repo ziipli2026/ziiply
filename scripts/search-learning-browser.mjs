@@ -87,8 +87,9 @@ try{
  },{},{timeout:30000});
  await page.screenshot({path:out+'/03-cart.png',fullPage:true});
  await page.getByRole('button',{name:'Vertailu',exact:true}).click();
- await page.getByText('Prisma Hyvinkää',{exact:false}).first().waitFor({state:'visible',timeout:60000});
- await page.getByText('1,25',{exact:false}).first().waitFor({state:'visible',timeout:60000});
+ await page.getByRole('button',{name:'Halpuusvertailu',exact:true}).filter({visible:true}).click();
+ await page.getByText('Prisma Hyvinkää',{exact:false}).filter({visible:true}).first().waitFor({state:'visible',timeout:60000});
+ await page.getByText('1,25',{exact:false}).filter({visible:true}).first().waitFor({state:'visible',timeout:60000});
  await page.screenshot({path:out+'/04-comparison.png',fullPage:true});
  assert.equal(errors.length,0,errors.join('\n'));
  console.log('BROWSER SEARCH / CART / COMPARISON AND 12 LEARNING CASES PASS');
