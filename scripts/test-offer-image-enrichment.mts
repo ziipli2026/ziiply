@@ -61,3 +61,10 @@ assert.equal(normalizeImageBankRows(Array.from({ length: 101 }, () => bankRow)).
 assert.equal(normalizeImageBankRows(Array.from({ length: 100 }, () => bankRow)).length, 100);
 assert.equal(normalizeImageBankRows([{ ean: null, name: null, brand: null, quantity: null, imageUrl: null, source: null }])[0].imageUrl, null);
 console.log("Neon row normalization and 100-row ambiguity cap checks passed");
+
+const missingCandidateEan = { ...image, ean: null };
+assert.deepEqual(matchOfferImage(base, missingCandidateEan), { accepted: false, reason: "candidate-ean-missing" });
+assert.equal(enrichOfferImage(base, [missingCandidateEan]).imageUrl, undefined);
+assert.equal(matchOfferImage({ ...base, ean: null }, missingCandidateEan).accepted, true);
+assert.equal(matchOfferImage(base, { ...image, ean: "6410405124518" }).reason, "ean-conflict");
+console.log("EAN-preserving image matching regression checks passed");
