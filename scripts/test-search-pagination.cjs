@@ -47,6 +47,12 @@ async function run(){
   const result=await appendRuoanhintaPages(items(0,3),3,async skip=>{if(skip===6)throw Error("503");return items(3,3)});
   assert.deepEqual(result.map(x=>x.id),[0,1,2,3,4,5]);
  });
+ await check("slow-extra-page-times-out-and-preserves-results",async()=>{
+  const start=Date.now();
+  const result=await appendRuoanhintaPages(items(0,3),3,async()=>new Promise(()=>{}),3,25);
+  assert.deepEqual(result.map(x=>x.id),[0,1,2]);
+  assert.ok(Date.now()-start<500,"Timeout should return promptly");
+ });
  const passed=results.filter(x=>x.pass).length;
  console.log(JSON.stringify({passed,total:results.length,results},null,2));
  if(passed!==results.length)process.exitCode=1;
