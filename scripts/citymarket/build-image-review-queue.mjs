@@ -16,6 +16,10 @@ const cleanIdentity = identity => identity.replace(/[(][^)]*[)]/g, " ").replace(
 const candidates = JSON.parse(fs.readFileSync("scripts/citymarket/41lv-image-source-candidates.json", "utf8")).candidates;
 const candidatesByOffer = new Map(candidates.map(candidate => [candidate.offerId, candidate]));
 assert.equal(candidatesByOffer.size, candidates.length, "Duplicate source candidate");
+for (const candidate of candidates) {
+  assert.ok(missing.some(offer => offer.key === candidate.offerId), "Candidate must reference a missing image in this publication");
+  assert.equal(candidate.approved, false, "Unverified image cannot be approved");
+}
 const rows = missing.map(offer => ({
   offerId: offer.key,
   page: offer.page,
@@ -26,9 +30,10 @@ const rows = missing.map(offer => ({
   sourcePublicationUrl: fixture.sourceUrl,
   reviewStatus: "needs-visual-verification",
   reviewPriority: ambiguous.test(offer.identity) ? "manual-multi-product" : "manual-single-product",
-  imageUrl: null,
+  imageUrl: candidatesByOffer.get(offer.key)?.imageUrl ?? null,
   approved: false,
-  imageEvidenceUrl: null,
+  imageEvidenceUrl: candidatesByOffer.get(offer.key)?.imageEvidenceUrl ?? null,
+  candidateStatus: candidatesByOffer.get(offer.key)?.status ?? null,
   productSourceUrl: candidatesByOffer.get(offer.key)?.url ?? null,
   candidateEan: candidatesByOffer.get(offer.key)?.ean ?? null,
   evidence: "approved-leaflet-fixture",
