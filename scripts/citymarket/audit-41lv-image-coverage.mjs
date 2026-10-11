@@ -62,7 +62,7 @@ if (!entry) {
     const offer = uncovered.find(row => row.identity === candidate.identity);
     assert.ok(offer, "Review candidate must exist in the approved 41LV fixture: " + candidate.identity);
     assert.ok(!publication.images[offer.key], "Review candidates must not overwrite approved images");
-    return { offerId: offer.key, ...candidate, approved: false };
+    return { offerId: offer.key, page: offer.page, ...candidate, approved: false, nextAction: candidate.status === "multi-product-offer" ? "Verify all variants in the leaflet before choosing any image" : "Verify printed brand and pictured packaging on leaflet page " + offer.page };
   });
   const report = {
     publicationUrl, approvedOffers: fixture.offerCount,
@@ -70,6 +70,7 @@ if (!entry) {
     imageAssetVerified: true, verifiedImageFragments: imageKeys.length,
     diagnosticOnly: true,
     reviewCandidates,
+    reviewSummary: { pending: reviewCandidates.length, brandVerification: reviewCandidates.filter(row => row.status === "brand-unverified").length, multiProduct: reviewCandidates.filter(row => row.status === "multi-product-offer").length, approved: 0 },
     nameParsingCandidates: diagnostic.filter(row => row.candidateSafe).length, // candidates only; never automatic image approval
     manualReviewCandidates: diagnostic.filter(row => !row.candidateSafe).length,
     extractedIdentityCount: parsed.filter(row => row.extracted).length,
