@@ -35,7 +35,8 @@ for(const row of parsed.rows){
  const title=String(row.title||'').trim().toLowerCase(),prefix='kcm:spatial:'+Number(row.page)+':'+title;
  if(targets.has(prefix))console.log('KCM_MISSING_ROW_DIAGNOSTIC',JSON.stringify({page:row.page,title:row.title,spatialResolved:row.spatialResolved,initialExpectedSingle:row.initialExpectedSingle,expectedSingle:row.expectedSingle,debugRejectedFinalBundle:row.debugRejectedFinalBundle,debugRejectedCardPrice:row.debugRejectedCardPrice,debugCardPrice:row.debugCardPrice,spatialCandidates:row.spatialCandidates}));
 }
-const report={id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
+const wcPaperDiagnostics=parsed.rows.filter(r=>Number(r.page)===1||Number(r.page)===5).filter(r=>/WC-PAPERI/i.test(String(r.title||''))).map(r=>({page:r.page,title:r.title,price:r.spatialResolved?.value??null,quantity:r.spatialResolved?.quantity??null,rejectedCandidate:!!r.debugRejectedCardPrice}));
+const report={id:fixture.id,requests:visited.size,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys,wcPaperDiagnostics,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
 const reportPath=process.env.KCM_REPLAY_REPORT;
 if(reportPath)fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\n');
 console.log('KCM_REPLAY',JSON.stringify(report));
