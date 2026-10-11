@@ -28,8 +28,11 @@ try{
  assert.equal(clean.status,0,'a consistent record must remain green');
  const corrected=run([tortilla,record('ORIGINAL NACHIPS 450 g','kcm:spatial:20:nachips:2.99',2.99,6.64,'450 g')]);
  assert.equal(corrected.status,0,'distinct internally consistent prices must pass');
+ const archived=run([record('ORIGINAL VEHNÄTORTILLA MEDIUM 326 g','kcm:spatial:20:tortilla:1.15',1.15,3.53,'326 g'),record('ORIGINAL NACHIPS 450 g','kcm:spatial:20:nachips:1.15',1.15,6.64,'450 g')]);
+ assert.equal(archived.result.rows,2,'archived 41LV records are evaluated without publisher access');
+ assert.equal(archived.status,1,'archived suspicious prices must still block');
  const beer=run([record('ALKOHOLITON OLUT 0,0 % 0,33 l/tlk 8-pack','kcm:spatial:20:beer:7.99',7.99,2.57,'0,33 l')]);
  assert.equal(beer.status,0,'a plausible can deposit must not be a proven price error');
  assert.equal(beer.result.issueCounts['possible-container-deposit-review'],1);
- console.log('Citymarket audit regression: 4 fixtures passed');
+ console.log('Citymarket audit regression: 5 fixtures passed');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
