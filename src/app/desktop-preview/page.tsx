@@ -351,6 +351,7 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{if(item?.ziiplyWeightLabel||item?.product?.ziiplyWeightLabel||String(item?.id||"").startsWith("weight-"))return {...item,price:null,product:{...(item.product||{}),price:null,ziiplyWeightLabel:true}};const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
   const [desktopDebugLines,setDesktopDebugLines]=useState<string[]>([]);
+  const [desktopDebugVisible,setDesktopDebugVisible]=useState(false);
   const desktopDebug=(message:string)=>setDesktopDebugLines(current=>[...current,`${new Date().toLocaleTimeString("fi-FI")} ${message}`].slice(-100));
   const [desktopPackageProposals,setDesktopPackageProposals]=useState<Array<{itemId:string;original:string;candidate:any;storeName:string}>>([]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
@@ -525,6 +526,7 @@ export default function DesktopPreviewPage() {
 
   async function openDesktopComparison(){
     setDesktopDebugLines([]);
+    setDesktopDebugVisible(true);
     desktopDebug(`Vertailu käynnistyy: tila=${betweenMode}, korissa=${cartItems.length}, kauppanäkymä=${storeMode}`);
     desktopDebug(`Tavaratalot-valinnat: ${Object.values(allStoreSelections.hyper).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
     desktopDebug(`Lähikaupat-valinnat: ${Object.values(allStoreSelections.local).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
@@ -535,6 +537,8 @@ export default function DesktopPreviewPage() {
     const allSelected=Object.values(selectedStores) as any[];
     const selected=allSelected.filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x))).sort((a,b)=>String(a.id).localeCompare(String(b.id)));
     const unsupportedSelected=allSelected.filter(x=>!["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));
+    desktopDebug(`Valitut kaupat (${selected.length}): ${selected.map(x=>`${x.name} [id=${x.id}, externalId=${x.externalId}, type=${storeKind(x)}]`).join(" | ")||"EI YHTÄÄN"}`);
+    desktopDebug(`Vertailutapa=${storeCompareScope}, ketjun sisäinen=${withinChain||"-"}, paikat=${JSON.stringify(withinStoreSlots[withinChain||"S"]?.map(x=>x?.name||null))}`);
     if(betweenMode==="one" && storeCompareScope!=="within_chain"){
       setDesktopCartPricesChecked(false);
       setDesktopCompareNotice(false);
@@ -607,7 +611,7 @@ export default function DesktopPreviewPage() {
     setDesktopCompareLoading(false);
     setDesktopCompareResults({});
     if(unsupportedSelected.length){setDesktopCompareError("Vertailu ei vielä tue valittuja kauppoja: "+unsupportedSelected.map(store=>String(store.name||"Tuntematon kauppa")).join(", ")+". Valitse tuettuja kauppoja.");return}
-    if(selected.length<2){setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua kauppaa.");return}
+    if(selected.length<2){desktopDebug("KESKEYTYS: alle kaksi tuettua kauppaa");setDesktopCompareResults({});setDesktopCompareError("Vertailuun tarvitaan vähintään kaksi valittua kauppaa.");return}
     const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));
     if(!eligible.length){setDesktopCompareResults({});setDesktopCompareError("Ostoskorissa ei ole vertailukelpoisia tuotteita.");return}
     const key=JSON.stringify([[...selected].sort((a,b)=>String(a.id).localeCompare(String(b.id))).map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);
@@ -617,28 +621,31 @@ export default function DesktopPreviewPage() {
     if(mustRecompare){desktopCompareCache.current.delete(key);desktopOriginalComparison.current=null;try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
     const memoryFresh=Date.now()-desktopCompareCacheTime.current<24*60*60*1000;
     const cached=mustRecompare?null:((memoryFresh?(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)):null)||desktopReadSavedComparison(key));
-    if(cached){desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
+    if(cached){desktopDebug(`Välimuistista vertailu: ${Object.entries(cached).map(([id,v]:any)=>`${id}: ${v.rows?.filter((x:any)=>x.price!=null).length||0}/${v.rows?.length||0} hintaa`).join(" | ")}`);desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
         const kind=storeKind(store);const isS=kind==="sHyper"||kind==="sLocal";
+        desktopDebug(`Kauppahaku alkaa: ${store.name}, id=${store.id}, externalId=${store.externalId}, ketju=${kind}, tuotteita=${eligible.length}`);
         const rows=await Promise.all(eligible.map(async item=>{
           const name=String(item.name||item.title||"").trim();
           const ean=String(item.ean||item.product?.ean||"").trim();
           try{
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            desktopDebug(`${store.name}: ${name} EAN=${ean||"-"} → ehdokkaita=${candidates.length}, osuma=${matched?`${matched.name} (${matched.price}c)`:"EI"}, ehdokkaat=${candidates.slice(0,3).map((p:any)=>`${p.name} (${p.price}c)`).join(" | ")||"-"}`);
             const price=matched?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
             const alternative=matched?null:desktopFindPackageAlternative(candidates,name,ean);
             return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,image:String((matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative};
-          }catch{return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
+          }catch(error){desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
+        desktopDebug(`Kauppahaku valmis: ${store.name}, hinnat=${rows.filter(x=>x.price!=null).length}/${rows.length}`);
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
       }));
-      if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId)return;
+      if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId){desktopDebug("TULOKSET HYLÄTTY: vertailun identiteetti tai ajon tunnus vaihtui");return;}
       const next=Object.fromEntries(results);desktopSaveComparison(key,next);desktopComparisonEdited.current=false;try{window.localStorage.removeItem(desktopComparisonEditedKey)}catch{}setDesktopCompareResults(structuredClone(next));
-    }catch{if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
+    }catch(error){desktopDebug(`VERTAILUVIRHE: ${String(error)}`);if(desktopCompareRequestIdentity.current===requestIdentity&&desktopCompareRunId.current===runId)setDesktopCompareError("Vertailuhaku epäonnistui. Yritä uudelleen.")}finally{desktopDebug("Vertailuhaku päättyi");if(desktopCompareRunId.current===runId)setDesktopCompareLoading(false)}
   }
 
   // Älä vertaa erikokoisia pakkauksia pelkän pakkaushinnan perusteella.
@@ -1238,6 +1245,13 @@ export default function DesktopPreviewPage() {
 />}
 
 
+        <div className="fixed bottom-4 right-4 z-[120] flex flex-col items-end gap-2">
+          <button type="button" onClick={()=>setDesktopDebugVisible(v=>!v)} className="rounded-lg border-2 border-amber-500 bg-[#17352a] px-4 py-2 text-sm font-bold text-white shadow-xl">Vertailun debug {desktopDebugVisible?"−":"+"} ({desktopDebugLines.length})</button>
+          {desktopDebugVisible&&<div className="flex max-h-[55vh] w-[min(92vw,760px)] flex-col gap-2 rounded-xl border-2 border-amber-500 bg-[#10251d] p-3 text-white shadow-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Kahden kaupan vertailun loki</strong><div className="flex gap-2"><button type="button" onClick={()=>{void navigator.clipboard.writeText(desktopDebugLines.join("\\n"))}} className="rounded bg-amber-300 px-3 py-1 text-xs font-bold text-black">Kopioi loki</button><button type="button" onClick={()=>setDesktopDebugLines([])} className="rounded bg-white/20 px-3 py-1 text-xs">Tyhjennä</button><button type="button" onClick={()=>setDesktopDebugVisible(false)} className="rounded bg-white/20 px-3 py-1 text-xs">Sulje</button></div></div>
+            <pre className="max-h-[43vh] overflow-auto whitespace-pre-wrap break-words rounded bg-black/40 p-2 font-mono text-[11px] leading-relaxed">{desktopDebugLines.length?desktopDebugLines.join("\\n"):"Käynnistä kahden kaupan vertailu. Tapahtumat ilmestyvät tähän."}</pre>
+          </div>}
+        </div>
         {mapOpen && (
           <div className="absolute inset-0 z-[80] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]">
             <div className="w-full max-w-[900px] rounded-[30px] border border-[#6e7d68]/25 bg-[#f8f3e7] p-6 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
