@@ -19,7 +19,11 @@ const product={id:90001,name:'Valio kevytmaito 1 l',ean:'6408430000128',price:1.
 const requests=[];
 await page.route('**/*',async route=>{
  const url=new URL(route.request().url());
- if(url.origin!==base){await route.abort();return;}
+ if(url.origin!==base){
+  if(url.hostname.includes('nominatim'))await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({address:{city:'Hyvinkää',postcode:'05800'}})});
+  else await route.abort();
+  return;
+ }
  if(!url.pathname.startsWith('/api/')){await route.continue();return;}
  requests.push({path:url.pathname,method:route.request().method()});
  // No application API request reaches a backend or production database.
@@ -30,7 +34,7 @@ await page.route('**/*',async route=>{
  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
 });
 await page.addInitScript(({stores})=>{
- navigator.geolocation.getCurrentPosition=()=>{};
+ navigator.geolocation.getCurrentPosition=success=>success({coords:{latitude:60.63,longitude:24.86,accuracy:5},timestamp:Date.now()});
  navigator.geolocation.watchPosition=()=>0;
  localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',aliases:['hyvinkää'],sStoreId:292,sStoreName:'Prisma Hyvinkää',kStoreId:99902,kStoreName:'K-Citymarket Hyvinkää'},storeMode:'hyper',storeModeChosenV299:true,selectedChains:{s:true,k:true,lidl:false,tokmanni:false},betweenChainSelectionModeV749:'many',storeCompareScope:'between_chains',usingOwnLocation:false}));
  localStorage.setItem('ziiply-manual-store-overrides-v786',JSON.stringify({sHyper:{id:292,name:'Prisma Hyvinkää'},kHyper:{id:99902,name:'K-Citymarket Hyvinkää'}}));
@@ -39,6 +43,8 @@ let failure;
 try{
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:120000});
  await page.getByRole('button',{name:'Kaupat',exact:true}).click({timeout:30000});
+ await page.getByPlaceholder('05510 tai Hyvinkää').filter({visible:true}).fill('Hyvinkää');
+ await page.waitForResponse(r=>new URL(r.url()).pathname==='/api/store-search',{timeout:30000});
  await page.getByRole('button',{name:/Tavaratalot/}).filter({visible:true}).click();
  const many=page.getByRole('switch',{name:'Valitse yksi tai monta kauppaa'});
  if(await many.getAttribute('aria-checked')!=='true')await many.click();
@@ -47,6 +53,8 @@ try{
    await card.waitFor({state:'visible',timeout:30000});
    if(await card.getAttribute('aria-pressed')!=='true')await card.click();
  }
+ await page.getByText('Prisma Hyvinkää',{exact:false}).filter({visible:true}).first().waitFor({state:'visible',timeout:30000});
+ await page.getByText('K-Citymarket Hyvinkää',{exact:false}).filter({visible:true}).first().waitFor({state:'visible',timeout:30000});
  await page.screenshot({path:out+'/00-stores.png',fullPage:true});
  await page.getByRole('button',{name:'Hae',exact:true}).click({timeout:30000});
  const search=page.locator('textarea:visible').first();
