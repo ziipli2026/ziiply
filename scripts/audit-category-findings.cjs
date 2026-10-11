@@ -25,6 +25,7 @@ function parseCSV(s) {
 const [head,...data]=parseCSV(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));
 const required=['ean','name','source','source_category','finding_type','proposed_category_id','review_status'];
 for(const field of required)if(!head.includes(field))throw Error('Missing CSV column '+field);
+if(new Set(head).size!==head.length)throw Error('Duplicate CSV header');
 const rows=data.map(r=>Object.fromEntries(head.map((h,i)=>[h,r[i]??''])));
 const cola=/(^|[^\p{L}])(cola|pepsi)(?=[^\p{L}]|$)/iu;
 const context=/(virvoitusjuoma|virvoitujuoma|soda|original taste|zero sugar)/iu;
@@ -33,6 +34,7 @@ const plant=/(kaurajuoma|soijajuoma|mantelijuoma)/iu;
 const protein=/proteiinijuoma/iu;
 const powder=/juomajauhe.*cola/iu;
 const failures=[];
+for(let i=0;i<data.length;i++)if(data[i].length!==head.length)failures.push({row:i+2,error:'CSV column count mismatch',expected:head.length,actual:data[i].length});
 const seen=new Set();
 for(const r of rows){
   if(!/^\d{8,14}$/.test(r.ean)||!r.name.trim()||!r.source.trim()||!r.source_category.trim()) failures.push({ean:r.ean,error:'Missing or malformed product identity'});
