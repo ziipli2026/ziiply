@@ -121,10 +121,20 @@ const negativeAfter=memory.getLearnedSearchBoost("ketsuppi",negativeProduct);
 memory.clearSearchIntentMemory();
 const afterClear=memory.loadSearchIntentMemory();
 const learning={before:before.boost,after:after.boost,positive:after.positiveCount,structure:structure.boost,persisted,afterRejection:afterRejection.boost,isolatedOtherQuery:otherQuery.boost,negativeBefore:negativeBefore.boost,negativeAfter:negativeAfter.boost,cleared:Object.keys(afterClear.entries).length===0,pass:after.positiveCount===2&&after.boost>before.boost&&persisted&&afterRejection.boost<after.boost&&negativeAfter.negativeCount===1&&negativeAfter.boost<negativeBefore.boost&&otherQuery.positiveCount===0&&Object.keys(afterClear.entries).length===0};
+// Learning must never promote an unrelated product that the intent guard rejects.
+const blockedCoffeeProduct = {id:201,name:"Kahvinsuodatin 100 kpl",category:"Suodatinpussit"};
+memory.rememberSearchChoice("kahvi",blockedCoffeeProduct,"added_to_cart");
+const blockedCoffeeBoost = memory.getLearnedSearchBoost("kahvi",blockedCoffeeProduct);
+const guardedLearning = {
+  blockedCoffeeBoost: blockedCoffeeBoost.boost,
+  blockedCoffeeReason: blockedCoffeeBoost.reason,
+  pass: blockedCoffeeBoost.boost === -100 && blockedCoffeeBoost.reason === "blocked_by_intent_guardrail"
+};
+memory.clearSearchIntentMemory();
 const failures=results.filter(r=>!r.pass);
 assert.equal(results.length, samples.length, "Some category cases were not executed");
-console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,learning},null,2));
-if(failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass){
+console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,learning,guardedLearning},null,2));
+if(failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass){
  console.error("Search behavior regression failed", {failures,rankingResults,learning});
  process.exitCode=1;
 }
