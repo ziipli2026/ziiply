@@ -223,6 +223,7 @@ export default function DesktopPreviewPage() {
   const [withinStoreSlots,setWithinStoreSlots]=useState<Record<"S"|"K",Array<any|null>>>({S:[null,null],K:[null,null]});
   const [withinPicker,setWithinPicker]=useState<{chain:"S"|"K";slot:number}|null>(null);
 
+  const [storeModeChosen, setStoreModeChosen] = useState(false);
   // Restore all desktop store choices after reload; do not overwrite saved choices before hydration.
   const [desktopStoreChoicesHydrated, setDesktopStoreChoicesHydrated] = useState(false);
   useEffect(() => {
@@ -291,7 +292,6 @@ export default function DesktopPreviewPage() {
     setAllStoreSelections(prev=>({...prev,[mode]:typeof update==="function"?update(prev[mode]):update}));
   };
 
-  const [storeModeChosen, setStoreModeChosen] = useState(false);
 
   const [pickerChain, setPickerChain] = useState<"S"|"K"|"LIDL"|"SPAR"|null>(null);
   const [pickerPlacement, setPickerPlacement] = useState({left: 0, top: 0, bottom: 0, width: 360});
