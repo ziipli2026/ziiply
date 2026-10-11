@@ -75,7 +75,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     onlineCapture.current={time:localDateTime(),gps:location};onlineInput.current?.click();
   }
   async function readPhoto(file:File,source:"online"|"offline"){
-    setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Valmistellaan kuvaa…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
+    setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
@@ -100,7 +100,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":"Kuvasta puuttuu sijainti: valitse asema itse."}`:"Tarkista kuvausaika ja asema. Selaimen kameravalinta voi sallia myös vanhan kuvan valinnan.");
       const data=await preparePhoto(file);if(!alive.current)return;setPhoto(data);
       const ocr=await loadOcr();if(!alive.current)return;
-      const worker=await ocr.createWorker("eng",1,{logger:(message:{status?:string;progress?:number})=>{if(alive.current)setStatus(message.status==="recognizing text"?`Luetaan hintoja… ${Math.round((message.progress||0)*100)} %`:"Ladataan kuvalukijaa…");}});
+      const worker=await ocr.createWorker("eng",1,{});
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
       const result=await readFuelPhoto(worker,data);if(!alive.current)return;
       const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review);
