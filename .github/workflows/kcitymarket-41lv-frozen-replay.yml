@@ -102,7 +102,7 @@ jobs:
               }
             }
           }
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\\n') + '\\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
           NODE
       - name: Enforce both replay results
         if: always()
