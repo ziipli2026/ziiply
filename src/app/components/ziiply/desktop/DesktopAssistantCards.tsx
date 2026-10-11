@@ -8,7 +8,7 @@ const assistants = [
   { key: "arvo" as const, name: "Arvo", title: "Asetukset", subtitle: "Omat valinnat", description: "Ruokavaliot, suosikit, kaupat, sijainti ja muut pysyvät valinnat.", image: "/assistants/arvo.png", frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]", ink: "text-[#314633]" },
 ];
 
-export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false}:{onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
+export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false}:{fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
   return (
     <div className="grid h-full min-h-0 grid-cols-3 gap-3 xl:gap-4 -mt-3">
       {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
@@ -26,15 +26,15 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
               <img src={item.image} alt={item.name} className="h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.025]" />
             </div>
             <div className={["relative z-10 mt-6 text-[36px] font-black leading-none tracking-[-0.045em] drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]", item.ink].join(" ")}>{item.name}</div>
-            <div className="relative z-10 mt-3 text-[13px] font-black uppercase tracking-[0.12em] text-[#1e2f2a]">{item.title}</div>
-            <div className="relative z-10 mt-1 min-h-[2.5rem] text-[14px] font-bold leading-5 text-[#687285]">{item.subtitle}</div>
+            <div className="relative z-10 mt-3 text-[13px] font-black uppercase tracking-[0.12em] text-[#1e2f2a]">{fuelMode && item.key==="gosta" ? "Polttoainehinnat" : item.title}</div>
+            <div className="relative z-10 mt-1 min-h-[2.5rem] text-[14px] font-bold leading-5 text-[#687285]">{fuelMode && item.key==="gosta" ? "Lähiasemien hinnat ja hintavertailu" : item.subtitle}</div>
             {showStoreNotice && (
               <div role="status" aria-live="polite" className="absolute bottom-[155px] left-1/2 z-30 w-[calc(100%-2.5rem)] max-w-[270px] -translate-x-1/2 rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-3 py-2 text-center text-[16px] font-black leading-snug text-[#5d3c12] shadow-md">
                 Valitse ensin kaupat
               </div>
             )}
             <div className="relative z-10 -mx-5 mt-auto flex h-[145px] w-[calc(100%+2.5rem)] shrink-0 items-start justify-center border-t-2 border-[#8d805e]/25 px-5 pt-5 pb-5">
-              <p className="w-full text-[15px] font-bold leading-snug text-[#3f4654]">{item.description}</p>
+              <p className="w-full text-[15px] font-bold leading-snug text-[#3f4654]">{fuelMode && item.key==="gosta" ? "Valittujen ketjujen asemat, polttoainehinnat ja havaintoajat. Asemat lähimmästä kaukaisimpaan." : item.description}</p>
             </div>
           </button>
         );
