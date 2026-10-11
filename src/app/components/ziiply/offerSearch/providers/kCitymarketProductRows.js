@@ -14,6 +14,25 @@ export function canonicalCitymarketProductRows(rows) {
     if(anchor&&row.spatialResolved&&lettersOnly(cleaned)===lettersOnly(own)&&
        /\b\d+\s*(?:kg|g|ml|l)\b/i.test(own)&&
        Number((title.match(/\s+(\d{1,2})$/)||[])[1])===Math.round((row.spatialResolved.value%1)*100))return cleaned;
+    if(anchor){
+      // Restore a conjunction's preceding printed line only within the same
+      // column and font size. Contained overlay glyphs are not separate words.
+      const boxes=row.debugNearbyBoxes||[];
+      const starts=boxes.filter(b=>Math.abs(b.left-anchor.left)<.005&&
+        anchor.top-b.top>.005&&anchor.top-b.top<.025&&
+        Math.abs(b.height-anchor.height)<.001&&/^[A-ZÅÄÖ][A-ZÅÄÖ-]{2,}$/.test(b.text));
+      const nearest=starts.filter(b=>b.top===Math.max(...starts.map(x=>x.top)));
+      if(nearest.length===1){
+        const start=nearest[0];
+        const candidates=boxes.filter(b=>Math.abs(b.top-start.top)<.001&&
+          Math.abs(b.height-anchor.height)<.001&&b.left>=anchor.left-.001&&b.left<anchor.left+.25);
+        const words=candidates.filter(b=>!candidates.some(other=>other!==b&&other.width>b.width&&
+          other.left<=b.left+.001&&other.left+other.width>=b.left+b.width-.001)).sort((a,b)=>a.left-b.left);
+        const prior=words.map(b=>b.text).join(' ');
+        const safe=words.every(b=>/^(?:[A-ZÅÄÖ][A-ZÅÄÖ-]*|ja|tai|\d+(?:[,.]\d+)?|[gklm]+,?|kpl\/pkt|tab\/ps)$/.test(b.text));
+        if(safe&&(/^ja\s+[A-ZÅÄÖ]/.test(title)||(/\bja\s+[A-ZÅÄÖ]/.test(prior)&&! /\d/.test(prior))))return prior+' '+title;
+      }
+    }
     if(anchor&&/^tai\s+[A-ZÅÄÖ]/.test(title)){
       const previous=(row.debugNearbyBoxes||[]).filter(b=>Math.abs(b.left-anchor.left)<.005&&
         anchor.top-b.top>.005&&anchor.top-b.top<.025&&/^[A-ZÅÄÖ]{3,}[A-ZÅÄÖ-]*$/.test(b.text));
