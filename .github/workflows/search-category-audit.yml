@@ -35,6 +35,10 @@ jobs:
           mkdir -p search-audit-results
           set -o pipefail
           node scripts/audit-search-categories.cjs | tee search-audit-results/categories.json
+      - name: Full application TypeScript typecheck
+        run: |
+          npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+          ./node_modules/.bin/tsc --noEmit --incremental false
       - name: Compile search provider route syntax
         run: |
           set -o pipefail
