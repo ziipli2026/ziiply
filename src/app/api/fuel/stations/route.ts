@@ -29,26 +29,55 @@ export async function GET(req: NextRequest) {
     }
     const rows = await sql`
       SELECT s.source_station_id, s.name, s.chain, s.address, s.latitude, s.longitude, s.is_traffic_station, s.traffic_station_verified,
+        country.payload->'station'->>'country_id' AS country_id,
+        country.payload->'station'->'country'->>'name_short' AS country_code,
         p95.price_eur_per_litre AS price95, p95.observed_at AS observed95,
         p98.price_eur_per_litre AS price98, p98.observed_at AS observed98,
         pd.price_eur_per_litre AS diesel, pd.observed_at AS observed_diesel
       FROM ziiply_fuel_stations s
+      LEFT JOIN LATERAL (SELECT payload FROM ziiply_tankkaus_feed_observations raw
+        WHERE raw.source_station_id=s.source_station_id ORDER BY observed_at DESC LIMIT 1) country ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
         WHERE p.source=s.source AND p.source_station_id=s.source_station_id AND p.fuel_type='95'
+        UNION ALL
+        SELECT raw.price_eur_per_litre, raw.observed_at FROM ziiply_tankkaus_feed_observations raw
+        WHERE s.source='tankkaus.com' AND raw.source_station_id=s.source_station_id
+          AND raw.fuel_type_id=1 AND raw.price_eur_per_litre > 0 AND raw.price_eur_per_litre <= 5
+          AND raw.observed_at <= NOW()
         ORDER BY observed_at DESC LIMIT 1) p95 ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
         WHERE p.source=s.source AND p.source_station_id=s.source_station_id AND p.fuel_type='98'
+        UNION ALL
+        SELECT raw.price_eur_per_litre, raw.observed_at FROM ziiply_tankkaus_feed_observations raw
+        WHERE s.source='tankkaus.com' AND raw.source_station_id=s.source_station_id
+          AND raw.fuel_type_id=2 AND raw.price_eur_per_litre > 0 AND raw.price_eur_per_litre <= 5
+          AND raw.observed_at <= NOW()
         ORDER BY observed_at DESC LIMIT 1) p98 ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
         WHERE p.source=s.source AND p.source_station_id=s.source_station_id AND p.fuel_type='diesel'
+        UNION ALL
+        SELECT raw.price_eur_per_litre, raw.observed_at FROM ziiply_tankkaus_feed_observations raw
+        WHERE s.source='tankkaus.com' AND raw.source_station_id=s.source_station_id
+          AND raw.fuel_type_id=6 AND raw.price_eur_per_litre > 0 AND raw.price_eur_per_litre <= 5
+          AND raw.observed_at <= NOW()
         ORDER BY observed_at DESC LIMIT 1) pd ON TRUE
       WHERE lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
         AND lower(coalesce(s.name, '')) NOT LIKE '%teboil%'
         AND s.source_station_id NOT IN (12564,12577,12683,554,3028,398,11828,11829,12579)
     `;
-    const stations = rows.filter((r) => !/\bteboil\b/i.test(String(r.chain ?? "") + " " + String(r.name ?? ""))).map((r) => ({
+    const stations = rows.filter((r) => {
+      // Geographic validity, independent of the user's location: never a search radius.
+      if (r.latitude == null || r.longitude == null) return false;
+      const latitude = Number(r.latitude), longitude = Number(r.longitude);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+          latitude < 59 || latitude > 70.2 || longitude < 19 || longitude > 32) return false;
+      const countryCode = String(r.country_code ?? "").toUpperCase();
+      if (countryCode && countryCode !== "FI") return false;
+      if (r.country_id != null && String(r.country_id) !== "1") return false;
+      return !/teboil/i.test(String(r.chain ?? "") + " " + String(r.name ?? ""));
+    }).map((r) => ({
       id: String(r.source_station_id), name: String(r.name), chain: r.chain,
-      isTrafficStation: r.traffic_station_verified === true ? r.is_traffic_station === true : null,
+      isTrafficStation: r.traffic_station_verified === true && r.is_traffic_station === true,
       address: r.address, latitude: Number(r.latitude), longitude: Number(r.longitude),
       distanceKm: distanceKm(lat, lon, Number(r.latitude), Number(r.longitude)),
       diesel: r.diesel == null ? null : Number(r.diesel),
@@ -65,6 +94,8 @@ export async function GET(req: NextRequest) {
       const key = address && chain ? chain + "|" + address : "id|" + station.id;
       const previous = unique.get(key);
       if (!previous) { unique.set(key, station); continue; }
+      // Completed classification: a verified traffic record wins over its duplicate.
+      previous.isTrafficStation = previous.isTrafficStation || station.isTrafficStation;
       for (const [priceKey, dateKey] of [
         ["diesel", "observedDiesel"], ["price95", "observed95"], ["price98", "observed98"],
       ] as const) {

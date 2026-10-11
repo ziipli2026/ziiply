@@ -32,7 +32,7 @@ export async function collectNational({token, fetchImpl=fetch, now=Date.now(), o
       const v=row?.station, id=number(row?.station_id ?? v?.id);
       const latitude=number(v?.latitude ?? v?.lat), longitude=number(v?.longitude ?? v?.lon);
       const country=String(v?.country?.name_short??'').toUpperCase();
-      if (country && country!=='FI') {rejected.nonFinnish++;continue;}
+      if ((country && country!=='FI') || (v?.country_id != null && String(v.country_id)!=='1')) {rejected.nonFinnish++;continue;}
       // Country is not guaranteed in /fills/index's documented station object.
       // Record this explicitly rather than falsely claiming verified nationality.
       if (!country) countryUnspecified++;
@@ -43,7 +43,7 @@ export async function collectNational({token, fetchImpl=fetch, now=Date.now(), o
       if(Number.isSafeInteger(observationId)&&observationId>0&&Number.isSafeInteger(id)&&id>0&&Number.isSafeInteger(fuelTypeId)&&fuelTypeId>0&&Number.isFinite(price)&&price>0&&typeof observedAt==='string'&&timestamp.test(observedAt)&&Number.isFinite(t)&&t<=now) {
         rawObservations.push({observationId,stationId:id,fuelTypeId,price,observedAt,payload:row});
       }
-      if (!v || !Number.isSafeInteger(id)||id<=0||number(v.id)!==id||!v.name||!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180) {
+      if (!v || !Number.isSafeInteger(id)||id<=0||number(v.id)!==id||!v.name||!Number.isFinite(latitude)||!Number.isFinite(longitude)||latitude<59||latitude>70.2||longitude<19||longitude>32) {
         rejected.invalidStation++;
         if(invalidStationSamples.length<5) invalidStationSamples.push({stationId:id,stationKeys:Object.keys(v??{}),latitude:v?.latitude,longitude:v?.longitude,name:v?.name});
         continue;

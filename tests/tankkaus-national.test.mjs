@@ -31,3 +31,10 @@ test('raw archive retains valid observations for other fuels and missing coordin
  const batch=await collectNational({token:'x',fetchImpl:feed([[row(1,{fuel_type_id:99}),row(2,{station:{...row(2).station,latitude:null}})]])});
  assert.equal(batch.rawObservations.length,2);assert.equal(batch.observations.length,0);assert.equal(batch.rawObservations[0].fuelTypeId,99);
 });
+test('country_id excludes foreign rows and zero coordinates never become a station',async()=>{
+ const batch=await collectNational({token:'x',fetchImpl:feed([[row(1,{station:{...row(1).station,country:undefined,country_id:2}}),row(2,{station:{...row(2).station,country:undefined,country_id:1,latitude:0,longitude:0}}),row(3,{station:{...row(3).station,country:undefined,country_id:1,latitude:69.5,longitude:27}})]])});
+ assert.equal(batch.report.rejected.nonFinnish,1);
+ assert.equal(batch.report.rejected.invalidStation,1);
+ assert.deepEqual(batch.stations.map(s=>s.id),[3]);
+ assert.deepEqual(batch.observations.map(s=>s.stationId),[3]);
+});

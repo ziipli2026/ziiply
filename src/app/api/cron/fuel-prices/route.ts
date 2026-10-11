@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   if (!process.env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
-  if (!fuelRefreshDue()) return NextResponse.json({ ok: true, skipped: true, timeZone: "Europe/Helsinki" });
+  if (!fuelRefreshDue(new Date(), true)) return NextResponse.json({ ok: true, skipped: true, timeZone: "Europe/Helsinki" });
   const connection = process.env.TANKKAUS_TEST_DATABASE_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!connection || !process.env.TANKKAUS_API_TOKEN) {
     return NextResponse.json({ ok: false, error: "Fuel collector credentials missing" }, { status: 503 });
