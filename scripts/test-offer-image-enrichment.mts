@@ -15,4 +15,7 @@ assert.equal(enrichOfferImage(base, [image, { ...image, imageUrl: "https://examp
 for (const chain of ["prisma", "citymarket", "k-supermarket", "k-market", "lidl", "tokmanni", "spar"]) {
   assert.equal(enrichOfferImage({ ...base, source: chain }, [{ ...image, source: chain }]).imageUrl, image.imageUrl);
 }
+assert.equal(matchOfferImage({name:"Pirkka valikoima 320 g",packageSize:"320 g"}, {name:"Pirkka valikoima 320 g",packageSize:"320 g",imageUrl:image.imageUrl}).accepted,false);
+assert.equal(matchOfferImage({name:"Kahvit tai teet 500 g",packageSize:"500 g"}, {name:"Kahvit tai teet 500 g",packageSize:"500 g",imageUrl:image.imageUrl}).accepted,false);
+assert.equal(matchOfferImage({name:"Pirkka Kahvipaketti",packageSize:"250–500 g"}, {name:"Pirkka Kahvipaketti",packageSize:"250–500 g",imageUrl:image.imageUrl}).accepted,false);
 console.log("Offer image matcher regression checks passed");
