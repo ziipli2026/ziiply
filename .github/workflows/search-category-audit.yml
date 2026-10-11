@@ -50,6 +50,7 @@ jobs:
         if: success() || failure()
         run: node scripts/audit-dependency-lock.cjs | tee search-audit-results/dependency-lock.json
       - name: Full application TypeScript typecheck
+        if: success() || failure()
         run: |
           npm install --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund
           ./node_modules/.bin/tsc --noEmit --incremental false
