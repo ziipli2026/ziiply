@@ -112,7 +112,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     },"image/jpeg",0.95);
   }
   async function readPhoto(file:File,source:"online"|"offline"){
-    autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
+    autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(true);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
@@ -210,7 +210,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       </div>
       <footer className={`flex h-[76px] shrink-0 flex-col justify-center border-t border-[#baa46a]/50 text-[#174c35] ${cameraOpen||(!sent&&(Boolean(photo)||mode==="manual"))?"":"invisible"}`}>
         {cameraOpen?<><div className="flex justify-center gap-3"><button type="button" disabled={!cameraReady} onClick={()=>void capturePhoto()} className="rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35] disabled:opacity-40">Ota kuva</button><button type="button" onClick={stopCamera} className="rounded-xl border border-[#baa46a] px-4 py-2 font-bold">Peruuta</button></div><p className="text-center text-[11px] text-[#6d604c]">{cameraReady?"Kohdista kamera hintatauluun ja ota kuva.":"Avataan kameraa…"}</p></>:<>
-                <div className="flex items-center justify-center gap-3"><button type="button" onClick={()=>void submit()} disabled={busy||locating||(conflict.reasons.length>0&&!conflictConfirmed)||!validObserved||!stationId||!validateFuelPrices(prices)} className="min-w-[120px] rounded-xl border-2 border-[#8bb56d] bg-[#e3edc9] px-8 py-2 text-lg font-black text-[#174c35] disabled:opacity-40">OK</button><button type="button" hidden={mode==="manual"} onClick={()=>setEditing(v=>!v)} className="rounded-xl border border-[#baa46a] px-4 py-2 text-sm font-bold text-[#174c35]">{editing?"Valmis":"Korjaa tietoja"}</button>{mode==="online"&&<button type="button" disabled={busy||locating} onClick={startOnline} className="rounded-xl border border-[#17573c] px-4 py-2 text-sm font-bold disabled:opacity-40">Ota uusi kuva</button>}</div>
+                <div className="flex items-center justify-center gap-3"><button type="button" onClick={()=>void submit()} disabled={busy||locating||(conflict.reasons.length>0&&!conflictConfirmed)||!validObserved||!stationId||!validateFuelPrices(prices)} className="min-w-[120px] rounded-xl border-2 border-[#8bb56d] bg-[#e3edc9] px-8 py-2 text-lg font-black text-[#174c35] disabled:opacity-40">OK</button>{mode==="online"&&<button type="button" disabled={busy||locating} onClick={startOnline} className="rounded-xl border border-[#17573c] px-4 py-2 text-sm font-bold disabled:opacity-40">Ota uusi kuva</button>}</div>
                 <p className="text-center text-[11px] text-[#6d604c]">OK lähettää hintailmoituksen tarkistettavaksi.</p>
         </>}
       </footer>
