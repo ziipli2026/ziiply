@@ -79,7 +79,7 @@ export async function GET(request: Request) {
 
   // For a selected S-market, use its own Ruoanhinta ID first (same as mobile).
   // Never use Prisma Hyvinkää's default ID for a local store.
-  if (storeType === "local" && (!/^s[ -]?market\\b/i.test(storeName) || !/^\\d+$/.test(store))) {
+  if (storeType === "local" && (!/^s[ -]?market\b/i.test(storeName) || !/^\\d+$/.test(store))) {
     return NextResponse.json({ error: "Valid S-market store required" }, { status: 400 });
   }
 
