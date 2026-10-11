@@ -90,6 +90,17 @@ jobs:
               continue;
             }
             const r = JSON.parse(fs.readFileSync(file, 'utf8'));
+            if (r.error) {
+              lines.push('| ' + label + ' | Replay failed | — | — | — | — |');
+              lines.push('<details><summary>' + label + ': parser error</summary>');
+              lines.push('');
+              lines.push('```text');
+              lines.push(String(r.error).slice(0, 6000));
+              lines.push('```');
+              lines.push('Missing archived requests: ' + (r.missingRequests || []).join(', '));
+              lines.push('</details>');
+              continue;
+            }
             lines.push('| ' + label + ' | ' + r.matched + '/' + r.expected + ' | ' + r.missing.length + ' | ' + r.extra.length + ' | ' + r.duplicateKeys + ' | ' + r.pages + ' |');
             for (const [kind, keys] of [['Missing', r.missing], ['Extra', r.extra]]) {
               if (keys.length) {
