@@ -1336,7 +1336,7 @@ export default function DesktopPreviewPage() {
                 <h2 className="font-serif text-[22px] font-black italic text-[#174c35]">Göstan sähkövertailu</h2>
                 <button type="button" onClick={()=>setElectricityOpen(false)} aria-label="Sulje sähkövertailu" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black text-[#fff0c8]">×</button>
               </div>
-              <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">
+              <div className="relative mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">
                 <section className="min-h-0 shrink-0 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] px-4 py-3">
                   <h3 className="font-serif text-[22px] font-black italic text-[#174c35]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h3>                  {(()=> {
                     const now=Date.now();
@@ -1365,13 +1365,13 @@ export default function DesktopPreviewPage() {
                     </div>;
                   })()}
                 </section>
-                <section className="min-h-[130px] flex-1 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
+                <section className="group min-h-[130px] flex-1 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5 transition-[box-shadow] duration-150 hover:absolute hover:inset-4 hover:z-30 hover:flex hover:flex-col hover:shadow-[0_16px_45px_rgba(40,47,32,.25)] focus-within:absolute focus-within:inset-4 focus-within:z-30 focus-within:flex focus-within:flex-col">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
                     <span className="text-[11px] font-bold text-[#6d604c]">Hintapoiminta 11.10.2026 · tarkista myyjältä</span>
                   </div>
                   <p className="mt-1 text-xs text-[#6d604c]">Sähköenergian myyntisopimukset. Siirto ja sähkövero eivät sisälly. Tarjoukset voivat muuttua.</p>
-                  <div className="mt-3 grid max-h-[245px] grid-cols-1 gap-2 overflow-y-auto pr-1 xl:grid-cols-2">
+                  <div className="mt-3 grid max-h-[245px] grid-cols-1 gap-2 overflow-y-auto overscroll-contain pr-1 group-hover:min-h-0 group-hover:flex-1 group-hover:max-h-none group-focus-within:min-h-0 group-focus-within:flex-1 group-focus-within:max-h-none xl:grid-cols-2">
                     {([
                       {seller:"Helen",name:"Perussähkö 24 kk",type:"Kiinteä",price:"10,45 snt/kWh",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · tarjousperusmaksun kesto tarkistettava",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
                       {seller:"Helen",name:"Välkkysähkö 24 kk",type:"Kulutusvaikutus",price:"9,98 snt/kWh ± vaikutus",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · lopullinen hinta riippuu kulutuksesta",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
