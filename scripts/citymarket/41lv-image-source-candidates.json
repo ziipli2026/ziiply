@@ -7,10 +7,11 @@
       "ean": "6411402202208",
       "url": "https://www.k-ruoka.fi/kauppa/tuote/fazer-puikula-9kpl500g-taysjyvaruis-6411402202208",
       "manufacturerUrl": "https://fazerpro.fazer.com/katalogi/tuotteet/leivat/tuoreleivat/tummat-palaleivat/fazer-puikula-taysjyvaruis-9kpl-500g/",
-      "status": "product-identity-verified-image-not-extracted",
+      "status": "image-candidate-found-needs-rights-and-leaflet-visual-verification",
       "offerId": "kcm:spatial:15:fazer puikula täysjyväruis 9 kpl/500 g:1.79",
       "approved": false,
-      "imageUrl": null
+      "imageUrl": "https://www.minimani.fi/media/catalog/product/cache/9b19c45c70084e218fc0ce0c3e43ed6e/b/7/b7b08cbf620b2dc65f91693af08dbe9ac356b675_6411402202208.jpg",
+      "imageEvidenceUrl": "https://www.minimani.fi/fazer-puikula-taysrjyvaruis-9kpl-500-g.html"
     },
     {
       "fragment": "ikaffe maustamaton kaurajuoma 1 l",
