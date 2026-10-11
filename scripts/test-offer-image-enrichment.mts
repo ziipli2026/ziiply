@@ -36,3 +36,20 @@ assert.deepEqual(await resolveImageEnrichmentBatch([job("one")], async () => [im
 assert.equal(matchOfferImage(base, { ...image, imageUrl: "http://example.org/image.webp" }).accepted, false);
 assert.equal(matchOfferImage(base, { ...image, imageUrl: "//example.org/image.webp" }).accepted, false);
 console.log("Offer image queue, limits, failure handling and URL regression checks passed");
+
+const conflictCandidates: OfferImageCandidate[] = [
+  { ...image, imageUrl: "https://example.org/a.webp" },
+  { ...image, imageUrl: "https://example.org/b.webp" },
+];
+const conflictingBank = await resolveImageEnrichmentBatch([job("ambiguous")], async () => conflictCandidates);
+assert.deepEqual(conflictingBank.map(item => item.status), ["unresolved"]);
+const wrongBrandBank = await resolveImageEnrichmentBatch([job("wrong-brand")], async () => [{ ...image, brand: "Coop" }]);
+assert.equal(wrongBrandBank[0].status, "unresolved");
+const wrongSizeBank = await resolveImageEnrichmentBatch([job("wrong-size")], async () => [{ ...image, packageSize: "500 g" }]);
+assert.equal(wrongSizeBank[0].status, "unresolved");
+const missingImageBank = await resolveImageEnrichmentBatch([job("missing-image")], async () => [{ ...image, imageUrl: null }]);
+assert.equal(missingImageBank[0].status, "unresolved");
+const duplicateSameImage = await resolveImageEnrichmentBatch([job("same-image")], async () => [image, { ...image }]);
+assert.equal(duplicateSameImage[0].status, "enriched");
+assert.equal(duplicateSameImage[0].imageUrl, image.imageUrl);
+console.log("Neon-style image bank ambiguity and identity regression checks passed");
