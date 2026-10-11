@@ -1,0 +1,28 @@
+name: Desktop search pagination integration
+on:
+  push:
+    branches:
+      - test/desktop-pagination-final-20261011
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated TypeScript runtime
+        run: npm ci --prefix scripts/search-test-runtime --ignore-scripts --no-audit --no-fund
+      - name: Run ten bounded pagination regressions
+        run: NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/test-search-pagination.cjs
+      - name: Run pagination request-count checks
+        run: NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/test-search-pagination-performance.cjs
+      - name: Compile S/K route syntax
+        run: NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/check-search-route-syntax.cjs
+      - name: Typecheck desktop-based app
+        run: |
+          npm install --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+          ./node_modules/.bin/tsc --noEmit --incremental false
+      - name: Build desktop-based app
+        run: npm run build
