@@ -63,7 +63,7 @@
 
 import { NextResponse } from "next/server";
 import { enrichOfferImage, type OfferImageCandidate } from "../../../../lib/offerImageEnrichment";
-import { lookupKnownEanImages } from "../../../../lib/offerImageEanLookup";
+import { lookupKnownEanImages, lookupKnownNameImages } from "../../../../lib/offerImageEanLookup";
 import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
@@ -931,6 +931,9 @@ export async function GET(request: Request) {
     let eanLookupErrors = 0;
     let noEanCount = 0;
     let localImageMatches = 0;
+    let nameLookupCount = 0;
+    let nameLookupMatches = 0;
+    let nameLookupErrors = 0;
     const unresolvedImageSamples: Array<{ title: string; reason: string }> = [];
     const previewResults = [...results];
     if (process.env.VERCEL_ENV === "preview") {
@@ -961,6 +964,16 @@ export async function GET(request: Request) {
             eanLookupErrors++;
           }
         }
+        if (!enriched.imageUrl && !/^\\d{8,14}$/.test(String(offer.ean))) {
+          nameLookupCount++;
+          try {
+            const candidates = await lookupKnownNameImages(offer);
+            enriched = enrichOfferImage(offer, candidates);
+            if (enriched.imageUrl) nameLookupMatches++;
+          } catch {
+            nameLookupErrors++;
+          }
+        }
         if (!enriched.imageUrl && unresolvedImageSamples.length < 30) {
           unresolvedImageSamples.push({ title: String(offer.name || "").slice(0, 120), reason: offer.ean ? "no-verified-image" : "missing-ean-and-no-verified-local-match" });
         }
@@ -982,8 +995,11 @@ export async function GET(request: Request) {
       eanLookupErrors,
       noEanCount,
       localImageMatches,
+      nameLookupCount,
+      nameLookupMatches,
+      nameLookupErrors,
       unresolvedImageSamples,
-      mode: "preview-readonly-ean-and-verified-local-matches",
+      mode: "preview-readonly-ean-exact-name-and-verified-local-matches",
     };
 
     return NextResponse.json(
