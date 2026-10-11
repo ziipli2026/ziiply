@@ -1,3 +1,4 @@
+import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
 import { NextResponse } from "next/server";
 import { fetchSKaupatNormalProductsV220 } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
@@ -97,23 +98,16 @@ export async function GET(request: Request) {
     });
 
     const data = await response.json();
-    const sourceItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
-
-    // Category search: collect subsequent provider pages before ranking on mobile.
-    // Keep other search categories on their existing request path.
-    if (/ketsuppi|ketchup/i.test(search) && response.ok && sourceItems.length === 80) {
-      for (const skip of [80, 160]) {
-        const pageResponse = await fetch(
-          `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(search)}&storeIds=${storeId}&skip=${skip}&take=80`,
-          { headers: { accept: "application/json" }, cache: "no-store" },
-        );
-        if (!pageResponse.ok) break;
-        const pageData = await pageResponse.json();
-        const pageItems: RuoanhintaProduct[] = Array.isArray(pageData.items) ? pageData.items : [];
-        sourceItems.push(...pageItems);
-        if (pageItems.length < 80) break;
-      }
-    }
+    const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    const sourceItems = response.ok ? await appendRuoanhintaPages(firstPage, 80, async (skip) => {
+      const pageResponse = await fetch(
+        `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(search)}&storeIds=${storeId}&skip=${skip}&take=80`,
+        { headers: { accept: "application/json" }, cache: "no-store" },
+      );
+      if (!pageResponse.ok) throw new Error(`Provider page HTTP ${pageResponse.status}`);
+      const pageData = await pageResponse.json();
+      return Array.isArray(pageData.items) ? pageData.items as RuoanhintaProduct[] : [];
+    }) : firstPage;
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
