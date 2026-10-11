@@ -17,6 +17,18 @@ if (!entry) {
   assert.equal(publication.offerCount, fixture.offerCount);
   assert.equal(keys.size, fixture.offerCount, "Duplicate fixture offer identifiers");
   assert.ok(imageKeys.every(key => keys.has(key)), "Manifest image is not in approved fixture");
+  // Verify every approved image points to a real local SVG fragment.
+  const expectedAsset = "/citymarket-leaflets/" + publication.pdfSha256 + "/images.svg";
+  const assetPath = "public" + expectedAsset;
+  assert.ok(fs.existsSync(assetPath), "41LV SVG image asset missing: " + assetPath);
+  const svg = fs.readFileSync(assetPath, "utf8");
+  assert.ok(svg.startsWith("<svg "), "41LV image asset must be an SVG");
+  const fragmentIds = new Set([...svg.matchAll(/<view\\s+id="([^"]+)"/g)].map(match => match[1]));
+  for (const [key, image] of Object.entries(publication.images)) {
+    assert.ok(image.startsWith(expectedAsset + "#"), "Unexpected 41LV image path for " + key);
+    const fragment = image.slice(expectedAsset.length + 1);
+    assert.ok(fragmentIds.has(fragment), "41LV SVG fragment missing for " + key + ": " + fragment);
+  }
   const uncovered = fixture.offers.filter(row => !publication.images[row.key]);
   const unsafeName = /\b(tai|sekä|seka|ja|valikoima|erilaiset|useita|lajitelma)\b|\d+\s*[–-]\s*\d+\s*(?:g|kg|ml|l)\b|\b(?:plussa-kortilla|ilman plussa-korttia)\b/i;
   const diagnostic = uncovered.map(row => ({ ...row, candidateSafe: !unsafeName.test(row.identity) && !/\b(?:geelit|suihkeet|tiivisteet|tahranpoistajat|jäätelöt|juustoviipaleet|pyykinpesunesteet|täysmehut|rahkat|vanukkaat|pyykkietikat|suihkugeelit|wc-paperi|meikkivoide)\b/i.test(row.identity) }));
@@ -51,6 +63,7 @@ if (!entry) {
   const report = {
     publicationUrl, approvedOffers: fixture.offerCount,
     existingImages: imageKeys.length, missingImages: uncovered.length,
+    imageAssetVerified: true, verifiedImageFragments: imageKeys.length,
     diagnosticOnly: true,
     reviewCandidates,
     nameParsingCandidates: diagnostic.filter(row => row.candidateSafe).length, // candidates only; never automatic image approval
