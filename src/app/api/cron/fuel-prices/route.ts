@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       if (!matches.length) { rejected++; continue; }
       const existing = await sql`SELECT 1 FROM ziiply_fuel_price_observations WHERE source='tankkaus.com' AND source_station_id=${id} AND fuel_type=${fuel} AND observed_at=${timestamp.toISOString()} LIMIT 1`;
       if (existing.length) continue;
-      await sql`INSERT INTO ziiply_fuel_price_observations (source,source_station_id,fuel_type,price_eur_per_litre,observed_at) VALUES ('tankkaus.com',${id},${fuel},${price},${timestamp.toISOString()})`;
+      await sql`INSERT INTO ziiply_fuel_price_observations (id,source,source_station_id,fuel_type,price_eur_per_litre,observed_at) SELECT (SELECT COALESCE(MAX(id),0)+1 FROM ziiply_fuel_price_observations),'tankkaus.com',${id},${fuel},${price},${timestamp.toISOString()} ON CONFLICT DO NOTHING`;
       imported++;
     }
     return NextResponse.json({ ok: true, imported, rejected, received: payload.observations.length, localHour: hour });
