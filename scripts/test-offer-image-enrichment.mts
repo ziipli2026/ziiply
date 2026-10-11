@@ -93,3 +93,8 @@ assert.equal(matchOfferImage(base, { ...image, imageUrl: "file:///etc/passwd" })
 assert.equal(matchOfferImage(base, { ...image, imageUrl: "/safe-image.svg" }).accepted, true);
 assert.equal(matchOfferImage(base, { ...image, imageUrl: "https://example.org/safe-image.webp" }).accepted, true);
 console.log("URL protocol allowlist checks passed");
+
+for (const invalidRelative of ["image.webp", "./image.webp", "../image.webp", "ftp://example.org/image.webp", "HTTP://example.org/image.webp", "https:example.org/image.webp"]) {
+  assert.equal(matchOfferImage(base, { ...image, imageUrl: invalidRelative }).accepted, false, "Non-canonical image URL accepted: " + invalidRelative);
+}
+console.log("Canonical absolute HTTPS or root-relative image URL checks passed");
