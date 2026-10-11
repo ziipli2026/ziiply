@@ -39,8 +39,8 @@ vm.runInNewContext(compile(route),sandbox);
  const component=desktop.slice(desktop.indexOf('function FuelStationCardDetails('),desktop.indexOf('\nfunction FuelStationBackdrop'));
  const ctx={React};vm.runInNewContext(compile(component+'\nCard=FuelStationCardDetails;'),ctx);
  const markup=renderToStaticMarkup(React.createElement(ctx.Card,{chain:'Neste',station:stations.find(s=>s.id==='399')}));
- assert(markup.includes('2,350 €/l'));assert(markup.includes('10.10.'));assert(markup.includes('08.33')||markup.includes('08:33'));
- assert(markup.includes('Ei havaintoa'));assert(!markup.includes('w-14'));
+ assert(markup.includes('2,350'));assert(markup.includes('DI'));assert(markup.includes('BE'));
+ assert(markup.includes('–'));assert(markup.includes('w-14'));assert(!markup.includes('10.10.'));
 
  console.log(JSON.stringify({ok:true,stations:stations.length,cold:helperContext.result.fuelVisible.length,checks:['TSX/TS syntax','Hyvinkää regression fixture','Finland/country/Teboil filtering','boolean classification','traffic duplicate','GPS ordering without radius','Sveitsinportti price and timestamp','cold filter','card rendering']}));
 })().catch(e=>{console.error(e);process.exitCode=1});
