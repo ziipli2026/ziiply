@@ -1290,7 +1290,13 @@ export default function DesktopPreviewPage() {
                     return aDistance===bDistance?0:aDistance<bDistance?-1:1;
                   };
                   const price=(value:unknown)=>value!=null && Number.isFinite(Number(value)) && Number(value)>0 ? Number(value).toFixed(3).replace(".",",") : "–";
-                  const observed=(value:unknown)=>value && Number.isFinite(Date.parse(String(value))) ? new Date(String(value)).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}) : "–";
+                  const observed=(value:unknown)=>{
+                    if(!value || !Number.isFinite(Date.parse(String(value))))return "–";
+                    const date=new Date(String(value));
+                    const time=date.toLocaleTimeString("fi-FI",{timeZone:"Europe/Helsinki",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"});
+                    if(time==="00.00.00" || time==="00:00:00")return "Lähteen päiväys "+date.toLocaleDateString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric"});
+                    return date.toLocaleString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"});
+                  };
                   return groups.length===0?<p className="py-8 text-center font-bold">Valitse ensin vähintään yksi ketju.</p>:<div className="grid min-h-0 flex-1 gap-x-4 gap-y-5 pt-2" style={{gridTemplateColumns:groups.length===1?"minmax(0,1fr)":"repeat(4,minmax(0,1fr))",gridTemplateRows:groups.length===5?"repeat(3,minmax(0,1fr))":groups.length>=3?"repeat(2,minmax(0,1fr))":"minmax(0,1fr)"}}>
                     {groups.map((group,groupIndex)=>{
                       const candidates=fuelVisible.filter((station:any)=>group==="Muut"?["Gulf","Ritoil","Muut"].includes(fuelGroupOf(station)):fuelGroupOf(station)===group).filter((station:any)=>[station.diesel,station.price95,station.price98].some(value=>value!=null && Number.isFinite(Number(value)) && Number(value)>0)).sort(compareStations);
