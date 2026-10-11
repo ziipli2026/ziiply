@@ -49,8 +49,8 @@ export function matchOfferImage(offer: OfferImageCandidate, candidate: OfferImag
   // an explicit single package size embedded in both identical titles.
   // Never infer an image for generic product groups or multi-product offers.
   const rawName = String(offer.name || "");
-  const explicitPacks = [...rawName.matchAll(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|l|kpl|pkt|rl)\\b/gi)];
-  const generic = /\\b(wc paperi|suihkeet|juomat|hammastahnat|suklaalevyt|pahkinat|leikkeleet|jaatelot|kahvit|pirtelot|ateriat|geelit|tabletit|pesunesteet)\\b/i;
+  const explicitPacks = [...rawName.matchAll(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l|kpl|pkt|rl)\b/gi)];
+  const generic = /\b(wc paperi|suihkeet|juomat|hammastahnat|suklaalevyt|pahkinat|leikkeleet|jaatelot|kahvit|pirtelot|ateriat|geelit|tabletit|pesunesteet)\b/i;
   const multiPack = /\b\d+\s*[- ]?\s*(?:pack|pakkaus)\b/i;
   const promo = /\b(plussa|kortilla|ilman|tarjous|norm\.?\s*hinta)\b/i;
   if (nameA === nameB && nameA.length >= 20 && explicitPacks.length === 1 &&
