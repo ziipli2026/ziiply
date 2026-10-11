@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:search": "node scripts/test-search-behavior.cjs",
+    "audit:search": "node scripts/audit-search-categories.cjs && node scripts/audit-search-collisions.cjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
