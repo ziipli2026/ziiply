@@ -10,6 +10,8 @@ const categorySource = match[0].replace("export function category(t:string)", "f
 const context = {clean: (s) => String(s).trim()};
 vm.runInNewContext(categorySource + "\nthis.classify=category;", context);
 const cases = [
+  ["PAKASTEATERIAT ja -KEITOT 200–350 g", "Pakasteet"],
+  ["Valmisateria 300 g", "Valmisruoka"],
   ["Friggs maissikakut", "Kuivatuotteet"],
   ["Riisikakut 100 g", "Kuivatuotteet"],
   ["Pakastemuusiperuna 500 g", "Pakasteet"],

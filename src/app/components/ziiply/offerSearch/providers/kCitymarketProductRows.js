@@ -9,6 +9,20 @@ export function canonicalCitymarketProductRows(rows) {
     const own=String(row.debugCardAnchor?.text||'').trim();
     const title=String(row.title||'').trim().replace(/^\d+KPL-\d+[–-]\d+%\s*/,'');
     const anchor=row.debugCardAnchor;
+    const lettersOnly=t=>t.replace(/[^A-Za-zÅÄÖåäö]/g,'');
+    const cleaned=title.replace(/^\d+\s*KPL\s+/i,'').replace(/\s+\d{1,2}$/,'');
+    if(anchor&&row.spatialResolved&&lettersOnly(cleaned)===lettersOnly(own)&&
+       /\b\d+\s*(?:kg|g|ml|l)\b/i.test(own)&&
+       Number((title.match(/\s+(\d{1,2})$/)||[])[1])===Math.round((row.spatialResolved.value%1)*100))return cleaned;
+    if(anchor&&/^tai\s+[A-ZÅÄÖ]/.test(title)){
+      const previous=(row.debugNearbyBoxes||[]).filter(b=>Math.abs(b.left-anchor.left)<.005&&
+        anchor.top-b.top>.005&&anchor.top-b.top<.025&&/^[A-ZÅÄÖ]{3,}[A-ZÅÄÖ-]*$/.test(b.text));
+      if(previous.length===1&&! (row.debugNearbyBoxes||[]).some(b=>Math.abs(b.top-previous[0].top)<.001&&b.left>=anchor.left-.001&&b.left<anchor.left+.25&&/\d/.test(b.text))){
+        const start=previous[0];
+        const words=(row.debugNearbyBoxes||[]).filter(b=>Math.abs(b.top-start.top)<.001&&b.left>=anchor.left-.001&&b.left<anchor.left+.25&&/^[A-ZÅÄÖ][A-ZÅÄÖ-]+$/.test(b.text)).sort((a,b)=>a.left-b.left).map(b=>b.text);
+        return words.join(' ')+' '+title;
+      }
+    }
     if(anchor && row.package?.raw){
       const starts=(row.debugNearbyBoxes||[]).filter(b=>/^[A-ZÅÄÖ]{3,}[A-ZÅÄÖ-]*$/.test(b.text)&&
         Math.abs(b.left-anchor.left)<.005&&b.top-anchor.top>.005&&b.top-anchor.top<.025);
@@ -31,7 +45,7 @@ export function canonicalCitymarketProductRows(rows) {
     if(consumed.has(index))return [];
     let title=line(row);
     const anchor=row.debugCardAnchor;
-    if(anchor&&/(?:[A-ZÅÄÖ]-|\bja)$/.test(title)){
+    if(anchor){
       const candidates=items.map((next,i)=>({next,i})).filter(({next,i})=>i!==index&&!consumed.has(i)&&next.page===row.page&&
         next.debugCardAnchor&&Math.abs(next.debugCardAnchor.left-anchor.left)<.005&&
         next.debugCardAnchor.top-anchor.top>.005&&next.debugCardAnchor.top-anchor.top<.025&&
@@ -39,7 +53,7 @@ export function canonicalCitymarketProductRows(rows) {
         row.unitPrice?.min===next.unitPrice?.min&&row.unitPrice?.max===next.unitPrice?.max);
       if(candidates.length===1){
         const {next,i}=candidates[0];const continuation=line(next);
-        if(/^[A-ZÅÄÖ]/.test(continuation)){
+        if((/(?:[A-ZÅÄÖ]-|\bja)$/.test(title)&&/^[A-ZÅÄÖ]/.test(continuation))||/^tai\s+[A-ZÅÄÖ]/.test(continuation)){
           title=title.endsWith('-')?title+continuation:title+' '+continuation;
           consumed.add(i);
           if(row.package&&next.package&&row.package.raw!==next.package.raw){

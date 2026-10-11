@@ -15,3 +15,7 @@ test('Owned transaction metadata preserves kilogram basis and printed deposit wi
  assert.deepEqual(citymarketTransactionMetadata({nearby:['Sis. pantit 2,40'],spatialResolved:{value:4,quantity:2}}),{});
  assert.deepEqual(citymarketTransactionMetadata({spatialResolved:{depositTotal:-1,packageCount:1}}),{});
 });
+const alternatives=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/product-alternative-lines.json',import.meta.url)));
+test('Printed alternative lines restore complete identity without borrowing price glyphs',()=>{const before=JSON.stringify(alternatives),out=canonical(alternatives);assert.equal(out.length,2);const vegetables=out.find(r=>r.title.includes('PORKKANA'));assert.equal(vegetables.title,'PORKKANA 2 kg, LANTTU 2 kg tai PUNAJUURI 2 kg');assert.equal(vegetables.spatialResolved.value,1.49);assert.equal(vegetables.spatialResolved.quantity,null);const meat=out.find(r=>r.title.includes('PALVIROUHE'));assert.ok(meat.title.startsWith('MAALAISNAKIT tai SAVUSAUNA-'));assert.equal(meat.spatialResolved.value,2.99);assert.equal(JSON.stringify(alternatives),before);});
+test('Alternative with different price must remain separate',()=>{const f=structuredClone(alternatives.filter(r=>/PORKKANA|PUNAJUURI/.test(r.title)));f[1].spatialResolved.value=1.99;assert.equal(canonical(f).length,2);});
+test('Alternative in another column must remain separate',()=>{const f=structuredClone(alternatives.filter(r=>/PORKKANA|PUNAJUURI/.test(r.title)));f[1].debugCardAnchor.left+=.1;assert.equal(canonical(f).length,2);});

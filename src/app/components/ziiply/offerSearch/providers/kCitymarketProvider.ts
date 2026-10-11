@@ -89,7 +89,7 @@ export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
   if(/nachips|nachos|tortilla/.test(s)) return "Kuivatuotteet";
   if(/jogurttijuom|actimel/.test(s)) return "Maitotuotteet";
-  if(/pakaste.*kasvis|kasvis.*pakaste|vihannessekoit/.test(s)) return "Pakasteet";
+  if(/pakaste.*kasvis|kasvis.*pakaste|vihannessekoit|pakasteateriat|pakastekeitot/.test(s)) return "Pakasteet";
   if(/puhdistus.*(?:tiiviste|suihke)|wc-geeli|käsitiski/.test(s)) return "Kodinhoito";
   // Leipäjuusto is a dairy cheese, not a bakery product.
   if(/leipäjuust/.test(s)) return "Maitotuotteet";
@@ -625,7 +625,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v136-publisher-archive":"standard"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v137-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
