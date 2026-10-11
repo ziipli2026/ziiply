@@ -213,6 +213,18 @@ export type SearchIntentCategory =
   | "snacks"
   | "buttermilk"
   | "cooking_oil"
+  | "cream"
+  | "quark"
+  | "cottage_cheese"
+  | "cream_cheese"
+  | "butter"
+  | "margarine"
+  | "tea"
+  | "juice"
+  | "sausage"
+  | "cold_cuts"
+  | "toothpaste"
+  | "deodorant"
   | "generic";
 
 export type SearchIntent = {
