@@ -4,6 +4,7 @@ on:
     branches:
       - test/desktop-pagination-clean-20261011
       - test/sk-search-zero-result-fallback-20261011
+      - fix/desktop-exact-size-query-20261011
   workflow_dispatch:
 jobs:
   verify:
@@ -15,6 +16,8 @@ jobs:
           node-version: '22'
       - name: Install isolated TypeScript runtime
         run: npm ci --prefix scripts/search-test-runtime --ignore-scripts --no-audit --no-fund
+      - name: Run desktop exact-size query regressions
+        run: NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/test-desktop-size-query.cjs
       - name: Run zero-result fallback regressions
         run: NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/test-normal-search-fallback.cjs
       - name: Run ten bounded pagination regressions

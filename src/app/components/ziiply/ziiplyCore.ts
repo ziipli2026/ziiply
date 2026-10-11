@@ -901,6 +901,12 @@ export function getNormalSearchQueries(term: string) {
     const exactQueries = uniqueNormalizedQueries([
       term,
       looseTerm,
+      // Keep the exact query first; also try its package-size-free form.
+      // Never drop brand or variant words (e.g. Zero, Original).
+      ...(() => {
+        const sizeFree = term.trim().replace(/\s+\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l|kpl|pkt|pss)\s*$/i, "").trim();
+        return sizeFree !== term.trim() && sizeFree.split(/\s+/).length >= 2 ? [sizeFree] : [];
+      })(),
       getSearchQuery(term),
       ...colaSpecificQueries.filter((query) => {
         const clean = normalizeLooseProductMatch(query);
