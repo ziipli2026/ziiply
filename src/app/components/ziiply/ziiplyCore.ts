@@ -2751,8 +2751,8 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
   const intent = detectSearchIntent(query);
   const name = normalize(product.name);
   if (intent.category === "mustard") return /sinappikastike|majoneesi/.test(name) && !/dijonsinappi|hunajasinappi/.test(name) && !/\bsinappi\b/.test(name.replace(/sinappikastike/g, ""));
-  if (intent.category === "tomato_crush") return /ketsuppi|tomaattipyree/.test(name);
-  if (intent.category === "tomato_paste") return /ketsuppi|tomaattimurska/.test(name);
+  if (intent.category === "tomato_crush") return /ketsuppi|tomaattipyree/.test(name) && !/tomaattimurska/.test(name);
+  if (intent.category === "tomato_paste") return /ketsuppi|tomaattimurska/.test(name) && !/tomaattipyree|tomaattitahna/.test(name);
   return false;
 }
 
