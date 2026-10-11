@@ -48,16 +48,24 @@ for(const [index,item] of items.entries()){
  if(Number.isFinite(qty)&&qty>1){
    issues.push({index,title,reason:'multibuy-requires-total-and-quantity-display',price,quantity:qty,unit:src.offerUnit||null,perItem:Number((price/qty).toFixed(4))});
  }
- // Only single fixed-size packages are mathematically comparable to €/kg or €/l.
- // Ranges and composite product titles are not comparable to one fixed pack size.
- if(/[0-9][,.]?[0-9]*\s*[–-]\s*[0-9]/.test(size)||/\b(?:tai|sekä)\b/i.test(size))continue;
+ // Compare a unit price only when the package mass/volume is unambiguous.
+ // "3 x 400 g" and "8-pack ... 0,33 l" describe multiple units, not one.
+ if(/\b(?:tai|sekä)\b/i.test(size)||/[0-9][,.]?[0-9]*\s*[–-]\s*[0-9]/.test(size))continue;
  const matches=[...size.matchAll(/(\d+(?:[,.]\d+)?)\s*(kg|g|ml|cl|dl|l)\b/gi)];
  if(matches.length!==1||!Number.isFinite(unitPrice)||unitPrice<=0)continue;
  const [,raw,unit]=matches[0];const n=Number(raw.replace(',','.'));
+ let packageCount=1;
+ const before=size.slice(0,matches[0].index);
+ const explicitMultiplier=before.match(/(?:^|[^\d])(\d{1,2})\s*[x×]\s*$/i);
+ const packSuffix=size.match(/\b(\d{1,2})\s*[- ]?\s*pack\b/i);
+ if(explicitMultiplier)packageCount=Number(explicitMultiplier[1]);
+ else if(packSuffix)packageCount=Number(packSuffix[1]);
+ // Unclear combinations must be reviewed manually rather than scored wrong.
+ if(!Number.isInteger(packageCount)||packageCount<1||packageCount>48)continue;
  const amount=({kg:n,g:n/1000,l:n,dl:n/10,cl:n/100,ml:n/1000})[unit.toLowerCase()];
- const expected=unitPrice*amount*(qty!=null&&Number.isFinite(qty)&&qty>1?qty:1);
+ const expected=unitPrice*amount*packageCount*(qty!=null&&Number.isFinite(qty)&&qty>1?qty:1);
  if(expected>0&&Math.abs(expected-price)>Math.max(.15,expected*.08))
-   issues.push({index,title,reason:'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,expected:Number(expected.toFixed(2))});
+   issues.push({index,title,reason:'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,packageCount,expected:Number(expected.toFixed(2))});
 }
 const counts={};for(const i of issues)counts[i.reason]=(counts[i.reason]||0)+1;
 console.log(JSON.stringify({exports:exports.length,rows:items.length,issueCounts:counts,issues},null,2));
