@@ -185,7 +185,6 @@ export default function DesktopPreviewPage() {
   const fuelVisible=fuelStations.filter((s:any)=>fuelGroups.includes(fuelGroupOf(s)) && (fuelStationSide==="both" || (fuelStationSide==="traffic" ? fuelIsTraffic(s) : s.isTrafficStation===false)));
 
   useEffect(() => {
-    if (!fuelSelected) return;
     if (!gpsCoords) { setFuelStations([]); setFuelLoading(false); setFuelError("Käynnistä GPS, jotta lähimmät asemat voidaan järjestää etäisyyden mukaan."); return; }
     const controller = new AbortController();
     setFuelLoading(true); setFuelError("");
@@ -195,7 +194,7 @@ export default function DesktopPreviewPage() {
       .catch(error => { if (!controller.signal.aborted) { setFuelStations([]); setFuelError(String(error.message || error)); } })
       .finally(() => { if (!controller.signal.aborted) setFuelLoading(false); });
     return () => controller.abort();
-  }, [fuelSelected, gpsCoords?.latitude, gpsCoords?.longitude]);
+  }, [gpsCoords?.latitude, gpsCoords?.longitude]);
 
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
