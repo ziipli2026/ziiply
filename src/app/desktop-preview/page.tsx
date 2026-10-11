@@ -1255,7 +1255,7 @@ export default function DesktopPreviewPage() {
               active={active}
               onlyGosta={fuelSelected}
               fuelMode={fuelSelected}
-              onReportFuel={()=>setFuelReportOpen(true)}
+              onReportFuel={()=>{setFuelCompared(false);setFuelReportOpen(true);}}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
               chooseStoresNoticeFor={chooseStoresNoticeFor}
               onSelect={(key) => {
