@@ -1,0 +1,35 @@
+name: Search learning integration checks
+on:
+  push:
+    branches:
+      - integration/search-category-desktop-20261011
+      - integration/search-category-mobile-20261011
+  workflow_dispatch:
+jobs:
+  search-learning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate learning guardrails are wired
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const memory = fs.readFileSync('src/app/components/ziiply/search/searchIntentMemory.ts', 'utf8');
+          const core = fs.readFileSync('src/app/components/ziiply/ziiplyCore.ts', 'utf8');
+          assert.match(memory, /import \{ detectSearchIntent \} from "\.\.\/ziiplyCore"/);
+          assert.match(memory, /function isAllowedForLearning\(/);
+          assert.match(memory, /if \(!isAllowedForLearning\(query, product\)\)/);
+          assert.match(core, /export function detectSearchIntent\(/);
+          for (const category of ['cream','quark','cottage_cheese','cream_cheese','butter','margarine','tea','juice','sausage','cold_cuts','toothpaste','deodorant']) {
+            assert.ok(memory.includes('"'+category+'"'), 'Missing guardrail: '+category);
+          }
+          console.log('Search learning integration source checks PASS');
+          NODE
+      - name: Install application dependencies without changing lockfile
+        run: npm install --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+      - name: TypeScript compile check
+        run: ./node_modules/.bin/tsc --noEmit --incremental false
