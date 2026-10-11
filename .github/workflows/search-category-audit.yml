@@ -1,0 +1,13 @@
+name: Search category audit
+on:
+  push:
+    branches:
+      - test/search-category-audit-20261011
+  workflow_dispatch:
+jobs:
+  category-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check registry and baseline queries
+        run: node scripts/audit-search-categories.cjs
