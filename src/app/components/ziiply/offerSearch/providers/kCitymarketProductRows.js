@@ -170,3 +170,20 @@ export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
   }
   return result;
 }
+
+/** Explicit title transactions supersede a percentage-only spatial interpretation. */
+export function resolveExplicitTitleMultibuy(offer){
+  const matches=[...String(offer.title||'').matchAll(/(\d{1,3}[,.]\d{2})\s*€?\s*\/\s*(\d{1,2})\s*(kpl|pkt|ps|prk|plo)\b/gi)];
+  if(matches.length!==1)return offer;
+  const match=matches[0],total=Number(match[1].replace(',','.')),quantity=Number(match[2]);
+  if(!(total>0)||!Number.isInteger(quantity)||quantity<2||quantity>24)return offer;
+  const percentageOnly=offer.campaignType==='campaign'&&offer.price==null&&Number(offer.discountPercent)>0;
+  if(!percentageOnly&&offer.price===total&&offer.offerQuantity===quantity)return offer;
+  const corrected={...offer,price:total,offerQuantity:quantity,offerUnit:match[3].toUpperCase(),resolutionSource:'explicit-leaflet-title-multibuy'};
+  if(percentageOnly){
+    corrected.title=String(offer.title).split(/\s+Plussa-kortilla\s+/i)[0].trim();
+    corrected.campaignType='offer';
+    delete corrected.discountPercent;delete corrected.benefitText;
+  }
+  return corrected;
+}

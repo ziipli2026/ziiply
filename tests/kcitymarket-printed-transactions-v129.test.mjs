@@ -20,11 +20,14 @@ test('Full immutable 41LV source retains all other transactions',async()=>{
  ['BONDI SANDS ITSERUSKETTAVAT TUOTTEET',25,null],
  ['WELLAFLEX WELLA DELUXE ja SHOCKWAVES HIUSTENMUOTOILUTUOTTEET sekä CLAIROL HIUSVÄRIT',25,null],
  ['DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml',20,null]]);
- const existing=parsed.rows.filter(r=>r!==meal[0]&&!percentages.includes(r)&&!wrapped.includes(r));
- assert.equal(existing.length,fixture.baseline.length);
+ const tissue=parsed.rows.find(r=>r.title==='Lotus Nessu NENÄLIINA 100 kpl Valkoinen');
+ assert.ok(tissue);assert.deepEqual(transaction(tissue.spatialResolved),{value:4,quantity:2,unit:'PKT'});assert.equal(tissue.percentageOffer,null);
+ const existing=parsed.rows.filter(r=>r!==meal[0]&&r!==tissue&&!percentages.includes(r)&&!wrapped.includes(r));
+ const baseline=fixture.baseline.filter(r=>!r.title.startsWith('Lotus Nessu NENÄLIINA 100 kpl Valkoinen Plussa-kortilla'));
+ assert.equal(existing.length,baseline.length);
  const fixes=new Map([...fixture.corrections,...next.corrections].map(x=>[x.row.page+':'+x.row.title,x.expected]));
  for(let i=0;i<existing.length;i++){
-  const row=existing[i],base=fixture.baseline[i];assert.equal(row.title,base.title);
+  const row=existing[i],base=baseline[i];assert.equal(row.title,base.title);
   assert.deepEqual(transaction(row.spatialResolved),fixes.get(base.page+':'+base.title)||base.transaction,base.title);
  }
  const cheese=parsed.rows.find(r=>r.title.includes('LEIPÄJUUSTO'));assert.equal(cheese.unitPrice.min,14.21);assert.equal(cheese.spatialResolved.value,1.99);

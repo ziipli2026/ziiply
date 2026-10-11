@@ -1,4 +1,4 @@
-import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards} from './kCitymarketProductRows.js';
+import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy} from './kCitymarketProductRows.js';
 import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
 const norm=s=>String(s).toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"");
@@ -321,7 +321,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V142-KCITYMARKET-SIDE-PERCENTAGE-OWNERSHIP",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V143-KCITYMARKET-EXPLICIT-TRANSACTION-PERCENTAGE-GUARD",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1422,7 +1422,12 @@ for(const row of out.rows){
   }
  }
 }
-out.rows=out.rows.map(rejectUnownedMixedSetPercentage).map(resolveAlignedStandalonePercentage);
+out.rows=out.rows.map(rejectUnownedMixedSetPercentage).map(resolveAlignedStandalonePercentage).map(row=>{
+ if(row.spatialResolved||!row.percentageOffer)return row;
+ const proof=resolveExplicitTitleMultibuy({...row,price:null,campaignType:'campaign',discountPercent:row.percentageOffer.percent});
+ if(proof.resolutionSource!=='explicit-leaflet-title-multibuy')return row;
+ return {...row,title:proof.title,percentageOffer:null,spatialResolved:{value:proof.price,quantity:proof.offerQuantity,unit:proof.offerUnit,source:proof.resolutionSource,sanity:'pass',confidence:'high'}};
+});
 return out;
 }
 

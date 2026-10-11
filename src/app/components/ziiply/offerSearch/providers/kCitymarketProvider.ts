@@ -1,4 +1,4 @@
-import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
+import {canonicalCitymarketProductRows,citymarketTransactionMetadata,resolveExplicitTitleMultibuy} from "./kCitymarketProductRows.js";
 import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
@@ -627,7 +627,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v142-publisher-archive":"standard"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v143-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -782,17 +782,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   // states an unambiguous multi-buy total and quantity, that explicit transaction
   // is stronger evidence than an inferred per-item endpoint.
   // No leaflet-week or product-name exceptions are permitted here.
-  const corrected=publisherImages.map(offer=>{
-    const matches=[...offer.title.matchAll(/(\d{1,3}[,.]\d{2})\s*€?\s*\/\s*(\d{1,2})\s*(kpl|pkt|ps|prk|plo)\b/gi)];
-    if(matches.length!==1)return offer;
-    const match=matches[0];
-    const total=Number(match[1].replace(",","."));
-    const quantity=Number(match[2]);
-    if(!Number.isFinite(total)||total<=0||!Number.isInteger(quantity)||quantity<2||quantity>24)return offer;
-    // Do not reinterpret a package-size or ordinary unit-price notation.
-    if(offer.price===total&&offer.offerQuantity===quantity)return offer;
-    return {...offer,price:total,offerQuantity:quantity,offerUnit:match[3].toUpperCase(),resolutionSource:"explicit-leaflet-title-multibuy"};
-  });
+  const corrected=publisherImages.map(resolveExplicitTitleMultibuy);
   const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(corrected));
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
