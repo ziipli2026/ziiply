@@ -45,6 +45,12 @@ const samples = [
   ["porkkana","fruit_veg"],["kananmuna","egg"],
   ["hillosokeri","sugar"],["riisipuuro","porridge"],
   ["puuroriisi","rice"],["ranskanperunat","frozen"],
+  ["kotimainen porkkana 1 kg","fruit_veg"],
+  ["luomu kananmunat 10 kpl","egg"],
+  ["Felix tomaattiketsuppi 500 g","ketchup"],
+  ["riisipuuro 500 g","porridge"],
+  ["puuroriisi 1 kg","rice"],
+  ["ranskanperunat pakaste 1 kg","frozen"],
   ["suolapähkinä","snacks"],["hunajasinappi","mustard"],
   ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
