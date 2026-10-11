@@ -10,7 +10,7 @@ const originalDiscovery = fs.existsSync("citymarket-image-discovery.json") ? fs.
 fs.writeFileSync("citymarket-image-review-queue.json", JSON.stringify(queue));
 const sample = queue.rows[0];
 assert.ok(sample?.offerId, "Review queue must contain an offer");
-fs.writeFileSync("citymarket-image-discovery.json", JSON.stringify({results:[{offerId:sample.offerId,page:"https://example.org/product",imageCandidates:["https://example.org/product-image.jpg"]}]}));
+fs.writeFileSync("citymarket-image-discovery.json", JSON.stringify({results:[{offerId:sample.offerId,page:"https://example.org/product",imageCandidates:["https://example.org/product-image.jpg"],identityEvidence:{eanPresentInHtml:true,structuredProductImageCount:1}}]}));
 try {
   execFileSync(process.execPath, ["scripts/citymarket/build-image-review-html.mjs"], { stdio: "pipe" });
   const html = fs.readFileSync("citymarket-image-review.html", "utf8");
@@ -18,6 +18,8 @@ try {
   assert.match(html, /1 uutta kuvaehdokasta/);
   assert.match(html, /<img loading="lazy" referrerpolicy="no-referrer" src="https:\/\/example.org\/product-image.jpg" alt="Löydetty kuvaehdokas, tarkistamatta">/);
   assert.match(html, /class="candidate"/);
+  assert.match(html, /EAN löytyi lähdesivulta/);
+  assert.match(html, /rakenteinen tuotekuva/);
   const articles = [...html.matchAll(/<article\\b[\\s\\S]*?<\\/article>/g)].map(match=>match[0]);
   assert.equal(articles.length,queue.missingImages);
   const candidateArticles=articles.filter(article=>article.includes("https://example.org/product-image.jpg"));
