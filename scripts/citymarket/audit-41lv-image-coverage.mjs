@@ -23,7 +23,7 @@ if (!entry) {
   assert.ok(fs.existsSync(assetPath), "41LV SVG image asset missing: " + assetPath);
   const svg = fs.readFileSync(assetPath, "utf8");
   assert.ok(svg.startsWith("<svg "), "41LV image asset must be an SVG");
-  const fragmentIds = new Set([...svg.matchAll(/<view\\s+id="([^"]+)"/g)].map(match => match[1]));
+  const fragmentIds = new Set([...svg.matchAll(/<view\s+id="([^"]+)"/g)].map(match => match[1]));
   for (const [key, image] of Object.entries(publication.images)) {
     assert.ok(image.startsWith(expectedAsset + "#"), "Unexpected 41LV image path for " + key);
     const fragment = image.slice(expectedAsset.length + 1);
