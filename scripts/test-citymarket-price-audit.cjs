@@ -28,5 +28,8 @@ try{
  assert.equal(clean.status,0,'a consistent record must remain green');
  const corrected=run([tortilla,record('ORIGINAL NACHIPS 450 g','kcm:spatial:20:nachips:2.99',2.99,6.64,'450 g')]);
  assert.equal(corrected.status,0,'distinct internally consistent prices must pass');
- console.log('Citymarket audit regression: 3 fixtures passed');
+ const beer=run([record('ALKOHOLITON OLUT 0,0 % 0,33 l/tlk 8-pack','kcm:spatial:20:beer:7.99',7.99,2.57,'0,33 l')]);
+ assert.equal(beer.status,0,'a plausible can deposit must not be a proven price error');
+ assert.equal(beer.result.issueCounts['possible-container-deposit-review'],1);
+ console.log('Citymarket audit regression: 4 fixtures passed');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
