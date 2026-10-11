@@ -24,8 +24,30 @@ for(const candidate of source.candidates){
       const html=new TextDecoder().decode(Buffer.concat(chunks.map(chunk=>Buffer.from(chunk))));
       const meta=[...html.matchAll(/<meta\b[^>]*>/gi)].map(x=>x[0]);
       const images=meta.filter(tag=>["og:image","twitter:image"].includes((attr(tag,"property")??attr(tag,"name")??"").toLowerCase())).map(tag=>attr(tag,"content")).filter(Boolean).map(url=>{try{const resolved=new URL(url,page);return resolved.protocol==="https:"?resolved.href:null}catch{return null}}).filter(Boolean);
-      const relevant = images.filter(url => !/logo|placeholder|default-image|favicon|social-share/i.test(new URL(url).pathname));
-      results.push({offerId:candidate.offerId,page,httpStatus:response.status,status:relevant.length?"metadata-image-found":"no-product-image-metadata",imageCandidates:[...new Set(relevant)],htmlTruncated:truncated,excludedGenericImageCount:images.length-relevant.length,approved:false});
+      // Product JSON-LD often has the actual packshot when social metadata is generic.
+      const ldImages=[];
+      for(const match of html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)){
+        try{
+          const root=JSON.parse(match[1]);
+          const nodes=Array.isArray(root)?root:[root];
+          const walk=(node)=>{
+            if(!node || typeof node!=="object")return;
+            if(Array.isArray(node)){node.forEach(walk);return;}
+            const types=[].concat(node["@type"]??[]).map(String);
+            if(types.some(type=>type.toLowerCase()==="product")){
+              for(const item of [].concat(node.image??[])){
+                const raw=typeof item==="string"?item:item?.url??item?.contentUrl;
+                if(typeof raw!=="string")continue;
+                try{const url=new URL(raw,page);if(url.protocol==="https:")ldImages.push(url.href);}catch{}
+              }
+            }
+            if(node["@graph"])walk(node["@graph"]);
+          };
+          nodes.forEach(walk);
+        }catch{}
+      }
+      const relevant = [...images,...ldImages].filter(url => !/logo|placeholder|default-image|favicon|social-share/i.test(new URL(url).pathname));
+      results.push({offerId:candidate.offerId,page,httpStatus:response.status,status:relevant.length?"metadata-image-found":"no-product-image-metadata",imageCandidates:[...new Set(relevant)],htmlTruncated:truncated,jsonLdProductImageCount:ldImages.length,excludedGenericImageCount:images.filter(url=>!relevant.includes(url)).length,approved:false});
     }catch(error){results.push({offerId:candidate.offerId,page,status:"fetch-failed",error:String(error),approved:false})}
     finally{clearTimeout(timer)}
   }
