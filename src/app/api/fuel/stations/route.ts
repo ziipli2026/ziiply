@@ -72,9 +72,23 @@ export async function GET(req: NextRequest) {
       }
     }
     const deduplicated = [...unique.values()].sort((a,b) => a.distanceKm-b.distanceKm);
-    // Never expose the count or identities of excluded providers in the response.
-    // Keep the station list stable and sorted by distance.
-    return NextResponse.json({ ok: true, stations: deduplicated, source: "Neon / tankkaus.com observations" });
+    // GPS affects sorting only. No radius or movement threshold is applied.
+    // Legacy clients receive all stations; pagination is opt-in.
+    const pageRaw = req.nextUrl.searchParams.get("page");
+    const limitRaw = req.nextUrl.searchParams.get("limit");
+    const paginated = pageRaw !== null || limitRaw !== null;
+    const page = pageRaw === null ? 1 : Number(pageRaw);
+    const limit = limitRaw === null ? 20 : Number(limitRaw);
+    if (paginated && (!Number.isSafeInteger(page) || page < 1 || !Number.isSafeInteger(limit) || limit < 1 || limit > 200)) {
+      return NextResponse.json({ ok: false, error: "Invalid pagination" }, { status: 400 });
+    }
+    const start = (page - 1) * limit;
+    const visible = paginated ? deduplicated.slice(start, start + limit) : deduplicated;
+    return NextResponse.json({
+      ok: true, stations: visible, total: deduplicated.length,
+      ...(paginated ? { page, limit, hasMore: start + limit < deduplicated.length } : {}),
+      source: "Neon / tankkaus.com observations"
+    });
   } catch {
     return NextResponse.json({ ok: false, error: "Fuel stations unavailable" }, { status: 503 });
   }
