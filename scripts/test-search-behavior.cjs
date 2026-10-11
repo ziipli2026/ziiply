@@ -86,6 +86,29 @@ const rankingCases = [
   {query:"tomaattimurska", products:[makeProduct(19,"Tomaattimurska ja tomaattipyree 400 g","Säilykkeet")], first:19},
 ];
 rankingCases.push(...[{"query": "kuohukerma", "products": [{"id": 500, "name": "Kermajäätelö 1 l", "category": "Kermat", "price": 2.5}, {"id": 501, "name": "Valio kuohukerma 2 dl", "category": "Kermat", "price": 2.5}], "first": 501}, {"query": "maitorahka", "products": [{"id": 502, "name": "Rahkapiirakka 400 g", "category": "Rahkat", "price": 2.5}, {"id": 503, "name": "Valio maitorahka 250 g", "category": "Rahkat", "price": 2.5}], "first": 503}, {"query": "raejuusto", "products": [{"id": 504, "name": "Raejuustosalaatti 300 g", "category": "Raejuustot", "price": 2.5}, {"id": 505, "name": "Arla raejuusto 200 g", "category": "Raejuustot", "price": 2.5}], "first": 505}, {"query": "tuorejuusto", "products": [{"id": 506, "name": "Tuorejuustokakku 400 g", "category": "Tuorejuustot", "price": 2.5}, {"id": 507, "name": "Philadelphia tuorejuusto 200 g", "category": "Tuorejuustot", "price": 2.5}], "first": 507}, {"query": "meijerivoi", "products": [{"id": 508, "name": "Voitaikina 500 g", "category": "Voit", "price": 2.5}, {"id": 509, "name": "Valio meijerivoi 500 g", "category": "Voit", "price": 2.5}], "first": 509}, {"query": "kasvirasvalevite", "products": [{"id": 510, "name": "Margariinikeksi 300 g", "category": "Margariinit", "price": 2.5}, {"id": 511, "name": "Kasvirasvalevite 400 g", "category": "Margariinit", "price": 2.5}], "first": 511}, {"query": "vihreä tee", "products": [{"id": 512, "name": "Jäätee 1 l", "category": "Teet", "price": 2.5}, {"id": 513, "name": "Vihreä tee 20 teepussia", "category": "Teet", "price": 2.5}], "first": 513}, {"query": "appelsiinimehu", "products": [{"id": 514, "name": "Appelsiinimehujää 100 g", "category": "Mehut", "price": 2.5}, {"id": 515, "name": "Appelsiinimehu 1 l", "category": "Mehut", "price": 2.5}], "first": 515}, {"query": "grillimakkara", "products": [{"id": 516, "name": "Makkarakeitto 300 g", "category": "Makkarat", "price": 2.5}, {"id": 517, "name": "HK grillimakkara 400 g", "category": "Makkarat", "price": 2.5}], "first": 517}, {"query": "kinkkuleikkele", "products": [{"id": 518, "name": "Kinkkuleikkele pizza 400 g", "category": "Leikkeleet", "price": 2.5}, {"id": 519, "name": "Kinkkuleikkele 200 g", "category": "Leikkeleet", "price": 2.5}], "first": 519}, {"query": "hammastahna", "products": [{"id": 520, "name": "Hammasharja 1 kpl", "category": "Hammastahnat", "price": 2.5}, {"id": 521, "name": "Hammastahna 75 ml", "category": "Hammastahnat", "price": 2.5}], "first": 521}, {"query": "deodorantti", "products": [{"id": 522, "name": "Deodorantti suihkugeeli 250 ml", "category": "Deodorantit", "price": 2.5}, {"id": 523, "name": "Deodorantti 50 ml", "category": "Deodorantit", "price": 2.5}], "first": 523}]);
+// Retail-style regression fixtures based on known Finnish grocery product naming.
+// These are deterministic examples, NOT fresh responses from store APIs.
+const retailFixtures = [
+ {query:"kuohukerma", good:"Valio kuohukerma 2 dl", decoy:"Valio kermajäätelö 1 l"},
+ {query:"raejuusto", good:"Arla raejuusto 200 g", decoy:"Raejuustosalaatti 300 g"},
+ {query:"tuorejuusto", good:"Philadelphia tuorejuusto 200 g", decoy:"Tuorejuustokakku 400 g"},
+ {query:"maitorahka", good:"Valio maitorahka 250 g", decoy:"Rahkapiirakka 400 g"},
+ {query:"grillimakkara", good:"HK grillimakkara 400 g", decoy:"Makkarakeitto 300 g"},
+ {query:"ketsuppi", good:"Felix tomaattiketsuppi 500 g", decoy:"Ketsupin makuinen kastike 500 g"},
+ {query:"tomaattimurska", good:"Tomaattimurska 400 g", decoy:"Tomaattipyree 200 g"},
+ {query:"vihreä tee", good:"Vihreä tee 20 teepussia", decoy:"Jäätee 1 l"},
+ {query:"appelsiinimehu", good:"Appelsiinimehu 1 l", decoy:"Appelsiinimehujää 100 g"},
+ {query:"kananmuna", good:"Kotimainen kananmuna 10 kpl", decoy:"Kananmunaton leivonnainen"},
+ {query:"voi", good:"Valio meijerivoi 500 g", decoy:"Voitaikina 500 g"},
+ {query:"kinkkuleikkele", good:"Kinkkuleikkele 200 g", decoy:"Kinkkuleikkele pizza 400 g"}
+];
+const retailRankingResults = retailFixtures.map((fixture,index)=>{
+ const good = makeProduct(3000+index*2,fixture.good,"");
+ const decoy = makeProduct(3001+index*2,fixture.decoy,"");
+ const ranked = core.rankNormalSearchResults(fixture.query,[decoy,good]);
+ return {query:fixture.query,expectedFirst:good.id,actualFirst:ranked[0]?.id,
+  pass:ranked[0]?.id===good.id};
+});
 // A one-product query must not become empty merely because the name mentions sauce.
 const exclusionCases = [
   ["sinappi", "Sinappikastike 250 ml", true],
@@ -235,8 +258,8 @@ const integratedLearning = {ids:integratedRank.map(p=>p.id),
 memory.clearSearchIntentMemory();
 const failures=results.filter(r=>!r.pass);
 assert.equal(results.length, samples.length, "Some category cases were not executed");
-console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,collisionResults,unreviewedCollisions,expandedLearningResults,integratedLearning,learning,guardedLearning,boundedLearning},null,2));
-if(!integratedLearning.pass||expandedLearningResults.some(r=>!r.pass)||unreviewedCollisions.length||collisionResults.some(r=>!r.pass)||failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
+console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,retailRankingResults,exclusionResults,collisionResults,unreviewedCollisions,expandedLearningResults,integratedLearning,learning,guardedLearning,boundedLearning},null,2));
+if(!integratedLearning.pass||expandedLearningResults.some(r=>!r.pass)||unreviewedCollisions.length||collisionResults.some(r=>!r.pass)||failures.length||rankingResults.some(r=>!r.pass)||retailRankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
  console.error("Search behavior regression failed", {failures,rankingResults,learning});
  process.exitCode=1;
 }
