@@ -44,7 +44,7 @@ for(const r of rows){
     if(r.proposed_category_id!=='cola'||r.source_category!=='Juomat'||!cola.test(r.name)||!context.test(r.name)||exclude.test(r.name))
       failures.push({ean:r.ean,name:r.name,error:'Invalid cola subcategory proposal'});
   }else if(r.finding_type==='source_misclassification'){
-    if(r.proposed_category_id!=='frozen'||r.source_category!=='Makeiset'||!/jäätelö|ice cream/iu.test(r.name))
+    if(!((r.proposed_category_id==='frozen'&&r.source_category==='Makeiset'&&/jäätelö|ice cream/iu.test(r.name))||(r.proposed_category_id===''&&r.source_category==='Maitotuotteet'&&/(maitohappobakteeri|proteiinipatukka|murokakku|kasvovoi|jugurttihiutale)/iu.test(r.name))))
       failures.push({ean:r.ean,name:r.name,error:'Invalid frozen misclassification proposal'});
   }else if(r.finding_type==='ambiguous_search_term'){
     if(r.proposed_category_id||r.source_category!=='Juomat'||!(plant.test(r.name)||protein.test(r.name)||powder.test(r.name)))
@@ -52,8 +52,8 @@ for(const r of rows){
   }else failures.push({ean:r.ean,error:'Unknown finding type'});
 }
 const counts=Object.fromEntries(['source_misclassification','more_specific_subcategory','ambiguous_search_term'].map(t=>[t,rows.filter(r=>r.finding_type===t).length]));
-const expected={source_misclassification:1,more_specific_subcategory:37,ambiguous_search_term:11};
+const expected={source_misclassification:17,more_specific_subcategory:37,ambiguous_search_term:11};
 for(const [type,n] of Object.entries(expected))if(counts[type]!==n)failures.push({error:'Snapshot count mismatch',type,expected:n,actual:counts[type]});
-if(rows.length!==49)failures.push({error:'Snapshot row count mismatch',expected:49,actual:rows.length});
+if(rows.length!==65)failures.push({error:'Snapshot row count mismatch',expected:65,actual:rows.length});
 console.log(JSON.stringify({rows:rows.length,counts,failures,status:failures.length?'FAIL':'PASS'},null,2));
 if(failures.length)process.exitCode=1;
