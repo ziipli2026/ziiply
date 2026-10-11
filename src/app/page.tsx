@@ -12156,7 +12156,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         const detectedIntentV799 = detectSearchIntent(term);
         const strongCategoryIntentV799 = detectedIntentV799.category !== "generic";
-        const searchQueryLimitV799 = strongCategoryIntentV799 ? 2 : 6;
+        const searchQueryLimitV799 = detectedIntentV799.category === 'ketchup' ? 6 : strongCategoryIntentV799 ? 2 : 6;
 
         // V799: tunnettu tuoteryhmä ei tarvitse koko varianttilistan verkkohakua.
         // Esim. "maito" palauttaa jo maitotuotteet yhdellä laajalla haulla ja
