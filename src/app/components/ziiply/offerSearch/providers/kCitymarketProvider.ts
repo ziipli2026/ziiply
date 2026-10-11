@@ -94,7 +94,8 @@ export function category(t:string){
   if(/aakkoset|sriracha|cashewpähkinä|salsat/.test(s)) return "Kuivatuotteet";
   if(/aterinsetti|sähkösavustin|savustushake|neule|t-paita|tekstiilipesuri|öljylyhtykynttilä|bokserit|farkkuja|trikoopaita|vaatteita|trimmeri|varsi-imuri|led-valomaski|vaihtoterä/.test(s)) return "Koti & vapaa-aika";
   // Remaining product forms observed in the local Gosta integration replay.
-  if(/ulko[- ]?filee|ulko[- ]?filee|maksalaatikot/.test(s)) return "Liha & makkarat";
+  if(/ulko[- ]?filee/.test(s)) return "Liha & makkarat";
+  if(/maksalaatikot/.test(s)) return "Valmisruoka";
   if(/prote[i]?ini.*pirtelöt/.test(s)) return "Juomat";
   if(/teippi- ja housuvaipat/.test(s)) return "Hygienia & kosmetiikka";
   if(/pentualusta/.test(s)) return "Lemmikit";
