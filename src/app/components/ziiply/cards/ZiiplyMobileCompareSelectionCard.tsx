@@ -275,7 +275,10 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   const scroller = row?.closest("[data-desktop-compare-products-scroll]");
                                   if (row && scroller) {
                                     const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-                                    scroller.scrollTo({ top: scroller.scrollTop + offset, behavior: "smooth" });
+                                    // Keep the chosen product in a predictable upper-middle position,
+                                    // leaving room below for the alternatives menu to scroll immediately.
+                                    const targetTop = scroller.scrollTop + offset - scroller.clientHeight * 0.28;
+                                    scroller.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
                                   }
                                 }
                                 if (mode === "cheapest") {
