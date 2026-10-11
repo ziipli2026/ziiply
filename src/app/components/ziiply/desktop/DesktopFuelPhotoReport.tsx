@@ -140,7 +140,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       const worker=await ocr.createWorker("eng",1,{});
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
       const result=await readFuelPhoto(worker,data);if(!alive.current)return;
-      const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review);
+      const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
       const candidates=await stationSearch;if(!alive.current)return;setStationId(identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0));
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
