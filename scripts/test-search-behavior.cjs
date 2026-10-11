@@ -10,8 +10,21 @@ require.extensions[".ts"] = function(module, filename) {
   }}).outputText;
   module._compile(compiled, filename);
 };
-const root = "../src/app/components/ziiply";
+// Node does not resolve extensionless local TypeScript imports by default.
 const Module = require("node:module");
+const path = require("node:path");
+const originalResolve = Module._resolveFilename;
+Module._resolveFilename = function(request, parent, isMain, options) {
+  try { return originalResolve.call(this, request, parent, isMain, options); }
+  catch (error) {
+    if (error.code === "MODULE_NOT_FOUND" && request.startsWith(".")) {
+      const candidate = path.resolve(path.dirname(parent.filename), request + ".ts");
+      if (fs.existsSync(candidate)) return candidate;
+    }
+    throw error;
+  }
+};
+const root = "../src/app/components/ziiply";
 const originalLoad = Module._load;
 Module._load = function(request, parent, isMain) {
   if (request === "posthog-js") return { __esModule: true, default: {} };
