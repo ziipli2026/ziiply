@@ -15,6 +15,7 @@ try {
     ['duplicate-row', source + source.trimEnd().split('\n')[1] + '\n'],
     ['invalid-review-status', source.replace(',ambiguous_search_term,,candidate', ',ambiguous_search_term,,approved')],
     ['extra-column', source.replace('6408653129323,Juustoportti', '6408653129323,EXTRA,Juustoportti')],
+    ['unclosed-quote', source.replace('6408653129323,Juustoportti', '6408653129323,"Juustoportti')],
   ];
   for (const [name, csv] of cases) {
     assert.notEqual(csv, source, 'Mutation not applied: ' + name);
@@ -22,9 +23,13 @@ try {
     fs.writeFileSync(file, csv);
     const result = cp.spawnSync(process.execPath, ['scripts/audit-category-findings.cjs', file], {encoding:'utf8'});
     assert.equal(result.status, 1, name + ' must fail');
-    const report = JSON.parse(result.stdout);
-    assert.equal(report.status, 'FAIL', name + ' must report FAIL');
-    assert.ok(report.failures.length, name + ' must explain failure');
+    if (name === 'unclosed-quote') {
+      assert.match(result.stderr, /Unterminated quoted CSV field/, name + ' must explain parse failure');
+    } else {
+      const report = JSON.parse(result.stdout);
+      assert.equal(report.status, 'FAIL', name + ' must report FAIL');
+      assert.ok(report.failures.length, name + ' must explain failure');
+    }
     process.stdout.write(name + ': rejected\n');
   }
 } finally {
