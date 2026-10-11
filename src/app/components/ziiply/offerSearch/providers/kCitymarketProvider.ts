@@ -84,7 +84,7 @@ export function category(t:string){
 
   // Bring verified desktop daily-goods exceptions to the mobile preview.
   if(/suosikkisalaat/.test(s)) return "Valmisruoka";
-  if(/gold\\s*&\\s*green.*(?:rouhe|palat)/.test(s)) return "Valmisruoka";
+  if(/gold\s*&\s*green.*(?:rouhe|palat)/.test(s)) return "Valmisruoka";
   if(/puhdistuspyyhkeet|vanulaput|vanupuikot|mascarat/.test(s)) return "Hygienia & kosmetiikka";
   if(/pentualusta/.test(s)) return "Lemmikit";
   // Specific everyday consumables must survive the non-grocery filter.
