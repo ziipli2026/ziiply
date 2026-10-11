@@ -53,3 +53,12 @@ export function canonicalCitymarketProductRows(rows) {
     return [{...row,title}];
   });
 }
+
+/** A mixed-set badge cannot become a discount for one component alone. */
+export function rejectUnownedMixedSetPercentage(row){
+  const context=(row.nearby||[]).join(' ');
+  if(!row.spatialResolved&&row.percentageOffer&&/YHTEIS[\s-]*HINTAAN/i.test(context)&&/\bSETTI\b/i.test(context)){
+    return {...row,percentageOffer:null,debugRejectedPercentage:{...row.percentageOffer,reason:'mixed-set-requires-owned-complete-product-identity'}};
+  }
+  return row;
+}
