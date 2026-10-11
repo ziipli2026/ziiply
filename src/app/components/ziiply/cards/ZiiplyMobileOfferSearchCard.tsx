@@ -563,7 +563,12 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   // a price and quantity. Otherwise combine the provider's structured
   // offerQuantity with the total offer price. Never divide a multi-buy total
   // into a synthetic per-item offer price.
-  const price = normalizePrice(numericPrice);
+  // A card can already contain a complete deal string ("5,00 € / 2 kpl").
+  // Extract its euro total before appending the authoritative structured quantity.
+  const embeddedTotal = typeof numericPrice === "string"
+    ? numericPrice.trim().match(/^(\d+(?:[.,]\d+)?)\s*€(?:\s*\/|\s*$)/)
+    : null;
+  const price = normalizePrice(embeddedTotal ? Number(embeddedTotal[1].replace(",", ".")) : numericPrice);
   // Structured total + quantity wins over a stale display string. A price
   // without a verified quantity must not overwrite an explicit printed deal.
   if (Number.isFinite(quantity) && quantity > 1 && price) {
