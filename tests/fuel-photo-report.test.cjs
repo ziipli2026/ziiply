@@ -77,3 +77,10 @@ test('LED detection ignores neutral background and keeps separated price rows',(
  assert.equal(led.findFuelLedRows(pixels,width,height).length,2);
  assert.equal(led.findFuelLedRows(new Uint8Array(width*height*4).fill(255),width,height).length,0);
 });
+
+test('OCR repeats from one image view cannot confirm a price and tied views remain unresolved',()=>{
+ assert.equal(led.fuelOcrConsensus([{price:'1,804',view:'inverted'},{price:'1,804',view:'inverted'}]),'');
+ assert.equal(led.fuelOcrConsensus([{price:'1,974',view:'original'},{price:'1,974',view:'inverted'}]),'1,974');
+ assert.equal(led.fuelOcrConsensus([{price:'1,974',view:'original'},{price:'1,914',view:'red'}]),'');
+ assert.equal(led.fuelOcrConsensus([{price:'1,974',view:'original'},{price:'1,974',view:'inverted'},{price:'1,914',view:'red'}]),'1,974');
+});

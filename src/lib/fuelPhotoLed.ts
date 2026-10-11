@@ -41,3 +41,10 @@ export function fuelRowLabel(text:string):'diesel'|'price95'|'price98'|null{
   if(/\b(?:D|DI|DSL|Diesel)\b/i.test(text))labels.add('diesel');
   return labels.size===1?[...labels][0] as 'diesel'|'price95'|'price98':null;
 }
+
+export function fuelOcrConsensus(readings:{price:string;view:string}[]):string{
+  const votes=new Map<string,Set<string>>();
+  for(const {price,view} of readings){const views=votes.get(price)||new Set<string>();views.add(view);votes.set(price,views);}
+  const ranked=[...votes].map(([price,views])=>[price,views.size] as const).sort((a,b)=>b[1]-a[1]);
+  return ranked[0]?.[1]>=2&&ranked[0][1]>=(ranked[1]?.[1]||0)*2?ranked[0][0]:'';
+}
