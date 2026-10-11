@@ -74,6 +74,11 @@ const rankingCases = [
   {query:"tomaattipyree", products:[makeProduct(9,"Tomaattimurska 400 g","Säilykkeet"),makeProduct(10,"Tomaattipyree 200 g","Säilykkeet")], first:10, excluded:[9]},
   {query:"sinappi", products:[makeProduct(11,"Sinappi ja sinappikastike 250 g","Sinapit"),makeProduct(12,"Sinappikastike 250 ml","Kastikkeet")], first:11, excluded:[12]},
   {query:"hunajasinappi", products:[makeProduct(13,"Hunajasinappi 250 g","Sinapit"),makeProduct(14,"Majoneesi 250 g","Kastikkeet")], first:13},
+  {query:"sinappikastike", products:[makeProduct(15,"Sinappikastike 250 ml","Kastikkeet")], first:15},
+  {query:"sinappimajoneesi", products:[makeProduct(16,"Sinappimajoneesi 250 ml","Kastikkeet")], first:16},
+  {query:"tomaattimurskakeitto", products:[makeProduct(17,"Tomaattimurskakeitto 400 g","Keitot")], first:17},
+  {query:"tomaattipyree", products:[makeProduct(18,"Tomaattipyree ja tomaattimurska 400 g","Säilykkeet")], first:18},
+  {query:"tomaattimurska", products:[makeProduct(19,"Tomaattimurska ja tomaattipyree 400 g","Säilykkeet")], first:19},
 ];
 // A one-product query must not become empty merely because the name mentions sauce.
 const exclusionCases = [
