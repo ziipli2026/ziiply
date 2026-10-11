@@ -35,6 +35,10 @@ jobs:
           mkdir -p search-audit-results
           set -o pipefail
           node scripts/audit-search-categories.cjs | tee search-audit-results/categories.json
+      - name: Compile search provider route syntax
+        run: |
+          set -o pipefail
+          NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/check-search-route-syntax.cjs | tee search-audit-results/route-syntax.json
       - name: Test bounded provider pagination and failure recovery
         run: |
           set -o pipefail
@@ -51,7 +55,7 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance'];
+          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance', 'route-syntax'];
           let failed = false;
           for (const name of names) {
             const file = 'search-audit-results/' + name + '.json';
@@ -67,6 +71,8 @@ jobs:
                 !Array.isArray(report.unreviewedCollisions) ||
                 !Array.isArray(report.expandedLearningResults)
               )) throw new Error('Missing behavior test fields');
+              if (name === 'route-syntax' && (!Array.isArray(report.results) || report.results.length !== 3 || report.results.some(row => !row.pass)))
+                throw new Error('Search route syntax compilation failed');
               if (name === 'pagination-performance' && (!Array.isArray(report.results) || report.results.length !== 4 ||
                 report.networkRequestsMeasured !== false ||
                 report.results.some((row, i) => row.extraRequests !== [0, 0, 2, 2][i])))
@@ -105,6 +111,8 @@ jobs:
             const retail = data.retailRankingResults || [];
             const pagination = JSON.parse(fs.readFileSync('search-audit-results/pagination.json', 'utf8'));
             const paginationPerformance = JSON.parse(fs.readFileSync('search-audit-results/pagination-performance.json', 'utf8'));
+            const routeSyntax = JSON.parse(fs.readFileSync('search-audit-results/route-syntax.json', 'utf8'));
+            const routeSyntaxPass = routeSyntax.results?.length === 3 && routeSyntax.results.every(row => row.pass);
             const requestCountsPass = paginationPerformance.results?.length === 4 &&
               paginationPerformance.networkRequestsMeasured === false &&
               paginationPerformance.results.every((row, i) => row.extraRequests === [0, 0, 2, 2][i]);
@@ -120,7 +128,7 @@ jobs:
             const ok = data.integratedLearning?.pass === true && expandedLearning.length > 0 && expandedLearning.every(x => x.pass) && registryPass && diagnosticsPass && data.passed === data.total &&
               ranking.length > 0 && ranking.every(x => x.pass) &&
               retail.length >= 12 && retail.every(x => x.pass) &&
-              pagination.total >= 8 && pagination.passed === pagination.total && requestCountsPass &&
+              pagination.total >= 10 && pagination.passed === pagination.total && requestCountsPass && routeSyntaxPass &&
               exclusion.length > 0 && exclusion.every(x => x.pass) &&
               data.learning?.pass === true && data.guardedLearning?.pass === true && data.boundedLearning?.pass === true;
             fs.appendFileSync(summary, [
@@ -132,6 +140,7 @@ jobs:
               '| Product ranking | ' + ranking.filter(x=>x.pass).length + '/' + ranking.length + ' |',
               '| Retail-style ranking fixtures | ' + retail.filter(x=>x.pass).length + '/' + retail.length + ' |',
               '| Provider pagination | ' + pagination.passed + '/' + pagination.total + ' |',
+              '| Search route syntax (not full typecheck) | ' + (routeSyntaxPass ? 'PASS' : 'FAIL') + ' |',
               '| Extra-request budget (simulated) | ' + (requestCountsPass ? 'PASS' : 'FAIL') + ' |',
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Registry audit | ' + (registryPass ? 'PASS' : 'FAIL (' + categories.issues.length + ' issues)') + ' |',
