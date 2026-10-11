@@ -57,7 +57,7 @@ for(const [index,item] of items.entries()){
  let packageCount=1;
  const before=size.slice(0,matches[0].index);
  const explicitMultiplier=before.match(/(?:^|[^\d])(\d{1,2})\s*[x×]\s*$/i);
- const packSuffix=size.match(/\b(\d{1,2})\s*[- ]?\s*pack\b/i);
+ const packSuffix=(size+" "+title).match(/\b(\d{1,2})\s*[- ]?\s*pack\b/i);
  if(explicitMultiplier)packageCount=Number(explicitMultiplier[1]);
  else if(packSuffix)packageCount=Number(packSuffix[1]);
  // Unclear combinations must be reviewed manually rather than scored wrong.
