@@ -569,8 +569,8 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   if (Number.isFinite(quantity) && quantity > 1 && price) {
     return `${price} / ${quantity} ${unit}`;
   }
-  if (rawPriceText && /€/.test(rawPriceText) && /\\b\\d+\\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml)\\b/i.test(rawPriceText)) {
-    return rawPriceText.replace(/\\s+/g, " ").trim();
+  if (rawPriceText && /€/.test(rawPriceText) && /\b\d+\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml)\b/i.test(rawPriceText)) {
+    return rawPriceText.replace(/\s+/g, " ").trim();
   }
 
   if (rawPriceText && /€/.test(rawPriceText)) return rawPriceText;
