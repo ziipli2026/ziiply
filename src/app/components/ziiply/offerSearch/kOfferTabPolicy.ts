@@ -9,6 +9,8 @@ export type KOfferTabRow = {
   packageSize?: unknown;
   ean?: unknown;
   campaignType?: unknown;
+  offerQuantity?: unknown;
+  offerUnit?: unknown;
 };
 
 function normalize(value: unknown): string {
@@ -35,6 +37,7 @@ function packageTokens(row: KOfferTabRow): string[] {
     ?.map(token => token.replace(",", ".").replace(/\s+/g, "")) || [];
 }
 function semanticSameProduct(a: KOfferTabRow, b: KOfferTabRow): boolean {
+  if(transactionCount(a)!==transactionCount(b))return false;
   const ap=priceNumber(a), bp=priceNumber(b);
   if(ap == null || bp == null || Math.abs(ap-bp) > 0.001) return false;
   const A=semanticTokens(a), B=semanticTokens(b);
@@ -66,7 +69,12 @@ export function kOfferOverlapKey(row: KOfferTabRow): string {
   const ean = String(row.ean ?? "").replace(/\D/g, "");
   const price = priceNumber(row);
   const identity = ean.length >= 8 ? "ean:" + ean : "text:" + productText(row);
-  return identity + "|price:" + (price == null ? "" : price.toFixed(2));
+  return identity + "|price:" + (price == null ? "" : price.toFixed(2))+"|quantity:"+transactionCount(row);
+}
+
+function transactionCount(row: KOfferTabRow): number {
+  const count=Number(row.offerQuantity);
+  return Number.isInteger(count)&&count>0?count:1;
 }
 
 /**

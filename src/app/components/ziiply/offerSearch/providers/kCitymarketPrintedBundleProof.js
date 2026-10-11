@@ -1,6 +1,17 @@
 // Repair a conflicting neighbouring price only with BOTH arithmetic and
 // publisher typography evidence. A package multiplier is never an offer count.
 export function verifiedPrintedBundle(row) {
+  // Publisher PDFs sometimes split a package label into separate letters.
+  // Join only adjacent letters on the same baseline, preserving ownership.
+  const originalBoxes=row.debugNearbyBoxes||[];
+  const joined=[];
+  for(const a of originalBoxes.filter(b=>/^[A-Z]$/.test(b.text))) {
+    const b=originalBoxes.find(b=>/^[A-Z]$/.test(b.text)&&
+      Math.abs(b.top-a.top)<.001&&b.left>=a.left+a.width-.001&&
+      b.left-a.left-a.width<.004);
+    if(b&&/^(RS|PS|PL)$/.test(a.text+b.text))joined.push({...a,text:a.text+b.text,width:b.left+b.width-a.left});
+  }
+  if(joined.length)row={...row,debugNearbyBoxes:[...originalBoxes,...joined]};
   const pk=row.package,rate=row.unitPrice;
   const endpoints=pk&&rate?[pk.min*rate.max,pk.max*rate.min]:[];
   const single=endpoints.length&&Math.abs(endpoints[0]-endpoints[1])<.04?
@@ -53,7 +64,24 @@ export function verifiedMissingCents(row) {
   const current=row.spatialResolved,anchor=row.debugAnchor;
   const pk=row.package,rate=row.unitPrice;
   if(!anchor||current?.source!=='same-card-right-whole-euro-badge'||
-     Number(current.quantity||1)!==1||!pk||!rate)return null;
+     Number(current.quantity||1)!==1)return null;
+  // A printed KG label immediately below the cents proves a weight price.
+  // Variable package weight and a neighbouring unit rate cannot override it.
+  const weightProofs=[];
+  const nearby=row.debugNearbyBoxes||[];
+  for(const euro of nearby.filter(b=>/^\d{1,2}$/.test(b.text)&&b.height>=.045&&Number(b.text)===Number(current.value)&&
+    b.left>=anchor.left-.03&&b.left<=anchor.left+.25&&Math.abs(b.top-anchor.top)<.04)) {
+    for(const cents of nearby.filter(b=>/^\d{2}$/.test(b.text)&&b.height>=.02&&b.height<euro.height*.8&&
+      Math.abs(b.left-euro.left-euro.width)<.008&&Math.abs(b.top-euro.top)<.015)) {
+      const value=Number(euro.text)+Number(cents.text)/100;
+      if(nearby.some(b=>b.text==='KG'&&Math.abs(b.left-cents.left)<.015&&b.top>cents.top&&b.top-cents.top<.035)&&
+        row.spatialCandidates?.some(c=>c.kind==='same-row-euro-cents'&&Math.abs(c.value-value)<.001))
+        weightProofs.push({value,quantity:null,unit:'KG',source:'printed-euro-cents-and-weight-unit',sanity:'pass',confidence:'high'});
+    }
+  }
+  const weights=[...new Map(weightProofs.map(p=>[p.value,p])).values()];
+  if(weights.length)return weights.length===1?weights[0]:null;
+  if(!pk||!rate)return null;
   const a=pk.min*rate.max,b=pk.max*rate.min;
   if(Math.abs(a-b)>.04)return null;
   const expected=(a+b)/2;

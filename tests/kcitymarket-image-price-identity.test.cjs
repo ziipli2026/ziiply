@@ -1,0 +1,11 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
+const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json'));
+const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts','utf8');
+const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
+const mod={exports:{}};new Function('exports','module','require',code)(mod.exports,mod,()=>manifest);
+const get=mod.exports.getKCitymarketPublisherImage;
+const [url,pub]=Object.entries(manifest.publications).find(([u])=>u.includes('41LV'));
+const [id,image]=Object.entries(pub.images)[0];
+test('Corrected price keeps exact archived card image',()=>assert.equal(get(url,id.replace(/:[0-9]+(?:\.[0-9]+)?$/,':31.99')),image));
+test('A different publication cannot borrow that image',()=>assert.equal(get(url.replace('41LV','42AV'),id),null));
+test('Different page or title cannot borrow an image',()=>assert.equal(get(url,id.replace('kcm:spatial:','kcm:spatial:999:')),null));
