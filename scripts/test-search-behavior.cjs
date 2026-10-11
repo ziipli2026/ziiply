@@ -75,6 +75,21 @@ const rankingCases = [
   {query:"sinappi", products:[makeProduct(11,"Sinappi ja sinappikastike 250 g","Sinapit"),makeProduct(12,"Sinappikastike 250 ml","Kastikkeet")], first:11, excluded:[12]},
   {query:"hunajasinappi", products:[makeProduct(13,"Hunajasinappi 250 g","Sinapit"),makeProduct(14,"Majoneesi 250 g","Kastikkeet")], first:13, excluded:[14]},
 ];
+// A one-product query must not become empty merely because the name mentions sauce.
+const exclusionCases = [
+  ["sinappi", "Sinappikastike 250 ml", true],
+  ["sinappi", "Sinappi ja sinappikastike 250 g", false],
+  ["hunajasinappi", "Hunajasinappi 250 g", false],
+  ["tomaattimurska", "Tomaattipyree 200 g", true],
+  ["tomaattimurska", "Tomaattimurska 400 g", false],
+  ["tomaattipyree", "Tomaattimurska 400 g", true],
+  ["tomaattipyree", "Tomaattipyree 200 g", false],
+  ["ketsuppi", "Felix Ketsuppi 500 g", false],
+];
+const exclusionResults = exclusionCases.map(([query,name,expected]) => {
+  const actual = core.isExplicitlyExcludedSearchProduct(query, makeProduct(0,name,""));
+  return {query,name,expected,actual,pass:actual===expected};
+});
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));
@@ -103,8 +118,8 @@ const afterClear=memory.loadSearchIntentMemory();
 const learning={before:before.boost,after:after.boost,positive:after.positiveCount,structure:structure.boost,persisted,afterRejection:afterRejection.boost,isolatedOtherQuery:otherQuery.boost,negativeBefore:negativeBefore.boost,negativeAfter:negativeAfter.boost,cleared:Object.keys(afterClear.entries).length===0,pass:after.positiveCount===2&&after.boost>before.boost&&persisted&&afterRejection.boost<after.boost&&negativeAfter.negativeCount===1&&negativeAfter.boost<negativeBefore.boost&&otherQuery.positiveCount===0&&Object.keys(afterClear.entries).length===0};
 const failures=results.filter(r=>!r.pass);
 assert.equal(results.length, samples.length, "Some category cases were not executed");
-console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,learning},null,2));
-if(failures.length||rankingResults.some(r=>!r.pass)||!learning.pass){
+console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,learning},null,2));
+if(failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass){
  console.error("Search behavior regression failed", {failures,rankingResults,learning});
  process.exitCode=1;
 }
