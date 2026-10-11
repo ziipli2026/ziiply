@@ -4,7 +4,7 @@ import { enrichOfferImage, matchOfferImage } from "../src/lib/offerImageEnrichme
 const base = { ean: "6410405124517", name: "Pirkka Täysjyvävehnätortilla 8 x 320 g", brand: "Pirkka", packageSize: "320 g" };
 const image = { ...base, imageUrl: "https://example.org/product.webp" };
 assert.equal(matchOfferImage(base, image).accepted, true);
-assert.equal(enrichOfferImage(base, [image]).imageUrl, image.imageUrl);
+assert.equal(enrichOfferImage(base, [image]).imageUrl, "https://example.org/product.webp");
 assert.equal(matchOfferImage(base, { ...image, ean: "6410405124518" }).accepted, false);
 assert.equal(matchOfferImage(base, { ...image, packageSize: "500 g" }).accepted, false);
 assert.equal(matchOfferImage(base, { ...image, brand: "Coop" }).accepted, false);
