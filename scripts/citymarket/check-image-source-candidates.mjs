@@ -18,6 +18,8 @@ for (const candidate of review.candidates) {
   assert.match(candidate.ean, /^[0-9]{13}$/, "Invalid EAN");
   assert.ok(candidate.url.startsWith("https://www.k-ruoka.fi/kauppa/tuote/"), "Unexpected source");
   assert.ok(candidate.url.endsWith("-" + candidate.ean), "Product URL EAN mismatch");
+  assert.ok(candidate.status === "product-identity-verified-image-not-extracted" || candidate.status === "image-candidate-found-needs-rights-and-leaflet-visual-verification", "Unknown candidate status");
+  assert.equal(candidate.imageUrl === null, candidate.status === "product-identity-verified-image-not-extracted", "Candidate image and review status must agree");
   assert.equal(candidate.approved, false, "External source alone cannot approve image");
   if (candidate.imageUrl !== null) {
     assert.ok(candidate.imageUrl.startsWith("https://"), "Image candidate must use HTTPS");
