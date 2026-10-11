@@ -1284,13 +1284,13 @@ export default function DesktopPreviewPage() {
                           <h2 className="min-w-0 text-center text-[12px] font-black text-[#174c35]">{group==="Muut"?"Gulf / Ritoil / muut":group}</h2>
                         </div>
                         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-[18px] px-2 pb-2 pt-4" tabIndex={0} aria-label={`Selaa ketjun ${group} asemia`}>
-                          {candidates.length===0?<p className="py-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="mb-1 grid grid-cols-[minmax(0,.85fr)_minmax(0,1.15fr)] items-center gap-1 rounded-lg border border-[#dcc99a] bg-white/90 px-2 py-1 last:mb-0">
+                          {candidates.length===0?<p className="py-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="mb-1 grid grid-cols-[minmax(0,.65fr)_minmax(0,1.35fr)] items-center gap-1 rounded-lg border border-[#dcc99a] bg-white/90 px-2 py-1.5 last:mb-0">
                             <div className="min-w-0">
                               <div className="break-words text-[12px] font-black leading-[1.1] text-[#174c35]">{station.name}</div>
                               <div className="mt-0.5 text-[9px] font-semibold leading-[1.1] text-[#6d604c]">{Number(station.distanceKm).toFixed(1).replace(".",",")} km · {fuelIsTraffic(station)?"Liikenneasema":"Kylmä / muu"}</div>
                             </div>
                             <div className="grid min-w-0 grid-cols-3 gap-0.5 text-center">
-                              {([["DI","diesel","observedDiesel"],["95","price95","observed95"],["98","price98","observed98"]] as const).map(([label,key,dateKey])=><div key={key} className="min-w-0 rounded bg-[#fff4cf] px-0.5 py-1"><div className="flex items-baseline justify-center gap-0.5 whitespace-nowrap leading-none"><span className="text-[9px] font-bold text-[#6d604c]">{label}</span><strong className="text-[12px] font-black tabular-nums text-[#174c35]">{price(station[key])}</strong></div><div className="mt-1 whitespace-nowrap text-[8px] leading-none text-[#6d604c]">{price(station[key])==="–"?"–":observed(station[dateKey]).replace(/klo\s*/,"")}</div></div>)}
+                              {([["DI","diesel","observedDiesel"],["95","price95","observed95"],["98","price98","observed98"]] as const).map(([label,key,dateKey])=><div key={key} className="min-w-0 rounded bg-[#fff4cf] px-0.5 py-1"><div className="flex items-baseline justify-center gap-0.5 whitespace-nowrap leading-none"><span className="text-[9px] font-bold text-[#6d604c]">{label}</span><strong className="text-[15px] font-black tabular-nums text-[#174c35]">{price(station[key])}</strong></div><div className="mt-1 whitespace-nowrap text-[8px] leading-none text-[#6d604c]">{price(station[key])==="–"?"–":observed(station[dateKey]).replace(/klo\s*/,"")}</div></div>)}
                             </div>
                           </article>)}
                         </div>
