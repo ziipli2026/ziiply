@@ -1,10 +1,20 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 const source=fs.readFileSync("scripts/citymarket/discover-image-metadata.mjs","utf8");
-assert.ok(source.includes(String.raw`/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi`),"JSON-LD matcher must use regex escapes, not double-escaped backslashes");
-const html='<script type="application/ld+json">{"@type":"Product","image":"https://example.org/packshot.jpg"}</script>';
-const matcher=/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-const matches=[...html.matchAll(matcher)];
-assert.equal(matches.length,1);
-assert.equal(JSON.parse(matches[0][1]).image,"https://example.org/packshot.jpg");
-console.log("JSON-LD regex regression passed.");
+assert.ok(source.includes(String.raw`/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi`),"JSON-LD script matcher must use actual regex escapes");
+assert.ok(source.includes('JSON.parse(match[2])'),"Script body must be read from capture group two");
+const attr=(tag,name)=>{const m=tag.match(new RegExp("\\b"+name+"\\s*=\\s*([\\\"'])(.*?)\\1","i"));return m?.[2]??null};
+const matcher=/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+const samples=[
+  '<script type="application/ld+json">{"@type":"Product","image":"https://example.org/a.jpg"}</script>',
+  '<script id="data" type="application/ld+json" nonce="abc">{"@type":"Product","image":"https://example.org/b.jpg"}</script>',
+  '<script type="application/ld+json; charset=utf-8">{"@type":"Product","image":"https://example.org/c.jpg"}</script>',
+  '<script type="text/javascript">{"@type":"Product","image":"https://example.org/not-product.jpg"}</script>'
+];
+const found=[];
+for(const match of samples.join("\n").matchAll(matcher)){
+  if(!/^(?:application\/ld\+json)(?:\s*;.*)?$/i.test(attr(match[1],"type")??""))continue;
+  found.push(JSON.parse(match[2]).image);
+}
+assert.deepEqual(found,["https://example.org/a.jpg","https://example.org/b.jpg","https://example.org/c.jpg"]);
+console.log("JSON-LD script matching regression passed.");
