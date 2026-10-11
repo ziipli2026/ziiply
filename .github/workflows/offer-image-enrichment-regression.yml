@@ -22,4 +22,4 @@ jobs:
           node-version: "22"
       - run: npm ci
       - name: Run isolated image matcher regression
-        run: node --experimental-strip-types scripts/test-offer-image-enrichment.mts
+        run: npx --yes tsx scripts/test-offer-image-enrichment.mts
