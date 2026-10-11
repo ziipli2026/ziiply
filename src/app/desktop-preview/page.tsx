@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
+import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
@@ -796,6 +797,7 @@ export default function DesktopPreviewPage() {
   function flashCartNotice(message:string){setCartNotice(message);window.setTimeout(()=>setCartNotice(current=>current===message?"":current),2200)}
   function addDesktopCartItem(p:any){
     const key=desktopCartKey(p);if(!key)return;
+    if(p?.source==="justiina" && p?.__chain && justiinaQuery.trim())rememberSearchChoice(justiinaQuery,{...p,name:String(p.name||p.title||""),ean:p.ean==null?null:String(p.ean)},"added_to_cart");
     setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return isDesktopMemoItem(found)?current:current.map(x=>desktopCartKey(x)===key?{...x,quantity:Number(x.quantity||1)+1}:x)}flashCartNotice(`Lisätty ostoskoriin: ${p?.title||p?.name||"tuote"}`);return [...current,{...p,source:p?.source||"normal",quantity:1}]});
   }
   function changeDesktopCartQuantity(p:any,delta:number){const key=desktopCartKey(p);setCartItems(current=>current.flatMap(x=>desktopCartKey(x)!==key?[x]:Number(x.quantity||1)+delta<=0?[]:[{...x,quantity:Number(x.quantity||1)+delta}]))}
@@ -955,7 +957,9 @@ export default function DesktopPreviewPage() {
       const tokens=name.split(" ").filter(Boolean);
       return words.length>0&&words.every(word=>tokens.some(token=>token===word||token.startsWith(word)));
     };
-    return products.filter(matchesQuery).map((product,index)=>({product,index,rank:score(product)}))
+    return products.filter(matchesQuery)
+      .filter(product=>getLearnedSearchBoost(query,{...product,name:String(product.name||product.title||product.product?.name||"")}).reason!=="blocked_by_intent_guardrail")
+      .map((product,index)=>({product,index,rank:score(product)+getLearnedStructureBoost(query,{...product,name:String(product.name||product.title||product.product?.name||"")}).boost}))
       .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
   }
 

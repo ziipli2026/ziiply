@@ -12886,9 +12886,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
+            // Unknown product families may use a verified exact EAN, never a name substitute.
             const best = sourceFamilyKnownV823
               ? await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan, true)
-              : undefined;
+              : comparisonSourceEan
+                ? (await fetchKProducts(comparisonSourceEan, activeStores.kStoreId)).find(candidate =>
+                    Number(candidate.price) > 0 && normalizeEan(candidate.ean) === comparisonSourceEan)
+                : undefined;
             if (best) {
               const product = convertKProductToProduct(best);
               k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };

@@ -9,6 +9,8 @@
  * - Never overrides hard exclude rules from searchIntentAI.ts.
  */
 
+import { detectSearchIntent } from "../ziiplyCore";
+
 import {
   resolveSearchIntentAI,
   isProductAllowedByIntent,
@@ -318,10 +320,31 @@ export function clearSearchIntentMemory() {
   } catch {}
 }
 
+// Expanded category guardrails apply to exact category queries before learned boosts.
+function isAllowedForLearning(query: string, product: ZiiplySearchMemoryProduct) {
+  const registryIntent = detectSearchIntent(query);
+  const expanded = new Set([
+    "cream", "quark", "cottage_cheese", "cream_cheese", "butter", "margarine",
+    "tea", "juice", "sausage", "cold_cuts", "toothpaste", "deodorant",
+  ]);
+  if (expanded.has(registryIntent.category) &&
+      registryIntent.variants.some(term => normalizeFi(term) === normalizeFi(query))) {
+    const name = normalizeFi(product.name);
+    const matches = (registryIntent.requiredAny || []).some(term => {
+      const normalized = normalizeFi(term);
+      return normalized === "voi" || normalized === "tee"
+        ? name.split(/[^a-z0-9]+/).includes(normalized)
+        : name.includes(normalized);
+    });
+    return matches && !(registryIntent.bannedAny || []).some(term => name.includes(normalizeFi(term)));
+  }
+  return isProductAllowedByIntent(product, resolveSearchIntentAI(query));
+}
+
 export function getLearnedSearchBoost(query: string, product: ZiiplySearchMemoryProduct): ZiiplyLearnedBoost {
   const intent = resolveSearchIntentAI(query);
 
-  if (!isProductAllowedByIntent(product, intent)) {
+  if (!isAllowedForLearning(query, product)) {
     return { boost: -100, positiveCount: 0, negativeCount: 0, reason: "blocked_by_intent_guardrail" };
   }
 
