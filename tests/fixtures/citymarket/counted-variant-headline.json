@@ -1,0 +1,1604 @@
+{
+  "page": 6,
+  "line": 27,
+  "title": "KONETISKITABLETIT 3 kpl/pkt tai KONETISKIGEELI 650 ml",
+  "package": {
+    "min": 0.65,
+    "max": 0.65,
+    "raw": "650 ml"
+  },
+  "unitPrice": null,
+  "normal": {
+    "min": 5.19,
+    "max": 7.95,
+    "unit": "KPL"
+  },
+  "expectedSingle": null,
+  "initialExpectedSingle": null,
+  "candidate": null,
+  "debugPackageRowAnchor": {
+    "left": 0.484108,
+    "top": 0.320664,
+    "width": 0,
+    "height": 0,
+    "boxes": [
+      {
+        "text": "KONETISKITABLETIT",
+        "left": 0.472878,
+        "top": 0.313415,
+        "width": 0.143379,
+        "height": 0.019282
+      },
+      {
+        "text": "KONETISKIGEELI",
+        "left": 0.495338,
+        "top": 0.327913,
+        "width": 0.115039,
+        "height": 0.019282
+      }
+    ]
+  },
+  "debugBestTitleRow": {
+    "top": 0.313415,
+    "boxes": [
+      {
+        "text": "KONETISKITABLETIT",
+        "left": 0.472878,
+        "top": 0.313415,
+        "width": 0.143379,
+        "height": 0.019282
+      },
+      {
+        "text": "KONETISKIGEELI",
+        "left": 0.495338,
+        "top": 0.327913,
+        "width": 0.115039,
+        "height": 0.019282
+      }
+    ],
+    "_score": 8031
+  },
+  "debugAnchor": {
+    "left": 0.484108,
+    "top": 0.320664,
+    "width": 0,
+    "height": 0,
+    "boxes": [
+      {
+        "text": "KONETISKITABLETIT",
+        "left": 0.472878,
+        "top": 0.313415,
+        "width": 0.143379,
+        "height": 0.019282
+      },
+      {
+        "text": "KONETISKIGEELI",
+        "left": 0.495338,
+        "top": 0.327913,
+        "width": 0.115039,
+        "height": 0.019282
+      }
+    ]
+  },
+  "debugNearbyBoxes": [
+    {
+      "text": "89/l)",
+      "left": 0.219964,
+      "top": 0.386406,
+      "width": 0.021474,
+      "height": 0.009073
+    },
+    {
+      "text": "POWER",
+      "left": 0.472878,
+      "top": 0.255425,
+      "width": 0.052477,
+      "height": 0.019282
+    },
+    {
+      "text": "AIO",
+      "left": 0.528524,
+      "top": 0.255425,
+      "width": 0.025746,
+      "height": 0.019282
+    },
+    {
+      "text": "KONETISKITABLETIT",
+      "left": 0.472878,
+      "top": 0.269922,
+      "width": 0.143379,
+      "height": 0.019282
+    },
+    {
+      "text": "42",
+      "left": 0.619429,
+      "top": 0.269922,
+      "width": 0.018636,
+      "height": 0.019282
+    },
+    {
+      "text": "tab/ps",
+      "left": 0.641234,
+      "top": 0.269922,
+      "width": 0.047114,
+      "height": 0.019282
+    },
+    {
+      "text": "tab/ps",
+      "left": 0.606453,
+      "top": 0.28442,
+      "width": 0.047114,
+      "height": 0.019282
+    },
+    {
+      "text": "KONETISKITABLETIT",
+      "left": 0.472878,
+      "top": 0.313415,
+      "width": 0.143379,
+      "height": 0.019282
+    },
+    {
+      "text": "3",
+      "left": 0.619429,
+      "top": 0.313415,
+      "width": 0.008886,
+      "height": 0.019282
+    },
+    {
+      "text": "3",
+      "left": 0.545773,
+      "top": 0.298918,
+      "width": 0.008486,
+      "height": 0.019282
+    },
+    {
+      "text": "kpl/pkt",
+      "left": 0.631485,
+      "top": 0.313415,
+      "width": 0.05545,
+      "height": 0.019282
+    },
+    {
+      "text": "tai",
+      "left": 0.472878,
+      "top": 0.327913,
+      "width": 0.019293,
+      "height": 0.019282
+    },
+    {
+      "text": "KONETISKIGEELI",
+      "left": 0.495338,
+      "top": 0.327913,
+      "width": 0.115039,
+      "height": 0.019282
+    },
+    {
+      "text": "650",
+      "left": 0.61355,
+      "top": 0.327913,
+      "width": 0.02863,
+      "height": 0.019282
+    },
+    {
+      "text": "ml",
+      "left": 0.645349,
+      "top": 0.327913,
+      "width": 0.017811,
+      "height": 0.019282
+    },
+    {
+      "text": "7",
+      "left": 0.472878,
+      "top": 0.344243,
+      "width": 0.004838,
+      "height": 0.010369
+    },
+    {
+      "text": "7",
+      "left": 0.54647,
+      "top": 0.344243,
+      "width": 0.004768,
+      "height": 0.010369
+    },
+    {
+      "text": "69/l",
+      "left": 0.480882,
+      "top": 0.344243,
+      "width": 0.020423,
+      "height": 0.010369
+    },
+    {
+      "text": "0",
+      "left": 0.506939,
+      "top": 0.344243,
+      "width": 0.00694,
+      "height": 0.010369
+    },
+    {
+      "text": "12–1",
+      "left": 0.516647,
+      "top": 0.344243,
+      "width": 0.020203,
+      "height": 0.010369
+    },
+    {
+      "text": "67/kpl",
+      "left": 0.540017,
+      "top": 0.344243,
+      "width": 0.031269,
+      "height": 0.010369
+    },
+    {
+      "text": "Power",
+      "left": 0.472878,
+      "top": 0.356648,
+      "width": 0.030756,
+      "height": 0.010369
+    },
+    {
+      "text": "AiO",
+      "left": 0.506156,
+      "top": 0.356648,
+      "width": 0.019897,
+      "height": 0.010369
+    },
+    {
+      "text": "maskindisktabletter",
+      "left": 0.528575,
+      "top": 0.356648,
+      "width": 0.097626,
+      "height": 0.010369
+    },
+    {
+      "text": "maskindisktabletter",
+      "left": 0.520752,
+      "top": 0.366313,
+      "width": 0.098163,
+      "height": 0.010369
+    },
+    {
+      "text": "Ultimate",
+      "left": 0.631834,
+      "top": 0.356648,
+      "width": 0.042166,
+      "height": 0.010369
+    },
+    {
+      "text": "Ultimate",
+      "left": 0.472878,
+      "top": 0.366313,
+      "width": 0.042241,
+      "height": 0.010369
+    },
+    {
+      "text": "Plus",
+      "left": 0.676522,
+      "top": 0.356648,
+      "width": 0.020508,
+      "height": 0.010369
+    },
+    {
+      "text": "Ultimate",
+      "left": 0.631834,
+      "top": 0.356648,
+      "width": 0.042166,
+      "height": 0.010369
+    },
+    {
+      "text": "Ultimate",
+      "left": 0.472878,
+      "top": 0.366313,
+      "width": 0.042241,
+      "height": 0.010369
+    },
+    {
+      "text": "maskindisktabletter",
+      "left": 0.528575,
+      "top": 0.356648,
+      "width": 0.097626,
+      "height": 0.010369
+    },
+    {
+      "text": "maskindisktabletter",
+      "left": 0.520752,
+      "top": 0.366313,
+      "width": 0.098163,
+      "height": 0.010369
+    },
+    {
+      "text": "eller",
+      "left": 0.621438,
+      "top": 0.366313,
+      "width": 0.021712,
+      "height": 0.010369
+    },
+    {
+      "text": "diskmaskingel",
+      "left": 0.645672,
+      "top": 0.366313,
+      "width": 0.069456,
+      "height": 0.010369
+    },
+    {
+      "text": "Ilman",
+      "left": 0.472441,
+      "top": 0.379167,
+      "width": 0.023226,
+      "height": 0.009073
+    },
+    {
+      "text": "Plussa-korttia",
+      "left": 0.497874,
+      "top": 0.379167,
+      "width": 0.058235,
+      "height": 0.009073
+    },
+    {
+      "text": "5",
+      "left": 0.558316,
+      "top": 0.379167,
+      "width": 0.005429,
+      "height": 0.009073
+    },
+    {
+      "text": "5",
+      "left": 0.593964,
+      "top": 0.379167,
+      "width": 0.005322,
+      "height": 0.009073
+    },
+    {
+      "text": "19–7",
+      "left": 0.566224,
+      "top": 0.379167,
+      "width": 0.019053,
+      "height": 0.009073
+    },
+    {
+      "text": "95/kpl",
+      "left": 0.588226,
+      "top": 0.379167,
+      "width": 0.028288,
+      "height": 0.009073
+    },
+    {
+      "text": "(9",
+      "left": 0.618721,
+      "top": 0.379167,
+      "width": 0.009022,
+      "height": 0.009073
+    },
+    {
+      "text": "83/l",
+      "left": 0.630756,
+      "top": 0.379167,
+      "width": 0.01768,
+      "height": 0.009073
+    },
+    {
+      "text": "0",
+      "left": 0.472441,
+      "top": 0.386899,
+      "width": 0.006124,
+      "height": 0.009073
+    },
+    {
+      "text": "0",
+      "left": 0.502607,
+      "top": 0.386899,
+      "width": 0.00631,
+      "height": 0.009073
+    },
+    {
+      "text": "0",
+      "left": 0.508916,
+      "top": 0.386899,
+      "width": 0.006095,
+      "height": 0.009073
+    },
+    {
+      "text": "17–2",
+      "left": 0.481044,
+      "top": 0.386899,
+      "width": 0.018753,
+      "height": 0.009073
+    },
+    {
+      "text": "00/kpl)",
+      "left": 0.502607,
+      "top": 0.386899,
+      "width": 0.033015,
+      "height": 0.009073
+    },
+    {
+      "text": "3",
+      "left": 0.320529,
+      "top": 0.307215,
+      "width": 0.008886,
+      "height": 0.019282
+    },
+    {
+      "text": "3",
+      "left": 0.37971,
+      "top": 0.284965,
+      "width": 0.015896,
+      "height": 0.029146
+    },
+    {
+      "text": "KPL",
+      "left": 0.332585,
+      "top": 0.307215,
+      "width": 0.027434,
+      "height": 0.019282
+    },
+    {
+      "text": "-",
+      "left": 0.363344,
+      "top": 0.31205,
+      "width": 0.026911,
+      "height": 0.077128
+    },
+    {
+      "text": "-",
+      "left": 0.368303,
+      "top": 0.284965,
+      "width": 0.011407,
+      "height": 0.029146
+    },
+    {
+      "text": "12",
+      "left": 0.28933,
+      "top": 0.303468,
+      "width": 0.072724,
+      "height": 0.0909
+    },
+    {
+      "text": "ULTIMATE",
+      "left": 0.472878,
+      "top": 0.298918,
+      "width": 0.069722,
+      "height": 0.019282
+    },
+    {
+      "text": "ULTIMATE",
+      "left": 0.472878,
+      "top": 0.28442,
+      "width": 0.069722,
+      "height": 0.019282
+    },
+    {
+      "text": "35",
+      "left": 0.545773,
+      "top": 0.298918,
+      "width": 0.017313,
+      "height": 0.019282
+    },
+    {
+      "text": "tab/ps",
+      "left": 0.566256,
+      "top": 0.298918,
+      "width": 0.047115,
+      "height": 0.019282
+    },
+    {
+      "text": "tab/ps",
+      "left": 0.606453,
+      "top": 0.28442,
+      "width": 0.047114,
+      "height": 0.019282
+    },
+    {
+      "text": "-30%",
+      "left": 0.368303,
+      "top": 0.284965,
+      "width": 0.063928,
+      "height": 0.029146
+    },
+    {
+      "text": "ULTIMATE",
+      "left": 0.472878,
+      "top": 0.298918,
+      "width": 0.069722,
+      "height": 0.019282
+    },
+    {
+      "text": "ULTIMATE",
+      "left": 0.472878,
+      "top": 0.28442,
+      "width": 0.069722,
+      "height": 0.019282
+    },
+    {
+      "text": "PLUS",
+      "left": 0.545769,
+      "top": 0.28442,
+      "width": 0.035558,
+      "height": 0.019282
+    },
+    {
+      "text": "20",
+      "left": 0.584502,
+      "top": 0.28442,
+      "width": 0.018781,
+      "height": 0.019282
+    },
+    {
+      "text": "tab/ps",
+      "left": 0.641234,
+      "top": 0.269922,
+      "width": 0.047114,
+      "height": 0.019282
+    },
+    {
+      "text": "tab/ps",
+      "left": 0.566256,
+      "top": 0.298918,
+      "width": 0.047115,
+      "height": 0.019282
+    },
+    {
+      "text": "tab/ps",
+      "left": 0.606453,
+      "top": 0.28442,
+      "width": 0.047114,
+      "height": 0.019282
+    },
+    {
+      "text": "jopa",
+      "left": 0.366633,
+      "top": 0.290933,
+      "width": 0.014193,
+      "height": 0.007128
+    }
+  ],
+  "spatialPriceBoxes": [
+    {
+      "text": "7",
+      "left": 0.472878,
+      "top": 0.344243,
+      "width": 0.004838,
+      "height": 0.010369,
+      "d": 0.030083
+    },
+    {
+      "text": "0",
+      "left": 0.506939,
+      "top": 0.344243,
+      "width": 0.00694,
+      "height": 0.010369,
+      "d": 0.038975
+    },
+    {
+      "text": "3",
+      "left": 0.545773,
+      "top": 0.298918,
+      "width": 0.008486,
+      "height": 0.019282,
+      "d": 0.06701
+    },
+    {
+      "text": "7",
+      "left": 0.54647,
+      "top": 0.344243,
+      "width": 0.004768,
+      "height": 0.010369,
+      "d": 0.070848
+    },
+    {
+      "text": "0",
+      "left": 0.472441,
+      "top": 0.386899,
+      "width": 0.006124,
+      "height": 0.009073,
+      "d": 0.071293
+    },
+    {
+      "text": "35",
+      "left": 0.545773,
+      "top": 0.298918,
+      "width": 0.017313,
+      "height": 0.019282,
+      "d": 0.071356
+    },
+    {
+      "text": "0",
+      "left": 0.502607,
+      "top": 0.386899,
+      "width": 0.00631,
+      "height": 0.009073,
+      "d": 0.07401
+    },
+    {
+      "text": "0",
+      "left": 0.508916,
+      "top": 0.386899,
+      "width": 0.006095,
+      "height": 0.009073,
+      "d": 0.076056
+    },
+    {
+      "text": "3",
+      "left": 0.37971,
+      "top": 0.284965,
+      "width": 0.015896,
+      "height": 0.029146,
+      "d": 0.098737
+    },
+    {
+      "text": "5",
+      "left": 0.558316,
+      "top": 0.379167,
+      "width": 0.005429,
+      "height": 0.009073,
+      "d": 0.099454
+    },
+    {
+      "text": "20",
+      "left": 0.584502,
+      "top": 0.28442,
+      "width": 0.018781,
+      "height": 0.019282,
+      "d": 0.112962
+    },
+    {
+      "text": "5",
+      "left": 0.593964,
+      "top": 0.379167,
+      "width": 0.005322,
+      "height": 0.009073,
+      "d": 0.128973
+    },
+    {
+      "text": "3",
+      "left": 0.619429,
+      "top": 0.313415,
+      "width": 0.008886,
+      "height": 0.019282,
+      "d": 0.139784
+    },
+    {
+      "text": "650",
+      "left": 0.61355,
+      "top": 0.327913,
+      "width": 0.02863,
+      "height": 0.019282,
+      "d": 0.144746
+    },
+    {
+      "text": "42",
+      "left": 0.619429,
+      "top": 0.269922,
+      "width": 0.018636,
+      "height": 0.019282,
+      "d": 0.150365
+    },
+    {
+      "text": "3",
+      "left": 0.320529,
+      "top": 0.307215,
+      "width": 0.008886,
+      "height": 0.019282,
+      "d": 0.159182
+    },
+    {
+      "text": "12",
+      "left": 0.28933,
+      "top": 0.303468,
+      "width": 0.072724,
+      "height": 0.0909,
+      "d": 0.160916
+    },
+    {
+      "text": "2",
+      "left": 0.561911,
+      "top": 0.54088,
+      "width": 0.006753,
+      "height": 0.01515,
+      "d": 0.241824
+    },
+    {
+      "text": "475",
+      "left": 0.452526,
+      "top": 0.558842,
+      "width": 0.021025,
+      "height": 0.01515,
+      "d": 0.246655
+    },
+    {
+      "text": "9",
+      "left": 0.558161,
+      "top": 0.543286,
+      "width": 0.023917,
+      "height": 0.048205,
+      "d": 0.261287
+    },
+    {
+      "text": "9",
+      "left": 0.365766,
+      "top": 0.572017,
+      "width": 0.006387,
+      "height": 0.010369,
+      "d": 0.281195
+    },
+    {
+      "text": "5",
+      "left": 0.476449,
+      "top": 0.597404,
+      "width": 0.005429,
+      "height": 0.009073,
+      "d": 0.28132
+    },
+    {
+      "text": "5",
+      "left": 0.490637,
+      "top": 0.597404,
+      "width": 0.005322,
+      "height": 0.009073,
+      "d": 0.281427
+    },
+    {
+      "text": "5",
+      "left": 0.451641,
+      "top": 0.597404,
+      "width": 0.005429,
+      "height": 0.009073,
+      "d": 0.282846
+    },
+    {
+      "text": "5",
+      "left": 0.200579,
+      "top": 0.386406,
+      "width": 0.00564,
+      "height": 0.009073,
+      "d": 0.289373
+    },
+    {
+      "text": "5",
+      "left": 0.186624,
+      "top": 0.386406,
+      "width": 0.005429,
+      "height": 0.009073,
+      "d": 0.303032
+    },
+    {
+      "text": "2",
+      "left": 0.2586,
+      "top": 0.547081,
+      "width": 0.006753,
+      "height": 0.01515,
+      "d": 0.322637
+    },
+    {
+      "text": "3",
+      "left": 0.682582,
+      "top": 0.572017,
+      "width": 0.006022,
+      "height": 0.010369,
+      "d": 0.326202
+    },
+    {
+      "text": "5",
+      "left": 0.256188,
+      "top": 0.549486,
+      "width": 0.021243,
+      "height": 0.048205,
+      "d": 0.333451
+    },
+    {
+      "text": "3",
+      "left": 0.708465,
+      "top": 0.572017,
+      "width": 0.006022,
+      "height": 0.010369,
+      "d": 0.342794
+    },
+    {
+      "text": "5",
+      "left": 0.145138,
+      "top": 0.386406,
+      "width": 0.005429,
+      "height": 0.009073,
+      "d": 0.343521
+    },
+    {
+      "text": "5",
+      "left": 0.134637,
+      "top": 0.386406,
+      "width": 0.00564,
+      "height": 0.009073,
+      "d": 0.353703
+    },
+    {
+      "text": "2",
+      "left": 0.835066,
+      "top": 0.307215,
+      "width": 0.008594,
+      "height": 0.019282,
+      "d": 0.355275
+    },
+    {
+      "text": "10",
+      "left": 0.799174,
+      "top": 0.303468,
+      "width": 0.081817,
+      "height": 0.0909,
+      "d": 0.357094
+    },
+    {
+      "text": "3",
+      "left": 0.698348,
+      "top": 0.605136,
+      "width": 0.005531,
+      "height": 0.009073,
+      "d": 0.36141
+    },
+    {
+      "text": "5",
+      "left": 0.120681,
+      "top": 0.386406,
+      "width": 0.005429,
+      "height": 0.009073,
+      "d": 0.367495
+    },
+    {
+      "text": "3",
+      "left": 0.768458,
+      "top": 0.597404,
+      "width": 0.005317,
+      "height": 0.009073,
+      "d": 0.401859
+    },
+    {
+      "text": "36",
+      "left": 0.138947,
+      "top": 0.534114,
+      "width": 0.014659,
+      "height": 0.01515,
+      "d": 0.403711
+    },
+    {
+      "text": "62",
+      "left": 0.541303,
+      "top": 0.708097,
+      "width": 0.013249,
+      "height": 0.05061,
+      "d": 0.417643
+    },
+    {
+      "text": "3",
+      "left": 0.790699,
+      "top": 0.597404,
+      "width": 0.005317,
+      "height": 0.009073,
+      "d": 0.418033
+    },
+    {
+      "text": "4",
+      "left": 0.065133,
+      "top": 0.361147,
+      "width": 0.006678,
+      "height": 0.010369,
+      "d": 0.418137
+    },
+    {
+      "text": "50",
+      "left": 0.566016,
+      "top": 0.717607,
+      "width": 0.023879,
+      "height": 0.024089,
+      "d": 0.419617
+    },
+    {
+      "text": "600",
+      "left": 0.092313,
+      "top": 0.49932,
+      "width": 0.024124,
+      "height": 0.01515,
+      "d": 0.422941
+    },
+    {
+      "text": "128",
+      "left": 0.414418,
+      "top": 0.735723,
+      "width": 0.020306,
+      "height": 0.01515,
+      "d": 0.426807
+    },
+    {
+      "text": "0",
+      "left": 0.121815,
+      "top": 0.545712,
+      "width": 0.008265,
+      "height": 0.01515,
+      "d": 0.427074
+    },
+    {
+      "text": "750",
+      "left": 0.097681,
+      "top": 0.522516,
+      "width": 0.021496,
+      "height": 0.01515,
+      "d": 0.43011
+    },
+    {
+      "text": "1",
+      "left": 0.097942,
+      "top": 0.510918,
+      "width": 0.006111,
+      "height": 0.01515,
+      "d": 0.431173
+    },
+    {
+      "text": "500",
+      "left": 0.106797,
+      "top": 0.545712,
+      "width": 0.023283,
+      "height": 0.01515,
+      "d": 0.433391
+    },
+    {
+      "text": "0",
+      "left": 0.113642,
+      "top": 0.545712,
+      "width": 0.008174,
+      "height": 0.01515,
+      "d": 0.43399
+    },
+    {
+      "text": "4",
+      "left": 0.044626,
+      "top": 0.344817,
+      "width": 0.010325,
+      "height": 0.019282,
+      "d": 0.435632
+    },
+    {
+      "text": "0",
+      "left": 0.105996,
+      "top": 0.558888,
+      "width": 0.006738,
+      "height": 0.010369,
+      "d": 0.446856
+    },
+    {
+      "text": "4",
+      "left": 0.034806,
+      "top": 0.361147,
+      "width": 0.006678,
+      "height": 0.010369,
+      "d": 0.448295
+    },
+    {
+      "text": "4",
+      "left": 0.438142,
+      "top": 0.76462,
+      "width": 0.00589,
+      "height": 0.009073,
+      "d": 0.450551
+    },
+    {
+      "text": "0",
+      "left": 0.095899,
+      "top": 0.558888,
+      "width": 0.00694,
+      "height": 0.010369,
+      "d": 0.455271
+    },
+    {
+      "text": "2",
+      "left": 0.120553,
+      "top": 0.603605,
+      "width": 0.005349,
+      "height": 0.009073,
+      "d": 0.461387
+    },
+    {
+      "text": "40",
+      "left": 0.682582,
+      "top": 0.726058,
+      "width": 0.016454,
+      "height": 0.01515,
+      "d": 0.46181
+    },
+    {
+      "text": "0",
+      "left": 0.690771,
+      "top": 0.726058,
+      "width": 0.008265,
+      "height": 0.01515,
+      "d": 0.463657
+    },
+    {
+      "text": "759",
+      "left": 0.252966,
+      "top": 0.710493,
+      "width": 0.043678,
+      "height": 0.048205,
+      "d": 0.463839
+    },
+    {
+      "text": "2",
+      "left": 0.886215,
+      "top": 0.549531,
+      "width": 0.006753,
+      "height": 0.01515,
+      "d": 0.469384
+    },
+    {
+      "text": "0",
+      "left": 0.682582,
+      "top": 0.739233,
+      "width": 0.00694,
+      "height": 0.010369,
+      "d": 0.469413
+    }
+  ],
+  "spatialResolved": {
+    "value": 10,
+    "quantity": 2,
+    "unit": null,
+    "source": "overprinted-small-count-on-large-total",
+    "sanity": "pass",
+    "confidence": "medium"
+  },
+  "percentageOffer": {
+    "percent": 30,
+    "source": "unique-local-percentage-proof",
+    "confidence": "high"
+  },
+  "spatialCandidates": [
+    {
+      "value": 7.1,
+      "parts": [
+        "7",
+        "10"
+      ],
+      "score": 0.387177,
+      "unit": null
+    },
+    {
+      "value": 3.1,
+      "parts": [
+        "3",
+        "10"
+      ],
+      "score": 0.496878,
+      "unit": null
+    }
+  ],
+  "spatialGroups": [
+    {
+      "top": 0.2626735,
+      "left": 0.472878,
+      "right": 0.688348,
+      "boxes": [
+        {
+          "text": "POWER",
+          "left": 0.472878,
+          "top": 0.255425,
+          "width": 0.052477,
+          "height": 0.019282
+        },
+        {
+          "text": "AIO",
+          "left": 0.528524,
+          "top": 0.255425,
+          "width": 0.025746,
+          "height": 0.019282
+        },
+        {
+          "text": "42",
+          "left": 0.619429,
+          "top": 0.269922,
+          "width": 0.018636,
+          "height": 0.019282
+        },
+        {
+          "text": "tab/ps",
+          "left": 0.641234,
+          "top": 0.269922,
+          "width": 0.047114,
+          "height": 0.019282
+        }
+      ],
+      "text": "POWER AIO 42 tab/ps"
+    },
+    {
+      "top": 0.28442,
+      "left": 0.472878,
+      "right": 0.653567,
+      "boxes": [
+        {
+          "text": "ULTIMATE",
+          "left": 0.472878,
+          "top": 0.28442,
+          "width": 0.069722,
+          "height": 0.019282
+        },
+        {
+          "text": "PLUS",
+          "left": 0.545769,
+          "top": 0.28442,
+          "width": 0.035558,
+          "height": 0.019282
+        },
+        {
+          "text": "20",
+          "left": 0.584502,
+          "top": 0.28442,
+          "width": 0.018781,
+          "height": 0.019282
+        },
+        {
+          "text": "tab/ps",
+          "left": 0.606453,
+          "top": 0.28442,
+          "width": 0.047114,
+          "height": 0.019282
+        }
+      ],
+      "text": "ULTIMATE PLUS 20 tab/ps"
+    },
+    {
+      "top": 0.294267,
+      "left": 0.368303,
+      "right": 0.613371,
+      "boxes": [
+        {
+          "text": "-",
+          "left": 0.368303,
+          "top": 0.284965,
+          "width": 0.011407,
+          "height": 0.029146
+        },
+        {
+          "text": "-30%",
+          "left": 0.368303,
+          "top": 0.284965,
+          "width": 0.063928,
+          "height": 0.029146
+        },
+        {
+          "text": "ULTIMATE",
+          "left": 0.472878,
+          "top": 0.298918,
+          "width": 0.069722,
+          "height": 0.019282
+        },
+        {
+          "text": "3",
+          "left": 0.545773,
+          "top": 0.298918,
+          "width": 0.008486,
+          "height": 0.019282
+        },
+        {
+          "text": "35",
+          "left": 0.545773,
+          "top": 0.298918,
+          "width": 0.017313,
+          "height": 0.019282
+        },
+        {
+          "text": "tab/ps",
+          "left": 0.566256,
+          "top": 0.298918,
+          "width": 0.047115,
+          "height": 0.019282
+        }
+      ],
+      "text": "- -30% ULTIMATE 3 35 tab/ps"
+    },
+    {
+      "top": 0.2934335,
+      "left": 0.366633,
+      "right": 0.613371,
+      "boxes": [
+        {
+          "text": "jopa",
+          "left": 0.366633,
+          "top": 0.290933,
+          "width": 0.014193,
+          "height": 0.007128
+        },
+        {
+          "text": "3",
+          "left": 0.37971,
+          "top": 0.284965,
+          "width": 0.015896,
+          "height": 0.029146
+        },
+        {
+          "text": "ULTIMATE",
+          "left": 0.472878,
+          "top": 0.298918,
+          "width": 0.069722,
+          "height": 0.019282
+        },
+        {
+          "text": "tab/ps",
+          "left": 0.566256,
+          "top": 0.298918,
+          "width": 0.047115,
+          "height": 0.019282
+        }
+      ],
+      "text": "jopa 3 ULTIMATE tab/ps"
+    },
+    {
+      "top": 0.3104963333333333,
+      "left": 0.28933,
+      "right": 0.686935,
+      "boxes": [
+        {
+          "text": "12",
+          "left": 0.28933,
+          "top": 0.303468,
+          "width": 0.072724,
+          "height": 0.0909
+        },
+        {
+          "text": "KPL",
+          "left": 0.332585,
+          "top": 0.307215,
+          "width": 0.027434,
+          "height": 0.019282
+        },
+        {
+          "text": "-",
+          "left": 0.363344,
+          "top": 0.31205,
+          "width": 0.026911,
+          "height": 0.077128
+        },
+        {
+          "text": "KONETISKITABLETIT",
+          "left": 0.472878,
+          "top": 0.313415,
+          "width": 0.143379,
+          "height": 0.019282
+        },
+        {
+          "text": "3",
+          "left": 0.619429,
+          "top": 0.313415,
+          "width": 0.008886,
+          "height": 0.019282
+        },
+        {
+          "text": "kpl/pkt",
+          "left": 0.631485,
+          "top": 0.313415,
+          "width": 0.05545,
+          "height": 0.019282
+        }
+      ],
+      "text": "12 KPL - KONETISKITABLETIT 3 kpl/pkt"
+    },
+    {
+      "top": 0.307215,
+      "left": 0.320529,
+      "right": 0.329415,
+      "boxes": [
+        {
+          "text": "3",
+          "left": 0.320529,
+          "top": 0.307215,
+          "width": 0.008886,
+          "height": 0.019282
+        }
+      ],
+      "text": "3"
+    },
+    {
+      "top": 0.327913,
+      "left": 0.472878,
+      "right": 0.66316,
+      "boxes": [
+        {
+          "text": "tai",
+          "left": 0.472878,
+          "top": 0.327913,
+          "width": 0.019293,
+          "height": 0.019282
+        },
+        {
+          "text": "KONETISKIGEELI",
+          "left": 0.495338,
+          "top": 0.327913,
+          "width": 0.115039,
+          "height": 0.019282
+        },
+        {
+          "text": "650",
+          "left": 0.61355,
+          "top": 0.327913,
+          "width": 0.02863,
+          "height": 0.019282
+        },
+        {
+          "text": "ml",
+          "left": 0.645349,
+          "top": 0.327913,
+          "width": 0.017811,
+          "height": 0.019282
+        }
+      ],
+      "text": "tai KONETISKIGEELI 650 ml"
+    },
+    {
+      "top": 0.344243,
+      "left": 0.472878,
+      "right": 0.571286,
+      "boxes": [
+        {
+          "text": "7",
+          "left": 0.472878,
+          "top": 0.344243,
+          "width": 0.004838,
+          "height": 0.010369
+        },
+        {
+          "text": "69/l",
+          "left": 0.480882,
+          "top": 0.344243,
+          "width": 0.020423,
+          "height": 0.010369
+        },
+        {
+          "text": "0",
+          "left": 0.506939,
+          "top": 0.344243,
+          "width": 0.00694,
+          "height": 0.010369
+        },
+        {
+          "text": "12–1",
+          "left": 0.516647,
+          "top": 0.344243,
+          "width": 0.020203,
+          "height": 0.010369
+        },
+        {
+          "text": "67/kpl",
+          "left": 0.540017,
+          "top": 0.344243,
+          "width": 0.031269,
+          "height": 0.010369
+        },
+        {
+          "text": "7",
+          "left": 0.54647,
+          "top": 0.344243,
+          "width": 0.004768,
+          "height": 0.010369
+        }
+      ],
+      "text": "7 69/l 0 12–1 67/kpl 7"
+    },
+    {
+      "top": 0.3791669999999999,
+      "left": 0.472441,
+      "right": 0.648436,
+      "boxes": [
+        {
+          "text": "Ilman",
+          "left": 0.472441,
+          "top": 0.379167,
+          "width": 0.023226,
+          "height": 0.009073
+        },
+        {
+          "text": "Plussa-korttia",
+          "left": 0.497874,
+          "top": 0.379167,
+          "width": 0.058235,
+          "height": 0.009073
+        },
+        {
+          "text": "5",
+          "left": 0.558316,
+          "top": 0.379167,
+          "width": 0.005429,
+          "height": 0.009073
+        },
+        {
+          "text": "19–7",
+          "left": 0.566224,
+          "top": 0.379167,
+          "width": 0.019053,
+          "height": 0.009073
+        },
+        {
+          "text": "95/kpl",
+          "left": 0.588226,
+          "top": 0.379167,
+          "width": 0.028288,
+          "height": 0.009073
+        },
+        {
+          "text": "5",
+          "left": 0.593964,
+          "top": 0.379167,
+          "width": 0.005322,
+          "height": 0.009073
+        },
+        {
+          "text": "(9",
+          "left": 0.618721,
+          "top": 0.379167,
+          "width": 0.009022,
+          "height": 0.009073
+        },
+        {
+          "text": "83/l",
+          "left": 0.630756,
+          "top": 0.379167,
+          "width": 0.01768,
+          "height": 0.009073
+        }
+      ],
+      "text": "Ilman Plussa-korttia 5 19–7 95/kpl 5 (9 83/l"
+    },
+    {
+      "top": 0.386899,
+      "left": 0.472441,
+      "right": 0.535622,
+      "boxes": [
+        {
+          "text": "0",
+          "left": 0.472441,
+          "top": 0.386899,
+          "width": 0.006124,
+          "height": 0.009073
+        },
+        {
+          "text": "17–2",
+          "left": 0.481044,
+          "top": 0.386899,
+          "width": 0.018753,
+          "height": 0.009073
+        },
+        {
+          "text": "0",
+          "left": 0.502607,
+          "top": 0.386899,
+          "width": 0.00631,
+          "height": 0.009073
+        },
+        {
+          "text": "00/kpl)",
+          "left": 0.502607,
+          "top": 0.386899,
+          "width": 0.033015,
+          "height": 0.009073
+        },
+        {
+          "text": "0",
+          "left": 0.508916,
+          "top": 0.386899,
+          "width": 0.006095,
+          "height": 0.009073
+        }
+      ],
+      "text": "0 17–2 0 00/kpl) 0"
+    }
+  ],
+  "nearby": [
+    "8,07/kg",
+    "Fläckborttagare",
+    "Ilman Plussa-korttia 11,45/kpl (12,18/kg)",
+    "PENTUALUSTA 15 kpl 60 x 60 cm",
+    "valpmattor",
+    "Ilman Plussa-korttia 6,99/ps",
+    "jopa",
+    "POWER AIO",
+    "KONETISKITABLETIT 42 tab/ps,",
+    "    Omo, Bio Luvil, Omo Wonder Wash",
+    "KONETISKITABLETIT 3 kpl/pkt tai KONETISKIGEELI 650 ml",
+    "2 KPL -",
+    "PYYKINPESUNESTEET 840–1000 ml",
+    "7,69/l, 0,12–1,67/kpl",
+    "Power AiO maskindisktabletter, Ultimate Plus, Ultimate, maskindisktabletter eller diskmaskingel",
+    "Ilman Plussa-korttia 5,19–7,95/kpl (9,83/l, 0,17–2,00/kpl)",
+    "-23%",
+    "-18%",
+    "-14%",
+    "3 KPL - 12.",
+    "-28%",
+    "-33%",
+    "-28%",
+    "2 KPL- 10.",
+    "ULTIMATE 35 tab/ps, 10.",
+    "-30%"
+  ],
+  "imageAnchor": {
+    "left": 0.472878,
+    "top": 0.313415,
+    "width": 0.21405699999999994,
+    "height": 0.019282
+  },
+  "debugCardPrice": {
+    "value": 12,
+    "quantity": null,
+    "unit": "KPL",
+    "parts": [
+      {
+        "text": "12",
+        "left": 0.28933,
+        "top": 0.303468,
+        "width": 0.072724,
+        "height": 0.0909
+      }
+    ],
+    "anchor": {
+      "text": "12",
+      "left": 0.28933,
+      "top": 0.303468,
+      "width": 0.072724,
+      "height": 0.0909
+    },
+    "score": 0.28433089125172456
+  },
+  "ownedUnitRate": true,
+  "debugRejectedCardPrice": {
+    "value": 12,
+    "quantity": null,
+    "unit": "KPL",
+    "parts": [
+      {
+        "text": "12",
+        "left": 0.28933,
+        "top": 0.303468,
+        "width": 0.072724,
+        "height": 0.0909
+      }
+    ],
+    "anchor": {
+      "text": "12",
+      "left": 0.28933,
+      "top": 0.303468,
+      "width": 0.072724,
+      "height": 0.0909
+    },
+    "score": 0.28433089125172456
+  },
+  "debugCardAnchor": {
+    "left": 0.472878,
+    "top": 0.313415,
+    "height": 0.019282,
+    "right": 0.686935,
+    "boxes": [
+      {
+        "text": "KONETISKITABLETIT",
+        "left": 0.472878,
+        "top": 0.313415,
+        "width": 0.143379,
+        "height": 0.019282
+      },
+      {
+        "text": "3",
+        "left": 0.619429,
+        "top": 0.313415,
+        "width": 0.008886,
+        "height": 0.019282
+      },
+      {
+        "text": "kpl/pkt",
+        "left": 0.631485,
+        "top": 0.313415,
+        "width": 0.05545,
+        "height": 0.019282
+      }
+    ],
+    "text": "KONETISKITABLETIT 3 kpl/pkt"
+  },
+  "debugOverprintedBundle": {
+    "value": 10,
+    "quantity": 2,
+    "unit": null,
+    "source": "overprinted-small-count-on-large-total",
+    "sanity": "pass",
+    "confidence": "medium"
+  }
+}

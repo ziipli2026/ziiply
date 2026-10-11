@@ -1,12 +1,12 @@
 /** Canonical product identities from contiguous lines of one printed card. */
 export function canonicalCitymarketProductRows(rows) {
-  const items=mergeSharedPrintedVariants(rows).map(row=>({...row})).sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
+  const items=mergeSharedPrintedVariants(rows).map(row=>restoreCountedVariantHeadline(row,rows)).sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
   const consumed=new Set();
   const quantity=r=>r?.quantity==null||r.quantity===1?1:r.quantity;
   const sameTransaction=(a,b)=>a&&b&&a.value===b.value&&quantity(a)===quantity(b)&&
     (!a.unit||!b.unit||a.unit===b.unit);
   const line=row=>{
-    if(row.productRowProof?.source==='shared-printed-bundle-variant-block')return row.title;
+    if(['shared-printed-bundle-variant-block','contiguous-counted-variant-headline'].includes(row.productRowProof?.source))return row.title;
     const own=String(row.debugCardAnchor?.text||'').trim();
     const title=String(row.title||'').trim().replace(/^\d+KPL-\d+[–-]\d+%\s*/,'');
     const anchor=row.debugCardAnchor;
@@ -219,4 +219,33 @@ export function mergeSharedPrintedVariants(rows){
     productRowProof:{source:'shared-printed-bundle-variant-block',titles:[row.title,next.title],packageVariants:[row.package?.raw,next.package.raw]}});
  }
  return result;
+}
+
+/** Restore preceding package variants from one contiguous printed headline column. */
+export function restoreCountedVariantHeadline(row, rows=[]){
+ const a=row.debugCardAnchor;
+ if(!a||!row.spatialResolved||!Number.isInteger(row.spatialResolved.quantity)||row.spatialResolved.quantity<2||
+    !/\b\d+\s*(?:kpl|tab)\/(?:pkt|ps)\b/.test(row.title)||! /\btai\b/.test(row.title))return {...row};
+ const unique=[...new Map((row.debugNearbyBoxes||[]).map(b=>[JSON.stringify(b),b])).values()];
+ const bs=unique.filter(b=>Math.abs(b.height-a.height)<.001&&b.left>=a.left-.001&&b.left<a.left+.25&&
+   b.top<a.top-.005&&a.top-b.top<.08&&
+   /^(?:[A-ZÅÄÖ][A-ZÅÄÖ-]*|\d+|tab\/ps|kpl\/pkt)$/.test(b.text)&&
+   !unique.some(c=>c!==b&&Math.abs(c.top-b.top)<.001&&Math.abs(c.height-b.height)<.001&&
+     c.width>b.width+.001&&c.left<=b.left+.001&&c.left+c.width>=b.left+b.width-.001));
+ const lines=[];for(const b of bs.sort((x,y)=>x.top-y.top||x.left-y.left)){
+  let l=lines.find(l=>Math.abs(l.top-b.top)<.001);
+  if(!l){l={top:b.top,left:b.left,words:[]};lines.push(l);}l.words.push(b);
+ }
+ const prefix=[];let last=a.top;
+ for(const l of lines.sort((x,y)=>y.top-x.top)){
+  if(Math.abs(l.left-a.left)>.005||last-l.top>.022)break;
+  prefix.unshift(l);last=l.top;
+ }
+ const text=prefix.map(l=>l.words.map(b=>b.text).join(' '));
+ const variants=text.filter(t=>/\b\d+\s*(?:tab\/ps|kpl\/pkt)\b/.test(t));
+ if(variants.length<2)return {...row};
+ if(rows.some(r=>r!==row&&r.page===row.page&&r.debugCardAnchor&&r.spatialResolved&&
+    Math.abs(r.debugCardAnchor.left-a.left)<.005&&r.debugCardAnchor.top>=last-.001&&r.debugCardAnchor.top<a.top-.005))return {...row};
+ return {...row,title:[...text,row.title].join(' '),package:null,unitPrice:null,
+  productRowProof:{source:'contiguous-counted-variant-headline',titles:[row.title],packageVariants:variants}};
 }
