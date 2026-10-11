@@ -8,6 +8,11 @@ const assert = require('node:assert/strict');
 const source = fs.readFileSync('scripts/fixtures/category-findings-test-20261011.csv', 'utf8');
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'ziiply-category-negative-'));
 try {
+  const baseline = cp.spawnSync(process.execPath, ['scripts/audit-category-findings.cjs', 'scripts/fixtures/category-findings-test-20261011.csv'], {encoding:'utf8'});
+  assert.equal(baseline.status, 0, 'Original category snapshot must pass before mutation tests');
+  const baselineReport = JSON.parse(baseline.stdout);
+  assert.equal(baselineReport.status, 'PASS');
+  assert.equal(baselineReport.rows, 65);
   const cases = [
     ['missing-row', source.trimEnd().split('\n').slice(0, -1).join('\n') + '\n'],
     ['invalid-ean', source.replace(/^6408653129323,/m, 'INVALID,')],
