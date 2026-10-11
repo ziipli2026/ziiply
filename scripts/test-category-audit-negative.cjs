@@ -23,7 +23,7 @@ try {
     ['invalid-review-status', source.replace(',ambiguous_search_term,,candidate', ',ambiguous_search_term,,approved')],
     ['extra-column', source.replace('6408653129323,Juustoportti', '6408653129323,EXTRA,Juustoportti')],
     ['unclosed-quote', source.replace('6408653129323,Juustoportti', '6408653129323,"Juustoportti')],
-    ['duplicate-header', source.replace('ean,name,source,', 'ean,name,name,')],
+    ['duplicate-header', source.replace('ean,name,source,', 'ean,name,name,source,')],
   ];
   const results = [];
   for (const [name, csv] of cases) {
