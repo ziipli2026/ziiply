@@ -563,13 +563,14 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   // a price and quantity. Otherwise combine the provider's structured
   // offerQuantity with the total offer price. Never divide a multi-buy total
   // into a synthetic per-item offer price.
-  if (rawPriceText && /€/.test(rawPriceText) && /\b\d+\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml)\b/i.test(rawPriceText)) {
-    return rawPriceText.replace(/\s+/g, " ").trim();
-  }
-
   const price = normalizePrice(numericPrice);
+  // Structured total + quantity wins over a stale display string. A price
+  // without a verified quantity must not overwrite an explicit printed deal.
   if (Number.isFinite(quantity) && quantity > 1 && price) {
     return `${price} / ${quantity} ${unit}`;
+  }
+  if (rawPriceText && /€/.test(rawPriceText) && /\\b\\d+\\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml)\\b/i.test(rawPriceText)) {
+    return rawPriceText.replace(/\\s+/g, " ").trim();
   }
 
   if (rawPriceText && /€/.test(rawPriceText)) return rawPriceText;
