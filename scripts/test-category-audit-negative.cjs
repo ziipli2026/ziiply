@@ -24,6 +24,7 @@ try {
     ['extra-column', source.replace('6408653129323,Juustoportti', '6408653129323,EXTRA,Juustoportti')],
     ['unclosed-quote', source.replace('6408653129323,Juustoportti', '6408653129323,"Juustoportti')],
   ];
+  const results = [];
   for (const [name, csv] of cases) {
     assert.notEqual(csv, source, 'Mutation not applied: ' + name);
     const file = path.join(folder, name + '.csv');
@@ -37,8 +38,11 @@ try {
       assert.equal(report.status, 'FAIL', name + ' must report FAIL');
       assert.ok(report.failures.length, name + ' must explain failure');
     }
+    results.push({name, pass:true});
     process.stdout.write(name + ': rejected\n');
   }
+  fs.mkdirSync('search-audit-results', {recursive:true});
+  fs.writeFileSync('search-audit-results/category-negative.json', JSON.stringify({total:cases.length, passed:results.length, results, status:'PASS'}, null, 2) + '\n');
 } finally {
   fs.rmSync(folder, {recursive:true, force:true});
 }
