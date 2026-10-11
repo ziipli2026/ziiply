@@ -80,11 +80,15 @@ try{
  await add.waitFor({state:'visible',timeout:60000});
  await page.screenshot({path:out+'/02-search.png',fullPage:true});
  await add.click();
- await page.waitForFunction(()=>JSON.parse(localStorage.getItem('ziiply-cart-v1')||'[]').some(x=>String(x.name||x.product?.name).includes('Valio kevytmaito')),{},{timeout:30000});
+ await page.waitForFunction(()=>{
+  const saved=JSON.parse(localStorage.getItem('ziiply-cart-v1')||'null');
+  const items=Array.isArray(saved)?saved:saved?.items;
+  return Array.isArray(items)&&items.some(x=>String(x.name||x.product?.name).includes('Valio kevytmaito'));
+ },{},{timeout:30000});
  await page.screenshot({path:out+'/03-cart.png',fullPage:true});
  await page.getByRole('button',{name:'Vertailu',exact:true}).click();
  await page.getByText('Prisma Hyvinkää',{exact:false}).first().waitFor({state:'visible',timeout:60000});
- await search.getByText('1,25',{exact:false}).first().waitFor({state:'visible',timeout:60000});
+ await page.getByText('1,25',{exact:false}).first().waitFor({state:'visible',timeout:60000});
  await page.screenshot({path:out+'/04-comparison.png',fullPage:true});
  assert.equal(errors.length,0,errors.join('\n'));
  console.log('BROWSER SEARCH / CART / COMPARISON AND 12 LEARNING CASES PASS');
