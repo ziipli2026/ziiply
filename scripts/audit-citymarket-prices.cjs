@@ -67,6 +67,32 @@ for(const [index,item] of items.entries()){
  if(expected>0&&Math.abs(expected-price)>Math.max(.15,expected*.08))
    issues.push({index,title,reason:'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,packageCount,expected:Number(expected.toFixed(2))});
 }
+// Flag probable neighbour-price leakage without changing or inventing prices.
+// Same leaflet page + identical numeric price + different €/kg implied price
+// is a review signal only; it is not proof of the correct printed price.
+const pageGroups=new Map();
+for(const [index,item] of items.entries()){
+ const src=item.__sourceOfferSearchResult||item;
+ const id=String(src.id||item.id||"");
+ const page=id.match(/^kcm:spatial:(\d+):/);
+ const price=Number(src.price??item.price);
+ const unitPrice=Number(src.unitPrice);
+ const quantity=src.offerQuantity==null?null:Number(src.offerQuantity);
+ const pack=String(src.packageSize||"");
+ const m=pack.match(/^(\d+(?:[,.]\d+)?)\s*(g|kg|ml|l)$/i);
+ if(!page||!Number.isFinite(price)||price<=0||!Number.isFinite(unitPrice)||unitPrice<=0||!m||quantity>1)continue;
+ const amount=Number(m[1].replace(",","."))*(m[2].toLowerCase()==="g"||m[2].toLowerCase()==="ml"?.001:1);
+ const expected=Number((amount*unitPrice).toFixed(2));
+ if(Math.abs(expected-price)<=Math.max(.15,expected*.08))continue;
+ const key=page[1]+":"+price.toFixed(2);
+ const entries=pageGroups.get(key)||[];
+ entries.push({index,title:String(item.title||item.name||src.title||""),price,expected,source:src.resolutionSource||null});
+ pageGroups.set(key,entries);
+}
+for(const entries of pageGroups.values()){
+ if(entries.length<2)continue;
+ for(const entry of entries)issues.push({...entry,reason:"same-page-price-collision-review"});
+}
 const counts={};for(const i of issues)counts[i.reason]=(counts[i.reason]||0)+1;
 console.log(JSON.stringify({exports:exports.length,rows:items.length,issueCounts:counts,issues},null,2));
 if(issues.some(x=>x.reason==='unit-price-inconsistency'||x.reason==='missing-or-invalid-price'||x.reason==='printed-multibuy-conflict'))process.exitCode=1;
