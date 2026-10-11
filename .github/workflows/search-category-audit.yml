@@ -28,6 +28,10 @@ jobs:
           mkdir -p search-audit-results
           set -o pipefail
           node scripts/test-category-audit-fixtures.cjs | tee search-audit-results/category-fixtures.json
+      - name: Validate Neon category findings snapshot offline
+        run: |
+          set -o pipefail
+          node scripts/audit-category-findings.cjs scripts/fixtures/category-findings-test-20261011.csv | tee search-audit-results/category-findings.json
       - name: Report ambiguous category substrings
         if: success() || failure()
         run: |
@@ -66,13 +70,14 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const names = ['category-fixtures', 'behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance', 'route-syntax', 'dependency-lock'];
+          const names = ['category-findings', 'category-fixtures', 'behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance', 'route-syntax', 'dependency-lock'];
           let failed = false;
           for (const name of names) {
             const file = 'search-audit-results/' + name + '.json';
             try {
               const report = JSON.parse(fs.readFileSync(file, 'utf8'));
               if (!report || typeof report !== 'object') throw new Error('Invalid report');
+              if (name === 'category-findings' && (report.rows !== 49 || report.status !== 'PASS' || !Array.isArray(report.failures) || report.failures.length !== 0)) throw new Error('Neon snapshot category findings regression failed');
               if (name === 'category-fixtures' && (report.total < 10 || report.passed !== report.total || !Array.isArray(report.results))) throw new Error('Category fixture regression failed');
               if (name === 'behavior' && (
                 !Array.isArray(report.failures) ||
