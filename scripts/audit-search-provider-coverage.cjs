@@ -9,12 +9,13 @@ const paths = {
 };
 const sources = Object.fromEntries(Object.entries(paths).map(([key,path])=>[key,fs.readFileSync(path,"utf8")]));
 const report = Object.entries(sources).map(([chain,source])=>{
- const paginatedOnlyForKetchup = chain!=="tokmanni" &&
+ const usesSharedPagination = /appendRuoanhintaPages\(/.test(source);
+ const paginatedOnlyForKetchup = chain!=="tokmanni" && !usesSharedPagination &&
    /ketsuppi\|ketchup/.test(source) && /sourceItems\.length\s*===\s*(?:80|100)/.test(source);
  const hasProviderFallback = chain==="tokmanni" ? /fetchHtmlFallbackProducts/.test(source)
    : chain==="s" ? /fetchSKaupatNormalProductsV220/.test(source) : false;
  const researchWithoutVerifiedPrice = chain==="lidl" && /priceVerified:\s*false/.test(source);
- return {chain,providerPaginationRestrictedToKetchup:paginatedOnlyForKetchup,
+ return {chain,sharedBoundedPagination:usesSharedPagination,providerPaginationRestrictedToKetchup:paginatedOnlyForKetchup,
    providerFallback:hasProviderFallback,researchWithoutVerifiedPrice,
    risk:paginatedOnlyForKetchup ? "Other broad category queries may stop at first provider page" : null};
 });
