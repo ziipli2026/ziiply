@@ -127,7 +127,7 @@ export function resolveAlignedStandalonePercentage(row){
 export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
   const unique=[...new Map(rawBoxes.map(b=>[JSON.stringify(b),b])).values()];
   const boxes=unique.filter(b=>b.height>=.012&&b.height<.025&&
-    /^(?:-?[A-ZÅÄÖ][A-ZÅÄÖ,-]*|ja|sekä|tai|\d+(?:[–-]\d+)?|ml|g)$/.test(b.text)&&
+    /^(?:-?[A-ZÅÄÖ][A-ZÅÄÖ,-]*|ja|sekä|tai|\d+(?:[–-]\d+)?|ml|g|kpl|cm)$/.test(b.text)&&
     !unique.some(c=>c!==b&&Math.abs(c.top-b.top)<.001&&Math.abs(c.height-b.height)<.001&&
       c.width>b.width+.001&&c.left<=b.left+.001&&c.left+c.width>=b.left+b.width-.001));
   const lines=[];
@@ -149,7 +149,7 @@ export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
     }
     for(const l of block)consumed.add(l);
     const title=block.map(l=>l.words.map(b=>b.text).join(' ')).join(' ').replace(/- TUOTTEET/g,'TUOTTEET');
-    if(!/IHONHOITO|HIUSTENHOITO|HIUSTENMUOTOILU|ITSERUSKETTAVAT|PUUTERIT|KULMATUOTTEET|MEIKIT|(?:^|[ -])TUOTTEET$/.test(title))continue;
+    if(!/IHONHOITO|HIUSTENHOITO|HIUSTENMUOTOILU|ITSERUSKETTAVAT|PUUTERIT|KULMATUOTTEET|MEIKIT|SUOJAPAPERIT|LAUTASLIINAT|(?:^|[ -])TUOTTEET$/.test(title))continue;
     if(existingRows.some(r=>r.title===title))continue;
     const badges=unique.filter(b=>/^[-−–]\d{1,2}%$/.test(b.text)&&b.height>=.05&&
       ((Math.abs(b.left-start.left)<.08&&b.top>=last.top+last.height&&b.top-last.top<.11)||

@@ -26,3 +26,12 @@ test('Any generic TUOTTEET headline requires its own unambiguous printed badge',
  assert.deepEqual(recover([...headline,b('-35%',.5,.27,.12,.07)],9),[]);
  assert.deepEqual(recover([...headline,owned,b('-40%',.12,.28,.12,.07)],9),[]);
 });
+
+test('Consumable package counts and dimensions remain title metadata, not transaction quantities',()=>{
+ for(const type of ['SUOJAPAPERIT','LAUTASLIINAT']){
+  const headline=[b(type,.1,.2),b('50',.1,.214,.015),b('kpl',.12,.214,.02),b('33',.145,.214,.02),b('cm',.17,.214,.02)];
+  const rows=recover([...headline,b('-20%',.21,.2,.12,.07)],3);assert.equal(rows.length,1);assert.match(rows[0].title,/50 kpl 33 cm$/);assert.equal(rows[0].spatialResolved,null);assert.equal(rows[0].percentageOffer.percent,20);
+  assert.deepEqual(recover(headline,3),[]);
+  assert.deepEqual(recover([...headline,b('-20%',.5,.2,.12,.07)],3),[]);
+ }
+});

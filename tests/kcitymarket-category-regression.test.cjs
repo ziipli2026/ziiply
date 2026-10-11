@@ -10,6 +10,9 @@ const categorySource = match[0].replace("export function category(t:string)", "f
 const context = {clean: (s) => String(s).trim()};
 vm.runInNewContext(categorySource + "\nthis.classify=category;", context);
 const cases = [
+  ["AIRFRYERIN SUOJAPAPERIT 50 kpl", "Kodinhoito"],
+  ["PENTIK LAUTASLIINAT 20 kpl 25 ja 33 cm", "Kodinhoito"],
+  ["AIRFRYER 5 l", "Koti & vapaa-aika"],
   ["EYLURE ja ELEGANT TOUCH TUOTTEET", "Hygienia & kosmetiikka"],
   ["MOSSA TUOTTEET", "Hygienia & kosmetiikka"],
   ["SMUUTI SKIN ja COSRX -TUOTTEET", "Hygienia & kosmetiikka"],
