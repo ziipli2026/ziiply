@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { normalizeImageBankRows } from "../src/lib/offerImageEanLookup";
 import { planImageEnrichment, resolveImageEnrichmentBatch, type OfferImageJob } from "../src/lib/offerImageEnrichmentQueue";
 import { enrichOfferImage, matchOfferImage, type OfferImageCandidate } from "../src/lib/offerImageEnrichment";
 
@@ -53,3 +54,10 @@ const duplicateSameImage = await resolveImageEnrichmentBatch([job("same-image")]
 assert.equal(duplicateSameImage[0].status, "enriched");
 assert.equal(duplicateSameImage[0].imageUrl, image.imageUrl);
 console.log("Neon-style image bank ambiguity and identity regression checks passed");
+
+const bankRow = { ean: base.ean, name: base.name, brand: base.brand, quantity: base.packageSize, imageUrl: image.imageUrl, source: "k-ruoka" };
+assert.deepEqual(normalizeImageBankRows([bankRow]), [{ ean: base.ean, name: base.name, brand: base.brand, packageSize: base.packageSize, imageUrl: image.imageUrl, source: "k-ruoka" }]);
+assert.equal(normalizeImageBankRows(Array.from({ length: 101 }, () => bankRow)).length, 0);
+assert.equal(normalizeImageBankRows(Array.from({ length: 100 }, () => bankRow)).length, 100);
+assert.equal(normalizeImageBankRows([{ ean: null, name: null, brand: null, quantity: null, imageUrl: null, source: null }])[0].imageUrl, null);
+console.log("Neon row normalization and 100-row ambiguity cap checks passed");
