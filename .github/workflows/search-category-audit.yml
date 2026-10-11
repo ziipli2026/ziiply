@@ -250,4 +250,4 @@ jobs:
         with:
           name: search-audit-reports
           path: search-audit-results
-          if-no-files-found: ignore
+          if-no-files-found: warn
