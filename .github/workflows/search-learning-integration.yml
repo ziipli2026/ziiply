@@ -26,6 +26,7 @@ jobs:
           assert.match(core, /export function detectSearchIntent\(/);
           for (const category of ['cream','quark','cottage_cheese','cream_cheese','butter','margarine','tea','juice','sausage','cold_cuts','toothpaste','deodorant']) {
             assert.ok(memory.includes('"'+category+'"'), 'Missing guardrail: '+category);
+            assert.ok(core.includes('category: "'+category+'"'), 'Missing actual registry category: '+category);
           }
           console.log('Search learning integration source checks PASS');
           NODE
