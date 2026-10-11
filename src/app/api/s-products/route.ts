@@ -99,10 +99,10 @@ export async function GET(request: Request) {
 
     const data = await response.json();
     const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
-    const sourceItems = response.ok ? await appendRuoanhintaPages(firstPage, 80, async (skip) => {
+    const sourceItems = response.ok ? await appendRuoanhintaPages(firstPage, 80, async (skip, signal) => {
       const pageResponse = await fetch(
         `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(search)}&storeIds=${storeId}&skip=${skip}&take=80`,
-        { headers: { accept: "application/json" }, cache: "no-store" },
+        { headers: { accept: "application/json" }, cache: "no-store", signal },
       );
       if (!pageResponse.ok) throw new Error(`Provider page HTTP ${pageResponse.status}`);
       const pageData = await pageResponse.json();
