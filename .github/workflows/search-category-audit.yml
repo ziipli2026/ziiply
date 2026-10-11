@@ -39,6 +39,10 @@ jobs:
         run: |
           set -o pipefail
           NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/test-search-pagination.cjs | tee search-audit-results/pagination.json
+      - name: Check pagination request-count performance
+        run: |
+          set -o pipefail
+          NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/test-search-pagination-performance.cjs | tee search-audit-results/pagination-performance.json
       - name: Audit provider coverage and pagination risks
         if: success() || failure()
         run: node scripts/audit-search-provider-coverage.cjs | tee search-audit-results/provider-coverage.json
@@ -47,7 +51,7 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination'];
+          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance'];
           let failed = false;
           for (const name of names) {
             const file = 'search-audit-results/' + name + '.json';
@@ -63,6 +67,8 @@ jobs:
                 !Array.isArray(report.unreviewedCollisions) ||
                 !Array.isArray(report.expandedLearningResults)
               )) throw new Error('Missing behavior test fields');
+              if (name === 'pagination-performance' && (!Array.isArray(report.results) || report.results.length !== 4))
+                throw new Error('Missing pagination performance scenarios');
               if (name === 'pagination' && (report.passed !== report.total || report.total < 8))
                 throw new Error('Pagination regression failed');
               if (name === 'provider-coverage' && (!Array.isArray(report.report) || report.report.length !== 4))
