@@ -16,10 +16,14 @@ test('Full immutable 41LV source retains all other transactions',async()=>{
  const wrapped=parsed.rows.filter(r=>r.percentageOffer?.source==='wrapped-column-printed-percentage');
  assert.deepEqual(wrapped.map(r=>[r.title,r.percentageOffer.percent,r.spatialResolved]),[
  ['MAX FACTOR MEIKIT',30,null],
+ ['EYLURE ja ELEGANT TOUCH TUOTTEET',30,null],
+ ['MOSSA TUOTTEET',40,null],
  ['LUMENE IHONHOITO- ja PUHDISTUSTUOTTEET',40,null],
+ ['SMUUTI SKIN ja COSRX -TUOTTEET',25,null],
  ['BONDI SANDS ITSERUSKETTAVAT TUOTTEET',25,null],
  ['WELLAFLEX WELLA DELUXE ja SHOCKWAVES HIUSTENMUOTOILUTUOTTEET sekä CLAIROL HIUSVÄRIT',25,null],
- ['DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml',20,null]]);
+ ['DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml',20,null],
+ ['TENA PRO SKIN TUOTTEET',25,null]]);
  const tissue=parsed.rows.find(r=>r.title==='Lotus Nessu NENÄLIINA 100 kpl Valkoinen');
  assert.ok(tissue);assert.deepEqual(transaction(tissue.spatialResolved),{value:4,quantity:2,unit:'PKT'});assert.equal(tissue.percentageOffer,null);
  const existing=parsed.rows.filter(r=>r!==meal[0]&&r!==tissue&&!percentages.includes(r)&&!wrapped.includes(r));

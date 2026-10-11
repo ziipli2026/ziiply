@@ -16,3 +16,13 @@ test('A side badge touching the headline column proves the printed percentage',(
 test('Side badges outside the title row or separated from the column are rejected',()=>{
  for(const badge of [b('-30%',.4,.19,.12,.07),b('-30%',.28,.15,.12,.07),b('-30%',.28,.4,.12,.07)])assert.deepEqual(recover([...boxes.slice(0,3),badge],1),[]);
 });
+
+// Generic category parsing must not contain named-brand or leaflet-specific exceptions.
+test('Any generic TUOTTEET headline requires its own unambiguous printed badge',()=>{
+ const headline=[b('ESIMERKKI',.1,.2),b('-TUOTTEET',.1,.214)];
+ const owned=b('-35%',.11,.27,.12,.07);
+ const rows=recover([...headline,owned],9);assert.equal(rows.length,1);assert.equal(rows[0].percentageOffer.percent,35);assert.equal(rows[0].spatialResolved,null);
+ assert.deepEqual(recover(headline,9),[]);
+ assert.deepEqual(recover([...headline,b('-35%',.5,.27,.12,.07)],9),[]);
+ assert.deepEqual(recover([...headline,owned,b('-40%',.12,.28,.12,.07)],9),[]);
+});
