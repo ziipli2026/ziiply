@@ -79,7 +79,10 @@ jobs:
             try {
               const report = JSON.parse(fs.readFileSync(file, 'utf8'));
               if (!report || typeof report !== 'object') throw new Error('Invalid report');
-              if (name === 'category-negative' && (report.status !== 'PASS' || report.total !== 8 || report.passed !== 8 || !Array.isArray(report.results) || report.results.length !== 8 || report.results.some(row => row.pass !== true))) throw new Error('Negative category audit regression failed');
+              if (name === 'category-negative') {
+                const expectedCases = ['missing-row','invalid-ean','wrong-category','duplicate-row','invalid-review-status','extra-column','unclosed-quote','duplicate-header'];
+                if (report.status !== 'PASS' || report.total !== expectedCases.length || report.passed !== expectedCases.length || !Array.isArray(report.results) || report.results.length !== expectedCases.length || expectedCases.some(caseName => !report.results.some(row => row.name === caseName && row.pass === true)) || new Set(report.results.map(row => row.name)).size !== expectedCases.length) throw new Error('Negative category audit regression failed');
+              }
               if (name === 'category-findings' && (report.rows !== 65 || report.status !== 'PASS' || !Array.isArray(report.failures) || report.failures.length !== 0 || report.counts?.source_misclassification !== 17 || report.counts?.more_specific_subcategory !== 37 || report.counts?.ambiguous_search_term !== 11)) throw new Error('Neon snapshot category findings regression failed');
               if (name === 'category-fixtures' && (report.total < 10 || report.passed !== report.total || !Array.isArray(report.results))) throw new Error('Category fixture regression failed');
               if (name === 'behavior' && (
