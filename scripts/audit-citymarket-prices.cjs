@@ -32,7 +32,7 @@ for(const [index,item] of items.entries()){
  const unitPrice=src.unitPrice==null?null:Number(src.unitPrice);
  // An explicit printed total/quantity is authoritative evidence within this
  // debug record; a mismatch means downstream handling must be investigated.
- const explicit=[...title.matchAll(/(\\d{1,3}[,.]\\d{2})\\s*€?\\s*\\/\\s*(\\d{1,2})\\s*(kpl|pkt|ps|prk|plo)\\b/gi)];
+ const explicit=[...title.matchAll(/(\d{1,3}[,.]\d{2})\s*€?\s*\/\s*(\d{1,2})\s*(kpl|pkt|ps|prk|plo)\b/gi)];
  if(explicit.length===1){
   const printedTotal=Number(explicit[0][1].replace(',','.'));
   const printedQuantity=Number(explicit[0][2]);
@@ -50,7 +50,7 @@ for(const [index,item] of items.entries()){
  }
  // Only single fixed-size packages are mathematically comparable to €/kg or €/l.
  // Ranges and composite product titles are not comparable to one fixed pack size.
- if(/[0-9][,.]?[0-9]*\\s*[–-]\\s*[0-9]/.test(size)||/\\b(?:tai|sekä)\\b/i.test(size))continue;
+ if(/[0-9][,.]?[0-9]*\s*[–-]\s*[0-9]/.test(size)||/\b(?:tai|sekä)\b/i.test(size))continue;
  const matches=[...size.matchAll(/(\d+(?:[,.]\d+)?)\s*(kg|g|ml|cl|dl|l)\b/gi)];
  if(matches.length!==1||!Number.isFinite(unitPrice)||unitPrice<=0)continue;
  const [,raw,unit]=matches[0];const n=Number(raw.replace(',','.'));
