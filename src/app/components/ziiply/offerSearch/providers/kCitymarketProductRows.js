@@ -1,11 +1,12 @@
 /** Canonical product identities from contiguous lines of one printed card. */
 export function canonicalCitymarketProductRows(rows) {
-  const items=rows.map(row=>({...row})).sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
+  const items=mergeSharedPrintedVariants(rows).map(row=>({...row})).sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
   const consumed=new Set();
   const quantity=r=>r?.quantity==null||r.quantity===1?1:r.quantity;
   const sameTransaction=(a,b)=>a&&b&&a.value===b.value&&quantity(a)===quantity(b)&&
     (!a.unit||!b.unit||a.unit===b.unit);
   const line=row=>{
+    if(row.productRowProof?.source==='shared-printed-bundle-variant-block')return row.title;
     const own=String(row.debugCardAnchor?.text||'').trim();
     const title=String(row.title||'').trim().replace(/^\d+KPL-\d+[–-]\d+%\s*/,'');
     const anchor=row.debugCardAnchor;
@@ -186,4 +187,36 @@ export function resolveExplicitTitleMultibuy(offer){
     delete corrected.discountPercent;delete corrected.benefitText;
   }
   return corrected;
+}
+
+/** Merge a comma-led variant block only with a common printed total, count and conjunction. */
+export function mergeSharedPrintedVariants(rows){
+ rows=[...rows].sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
+ const consumed=new Set(),result=[];
+ for(let i=0;i<rows.length;i++){
+  if(consumed.has(i))continue;
+  const row=rows[i],a=row.debugCardAnchor,r=row.spatialResolved;
+  if(!a||!r||!Number.isInteger(r.value)||!(r.quantity>1)||!String(row.title).trim().endsWith(',')){result.push(row);continue;}
+  const candidates=rows.map((next,j)=>({next,j})).filter(({next,j})=>j!==i&&next.page===row.page&&!next.spatialResolved&&next.package&&next.debugCardAnchor&&
+    Math.abs(next.debugCardAnchor.left-a.left)<.005&&Math.abs(next.debugCardAnchor.height-a.height)<.001&&
+    next.debugCardAnchor.top-a.top>.025&&next.debugCardAnchor.top-a.top<.07);
+  if(candidates.length!==1){result.push(row);continue;}
+  const {next,j}=candidates[0],last=next.debugCardAnchor;
+  const unique=[...new Map((row.debugNearbyBoxes||[]).map(b=>[JSON.stringify(b),b])).values()];
+  const right=Math.max(a.right??a.left,last.right??last.left);
+  const prices=unique.filter(b=>b.text===String(r.value)&&b.height>=.03&&b.left>=right&&b.left-right<.15&&b.top>=a.top&&b.top-last.top<.035);
+  const counts=unique.filter(b=>b.text===String(r.quantity)&&b.height>=.012&&b.height<.03&&b.left>=right&&b.left-right<.15&&b.top>=a.top&&b.top-last.top<.025);
+  if(prices.length!==1||counts.length!==1||!unique.some(b=>/^(PKT|KPL|PS|RS)$/.test(b.text)&&Math.abs(b.top-counts[0].top)<.003&&Math.abs(b.left-counts[0].left)<.05)){result.push(row);continue;}
+  const words=unique.filter(b=>b.left>=a.left-.001&&b.left<a.left+.25&&b.top>=a.top-.014&&b.top<=last.top+.001&&b.height>=.012&&b.height<.022)
+   .filter(b=>!unique.some(c=>c!==b&&Math.abs(c.top-b.top)<.001&&Math.abs(c.height-b.height)<.001&&c.width>b.width+.001&&c.left<=b.left+.001&&c.left+c.width>=b.left+b.width-.001));
+  if(!words.some(b=>/^(ja|tai)$/.test(b.text)&&b.top>a.top&&b.top<last.top)){result.push(row);continue;}
+  const lines=[];for(const b of words.sort((a,b)=>a.top-b.top||a.left-b.left)){
+   let l=lines.find(l=>Math.abs(l.top-b.top)<.001);if(!l){l={top:b.top,words:[]};lines.push(l);}l.words.push(b);
+  }
+  const title=lines.map(l=>l.words.sort((a,b)=>a.left-b.left).map(b=>b.text).join(' ')).join(' ');
+  consumed.add(j);result.push({...row,title,package:null,unitPrice:null,
+    spatialResolved:{...r,unit:unique.find(b=>/^(PKT|KPL|PS|RS)$/.test(b.text)&&Math.abs(b.top-counts[0].top)<.003&&Math.abs(b.left-counts[0].left)<.05).text},
+    productRowProof:{source:'shared-printed-bundle-variant-block',titles:[row.title,next.title],packageVariants:[row.package?.raw,next.package.raw]}});
+ }
+ return result;
 }
