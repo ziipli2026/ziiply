@@ -92,7 +92,22 @@ export async function GET(request: Request) {
     });
 
     const data = await response.json();
-    const sourceItems: RuoanhintaProduct[] = data.items || [];
+    const sourceItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+
+    // Collect more ketchup products if the provider caps the first page.
+    if (/ketsuppi|ketchup/i.test(search) && response.ok && sourceItems.length === 100) {
+      for (const skip of [100, 200]) {
+        const pageResponse = await fetch(
+          `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(search)}&storeIds=${storeId}&skip=${skip}&take=100`,
+          { headers: { accept: "application/json" }, cache: "no-store" },
+        );
+        if (!pageResponse.ok) break;
+        const pageData = await pageResponse.json();
+        const pageItems: RuoanhintaProduct[] = Array.isArray(pageData.items) ? pageData.items : [];
+        sourceItems.push(...pageItems);
+        if (pageItems.length < 100) break;
+      }
+    }
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
