@@ -1,0 +1,48 @@
+name: Search learning browser test
+on:
+  push:
+    branches:
+      - integration/search-category-mobile-20261011
+    paths:
+      - scripts/search-learning-browser.mjs
+      - .github/workflows/search-learning-browser.yml
+      - src/app/**
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install application and browser test dependencies
+        run: npm install --no-save --package-lock=false --legacy-peer-deps --no-audit --no-fund playwright@1.56.1 esbuild@0.25.11
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start isolated application and run browser test
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/ziiply-browser-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in $(seq 1 90); do
+            if curl --silent --fail http://127.0.0.1:3000 > /dev/null; then break; fi
+            sleep 2
+          done
+          node scripts/search-learning-browser.mjs
+      - name: Save server diagnostics
+        if: always()
+        run: |
+          mkdir -p browser-test-results
+          cp /tmp/ziiply-browser-server.log browser-test-results/server.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: search-learning-browser-results
+          path: browser-test-results/
+          retention-days: 7
