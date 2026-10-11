@@ -673,6 +673,21 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   }
 }
 
+// Preview-only presentation filter: leave the frozen 41LV parser and cached source intact.
+// Exclude clearly non-grocery merchandise, but retain food, hygiene and household consumables.
+function visibleCitymarketDailyOffers(offers:CitymarketOffer[]):CitymarketOffer[]{
+  const removed:Record<string,number>={};
+  const visible=offers.flatMap(offer=>{
+    const title=clean(offer.title);
+    const classified=category(title);
+    const nonDaily=classified==="Koti & vapaa-aika";
+    if(nonDaily){removed[classified]=(removed[classified]||0)+1;return [];}
+    return [{...offer,category:classified}];
+  });
+  if(Object.keys(removed).length) console.info("[K-Citymarket] preview daily-goods filter",{received:offers.length,visible:visible.length,removed});
+  return visible;
+}
+
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const active=getActiveKCitymarketPeriod();
 
@@ -704,7 +719,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id);
     return imageUrl?{...offer,imageUrl}:offer;
   });
-  const enriched=await enrichCitymarketFromEanBank(publisherImages);
+  const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(publisherImages));
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
