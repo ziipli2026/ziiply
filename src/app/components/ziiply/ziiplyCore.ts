@@ -587,6 +587,19 @@ export function uniqueNormalizedQueries(values: string[]) {
 }
 
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {category: "cream", label: "Kermat", variants: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], requiredAny: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], bannedAny: ["jäätelö", "kermajuusto", "kermaviili"], ownBrandFriendly: true},
+  {category: "quark", label: "Rahkat", variants: ["rahka", "maitorahka", "proteiinirahka"], requiredAny: ["rahka", "maitorahka", "proteiinirahka"], bannedAny: ["rahkapiirakka", "rahkapulla"], ownBrandFriendly: true},
+  {category: "cottage_cheese", label: "Raejuustot", variants: ["raejuusto"], requiredAny: ["raejuusto"], bannedAny: ["raejuustosalaatti"], ownBrandFriendly: true},
+  {category: "cream_cheese", label: "Tuorejuustot", variants: ["tuorejuusto"], requiredAny: ["tuorejuusto"], bannedAny: ["tuorejuustokakku"], ownBrandFriendly: true},
+  {category: "butter", label: "Voit", variants: ["voi", "meijerivoi"], requiredAny: ["voi", "meijerivoi"], bannedAny: ["voitaikina", "voileipä"], ownBrandFriendly: true},
+  {category: "margarine", label: "Margariinit", variants: ["margariini", "kasvirasvalevite"], requiredAny: ["margariini", "kasvirasvalevite"], bannedAny: ["keksi"], ownBrandFriendly: true},
+  {category: "tea", label: "Teet", variants: ["tee", "mustatee", "vihreä tee", "teepussi"], requiredAny: ["tee", "mustatee", "vihreä tee", "teepussi"], bannedAny: ["jäätee", "teejuoma"], ownBrandFriendly: true},
+  {category: "juice", label: "Mehut", variants: ["mehu", "appelsiinimehu", "omenamehu"], requiredAny: ["mehu", "appelsiinimehu", "omenamehu"], bannedAny: ["mehujää", "mehukatti jäätelö"], ownBrandFriendly: true},
+  {category: "sausage", label: "Makkarat", variants: ["makkara", "grillimakkara", "lenkkimakkara", "nakki"], requiredAny: ["makkara", "grillimakkara", "lenkkimakkara", "nakki"], bannedAny: ["makkarakeitto", "makkarakastike"], ownBrandFriendly: true},
+  {category: "cold_cuts", label: "Leikkeleet", variants: ["leikkele", "kinkkuleikkele", "kalkkunaleikkele"], requiredAny: ["leikkele", "kinkkuleikkele", "kalkkunaleikkele"], bannedAny: ["pizza", "salaatti"], ownBrandFriendly: true},
+  {category: "toothpaste", label: "Hammastahnat", variants: ["hammastahna"], requiredAny: ["hammastahna"], bannedAny: ["hammasharja"], ownBrandFriendly: true},
+  {category: "deodorant", label: "Deodorantit", variants: ["deodorantti", "antiperspirantti"], requiredAny: ["deodorantti", "antiperspirantti"], bannedAny: ["suihkugeeli"], ownBrandFriendly: true},
+
   {
     category: "milk",
     label: "Maidot",
