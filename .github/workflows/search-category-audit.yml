@@ -50,7 +50,9 @@ jobs:
               if (name === 'behavior' && (
                 !Array.isArray(report.failures) ||
                 !Array.isArray(report.rankingResults) ||
-                !Array.isArray(report.exclusionResults)
+                !Array.isArray(report.exclusionResults) ||
+                !Array.isArray(report.collisionResults) ||
+                !Array.isArray(report.unreviewedCollisions)
               )) throw new Error('Missing behavior test fields');
               if (name === 'categories' && !Array.isArray(report.issues))
                 throw new Error('Missing category issues');
@@ -82,7 +84,11 @@ jobs:
             const categories = JSON.parse(fs.readFileSync('search-audit-results/categories.json', 'utf8'));
             const collisions = JSON.parse(fs.readFileSync('search-audit-results/collisions.json', 'utf8'));
             const registryPass = Array.isArray(categories.issues) && categories.issues.length === 0;
-            const diagnosticsPass = Array.isArray(collisions.collisions);
+            const collisionTests = data.collisionResults || [];
+            const diagnosticsPass = Array.isArray(collisions.collisions) &&
+              collisions.collisions.length === collisions.collisionCount &&
+              Array.isArray(data.unreviewedCollisions) && data.unreviewedCollisions.length === 0 &&
+              collisionTests.length > 0 && collisionTests.every(x => x.pass);
             const ok = registryPass && diagnosticsPass && data.passed === data.total &&
               ranking.length > 0 && ranking.every(x => x.pass) &&
               exclusion.length > 0 && exclusion.every(x => x.pass) &&
@@ -96,7 +102,9 @@ jobs:
               '| Product ranking | ' + ranking.filter(x=>x.pass).length + '/' + ranking.length + ' |',
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Registry audit | ' + (registryPass ? 'PASS' : 'FAIL (' + categories.issues.length + ' issues)') + ' |',
-              '| Substring collisions (review needed) | ' + collisions.collisionCount + ' |',
+              '| Reviewed substring collisions | ' + collisions.collisionCount + ' |',
+              '| Collision behavior tests | ' + collisionTests.filter(x=>x.pass).length + '/' + collisionTests.length + ' |',
+              '| Unreviewed collisions | ' + (data.unreviewedCollisions?.length ?? 'MISSING') + ' |',
               '| Learning | ' + (data.learning?.pass ? 'PASS' : 'FAIL') + ' |',
               '| Learning guardrails | ' + (data.guardedLearning?.pass ? 'PASS' : 'FAIL') + ' |',
               '| Learning saturation and reset | ' + (data.boundedLearning?.pass ? 'PASS' : 'FAIL') + ' |',

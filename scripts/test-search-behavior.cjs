@@ -153,10 +153,41 @@ const boundedLearning = {
   resetBoost:reset.boost,
   pass:saturated.boost===32 && saturatedCount===12 && reset.boost===0
 };
+// Reviewed ambiguous terms: the complete product term owns the category,
+// rather than a shorter word inside it (e.g. kana inside porkkana).
+const collisionCases = [
+ ["hunajasinappi","mustard"],
+ ["tomaattimurska","tomato_crush"],["tomaatti murska","tomato_crush"],
+ ["tomaattipyree","tomato_paste"],["tomaattitahna","tomato_paste"],
+ ["riisipuuro","porridge"],["sämpyläjauho","flour"],["hillosokeri","sugar"],
+ ["tomaattiketsuppi","ketchup"],["tomaatti ketsuppi","ketchup"],
+ ["broilerin jauheliha","meat"],
+ ["kananmuna","egg"],["kananmunat","egg"],["kananmunia","egg"],
+ ["kananmuna 10 kpl","egg"],["kananmunat 10 kpl","egg"],
+ ["vapaan kanan munat","egg"],["luomu kananmunat","egg"],
+ ["puuroriisi","rice"],["porkkana","fruit_veg"],
+ ["ranskanperunat","frozen"],["suolapähkinä","snacks"]
+];
+const collisionResults = collisionCases.flatMap(([term, expected]) =>
+ [term, `Kotimainen ${term} 500 g`, term.toUpperCase(),
+  term.normalize("NFD").replace(/[\u0300-\u036f]/g, "")]
+ .map(query => {
+  const actual = core.detectSearchIntent(query).category;
+  return {query, expected, actual, pass:actual===expected};
+ })
+);
+// Every future diagnostic collision must receive a reviewed expectation.
+const {execFileSync} = require("node:child_process");
+const diagnostics = JSON.parse(execFileSync(process.execPath,
+ ["scripts/audit-search-collisions.cjs"], {encoding:"utf8"}));
+const unreviewedCollisions = diagnostics.collisions.filter(item =>
+ !collisionCases.some(([term, category]) => term===item.term && category===item.expected));
+assert.equal(diagnostics.collisions.length, diagnostics.collisionCount,
+ "Collision report was truncated; not all collisions were checked");
 const failures=results.filter(r=>!r.pass);
 assert.equal(results.length, samples.length, "Some category cases were not executed");
-console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,learning,guardedLearning,boundedLearning},null,2));
-if(failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
+console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,rankingResults,exclusionResults,collisionResults,unreviewedCollisions,learning,guardedLearning,boundedLearning},null,2));
+if(unreviewedCollisions.length||collisionResults.some(r=>!r.pass)||failures.length||rankingResults.some(r=>!r.pass)||exclusionResults.some(r=>!r.pass)||!learning.pass||!guardedLearning.pass||!boundedLearning.pass){
  console.error("Search behavior regression failed", {failures,rankingResults,learning});
  process.exitCode=1;
 }
