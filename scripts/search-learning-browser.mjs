@@ -38,7 +38,17 @@ await page.addInitScript(({stores})=>{
 let failure;
 try{
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:120000});
- await page.getByRole('button',{name:'Hae',exact:true}).click({timeout:60000});
+ await page.getByRole('button',{name:'Kaupat',exact:true}).click({timeout:30000});
+ await page.getByRole('button',{name:/Tavaratalot/}).filter({visible:true}).click();
+ const many=page.getByRole('switch',{name:'Valitse yksi tai monta kauppaa'});
+ if(await many.getAttribute('aria-checked')!=='true')await many.click();
+ for(const chain of ['S-RYHMÄ','K-RYHMÄ']){
+   const card=page.locator('[role="button"][aria-pressed]:visible').filter({has:page.locator('img[alt="'+chain+'"]')}).first();
+   await card.waitFor({state:'visible',timeout:30000});
+   if(await card.getAttribute('aria-pressed')!=='true')await card.click();
+ }
+ await page.screenshot({path:out+'/00-stores.png',fullPage:true});
+ await page.getByRole('button',{name:'Hae',exact:true}).click({timeout:30000});
  const search=page.locator('textarea:visible').first();
  await search.waitFor({state:'visible',timeout:30000});
  await page.screenshot({path:out+'/01-home.png',fullPage:true});
