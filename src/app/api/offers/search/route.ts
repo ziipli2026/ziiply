@@ -63,6 +63,7 @@
 
 import { NextResponse } from "next/server";
 import { enrichOfferImage, type OfferImageCandidate } from "../../../../lib/offerImageEnrichment";
+import { lookupKnownEanImages } from "../../../../lib/offerImageEanLookup";
 import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
@@ -925,30 +926,53 @@ export async function GET(request: Request) {
       source: String(row.source || ""),
     }));
     let imageEnrichedCount = 0;
-    const previewResults = process.env.VERCEL_ENV === "preview"
-      ? results.map(row => {
-          if (row.imageUrl) return row;
-          const original = row.__sourceOfferSearchResult as UnknownRecord | undefined;
-          const enriched = enrichOfferImage({
-            ean: String(row.ean || original?.ean || ""),
-            productCode: String(row.productCode || original?.productCode || ""),
-            name: String(row.title || row.name || ""),
-            brand: String(row.brand || original?.brand || ""),
-            packageSize: String(row.packageSize || original?.packageSize || ""),
-            source: String(row.source || original?.source || ""),
-            imageUrl: "",
-          }, imageBank);
-          if (!enriched.imageUrl) return row;
-          imageEnrichedCount++;
-          return { ...row, imageUrl: enriched.imageUrl, image: enriched.imageUrl, pictureUrl: enriched.imageUrl };
-        })
-      : results;
+    let eanLookupCount = 0;
+    let eanLookupMatches = 0;
+    let eanLookupErrors = 0;
+    const previewResults = [...results];
+    if (process.env.VERCEL_ENV === "preview") {
+      // Bounded read-only lookups; never block or change the source parser.
+      // Unknown/ambiguous offers remain without an image.
+      const pending = results.map((row, index) => ({ row, index })).filter(({ row }) => !row.imageUrl);
+      const matched = await Promise.all(pending.slice(0, 25).map(async ({ row, index }) => {
+        const original = row.__sourceOfferSearchResult as UnknownRecord | undefined;
+        const offer: OfferImageCandidate = {
+          ean: String(row.ean || original?.ean || ""),
+          productCode: String(row.productCode || original?.productCode || ""),
+          name: String(row.title || row.name || ""),
+          brand: String(row.brand || original?.brand || ""),
+          packageSize: String(row.packageSize || original?.packageSize || ""),
+          source: String(row.source || original?.source || ""),
+          imageUrl: "",
+        };
+        let enriched = enrichOfferImage(offer, imageBank);
+        if (!enriched.imageUrl && /^\\d{8,14}$/.test(String(offer.ean))) {
+          eanLookupCount++;
+          try {
+            const candidates = await lookupKnownEanImages({ chain: "citymarket", offerId: String(row.id || index), offer });
+            enriched = enrichOfferImage(offer, candidates);
+            if (enriched.imageUrl) eanLookupMatches++;
+          } catch {
+            eanLookupErrors++;
+          }
+        }
+        return { index, imageUrl: enriched.imageUrl };
+      }));
+      for (const { index, imageUrl } of matched) {
+        if (!imageUrl) continue;
+        imageEnrichedCount++;
+        previewResults[index] = { ...results[index], imageUrl, image: imageUrl, pictureUrl: imageUrl };
+      }
+    }
     const imageEnrichmentAudit = {
       beforeMissing: results.filter(row => !row.imageUrl).length,
       afterMissing: previewResults.filter(row => !row.imageUrl).length,
       enriched: imageEnrichedCount,
       candidateImages: imageBank.length,
-      mode: "verified-in-response-matches-only",
+      eanLookupCount,
+      eanLookupMatches,
+      eanLookupErrors,
+      mode: "preview-readonly-ean-and-verified-local-matches",
     };
 
     return NextResponse.json(
