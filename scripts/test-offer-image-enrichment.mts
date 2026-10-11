@@ -86,3 +86,10 @@ for (const unsafeImageUrl of ["\\\\example.org/image.webp", "/\\\\example.org/im
   assert.equal(matchOfferImage(base, { ...image, imageUrl: unsafeImageUrl }).accepted, false, "Unsafe image URL must be rejected: " + JSON.stringify(unsafeImageUrl));
 }
 console.log("Image URL backslash and control-character checks passed");
+
+assert.equal(matchOfferImage(base, { ...image, imageUrl: "javascript:alert(1)" }).accepted, false);
+assert.equal(matchOfferImage(base, { ...image, imageUrl: "data:image/svg+xml,<svg/>" }).accepted, false);
+assert.equal(matchOfferImage(base, { ...image, imageUrl: "file:///etc/passwd" }).accepted, false);
+assert.equal(matchOfferImage(base, { ...image, imageUrl: "/safe-image.svg" }).accepted, true);
+assert.equal(matchOfferImage(base, { ...image, imageUrl: "https://example.org/safe-image.webp" }).accepted, true);
+console.log("URL protocol allowlist checks passed");
