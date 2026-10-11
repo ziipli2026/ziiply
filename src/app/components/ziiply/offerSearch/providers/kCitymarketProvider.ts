@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
+import { resolveKCitymarketPeriodSnapshot } from "./kCitymarketPeriodSnapshot";
 
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V14
@@ -560,21 +561,54 @@ function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
 // Immutable publication URL for a period whose public entry already rolled forward.
 const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-01-W40-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/80s40wg_tarjouslehti_40LV_KCM/index.html",
+  "2026-10-08-W41-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/82qjhs6_tarjouslehti_41LV_KCM/index.html",
 };
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
   return PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
 }
+// Bump with parser/cache revisions so an older parse cannot hide a parser fix.
+const KCITYMARKET_SNAPSHOT_REVISION="v9-durable-period-snapshots-20261011";
 const getCachedKCitymarketPeriod=unstable_cache(
   async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
-    const periodEntry=kCitymarketPeriodEntry(period);
-    const offers=await fetchKCitymarketOffersFresh(periodEntry);
-    const debug=citymarketHtmlDebugV8;
-    const leafletUrl=String(debug?.leafletUrl||offers[0]?.sourceUrl||"");
-    if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error('K-Citymarket leaflet "'+(leafletUrl||"(missing)")+'" does not match requested '+period.key);
-    if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
-    return {period,offers,debug,cachedAt:new Date().toISOString()};
+    // Read the exact period before touching a mutable publisher entry. A new
+    // deployment/cache miss must not lose a publication already read by cron.
+    const sql=process.env.DATABASE_URL?neon(process.env.DATABASE_URL):null;
+    if(sql) await sql`CREATE TABLE IF NOT EXISTS ziiply_kcitymarket_period_snapshots (
+      period_key TEXT NOT NULL,
+      revision TEXT NOT NULL,
+      payload JSONB NOT NULL,
+      saved_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (period_key,revision)
+    )`;
+    return resolveKCitymarketPeriodSnapshot<KCitymarketCachedPayload>({
+      read:async()=>{
+        if(!sql)return null;
+        const rows=await sql`SELECT payload FROM ziiply_kcitymarket_period_snapshots WHERE period_key = ${period.key} AND revision = ${KCITYMARKET_SNAPSHOT_REVISION}`;
+        return (rows[0]?.payload as KCitymarketCachedPayload | undefined)??null;
+      },
+      validate:payload=>Boolean(payload?.period?.key===period.key&&
+        payload.period.startDate===period.startDate&&payload.period.kind===period.kind&&
+        payload.period.week===period.week&&Array.isArray(payload.offers)&&payload.offers.length&&
+        leafletMatchesPeriod(String(payload.debug?.leafletUrl||""),period)&&
+        payload.offers.every(offer=>leafletMatchesPeriod(String(offer.sourceUrl||""),period))),
+      write:async payload=>{
+        if(!sql)return;
+        await sql`INSERT INTO ziiply_kcitymarket_period_snapshots (period_key,revision,payload)
+          VALUES (${period.key},${KCITYMARKET_SNAPSHOT_REVISION},${JSON.stringify(payload)}::jsonb)
+          ON CONFLICT (period_key,revision) DO UPDATE SET payload = EXCLUDED.payload, saved_at = NOW()`;
+      },
+      parse:async()=>{
+        const periodEntry=kCitymarketPeriodEntry(period);
+        const offers=await fetchKCitymarketOffersFresh(periodEntry);
+        const debug=citymarketHtmlDebugV8;
+        const leafletUrl=String(debug?.leafletUrl||offers[0]?.sourceUrl||"");
+        if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error('K-Citymarket leaflet "'+(leafletUrl||"(missing)")+'" does not match requested '+period.key);
+        if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
+        return {period,offers,debug,cachedAt:new Date().toISOString()};
+      },
+    });
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004"],
+  ["ziiply-kcitymarket-offers-v9-durable-period-snapshots-20261011"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
