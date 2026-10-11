@@ -10,7 +10,7 @@ function parseExports(text){
  const objects=[];let depth=0,start=-1,inString=false,escaped=false;
  for(let i=0;i<text.length;i++){
   const c=text[i];
-  if(inString){if(escaped)escaped=false;else if(c==='\\\\')escaped=true;else if(c==='"')inString=false;continue;}
+  if(inString){if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')inString=false;continue;}
   if(c==='"'){inString=true;continue;}
   if(c==='{'||c==='['){if(depth++===0)start=i;}
   else if(c==='}'||c===']'){if(--depth===0&&start>=0){objects.push(JSON.parse(text.slice(start,i+1)));start=-1;}}
