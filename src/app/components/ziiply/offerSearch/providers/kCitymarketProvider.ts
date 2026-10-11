@@ -743,7 +743,7 @@ async function fetchKCitymarketOffersWithImages():Promise<CitymarketOffer[]>{
   // This corrects an inferred spatial price without guessing from another card.
   // Preserve the approved parser and never infer totals from €/kg or €/l.
   const normalizedOffers=publisherImages.map(offer=>{
-    const printed=[...offer.title.matchAll(/(\\d{1,3}[,.]\\d{2})\\s*€?\\s*\\/\\s*(\\d{1,2})\\s*(kpl|pkt|ps|prk|plo)\\b/gi)];
+    const printed=[...offer.title.matchAll(/(\d{1,3}[,.]\d{2})\s*€?\s*\/\s*(\d{1,2})\s*(kpl|pkt|ps|prk|plo)\b/gi)];
     if(printed.length!==1)return offer;
     const amount=Number(printed[0][1].replace(",","."));
     const quantity=Number(printed[0][2]);
