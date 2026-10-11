@@ -32,10 +32,11 @@ export function matchOfferImage(offer: OfferImageCandidate, candidate: OfferImag
   if (offer.packageSize && candidate.packageSize && clean(offer.packageSize) !== clean(candidate.packageSize)) return { accepted: false, reason: "package-conflict" };
   if (offer.name && candidate.name && clean(offer.name) !== clean(candidate.name)) return { accepted: false, reason: "name-conflict" };
   if (eanA && eanB && /^\d{8,14}$/.test(eanA)) return { accepted: true, reason: "exact-ean" };
+  // An EAN-bearing offer requires the same EAN even when SKU or name agrees.
+  if (eanA && !eanB) return { accepted: false, reason: "candidate-ean-missing" };
+  if (eanA && !/^\d{8,14}$/.test(eanA)) return { accepted: false, reason: "invalid-offer-ean" };
   if (skuA && skuB && offer.source && candidate.source && clean(offer.source) === clean(candidate.source))
     return { accepted: true, reason: "exact-source-product-code" };
-  // Never downgrade an identified offer to name matching if a candidate lacks its EAN.
-  if (eanA && !eanB) return { accepted: false, reason: "candidate-ean-missing" };
   // EAN-less leaflets: accept only an exact named product with an equal
   // explicit pack size. Generic/multi-product titles are never safe matches.
   const nameA = clean(offer.name), nameB = clean(candidate.name);
