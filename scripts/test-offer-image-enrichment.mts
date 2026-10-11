@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { enrichOfferImage, matchOfferImage } from "../src/lib/offerImageEnrichment";
+import { enrichOfferImage, matchOfferImage, type OfferImageCandidate } from "../src/lib/offerImageEnrichment";
 
-const base = { ean: "6410405124517", name: "Pirkka Täysjyvävehnätortilla 8 x 320 g", brand: "Pirkka", packageSize: "320 g" };
+const base: OfferImageCandidate = { ean: "6410405124517", name: "Pirkka Täysjyvävehnätortilla 8 x 320 g", brand: "Pirkka", packageSize: "320 g" };
 const image = { ...base, imageUrl: "https://example.org/product.webp" };
 assert.equal(matchOfferImage(base, image).accepted, true);
 assert.equal(enrichOfferImage(base, [image]).imageUrl, image.imageUrl);
