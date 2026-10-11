@@ -1,3 +1,4 @@
+import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
 const norm=s=>String(s).toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"");
 const distance=(a,b)=>Math.hypot((a.left-b.left)*1.5,(a.top-b.top)*2);
@@ -280,7 +281,7 @@ function resolveCards(rows,rawBoxes){
 // Revision: V97-KCITYMARKET-SPATIAL-UNIT-FRAGS
 // Reconstructs visually split prices while keeping explicit multi-buy transaction price.
 const H={"user-agent":"Mozilla/5.0 Chrome/140 Safari/537.36","accept":"text/html,application/xhtml+xml"};
-async function ft(u){const r=await fetch(u,{redirect:"follow",headers:H});if(!r.ok)throw new Error("K-Citymarket HTTP "+r.status+": "+u);return {url:r.url,text:await r.text()}}
+async function fetchText(u,fetchImpl){const r=await fetchImpl(u,{redirect:"follow",headers:H});if(!r.ok)throw new Error("K-Citymarket HTTP "+r.status+": "+u);return {url:r.url,text:await r.text()}}
 function codeLines(h){const m=h.match(/<pre[^>]*><code>([\s\S]*?)<\/code><\/pre>/i);if(!m)return[];return m[1].replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").split(/\r?\n/).map((raw,i)=>({i,raw,text:raw.trim(),x:raw.length-raw.trimStart().length})).filter(x=>x.text)}
 function num(s){return Number(String(s).replace(",","."))}
 function pkg(s){const src=String(s).replace(/\b(\d)\s+(\d)\s+(\d)(?=\s*(?:g|kg|ml|l)\b)/gi,"$1$2$3").replace(/\b(\d)\s+(\d)(?=\s*(?:g|kg|ml|l)\b)/gi,"$1$2");const multi=src.match(/\b(\d{1,2})\s*[x×]\s*(\d+(?:[,.]\d+)?)(?:\s*[–-]\s*(\d+(?:[,.]\d+)?))?\s*(kg|g|ml|cl|dl|l)\b/i);if(multi){const n=num(multi[1]),a=num(multi[2]),z=multi[3]?num(multi[3]):a,u=multi[4].toLowerCase(),k=(u==="g"||u==="ml")?.001:u==="cl"?.01:u==="dl"?.1:1;return {min:n*a*k,max:n*z*k,raw:multi[0],multiplier:n,unitAmount:a*k}}let m=src.match(/(\d+(?:[,.]\d+)?)(?:[–-](\d+(?:[,.]\d+)?))?\s*(kg|g|ml|cl|dl|l)\b/i);if(!m)return null;let a=num(m[1]),b=m[2]?num(m[2]):a,u=m[3].toLowerCase(),k=(u==="g"||u==="ml")?.001:u==="cl"?.01:u==="dl"?.1:1;return {min:a*k,max:b*k,raw:m[0]}}
@@ -314,9 +315,10 @@ function spatialGroups(boxes){
 }
 function boxDistance(a,b){const ax=a.left+(a.width||0)/2,ay=a.top+(a.height||0)/2,bx=b.left+(b.width||0)/2,by=b.top+(b.height||0)/2;return Math.hypot(ax-bx,ay-by)}
 function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){const p=e+suffix/100,d=Math.abs(p-expected);if(!best||d<best.d)best={price:p,d}}return best}
-export async function parseKCitymarketSpatialLeaflet(ENTRY){
+export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
+ const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V126-KCITYMARKET-OWNED-CARDS-DAILY-GOODS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V127-KCITYMARKET-PRINTED-TRANSACTION-PROOFS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1400,6 +1402,19 @@ for(const row of out.rows.filter(r=>r.page===p)){
    row.debugPublisherBundle={type:'mixed-set',evidence:'YHTEISHINTAAN + SETTI',totalPrice:Number(row.debugPublisherBundlePrice?.value||row.debugRejectedCardPrice?.value||row.spatialResolved?.value||0),requiresBundlePresentation:true};
  }
 }
+}
+for(const row of out.rows){
+ const proof=verifiedPrintedBundle(row)||verifiedMissingCents(row)||verifiedDepositPack(row);
+ if(proof){
+  row.debugReplacedConflictingPrice=row.spatialResolved;row.spatialResolved=proof;
+  if(proof.packageCount>1){
+   const rate=Number((row.initialExpectedSingle/row.package.min).toFixed(2));
+   const rateUnit=/\b(?:kg|g)\b/i.test(row.package.raw)?'kg':'l';
+   row.unitPrice={min:rate,max:rate,raw:'('+rate.toFixed(2)+'/'+rateUnit+')'};
+   row.package={...row.package,min:row.package.min*proof.packageCount,max:row.package.max*proof.packageCount,
+    raw:proof.packageCount+' x '+row.package.raw,multiplier:proof.packageCount};
+  }
+ }
 }
 return out;
 }

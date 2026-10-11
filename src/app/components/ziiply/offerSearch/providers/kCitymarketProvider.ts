@@ -399,6 +399,10 @@ function parsePage(html:string,url:string):CitymarketOffer[]{
 
 
 export type KCitymarketHtmlDebugV8 = {
+  parserRevision?: string;
+  sourceMode?: string;
+  approvalStatus?: string;
+  sourcePdfSha256?: string;
   leafletUrl?: string;
   basicIndexUrl?: string;
   maxPage?: number;
@@ -443,6 +447,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
   citymarketHtmlDebugV8={
+    parserRevision:parsed.revision,sourceMode:"sourceMode" in parsed?parsed.sourceMode:undefined,approvalStatus:"approvalStatus" in parsed?parsed.approvalStatus:undefined,sourcePdfSha256:"sourcePdfSha256" in parsed?parsed.sourcePdfSha256:undefined,
     leafletUrl,
     basicIndexUrl:undefined,
     maxPage:Number(parsed.pageCount)||Math.max(0,...rows.map((r:any)=>Number(r?.page)||0)),
@@ -589,6 +594,7 @@ const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
   return PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
 }
+function isCorrected41LVPreview(){return process.env.VERCEL_ENV==="preview" && process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected";}
 const getCachedKCitymarketPeriod=unstable_cache(
   async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
     const periodEntry=kCitymarketPeriodEntry(period);
@@ -599,7 +605,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v127-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -720,7 +726,7 @@ function visibleCitymarketDailyOffers(offers:CitymarketOffer[]):CitymarketOffer[
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
-  const active=getActiveKCitymarketPeriod();
+  const active=getActiveKCitymarketPeriod(isCorrected41LVPreview()?new Date("2026-10-11T10:00:00Z"):new Date());
 
   // The Wednesday/Sunday background warm-up parses the next leaflet after
   // 15:00 Europe/Helsinki. Once that period becomes active, serve the exact
