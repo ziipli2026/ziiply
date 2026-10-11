@@ -10,6 +10,13 @@ const manifest=read("archive-manifest.json");
 const evidence=read("parser-evidence.json");
 const publisher=read("publisher-responses.json");
 assert.equal(Object.keys(publisher.responses||{}).length,43,"Expected 43 original publisher responses");
+for(const [url,response] of Object.entries(publisher.responses)){
+ assert.match(url,/^https:\/\//,"Frozen request URL must be absolute HTTPS");
+ assert.equal(response.status,200,"Frozen HTTP response is not successful: "+url);
+ assert.equal(typeof response.body,"string","Frozen response body missing: "+url);
+ assert.ok(response.body.length>0,"Frozen response body empty: "+url);
+ assert.match(response.url,/^https:\/\//,"Frozen resolved URL must be absolute HTTPS");
+}
 assert.match(publisher.entry,/^https:\/\/kcm-lehdet\.k-ruoka\.fi\/loppuviikon_tarjouslehdet\/$/,"Unexpected original publisher landing page");
 assert.ok(Object.values(publisher.responses).some(item=>String(item.url||"").includes("41LV_KCM")),"Frozen publisher responses do not contain 41LV publication");
 const report=read("probe-report.json");
