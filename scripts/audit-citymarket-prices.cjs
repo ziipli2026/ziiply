@@ -18,8 +18,8 @@ function parseExports(text){
  if(depth!==0||!objects.length)throw new Error('Invalid or incomplete JSON export');
  return objects;
 }
-const exports=parseExports(raw);
-const items=exports.flatMap((input,exportIndex)=>
+const parsedExports=parseExports(raw);
+const items=parsedExports.flatMap((input,exportIndex)=>
  (Array.isArray(input)?input:(input.rawItems||[])).map(item=>({...item,__auditExportIndex:exportIndex}))
 );
 const issues=[];
@@ -101,7 +101,7 @@ for(const [key,entries] of pageGroups){
    matchingProducts:entries.filter(x=>x.consistent).map(x=>({title:x.title,source:x.source}))});
 }
 const counts={};for(const i of issues)counts[i.reason]=(counts[i.reason]||0)+1;
-console.log(JSON.stringify({exports:exports.length,rows:items.length,issueCounts:counts,issues},null,2));
+console.log(JSON.stringify({exports:parsedExports.length,rows:items.length,issueCounts:counts,issues},null,2));
 // A same-page collision is not proof of the printed price, but it must block
 // a green audit until a human checks the leaflet. Never rewrite source data.
 const blockingReasons=new Set(['unit-price-inconsistency','missing-or-invalid-price','printed-multibuy-conflict','same-page-price-collision-review']);
