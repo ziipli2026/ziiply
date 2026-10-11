@@ -929,12 +929,15 @@ export async function GET(request: Request) {
     let eanLookupCount = 0;
     let eanLookupMatches = 0;
     let eanLookupErrors = 0;
+    let noEanCount = 0;
+    let localImageMatches = 0;
+    const unresolvedImageSamples: Array<{ title: string; reason: string }> = [];
     const previewResults = [...results];
     if (process.env.VERCEL_ENV === "preview") {
       // Bounded read-only lookups; never block or change the source parser.
       // Unknown/ambiguous offers remain without an image.
       const pending = results.map((row, index) => ({ row, index })).filter(({ row }) => !row.imageUrl);
-      const matched = await Promise.all(pending.slice(0, 25).map(async ({ row, index }) => {
+      const matched = await Promise.all(pending.slice(0, 50).map(async ({ row, index }) => {
         const original = row.__sourceOfferSearchResult as UnknownRecord | undefined;
         const offer: OfferImageCandidate = {
           ean: String(row.ean || original?.ean || ""),
@@ -946,6 +949,8 @@ export async function GET(request: Request) {
           imageUrl: "",
         };
         let enriched = enrichOfferImage(offer, imageBank);
+        if (enriched.imageUrl) localImageMatches++;
+        if (!/^\\d{8,14}$/.test(String(offer.ean))) noEanCount++;
         if (!enriched.imageUrl && /^\\d{8,14}$/.test(String(offer.ean))) {
           eanLookupCount++;
           try {
@@ -955,6 +960,9 @@ export async function GET(request: Request) {
           } catch {
             eanLookupErrors++;
           }
+        }
+        if (!enriched.imageUrl && unresolvedImageSamples.length < 30) {
+          unresolvedImageSamples.push({ title: String(offer.name || "").slice(0, 120), reason: offer.ean ? "no-verified-image" : "missing-ean-and-no-verified-local-match" });
         }
         return { index, imageUrl: enriched.imageUrl };
       }));
@@ -972,6 +980,9 @@ export async function GET(request: Request) {
       eanLookupCount,
       eanLookupMatches,
       eanLookupErrors,
+      noEanCount,
+      localImageMatches,
+      unresolvedImageSamples,
       mode: "preview-readonly-ean-and-verified-local-matches",
     };
 
