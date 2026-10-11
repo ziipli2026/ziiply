@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
 
     const inputForm = await request.formData();
     const audio = inputForm.get("audio");
-    const language = String(inputForm.get("language") || "fi");
+    // Ziiplyn ostoslistasanelu on tarkoituksella suomenkielinen.
+    // Älä hyväksy asiakkaan lähettämää kielivalintaa.
+    const language = "fi";
 
     if (!(audio instanceof File)) {
       return NextResponse.json(
@@ -52,6 +54,15 @@ export async function POST(request: NextRequest) {
     formData.append("file", safeAudioFile);
     formData.append("model", "gpt-4o-mini-transcribe");
     formData.append("language", language);
+    formData.append("prompt", [
+      "Tämä on suomalaisen ruokakaupan ostoslistan sanelu suomeksi.",
+      "Kirjoita vain selvästi kuullut suomenkieliset sanat ja tuotenimet.",
+      "Älä käännä, älä vaihda espanjaan, englantiin tai muuhun kieleen.",
+      "Älä keksi puuttuvia sanoja, tuotteita tai kokonaisia lauseita epäselvästä äänestä.",
+      "Säilytä määrät, pakkauskoot ja tuotemerkit: kaksi maitoa, yksi Juhla Mokka 500 g, kolme banaania.",
+      "Tuotenimet voivat olla vierasperäisiä: Coca-Cola, Pepsi, mozzarella, tortilla.",
+      "Jos puhetta ei saa selvää, palauta tyhjä teksti.",
+    ].join(" "));
     formData.append("response_format", "json");
 
     const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
@@ -84,8 +95,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const transcript = String(payload?.text || "").trim();
+    // Tunnetut äänettömän/epäselvän syötteen hallusinaatiot eivät ole ostoslistan tuotteita.
+    const emptySpeechPhrases = /^(?:kiitos(?:\s+kun\s+katsoit)?|thank you(?:\s+for\s+watching)?|gracias(?:\s+por\s+ver)?|tekstitys(?:\s+.*)?|subtitles?(?:\s+.*)?)\s*[.!?]*$/iu;
+    const safeTranscript = emptySpeechPhrases.test(transcript) ? "" : transcript;
+
     return NextResponse.json({
-      text: String(payload?.text || "").trim(),
+      text: safeTranscript,
       mime,
       filename,
     });
