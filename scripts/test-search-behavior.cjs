@@ -51,6 +51,10 @@ const samples = [
   ["riisipuuro 500 g","porridge"],
   ["puuroriisi 1 kg","rice"],
   ["ranskanperunat pakaste 1 kg","frozen"],
+  ["broilerin jauheliha 400 g","meat"],
+  ["tomaattimurska 400 g","tomato_crush"],
+  ["hunajasinappi 250 g","mustard"],
+  ["suolapähkinä 200 g","snacks"],
   ["suolapähkinä","snacks"],["hunajasinappi","mustard"],
   ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
