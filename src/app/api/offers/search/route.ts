@@ -936,11 +936,15 @@ export async function GET(request: Request) {
     let nameLookupErrors = 0;
     const unresolvedImageSamples: Array<{ title: string; reason: string }> = [];
     const previewResults = [...results];
+    const missingBeforeEnrichment = results.filter(row => !row.imageUrl).length;
+    const imageLookupLimit = 50;
+    const imageLookupAttempted = process.env.VERCEL_ENV === "preview" ? Math.min(missingBeforeEnrichment, imageLookupLimit) : 0;
+    const imageLookupSkipped = missingBeforeEnrichment - imageLookupAttempted;
     if (process.env.VERCEL_ENV === "preview") {
       // Bounded read-only lookups; never block or change the source parser.
       // Unknown/ambiguous offers remain without an image.
       const pending = results.map((row, index) => ({ row, index })).filter(({ row }) => !row.imageUrl);
-      const matched = await Promise.all(pending.slice(0, 50).map(async ({ row, index }) => {
+      const matched = await Promise.all(pending.slice(0, imageLookupLimit).map(async ({ row, index }) => {
         const original = row.__sourceOfferSearchResult as UnknownRecord | undefined;
         const offer: OfferImageCandidate = {
           ean: String(row.ean || original?.ean || ""),
@@ -986,7 +990,11 @@ export async function GET(request: Request) {
       }
     }
     const imageEnrichmentAudit = {
-      beforeMissing: results.filter(row => !row.imageUrl).length,
+      beforeMissing: missingBeforeEnrichment,
+      imageLookupLimit,
+      imageLookupAttempted,
+      imageLookupSkipped,
+      auditComplete: imageLookupSkipped === 0 && process.env.VERCEL_ENV === "preview",
       afterMissing: previewResults.filter(row => !row.imageUrl).length,
       enriched: imageEnrichedCount,
       candidateImages: imageBank.length,
