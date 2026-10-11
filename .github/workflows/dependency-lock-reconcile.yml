@@ -4,6 +4,8 @@ on:
     branches:
       - test/dependency-lock-reconcile-20261011
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   reconcile:
     runs-on: ubuntu-latest
@@ -25,6 +27,16 @@ jobs:
           node scripts/test-search-pagination-performance.cjs
       - name: Build Next.js application
         run: npm run build
+      - name: Commit verified lockfile to isolated branch only
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Regenerate dependency lockfile after clean build validation'
+            git push origin HEAD:test/dependency-lock-reconcile-20261011
+          fi
       - name: Upload regenerated lockfile as inspection artifact
         if: always()
         uses: actions/upload-artifact@v4
