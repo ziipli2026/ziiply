@@ -6,14 +6,14 @@ const out = 'browser-test-results';
 await fs.mkdir(out,{recursive:true});
 const base = 'http://127.0.0.1:3000';
 const browser = await chromium.launch();
-const context = await browser.newContext({viewport:{width:1600,height:1000}});
+const context = await browser.newContext({viewport:{width:390,height:844}});
 await context.tracing.start({screenshots:true,snapshots:true});
 const page = await context.newPage();
 const errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 const stores=[
  {id:292,externalId:'fixture-s',name:'Prisma Hyvinkää',type:'S',chain:'S',city:'Hyvinkää',latitude:60.63,longitude:24.86},
- {id:'fixture-k',name:'K-Citymarket Hyvinkää',type:'K',chain:'K',city:'Hyvinkää',latitude:60.63,longitude:24.87}
+ {id:99902,name:'K-Citymarket Hyvinkää',type:'K',chain:'K',city:'Hyvinkää',latitude:60.63,longitude:24.87}
 ];
 const product={id:90001,name:'Valio kevytmaito 1 l',ean:'6408430000128',price:1.25,storeItems:[{price:1.25}]};
 const requests=[];
@@ -26,14 +26,14 @@ await page.route('**/*',async route=>{
  let body={items:[]};
  if(url.pathname.includes('store-search')) body={items:stores,stores};
  if(url.pathname==='/api/s-products'||url.pathname==='/api/s-ean-product')body={items:[product]};
- if(url.pathname==='/api/k-products')body={items:[{...product,id:'90002',price:1.45}]};
+ if(url.pathname==='/api/k-products')body={items:[{...product,id:90002,price:1.45}]};
  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
 });
 await page.addInitScript(({stores})=>{
  navigator.geolocation.getCurrentPosition=()=>{};
  navigator.geolocation.watchPosition=()=>0;
- localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',aliases:['hyvinkää'],sStoreId:292,sStoreName:'Prisma Hyvinkää',kStoreId:'fixture-k',kStoreName:'K-Citymarket Hyvinkää'},storeMode:'hyper',storeModeChosenV299:true,selectedChains:{s:true,k:false,lidl:false,tokmanni:false},betweenChainSelectionModeV749:'one',storeCompareScope:'between_chains',usingOwnLocation:false}));
- localStorage.setItem('ziiply-manual-store-overrides-v786',JSON.stringify({sHyper:{id:292,name:'Prisma Hyvinkää'},kHyper:{id:'fixture-k',name:'K-Citymarket Hyvinkää'}}));
+ localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',aliases:['hyvinkää'],sStoreId:292,sStoreName:'Prisma Hyvinkää',kStoreId:99902,kStoreName:'K-Citymarket Hyvinkää'},storeMode:'hyper',storeModeChosenV299:true,selectedChains:{s:true,k:true,lidl:false,tokmanni:false},betweenChainSelectionModeV749:'many',storeCompareScope:'between_chains',usingOwnLocation:false}));
+ localStorage.setItem('ziiply-manual-store-overrides-v786',JSON.stringify({sHyper:{id:292,name:'Prisma Hyvinkää'},kHyper:{id:99902,name:'K-Citymarket Hyvinkää'}}));
 }, {stores});
 let failure;
 try{
@@ -70,7 +70,7 @@ try{
  await page.screenshot({path:out+'/04-comparison.png',fullPage:true});
  assert.equal(errors.length,0,errors.join('\n'));
  console.log('BROWSER SEARCH / CART / COMPARISON AND 12 LEARNING CASES PASS');
-}catch(e){failure=e;await page.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});console.error(e);}
+}catch(e){failure=e;await page.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});console.error(e); console.error('VISIBLE_UI',await page.locator('body').innerText().catch(()=>''));}
 finally{
  await fs.writeFile(out+'/diagnostics.json',JSON.stringify({errors,requests,failure:failure?.stack},null,2));
  await fs.writeFile(out+'/page.txt',await page.locator('body').innerText().catch(()=>'Unavailable'));
