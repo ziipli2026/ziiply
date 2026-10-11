@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+const source=fs.readFileSync("scripts/citymarket/discover-image-metadata.mjs","utf8");
+assert.ok(source.includes(String.raw`/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi`),"JSON-LD matcher must use regex escapes, not double-escaped backslashes");
+const html='<script type="application/ld+json">{"@type":"Product","image":"https://example.org/packshot.jpg"}</script>';
+const matcher=/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+const matches=[...html.matchAll(matcher)];
+assert.equal(matches.length,1);
+assert.equal(JSON.parse(matches[0][1]).image,"https://example.org/packshot.jpg");
+console.log("JSON-LD regex regression passed.");
