@@ -82,6 +82,18 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Mobile Citymarket preview: specific product forms before generic food keywords.
+  // Keep the approved 41LV spatial parser immutable; classify only its output.
+  if(/kilokartonki|huopakynä|tussisetti|tussikynä|värikynä|askartelupaper|piirustuspaper|juomalasi|kartio\\s+juomalasi/.test(s)) return "Koti & vapaa-aika";
+  if(/pyykinpesunest|pyykinpesujauhe|bio\\s*luvil|omo\\s+(?:color|active|pyykin)|värin-\\s*ja\\s*liankerääjä|liankerääjäliina|puhdistuspyyhke/.test(s)) return "Kodinhoito";
+  if(/vanulappu|vanupuikko|topz\\b/.test(s)) return "Hygienia & kosmetiikka";
+  if(/pentualusta/.test(s)) return "Lemmikit";
+  if(/palvikinkku|palvikana|keittokinkku|ohuen\\s+ohut/.test(s)) return "Liha & makkarat";
+  if(/proteiinivanukas|proteiinivaahto|proteiinimousse|proteiinimousse|proteiinivaa/.test(s)) return "Maitotuotteet";
+  if(/kuivattu\\s+mango|kuivattuja\\s+mango|tomaattimurska/.test(s)) return "Kuivatuotteet";
+  if(/pehmosämpyl/.test(s)) return "Leipomo";
+  if(/savuleikkele.*kasvi|kasvipohjainen.*leikkele|maustetut?\\s+tofu/.test(s)) return "Valmisruoka";
+
   // Publication-wide product-form precedence: these must not inherit a broad
   // category from ingredient words or generic fresh-produce keywords.
   if(/maissikak|riisikak|näkkikak/.test(s)) return "Kuivatuotteet";
