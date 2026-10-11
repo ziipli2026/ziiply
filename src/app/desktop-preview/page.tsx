@@ -67,7 +67,7 @@ function FuelStationCardDetails({ chain, station }: { chain: string; station: an
   return <div className="pointer-events-none absolute inset-x-0 top-1 z-10 flex h-[calc(100%-8px)] min-w-0 flex-col items-center text-center">
     <div className="flex w-[calc(100%-128px)] min-w-0 flex-col items-center">
       <div className={`w-full text-center font-black leading-[1.05] text-[#111827] ${compact ? "whitespace-nowrap text-[clamp(9px,.72vw,12px)]" : "text-[clamp(12px,1vw,16px)]"}`}>{chain}</div>
-      <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei asemaa 50 km säteellä"}</div>
+      <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei asemaa saatavilla"}</div>
       {station && <div className="text-[12px] font-bold leading-[1.1] text-black">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
     </div>
     {station && <div className="absolute bottom-1.5 left-2 flex w-14 shrink-0 flex-col items-center whitespace-nowrap text-[clamp(10px,.8vw,13px)] font-extrabold leading-[1.05] text-[#172b24]">

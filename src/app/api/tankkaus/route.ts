@@ -57,16 +57,13 @@ export async function GET(req: NextRequest) {
     const stationPayload = stationsData as any;
     const pricePayload = pricesData as any;
     const stationRows = Array.isArray(stationPayload) ? stationPayload : stationPayload?.stations;
-    // Bound provider payload size before normalization to avoid unexpectedly large allocations.
-    if (Array.isArray(stationRows) && stationRows.length > 10000) throw new Error("Tankkaus stations payload too large");
     if (!Array.isArray(stationRows)) throw new Error("Tankkaus response missing expected stations array");
     // Derive distance from coordinates rather than trusting an undocumented upstream unit.
-    // Exclude stations without usable coordinates; otherwise the 10 km claim cannot be enforced.
+    // GPS affects ordering only; retain every provider station with usable coordinates.
     const stations: Station[] = stationRows
       .map(stationOf).filter((s: Station | null): s is Station => s !== null)
       .filter((s: Station) => s.latitude !== null && s.longitude !== null && s.latitude >= -90 && s.latitude <= 90 && s.longitude >= -180 && s.longitude <= 180)
-      .map((s: Station) => ({ ...s, distanceKm: distanceKmBetween(lat, lon, s.latitude!, s.longitude!) }))
-      .filter((s: Station) => s.distanceKm !== null && s.distanceKm <= 10);
+      .map((s: Station) => ({ ...s, distanceKm: distanceKmBetween(lat, lon, s.latitude!, s.longitude!) }));
     // Do not accept duplicate station IDs with conflicting coordinates in one provider response.
     const stationById = new Map<number, Station>();
     for (const station of stations) {
@@ -77,7 +74,6 @@ export async function GET(req: NextRequest) {
       stationById.set(station.id, station);
     }
     if (!Array.isArray(pricePayload?.[fuelConfig])) throw new Error("Tankkaus response missing expected fuel observations array");
-    if (pricePayload[fuelConfig].length > 10000) throw new Error("Tankkaus observations payload too large");
     const observations: Observation[] = [];
     for (const item of pricePayload[fuelConfig]) {
       const id = asNumber(item?.station_id ?? item?.station?.id);
@@ -91,19 +87,16 @@ if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test
     // Latest observation per station; the API may return repeated observations.
     observations.sort((a, b) => (Date.parse(b.observedAt) || 0) - (Date.parse(a.observedAt) || 0));
     const seen = new Set<number>();
-    const maxAgeMs = 5 * 24 * 60 * 60 * 1000;
     const now = Date.now();
     const latest = observations.filter(o => {
       const observedMs = Date.parse(o.observedAt);
-      if (!Number.isFinite(observedMs) || observedMs > now || now - observedMs > maxAgeMs) return false;
-      if (o.station.distanceKm !== null && (o.station.distanceKm < 0 || o.station.distanceKm > 10)) return false;
+      if (!Number.isFinite(observedMs) || observedMs > now) return false;
       if (seen.has(o.stationId)) return false;
       seen.add(o.stationId);
       return true;
     });
     latest.sort((a, b) => (a.station.distanceKm ?? Infinity) - (b.station.distanceKm ?? Infinity));
-    const nearest = latest.slice(0, 10);
-    return NextResponse.json({ ok: true, source: "Tankkaus.com", fuel, stations, observations: nearest, fetchedAt: new Date().toISOString(), coverage: { radiusKm: 10, observationMaxAgeDays: 5, maxObservationsPerFuel: 10 }, note: "User-submitted observations, not guaranteed pump prices" }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=300" } });
+    return NextResponse.json({ ok: true, source: "Tankkaus.com", fuel, stations, observations: latest, fetchedAt: new Date().toISOString(), coverage: { scope: "provider-coordinate-response", nationwideVerified: false, radiusKm: null, observationMaxAgeDays: null, maxObservationsPerFuel: null }, note: "User-submitted observations, not guaranteed pump prices" }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=300" } });
   } catch (error) {
     console.error("[tankkaus] upstream request or response validation failed", error instanceof Error ? error.name : "unknown");
     return NextResponse.json({ ok: false, error: "Tankkaus data temporarily unavailable" }, { status: 502 });
