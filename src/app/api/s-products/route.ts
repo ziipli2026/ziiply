@@ -99,6 +99,22 @@ export async function GET(request: Request) {
     const data = await response.json();
     const sourceItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
 
+    // Category search: collect subsequent provider pages before ranking on mobile.
+    // Keep other search categories on their existing request path.
+    if (/ketsuppi|ketchup/i.test(search) && response.ok && sourceItems.length === 80) {
+      for (const skip of [80, 160]) {
+        const pageResponse = await fetch(
+          `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(search)}&storeIds=${storeId}&skip=${skip}&take=80`,
+          { headers: { accept: "application/json" }, cache: "no-store" },
+        );
+        if (!pageResponse.ok) break;
+        const pageData = await pageResponse.json();
+        const pageItems: RuoanhintaProduct[] = Array.isArray(pageData.items) ? pageData.items : [];
+        sourceItems.push(...pageItems);
+        if (pageItems.length < 80) break;
+      }
+    }
+
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
       .map((product) => ({
