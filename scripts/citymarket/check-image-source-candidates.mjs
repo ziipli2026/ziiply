@@ -15,7 +15,7 @@ for (const candidate of review.candidates) {
   assert.ok(offer, "Candidate must match exact approved 41LV offer");
   assert.ok(offer.identity.includes(candidate.fragment), "Candidate product identity mismatch");
   assert.ok(!publication.images[candidate.offerId], "Candidate already has approved image");
-  assert.match(candidate.ean, /^\\d{13}$/, "Invalid EAN");
+  assert.match(candidate.ean, /^[0-9]{13}$/, "Invalid EAN");
   assert.ok(candidate.url.startsWith("https://www.k-ruoka.fi/kauppa/tuote/"), "Unexpected source");
   assert.ok(candidate.url.endsWith("-" + candidate.ean), "Product URL EAN mismatch");
   assert.equal(candidate.approved, false, "External source alone cannot approve image");
