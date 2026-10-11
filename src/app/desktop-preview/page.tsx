@@ -1284,11 +1284,14 @@ export default function DesktopPreviewPage() {
                           <h2 className="min-w-0 text-center text-[16px] font-black text-[#174c35]">{group==="Muut"?"Gulf / Ritoil / muut":group}</h2>
                         </div>
                         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2" tabIndex={0} aria-label={`Selaa ketjun ${group} asemia`}>
-                          {candidates.length===0?<p className="py-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="mb-2 rounded-xl border border-[#dcc99a] bg-white/90 p-2.5 last:mb-0">
-                            <div className="break-words text-[14px] font-black leading-tight text-[#174c35]">{station.name}</div>
-                            <div className="mb-2 mt-1 text-[11px] font-semibold text-[#6d604c]">{Number(station.distanceKm).toFixed(1).replace(".",",")} km · {fuelIsTraffic(station)?"Liikenneasema":"Kylmäasema / muu"}</div>
-                            <div className="grid grid-cols-3 gap-1 text-center">
-                              {([["DI","diesel","observedDiesel"],["95","price95","observed95"],["98","price98","observed98"]] as const).map(([label,key,dateKey])=><div key={key} className="min-w-0 rounded-lg bg-[#fff4cf] px-1 py-1"><div className="text-[11px] font-black text-[#6d604c]">{label}</div><div className="text-[16px] font-black tabular-nums text-[#174c35]">{price(station[key])}</div><div className="mt-0.5 text-[10px] leading-tight text-[#6d604c]">{price(station[key])==="–"?"–":observed(station[dateKey])}</div></div>)}
+                          {candidates.length===0?<p className="py-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="mb-1.5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] items-center gap-2 rounded-xl border border-[#dcc99a] bg-white/90 px-2.5 py-2 last:mb-0">
+                            <div className="min-w-0">
+                              <div className="break-words text-[13px] font-black leading-tight text-[#174c35]">{station.name}</div>
+                              <div className="mt-1 text-[11px] font-semibold leading-tight text-[#6d604c]">{Number(station.distanceKm).toFixed(1).replace(".",",")} km</div>
+                              <div className="mt-0.5 text-[10px] leading-tight text-[#6d604c]">{fuelIsTraffic(station)?"Liikenneasema":"Kylmäasema / muu"}</div>
+                            </div>
+                            <div className="grid min-w-0 grid-cols-3 gap-1 text-center">
+                              {([["DI","diesel","observedDiesel"],["95","price95","observed95"],["98","price98","observed98"]] as const).map(([label,key,dateKey])=><div key={key} className="min-w-0 rounded-md bg-[#fff4cf] px-1 py-1"><div className="text-[10px] font-black leading-tight text-[#6d604c]">{label}</div><div className="text-[15px] font-black leading-tight tabular-nums text-[#174c35]">{price(station[key])}</div><div className="mt-0.5 text-[9px] leading-tight text-[#6d604c]">{price(station[key])==="–"?"–":observed(station[dateKey])}</div></div>)}
                             </div>
                           </article>)}
                         </div>
