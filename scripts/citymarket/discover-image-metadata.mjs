@@ -26,7 +26,7 @@ for(const candidate of source.candidates){
       const images=meta.filter(tag=>["og:image","twitter:image"].includes((attr(tag,"property")??attr(tag,"name")??"").toLowerCase())).map(tag=>attr(tag,"content")).filter(Boolean).map(url=>{try{const resolved=new URL(url,page);return resolved.protocol==="https:"?resolved.href:null}catch{return null}}).filter(Boolean);
       // Product JSON-LD often has the actual packshot when social metadata is generic.
       const ldImages=[];
-      for(const match of html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)){
+      for(const match of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
         try{
           const root=JSON.parse(match[1]);
           const nodes=Array.isArray(root)?root:[root];
