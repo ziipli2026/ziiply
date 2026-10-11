@@ -96,4 +96,4 @@ for(const [key,entries] of pageGroups){
 }
 const counts={};for(const i of issues)counts[i.reason]=(counts[i.reason]||0)+1;
 console.log(JSON.stringify({exports:exports.length,rows:items.length,issueCounts:counts,issues},null,2));
-if(issues.some(x=>x.reason==='unit-price-inconsistency'||x.reason==='missing-or-invalid-price'||x.reason==='printed-multibuy-conflict'))process.exitCode=1;
+// A same-page collision is not proof of the printed price, but it must block\n// a green audit until a human checks the leaflet. Never rewrite source data.\nconst blockingReasons=new Set(['unit-price-inconsistency','missing-or-invalid-price','printed-multibuy-conflict','same-page-price-collision-review']);\nif(issues.some(x=>blockingReasons.has(x.reason)))process.exitCode=1;
