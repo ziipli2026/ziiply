@@ -82,7 +82,7 @@ assert.equal(matchOfferImage({ ...base, ean: null }, { ...image, ean: base.ean }
 assert.equal(matchOfferImage({ ...base, ean: null }, { ...image, ean: null }).accepted, true);
 console.log("Malformed candidate EAN rejection checks passed");
 
-for (const unsafeImageUrl of ["\\\\example.org/image.webp", "/\\\\example.org/image.webp", "https://example.org/image.webp\\n", "https://example.org/image.webp\\t", "https://example.org\\\\image.webp"]) {
+for (const unsafeImageUrl of ["\\\\example.org/image.webp", "/\\\\example.org/image.webp", "https://example.org/image.webp\n", "https://example.org/image.webp\t", "https://example.org\\\\image.webp"]) {
   assert.equal(matchOfferImage(base, { ...image, imageUrl: unsafeImageUrl }).accepted, false, "Unsafe image URL must be rejected: " + JSON.stringify(unsafeImageUrl));
 }
 console.log("Image URL backslash and control-character checks passed");
