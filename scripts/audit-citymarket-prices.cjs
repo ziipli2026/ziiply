@@ -67,7 +67,7 @@ for(const [index,item] of items.entries()){
  if(expected>0&&Math.abs(expected-price)>Math.max(.15,expected*.08)){
    // Beverage unit prices can exclude refundable container deposits.
    // Treat a plausible 0.15 EUR/can deposit as a REVIEW, not proof.
-   const canPack=/\\b(?:tlk|t[oö]lkki|t[oö]lkit)\\b/i.test(title+' '+size);
+   const canPack=/\b(?:tlk|t[oö]lkki|t[oö]lkit)\b/i.test(title+' '+size);
    const depositExpected=expected+packageCount*.15;
    const depositPlausible=canPack&&packageCount>1&&Math.abs(depositExpected-price)<=.04;
    issues.push({index,title,reason:depositPlausible?'possible-container-deposit-review':'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,packageCount,expected:Number(expected.toFixed(2)),...(depositPlausible?{withPossibleDeposit:Number(depositExpected.toFixed(2))}:{})});
