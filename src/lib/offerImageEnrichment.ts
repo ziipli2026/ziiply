@@ -51,8 +51,8 @@ export function matchOfferImage(offer: OfferImageCandidate, candidate: OfferImag
   const rawName = String(offer.name || "");
   const explicitPacks = [...rawName.matchAll(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|l|kpl|pkt|rl)\\b/gi)];
   const generic = /\\b(wc paperi|suihkeet|juomat|hammastahnat|suklaalevyt|pahkinat|leikkeleet|jaatelot|kahvit|pirtelot|ateriat|geelit|tabletit|pesunesteet)\\b/i;
-  const multiPack = /\\b\\d+\\s*[- ]?\\s*(?:pack|pakkaus|pkt|kpl)\\b/i;
-  const promo = /\\b(plussa|kortilla|ilman|tarjous|norm\\.?\\s*hinta)\\b/i;
+  const multiPack = /\b\d+\s*[- ]?\s*(?:pack|pakkaus)\b/i;
+  const promo = /\b(plussa|kortilla|ilman|tarjous|norm\.?\s*hinta)\b/i;
   if (nameA === nameB && nameA.length >= 20 && explicitPacks.length === 1 &&
       !ambiguous.test(nameA) && !generic.test(nameA) &&
       !multiPack.test(nameA) && !promo.test(nameA) &&
