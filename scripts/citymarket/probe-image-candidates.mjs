@@ -1,6 +1,7 @@
 import fs from "node:fs";
 const input = JSON.parse(fs.readFileSync("scripts/citymarket/41lv-image-source-candidates.json", "utf8"));
 const results = [];
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 for (const candidate of input.candidates) {
   if (!candidate.imageUrl) continue;
   const controller = new AbortController();
@@ -8,9 +9,21 @@ for (const candidate of input.candidates) {
   try {
     const response = await fetch(candidate.imageUrl, { method: "GET", redirect: "follow", signal: controller.signal, headers: { "Accept": "image/*" } });
     const type = response.headers.get("content-type") || "";
-    const bytes = response.ok && type.toLowerCase().startsWith("image/") ? (await response.arrayBuffer()).byteLength : 0;
-    const validImage = response.ok && /^image\/(jpeg|png|webp|gif|avif|svg\+xml)(?:;|$)/i.test(type) && bytes > 100;
-    const failureReason = validImage ? null : !response.ok ? "http-error" : !type.toLowerCase().startsWith("image/") ? "not-an-image" : bytes <= 100 ? "empty-or-tiny-image" : "unsupported-image-type";
+    const declaredSize = Number(response.headers.get("content-length"));
+    const oversized = Number.isFinite(declaredSize) && declaredSize > MAX_IMAGE_BYTES;
+    let bytes = 0;
+    if (response.ok && type.toLowerCase().startsWith("image/") && !oversized && response.body) {
+      const reader = response.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > MAX_IMAGE_BYTES) { await reader.cancel(); break; }
+      }
+    } else { await response.body?.cancel(); }
+    const tooLarge = oversized || bytes > MAX_IMAGE_BYTES;
+    const validImage = response.ok && /^image\/(jpeg|png|webp|gif|avif|svg\+xml)(?:;|$)/i.test(type) && bytes > 100 && !tooLarge;
+    const failureReason = validImage ? null : !response.ok ? "http-error" : !type.toLowerCase().startsWith("image/") ? "not-an-image" : tooLarge ? "image-too-large" : bytes <= 100 ? "empty-or-tiny-image" : "unsupported-image-type";
     results.push({ offerId: candidate.offerId, httpStatus: response.status, contentType: type, bytes, reachableImage: validImage, failureReason, approved: false });
   } catch (error) {
     results.push({ offerId: candidate.offerId, reachableImage: false, failureReason: "request-failed", error: String(error), approved: false });
