@@ -1,6 +1,6 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import ts from "typescript";
+const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
+const ts = require("typescript");
 const source = readFileSync("src/lib/normalSearchFallback.ts", "utf8");
 const js = ts.transpileModule(source.replace("export function", "function"), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 const getZeroResultFallbackQuery = new Function(js + "; return getZeroResultFallbackQuery;")();
