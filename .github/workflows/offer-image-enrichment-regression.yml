@@ -8,6 +8,7 @@ on:
       - "src/lib/offerImageEnrichmentQueue.ts"
       - "src/lib/offerImageEanLookup.ts"
       - "scripts/test-offer-image-enrichment.mts"
+      - "scripts/citymarket/build-image-review-queue.mjs"
       - "scripts/citymarket/audit-41lv-image-coverage.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
       - "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json"
@@ -29,3 +30,11 @@ jobs:
         run: npx --yes tsx scripts/test-offer-image-enrichment.mts
       - name: Verify approved 41LV image asset and fragment coverage
         run: node scripts/citymarket/audit-41lv-image-coverage.mjs > /dev/null
+      - name: Generate missing image review queue
+        run: node scripts/citymarket/build-image-review-queue.mjs > citymarket-image-review-queue.json
+      - name: Upload image review queue
+        uses: actions/upload-artifact@v4
+        with:
+          name: citymarket-image-review-queue
+          path: citymarket-image-review-queue.json
+          retention-days: 14
