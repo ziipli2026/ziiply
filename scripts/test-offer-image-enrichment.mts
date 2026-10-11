@@ -24,4 +24,12 @@ for (const name of ambiguous) {
   assert.equal(matchOfferImage({ name, packageSize: "750 ml" }, { name, packageSize: "750 ml", imageUrl: image.imageUrl }).accepted, false);
 }
 assert.equal(matchOfferImage({ name: "Lotus Nessu nenäliina", packageSize: "100 kpl" }, { name: "Lotus Nessu nenäliina", packageSize: "100 kpl", imageUrl: image.imageUrl }).accepted, true);
+// EAN-less leaflet offers: exact distinctive title with embedded pack size.
+const leaflet = { name: "Lotus Nessu NENÄLIINA 100 kpl Valkoinen Plussa-kortilla 4,00/2 pkt Ilman Plussa-korttia 2,19/pkt" };
+assert.equal(matchOfferImage(leaflet, { ...leaflet, imageUrl: image.imageUrl }).accepted, false, "multiple package/price quantities are not a single-product identity");
+const distinct = { name: "Lotus Nessu nenäliina 100 kpl" };
+assert.equal(matchOfferImage(distinct, { ...distinct, imageUrl: image.imageUrl }).accepted, true);
+assert.equal(matchOfferImage({ name: "WC-PAPERI 40 rl" }, { name: "WC-PAPERI 40 rl", imageUrl: image.imageUrl }).accepted, false);
+assert.equal(matchOfferImage({ name: "VICHY 0,33 l/pl 24-pack" }, { name: "VICHY 0,33 l/pl 24-pack", imageUrl: image.imageUrl }).accepted, false);
+assert.equal(matchOfferImage({ name: "Lotus Nessu nenäliina 100 kpl" }, { name: "Lotus Nessu nenäliina 200 kpl", imageUrl: image.imageUrl }).accepted, false);
 console.log("Offer image matcher regression checks passed");
