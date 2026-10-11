@@ -23,6 +23,7 @@ try {
     ['invalid-review-status', source.replace(',ambiguous_search_term,,candidate', ',ambiguous_search_term,,approved')],
     ['extra-column', source.replace('6408653129323,Juustoportti', '6408653129323,EXTRA,Juustoportti')],
     ['unclosed-quote', source.replace('6408653129323,Juustoportti', '6408653129323,"Juustoportti')],
+    ['duplicate-header', source.replace('ean,name,source,', 'ean,name,name,')],
   ];
   const results = [];
   for (const [name, csv] of cases) {
@@ -31,8 +32,8 @@ try {
     fs.writeFileSync(file, csv);
     const result = cp.spawnSync(process.execPath, ['scripts/audit-category-findings.cjs', file], {encoding:'utf8'});
     assert.equal(result.status, 1, name + ' must fail');
-    if (name === 'unclosed-quote') {
-      assert.match(result.stderr, /Unterminated quoted CSV field/, name + ' must explain parse failure');
+    if (name === 'unclosed-quote' || name === 'duplicate-header') {
+      assert.match(result.stderr, name === 'unclosed-quote' ? /Unterminated quoted CSV field/ : /Duplicate CSV header/, name + ' must explain parse failure');
     } else {
       const report = JSON.parse(result.stdout);
       assert.equal(report.status, 'FAIL', name + ' must report FAIL');
