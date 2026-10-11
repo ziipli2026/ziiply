@@ -50,6 +50,7 @@ jobs:
               if (name === 'behavior' && (
                 !Array.isArray(report.failures) ||
                 !Array.isArray(report.rankingResults) ||
+                !Array.isArray(report.retailRankingResults) ||
                 !Array.isArray(report.exclusionResults) ||
                 !Array.isArray(report.collisionResults) ||
                 !Array.isArray(report.unreviewedCollisions) ||
@@ -82,6 +83,7 @@ jobs:
             const data = JSON.parse(fs.readFileSync(file, 'utf8'));
             const ranking = data.rankingResults || [];
             const exclusion = data.exclusionResults || [];
+            const retail = data.retailRankingResults || [];
             const categories = JSON.parse(fs.readFileSync('search-audit-results/categories.json', 'utf8'));
             const collisions = JSON.parse(fs.readFileSync('search-audit-results/collisions.json', 'utf8'));
             const registryPass = Array.isArray(categories.issues) && categories.issues.length === 0;
@@ -93,6 +95,7 @@ jobs:
             const expandedLearning = data.expandedLearningResults || [];
             const ok = data.integratedLearning?.pass === true && expandedLearning.length > 0 && expandedLearning.every(x => x.pass) && registryPass && diagnosticsPass && data.passed === data.total &&
               ranking.length > 0 && ranking.every(x => x.pass) &&
+              retail.length >= 12 && retail.every(x => x.pass) &&
               exclusion.length > 0 && exclusion.every(x => x.pass) &&
               data.learning?.pass === true && data.guardedLearning?.pass === true && data.boundedLearning?.pass === true;
             fs.appendFileSync(summary, [
@@ -102,6 +105,7 @@ jobs:
               '|---|---|',
               '| Intent recognition | ' + data.passed + '/' + data.total + ' |',
               '| Product ranking | ' + ranking.filter(x=>x.pass).length + '/' + ranking.length + ' |',
+              '| Retail-style ranking fixtures | ' + retail.filter(x=>x.pass).length + '/' + retail.length + ' |',
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Registry audit | ' + (registryPass ? 'PASS' : 'FAIL (' + categories.issues.length + ' issues)') + ' |',
               '| Reviewed substring collisions | ' + collisions.collisionCount + ' |',
