@@ -44,6 +44,10 @@ try {
   }
   fs.mkdirSync('search-audit-results', {recursive:true});
   fs.writeFileSync('search-audit-results/category-negative.json', JSON.stringify({total:cases.length, passed:results.length, results, status:'PASS'}, null, 2) + '\n');
+} catch (error) {
+  fs.mkdirSync('search-audit-results', {recursive:true});
+  fs.writeFileSync('search-audit-results/category-negative.json', JSON.stringify({status:'FAIL', error:String(error), total:8, passed:0, results:[]}, null, 2) + '\n');
+  throw error;
 } finally {
   fs.rmSync(folder, {recursive:true, force:true});
 }
