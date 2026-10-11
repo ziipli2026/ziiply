@@ -48,8 +48,17 @@ for(const row of parsed.rows){
  if(targets.has(prefix))console.log('KCM_MISSING_ROW_DIAGNOSTIC',JSON.stringify({page:row.page,title:row.title,spatialResolved:row.spatialResolved,initialExpectedSingle:row.initialExpectedSingle,expectedSingle:row.expectedSingle,debugRejectedFinalBundle:row.debugRejectedFinalBundle,debugRejectedCardPrice:row.debugRejectedCardPrice,debugCardPrice:row.debugCardPrice,spatialCandidates:row.spatialCandidates}));
 }
 const wcPaperDiagnostics=parsed.rows.filter(r=>Number(r.page)===1||Number(r.page)===5).filter(r=>/WC-PAPERI/i.test(String(r.title||''))).map(r=>({page:r.page,title:r.title,price:r.spatialResolved?.value??null,quantity:r.spatialResolved?.quantity??null,rejectedCandidate:!!r.debugRejectedCardPrice}));
-const report={id:fixture.id,requests:visited.size,missingRequests,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys,wcPaperDiagnostics,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
+const wcPaperFailures=[];
+for(const row of parsed.rows){
+ const page=Number(row.page),title=String(row.title||'').toUpperCase();
+ if(![1,5].includes(page)||!/WC[-\\s]?PAPERI/.test(title))continue;
+ const resolved=row.spatialResolved;
+ if(page===1&&/40\\s*RL/.test(title)&&resolved?.value>0)wcPaperFailures.push({page,title,reason:'Unexpected price for page 1 WC paper',value:resolved.value});
+ if(page===5&&/6\\s*RL/.test(title)&&resolved?.value>0)wcPaperFailures.push({page,title,reason:'Unexpected price for page 5 six-roll WC paper',value:resolved.value});
+ if(page===5&&/40\\s*RL/.test(title)&&(!resolved||Math.abs(Number(resolved.value)-29.9)>.001||Number(resolved.quantity)!==2))wcPaperFailures.push({page,title,reason:'Expected 29.90 EUR for two 40-roll packs',resolved:resolved||null});
+}
+const report={id:fixture.id,requests:visited.size,missingRequests,pages:parsed.pageCount,expected:expected.size,matched:expected.size-missing.length,missing,extra,duplicateKeys,wcPaperDiagnostics,wcPaperFailures,fixtureSha256:createHash('sha256').update(fs.readFileSync(fixturePath)).digest('hex')};
 const reportPath=process.env.KCM_REPLAY_REPORT;
 if(reportPath)fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\n');
 console.log('KCM_REPLAY',JSON.stringify(report));
-if(parsed.pageCount!==fixture.pageCount||missing.length||extra.length||duplicateKeys||missingRequests.length)process.exitCode=1;
+if(parsed.pageCount!==fixture.pageCount||missing.length||extra.length||duplicateKeys||missingRequests.length||wcPaperFailures.length)process.exitCode=1;
