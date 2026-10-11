@@ -183,7 +183,14 @@ export default function DesktopPreviewPage() {
   const fuelCandidates=(group:string)=>fuelStations.filter((s:any)=>fuelGroupOf(s)===group && (fuelStationSide==="both" ? [s.diesel,s.price95,s.price98].some(value=>value!=null && Number.isFinite(Number(value)) && Number(value)>0) : (fuelStationSide==="traffic"?fuelIsTraffic(s):!fuelIsTraffic(s)))).sort((a:any,b:any)=>a.distanceKm-b.distanceKm);
   const fuelSelectedStation=(group:string)=>{const items=fuelCandidates(group);return items.length?items[(fuelStationIndex[group]||0)%items.length]:null;};
   const fuelChangeStation=(group:string)=>{setFuelStationIndex(prev=>({...prev,[group]:((prev[group]||0)+1)%Math.max(1,fuelCandidates(group).length)}));setFuelCompared(false);};
-  const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>fuelStations.find((s:any)=>s[type]!=null)?.[type];
+  const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>{
+    const nearest=fuelStations.filter((station:any)=>{
+      const value=station[type];
+      return value!=null && Number.isFinite(Number(value)) && Number(value)>0
+        && station.distanceKm!=null && Number.isFinite(Number(station.distanceKm));
+    }).reduce((nearest:any,station:any)=>!nearest || Number(station.distanceKm)<Number(nearest.distanceKm)?station:nearest,null);
+    return nearest?Number(nearest[type]):undefined;
+  };
 
   const fuelGroupOf=(s:any)=>{const t=String(s.chain||"").toLowerCase();return t.includes("neste")?"Neste":t.includes("st1")||t.includes("shell")?"St1":t.includes("abc")?"ABC":t.includes("seo")?"SEO":t.includes("gulf")?"Gulf":t.includes("ritoil")?"Ritoil":"Muut";};
   const fuelIsTraffic=(s:any)=>s.isTrafficStation===true;
