@@ -10,7 +10,7 @@ for(const result of discovery.results ?? []){
   const existing=discoveredById.get(result.offerId)??[];
   for(const url of result.imageCandidates){
     if(typeof url!=="string" || !url.startsWith("https://") || existing.some(item=>item.url===url))continue;
-    existing.push({url,source:result.page});
+    existing.push({url,source:result.page,eanPresentInHtml:result.identityEvidence?.eanPresentInHtml===true,structuredProductImageCount:result.identityEvidence?.structuredProductImageCount??0});
   }
   discoveredById.set(result.offerId,existing);
 }
@@ -23,7 +23,7 @@ const cards = queue.rows.map(row => {
     : '<div class="placeholder">Ei tarkistettua kuvatiedostoa</div>';
   const discovered = discoveredById.get(row.offerId) ?? [];
   const discoveredHtml = discovered.length
-    ? '<details><summary>' + discovered.length + ' uutta kuvaehdokasta (ei hyväksytty)</summary>' + discovered.map(item=>'<div class="candidate"><img loading="lazy" referrerpolicy="no-referrer" src="'+escape(item.url)+'" alt="Löydetty kuvaehdokas, tarkistamatta"><p><a target="_blank" rel="noopener noreferrer" href="'+escape(item.url)+'">Avaa kuvaehdokas</a> <a target="_blank" rel="noopener noreferrer" href="'+escape(item.source)+'">Lähdesivu</a></p></div>').join("") + '</details>'
+    ? '<details><summary>' + discovered.length + ' uutta kuvaehdokasta (ei hyväksytty)</summary>' + discovered.map(item=>'<div class="candidate"><small>'+ (item.eanPresentInHtml ? 'EAN löytyi lähdesivulta' : 'EAN ei vahvistunut lähdesivulta') + (item.structuredProductImageCount ? ' · rakenteinen tuotekuva' : ' · sivun esikatselukuva') + '</small><img loading="lazy" referrerpolicy="no-referrer" src="'+escape(item.url)+'" alt="Löydetty kuvaehdokas, tarkistamatta"><p><a target="_blank" rel="noopener noreferrer" href="'+escape(item.url)+'">Avaa kuvaehdokas</a> <a target="_blank" rel="noopener noreferrer" href="'+escape(item.source)+'">Lähdesivu</a></p></div>').join("") + '</details>'
     : '';
   const source = row.productSourceUrl ? '<a target="_blank" rel="noopener noreferrer" href="' + escape(row.productSourceUrl) + '">Tuotetiedot</a>' : '';
   const evidence = row.imageEvidenceUrl ? '<a target="_blank" rel="noopener noreferrer" href="' + escape(row.imageEvidenceUrl) + '">Kuvan lähde</a>' : '';
