@@ -35,7 +35,7 @@ const powder=/juomajauhe.*cola/iu;
 const failures=[];
 const seen=new Set();
 for(const r of rows){
-  if(!/^\\d{8,14}$/.test(r.ean)||!r.name.trim()||!r.source.trim()||!r.source_category.trim()) failures.push({ean:r.ean,error:'Missing or malformed product identity'});
+  if(!/^\d{8,14}$/.test(r.ean)||!r.name.trim()||!r.source.trim()||!r.source_category.trim()) failures.push({ean:r.ean,error:'Missing or malformed product identity'});
   const key=[r.ean,r.source,r.source_category,r.finding_type].join('|');
   if(seen.has(key))failures.push({ean:r.ean,error:'Duplicate finding'});
   seen.add(key);
