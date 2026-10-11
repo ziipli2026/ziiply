@@ -121,3 +121,49 @@ export function resolveAlignedStandalonePercentage(row){
   const values=[...new Set(badges.map(b=>Number(b.text.replace(/[^\d]/g,''))).filter(n=>n>0&&n<100))];
   return {...row,percentageOffer:values.length===1?{percent:values[0],source:'aligned-printed-standalone-percentage',confidence:'high'}:null};
 }
+
+/** Recover wrapped cosmetic category cards only with a large badge in their own column. */
+export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
+  const unique=[...new Map(rawBoxes.map(b=>[JSON.stringify(b),b])).values()];
+  const boxes=unique.filter(b=>b.height>=.012&&b.height<.025&&
+    /^(?:[A-ZÅÄÖ][A-ZÅÄÖ,-]*|ja|sekä|tai|\d+(?:[–-]\d+)?|ml|g)$/.test(b.text)&&
+    !unique.some(c=>c!==b&&Math.abs(c.top-b.top)<.001&&Math.abs(c.height-b.height)<.001&&
+      c.width>b.width+.001&&c.left<=b.left+.001&&c.left+c.width>=b.left+b.width-.001));
+  const lines=[];
+  for(const b of boxes.sort((a,b)=>a.top-b.top||a.left-b.left)){
+    let line=lines.find(l=>Math.abs(l.top-b.top)<.001&&Math.abs(l.height-b.height)<.001&&
+      b.left-l.right>=-.001&&b.left-l.right<.02);
+    if(!line){line={left:b.left,top:b.top,height:b.height,right:b.left,words:[]};lines.push(line);}
+    line.words.push(b);line.right=Math.max(line.right,b.left+b.width);
+  }
+  const consumed=new Set(),result=[];
+  for(const start of lines){
+    if(consumed.has(start))continue;
+    const block=[start];let last=start;
+    while(true){
+      const next=lines.filter(l=>!block.includes(l)&&Math.abs(l.left-start.left)<.005&&
+        Math.abs(l.height-start.height)<.001&&l.top-last.top>.005&&l.top-last.top<.022)
+        .sort((a,b)=>a.top-b.top)[0];
+      if(!next)break;block.push(next);last=next;
+    }
+    for(const l of block)consumed.add(l);
+    const title=block.map(l=>l.words.map(b=>b.text).join(' ')).join(' ').replace(/- TUOTTEET/g,'TUOTTEET');
+    if(!/IHONHOITO|HIUSTENHOITO|HIUSTENMUOTOILU|ITSERUSKETTAVAT|PUUTERIT|KULMATUOTTEET/.test(title))continue;
+    if(existingRows.some(r=>r.title===title))continue;
+    const badges=unique.filter(b=>/^[-−–]\d{1,2}%$/.test(b.text)&&b.height>=.05&&
+      Math.abs(b.left-start.left)<.08&&b.top>=last.top+last.height&&b.top-last.top<.11);
+    if(badges.length!==1)continue;
+    if(unique.some(b=>/^\d+(?:[,.]\d+)?$/.test(b.text)&&b.height>=.03&&
+      Math.abs(b.left-start.left)<.2&&b.top>=start.top&&b.top<badges[0].top+badges[0].height))continue;
+    // Another headline between the title and badge makes ownership ambiguous.
+    if(lines.some(l=>!block.includes(l)&&Math.abs(l.left-start.left)<.08&&
+      l.top>last.top&&l.top<badges[0].top))continue;
+    const percent=Number(badges[0].text.replace(/[^\d]/g,''));
+    if(!(percent>0&&percent<100))continue;
+    result.push({page,title,package:null,unitPrice:null,normal:null,spatialResolved:null,
+      percentageOffer:{percent,source:'wrapped-column-printed-percentage',confidence:'high'},
+      debugCardAnchor:{...start,text:title},debugNearbyBoxes:unique.filter(b=>
+        Math.abs(b.left-start.left)<.28&&Math.abs(b.top-start.top)<.2),nearby:[title]});
+  }
+  return result;
+}

@@ -10,6 +10,9 @@ const categorySource = match[0].replace("export function category(t:string)", "f
 const context = {clean: (s) => String(s).trim()};
 vm.runInNewContext(categorySource + "\nthis.classify=category;", context);
 const cases = [
+  ["BONDI SANDS ITSERUSKETTAVAT TUOTTEET", "Hygienia & kosmetiikka"],
+  ["DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml", "Hygienia & kosmetiikka"],
+  ["HIUSTENMUOTOILUTUOTTEET sekä HIUSVÄRIT", "Hygienia & kosmetiikka"],
   ["LUMENE PUUTERIT", "Hygienia & kosmetiikka"],
   ["LUMENE KULMATUOTTEET", "Hygienia & kosmetiikka"],
   ["RUUKUT ja KULHOT 300 g", "Valmisruoka"],

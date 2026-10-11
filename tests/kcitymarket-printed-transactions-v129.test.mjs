@@ -13,7 +13,12 @@ test('Full immutable 41LV source retains all other transactions',async()=>{
  assert.equal(meal.length,1);assert.equal(meal[0].page,14);assert.deepEqual(transaction(meal[0].spatialResolved),{value:10,quantity:4,unit:'KPL'});
  const percentages=parsed.rows.filter(r=>['LUMENE PUUTERIT','LUMENE KULMATUOTTEET'].includes(r.title));
  assert.equal(percentages.length,2);for(const r of percentages){assert.equal(r.spatialResolved,null);assert.equal(r.percentageOffer.percent,40);}
- const existing=parsed.rows.filter(r=>r!==meal[0]&&!percentages.includes(r));
+ const wrapped=parsed.rows.filter(r=>r.percentageOffer?.source==='wrapped-column-printed-percentage');
+ assert.deepEqual(wrapped.map(r=>[r.title,r.percentageOffer.percent,r.spatialResolved]),[
+ ['BONDI SANDS ITSERUSKETTAVAT TUOTTEET',25,null],
+ ['WELLAFLEX WELLA DELUXE ja SHOCKWAVES HIUSTENMUOTOILUTUOTTEET sekä CLAIROL HIUSVÄRIT',25,null],
+ ['DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml',20,null]]);
+ const existing=parsed.rows.filter(r=>r!==meal[0]&&!percentages.includes(r)&&!wrapped.includes(r));
  assert.equal(existing.length,fixture.baseline.length);
  const fixes=new Map([...fixture.corrections,...next.corrections].map(x=>[x.row.page+':'+x.row.title,x.expected]));
  for(let i=0;i<existing.length;i++){
