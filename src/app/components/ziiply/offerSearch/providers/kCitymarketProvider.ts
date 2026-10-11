@@ -750,17 +750,20 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id);
     return imageUrl?{...offer,imageUrl}:offer;
   });
-  // Restore explicit multi-buy totals when the frozen leaflet parser exposed only a
-  // calculated per-item endpoint. Do not modify the approved 41LV parser itself.
-  // Apply only to the verified 41LV leaflet and matching exact offer titles.
+  // Keep the approved spatial parser output intact. If the leaflet title itself
+  // states an unambiguous multi-buy total and quantity, that explicit transaction
+  // is stronger evidence than an inferred per-item endpoint.
+  // No leaflet-week or product-name exceptions are permitted here.
   const corrected=publisherImages.map(offer=>{
-    if(!/41LV_KCM/i.test(offer.sourceUrl||""))return offer;
-    const name=clean(offer.title).toLocaleLowerCase("fi");
-    if(name==="costa rica tai premium blend jauhetut kahvit sekä pavut 250–500 g"&&offer.price===3.33&&offer.resolutionSource==="mixed-size-endpoint-equivalence-proof")
-      return {...offer,price:10,offerQuantity:3,offerUnit:"KPL",resolutionSource:"verified-41lv-multibuy-total"};
-    if(name==="rasvaton maitorahka ja 79 rahkajogurtti 250 g"&&offer.price===0.67&&offer.resolutionSource==="same-card-box-unitrate-derived")
-      return {...offer,price:4,offerQuantity:6,offerUnit:"KPL",resolutionSource:"verified-41lv-multibuy-total"};
-    return offer;
+    const matches=[...offer.title.matchAll(/(\d{1,3}[,.]\d{2})\s*€?\s*\/\s*(\d{1,2})\s*(kpl|pkt|ps|prk|plo)\b/gi)];
+    if(matches.length!==1)return offer;
+    const match=matches[0];
+    const total=Number(match[1].replace(",","."));
+    const quantity=Number(match[2]);
+    if(!Number.isFinite(total)||total<=0||!Number.isInteger(quantity)||quantity<2||quantity>24)return offer;
+    // Do not reinterpret a package-size or ordinary unit-price notation.
+    if(offer.price===total&&offer.offerQuantity===quantity)return offer;
+    return {...offer,price:total,offerQuantity:quantity,offerUnit:match[3].toUpperCase(),resolutionSource:"explicit-leaflet-title-multibuy"};
   });
   const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(corrected));
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
