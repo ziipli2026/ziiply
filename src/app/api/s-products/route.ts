@@ -1,3 +1,4 @@
+import { getZeroResultFallbackQuery } from "@/lib/normalSearchFallback";
 import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
 import { NextResponse } from "next/server";
 import { fetchSKaupatNormalProductsV220 } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
@@ -108,6 +109,34 @@ export async function GET(request: Request) {
       const pageData = await pageResponse.json();
       return Array.isArray(pageData.items) ? pageData.items as RuoanhintaProduct[] : [];
     }) : firstPage;
+
+    // Retry only empty provider responses, and only with a conservative query.
+    // Do not replace successful exact results or use another store's prices.
+    if (sourceItems.length === 0 && response.ok) {
+      const fallbackQuery = getZeroResultFallbackQuery(search);
+      if (fallbackQuery) {
+        try {
+          const fallbackResponse = await fetch(
+            `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(fallbackQuery)}&storeIds=${storeId}&skip=0&take=80`,
+            { headers: { accept: "application/json" }, cache: "no-store", signal: AbortSignal.timeout(1800) },
+          );
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            const fallbackFirstPage: RuoanhintaProduct[] = Array.isArray(fallbackData.items) ? fallbackData.items : [];
+            const fallbackItems = await appendRuoanhintaPages(fallbackFirstPage, 80, async (skip, signal) => {
+              const pageResponse = await fetch(
+                `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(fallbackQuery)}&storeIds=${storeId}&skip=${skip}&take=80`,
+                { headers: { accept: "application/json" }, cache: "no-store", signal },
+              );
+              if (!pageResponse.ok) return [];
+              const pageData = await pageResponse.json();
+              return Array.isArray(pageData.items) ? pageData.items as RuoanhintaProduct[] : [];
+            });
+            sourceItems.push(...fallbackItems);
+          }
+        } catch { /* Keep original empty result if the fallback provider fails. */ }
+      }
+    }
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
