@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
-import {fuelDistanceKm,parseFuelPhotoText,validateFuelPrices,type FuelPrices} from "../../../../lib/fuelPhoto";
+import {comparePhotoEvidence,fuelDistanceKm,parseFuelPhotoText,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 
 type Station={id:string;name:string;chain?:string;address?:string;latitude:number;longitude:number};
 type Worker={recognize:(image:string)=>Promise<{data:{text:string}}>;terminate:()=>Promise<unknown>};
@@ -47,20 +47,21 @@ async function preparePhoto(file:File):Promise<string>{
   } finally {URL.revokeObjectURL(url);}
 }
 export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
-  const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
+  const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
   const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
   const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const onlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [confirmed,setConfirmed]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
+  const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;closeRef.current?.focus();return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
-  async function findStations(location:{lat:number;lon:number;accuracy:number}|null){
+  async function findStations(location:{lat:number;lon:number;accuracy:number}|null,automatic=true){
     const id=++gpsRequest.current;setLocating(true);setStations([]);setStationId("");
     try{
       const response=await fetch(`/api/fuel/stations?lat=${location?.lat??64}&lon=${location?.lon??26}`,{cache:"no-store"});const data=await response.json();
       if(!response.ok || !data.ok)throw new Error("Asemien haku epäonnistui.");
       if(!alive.current || id!==gpsRequest.current)return;
       const list=(data.stations as Station[]).filter(s=>!/teboil/i.test(`${s.chain} ${s.name}`)).sort((a,b)=>location?fuelDistanceKm(location.lat,location.lon,a.latitude,a.longitude)-fuelDistanceKm(location.lat,location.lon,b.latitude,b.longitude):`${a.chain} ${a.name}`.localeCompare(`${b.chain} ${b.name}`,"fi"));
-      setStations(list);setStationId(location?list[0]?.id||"":"");
+      setStations(list);setStationId(location&&automatic?list[0]?.id||"":"");
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Asemien haku epäonnistui.");}finally{if(alive.current&&id===gpsRequest.current)setLocating(false);}
   }
   function startOnline(){
@@ -72,7 +73,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     onlineCapture.current={time:localDateTime(),gps:location};onlineInput.current?.click();
   }
   async function readPhoto(file:File,source:"online"|"offline"){
-    setBusy(true);setError("");setStatus("Valmistellaan kuvaa…");setConfirmed(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
+    setBusy(true);setError("");setStatus("Valmistellaan kuvaa…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setConfirmed(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
@@ -83,10 +84,17 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       const validDate=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(exifDate)&&Number.isFinite(new Date(exifDate).getTime());
       if(validDate && /^[+-]\d{2}:\d{2}$/.test(meta?.OffsetTimeOriginal||"")){const instant=new Date(exifDate+meta!.OffsetTimeOriginal);if(Number.isFinite(instant.getTime()))exifInstant.current=instant.toISOString();}
       setObserved(validDate?exifDate:source==="online"?onlineCapture.current?.time||"":"");setTimeSource(validDate?"photo_exif":source==="online"?"capture_session":"manual");
-      let location:{lat:number;lon:number;accuracy:number}|null=null;
-      if(typeof meta?.latitude==="number"&&typeof meta.longitude==="number"&&Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude)&&Math.abs(meta.latitude)<=90&&Math.abs(meta.longitude)<=180){location={lat:meta.latitude,lon:meta.longitude,accuracy:0};setLocationSource("photo_exif");}
-      else if(source==="online"&&onlineCapture.current){location=await onlineCapture.current.gps;if(location)setLocationSource("capture_session");}
-      setGps(location);void findStations(location);
+      let photoGps:{lat:number;lon:number;accuracy:number}|null=null;
+      if(typeof meta?.latitude==="number"&&typeof meta.longitude==="number"&&Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude)&&Math.abs(meta.latitude)<=90&&Math.abs(meta.longitude)<=180)photoGps={lat:meta.latitude,lon:meta.longitude,accuracy:0};
+      const deviceGps=source==="online"&&onlineCapture.current?await onlineCapture.current.gps:null;
+      if(!alive.current)return;
+      const photoTime=validDate?(exifInstant.current||new Date(exifDate).toISOString()):null;
+      const captureTime=source==="online"&&onlineCapture.current?new Date(onlineCapture.current.time).toISOString():null;
+      const checkedEvidence={photoGps,deviceGps,photoTime,captureTime};setEvidence(checkedEvidence);
+      const checked=comparePhotoEvidence(source,checkedEvidence);
+      const location=photoGps||deviceGps;
+      setLocationSource(photoGps?"photo_exif":deviceGps?"capture_session":"manual");
+      setGps(location);void findStations(location,checked.reasons.length===0);
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":"Kuvasta puuttuu sijainti: valitse asema itse."}`:"Tarkista kuvausaika ja asema. Selaimen kameravalinta voi sallia myös vanhan kuvan valinnan.");
       const data=await preparePhoto(file);if(!alive.current)return;setPhoto(data);
       const ocr=await loadOcr();if(!alive.current)return;
@@ -99,11 +107,11 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);}
   }
   async function submit(){
-    if(!confirmed || !photo || !stationId || !validateFuelPrices(prices)){setError("Tarkista kuva, asema, havaintoaika ja vähintään yksi hinta.");return;}
+    if((conflict.reasons.length>0&&!conflictConfirmed)||!confirmed || !photo || !stationId || !validateFuelPrices(prices)){setError("Tarkista kuva, asema, havaintoaika ja vähintään yksi hinta.");return;}
     const date=new Date(exifInstant.current||observed);if(!observed || !Number.isFinite(date.getTime()) || date.getTime()>Date.now()+60000){setError("Havaintoaika ei saa olla tulevaisuudessa.");return;}
     setBusy(true);setError("");
     try{
-      const response=await fetch("/api/fuel/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:requestId.current,stationId,prices,photo,observedAt:date.toISOString(),gps,mode,timeSource,locationSource,confirmed:true})});
+      const response=await fetch("/api/fuel/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:requestId.current,stationId,prices,photo,observedAt:date.toISOString(),gps,mode,timeSource,locationSource,evidence,conflictConfirmed,confirmed:true})});
       const data=await response.json();if(!response.ok)throw new Error(data.error||"Ilmoituksen lähettäminen epäonnistui.");
       if(alive.current){setSent(true);setStatus("Kiitos! Hintailmoitus tallennettiin esikatselun testikantaan tarkistettavaksi.");}
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Lähetys epäonnistui.");}finally{if(alive.current)setBusy(false);}
@@ -122,14 +130,15 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
         {rawText&&<details className="mt-3 text-xs"><summary className="cursor-pointer font-bold">Näytä kuvasta luettu teksti</summary><pre className="mt-2 whitespace-pre-wrap">{rawText}</pre></details>}
       </div><div className="space-y-3">
         <p className="rounded-xl bg-[#e3edc9] p-3 text-xs text-[#174c35]">{metadataInfo||"Kuvan kuvausaika ja sijainti luetaan automaattisesti, jos ne ovat mukana."}</p>
+        {conflict.reasons.length>0&&<div role="alert" className="rounded-xl border-2 border-[#bd6b2a] bg-[#ffe6c8] p-3 text-sm text-[#713d1c]"><p className="font-black">Kuvan ja laitteen tiedoissa on ristiriita</p>{conflict.reasons.includes("location")&&<p>Sijaintien ero noin {Math.round(conflict.distanceM||0)} m. Kuva: {evidence.photoGps?.lat.toFixed(5)}, {evidence.photoGps?.lon.toFixed(5)}. Laite: {evidence.deviceGps?.lat.toFixed(5)}, {evidence.deviceGps?.lon.toFixed(5)}.</p>}{conflict.reasons.includes("time")&&<p>Kuvausaika poikkeaa kuvaamisen aloitusajasta noin {Math.round(conflict.timeDifferenceMinutes||0)} min. Kuva: {evidence.photoTime?new Date(evidence.photoTime).toLocaleString("fi-FI"):"–"}. Aloitus: {evidence.captureTime?new Date(evidence.captureTime).toLocaleString("fi-FI"):"–"}. Jos valitsit vanhan kuvan, käytä offline-valintaa.</p>}<p>Valitse kuvattu asema itse. Ilmoitus jää tarkistettavaksi.</p><label className="mt-2 flex gap-2"><input type="checkbox" checked={conflictConfirmed} disabled={!stationId||busy||sent} onChange={e=>setConflictConfirmed(e.target.checked)}/><span>Vahvistan valitun aseman ja kuvausajan ristiriidasta huolimatta.</span></label></div>}
         {locating&&<p role="status" className="text-xs">Haetaan asemia…</p>}
         {gps&&<p className="text-xs text-[#6d604c]">{locationSource==="photo_exif"?"Asemat kuvan sijainnin mukaan.":`Kuvaamisen yhteydessä saatu GPS, tarkkuus noin ${Math.round(gps.accuracy)} m.`}</p>}
-        <label className="block text-sm font-bold">Asema<select value={stationId} disabled={!stations.length||busy||sent} onChange={e=>{setStationId(e.target.value);setConfirmed(false);}} className={input}><option value="">Valitse kuvassa oleva asema</option>{stations.map(s=><option key={s.id} value={s.id}>{s.chain} · {s.name} · {s.address}{gps?` · ${fuelDistanceKm(gps.lat,gps.lon,s.latitude,s.longitude).toFixed(1)} km`:""}</option>)}</select></label>
+        <label className="block text-sm font-bold">Asema<select value={stationId} disabled={!stations.length||busy||sent} onChange={e=>{setStationId(e.target.value);setConfirmed(false);setConflictConfirmed(false);}} className={input}><option value="">Valitse kuvassa oleva asema</option>{stations.map(s=><option key={s.id} value={s.id}>{s.chain} · {s.name} · {s.address}{gps?` · ${fuelDistanceKm(gps.lat,gps.lon,s.latitude,s.longitude).toFixed(1)} km`:""}</option>)}</select></label>
         <div className="grid grid-cols-3 gap-2">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).map(([key,label])=><label key={key} className="text-sm font-bold">{label}<input aria-label={`${label} hinta euroa litralta`} inputMode="decimal" placeholder="–" value={prices[key]} disabled={busy||sent} onChange={e=>{setPrices(p=>({...p,[key]:e.target.value}));setConfirmed(false);}} className={input+" text-lg font-black"}/></label>)}</div>
         <p className="text-xs text-[#6d604c]">€/l. Jätä puuttuva hinta tyhjäksi.</p>
-        <label className="block text-sm font-bold">Milloin kuva otettiin?<input type="datetime-local" value={observed} disabled={busy||sent} onChange={e=>{exifInstant.current=null;setObserved(e.target.value);setTimeSource("manual");setConfirmed(false);}} className={input}/></label>
+        <label className="block text-sm font-bold">Milloin kuva otettiin?<input type="datetime-local" value={observed} disabled={busy||sent} onChange={e=>{exifInstant.current=null;setObserved(e.target.value);setTimeSource("manual");setConfirmed(false);setConflictConfirmed(false);}} className={input}/></label>
         <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={confirmed} disabled={busy||sent} onChange={e=>setConfirmed(e.target.checked)} className="mt-1"/><span>Tarkistin kuvasta hinnat, aseman ja kuvausajan.</span></label>
-        <button type="button" onClick={()=>void submit()} disabled={busy||sent||!confirmed||!photo||!observed||!stationId||!validateFuelPrices(prices)} className="w-full rounded-xl border-2 border-[#123d2b] bg-[#17573c] px-4 py-3 font-black text-white disabled:opacity-40">{sent?"Ilmoitus tallennettu":busy?"Odota…":"Lähetä hintailmoitus"}</button>
+        <button type="button" onClick={()=>void submit()} disabled={busy||sent||(conflict.reasons.length>0&&!conflictConfirmed)||!confirmed||!photo||!observed||!stationId||!validateFuelPrices(prices)} className="w-full rounded-xl border-2 border-[#123d2b] bg-[#17573c] px-4 py-3 font-black text-white disabled:opacity-40">{sent?"Ilmoitus tallennettu":busy?"Odota…":"Lähetä hintailmoitus"}</button>
         <p className="text-xs text-[#6d604c]">Esikatselun ilmoitukset ja kuvat tallennetaan testikantaan tarkistettavaksi. Ne eivät vielä muuta julkaistuja hintoja.</p>
       </div></div><p role="status" aria-live="polite" className="mt-4 text-sm font-bold text-[#17573c]">{status}</p>{error&&<p role="alert" className="mt-2 rounded-xl bg-[#ffe1cf] p-3 text-sm font-bold text-[#8b331d]">{error}</p>}</div>
     </div>

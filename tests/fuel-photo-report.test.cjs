@@ -27,7 +27,20 @@ test('report route isolates preview and rejects offline capture-session metadata
     assert.equal((await route.POST(request(body))).status,503);assert.equal(calls,0);
     process.env.VERCEL_ENV='preview';assert.equal((await route.POST(request(body,'https://other.example'))).status,403);
     assert.equal((await route.POST(request({...body,locationSource:'capture_session'}))).status,400);assert.equal(calls,0);
-    assert.equal((await route.POST(request(body))).status,200);assert.equal(calls,3);
+    const conflictBody={...body,mode:'online',evidence:{photoGps:{lat:60.63,lon:24.86,accuracy:0},deviceGps:{lat:61.5,lon:25,accuracy:30},photoTime:body.observedAt,captureTime:'2026-10-11T06:10:00Z'}};
+    assert.equal((await route.POST(request(conflictBody))).status,400);assert.equal(calls,0);
+    assert.equal((await route.POST(request({...conflictBody,conflictConfirmed:true}))).status,200);assert.equal(calls,3);
+    assert.equal((await route.POST(request(body))).status,200);assert.equal(calls,6);
     assert.equal((await route.POST(request({...body,gps:null,locationSource:'manual'}))).status,200);
   }finally{previous.env===undefined?delete process.env.VERCEL_ENV:process.env.VERCEL_ENV=previous.env;previous.url===undefined?delete process.env.TANKKAUS_TEST_DATABASE_URL:process.env.TANKKAUS_TEST_DATABASE_URL=previous.url;}
+});
+
+test('photo/device comparison accounts for uncertainty and ignores current GPS for offline photos',()=>{
+  const base={photoGps:{lat:60.63,lon:24.86,accuracy:0},deviceGps:{lat:60.6301,lon:24.8601,accuracy:30},photoTime:'2026-10-11T05:10:00Z',captureTime:'2026-10-11T05:11:00Z'};
+  assert.equal(helpers.comparePhotoEvidence('online',base).reasons.length,0);
+  const moved={...base,deviceGps:{lat:61.5,lon:25,accuracy:30},captureTime:'2026-10-11T06:10:00Z'};
+  assert.equal(helpers.comparePhotoEvidence('online',moved).reasons.join(','),'location,time');
+  assert.equal(helpers.comparePhotoEvidence('offline',moved).reasons.length,0);
+  assert.equal(helpers.comparePhotoEvidence('online',{...base,photoGps:null,photoTime:null}).reasons.length,0);
+  assert.equal(helpers.comparePhotoEvidence('online',{...base,deviceGps:{lat:60.634,lon:24.86,accuracy:1000}}).reasons.length,0);
 });

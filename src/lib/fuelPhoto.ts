@@ -29,3 +29,26 @@ export function validateFuelPrices(value:unknown): Record<string,number> | null 
   }
   return Object.keys(result).length?result:null;
 }
+
+export type PhotoLocation={lat:number;lon:number;accuracy:number};
+export type PhotoEvidence={photoGps:PhotoLocation|null;deviceGps:PhotoLocation|null;photoTime:string|null;captureTime:string|null};
+export function validPhotoLocation(value:unknown):value is PhotoLocation{
+  if(!value || typeof value!=="object")return false;
+  const p=value as PhotoLocation;
+  return typeof p.lat==="number"&&typeof p.lon==="number"&&typeof p.accuracy==="number"&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Number.isFinite(p.accuracy)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180&&p.accuracy>=0;
+}
+export function comparePhotoEvidence(mode:string,evidence:PhotoEvidence){
+  const reasons:string[]=[];let distanceM:number|null=null;let timeDifferenceMinutes:number|null=null;
+  if(mode!=="online")return {reasons,distanceM,timeDifferenceMinutes};
+  if(validPhotoLocation(evidence.photoGps)&&validPhotoLocation(evidence.deviceGps)){
+    distanceM=fuelDistanceKm(evidence.photoGps.lat,evidence.photoGps.lon,evidence.deviceGps.lat,evidence.deviceGps.lon)*1000;
+    // EXIF commonly omits accuracy. Use a 100 m floor, plus both reported uncertainties.
+    if(distanceM>100+evidence.photoGps.accuracy+evidence.deviceGps.accuracy)reasons.push("location");
+  }
+  const photoTime=Date.parse(evidence.photoTime||""),captureTime=Date.parse(evidence.captureTime||"");
+  if(Number.isFinite(photoTime)&&Number.isFinite(captureTime)){
+    timeDifferenceMinutes=Math.abs(photoTime-captureTime)/60000;
+    if(timeDifferenceMinutes>5)reasons.push("time");
+  }
+  return {reasons,distanceM,timeDifferenceMinutes};
+}
