@@ -38,13 +38,14 @@ if (!entry) {
   const parsed = uncovered.map(row => ({ ...row, extracted: parseIdentity(row.identity) }));
   // Review candidates are evidence, not approved images. Keep them outside the manifest.
   const manualEvidence = [
-    { identity: "arkimeetvursti 400 g", ean: "6409630019507", bankName: "Kotivara Arkimeetvursti 400g", status: "brand-unverified" },
-    { identity: "poron paistikäristys 400 g", ean: "6405980450007", bankName: "Rönkä Poron paistikäristys 400 g pakaste", status: "brand-unverified" },
-    { identity: "sriracha kastikkeet 215 ml", ean: "8710605030556", bankName: "Go-Tan Tulinen sriracha chili ketsuppi kastike 215ml", status: "multi-product-offer" },
+    { identity: "arkimeetvursti 400 g", ean: "6409630019507", bankName: "Kotivara Arkimeetvursti 400g", status: "brand-unverified", evidence: "Neon product bank; leaflet brand not verified" },
+    { identity: "poron paistikäristys 400 g", ean: "6405980450007", bankName: "Rönkä Poron paistikäristys 400 g pakaste", status: "brand-unverified", evidence: "Neon product bank; leaflet brand not verified" },
+    { identity: "sriracha kastikkeet 215 ml", ean: "8710605030556", bankName: "Go-Tan Tulinen sriracha chili ketsuppi kastike 215ml", status: "multi-product-offer", evidence: "Plural offer; one image cannot represent every variant" },
   ];
   const reviewCandidates = manualEvidence.map(candidate => {
     const offer = uncovered.find(row => row.identity === candidate.identity);
     assert.ok(offer, "Review candidate must exist in the approved 41LV fixture: " + candidate.identity);
+    assert.ok(!publication.images[offer.key], "Review candidates must not overwrite approved images");
     return { offerId: offer.key, ...candidate, approved: false };
   });
   const report = {
