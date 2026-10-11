@@ -79,7 +79,7 @@ jobs:
             try {
               const report = JSON.parse(fs.readFileSync(file, 'utf8'));
               if (!report || typeof report !== 'object') throw new Error('Invalid report');
-              if (name === 'category-negative' && (report.status !== 'PASS' || report.total !== 7 || report.passed !== 7 || !Array.isArray(report.results) || report.results.length !== 7 || report.results.some(row => row.pass !== true))) throw new Error('Negative category audit regression failed');
+              if (name === 'category-negative' && (report.status !== 'PASS' || report.total !== 8 || report.passed !== 8 || !Array.isArray(report.results) || report.results.length !== 8 || report.results.some(row => row.pass !== true))) throw new Error('Negative category audit regression failed');
               if (name === 'category-findings' && (report.rows !== 65 || report.status !== 'PASS' || !Array.isArray(report.failures) || report.failures.length !== 0 || report.counts?.source_misclassification !== 17 || report.counts?.more_specific_subcategory !== 37 || report.counts?.ambiguous_search_term !== 11)) throw new Error('Neon snapshot category findings regression failed');
               if (name === 'category-fixtures' && (report.total < 10 || report.passed !== report.total || !Array.isArray(report.results))) throw new Error('Category fixture regression failed');
               if (name === 'behavior' && (
@@ -143,7 +143,7 @@ jobs:
             const findings = JSON.parse(fs.readFileSync('search-audit-results/category-findings.json', 'utf8'));
             const categoryFixtures = JSON.parse(fs.readFileSync('search-audit-results/category-fixtures.json', 'utf8'));
             const categoryNegative = JSON.parse(fs.readFileSync('search-audit-results/category-negative.json', 'utf8'));
-            const negativePass = categoryNegative.status === 'PASS' && categoryNegative.total === 7 && categoryNegative.passed === 7 && categoryNegative.results?.length === 7;
+            const negativePass = categoryNegative.status === 'PASS' && categoryNegative.total === 8 && categoryNegative.passed === 8 && categoryNegative.results?.length === 8;
             const findingsPass = findings.status === 'PASS' && findings.rows === 65 && findings.failures?.length === 0 && findings.counts?.source_misclassification === 17 && findings.counts?.more_specific_subcategory === 37 && findings.counts?.ambiguous_search_term === 11;
             const categoryFixturesPass = categoryFixtures.total >= 10 && categoryFixtures.passed === categoryFixtures.total;
             const collisions = JSON.parse(fs.readFileSync('search-audit-results/collisions.json', 'utf8'));
@@ -174,7 +174,7 @@ jobs:
               '| Extra-request budget (simulated) | ' + (requestCountsPass ? 'PASS' : 'FAIL') + ' |',
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Registry audit | ' + (registryPass ? 'PASS' : 'FAIL (' + categories.issues.length + ' issues)') + ' |',
-              '| Negative category audit regressions | ' + (negativePass ? 'PASS (7/7)' : 'FAIL') + ' |',
+              '| Negative category audit regressions | ' + (negativePass ? 'PASS (8/8)' : 'FAIL') + ' |',
               '| Neon category findings snapshot | ' + (findingsPass ? 'PASS (65/65)' : 'FAIL') + ' |',
               '| Category classification fixtures | ' + (categoryFixturesPass ? 'PASS (' + categoryFixtures.passed + '/' + categoryFixtures.total + ')' : 'FAIL') + ' |',
               '| Reviewed substring collisions | ' + collisions.collisionCount + ' |',
