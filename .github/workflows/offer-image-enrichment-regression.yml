@@ -31,10 +31,13 @@ jobs:
       - name: Verify approved 41LV image asset and fragment coverage
         run: node scripts/citymarket/audit-41lv-image-coverage.mjs > /dev/null
       - name: Generate missing image review queue
+        if: always()
         run: node scripts/citymarket/build-image-review-queue.mjs > citymarket-image-review-queue.json
       - name: Upload image review queue
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: citymarket-image-review-queue
           path: citymarket-image-review-queue.json
           retention-days: 14
+          if-no-files-found: error
