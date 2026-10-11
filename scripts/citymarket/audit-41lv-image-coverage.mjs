@@ -24,15 +24,15 @@ if (!entry) {
   // The approved leaflet fixture does not contain EANs or verified brands.
   const parseIdentity = (identity) => {
     const raw = identity.trim();
-    if (unsafeName.test(raw) || /\\b(?:plussa|ilman|tarjous|norm\\.|alk\\.)\\b/i.test(raw)) return null;
-    const matches = [...raw.matchAll(/(\\d+(?:[.,]\\d+)?)\\s*(kg|g|ml|l)\\b/gi)];
+    if (unsafeName.test(raw) || /\b(?:plussa|ilman|tarjous|norm\.|alk\.)\b/i.test(raw)) return null;
+    const matches = [...raw.matchAll(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/gi)];
     if (matches.length !== 1) return null;
     const match = matches[0];
     const before = raw.slice(0, match.index).trim();
     const after = raw.slice(match.index + match[0].length).trim();
-    if (after && !/^\\([^)]*\\)$/.test(after)) return null;
-    if (before.length < 12 || /\\d|\\/|\\b(?:ja|tai|sekä|seka)\\b/i.test(before)) return null;
-    if (/\\b(?:geelit|suihkeet|tiivisteet|tahranpoistajat|jäätelöt|juustoviipaleet|pyykinpesunesteet|täysmehut|rahkat|vanukkaat|pyykkietikat|suihkugeelit|wc-paperi|meikkivoide)\\b/i.test(before)) return null;
+    if (after && !/^\([^)]*\)$/.test(after)) return null;
+    if (before.length < 12 || /\d|\/|\b(?:ja|tai|sekä|seka)\b/i.test(before)) return null;
+    if (/\b(?:geelit|suihkeet|tiivisteet|tahranpoistajat|jäätelöt|juustoviipaleet|pyykinpesunesteet|täysmehut|rahkat|vanukkaat|pyykkietikat|suihkugeelit|wc-paperi|meikkivoide)\b/i.test(before)) return null;
     return { name: before, packageSize: match[1].replace(",", ".") + " " + match[2].toLowerCase() };
   };
   const parsed = uncovered.map(row => ({ ...row, extracted: parseIdentity(row.identity) }));
