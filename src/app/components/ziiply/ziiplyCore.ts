@@ -817,11 +817,15 @@ export function detectSearchIntent(query: string): SearchIntent {
 
   if (exactIntent) return exactIntent;
 
-  const tokenIntent = SEARCH_INTENTS.find((intent) =>
-    [...intent.variants, ...(intent.requiredAny || [])].some((token) => normalized.includes(normalize(token)))
+  // Prefer the longest matching term across categories. Otherwise a short
+  // substring (e.g. "kana" inside "porkkana") wins merely by registry order.
+  const tokenCandidates = SEARCH_INTENTS.flatMap((intent) =>
+    [...intent.variants, ...(intent.requiredAny || [])]
+      .map((token) => ({ intent, token: normalize(token) }))
+      .filter(({ token }) => token.length >= 3 && normalized.includes(token))
   );
-
-  if (tokenIntent) return tokenIntent;
+  tokenCandidates.sort((a, b) => b.token.length - a.token.length);
+  if (tokenCandidates.length) return tokenCandidates[0].intent;
 
   const alias = getSearchQuery(query);
   const aliasIntent = SEARCH_INTENTS.find((intent) =>
