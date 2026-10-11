@@ -32,6 +32,8 @@ jobs:
         run: |
           set -o pipefail
           node scripts/audit-category-findings.cjs scripts/fixtures/category-findings-test-20261011.csv | tee search-audit-results/category-findings.json
+      - name: Verify category audit rejects invalid data
+        run: node scripts/test-category-audit-negative.cjs
       - name: Report ambiguous category substrings
         if: success() || failure()
         run: |
