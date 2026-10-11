@@ -585,6 +585,7 @@ function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
 // Immutable publication URL for a period whose public entry already rolled forward.
 const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-01-W40-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/80s40wg_tarjouslehti_40LV_KCM/index.html",
+  "2026-10-12-W42-AV":"https://kcm-tarjouslehdet.k-ruoka.fi/83z6h5o_tarjouslehti_42AV_KCM/index.html",
 };
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
   return PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
@@ -599,7 +600,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004"],
+  ["ziiply-kcitymarket-offers-mobile-42av-preview-20261011"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -720,7 +721,11 @@ function visibleCitymarketDailyOffers(offers:CitymarketOffer[]):CitymarketOffer[
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
-  const active=getActiveKCitymarketPeriod();
+  // Only this dedicated Vercel preview may show the forthcoming publication.
+  // Keep the leaflet's real validity dates and source URL in exported diagnostics.
+  const preview42AV=process.env.VERCEL_ENV==="preview"&&
+    process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-42av";
+  const active=preview42AV?periodFromStart("2026-10-12","AV"):getActiveKCitymarketPeriod();
 
   // The Wednesday/Sunday background warm-up parses the next leaflet after
   // 15:00 Europe/Helsinki. Once that period becomes active, serve the exact
