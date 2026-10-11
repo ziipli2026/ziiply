@@ -34,5 +34,11 @@ try{
  const beer=run([record('ALKOHOLITON OLUT 0,0 % 0,33 l/tlk 8-pack','kcm:spatial:20:beer:7.99',7.99,2.57,'0,33 l')]);
  assert.equal(beer.status,0,'a plausible can deposit must not be a proven price error');
  assert.equal(beer.result.issueCounts['possible-container-deposit-review'],1);
- console.log('Citymarket audit regression: 5 fixtures passed');
+ const catFood=run([record('KISSAN KUIVARUOAT 400 g','kcm:spatial:20:cat-food:4.20',4.20,8.325,'400 g')]);
+ assert.equal(catFood.status,1,'cat food price-unit conflict must block regardless of glyph ownership');
+ assert.equal(catFood.result.issueCounts['unit-price-inconsistency'],1);
+ const riceCakes=run([record('MAISSIKAKUT 130 g','kcm:spatial:20:rice-cakes:2.40',2.40,2.00/0.130,'130 g')]);
+ assert.equal(riceCakes.status,1,'rice cakes price-unit conflict must block regardless of spatial candidate source');
+ assert.equal(riceCakes.result.issueCounts['unit-price-inconsistency'],1);
+ console.log('Citymarket audit regression: 7 fixtures passed');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
