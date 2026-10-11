@@ -1346,13 +1346,16 @@ export default function DesktopPreviewPage() {
                     </div>
                   </div>
                   {electricityPrices.length>0 ? <div className="mt-3">
-                    <div className="flex h-[140px] items-end gap-[2px] border-b-2 border-[#b58a46] pb-1" role="img" aria-label="Pörssisähkön hinnat aikajärjestyksessä">
+                    <div className="relative h-[140px]">
+                      {(()=>{const max=Math.max(10,...electricityPrices.slice(0,192).map(p=>Math.abs(p.price)));return <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#875e37]/70" style={{bottom:(10/max*100)+"%"}}><span className="absolute -top-5 left-0 rounded bg-[#fff9e7]/95 px-1 text-[11px] font-black text-[#875e37]">10 snt/kWh</span></div>})()}
+                    <div className="flex h-full items-end gap-[2px] border-b-2 border-[#b58a46] pb-1" role="img" aria-label="Pörssisähkön hinnat aikajärjestyksessä">
                       {electricityPrices.slice(0,192).map((p,i,arr)=>{
-                        const max=Math.max(1,...arr.map(x=>Math.abs(x.price)));
+                        const max=Math.max(10,...arr.map(x=>Math.abs(x.price)));
                         const height=Math.max(3,Math.abs(p.price)/max*100);
                         const now=Date.now();
                         return <div key={p.start+"-"+i} title={new Date(p.start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})+": "+p.price.toFixed(2).replace(".",",")+" snt/kWh"} className={`min-w-0 flex-1 rounded-t-sm ${p.start<=now&&now<p.end?"bg-[#b4472c]":p.price<5?"bg-[#75a744]":p.price<12?"bg-[#d9a52c]":"bg-[#b85b35]"}`} style={{height:height+"%"}} />;
                       })}
+                    </div>
                     </div>
                     <div className="mt-2 flex justify-between gap-2 text-[11px] font-bold text-[#6d604c]"><span>{new Date(electricityPrices[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>Ziiplyn sähkörajapinta · snt/kWh</span><span>{new Date(electricityPrices[Math.min(191,electricityPrices.length-1)].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
                   </div> : <p className="mt-8 text-sm text-[#6d604c]">Hintakuvaajaa ei saatavilla. Esimerkkihintoja ei näytetä oikeina hintoina.</p>}
