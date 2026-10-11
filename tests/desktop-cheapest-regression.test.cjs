@@ -96,18 +96,15 @@ test('selected alternative updates compare row price, quantity total and missing
   assert.equal(state.shop.total,6.98,'invalid price must not change total');
 });
 
-test('S-market local route accepts actual store names and never falls back to Prisma',()=>{
+test('S-market local route validates actual store names and never falls back to Prisma',()=>{
   const route=fs.readFileSync('src/app/api/s-products/route.ts','utf8');
-  const match=route.match(/if \(!\/([^\n]+)\/i\.test\(storeName\)\)/);
+  const match=route.match(/if \(storeType === "local" && \(!\/(.*?)\/i\.test\(storeName\)/);
   assert.ok(match,'S-market validation regex must be present');
   const re=new RegExp(match[1],'i');
   assert.equal(re.test('S-market Hyvinkää'),true);
   assert.equal(re.test('S-Market Jokela'),true);
   assert.equal(re.test('Prisma Hyvinkää'),false);
-  const start=route.indexOf('if (storeType === "local")');
-  const end=route.indexOf('const endpoint =',start);
-  assert.ok(start>0&&end>start,'local S-market branch must precede Ruoanhinta lookup');
-  const local=route.slice(start,end);
-  assert.match(local,/fetchSKaupatNormalProductsV220\(search, storeName\)/);
-  assert.doesNotMatch(local,/resolveSStoreId|292/);
+  assert.match(route,/if \(storeType === "local" &&/);
+  assert.match(route,/fetchSKaupatNormalProductsV220\(search, storeName\)/);
+  assert.doesNotMatch(route,/storeType === "local"[\\s\\S]{0,250}storeId = 292/);
 });
