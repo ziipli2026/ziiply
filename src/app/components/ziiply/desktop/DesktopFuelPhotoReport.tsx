@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
-import {comparePhotoEvidence,fuelDistanceKm,parseFuelPhotoText,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {comparePhotoEvidence,identifyFuelPhotoStation,fuelDistanceKm,parseFuelPhotoText,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 
 type Station={id:string;name:string;chain?:string;address?:string;latitude:number;longitude:number};
 type Worker={recognize:(image:string)=>Promise<{data:{text:string}}>;terminate:()=>Promise<unknown>};
@@ -54,14 +54,14 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;closeRef.current?.focus();return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
-  async function findStations(location:{lat:number;lon:number;accuracy:number}|null,automatic=true){
+  async function findStations(location:{lat:number;lon:number;accuracy:number}|null){
     const id=++gpsRequest.current;setLocating(true);setStations([]);setStationId("");
     try{
       const response=await fetch(`/api/fuel/stations?lat=${location?.lat??64}&lon=${location?.lon??26}`,{cache:"no-store"});const data=await response.json();
       if(!response.ok || !data.ok)throw new Error("Asemien haku epäonnistui.");
-      if(!alive.current || id!==gpsRequest.current)return;
+      if(!alive.current || id!==gpsRequest.current)return [];
       const list=(data.stations as Station[]).filter(s=>!/teboil/i.test(`${s.chain} ${s.name}`)).sort((a,b)=>location?fuelDistanceKm(location.lat,location.lon,a.latitude,a.longitude)-fuelDistanceKm(location.lat,location.lon,b.latitude,b.longitude):`${a.chain} ${a.name}`.localeCompare(`${b.chain} ${b.name}`,"fi"));
-      setStations(list);setStationId(location&&automatic?list[0]?.id||"":"");
+      setStations(list);setStationId("");return list;
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Asemien haku epäonnistui.");}finally{if(alive.current&&id===gpsRequest.current)setLocating(false);}
   }
   function startOnline(){
@@ -94,7 +94,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       const checked=comparePhotoEvidence(source,checkedEvidence);
       const location=photoGps||deviceGps;
       setLocationSource(photoGps?"photo_exif":deviceGps?"capture_session":"manual");
-      setGps(location);void findStations(location,checked.reasons.length===0);
+      setGps(location);const stationSearch=findStations(location);
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":"Kuvasta puuttuu sijainti: valitse asema itse."}`:"Tarkista kuvausaika ja asema. Selaimen kameravalinta voi sallia myös vanhan kuvan valinnan.");
       const data=await preparePhoto(file);if(!alive.current)return;setPhoto(data);
       const ocr=await loadOcr();if(!alive.current)return;
@@ -102,6 +102,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
       const result=await worker.recognize(data);if(!alive.current)return;
       const parsed=parseFuelPhotoText(result.data.text);setPrices(parsed);setRawText(result.data.text);
+      const candidates=await stationSearch;if(!alive.current)return;setStationId(identifyFuelPhotoStation(candidates||[],location,result.data.text,checked.reasons.length>0));
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
     finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);}

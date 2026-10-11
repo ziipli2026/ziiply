@@ -44,3 +44,15 @@ test('photo/device comparison accounts for uncertainty and ignores current GPS f
   assert.equal(helpers.comparePhotoEvidence('online',{...base,photoGps:null,photoTime:null}).reasons.length,0);
   assert.equal(helpers.comparePhotoEvidence('online',{...base,deviceGps:{lat:60.634,lon:24.86,accuracy:1000}}).reasons.length,0);
 });
+
+test('station recognition requires unambiguous nearby GPS and supports OCR brand',()=>{
+ const gps={lat:60.63,lon:24.86,accuracy:30};
+ const stations=[{id:'1',name:'ABC Test',chain:'ABC',latitude:60.63,longitude:24.86},{id:'2',name:'Neste Test',chain:'Neste',latitude:60.6301,longitude:24.86}];
+ assert.equal(helpers.identifyFuelPhotoStation(stations,gps,'ABC Diesel 1.798',false),'1');
+ assert.equal(helpers.identifyFuelPhotoStation(stations,gps,'Diesel 1.798',false),'');
+ assert.equal(helpers.identifyFuelPhotoStation(stations,gps,'ABC',true),'');
+ assert.equal(helpers.identifyFuelPhotoStation(stations,null,'ABC',false),'');
+ assert.equal(helpers.identifyFuelPhotoStation(stations,{...gps,lat:61},'ABC',false),'');
+ assert.equal(helpers.identifyFuelPhotoStation(stations,{...gps,accuracy:1000},'ABC',false),'');
+ assert.equal(helpers.fuelPhotoBrand('ABC Neste'),null);
+});

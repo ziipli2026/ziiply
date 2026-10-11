@@ -52,3 +52,16 @@ export function comparePhotoEvidence(mode:string,evidence:PhotoEvidence){
   }
   return {reasons,distanceM,timeDifferenceMinutes};
 }
+
+// A brand supports GPS evidence; it cannot locate a station by itself.
+export function fuelPhotoBrand(text:string):string|null {
+  const brands=["ABC","Neste","St1","Shell","SEO","Gulf","Teboil"];
+  const found=brands.filter(brand=>new RegExp("\\b"+brand+"\\b","i").test(text));
+  return found.length===1?found[0]:null;
+}
+export function identifyFuelPhotoStation<T extends {id:string;name:string;chain?:string;latitude:number;longitude:number}>(stations:T[],location:PhotoLocation|null,text:string,conflicted:boolean):string {
+  if(!location || conflicted || location.accuracy>200)return "";
+  const brand=fuelPhotoBrand(text);
+  const candidates=stations.filter(s=>(!brand || fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=Math.max(100,location.accuracy+50));
+  return candidates.length===1?candidates[0].id:"";
+}
