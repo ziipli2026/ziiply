@@ -59,6 +59,7 @@ const samples = [
   ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
 assert(samples.length >= 16, "Insufficient intent regression coverage");
+samples.push(...[["kerma", "cream"], ["kuohukerma", "cream"], ["ruokakerma", "cream"], ["vispikerma", "cream"], ["rahka", "quark"], ["maitorahka", "quark"], ["proteiinirahka", "quark"], ["raejuusto", "cottage_cheese"], ["tuorejuusto", "cream_cheese"], ["voi", "butter"], ["meijerivoi", "butter"], ["margariini", "margarine"], ["kasvirasvalevite", "margarine"], ["tee", "tea"], ["mustatee", "tea"], ["vihreä tee", "tea"], ["teepussi", "tea"], ["mehu", "juice"], ["appelsiinimehu", "juice"], ["omenamehu", "juice"], ["makkara", "sausage"], ["grillimakkara", "sausage"], ["lenkkimakkara", "sausage"], ["nakki", "sausage"], ["leikkele", "cold_cuts"], ["kinkkuleikkele", "cold_cuts"], ["kalkkunaleikkele", "cold_cuts"], ["hammastahna", "toothpaste"], ["deodorantti", "deodorant"], ["antiperspirantti", "deodorant"]]);
 const results=[];
 for (const [query,expected] of samples) {
  const actual=core.detectSearchIntent(query).category;
@@ -80,6 +81,7 @@ const rankingCases = [
   {query:"tomaattipyree", products:[makeProduct(18,"Tomaattipyree ja tomaattimurska 400 g","Säilykkeet")], first:18},
   {query:"tomaattimurska", products:[makeProduct(19,"Tomaattimurska ja tomaattipyree 400 g","Säilykkeet")], first:19},
 ];
+rankingCases.push(...[{"query": "kuohukerma", "products": [{"id": 500, "name": "Kermajäätelö 1 l", "category": "Kermat", "price": 2.5}, {"id": 501, "name": "Valio kuohukerma 2 dl", "category": "Kermat", "price": 2.5}], "first": 501}, {"query": "maitorahka", "products": [{"id": 502, "name": "Rahkapiirakka 400 g", "category": "Rahkat", "price": 2.5}, {"id": 503, "name": "Valio maitorahka 250 g", "category": "Rahkat", "price": 2.5}], "first": 503}, {"query": "raejuusto", "products": [{"id": 504, "name": "Raejuustosalaatti 300 g", "category": "Raejuustot", "price": 2.5}, {"id": 505, "name": "Arla raejuusto 200 g", "category": "Raejuustot", "price": 2.5}], "first": 505}, {"query": "tuorejuusto", "products": [{"id": 506, "name": "Tuorejuustokakku 400 g", "category": "Tuorejuustot", "price": 2.5}, {"id": 507, "name": "Philadelphia tuorejuusto 200 g", "category": "Tuorejuustot", "price": 2.5}], "first": 507}, {"query": "meijerivoi", "products": [{"id": 508, "name": "Voitaikina 500 g", "category": "Voit", "price": 2.5}, {"id": 509, "name": "Valio meijerivoi 500 g", "category": "Voit", "price": 2.5}], "first": 509}, {"query": "kasvirasvalevite", "products": [{"id": 510, "name": "Margariinikeksi 300 g", "category": "Margariinit", "price": 2.5}, {"id": 511, "name": "Kasvirasvalevite 400 g", "category": "Margariinit", "price": 2.5}], "first": 511}, {"query": "vihreä tee", "products": [{"id": 512, "name": "Jäätee 1 l", "category": "Teet", "price": 2.5}, {"id": 513, "name": "Vihreä tee 20 teepussia", "category": "Teet", "price": 2.5}], "first": 513}, {"query": "appelsiinimehu", "products": [{"id": 514, "name": "Appelsiinimehujää 100 g", "category": "Mehut", "price": 2.5}, {"id": 515, "name": "Appelsiinimehu 1 l", "category": "Mehut", "price": 2.5}], "first": 515}, {"query": "grillimakkara", "products": [{"id": 516, "name": "Makkarakeitto 300 g", "category": "Makkarat", "price": 2.5}, {"id": 517, "name": "HK grillimakkara 400 g", "category": "Makkarat", "price": 2.5}], "first": 517}, {"query": "kinkkuleikkele", "products": [{"id": 518, "name": "Kinkkuleikkele pizza 400 g", "category": "Leikkeleet", "price": 2.5}, {"id": 519, "name": "Kinkkuleikkele 200 g", "category": "Leikkeleet", "price": 2.5}], "first": 519}, {"query": "hammastahna", "products": [{"id": 520, "name": "Hammasharja 1 kpl", "category": "Hammastahnat", "price": 2.5}, {"id": 521, "name": "Hammastahna 75 ml", "category": "Hammastahnat", "price": 2.5}], "first": 521}, {"query": "deodorantti", "products": [{"id": 522, "name": "Deodorantti suihkugeeli 250 ml", "category": "Deodorantit", "price": 2.5}, {"id": 523, "name": "Deodorantti 50 ml", "category": "Deodorantit", "price": 2.5}], "first": 523}]);
 // A one-product query must not become empty merely because the name mentions sauce.
 const exclusionCases = [
   ["sinappi", "Sinappikastike 250 ml", true],
@@ -99,6 +101,10 @@ const exclusionCases = [
   ["sinappimajoneesi", "Sinappimajoneesi 250 ml", false],
   ["tomaattimurskakeitto", "Tomaattipyree 200 g", false],
 ];
+exclusionCases.push(["raejuustosalaatti","Raejuustosalaatti 300 g",false],
+ ["tuorejuustokakku","Tuorejuustokakku 400 g",false],
+ ["rahkapiirakka","Rahkapiirakka 400 g",false],
+ ["makkarakeitto","Makkarakeitto 300 g",false]);
 const exclusionResults = exclusionCases.map(([query,name,expected]) => {
   const actual = core.isExplicitlyExcludedSearchProduct(query, makeProduct(0,name,""));
   return {query,name,expected,actual,pass:actual===expected};
@@ -168,6 +174,9 @@ const collisionCases = [
  ["puuroriisi","rice"],["porkkana","fruit_veg"],
  ["ranskanperunat","frozen"],["suolapähkinä","snacks"]
 ];
+collisionCases.push(["maitorahka","quark"],["raejuusto","cottage_cheese"],
+ ["tuorejuusto","cream_cheese"],["omenamehu","juice"],
+ ["virvoitusjuoma cola","cola"],["kermajuusto","cheese"]);
 const collisionResults = collisionCases.flatMap(([term, expected]) =>
  [term, `Kotimainen ${term} 500 g`, term.toUpperCase(),
   term.normalize("NFD").replace(/[\u0300-\u036f]/g, "")]

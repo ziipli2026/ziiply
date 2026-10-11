@@ -9,7 +9,7 @@ const blocks = [...section.matchAll(/category:\s*"([^"]+)"[\s\S]*?(?=\bcategory:
 const categories = blocks.map(m=>m[1]);
 const unique = new Set(categories);
 const issues = [];
-const MIN_CATEGORY_COUNT = 42;
+const MIN_CATEGORY_COUNT = 54;
 if (categories.length < MIN_CATEGORY_COUNT) issues.push(`Category coverage regressed: ${categories.length} < ${MIN_CATEGORY_COUNT}`);
 const variantOwners = new Map();
 const normalizedDuplicateWarnings = [];
