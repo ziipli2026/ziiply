@@ -56,3 +56,24 @@ test('station recognition requires unambiguous nearby GPS and supports OCR brand
  assert.equal(helpers.identifyFuelPhotoStation(stations,{...gps,accuracy:1000},'ABC',false),'');
  assert.equal(helpers.fuelPhotoBrand('ABC Neste'),null);
 });
+
+test('diesel D label is accepted without assigning unlabeled numbers',()=>{
+ assert.equal(helpers.parseFuelPhotoText('D 1.874').diesel,'1,874');
+ assert.equal(helpers.parseFuelPhotoText('D 1874').diesel,'');
+});
+const led=moduleFrom('src/lib/fuelPhotoLed.ts');
+test('isolated LED price requires exactly four digits and unambiguous fuel label',()=>{
+ assert.equal(led.fuelLedPrice('2399'),'2,399');
+ assert.equal(led.fuelLedPrice('1.874'),'1,874');
+ for(const value of ['211','13985','2.0.64','95 2399','1914 1974','0.999'])assert.equal(led.fuelLedPrice(value),null);
+ assert.equal(led.fuelRowLabel('Futura\nD'),'diesel');
+ assert.equal(led.fuelRowLabel('95\n98'),null);
+ assert.equal(led.fuelRowLabel('price 2399'),null);
+});
+test('LED detection ignores neutral background and keeps separated price rows',()=>{
+ const width=300,height=200,pixels=new Uint8Array(width*height*4);
+ for(let y=30;y<55;y++)for(let x=100;x<190;x++){const i=(y*width+x)*4;pixels[i]=240;pixels[i+1]=20;pixels[i+2]=20;}
+ for(let y=100;y<125;y++)for(let x=100;x<190;x++){const i=(y*width+x)*4;pixels[i]=240;pixels[i+1]=20;pixels[i+2]=20;}
+ assert.equal(led.findFuelLedRows(pixels,width,height).length,2);
+ assert.equal(led.findFuelLedRows(new Uint8Array(width*height*4).fill(255),width,height).length,0);
+});

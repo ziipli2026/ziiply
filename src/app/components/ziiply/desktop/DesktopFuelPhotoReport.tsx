@@ -1,9 +1,10 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
-import {comparePhotoEvidence,identifyFuelPhotoStation,fuelDistanceKm,parseFuelPhotoText,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {readFuelPhoto} from "../../../../lib/fuelPhotoOcr";
+import {comparePhotoEvidence,identifyFuelPhotoStation,fuelDistanceKm,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 
 type Station={id:string;name:string;chain?:string;address?:string;latitude:number;longitude:number};
-type Worker={recognize:(image:string)=>Promise<{data:{text:string}}>;terminate:()=>Promise<unknown>};
+type Worker={setParameters:(parameters:Record<string,string>)=>Promise<unknown>;recognize:(image:string)=>Promise<{data:{text:string}}>;terminate:()=>Promise<unknown>};
 type Ocr={createWorker:(lang:string,oem:number,options:Record<string,unknown>)=>Promise<Worker>};
 let ocrPromise:Promise<Ocr>|null=null;
 function loadOcr():Promise<Ocr>{
@@ -47,6 +48,7 @@ async function preparePhoto(file:File):Promise<string>{
   } finally {URL.revokeObjectURL(url);}
 }
 export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
+  const [priceReview,setPriceReview]=useState(false);
   const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
   const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
@@ -73,7 +75,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     onlineCapture.current={time:localDateTime(),gps:location};onlineInput.current?.click();
   }
   async function readPhoto(file:File,source:"online"|"offline"){
-    setBusy(true);setPhoto("");setError("");setStatus("Valmistellaan kuvaa…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
+    setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Valmistellaan kuvaa…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(false);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
@@ -100,9 +102,9 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       const ocr=await loadOcr();if(!alive.current)return;
       const worker=await ocr.createWorker("eng",1,{logger:(message:{status?:string;progress?:number})=>{if(alive.current)setStatus(message.status==="recognizing text"?`Luetaan hintoja… ${Math.round((message.progress||0)*100)} %`:"Ladataan kuvalukijaa…");}});
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
-      const result=await worker.recognize(data);if(!alive.current)return;
-      const parsed=parseFuelPhotoText(result.data.text);setPrices(parsed);setRawText(result.data.text);
-      const candidates=await stationSearch;if(!alive.current)return;setStationId(identifyFuelPhotoStation(candidates||[],location,result.data.text,checked.reasons.length>0));
+      const result=await readFuelPhoto(worker,data);if(!alive.current)return;
+      const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review);
+      const candidates=await stationSearch;if(!alive.current)return;setStationId(identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0));
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
     finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);}
@@ -141,7 +143,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
                 {validateFuelPrices(prices)&&<div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-center">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).filter(([key])=>prices[key]).map(([key,label])=><p key={key} className="text-sm">{label} <strong className="text-lg">{prices[key]} €/l</strong></p>)}</div>}
                 {observed&&<p className="text-center text-xs text-[#e5ddc6]">{new Date(exifInstant.current||observed).toLocaleString("fi-FI",{dateStyle:"short",timeStyle:"short"})}</p>}
                 {(editing||!stationId)&&<label className="block text-sm font-bold">{conflict.reasons.length?"Vahvista kuvattu asema":"Kuvattua asemaa ei tunnistettu. Valitse asema."}<select value={stationId} disabled={!stations.length||locating} onChange={e=>{setStationId(e.target.value);setConflictConfirmed(false);}} className={input}><option value="">Valitse kuvassa oleva asema</option>{stations.map(s=><option key={s.id} value={s.id}>{s.chain} · {s.name} · {s.address}</option>)}</select></label>}
-                {(editing||!validateFuelPrices(prices))&&<div><p className="mb-2 text-sm">{editing?"Korjaa hinnat tarvittaessa":"Hintoja ei saatu luettua. Lisää kuvassa näkyvät hinnat."}</p><div className="grid grid-cols-3 gap-2">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).map(([key,label])=><label key={key} className="text-xs font-bold">{label}<input aria-label={`${label} hinta euroa litralta`} inputMode="decimal" placeholder="–" value={prices[key]} onChange={e=>setPrices(p=>({...p,[key]:e.target.value}))} className={input}/></label>)}</div></div>}
+                {(editing||priceReview||!validateFuelPrices(prices))&&<div><p className="mb-2 text-sm">{editing?"Korjaa hinnat tarvittaessa":priceReview?"Tarkista LED-näytöstä luetut hinnat ja täydennä tyhjät kohdat kuvasta.":"Hintoja ei saatu luettua. Lisää kuvassa näkyvät hinnat."}</p><div className="grid grid-cols-3 gap-2">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).map(([key,label])=><label key={key} className="text-xs font-bold">{label}<input aria-label={`${label} hinta euroa litralta`} inputMode="decimal" placeholder="–" value={prices[key]} onChange={e=>setPrices(p=>({...p,[key]:e.target.value}))} className={input}/></label>)}</div></div>}
                 {(editing||!validObserved)&&<label className="block text-sm font-bold">Milloin kuva otettiin?<input type="datetime-local" value={observed} onChange={e=>{exifInstant.current=null;setObserved(e.target.value);setTimeSource("manual");setConflictConfirmed(false);}} className={input}/></label>}
                 {conflict.reasons.length>0&&<div role="alert" className="rounded-xl border border-[#bd6b2a] bg-[#ffe6c8] p-3 text-sm text-[#713d1c]"><p className="font-bold">Kuvan ja kuvaushetken tiedot poikkeavat toisistaan.</p>{conflict.reasons.includes("location")&&<p>Sijaintien ero noin {Math.round(conflict.distanceM||0)} m.</p>}{conflict.reasons.includes("time")&&<p>Kuvausaikojen ero noin {Math.round(conflict.timeDifferenceMinutes||0)} min. Käytä aiemmalle kuvalle offline-valintaa.</p>}<label className="mt-2 flex gap-2"><input type="checkbox" checked={conflictConfirmed} disabled={!stationId} onChange={e=>setConflictConfirmed(e.target.checked)}/><span>Vahvistan kuvatun aseman ja kuvausajan.</span></label></div>}
                 <div className="flex items-center justify-center gap-3"><button type="button" onClick={()=>void submit()} disabled={locating||(conflict.reasons.length>0&&!conflictConfirmed)||!validObserved||!stationId||!validateFuelPrices(prices)} className="min-w-[120px] rounded-xl border-2 border-[#8bb56d] bg-[#e3edc9] px-8 py-2 text-lg font-black text-[#174c35] disabled:opacity-40">OK</button><button type="button" onClick={()=>setEditing(v=>!v)} className="rounded-xl border border-[#baa46a] px-4 py-2 text-sm font-bold">{editing?"Valmis":"Korjaa tietoja"}</button></div>
