@@ -18,7 +18,7 @@ jobs:
         run: |
           mkdir -p search-audit-results
           set -o pipefail
-          node scripts/test-search-behavior.cjs | tee search-audit-results/behavior.json
+          npm run test:search --silent | tee search-audit-results/behavior.json
       - name: Report ambiguous category substrings
         if: success() || failure()
         run: |
