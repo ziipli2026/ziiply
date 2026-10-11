@@ -5,6 +5,7 @@ on:
       - integration/search-category-desktop-20261011
     paths:
       - scripts/search-learning-browser.mjs
+      - scripts/search-learning-desktop-browser.mjs
       - .github/workflows/search-learning-browser.yml
       - src/app/**
   workflow_dispatch:
@@ -35,6 +36,7 @@ jobs:
             sleep 2
           done
           node scripts/search-learning-browser.mjs
+          node scripts/search-learning-desktop-browser.mjs
       - name: Save server diagnostics
         if: always()
         run: |
