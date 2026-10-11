@@ -12,6 +12,8 @@ try {
     ['missing-row', source.trimEnd().split('\n').slice(0, -1).join('\n') + '\n'],
     ['invalid-ean', source.replace(/^6408653129323,/m, 'INVALID,')],
     ['wrong-category', source.replace(',more_specific_subcategory,cola,candidate', ',more_specific_subcategory,frozen,candidate')],
+    ['duplicate-row', source + source.trimEnd().split('\n')[1] + '\n'],
+    ['invalid-review-status', source.replace(',ambiguous_search_term,,candidate', ',ambiguous_search_term,,approved')],
   ];
   for (const [name, csv] of cases) {
     assert.notEqual(csv, source, 'Mutation not applied: ' + name);
