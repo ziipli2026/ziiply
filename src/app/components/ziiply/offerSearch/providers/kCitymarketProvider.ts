@@ -82,6 +82,26 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Narrow product-form rules for the 41LV Gosta category audit.
+  if(/vaseline|lumene.*mascara|vanulaput|vanupuikot|puhdistuspyyhkeet|tena.*ihonhoito/.test(s)) return "Hygienia & kosmetiikka";
+  if(/suihkeet 600 ml|wc-geelit|käsitiski|tahranpoistajat|pyykkietikat|huuhteluaineet|tuulilasinpesuneste/.test(s)) return "Kodinhoito";
+  if(/poron paistikäristys|kebab|arkimeetvursti|kanatuotteet|savusauna.*palvirouhe/.test(s)) return "Liha & makkarat";
+  if(/punajuuri|suosikkisalaatit/.test(s)) return "Hevi";
+  if(/korvapuusti|kuorrutemunkki/.test(s)) return "Leipomo";
+  if(/proteiinipirtelöt/.test(s)) return "Juomat";
+  if(/proteiinivaahdolla/.test(s)) return "Maitotuotteet";
+  if(/gold.*green.*rouhe|fasupalat/.test(s)) return "Valmisruoka";
+  if(/aakkoset|sriracha|cashewpähkinä|salsat/.test(s)) return "Kuivatuotteet";
+  if(/aterinsetti|sähkösavustin|savustushake|neule|t-paita|tekstiilipesuri|öljylyhtykynttilä|bokserit|farkkuja|trikoopaita|vaatteita|trimmeri|varsi-imuri|led-valomaski|vaihtoterä/.test(s)) return "Koti & vapaa-aika";
+  // Remaining product forms observed in the local Gosta integration replay.
+  if(/ulko[- ]?filee/.test(s)) return "Liha & makkarat";
+  if(/maksalaatikot/.test(s)) return "Valmisruoka";
+  if(/prote[i]?ini.*pirtelöt/.test(s)) return "Juomat";
+  if(/teippi- ja housuvaipat/.test(s)) return "Hygienia & kosmetiikka";
+  if(/pentualusta/.test(s)) return "Lemmikit";
+  if(/vihreät teet|twinings/.test(s)) return "Kahvi & tee";
+  if(/chili.*pähkinät/.test(s)) return "Kuivatuotteet";
+  if(/t-paitoja|hiustenkuivain|leikkisetti|sammutuspeite|pilateslauta|kilokartonki|huopakynäsetti|lattiakaivosuodatin|säilytyslaatikko|dreamnight.*tyyny|led-lämpökynttilä|led-lamppu|led-kynttiläsetti|käsityövalo|askartelu- ja korjausvalo/.test(s)) return "Koti & vapaa-aika";
   // Product form must outrank incidental words and nearby leaflet categories.
   if(/maissikakut|riisikakut|riisikakku|maissikakku/.test(s)) return "Kuivatuotteet";
   if(/wc[- ]?paperi|talouspaperi|nenäliina|nenaliina/.test(s)) return "Kodinhoito";

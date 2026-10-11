@@ -13,6 +13,7 @@ on:
       - "scripts/citymarket/replay-frozen-parser.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
+      - "scripts/citymarket/verify-41lv-archive.mjs"
   workflow_dispatch:
 permissions:
   contents: read
@@ -51,6 +52,18 @@ jobs:
           test -s /tmp/kcm-41lv-archive/archive-manifest.json
           test -s /tmp/kcm-41lv-archive/parser-evidence.json
           node scripts/citymarket/verify-41lv-archive.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json
+      - name: Verify restored parser exactly matches approved baseline
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/contents/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js?ref=5b6d899e5ba01e836f3fc789416f1b8816493aaa" \
+            | jq -r '.content' | base64 --decode > /tmp/kcm-41lv-approved-exact.js
+          cmp -s /tmp/kcm-41lv-approved-exact.js src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js
       - name: Replay originally approved parser as historical control
         id: historical_replay
         continue-on-error: true
@@ -72,8 +85,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-current-parser.mjs
-          KCM_REPLAY_REPORT=/tmp/kcm-41lv-replay-report.json node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json /tmp/kcm-41lv-current-parser.mjs
+          KCM_REPLAY_REPORT=/tmp/kcm-41lv-replay-report.json node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js
       - name: Publish historical and current replay summaries
         if: always()
         shell: bash
