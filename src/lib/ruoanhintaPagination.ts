@@ -1,7 +1,7 @@
 // Bounded provider pagination shared by normal grocery searches.
 // The first page is fetched by the caller; extra pages are requested only if full.
 export async function appendRuoanhintaPages<T extends { id?: string | number }>(
-  firstPage: T[], pageSize: number, fetchPage: (skip: number) => Promise<T[]>,
+  firstPage: T[], pageSize: number, fetchPage: (skip: number, signal: AbortSignal) => Promise<T[]>,
   maxPages = 3,
   extraPageTimeoutMs = 1200,
 ): Promise<T[]> {
@@ -10,13 +10,17 @@ export async function appendRuoanhintaPages<T extends { id?: string | number }>(
   let previous = firstPage;
   for (let page = 1; page < maxPages && previous.length === pageSize; page++) {
     let next: T[];
+    const controller = new AbortController();
     try {
       let timer: ReturnType<typeof setTimeout> | undefined;
       try {
         next = await Promise.race([
-          fetchPage(page * pageSize),
+          fetchPage(page * pageSize, controller.signal),
           new Promise<never>((_, reject) => {
-            timer = setTimeout(() => reject(new Error('Provider pagination timeout')), extraPageTimeoutMs);
+            timer = setTimeout(() => {
+              controller.abort();
+              reject(new Error('Provider pagination timeout'));
+            }, extraPageTimeoutMs);
           }),
         ]);
       } finally { if (timer) clearTimeout(timer); }
