@@ -102,6 +102,12 @@ jobs:
               continue;
             }
             lines.push('| ' + label + ' | ' + r.matched + '/' + r.expected + ' | ' + r.missing.length + ' | ' + r.extra.length + ' | ' + r.duplicateKeys + ' | ' + r.pages + ' |');
+            lines.push(label + ': WC-paper cases ' + JSON.stringify(r.wcPaperCases || {}) + '; failures ' + (r.wcPaperFailures || []).length + '; archived requests ' + r.requests + '.');
+            if ((r.wcPaperFailures || []).length) {
+              lines.push('```json');
+              lines.push(JSON.stringify(r.wcPaperFailures, null, 2));
+              lines.push('```');
+            }
             for (const [kind, keys] of [['Missing', r.missing], ['Extra', r.extra]]) {
               if (keys.length) {
                 lines.push('<details><summary>' + label + ': ' + kind + ' (' + keys.length + ')</summary>');
