@@ -224,7 +224,7 @@ export default function DesktopPreviewPage() {
   const [withinPicker,setWithinPicker]=useState<{chain:"S"|"K";slot:number}|null>(null);
 
   // Restore all desktop store choices after reload; do not overwrite saved choices before hydration.
-  const desktopStoreChoicesHydrated = useRef(false);
+  const [desktopStoreChoicesHydrated, setDesktopStoreChoicesHydrated] = useState(false);
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem("ziiply-desktop-store-choices-v1");
@@ -250,16 +250,16 @@ export default function DesktopPreviewPage() {
         if (typeof saved.storeModeChosen === "boolean") setStoreModeChosen(saved.storeModeChosen);
       }
     } catch {}
-    desktopStoreChoicesHydrated.current = true;
+    setDesktopStoreChoicesHydrated(true);
   }, []);
   useEffect(() => {
-    if (!desktopStoreChoicesHydrated.current) return;
+    if (!desktopStoreChoicesHydrated) return;
     try {
       window.localStorage.setItem("ziiply-desktop-store-choices-v1", JSON.stringify({
         storeMode,selectedChain,betweenMode,allStoreSelections,storeCompareScope,withinChain,withinStoreSlots,storeModeChosen,
       }));
     } catch {}
-  }, [storeMode,selectedChain,betweenMode,allStoreSelections,storeCompareScope,withinChain,withinStoreSlots,storeModeChosen]);
+  }, [storeMode,selectedChain,betweenMode,allStoreSelections,storeCompareScope,withinChain,withinStoreSlots,storeModeChosen,desktopStoreChoicesHydrated]);
 
   const selectedStores = (() => {
     if(storeCompareScope==="within_chain") { const chosen=withinChain?withinStoreSlots[withinChain].filter(Boolean):[]; return Object.fromEntries(chosen.map((store:any)=>[String(store.id),store])); }
