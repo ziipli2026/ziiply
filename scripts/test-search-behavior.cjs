@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Execute actual TypeScript search code against deterministic fixtures.
 const fs = require("node:fs");
+const assert = require("node:assert/strict");
 const ts = require("typescript");
 require.extensions[".ts"] = function(module, filename) {
   const source = fs.readFileSync(filename, "utf8");
@@ -42,6 +43,7 @@ const samples = [
   ["suolapähkinä","snacks"],["hunajasinappi","mustard"],
   ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
+assert(samples.length >= 16, "Insufficient intent regression coverage");
 const results=[];
 for (const [query,expected] of samples) {
  const actual=core.detectSearchIntent(query).category;
@@ -69,5 +71,9 @@ memory.clearSearchIntentMemory();
 const afterClear=memory.loadSearchIntentMemory();
 const learning={before:before.boost,after:after.boost,positive:after.positiveCount,structure:structure.boost,persisted,afterRejection:afterRejection.boost,isolatedOtherQuery:otherQuery.boost,negativeBefore:negativeBefore.boost,negativeAfter:negativeAfter.boost,cleared:Object.keys(afterClear.entries).length===0,pass:after.positiveCount===2&&after.boost>before.boost&&persisted&&afterRejection.boost<after.boost&&negativeAfter.negativeCount===1&&negativeAfter.boost<negativeBefore.boost&&otherQuery.positiveCount===0&&Object.keys(afterClear.entries).length===0};
 const failures=results.filter(r=>!r.pass);
+assert.equal(results.length, samples.length, "Some category cases were not executed");
 console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,learning},null,2));
-if(failures.length||!learning.pass)process.exitCode=1;
+if(failures.length||!learning.pass){
+ console.error("Search behavior regression failed", {failures,learning});
+ process.exitCode=1;
+}
