@@ -1,0 +1,34 @@
+name: Offer image regression
+
+on:
+  push:
+    branches:
+      - preview/legacy-desktop-ui
+    paths:
+      - 'src/lib/offerImageEnrichment.ts'
+      - 'src/lib/offerImageEanLookup.ts'
+      - 'src/app/api/offers/search/route.ts'
+      - 'scripts/test-offer-image-enrichment.mts'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/offer-image-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Image matching regression
+        run: npm run test:offer-images
+      - name: TypeScript check
+        run: npx tsc --noEmit
