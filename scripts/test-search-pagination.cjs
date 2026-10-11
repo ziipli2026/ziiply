@@ -53,6 +53,14 @@ async function run(){
   assert.deepEqual(result.map(x=>x.id),[0,1,2]);
   assert.ok(Date.now()-start<500,"Timeout should return promptly");
  });
+ await check("slow-provider-receives-abort-signal",async()=>{
+  let aborted=false;
+  const result=await appendRuoanhintaPages(items(0,3),3,async(skip,signal)=>new Promise((resolve,reject)=>{
+    signal.addEventListener("abort",()=>{aborted=true;reject(new Error("aborted"));},{once:true});
+  }),3,25);
+  assert.equal(aborted,true);
+  assert.deepEqual(result.map(x=>x.id),[0,1,2]);
+ });
  const passed=results.filter(x=>x.pass).length;
  console.log(JSON.stringify({passed,total:results.length,results},null,2));
  if(passed!==results.length)process.exitCode=1;
