@@ -40,6 +40,7 @@ const samples = [
   ["mysli","muesli"],["wc-paperi","toilet_paper"],["talouspaperi","paper_towels"],
   ["pyykinpesuaine","laundry_detergent"],["astianpesuaine","dishwashing"],
   ["kahvi","coffee"],["maito","milk"],
+  ["keksi","cookies"],["karkki","candy"],["suklaa","chocolate"],
   ["suolapähkinä","snacks"],["hunajasinappi","mustard"],
   ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
