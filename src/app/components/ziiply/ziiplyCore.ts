@@ -2745,6 +2745,17 @@ export function scoreNormalSResult(query: string, product: Product) {
   return scoreCategorySpecificResult(query, product);
 }
 
+// Conservative hard exclusions: only explicit, unambiguous product-name conflicts.
+// Keep ambiguous category mismatches in the ranked results to avoid false negatives.
+export function isExplicitlyExcludedSearchProduct(query: string, product: Product) {
+  const intent = detectSearchIntent(query);
+  const name = normalize(product.name);
+  if (intent.category === "mustard") return /sinappikastike|majoneesi/.test(name) && !/dijonsinappi|hunajasinappi/.test(name);
+  if (intent.category === "tomato_crush") return /ketsuppi|tomaattipyree/.test(name);
+  if (intent.category === "tomato_paste") return /ketsuppi|tomaattimurska/.test(name);
+  return false;
+}
+
 export function rankNormalSearchResults(query: string, products: Product[]) {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
@@ -2787,7 +2798,7 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
   }
 
   return products
-    .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
+    .filter((product: Product) => (!queryIsEgg || isClearlyEggProduct(product.name)) && !isExplicitlyExcludedSearchProduct(query, product))
     .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
       product,
       score: scoreNormalSResult(query, product),
