@@ -175,7 +175,7 @@ export default function DesktopPreviewPage() {
   const [fuelCompared,setFuelCompared]=useState(false);
   const [fuelStationSide,setFuelStationSide]=useState<"both"|"traffic"|"cold">("both");
   const [fuelStationIndex,setFuelStationIndex]=useState<Record<string,number>>({});
-  const fuelCandidates=(group:string)=>fuelStations.filter((s:any)=>fuelGroupOf(s)===group && (fuelStationSide==="both" || (fuelStationSide==="traffic"?fuelIsTraffic(s):!fuelIsTraffic(s)))).sort((a:any,b:any)=>a.distanceKm-b.distanceKm);
+  const fuelCandidates=(group:string)=>fuelStations.filter((s:any)=>fuelGroupOf(s)===group && (fuelStationSide==="both" ? [s.diesel,s.price95,s.price98].some(value=>value!=null && Number.isFinite(Number(value)) && Number(value)>0) : (fuelStationSide==="traffic"?fuelIsTraffic(s):!fuelIsTraffic(s)))).sort((a:any,b:any)=>a.distanceKm-b.distanceKm);
   const fuelSelectedStation=(group:string)=>{const items=fuelCandidates(group);return items.length?items[(fuelStationIndex[group]||0)%items.length]:null;};
   const fuelChangeStation=(group:string)=>{setFuelStationIndex(prev=>({...prev,[group]:((prev[group]||0)+1)%Math.max(1,fuelCandidates(group).length)}));setFuelCompared(false);};
   const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>fuelStations.find((s:any)=>s[type]!=null)?.[type];
