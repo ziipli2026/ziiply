@@ -18,13 +18,13 @@ if (!entry) {
   assert.equal(keys.size, fixture.offerCount, "Duplicate fixture offer identifiers");
   assert.ok(imageKeys.every(key => keys.has(key)), "Manifest image is not in approved fixture");
   const uncovered = fixture.offers.filter(row => !publication.images[row.key]);
-  const unsafeName = /\\b(tai|sekä|seka|ja|valikoima|erilaiset|useita|lajitelma)\\b|\\d+\\s*[–-]\\s*\\d+\\s*(?:g|kg|ml|l)\\b|\\b(?:plussa-kortilla|ilman plussa-korttia)\\b/i;
-  const diagnostic = uncovered.map(row => ({ ...row, candidateSafe: !unsafeName.test(row.identity) && !/\\b(?:geelit|suihkeet|tiivisteet|tahranpoistajat|jäätelöt|juustoviipaleet|pyykinpesunesteet)\\b/i.test(row.identity) }));
+  const unsafeName = /\b(tai|sekä|seka|ja|valikoima|erilaiset|useita|lajitelma)\b|\d+\s*[–-]\s*\d+\s*(?:g|kg|ml|l)\b|\b(?:plussa-kortilla|ilman plussa-korttia)\b/i;
+  const diagnostic = uncovered.map(row => ({ ...row, candidateSafe: !unsafeName.test(row.identity) && !/\b(?:geelit|suihkeet|tiivisteet|tahranpoistajat|jäätelöt|juustoviipaleet|pyykinpesunesteet|täysmehut|rahkat|vanukkaat|pyykkietikat|suihkugeelit|wc-paperi|meikkivoide)\b/i.test(row.identity) }));
   const report = {
     publicationUrl, approvedOffers: fixture.offerCount,
     existingImages: imageKeys.length, missingImages: uncovered.length,
     diagnosticOnly: true,
-    nameParsingCandidates: diagnostic.filter(row => row.candidateSafe).length,
+    nameParsingCandidates: diagnostic.filter(row => row.candidateSafe).length, // candidates only; never automatic image approval
     manualReviewCandidates: diagnostic.filter(row => !row.candidateSafe).length,
     missing: diagnostic,
   };
