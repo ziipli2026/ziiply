@@ -42,6 +42,9 @@ jobs:
         shell: bash
         run: |
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
+          printf '{"type":"module"}\n' > /tmp/package.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import {execFileSync} from 'node:child_process';
@@ -59,6 +62,9 @@ jobs:
         shell: bash
         run: |
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-parser.mjs
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
+          printf '{"type":"module"}\n' > /tmp/package.json
           node --input-type=module <<'NODE'
           import fs from "node:fs";
           import parser from "file:///tmp/kcm-parser.mjs";
@@ -140,6 +146,9 @@ jobs:
         shell: bash
         run: |
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-archive-parser.mjs
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
+          printf '{"type":"module"}\n' > /tmp/package.json
           ENTRY=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.url")
           node scripts/citymarket/export-leaflet.mjs "$ENTRY" /tmp/kcm-leaflet-archive /tmp/kcm-archive-parser.mjs
           node --input-type=module <<'NODE'
@@ -159,6 +168,9 @@ jobs:
         shell: bash
         run: |
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
+          printf '{"type":"module"}\n' > /tmp/package.json
           FIXTURE=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.fixture")
           node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-leaflet-archive "$FIXTURE" /tmp/kcm-replay-parser.mjs
       - name: Commit verified source to permanent archive branch
