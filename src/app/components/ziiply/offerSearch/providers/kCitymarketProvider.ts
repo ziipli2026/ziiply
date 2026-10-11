@@ -85,10 +85,11 @@ export function category(t:string){
   // Category-only handling of clearly identifiable product names in current and older leaflets.
   if(/suihkeet|wc[- ]?geelit|tahranpoistajat/.test(s)) return "Kodinhoito";
   if(/vaipat|housuvaipat|teippivaipat/.test(s)) return "Hygienia & kosmetiikka";
-  if(/punajuuri|suosikkisalaat|salaatit/.test(s)) return "Hevi";
+  if(/suosikkisalaat/.test(s)) return "Valmisruoka";
+  if(/punajuuri/.test(s)) return "Hevi";
   if(/korvapuusti|kuorrutemunk|munkk|pullat/.test(s)) return "Leipomo";
   if(/palvirouhe|maalaisnakit|kanatuotteet|maksalaatikot/.test(s)) return "Liha & makkarat";
-  if(/vihreät teet|teet\b/.test(s)) return "Kahvi & tee";
+  if(/vihreät teet|(?:^|\s)teet(?:\s|$)/.test(s)) return "Kahvi & tee";
   if(/pähkin|cashew/.test(s)) return "Kuivatuotteet";
   if(/sriracha|salsat|kastikkeet/.test(s)) return "Kuivatuotteet";
   if(/bonbons|fasupalat/.test(s)) return "Makeiset & keksit";
