@@ -44,6 +44,18 @@ export function matchOfferImage(offer: OfferImageCandidate, candidate: OfferImag
       !/[–-]\s*\d+\s*(g|kg|ml|l)\b/i.test(String(offer.packageSize))) {
     return { accepted: true, reason: "exact-name-and-package" };
   }
+  // Some leaflet records omit packageSize even when the identical product title
+  // contains an explicit quantity. Accept only a distinctive, exact title and
+  // an explicit single package size embedded in both identical titles.
+  // Never infer an image for generic product groups or multi-product offers.
+  const rawName = String(offer.name || "");
+  const explicitPacks = [...rawName.matchAll(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|l|kpl|pkt|rl)\\b/gi)];
+  const generic = /\\b(wc paperi|suihkeet|juomat|hammastahnat|suklaalevyt|pahkinat|leikkeleet|jaatelot|kahvit|pirtelot|ateriat|geelit|tabletit|pesunesteet)\\b/i;
+  if (nameA === nameB && nameA.length >= 20 && explicitPacks.length === 1 &&
+      !ambiguous.test(nameA) && !generic.test(nameA) &&
+      (!sizeA || !sizeB || sizeA === sizeB)) {
+    return { accepted: true, reason: "exact-distinctive-title-with-embedded-pack" };
+  }
   return { accepted: false, reason: "insufficient-identity" };
 }
 export function enrichOfferImage<T extends OfferImageCandidate>(offer: T, candidates: OfferImageCandidate[]): T {
