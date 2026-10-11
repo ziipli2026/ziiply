@@ -20,9 +20,17 @@ jobs:
           set -o pipefail
           node scripts/test-search-behavior.cjs | tee search-audit-results/behavior.json
       - name: Report ambiguous category substrings
-        run: node scripts/audit-search-collisions.cjs | tee search-audit-results/collisions.json
+        if: success() || failure()
+        run: |
+          mkdir -p search-audit-results
+          set -o pipefail
+          node scripts/audit-search-collisions.cjs | tee search-audit-results/collisions.json
       - name: Check registry and baseline queries
-        run: node scripts/audit-search-categories.cjs | tee search-audit-results/categories.json
+        if: success() || failure()
+        run: |
+          mkdir -p search-audit-results
+          set -o pipefail
+          node scripts/audit-search-categories.cjs | tee search-audit-results/categories.json
       - name: Upload search audit reports
         if: always()
         uses: actions/upload-artifact@v4
