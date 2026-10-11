@@ -68,3 +68,11 @@ assert.equal(enrichOfferImage(base, [missingCandidateEan]).imageUrl, undefined);
 assert.equal(matchOfferImage({ ...base, ean: null }, missingCandidateEan).accepted, true);
 assert.equal(matchOfferImage(base, { ...image, ean: "6410405124518" }).reason, "ean-conflict");
 console.log("EAN-preserving image matching regression checks passed");
+
+const skuOffer = { ...base, productCode: "SKU-123", source: "citymarket" };
+const skuWithoutEan = { ...image, ean: null, productCode: "SKU-123", source: "citymarket" };
+assert.deepEqual(matchOfferImage(skuOffer, skuWithoutEan), { accepted: false, reason: "candidate-ean-missing" });
+assert.equal(enrichOfferImage(skuOffer, [skuWithoutEan]).imageUrl, undefined);
+assert.deepEqual(matchOfferImage({ ...skuOffer, ean: "invalid" }, { ...skuWithoutEan, ean: "invalid" }), { accepted: false, reason: "invalid-offer-ean" });
+assert.equal(matchOfferImage({ ...skuOffer, ean: null }, skuWithoutEan).reason, "exact-source-product-code");
+console.log("SKU fallback cannot bypass EAN safety checks");
