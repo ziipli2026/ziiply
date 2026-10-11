@@ -36,7 +36,9 @@ jobs:
           set -o pipefail
           node scripts/audit-search-categories.cjs | tee search-audit-results/categories.json
       - name: Test bounded provider pagination and failure recovery
-        run: node scripts/test-search-pagination.cjs | tee search-audit-results/pagination.json
+        run: |
+          set -o pipefail
+          NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node scripts/test-search-pagination.cjs | tee search-audit-results/pagination.json
       - name: Audit provider coverage and pagination risks
         if: success() || failure()
         run: node scripts/audit-search-provider-coverage.cjs | tee search-audit-results/provider-coverage.json
