@@ -32,7 +32,10 @@ export async function lookupKnownEanImages(job: OfferImageJob): Promise<OfferIma
         AND image_url IS NOT NULL AND TRIM(image_url) <> ''
       LIMIT 101
     `;
-  // A truncated candidate set could hide conflicting images: fail closed.
+  return normalizeImageBankRows(rows);
+}
+/** Pure, testable normalization. Reject truncated query results rather than guessing. */
+export function normalizeImageBankRows(rows: ReadonlyArray<Record<string, unknown>>): OfferImageCandidate[] {
   if (rows.length > 100) return [];
   return rows.map(row => ({
     ean: String(row.ean ?? ""),
