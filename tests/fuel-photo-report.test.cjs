@@ -32,6 +32,12 @@ test('report route isolates preview and rejects offline capture-session metadata
     assert.equal((await route.POST(request({...conflictBody,conflictConfirmed:true}))).status,200);assert.equal(calls,3);
     assert.equal((await route.POST(request(body))).status,200);assert.equal(calls,6);
     assert.equal((await route.POST(request({...body,gps:null,locationSource:'manual'}))).status,200);
+    const manual={...body,mode:'manual',photo:'',gps:null,timeSource:'manual',locationSource:'manual'};
+    assert.equal((await route.POST(request(manual))).status,200);
+    const beforeInvalid=calls;
+    for(const invalid of [{...manual,photo:body.photo},{...manual,gps:body.gps},{...manual,timeSource:'photo_exif'},{...manual,evidence:{photoGps:null,deviceGps:null,photoTime:body.observedAt,captureTime:null}},{...body,photo:''}])assert.equal((await route.POST(request(invalid))).status,400);
+    assert.equal(calls,beforeInvalid);
+
   }finally{previous.env===undefined?delete process.env.VERCEL_ENV:process.env.VERCEL_ENV=previous.env;previous.url===undefined?delete process.env.TANKKAUS_TEST_DATABASE_URL:process.env.TANKKAUS_TEST_DATABASE_URL=previous.url;}
 });
 
