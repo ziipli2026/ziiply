@@ -93,6 +93,14 @@ export function category(t:string){
   if(/gold.*green.*rouhe|fasupalat/.test(s)) return "Valmisruoka";
   if(/aakkoset|sriracha|cashewpähkinä|salsat/.test(s)) return "Kuivatuotteet";
   if(/aterinsetti|sähkösavustin|savustushake|neule|t-paita|tekstiilipesuri|öljylyhtykynttilä|bokserit|farkkuja|trikoopaita|vaatteita|trimmeri|varsi-imuri|led-valomaski|vaihtoterä/.test(s)) return "Koti & vapaa-aika";
+  // Remaining product forms observed in the local Gosta integration replay.
+  if(/ulko[- ]?filee|ulko[- ]?filee|maksalaatikot/.test(s)) return "Liha & makkarat";
+  if(/prote[i]?ini.*pirtelöt/.test(s)) return "Juomat";
+  if(/teippi- ja housuvaipat/.test(s)) return "Hygienia & kosmetiikka";
+  if(/pentualusta/.test(s)) return "Lemmikit";
+  if(/vihreät teet|twinings/.test(s)) return "Kahvi & tee";
+  if(/chili.*pähkinät/.test(s)) return "Kuivatuotteet";
+  if(/t-paitoja|hiustenkuivain|leikkisetti|sammutuspeite|pilateslauta|kilokartonki|huopakynäsetti|lattiakaivosuodatin|säilytyslaatikko|dreamnight.*tyyny|led-lämpökynttilä|led-lamppu|led-kynttiläsetti|käsityövalo|askartelu- ja korjausvalo/.test(s)) return "Koti & vapaa-aika";
   // Product form must outrank incidental words and nearby leaflet categories.
   if(/maissikakut|riisikakut|riisikakku|maissikakku/.test(s)) return "Kuivatuotteet";
   if(/wc[- ]?paperi|talouspaperi|nenäliina|nenaliina/.test(s)) return "Kodinhoito";
