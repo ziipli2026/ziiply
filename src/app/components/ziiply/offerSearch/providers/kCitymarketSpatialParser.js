@@ -2,9 +2,9 @@
 // Keep newer parser improvements for every other publication.
 import {parseKCitymarketSpatialLeaflet as parseApproved41LV} from './kCitymarketSpatialParserApproved41LV.js';
 import {parseKCitymarketSpatialLeaflet as parseCurrent} from './kCitymarketSpatialParserCurrent.js';
-const APPROVED_41LV_ENTRY='https://kcm-tarjouslehdet.k-ruoka.fi/82qjhs6_tarjouslehti_41LV_KCM/index.html';
+const APPROVED_41LV_PUBLICATION_ID='82qjhs6_tarjouslehti_41lv_kcm';
 export async function parseKCitymarketSpatialLeaflet(entry){
  const url=String(entry||'');
- return (url===APPROVED_41LV_ENTRY?parseApproved41LV:parseCurrent)(entry);
+ return (url.toLowerCase().includes(APPROVED_41LV_PUBLICATION_ID)?parseApproved41LV:parseCurrent)(entry);
 }
 export default parseKCitymarketSpatialLeaflet;
