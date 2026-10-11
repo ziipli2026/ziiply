@@ -81,6 +81,31 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
+  // Leipäjuusto is a dairy cheese, not a bakery product.
+  if(/leipäjuust/.test(s)) return "Maitotuotteet";
+
+  // Bring verified desktop daily-goods exceptions to the mobile preview.
+  if(/suosikkisalaat/.test(s)) return "Valmisruoka";
+  if(/gold\s*&\s*green.*(?:rouhe|palat)/.test(s)) return "Valmisruoka";
+  if(/puhdistuspyyhkeet|vanulaput|vanupuikot|mascarat/.test(s)) return "Hygienia & kosmetiikka";
+  if(/pentualusta/.test(s)) return "Lemmikit";
+  // Specific everyday consumables must survive the non-grocery filter.
+  if(/teippi-?\\s*ja\\s*housuvaipat|housuvaipat|teippivaipat|vaipat\\s+koot/.test(s)) return "Hygienia & kosmetiikka";
+  if(/vanulaput|vanupuikot|topz/.test(s)) return "Hygienia & kosmetiikka";
+  if(/kasvipohjainen\\s+savu|savulauantai|savukalgguna/.test(s)) return "Valmisruoka";
+  // Apparel and footwear are not daily groceries, even when the title contains food-like words.
+  if(/collegehousut|collegepaita|collegeasu|housut|farkut|leggingsit|legginssit|sukat|alushousut|alusvaatteet|t-paita|t-paidat|huppari|neulepaita|takki\\b|takit\\b|kengät|saappaat|lenkkarit|vaatteet|pukeutuminen/.test(s)) return "Koti & vapaa-aika";
+  // Mobile Citymarket preview: specific product forms before generic food keywords.
+  // Keep the approved 41LV spatial parser immutable; classify only its output.
+  if(/kilokartonki|huopakynä|tussisetti|tussikynä|värikynä|askartelupaper|piirustuspaper|juomalasi|kartio\\s+juomalasi/.test(s)) return "Koti & vapaa-aika";
+  if(/pyykinpesunest|pyykinpesujauhe|bio\\s*luvil|omo\\s+(?:color|active|pyykin)|värin-\\s*ja\\s*liankerääjä|liankerääjäliina|puhdistuspyyhke/.test(s)) return "Kodinhoito";
+  if(/vanulappu|vanupuikko|topz\\b/.test(s)) return "Hygienia & kosmetiikka";
+  if(/pentualusta/.test(s)) return "Lemmikit";
+  if(/palvikinkku|palvikana|keittokinkku|ohuen\\s+ohut/.test(s)) return "Liha & makkarat";
+  if(/proteiinivanukas|proteiinivaahto|proteiinimousse|proteiinimousse|proteiinivaa/.test(s)) return "Maitotuotteet";
+  if(/kuivattu\\s+mango|kuivattuja\\s+mango|tomaattimurska/.test(s)) return "Kuivatuotteet";
+  if(/pehmosämpyl/.test(s)) return "Leipomo";
+  if(/savuleikkele.*kasvi|kasvipohjainen.*leikkele|maustetut?\\s+tofu/.test(s)) return "Valmisruoka";
 
   // Publication-wide product-form precedence: these must not inherit a broad
   // category from ingredient words or generic fresh-produce keywords.
@@ -614,11 +639,18 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     // Do not silently exclude older catalogue images merely because the EAN bank has grown.
     const index=new Map<string,typeof rows>();
     const byProductName=new Map<string,typeof rows>();
+    const byEan=new Map<string,typeof rows>();
     // Leaflet headlines and bank names commonly differ only by package notation.
     // Keep both indexes and require a unique EAN and matching package when available.
     const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
     const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," "));
     for(const row of rows){
+      const barcode=String(row.ean??"").trim();
+      if(/^\d{8,14}$/.test(barcode)){
+        const matches=byEan.get(barcode)||[];
+        matches.push(row);
+        byEan.set(barcode,matches);
+      }
       const keys=new Set([norm(row.name),norm([row.name,row.quantity].filter(Boolean).join(" "))]);
       for(const key of keys){
         if(!key)continue;
@@ -636,6 +668,17 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     const stats={total:offers.length,bankRows:rows.length,matched:0,ambiguous:0,missing:0,invalidImage:0,groupOffer:0};
     const enriched=offers.map(offer=>{
       if(offer.imageUrl)return offer;
+      // Prefer a supplied EAN over fuzzy title matching. This also works when
+      // a publisher title is abbreviated or contains OCR artifacts.
+      const knownEan=String(offer.ean??"").trim();
+      if(/^\d{8,14}$/.test(knownEan)){
+        const exact=byEan.get(knownEan)||[];
+        const urls=[...new Set(exact.map(row=>String(row.image_url??"")).filter(url=>/^https:\/\//i.test(url)))];
+        if(urls.length===1){stats.matched++;return {...offer,imageUrl:urls[0]};}
+        if(urls.length>1)stats.ambiguous++;
+        else stats.missing++;
+        return offer;
+      }
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
       if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title)){stats.groupOffer++;return offer;}
@@ -659,6 +702,21 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     console.warn("[K-Citymarket] optional EAN image enrichment unavailable",error);
     return offers;
   }
+}
+
+// Preview-only presentation filter: leave the frozen 41LV parser and cached source intact.
+// Exclude clearly non-grocery merchandise, but retain food, hygiene and household consumables.
+function visibleCitymarketDailyOffers(offers:CitymarketOffer[]):CitymarketOffer[]{
+  const removed:Record<string,number>={};
+  const visible=offers.flatMap(offer=>{
+    const title=clean(offer.title);
+    const classified=category(title);
+    const nonDaily=classified==="Koti & vapaa-aika";
+    if(nonDaily){removed[classified]=(removed[classified]||0)+1;return [];}
+    return [{...offer,category:classified}];
+  });
+  if(Object.keys(removed).length) console.info("[K-Citymarket] preview daily-goods filter",{received:offers.length,visible:visible.length,removed});
+  return visible;
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
@@ -692,7 +750,22 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id);
     return imageUrl?{...offer,imageUrl}:offer;
   });
-  const enriched=await enrichCitymarketFromEanBank(publisherImages);
+  // Keep the approved spatial parser output intact. If the leaflet title itself
+  // states an unambiguous multi-buy total and quantity, that explicit transaction
+  // is stronger evidence than an inferred per-item endpoint.
+  // No leaflet-week or product-name exceptions are permitted here.
+  const corrected=publisherImages.map(offer=>{
+    const matches=[...offer.title.matchAll(/(\d{1,3}[,.]\d{2})\s*€?\s*\/\s*(\d{1,2})\s*(kpl|pkt|ps|prk|plo)\b/gi)];
+    if(matches.length!==1)return offer;
+    const match=matches[0];
+    const total=Number(match[1].replace(",","."));
+    const quantity=Number(match[2]);
+    if(!Number.isFinite(total)||total<=0||!Number.isInteger(quantity)||quantity<2||quantity>24)return offer;
+    // Do not reinterpret a package-size or ordinary unit-price notation.
+    if(offer.price===total&&offer.offerQuantity===quantity)return offer;
+    return {...offer,price:total,offerQuantity:quantity,offerUnit:match[3].toUpperCase(),resolutionSource:"explicit-leaflet-title-multibuy"};
+  });
+  const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(corrected));
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;

@@ -65,6 +65,9 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
         const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
         const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
         if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now)continue;
+        // Exclude non-daily merchandise from store-specific campaigns too.
+        // National leaflet filtering alone does not cover this independent source.
+        if(classifyCitymarketCategory(title)==="Koti & vapaa-aika")continue;
         const qty=numeric(offer.pieceCountFrom);
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
