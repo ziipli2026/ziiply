@@ -13,7 +13,8 @@ for(const candidate of source.candidates){
       const html=(await response.text()).slice(0,1500000);
       const meta=[...html.matchAll(/<meta\b[^>]*>/gi)].map(x=>x[0]);
       const images=meta.filter(tag=>["og:image","twitter:image"].includes((attr(tag,"property")??attr(tag,"name")??"").toLowerCase())).map(tag=>attr(tag,"content")).filter(Boolean).map(url=>{try{const resolved=new URL(url,page);return resolved.protocol==="https:"?resolved.href:null}catch{return null}}).filter(Boolean);
-      results.push({offerId:candidate.offerId,page,httpStatus:response.status,status:images.length?"metadata-image-found":"no-metadata-image",imageCandidates:[...new Set(images)],approved:false});
+      const relevant = images.filter(url => !/logo|placeholder|default-image|favicon|social-share/i.test(new URL(url).pathname));
+      results.push({offerId:candidate.offerId,page,httpStatus:response.status,status:relevant.length?"metadata-image-found":"no-product-image-metadata",imageCandidates:[...new Set(relevant)],excludedGenericImageCount:images.length-relevant.length,approved:false});
     }catch(error){results.push({offerId:candidate.offerId,page,status:"fetch-failed",error:String(error),approved:false})}
     finally{clearTimeout(timer)}
   }
