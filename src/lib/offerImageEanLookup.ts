@@ -32,3 +32,30 @@ export async function enrichOffersFromEanBank(jobs: OfferImageJob[]): Promise<Of
 export function applyVerifiedImage(offer: OfferImageCandidate, candidate: OfferImageCandidate) {
   return enrichOfferImage(offer, [candidate]);
 }
+
+/**
+ * Preview-only candidate discovery for offers lacking EAN.
+ * This is a read-only exact-name lookup, not fuzzy matching.
+ * Final image acceptance is handled by matchOfferImage, including
+ * package, brand and ambiguous-title safeguards.
+ */
+export async function lookupKnownNameImages(offer: OfferImageCandidate): Promise<OfferImageCandidate[]> {
+  const name = String(offer.name ?? "").trim();
+  if (!process.env.DATABASE_URL || name.length < 12 || name.length > 180) return [];
+  const sql = neon(process.env.DATABASE_URL);
+  const rows = await sql`
+    SELECT ean, name, brand, quantity, image_url AS "imageUrl", source
+    FROM ziiply_ean_products
+    WHERE LOWER(TRIM(name)) = LOWER(${name})
+      AND image_url IS NOT NULL AND TRIM(image_url) <> ''
+    LIMIT 10
+  `;
+  return rows.map(row => ({
+    ean: row.ean ? String(row.ean) : null,
+    name: row.name ? String(row.name) : null,
+    brand: row.brand ? String(row.brand) : null,
+    packageSize: row.quantity ? String(row.quantity) : null,
+    imageUrl: row.imageUrl ? String(row.imageUrl) : null,
+    source: row.source ? String(row.source) : null,
+  }));
+}
