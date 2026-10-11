@@ -9,6 +9,8 @@ const blocks = [...section.matchAll(/category:\s*"([^"]+)"[\s\S]*?(?=\bcategory:
 const categories = blocks.map(m=>m[1]);
 const unique = new Set(categories);
 const issues = [];
+const MIN_CATEGORY_COUNT = 42;
+if (categories.length < MIN_CATEGORY_COUNT) issues.push(`Category coverage regressed: ${categories.length} < ${MIN_CATEGORY_COUNT}`);
 const variantOwners = new Map();
 for (const match of blocks) {
   const category = match[1];
@@ -16,7 +18,11 @@ for (const match of blocks) {
   if (!variantList) { issues.push(category + ": missing variants"); continue; }
   const variants = [...variantList[1].matchAll(/"([^"]+)"/g)].map(x => x[1].normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim());
   if (!variants.length) issues.push(category + ": empty variants");
+  const withinCategory = new Set();
   for (const variant of variants) {
+    if (!variant) issues.push(`${category}: blank normalized variant`);
+    if (withinCategory.has(variant)) issues.push(`${category}: duplicate normalized variant ${JSON.stringify(variant)}`);
+    withinCategory.add(variant);
     const owners = variantOwners.get(variant) || new Set();
     owners.add(category);
     variantOwners.set(variant, owners);
