@@ -67,7 +67,9 @@ jobs:
                 !Array.isArray(report.unreviewedCollisions) ||
                 !Array.isArray(report.expandedLearningResults)
               )) throw new Error('Missing behavior test fields');
-              if (name === 'pagination-performance' && (!Array.isArray(report.results) || report.results.length !== 4))
+              if (name === 'pagination-performance' && (!Array.isArray(report.results) || report.results.length !== 4 ||
+                report.networkRequestsMeasured !== false ||
+                report.results.some((row, i) => row.extraRequests !== [0, 0, 2, 2][i])))
                 throw new Error('Missing pagination performance scenarios');
               if (name === 'pagination' && (report.passed !== report.total || report.total < 8))
                 throw new Error('Pagination regression failed');
@@ -102,6 +104,10 @@ jobs:
             const exclusion = data.exclusionResults || [];
             const retail = data.retailRankingResults || [];
             const pagination = JSON.parse(fs.readFileSync('search-audit-results/pagination.json', 'utf8'));
+            const paginationPerformance = JSON.parse(fs.readFileSync('search-audit-results/pagination-performance.json', 'utf8'));
+            const requestCountsPass = paginationPerformance.results?.length === 4 &&
+              paginationPerformance.networkRequestsMeasured === false &&
+              paginationPerformance.results.every((row, i) => row.extraRequests === [0, 0, 2, 2][i]);
             const categories = JSON.parse(fs.readFileSync('search-audit-results/categories.json', 'utf8'));
             const collisions = JSON.parse(fs.readFileSync('search-audit-results/collisions.json', 'utf8'));
             const registryPass = Array.isArray(categories.issues) && categories.issues.length === 0;
@@ -114,7 +120,7 @@ jobs:
             const ok = data.integratedLearning?.pass === true && expandedLearning.length > 0 && expandedLearning.every(x => x.pass) && registryPass && diagnosticsPass && data.passed === data.total &&
               ranking.length > 0 && ranking.every(x => x.pass) &&
               retail.length >= 12 && retail.every(x => x.pass) &&
-              pagination.total >= 8 && pagination.passed === pagination.total &&
+              pagination.total >= 8 && pagination.passed === pagination.total && requestCountsPass &&
               exclusion.length > 0 && exclusion.every(x => x.pass) &&
               data.learning?.pass === true && data.guardedLearning?.pass === true && data.boundedLearning?.pass === true;
             fs.appendFileSync(summary, [
@@ -126,6 +132,7 @@ jobs:
               '| Product ranking | ' + ranking.filter(x=>x.pass).length + '/' + ranking.length + ' |',
               '| Retail-style ranking fixtures | ' + retail.filter(x=>x.pass).length + '/' + retail.length + ' |',
               '| Provider pagination | ' + pagination.passed + '/' + pagination.total + ' |',
+              '| Extra-request budget (simulated) | ' + (requestCountsPass ? 'PASS' : 'FAIL') + ' |',
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Registry audit | ' + (registryPass ? 'PASS' : 'FAIL (' + categories.issues.length + ' issues)') + ' |',
               '| Reviewed substring collisions | ' + collisions.collisionCount + ' |',
