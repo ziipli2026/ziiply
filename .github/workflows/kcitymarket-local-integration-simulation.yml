@@ -83,6 +83,22 @@ jobs:
           NODE
           npx --yes tsx citymarket-test-1.mts
 
+      - name: Citymarket grocery scope audit (diagnostic only)
+        run: |
+          cat > citymarket-scope-audit.mts <<'NODE'
+          import { category } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
+          const outOfScope = ['Miesten T-PAITA', 'VARSI-IMURI', 'SÄHKÖSAVUSTIN', 'FARKKUJA', 'LED-LAMPPU'];
+          const essentials = ['GOLD & GREEN ROUHE tai PALAT 180 g', 'SUOSIKKISALAATIT 220–280 g', 'Libero HOUSUVAIPAT', 'Topz VANULAPUT', 'PENTUALUSTA'];
+          const classify = title => ({title,category:category(title)});
+          const excludedCandidates = outOfScope.map(classify);
+          const retainedEssentials = essentials.map(classify);
+          const errors = retainedEssentials.filter(x=>!x.category || x.category==='Muut' || x.category==='Koti & vapaa-aika');
+          console.log('CITYMARKET_SCOPE_AUDIT '+JSON.stringify({excludedCandidates,retainedEssentials,errors},null,2));
+          if(errors.length) process.exitCode=1;
+          // This is a diagnostic audit: do not filter real offers until scope rules are reviewed.
+          NODE
+          npx --yes tsx citymarket-scope-audit.mts
+
       - name: Citymarket category regression
         run: |
           cat > citymarket-test-2.mts <<'NODE'
