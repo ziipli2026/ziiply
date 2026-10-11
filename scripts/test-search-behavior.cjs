@@ -18,7 +18,9 @@ const samples = [
   ["tomaattimurska","tomato_crush"],["tomaattipyree","tomato_paste"],
   ["mysli","muesli"],["wc-paperi","toilet_paper"],["talouspaperi","paper_towels"],
   ["pyykinpesuaine","laundry_detergent"],["astianpesuaine","dishwashing"],
-  ["kahvi","coffee"],["maito","milk"]
+  ["kahvi","coffee"],["maito","milk"],
+  ["suolapähkinä","snacks"],["suklaamaito","milk"],["hunajasinappi","mustard"],
+  ["tomaattipyree","tomato_paste"],["ketsuppi","ketchup"]
 ];
 const results=[];
 for (const [query,expected] of samples) {
