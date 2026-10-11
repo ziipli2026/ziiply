@@ -38,8 +38,9 @@ await page.addInitScript(({stores})=>{
 let failure;
 try{
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:120000});
- const search=page.locator('.ziiply-search-card');
- await search.waitFor({state:'visible',timeout:120000});
+ await page.getByRole('button',{name:'Hae',exact:true}).click({timeout:60000});
+ const search=page.locator('textarea:visible').first();
+ await search.waitFor({state:'visible',timeout:30000});
  await page.screenshot({path:out+'/01-home.png',fullPage:true});
  // Run the real learning module with real browser localStorage.
  const bundle=await build({stdin:{contents:'import * as memory from "./src/app/components/ziiply/search/searchIntentMemory.ts"; window.__searchMemory = memory;',resolveDir:process.cwd()},bundle:true,write:false,platform:'browser',format:'iife'});
@@ -55,16 +56,16 @@ try{
  });
  for(const r of learning){assert.ok(r.good.boost>0,r.query);assert.equal(r.bad.reason,'blocked_by_intent_guardrail',r.query);}
  await fs.writeFile(out+'/learning.json',JSON.stringify(learning,null,2));
- await search.locator('textarea').fill('maito');
- await search.getByRole('button',{name:/Justiina/}).click();
- const add=search.getByRole('button',{name:'Lisää',exact:true}).first();
+ await search.fill('maito');
+ await page.getByRole('button',{name:'Justiina',exact:true}).click();
+ const add=page.getByRole('button',{name:/Lisää koriin: Valio kevytmaito/}).first();
  await add.waitFor({state:'visible',timeout:60000});
  await page.screenshot({path:out+'/02-search.png',fullPage:true});
  await add.click();
  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('ziiply-cart-v1')||'[]').some(x=>String(x.name||x.product?.name).includes('Valio kevytmaito')),{},{timeout:30000});
  await page.screenshot({path:out+'/03-cart.png',fullPage:true});
- await search.getByRole('button',{name:'Vertailu',exact:true}).click();
- await search.getByText('Prisma Hyvinkää',{exact:false}).first().waitFor({state:'visible',timeout:60000});
+ await page.getByRole('button',{name:'Vertailu',exact:true}).click();
+ await page.getByText('Prisma Hyvinkää',{exact:false}).first().waitFor({state:'visible',timeout:60000});
  await search.getByText('1,25',{exact:false}).first().waitFor({state:'visible',timeout:60000});
  await page.screenshot({path:out+'/04-comparison.png',fullPage:true});
  assert.equal(errors.length,0,errors.join('\n'));
