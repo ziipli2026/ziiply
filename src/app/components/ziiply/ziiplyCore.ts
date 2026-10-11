@@ -643,6 +643,15 @@ export const SEARCH_INTENTS: SearchIntent[] = [
     preferredBrands: ["coca-cola", "coca cola", "pepsi", "pepsi max"],
   },
   {
+    category: "ketchup",
+    label: "Ketsupit",
+    variants: ["ketsuppi", "ketchup", "tomaattiketsuppi", "tomaatti ketsuppi"],
+    requiredAny: ["ketsuppi", "ketchup"],
+    preferredAny: ["ketsuppi", "ketchup", "tomaattiketsuppi"],
+    bannedAny: ["sipsi", "maustettu", "dippi", "majoneesi", "sinappi", "kastikejauhe", "mausteseos"],
+    preferredSizes: [{ unitGroup: "weight", min: 400, max: 1100, boost: 25 }],
+  },
+  {
     category: "cheese",
     label: "Juustot",
     variants: ["juusto", "edam juusto", "emmental juusto", "oltermanni", "kermajuusto", "viipalejuusto", "raastejuusto"],
@@ -2449,6 +2458,12 @@ export function getCategoryConfidence(intent: SearchIntent, product: Product) {
     if (isCoffeeAccessory(product.name)) confidence -= 260;
   }
 
+  if (intent.category === "ketchup") {
+    const name = normalize(product.name);
+    if (/ketsuppi|ketchup/.test(name)) confidence += 175;
+    else confidence -= 220;
+  }
+
   if (intent.category === "cola") {
     if (isClearlyColaProduct(product.name)) confidence += 135;
     else confidence -= 260;
@@ -2689,6 +2704,11 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
       return isClearlyButtermilkProduct(product) ? 1 : 0;
     }
 
+    if (intent.category === "ketchup") {
+      // Tuoteryhmään kuuluva ketsuppi aina ennen pelkkää maku- tai ainesosamainintaa.
+      return /ketsuppi|ketchup/.test(normalize(product.name)) ? 1 : 0;
+    }
+
     if (intent.category === "milk") {
       // Hyväksy sekä erillinen "maito" että aidot maitotyypit kuten kevytmaito.
       // Väärät maitokontekstit (rahka, kerma, maitojuoma jne.) jäävät viimeisiksi.
@@ -2855,6 +2875,9 @@ export function isBadNormalResult(product: Product, query: string) {
     if (!hasAnyToken(normalizedName, positiveMilkSignals)) return true;
     if (hasAnyToken(productText, forbiddenMilkContext)) return true;
   }
+
+  if (detectSearchIntent(query).category === "ketchup" &&
+      !/ketsuppi|ketchup/.test(normalizedName)) return true;
 
   const queryIsCoffee = isCoffeeSearchTerm(normalizedQuery) || normalizedQuery.includes("juhla mokka");
   if (queryIsCoffee) {
