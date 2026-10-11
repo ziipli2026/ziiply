@@ -192,6 +192,20 @@ jobs:
             fs.appendFileSync(summary, '## Ziiply search audit\n\nCould not parse behavior report: ' + String(error) + '\n');
           }
           NODE
+      - name: Summarize negative category audit regression
+        if: always()
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const file = 'search-audit-results/category-negative.json';
+          const summary = process.env.GITHUB_STEP_SUMMARY;
+          let line = 'NOT RUN / FAILED';
+          try {
+            const r = JSON.parse(fs.readFileSync(file, 'utf8'));
+            line = r.status === 'PASS' && r.total === 8 && r.passed === 8 && r.results?.length === 8 ? 'PASS (8/8)' : 'FAIL';
+          } catch (_) {}
+          fs.appendFileSync(summary, '\n## Negative category audit regression\n\n' + line + '\n');
+          NODE
       - name: Summarize category snapshot regression
         if: always()
         run: |
