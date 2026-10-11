@@ -20,6 +20,7 @@ function parseCSV(s) {
     else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&s[i+1]==='\n')i++;row.push(cell);if(row.some(Boolean))rows.push(row);row=[];cell='';}
     else cell+=c;
   }
+  if(quoted)throw Error('Unterminated quoted CSV field');
   if(cell||row.length){row.push(cell);rows.push(row);}return rows;
 }
 const [head,...data]=parseCSV(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));
