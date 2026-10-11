@@ -18,6 +18,13 @@ try {
   assert.match(html, /1 uutta kuvaehdokasta/);
   assert.match(html, /<img loading="lazy" referrerpolicy="no-referrer" src="https:\/\/example.org\/product-image.jpg" alt="Löydetty kuvaehdokas, tarkistamatta">/);
   assert.match(html, /class="candidate"/);
+  const articles = [...html.matchAll(/<article\\b[\\s\\S]*?<\\/article>/g)].map(match=>match[0]);
+  assert.equal(articles.length,queue.missingImages);
+  const candidateArticles=articles.filter(article=>article.includes("https://example.org/product-image.jpg"));
+  assert.equal(candidateArticles.length,1,"Candidate image must appear in exactly one product card");
+  assert.ok(candidateArticles[0].includes("1 uutta kuvaehdokasta"));
+  assert.ok(candidateArticles[0].includes("Ei hyväksytty käyttöön"));
+  assert.ok(!articles.filter(article=>article!==candidateArticles[0]).some(article=>article.includes("https://example.org/product-image.jpg")),"Candidate must not leak to other offers");
   assert.match(html, /https:\/\/example.org\/product-image.jpg/);
   assert.match(html, /https:\/\/example.org\/product/);
   assert.match(html, /Ei hyväksytty käyttöön/);
