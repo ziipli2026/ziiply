@@ -22,7 +22,7 @@ export async function lookupKnownEanImages(job: OfferImageJob): Promise<OfferIma
       SELECT ean, name, brand, quantity, image_url AS "imageUrl", source
       FROM ziiply_ean_products
       WHERE ean = ${ean} AND image_url IS NOT NULL AND TRIM(image_url) <> ''
-      LIMIT 5
+      LIMIT 101
     `
     : await sql`
       SELECT ean, name, brand, quantity, image_url AS "imageUrl", source
@@ -30,8 +30,10 @@ export async function lookupKnownEanImages(job: OfferImageJob): Promise<OfferIma
       WHERE LOWER(TRIM(name)) = LOWER(${name})
         AND LOWER(TRIM(quantity)) = LOWER(${quantity})
         AND image_url IS NOT NULL AND TRIM(image_url) <> ''
-      LIMIT 10
+      LIMIT 101
     `;
+  // A truncated candidate set could hide conflicting images: fail closed.
+  if (rows.length > 100) return [];
   return rows.map(row => ({
     ean: String(row.ean ?? ""),
     name: row.name ? String(row.name) : null,
