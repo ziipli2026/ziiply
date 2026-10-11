@@ -146,7 +146,8 @@ jobs:
             const findings = JSON.parse(fs.readFileSync('search-audit-results/category-findings.json', 'utf8'));
             const categoryFixtures = JSON.parse(fs.readFileSync('search-audit-results/category-fixtures.json', 'utf8'));
             const categoryNegative = JSON.parse(fs.readFileSync('search-audit-results/category-negative.json', 'utf8'));
-            const negativePass = categoryNegative.status === 'PASS' && categoryNegative.total === 8 && categoryNegative.passed === 8 && categoryNegative.results?.length === 8;
+            const expectedNegativeCases = ['missing-row','invalid-ean','wrong-category','duplicate-row','invalid-review-status','extra-column','unclosed-quote','duplicate-header'];
+            const negativePass = categoryNegative.status === 'PASS' && categoryNegative.total === expectedNegativeCases.length && categoryNegative.passed === expectedNegativeCases.length && categoryNegative.results?.length === expectedNegativeCases.length && expectedNegativeCases.every(name => categoryNegative.results.some(row => row.name === name && row.pass === true)) && new Set(categoryNegative.results.map(row => row.name)).size === expectedNegativeCases.length;
             const findingsPass = findings.status === 'PASS' && findings.rows === 65 && findings.failures?.length === 0 && findings.counts?.source_misclassification === 17 && findings.counts?.more_specific_subcategory === 37 && findings.counts?.ambiguous_search_term === 11;
             const categoryFixturesPass = categoryFixtures.total >= 10 && categoryFixtures.passed === categoryFixtures.total;
             const collisions = JSON.parse(fs.readFileSync('search-audit-results/collisions.json', 'utf8'));
