@@ -35,6 +35,8 @@ jobs:
           mkdir -p search-audit-results
           set -o pipefail
           node scripts/audit-search-categories.cjs | tee search-audit-results/categories.json
+      - name: Test bounded provider pagination and failure recovery
+        run: node scripts/test-search-pagination.cjs | tee search-audit-results/pagination.json
       - name: Audit provider coverage and pagination risks
         if: success() || failure()
         run: node scripts/audit-search-provider-coverage.cjs | tee search-audit-results/provider-coverage.json
@@ -43,7 +45,7 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const names = ['behavior', 'collisions', 'categories', 'provider-coverage'];
+          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination'];
           let failed = false;
           for (const name of names) {
             const file = 'search-audit-results/' + name + '.json';
@@ -59,6 +61,8 @@ jobs:
                 !Array.isArray(report.unreviewedCollisions) ||
                 !Array.isArray(report.expandedLearningResults)
               )) throw new Error('Missing behavior test fields');
+              if (name === 'pagination' && (report.passed !== report.total || report.total < 8))
+                throw new Error('Pagination regression failed');
               if (name === 'provider-coverage' && (!Array.isArray(report.report) || report.report.length !== 4))
                 throw new Error('Missing provider coverage diagnostics');
               if (name === 'categories' && !Array.isArray(report.issues))
@@ -89,6 +93,7 @@ jobs:
             const ranking = data.rankingResults || [];
             const exclusion = data.exclusionResults || [];
             const retail = data.retailRankingResults || [];
+            const pagination = JSON.parse(fs.readFileSync('search-audit-results/pagination.json', 'utf8'));
             const categories = JSON.parse(fs.readFileSync('search-audit-results/categories.json', 'utf8'));
             const collisions = JSON.parse(fs.readFileSync('search-audit-results/collisions.json', 'utf8'));
             const registryPass = Array.isArray(categories.issues) && categories.issues.length === 0;
@@ -101,6 +106,7 @@ jobs:
             const ok = data.integratedLearning?.pass === true && expandedLearning.length > 0 && expandedLearning.every(x => x.pass) && registryPass && diagnosticsPass && data.passed === data.total &&
               ranking.length > 0 && ranking.every(x => x.pass) &&
               retail.length >= 12 && retail.every(x => x.pass) &&
+              pagination.total >= 8 && pagination.passed === pagination.total &&
               exclusion.length > 0 && exclusion.every(x => x.pass) &&
               data.learning?.pass === true && data.guardedLearning?.pass === true && data.boundedLearning?.pass === true;
             fs.appendFileSync(summary, [
@@ -111,6 +117,7 @@ jobs:
               '| Intent recognition | ' + data.passed + '/' + data.total + ' |',
               '| Product ranking | ' + ranking.filter(x=>x.pass).length + '/' + ranking.length + ' |',
               '| Retail-style ranking fixtures | ' + retail.filter(x=>x.pass).length + '/' + retail.length + ' |',
+              '| Provider pagination | ' + pagination.passed + '/' + pagination.total + ' |',
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Registry audit | ' + (registryPass ? 'PASS' : 'FAIL (' + categories.issues.length + ' issues)') + ' |',
               '| Reviewed substring collisions | ' + collisions.collisionCount + ' |',
