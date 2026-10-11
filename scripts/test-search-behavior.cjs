@@ -60,6 +60,10 @@ const samples = [
 ];
 assert(samples.length >= 16, "Insufficient intent regression coverage");
 samples.push(...[["kerma", "cream"], ["kuohukerma", "cream"], ["ruokakerma", "cream"], ["vispikerma", "cream"], ["rahka", "quark"], ["maitorahka", "quark"], ["proteiinirahka", "quark"], ["raejuusto", "cottage_cheese"], ["tuorejuusto", "cream_cheese"], ["voi", "butter"], ["meijerivoi", "butter"], ["margariini", "margarine"], ["kasvirasvalevite", "margarine"], ["tee", "tea"], ["mustatee", "tea"], ["vihreä tee", "tea"], ["teepussi", "tea"], ["mehu", "juice"], ["appelsiinimehu", "juice"], ["omenamehu", "juice"], ["makkara", "sausage"], ["grillimakkara", "sausage"], ["lenkkimakkara", "sausage"], ["nakki", "sausage"], ["leikkele", "cold_cuts"], ["kinkkuleikkele", "cold_cuts"], ["kalkkunaleikkele", "cold_cuts"], ["hammastahna", "toothpaste"], ["deodorantti", "deodorant"], ["antiperspirantti", "deodorant"]]);
+samples.push(["kosteusvoide","generic"],["aurinkovoide","generic"],
+ ["proteesi","generic"],["apteekki","generic"],
+ ["Valio voi 500 g","butter"],["musta tee 20 pussia","tea"],
+ ["meijerivoi 500 g","butter"],["vihreä tee 20 pussia","tea"]);
 const results=[];
 for (const [query,expected] of samples) {
  const actual=core.detectSearchIntent(query).category;
