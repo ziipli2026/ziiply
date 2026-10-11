@@ -1,0 +1,826 @@
+[
+  {
+    "page": 4,
+    "line": 8,
+    "title": "LUMENE PUUTERIT",
+    "package": null,
+    "unitPrice": null,
+    "normal": null,
+    "expectedSingle": null,
+    "initialExpectedSingle": null,
+    "candidate": null,
+    "debugPackageRowAnchor": null,
+    "debugBestTitleRow": {
+      "top": 0.439316,
+      "boxes": [
+        {
+          "text": "LUMENE",
+          "left": 0.046389,
+          "top": 0.439316,
+          "width": 0.053038,
+          "height": 0.017905
+        },
+        {
+          "text": "PUUTERIT",
+          "left": 0.10237,
+          "top": 0.439316,
+          "width": 0.066004,
+          "height": 0.017905
+        }
+      ],
+      "_score": 7014
+    },
+    "debugAnchor": {
+      "left": 0.0743795,
+      "top": 0.439316,
+      "width": 0,
+      "height": 0
+    },
+    "debugNearbyBoxes": [
+      {
+        "text": "LUMENE",
+        "left": 0.046389,
+        "top": 0.439316,
+        "width": 0.053038,
+        "height": 0.017905
+      },
+      {
+        "text": "PUUTERIT",
+        "left": 0.10237,
+        "top": 0.439316,
+        "width": 0.066004,
+        "height": 0.017905
+      },
+      {
+        "text": "Ei",
+        "left": 0.046389,
+        "top": 0.456528,
+        "width": 0.008848,
+        "height": 0.010369
+      },
+      {
+        "text": "aurinkopuuterit",
+        "left": 0.057759,
+        "top": 0.456528,
+        "width": 0.076621,
+        "height": 0.010369
+      },
+      {
+        "text": "Lumene",
+        "left": 0.046389,
+        "top": 0.468933,
+        "width": 0.039001,
+        "height": 0.010369
+      },
+      {
+        "text": "puder",
+        "left": 0.087912,
+        "top": 0.468933,
+        "width": 0.028976,
+        "height": 0.010369
+      },
+      {
+        "text": "puder",
+        "left": 0.1047,
+        "top": 0.478598,
+        "width": 0.028987,
+        "height": 0.010369
+      },
+      {
+        "text": "Gäller",
+        "left": 0.046389,
+        "top": 0.478598,
+        "width": 0.030545,
+        "height": 0.010369
+      },
+      {
+        "text": "ej",
+        "left": 0.079457,
+        "top": 0.478598,
+        "width": 0.008621,
+        "height": 0.010369
+      },
+      {
+        "text": "solpuder",
+        "left": 0.090599,
+        "top": 0.478598,
+        "width": 0.043088,
+        "height": 0.010369
+      },
+      {
+        "text": "-40%",
+        "left": 0.031978,
+        "top": 0.504948,
+        "width": 0.128823,
+        "height": 0.070241
+      },
+      {
+        "text": "Matte",
+        "left": 0.346473,
+        "top": 0.441282,
+        "width": 0.03266,
+        "height": 0.011665
+      },
+      {
+        "text": "MATTAMEIKKIVOIDE",
+        "left": 0.346473,
+        "top": 0.450377,
+        "width": 0.113422,
+        "height": 0.01515
+      },
+      {
+        "text": "Matte",
+        "left": 0.346473,
+        "top": 0.466292,
+        "width": 0.029228,
+        "height": 0.010369
+      },
+      {
+        "text": "Ilman",
+        "left": 0.346473,
+        "top": 0.477341,
+        "width": 0.023226,
+        "height": 0.009073
+      },
+      {
+        "text": "15",
+        "left": 0.346473,
+        "top": 0.485073,
+        "width": 0.009537,
+        "height": 0.009073
+      }
+    ],
+    "spatialPriceBoxes": [
+      {
+        "text": "15",
+        "left": 0.346473,
+        "top": 0.485073,
+        "width": 0.009537,
+        "height": 0.009073,
+        "d": 0.281393
+      },
+      {
+        "text": "990",
+        "left": 0.381491,
+        "top": 0.505848,
+        "width": 0.049632,
+        "height": 0.048205,
+        "d": 0.344079
+      },
+      {
+        "text": "21",
+        "left": 0.398802,
+        "top": 0.637553,
+        "width": 0.009422,
+        "height": 0.009073,
+        "d": 0.386582
+      },
+      {
+        "text": "30",
+        "left": 0.462397,
+        "top": 0.450377,
+        "width": 0.015148,
+        "height": 0.01515,
+        "d": 0.39603
+      },
+      {
+        "text": "258",
+        "left": 0.450748,
+        "top": 0.612167,
+        "width": 0.018673,
+        "height": 0.010369,
+        "d": 0.424812
+      },
+      {
+        "text": "50",
+        "left": 0.473661,
+        "top": 0.598991,
+        "width": 0.01511,
+        "height": 0.01515,
+        "d": 0.439873
+      },
+      {
+        "text": "4",
+        "left": 0.019685,
+        "top": 0.965943,
+        "width": 0.00825,
+        "height": 0.013386,
+        "d": 0.535712
+      },
+      {
+        "text": "53",
+        "left": 0.687281,
+        "top": 0.823255,
+        "width": 0.012012,
+        "height": 0.010369,
+        "d": 0.73107
+      },
+      {
+        "text": "40",
+        "left": 0.746203,
+        "top": 0.702969,
+        "width": 0.016454,
+        "height": 0.01515,
+        "d": 0.732143
+      },
+      {
+        "text": "5",
+        "left": 0.687281,
+        "top": 0.856374,
+        "width": 0.005429,
+        "height": 0.009073,
+        "d": 0.74614
+      },
+      {
+        "text": "5",
+        "left": 0.701076,
+        "top": 0.856374,
+        "width": 0.005642,
+        "height": 0.009073,
+        "d": 0.75765
+      },
+      {
+        "text": "2",
+        "left": 0.776039,
+        "top": 0.719462,
+        "width": 0.005349,
+        "height": 0.009073,
+        "d": 0.759691
+      },
+      {
+        "text": "5",
+        "left": 0.711579,
+        "top": 0.856374,
+        "width": 0.005429,
+        "height": 0.009073,
+        "d": 0.766311
+      },
+      {
+        "text": "5",
+        "left": 0.725633,
+        "top": 0.856374,
+        "width": 0.005322,
+        "height": 0.009073,
+        "d": 0.77804
+      },
+      {
+        "text": "3",
+        "left": 0.739664,
+        "top": 0.882676,
+        "width": 0.006982,
+        "height": 0.01515,
+        "d": 0.8066
+      },
+      {
+        "text": "75",
+        "left": 0.786534,
+        "top": 0.81008,
+        "width": 0.013322,
+        "height": 0.01515,
+        "d": 0.812303
+      },
+      {
+        "text": "12",
+        "left": 0.728548,
+        "top": 0.885081,
+        "width": 0.038889,
+        "height": 0.048205,
+        "d": 0.821298
+      },
+      {
+        "text": "2",
+        "left": 0.866708,
+        "top": 0.677952,
+        "width": 0.006753,
+        "height": 0.01515,
+        "d": 0.832926
+      },
+      {
+        "text": "3",
+        "left": 0.859485,
+        "top": 0.681324,
+        "width": 0.022215,
+        "height": 0.048205,
+        "d": 0.839506
+      },
+      {
+        "text": "50",
+        "left": 0.881647,
+        "top": 0.688429,
+        "width": 0.023879,
+        "height": 0.024089,
+        "d": 0.859828
+      }
+    ],
+    "spatialResolved": null,
+    "percentageOffer": {
+      "percent": 25,
+      "source": "owned-publisher-percentage",
+      "confidence": "high"
+    },
+    "spatialCandidates": [],
+    "spatialGroups": [
+      {
+        "top": 0.29192,
+        "left": 0.041444,
+        "right": 0.217061,
+        "boxes": [
+          {
+            "text": "-25%",
+            "left": 0.041444,
+            "top": 0.29192,
+            "width": 0.175617,
+            "height": 0.108805
+          }
+        ],
+        "text": "-25%"
+      },
+      {
+        "top": 0.504948,
+        "left": 0.031978,
+        "right": 0.160801,
+        "boxes": [
+          {
+            "text": "-40%",
+            "left": 0.031978,
+            "top": 0.504948,
+            "width": 0.128823,
+            "height": 0.070241
+          }
+        ],
+        "text": "-40%"
+      }
+    ],
+    "nearby": [
+      "LUMENE PUUTERIT",
+      "Ei aurinkopuuterit",
+      "Lumene puder",
+      "Gäller ej solpuder puder"
+    ],
+    "imageAnchor": {
+      "left": 0.046389,
+      "top": 0.439316,
+      "width": 0.121985,
+      "height": 0.017905
+    },
+    "debugCardAnchor": {
+      "left": 0.046389,
+      "top": 0.439316,
+      "height": 0.017905,
+      "right": 0.168374,
+      "boxes": [
+        {
+          "text": "LUMENE",
+          "left": 0.046389,
+          "top": 0.439316,
+          "width": 0.053038,
+          "height": 0.017905
+        },
+        {
+          "text": "PUUTERIT",
+          "left": 0.10237,
+          "top": 0.439316,
+          "width": 0.066004,
+          "height": 0.017905
+        }
+      ],
+      "text": "LUMENE PUUTERIT"
+    }
+  },
+  {
+    "page": 4,
+    "line": 12,
+    "title": "LUMENE KULMATUOTTEET",
+    "package": null,
+    "unitPrice": null,
+    "normal": null,
+    "expectedSingle": null,
+    "initialExpectedSingle": null,
+    "candidate": null,
+    "debugPackageRowAnchor": null,
+    "debugBestTitleRow": {
+      "top": 0.60384,
+      "boxes": [
+        {
+          "text": "LUMENE",
+          "left": 0.03484,
+          "top": 0.60384,
+          "width": 0.053036,
+          "height": 0.017905
+        },
+        {
+          "text": "KULMATUOTTEET",
+          "left": 0.090819,
+          "top": 0.60384,
+          "width": 0.114427,
+          "height": 0.017905
+        }
+      ],
+      "_score": 7019
+    },
+    "debugAnchor": {
+      "left": 0.0628295,
+      "top": 0.60384,
+      "width": 0,
+      "height": 0
+    },
+    "debugNearbyBoxes": [
+      {
+        "text": "Lumene",
+        "left": 0.046389,
+        "top": 0.468933,
+        "width": 0.039001,
+        "height": 0.010369
+      },
+      {
+        "text": "puder",
+        "left": 0.087912,
+        "top": 0.468933,
+        "width": 0.028976,
+        "height": 0.010369
+      },
+      {
+        "text": "puder",
+        "left": 0.1047,
+        "top": 0.478598,
+        "width": 0.028987,
+        "height": 0.010369
+      },
+      {
+        "text": "Gäller",
+        "left": 0.046389,
+        "top": 0.478598,
+        "width": 0.030545,
+        "height": 0.010369
+      },
+      {
+        "text": "ej",
+        "left": 0.079457,
+        "top": 0.478598,
+        "width": 0.008621,
+        "height": 0.010369
+      },
+      {
+        "text": "solpuder",
+        "left": 0.090599,
+        "top": 0.478598,
+        "width": 0.043088,
+        "height": 0.010369
+      },
+      {
+        "text": "-40%",
+        "left": 0.031978,
+        "top": 0.504948,
+        "width": 0.128823,
+        "height": 0.070241
+      },
+      {
+        "text": "LUMENE",
+        "left": 0.03484,
+        "top": 0.60384,
+        "width": 0.053036,
+        "height": 0.017905
+      },
+      {
+        "text": "KULMATUOTTEET",
+        "left": 0.090819,
+        "top": 0.60384,
+        "width": 0.114427,
+        "height": 0.017905
+      },
+      {
+        "text": "Lumene",
+        "left": 0.03484,
+        "top": 0.621858,
+        "width": 0.039001,
+        "height": 0.010369
+      },
+      {
+        "text": "ögonbrynsprodukter",
+        "left": 0.076363,
+        "top": 0.621858,
+        "width": 0.101792,
+        "height": 0.010369
+      },
+      {
+        "text": "-40%",
+        "left": 0.045843,
+        "top": 0.656397,
+        "width": 0.128823,
+        "height": 0.070241
+      },
+      {
+        "text": "ERÄ",
+        "left": 0.312927,
+        "top": 0.586341,
+        "width": 0.024158,
+        "height": 0.016527
+      },
+      {
+        "text": "CC-MEIKKIVOIDE",
+        "left": 0.312927,
+        "top": 0.598991,
+        "width": 0.091949,
+        "height": 0.01515
+      },
+      {
+        "text": "Sävy",
+        "left": 0.312927,
+        "top": 0.612167,
+        "width": 0.023134,
+        "height": 0.010369
+      },
+      {
+        "text": "Light",
+        "left": 0.338584,
+        "top": 0.612167,
+        "width": 0.024959,
+        "height": 0.010369
+      },
+      {
+        "text": "CC-foundation",
+        "left": 0.312927,
+        "top": 0.624571,
+        "width": 0.072356,
+        "height": 0.010369
+      },
+      {
+        "text": "Ilman",
+        "left": 0.312927,
+        "top": 0.637553,
+        "width": 0.023226,
+        "height": 0.009073
+      },
+      {
+        "text": "Plussa-korttia",
+        "left": 0.33836,
+        "top": 0.637553,
+        "width": 0.058235,
+        "height": 0.009073
+      },
+      {
+        "text": "1290",
+        "left": 0.331854,
+        "top": 0.662352,
+        "width": 0.064176,
+        "height": 0.048205
+      }
+    ],
+    "spatialPriceBoxes": [
+      {
+        "text": "15",
+        "left": 0.346473,
+        "top": 0.485073,
+        "width": 0.009537,
+        "height": 0.009073,
+        "d": 0.31021
+      },
+      {
+        "text": "21",
+        "left": 0.398802,
+        "top": 0.637553,
+        "width": 0.009422,
+        "height": 0.009073,
+        "d": 0.342824
+      },
+      {
+        "text": "990",
+        "left": 0.381491,
+        "top": 0.505848,
+        "width": 0.049632,
+        "height": 0.048205,
+        "d": 0.351335
+      },
+      {
+        "text": "4",
+        "left": 0.019685,
+        "top": 0.965943,
+        "width": 0.00825,
+        "height": 0.013386,
+        "d": 0.370854
+      },
+      {
+        "text": "258",
+        "left": 0.450748,
+        "top": 0.612167,
+        "width": 0.018673,
+        "height": 0.010369,
+        "d": 0.397485
+      },
+      {
+        "text": "50",
+        "left": 0.473661,
+        "top": 0.598991,
+        "width": 0.01511,
+        "height": 0.01515,
+        "d": 0.418395
+      },
+      {
+        "text": "30",
+        "left": 0.462397,
+        "top": 0.450377,
+        "width": 0.015148,
+        "height": 0.01515,
+        "d": 0.43249
+      },
+      {
+        "text": "53",
+        "left": 0.687281,
+        "top": 0.823255,
+        "width": 0.012012,
+        "height": 0.010369,
+        "d": 0.669269
+      },
+      {
+        "text": "5",
+        "left": 0.687281,
+        "top": 0.856374,
+        "width": 0.005429,
+        "height": 0.009073,
+        "d": 0.677807
+      },
+      {
+        "text": "5",
+        "left": 0.701076,
+        "top": 0.856374,
+        "width": 0.005642,
+        "height": 0.009073,
+        "d": 0.69069
+      },
+      {
+        "text": "40",
+        "left": 0.746203,
+        "top": 0.702969,
+        "width": 0.016454,
+        "height": 0.01515,
+        "d": 0.699784
+      },
+      {
+        "text": "5",
+        "left": 0.711579,
+        "top": 0.856374,
+        "width": 0.005429,
+        "height": 0.009073,
+        "d": 0.70035
+      },
+      {
+        "text": "5",
+        "left": 0.725633,
+        "top": 0.856374,
+        "width": 0.005322,
+        "height": 0.009073,
+        "d": 0.713392
+      },
+      {
+        "text": "2",
+        "left": 0.776039,
+        "top": 0.719462,
+        "width": 0.005349,
+        "height": 0.009073,
+        "d": 0.725898
+      },
+      {
+        "text": "3",
+        "left": 0.739664,
+        "top": 0.882676,
+        "width": 0.006982,
+        "height": 0.01515,
+        "d": 0.738156
+      },
+      {
+        "text": "12",
+        "left": 0.728548,
+        "top": 0.885081,
+        "width": 0.038889,
+        "height": 0.048205,
+        "d": 0.750122
+      },
+      {
+        "text": "75",
+        "left": 0.786534,
+        "top": 0.81008,
+        "width": 0.013322,
+        "height": 0.01515,
+        "d": 0.761019
+      },
+      {
+        "text": "2",
+        "left": 0.866708,
+        "top": 0.677952,
+        "width": 0.006753,
+        "height": 0.01515,
+        "d": 0.811377
+      },
+      {
+        "text": "3",
+        "left": 0.859485,
+        "top": 0.681324,
+        "width": 0.022215,
+        "height": 0.048205,
+        "d": 0.814126
+      },
+      {
+        "text": "50",
+        "left": 0.881647,
+        "top": 0.688429,
+        "width": 0.023879,
+        "height": 0.024089,
+        "d": 0.836358
+      }
+    ],
+    "spatialResolved": null,
+    "percentageOffer": {
+      "percent": 40,
+      "source": "owned-publisher-percentage",
+      "confidence": "high"
+    },
+    "spatialCandidates": [],
+    "spatialGroups": [
+      {
+        "top": 0.504948,
+        "left": 0.031978,
+        "right": 0.160801,
+        "boxes": [
+          {
+            "text": "-40%",
+            "left": 0.031978,
+            "top": 0.504948,
+            "width": 0.128823,
+            "height": 0.070241
+          }
+        ],
+        "text": "-40%"
+      },
+      {
+        "top": 0.656397,
+        "left": 0.045843,
+        "right": 0.174666,
+        "boxes": [
+          {
+            "text": "-40%",
+            "left": 0.045843,
+            "top": 0.656397,
+            "width": 0.128823,
+            "height": 0.070241
+          }
+        ],
+        "text": "-40%"
+      },
+      {
+        "top": 0.791362,
+        "left": 0.039403,
+        "right": 0.11744700000000001,
+        "boxes": [
+          {
+            "text": "100–750",
+            "left": 0.039403,
+            "top": 0.791362,
+            "width": 0.058555,
+            "height": 0.017905
+          },
+          {
+            "text": "ml",
+            "left": 0.100901,
+            "top": 0.791362,
+            "width": 0.016546,
+            "height": 0.017905
+          }
+        ],
+        "text": "100–750 ml"
+      }
+    ],
+    "nearby": [
+      "LUMENE KULMATUOTTEET",
+      "Lumene ögonbrynsprodukter"
+    ],
+    "imageAnchor": {
+      "left": 0.03484,
+      "top": 0.60384,
+      "width": 0.17040599999999997,
+      "height": 0.017905
+    },
+    "debugCardAnchor": {
+      "left": 0.03484,
+      "top": 0.60384,
+      "height": 0.017905,
+      "right": 0.20524599999999998,
+      "boxes": [
+        {
+          "text": "LUMENE",
+          "left": 0.03484,
+          "top": 0.60384,
+          "width": 0.053036,
+          "height": 0.017905
+        },
+        {
+          "text": "KULMATUOTTEET",
+          "left": 0.090819,
+          "top": 0.60384,
+          "width": 0.114427,
+          "height": 0.017905
+        }
+      ],
+      "text": "LUMENE KULMATUOTTEET"
+    }
+  }
+]

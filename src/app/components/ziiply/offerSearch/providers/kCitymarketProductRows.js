@@ -111,3 +111,13 @@ export function citymarketTransactionMetadata(row){
   }
   return metadata;
 }
+
+/** Standalone category discounts must own an aligned printed badge below their title. */
+export function resolveAlignedStandalonePercentage(row){
+  if(row.package||row.spatialResolved||row.percentageOffer?.source!=='owned-publisher-percentage')return row;
+  const a=row.debugCardAnchor;if(!a)return {...row,percentageOffer:null};
+  const badges=(row.debugNearbyBoxes||[]).filter(b=>/^[-−–]\d{1,2}%$/.test(b.text)&&
+    b.height>=.03&&Math.abs(b.left-a.left)<.08&&b.top>=a.top&&b.top-a.top<.11);
+  const values=[...new Set(badges.map(b=>Number(b.text.replace(/[^\d]/g,''))).filter(n=>n>0&&n<100))];
+  return {...row,percentageOffer:values.length===1?{percent:values[0],source:'aligned-printed-standalone-percentage',confidence:'high'}:null};
+}

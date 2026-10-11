@@ -1,4 +1,4 @@
-import {rejectUnownedMixedSetPercentage} from './kCitymarketProductRows.js';
+import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage} from './kCitymarketProductRows.js';
 import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
 const norm=s=>String(s).toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"");
@@ -302,7 +302,7 @@ export function productish(s){
  if(s.length<5||s.length>=180||!/[A-ZÅÄÖ]{3}/.test(s))return false;
  if(/KENGÄ|KENKÄ|NILKKUR|SAAPPA|MAIHAR|ULKOILUVAAT|VAATTEET|PÄÄHINE|HUIVI|NEULELANG|SÄILYTYSLAAT|TAKKI|HOUSU|PAITA|MEKKO|LAUKKU|PAISTOAST|KEITTOAST|KEITTIÖTYÖVÄLINE|PUSSILAKANA|(?<!PUHDISTUS)PYYHE|LAUTANEN|MUKI|KULHO|VEDENKEITIN|KUULOKE|KAIUTIN|TELEVIS|PUHELIN|TYÖKALU|LELU|SUKAT|ALUSHOUS|SÄHKÖHAMMASHARJA|VAIHTOHARJAT|HALLOWEEN|HÄMÄHÄKINVERKKO|PAPERILYHTY|KURPITSA-ASU|KORISTE|RANNEKE/i.test(exclusionTitle))return false;
  if(/AKTIVOI|VIIKON|RESEPT|CITTARI|HOITAA|Osallistu|Delta|HEVI-haaste|HEHKUVAAN|^LAKTOOSITON$|^UUTUUS$|^SHAKE UP$/.test(s))return false;
- return !!pkg(s)||/NAKKI|PIHVI|VARTAAT|JUOMAT|JUUST|JOGUR|KEFIR|LEIP|PITA|PEKON|PYYKINPESU|WC-PAPERI|NENÄLIINA|KÄSINE|LOHI|ULKOFILEE|LATZ|KURPITSA|VÄLIPALAT|IHONHOITO|PESULAPPU|RUOKALAPPU|VUODESUOJA|SHAMPOO|DEODOR|SÄVYTTEET|HIUSVÄRITUOTTEET|MEIKKIVOIDE/.test(s);
+ return !!pkg(s)||/NAKKI|PIHVI|VARTAAT|JUOMAT|JUUST|JOGUR|KEFIR|LEIP|PITA|PEKON|PYYKINPESU|WC-PAPERI|NENÄLIINA|KÄSINE|LOHI|ULKOFILEE|LATZ|KURPITSA|VÄLIPALAT|IHONHOITO|PESULAPPU|RUOKALAPPU|VUODESUOJA|SHAMPOO|DEODOR|SÄVYTTEET|HIUSVÄRITUOTTEET|MEIKKIVOIDE|PUUTERIT|KULMATUOTTEET/.test(s);
 }
 
 function parseWordBoxes(js){
@@ -321,7 +321,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V139-KCITYMARKET-PREPARED-MEAL-IDENTITY",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V140-KCITYMARKET-STANDALONE-PERCENTAGE-OWNERSHIP",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1421,7 +1421,7 @@ for(const row of out.rows){
   }
  }
 }
-out.rows=out.rows.map(rejectUnownedMixedSetPercentage);
+out.rows=out.rows.map(rejectUnownedMixedSetPercentage).map(resolveAlignedStandalonePercentage);
 return out;
 }
 
