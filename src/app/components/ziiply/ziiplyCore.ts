@@ -801,7 +801,7 @@ export const SEARCH_INTENTS: SearchIntent[] = [
   {
     category: "snacks",
     label: "Herkut ja naposteltavat",
-    variants: ["sipsit", "chips", "tortilla chips", "karkki", "suklaa", "keksi"],
+    variants: ["sipsit", "chips", "tortilla chips", "karkki", "suklaa", "keksi", "suolapähkinä"],
     requiredAny: ["sipsi", "chips", "tortilla", "karkki", "suklaa", "keksi"],
     preferredAny: ["sipsi", "chips", "tortilla", "suklaa"],
     bannedAny: ["kastike", "dippi", "jogurtti"],
