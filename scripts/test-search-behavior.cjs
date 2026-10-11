@@ -41,6 +41,7 @@ const samples = [
   ["pyykinpesuaine","laundry_detergent"],["astianpesuaine","dishwashing"],
   ["kahvi","coffee"],["maito","milk"],
   ["keksi","cookies"],["karkki","candy"],["suklaa","chocolate"],
+  ["sipsit","snacks"],["chips","snacks"],
   ["suolapähkinä","snacks"],["hunajasinappi","mustard"],
   ["tomaattitahna","tomato_paste"],["dijonsinappi","mustard"]
 ];
