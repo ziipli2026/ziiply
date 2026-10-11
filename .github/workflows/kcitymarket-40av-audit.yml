@@ -53,14 +53,16 @@ jobs:
           const expected=JSON.parse(fs.readFileSync(current.fixture,"utf8"));
           const out=await parser(current.url);
           const rows=Array.isArray(out?.rows)?out.rows:[];
-          const resolved=rows.filter(r=>Number(r?.spatialResolved?.value)>0);
+          const resolved=rows.filter(r=>Number(r?.spatialResolved?.value)>0 || Number(r?.percentageOffer?.percent)>0);
           if(!rows.length||!resolved.length) throw new Error(`${current.id}: live parser returned no usable rows`);
 
           const liveKeys=new Set(resolved.map(r=>{
             const page=Number(r.page)||0;
             const title=String(r.title||"").trim().toLowerCase();
-            const price=Number(r.spatialResolved.value);
-            return `kcm:spatial:${page}:${title}:${Number.isFinite(price)?price:""}`;
+            const percent=Number(r?.percentageOffer?.percent);
+            const price=Number(r?.spatialResolved?.value);
+            const token=percent>0?`percent:${percent}`:price>0?String(price):"";
+            return `kcm:spatial:${page}:${title}:${token}`;
           }));
           const expectedKeys=new Set(expected.offers.map(x=>x.key));
           const matched=[...expectedKeys].filter(k=>liveKeys.has(k));
@@ -70,6 +72,7 @@ jobs:
             id:current.id,
             expected:expectedKeys.size,
             liveResolved:resolved.length,
+            percentageResolved:resolved.filter(r=>Number(r?.percentageOffer?.percent)>0).length,
             matched:matched.length,
             missing:missing.length,
             coverage:Number(coverage.toFixed(4)),
