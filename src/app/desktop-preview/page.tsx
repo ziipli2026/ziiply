@@ -223,6 +223,44 @@ export default function DesktopPreviewPage() {
   const [withinStoreSlots,setWithinStoreSlots]=useState<Record<"S"|"K",Array<any|null>>>({S:[null,null],K:[null,null]});
   const [withinPicker,setWithinPicker]=useState<{chain:"S"|"K";slot:number}|null>(null);
 
+  // Restore all desktop store choices after reload; do not overwrite saved choices before hydration.
+  const desktopStoreChoicesHydrated = useRef(false);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("ziiply-desktop-store-choices-v1");
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved.storeMode === "hyper" || saved.storeMode === "local") setStoreMode(saved.storeMode);
+        if (["S","K","LIDL","SPAR",null].includes(saved.selectedChain)) setSelectedChain(saved.selectedChain);
+        if (saved.betweenMode === "one" || saved.betweenMode === "many") setBetweenMode(saved.betweenMode);
+        if (saved.allStoreSelections && typeof saved.allStoreSelections === "object") {
+          setAllStoreSelections({
+            hyper: saved.allStoreSelections.hyper && typeof saved.allStoreSelections.hyper === "object" ? saved.allStoreSelections.hyper : {},
+            local: saved.allStoreSelections.local && typeof saved.allStoreSelections.local === "object" ? saved.allStoreSelections.local : {},
+          });
+        }
+        if (["none","between_chains","within_chain"].includes(saved.storeCompareScope)) setStoreCompareScope(saved.storeCompareScope);
+        if (["S","K",null].includes(saved.withinChain)) setWithinChain(saved.withinChain);
+        if (saved.withinStoreSlots && typeof saved.withinStoreSlots === "object") {
+          setWithinStoreSlots({
+            S: Array.isArray(saved.withinStoreSlots.S) ? saved.withinStoreSlots.S.slice(0,2) : [null,null],
+            K: Array.isArray(saved.withinStoreSlots.K) ? saved.withinStoreSlots.K.slice(0,2) : [null,null],
+          });
+        }
+        if (typeof saved.storeModeChosen === "boolean") setStoreModeChosen(saved.storeModeChosen);
+      }
+    } catch {}
+    desktopStoreChoicesHydrated.current = true;
+  }, []);
+  useEffect(() => {
+    if (!desktopStoreChoicesHydrated.current) return;
+    try {
+      window.localStorage.setItem("ziiply-desktop-store-choices-v1", JSON.stringify({
+        storeMode,selectedChain,betweenMode,allStoreSelections,storeCompareScope,withinChain,withinStoreSlots,storeModeChosen,
+      }));
+    } catch {}
+  }, [storeMode,selectedChain,betweenMode,allStoreSelections,storeCompareScope,withinChain,withinStoreSlots,storeModeChosen]);
+
   const selectedStores = (() => {
     if(storeCompareScope==="within_chain") { const chosen=withinChain?withinStoreSlots[withinChain].filter(Boolean):[]; return Object.fromEntries(chosen.map((store:any)=>[String(store.id),store])); }
     const current=allStoreSelections[storeMode];
