@@ -38,10 +38,10 @@ export function matchOfferImage(offer: OfferImageCandidate, candidate: OfferImag
   // explicit pack size. Generic/multi-product titles are never safe matches.
   const nameA = clean(offer.name), nameB = clean(candidate.name);
   const sizeA = clean(offer.packageSize), sizeB = clean(candidate.packageSize);
-  const ambiguous = /\\b(tai|seka|sekä|valikoima|erilaiset|useita|lajitelma)\\b/i;
+  const ambiguous = /\b(tai|seka|sekä|valikoima|erilaiset|useita|lajitelma)\b/i;
   if (nameA && nameA === nameB && nameA.length >= 12 &&
       sizeA && sizeA === sizeB && !ambiguous.test(nameA) &&
-      !/[–-]\\s*\\d+\\s*(g|kg|ml|l)\\b/i.test(String(offer.packageSize))) {
+      !/[–-]\s*\d+\s*(g|kg|ml|l)\b/i.test(String(offer.packageSize))) {
     return { accepted: true, reason: "exact-name-and-package" };
   }
   return { accepted: false, reason: "insufficient-identity" };
