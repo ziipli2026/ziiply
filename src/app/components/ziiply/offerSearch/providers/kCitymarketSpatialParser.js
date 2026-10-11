@@ -8,7 +8,7 @@ export async function parseKCitymarketSpatialLeaflet(entry){
  const url=String(entry||'');
  if(url.toLowerCase().includes(APPROVED_41LV_PUBLICATION_ID))return parseApproved41LV(entry);
  const current=await parseCurrent(entry);
- const resolvedUrl=String(current?.leafletUrl||current?.sourceUrl||current?.url||'').toLowerCase();
+ const resolvedUrl=String(current?.leaflet||current?.leafletUrl||current?.sourceUrl||current?.url||'').toLowerCase();
  if(resolvedUrl.includes(APPROVED_41LV_PUBLICATION_ID))return parseApproved41LV(entry);
  return current;
 }
