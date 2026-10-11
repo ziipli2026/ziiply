@@ -5,6 +5,7 @@ on:
       - test/desktop-pagination-clean-20261011
       - test/sk-search-zero-result-fallback-20261011
       - fix/desktop-exact-size-query-20261011
+      - fix/desktop-justiina-visible-debug-20261011
   workflow_dispatch:
 jobs:
   verify:
