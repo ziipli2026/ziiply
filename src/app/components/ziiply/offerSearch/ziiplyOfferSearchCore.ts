@@ -492,6 +492,7 @@ const ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156 = 5 * 60 * 1000;
 const ziiplyGostaMasterCacheV156 = new Map<string, { expiresAt: number; promise: Promise<ZiiplyGostaOfferLike[]> }>();
 
 export type ZiiplyKruokaDebugV174 = {
+  imageEnrichmentAudit?: Record<string, unknown>;
   deploy?: {
     gitCommitSha?: string | null;
     gitCommitRef?: string | null;
@@ -613,6 +614,7 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
             ...(deployV184 ? { deploy: deployV184 } : {}),
             ...(payloadV174.sEvidenceRouteV228 ? { sEvidenceRouteV228: payloadV174.sEvidenceRouteV228 } : {}),
             ...(payloadV174.kOfferStageAuditV1 ? { kOfferStageAuditV1: payloadV174.kOfferStageAuditV1 } : {}),
+            ...(payloadV174.imageEnrichmentAudit ? { imageEnrichmentAudit: payloadV174.imageEnrichmentAudit } : {}),
           }
         : null;
     if (contextKey) {
