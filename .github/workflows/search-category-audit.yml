@@ -13,12 +13,16 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci --legacy-peer-deps
+          cache-dependency-path: scripts/search-test-runtime/package-lock.json
+      # The audit executes pure search code; it only needs the pinned TS compiler.
+      # Keep this independent of the application dependency migration.
+      - name: Install isolated search test runtime
+        run: npm ci --prefix scripts/search-test-runtime --ignore-scripts --no-audit --no-fund
       - name: Test real search intent and local learning logic
         run: |
           mkdir -p search-audit-results
           set -o pipefail
-          npm run test:search --silent | tee search-audit-results/behavior.json
+          NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" npm run test:search --silent | tee search-audit-results/behavior.json
       - name: Report ambiguous category substrings
         if: success() || failure()
         run: |
