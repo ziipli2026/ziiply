@@ -24,7 +24,12 @@ try{parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);}catch(error){
  console.error('KCM_REPLAY_FAILED',JSON.stringify(failure));
  process.exit(1);
 }
-if(!Array.isArray(parsed?.rows))throw Error('Parser did not return rows');
+if(!Array.isArray(parsed?.rows)){
+ const failure={id:fixture.id,error:'Parser did not return rows',requests:visited.size,missingRequests};
+ if(process.env.KCM_REPLAY_REPORT)fs.writeFileSync(process.env.KCM_REPLAY_REPORT,JSON.stringify(failure,null,2)+'\n');
+ console.error('KCM_REPLAY_FAILED',JSON.stringify(failure));
+ process.exit(1);
+}
 const extractedKeys=parsed.rows.flatMap(r=>{
  const title=String(r.title||'').trim().toLowerCase(),page=Number(r.page)||0;
  const resolved=r.spatialResolved;
