@@ -18,7 +18,7 @@ export type OfferImageOutcome = {
 export function planImageEnrichment(jobs: OfferImageJob[]): OfferImageJob[] {
   const seen = new Set<string>();
   return jobs.filter(job => {
-    if (job.offer.imageUrl || !(job.offer.ean || job.offer.productCode)) return false;
+    if (job.offer.imageUrl || !(job.offer.ean || job.offer.productCode || (job.offer.name && job.offer.packageSize))) return false;
     const key = job.chain + ":" + job.offerId;
     if (seen.has(key)) return false;
     seen.add(key);
