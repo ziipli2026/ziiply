@@ -113,12 +113,15 @@ jobs:
           const jumboIds=new Set(jumbo.map(x=>x.id));
           const foreign=campaigns.filter(x=>jumboIds.has(x.id));
           const missing=local.filter(x=>!visible.some(y=>y.id===x.id));
+          const suppressed=local.filter(x=>!campaigns.some(y=>y.id===x.id));
+          const suppressedByLeaflet=suppressed.filter(x=>removeCampaignCopiesOfLeaflet(offers,[x]).length===0);
+          const unexplainedMissing=suppressed.filter(x=>removeCampaignCopiesOfLeaflet(offers,[x]).length!==0);
           const wrongTab=offers.filter(x=>localIds.has(x.id));
           const badCampaignCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
           const badOfferCategories=offers.filter(x=>!x.category||x.category==='Muut');
           const badCategories=[...badOfferCategories,...badCampaignCategories];
           const unexpectedFallbacks=badCategories.map(x=>x.title);
-          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),offerFallbacks:badOfferCategories.map(x=>x.title),campaignFallbacks:badCampaignCategories.map(x=>x.title),unexpectedFallbacks},null,2));
-          if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length)process.exitCode=1;
+          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,suppressedByLeaflet:suppressedByLeaflet.length,unexplainedMissing:unexplainedMissing.map(x=>({id:x.id,title:x.title,category:x.category})),wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),offerFallbacks:badOfferCategories.map(x=>x.title),campaignFallbacks:badCampaignCategories.map(x=>x.title),unexpectedFallbacks},null,2));
+          if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length||unexplainedMissing.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
