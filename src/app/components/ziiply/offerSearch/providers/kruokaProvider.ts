@@ -10,7 +10,7 @@
 // - K-Supermarket-logiikka säilyy ennallaan
 // ============================================================================
 
-import { removeCampaignCopiesOfLeaflet, removeProvenPercentageCopies } from "../kOfferTabPolicy";
+import { removeCampaignCopiesOfLeaflet } from "../kOfferTabPolicy";
 import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
@@ -829,7 +829,7 @@ export async function fetchKruokaOffers(
     const kCampaignRows = results.filter(result =>
       String((result as unknown as UnknownRecord).campaignType ?? "offer") === "campaign",
     );
-    const uniqueCampaignRows = removeProvenPercentageCopies(removeCampaignCopiesOfLeaflet(kOfferRows, kCampaignRows));
+    const uniqueCampaignRows = removeCampaignCopiesOfLeaflet(kOfferRows, kCampaignRows);
     const removedCampaignCount = kCampaignRows.length - uniqueCampaignRows.length;
     if (debug.campaignProbe) {
       debug.campaignProbe.returnedCampaignRows = uniqueCampaignRows.length;
