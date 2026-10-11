@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {canonicalCitymarketProductRows as canonical} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js';
+const rows=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/product-row-continuations.json',import.meta.url)));
+test('Aligned continuation restores product and package without changing price',()=>{const r=canonical(rows);assert.equal(r.length,3);const a=r.find(x=>x.title.startsWith('ACTIMEL'));assert.equal(a.title,'ACTIMEL JOGURTTI-JUOMAT 8 x 100 g');assert.equal(a.package.min,.8);assert.equal(a.spatialResolved.value,3.69);assert.equal(r.find(x=>x.title.startsWith('SININEN')).spatialResolved.quantity,4);assert.ok(r.some(x=>x.title==='KANATUOTTEET 170–250 g'));});
+test('Different price cannot merge adjacent product lines',()=>{const r=structuredClone(rows.slice(0,2));r[1].spatialResolved.value=8;assert.equal(canonical(r).length,2);});
+test('Other column cannot merge adjacent product lines',()=>{const r=structuredClone(rows.slice(0,2));r[1].debugCardAnchor.left+=.1;assert.equal(canonical(r).length,2);});
+test('Input source evidence is unchanged',()=>{const before=JSON.stringify(rows);canonical(rows);assert.equal(JSON.stringify(rows),before);});
