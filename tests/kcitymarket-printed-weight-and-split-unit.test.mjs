@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {verifiedPrintedBundle,verifiedMissingCents} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketPrintedBundleProof.js';
+const rows=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/printed-weight-and-split-unit.json',import.meta.url)));
+const meat=rows.find(r=>r.title.includes('ULKOFILEE'));
+const salad=rows.find(r=>r.title.includes('SUOSIKKISALAATIT'));
+test('Printed cents and KG retain variable-weight sale basis',()=>{const p=verifiedMissingCents(meat);assert.equal(p.value,24.9);assert.equal(p.unit,'KG');});
+test('Neighbour unit arithmetic cannot invent a weight price without KG',()=>{const r=structuredClone(meat);r.debugNearbyBoxes=r.debugNearbyBoxes.filter(b=>b.text!=='KG');assert.equal(verifiedMissingCents(r),null);});
+test('Adjacent split RS label proves three-tray ten-euro offer',()=>{const p=verifiedPrintedBundle(salad);assert.equal(p.value,10);assert.equal(p.quantity,3);assert.equal(p.unit,'RS');});
+test('Separated letters cannot establish an offer unit',()=>{const r=structuredClone(salad);r.debugNearbyBoxes=r.debugNearbyBoxes.map(b=>b.text==='S'?{...b,left:b.left+.05}:b);assert.equal(verifiedPrintedBundle(r),null);});

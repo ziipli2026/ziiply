@@ -1,3 +1,4 @@
+import {resolvePackageTransaction} from "./kCitymarketPackageTransaction";
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
@@ -69,9 +70,9 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
         // National leaflet filtering alone does not cover this independent source.
         if(classifyCitymarketCategory(title)==="Koti & vapaa-aika")continue;
         const qty=numeric(offer.pieceCountFrom);
-        const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
-        const unit=String(offer.baseUnit??"");
-        const unitValue=numeric(offer.unitPrice);
+        const rawQuantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
+        const transaction=resolvePackageTransaction(title,String(offer.description??""),price,rawQuantity,numeric(offer.unitPrice),String(offer.baseUnit??""));
+        const quantity=transaction.quantity,unit=transaction.unit,unitValue=transaction.unitPrice;
         output.push({id:"citymarket-local-"+storeId+"-"+id,title,name:title,productName:title,price,
           priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
           previousPrice:regular!=null&&regular!==price?regular:null,
@@ -81,7 +82,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           source:"K-Citymarket kauppakohtainen julkaisu",provider:"kcitymarket-local",offerId:id,
           additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null?"Plussa-tarjous":undefined,
           validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
-          isPlussaOffer:member!=null,offerQuantity:quantity,
+          isPlussaOffer:member!=null,offerQuantity:quantity,offerUnit:transaction.packageCount?"PKT":quantity?"KPL":null,packageCount:transaction.packageCount,deposit:transaction.deposit,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
           category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
       }

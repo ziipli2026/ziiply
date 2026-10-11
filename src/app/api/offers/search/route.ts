@@ -62,7 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
-import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
+import { removeCampaignCopiesOfLeaflet, removeProvenPercentageCopies } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
@@ -905,7 +905,7 @@ export async function GET(request: Request) {
           const uniqueLocalCampaigns = removeCampaignCopiesOfLeaflet(nationalLeafletOffers, matchingLocalOffers);
           citymarketLocalCount = uniqueLocalCampaigns.length;
           citymarketLocalStoreId = uniqueLocalCampaigns.length ? String(uniqueLocalCampaigns[0].storeId ?? "") || null : null;
-          citymarketResults.push(...uniqueLocalCampaigns);
+          citymarketResults = removeProvenPercentageCopies([...citymarketResults, ...uniqueLocalCampaigns]);
         }
       } catch (localError) {
         console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);

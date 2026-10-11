@@ -1,3 +1,4 @@
+import {canonicalCitymarketProductRows} from "./kCitymarketProductRows.js";
 import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
@@ -81,6 +82,10 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
+  if(/nachips|nachos|tortilla/.test(s)) return "Kuivatuotteet";
+  if(/jogurttijuom|actimel/.test(s)) return "Maitotuotteet";
+  if(/pakaste.*kasvis|kasvis.*pakaste|vihannessekoit/.test(s)) return "Pakasteet";
+  if(/puhdistus.*(?:tiiviste|suihke)|wc-geeli|käsitiski/.test(s)) return "Kodinhoito";
   // Leipäjuusto is a dairy cheese, not a bakery product.
   if(/leipäjuust/.test(s)) return "Maitotuotteet";
 
@@ -90,22 +95,22 @@ export function category(t:string){
   if(/puhdistuspyyhkeet|vanulaput|vanupuikot|mascarat/.test(s)) return "Hygienia & kosmetiikka";
   if(/pentualusta/.test(s)) return "Lemmikit";
   // Specific everyday consumables must survive the non-grocery filter.
-  if(/teippi-?\\s*ja\\s*housuvaipat|housuvaipat|teippivaipat|vaipat\\s+koot/.test(s)) return "Hygienia & kosmetiikka";
+  if(/teippi-?\s*ja\s*housuvaipat|housuvaipat|teippivaipat|vaipat\s+koot/.test(s)) return "Hygienia & kosmetiikka";
   if(/vanulaput|vanupuikot|topz/.test(s)) return "Hygienia & kosmetiikka";
-  if(/kasvipohjainen\\s+savu|savulauantai|savukalgguna/.test(s)) return "Valmisruoka";
+  if(/kasvipohjainen\s+savu|savulauantai|savukalgguna/.test(s)) return "Valmisruoka";
   // Apparel and footwear are not daily groceries, even when the title contains food-like words.
-  if(/collegehousut|collegepaita|collegeasu|housut|farkut|leggingsit|legginssit|sukat|alushousut|alusvaatteet|t-paita|t-paidat|huppari|neulepaita|takki\\b|takit\\b|kengät|saappaat|lenkkarit|vaatteet|pukeutuminen/.test(s)) return "Koti & vapaa-aika";
+  if(/collegehousut|collegepaita|collegeasu|housut|farkut|leggingsit|legginssit|sukat|alushousut|alusvaatteet|t-paita|t-paidat|huppari|neulepaita|takki\b|takit\b|kengät|saappaat|lenkkarit|vaatteet|pukeutuminen/.test(s)) return "Koti & vapaa-aika";
   // Mobile Citymarket preview: specific product forms before generic food keywords.
   // Keep the approved 41LV spatial parser immutable; classify only its output.
-  if(/kilokartonki|huopakynä|tussisetti|tussikynä|värikynä|askartelupaper|piirustuspaper|juomalasi|kartio\\s+juomalasi/.test(s)) return "Koti & vapaa-aika";
-  if(/pyykinpesunest|pyykinpesujauhe|bio\\s*luvil|omo\\s+(?:color|active|pyykin)|värin-\\s*ja\\s*liankerääjä|liankerääjäliina|puhdistuspyyhke/.test(s)) return "Kodinhoito";
-  if(/vanulappu|vanupuikko|topz\\b/.test(s)) return "Hygienia & kosmetiikka";
+  if(/kilokartonki|huopakynä|tussisetti|tussikynä|värikynä|askartelupaper|piirustuspaper|juomalasi|kartio\s+juomalasi/.test(s)) return "Koti & vapaa-aika";
+  if(/pyykinpesunest|pyykinpesujauhe|bio\s*luvil|omo\s+(?:color|active|pyykin)|värin-\s*ja\s*liankerääjä|liankerääjäliina|puhdistuspyyhke/.test(s)) return "Kodinhoito";
+  if(/vanulappu|vanupuikko|topz\b/.test(s)) return "Hygienia & kosmetiikka";
   if(/pentualusta/.test(s)) return "Lemmikit";
-  if(/palvikinkku|palvikana|keittokinkku|ohuen\\s+ohut/.test(s)) return "Liha & makkarat";
+  if(/palvikinkku|palvikana|keittokinkku|ohuen\s+ohut/.test(s)) return "Liha & makkarat";
   if(/proteiinivanukas|proteiinivaahto|proteiinimousse|proteiinimousse|proteiinivaa/.test(s)) return "Maitotuotteet";
-  if(/kuivattu\\s+mango|kuivattuja\\s+mango|tomaattimurska/.test(s)) return "Kuivatuotteet";
+  if(/kuivattu\s+mango|kuivattuja\s+mango|tomaattimurska/.test(s)) return "Kuivatuotteet";
   if(/pehmosämpyl/.test(s)) return "Leipomo";
-  if(/savuleikkele.*kasvi|kasvipohjainen.*leikkele|maustetut?\\s+tofu/.test(s)) return "Valmisruoka";
+  if(/savuleikkele.*kasvi|kasvipohjainen.*leikkele|maustetut?\s+tofu/.test(s)) return "Valmisruoka";
 
   // Publication-wide product-form precedence: these must not inherit a broad
   // category from ingredient words or generic fresh-produce keywords.
@@ -117,7 +122,7 @@ export function category(t:string){
   if(/välipalajuoma/.test(s)) return "Juomat";
   // Explicit non-food types precede generic matches (e.g. pussilakanasetti contains "kana").
   if(/pussilakana|aluslakana|lakana\b|lakanasetti|tyynyliina|koristetyyny|torkkupeit|peitto\b|kylpypyyhe|käsipyyhe|putkivarsi|talvikeng|ulkoilukeng|saappaat|kengät|valaisin|pöytävalaisin|reppuklipsi|verenpainemittari|pölynimuri|pölypuss|rikkasetti|ruusukimppu|terttuneilikka|erika|lankaköynnös|muki\b|vati\b|lautanen|kulho|ranneke|naamari|serpentiini|ilmapallo|hämähäkinverkko|halloween|luuranko|noita-asu|kurpitsa-asu|pehmo|nappikuulok|kuulok|bluetooth-kaiutin|kaiutin\b|aktiviteettikort|roosa nauha|ranneke|kirja\b|remes\s+kaaos\b/.test(s)) return "Koti & vapaa-aika";
-  if(/konetiskitablet|astianpesutablet|\\bfairy\\b/.test(s)) return "Kodinhoito";
+  if(/konetiskitablet|astianpesutablet|\bfairy\b/.test(s)) return "Kodinhoito";
   if(/kangasnaamio|kasvonaamio/.test(s)) return "Hygienia & kosmetiikka";
   if(/katkarav|jättikatkarav/.test(s)) return "Kala";
   if(/kypsät.*(?:peruna|lohko)|parisiinperuna|pikkuperuna/.test(s)) return "Valmisruoka";
@@ -129,7 +134,7 @@ export function category(t:string){
   // Frozen vegetables must win over the generic "keitto" prepared-food match.
   if(/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
   if(/koira|kissa|lemmik|possunkorva|kissanhiekka/.test(s)) return "Lemmikit";
-  if(/little kids|lastenruo/.test(s)) return "Lastenruoat";
+  if(/little kids|lastenruo|\bpiltti\b/.test(s)) return "Lastenruoat";
   if(/proteiinivaa|maksalaatik|kiusaus|kiusauk|burger|kebab|härkis|härkäpapumursk|gold\s*&\s*green|suosikkisalaat|pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
   if(/(?:^|[^a-zåäö])kana(?:[^a-zåäö]|$)|kananpoika|kananpoj|kananuget|kanapuik|kanaransk|kanatuotte|broiler|nauta|naudan|ulkoilee|poron|sika|porsaa|porsas|jauheliha|makkara|nakki|meetvursti|palviro|savusaunapalvi|pekoni|kinkku|kokoliha|leikkele|fileepih|fileesuikale|liha/.test(s)) return "Liha & makkarat";
   if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
@@ -399,6 +404,10 @@ function parsePage(html:string,url:string):CitymarketOffer[]{
 
 
 export type KCitymarketHtmlDebugV8 = {
+  parserRevision?: string;
+  sourceMode?: string;
+  approvalStatus?: string;
+  sourcePdfSha256?: string;
   leafletUrl?: string;
   basicIndexUrl?: string;
   maxPage?: number;
@@ -438,11 +447,12 @@ function extractKCitymarketValidityV16(text:unknown){
 async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[]>{
   const parsed=await parseKCitymarketSpatialLeaflet(entry);
   const leafletUrl=String(parsed?.leaflet||ENTRY);
-  const rows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
+  const rows:any[]=canonicalCitymarketProductRows(Array.isArray(parsed?.rows)?parsed.rows:[]);
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
   citymarketHtmlDebugV8={
+    parserRevision:parsed.revision,sourceMode:"sourceMode" in parsed?parsed.sourceMode:undefined,approvalStatus:"approvalStatus" in parsed?parsed.approvalStatus:undefined,sourcePdfSha256:"sourcePdfSha256" in parsed?parsed.sourcePdfSha256:undefined,
     leafletUrl,
     basicIndexUrl:undefined,
     maxPage:Number(parsed.pageCount)||Math.max(0,...rows.map((r:any)=>Number(r?.page)||0)),
@@ -468,7 +478,16 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const price=Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
-    const title=clean(row?.title||"");
+    let title=clean(row?.title||"");
+    // Recover a wrapped uppercase prefix only within the same printed column.
+    // Never use the broad neighbourhood as a category or product identity.
+    const anchor=row?.debugCardAnchor;
+    if(anchor){
+      const prefixes=(row?.debugNearbyBoxes||[]).filter((box:any)=>
+        /^[A-ZÅÄÖ]+-$/.test(String(box.text||"")) && Math.abs(Number(box.left)-Number(anchor.left))<0.005 &&
+        Number(anchor.top)-Number(box.top)>0.005 && Number(anchor.top)-Number(box.top)<0.04);
+      if(prefixes.length===1 && !title.includes(prefixes[0].text)) title=prefixes[0].text+title;
+    }
     if(!title || isNoiseLine(title)) continue;
 
     const normalMin=Number(row?.normal?.min);
@@ -589,6 +608,7 @@ const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
   return PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
 }
+function isCorrected41LVPreview(){return process.env.VERCEL_ENV==="preview" && process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected";}
 const getCachedKCitymarketPeriod=unstable_cache(
   async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
     const periodEntry=kCitymarketPeriodEntry(period);
@@ -599,7 +619,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v135-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -720,7 +740,7 @@ function visibleCitymarketDailyOffers(offers:CitymarketOffer[]):CitymarketOffer[
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
-  const active=getActiveKCitymarketPeriod();
+  const active=getActiveKCitymarketPeriod(isCorrected41LVPreview()?new Date("2026-10-11T10:00:00Z"):new Date());
 
   // The Wednesday/Sunday background warm-up parses the next leaflet after
   // 15:00 Europe/Helsinki. Once that period becomes active, serve the exact
