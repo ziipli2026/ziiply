@@ -3,6 +3,17 @@ import assert from "node:assert/strict";
 const queue = JSON.parse(fs.readFileSync("citymarket-image-review-queue.json", "utf8"));
 const probe = fs.existsSync("citymarket-image-probe.json") ? JSON.parse(fs.readFileSync("citymarket-image-probe.json", "utf8")) : { results: [] };
 const probeById = new Map(probe.results.map(row => [row.offerId, row]));
+const discovery = fs.existsSync("citymarket-image-discovery.json") ? JSON.parse(fs.readFileSync("citymarket-image-discovery.json","utf8")) : { results: [] };
+const discoveredById = new Map();
+for(const result of discovery.results ?? []){
+  if(!result.offerId || !Array.isArray(result.imageCandidates))continue;
+  const existing=discoveredById.get(result.offerId)??[];
+  for(const url of result.imageCandidates){
+    if(typeof url!=="string" || !url.startsWith("https://") || existing.some(item=>item.url===url))continue;
+    existing.push({url,source:result.page});
+  }
+  discoveredById.set(result.offerId,existing);
+}
 const escape = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 assert.equal(queue.rows.length, queue.missingImages);
 const cards = queue.rows.map(row => {
@@ -10,9 +21,13 @@ const cards = queue.rows.map(row => {
   const image = row.imageUrl && checked?.reachableImage
     ? '<img loading="lazy" referrerpolicy="no-referrer" src="' + escape(row.imageUrl) + '" alt="Unapproved image candidate">'
     : '<div class="placeholder">Ei tarkistettua kuvatiedostoa</div>';
+  const discovered = discoveredById.get(row.offerId) ?? [];
+  const discoveredHtml = discovered.length
+    ? '<details><summary>' + discovered.length + ' uutta kuvaehdokasta (ei hyväksytty)</summary>' + discovered.map(item=>'<p><a target="_blank" rel="noopener noreferrer" href="'+escape(item.url)+'">Avaa kuvaehdokas</a> <a target="_blank" rel="noopener noreferrer" href="'+escape(item.source)+'">Lähdesivu</a></p>').join("") + '</details>'
+    : '';
   const source = row.productSourceUrl ? '<a target="_blank" rel="noopener noreferrer" href="' + escape(row.productSourceUrl) + '">Tuotetiedot</a>' : '';
   const evidence = row.imageEvidenceUrl ? '<a target="_blank" rel="noopener noreferrer" href="' + escape(row.imageEvidenceUrl) + '">Kuvan lähde</a>' : '';
-  return '<article data-page="' + escape(row.page) + '" data-status="' + (checked?.reachableImage ? 'reachable' : row.imageUrl ? 'failed' : 'missing') + '"><div class="preview">' + image + '</div><div><small>Sivu ' + escape(row.page) + ' · ' + escape(row.reviewPriority) + '</small><h2>' + escape(row.identity) + '</h2><p>Haku: ' + escape(row.imageSearchQuery) + '</p><p>EAN: ' + escape(row.candidateEan || "ei vahvistettu") + '</p><p>Kuvalinkin tila: ' + escape(checked ? (checked.reachableImage ? "Teknisesti saavutettavissa" : checked.failureReason || "ei tavoitettu") : "ei tarkistettu") + '</p><p>' + source + ' ' + evidence + '</p><strong>Ei hyväksytty käyttöön</strong></div></article>';
+  return '<article data-page="' + escape(row.page) + '" data-status="' + (checked?.reachableImage ? 'reachable' : row.imageUrl ? 'failed' : 'missing') + '"><div class="preview">' + image + '</div><div><small>Sivu ' + escape(row.page) + ' · ' + escape(row.reviewPriority) + '</small><h2>' + escape(row.identity) + '</h2><p>Haku: ' + escape(row.imageSearchQuery) + '</p><p>EAN: ' + escape(row.candidateEan || "ei vahvistettu") + '</p><p>Kuvalinkin tila: ' + escape(checked ? (checked.reachableImage ? "Teknisesti saavutettavissa" : checked.failureReason || "ei tavoitettu") : "ei tarkistettu") + '</p><p>' + source + ' ' + evidence + '</p>' + discoveredHtml + '<strong>Ei hyväksytty käyttöön</strong></div></article>';
 }).join("\n");
 const controls = '<div class="filters"><label>Hae tuotetta <input id="search" type="search" placeholder="Tuote, EAN tai sivu"></label><label>Kuvatila <select id="status"><option value="">Kaikki</option><option value="reachable">Kuvalinkki toimii</option><option value="failed">Kuvalinkki ei toimi</option><option value="missing">Ei kuvalinkkiä</option></select></label><output id="count"></output></div>';
 const script = '<script>const cards=[...document.querySelectorAll("article")];const search=document.querySelector("#search");const status=document.querySelector("#status");const count=document.querySelector("#count");function update(){const q=search.value.toLocaleLowerCase("fi").trim();let shown=0;for(const card of cards){const match=(!q||card.textContent.toLocaleLowerCase("fi").includes(q))&&(!status.value||card.dataset.status===status.value);card.hidden=!match;if(match)shown++}count.textContent=shown+" / "+cards.length+" tarjousta"}search.addEventListener("input",update);status.addEventListener("change",update);update()</script>';
