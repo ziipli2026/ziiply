@@ -62,21 +62,17 @@ function sortDesktopCategories(categories: string[]): string[] {
 }
 
 function FuelStationCardDetails({ chain, station }: { chain: string; station: any }) {
-  const price = (v: unknown) => v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v).toFixed(3).replace(".", ",") + " €/l" : "Ei havaintoa";
-  const observed = (value: unknown) => value && Number.isFinite(Date.parse(String(value)))
-    ? new Date(String(value)).toLocaleString("fi-FI", { timeZone: "Europe/Helsinki", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
-  return <div className="pointer-events-none absolute inset-x-0 inset-y-1 z-10 flex min-w-0 flex-col items-center px-2 text-center">
+  const price = (v: unknown) => v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v).toFixed(3).replace(".", ",") : "–";
+  const compact = chain.includes("Gulf") || chain.includes("Ritoil") || chain === "Muut";
+  return <div className="pointer-events-none absolute inset-x-0 top-1 z-10 flex h-[calc(100%-8px)] min-w-0 flex-col items-center text-center">
     <div className="flex w-[calc(100%-128px)] min-w-0 flex-col items-center">
-      <div className="w-full text-[clamp(10px,.85vw,14px)] font-black leading-tight text-[#111827]">{chain}</div>
-      <div className="line-clamp-2 w-full text-[clamp(11px,.9vw,14px)] font-bold leading-tight text-[#111827]">{station?.name || "Ei asemaa saatavilla"}</div>
-      {station && <div className="text-[12px] font-bold leading-tight text-black">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
+      <div className={`w-full text-center font-black leading-[1.05] text-[#111827] ${compact ? "whitespace-nowrap text-[clamp(9px,.72vw,12px)]" : "text-[clamp(12px,1vw,16px)]"}`}>{chain}</div>
+      <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei asemaa saatavilla"}</div>
+      {station && <div className="text-[12px] font-bold leading-[1.1] text-black">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
     </div>
-    {station && <div className="mt-auto grid w-full grid-cols-3 gap-1 rounded-lg bg-[#fffaf0]/95 px-1 py-1 text-[#172b24]">
-      {([["DI", "diesel", "observedDiesel"], ["95", "price95", "observed95"], ["98", "price98", "observed98"]] as const).map(([label, key, dateKey]) => <div key={key} className="min-w-0">
-        <div className="text-[11px] font-black">{label}</div>
-        <div className="text-[clamp(9px,.75vw,12px)] font-extrabold leading-tight">{price(station[key])}</div>
-        {station[key] != null && <div className="text-[9px] leading-tight">{observed(station[dateKey]) || "Aika puuttuu"}</div>}
-      </div>)}
+    {station && <div className="absolute bottom-1.5 left-2 flex w-14 shrink-0 flex-col items-center whitespace-nowrap text-[clamp(10px,.8vw,13px)] font-extrabold leading-[1.05] text-[#172b24]">
+      <div className="flex items-center justify-center gap-1"><span>DI</span><span>{price(station.diesel)}</span></div>
+      <div className="flex items-center justify-center gap-1"><span>BE</span><span>{price(station.price95)} / {price(station.price98)}</span></div>
     </div>}
   </div>;
 }
