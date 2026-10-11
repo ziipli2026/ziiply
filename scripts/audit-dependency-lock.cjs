@@ -14,5 +14,14 @@ for(const kind of ["dependencies","devDependencies"]){
   if(!(name in wanted))issues.push({kind,name,manifest:null,lockRoot:range,installed:lock.packages?.["node_modules/"+name]?.version??null});
  }
 }
-console.log(JSON.stringify({kind:"dependency-lock-drift",mutations:0,lockfileVersion:lock.lockfileVersion,issues,issueCount:issues.length},null,2));
+const manifestNext=manifest.dependencies?.next;
+const lockNext=root.dependencies?.next;
+const recommendation={
+ strategy:"regenerate-lockfile-in-isolated-branch",
+ preferredManifestNext:manifestNext,
+ currentlyLockedNext:lockNext,
+ rationale:"Preserve declared application dependency versions; validate fresh lockfile with npm ci, tsc, Next build and regressions before proposing merge.",
+ productionChange:false
+};
+console.log(JSON.stringify({kind:"dependency-lock-drift",mutations:0,lockfileVersion:lock.lockfileVersion,issues,issueCount:issues.length,recommendation},null,2));
 // Drift is reported separately; it must not hide successful TypeScript checks.
