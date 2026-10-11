@@ -32,4 +32,13 @@ assert.equal(matchOfferImage(distinct, { ...distinct, imageUrl: image.imageUrl }
 assert.equal(matchOfferImage({ name: "WC-PAPERI 40 rl" }, { name: "WC-PAPERI 40 rl", imageUrl: image.imageUrl }).accepted, false);
 assert.equal(matchOfferImage({ name: "VICHY 0,33 l/pl 24-pack" }, { name: "VICHY 0,33 l/pl 24-pack", imageUrl: image.imageUrl }).accepted, false);
 assert.equal(matchOfferImage({ name: "Lotus Nessu nenäliina 100 kpl" }, { name: "Lotus Nessu nenäliina 200 kpl", imageUrl: image.imageUrl }).accepted, false);
+// Enrichment must be immutable and preserve all non-image offer fields.
+const originalOffer = { id: "41LV-test", name: "Lotus Nessu nenäliina 100 kpl", price: 2.19, category: "Hygienia", rank: 7, imageUrl: undefined as string | undefined };
+const originalSnapshot = JSON.stringify(originalOffer);
+const enrichedOffer = enrichOfferImage(originalOffer, [{ name: originalOffer.name, imageUrl: image.imageUrl }]);
+assert.equal(JSON.stringify(originalOffer), originalSnapshot, "source offer must not mutate");
+assert.deepEqual({ ...enrichedOffer, imageUrl: undefined }, originalOffer, "only imageUrl may change");
+assert.equal(enrichedOffer.imageUrl, image.imageUrl);
+const unchanged = enrichOfferImage(originalOffer, [{ name: "Different item 100 kpl", imageUrl: image.imageUrl }]);
+assert.deepEqual(unchanged, originalOffer, "unverified images must leave offer untouched");
 console.log("Offer image matcher regression checks passed");
