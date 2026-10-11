@@ -1332,30 +1332,22 @@ export default function DesktopPreviewPage() {
             />
 
             {electricityOpen && <div role="dialog" aria-modal="true" aria-label="Göstan sähkövertailu" className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[70]`}>
-              <div className="relative flex min-h-[64px] shrink-0 items-center justify-center rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-14 py-3">
+              <div className="relative flex min-h-[70px] shrink-0 items-center justify-center rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-[220px] py-3">\n                <div className="absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-xl border border-[#caa15d] bg-[#fff4cf] px-3 py-2"><span className="font-serif text-[16px] font-black italic text-[#174c35]">Hinta nyt</span><span className="text-[25px] font-black text-[#174c35]">{electricity.value}</span><span className="text-xs font-black text-[#174c35]">snt/kWh</span></div>
                 <h2 className="font-serif text-[22px] font-black italic text-[#174c35]">Göstan sähkövertailu</h2>
                 <button type="button" onClick={()=>setElectricityOpen(false)} aria-label="Sulje sähkövertailu" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black text-[#fff0c8]">×</button>
               </div>
               <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">
-                <section className="min-h-0 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="font-serif text-[22px] font-black italic text-[#174c35]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h3>
-                    <div className="rounded-xl border border-[#caa15d] bg-[#fff4cf] px-4 py-2 text-right">
-                      <span className="text-xs font-black text-[#6d604c]">Hinta nyt </span>
-                      <span className="text-2xl font-black text-[#174c35]">{electricity.value}</span>
-                      <span className="ml-1 text-xs font-black text-[#174c35]">snt/kWh</span>
-                    </div>
-                  </div>
-                  {(()=> {
+                <section className="min-h-0 shrink-0 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-4">
+                  <h3 className="font-serif text-[22px] font-black italic text-[#174c35]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h3>\n                  {(()=> {
                     const now=Date.now();
                     const available=electricityPrices.filter(p=>p.end>now&&p.start<now+24*60*60*1000).slice(0,96);
                     if(!available.length)return <p className="mt-8 text-sm text-[#6d604c]">Ajantasaisia hintatietoja ei ole saatavilla. Esimerkkihintoja ei esitetä oikeina.</p>;
                     const min=Math.min(0,...available.map(p=>p.price));
-                    const max=Math.max(10,...available.map(p=>p.price));
+                    const max=Math.max(12,...available.map(p=>p.price))*1.12;
                     const range=Math.max(1,max-min);
                     const y=(value:number)=>(value-min)/range*100;
-                    return <div className="mt-4">
-                      <div className="relative h-[230px] border-b-2 border-[#b58a46]">
+                    return <div className="mt-5">
+                      <div className="relative h-[200px] border-b-2 border-[#b58a46]">
                         <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#98734c]/70" style={{bottom:y(10)+"%"}}><span className="absolute -top-5 left-1 bg-[#fff9e7] px-1 text-[11px] font-black text-[#875e37]">10 snt/kWh</span></div>
                         {min<0&&<div className="pointer-events-none absolute inset-x-0 z-10 border-t border-[#875e37]/70" style={{bottom:y(0)+"%"}}><span className="absolute -top-4 right-1 bg-[#fff9e7] px-1 text-[10px] text-[#875e37]">0</span></div>}
                         <div className="absolute inset-0 flex gap-[2px]" role="img" aria-label="Seuraavan 24 tunnin pörssisähkön hinnat. Pylväät skaalautuvat automaattisesti.">
@@ -1373,7 +1365,7 @@ export default function DesktopPreviewPage() {
                     </div>;
                   })()}
                 </section>
-                <section className="min-h-[125px] rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
+                <section className="min-h-[145px] shrink-0 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
                   <h3 className="font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
                   <p className="mt-2 text-sm text-[#6d604c]">Sähköyhtiöiden lähteisiin linkitetyt tarjoukset lisätään tähän erikseen.</p>
                 </section>
