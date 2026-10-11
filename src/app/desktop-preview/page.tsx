@@ -168,6 +168,7 @@ export default function DesktopPreviewPage() {
   const [fuelLoading, setFuelLoading] = useState(false);
   const [fuelError, setFuelError] = useState("");
   const [fuelType, setFuelType] = useState<"diesel" | "price95" | "price98">("diesel");
+  const [fuelSort, setFuelSort] = useState<"distance" | "diesel" | "price95">("distance");
   const [fuelGroups,setFuelGroups]=useState<string[]>([]);
   const [fuelTraffic,setFuelTraffic]=useState(true);
   const [fuelCold,setFuelCold]=useState(true);
@@ -1268,22 +1269,37 @@ export default function DesktopPreviewPage() {
             />
 
             {fuelSelected && fuelCompared && <div className="fixed bottom-[24px] left-1/2 top-[var(--desktop-overlay-top)] z-[60] flex w-[min(820px,calc(100vw-48px))] -translate-x-1/2 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]">
-              <div className="relative shrink-0 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-14 py-2.5 text-center font-serif text-[22px] font-black italic text-[#174c35]">Göstan polttoainevertailu<button type="button" onClick={()=>setFuelCompared(false)} aria-label="Sulje polttoainevertailu" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black not-italic text-[#fff0c8]">×</button></div>
+              <div className="relative grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] py-2 pl-2 pr-12">
+                <button type="button" aria-pressed={fuelSort==="diesel"} onClick={()=>setFuelSort(current=>current==="diesel"?"distance":"diesel")} className={`flex min-w-0 items-center justify-center gap-2 rounded-[15px] border-2 px-2 py-2 text-[11px] font-black leading-tight shadow-[0_3px_0_rgba(34,54,43,.15)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174c35] ${fuelSort==="diesel"?"border-[#174f78] bg-[#246b96] text-white":"border-[#83a8bb] bg-gradient-to-b from-[#f5fcff] to-[#dcecf3] text-[#174f78]"}`}><span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/25 text-[10px]">DI</span><span>Näytä halvin diesel</span></button>
+                <span className="text-center font-serif text-[18px] font-black italic leading-tight text-[#174c35]">Göstan<br/>polttoainevertailu</span>
+                <button type="button" aria-pressed={fuelSort==="price95"} onClick={()=>setFuelSort(current=>current==="price95"?"distance":"price95")} className={`flex min-w-0 items-center justify-center gap-2 rounded-[15px] border-2 px-2 py-2 text-[11px] font-black leading-tight shadow-[0_3px_0_rgba(34,54,43,.15)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174c35] ${fuelSort==="price95"?"border-[#a34e17] bg-[#c66b25] text-white":"border-[#d5a066] bg-gradient-to-b from-[#fffaf0] to-[#f5dfba] text-[#8b461d]"}`}><span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/25 text-[10px]">95</span><span>Näytä halvin bensa</span></button>
+                <button type="button" onClick={()=>setFuelCompared(false)} aria-label="Sulje polttoainevertailu" className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black text-[#fff0c8]">×</button>
+              </div>
               <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-3">
-                <div className="mb-3 shrink-0 text-center text-[13px] font-bold text-[#6d604c]">{fuelStationSide==="traffic"?"Liikenneasemat":fuelStationSide==="cold"?"Kylmäasemat / muut":"Kaikki asematyypit"} · {fuelScope==="within"?"Ketjun sisältä":"Ketjujen väliltä"} · Hinnat €/l · Lähimmästä kaukaisimpaan</div>
+                <div className="mb-3 shrink-0 text-center text-[13px] font-bold text-[#6d604c]">{fuelStationSide==="traffic"?"Liikenneasemat":fuelStationSide==="cold"?"Kylmäasemat / muut":"Kaikki asematyypit"} · {fuelScope==="within"?"Ketjun sisältä":"Ketjujen väliltä"} · Hinnat €/l · {fuelSort==="distance"?"Lähimmästä kaukaisimpaan":fuelSort==="diesel"?"Halvin diesel ensin · tasahinnalla lähin":"Halvin bensa 95 ensin · tasahinnalla lähin"}</div>
                 {(()=>{
                   const groups=(["Neste","ABC","Muut","St1","SEO"] as const).filter(group=>group==="Muut"?["Gulf","Ritoil","Muut"].some(g=>fuelGroups.includes(g)):fuelGroups.includes(group));
+                  const compareStations=(a:any,b:any)=>{
+                    const distance=(station:any)=>Number.isFinite(Number(station.distanceKm))?Number(station.distanceKm):Infinity;
+                    if(fuelSort!=="distance"){
+                      const sortPrice=(station:any)=>station[fuelSort]!=null && Number.isFinite(Number(station[fuelSort])) && Number(station[fuelSort])>0?Number(station[fuelSort]):Infinity;
+                      const aPrice=sortPrice(a),bPrice=sortPrice(b);
+                      if(aPrice!==bPrice)return aPrice<bPrice?-1:1;
+                    }
+                    const aDistance=distance(a),bDistance=distance(b);
+                    return aDistance===bDistance?0:aDistance<bDistance?-1:1;
+                  };
                   const price=(value:unknown)=>value!=null && Number.isFinite(Number(value)) && Number(value)>0 ? Number(value).toFixed(3).replace(".",",") : "–";
                   const observed=(value:unknown)=>value && Number.isFinite(Date.parse(String(value))) ? new Date(String(value)).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}) : "–";
                   return groups.length===0?<p className="py-8 text-center font-bold">Valitse ensin vähintään yksi ketju.</p>:<div className="grid min-h-0 flex-1 gap-x-4 gap-y-5 pt-2" style={{gridTemplateColumns:groups.length===1?"minmax(0,1fr)":"repeat(4,minmax(0,1fr))",gridTemplateRows:groups.length===5?"repeat(3,minmax(0,1fr))":groups.length>=3?"repeat(2,minmax(0,1fr))":"minmax(0,1fr)"}}>
                     {groups.map((group,groupIndex)=>{
-                      const candidates=fuelVisible.filter((station:any)=>group==="Muut"?["Gulf","Ritoil","Muut"].includes(fuelGroupOf(station)):fuelGroupOf(station)===group).filter((station:any)=>[station.diesel,station.price95,station.price98].some(value=>value!=null && Number.isFinite(Number(value)) && Number(value)>0)).sort((a:any,b:any)=>a.distanceKm-b.distanceKm);
+                      const candidates=fuelVisible.filter((station:any)=>group==="Muut"?["Gulf","Ritoil","Muut"].includes(fuelGroupOf(station)):fuelGroupOf(station)===group).filter((station:any)=>[station.diesel,station.price95,station.price98].some(value=>value!=null && Number.isFinite(Number(value)) && Number(value)>0)).sort(compareStations);
                       return <section key={group} aria-label={group==="Muut"?"Gulf / Ritoil / muut":group} className="relative flex min-h-0 min-w-0 flex-col rounded-[22px] border-[3px] border-[#17573c] bg-[#fff9dd] shadow-[0_4px_0_rgba(72,73,48,.12)]" style={groups.length===5?{gridColumn:groupIndex===2?"2 / span 2":groupIndex===1||groupIndex===4?"3 / span 2":"1 / span 2",gridRow:groupIndex<2?1:groupIndex===2?2:3}:groups.length===1?{width:"min(100%,380px)",justifySelf:"center"}:{gridColumn:groups.length===3&&groupIndex===2?"2 / span 2":"span 2"}}>
                         <div className="absolute -top-3 left-4 z-10 flex h-6 items-center gap-2 rounded-lg bg-[#fff9dd] px-2">
                           {group==="Muut"?<div className="flex h-6 shrink-0 items-center gap-1"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg" alt="Gulf" className="h-full w-6 object-contain"/><img src="https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg" alt="Ritoil" className="h-full w-7 object-contain"/></div>:<div className="h-6 w-12 shrink-0"><FuelBrandLogo brand={group}/></div>}
                           <h2 className="min-w-0 text-center text-[12px] font-black text-[#174c35]">{group==="Muut"?"Gulf / Ritoil / muut":group}</h2>
                         </div>
-                        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-[18px] px-2 pb-2 pt-4" tabIndex={0} aria-label={`Selaa ketjun ${group} asemia`}>
+                        <div key={`${group}-${fuelSort}`} className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-[18px] px-2 pb-2 pt-4" tabIndex={0} aria-label={`Selaa ketjun ${group} asemia`}>
                           {candidates.length===0?<p className="py-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="mb-1 grid grid-cols-[minmax(0,.65fr)_minmax(0,1.35fr)] items-center gap-1 rounded-lg border border-[#dcc99a] bg-white/90 px-2 py-1.5 last:mb-0">
                             <div className="min-w-0">
                               <div className="break-words text-[12px] font-black leading-[1.1] text-[#174c35]">{station.name}</div>
