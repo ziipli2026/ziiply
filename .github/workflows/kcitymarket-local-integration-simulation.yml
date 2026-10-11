@@ -83,6 +83,22 @@ jobs:
           NODE
           npx --yes tsx citymarket-test-1.mts
 
+      - name: Citymarket daily goods presentation filter regression
+        run: |
+          cat > citymarket-filter-test.mts <<'NODE'
+          import {category,filterKCitymarketDailyGoods} from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
+          const titles=['Miesten T-PAITA','VARSI-IMURI','LED-LAMPPU','GOLD & GREEN ROUHE tai PALAT 180 g','SUOSIKKISALAATIT','Libero HOUSUVAIPAT','Topz VANULAPUT','PENTUALUSTA','Tunnistamaton päivittäistavaratuote'];
+          const input=titles.map((title,i)=>({id:String(i),title,category:category(title),price:i+1,imageUrl:'https://example.com/'+i+'.jpg'}));
+          const output=filterKCitymarketDailyGoods(input);
+          const removed=input.filter(x=>!output.includes(x));
+          if(removed.length!==3 || removed.some(x=>x.category!=='Koti & vapaa-aika'))throw Error('Unexpected removals: '+JSON.stringify(removed));
+          if(!output.some(x=>x.category==='Muut'))throw Error('Unknown products must be retained');
+          if(output.some(x=>x.category==='Koti & vapaa-aika'))throw Error('Non-grocery product leaked');
+          if(output.some(x=>x.imageUrl!==input.find(y=>y.id===x.id)?.imageUrl))throw Error('Images changed');
+          console.log(JSON.stringify({retained:output.map(x=>x.title),removed:removed.map(x=>x.title)},null,2));
+          NODE
+          npx --yes tsx citymarket-filter-test.mts
+
       - name: Citymarket grocery scope audit (diagnostic only)
         run: |
           cat > citymarket-scope-audit.mts <<'NODE'
