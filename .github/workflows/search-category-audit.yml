@@ -77,7 +77,7 @@ jobs:
             try {
               const report = JSON.parse(fs.readFileSync(file, 'utf8'));
               if (!report || typeof report !== 'object') throw new Error('Invalid report');
-              if (name === 'category-findings' && (report.rows !== 49 || report.status !== 'PASS' || !Array.isArray(report.failures) || report.failures.length !== 0)) throw new Error('Neon snapshot category findings regression failed');
+              if (name === 'category-findings' && (report.rows !== 65 || report.status !== 'PASS' || !Array.isArray(report.failures) || report.failures.length !== 0)) throw new Error('Neon snapshot category findings regression failed');
               if (name === 'category-fixtures' && (report.total < 10 || report.passed !== report.total || !Array.isArray(report.results))) throw new Error('Category fixture regression failed');
               if (name === 'behavior' && (
                 !Array.isArray(report.failures) ||
