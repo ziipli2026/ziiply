@@ -239,6 +239,18 @@ export type SearchIntentCategory =
   | "dishwashing"
   | "soap"
   | "shampoo"
+  | "cream"
+  | "quark"
+  | "cottage_cheese"
+  | "cream_cheese"
+  | "butter"
+  | "margarine"
+  | "tea"
+  | "juice"
+  | "sausage"
+  | "cold_cuts"
+  | "toothpaste"
+  | "deodorant"
   | "generic";
 
 export type SearchIntent = {
