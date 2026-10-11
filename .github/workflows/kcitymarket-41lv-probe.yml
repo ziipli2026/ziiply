@@ -25,6 +25,9 @@ jobs:
         run: |
           set -euo pipefail
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-parser.mjs
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
+          printf '{"type":"module"}\n' > /tmp/package.json
           node scripts/citymarket/export-leaflet.mjs "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/" /tmp/kcm-41lv-probe /tmp/kcm-41lv-parser.mjs
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
