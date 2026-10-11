@@ -90,6 +90,9 @@ const exclusionCases = [
   ["hunajasinappi", "Hunajasinappi-majoneesi 250 g", false],
   ["tomaattimurska", "Tomaattimurska ja tomaattipyree 400 g", false],
   ["tomaattipyree", "Tomaattipyree ja tomaattimurska 400 g", false],
+  ["sinappikastike", "Sinappikastike 250 ml", false],
+  ["sinappimajoneesi", "Sinappimajoneesi 250 ml", false],
+  ["tomaattimurskakeitto", "Tomaattipyree 200 g", false],
 ];
 const exclusionResults = exclusionCases.map(([query,name,expected]) => {
   const actual = core.isExplicitlyExcludedSearchProduct(query, makeProduct(0,name,""));
