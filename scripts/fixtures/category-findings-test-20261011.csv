@@ -47,4 +47,20 @@ ean,name,source,source_category,finding_type,proposed_category_id,review_status
 6430057697160,"Coca-Cola Lemon Zero virvoitusjuoma 0,33l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
 6430057698945,"Chupa Chups Sparkling Cola virvoitusjuoma 0,345l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
 6430057699102,"Coca Cola Cherry Float virvoitujuoma 0,355l",ruoanhinta-k,Juomat,more_specific_subcategory,cola,candidate
+4006000233840,Kasvovoi Nivea Q10 50 ml Anti-Wrinkle Collagen Expert Day & Night Facial Butter,tokmanni-viikkotarjoukset,Maitotuotteet,source_misclassification,,candidate
 6410405262318,Pirkka Parhaat maito & toffee-lakritsi jäätelö 500ml/300g,ruoanhinta-k,Makeiset,source_misclassification,frozen,candidate
+6410530032169,Lacto Seven 50 kpl maitohappobakteeri,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
+6410530035740,Maitohappobakteeri + D-vitamiini Vitabalans 50 kpl Lacto Seven,tokmanni-viikkotarjoukset,Maitotuotteet,source_misclassification,,candidate
+6417187102085,Maitohappobakteerivalmiste Harmonia 60 kpl triGUT,tokmanni-viikkotarjoukset,Maitotuotteet,source_misclassification,,candidate
+6419860991269,Maitohappobakteeri Arki 360° 50 kpl 400 mg,tokmanni-viikkotarjoukset,Maitotuotteet,source_misclassification,,candidate
+6430039222830,Maitohappobakteeri + Boulardii Puhdistamo 30 kpl,tokmanni-viikkotarjoukset,Maitotuotteet,source_misclassification,,candidate
+6430039222847,Maitohappobakteeri + Boulardii Puhdistamo 60 kpl,tokmanni-viikkotarjoukset,Maitotuotteet,source_misclassification,,candidate
+6430039224971,Puhdistamo Vahva Maitohappobakteeri 12 mrd. 30 kaps,ruoanhinta-s,Maitotuotteet,source_misclassification,,candidate
+6430039225022,Puhdistamo Vahva Maitohappobakteeri 12 mrd. 60 kaps,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
+6430039225992,Vahva Maitohappobakteeri Puhdistamo 60 kpl 30mrd.,tokmanni-viikkotarjoukset,Maitotuotteet,source_misclassification,,candidate
+6430039229259,Puhdistamo Vahva Maitohappobakteeri 30 mrd. 30 kaps,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
+6430069171849,Kartanon Leipä Mustikkarahkamurokakku 320g,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
+6430069171863,Kartanon Leipä Rahkamurokakku 320g,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
+6430069171870,Kartanon Leipä Persikkarahka murokakku 320g laktoositon,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
+6430080441778,Leader Performance proteiinipatukka 61g jogurtti-mansikka-vadelma,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
+7613036553964,Nestle Fitness jugurttihiutaleita 600g,ruoanhinta-k,Maitotuotteet,source_misclassification,,candidate
