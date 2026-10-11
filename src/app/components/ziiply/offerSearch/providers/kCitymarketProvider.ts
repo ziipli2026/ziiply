@@ -1,4 +1,4 @@
-import {canonicalCitymarketProductRows} from "./kCitymarketProductRows.js";
+import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
 import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
@@ -29,6 +29,11 @@ export type CitymarketOffer = {
   packageSize?: string | null;
   offerQuantity?: number | null;
   offerUnit?: string | null;
+  priceBasis?: "PER_KG";
+  packageCount?: number;
+  depositTotal?: number;
+  depositIncluded?: boolean;
+  depositSource?: string;
   resolutionSource?: string | null;
   resolutionSanity?: string | null;
   plussa?: boolean;
@@ -524,6 +529,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       unitPrice,
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       packageSize:row?.package?.raw??null,
+      ...citymarketTransactionMetadata(row),
       offerQuantity,
       offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
       resolutionSource:resolved?.source?String(resolved.source):null,
@@ -619,7 +625,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v135-publisher-archive":"standard"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v136-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){

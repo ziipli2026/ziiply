@@ -18,8 +18,8 @@ function parseExports(text){
  if(depth!==0||!objects.length)throw new Error('Invalid or incomplete JSON export');
  return objects;
 }
-const exports=parseExports(raw);
-const items=exports.flatMap((input,exportIndex)=>
+const parsedExports=parseExports(raw);
+const items=parsedExports.flatMap((input,exportIndex)=>
  (Array.isArray(input)?input:(input.rawItems||[])).map(item=>({...item,__auditExportIndex:exportIndex}))
 );
 const issues=[];
@@ -63,9 +63,17 @@ for(const [index,item] of items.entries()){
  // Unclear combinations must be reviewed manually rather than scored wrong.
  if(!Number.isInteger(packageCount)||packageCount<1||packageCount>48)continue;
  const amount=({kg:n,g:n/1000,l:n,dl:n/10,cl:n/100,ml:n/1000})[unit.toLowerCase()];
- const expected=unitPrice*amount*packageCount*(qty!=null&&Number.isFinite(qty)&&qty>1?qty:1);
- if(expected>0&&Math.abs(expected-price)>Math.max(.15,expected*.08))
-   issues.push({index,title,reason:'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,packageCount,expected:Number(expected.toFixed(2))});
+ const includedDeposit=src.depositIncluded===true&&Number.isFinite(src.depositTotal)&&src.depositTotal>0?src.depositTotal:0;
+ const perKg=src.priceBasis==='PER_KG'&&['g','kg'].includes(unit.toLowerCase());
+ const expected=(perKg?unitPrice:unitPrice*amount*packageCount*(qty!=null&&Number.isFinite(qty)&&qty>1?qty:1))+includedDeposit;
+ if(expected>0&&Math.abs(expected-price)>Math.max(.15,expected*.08)){
+   // Beverage unit prices can exclude refundable container deposits.
+   // Treat a plausible 0.15 EUR/can deposit as a REVIEW, not proof.
+   const canPack=/\b(?:tlk|t[oö]lkki|t[oö]lkit)\b/i.test(title+' '+size);
+   const depositExpected=expected+packageCount*.15;
+   const depositPlausible=canPack&&packageCount>1&&Math.abs(depositExpected-price)<=.04;
+   issues.push({index,title,reason:depositPlausible?'possible-container-deposit-review':'unit-price-inconsistency',price,quantity:Number.isFinite(qty)?qty:null,unitPrice,packageSize:size,packageCount,expected:Number(expected.toFixed(2)),...(depositPlausible?{withPossibleDeposit:Number(depositExpected.toFixed(2))}:{})});
+ }
 }
 // Review a same-page identical price when one item's €/kg or €/l agrees
 // and another item's does not. Do not infer or overwrite the true price.
@@ -79,6 +87,7 @@ for(const [index,item] of items.entries()){
  const quantity=src.offerQuantity==null?null:Number(src.offerQuantity);
  const pack=String(src.packageSize||"");
  const m=pack.match(/^(\d+(?:[,.]\d+)?)\s*(g|kg|ml|l)$/i);
+ if(src.priceBasis==='PER_KG')continue;
  if(!page||!Number.isFinite(price)||price<=0||!Number.isFinite(unitPrice)||unitPrice<=0||!m||(quantity!=null&&quantity>1))continue;
  const amount=Number(m[1].replace(",","."))*(["g","ml"].includes(m[2].toLowerCase())?0.001:1);
  const expected=Number((amount*unitPrice).toFixed(2));
@@ -95,5 +104,8 @@ for(const [key,entries] of pageGroups){
    matchingProducts:entries.filter(x=>x.consistent).map(x=>({title:x.title,source:x.source}))});
 }
 const counts={};for(const i of issues)counts[i.reason]=(counts[i.reason]||0)+1;
-console.log(JSON.stringify({exports:exports.length,rows:items.length,issueCounts:counts,issues},null,2));
-if(issues.some(x=>x.reason==='unit-price-inconsistency'||x.reason==='missing-or-invalid-price'||x.reason==='printed-multibuy-conflict'))process.exitCode=1;
+console.log(JSON.stringify({exports:parsedExports.length,rows:items.length,issueCounts:counts,issues},null,2));
+// A same-page collision is not proof of the printed price, but it must block
+// a green audit until a human checks the leaflet. Never rewrite source data.
+const blockingReasons=new Set(['unit-price-inconsistency','missing-or-invalid-price','printed-multibuy-conflict','same-page-price-collision-review']);
+if(issues.some(x=>blockingReasons.has(x.reason)))process.exitCode=1;

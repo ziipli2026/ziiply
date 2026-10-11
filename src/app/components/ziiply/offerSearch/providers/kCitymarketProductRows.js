@@ -62,3 +62,19 @@ export function rejectUnownedMixedSetPercentage(row){
   }
   return row;
 }
+
+/** Carry only metadata already established by the parser's owned price proof. */
+export function citymarketTransactionMetadata(row){
+  const resolved=row?.spatialResolved;
+  if(!resolved)return {};
+  const metadata={};
+  if(String(resolved.unit||'').toUpperCase()==='KG')metadata.priceBasis='PER_KG';
+  const count=resolved.packageCount??row?.package?.multiplier;
+  if(Number.isInteger(count)&&count>1)metadata.packageCount=count;
+  if(Number.isFinite(resolved.depositTotal)&&resolved.depositTotal>0){
+    metadata.depositTotal=resolved.depositTotal;
+    metadata.depositIncluded=true;
+    metadata.depositSource=resolved.source;
+  }
+  return metadata;
+}
