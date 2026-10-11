@@ -143,9 +143,8 @@ memory.clearSearchIntentMemory();
 const saturationProduct = {id:301,name:"Felix Ketsuppi 500 g",ean:"6411234567890",brandName:"Felix",category:"Ketsupit"};
 for (let i=0;i<12;i++) memory.rememberSearchChoice("ketsuppi",saturationProduct,"added_to_cart");
 const saturated = memory.getLearnedSearchBoost("ketsuppi",saturationProduct);
-const saturatedCount = memory.loadSearchIntentMemory().entries[
-  Object.keys(memory.loadSearchIntentMemory().entries)[0]
-]?.positiveCount;
+const saturationEntries = Object.values(memory.loadSearchIntentMemory().entries);
+const saturatedCount = saturationEntries.find(e => e.productName === saturationProduct.name)?.positiveCount;
 memory.clearSearchIntentMemory();
 const reset = memory.getLearnedSearchBoost("ketsuppi",saturationProduct);
 const boundedLearning = {
