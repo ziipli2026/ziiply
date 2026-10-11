@@ -351,7 +351,6 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{if(item?.ziiplyWeightLabel||item?.product?.ziiplyWeightLabel||String(item?.id||"").startsWith("weight-"))return {...item,price:null,product:{...(item.product||{}),price:null,ziiplyWeightLabel:true}};const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
   const [desktopDebugLines,setDesktopDebugLines]=useState<string[]>([]);
-  const [desktopDebugVisible,setDesktopDebugVisible]=useState(false);
   const desktopDebug=(message:string)=>setDesktopDebugLines(current=>[...current,`${new Date().toLocaleTimeString("fi-FI")} ${message}`].slice(-100));
   const [desktopPackageProposals,setDesktopPackageProposals]=useState<Array<{itemId:string;original:string;candidate:any;storeName:string}>>([]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
@@ -526,7 +525,6 @@ export default function DesktopPreviewPage() {
 
   async function openDesktopComparison(){
     setDesktopDebugLines([]);
-    setDesktopDebugVisible(true);
     desktopDebug(`Vertailu käynnistyy: tila=${betweenMode}, korissa=${cartItems.length}, kauppanäkymä=${storeMode}`);
     desktopDebug(`Tavaratalot-valinnat: ${Object.values(allStoreSelections.hyper).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
     desktopDebug(`Lähikaupat-valinnat: ${Object.values(allStoreSelections.local).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
@@ -1245,13 +1243,6 @@ export default function DesktopPreviewPage() {
 />}
 
 
-        <div className="fixed bottom-4 right-4 z-[120] flex flex-col items-end gap-2">
-          <button type="button" onClick={()=>setDesktopDebugVisible(v=>!v)} className="rounded-lg border-2 border-amber-500 bg-[#17352a] px-4 py-2 text-sm font-bold text-white shadow-xl">Vertailun debug {desktopDebugVisible?"−":"+"} ({desktopDebugLines.length})</button>
-          {desktopDebugVisible&&<div className="flex max-h-[55vh] w-[min(92vw,760px)] flex-col gap-2 rounded-xl border-2 border-amber-500 bg-[#10251d] p-3 text-white shadow-2xl">
-            <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">Kahden kaupan vertailun loki</strong><div className="flex gap-2"><button type="button" onClick={()=>{void navigator.clipboard.writeText(desktopDebugLines.join("\\n"))}} className="rounded bg-amber-300 px-3 py-1 text-xs font-bold text-black">Kopioi loki</button><button type="button" onClick={()=>setDesktopDebugLines([])} className="rounded bg-white/20 px-3 py-1 text-xs">Tyhjennä</button><button type="button" onClick={()=>setDesktopDebugVisible(false)} className="rounded bg-white/20 px-3 py-1 text-xs">Sulje</button></div></div>
-            <pre className="max-h-[43vh] overflow-auto whitespace-pre-wrap break-words rounded bg-black/40 p-2 font-mono text-[11px] leading-relaxed">{desktopDebugLines.length?desktopDebugLines.join("\\n"):"Käynnistä kahden kaupan vertailu. Tapahtumat ilmestyvät tähän."}</pre>
-          </div>}
-        </div>
         {mapOpen && (
           <div className="absolute inset-0 z-[80] grid place-items-center bg-[#17352a]/35 p-10 backdrop-blur-[3px]">
             <div className="w-full max-w-[900px] rounded-[30px] border border-[#6e7d68]/25 bg-[#f8f3e7] p-6 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
