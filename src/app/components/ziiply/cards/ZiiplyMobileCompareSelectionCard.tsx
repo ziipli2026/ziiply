@@ -206,6 +206,27 @@ export default function ZiiplyMobileCompareSelectionCard({
 }: ZiiplyMobileCompareSelectionCardProps) {
   const [alternativeMenu, setAlternativeMenu] = React.useState<{ key: string; mode: QualityMode; items: ZiiplyCompareSelectionItem[]; loading: boolean } | null>(null);
 
+  // Desktop: add only the scroll room needed to align the active row at the top.
+  // No permanent blank area below the last product.
+  React.useLayoutEffect(() => {
+    if (!embedded) return;
+    const row = document.querySelector('[data-compare-alternatives-open]') as HTMLElement | null;
+    const scroller = row?.closest('[data-desktop-compare-products-scroll]') as HTMLElement | null;
+    if (!row || !scroller) return;
+    const frame = requestAnimationFrame(() => {
+      const previousPadding = scroller.style.paddingBottom;
+      scroller.style.paddingBottom = "12px";
+      const rowTop = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      const necessaryPadding = Math.max(12, rowTop + scroller.clientHeight - scroller.scrollHeight + 12);
+      scroller.style.paddingBottom = necessaryPadding + "px";
+      scroller.scrollTop = rowTop;
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      scroller.style.paddingBottom = "";
+    };
+  }, [embedded, alternativeMenu?.key, alternativeMenu?.loading]);
+
   if (!open) return null;
 
   const rows = ((store.matches && store.matches.length > 0 ? store.matches : items) || []) as ZiiplyCompareSelectionItem[];
@@ -270,17 +291,6 @@ export default function ZiiplyMobileCompareSelectionCard({
                               key={mode}
                               type="button"
                               onClick={async (event) => {
-                                if (mode !== "cheapest") {
-                                  const row = event.currentTarget.closest("[data-compare-product-row]");
-                                  const scroller = row?.closest("[data-desktop-compare-products-scroll]");
-                                  if (row && scroller) {
-                                    const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-                                    // Align the chosen product at the top, with the alternatives visible below.
-                                    // The desktop scroll container provides trailing space even for the last item.
-                                    const targetTop = scroller.scrollTop + offset;
-                                    scroller.scrollTo({ top: Math.max(0, targetTop), behavior: "auto" });
-                                  }
-                                }
                                 if (mode === "cheapest") {
                                   setAlternativeMenu(null);
                                   await onChangeMatchMode(store.id, item, mode);
