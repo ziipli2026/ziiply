@@ -36,10 +36,22 @@ if (!entry) {
     return { name: before, packageSize: match[1].replace(",", ".") + " " + match[2].toLowerCase() };
   };
   const parsed = uncovered.map(row => ({ ...row, extracted: parseIdentity(row.identity) }));
+  // Review candidates are evidence, not approved images. Keep them outside the manifest.
+  const manualEvidence = [
+    { identity: "arkimeetvursti 400 g", ean: "6409630019507", bankName: "Kotivara Arkimeetvursti 400g", status: "brand-unverified" },
+    { identity: "poron paistikäristys 400 g", ean: "6405980450007", bankName: "Rönkä Poron paistikäristys 400 g pakaste", status: "brand-unverified" },
+    { identity: "sriracha kastikkeet 215 ml", ean: "8710605030556", bankName: "Go-Tan Tulinen sriracha chili ketsuppi kastike 215ml", status: "multi-product-offer" },
+  ];
+  const reviewCandidates = manualEvidence.map(candidate => {
+    const offer = uncovered.find(row => row.identity === candidate.identity);
+    assert.ok(offer, "Review candidate must exist in the approved 41LV fixture: " + candidate.identity);
+    return { offerId: offer.key, ...candidate, approved: false };
+  });
   const report = {
     publicationUrl, approvedOffers: fixture.offerCount,
     existingImages: imageKeys.length, missingImages: uncovered.length,
     diagnosticOnly: true,
+    reviewCandidates,
     nameParsingCandidates: diagnostic.filter(row => row.candidateSafe).length, // candidates only; never automatic image approval
     manualReviewCandidates: diagnostic.filter(row => !row.candidateSafe).length,
     extractedIdentityCount: parsed.filter(row => row.extracted).length,
