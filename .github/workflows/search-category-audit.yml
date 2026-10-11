@@ -20,3 +20,10 @@ jobs:
         run: node scripts/audit-search-collisions.cjs
       - name: Check registry and baseline queries
         run: node scripts/audit-search-categories.cjs
+      - name: Upload search audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-audit-reports
+          path: search-audit-results
+          if-no-files-found: ignore
