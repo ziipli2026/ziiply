@@ -62,7 +62,7 @@ if (!entry) {
     const offer = uncovered.find(row => row.identity === candidate.identity);
     assert.ok(offer, "Review candidate must exist in the approved 41LV fixture: " + candidate.identity);
     assert.ok(!publication.images[offer.key], "Review candidates must not overwrite approved images");
-    assert.ok(/^\\d{13}$/.test(candidate.ean), "Review candidate EAN must contain 13 digits");
+    assert.ok(/^\d{13}$/.test(candidate.ean), "Review candidate EAN must contain 13 digits");
     assert.ok(["brand-unverified", "multi-product-offer"].includes(candidate.status), "Review candidate must carry a blocking reason");
     return { offerId: offer.key, page: offer.page, ...candidate, approved: false, eligibleForAutomaticImage: false, nextAction: candidate.status === "multi-product-offer" ? "Verify all variants in the leaflet before choosing any image" : "Verify printed brand and pictured packaging on leaflet page " + offer.page };
   });
