@@ -34,6 +34,16 @@ export function matchOfferImage(offer: OfferImageCandidate, candidate: OfferImag
   if (eanA && eanB && /^\d{8,14}$/.test(eanA)) return { accepted: true, reason: "exact-ean" };
   if (skuA && skuB && offer.source && candidate.source && clean(offer.source) === clean(candidate.source))
     return { accepted: true, reason: "exact-source-product-code" };
+  // EAN-less leaflets: accept only an exact named product with an equal
+  // explicit pack size. Generic/multi-product titles are never safe matches.
+  const nameA = clean(offer.name), nameB = clean(candidate.name);
+  const sizeA = clean(offer.packageSize), sizeB = clean(candidate.packageSize);
+  const ambiguous = /\\b(tai|seka|sekä|valikoima|erilaiset|useita|lajitelma)\\b/i;
+  if (nameA && nameA === nameB && nameA.length >= 12 &&
+      sizeA && sizeA === sizeB && !ambiguous.test(nameA) &&
+      !/[–-]\\s*\\d+\\s*(g|kg|ml|l)\\b/i.test(String(offer.packageSize))) {
+    return { accepted: true, reason: "exact-name-and-package" };
+  }
   return { accepted: false, reason: "insufficient-identity" };
 }
 export function enrichOfferImage<T extends OfferImageCandidate>(offer: T, candidates: OfferImageCandidate[]): T {
