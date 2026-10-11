@@ -82,6 +82,17 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
+  // Narrow product-form rules for the 41LV Gosta category audit.
+  if(/vaseline|lumene.*mascara|vanulaput|vanupuikot|puhdistuspyyhkeet|tena.*ihonhoito/.test(s)) return "Hygienia & kosmetiikka";
+  if(/suihkeet 600 ml|wc-geelit|käsitiski|tahranpoistajat|pyykkietikat|huuhteluaineet|tuulilasinpesuneste/.test(s)) return "Kodinhoito";
+  if(/poron paistikäristys|kebab|arkimeetvursti|kanatuotteet|savusauna.*palvirouhe/.test(s)) return "Liha & makkarat";
+  if(/punajuuri|suosikkisalaatit/.test(s)) return "Hevi";
+  if(/korvapuusti|kuorrutemunkki/.test(s)) return "Leipomo";
+  if(/proteiinipirtelöt/.test(s)) return "Juomat";
+  if(/proteiinivaahdolla/.test(s)) return "Maitotuotteet";
+  if(/gold.*green.*rouhe|fasupalat/.test(s)) return "Valmisruoka";
+  if(/aakkoset|sriracha|cashewpähkinä|salsat/.test(s)) return "Kuivatuotteet";
+  if(/aterinsetti|sähkösavustin|savustushake|neule|t-paita|tekstiilipesuri|öljylyhtykynttilä|bokserit|farkkuja|trikoopaita|vaatteita|trimmeri|varsi-imuri|led-valomaski|vaihtoterä/.test(s)) return "Koti & vapaa-aika";
   // Product form must outrank incidental words and nearby leaflet categories.
   if(/maissikakut|riisikakut|riisikakku|maissikakku/.test(s)) return "Kuivatuotteet";
   if(/wc[- ]?paperi|talouspaperi|nenäliina|nenaliina/.test(s)) return "Kodinhoito";
