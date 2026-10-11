@@ -61,9 +61,13 @@ const persisted=Object.values(stored.entries).some(e=>e.productName===chosen.nam
 memory.rememberSearchChoice("ketsuppi",chosen,"rejected");
 const afterRejection=memory.getLearnedSearchBoost("ketsuppi",chosen);
 const otherQuery=memory.getLearnedSearchBoost("maito",chosen);
+const negativeProduct={id:103,name:"Heinz Ketsuppi 1 kg",ean:"6411234567892",brandName:"Heinz",category:"Ketsupit"};
+const negativeBefore=memory.getLearnedSearchBoost("ketsuppi",negativeProduct);
+memory.rememberSearchChoice("ketsuppi",negativeProduct,"skipped");
+const negativeAfter=memory.getLearnedSearchBoost("ketsuppi",negativeProduct);
 memory.clearSearchIntentMemory();
 const afterClear=memory.loadSearchIntentMemory();
-const learning={before:before.boost,after:after.boost,positive:after.positiveCount,structure:structure.boost,persisted,afterRejection:afterRejection.boost,isolatedOtherQuery:otherQuery.boost,cleared:Object.keys(afterClear.entries).length===0,pass:after.positiveCount===2&&after.boost>before.boost&&persisted&&afterRejection.boost<after.boost&&Object.keys(afterClear.entries).length===0};
+const learning={before:before.boost,after:after.boost,positive:after.positiveCount,structure:structure.boost,persisted,afterRejection:afterRejection.boost,isolatedOtherQuery:otherQuery.boost,negativeBefore:negativeBefore.boost,negativeAfter:negativeAfter.boost,cleared:Object.keys(afterClear.entries).length===0,pass:after.positiveCount===2&&after.boost>before.boost&&persisted&&afterRejection.boost<after.boost&&negativeAfter.negativeCount===1&&negativeAfter.boost<negativeBefore.boost&&otherQuery.positiveCount===0&&Object.keys(afterClear.entries).length===0};
 const failures=results.filter(r=>!r.pass);
 console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,learning},null,2));
 if(failures.length||!learning.pass)process.exitCode=1;
