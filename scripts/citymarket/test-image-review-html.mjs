@@ -16,6 +16,8 @@ try {
   const html = fs.readFileSync("citymarket-image-review.html", "utf8");
   assert.match(html, /<input id="search"/);
   assert.match(html, /1 uutta kuvaehdokasta/);
+  assert.match(html, /<img loading="lazy" referrerpolicy="no-referrer" src="https:\/\/example.org\/product-image.jpg" alt="Löydetty kuvaehdokas, tarkistamatta">/);
+  assert.match(html, /class="candidate"/);
   assert.match(html, /https:\/\/example.org\/product-image.jpg/);
   assert.match(html, /https:\/\/example.org\/product/);
   assert.match(html, /Ei hyväksytty käyttöön/);
