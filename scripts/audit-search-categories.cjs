@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const source = fs.readFileSync("src/app/components/ziiply/ziiplyCore.ts","utf8");
 const section = source.split("const SEARCH_INTENTS: SearchIntent[] = [")[1]?.split("\n];")[0];
 assert(section, "SEARCH_INTENTS not found");
-const blocks = [...section.matchAll(/\{\s*category:\s*"([^"]+)"[\s\S]*?\n\s*\},?/g)];
+const blocks = [...section.matchAll(/category:\s*"([^"]+)"[\s\S]*?(?=\bcategory:\s*"|$)/g)];
 const categories = blocks.map(m=>m[1]);
 const unique = new Set(categories);
 const issues = [];
