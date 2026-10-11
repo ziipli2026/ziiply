@@ -1366,8 +1366,27 @@ export default function DesktopPreviewPage() {
                   })()}
                 </section>
                 <section className="min-h-[130px] flex-1 rounded-[18px] border-2 border-[#caa15d] bg-[#fff9e7] p-5">
-                  <h3 className="font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
-                  <p className="mt-2 text-sm text-[#6d604c]">Sähköyhtiöiden lähteisiin linkitetyt tarjoukset lisätään tähän erikseen.</p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="font-serif text-xl font-black italic text-[#174c35]">Sähkötarjoukset</h3>
+                    <span className="text-[11px] font-bold text-[#6d604c]">Hintapoiminta 11.10.2026 · tarkista myyjältä</span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#6d604c]">Sähköenergian myyntisopimukset. Siirto ja sähkövero eivät sisälly. Tarjoukset voivat muuttua.</p>
+                  <div className="mt-3 grid max-h-[245px] grid-cols-1 gap-2 overflow-y-auto pr-1 xl:grid-cols-2">
+                    {([
+                      {seller:"Helen",name:"Perussähkö 24 kk",type:"Kiinteä",price:"10,45 snt/kWh",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · tarjousperusmaksun kesto tarkistettava",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Helen",name:"Välkkysähkö 24 kk",type:"Kulutusvaikutus",price:"9,98 snt/kWh ± vaikutus",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · lopullinen hinta riippuu kulutuksesta",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Helen",name:"Pörssisähkö",type:"Pörssi",price:"Spot + 0,49 snt/kWh",fee:"0 €/kk ensimmäiset 6 kk (norm. 4,96 €)",detail:"Toistaiseksi voimassa",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Oomi",name:"Aktiivinen",type:"Pörssi",price:"Spot + 0,60 snt/kWh",fee:"0 €/kk ensimmäiset 5 kk, sitten 4,96 €",detail:"Toistaiseksi voimassa",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Oomi",name:"Jousto 24 kk",type:"Kulutusvaikutus",price:"9,09 snt/kWh ± vaikutus",fee:"0 €/kk ensimmäiset 5 kk, sitten 5,90 €",detail:"24 kk · kulutusvaikutus muuttaa hintaa",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Oomi",name:"Kiinteä 12 kk",type:"Kiinteä",price:"11,19 snt/kWh",fee:"5,90 €/kk",detail:"12 kk · lähdesivun poiminta",url:"https://oomi.fi/sahko/sahkosopimukset/"}
+                    ] as const).map(offer=><a key={offer.seller+offer.name} href={offer.url} target="_blank" rel="noopener noreferrer" className="block rounded-xl border border-[#caa15d] bg-[#fffdf1] p-3 text-[#174c35] transition hover:border-[#17573c] hover:bg-[#f1eed4]">
+                      <div className="flex items-center justify-between gap-2"><strong className="text-sm">{offer.seller} · {offer.name}</strong><span className="shrink-0 text-[10px] font-bold">{offer.type} ↗</span></div>
+                      <div className="mt-1 text-lg font-black">{offer.price}</div>
+                      <div className="text-xs font-bold">Perusmaksu: {offer.fee}</div>
+                      <div className="mt-1 text-[11px] text-[#6d604c]">{offer.detail}</div>
+                      <div className="mt-1 text-[11px] font-bold underline">Alkuperäinen tarjous ja ehdot ↗</div>
+                    </a>)}
+                  </div>
                 </section>
               </div>
             </div>}
