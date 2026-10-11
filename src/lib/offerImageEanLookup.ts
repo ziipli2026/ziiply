@@ -41,7 +41,13 @@ export function applyVerifiedImage(offer: OfferImageCandidate, candidate: OfferI
  */
 export async function lookupKnownNameImages(offer: OfferImageCandidate): Promise<OfferImageCandidate[]> {
   const name = String(offer.name ?? "").trim();
-  if (!process.env.DATABASE_URL || name.length < 12 || name.length > 180) return [];
+  // Avoid database lookups for generic, multi-product or price-heavy leaflet titles.
+  // A name match alone is never sufficient to attach an image.
+  const normalized = name.toLocaleLowerCase("fi-FI").normalize("NFKC");
+  const ambiguous = /\\b(tai|ja|sekä|valikoima|erilaiset|useita|lajitelma)\\b/i;
+  const packCount = [...normalized.matchAll(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|l|kpl|pkt|rl)\\b/gi)].length;
+  if (!process.env.DATABASE_URL || name.length < 12 || name.length > 180 ||
+      ambiguous.test(normalized) || packCount > 1) return [];
   const sql = neon(process.env.DATABASE_URL);
   const rows = await sql`
     SELECT ean, name, brand, quantity, image_url AS "imageUrl", source
