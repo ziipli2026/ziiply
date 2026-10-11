@@ -9,9 +9,10 @@ const timestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:
 // are retained in Neon, but cannot be discovered from this endpoint alone.
 export async function collectNational({token, fetchImpl=fetch, now=Date.now(), onPage=()=>{}}) {
   if (!token?.trim()) throw new Error('TANKKAUS_API_TOKEN is missing');
-  const stations = new Map(), observations = [], fingerprints = new Set();
+  const stations = new Map(), observations = [], rawObservations = [], fingerprints = new Set();
   const rejected = {unsupportedFuel:0,nonFinnish:0,teboil:0,invalidStation:0,invalidPrice:0,invalidTimestamp:0};
   let providerRows=0, pages=0, countryUnspecified=0;
+  const invalidStationSamples=[];
   for (let page=1;;page++) {
     const response=await fetchImpl(`${BASE}/fills/index?page=${page}&limit=100&sort=created&direction=desc`, {
       headers:{Accept:'application/json',Authorization:`Token ${token.trim()}`},
@@ -30,37 +31,45 @@ export async function collectNational({token, fetchImpl=fetch, now=Date.now(), o
     for (const row of rows) {
       const v=row?.station, id=number(row?.station_id ?? v?.id);
       const latitude=number(v?.latitude ?? v?.lat), longitude=number(v?.longitude ?? v?.lon);
-      if (!v || !Number.isSafeInteger(id)||id<=0||number(v.id)!==id||!v.name||!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180) {rejected.invalidStation++;continue;}
-      const country=String(v.country?.name_short??'').toUpperCase();
+      const country=String(v?.country?.name_short??'').toUpperCase();
       if (country && country!=='FI') {rejected.nonFinnish++;continue;}
       // Country is not guaranteed in /fills/index's documented station object.
       // Record this explicitly rather than falsely claiming verified nationality.
       if (!country) countryUnspecified++;
-      const chain=v.chain?.name??(typeof v.chain==='string'?v.chain:null);
-      if (/teboil/i.test(String(chain??'')+' '+v.name)) {rejected.teboil++;continue;}
+      const chain=v?.chain?.name??(typeof v?.chain==='string'?v.chain:null);
+      if (/teboil/i.test(String(chain??'')+' '+String(v?.name??''))) {rejected.teboil++;continue;}
+      const price=number(row?.price_liter), observedAt=row?.created, t=Date.parse(observedAt);
+      const observationId=number(row?.id), fuelTypeId=number(row?.fuel_type_id??row?.fuel_type?.id);
+      if(Number.isSafeInteger(observationId)&&observationId>0&&Number.isSafeInteger(id)&&id>0&&Number.isSafeInteger(fuelTypeId)&&fuelTypeId>0&&Number.isFinite(price)&&price>0&&typeof observedAt==='string'&&timestamp.test(observedAt)&&Number.isFinite(t)&&t<=now) {
+        rawObservations.push({observationId,stationId:id,fuelTypeId,price,observedAt,payload:row});
+      }
+      if (!v || !Number.isSafeInteger(id)||id<=0||number(v.id)!==id||!v.name||!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180) {
+        rejected.invalidStation++;
+        if(invalidStationSamples.length<5) invalidStationSamples.push({stationId:id,stationKeys:Object.keys(v??{}),latitude:v?.latitude,longitude:v?.longitude,name:v?.name});
+        continue;
+      }
       const station={id,name:String(v.name),chain,address:v.address?String(v.address):null,latitude,longitude};
       const previous=stations.get(id);
       if (previous && (previous.latitude!==latitude||previous.longitude!==longitude)) throw new Error(`Conflicting station identity ${id}`);
       stations.set(id,station);
       const fuel=fuels.get(number(row.fuel_type_id??row.fuel_type?.id));
       if (!fuel) {rejected.unsupportedFuel++;continue;}
-      const price=number(row.price_liter);
       if (!Number.isFinite(price)||price<=0||price>5||Math.abs(price*1000-Math.round(price*1000))>0.000001) {rejected.invalidPrice++;continue;}
-      const observedAt=row.created, t=Date.parse(observedAt);
       if (typeof observedAt!=='string'||!timestamp.test(observedAt)||!Number.isFinite(t)||t>now) {rejected.invalidTimestamp++;continue;}
       observations.push({stationId:id,fuel,price,observedAt});
     }
     await onPage({page,providerRows});
   }
   const newestObservedAt=observations.reduce((latest,o)=>!latest||Date.parse(o.observedAt)>Date.parse(latest)?o.observedAt:latest,null);
-  return {stations:[...stations.values()],observations,report:{pages,providerRows,acceptedObservations:observations.length,stations:stations.size,rejected,countryUnspecified,newestObservedAt,scope:'all pages of last-week /fills/index feed',stationRegistryComplete:false}};
+  return {stations:[...stations.values()],observations,rawObservations,report:{pages,providerRows,acceptedObservations:observations.length,rawObservations:rawObservations.length,stations:stations.size,rejected,invalidStationSamples,countryUnspecified,newestObservedAt,scope:'all pages of last-week /fills/index feed',stationRegistryComplete:false}};
 }
 
 export async function persistNational(sql,batch) {
   const branch=await sql`SELECT current_setting('neon.branch_id',true) AS branch_id`;
   if(branch[0]?.branch_id!==TEST_BRANCH) throw new Error('Refusing writes outside the approved Neon Tankkaus test branch');
-  if(!batch.observations.length) return {insertedObservations:0,upsertedStations:0};
+  if(!batch.observations.length&&!batch.rawObservations?.length) return {insertedObservations:0,insertedRawObservations:0,upsertedStations:0};
   const stationJSON=JSON.stringify(batch.stations), observationJSON=JSON.stringify(batch.observations);
+  const rawJSON=JSON.stringify(batch.rawObservations??[]);
   // One atomic transaction: never leave an imported observation without its station.
   // DO NOTHING preserves history, including original observed_at and ingested_at.
   const results=await sql.transaction([
@@ -72,7 +81,11 @@ export async function persistNational(sql,batch) {
     sql`INSERT INTO ziiply_fuel_price_observations(source,source_station_id,fuel_type,price_eur_per_litre,observed_at)
       SELECT DISTINCT 'tankkaus.com',"stationId",fuel,price,"observedAt"::timestamptz
       FROM jsonb_to_recordset(${observationJSON}::jsonb) AS p("stationId" bigint,fuel text,price numeric,"observedAt" text)
-      ON CONFLICT(source,source_station_id,fuel_type,observed_at,price_eur_per_litre) DO NOTHING RETURNING id`
+      ON CONFLICT(source,source_station_id,fuel_type,observed_at,price_eur_per_litre) DO NOTHING RETURNING id`,
+    sql`INSERT INTO ziiply_tankkaus_feed_observations(source_observation_id,source_station_id,fuel_type_id,price_eur_per_litre,observed_at,payload)
+      SELECT DISTINCT "observationId","stationId","fuelTypeId",price,"observedAt"::timestamptz,payload
+      FROM jsonb_to_recordset(${rawJSON}::jsonb) AS p("observationId" bigint,"stationId" bigint,"fuelTypeId" bigint,price numeric,"observedAt" text,payload jsonb)
+      ON CONFLICT DO NOTHING RETURNING source_observation_id`
   ]);
-  return {upsertedStations:results[0].length,insertedObservations:results[1].length};
+  return {upsertedStations:results[0].length,insertedObservations:results[1].length,insertedRawObservations:results[2].length};
 }

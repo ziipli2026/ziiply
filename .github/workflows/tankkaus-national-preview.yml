@@ -1,4 +1,4 @@
-name: Tankkaus nationwide preview probe
+name: Tankkaus nationwide preview collection
 on:
   push:
     branches: [preview/legacy-desktop-ui]
@@ -23,8 +23,19 @@ jobs:
         with:
           node-version: 24
       - name: Simulate pagination, validation and database branch isolation
-        run: node --test tests/tankkaus-national.test.mjs
-      - name: Read all available provider observation pages without database writes
+        run: node --test tests/tankkaus-national.test.mjs tests/fuel-refresh-schedule.test.mjs
+      - name: Install isolated database driver
+        run: |
+          mkdir -p /tmp/tankkaus-national-client
+          cd /tmp/tankkaus-national-client
+          printf '{"private":true,"type":"module"}\n' > package.json
+          npm install --no-save --ignore-scripts --no-audit --no-fund @neondatabase/serverless@1.2.0
+          mkdir -p "$GITHUB_WORKSPACE/node_modules/@neondatabase"
+          ln -s /tmp/tankkaus-national-client/node_modules/@neondatabase/serverless "$GITHUB_WORKSPACE/node_modules/@neondatabase/serverless"
+      - name: Collect all pages into verified Neon test branch and verify deduplication
         env:
           TANKKAUS_API_TOKEN: ${{ secrets.TANKKAUS_API_TOKEN }}
+          TANKKAUS_TEST_DATABASE_URL: ${{ secrets.TANKKAUS_TEST_DATABASE_URL }}
+          TANKKAUS_NATIONAL_WRITE: YES_TEST_BRANCH
+          TANKKAUS_VERIFY_IDEMPOTENCY: 'true'
         run: node scripts/ingest-tankkaus-national.mjs
