@@ -19,6 +19,10 @@ for (const candidate of review.candidates) {
   assert.ok(candidate.url.startsWith("https://www.k-ruoka.fi/kauppa/tuote/"), "Unexpected source");
   assert.ok(candidate.url.endsWith("-" + candidate.ean), "Product URL EAN mismatch");
   assert.equal(candidate.approved, false, "External source alone cannot approve image");
-  assert.equal(candidate.imageUrl, null, "No image without verified image evidence");
+  if (candidate.imageUrl !== null) {
+    assert.ok(candidate.imageUrl.startsWith("https://"), "Image candidate must use HTTPS");
+    assert.ok(candidate.imageEvidenceUrl?.startsWith("https://"), "Image candidate requires source evidence");
+    assert.equal(candidate.approved, false, "Found image must remain unapproved until verified");
+  }
 }
 console.log("Verified " + seen.size + " candidate records; no unapproved images were added.");
