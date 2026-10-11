@@ -739,7 +739,19 @@ async function fetchKCitymarketOffersWithImages():Promise<CitymarketOffer[]>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id);
     return imageUrl?{...offer,imageUrl}:offer;
   });
-  const enriched=await enrichCitymarketFromEanBank(publisherImages);
+  // Use only explicit price + quantity printed in the offer's own title.
+  // This corrects an inferred spatial price without guessing from another card.
+  // Preserve the approved parser and never infer totals from €/kg or €/l.
+  const normalizedOffers=publisherImages.map(offer=>{
+    const printed=[...offer.title.matchAll(/(\\d{1,3}[,.]\\d{2})\\s*€?\\s*\\/\\s*(\\d{1,2})\\s*(kpl|pkt|ps|prk|plo)\\b/gi)];
+    if(printed.length!==1)return offer;
+    const amount=Number(printed[0][1].replace(",","."));
+    const quantity=Number(printed[0][2]);
+    if(!Number.isFinite(amount)||amount<=0||!Number.isInteger(quantity)||quantity<2||quantity>24)return offer;
+    if(offer.price===amount&&offer.offerQuantity===quantity)return offer;
+    return {...offer,price:amount,offerQuantity:quantity,offerUnit:printed[0][3].toUpperCase(),resolutionSource:"explicit-leaflet-title-multibuy"};
+  });
+  const enriched=await enrichCitymarketFromEanBank(normalizedOffers);
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
