@@ -92,9 +92,10 @@ jobs:
           const classify = title => ({title,category:category(title)});
           const excludedCandidates = outOfScope.map(classify);
           const retainedEssentials = essentials.map(classify);
+          const incorrectlyIncluded = excludedCandidates.filter(x=>x.category!=='Koti & vapaa-aika');
           const errors = retainedEssentials.filter(x=>!x.category || x.category==='Muut' || x.category==='Koti & vapaa-aika');
-          console.log('CITYMARKET_SCOPE_AUDIT '+JSON.stringify({excludedCandidates,retainedEssentials,errors},null,2));
-          if(errors.length) process.exitCode=1;
+          console.log('CITYMARKET_SCOPE_AUDIT '+JSON.stringify({excludedCandidates,retainedEssentials,incorrectlyIncluded,errors},null,2));
+          if(errors.length || incorrectlyIncluded.length) process.exitCode=1;
           // This is a diagnostic audit: do not filter real offers until scope rules are reviewed.
           NODE
           npx --yes tsx citymarket-scope-audit.mts
