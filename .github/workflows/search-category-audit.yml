@@ -180,6 +180,31 @@ jobs:
             fs.appendFileSync(summary, '## Ziiply search audit\n\nCould not parse behavior report: ' + String(error) + '\n');
           }
           NODE
+      - name: Summarize category snapshot regression
+        if: always()
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const path='search-audit-results/category-findings.json';
+          const summary=process.env.GITHUB_STEP_SUMMARY;
+          if(!fs.existsSync(path)) {
+            fs.appendFileSync(summary,'\n## Product category findings snapshot\n\nResult missing (not passed).\n');
+            process.exit(0);
+          }
+          try {
+            const r=JSON.parse(fs.readFileSync(path,'utf8'));
+            const ok=r.status==='PASS'&&r.rows===65&&r.failures?.length===0;
+            fs.appendFileSync(summary, [
+              '', '## Product category findings snapshot', '',
+              '| Check | Result |', '|---|---|',
+              '| Snapshot rows | '+r.rows+'/65 |',
+              '| Source category misclassifications | '+(r.counts?.source_misclassification??'MISSING')+'/17 |',
+              '| More specific subcategories | '+(r.counts?.more_specific_subcategory??'MISSING')+'/37 |',
+              '| Ambiguous search terms | '+(r.counts?.ambiguous_search_term??'MISSING')+'/11 |',
+              '| Findings regression | '+(ok?'PASS':'FAIL')+' |', ''
+            ].join('\n'));
+          } catch(e) {fs.appendFileSync(summary,'\n## Product category findings snapshot\n\nInvalid report: '+String(e)+'\n');}
+          NODE
       - name: Upload search audit reports
         if: always()
         uses: actions/upload-artifact@v4
