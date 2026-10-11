@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { normalizeSearchPackageSpacing } from "../../lib/normalSearchFallback";
 import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
@@ -933,7 +934,7 @@ export default function DesktopPreviewPage() {
 
   // Search results are not subject to the eight-item shopping basket limit.
   function rankDesktopJustiinaResults(products:any[], query:string):any[]{
-    const normalize=(value:string)=>String(value||"").toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+    const normalize=(value:string)=>normalizeSearchPackageSpacing(String(value||"")).toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
     const needle=normalize(query);
     const words=needle.split(" ").filter(Boolean);
     const score=(product:any)=>{
