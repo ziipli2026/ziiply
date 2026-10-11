@@ -68,11 +68,12 @@ for (const [query,expected] of samples) {
 const makeProduct = (id, name, category) => ({id,name,category,price:2.5});
 const rankingCases = [
   {query:"ketsuppi", products:[makeProduct(1,"Ketsupin makuinen kastike","Kastikkeet"),makeProduct(2,"Felix Ketsuppi 500 g","Ketsupit")], first:2},
-  {query:"kananmuna", products:[makeProduct(3,"Kanamunaton leivonnainen","Leivonta"),makeProduct(4,"Kotimainen kananmuna 10 kpl","Kananmunat")], first:4},
+  {query:"kananmuna", products:[makeProduct(3,"Kananmunaton leivonnainen","Leivonta"),makeProduct(4,"Kotimainen kananmuna 10 kpl","Kananmunat")], first:4, excluded:[3]},
 ];
-const rankingResults = rankingCases.map(({query,products,first}) => {
+const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
-  return {query,expectedFirst:first,actualFirst:ranked[0]?.id,pass:ranked[0]?.id===first};
+  const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));
+  return {query,expectedFirst:first,actualFirst:ranked[0]?.id,excludedPresent,pass:ranked[0]?.id===first && excludedPresent.length===0};
 });
 const data=new Map();
 global.window={localStorage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)}};
