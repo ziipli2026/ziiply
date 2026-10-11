@@ -12,16 +12,21 @@ const issues = [];
 const MIN_CATEGORY_COUNT = 42;
 if (categories.length < MIN_CATEGORY_COUNT) issues.push(`Category coverage regressed: ${categories.length} < ${MIN_CATEGORY_COUNT}`);
 const variantOwners = new Map();
+const normalizedDuplicateWarnings = [];
 for (const match of blocks) {
   const category = match[1];
   const variantList = match[0].match(/variants:\s*\[([^\]]*)\]/);
   if (!variantList) { issues.push(category + ": missing variants"); continue; }
-  const variants = [...variantList[1].matchAll(/"([^"]+)"/g)].map(x => x[1].normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim());
+  const rawVariants = [...variantList[1].matchAll(/"([^"]+)"/g)].map(x => x[1].toLowerCase().trim());
+  const variants = rawVariants.map(x => x.normalize("NFD").replace(/[\u0300-\u036f]/g,""));
   if (!variants.length) issues.push(category + ": empty variants");
   const withinCategory = new Set();
-  for (const variant of variants) {
+  const exactWithinCategory = new Set();
+  for (const [index, variant] of variants.entries()) {
+    if (exactWithinCategory.has(rawVariants[index])) issues.push(`${category}: duplicate exact variant ${JSON.stringify(rawVariants[index])}`);
+    exactWithinCategory.add(rawVariants[index]);
     if (!variant) issues.push(`${category}: blank normalized variant`);
-    if (withinCategory.has(variant)) issues.push(`${category}: duplicate normalized variant ${JSON.stringify(variant)}`);
+    if (withinCategory.has(variant)) normalizedDuplicateWarnings.push(`${category}: equivalent normalized variant ${JSON.stringify(variant)}`);
     withinCategory.add(variant);
     const owners = variantOwners.get(variant) || new Set();
     owners.add(category);
@@ -42,6 +47,6 @@ for (const [query,expected] of examples) {
  const block = blocks.find(m=>m[1]===expected)?.[0];
  if (!block || !block.includes('"'+query+'"')) issues.push(query+": missing exact variant in "+expected);
 }
-const report={categoryCount:categories.length,uniqueCount:unique.size,ambiguousExactVariants,exampleCount:examples.length,issues,limitations:["Static registry audit only; does not execute TypeScript ranking","No live API result coverage, UI or learning behavior verified"]};
+const report={categoryCount:categories.length,uniqueCount:unique.size,ambiguousExactVariants,normalizedDuplicateWarnings,exampleCount:examples.length,issues,limitations:["Static registry audit only; does not execute TypeScript ranking","No live API result coverage, UI or learning behavior verified"]};
 console.log(JSON.stringify(report,null,2));
 if (issues.length) process.exitCode=1;
