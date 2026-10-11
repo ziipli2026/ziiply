@@ -20,12 +20,30 @@ if (!entry) {
   const uncovered = fixture.offers.filter(row => !publication.images[row.key]);
   const unsafeName = /\b(tai|sekä|seka|ja|valikoima|erilaiset|useita|lajitelma)\b|\d+\s*[–-]\s*\d+\s*(?:g|kg|ml|l)\b|\b(?:plussa-kortilla|ilman plussa-korttia)\b/i;
   const diagnostic = uncovered.map(row => ({ ...row, candidateSafe: !unsafeName.test(row.identity) && !/\b(?:geelit|suihkeet|tiivisteet|tahranpoistajat|jäätelöt|juustoviipaleet|pyykinpesunesteet|täysmehut|rahkat|vanukkaat|pyykkietikat|suihkugeelit|wc-paperi|meikkivoide)\b/i.test(row.identity) }));
+  // Conservative identity extraction for a diagnostic-only bank lookup.
+  // The approved leaflet fixture does not contain EANs or verified brands.
+  const parseIdentity = (identity) => {
+    const raw = identity.trim();
+    if (unsafeName.test(raw) || /\\b(?:plussa|ilman|tarjous|norm\\.|alk\\.)\\b/i.test(raw)) return null;
+    const matches = [...raw.matchAll(/(\\d+(?:[.,]\\d+)?)\\s*(kg|g|ml|l)\\b/gi)];
+    if (matches.length !== 1) return null;
+    const match = matches[0];
+    const before = raw.slice(0, match.index).trim();
+    const after = raw.slice(match.index + match[0].length).trim();
+    if (after && !/^\\([^)]*\\)$/.test(after)) return null;
+    if (before.length < 12 || /\\d|\\/|\\b(?:ja|tai|sekä|seka)\\b/i.test(before)) return null;
+    if (/\\b(?:geelit|suihkeet|tiivisteet|tahranpoistajat|jäätelöt|juustoviipaleet|pyykinpesunesteet|täysmehut|rahkat|vanukkaat|pyykkietikat|suihkugeelit|wc-paperi|meikkivoide)\\b/i.test(before)) return null;
+    return { name: before, packageSize: match[1].replace(",", ".") + " " + match[2].toLowerCase() };
+  };
+  const parsed = uncovered.map(row => ({ ...row, extracted: parseIdentity(row.identity) }));
   const report = {
     publicationUrl, approvedOffers: fixture.offerCount,
     existingImages: imageKeys.length, missingImages: uncovered.length,
     diagnosticOnly: true,
     nameParsingCandidates: diagnostic.filter(row => row.candidateSafe).length, // candidates only; never automatic image approval
     manualReviewCandidates: diagnostic.filter(row => !row.candidateSafe).length,
+    extractedIdentityCount: parsed.filter(row => row.extracted).length,
+    extractedIdentities: parsed.filter(row => row.extracted).map(row => ({ key: row.key, ...row.extracted })),
     missing: diagnostic,
   };
   console.log(JSON.stringify(report, null, 2));
