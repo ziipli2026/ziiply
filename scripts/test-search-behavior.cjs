@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 // Execute actual TypeScript search code against deterministic fixtures.
-const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const ts = require("typescript");
-const Module = require("node:module");
-const original = require.extensions[".ts"];
 require.extensions[".ts"] = function(module, filename) {
   const source = fs.readFileSync(filename, "utf8");
   const compiled = ts.transpileModule(source, { compilerOptions: {
@@ -37,7 +34,14 @@ memory.rememberSearchChoice("ketsuppi",chosen,"added_to_cart");
 memory.rememberSearchChoice("ketsuppi",chosen,"added_to_cart");
 const after=memory.getLearnedSearchBoost("ketsuppi",chosen);
 const structure=memory.getLearnedStructureBoost("ketsuppi",alternative);
-const learning={before:before.boost,after:after.boost,positive:after.positiveCount,structure:structure.boost,pass:after.positiveCount===2&&after.boost>before.boost};
+const stored=memory.loadSearchIntentMemory();
+const persisted=Object.values(stored.entries).some(e=>e.productName===chosen.name&&e.positiveCount===2);
+memory.rememberSearchChoice("ketsuppi",chosen,"rejected");
+const afterRejection=memory.getLearnedSearchBoost("ketsuppi",chosen);
+const otherQuery=memory.getLearnedSearchBoost("maito",chosen);
+memory.clearSearchIntentMemory();
+const afterClear=memory.loadSearchIntentMemory();
+const learning={before:before.boost,after:after.boost,positive:after.positiveCount,structure:structure.boost,persisted,afterRejection:afterRejection.boost,isolatedOtherQuery:otherQuery.boost,cleared:Object.keys(afterClear.entries).length===0,pass:after.positiveCount===2&&after.boost>before.boost&&persisted&&afterRejection.boost<after.boost&&Object.keys(afterClear.entries).length===0};
 const failures=results.filter(r=>!r.pass);
 console.log(JSON.stringify({total:results.length,passed:results.length-failures.length,failures,learning},null,2));
 if(failures.length||!learning.pass)process.exitCode=1;
