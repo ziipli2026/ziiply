@@ -49,7 +49,7 @@ jobs:
             const ok = data.passed === data.total &&
               ranking.length > 0 && ranking.every(x => x.pass) &&
               exclusion.length > 0 && exclusion.every(x => x.pass) &&
-              data.learning?.pass === true && data.guardedLearning?.pass === true;
+              data.learning?.pass === true && data.guardedLearning?.pass === true && data.boundedLearning?.pass === true;
             fs.appendFileSync(summary, [
               '## Ziiply search audit',
               '',
@@ -60,6 +60,7 @@ jobs:
               '| Hard exclusions | ' + exclusion.filter(x=>x.pass).length + '/' + exclusion.length + ' |',
               '| Learning | ' + (data.learning?.pass ? 'PASS' : 'FAIL') + ' |',
               '| Learning guardrails | ' + (data.guardedLearning?.pass ? 'PASS' : 'FAIL') + ' |',
+              '| Learning saturation and reset | ' + (data.boundedLearning?.pass ? 'PASS' : 'FAIL') + ' |',
               '| Overall | ' + (ok ? 'PASS' : 'FAIL') + ' |',
               ''
             ].join('\n'));
