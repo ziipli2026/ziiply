@@ -172,9 +172,9 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
         </div>
         <div className="flex min-h-0 flex-1 flex-col rounded-[22px] border-[3px] border-[#8d6e3d] bg-[#17241e] p-3 shadow-[0_4px_0_#b49a68]">
           <div className="mb-2 text-center text-xs font-black uppercase tracking-[.12em] text-[#f5e5c1]">{mode==="manual"?"Hintojen käsinsyöttö":"Hintataulun kuvalukija"}</div>
-          {cameraOpen&&<div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[#f5e5c1]">
-            <span className="text-xs font-semibold">Sovita polttoaineiden nimet ja hinnat kehykseen.</span>
-            <div className="flex shrink-0 gap-1 rounded-lg bg-[#0b1711] p-1" aria-label="Kohdistuskehyksen muoto">
+          {cameraOpen&&<div className="relative mb-2 flex min-h-[44px] items-center justify-center gap-2 text-[#f5e5c1]">
+            <span className="text-center text-xs font-semibold">Sovita polttoaineiden nimet ja hinnat kehykseen.</span>
+            <div className="absolute right-0 top-1/2 flex -translate-y-1/2 shrink-0 gap-1 rounded-lg bg-[#0b1711] p-1" aria-label="Kohdistuskehyksen muoto">
               <button type="button" aria-pressed={guideOrientation==="portrait"} onClick={()=>setGuideOrientation("portrait")} className={`rounded-md px-3 py-1 text-xs font-bold ${guideOrientation==="portrait"?"bg-[#e3edc9] text-[#174c35]":"text-[#f5e5c1]"}`}>Pysty</button>
               <button type="button" aria-pressed={guideOrientation==="landscape"} onClick={()=>setGuideOrientation("landscape")} className={`rounded-md px-3 py-1 text-xs font-bold ${guideOrientation==="landscape"?"bg-[#e3edc9] text-[#174c35]":"text-[#f5e5c1]"}`}>Vaaka</button>
             </div>
@@ -183,7 +183,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
             {cameraOpen?<div className="relative h-full min-h-[140px] w-full overflow-hidden text-[#f5e5c1]">
               <video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className="absolute inset-0 h-full w-full object-cover" aria-label="Kameran esikatselu"/>
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                <div className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,.36)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[83%] aspect-[4/3] max-h-[83%]"}`}>
+                <div className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,1)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[83%] aspect-[4/3] max-h-[83%]"}`}>
                   <span className="absolute -left-[3px] -top-[3px] h-6 w-6 rounded-tl-xl border-l-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -right-[3px] -top-[3px] h-6 w-6 rounded-tr-xl border-r-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -bottom-[3px] -left-[3px] h-6 w-6 rounded-bl-xl border-b-[5px] border-l-[5px] border-white"/>
