@@ -11,6 +11,7 @@ on:
       - "scripts/citymarket/build-image-review-queue.mjs"
       - "scripts/citymarket/check-image-source-candidates.mjs"
       - "scripts/citymarket/probe-image-candidates.mjs"
+      - "scripts/citymarket/build-image-review-html.mjs"
       - "scripts/citymarket/41lv-image-source-candidates.json"
       - "scripts/citymarket/audit-41lv-image-coverage.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
@@ -41,6 +42,9 @@ jobs:
       - name: Probe external image candidates
         if: always()
         run: node scripts/citymarket/probe-image-candidates.mjs
+      - name: Generate visual image review page
+        if: always()
+        run: node scripts/citymarket/build-image-review-html.mjs
       - name: Upload image review queue
         if: always()
         uses: actions/upload-artifact@v4
@@ -49,5 +53,6 @@ jobs:
           path: |
             citymarket-image-review-queue.json
             citymarket-image-probe.json
+            citymarket-image-review.html
           retention-days: 14
           if-no-files-found: error
