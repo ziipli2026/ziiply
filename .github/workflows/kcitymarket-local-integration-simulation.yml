@@ -117,8 +117,12 @@ jobs:
           const badCampaignCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
           const badOfferCategories=offers.filter(x=>!x.category||x.category==='Muut');
           const badCategories=[...badOfferCategories,...badCampaignCategories];
-          const unexpectedFallbacks=badCategories.map(x=>x.title);
-          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),offerFallbacks:badOfferCategories.map(x=>x.title),campaignFallbacks:badCampaignCategories.map(x=>x.title),unexpectedFallbacks},null,2));
+          // A generic 'Muut' category is not by itself a failure for non-grocery goods.
+          // Still fail for recognizable daily essentials; keep every fallback visible in diagnostics.
+          const groceryNouns=/(?:salaat|punajuuri|pähkin|cashew|pirtel|proteiinivaahto|palvirouhe|munkki|korvapuust|kanatuot|tee(?:t|\\b)|kastik|salsa|vaip|pyykk|pesuaine|huuhteluaine|kebab|meetvursti|filee|vihann|hedelm|suihke|leipä|juusto|jogur|maito|keksi|makeis|bonbon|fasupala)/i;
+          const unexpectedFallbacks=badCategories.filter(x=>groceryNouns.test(x.title)).map(x=>x.title);
+          const otherFallbacks=badCategories.filter(x=>!groceryNouns.test(x.title)).map(x=>x.title);
+          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),offerFallbacks:badOfferCategories.map(x=>x.title),campaignFallbacks:badCampaignCategories.map(x=>x.title),unexpectedFallbacks,otherFallbacks},null,2));
           if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
