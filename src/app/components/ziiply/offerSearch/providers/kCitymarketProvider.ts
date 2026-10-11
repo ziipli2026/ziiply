@@ -81,6 +81,8 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
+  // Leipäjuusto is a dairy cheese, not a bakery product.
+  if(/leipäjuust/.test(s)) return "Maitotuotteet";
 
   // Bring verified desktop daily-goods exceptions to the mobile preview.
   if(/suosikkisalaat/.test(s)) return "Valmisruoka";
