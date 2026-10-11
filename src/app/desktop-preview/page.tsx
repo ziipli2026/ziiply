@@ -5,11 +5,14 @@ import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
+import dynamic from "next/dynamic";
 import DesktopAssistantCards from "../components/ziiply/desktop/DesktopAssistantCards";
 import ZiiplyDesktopNotebookCard from "../components/ziiply/cards/ZiiplyDesktopNotebookCard";
 import ZiiplyDesktopCompareCard from "../components/ziiply/desktop/ZiiplyDesktopCompareCard";
 import { GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147, mapZiiplyGostaOfferToCardOfferV147, searchZiiplyGostaOffersV146, cleanZiiplyGostaOfferResultsV146, filterZiiplyGostaOfferResultsV146, hidePrismaOfferCopiesAlreadyInCampaignTabV805 } from "../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { getOfferPrice, splitOfferDisplayPrice } from "../components/ziiply/cards/ZiiplyMobileOfferSearchCard";
+
+const DesktopFuelPhotoReport=dynamic(()=>import("../components/ziiply/desktop/DesktopFuelPhotoReport"),{ssr:false});
 
 type Assistant = "gosta" | "justiina" | "arvo";
 
@@ -168,6 +171,7 @@ export default function DesktopPreviewPage() {
   const [fuelLoading, setFuelLoading] = useState(false);
   const [fuelError, setFuelError] = useState("");
   const [fuelType, setFuelType] = useState<"diesel" | "price95" | "price98">("diesel");
+  const [fuelReportOpen,setFuelReportOpen]=useState(false);
   const [fuelSort, setFuelSort] = useState<"distance" | "diesel" | "price95">("distance");
   const [fuelGroups,setFuelGroups]=useState<string[]>([]);
   const [fuelTraffic,setFuelTraffic]=useState(true);
@@ -1251,6 +1255,7 @@ export default function DesktopPreviewPage() {
               active={active}
               onlyGosta={fuelSelected}
               fuelMode={fuelSelected}
+              onReportFuel={()=>setFuelReportOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
               chooseStoresNoticeFor={chooseStoresNoticeFor}
               onSelect={(key) => {
@@ -1268,6 +1273,7 @@ export default function DesktopPreviewPage() {
               }}
             />
 
+            {fuelSelected && fuelReportOpen && <DesktopFuelPhotoReport onClose={()=>setFuelReportOpen(false)}/>}
             {fuelSelected && fuelCompared && <div className="fixed bottom-[24px] left-1/2 top-[var(--desktop-overlay-top)] z-[60] flex w-[min(820px,calc(100vw-48px))] -translate-x-1/2 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]">
               <div className="relative grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] py-2 pl-2 pr-12">
                 <button type="button" aria-pressed={fuelSort==="diesel"} onClick={()=>setFuelSort(current=>current==="diesel"?"distance":"diesel")} className={`flex min-w-0 items-center justify-center gap-2 rounded-[15px] border-2 px-2 py-2 text-[11px] font-black leading-tight shadow-[0_3px_0_rgba(34,54,43,.15)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174c35] ${fuelSort==="diesel"?"border-[#174f78] bg-[#246b96] text-white":"border-[#83a8bb] bg-gradient-to-b from-[#f5fcff] to-[#dcecf3] text-[#174f78]"}`}><span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/25 text-[10px]">DI</span><span>Näytä halvin diesel</span></button>

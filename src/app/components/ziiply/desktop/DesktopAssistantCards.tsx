@@ -8,18 +8,19 @@ const assistants = [
   { key: "arvo" as const, name: "Arvo", title: "Asetukset", subtitle: "Omat valinnat", description: "Ruokavaliot, suosikit, kaupat, sijainti ja muut pysyvät valinnat.", image: "/assistants/arvo.png", frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]", ink: "text-[#314633]" },
 ];
 
-export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false}:{fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
+export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false,onReportFuel}:{onReportFuel?:()=>void;fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
   return (
     <div className="grid h-full min-h-0 grid-cols-3 gap-3 xl:gap-4 -mt-3">
       {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
         const selected = active === item.key;
         const showStoreNotice = (item.key==="gosta" || item.key==="justiina") && chooseStoresNoticeFor===item.key && !hasSelectedStores;
         return (
-          <button key={item.key} type="button" onClick={() => onSelect(item.key)} className={[
+          <div key={item.key} className={[
             "group relative flex h-full min-h-0 flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-0 pt-5 text-center transition duration-200 active:translate-y-[2px]",
             item.frame,
             selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
           ].join(" ")}>
+            <button type="button" aria-label={`Avaa ${item.name}`} onClick={()=>onSelect(item.key)} className="absolute inset-0 z-20 rounded-[31px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#17573c]" />
             <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#7f6a3e_1px,transparent_1px)] [background-size:12px_12px]" />
             {selected && <div className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-[#0a7f3a] text-lg font-black text-white shadow-md">✓</div>}
             <div className="relative z-10 mt-5 h-[clamp(150px,19vh,205px)] w-[clamp(150px,19vh,205px)] shrink-0 self-center overflow-hidden rounded-full border-[6px] border-[#f7e7c4] bg-[#f5e5c1] shadow-[0_11px_0_rgba(65,45,20,0.16),0_24px_38px_rgba(40,55,38,0.18)]">
@@ -33,10 +34,11 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
                 Valitse ensin kaupat
               </div>
             )}
-            <div className="relative z-10 -mx-5 mt-auto flex h-[145px] w-[calc(100%+2.5rem)] shrink-0 items-start justify-center border-t-2 border-[#8d805e]/25 px-5 pt-5 pb-5">
+            <div className="relative z-10 -mx-5 mt-auto flex h-[145px] w-[calc(100%+2.5rem)] shrink-0 flex-col items-center justify-start gap-2 border-t-2 border-[#8d805e]/25 px-5 pt-3 pb-3">
               <p className="w-full text-[15px] font-bold leading-snug text-[#3f4654]">{fuelMode && item.key==="gosta" ? "Valittujen ketjujen asemat, polttoainehinnat ja havaintoajat. Asemat lähimmästä kaukaisimpaan." : item.description}</p>
+              {fuelMode && item.key==="gosta" && onReportFuel && <button type="button" onClick={onReportFuel} className="relative z-30 rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-5 py-2 text-sm font-black text-[#174c35] shadow-[0_3px_0_rgba(23,87,60,.2)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">📷 Ilmoita hintoja</button>}
             </div>
-          </button>
+          </div>
         );
       })}
     </div>
