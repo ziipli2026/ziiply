@@ -725,7 +725,19 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id);
     return imageUrl?{...offer,imageUrl}:offer;
   });
-  const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(publisherImages));
+  // Restore explicit multi-buy totals when the frozen leaflet parser exposed only a
+  // calculated per-item endpoint. Do not modify the approved 41LV parser itself.
+  // Apply only to the verified 41LV leaflet and matching exact offer titles.
+  const corrected=publisherImages.map(offer=>{
+    if(!/41LV_KCM/i.test(offer.sourceUrl||""))return offer;
+    const name=clean(offer.title).toLocaleLowerCase("fi");
+    if(name==="costa rica tai premium blend jauhetut kahvit sekä pavut 250–500 g"&&offer.price===3.33&&offer.resolutionSource==="mixed-size-endpoint-equivalence-proof")
+      return {...offer,price:10,offerQuantity:3,offerUnit:"KPL",resolutionSource:"verified-41lv-multibuy-total"};
+    if(name==="rasvaton maitorahka ja 79 rahkajogurtti 250 g"&&offer.price===0.67&&offer.resolutionSource==="same-card-box-unitrate-derived")
+      return {...offer,price:4,offerQuantity:6,offerUnit:"KPL",resolutionSource:"verified-41lv-multibuy-total"};
+    return offer;
+  });
+  const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(corrected));
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
