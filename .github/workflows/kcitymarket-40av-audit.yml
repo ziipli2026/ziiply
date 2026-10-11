@@ -79,8 +79,7 @@ jobs:
             missingSample:missing.slice(0,10)
           },null,2));
 
-          // The approved fixture is the publication contract. Exact equality is intentionally
-          // not required because parser titles can retain harmless publisher text variants,
-          // but a material loss of approved cards must fail the gate.
-          if(coverage<0.90) throw new Error(`${current.id}: approved live coverage fell below 90% (${matched.length}/${expectedKeys.size})`);
+          // All approved offers, including percentage discounts, must remain present.
+          // Additional publisher rows are allowed; missing approved offers are not.
+          if(missing.length) throw new Error(`${current.id}: ${missing.length} approved offers missing (${matched.length}/${expectedKeys.size})`);
           NODE
