@@ -18,10 +18,15 @@ export async function GET(req: NextRequest) {
       !Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
     return NextResponse.json({ ok: false, error: "GPS coordinates required" }, { status: 400 });
   }
-  const connection = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const testConnection = process.env.VERCEL_ENV === "preview" ? process.env.TANKKAUS_TEST_DATABASE_URL : undefined;
+  const connection = testConnection || process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!connection) return NextResponse.json({ ok: false, error: "Fuel database not configured" }, { status: 503 });
   try {
     const sql = neon(connection);
+    const identity = await sql`SELECT current_setting(\'neon.branch_id\',true) AS branch_id`;
+    if (testConnection && identity[0]?.branch_id !== "br-weathered-meadow-b1bwpzst") {
+      return NextResponse.json({ ok: false, error: "Fuel preview database does not identify the approved test branch" }, { status: 503 });
+    }
     const rows = await sql`
       SELECT s.source_station_id, s.name, s.chain, s.address, s.latitude, s.longitude, s.is_traffic_station, s.traffic_station_verified,
         p95.price_eur_per_litre AS price95, p95.observed_at AS observed95,
@@ -87,6 +92,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       ok: true, stations: visible, total: deduplicated.length,
       ...(paginated ? { page, limit, hasMore: start + limit < deduplicated.length } : {}),
+      ...(process.env.VERCEL_ENV === "preview" ? { databaseBranch: identity[0]?.branch_id ?? null } : {}),
       source: "Neon / tankkaus.com observations"
     });
   } catch {

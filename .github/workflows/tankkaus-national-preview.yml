@@ -1,5 +1,9 @@
 name: Tankkaus nationwide preview collection
 on:
+  schedule:
+    # UTC candidates for 06, 10, 15, 20 in Helsinki; the clock gate selects DST.
+    # GitHub activates schedules only from its default branch.
+    - cron: '0 3,4,7,8,12,13,17,18 * * *'
   push:
     branches: [preview/legacy-desktop-ui]
     paths:
@@ -19,12 +23,25 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Read preview fuel environment metadata if a Vercel credential exists
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/probe-vercel-fuel-env.mjs
       - name: Simulate pagination, validation and database branch isolation
         run: node --test tests/tankkaus-national.test.mjs tests/fuel-refresh-schedule.test.mjs
+      - name: Select the four Finnish update times
+        id: clock
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          node --input-type=module -e 'import {appendFileSync} from "node:fs"; import {fuelRefreshDue} from "./scripts/lib/fuel-refresh-schedule.mjs"; const due=process.env.EVENT_NAME!=="schedule"||fuelRefreshDue(new Date(),true); appendFileSync(process.env.GITHUB_OUTPUT,"collect="+due+"\n");'
       - name: Install isolated database driver
+        if: steps.clock.outputs.collect == 'true'
         run: |
           mkdir -p /tmp/tankkaus-national-client
           cd /tmp/tankkaus-national-client
@@ -33,6 +50,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/node_modules/@neondatabase"
           ln -s /tmp/tankkaus-national-client/node_modules/@neondatabase/serverless "$GITHUB_WORKSPACE/node_modules/@neondatabase/serverless"
       - name: Collect all pages into verified Neon test branch and verify deduplication
+        if: steps.clock.outputs.collect == 'true'
         env:
           TANKKAUS_API_TOKEN: ${{ secrets.TANKKAUS_API_TOKEN }}
           TANKKAUS_TEST_DATABASE_URL: ${{ secrets.TANKKAUS_TEST_DATABASE_URL }}
