@@ -14,6 +14,7 @@ try {
     ['wrong-category', source.replace(',more_specific_subcategory,cola,candidate', ',more_specific_subcategory,frozen,candidate')],
     ['duplicate-row', source + source.trimEnd().split('\n')[1] + '\n'],
     ['invalid-review-status', source.replace(',ambiguous_search_term,,candidate', ',ambiguous_search_term,,approved')],
+    ['extra-column', source.replace('6408653129323,Juustoportti', '6408653129323,EXTRA,Juustoportti')],
   ];
   for (const [name, csv] of cases) {
     assert.notEqual(csv, source, 'Mutation not applied: ' + name);
