@@ -23,6 +23,11 @@ jobs:
           mkdir -p search-audit-results
           set -o pipefail
           NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" npm run test:search --silent | tee search-audit-results/behavior.json
+      - name: Test offline product category classification fixtures
+        run: |
+          mkdir -p search-audit-results
+          set -o pipefail
+          node scripts/test-category-audit-fixtures.cjs | tee search-audit-results/category-fixtures.json
       - name: Report ambiguous category substrings
         if: success() || failure()
         run: |
@@ -61,13 +66,14 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const names = ['behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance', 'route-syntax', 'dependency-lock'];
+          const names = ['category-fixtures', 'behavior', 'collisions', 'categories', 'provider-coverage', 'pagination', 'pagination-performance', 'route-syntax', 'dependency-lock'];
           let failed = false;
           for (const name of names) {
             const file = 'search-audit-results/' + name + '.json';
             try {
               const report = JSON.parse(fs.readFileSync(file, 'utf8'));
               if (!report || typeof report !== 'object') throw new Error('Invalid report');
+              if (name === 'category-fixtures' && (report.total < 10 || report.passed !== report.total || !Array.isArray(report.results))) throw new Error('Category fixture regression failed');
               if (name === 'behavior' && (
                 !Array.isArray(report.failures) ||
                 !Array.isArray(report.rankingResults) ||
