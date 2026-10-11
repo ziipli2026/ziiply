@@ -87,6 +87,7 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
+  if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
   if(/nachips|nachos|tortilla/.test(s)) return "Kuivatuotteet";
   if(/jogurttijuom|actimel/.test(s)) return "Maitotuotteet";
   if(/pakaste.*kasvis|kasvis.*pakaste|vihannessekoit|pakasteateriat|pakastekeitot/.test(s)) return "Pakasteet";
@@ -625,7 +626,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v138-publisher-archive":"standard"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v139-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){

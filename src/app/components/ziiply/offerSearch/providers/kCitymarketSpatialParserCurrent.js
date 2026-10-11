@@ -294,11 +294,13 @@ function splitAround(lines,idx){const a=[];const lo=Math.max(0,idx-12),hi=Math.m
 function directPrices(lines){const a=[];for(const l of lines){const sp=spacedPrice(l.text);if(sp!=null)a.push({price:sp,kind:"spaced",line:l.i,raw:l.text});let m=l.text.match(/^\s*(\d{1,2})[.]\s*$/);if(m)a.push({price:Number(m[1]),kind:"whole-euro",line:l.i,raw:l.text});if(/^\s*\d{3}\s*$/.test(l.text))a.push({price:Number(l.text.trim())/100,kind:"compact",line:l.i,raw:l.text})}return a}
 function nearbyQty(lines,idx){const a=[];for(let j=Math.max(0,idx-10);j<Math.min(lines.length,idx+16);j++){let m=lines[j].text.match(/^\s*(2|3)\s*$/);if(m){const n=Number(m[1]);for(let k=j;k<Math.min(lines.length,j+6);k++){const u=lines[k].text.match(/\b(RS|PS|PKT|KPL|TLK|PL)\b/i);if(u)a.push({quantity:n,unit:u[1].toUpperCase(),line:lines[j].i,distance:Math.abs(j-idx)})}}}return a.sort((a,b)=>a.distance-b.distance)}
 function priceFragments(lines){const a=[];for(const l of lines){const sp=spacedPrice(l.text);if(sp!=null)a.push({price:sp,raw:l.text,line:l.i,kind:"spaced"});for(const m of l.text.matchAll(/(?<!\d)(\d{1,2})\s*[-.]?\s*(\d{2})(?!\d)/g))a.push({price:num(m[1]+"."+m[2]),raw:m[0],line:l.i,kind:"fragment"});if(/^\d{3}$/.test(l.text))a.push({price:num(l.text)/100,raw:l.text,line:l.i,kind:"compact"});if(/^\d{1,2}[.]$/.test(l.text))a.push({price:num(l.text.slice(0,-1)),raw:l.text,line:l.i,kind:"whole"});if(/^\d{2}$/.test(l.text))a.push({suffix:num(l.text),raw:l.text,line:l.i,kind:"suffix"})}return a}
-function productish(s){
+export function productish(s){
+ // Meal bowls sold by food weight are distinct from household bowls.
+ const exclusionTitle=/\b(?:RUUKUT\s+ja\s+KULHOT|(?:RUOKA|ATERIA)KULHOT?)\b/i.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/i.test(s)?s.replace(/KULHO/gi,"ATERIA"):s;
  if(/\b(?:ja|tai)$/i.test(s.trim())&&!/\d/.test(s))return false;
 
  if(s.length<5||s.length>=180||!/[A-ZÅÄÖ]{3}/.test(s))return false;
- if(/KENGÄ|KENKÄ|NILKKUR|SAAPPA|MAIHAR|ULKOILUVAAT|VAATTEET|PÄÄHINE|HUIVI|NEULELANG|SÄILYTYSLAAT|TAKKI|HOUSU|PAITA|MEKKO|LAUKKU|PAISTOAST|KEITTOAST|KEITTIÖTYÖVÄLINE|PUSSILAKANA|(?<!PUHDISTUS)PYYHE|LAUTANEN|MUKI|KULHO|VEDENKEITIN|KUULOKE|KAIUTIN|TELEVIS|PUHELIN|TYÖKALU|LELU|SUKAT|ALUSHOUS|SÄHKÖHAMMASHARJA|VAIHTOHARJAT|HALLOWEEN|HÄMÄHÄKINVERKKO|PAPERILYHTY|KURPITSA-ASU|KORISTE|RANNEKE/i.test(s))return false;
+ if(/KENGÄ|KENKÄ|NILKKUR|SAAPPA|MAIHAR|ULKOILUVAAT|VAATTEET|PÄÄHINE|HUIVI|NEULELANG|SÄILYTYSLAAT|TAKKI|HOUSU|PAITA|MEKKO|LAUKKU|PAISTOAST|KEITTOAST|KEITTIÖTYÖVÄLINE|PUSSILAKANA|(?<!PUHDISTUS)PYYHE|LAUTANEN|MUKI|KULHO|VEDENKEITIN|KUULOKE|KAIUTIN|TELEVIS|PUHELIN|TYÖKALU|LELU|SUKAT|ALUSHOUS|SÄHKÖHAMMASHARJA|VAIHTOHARJAT|HALLOWEEN|HÄMÄHÄKINVERKKO|PAPERILYHTY|KURPITSA-ASU|KORISTE|RANNEKE/i.test(exclusionTitle))return false;
  if(/AKTIVOI|VIIKON|RESEPT|CITTARI|HOITAA|Osallistu|Delta|HEVI-haaste|HEHKUVAAN|^LAKTOOSITON$|^UUTUUS$|^SHAKE UP$/.test(s))return false;
  return !!pkg(s)||/NAKKI|PIHVI|VARTAAT|JUOMAT|JUUST|JOGUR|KEFIR|LEIP|PITA|PEKON|PYYKINPESU|WC-PAPERI|NENÄLIINA|KÄSINE|LOHI|ULKOFILEE|LATZ|KURPITSA|VÄLIPALAT|IHONHOITO|PESULAPPU|RUOKALAPPU|VUODESUOJA|SHAMPOO|DEODOR|SÄVYTTEET|HIUSVÄRITUOTTEET|MEIKKIVOIDE/.test(s);
 }
@@ -319,7 +321,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V133-KCITYMARKET-PRINTED-TRANSACTION-PROOFS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V139-KCITYMARKET-PREPARED-MEAL-IDENTITY",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);

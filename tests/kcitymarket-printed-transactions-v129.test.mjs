@@ -9,10 +9,13 @@ const transaction=r=>r?{value:r.value,quantity:r.quantity??null,unit:r.unit??nul
 for(const {row,expected} of fixture.corrections)test('Printed transaction: '+row.title,()=>assert.deepEqual(transaction(repair(row)),expected));
 test('Full immutable 41LV source retains all other transactions',async()=>{
  const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{const r=archive.responses[String(input)];assert.ok(r,'archived response');return {ok:true,status:200,url:r.url,text:async()=>r.body};});
- assert.equal(parsed.rows.length,fixture.baseline.length);
+ const meal=parsed.rows.filter(r=>r.title==='RUUKUT ja KULHOT 300 g');
+ assert.equal(meal.length,1);assert.equal(meal[0].page,14);assert.deepEqual(transaction(meal[0].spatialResolved),{value:10,quantity:4,unit:'KPL'});
+ const existing=parsed.rows.filter(r=>r!==meal[0]);
+ assert.equal(existing.length,fixture.baseline.length);
  const fixes=new Map([...fixture.corrections,...next.corrections].map(x=>[x.row.page+':'+x.row.title,x.expected]));
- for(let i=0;i<parsed.rows.length;i++){
-  const row=parsed.rows[i],base=fixture.baseline[i];assert.equal(row.title,base.title);
+ for(let i=0;i<existing.length;i++){
+  const row=existing[i],base=fixture.baseline[i];assert.equal(row.title,base.title);
   assert.deepEqual(transaction(row.spatialResolved),fixes.get(base.page+':'+base.title)||base.transaction,base.title);
  }
  const cheese=parsed.rows.find(r=>r.title.includes('LEIPÄJUUSTO'));assert.equal(cheese.unitPrice.min,14.21);assert.equal(cheese.spatialResolved.value,1.99);
