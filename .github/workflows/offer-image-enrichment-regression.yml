@@ -1,0 +1,25 @@
+name: Offer image enrichment regression
+on:
+  push:
+    branches:
+      - feature/offer-image-enrichment-20261011
+    paths:
+      - "src/lib/offerImageEnrichment.ts"
+      - "src/lib/offerImageEnrichmentQueue.ts"
+      - "src/lib/offerImageEanLookup.ts"
+      - "scripts/test-offer-image-enrichment.mts"
+      - ".github/workflows/offer-image-enrichment-regression.yml"
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Run isolated image matcher regression
+        run: node --experimental-strip-types scripts/test-offer-image-enrichment.mts
