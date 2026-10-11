@@ -706,7 +706,7 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   }
 }
 
-export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+async function fetchKCitymarketOffersWithImages():Promise<CitymarketOffer[]>{
   const active=getActiveKCitymarketPeriod();
 
   // The Wednesday/Sunday background warm-up parses the next leaflet after
@@ -856,6 +856,14 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     console.warn("[K-Citymarket] optional national Tjek image enrichment unavailable",error);
     return enriched;
   }
+}
+// Presentation-only daily goods scope: never discard unknown-category items.
+// The leaflet parser, period cache and image enrichment remain unfiltered.
+export function filterKCitymarketDailyGoods(offers:CitymarketOffer[]):CitymarketOffer[]{
+  return offers.filter(offer=>offer.category!=="Koti & vapaa-aika");
+}
+export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+  return filterKCitymarketDailyGoods(await fetchKCitymarketOffersWithImages());
 }
 export default fetchKCitymarketOffers;
 
