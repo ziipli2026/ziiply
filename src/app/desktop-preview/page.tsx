@@ -1004,7 +1004,7 @@ export default function DesktopPreviewPage() {
   function desktopCartKey(p:any){return String(p?.ean||p?.id||p?.offerId||p?.title||p?.name||"").trim()}
   function flashCartNotice(message:string){setCartNotice(message);window.setTimeout(()=>setCartNotice(current=>current===message?"":current),2200)}
   function addDesktopCartItem(p:any){
-    if(desktopPhysicalCollectionRef.current){p={...p,collected:true};}
+    if(desktopScannerOpen && desktopPhysicalCollectionRef.current){p={...p,collected:true};}
     const key=desktopCartKey(p);if(!key)return;
     if(p?.source==="justiina" && p?.__chain && justiinaQuery.trim())rememberSearchChoice(justiinaQuery,{...p,name:String(p.name||p.title||""),ean:p.ean==null?null:String(p.ean)},"added_to_cart");
     setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return isDesktopMemoItem(found)?current:current.map(x=>desktopCartKey(x)===key?{...x,collected:p.collected?true:Boolean(x.collected),quantity:p.collected&&!x.collected?Number(x.quantity||1):Number(x.quantity||1)+1}:x)}flashCartNotice(`Lisätty: ${p?.title||p?.name||"tuote"}`);return [...current,{...p,source:p?.source||"normal",quantity:1}]});
