@@ -466,10 +466,10 @@ export default function DesktopPreviewPage() {
     const normalizedEan=normalizeEan(ean);
     const packageNeutral=name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
     const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),name,packageNeutral,...(packageNeutral!==name?(isS?getNormalSearchQueries(packageNeutral):getKSearchTerms(packageNeutral)):[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,16);
-    const responses=await Promise.all(queries.map(async search=>{
+    const fetchSelectedProducts=async(search:string)=>{
       try{
         const kStoreId=String(store.id||"");
-        const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:"");
+        const selectedStoreId=isS?String(store.externalId||store.id||""):(/^\d+$/.test(kStoreId)?kStoreId:"");
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
         if(isS){params.set("storeName",String(store.name||""));}
@@ -484,7 +484,13 @@ export default function DesktopPreviewPage() {
           price:isS&&data?.source==="s-kaupat-normal-v220"?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100):Number(p.price??p.storeItems?.[0]?.price??0)
         })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
       }catch{return []}
-    }));
+    };
+    if(isS&&normalizedEan){
+      const exactRows=await fetchSelectedProducts(normalizedEan);
+      const exact=exactRows.filter((product:any)=>normalizeEan(product.ean)===normalizedEan);
+      if(exact.length)return exact;
+    }
+    const responses=await Promise.all(queries.filter(search=>!isS||!normalizedEan||search!==normalizedEan).map(fetchSelectedProducts));
     return responses.flat();
   }
   // Never attach a different package's price to the original cart product.
@@ -603,7 +609,7 @@ export default function DesktopPreviewPage() {
               const fallbackQueries=["Felix ketsuppi","Felix ketchup"];
               const fallbackResponses=await Promise.all(fallbackQueries.map(async search=>{
                 try{
-                  const params=new URLSearchParams({search,store:String(store.id),storeName:String(store.name||"")});
+                  const params=new URLSearchParams({search,store:String(store.externalId||store.id),storeName:String(store.name||"")});
                   const response=await desktopProductFetch("/api/s-products?"+params.toString(),{cache:"no-store"});
                   if(!response.ok)return [];
                   const data=await response.json();
