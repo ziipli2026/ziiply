@@ -714,7 +714,14 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       const knownEan=String(offer.ean??"").trim();
       if(/^\d{8,14}$/.test(knownEan)){
         const exact=byEan.get(knownEan)||[];
-        const urls=[...new Set(exact.map(row=>String(row.image_url??"")).filter(url=>/^https:\/\//i.test(url)))];
+        // An EAN can have stale or conflicting image-bank rows. Require
+        // matching package size when both catalogue and leaflet state it.
+        const offerSize=size(offer.packageSize)||size(offer.title);
+        const compatible=exact.filter(row=>{
+          const bankSize=size(row.quantity)||size(row.name);
+          return !offerSize || !bankSize || bankSize===offerSize;
+        });
+        const urls=[...new Set(compatible.map(row=>String(row.image_url??"")).filter(url=>/^https:\/\//i.test(url)))];
         if(urls.length===1){stats.matched++;return {...offer,imageUrl:urls[0]};}
         if(urls.length>1)stats.ambiguous++;
         else stats.missing++;
