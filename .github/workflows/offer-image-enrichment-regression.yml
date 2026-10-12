@@ -18,6 +18,8 @@ on:
       - "scripts/citymarket/build-image-review-html.mjs"
       - "scripts/citymarket/test-image-review-html.mjs"
       - "scripts/citymarket/41lv-image-source-candidates.json"
+      - "scripts/citymarket/41lv-bank-image-review.json"
+      - "scripts/citymarket/41lv-verified-bank-images.json"
       - "scripts/citymarket/audit-41lv-image-coverage.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
       - "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json"
