@@ -7,10 +7,11 @@
   "readOnly": true,
   "totalReviewed": 79,
   "summary": {
-    "candidate-needs-leaflet-check": 41,
+    "candidate-needs-leaflet-check": 31,
     "no-compatible-candidate": 29,
     "bank-image-is-webpage": 7,
-    "ean-confirmed": 2
+    "approved-bank-image": 11,
+    "bank-image-wrong-package": 1
   },
   "notice": "Database image URL presence is not URL reachability or visual identity verification. EAN matches use previously recorded candidate EAN evidence. Name and size matches remain unapproved; brand, variant, multipack count and leaflet artwork must be checked. No matching candidate does not prove absence. Tokmanni weekly-offer webpage links are not image URLs.",
   "rows": [
@@ -743,8 +744,8 @@
     {
       "offerId": "kcm:spatial:13:porsaan marinoitu fileesuikale 700 g (7,13/kg):4",
       "identity": "porsaan marinoitu fileesuikale 700 g (7,13/kg)",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6405244059014",
@@ -755,13 +756,14 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6405244059014"
     },
     {
       "offerId": "kcm:spatial:13:poron paistikäristys 400 g:14.99",
       "identity": "poron paistikäristys 400 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6405980450007",
@@ -772,7 +774,8 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6405980450007"
     },
     {
       "offerId": "kcm:spatial:14:paistetut lohipyörykät 900 g (7,77/kg):6",
@@ -955,8 +958,8 @@
     {
       "offerId": "kcm:spatial:14:arkimeetvursti 400 g:4.99",
       "identity": "arkimeetvursti 400 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6409630019507",
@@ -967,7 +970,8 @@
           "quantity": "400 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6409630019507"
     },
     {
       "offerId": "kcm:spatial:14:suosikkisalaatit 220–280 g (11,89–15,14/kg):3.1",
@@ -1013,8 +1017,8 @@
     {
       "offerId": "kcm:spatial:15:korvapuusti 6/360 g:2.99",
       "identity": "korvapuusti 6/360 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6434300513603",
@@ -1025,13 +1029,14 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6434300513603"
     },
     {
       "offerId": "kcm:spatial:15:mammuttisämpylä 10 kpl/600 g (4,82/kg):2.89",
       "identity": "mammuttisämpylä 10 kpl/600 g (4,82/kg)",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6424200037415",
@@ -1042,13 +1047,14 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6424200037415"
     },
     {
       "offerId": "kcm:spatial:15:fazer puikula täysjyväruis 9 kpl/500 g:1.79",
       "identity": "fazer puikula täysjyväruis 9 kpl/500 g",
-      "status": "ean-confirmed",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6411402202208",
@@ -1059,7 +1065,8 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/6411402202208"
     },
     {
       "offerId": "kcm:spatial:15:kuorrutemunkki- laatikko 12 x 100–115 g myös uutuus:9",
@@ -1097,16 +1104,18 @@
     {
       "offerId": "kcm:spatial:15:ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l):1.5",
       "identity": "ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l)",
-      "status": "ean-confirmed",
+      "status": "bank-image-wrong-package",
       "approved": false,
-      "candidates": [
+      "candidates": [],
+      "invalidImageCandidates": [
         {
           "ean": "7394376622816",
           "name": "Oatly iKaffe kaurajuoma kahviin 1l caramel UHT",
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376622816",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376620171",
@@ -1114,7 +1123,8 @@
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376620171",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376621666",
@@ -1122,7 +1132,8 @@
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376621666",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376623325",
@@ -1130,7 +1141,8 @@
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376623325",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376623912",
@@ -1138,7 +1150,8 @@
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376623912",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376622809",
@@ -1146,7 +1159,8 @@
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376622809",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376621994",
@@ -1154,7 +1168,8 @@
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376621994",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376624025",
@@ -1162,7 +1177,8 @@
           "brand": "Oatly",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/7394376624025",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Different flavor, organic or chilled variant; leaflet requires plain non-organic UHT 1 l"
         },
         {
           "ean": "7394376616037",
@@ -1170,10 +1186,10 @@
           "brand": "Oatly",
           "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7394376616037.jpg",
           "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Downloaded image shows 0.33 l, leaflet requires 1 l"
         }
-      ],
-      "invalidImageCandidates": []
+      ]
     },
     {
       "offerId": "kcm:spatial:15:lempi ruokakermat 3 dl:3",
@@ -1268,8 +1284,8 @@
     {
       "offerId": "kcm:spatial:16:muusiperuna 400 g:1.5",
       "identity": "muusiperuna 400 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6410380097752",
@@ -1278,17 +1294,10 @@
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410380097752",
           "source": "ruoanhinta-k",
           "quantity": "400 g"
-        },
-        {
-          "ean": "6410380097769",
-          "name": "Oolannin luomu muusiperuna 400g pakaste",
-          "brand": "Oolannin",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6410380097769",
-          "source": "ruoanhinta-k",
-          "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6410380097752"
     },
     {
       "offerId": "kcm:spatial:16:proteiinivaahdolla 200 g:5",
@@ -1513,25 +1522,9 @@
     {
       "offerId": "kcm:spatial:16:juustoportti 1 leipäjuusto 140 g 99 (14,21/kg):1.99",
       "identity": "juustoportti 1 leipäjuusto 140 g 99 (14,21/kg)",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
-        {
-          "ean": "6408651016861",
-          "name": "Juustoportti Luomu Leipäjuusto 140 g",
-          "brand": "Juustoportti",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6408651016861",
-          "source": "ruoanhinta-k",
-          "quantity": "140 g"
-        },
-        {
-          "ean": "6408651016823",
-          "name": "Juustoportti Leipäjuusto 140 g",
-          "brand": "Juustoportti",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6408651016823",
-          "source": "ruoanhinta-k",
-          "quantity": "140 g"
-        },
         {
           "ean": "6408651016847",
           "name": "Juustoportti Leipäjuusto 140 g laktoositon",
@@ -1541,7 +1534,8 @@
           "quantity": "140 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6408651016847"
     },
     {
       "offerId": "kcm:spatial:17:vihannessekoitukset 300 g:5",
@@ -3315,8 +3309,8 @@
     {
       "offerId": "kcm:spatial:19:ketsuppi 1350 g:3.99",
       "identity": "ketsuppi 1350 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "8715700015026",
@@ -3327,7 +3321,8 @@
           "quantity": "1.35 kg"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/8715700015026"
     },
     {
       "offerId": "kcm:spatial:19:pastakastikkeet 390–450 g (5,56–6,41/kg):2.5",
@@ -3502,49 +3497,9 @@
     {
       "offerId": "kcm:spatial:20:alkoholiton olut 0,0 % 0,33 l/tlk 8-pack:0.85",
       "identity": "alkoholiton olut 0,0 % 0,33 l/tlk 8-pack",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
-        {
-          "ean": "6415600543521",
-          "name": "Crisp Lager alkoholiton olut 0 % tölkki 0,33 L",
-          "brand": "Crisp",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6415600543521_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "8006890625066",
-          "name": "Birra Moretti Zero alkoholiton olut 0% 0,33l",
-          "brand": "Birra Moretti",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/8006890625066",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "5410228291879",
-          "name": "Corona Cero 0,0% alkoholiton olut 0,33l",
-          "brand": "Corona",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/5410228291879",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6415600567473",
-          "name": "Crisp Hoppy Lager alkoholiton olut 0,0 % tölkki 0,33 L",
-          "brand": "Crisp",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6415600567473_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6438574039975",
-          "name": "Coop alkoholiton lager 0,0% olut 6x0,33l tlk",
-          "brand": "Coop",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6438574039975_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "2 l"
-        },
         {
           "ean": "6415600566803",
           "name": "Karhu Alkoholiton Lager olut 0% 0,33l 8-pack",
@@ -3552,281 +3507,10 @@
           "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/6415600566803",
           "source": "ruoanhinta-s",
           "quantity": "3 l"
-        },
-        {
-          "ean": "6430021438058",
-          "name": "Klokk & Co Fripa Ipa Alkoholiton olut 0,5% 0,33l",
-          "brand": "Klokk & Co",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6430021438058_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6415600596664",
-          "name": "Crisp Radler Sitrus alkoholiton olut 0% 0,33l 6-pack",
-          "brand": "Crisp",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/6415600596664",
-          "source": "ruoanhinta-s",
-          "quantity": "2 l"
-        },
-        {
-          "ean": "6415600543552",
-          "name": "6-pack Crisp Lager alkoholiton olut 0 % tölkki 0,33 L",
-          "brand": "Crisp",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6415600543552_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "2 l"
-        },
-        {
-          "ean": "4744045011060",
-          "name": "Õllenaut Kaineken Citra Pale Ale Alkoholiton olut 0,5% 0,33l",
-          "brand": "Õllenaut",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/4744045011060",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6413605191983",
-          "name": "6 x Lapin Kulta alkoholiton olut 0,0% 0,33 l",
-          "brand": "Lapin Kulta",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6413605191983_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "4740098091981",
-          "name": "6 x A. Le Coq Alkoholiton 0,0% olut 0,33 l tlk",
-          "brand": "A. Le Coq",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/4740098091981_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6415600589932",
-          "name": "Crisp Radler Sitrus alkoholiton olut 0% tölkki 0,33L",
-          "brand": "Crisp",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6415600589932_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6418654005540",
-          "name": "Laitilan Kukko Lager Alkoholiton 0,33L olut",
-          "brand": "Laitilan",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6418654005540_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6415600600101",
-          "name": "Brooklyn SFX Lager alkoholiton olut 0,4 % tölkki 0,33 L",
-          "brand": "Brooklyn",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6415600600101_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6420613932743",
-          "name": "Saimaa Alkoholiton IPA olut 0,3% 0,33 l tölkki",
-          "brand": "Saimaa",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6420613932743_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "8712000050092",
-          "name": "6 x Heineken alkoholiton olut 0,0% 0,33 l",
-          "brand": "Heineken",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/8712000050092_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "8712000052034",
-          "name": "Heineken  alkoholiton olut 0,0% 0,33 l",
-          "brand": "Heineken",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/8712000052034_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6418654005434",
-          "name": "Laitilan Kukko Pils Alkoholiton 0,33L olut",
-          "brand": "Laitilan",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6418654005434_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "5740017110136",
-          "name": "Mikkeller Drink'In the Sun Non-alc Wheat Ale 0,3% 0,33l alkoholiton oluttölkki",
-          "brand": "Mikkeller",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/5740017110136_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6413600191971",
-          "name": "Lapin Kulta alkoholiton olut 0,0% 0,33 l",
-          "brand": "Lapin Kulta",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6413600191971_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "4740098081333",
-          "name": "A. Le Coq Alkoholiton 0,0% olut 0,33 l tlk",
-          "brand": "A. Le Coq",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/4740098081333_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6901035625258",
-          "name": "Tsingtao Lager alkoholiton olut 0% 0,33l",
-          "brand": "Tsingtao",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6901035625258",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "8593868002832",
-          "name": "Staropramen alkoholiton olut 0,5% 0,33l",
-          "brand": "Staropramen",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/8593868002832",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "4744045010926",
-          "name": "Õllenaut Kaineken IPA Alkoholiton olut <0,5% 0,33l",
-          "brand": "Õllenaut",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/4744045010926_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "5711474008373",
-          "name": "To Öl Implosion non-alcoholic beer 0,3% 0,33l alkoholiton oluttölkki",
-          "brand": "To Øl",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/5711474008373_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6418654005441",
-          "name": "Laitilan Kukko IPA Alkoholiton 0,33L olut",
-          "brand": "Laitilan",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6418654005441_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6430078667951",
-          "name": "Birra Corelli 0,0% 0,33l alkoholiton oluttölkki",
-          "brand": "Birra Corelli",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6430078667951_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6415600549639",
-          "name": "Karhu Alkoholiton Lager olut 0,0% tölkki 0,33 L",
-          "brand": "Karhu",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6415600549639_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "8594403711059",
-          "name": "Budejovicky Budvar Alcohol free beer 0,0% 0,33l alkoholiton olutpullo",
-          "brand": "Budejovicky Budvar",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/8594403711059_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6418654208569",
-          "name": "6 x Laitilan Kukko Lager Alkoholiton 0,33L olut",
-          "brand": "Laitilan",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6418654208569_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6430021438089",
-          "name": "Drop Bear Beer Co Tropical Ipa Alkoholiton olut 0,5% 0,33l",
-          "brand": "Drop Bear",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6430021438089_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "5740700983122",
-          "name": "Brooklyn Special Effects IPA alkoholiton olut 0,4 % lasipullo 0,33 L",
-          "brand": "Brooklyn",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/5740700983122_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "4740098094685",
-          "name": "A. Le Coq IPA 0,0 % alkoholiton olut 0,33 l tlk",
-          "brand": "A. Le Coq",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/4740098094685_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "3080216060453",
-          "name": "1664 Blanc alkoholiton olut 0,0% lasipullo 0,33 L",
-          "brand": "1664",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/3080216060453_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "5056025421400",
-          "name": "BrewDog Punk AF 0,5% 0,33l alkoholiton olut pullo",
-          "brand": "Brewdog",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/5056025421400_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6438574537235",
-          "name": "Coop Radler Lemon alkoholiton olut 0,0% 0,33l tlk",
-          "brand": "Coop",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6438574537235_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "8712000050146",
-          "name": "Heineken 0,0% alkoholiton olut 0,33 l",
-          "brand": "Heineken",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/8712000050146_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6415600555845",
-          "name": "Crisp  alkoholiton IPA olut 0,5 % tölkki 0,33 L",
-          "brand": "Crisp",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6415600555845_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6420614814352",
-          "name": "Estrella Damm N.A. 0,0% 0,33l alkoholiton oluttölkki",
-          "brand": "Estrella Damm",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6420614814352_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/6415600566803"
     },
     {
       "offerId": "kcm:spatial:20:sriracha kastikkeet 215 ml:2.79",
@@ -3856,8 +3540,8 @@
     {
       "offerId": "kcm:spatial:20:vichy 0,33 l/pl 24-pack:0.85",
       "identity": "vichy 0,33 l/pl 24-pack",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6413601151578",
@@ -3866,89 +3550,10 @@
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6413601151578",
           "source": "ruoanhinta-s",
           "quantity": null
-        },
-        {
-          "ean": "6413600000846",
-          "name": "Hartwall Vichy Original 0,33l",
-          "brand": "Hartwall Vichy",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6413600000846",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6413600201199",
-          "name": "Hartwall Vichy Double Salted 0,33l",
-          "brand": "Hartwall Vichy",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6413600201199",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6413605000841",
-          "name": "Hartwall Vichy Original 0,33l 6-pack",
-          "brand": "Hartwall Vichy",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6413605000841",
-          "source": "ruoanhinta-s",
-          "quantity": null
-        },
-        {
-          "ean": "6413605315150",
-          "name": "Hartwall Vichy Original 0,33l 12-pack",
-          "brand": "Hartwall Vichy",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6413605315150",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6413605201194",
-          "name": "Hartwall Vichy Double Salt 0,33l 6-pack",
-          "brand": "Hartwall Vichy",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6413605201194",
-          "source": "ruoanhinta-s",
-          "quantity": null
-        },
-        {
-          "ean": "6438574644520",
-          "name": "Kotimaista vichy 0,33l",
-          "brand": "Kotimaista",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6438574644520_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "0.33 l"
-        },
-        {
-          "ean": "6418654005854",
-          "name": "Laitilan Mehuvichy persikka-ananas kivennäisvesi 0,33l",
-          "brand": "LAITILAN JUOMAT",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6418654005854",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6418654005847",
-          "name": "Laitilan Mehuvichy granaattiomena-vadelma kivennäisvesi 0,33l",
-          "brand": "LAITILAN JUOMAT",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6418654005847",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6418654001924",
-          "name": "Laitilan Mehuvichy persikka-ananas kivennäisvesi 0,33l 6-pack",
-          "brand": "LAITILAN JUOMAT",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6418654001924",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6418654001894",
-          "name": "Laitilan Mehuvichy granaattiomena-vadelma kivennäisvesi 0,33l 6-pack",
-          "brand": "LAITILAN JUOMAT",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6418654001894",
-          "source": "ruoanhinta-k",
-          "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6413601151578"
     },
     {
       "offerId": "kcm:spatial:20:cashewpähkinä 500 g:6.99",

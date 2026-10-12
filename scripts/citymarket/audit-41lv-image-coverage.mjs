@@ -13,6 +13,11 @@ if (!entry) {
   const [publicationUrl, publication] = entry;
   const keys = new Set(fixture.offers.map(row => row.key));
   const imageKeys = Object.keys(publication.images);
+  const bankApproval = JSON.parse(fs.readFileSync("scripts/citymarket/41lv-verified-bank-images.json", "utf8"));
+  assert.equal(bankApproval.leafletSha256, fixture.pdfSha256, "Bank approval belongs to another leaflet");
+  const approvedBankById = new Map(bankApproval.images.map(row => [row.offerId, row]));
+  assert.equal(approvedBankById.size, bankApproval.images.length, "Duplicate bank approvals");
+  const localImageKeys = imageKeys.filter(key => publication.images[key].startsWith("/citymarket-leaflets/"));
   assert.equal(fixture.offers.length, fixture.offerCount);
   assert.equal(publication.offerCount, fixture.offerCount);
   assert.equal(keys.size, fixture.offerCount, "Duplicate fixture offer identifiers");
@@ -24,9 +29,17 @@ if (!entry) {
   const svg = fs.readFileSync(assetPath, "utf8");
   assert.ok(svg.startsWith("<svg "), "41LV image asset must be an SVG");
   const fragmentIds = new Set([...svg.matchAll(/<view\s+id="([^"]+)"/g)].map(match => match[1]));
-  assert.equal(fragmentIds.size, imageKeys.length, "Unexpected or duplicate 41LV SVG view IDs");
+  assert.equal(fragmentIds.size, localImageKeys.length, "Unexpected or duplicate 41LV SVG view IDs");
   const usedFragments = new Set();
   for (const [key, image] of Object.entries(publication.images)) {
+    if (image.startsWith("https://")) {
+      const proof = approvedBankById.get(key);
+      assert.ok(proof?.approved && proof.leafletVisualMatch && proof.imageFetchedAndViewed, "External image lacks visual approval");
+      assert.equal(image, proof.imageUrl, "Bank image differs from reviewed URL");
+      assert.match(proof.ean, /^\d{13}$/);
+      assert.ok(keys.has(proof.offerId));
+      continue;
+    }
     assert.ok(image.startsWith(expectedAsset + "#"), "Unexpected 41LV image path for " + key);
     const fragment = image.slice(expectedAsset.length + 1);
     assert.ok(fragmentIds.has(fragment), "41LV SVG fragment missing for " + key + ": " + fragment);
@@ -58,7 +71,7 @@ if (!entry) {
     { identity: "poron paistikäristys 400 g", ean: "6405980450007", bankName: "Rönkä Poron paistikäristys 400 g pakaste", status: "brand-unverified", evidence: "Neon product bank; leaflet brand not verified" },
     { identity: "sriracha kastikkeet 215 ml", ean: "8710605030556", bankName: "Go-Tan Tulinen sriracha chili ketsuppi kastike 215ml", status: "multi-product-offer", evidence: "Plural offer; one image cannot represent every variant" },
   ];
-  const reviewCandidates = manualEvidence.map(candidate => {
+  const reviewCandidates = manualEvidence.filter(candidate => uncovered.some(row => row.identity === candidate.identity)).map(candidate => {
     const offer = uncovered.find(row => row.identity === candidate.identity);
     assert.ok(offer, "Review candidate must exist in the approved 41LV fixture: " + candidate.identity);
     assert.ok(!publication.images[offer.key], "Review candidates must not overwrite approved images");
@@ -71,7 +84,8 @@ if (!entry) {
   const report = {
     publicationUrl, approvedOffers: fixture.offerCount,
     existingImages: imageKeys.length, missingImages: uncovered.length,
-    imageAssetVerified: true, verifiedImageFragments: imageKeys.length,
+    imageAssetVerified: true, verifiedImageFragments: localImageKeys.length,
+    verifiedBankImages: imageKeys.length - localImageKeys.length,
     diagnosticOnly: true,
     reviewCandidates,
     reviewSummary: { pending: reviewCandidates.length, brandVerification: reviewCandidates.filter(row => row.status === "brand-unverified").length, multiProduct: reviewCandidates.filter(row => row.status === "multi-product-offer").length, approved: 0 },

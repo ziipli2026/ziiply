@@ -70,7 +70,18 @@
         "kcm:spatial:18:pikakahvi 180 g:6.99": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#7cfd9a430d88fb961fee",
         "kcm:spatial:19:maissikakut 130 g:4": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#021c7b845008625cd3c6",
         "kcm:spatial:19:aakkoset 280–340 g:4.5": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#5e29a0437078fc923ad2",
-        "kcm:spatial:20:original nachips 450 g:2.99": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3b84cb250a41853aebb3"
+        "kcm:spatial:20:original nachips 450 g:2.99": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3b84cb250a41853aebb3",
+        "kcm:spatial:13:porsaan marinoitu fileesuikale 700 g (7,13/kg):4": "https://public.keskofiles.com/f/k-ruoka/product/6405244059014",
+        "kcm:spatial:13:poron paistikäristys 400 g:14.99": "https://public.keskofiles.com/f/k-ruoka/product/6405980450007",
+        "kcm:spatial:14:arkimeetvursti 400 g:4.99": "https://public.keskofiles.com/f/k-ruoka/product/6409630019507",
+        "kcm:spatial:15:korvapuusti 6/360 g:2.99": "https://public.keskofiles.com/f/k-ruoka/product/6434300513603",
+        "kcm:spatial:15:mammuttisämpylä 10 kpl/600 g (4,82/kg):2.89": "https://public.keskofiles.com/f/k-ruoka/product/6424200037415",
+        "kcm:spatial:15:fazer puikula täysjyväruis 9 kpl/500 g:1.79": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/6411402202208",
+        "kcm:spatial:16:muusiperuna 400 g:1.5": "https://public.keskofiles.com/f/k-ruoka/product/6410380097752",
+        "kcm:spatial:16:juustoportti 1 leipäjuusto 140 g 99 (14,21/kg):1.99": "https://public.keskofiles.com/f/k-ruoka/product/6408651016847",
+        "kcm:spatial:19:ketsuppi 1350 g:3.99": "https://public.keskofiles.com/f/k-ruoka/product/8715700015026",
+        "kcm:spatial:20:alkoholiton olut 0,0 % 0,33 l/tlk 8-pack:0.85": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/6415600566803",
+        "kcm:spatial:20:vichy 0,33 l/pl 24-pack:0.85": "https://public.keskofiles.com/f/k-ruoka/product/6413601151578"
       }
     }
   }
