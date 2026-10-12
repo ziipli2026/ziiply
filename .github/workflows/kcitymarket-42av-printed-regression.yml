@@ -1,0 +1,30 @@
+name: Citymarket 42AV printed source regression
+on:
+  push:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarket*'
+      - 'src/app/components/ziiply/offerSearch/providers/data/kCitymarket*'
+      - 'tests/kcitymarket-42av-printed-transactions.test.mjs'
+      - 'tests/kcitymarket-owned-normal-price.test.mjs'
+      - 'tests/fixtures/citymarket/v152-normal-price-transactions.json'
+      - '.github/workflows/kcitymarket-42av-printed-regression.yml'
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarket*'
+      - 'src/app/components/ziiply/offerSearch/providers/data/kCitymarket*'
+      - 'tests/kcitymarket-42av-printed-transactions.test.mjs'
+      - 'tests/kcitymarket-owned-normal-price.test.mjs'
+      - '.github/workflows/kcitymarket-42av-printed-regression.yml'
+permissions:
+  contents: read
+jobs:
+  printed-source-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify frozen 42AV fixes and retain 41LV transactions
+        run: node --test tests/kcitymarket-approved-publication.test.mjs tests/kcitymarket-owned-normal-price.test.mjs tests/kcitymarket-42av-printed-transactions.test.mjs tests/kcitymarket-category-regression.test.cjs tests/kcitymarket-wrapped-percentage.test.mjs

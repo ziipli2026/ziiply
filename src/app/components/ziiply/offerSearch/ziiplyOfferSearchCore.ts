@@ -157,6 +157,7 @@ export type ZiiplyGostaOfferSearchContextV152 = {
 };
 
 export type ZiiplyGostaOfferSearchCoreResult = {
+  diagnosticInput?: ZiiplyGostaOfferLike[];
   results: ZiiplyGostaOfferLike[];
   querySnapshot: string;
   cardFilter: string;
@@ -286,7 +287,7 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
   return kTrustedCategories.get(normalized) || "";
 }
 
-function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
+export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   // V181: K-Citymarket must be resolved before the generic trusted-category
   // branch. Otherwise a stale top-level category such as "Muut" wins before
@@ -489,6 +490,7 @@ function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV
 
 const ZIIPLY_GOSTA_MASTER_QUERY_V156 = "__ziiply_all_offers__";
 const ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156 = 5 * 60 * 1000;
+const gostaDiagnosticInput = new Map<string, ZiiplyGostaOfferLike[]>();
 const ziiplyGostaMasterCacheV156 = new Map<string, { expiresAt: number; promise: Promise<ZiiplyGostaOfferLike[]> }>();
 
 export type ZiiplyKruokaDebugV174 = {
@@ -641,6 +643,7 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
 
   const promise = fetchOfferSearchResults(ZIIPLY_GOSTA_MASTER_QUERY_V156, context)
     .then((results) => {
+      gostaDiagnosticInput.set(contextKey, results);
       const cleaned = cleanZiiplyGostaOfferResultsV146(results);
       const identity = (item: ZiiplyGostaOfferLike) => {
         const source = (item as any).__sourceOfferSearchResult ?? item;
@@ -928,6 +931,7 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
 
 export async function searchZiiplyGostaOffersV146(options: {
   query: string;
+  captureDiagnostics?: boolean;
   terms?: string[];
   context?: ZiiplyGostaOfferSearchContextV152;
 }) {
@@ -993,6 +997,7 @@ export async function searchZiiplyGostaOffersV146(options: {
     : results;
 
   return {
+    diagnosticInput: options.captureDiagnostics ? (gostaDiagnosticInput.get(buildOfferSearchContextKeyV152(options.context) || "global") || nextResults) : undefined,
     results: finalResultsV805,
     querySnapshot: searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     cardFilter: searchAllAreaOffers ? "" : searchByCategory ? categorySearchLabel : offerQuerySnapshot,
