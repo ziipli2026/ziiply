@@ -930,7 +930,7 @@ export default function DesktopPreviewPage() {
       const results=await Promise.all(stores.map(async store=>{
         const kind=storeKind(store);
         const sChain=kind==="sHyper"||kind==="sLocal";
-        const params=new URLSearchParams({search:knownName||code,store:String(store.externalId||store.id)});
+        const params=new URLSearchParams({search:knownName||code,store:String(sChain?(store.externalId||store.id):store.id)});
         params.set("storeName",String(store.name||""));
         if(!sChain){params.set("direct","1");params.set("externalId",String(store.externalId||""));}
         const response=await desktopProductFetch((sChain?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
