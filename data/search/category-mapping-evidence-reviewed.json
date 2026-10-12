@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.8",
+  "version": "2026-10-12.9",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "note": "Reviewed coded provider categories against every currently stored product name. Product rows are unchanged.",
@@ -4326,6 +4326,218 @@
       "category_id": "beer",
       "names": [
         "Kotimaista Tumma Lager 4,5% 0,5L olut"
+      ]
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Kahvi",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false,
+      "names": [
+        "ITALIAMO Espresso Magnifico"
+      ]
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Keksit",
+      "sample_product_count": 1,
+      "category_id": "cookies",
+      "allowGlobalMatch": false,
+      "names": [
+        "ITALIAMO Toscana Style -pikkuleipälajitelma"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Keksit",
+      "sample_product_count": 29,
+      "category_id": "cookies",
+      "allowGlobalMatch": false,
+      "names": [
+        "Breton voileipäkeksi 112g seesami",
+        "Carr's Table Water voileipäkeksi 200g",
+        "Carr's Voileipäkeksilajitelma 200 g",
+        "Fazer Jaffa leivoskeksi 300g omena-kaneli",
+        "Gullon Choc Chip Cookies 150g sokeriton",
+        "Jyväshyvä kaurakeksi 350g",
+        "K-Menu maitosuklaakerroskeksi 125g",
+        "K-Menu maitosuklaakerroskeksi 125g",
+        "K-Menu voileipäkeksi 400g",
+        "Kantolan Cream Cracker voileipäkeksi 200g",
+        "Kantolan Ruis Cracker voileipäkeksi 225g",
+        "Koala's March Vanilja-maitotäytekeksi 37g",
+        "LU Bastogne keksi 200g",
+        "Leivon Amerikanserkku 320g pikkuleipä",
+        "McVitie's Digestive Maitosuklaa 300g",
+        "Nippon suklaa-riisikeksi 200 g",
+        "Pirkka Eleonora voimurokeksi 175g",
+        "Pirkka Mireille maitosuklaakeksi 150g",
+        "Pirkka Mireille maitosuklaakeksi aprikoosi 145g",
+        "Pirkka Mireille maitosuklaakeksi mansikka 145g",
+        "Pirkka maitosuklaa-kaurakeksi 300g",
+        "Pirkka suolakeksi 200g",
+        "Ryvita ohut keksi 125g kolme juustoa",
+        "Ryvita ohut keksi 125g rosmariini-merisuola",
+        "Schär Choko Chip Cookies suklaakeksi 200g gluteeniton",
+        "Sunnuntai Kaurainen Lettu- ja Vohvelijauho 100% kauraa 250g",
+        "Sunnuntai ohukais- ja vohvelijauhe 300 g",
+        "Tasangon Voimuro pikkuleipä 300g",
+        "Vanajan kaurakeksi 350g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Leipä",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "allowGlobalMatch": false,
+      "names": [
+        "Viipurilainen 320g lähipala 100% ruis"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Makkarat",
+      "sample_product_count": 9,
+      "category_id": "sausage",
+      "allowGlobalMatch": false,
+      "names": [
+        "Atria Rehti Kuoreton Nakki 900g",
+        "Atria Rehti kalkkunanakki kevyt 5% 280g",
+        "Atria Suomalainen Nakki 500g",
+        "Atria rehti herkku broilernakki 280g",
+        "HK popsi perhenakki 600g",
+        "Pirkka Vegenakki 200g",
+        "Pirkka kuoreton nakki 600g",
+        "Pouttu Pikkunakki 200g",
+        "Snellman kunnon naudanlihanakki 320g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Suklaat",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false,
+      "names": [
+        "Marabou Noblesse Hjärtan konvehti 130g",
+        "Marabou Noblesse Original konvehti 150g"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "majoneesit",
+      "sample_product_count": 1,
+      "category_id": "mayonnaise",
+      "allowGlobalMatch": false,
+      "names": [
+        "Paprikamajoneesi Auran 270 g"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "wc-paperit",
+      "sample_product_count": 7,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false,
+      "names": [
+        "WC-Paperi Grite Blossom 8 rl",
+        "WC-paperi Grite Family 8 rl",
+        "WC-paperi Lambi 16 rl Kesä valkoinen",
+        "WC-paperi Lambi 24 rl valkoinen",
+        "WC-paperi Lambi 32 rl valkoinen",
+        "WC-paperi Lotus 6 rl Lempi",
+        "WC-paperi Serla 18 rl Reilu"
+      ]
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Hillot",
+      "sample_product_count": 1,
+      "category_id": "jam",
+      "allowGlobalMatch": false,
+      "names": [
+        "Vadelmahillo SPAR 450 g"
+      ]
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Kahvi",
+      "sample_product_count": 2,
+      "category_id": "coffee",
+      "allowGlobalMatch": false,
+      "names": [
+        "Pikakahvi SPAR 100 g Gold",
+        "Pikakahvi SPAR 100 g Gold"
+      ]
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Keksit",
+      "sample_product_count": 6,
+      "category_id": "cookies",
+      "allowGlobalMatch": false,
+      "names": [
+        "Cookies SPAR 200 g maapähkinä",
+        "Kaakaokeksi SPAR 176 g Cream Cookies",
+        "Murokeksi SPAR 175 g suklaalla",
+        "Speculoos-keksi SPAR 250 g karamellisoitu",
+        "Suolakeksi SPAR 100 g Cricks Cracker",
+        "Voileipäkeksi SPAR 200 g Cream Crackers"
+      ]
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Ruokaöljyt",
+      "sample_product_count": 1,
+      "category_id": "cooking_oil",
+      "allowGlobalMatch": false,
+      "names": [
+        "Auringonkukkaöljy SPAR 500 ml kylmäpuristettu luomu"
+      ]
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Sinapit",
+      "sample_product_count": 2,
+      "category_id": "mustard",
+      "allowGlobalMatch": false,
+      "names": [
+        "Dijon-sinappi SPAR 200 g",
+        "Sinappi SPAR 250 g"
+      ]
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Sokerit",
+      "sample_product_count": 1,
+      "category_id": "sugar",
+      "allowGlobalMatch": false,
+      "names": [
+        "Sokeri SPAR 1 kg"
+      ]
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Suolat",
+      "sample_product_count": 1,
+      "category_id": "salt",
+      "allowGlobalMatch": false,
+      "names": [
+        "Ruokasuola SPAR 750 g hieno"
+      ]
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "wc-paperit",
+      "sample_product_count": 3,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false,
+      "names": [
+        "Kostea WC-paperi Lotus 42 kpl Aloe Vera",
+        "Kostea WC-paperi Lotus 42 kpl Sensitive",
+        "WC-paperi Lotus Soft Embo 18 rl"
       ]
     }
   ]

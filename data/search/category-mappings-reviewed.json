@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.8",
+  "version": "2026-10-12.9",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -359,6 +359,20 @@
     },
     {
       "source": "lidl-verified-ean-master",
+      "source_category": "Kahvi",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Keksit",
+      "sample_product_count": 1,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
       "source_category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
       "sample_product_count": 1,
       "category_id": "meat"
@@ -536,6 +550,34 @@
       "source_category": "CAABGBAAKAKAC",
       "sample_product_count": 1,
       "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Keksit",
+      "sample_product_count": 29,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Leipä",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Makkarat",
+      "sample_product_count": 9,
+      "category_id": "sausage",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Suklaat",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
     },
     {
       "source": "ruoanhinta-k",
@@ -3185,6 +3227,13 @@
     },
     {
       "source": "tokmanni-klevu",
+      "source_category": "majoneesit",
+      "sample_product_count": 1,
+      "category_id": "mayonnaise",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
       "source_category": "miny ale;;miny lasit ja mukit",
       "sample_product_count": 1,
       "category_id": "tableware"
@@ -3256,6 +3305,62 @@
       "category_id": "toys"
     },
     {
+      "source": "tokmanni-klevu",
+      "source_category": "wc-paperit",
+      "sample_product_count": 7,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Hillot",
+      "sample_product_count": 1,
+      "category_id": "jam",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Kahvi",
+      "sample_product_count": 2,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Keksit",
+      "sample_product_count": 6,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Ruokaöljyt",
+      "sample_product_count": 1,
+      "category_id": "cooking_oil",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Sinapit",
+      "sample_product_count": 2,
+      "category_id": "mustard",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Sokerit",
+      "sample_product_count": 1,
+      "category_id": "sugar",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Suolat",
+      "sample_product_count": 1,
+      "category_id": "salt",
+      "allowGlobalMatch": false
+    },
+    {
       "source": "tokmanni-viikkotarjoukset",
       "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
       "sample_product_count": 1,
@@ -3272,6 +3377,13 @@
       "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
       "sample_product_count": 1,
       "category_id": "snacks"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "wc-paperit",
+      "sample_product_count": 3,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
     }
   ]
 }

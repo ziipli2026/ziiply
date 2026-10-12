@@ -202,6 +202,7 @@ rankingCases.push({query:"cola",products:[makeProduct(1603,"Nocco Focus cola ene
 rankingCases.push({query:"kana",products:[makeProduct(1605,"Hetki kermainen kana-pasta 270g","valmisruoka/valmisruoat-ja--keitot/mikroateriat"),makeProduct(1606,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1606,excluded:[1605]});
 assert.equal(core.isExplicitlyExcludedSearchProduct("virvoitusjuoma",makeProduct(1607,"Coop Cola 1,5l","CAAAYAKACAAAA")),false);
 
+assert.equal(core.isExplicitlyExcludedSearchProduct("kahvijuoma",makeProduct(1701,"Frezza maitokahvijuoma 250ml","Kahvi")),false,"A source-specific Kahvi mapping must not exclude other providers' coffee drinks");
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));
