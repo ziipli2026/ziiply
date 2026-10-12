@@ -517,16 +517,20 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   // Only the offer-side comparison price is authoritative here. A normal
   // price after "Ilman Plussa-korttia" must never replace the offer price.
   const offerDescription = sourceDescription.split(/ilman\s+plussa(?:-korttia)?/i)[0];
+  // Accept both "4,29 €/kg" and "4,29 €/ kg", including explicit ranges.
+  // Never derive a comparison-price range from package sizes: source figures win.
   const comparison = offerDescription.match(/(?:^|\s)(\d+[,.]\d{1,2})(?:\s*[-–—]\s*(\d+[,.]\d{1,2}))?\s*(?:€\s*)?\/\s*(kg|l|kpl)(?=\s|[),.;]|$)/i);
   const sourceMin = comparison ? num(comparison[1].replace(",", ".")) : null;
   const sourceMax = comparison?.[2] ? num(comparison[2].replace(",", ".")) : null;
   const rawUnit = String(offer.baseUnit ?? "").trim().toLowerCase();
   const unitAliases: Record<string, string> = { kilogram: "kg", liter: "l", litre: "l", piece: "kpl" };
   const unit = comparison?.[3]?.toLowerCase() ?? unitAliases[rawUnit] ?? rawUnit;
+  // The raw Tjek baseUnit can be an English API enum; never expose it in the UI.
+  const displayUnit = /^(kg|l|kpl)$/.test(unit) ? unit : "";
   const unitPriceValue = sourceMin ?? num(offer.unitPrice);
   const comparisonAmount = unitPriceValue == null ? "" : priceText(unitPriceValue) +
     (sourceMax != null && sourceMax !== sourceMin ? `–${priceText(sourceMax)}` : "");
-  const unitPrice = comparisonAmount ? `${comparisonAmount} €${unit ? `/${unit}` : ""}` : "";
+  const unitPrice = comparisonAmount ? `${comparisonAmount} €${displayUnit ? `/${displayUnit}` : ""}` : "";
   const isPlussa = membership != null;
   const pieceCountFrom = num(offer.pieceCountFrom);
   const pieceCountTo = num(offer.pieceCountTo);
@@ -566,7 +570,7 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
     title, name: title, productName: title,
     price: effective, priceText: effectivePriceText, offerPrice: effectivePriceText,
     previousPrice: regular != null && regular !== effective ? regular : null,
-    unitPrice, unitPriceText: unitPrice, unitPriceUnit: unit || null,
+    unitPrice, unitPriceText: unitPrice, unitPriceUnit: displayUnit || null,
     imageUrl: image, image, pictureUrl: image,
     storeId: displayStoreId, storeName: displayStoreName, storeLabel: displayStoreName,
     chain: "K", source: "etarjouslehdet", provider: "kruoka", offerId,
