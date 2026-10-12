@@ -34,6 +34,12 @@ jobs:
           const kept=offers.filter(x=>!campaignKeys.has(key(x)));
           const productionHelperResult:any[]=hidePrismaOfferCopiesAlreadyInCampaignTabV805([...offers,...campaigns],[...offers,...campaigns],storeName);
           const helperOffers=productionHelperResult.filter(x=>x.campaignType!=="campaign"),helperCampaigns=productionHelperResult.filter(x=>x.campaignType==="campaign");
+          // Strict positive case: V805 removes only an offer matching store, EAN, price and validity.
+          const exactOffer={ean:"9999999999998",price:1.23,validUntil:"2026-10-20",storeLabel:storeName} as any;
+          const exactCampaign={...exactOffer,campaignType:"campaign"} as any;
+          const strictResult=hidePrismaOfferCopiesAlreadyInCampaignTabV805([exactOffer,exactCampaign],[exactOffer,exactCampaign],storeName);
+          const differentValidityOffer={...exactOffer,validUntil:"2026-10-21"} as any;
+          const differentValidityResult=hidePrismaOfferCopiesAlreadyInCampaignTabV805([differentValidityOffer,exactCampaign],[differentValidityOffer,exactCampaign],storeName);
           const foreignOffer={ean:"9999999999999",price:1.23,storeLabel:"Lidl"} as any,foreignCampaign={ean:"9999999999999",price:1.23,storeLabel:"Lidl",campaignType:"campaign"} as any;
           const foreignResult=hidePrismaOfferCopiesAlreadyInCampaignTabV805([foreignOffer,foreignCampaign],[foreignOffer,foreignCampaign],storeName);
           const byCat=(rows:any[])=>Object.fromEntries([...new Set(rows.map(x=>String(x.mainCategory??x.category??"").trim()||"(empty)"))].sort().map(c=>[c,rows.filter(x=>(String(x.mainCategory??x.category??"").trim()||"(empty)")===c).length]));
@@ -43,7 +49,7 @@ jobs:
           // A broad EAN+price overlap is diagnostic only: V805 deliberately also
           // requires matching selected store and validity, so zero removals can be correct.
           console.log("TAB_LAYER_SIM",JSON.stringify({counts:{offersBefore:offers.length,campaignsBefore:campaigns.length,hiddenFromOffersOnly:hidden.length,offersAfter:kept.length,campaignsAfter:campaigns.length,totalVisibleAcrossTabsAfter:kept.length+campaigns.length,hiddenWithoutDiscountedSignal:noSignal.length,helperOffers:helperOffers.length,helperCampaigns:helperCampaigns.length,foreignChainRowsPreserved:foreignResult.length},muikku,offerCategoriesBefore:byCat(offers),offerCategoriesAfter:byCat(kept),campaignCategories:byCat(campaigns),hiddenSample:hiddenSignal.slice(0,20),hiddenWithoutSignal:noSignal},null,2));
-          if(!offers.length||!campaigns.length||helperOffers.length>offers.length||helperOffers.length+helperCampaigns.length!==productionHelperResult.length||helperCampaigns.length!==campaigns.length||foreignResult.length!==2||noSignal.length!==0)process.exitCode=1;
+          if(!offers.length||!campaigns.length||helperOffers.length>offers.length||helperOffers.length+helperCampaigns.length!==productionHelperResult.length||helperCampaigns.length!==campaigns.length||foreignResult.length!==2||strictResult.length!==1||strictResult[0]!==exactCampaign||differentValidityResult.length!==2||noSignal.length!==0)process.exitCode=1;
           TS
           npx tsx scripts/.tmp-tab-layer-dedupe.mts
           rm scripts/.tmp-tab-layer-dedupe.mts
