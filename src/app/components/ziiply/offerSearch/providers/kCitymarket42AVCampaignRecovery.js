@@ -23,13 +23,15 @@ export function recover42AVPrintedCampaignRows(rows, rawBoxes) {
    anchor={left:Math.min(heading.left,...local.filter(b=>spec.required.includes(b.text)).map(b=>b.left)),top:heading.top};
    break;
   }
-  if(result===row||!result.percentageOffer||!anchor)return result;
+  if(result===row||!anchor)return result;
   // Complete percentage glyphs in the same publisher column are stronger
   // evidence than a preceding basic-HTML percentage from another card.
   const left=Math.floor(anchor.left*3)/3,right=left+1/3;
   const badges=boxes.filter(b=>/^-\d{1,2}%$/.test(b.text)&&b.height>=.02&&b.left>=left&&b.left+b.width<=right+.025&&Math.abs(b.top-anchor.top)<.08);
   const percentages=[...new Set(badges.map(b=>Number(b.text.match(/\d+/)[0])))];
   if(percentages.length!==1)return result;
+  // A uniquely owned printed badge can restore a missing percentage too.
+  // Ambiguous or absent badges leave the original value unchanged.
   return {...result,percentageOffer:{percent:percentages[0],source:'same-column-complete-publisher-percentage',confidence:'high'}};
  });
 }
