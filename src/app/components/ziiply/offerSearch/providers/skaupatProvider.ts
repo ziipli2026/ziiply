@@ -2649,16 +2649,25 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
     : /^s[ -]?market\b/i.test(storeName) ? "s-market"
     : /^alepa\b/i.test(storeName) ? "alepa" : /^sale\b/i.test(storeName) ? "sale" : "";
   if (!chain) throw new Error("Selected S store chain unsupported");
-  const directory = await fetch("https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent(storeName.replace(/^(?:prisma|s[ -]?market|alepa|sale)\s+/i, "")), {
-    cache: "no-store", signal: AbortSignal.timeout(8000), headers: { accept: "text/html", "accept-language": "fi" },
-  });
-  if (!directory.ok) throw new Error("S store directory HTTP " + directory.status);
-  const html = await directory.text();
-  const candidates = [...html.matchAll(/\/myymala\/([a-z0-9%._~-]+)\/(\d{5,})/gi)]
-    .filter((match) => normalizeSKaupatStoreNameForMatchV198(decodeURIComponent(match[1]).replace(/-/g, " ")) === normalizedName);
-  const ids = [...new Set(candidates.map((match) => match[2]))];
-  const storeId = ids.length === 1 ? ids[0] : null;
-  if (!storeId) throw new Error("S directory exact-match failed: " + JSON.stringify({storeName,normalizedName,htmlLength:html.length,exactCandidateIds:ids}));
+  // The picker supplies the selected store's official external ID. Internal
+  // Ziiply IDs (e.g. 292) must still resolve by an exact directory-name match.
+  // Never re-fetch the public directory on every keystroke when the ID exists.
+  const selectedExternalId = String(inputStoreId || "").trim();
+  let storeId: string | null = /^\d{9}$/.test(selectedExternalId) ? selectedExternalId : null;
+  const storeResolutionSource = storeId ? "selected-external-id" : "exact-directory-name";
+  if (!storeId) {
+    const directory = await fetch("https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent(storeName.replace(/^(?:prisma|s[ -]?market|alepa|sale)\s+/i, "")), {
+      cache: "no-store", signal: AbortSignal.timeout(8000), headers: { accept: "text/html", "accept-language": "fi" },
+    });
+    if (!directory.ok) throw new Error("S store directory HTTP " + directory.status);
+    const html = await directory.text();
+    const candidates = [...html.matchAll(/\/myymala\/([a-z0-9%._~-]+)\/(\d{5,})/gi)]
+      .filter((match) => normalizeSKaupatStoreNameForMatchV198(decodeURIComponent(match[1]).replace(/-/g, " ")) === normalizedName);
+    const ids = [...new Set(candidates.map((match) => match[2]))];
+    storeId = ids.length === 1 ? ids[0] : null;
+    if (!storeId) throw new Error("S directory exact-match failed: " + JSON.stringify({storeName,normalizedName,htmlLength:html.length,exactCandidateIds:ids}));
+  
+  }
   const protocol = await getSKaupatProtocolConfig();
   const items: any[] = [];
   const seen = new Set<string>();
@@ -2682,6 +2691,7 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
     if (!response.ok) throw new Error("S direct search HTTP " + response.status);
     const data = await response.json();
     if (data.errors?.length) throw new Error("S direct search GraphQL error: " + JSON.stringify(data.errors.map((error: any) => ({message:error.message,code:error.extensions?.code}))).slice(0,1000));
+    if (data.data?.store?.id && String(data.data.store.id) !== storeId) throw new Error("S direct search store identity mismatch");
     const raw = getSProductListItems(data);
     const meta = getSProductsPagingMetaV184(data);
     total = meta.total;
@@ -2719,5 +2729,5 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
     }
     if (!raw.length || !added || raw.length < 48 || offset + 48 >= total) break;
   }
-  return { items, storeId, total, pages, truncated: pages * 48 < total, inputStoreId };
+  return { items, storeId, total, pages, truncated: pages * 48 < total, inputStoreId, storeResolutionSource };
 }
