@@ -200,6 +200,14 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "soup"
+  | "cooking_sauce"
+  | "stock"
+  | "seasoning"
+  | "vinegar"
+  | "noodles"
+  | "pizza"
+  | "meal_kit"
   | "sour_cream"
   | "smetana"
   | "creme_fraiche"

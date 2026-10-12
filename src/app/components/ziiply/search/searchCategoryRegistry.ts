@@ -2,6 +2,14 @@
 import type { SearchIntent } from "../ziiplyCore";
 export const CATEGORY_REGISTRY_VERSION = "2026-10-12.1";
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {"category": "soup", "label": "Keitot", "variants": ["keitto", "hernekeitto", "tomaattikeitto", "kanakeitto"], "requiredAny": ["keitto", "soup"], "bannedAny": ["liemikuutio", "keittojuures"]},
+  {"category": "cooking_sauce", "label": "Ruokakastikkeet", "variants": ["ruokakastike", "ruskeakastike", "bearnaisekastike", "hollandaise", "currykastike", "pippurikastike"], "requiredAny": ["kastike", "sauce", "hollandaise"], "bannedAny": ["sipsi", "chips"]},
+  {"category": "stock", "label": "Liemet ja fondit", "variants": ["liemikuutio", "kanaliemikuutio", "kasvisliemikuutio", "lihaliemikuutio", "fondi"], "requiredAny": ["liemikuutio", "fondi"], "bannedAny": []},
+  {"category": "seasoning", "label": "Mausteet", "variants": ["mauste", "mausteseos", "grillimauste", "jauhelihamauste", "mustapippuri", "kaneli"], "requiredAny": ["mauste", "pippuri", "kaneli"], "bannedAny": ["sipsi", "chips", "pulla", "jogurtti"]},
+  {"category": "vinegar", "label": "Etikat", "variants": ["etikka", "viinietikka", "omenasiiderietikka", "balsamico"], "requiredAny": ["etikka", "balsamico"], "bannedAny": ["pyykkietikka", "siivousetikka"]},
+  {"category": "noodles", "label": "Nuudelit", "variants": ["nuudeli", "nuudelit", "pikanuudeli"], "requiredAny": ["nuudeli", "noodle"], "bannedAny": []},
+  {"category": "pizza", "label": "Pizzat", "variants": ["pizza", "pakastepizza", "pinsa"], "requiredAny": ["pizza", "pinsa"], "bannedAny": ["pizzamauste", "pizzajuusto", "pizzaraaste", "pizzakastike", "pizzataikina", "pizzapohja", "pizzaleikkuri"]},
+  {"category": "meal_kit", "label": "Ateria-ainekset", "variants": ["ateria-aines", "ateria-ainekset", "pata-aines", "lasagne-aines"], "requiredAny": ["ateria", "pata-aines", "lasagne", "lasagnette", "snack pot", "spaghetteria"], "bannedAny": []},
   {"category": "sour_cream", "label": "Kermaviilit", "variants": ["kermaviili"], "requiredAny": ["kermaviili"], "bannedAny": ["sipsi", "chips", "maissikakku", "riisikakku"]},
   {"category": "smetana", "label": "Smetanat", "variants": ["smetana"], "requiredAny": ["smetana"], "bannedAny": ["sipsi", "chips"]},
   {"category": "creme_fraiche", "label": "Ranskankermat", "variants": ["ranskankerma", "crème fraîche", "creme fraiche"], "requiredAny": ["ranskankerma", "crème fraîche", "creme fraiche"], "bannedAny": ["sipsi", "chips"]},

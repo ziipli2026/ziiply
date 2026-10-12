@@ -35,6 +35,8 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["keitto", "soup"],["ruokakastike", "cooking_sauce"],["liemikuutio", "stock"],["mauste", "seasoning"],["etikka", "vinegar"],["nuudeli", "noodles"],["pizza", "pizza"],["ateria-aines", "meal_kit"],
+
 ["kermaviili", "sour_cream"],["smetana", "smetana"],["ranskankerma", "creme_fraiche"],["viili", "fermented_milk"],["vanukas", "pudding"],["kaurajuoma", "plant_drink"],["maitojauhe", "milk_powder"],["pulla", "pastry"],
 
   ["ketsuppi","ketchup"],["sinappi","mustard"],["majoneesi","mayonnaise"],
@@ -164,6 +166,14 @@ rankingCases.push({query:"maito",products:[makeProduct(1101,"Elovena kaurajuoma 
 rankingCases.push({query:"kerma",products:[makeProduct(1103,"Valio kermaviili 200g","maito-juusto-munat-ja-rasvat/maitotuotteet/kermaviilit"),makeProduct(1104,"Valio kuohukerma 2dl","maito-juusto-munat-ja-rasvat/maitotuotteet/kermat")],first:1104,excluded:[1103]});
 rankingCases.push({query:"kaurajuoma",products:[makeProduct(1105,"Elovena kaurajuoma kahviin 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat"),makeProduct(1106,"Valio kevytmaito 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot")],first:1105,excluded:[1106]});
 rankingCases.push({query:"vanukas",products:[makeProduct(1107,"Jacky maitosuklaavanukas 120g","maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat"),makeProduct(1108,"Valio maitorahka 250g","maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat")],first:1107,excluded:[1108]});
+
+rankingCases.push({query:"maito",products:[makeProduct(1201,"Coop kaurajuoma 1 l","CAAAMAEAAAAAA"),makeProduct(1202,"Kotimaista kevytmaito 1 L","CAAAMAAAAAEAA")],first:1202,excluded:[1201]});
+rankingCases.push({query:"kahvi",products:[makeProduct(1203,"Coop kahvi tumma paahto 450 g","CAABIAAAAACAA"),makeProduct(1204,"Olympus Aito kreikkalainen jogurtti 0% rasvaa 150g kahvi","CAAAQAAAKACAA")],first:1203,excluded:[1204]});
+
+rankingCases.push({query:"kana",products:[makeProduct(1301,"Knorr kanaliemikuutio 10x10g","CAABGBAAGACAE"),makeProduct(1302,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1302,excluded:[1301]});
+rankingCases.push({query:"juusto",products:[makeProduct(1303,"Knorr tomaattikeitto mascarponejuustolla 570 ml","CAABGAYACAAAE"),makeProduct(1304,"Valio Arkijuusto 750g","CAAAOAAAAAAAA")],first:1304,excluded:[1303]});
+rankingCases.push({query:"pizza",products:[makeProduct(1305,"Xtra pizzamauste 30 g","CAABGBAAKAOAC"),makeProduct(1306,"Coop Pizza Salami 345 g pakaste","CAABQACAAAAAA")],first:1306,excluded:[1305]});
+rankingCases.push({query:"kanaliemikuutio",products:[makeProduct(1307,"Knorr kanaliemikuutio 10x10g","CAABGBAAGACAE"),makeProduct(1308,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1307,excluded:[1308]});
 
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
