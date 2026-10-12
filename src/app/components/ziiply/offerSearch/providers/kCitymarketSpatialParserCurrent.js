@@ -1386,6 +1386,18 @@ if(!spatialResolved&&anchor&&/KOKONAINEN\s+LOHI/i.test(title)){
 title=cleanOfferTitle(title);
 if(pk&&/\b(?:cl|dl)\b/i.test(pk.raw))spatialResolved=null;
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,initialExpectedSingle:expectedAtStart==null?null:Number(expectedAtStart.toFixed(3)),candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}
+// 42AV page 6: the basic-HTML title can lose the start of the printed
+// PYYKINPESUNESTEET heading. Restore only with unique publisher evidence;
+// never infer or change a printed price.
+if(p===6){
+ const heading=wordBoxes.filter(b=>String(b.text).toUpperCase()==='PYYKINPESUNESTEET');
+ const candidates=out.rows.filter(r=>r.page===p&&/^NESTEET\s+500\s*ml\b/i.test(r.title));
+ if(heading.length===1&&candidates.length===1){
+  const row=candidates[0];
+  row.title=row.title.replace(/^NESTEET\b/i,'PYYKINPESUNESTEET');
+  row.debugRecoveredPublisherHeading='PYYKINPESUNESTEET';
+ }
+}
 for(let i=0;i<out.rows.length;i++)if(out.rows[i].page===p)out.rows[i]=restorePrintedPackageTitle(out.rows[i],wordBoxes);
 resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
 for(let ri=0;ri<out.rows.length;ri++){
