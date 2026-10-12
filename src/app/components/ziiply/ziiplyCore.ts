@@ -526,6 +526,7 @@ export const SEARCH_ALIASES: Record<string, string> = {
   // Snacks
   tortilla: "tortilla chips",
   sipsit: "sipsit",
+  ranskikset: "ranskanperunat",
 
   // Juomien yleisiä käyttäjämuotoja / tuotenimissä käytettyjä vastineita.
   // Säilytetään alkuperäinen hakusana getNormalSearchQueries()-listassa,
