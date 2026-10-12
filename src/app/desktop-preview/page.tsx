@@ -1,5 +1,6 @@
-import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 "use client";
+
+import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 
 import { useEffect, useRef, useState } from "react";
 import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, productGroupGate, isComparisonAttributeCompatible } from "../components/ziiply/ziiplyCore";
