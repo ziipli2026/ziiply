@@ -1,12 +1,12 @@
 /** Canonical product identities from contiguous lines of one printed card. */
 export function canonicalCitymarketProductRows(rows) {
-  const items=mergeSharedPrintedVariants(rows).map(row=>restoreCountedVariantHeadline(row,rows)).sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
+  const items=mergeSharedPrintedVariants(rows).map(row=>restoreDescriptiveHeadline(restoreCountedVariantHeadline(row,rows),rows)).sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
   const consumed=new Set();
   const quantity=r=>r?.quantity==null||r.quantity===1?1:r.quantity;
   const sameTransaction=(a,b)=>a&&b&&a.value===b.value&&quantity(a)===quantity(b)&&
     (!a.unit||!b.unit||a.unit===b.unit);
   const line=row=>{
-    if(['shared-printed-bundle-variant-block','contiguous-counted-variant-headline'].includes(row.productRowProof?.source))return row.title;
+    if(['shared-printed-bundle-variant-block','contiguous-counted-variant-headline','same-column-descriptive-headline'].includes(row.productRowProof?.source))return row.title;
     const own=String(row.debugCardAnchor?.text||'').trim();
     const title=String(row.title||'').trim().replace(/^\d+KPL-\d+[–-]\d+%\s*/,'');
     const anchor=row.debugCardAnchor;
@@ -248,4 +248,19 @@ export function restoreCountedVariantHeadline(row, rows=[]){
     Math.abs(r.debugCardAnchor.left-a.left)<.005&&r.debugCardAnchor.top>=last-.001&&r.debugCardAnchor.top<a.top-.005))return {...row};
  return {...row,title:[...text,row.title].join(' '),package:null,unitPrice:null,
   productRowProof:{source:'contiguous-counted-variant-headline',titles:[row.title],packageVariants:variants}};
+}
+
+/** Restore an adjacent descriptive headline and its own brand, never a neighbouring price. */
+export function restoreDescriptiveHeadline(row,rows=[]){
+ const a=row.debugCardAnchor;if(!a||!row.spatialResolved||row.productRowProof)return row;
+ const unique=[...new Map((row.debugNearbyBoxes||[]).map(b=>[JSON.stringify(b),b])).values()];
+ const starts=unique.filter(b=>Math.abs(b.left-a.left)<.005&&Math.abs(b.height-a.height)<.001&&a.top-b.top>.005&&a.top-b.top<.022&&/^[A-ZÅÄÖ]+$/.test(b.text));
+ if(starts.length!==1)return row;const first=starts[0];
+ const words=unique.filter(b=>Math.abs(b.top-first.top)<.001&&Math.abs(b.height-a.height)<.001&&b.left>=a.left-.001&&b.left<a.left+.25).sort((x,y)=>x.left-y.left);
+ if(!words.every(b=>/^[A-ZÅÄÖ-]+$/.test(b.text)))return row;
+ const prefix=words.map(b=>b.text).join(' ');if(!/\b(?:PANEROIDUT|MARINOIDUT|MAUSTETUT|SAVUSTETUT|PAISTETUT)$/.test(prefix)||row.title.includes(prefix))return row;
+ if(rows.some(r=>r!==row&&r.page===row.page&&r.spatialResolved&&r.debugCardAnchor&&Math.abs(r.debugCardAnchor.left-a.left)<.005&&r.debugCardAnchor.top>=first.top-.001&&r.debugCardAnchor.top<a.top-.005))return row;
+ const brands=unique.filter(b=>Math.abs(b.left-a.left)<.005&&first.top-b.top>.005&&first.top-b.top<.02&&b.height>=.01&&b.height<a.height&&/^[A-ZÅÄÖ][a-zåäö]+$/.test(b.text));
+ const original=row.title.replace(/^\d+\.\s*/,'');
+ return {...row,title:[...(brands.length===1?[brands[0].text]:[]),prefix,original].join(' '),productRowProof:{source:'same-column-descriptive-headline',titles:[original]}};
 }

@@ -92,6 +92,7 @@ export function category(t:string){
   if(/\b(?:eylure|elegant touch|mossa|smuuti skin|cosrx|tena)\b/.test(s)) return "Hygienia & kosmetiikka";
   if(/meikit|puuterit|kulmatuotteet|itseruskettav|hiustenhoito|hiustenmuotoilu/.test(s)) return "Hygienia & kosmetiikka";
   if(/\bairfryer\b/.test(s)&&!/suojapaper/.test(s)) return "Koti & vapaa-aika";
+  if(/\bfindus\b|kalapuikot/.test(s)) return "Pakasteet";
   if(/nachips|nachos|tortilla/.test(s)) return "Kuivatuotteet";
   if(/jogurttijuom|actimel/.test(s)) return "Maitotuotteet";
   if(/pakaste.*kasvis|kasvis.*pakaste|vihannessekoit|pakasteateriat|pakastekeitot/.test(s)) return "Pakasteet";
@@ -527,7 +528,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const benefitText=/mobiilietu/i.test(nearbyText)?"Mobiilietu":/plussa(?:-etu|-kortilla)?/i.test(nearbyText)?"Plussa-etu":/erä/i.test(nearbyText)?"Erä":"";
     const campaignType: "offer" | "campaign" = /kampanja|kaikki .*?(?:tuotteet|vaatteet)|-\\d+\\s*%/i.test(title) && !/\\b\\d+(?:[,.]\\d+)?\\s*(?:g|kg|ml|l)\\b/i.test(title) ? "campaign" : "offer";
     offers.push({
-      id:`kcm:spatial:${row?.page??0}:${(["shared-printed-bundle-variant-block","contiguous-counted-variant-headline"].includes(row.productRowProof?.source)?row.productRowProof.titles[0]:title).toLowerCase()}:${price}`,
+      id:`kcm:spatial:${row?.page??0}:${(["shared-printed-bundle-variant-block","contiguous-counted-variant-headline","same-column-descriptive-headline"].includes(row.productRowProof?.source)?row.productRowProof.titles[0]:title).toLowerCase()}:${price}`,
       title,
       price,
       normalPrice,
@@ -630,7 +631,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v149-publisher-archive":"standard"],
+  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004",process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"?"41lv-corrected-v150-publisher-archive":"standard"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){

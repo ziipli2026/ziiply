@@ -10,6 +10,9 @@ const categorySource = match[0].replace("export function category(t:string)", "f
 const context = {clean: (s) => String(s).trim()};
 vm.runInNewContext(categorySource + "\nthis.classify=category;", context);
 const cases = [
+  ["Findus CHICKEN SHOP PANEROIDUT KANATUOTTEET 170–250 g", "Pakasteet"],
+  ["FILEEKALAPUIKOT 896 g", "Pakasteet"],
+  ["Tuore kirjolohifilee", "Kala"],
   ["AIRFRYERIN SUOJAPAPERIT 50 kpl", "Kodinhoito"],
   ["PENTIK LAUTASLIINAT 20 kpl 25 ja 33 cm", "Kodinhoito"],
   ["AIRFRYER 5 l", "Koti & vapaa-aika"],
