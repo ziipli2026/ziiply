@@ -1,13 +1,319 @@
 {
-  "version": "2026-10-12.1",
+  "version": "2026-10-12.2",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/banaanit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/melonit",
+      "sample_product_count": 6,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/muut-hedelmat",
+      "sample_product_count": 10,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/paarynat",
+      "sample_product_count": 5,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitrukset",
+      "sample_product_count": 14,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/lantut",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "sample_product_count": 8,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/marjat-ja-sienet/sienet",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/sipulit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/valkosipulit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "sample_product_count": 8,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurkut",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurpitsat",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/paprikat",
+      "sample_product_count": 9,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/appelsiinit",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/banaanit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/mandariinit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/melonit",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/muut-hedelmat",
+      "sample_product_count": 7,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/omenat",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitrukset",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitruunat",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/lantut",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "sample_product_count": 5,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/punajuuret",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/muut-sipulit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/valkosipulit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurkut",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurpitsat",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/sipulit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/tomaatit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "k-weight-label",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurkut",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+      "sample_product_count": 3,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+      "sample_product_count": 33,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+      "sample_product_count": 14,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
+      "sample_product_count": 2,
+      "category_id": "coffee"
+    },
     {
       "source": "ruoanhinta-k",
       "source_category": "juomat/virvoitusjuomat/cola-juomat",
       "sample_product_count": 38,
       "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivat/tummat-leivat",
+      "sample_product_count": 4,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/broileri--ja-kalkkunaleikkeleet",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/kinkut-ja-kokolihaleikkeleet",
+      "sample_product_count": 2,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/leikkelemakkarat",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/grillimakkarat",
+      "sample_product_count": 5,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/lenkkimakkarat",
+      "sample_product_count": 1,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/nakit",
+      "sample_product_count": 7,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+      "sample_product_count": 13,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/maustamattomat-jogurtit",
+      "sample_product_count": 3,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/suurpakkausjogurtit",
+      "sample_product_count": 13,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/terveysvaikutteiset-jogurtit",
+      "sample_product_count": 13,
+      "category_id": "yogurt"
     },
     {
       "source": "ruoanhinta-k",
@@ -82,10 +388,166 @@
       "category_id": "buttermilk"
     },
     {
+      "source": "ruoanhinta-k",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/mandariinit",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitrukset",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/tomaatit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+      "sample_product_count": 22,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+      "sample_product_count": 6,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-espresso",
+      "sample_product_count": 2,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+      "sample_product_count": 6,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
       "source": "ruoanhinta-s",
       "source_category": "juomat/virvoitusjuomat/cola-juomat",
       "sample_product_count": 12,
       "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/suklaalevyt/maitosuklaalevyt",
+      "sample_product_count": 9,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kodinhoito-ja-taloustarvikkeet/kodin-paperit/wc-paperit",
+      "sample_product_count": 1,
+      "category_id": "toilet_paper"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kuivatuotteet-ja-leivonta/sokerit-makeutusaineet-ja-hunaja/hunajat",
+      "sample_product_count": 1,
+      "category_id": "honey"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kuivatuotteet-ja-leivonta/sokerit-makeutusaineet-ja-hunaja/sokerit",
+      "sample_product_count": 1,
+      "category_id": "sugar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "sample_product_count": 3,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/broileri--ja-kalkkunaleikkeleet",
+      "sample_product_count": 2,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/kinkut-ja-kokolihaleikkeleet",
+      "sample_product_count": 2,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/leikkelemakkarat",
+      "sample_product_count": 5,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/meetvurstit-ja-salamit",
+      "sample_product_count": 1,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/grillimakkarat",
+      "sample_product_count": 13,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/lenkkimakkarat",
+      "sample_product_count": 1,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/nakit",
+      "sample_product_count": 15,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
+      "sample_product_count": 6,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/maustamattomat-jogurtit",
+      "sample_product_count": 4,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/suurpakkausjogurtit",
+      "sample_product_count": 6,
+      "category_id": "yogurt"
     },
     {
       "source": "ruoanhinta-s",
@@ -152,6 +614,78 @@
       "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/maustamattomat-raejuustot",
       "sample_product_count": 2,
       "category_id": "cottage_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-munat-ja-rasvat/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot",
+      "sample_product_count": 2,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/juusto--ja-muotosnacksit",
+      "sample_product_count": 5,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "sample_product_count": 3,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/snacks-pahkinat",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/konvehdit",
+      "sample_product_count": 5,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "sample_product_count": 9,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "sample_product_count": 1,
+      "category_id": "snacks"
     }
   ]
 }
