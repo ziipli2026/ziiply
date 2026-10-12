@@ -4077,7 +4077,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       lines.push("");
     }
     lines.push("Ostoslista tehty Ziiplyllä");
-    return lines.join("\\n");
+    return lines.join("\n");
   }
 
   async function shareTextV729(title: string, text: string) {
@@ -18351,7 +18351,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     return ["Ziiply – Ostoslista", "", `${chain.storeName} (${products.size} tuotetta)`, "",
       ...Array.from(products.values()).map(product => `${product.quantity} × ${product.name}`),
-      "", "Ostoslista tehty Ziiplyllä"].join("\\n");
+      "", "Ostoslista tehty Ziiplyllä"].join("\n");
   }
 
   async function copyTextToClipboard(textToCopy: string) {
