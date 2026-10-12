@@ -2723,6 +2723,9 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
   const normalizedQuery = normalize(query);
   const genericGroupQuery = intent.category !== "generic" && intent.variants.some(term => normalize(term) === normalizedQuery);
   const reviewedCategory = getReviewedEanCategory(product.ean) || getReviewedProductCategory(product.category);
+  // A plain cola query means ready-to-drink cola, not cola-flavoured foods or other goods.
+  // Keep compound searches (e.g. "cola karkki") free to find the requested item.
+  if (normalizedQuery === "cola" && !isClearlyColaProduct(product.name)) return true;
   const explicitlyFrozen = name.includes("pakaste") || product.category?.startsWith("pakasteet/") || product.category?.startsWith("CAABQ");
   if (genericGroupQuery && reviewedCategory && !isReviewedCategoryCompatible(intent.category, reviewedCategory) &&
       !(intent.category === "frozen" && explicitlyFrozen)) return true;
