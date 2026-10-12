@@ -1429,12 +1429,12 @@ if(/_42AV_KCM/i.test(l.url)){
   // The publisher heading may omit package information found in basic HTML.
   // Restrict recovery to clearly corrupted prefixes/suffixes; never remove
   // quantity, unit, package or other meaningful product metadata.
-  const isDetached=/^[-−–]\\s*\\d{1,2}\\s*%\\s+/i.test(title)||/^\\d\\.\\s+/i.test(title);
-  const isMixed=/^\\d+\\s+(?:KPL|TLK|PKT|PS|PRK)\\s+.*\\d+\\s+(?:KPL|TLK|PKT|PS|PRK)\\s+\\d+\\.\\s+/i.test(title);
+  const isDetached=/^[-−–]\s*\d{1,2}\s*%\s+/i.test(title)||/^\d\.\s+/i.test(title);
+  const isMixed=/^\d+\s+(?:KPL|TLK|PKT|PS|PRK)\s+.*\d+\s+(?:KPL|TLK|PKT|PS|PRK)\s+\d+\.\s+/i.test(title);
   if(!isDetached&&!isMixed)continue;
   if(isMixed){
    // Require the printed heading to include its own package measurement.
-   if(!/\\b\\d+(?:[,.]\\d+)?\\s*(?:ml|cl|dl|l|g|kg)\\b/i.test(printed))continue;
+   if(!/\b\d+(?:[,.]\d+)?\s*(?:ml|cl|dl|l|g|kg)\b/i.test(printed))continue;
    row.title=printed;
   }else{
    // Existing title cleanup already removes simple prefixes in the provider.
