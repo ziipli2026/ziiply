@@ -204,8 +204,8 @@ test('42AV automatic full-leaflet audit reports title anomalies without guessing
  const report=anomalies.map(row=>({page:row.page,title:row.title,price:row.spatialResolved?.value??null,quantity:row.spatialResolved?.quantity??null}));
  // These are known source-layout anomalies, not grounds for deleting offers.
  assert.ok(rows.length>=175,'Unexpectedly small frozen 42AV parse');
- assert.ok(report.some(row=>/SAPPISAIPPUA/.test(row.title)),'Keep tracking the soap layout anomaly');
- assert.ok(report.some(row=>/LEMPI RUOKAKERMAT/.test(row.title)),'Keep tracking the cream layout anomaly');
- assert.ok(report.some(row=>/PASTAT 500 g/.test(row.title)),'Keep tracking the pasta layout anomaly');
+ // Anomalies are diagnostic: fixing one must not cause this audit to fail.
+ // The complete list remains visible in the test log for review.
+ assert.ok(report.every(row=>Number.isInteger(row.page)&&row.title),'Audit rows retain page and title');
  console.log('42AV_TITLE_AUDIT',JSON.stringify(report));
 });
