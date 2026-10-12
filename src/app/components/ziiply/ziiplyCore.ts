@@ -781,15 +781,27 @@ export function detectSearchIntent(query: string): SearchIntent {
 
   if (exactIntent) return exactIntent;
 
-  const tokenIntent = SEARCH_INTENTS.find((intent) =>
-    [...intent.variants, ...(intent.requiredAny || [])].some((token) => normalized.includes(normalize(token)))
-  );
+  // Short standalone product names must not match inside unrelated words.
+  // Compounds such as meijerivoi and teepussi have their own registry variants.
+  const standaloneTerms = new Set(["voi", "tee"]);
+  const matchesIntentToken = (text: string, token: string) =>
+    standaloneTerms.has(token)
+      ? text.split(/[^a-z0-9]+/).includes(token)
+      : text.includes(token);
 
-  if (tokenIntent) return tokenIntent;
+  // Prefer the longest matching term across categories. Otherwise a short
+  // substring (e.g. "kana" inside "porkkana") wins merely by registry order.
+  const tokenCandidates = SEARCH_INTENTS.flatMap((intent) =>
+    [...intent.variants, ...(intent.requiredAny || [])]
+      .map((token) => ({ intent, token: normalize(token) }))
+      .filter(({ token }) => token.length >= 3 && matchesIntentToken(normalized, token))
+  );
+  tokenCandidates.sort((a, b) => b.token.length - a.token.length);
+  if (tokenCandidates.length) return tokenCandidates[0].intent;
 
   const alias = getSearchQuery(query);
   const aliasIntent = SEARCH_INTENTS.find((intent) =>
-    intent.variants.some((variant) => normalize(alias).includes(normalize(variant)) || normalize(variant).includes(normalize(alias)))
+    intent.variants.some((variant) => matchesIntentToken(normalize(alias), normalize(variant)) || (!standaloneTerms.has(normalize(variant)) && normalize(variant).includes(normalize(alias))))
   );
 
   if (aliasIntent) return aliasIntent;
