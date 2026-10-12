@@ -10,6 +10,31 @@ const categorySource = match[0].replace("export function category(t:string)", "f
 const context = {clean: (s) => String(s).trim()};
 vm.runInNewContext(categorySource + "\nthis.classify=category;", context);
 const cases = [
+  ["Findus CHICKEN SHOP PANEROIDUT KANATUOTTEET 170–250 g", "Pakasteet"],
+  ["FILEEKALAPUIKOT 896 g", "Pakasteet"],
+  ["Tuore kirjolohifilee", "Kala"],
+  ["AIRFRYERIN SUOJAPAPERIT 50 kpl", "Kodinhoito"],
+  ["PENTIK LAUTASLIINAT 20 kpl 25 ja 33 cm", "Kodinhoito"],
+  ["AIRFRYER 5 l", "Koti & vapaa-aika"],
+  ["EYLURE ja ELEGANT TOUCH TUOTTEET", "Hygienia & kosmetiikka"],
+  ["MOSSA TUOTTEET", "Hygienia & kosmetiikka"],
+  ["SMUUTI SKIN ja COSRX -TUOTTEET", "Hygienia & kosmetiikka"],
+  ["TENA PRO SKIN TUOTTEET", "Hygienia & kosmetiikka"],
+  ["MUSTA TEE 100 g", "Kahvi & tee"],
+  ["TUNTEMATON TUOTTEET", "Muut"],
+  ["myhome Lumihiutale LED-lyhty", "Koti & vapaa-aika"],
+  ["LUKU- ja KÄSITYÖVALO", "Koti & vapaa-aika"],
+  ["MAX FACTOR MEIKIT", "Hygienia & kosmetiikka"],
+  ["LUMENE IHONHOITO- ja PUHDISTUSTUOTTEET", "Hygienia & kosmetiikka"],
+  ["BONDI SANDS ITSERUSKETTAVAT TUOTTEET", "Hygienia & kosmetiikka"],
+  ["DEFINE HIUSTENHOITO- ja MUOTOILUTUOTTEET 100–750 ml", "Hygienia & kosmetiikka"],
+  ["HIUSTENMUOTOILUTUOTTEET sekä HIUSVÄRIT", "Hygienia & kosmetiikka"],
+  ["LUMENE PUUTERIT", "Hygienia & kosmetiikka"],
+  ["LUMENE KULMATUOTTEET", "Hygienia & kosmetiikka"],
+  ["RUUKUT ja KULHOT 300 g", "Valmisruoka"],
+  ["KULHOT 3 l", "Koti & vapaa-aika"],
+  ["PAKASTEATERIAT ja -KEITOT 200–350 g", "Pakasteet"],
+  ["Valmisateria 300 g", "Valmisruoka"],
   ["Friggs maissikakut", "Kuivatuotteet"],
   ["Riisikakut 100 g", "Kuivatuotteet"],
   ["Pakastemuusiperuna 500 g", "Pakasteet"],
@@ -25,3 +50,8 @@ const cases = [
 for(const [name, expected] of cases){
   test("Citymarket category: "+name, () => assert.equal(context.classify(name),expected));
 }
+
+test("Soft supplement name does not imply a plush toy",()=>{assert.equal(context.classify("PEHMOVITA MONIVITAMIINIT 75 kpl"),"Vitamiinit & ravinteet");assert.equal(context.classify("PEHMOLELU"),"Koti & vapaa-aika");});
+
+
+test("Vitamin drinks remain beverages",()=>{assert.equal(context.classify("VITAMIINIJUOMA 0,5 l"),"Juomat");});
