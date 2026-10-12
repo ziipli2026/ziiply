@@ -7,6 +7,7 @@ on:
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
       - 'src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts'
       - '.github/workflows/k-offer-tab-audit.yml'
+      - 'tests/k-supermarket-price-format-regression.test.cjs'
   workflow_dispatch:
 jobs:
   audit:
@@ -78,3 +79,5 @@ jobs:
           console.log('K_CHAIN_OFFER_TAB_AUDIT_OK');
           NODE
           npx --yes tsx k-offer-tab-audit.mts
+      - name: K-Supermarket price and publication regression
+        run: node --test tests/k-supermarket-price-format-regression.test.cjs
