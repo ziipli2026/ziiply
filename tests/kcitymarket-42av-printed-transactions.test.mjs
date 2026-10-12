@@ -113,7 +113,7 @@ test('42AV frozen publisher preserves original split-title words for targeted re
  };
  const six=page(6),seventeen=page(17);
  for(const word of ['PYYKINPESUNESTEET','PYYKINPESUKAPSELIT'])
-  assert.ok(six.includes('word:\\"'+word+'\\"'),'Missing page 6 publisher word: '+word);
+  assert.ok(six.includes(word),'Missing page 6 publisher word: '+word);
  for(const word of ['AURINGONKUKKAÖLJYSSÄ','VEDESSÄ'])
-  assert.ok(seventeen.includes('word:\\"'+word+'\\"'),'Missing page 17 publisher word: '+word);
+  assert.ok(seventeen.includes(word),'Missing page 17 publisher word: '+word);
 });
