@@ -87,7 +87,7 @@ def build(folder,manifest_path,public_folder,review_path):
   if not rows:continue
   # Keep automatic image discovery active even when some offers have been
   # manually reviewed. Reviewed rectangles override only their own offer.
-  if True:
+  if rows:
    # Independent package-label text proof must accompany spatial ownership.
    # A distinctive word must occur in only one offer context on this page.
    context={r['id']:words(r['title']+' '+' '.join(r['nearby'])) for r in rows}
