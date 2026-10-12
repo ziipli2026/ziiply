@@ -7,7 +7,7 @@ on:
         required: false
         type: string
   push:
-    branches: [main]
+    branches: [main, preview/mobile-citymarket-42av]
     paths:
       - ".github/workflows/citymarket-leaflet-images.yml"
       - "scripts/citymarket/**"
@@ -27,8 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Scheduled runs remain on main; manual runs use the selected ref.
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref_name || 'main' }}
+          # Scheduled runs remain on main; push/manual runs use their branch.
+          ref: ${{ github.event_name == 'schedule' && 'main' || github.ref_name }}
       - name: Helsinki publication clock
         id: clock
         env:
