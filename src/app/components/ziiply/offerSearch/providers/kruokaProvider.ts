@@ -662,10 +662,10 @@ export async function fetchKruokaOffers(
     const offers: UnknownRecord[] = baseOffers.map(offer => ({ ...offer,
       campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? localBenefitType(offer) : offer.campaignType,
     }));
-    const knownOfferIds = new Set(offers.map(o => `${String(o.publicId ?? "")}|${String(o.campaignType ?? "offer")}`).filter(Boolean));
+    const knownOfferIds = new Set(offers.map(o => `${String(o.publicationPublicId ?? "")}|${String(o.publicId ?? "")}|${String(o.campaignType ?? "offer")}`).filter(Boolean));
     for (const offer of regionalOffers) {
       const id = String(offer.publicId ?? "");
-      const key = `${id}|${String(offer.campaignType ?? "offer")}`;
+      const key = `${String(offer.publicationPublicId ?? "")}|${id}|${String(offer.campaignType ?? "offer")}`;
       const fetchEntry = publicationFetch.find(entry => entry.publicationId === String(offer.publicationPublicId ?? ""));
       if (!id || knownOfferIds.has(key)) {
         if (fetchEntry) fetchEntry.skippedAsDuplicate++;
@@ -836,7 +836,7 @@ export async function fetchKruokaOffers(
       entry.mapped++;
       if (!matchesQuery(mapped, query)) continue;
       entry.queryMatched++;
-      const key = `${String((mapped as unknown as UnknownRecord).campaignType ?? "offer")}|${String((mapped as unknown as UnknownRecord).offerId ?? mapped.id)}`;
+      const key = `${publicationId}|${String((mapped as unknown as UnknownRecord).campaignType ?? "offer")}|${String((mapped as unknown as UnknownRecord).offerId ?? mapped.id)}`;
       if (seen.has(key)) { entry.duplicate++; continue; }
       seen.add(key);
       entry.returned++;
