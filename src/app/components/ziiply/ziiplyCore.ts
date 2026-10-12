@@ -1669,7 +1669,10 @@ export function isClearlyColaProduct(name: string) {
   ];
 
   if (!hasAnyToken(productText, colaSignals)) return false;
-  if (hasAnyToken(productText, forbiddenColaContext)) return false;
+  // Short alcohol/energy words must match whole words: "gin" is inside "Original".
+  if (forbiddenColaContext.some(token => ["gin", "ed"].includes(normalize(token))
+    ? getNormalizedWords(productText).includes(normalize(token))
+    : productText.includes(normalize(token)))) return false;
 
   // Hyväksy vain valmis juotava cola/limsa, ei tiiviste/jauhe/alkoholi.
   if (hasAnyToken(productText, ["coca-cola", "coca cola", "pepsi", "pepsi max"]) && hasAnyToken(productText, drinkSignals)) return true;
@@ -2730,6 +2733,11 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
   // A plain cola query means ready-to-drink cola, not cola-flavoured foods or other goods.
   // Keep compound searches (e.g. "cola karkki") free to find the requested item.
   if (normalizedQuery === "cola" && !isClearlyColaProduct(product.name)) return true;
+  if (genericGroupQuery && intent.category === "fruit_veg") {
+    const text = normalize(product.name + " " + (product.category || ""));
+    if (/voide|vartalovoi|kasvovoi|saippua|shampoo|suihkugeeli|ihonhoito|kosmetiikka|kasvonaamio|kuorintavoide/.test(text)) return true;
+    if ((intent.bannedAny || []).some(term => name.includes(normalize(term)))) return true;
+  }
   const explicitlyFrozen = name.includes("pakaste") || product.category?.startsWith("pakasteet/") || product.category?.startsWith("CAABQ");
   if (genericGroupQuery && reviewedCategory && !isReviewedCategoryCompatible(intent.category, reviewedCategory) &&
       !(intent.category === "frozen" && explicitlyFrozen)) return true;

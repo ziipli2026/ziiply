@@ -302,9 +302,9 @@ const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySea
   },
   fruit: {
     confidence: 0.78,
-    includeTerms: ["banaani", "omena", "appelsiini", "päärynä", "hedelmä"],
-    preferredTerms: ["banaani", "omena", "appelsiini"],
-    excludeTerms: ["mehu", "hillo", "jogurtti"],
+    includeTerms: ["banaani", "omena", "appelsiini", "päärynä", "mandariini", "hedelmä"],
+    preferredTerms: ["banaani", "omena", "appelsiini", "mandariini"],
+    excludeTerms: ["mehu", "hillo", "jogurtti", "voide", "saippua", "shampoo", "suihkugeeli"],
     categoryHints: ["hedelmät", "tuoretuotteet"],
   },
   vegetable: {
@@ -348,7 +348,7 @@ export function resolveSearchIntentAI(query: string): ZiiplySearchIntent {
     ["butter", (v) => hasWord(v, "voi") || hasAny(v, ["margariini", "levite"]), q],
     ["cream", (v) => hasWord(v, "kerma") || hasAny(v, ["ruokakerma", "kuohukerma", "vispikerma"]), q],
     ["fish", (v) => hasAny(v, ["lohi", "kala", "tonnikala", "kirjolohi", "seiti"]), q],
-    ["fruit", (v) => hasAny(v, ["banaani", "omena", "appelsiini", "päärynä"]), q],
+    ["fruit", (v) => hasAny(v, ["banaani", "omena", "appelsiini", "päärynä", "mandariini"]), q],
     ["vegetable", (v) => hasAny(v, ["tomaatti", "kurkku", "salaatti", "peruna", "porkkana"]), q],
   ];
 

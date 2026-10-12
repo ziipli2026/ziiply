@@ -990,7 +990,7 @@ export default function DesktopPreviewPage() {
     };
     return products.filter(matchesQuery)
       .filter(product=>!isExplicitlyExcludedSearchProduct(query,{...product,name:String(product.name||product.title||product.product?.name||"")}))
-      .filter(product=>getLearnedSearchBoost(query,{...product,name:String(product.name||product.title||product.product?.name||"")}).reason!=="blocked_by_intent_guardrail")
+      .filter(product=>(words.length>1&&words.includes("cola"))||getLearnedSearchBoost(query,{...product,name:String(product.name||product.title||product.product?.name||"")}).reason!=="blocked_by_intent_guardrail")
       .map((product,index)=>({product,index,rank:score(product)+getLearnedStructureBoost(query,{...product,name:String(product.name||product.title||product.product?.name||"")}).boost}))
       .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
   }
