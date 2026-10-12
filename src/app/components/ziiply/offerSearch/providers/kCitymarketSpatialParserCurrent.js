@@ -1,3 +1,4 @@
+import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
 import {reattachDetachedPackage,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
 import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy} from './kCitymarketProductRows.js';
 import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
@@ -1416,6 +1417,7 @@ if(p===6){
   row.debugRecoveredPublisherHeading='PYYKINPESUNESTEET';
  }
 }
+if(/_42AV_KCM/i.test(l.url))out.rows=out.rows.map(row=>row.page===p?recover42AVPrintedCampaignRows([row],wordBoxes)[0]:row);
 for(let i=0;i<out.rows.length;i++)if(out.rows[i].page===p)out.rows[i]=restorePrintedPackageTitle(out.rows[i],wordBoxes);
 resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
 for(let ri=0;ri<out.rows.length;ri++){
