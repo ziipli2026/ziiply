@@ -14,6 +14,31 @@ for(const result of discovery.results ?? []){
   }
   discoveredById.set(result.offerId,existing);
 }
+// Include both bulk Open Food Facts searches in the same visual review gallery.
+for (const file of ["citymarket-openfoodfacts-discovery.json", "citymarket-openfoodfacts-search.json"]) {
+  if (!fs.existsSync(file)) continue;
+  const report = JSON.parse(fs.readFileSync(file, "utf8"));
+  for (const result of report.results ?? []) {
+    if (!result.offerId) continue;
+    const existing = discoveredById.get(result.offerId) ?? [];
+    const products = result.candidates ?? [result];
+    for (const product of products) {
+      for (const url of product.imageCandidates ?? []) {
+        if (typeof url !== "string" || !url.startsWith("https://") || existing.some(item => item.url === url)) continue;
+        existing.push({
+          url,
+          source: result.sourceUrl ?? "https://world.openfoodfacts.org/product/" + encodeURIComponent(product.ean ?? result.ean ?? ""),
+          eanPresentInHtml: Boolean(result.ean && product.ean === result.ean),
+          structuredProductImageCount: 0,
+          origin: "Open Food Facts – tarkistamaton hakutulos",
+          productName: product.productName ?? result.productName ?? "",
+          productEan: product.ean ?? result.ean ?? ""
+        });
+      }
+    }
+    discoveredById.set(result.offerId, existing);
+  }
+}
 const escape = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 assert.equal(queue.rows.length, queue.missingImages);
 const cards = queue.rows.map(row => {
