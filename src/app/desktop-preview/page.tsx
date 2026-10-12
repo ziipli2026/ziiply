@@ -818,6 +818,13 @@ export default function DesktopPreviewPage() {
   const [notebookOpen, setNotebookOpen] = useState(false);
   const [savedLists, setSavedLists] = useState<any[]>([]);
   const [pendingNotebookRestore,setPendingNotebookRestore]=useState<any[]|null>(null);
+  useEffect(()=>{
+    if(!pendingNotebookRestore)return;
+    const onKeyDown=(event:KeyboardEvent)=>{if(event.key==="Escape"){event.preventDefault();setPendingNotebookRestore(null);}};
+    window.addEventListener("keydown",onKeyDown);
+    return ()=>window.removeEventListener("keydown",onKeyDown);
+  },[pendingNotebookRestore]);
+
   const [saveListOpen, setSaveListOpen] = useState(false);
   const [saveListName, setSaveListName] = useState("");
   const [openedSavedListId, setOpenedSavedListId] = useState<string|null>(null);
