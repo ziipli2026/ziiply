@@ -188,6 +188,26 @@ test('42AV detached title prefixes are cleaned without altering product quantiti
  assert.equal(clean42AVPrintedTitle('3 KPL / 4 €'),'3 KPL / 4 €');
 });
 
+test('42AV mixed Arla HTML heading is replaced by the printed heading without changing its transaction',async()=>{
+ const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{
+  const response=archive.responses[String(input)];
+  assert.ok(response,'Frozen publisher response required: '+input);
+  return {ok:true,status:200,url:response.url,text:async()=>response.body};
+ });
+ const arla=parsed.rows.filter(row=>row.page===15&&/LEMPI RUOKAKERMAT/i.test(row.title));
+ assert.equal(arla.length,1,'Arla must appear exactly once');
+ assert.equal(arla[0].title,'LEMPI RUOKAKERMAT 3 dl');
+ assert.equal(arla[0].spatialResolved?.value,3);
+ assert.equal(arla[0].spatialResolved?.quantity,2);
+ const soap=parsed.rows.find(row=>row.page===6&&/SAPPISAIPPUA/.test(row.title));
+ assert.ok(soap,'Soap must remain available');
+ assert.equal(soap.spatialResolved?.value,3.99);
+ const pasta=parsed.rows.find(row=>row.page===17&&/PASTAT 500 g/.test(row.title));
+ assert.ok(pasta,'Pasta must remain available');
+ assert.equal(pasta.spatialResolved?.value,3.5);
+ assert.equal(pasta.spatialResolved?.quantity,2);
+});
+
 test('42AV automatic full-leaflet audit reports title anomalies without guessing prices',async()=>{
  const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{
   const response=archive.responses[String(input)];
