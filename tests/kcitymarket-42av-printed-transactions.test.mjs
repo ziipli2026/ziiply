@@ -104,3 +104,16 @@ test('Frozen 41LV output stays identical when 42AV is parsed between runs',async
  const after=await replay(oldArchive);
  assert.deepEqual(snapshot(after.rows),baseline,'42AV must not change approved 41LV results');
 });
+
+test('42AV frozen publisher preserves original split-title words for targeted repair',()=>{
+ const page=n=>{
+  const entry=Object.entries(archive.responses).find(([url])=>url.endsWith('text_position['+n+'].js'));
+  assert.ok(entry,'Frozen publisher page '+n+' must exist');
+  return entry[1].body;
+ };
+ const six=page(6),seventeen=page(17);
+ for(const word of ['PYYKINPESUNESTEET','PYYKINPESUKAPSELIT'])
+  assert.ok(six.includes('word:\\"'+word+'\\"'),'Missing page 6 publisher word: '+word);
+ for(const word of ['AURINGONKUKKAÖLJYSSÄ','VEDESSÄ'])
+  assert.ok(seventeen.includes('word:\\"'+word+'\\"'),'Missing page 17 publisher word: '+word);
+});
