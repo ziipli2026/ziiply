@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, productGroupGate } from "../components/ziiply/ziiplyCore";
+import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, productGroupGate, isComparisonAttributeCompatible } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -491,7 +491,7 @@ export default function DesktopPreviewPage() {
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
     const packageNeutral=name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
-    const queries=[...new Set([...(normalizedEan?[normalizedEan]:[]),name,packageNeutral,...(packageNeutral!==name?(isS?getNormalSearchQueries(packageNeutral):getKSearchTerms(packageNeutral)):[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,16);
+    const queries=[...new Set([...desktopCompareSearchTerms(name),...(normalizedEan?[normalizedEan]:[]),name,packageNeutral,...(packageNeutral!==name?(isS?getNormalSearchQueries(packageNeutral):getKSearchTerms(packageNeutral)):[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,16);
     const responses=await Promise.all(queries.map(async search=>{
       try{
         const kStoreId=String(store.id||"");
@@ -574,8 +574,12 @@ export default function DesktopPreviewPage() {
     const sameSize=candidates.filter((p:any)=>desktopPackageCompatible(name,String(p.name||"")));
     // K prices come from a third-party feed, not live K-Ruoka availability.
     // Never treat a fuzzy name/size match as proof that this exact EAN is sold in the selected K store.
-    if(!isS)return null;
-    const best=pickBestSProduct(sameSize,name,sourceEan);
+    const compatible=sameSize.filter((p:any)=>isComparisonAttributeCompatible(name,String(p.name||"")));
+    const sourceOwn=/^(?:pirkka|k-menu|coop|xtra|kotimaista|rainbow)\b/i.test(name);
+    const ownRe=isS?/^(?:coop|xtra|kotimaista|rainbow)\b/i:/^(?:pirkka|k-menu)\b/i;
+    const own=compatible.filter((p:any)=>ownRe.test(p.name));
+    const pool=sourceOwn&&own.length?own:compatible;
+    const best=isS?pickBestSProduct(pool,name,sourceEan):pickBestKProduct(pool,name,sourceEan);
     return best||null;
   }
 
@@ -618,7 +622,7 @@ export default function DesktopPreviewPage() {
             desktopDebug(`Haku alkaa: ${name}, EAN=${ean}, source=${item.source}`);
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
             desktopDebug(`API-ehdokkaita ${candidates.length}: ${name}; ${candidates.slice(0,8).map((p:any)=>`${p.name} [${p.ean}] ${p.price}c`).join(" | ")}`);
-            const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            const matched=candidates.find((candidate:any)=>ean&&normalizeEan(candidate.ean)===normalizeEan(ean)&&Number(candidate.price)>0);
             desktopDebug(`EAN-osuma: ${matched?`${matched.name} ${matched.price}c`:"EI"}`);
             const cents=matched?Number(matched.price):NaN;
             if(Number.isFinite(cents)&&cents>0)return {price:cents/100,proposal:null};
@@ -654,7 +658,7 @@ export default function DesktopPreviewPage() {
         if(eligibleCount>0&&pricedCount===0){flashCartNotice("Valitusta kaupasta ei löytynyt vahvistettuja hintoja.");}
         setCartItems(current=>current.map((item,i)=>{
           if((isS&&String(item.source||"").toLowerCase()==="offer")||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
-          return {...item,price:updates[i]?.price??null,storeName:String(store.name||""),priceNeedsRefresh:updates[i]?.price==null};
+          return {...item,price:updates[i]?.price??null,priceCheckedAt:Date.now(),storeName:String(store.name||""),priceNeedsRefresh:updates[i]?.price==null};
         }));
         setDesktopCartPricesChecked(true);
         // Prices refresh in the open cart without a full-screen notification.
@@ -691,7 +695,7 @@ export default function DesktopPreviewPage() {
             const price=matched?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
             const alternative=matched?null:desktopFindPackageAlternative(candidates,name,ean);
-            return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price,image:String((matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative};
+            return {cartItemId:String(item.id||""),name:matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative};
           }catch(error){desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         desktopDebug(`Kauppahaku valmis: ${store.name}, hinnat=${rows.filter(x=>x.price!=null).length}/${rows.length}`);
@@ -785,7 +789,7 @@ export default function DesktopPreviewPage() {
     if(!Number.isFinite(priceCents)||priceCents<=0){flashCartNotice("Valitun vaihtoehdon hinta ei ole kelvollinen.");return}
     desktopComparisonEdited.current=true;
     try{const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));const key=JSON.stringify([[...selected].sort((a,b)=>String(a.id).localeCompare(String(b.id))).map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);window.localStorage.setItem(desktopComparisonEditedKey,key)}catch{}
-    const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
+    const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),ean:String(alternative?.ean||alternative?.product?.ean||""),price:priceCents/100,image:String(alternative?.pictureUrl||alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
     setDesktopCompareResults(current=>{
       const existing=current[storeId];if(!existing)return current;
       const updatedRows=existing.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const,qualityMode:String(alternative?.comparisonSelectionMode||"cheapest")}:row);
@@ -923,11 +927,49 @@ export default function DesktopPreviewPage() {
     loadIndependentStores(value); fetch(`/api/store-search?search=${encodeURIComponent(value)}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items) }).catch(()=>setStores([]));
   }
 
-  useEffect(()=>{try{const raw=window.localStorage.getItem("ziiply-desktop-ostelusvihko-v1");if(raw)setSavedLists(JSON.parse(raw))}catch{}},[]);
+  useEffect(()=>{try{const raw=window.localStorage.getItem("ziiply-desktop-ostelusvihko-v1");if(raw){const lists=JSON.parse(raw).map((list:any)=>({...list,items:(list.items||[]).map(desktopNotebookItem)}));setSavedLists(lists);window.localStorage.setItem("ziiply-desktop-ostelusvihko-v1",JSON.stringify(lists))}}catch{}},[]);
   function persistSavedLists(next:any[]){setSavedLists(next);try{window.localStorage.setItem("ziiply-desktop-ostelusvihko-v1",JSON.stringify(next))}catch{}}
   function beginSaveCart(){if(!cartItems.length){flashCartNotice("Ostoskori on tyhjä");return}const d=new Date();setSaveListName(`Ostelusvihko ${d.toLocaleDateString("fi-FI")}`);setSaveListOpen(true)}
-  function restoreSavedList(list:any){setCartItems((list.items||[]).map((x:any)=>({...x})));setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko palautettu ostoskoriin")}
-  function saveCartToNotebook(){const name=saveListName.trim()||"Ostelusvihko";persistSavedLists([{id:String(Date.now()),name,createdAt:new Date().toISOString(),items:cartItems.map(x=>({...x}))},...savedLists]);setSaveListOpen(false);flashCartNotice(`Tallennettu Ostelusvihkoon: ${name}`)}
+
+  // Notebook data contains identity and quantity only. Prices belong to a store cache.
+  function desktopNotebookItem(item:any){
+    const p=item.product||{};
+    return {id:item.id,name:item.name||item.title||p.name,title:item.title||item.name||p.name,
+      ean:item.ean||p.ean,
+      quantity:Number(item.quantity||1),source:item.source,chain:item.chain,storeName:item.storeName,
+      product:{id:p.id,name:p.name||item.name||item.title,ean:p.ean||item.ean,
+        brandName:p.brandName,category:p.category,
+        ziiplyWeightLabel:p.ziiplyWeightLabel},ziiplyWeightLabel:item.ziiplyWeightLabel};
+  }
+  function desktopPriceKey(item:any,storeName:string){
+    const ean=normalizeEan(item.ean||item.product?.ean||"");
+    return ean&&storeName?JSON.stringify([ean,storeName]):"";
+  }
+  function desktopRememberPrices(items:any[]){
+    try{
+      const cache=JSON.parse(window.localStorage.getItem("ziiply-desktop-product-prices-v1")||"{}");
+      for(const item of items){
+        const key=desktopPriceKey(item,String(item.storeName||""));
+        const at=Number(item.priceCheckedAt);
+        if(key&&Number(item.price)>0&&Number.isFinite(at)&&at<=Date.now()&&Date.now()-at<86400000)
+          cache[key]={price:Number(item.price),checkedAt:at};
+      }
+      window.localStorage.setItem("ziiply-desktop-product-prices-v1",JSON.stringify(cache));
+    }catch{}
+  }
+  function desktopRestoreNotebookItem(item:any){
+    const clean=desktopNotebookItem(item);
+    const selected=(Object.values(selectedStores) as any[]).find(s=>String(s.name||"")===String(clean.storeName||""));
+    const storeName=selected?String(selected.name||""):"";
+    let hit:any=null;
+    try{hit=JSON.parse(window.localStorage.getItem("ziiply-desktop-product-prices-v1")||"{}")[desktopPriceKey(clean,storeName)]}catch{}
+    const valid=hit&&Number(hit.price)>0&&Number(hit.checkedAt)<=Date.now()&&Date.now()-Number(hit.checkedAt)<86400000;
+    return {...clean,price:valid?Number(hit.price):null,priceCheckedAt:valid?hit.checkedAt:undefined,priceNeedsRefresh:true};
+  }
+
+  useEffect(()=>{desktopRememberPrices(cartItems)},[cartItems]);
+  function restoreSavedList(list:any){desktopCompareCache.current.clear();setDesktopCompareResults({});setCartItems((list.items||[]).map(desktopRestoreNotebookItem));setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko palautettu ostoskoriin")}
+  function saveCartToNotebook(){desktopRememberPrices(cartItems);const name=saveListName.trim()||"Ostelusvihko";persistSavedLists([{id:String(Date.now()),name,createdAt:new Date().toISOString(),items:cartItems.map(desktopNotebookItem)},...savedLists]);setSaveListOpen(false);flashCartNotice(`Tallennettu Ostelusvihkoon: ${name}`)}
 
   function desktopCartPrice(value:any):number|null{if(value==null||value==="")return null;const normalized=String(value).replace(/\s/g,"").replace("€","").replace(",",".");const price=Number(normalized);return Number.isFinite(price)&&price>=0?price:null}
   function isDesktopMemoItem(p:any){return p?.isMemo===true||p?.manual===true||p?.source==="manual"||p?.source==="memo"||(!p?.ean&&!p?.offerId&&!p?.storeName&&desktopCartPrice(p?.price)==null)}
@@ -1411,7 +1453,7 @@ export default function DesktopPreviewPage() {
  <div className="absolute inset-x-[4.5%] bottom-[65px] top-[156px] overflow-y-auto">
  {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=><div key={desktopCartKey(p)||i} className="grid min-h-[86px] grid-cols-[60px_minmax(0,1fr)_220px_220px] items-center border-b border-[#8f744f]/25 py-[4px] text-[#3c2c1b]">
   <span className="text-center font-serif text-[20px]">{i+1}</span>
-  <div className="flex min-w-0 items-center gap-3 pl-[30px] pr-[12px]">{p.pictureUrl&&<img src={p.pictureUrl} alt="" className="h-[78px] w-[78px] shrink-0 rounded-lg bg-[#fffaf0] object-contain" />}<div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{p.storeName||""}</div>{p.discountText&&<div className="truncate text-[14px] italic text-[#77513c]">{p.discountText}</div>}{p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{p.validityText&&<div className="text-[14px] text-[#66543d]">{p.validityText}</div>}</div></div>
+  <div className="flex min-w-0 items-center gap-3 pl-[30px] pr-[12px]"><div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{p.storeName||""}</div>{p.discountText&&<div className="truncate text-[14px] italic text-[#77513c]">{p.discountText}</div>}{p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{p.validityText&&<div className="text-[14px] text-[#66543d]">{p.validityText}</div>}</div></div>
   <div className="flex w-full translate-x-[13px] items-center justify-center gap-2">{!isDesktopMemoItem(p)&&<><button onClick={()=>changeDesktopCartQuantity(p,-1)} aria-label="Vähennä määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">−</button><span className="min-w-6 text-center text-[19px] font-bold">{Number(p.quantity||1)}</span><button onClick={()=>changeDesktopCartQuantity(p,1)} aria-label="Lisää määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">+</button></>}</div>
   <div className="flex items-center justify-center px-2">{!isDesktopMemoItem(p)&&<span className="whitespace-nowrap font-serif text-[clamp(17px,1.35vw,23px)] font-bold">{desktopCartPrice(p.price)!=null?desktopCartPrice(p.price)!.toFixed(2).replace(".",",")+" €":"—"}</span>}</div>
  </div>)}
@@ -1436,7 +1478,7 @@ export default function DesktopPreviewPage() {
   onBack={()=>{setDesktopCompareNotice(false);setJustiinaResultsOpen(false);setWorkspace(null)}}
   onBackToCart={()=>{setDesktopCompareNotice(false);setJustiinaResultsOpen(false);setWorkspace(null)}}
   onClose={()=>{setDesktopCompareNotice(false);setJustiinaResultsOpen(false);setWorkspace(null)}}
-  onSelectStore={(id)=>{const chosen=desktopCompareResults[id];if(!chosen)return;if(!chosen.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan vertailukorissa ei ole yhtään vahvistettua hintaa.");return;}const byId=new Map(chosen.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,price:row.price??null,storeName:String(chosen.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(chosen.store?.name||"kauppa")} (${chosen.rows.filter(row=>row.price!=null).length}/${chosen.rows.length} hintaa).`)}}
+  onSelectStore={(id)=>{const chosen=desktopCompareResults[id];if(!chosen)return;if(!chosen.rows.some(row=>row.price!=null)){flashCartNotice("Valitun kaupan vertailukorissa ei ole yhtään vahvistettua hintaa.");return;}const byId=new Map(chosen.rows.map(row=>[row.cartItemId,row]));setCartItems(current=>current.map(item=>{const row=byId.get(String(item.id||""));return row?{...item,name:row.name,title:row.name,ean:(row as any).ean||undefined,image:(row as any).image||undefined,product:{name:row.name,ean:(row as any).ean||undefined,pictureUrl:(row as any).image||undefined},price:row.price??null,priceCheckedAt:Date.now(),storeName:String(chosen.store?.name||""),priceNeedsRefresh:row.price==null}:item}));setDesktopCompareNotice(false);setCartOpen(true);flashCartNotice(`Vertailukori valittu: ${String(chosen.store?.name||"kauppa")} (${chosen.rows.filter(row=>row.price!=null).length}/${chosen.rows.length} hintaa).`)}}
 />}
 
 
@@ -1681,7 +1723,7 @@ export default function DesktopPreviewPage() {
 </div>)}</div>}</div></>}</div>})()}
 
             {desktopListPrompt && <div className="fixed inset-0 z-[150] grid place-items-center bg-black/50 p-4"><div role="dialog" aria-modal="true" aria-label="Ohitetaanko tuote" className="w-full max-w-[440px] rounded-3xl border-2 border-[#477350] bg-[#fff3cf] p-6 text-center shadow-2xl"><h3 className="text-xl font-black text-[#174c3a]">Jätetäänkö tämä tuote pois hausta?</h3><p className="mt-2 font-semibold">{justiinaActiveTerm}</p><div className="mt-5 flex flex-wrap justify-center gap-3"><button type="button" onClick={()=>setDesktopListPrompt(false)} className="rounded-xl border px-4 py-3 font-bold">Jatka valintaa</button><button type="button" onClick={confirmDesktopListSkip} className="rounded-xl border px-4 py-3 font-bold">Ohita tuote</button><button type="button" onClick={cancelDesktopListEntirely} className="rounded-xl border px-4 py-3 font-bold">Keskeytä koko lista</button></div></div></div>}
-            {workspace==="justiina" && justiinaResultsOpen && <div className="fixed inset-x-6 bottom-6 top-[var(--desktop-overlay-top)] z-[65] flex flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]"><div className="relative mx-auto flex h-[58px] w-[min(100%,620px)] shrink-0 items-center justify-center gap-3 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-3">{cartNotice&&<div role="status" className="absolute left-1/2 top-1/2 z-40 flex h-[44px] w-[min(404px,calc(100%-186px))] min-w-0 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-[14px] bg-[#08a36d] px-3 text-center text-[14px] font-black text-white shadow-lg"><span className="block min-w-0 truncate whitespace-nowrap">{cartNotice}</span></div>}<button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="absolute left-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button><button type="button" onClick={requestDesktopListExit} aria-label="Takaisin hakuun" className="absolute left-[60px] top-1/2 z-30 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#17573c] bg-[#fff9dd] text-[22px] font-black text-[#174c35]">←</button><div className="flex min-w-0 max-w-[calc(100%-160px)] items-center justify-center gap-3"><span className="min-w-0 truncate whitespace-nowrap font-serif text-[21px] font-black italic text-[#174c35]" title={`${justiinaLoading ? "haetaan" : "löydetty"} · ${justiinaActiveTerm || justiinaQuery}`}>{justiinaLoading ? "haetaan" : "löydetty"} · {justiinaActiveTerm || justiinaQuery}</span></div><button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button></div><div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4"><div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=><div key={String(p.id||p.ean||i)} className="grid h-[258px] min-h-0 grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,storeName:p.__store});justiinaAddedDuringSelectionRef.current=true;resumeDesktopVoiceList()}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">🛒 Lisää koriin</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}</div></div>)}</div></div></div>}
+            {workspace==="justiina" && justiinaResultsOpen && <div className="fixed inset-x-6 bottom-6 top-[var(--desktop-overlay-top)] z-[65] flex flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]"><div className="relative mx-auto flex h-[58px] w-[min(100%,620px)] shrink-0 items-center justify-center gap-3 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-3">{cartNotice&&<div role="status" className="absolute left-1/2 top-1/2 z-40 flex h-[44px] w-[min(404px,calc(100%-186px))] min-w-0 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-[14px] bg-[#08a36d] px-3 text-center text-[14px] font-black text-white shadow-lg"><span className="block min-w-0 truncate whitespace-nowrap">{cartNotice}</span></div>}<button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="absolute left-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button><button type="button" onClick={requestDesktopListExit} aria-label="Takaisin hakuun" className="absolute left-[60px] top-1/2 z-30 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#17573c] bg-[#fff9dd] text-[22px] font-black text-[#174c35]">←</button><div className="flex min-w-0 max-w-[calc(100%-160px)] items-center justify-center gap-3"><span className="min-w-0 truncate whitespace-nowrap font-serif text-[21px] font-black italic text-[#174c35]" title={`${justiinaLoading ? "haetaan" : "löydetty"} · ${justiinaActiveTerm || justiinaQuery}`}>{justiinaLoading ? "haetaan" : "löydetty"} · {justiinaActiveTerm || justiinaQuery}</span></div><button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button></div><div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4"><div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=><div key={String(p.id||p.ean||i)} className="grid h-[258px] min-h-0 grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,priceCheckedAt:Date.now(),storeName:p.__store});justiinaAddedDuringSelectionRef.current=true;resumeDesktopVoiceList()}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">🛒 Lisää koriin</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}</div></div>)}</div></div></div>}
             {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onVoiceTranscript={(text)=>{void runDesktopVoiceList(text)}} onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(false);setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{cancelDesktopVoiceList();justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void runDesktopVoiceList(justiinaQuery)}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
