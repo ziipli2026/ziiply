@@ -10,6 +10,11 @@ const publication = Object.entries(manifest.publications).find(([url]) => url ==
 assert.ok(publication, "No exact matching publication; do not mix images between issues");
 assert.equal(publication.pdfSha256, fixture.pdfSha256, "Leaflet hash mismatch");
 assert.equal(publication.offerCount, fixture.offerCount, "Offer count mismatch");
+const bankReviewPath = "scripts/citymarket/41lv-bank-image-review.json";
+const bankReview = fs.existsSync(bankReviewPath) ? JSON.parse(fs.readFileSync(bankReviewPath, "utf8")) : null;
+const bankRows = bankReview && bankReview.leafletSha256 === fixture.pdfSha256
+  ? bankReview.rows : [];
+const bankByOffer = new Map(bankRows.map(row => [row.offerId, row]));
 const missing = fixture.offers.filter(offer => !publication.images[offer.key]);
 const ambiguous = /(?:^|\s)(?:tai|sekä|seka|valikoima|erilaiset|useita|lajitelma|ja)(?=\s|$)|\d+\s*[–-]\s*\d+\s*(?:g|kg|ml|l)\b/i;
 const cleanIdentity = identity => identity.replace(/[(][^)]*[)]/g, " ").replace(/\s+/g, " ").trim();
@@ -36,6 +41,9 @@ const rows = missing.map(offer => ({
   candidateStatus: candidatesByOffer.get(offer.key)?.status ?? null,
   productSourceUrl: candidatesByOffer.get(offer.key)?.url ?? null,
   candidateEan: candidatesByOffer.get(offer.key)?.ean ?? null,
+  bankReviewStatus: bankByOffer.get(offer.key)?.status ?? "not-reviewed",
+  bankCandidates: bankByOffer.get(offer.key)?.candidates ?? [],
+  bankInvalidImageCandidates: bankByOffer.get(offer.key)?.invalidImageCandidates ?? [],
   evidence: "approved-leaflet-fixture",
 }));
 const report = {
@@ -44,6 +52,8 @@ const report = {
   totalOffers: fixture.offerCount,
   existingImages: Object.keys(publication.images).length,
   missingImages: rows.length,
+  pendingBankReview: rows.filter(row => row.bankCandidates.length > 0).length,
+  bankWebpageOnly: rows.filter(row => row.bankReviewStatus === 'bank-image-is-webpage').length,
   rows,
 };
 assert.equal(report.totalOffers, report.existingImages + report.missingImages);

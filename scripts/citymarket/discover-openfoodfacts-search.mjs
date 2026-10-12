@@ -12,6 +12,10 @@ const summary=()=>Object.fromEntries([...new Set(results.map(row=>row.status))].
 const tokens=value=>new Set(String(value??"").toLocaleLowerCase("fi").normalize("NFKC").match(/[a-zåäö0-9]{3,}/g)??[]);
 const overlap=(query,name,brand)=>{const requested=tokens(query);const found=tokens([name,brand].filter(Boolean).join(" "));return requested.size?[...requested].filter(token=>found.has(token)).length/requested.size:0;};
 for(const row of queue.rows){
+  if(row.bankCandidates?.length){
+    results.push({offerId:row.offerId,status:"pending-bank-image-review",bankCandidateCount:row.bankCandidates.length,reviewRequired:true,approved:false});
+    continue;
+  }
   if(row.candidateEan || row.reviewPriority==="manual-multi-product"){
     results.push({offerId:row.offerId,status:row.candidateEan?"known-ean-handled-separately":"ambiguous-multi-product",approved:false});
     continue;
