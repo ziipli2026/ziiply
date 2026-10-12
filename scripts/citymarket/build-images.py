@@ -85,7 +85,9 @@ def build(folder,manifest_path,public_folder,review_path):
  for number in range(len(doc)):
   page=doc[number];rows=[r for r in meta['rows'] if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
   if not rows:continue
-  if not reviewed:
+  # Keep automatic image discovery active even when some offers have been
+  # manually reviewed. Reviewed rectangles override only their own offer.
+  if True:
    # Independent package-label text proof must accompany spatial ownership.
    # A distinctive word must occur in only one offer context on this page.
    context={r['id']:words(r['title']+' '+' '.join(r['nearby'])) for r in rows}
