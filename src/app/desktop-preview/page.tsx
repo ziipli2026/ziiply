@@ -205,6 +205,22 @@ export default function DesktopPreviewPage() {
     return ()=>{window.removeEventListener("ziiply-arvo-preferences-updated",refresh);window.removeEventListener("storage",refresh);};
   },[]);
   const [justiinaPeopleOverride,setJustiinaPeopleOverride]=useState<number|null>(null);
+  const [justiinaRecipeRequest,setJustiinaRecipeRequest]=useState("");
+  function prepareJustiinaRecipeRequest(){
+    const prefs=justiinaArvo??readArvoPreferences();
+    const people=justiinaPeopleOverride??prefs.householdSize;
+    const dietLabels=effectiveArvoDiets(prefs.diets).map(key=>ARVO_DIETS.find(d=>d[0]===key)?.[1]||key);
+    const constraints=[
+      "Laadi reseptiehdotus "+people+" henkilölle.",
+      dietLabels.length?"Ruokavaliot: "+dietLabels.join(", ")+".":"",
+      prefs.allergies.trim()?"Allergiat: "+prefs.allergies.trim()+".":"",
+      prefs.avoidedIngredients.trim()?"Vältettävät ainekset: "+prefs.avoidedIngredients.trim()+".":"",
+      "Kerro ainesosat, määrät, valmistusohjeet ja annosmäärä.",
+      "Älä väitä reseptiä allergeeniturvalliseksi ilman ainesosien ja pakkausmerkintöjen tarkistamista."
+    ].filter(Boolean).join("\\n");
+    setJustiinaRecipeRequest(constraints);
+  }
+
 
   const [gostaChainPicker, setGostaChainPicker] = useState(false);
   const [chooseStoresNoticeFor, setChooseStoresNoticeFor] = useState<Assistant|null>(null);
@@ -1832,6 +1848,8 @@ export default function DesktopPreviewPage() {
                 {effectiveArvoDiets(justiinaArvo.diets).length>0&&<p>Ruokavaliot: {effectiveArvoDiets(justiinaArvo.diets).map(key=>ARVO_DIETS.find(d=>d[0]===key)?.[1]||key).join(", ")}</p>}
                 {justiinaArvo.allergies.trim()&&<p className="font-bold text-red-800">Allergiat: {justiinaArvo.allergies}</p>}
                 {justiinaArvo.avoidedIngredients.trim()&&<p>Vältettävät: {justiinaArvo.avoidedIngredients}</p>}
+                <button type="button" className="rounded-lg bg-[#24573e] px-3 py-2 font-bold text-white" onClick={prepareJustiinaRecipeRequest}>Muodosta reseptiohje näillä asetuksilla</button>
+                {justiinaRecipeRequest&&<div className="space-y-2"><p className="font-bold">Reseptipyyntö (ei vielä automaattista reseptihakua)</p><textarea readOnly className="w-full rounded border p-2" rows={7} value={justiinaRecipeRequest}/><button type="button" className="underline" onClick={()=>{void navigator.clipboard?.writeText(justiinaRecipeRequest)}}>Kopioi reseptipyyntö</button></div>}
                 <p className="text-[#775b31]">Nämä asetukset ovat nähtävillä, mutta eivät vielä suodata tuotteita tai varmista allergeeniturvallisuutta.</p>
               </div>
             </details>}
