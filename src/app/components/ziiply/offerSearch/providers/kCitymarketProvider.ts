@@ -84,6 +84,8 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
+  // Use the existing offer category for supplements; do not catch vitamin drinks.
+  if(/(?:monivitamiin|vitamiini(?:t|valmiste|tabletti|kapseli)?\b|ravintolis|magnesium|sinkki\b|omega[- ]?3|kollageeni|biotiini|melatoniini)/.test(s) && !/(?:vitamiinijuoma|juotava\s+vitamiini|virvoitusjuoma)/.test(s)) return "Vitamiinit & ravinteet";
   // Product forms recovered from split 42AV titles. Category only; never alter prices.
   if(/\bkanan\s+rintafileet\b/.test(s)) return "Liha & makkarat";
   if(/\b(?:päivävoiteet|micellar|roll-on\s+ja\s+spray|inkosuojat|pikkuhousunsuojat|siteet\b)\b/.test(s)) return "Hygienia & kosmetiikka";
