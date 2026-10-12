@@ -23,12 +23,32 @@ export function categoryFromOwnedContext(
   context: string[],
   owned: boolean,
   classify: (text: string) => string,
+  geometry?: { anchor: { left: number; top: number; width: number }; boxes: {text: string;left: number;top: number;width: number}[] },
 ): string {
   const direct = classify(title);
   if (direct !== 'Muut' || !owned) return direct;
-  // The spatial parser's imageAnchor identifies a resolved card; nearby lines
-  // have been assigned exclusively to that card by resolveCards. Flat HTML
-  // neighbourhoods must never be used as category evidence.
-  const categories = new Set(context.map(classify).filter(value => value !== 'Muut'));
+  // A card's broad context can still contain an adjacent offer. When geometry
+  // is available, require text to align with the current title column and to
+  // occur in the card context; never classify from the whole nearby box area.
+  let evidence = context;
+  if (geometry) {
+    const {anchor,boxes} = geometry;
+    if (![anchor.left,anchor.top,anchor.width].every(Number.isFinite) || anchor.width <= 0) return 'Muut';
+    const normalize = (value: string) => value.toLocaleLowerCase('fi-FI').replace(/\s+/g,' ').trim();
+    const ownedText = normalize(context.join(' '));
+    const rows: {top:number;boxes:typeof boxes}[] = [];
+    for (const box of boxes.filter(box =>
+      Number.isFinite(box.left) && Number.isFinite(box.top) && Number.isFinite(box.width) &&
+      box.left >= anchor.left - 0.015 && box.left + box.width <= anchor.left + anchor.width + 0.025 &&
+      box.top >= anchor.top - 0.04 && box.top <= anchor.top + 0.04 &&
+      ownedText.includes(normalize(box.text))
+    ).sort((a,b)=>a.top-b.top || a.left-b.left)) {
+      let row = rows.find(row => Math.abs(row.top-box.top) < 0.0035);
+      if (!row) { row={top:box.top,boxes:[]}; rows.push(row); }
+      row.boxes.push(box);
+    }
+    evidence = rows.map(row=>row.boxes.sort((a,b)=>a.left-b.left).map(box=>box.text).join(' '));
+  }
+  const categories = new Set(evidence.map(classify).filter(value => value !== 'Muut'));
   return categories.size === 1 ? [...categories][0] : 'Muut';
 }

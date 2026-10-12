@@ -64,3 +64,19 @@ test('Only exclusively owned, unambiguous card context supplies a missing catego
   assert.equal(categoryFromOwnedContext('ROUHE tai PALAT 180 g',[...context,'CLASSIC PÄIVÄVOITEET'],true,classify),'Muut');
   assert.equal(categoryFromOwnedContext('PYYKKIETIKAT 750 ml',['KORVAPUUSTI'],true,classify),'Kodinhoito');
 });
+test('Page 17 tuna context excludes the adjacent Fasupalat column',()=>{
+  const title='2 PS ja VEDESSÄ 145/95–102 g';
+  const context=['John West','Fazer','FASUPALAT 175–199 g','TONNIKALAPALOJA','AURINGONKUKKAÖLJYSSÄ',title];
+  const classify=text=>/tonnikala/i.test(text)?'Kala':category(text)||'Muut';
+  const geometry={anchor:{left:0.685826,top:0.863859,width:0.142183},boxes:[
+    {text:'FASUPALAT',left:0.434695,top:0.873524,width:0.08},
+    {text:'TONNIKALAPALOJA',left:0.685826,top:0.840662,width:0.110539},
+    {text:'AURINGONKUKKAÖLJYSSÄ',left:0.685826,top:0.852261,width:0.151682},
+  ]};
+  assert.equal(categoryFromOwnedContext(title,context,true,classify),'Muut');
+  assert.equal(categoryFromOwnedContext(title,context,true,classify,geometry),'Kala');
+  assert.equal(categoryFromOwnedContext(title,context,false,classify,geometry),'Muut');
+  assert.equal(categoryFromOwnedContext(title,context,true,classify,{...geometry,anchor:{...geometry.anchor,left:NaN}}),'Muut');
+  const conflicting={...geometry,boxes:[...geometry.boxes,{text:'FASUPALAT',left:0.685826,top:0.875,width:0.08}]};
+  assert.equal(categoryFromOwnedContext(title,context,true,classify,conflicting),'Muut');
+});
