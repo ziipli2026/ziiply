@@ -421,6 +421,10 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     if (/\b(pizza|pizzat|pizzapala|pizzapalat|pitsa|pitsat)\b/.test(productTitle)) {
       return /\b(pakaste|pakastettu|pakastepizza|pakastepitsa)\b/.test(productTitle) ? "Pakasteet" : "Valmisruoka";
     }
+    // The K-local provider has already resolved product form and source taxonomy.
+    // Cards omit provider metadata, so retain the canonical nested source category.
+    const category = String(sourceItem?.category || "").trim();
+    if (GOSTA_CATEGORY_LABELS_V136.includes(category)) return category;
   }
 
   const trustedExistingProviderCategory = getTrustedETarjousCategoryV166(item);

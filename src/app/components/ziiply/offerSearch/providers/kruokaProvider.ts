@@ -368,6 +368,12 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   // departments (observed K-Supermarket Kaukajärvi, 1 Oct 2026).
   // Match only the product title: descriptions often mention unrelated products.
   const productTitle = normalize(offer.name ?? offer.title ?? "");
+  // Product form wins over misleading weekly-leaflet departments and flavours.
+  if (/\b(?:[a-z]*mehu(?:t|juom[a-z]*)?|maitokaakaojuom[a-z]*|maitokahvijuom[a-z]*)\b/.test(productTitle)) return "Juomat";
+  if (/\b(?:mikroateri\w*|kiusau\w*|ohukai\w*)\b/.test(productTitle) || /\b(?:atria|kokkikartano)\b.*\blaatik(?:ko|ot)\w*\b/.test(productTitle)) return "Valmisruoka";
+  if (/\btortellon\w*\b/.test(productTitle)) return "Kuivatuotteet";
+  if (/\b(?:grillibroileri\w*|broileri\w*|kanaset\w*)\b/.test(productTitle)) return "Liha & makkarat";
+
   // Produce-filled harvest buckets/bags are HEVI despite Tjek's "Muut".
   // Do not classify an ordinary empty bucket as fresh produce.
   if (/\\bsadonkorjuu\\s*(?:amp[a-z]*ri\\w*|kassi\\w*)\\b/.test(productTitle)) return "Hevi";
