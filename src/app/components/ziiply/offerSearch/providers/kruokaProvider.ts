@@ -514,25 +514,35 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   const publicationId = String(offer.publicationPublicId ?? "");
   const image = String(offer.imageLarge ?? offer.image ?? "") || null;
   const sourceDescription = String(offer.description ?? "").trim();
-  const sourceKgPrice = sourceDescription.match(/(?:^|\s)(\d+[,.]\d{1,2})\s*\/\s*kg(?:\s|$)/i);
-  const sourceKgPriceValue = sourceKgPrice ? num(sourceKgPrice[1].replace(",", ".")) : null;
-  const rawUnit = String(offer.baseUnit ?? "").trim();
-  // V73: explicit source €/kg text wins over an erroneous Tjek baseUnit=piece.
-  // Keep normal piece pricing and multi-buy display untouched when the source
-  // does not explicitly provide a kilogram comparison price.
-  const unit = sourceKgPriceValue != null ? "kilogram" : rawUnit;
-  const unitPriceValue = sourceKgPriceValue ?? num(offer.unitPrice);
-  const unitPrice = unitPriceValue == null ? "" : `${priceText(unitPriceValue)}${unit ? `/${unit}` : ""}`;
+  // Only the offer-side comparison price is authoritative here. A normal
+  // price after "Ilman Plussa-korttia" must never replace the offer price.
+  const offerDescription = sourceDescription.split(/ilman\s+plussa(?:-korttia)?/i)[0];
+  const comparison = offerDescription.match(/(?:^|\s)(\d+[,.]\d{1,2})(?:\s*[-–—]\s*(\d+[,.]\d{1,2}))?\s*(?:€\s*)?\/\s*(kg|l|kpl)(?=\s|[),.;]|$)/i);
+  const sourceMin = comparison ? num(comparison[1].replace(",", ".")) : null;
+  const sourceMax = comparison?.[2] ? num(comparison[2].replace(",", ".")) : null;
+  const rawUnit = String(offer.baseUnit ?? "").trim().toLowerCase();
+  const unitAliases: Record<string, string> = { kilogram: "kg", liter: "l", litre: "l", piece: "kpl" };
+  const unit = comparison?.[3]?.toLowerCase() ?? unitAliases[rawUnit] ?? rawUnit;
+  const unitPriceValue = sourceMin ?? num(offer.unitPrice);
+  const comparisonAmount = unitPriceValue == null ? "" : priceText(unitPriceValue) +
+    (sourceMax != null && sourceMax !== sourceMin ? `–${priceText(sourceMax)}` : "");
+  const unitPrice = comparisonAmount ? `${comparisonAmount} €${unit ? `/${unit}` : ""}` : "";
   const isPlussa = membership != null;
   const pieceCountFrom = num(offer.pieceCountFrom);
   const pieceCountTo = num(offer.pieceCountTo);
   const offerQuantity = pieceCountFrom != null && pieceCountFrom > 1 && pieceCountTo === pieceCountFrom
     ? pieceCountFrom
     : null;
-  const effectivePriceText = offerQuantity == null
-    ? priceText(effective)
-    : `${priceText(effective)} € / ${offerQuantity} kpl`;
   const category = mapTjekCategoryV54(offer);
+  // A 1 kg bag also has equal selling/comparison prices: do not label it as
+  // loose produce. Require produce, explicit source €/kg and no pack size.
+  const hasPackSize = /\d\s*(?:[-–]\s*\d+\s*)?(?:kg|g|ml|cl|dl|l|kpl)\b|\b(?:pussi|pakkaus|rasia|ruukku)\b/i.test(title);
+  const soldByWeight = offerQuantity == null && category === "Hevi" && !hasPackSize &&
+    comparison?.[3]?.toLowerCase() === "kg" && sourceMax == null &&
+    sourceMin != null && Math.abs(sourceMin - effective) < 0.005;
+  const effectivePriceText = offerQuantity != null
+    ? `${priceText(effective)} € / ${offerQuantity} kpl`
+    : soldByWeight ? `${priceText(effective)} € / kg` : priceText(effective);
   // Only explicit source campaign metadata may move an item to Gösta's
   // campaign tab. Plussa/app prices and multi-buy alone are still offers.
   const campaignMarker = [
@@ -562,7 +572,7 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
-    debug: { providerVersion: "V66_KSUPERMARKET_MULTIBUY", publicationId, tjekStoreId: displayStoreId, chain, offerQuantity },
+    debug: { providerVersion: "V75_KLOCAL_PRICE_UNITS", publicationId, tjekStoreId: displayStoreId, chain, offerQuantity },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
