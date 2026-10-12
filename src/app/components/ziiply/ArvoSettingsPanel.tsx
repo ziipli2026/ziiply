@@ -18,6 +18,13 @@ export type ArvoPreferences = {
   manualKcal: string;
   specialSituation: "none" | "pregnancy" | "breastfeeding" | "other";
   purchaseTracking: boolean;
+  mealTimes: { breakfast: string; lunch: string; dinner: string; evening: string };
+  mealRemindersEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+  weekendSuggestions: boolean;
+  celebrationSuggestions: boolean;
+  calendarSuggestions: boolean;
 };
 export const ARVO_STORAGE_KEY = "ziiply-arvo-preferences-v1";
 export const ARVO_DIETS = [
@@ -36,13 +43,16 @@ export const DEFAULT_ARVO_PREFERENCES: ArvoPreferences = {
   householdSize: 2, diets: [], allergies: "", avoidedIngredients: "", dietEnabled: false,
   birthDate: "", sexForEquation: "", weightKg: "", weightMeasuredAt: "",
   heightCm: "", activity: "light", goal: "maintain", targetWeightKg: "",
-  manualKcal: "", specialSituation: "none", purchaseTracking: false
+  manualKcal: "", specialSituation: "none", purchaseTracking: false,
+  mealTimes: { breakfast: "08:00", lunch: "12:00", dinner: "17:00", evening: "20:00" },
+  mealRemindersEnabled: false, quietHoursStart: "22:00", quietHoursEnd: "07:00",
+  weekendSuggestions: false, celebrationSuggestions: false, calendarSuggestions: false
 };
 export function readArvoPreferences(): ArvoPreferences {
   if (typeof window === "undefined") return { ...DEFAULT_ARVO_PREFERENCES };
   try {
     const parsed = JSON.parse(window.localStorage.getItem(ARVO_STORAGE_KEY) || "{}");
-    return { ...DEFAULT_ARVO_PREFERENCES, ...parsed, diets: Array.isArray(parsed.diets) ? parsed.diets.filter((d: unknown) => ARVO_DIETS.some(([key]) => key === d)) : [] };
+    return { ...DEFAULT_ARVO_PREFERENCES, ...parsed, mealTimes: { ...DEFAULT_ARVO_PREFERENCES.mealTimes, ...(parsed.mealTimes && typeof parsed.mealTimes === "object" ? parsed.mealTimes : {}) }, diets: Array.isArray(parsed.diets) ? parsed.diets.filter((d: unknown) => ARVO_DIETS.some(([key]) => key === d)) : [] };
   } catch { return { ...DEFAULT_ARVO_PREFERENCES }; }
 }
 export function effectiveArvoDiets(diets: string[]) {
@@ -107,6 +117,7 @@ export default function ArvoSettingsPanel() {
   useEffect(() => { if (loaded) { try { window.localStorage.setItem(ARVO_STORAGE_KEY, JSON.stringify(p)); window.dispatchEvent(new Event("ziiply-arvo-preferences-updated")); } catch {} } }, [p, loaded]);
   const update = <K extends keyof ArvoPreferences>(key: K, value: ArvoPreferences[K]) => setP(prev => ({ ...prev, [key]: value }));
   const energy = estimateArvoEnergy(p);
+  const mealLabels: { key: keyof ArvoPreferences["mealTimes"]; label: string }[] = [{key:"breakfast",label:"Aamiainen"},{key:"lunch",label:"Lounas"},{key:"dinner",label:"Päivällinen"},{key:"evening",label:"Iltapala"}];
   return <div className="h-full overflow-y-auto px-2 py-4 text-[#173b2b]">
     <p className="mb-4 text-sm">Asetukset tallentuvat tähän selaimeen. Eivät vielä synkronoidu eri laitteiden välillä.</p>
     <section className="mb-5 rounded-xl bg-white/75 p-4">
@@ -155,6 +166,17 @@ export default function ArvoSettingsPanel() {
         <button type="button" className="mt-2 rounded border px-3 py-1 text-sm" onClick={()=>{if(!window.confirm("Poistetaanko kaikki Arvon vahvistetut ostokset tältä selaimelta?"))return;setPurchases([]);window.localStorage.removeItem(ARVO_PURCHASES_KEY);}}>Poista ostohistoria</button>
       </>}
     </section>
-    <section className="rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Muistutukset ja sijainti</h3><p className="text-sm">Ruokailu-, kalenteri- ja sijaintimuistutukset tulevat myöhemmässä vaiheessa. Taustasijaintia tai ilmoituslupia ei pyydetä.</p></section>
+    <section className="rounded-xl bg-white/75 p-4">
+      <h3 className="text-xl font-bold">Ruokailuajat ja muistutukset</h3>
+      <p className="mb-3 text-sm">Valitse haluamasi ruokailuajat. Ajat tallentuvat asetuksiin; selainilmoituksia ei vielä lähetetä.</p>
+      <div className="grid gap-3 sm:grid-cols-2">{mealLabels.map(({key,label})=><label key={key} className="text-sm">{label}<input type="time" className="block w-full rounded border p-2" value={p.mealTimes[key]||""} onChange={e=>update("mealTimes",{...p.mealTimes,[key]:e.target.value})}/></label>)}</div>
+      <label className="mt-4 block"><input type="checkbox" checked={p.mealRemindersEnabled} onChange={e=>update("mealRemindersEnabled",e.target.checked)} /> Haluan ruokailumuistutukset, kun toiminto on käytettävissä</label>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2"><label className="text-sm">Hiljainen aika alkaa<input type="time" className="block w-full rounded border p-2" value={p.quietHoursStart} onChange={e=>update("quietHoursStart",e.target.value)}/></label><label className="text-sm">Hiljainen aika päättyy<input type="time" className="block w-full rounded border p-2" value={p.quietHoursEnd} onChange={e=>update("quietHoursEnd",e.target.value)}/></label></div>
+      <h4 className="mt-5 font-bold">Viikonloput, juhlat ja kalenteri</h4>
+      <label className="mt-2 block"><input type="checkbox" checked={p.weekendSuggestions} onChange={e=>update("weekendSuggestions",e.target.checked)}/> Ehdota viikonloppuruokia perjantaisin, lauantaisin ja sunnuntaisin</label>
+      <label className="mt-2 block"><input type="checkbox" checked={p.celebrationSuggestions} onChange={e=>update("celebrationSuggestions",e.target.checked)}/> Ehdota ruokia juhliin ja merkkipäiviin</label>
+      <label className="mt-2 block"><input type="checkbox" checked={p.calendarSuggestions} onChange={e=>update("calendarSuggestions",e.target.checked)}/> Salli kalenteriin liittyvät ehdotukset, kun yhteys on toteutettu</label>
+      <p className="mt-3 text-xs">Kalenteria ei lueta, eikä ilmoitus- tai sijaintilupia pyydetä. Taustamuistutukset ja kaupan lähestymisen tunnistus vaativat erilliset integraatiot.</p>
+    </section>
   </div>;
 }
