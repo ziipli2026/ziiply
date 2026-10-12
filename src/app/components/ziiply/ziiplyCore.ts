@@ -770,7 +770,7 @@ export function uniqueNormalizedQueries(values: string[]) {
   return queries;
 }
 
-export export function detectSearchIntent(query: string): SearchIntent {
+export function detectSearchIntent(query: string): SearchIntent {
   const normalized = normalize(query);
 
   const exactIntent = SEARCH_INTENTS.find((intent) =>
