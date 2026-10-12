@@ -5,6 +5,9 @@ import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
+let directKBlockedUntil = 0;
+let directKBlockDiagnostic = "";
+
 type RuoanhintaProduct = {
   id: number;
   name: string;
@@ -58,6 +61,7 @@ function resolveKStoreId(store: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  let directFailure = "";
   if (searchParams.get("direct") === "1") {
     const search = (searchParams.get("search") || "").trim();
     const storeName = (searchParams.get("storeName") || "").trim();
@@ -68,16 +72,27 @@ export async function GET(request: Request) {
     }
     if (!search) return NextResponse.json({ source, priceUnit: "cents", items: [] });
     try {
-      const result = await fetchKDirectNormalProducts(search, storeName, externalId);
-      return NextResponse.json({ ...result, source, priceUnit: "cents", status: 200 });
+      if (Date.now() < directKBlockedUntil) {
+        directFailure = directKBlockDiagnostic;
+      } else {
+        const result = await fetchKDirectNormalProducts(search, storeName, externalId);
+        return NextResponse.json({ ...result, source, priceUnit: "cents", status: 200 });
+      }
     } catch (error) {
       const diagnostic = (error instanceof Error ? error.message : String(error)).slice(0, 1500);
       console.warn("[K direct preview]", diagnostic);
-      return NextResponse.json({ source, storeName, items: [], status: 502, error: "Selected K-store search failed", diagnostic }, { status: 502 });
+      if (/^K (?:direct product search|selected store page) HTTP 403$/.test(diagnostic)) {
+        directFailure = diagnostic;
+        directKBlockDiagnostic = diagnostic;
+        directKBlockedUntil = Date.now() + 5 * 60 * 1000;
+      } else {
+        return NextResponse.json({ source, storeName, items: [], status: 502, error: "Selected K-store search failed", diagnostic }, { status: 502 });
+      }
     }
   }
 
 
+  const source = directFailure ? "ruoanhinta-k-fallback" : "ruoanhinta-k";
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "";
   const storeId = resolveKStoreId(store);
@@ -94,7 +109,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       store,
       storeId,
-      source: "ruoanhinta-k",
+      source, directDiagnostic: directFailure || undefined,
       status: 200,
       items: [],
     });
@@ -113,6 +128,11 @@ export async function GET(request: Request) {
       cache: "no-store",
     });
 
+    if (!response.ok) {
+      return NextResponse.json({ source, store, storeId, items: [], status: 502,
+        error: "K price source request failed", diagnostic: "Ruoanhinta K HTTP " + response.status,
+        directDiagnostic: directFailure || undefined }, { status: 502 });
+    }
     const data = await response.json();
     const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
     const sourceItems = response.ok ? await appendRuoanhintaPages(firstPage, 100, async (skip, signal) => {
@@ -175,12 +195,12 @@ export async function GET(request: Request) {
         unitPrice: undefined,
       }));
 
-    after(() => observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, source: "ruoanhinta-k" }))));
+    after(() => observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, source, directDiagnostic: directFailure || undefined }))));
 
     return NextResponse.json({
       store,
       storeId,
-      source: "ruoanhinta-k",
+      source, directDiagnostic: directFailure || undefined,
       endpoint,
       status: response.status,
       items,
@@ -190,7 +210,7 @@ export async function GET(request: Request) {
       {
         store,
         storeId,
-        source: "ruoanhinta-k",
+        source, directDiagnostic: directFailure || undefined,
         endpoint,
         status: 500,
         items: [],
