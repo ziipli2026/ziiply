@@ -1004,6 +1004,17 @@ export default function DesktopPreviewPage() {
   function desktopCartPrice(value:any):number|null{if(value==null||value==="")return null;const normalized=String(value).replace(/\s/g,"").replace("€","").replace(",",".");const price=Number(normalized);return Number.isFinite(price)&&price>=0?price:null}
   function isDesktopMemoItem(p:any){return p?.isMemo===true||p?.manual===true||p?.source==="manual"||p?.source==="memo"||(!p?.ean&&!p?.offerId&&!p?.storeName&&desktopCartPrice(p?.price)==null)}
   function desktopCartKey(p:any){return String(p?.ean||p?.id||p?.offerId||p?.title||p?.name||"").trim()}
+  useEffect(()=>{
+    const handleArvoAdd=(event:Event)=>{
+      const name=(event as CustomEvent<{name?:string}>).detail?.name?.trim();
+      if (!name) return;
+      // Shopping list only: never record this as a confirmed purchase.
+      addDesktopCartItem({name,title:name,source:"arvo",quantity:1,price:null});
+      flashCartNotice(name+" lisätty ostoslistalle");
+    };
+    window.addEventListener("ziiply-arvo-add-to-shopping-list",handleArvoAdd);
+    return ()=>window.removeEventListener("ziiply-arvo-add-to-shopping-list",handleArvoAdd);
+  });
   function flashCartNotice(message:string){setCartNotice(message);window.setTimeout(()=>setCartNotice(current=>current===message?"":current),2200)}
   function addDesktopCartItem(p:any){
     if(desktopScannerOpen && desktopPhysicalCollectionRef.current && p?.__physicalScannerAdd===true){p={...p,collected:true};}
