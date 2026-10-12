@@ -2649,7 +2649,7 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
     : /^s[ -]?market\\b/i.test(storeName) ? "s-market"
     : /^alepa\\b/i.test(storeName) ? "alepa" : /^sale\\b/i.test(storeName) ? "sale" : "";
   if (!chain) throw new Error("Selected S store chain unsupported");
-  const directory = await fetch("https://www.s-kaupat.fi/myymalat/" + chain + "?query=" + encodeURIComponent(storeName), {
+  const directory = await fetch("https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent(storeName.replace(/^(?:prisma|s[ -]?market|alepa|sale)\\s+/i, "")), {
     cache: "no-store", signal: AbortSignal.timeout(8000), headers: { accept: "text/html", "accept-language": "fi" },
   });
   if (!directory.ok) throw new Error("S store directory HTTP " + directory.status);
