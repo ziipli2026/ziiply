@@ -3,7 +3,7 @@
 import type React from "react";
 import { SEARCH_INTENTS } from "./search/searchCategoryRegistry";
 export { SEARCH_INTENTS } from "./search/searchCategoryRegistry";
-import { getReviewedProductCategory } from "./search/reviewedCategoryMappings";
+import { getReviewedProductCategory, isReviewedCategoryCompatible } from "./search/reviewedCategoryMappings";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
 
@@ -200,6 +200,11 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "ice_cream"
+  | "frozen_vegetables"
+  | "frozen_fruit"
+  | "frozen_fish"
+  | "frozen_dough"
   | "soup"
   | "cooking_sauce"
   | "stock"
@@ -274,6 +279,7 @@ export type SearchIntentCategory =
 
 export type SearchIntent = {
   category: SearchIntentCategory;
+  parentCategory?: SearchIntentCategory;
   label: string;
   variants: string[];
   requiredAny?: string[];
@@ -2598,7 +2604,9 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
   const normalizedQuery = normalize(query);
   const genericGroupQuery = intent.variants.some(term => normalize(term) === normalizedQuery);
   const reviewedCategory = getReviewedProductCategory(product.category);
-  if (genericGroupQuery && reviewedCategory && reviewedCategory !== intent.category) return true;
+  const explicitlyFrozen = name.includes("pakaste") || product.category?.startsWith("pakasteet/") || product.category?.startsWith("CAABQ");
+  if (genericGroupQuery && reviewedCategory && !isReviewedCategoryCompatible(intent.category, reviewedCategory) &&
+      !(intent.category === "frozen" && explicitlyFrozen)) return true;
   if (genericGroupQuery && intent.category === "butter" &&
       (intent.bannedAny || []).some(term => name.includes(normalize(term)))) return true;
   // Hard exclusions apply only to an unambiguous generic product query.

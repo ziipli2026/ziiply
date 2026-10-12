@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.5",
+  "version": "2026-10-12.6",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -782,6 +782,36 @@
       "source_category": "mausteet-ja-maustaminen/marinointi-ja--grillauskastikkeet/marinointi-ja--grillauskastikkeet",
       "sample_product_count": 1,
       "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/jaatelopaketit",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+      "sample_product_count": 1,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/mehujaat",
+      "sample_product_count": 1,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/pakasteateriat/keitot",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
     },
     {
       "source": "ruoanhinta-k",
@@ -1583,9 +1613,111 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABQAAAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAAAACAA",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAACAGAA",
+      "sample_product_count": 1,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABQACAAAAAA",
       "sample_product_count": 3,
       "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACACAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAEAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAGAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAIAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAKAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAAAAAA",
+      "sample_product_count": 5,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIACAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIACACAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAMAAAAAA",
+      "sample_product_count": 13,
+      "category_id": "frozen_fruit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAMACAAAA",
+      "sample_product_count": 5,
+      "category_id": "frozen_fruit"
     },
     {
       "source": "ruoanhinta-s",
@@ -1982,6 +2114,108 @@
       "source_category": "oljyt-maustaminen-ja-kastikkeet/mausteet/mausteseokset",
       "sample_product_count": 1,
       "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/hedelma-ja-marjapakasteet/marjapakasteet",
+      "sample_product_count": 2,
+      "category_id": "frozen_fruit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/erikoisruokavaliojaatelot",
+      "sample_product_count": 13,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelopaketit",
+      "sample_product_count": 54,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+      "sample_product_count": 13,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelotuutit-ja--pikarit",
+      "sample_product_count": 5,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/mehujaat",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/kasvispakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha--kala--ja-kasvispakasteet/kalapuikot-ja-paneroidut-kalat",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha-ja-kalapakasteet/kala-ja-ayriaiset",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakasteateriat/keitot",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakastepizzat/pakastepizzat",
+      "sample_product_count": 3,
+      "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pizzat-ja-pizzapohjat/pizzapohjat-ja-muut-pizzapakasteet",
+      "sample_product_count": 1,
+      "category_id": "frozen_dough"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pizzat-ja-pizzapohjat/pizzat",
+      "sample_product_count": 1,
+      "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/taikinapakasteet/piirakkataikinat",
+      "sample_product_count": 1,
+      "category_id": "frozen_dough"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/wokit-ja-muut",
+      "sample_product_count": 4,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
     },
     {
       "source": "ruoanhinta-s",

@@ -35,6 +35,8 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["jäätelö", "ice_cream"],["pakastevihannekset", "frozen_vegetables"],["pakastemarjat", "frozen_fruit"],["pakastekala", "frozen_fish"],["pakastetaikina", "frozen_dough"],
+
 ["keitto", "soup"],["ruokakastike", "cooking_sauce"],["liemikuutio", "stock"],["mauste", "seasoning"],["etikka", "vinegar"],["nuudeli", "noodles"],["pizza", "pizza"],["ateria-aines", "meal_kit"],
 
 ["kermaviili", "sour_cream"],["smetana", "smetana"],["ranskankerma", "creme_fraiche"],["viili", "fermented_milk"],["vanukas", "pudding"],["kaurajuoma", "plant_drink"],["maitojauhe", "milk_powder"],["pulla", "pastry"],
@@ -175,6 +177,17 @@ rankingCases.push({query:"juusto",products:[makeProduct(1303,"Knorr tomaattikeit
 rankingCases.push({query:"pizza",products:[makeProduct(1305,"Xtra pizzamauste 30 g","CAABGBAAKAOAC"),makeProduct(1306,"Coop Pizza Salami 345 g pakaste","CAABQACAAAAAA")],first:1306,excluded:[1305]});
 rankingCases.push({query:"kanaliemikuutio",products:[makeProduct(1307,"Knorr kanaliemikuutio 10x10g","CAABGBAAGACAE"),makeProduct(1308,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1307,excluded:[1308]});
 
+rankingCases.push({query:"jäätelö",products:[makeProduct(1401,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA"),makeProduct(1402,"Coop kukkakaalinuput 400g pakaste","CAABQAGACAEAA")],first:1401,excluded:[1402]});
+assert.equal(core.isExplicitlyExcludedSearchProduct("pakaste",makeProduct(1403,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")),false);
+assert.equal(core.isExplicitlyExcludedSearchProduct("pakaste",makeProduct(1404,"Coop Pizza Salami 345g pakaste","CAABQACAAAAAA")),false);
+assert.equal(core.isExplicitlyExcludedSearchProduct("kerma",makeProduct(1405,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")),true);
+
+const frozenResults = core.rankNormalSearchResults("pakaste",[
+  makeProduct(1410,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA"),
+  makeProduct(1411,"Coop Pizza Salami 345g pakaste","CAABQACAAAAAA"),
+  makeProduct(1412,"Coop kukkakaalinuput 400g pakaste","CAABQAGACAEAA")
+]);
+assert.deepEqual(new Set(frozenResults.map(p=>p.id)),new Set([1410,1411,1412]),"Parent search must retain different frozen product groups");
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));

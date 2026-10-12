@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.5",
+  "version": "2026-10-12.6",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "note": "Reviewed coded provider categories against every currently stored product name. Product rows are unchanged.",
@@ -2058,6 +2058,471 @@
       "names": [
         "Atria kinkku-ananaspizza 200g",
         "Atria srirachapizza salami 200g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/jaatelopaketit",
+      "sample_product_count": 2,
+      "category_id": "ice_cream",
+      "names": [
+        "Aino Ihana Maitosuklaa 900ml/530g kermajäätelö",
+        "Jymy Maitosuklaa laktoositon kermajäätelö 900ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+      "sample_product_count": 1,
+      "category_id": "ice_cream",
+      "names": [
+        "Classic Maitosuklaa-Mansikka puikko 85g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/mehujaat",
+      "sample_product_count": 1,
+      "category_id": "ice_cream",
+      "names": [
+        "Pirulo mehujää Cool Cola 100g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/pakasteateriat/keitot",
+      "sample_product_count": 1,
+      "category_id": "soup",
+      "names": [
+        "Apetit Kalakeitto pakaste 400g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Apetit Maissi pakaste 200g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "ice_cream",
+      "names": [
+        "Kotimaista laktoositon kermajäätelö kotipakkaus vanilja 1L/495g",
+        "Kotimaista suklaa kermajäätelö kotipakkaus 1L/500g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAAAACAA",
+      "sample_product_count": 2,
+      "category_id": "ice_cream",
+      "names": [
+        "Kotimaista salmiakki-lakritsi kermajäätelö 850 ml",
+        "Kotimaista suolainen kinuski kermajäätelö 850 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAACAGAA",
+      "sample_product_count": 1,
+      "category_id": "ice_cream",
+      "names": [
+        "WAO Mochi jäätelö 6x35g mango"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop keittojuurekset 450 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop pikkuporkkanat 450 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACACAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop sipulikuutiot 450 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAEAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop kukkakaalinuput 400 g pakaste",
+        "Xtra parsakaali 1 kg pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAGAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop herneet 600 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAIAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop hienonnettu chili 50 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAKAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop avocado 200 g pakaste",
+        "Coop makea maissi 450 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAAAAAA",
+      "sample_product_count": 5,
+      "category_id": "frozen_fish",
+      "names": [
+        "Coop kalapuikot MSC 250 g pakaste",
+        "Coop kalapuikot MSC 450 g pakaste",
+        "Vici 450g kalapuikot pakaste",
+        "Vici 900g kalapuikot pakaste",
+        "Xtra kalapuikot 900 g MSC pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish",
+      "names": [
+        "Coop kalanuggetit MSC 220 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIACAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish",
+      "names": [
+        "Rainbow 250g lohifilee, pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIACACAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish",
+      "names": [
+        "Coop lohikuutiot 300 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish",
+      "names": [
+        "Xtra katkaravut MSC pakaste 200 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAMAAAAAA",
+      "sample_product_count": 13,
+      "category_id": "frozen_fruit",
+      "names": [
+        "Coop kirsikka 250 g pakaste",
+        "Coop mansikka 300 g pakaste",
+        "Coop mansikka paloina 250 g pakaste",
+        "Coop mustikka 250 g pakaste",
+        "Coop puolukka 300 g pakaste",
+        "Coop tyrni 200 g pakaste",
+        "Coop vadelma 200 g pakaste",
+        "Kotimaista 200g mustikka pakaste",
+        "Kotimaista puolukka 200g",
+        "Xtra mansikka 500 g pakaste",
+        "Xtra mansikka 500 g pakaste",
+        "Xtra marjasekoitus 500 g pakaste",
+        "Xtra vadelma 400 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAMACAAAA",
+      "sample_product_count": 5,
+      "category_id": "frozen_fruit",
+      "names": [
+        "Coop ananaspalat 250 g pakaste",
+        "Coop mangokuutiot 250 g pakaste",
+        "Coop passiohedelmä 250 g pakaste",
+        "Coop passionhedelmä 250 g pakaste",
+        "Xtra mango kuutioina 500 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/hedelma-ja-marjapakasteet/marjapakasteet",
+      "sample_product_count": 2,
+      "category_id": "frozen_fruit",
+      "names": [
+        "Coop mansikka paloina 250 g pakaste",
+        "Coop tyrni 200 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/erikoisruokavaliojaatelot",
+      "sample_product_count": 13,
+      "category_id": "ice_cream",
+      "names": [
+        "3 Kaveria Jäätelö 500ml suklaa & pähkinäkinuskikastike 100 % Vegan",
+        "3 Kaveria Vegaaninen Suklaa & Pähkinäkinuski jäätelö 500ml/400g",
+        "3 Kaverin vegan jäätelö 500ml suolakinuski",
+        "Ketomo Food jäätelö 473ml kermatoffee-vanilja",
+        "Ketomo Food jäätelö 473ml maitosuklaa",
+        "Naturli jäätelö liquorice 500ml vegaani",
+        "Nick's Peanuts & caramel jäätelö 49g/70ml",
+        "Nick's brownie cookie dough jäätelö 473ml",
+        "Nick's dulce de leche jäätelö 473ml",
+        "Nick's jäätelö 473 ml Chocolate Brownie",
+        "Nick's jäätelö 473 ml Nougat Swirl",
+        "Nick's jäätelö 473 ml Sea Salt Caramel",
+        "Nick's mango passion jäätelö 76g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelopaketit",
+      "sample_product_count": 54,
+      "category_id": "ice_cream",
+      "names": [
+        "3 Kaveria Chocolate Melt Cookies & Cream jäätelö 500ml/400g",
+        "3 Kaveria Jäätelö 500ml paahdettu pähkinä & kinuski",
+        "3 Kaveria Jäätelö 500 ml lakritsi",
+        "3 Kaveria Laktoositon Glögi & Mantelitosca jäätelö 500ml/400g",
+        "3 Kaveria Laktoositon Kirsikka & Tumma suklaa jäätelö 500ml/400g",
+        "3 Kaveria Laktoositon Mutakakku jäätelö 500ml/400g",
+        "3 Kaveria Laktoositon Pipari & Taikina jäätelö 500ml/400g",
+        "3 Kaveria Lemon Pie jäätelö 500ml/400g",
+        "3 Kaveria Vaalea &Tumma Kahvijäätelö 500 mll",
+        "3 Kaveria Vadelma & Valkosuklaa jäätelö 500ml/400g",
+        "3 Kaveria jäätelö 500ml Pistaasi&Pistaasi",
+        "Aino Omenamuru kermajäätelö 520g/900ml",
+        "Aino jäätelö 0,9L Suolainen Kinuski",
+        "Aino jäätelö 0,9l lumoava lakritsi",
+        "Aino jäätelö 0,9l samettinen nougat",
+        "Aino jäätelö 0,9l valloittava vadelma",
+        "Aino jäätelö 900ml minttumuru",
+        "Barattolino jäätelö 0,8l Vanilja-Pistaasi",
+        "Daim jäätelö kotipakkaus 442g/850ml",
+        "Fazer Domino kermajäätelö 260g/425ml",
+        "Fazer Dumle kermajäätelö 300g/425ml pa",
+        "Fazer Geisha jäätelö 280g/425ml",
+        "Fazer Pätkis jäätelö 300g/425ml",
+        "Fazer Suffeli kermajäätelö 290g/425ml",
+        "Fazer Tyrkisk Peber kermajäätelö 280g/425ml",
+        "Ingman Solero Jäätelö 825ml/470g",
+        "Ingman jäätelö ISO Kolmikko 2 l/917g",
+        "Ingman jäätelö ISO Tripletti 2 l/918g",
+        "Jymy Banaani-Suklaa Kermajäätelö 900ml",
+        "Jymy Cookie Dough kermajäätelö 500ml",
+        "Jymy Kermakaramelli jäätelö 900ml",
+        "Jymy Tuplasuklaa kermajäätelö 500ml",
+        "Kinder Bueno jäätelö 455 ml",
+        "Kotimaista laktoositon kermajäätelö kotipakkaus mansikka 1L/520g",
+        "Magnum Classic Jäätelö 440ml/293g",
+        "Magnum Double Hazelnut Jäätelö 440ml/310g",
+        "Magnum Pistachio Jäätelö 440ml/311g",
+        "Magnum Salted Caramel Jäätelö 440ml/311g",
+        "Oreo jäätelö kotipakkaus 435g/850ml",
+        "Pingviini jäätelö 1L Wanhan Ajan vanilja",
+        "Pingviini jäätelö 1l herkkutrio",
+        "Pingviini jäätelö 1l mansikka",
+        "Pingviini jäätelö 1l nougat",
+        "Pingviini jäätelö 1l päärynä laktoositon",
+        "Pingviini jäätelö 1l suklaa-nougat",
+        "Pingviini jäätelö 1l vanilja",
+        "Pingviini jäätelö 1l vanilja laktoositon",
+        "Porvoon Jäätelö Mustaherukka & Vanilja 900ml",
+        "Porvoon Jäätelö Rommirusina 900ml",
+        "Porvoon Jäätelö Uuniomena & Kinuski 900ml",
+        "SIA jäätelö 0,5l suklaa",
+        "SIA jäätelö 0,5l vanilja",
+        "Valio jäätelö 480 ml kreisi kinuski lakt",
+        "Vanhan Porvoon Jäätelö Keksi & Karamelli 900ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+      "sample_product_count": 13,
+      "category_id": "ice_cream",
+      "names": [
+        "Bubbies jäätelö mochi 35g mango",
+        "Bubbies jäätelö mochi 35g mansikka",
+        "Bubbies jäätelö mochi 35g pistaasi",
+        "Classic kermajäätelöpuikko Kermatoffee 82g",
+        "Kingis Original jäätelö 53g vanilja",
+        "Kingis jäätelö 52g minttu laktoositon pa",
+        "Magnum Almond Jäätelö 100ml/75g",
+        "Magnum Classic Jäätelö 110ml/81g",
+        "Magnum Euphoria Jäätelö 90ml/ 69g",
+        "Puffet jäätelö 62g mansikka lkton pa",
+        "Solero Berry Bliss jäätelö 68g",
+        "Solero jäätelö 68g exotic",
+        "Super 65g/1.0dl Laku kermajäätelöpuikko"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelotuutit-ja--pikarit",
+      "sample_product_count": 5,
+      "category_id": "ice_cream",
+      "names": [
+        "Ben & Jerry's  Vanilla Jäätelö  100 ML",
+        "Ben&Jerry's jäätelö 72g cookie dough pa",
+        "Ben&Jerry's jäätelö 75g Dulce De-Lish",
+        "By Maitola Mansikkajäätelö 170ml",
+        "Fazer Geisha 70g/1,1dl Kermajäätelötuutti"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/mehujaat",
+      "sample_product_count": 2,
+      "category_id": "ice_cream",
+      "names": [
+        "Fazer Ässä Missä X limonadijääpuikko 90g/87ml",
+        "Fazer Ässä Mix 90g/0,9dl  limonadijää"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/kasvispakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Coop herneet 600 g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha--kala--ja-kasvispakasteet/kalapuikot-ja-paneroidut-kalat",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish",
+      "names": [
+        "Findus kalapuikot 360g MSC gluteeniton pa"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha-ja-kalapakasteet/kala-ja-ayriaiset",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish",
+      "names": [
+        "Siianmäti kotimainen 150g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakasteateriat/keitot",
+      "sample_product_count": 1,
+      "category_id": "soup",
+      "names": [
+        "Apetit pinaattikeitto 400g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakastepizzat/pakastepizzat",
+      "sample_product_count": 3,
+      "category_id": "pizza",
+      "names": [
+        "Coop Pinsa Prosciutto 410 g pakaste",
+        "Grandiosa BigOne pan pizza meat lovers, juustoa, jauhelihaa, chorizoa ja kinkkua 580g",
+        "Grandiosa jauheliha ja sipuli perhepizza 525g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pizzat-ja-pizzapohjat/pizzapohjat-ja-muut-pizzapakasteet",
+      "sample_product_count": 1,
+      "category_id": "frozen_dough",
+      "names": [
+        "Fazer pizzataikina 4x150g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pizzat-ja-pizzapohjat/pizzat",
+      "sample_product_count": 1,
+      "category_id": "pizza",
+      "names": [
+        "Grandiosa BigOne pan pizza beef & cheddar 575g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/taikinapakasteet/piirakkataikinat",
+      "sample_product_count": 1,
+      "category_id": "frozen_dough",
+      "names": [
+        "Kymppi rahkavoitaikina 400g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Apetit kasvissuikaleet 250g pakaste",
+        "Apetit keittojuurekset 200g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/wokit-ja-muut",
+      "sample_product_count": 4,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Apetit Wok Satokausi 450g pakaste",
+        "Findus Wok Bali Style 450g pakaste",
+        "Findus Wok Thai Style 450g pakaste",
+        "Findus Wok Thai Style 850g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables",
+      "names": [
+        "Apetit parsakaali 200g pakaste"
       ]
     }
   ]
