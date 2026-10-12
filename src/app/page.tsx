@@ -7439,7 +7439,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               ),
               name: String(list.name),
               items: list.items
-                .map(sanitizeCartItemForStorage)
+                .map(notebookProductOnly)
                 .slice(0, MAX_ITEMS),
               createdAt: Number(list.createdAt || Date.now()),
               updatedAt: Number(list.updatedAt || Date.now()),
@@ -7465,7 +7465,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         JSON.stringify({
           version: 1,
           savedAt: Date.now(),
-          lists: savedShoppingLists,
+          lists: savedShoppingLists.map(list=>({...list,items:list.items.map(notebookProductOnly)})),
         }),
       );
     } catch {
@@ -12926,6 +12926,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const sTerms = Array.from(new Set([
               comparisonSourceEan,
               comparisonSourceName,
+              comparisonSourceName.replace(/^(?:pirkka|k-menu|coop|xtra|kotimaista|rainbow)\s+/i,""),
               ...getNormalSearchQueries(comparisonSourceName).slice(0, 6),
             ].map((term) => fixText(String(term || "")).trim()).filter(Boolean)));
             const sBatches = await Promise.all(
@@ -12937,7 +12938,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   normalizeEan(candidate.ean) === comparisonSourceEan && getProductPrice(candidate) > 0)
               : undefined;
             const best = exactS || (sourceFamilyKnownV823
-              ? pickBestSProduct(sCandidates, comparisonSourceName, comparisonSourceEan)
+              ? pickBestSProduct(sCandidates.filter(candidate=>isComparisonAttributeCompatible(comparisonSourceName,candidate.name)), comparisonSourceName, comparisonSourceEan)
               : undefined);
             if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: normalizeEan(best.ean) === comparisonSourceEan && comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
           } catch { failed = true; }
@@ -15385,14 +15386,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const terms = new Set<string>();
         if (cleaned) terms.add(cleaned);
         const noSize = cleaned
-          .replace(/\d+[,.]?\d*\s*(g|kg|ml|cl|dl|l)/gi, " ")
+          .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|cl|dl|l)\b/gi, " ")
           .replace(/\s+/g, " ")
           .trim();
         if (noSize && noSize !== cleaned) terms.add(noSize);
         const normalized = noSize
           .replace(/pääryna/gi, "päärynä")
           .replace(/paaryna/gi, "päärynä")
-          .replace(/coop/gi, "Coop")
+          .replace(/\bcoop\b/gi, "Coop")
           .trim();
         if (normalized) terms.add(normalized);
         const words = normalized.split(/\s+/).filter((word) => word.length >= 3);
@@ -17376,6 +17377,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     void updateChainComparison(nextCart);
   }
 
+
+  function notebookProductOnly(item: CartItem): CartItem {
+    const p=item.product;
+    return {id:item.id,name:fixText(item.name),chain:item.chain,
+      storeName:item.storeName,quantity:Math.max(1,item.quantity||1),source:item.source,ean:item.ean,
+      product:p?{id:p.id,name:p.name,ean:p.ean,brandName:p.brandName,category:p.category,
+        ...((p as any).ziiplyWeightLabel?{ziiplyWeightLabel:true}:{})} as Product:undefined,
+      ...((item as any).ziiplySingleChainAtAdd?{ziiplySingleChainAtAdd:(item as any).ziiplySingleChainAtAdd}:{})
+    } as CartItem;
+  }
+  function notebookPriceCacheKey(item:CartItem,store:string){
+    const ean=normalizeEan(item.ean||item.product?.ean||"");
+    return ean&&store?JSON.stringify([ean,normalize(store)]):"";
+  }
+  function rememberNotebookPrices(items:CartItem[]){
+    try{
+      const cache=JSON.parse(window.localStorage.getItem("ziiply-notebook-price-cache-v1")||"{}");
+      for(const item of items){
+        const at=Number((item as any).ziiplyPriceFetchedAt);
+        const store=String((item as any).ziiplyPriceStoreName||item.storeName||"");
+        const key=notebookPriceCacheKey(item,store);
+        if(key&&Number(item.price)>0&&at>0&&at<=Date.now()&&Date.now()-at<86400000)
+          cache[key]={price:item.price,at,store};
+      }
+      window.localStorage.setItem("ziiply-notebook-price-cache-v1",JSON.stringify(cache));
+    }catch{}
+  }
+
   function saveCurrentCartAsList(forcedName?: string) {
     triggerHaptic();
 
@@ -17388,7 +17417,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const defaultName = `1. Ostelusvihko ${new Date().toLocaleDateString("fi-FI")}`;
     const listName = trimmedName || defaultName;
     const now = Date.now();
-    const items = cart.map(sanitizeCartItemForStorage).slice(0, MAX_ITEMS);
+    rememberNotebookPrices(cart);
+    const items = cart.map(notebookProductOnly).slice(0, MAX_ITEMS);
 
     trackZiiplyEvent("shopping_list_saved", {
       listName,
@@ -17551,13 +17581,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
+  useEffect(()=>{rememberNotebookPrices(cart)},[cart]);
   function addSavedListToCart(list: SavedShoppingList) {
     triggerHaptic();
 
     if (!list.items.length) return;
 
     const nowV783 = Date.now();
-    const preparedItemsV783 = list.items.map((item) => {
+    const preparedItemsV783 = list.items.map((storedItem) => {
+      const item=notebookProductOnly(storedItem);
       // V824: tallennetulta listalta palautettu vaakatuote on jälleen etänä
       // suunniteltu ostos. Vanhaa punnitushintaa ei saa koskaan kierrättää uuteen
       // kauppakäyntiin; hinta syntyy vasta uudesta fyysisestä punnituksesta.
@@ -17571,13 +17603,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const target = getSavedListPriceTargetV783(item);
-      const fetchedAt = Number((item as any).ziiplyPriceFetchedAt || 0);
-      const cachedStore = String((item as any).ziiplyPriceStoreName || item.storeName || "");
-      const sameStore = Boolean(target.storeName) && normalize(cachedStore) === normalize(target.storeName);
-      const fresh = Number(item.price || 0) > 0 && fetchedAt > 0 && nowV783 - fetchedAt < SAVED_LIST_PRICE_FRESH_MS_V783 && sameStore;
+      let cached:any=null;
+      try{cached=JSON.parse(window.localStorage.getItem("ziiply-notebook-price-cache-v1")||"{}")[notebookPriceCacheKey(item,target.storeName)]}catch{}
+      const fetchedAt=Number(cached?.at||0);
+      const sameStore=Boolean(target.storeName)&&normalize(String(cached?.store||""))===normalize(target.storeName);
+      const fresh=Number(cached?.price)>0&&fetchedAt>0&&fetchedAt<=nowV783&&nowV783-fetchedAt<SAVED_LIST_PRICE_FRESH_MS_V783&&sameStore;
       return {
         ...item,
-        price: fresh ? item.price : 0,
+        price: fresh ? cached.price : 0,
+        ziiplyPriceFetchedAt:fresh?fetchedAt:undefined,
+        ziiplyPriceStoreName:fresh?target.storeName:undefined,
         ziiplyPriceRefreshPending: !fresh,
       } as CartItem;
     });
