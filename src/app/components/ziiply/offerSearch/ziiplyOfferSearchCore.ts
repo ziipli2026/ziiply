@@ -344,6 +344,13 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     if (providerCategory) return providerCategory;
   }
 
+  // Tokmanni weekly offers carry canonical product-form categories. Use the
+  // same supplier result for mobile cards, desktop counts and category filters.
+  if (source === "tokmanni-viikkotarjoukset" || source === "tokmanni viikkotarjoukset") {
+    const category = String(sourceItem?.category || "").trim();
+    if (GOSTA_CATEGORY_LABELS_V136.includes(category)) return category;
+  }
+
   // V184: Lidl provider also emits Ziiply's canonical category. Preserve the
   // provider category; generic title classification can otherwise turn e.g.
   // Siskonmakkara / Pulled pork from "Liha & makkarat" into "Muut".
