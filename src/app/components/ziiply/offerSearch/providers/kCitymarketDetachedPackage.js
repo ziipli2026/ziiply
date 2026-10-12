@@ -101,3 +101,26 @@ export function resolveLargePrintedWeightPrice(row,boxes){
  return proofs.length===1?proofs[0]:null;
 }
 
+
+// Inner sachet weight is not the weight of the packet sold at the printed price.
+export function resolvePrintedSachetPacket(row, boxes) {
+ if(row.spatialResolved)return null;
+ const m=String(row.title||'').match(/\b(\d{1,3})(?:[–-](\d{1,3}))?\s*ps\/(\d+(?:[,.]\d+)?)(?:[–-](\d+(?:[,.]\d+)?))?\s*g\b/i);
+ const a=row.debugCardAnchor,rate=row.unitPrice;
+ if(!m||!a||!rate||rate.min<=0||rate.max<=0)return null;
+ const countMin=Number(m[1]),countMax=Number(m[2]||m[1]);
+ const massMin=Number(m[3].replace(',','.'))/1000,massMax=Number((m[4]||m[3]).replace(',','.'))/1000;
+ if(countMin<2||countMax<countMin||massMin<=0||massMax<massMin)return null;
+ const proofs=[];
+ for(const glyph of boxes.filter(b=>/^\d{3,4}$/.test(b.text)&&b.height>=.045&&b.height<.06&&
+  b.left>a.left+.10&&b.left<a.left+.26&&Math.abs(b.top-a.top)<.035)){
+  const units=boxes.filter(b=>b.text==='PKT'&&b.height<.016&&b.left>=glyph.left&&b.left<glyph.left+glyph.width&&b.top-glyph.top>.01&&b.top-glyph.top<.035);
+  if(units.length!==1)continue;
+  const value=Number(glyph.text)/100;
+  const impliedMin=value/rate.max,impliedMax=value/rate.min;
+  if(impliedMin<countMin*massMin-.0001||impliedMax>countMax*massMax+.0001)continue;
+  proofs.push({value,quantity:null,unit:'PKT',source:'owned-printed-sachet-packet-price',sanity:'pass',confidence:'high'});
+ }
+ const unique=[...new Map(proofs.map(p=>[p.value,p])).values()];
+ return unique.length===1?{price:unique[0],package:{min:countMin*massMin,max:countMax*massMax,raw:m[0],innerCountMin:countMin,innerCountMax:countMax}}:null;
+}

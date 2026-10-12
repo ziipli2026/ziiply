@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {parseKCitymarketSpatialLeaflet} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js';
-import {resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketDetachedPackage.js';
+import {resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketDetachedPackage.js';
 const archive=JSON.parse(fs.readFileSync(new URL('../src/app/components/ziiply/offerSearch/providers/data/kCitymarket42AVPublisherArchive.json',import.meta.url)));
 test('42AV prices and counted totals follow the original printed pages',async()=>{
  const visited=new Set();
@@ -23,6 +23,7 @@ test('42AV prices and counted totals follow the original printed pages',async()=
   [15,/^TÄYSMEHUT 900 ml$/,3.79,1,'PL'],
   [15,/^RASVATON MAITORAHKA ja RAHKAJOGURTTI 250 g$/,4,6,'PRK'],
   [16,/^LEIPÄJUUSTO 140 g$/,1.99,1,'KPL'],
+  [18,/^VIHREÄT TEET/,3.99,1,'PKT'],
   [18,/^VITAL HYVINVOINTIMEHUT 1 l$/,4.5,2,'TLK'],
   [20,/^SININEN SUKLAALEVY 180 g ja MAKU- ja TUMMASUKLAALEVYT/,10,4,'KPL'],
   [20,/^MAISSIKAKUT 130 g$/,4,2,null],
@@ -56,4 +57,15 @@ test('A large weight price needs its printed KG label and matching hero headline
  assert.equal(resolveLargePrintedWeightPrice(row,boxes.slice(0,1)),null);
  assert.equal(resolveLargePrintedWeightPrice({...row,package:{min:.5}},boxes),null);
  assert.equal(resolveLargePrintedWeightPrice({...row,debugCardAnchor:{...row.debugCardAnchor,height:.015}},boxes),null);
+});
+
+test('Sachet packet recovery needs its own PKT glyph and matching physical mass range',()=>{
+ const row={title:'VIHREÄT TEET 20–25 ps/1,5–2 g',debugCardAnchor:{left:.035,top:.538},unitPrice:{min:79.8,max:117.35}};
+ const boxes=[b('399',.225,.55,.047,.048),b('PKT',.251,.577,.017,.011)];
+ assert.equal(resolvePrintedSachetPacket(row,boxes).price.value,3.99);
+ assert.equal(resolvePrintedSachetPacket(row,boxes.slice(0,1)),null);
+ assert.equal(resolvePrintedSachetPacket({...row,title:'VIHREÄT TEET 1,5–2 g'},boxes),null);
+ assert.equal(resolvePrintedSachetPacket({...row,unitPrice:{min:10,max:20}},boxes),null);
+ assert.equal(resolvePrintedSachetPacket(row,boxes.map(x=>({...x,left:x.left+.4}))),null);
+ assert.equal(resolvePrintedSachetPacket({...row,spatialResolved:{value:5}},boxes),null);
 });
