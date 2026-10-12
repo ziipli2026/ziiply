@@ -186,6 +186,10 @@ test('42AV detached title prefixes are cleaned without altering product quantiti
  assert.equal(clean42AVPrintedTitle('5. PASTAT 500 g (3,50/kg)'),'PASTAT 500 g (3,50/kg)');
  assert.equal(clean42AVPrintedTitle('6 TLK Arla 2 TLK 9. LEMPI RUOKAKERMAT 3 dl 3.'),'6 TLK Arla 2 TLK 9. LEMPI RUOKAKERMAT 3 dl 3.');
  assert.equal(clean42AVPrintedTitle('3 KPL / 4 €'),'3 KPL / 4 €');
+ assert.equal(clean42AVPrintedTitle('PYYKINPESU- NESTEET 1 l'),'PYYKINPESUNESTEET 1 l');
+ assert.equal(clean42AVPrintedTitle('JAUHELIHAPIHVIT -23–30% -'),'JAUHELIHAPIHVIT');
+ assert.equal(clean42AVPrintedTitle('LUKU- ja KÄSITYÖVALO'),'LUKU- ja KÄSITYÖVALO');
+ assert.equal(clean42AVPrintedTitle('3 KPL / 4 € -'),'3 KPL / 4 € -');
 });
 
 test('42AV mixed Arla HTML heading is replaced by the printed heading without changing its transaction',async()=>{
