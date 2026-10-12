@@ -1,7 +1,9 @@
 type KRecord = Record<string, any>;
-type KStoreContext = { storeId: string; storeName: string; slug: string; buildNumber: string; expiresAt: number };
+type KStoreContext = { storeId: string; storeName: string; slug: string; buildNumber: string; expiresAt: number; resolutionSource: "selected-external-id" | "exact-k-store-page" };
 const contextCache = new Map<string, KStoreContext>();
 const contextRequests = new Map<string, Promise<KStoreContext>>();
+// Verified from K-ruoka public runtime/bundle and successful product requests on 2026-10-12.
+let verifiedKBuildNumber = "33094";
 
 const record = (value: unknown): KRecord => value && typeof value === "object" ? value as KRecord : {};
 const records = (value: unknown): KRecord[] => Array.isArray(value) ? value.map(record) : [];
@@ -26,7 +28,8 @@ export function parseKDirectStoreContext(html: string, storeName: string, slug: 
   if (!/^[A-Z][A-Z0-9]{2,15}$/.test(storeId)) throw new Error("K official store ID missing");
   const buildNumber = html.match(/\/assets\/b-(\d+)\/(?:runtime|bundle)\.js/)?.[1];
   if (!buildNumber) throw new Error("K store page build version missing");
-  return { storeId, storeName: text(selected.name), slug, buildNumber, expiresAt: Date.now() + 10 * 60 * 1000 };
+  verifiedKBuildNumber = buildNumber;
+  return { storeId, storeName: text(selected.name), slug, buildNumber, expiresAt: Date.now() + 10 * 60 * 1000, resolutionSource: "exact-k-store-page" };
 }
 
 async function resolveKDirectStoreContext(storeName: string, externalId: string): Promise<KStoreContext> {
@@ -34,6 +37,12 @@ async function resolveKDirectStoreContext(storeName: string, externalId: string)
   const slug = /^k-(?:citymarket|supermarket|market)-[a-z0-9-]+$/.test(suppliedSlug)
     ? suppliedSlug : normalize(storeName).replace(/ /g, "-");
   if (!/^k-(?:citymarket|supermarket|market)-[a-z0-9-]+$/.test(slug)) throw new Error("K selected store slug missing");
+  // The picker already supplies the official K identifier (e.g. N183).
+  // A numeric Ziiply ID is never treated as an official K store identifier.
+  if (/^[A-Z][A-Z0-9]{2,15}$/.test(suppliedSlug)) {
+    return { storeId: suppliedSlug, storeName, slug, buildNumber: verifiedKBuildNumber,
+      expiresAt: Date.now() + 10 * 60 * 1000, resolutionSource: "selected-external-id" };
+  }
   const key = normalize(storeName) + "|" + slug;
   const cached = contextCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached;
@@ -141,5 +150,5 @@ export async function fetchKDirectNormalProducts(query: string, storeName: strin
     if (!raw.length || !newRaw || raw.length < 30 || (total > 0 && offset + 30 >= total)) break;
   }
   return { items, storeId: context.storeId, storeName: context.storeName, total, pages, rawCount,
-    truncated: rawCount < total, storeResolutionSource: "exact-k-store-page", buildNumber: context.buildNumber };
+    truncated: rawCount < total, storeResolutionSource: context.resolutionSource, buildNumber: context.buildNumber };
 }
