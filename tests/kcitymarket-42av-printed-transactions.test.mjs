@@ -117,3 +117,14 @@ test('42AV frozen publisher preserves original split-title words for targeted re
  for(const word of ['AURINGONKUKKAÖLJYSSÄ','VEDESSÄ'])
   assert.ok(seventeen.includes(word),'Missing page 17 publisher word: '+word);
 });
+
+test('42AV page 17 tuna heading recovery is reflected in parsed product rows',async()=>{
+ const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{
+  const r=archive.responses[String(input)];
+  assert.ok(r,'Frozen publisher response required: '+input);
+  return {ok:true,status:200,url:r.url,text:async()=>r.body};
+ });
+ const rows=parsed.rows.filter(r=>/VEDESSÄ|TONNIKALAPALOJA/i.test(r.title));
+ assert.ok(rows.some(r=>/TONNIKALAPALOJA AURINGONKUKKAÖLJYSSÄ ja VEDESSÄ/i.test(r.title)),
+  'Tuna heading not recovered. Candidate rows: '+JSON.stringify(rows.map(r=>({page:r.page,title:r.title,heading:r.debugRecoveredPublisherHeading}))));
+});
