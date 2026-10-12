@@ -83,3 +83,48 @@ test('Single reference recovery requires its own unit, whole-price dash and lowe
  assert.equal(resolvePrintedSingleWithReference(row,boxes,{...ref,min:4}),null);
  assert.equal(resolvePrintedSingleWithReference(row,boxes,null),null);
 });
+
+test('Frozen 41LV output stays identical when 42AV is parsed between runs',async()=>{
+ const oldArchive=JSON.parse(fs.readFileSync(new URL('../src/app/components/ziiply/offerSearch/providers/data/kCitymarket41LVPublisherArchive.json',import.meta.url)));
+ const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/v152-normal-price-transactions.json',import.meta.url)));
+ const replay=source=>parseKCitymarketSpatialLeaflet(source.entry,async input=>{
+  const r=source.responses[String(input)];
+  assert.ok(r,'Only frozen publisher responses may be used: '+String(input));
+  return {ok:true,status:200,url:r.url,text:async()=>r.body};
+ });
+ const snapshot=rows=>rows.map(x=>{const p=x.spatialResolved||{};return {
+  page:x.page,title:x.title,value:p.value??null,quantity:p.quantity??null,unit:p.unit??null,
+  percent:x.percentageOffer?.percent??null,package:x.package??null,unitPrice:x.unitPrice??null
+ };});
+ const before=await replay(oldArchive);
+ assert.deepEqual(snapshot(before.rows),baseline,'41LV must match its approved baseline before 42AV');
+ const current=await replay(archive);
+ assert.equal(current.pageCount,20);
+ assert.ok(current.rows.some(r=>r.title==='KORVAPUUSTI 6/360 g'&&r.spatialResolved?.value===2.99));
+ const after=await replay(oldArchive);
+ assert.deepEqual(snapshot(after.rows),baseline,'42AV must not change approved 41LV results');
+});
+
+test('42AV frozen publisher preserves original split-title words for targeted repair',()=>{
+ const page=n=>{
+  const entry=Object.entries(archive.responses).find(([url])=>url.endsWith('text_position['+n+'].js'));
+  assert.ok(entry,'Frozen publisher page '+n+' must exist');
+  return entry[1].body;
+ };
+ const six=page(6),seventeen=page(17);
+ for(const word of ['PYYKINPESUNESTEET','PYYKINPESUKAPSELIT'])
+  assert.ok(six.includes(word),'Missing page 6 publisher word: '+word);
+ for(const word of ['AURINGONKUKKAÖLJYSSÄ','VEDESSÄ'])
+  assert.ok(seventeen.includes(word),'Missing page 17 publisher word: '+word);
+});
+
+test('42AV page 17 tuna heading recovery is reflected in parsed product rows',async()=>{
+ const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{
+  const r=archive.responses[String(input)];
+  assert.ok(r,'Frozen publisher response required: '+input);
+  return {ok:true,status:200,url:r.url,text:async()=>r.body};
+ });
+ const rows=parsed.rows.filter(r=>/VEDESSÄ|TONNIKALAPALOJA/i.test(r.title));
+ assert.ok(rows.some(r=>/TONNIKALAPALOJA AURINGONKUKKAÖLJYSSÄ ja VEDESSÄ/i.test(r.title)),
+  'Tuna heading not recovered. Candidate rows: '+JSON.stringify(rows.map(r=>({page:r.page,title:r.title,heading:r.debugRecoveredPublisherHeading}))));
+});
