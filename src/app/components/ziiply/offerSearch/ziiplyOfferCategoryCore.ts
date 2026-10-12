@@ -498,13 +498,20 @@ function getTrustedProviderCategoryV162(item: ZiiplyGostaOfferLike): string {
 // V170: Product-specific semantic rules apply across all non-official providers.
 // Use the actual product title only: broad category metadata and store names
 // must not turn a coffee into dry goods or a sweet bun into meat.
-function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
+export function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
   const title = normalizeGostaText(getOfferProductTitleV113(item));
   if (!title) return "";
 
   // Product-form precedence: frozen products must beat cookie words first.
   // A name such as "piparkakkujäätelö" is still Pakasteet.
   if (/(?:pakaste|pakastettu|jäätel|jaatel|ice cream)/.test(title)) return "Pakasteet";
+
+  // Milk alternatives belong with dairy, not generic beverages.
+  if (/\b(?:kaura|soija|manteli|riisi|kookos|herne)juom\w*\b/.test(title)) return "Maitotuotteet";
+  // A food product with an explicit infant/toddler age label is children's food.
+  // A package count (e.g. 8 kpl) alone must not trigger this category.
+  if (/ateria|sose|valipala|puuro|velli/.test(title) &&
+      /\b\d+(?:\s+\d+)?(?:\s*-\s*\d+)?\s*(?:kk|v)\b/.test(title)) return "Lastenruoat";
 
   // Cookie/gingerbread product identity beats stale generic provider categories.
   // Covers Finnish inflections after accent normalization: pikkuleipä/pikkuleivät

@@ -127,6 +127,7 @@ import {
   GOSTA_CATEGORY_LABELS_V136,
   getGostaCategoryLabelFromFilterV136,
   getOfferCategoryV106,
+  getPreciseProductCategoryV170,
   getOfferProductTitleV113,
   isBadOfferSearchResultV106,
   isGostaCategorySelectionV136,
@@ -373,6 +374,10 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   }
 
   if (isKCitymarket) {
+    // The shared product-form rules outrank a broad/stale leaflet category.
+    // Cards, category counts and filters all pass through this same resolver.
+    const precise = getPreciseProductCategoryV170(sourceItem);
+    if (precise) return precise;
     // A leaflet's spatial/OCR category is not authoritative for these unambiguous product forms.
     // Apply before the trusted-category fast path for both mobile and desktop.
     const productTitle = normalizeGostaCoreText(sourceItem?.title || sourceItem?.name || anyItem?.title || anyItem?.name || "");
@@ -383,6 +388,8 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
       ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
       ["kala", "Kala"], ["leipomo", "Leipomo"], ["hevi", "Hevi"], ["juomat", "Juomat"], ["pakasteet", "Pakasteet"],
       ["valmisruoka", "Valmisruoka"], ["kuivatuotteet", "Kuivatuotteet"], ["makeiset keksit", "Makeiset & keksit"],
+      ["lastenruoat", "Lastenruoat"], ["lastenhoito", "Lastenhoito"],
+      ["vitamiinit ravinteet", "Vitamiinit & ravinteet"],
       ["lemmikit", "Lemmikit"], ["hygienia kosmetiikka", "Hygienia & kosmetiikka"], ["kodinhoito", "Kodinhoito"],
       ["koti vapaa-aika", "Koti & vapaa-aika"], ["muut", "Muut"],
     ]).get(raw);
@@ -772,6 +779,10 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   const sourceOffer = anyItem?.__sourceOfferSearchResult ?? anyItem;
   if (sourceOffer?.source === "etarjouslehdet" && sourceOffer?.offerId) {
     return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug?.publicationId || "")}:${String(sourceOffer.offerId)}`;
+  }
+  // Distinct local publication cards must not collapse by EAN or a shortened title.
+  if (sourceOffer?.provider === "kcitymarket-local" && sourceOffer?.offerId && sourceOffer?.debug?.publicationId) {
+    return `${sourceTab}:kcm-local:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug.publicationId)}:${String(sourceOffer.offerId)}`;
   }
   // National leaflet cards have distinct prices, packs and page identities.
   // Preserve them through API and UI deduplication using the parser identity.
