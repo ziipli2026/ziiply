@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.7",
+  "version": "2026-10-12.8",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "note": "Reviewed coded provider categories against every currently stored product name. Product rows are unchanged.",
@@ -3292,6 +3292,1040 @@
       "category_id": "cleaning_products",
       "names": [
         "Xtra WC-puhdistaja 1 l"
+      ]
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich",
+      "names": [
+        "HK panini kana-cheddar 210g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "sample_product_count": 2,
+      "category_id": "energy_drink",
+      "names": [
+        "Marli Juissi Energy sokeriton cola-appelsiini energiajuoma 0,5l",
+        "Nocco Focus cola energiajuoma 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat",
+      "sample_product_count": 6,
+      "category_id": "coffee_drink",
+      "names": [
+        "Frezza Forte Double Trouble 250 ml maitokahvijuoma laktoositon",
+        "Frezza Latte 25cl maitokahvijuoma laktoositon",
+        "Frezza Mint Mighty Minty 250 ml maitokahvijuoma minttusuklainen maku laktoositon",
+        "Frezza Vanilla Sweet Treat 250 ml maitokahvijuoma vaniljainen maku laktoositon",
+        "Segafredo maitokahvijuoma 0,235l caramel macchiato",
+        "Segafredo maitokahvijuoma 0,235l latte macchiato"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/lonkerot/muut-lonkerot",
+      "sample_product_count": 3,
+      "category_id": "long_drink",
+      "names": [
+        "Saimaa Long Drink Cola Cherry 4,5% 0,33l",
+        "Saimaa Long Drink Cola Orange 4,5% 0,33l",
+        "Saimaa Long Drink Cola Vanilla 4,5% 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/mehukeitot",
+      "sample_product_count": 2,
+      "category_id": "fruit_soup",
+      "names": [
+        "Juustoportti Hyvin sokeroimaton marjainen keitto 1kg",
+        "Juustoportti Hyvin sokeroimaton päärynäkeitto 1kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/smoothiet",
+      "sample_product_count": 1,
+      "category_id": "smoothie",
+      "names": [
+        "Mun smoothie 300ml pina colada"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/oluet/ulkomaiset-oluet",
+      "sample_product_count": 1,
+      "category_id": "beer",
+      "names": [
+        "Budejovicky Budvar Original Czech lager 5% 0,5l oluttölkki"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad",
+      "names": [
+        "Atria italiansalaatti 400g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/muut-valmissalaatit",
+      "sample_product_count": 2,
+      "category_id": "prepared_salad",
+      "names": [
+        "Atria ranch coleslaw 300g",
+        "Atria sienisalaatti 250g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "sample_product_count": 2,
+      "category_id": "pancakes",
+      "names": [
+        "Atria rahkaohukainen omena-kaneli 380g",
+        "Atria veriohukainen 400g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/hampurilaiset-ja-hotdogit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich",
+      "names": [
+        "Atria Kunnon Arki Hot Dog 115g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "sample_product_count": 9,
+      "category_id": "ready_meal",
+      "names": [
+        "Atria Kunnon Arki Kalapuikot ja Muusi 300g",
+        "Atria Kunnon Arki Nakkikastike Muusilla 300g",
+        "Atria kana-Aurarisotto 300g",
+        "Atria salami pasta 320g",
+        "Atria vegan pasanda 350g",
+        "Hetki kermainen kana-pasta 270g",
+        "Saarioinen arki nakkikastike ja muusi 310g",
+        "Saarioinen broileria kermakastikkeessa 320g",
+        "Saarioinen nakkikastike ja muusi 320g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/salaattiateriat",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad",
+      "names": [
+        "Hetki Arki juusto-pastasalaatti 200g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAOAA",
+      "sample_product_count": 1,
+      "category_id": "pancakes",
+      "names": [
+        "Xtra ohukaiset 480 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAWAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad",
+      "names": [
+        "Kotimaista Coleslaw 350g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal",
+      "names": [
+        "Chef X Pyttipannu paistetulla kananmunalla 400g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGAGAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal",
+      "names": [
+        "Xtra lasagne bolognese 1 kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGASAA",
+      "sample_product_count": 2,
+      "category_id": "ready_meal",
+      "names": [
+        "Chef X kermainen pestopasta",
+        "Chef X nakkikastike ja muusi"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAIACAA",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich",
+      "names": [
+        "Atria Kunnon Arki Burgeri 100g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAAAKAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal",
+      "names": [
+        "Herkku Nakkistroganoff"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAGAIAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal",
+      "names": [
+        "Mestari Forsman Kermainen Kanapasta 3kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAAAAAA",
+      "sample_product_count": 32,
+      "category_id": "beer",
+      "names": [
+        "24 x Sininen olut 3,5% 0,33 l",
+        "24-pack Coop Lager olut 4,2 % tölkki 0,33 L",
+        "6 x Aura olut 5,2% 0,33 l",
+        "6 x Heineken olut 5,0 % 0,33 l",
+        "6 x Lapin Kulta olut 5,2% 0,33 l",
+        "6 x Sininen olut 3,5% 0,33 l",
+        "6-pack Karhu Lager olut 4,6% tölkki 0,5 L",
+        "Aura olut 4,5% 12x 0,33 l tölkki",
+        "Coop Lager olut 2,7% 0,33l tlk ei tilattava",
+        "Coop Lager olut 2,7% 6x0,33l tlk",
+        "Coop Lager olut 4,2  til-% tölkki 0,33 L",
+        "Coop Lager olut 4,3 % tölkki 0,5 l",
+        "Corona Extra 4,5% 6x 0,33L olut",
+        "Heineken olut 5% 0,33l 24-pack",
+        "Heineken olut 5,0% 0,5 l",
+        "Karhu Lager olut 5,3 % tölkki 0,33 L",
+        "Keisari Mexican Lager 4,5% 0,5l",
+        "Keisari Micro Lager 2,8 til-% 0,5l",
+        "Koff Lager olut 4,5 % tölkki 0,568 L",
+        "Kotimaista Vaalea Lager 4,5 % 0,33 l tlk",
+        "Krusovice Imperial olut 5% 0,5 l",
+        "Lahden Erikois A olut 5,3% 0,5 l",
+        "Laitilan Kukko Lager 4,7 til-% 0,5L olut",
+        "Lapin Kulta olut 5,2% 0,5 l",
+        "Mallaskoski Riverside Lager 5,0 -til%",
+        "Marsalkka Kulta Lager 6,2% olut 0,5l tölkki",
+        "OLVI Ykkönen 2,7% olut 0,5 l tlk",
+        "RPS Rock Lager 5,0%",
+        "Sandels 4,7 % olut 0,33 l klp",
+        "Sandels 5,3 % olut 0,5 l tlk",
+        "Sandels 5,3% olut 0,33 l tlk",
+        "Stella Artois Premium Lager 5,0% 0,50l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAABAAAA",
+      "sample_product_count": 11,
+      "category_id": "beer",
+      "names": [
+        "BrewDog Punk AF 0,5% 0,33l alkoholiton olut pullo",
+        "Coop alkoholiton tumma lager 0,0% 0,33l tlk",
+        "Crisp  alkoholiton IPA olut 0,5 % tölkki 0,33 L",
+        "Drop Bear Beer Co Tropical Ipa Alkoholiton olut 0,5% 0,33l",
+        "Erdinger Alkoholfrei 0,5 til-% 33 cl alkoholiton vehnäolut",
+        "Klokk & Co Fripa Ipa Alkoholiton olut 0,5% 0,33l",
+        "Laitilan Kukko IPA Alkoholiton 0,33L olut",
+        "Laitilan Kukko Pils Alkoholiton 0,33L olut",
+        "Mikkeller Drink'In the Sun Non-alc Wheat Ale 0,3% 0,33l alkoholiton oluttölkki",
+        "To Öl Implosion non-alcoholic beer 0,3% 0,33l alkoholiton oluttölkki",
+        "Õllenaut Kaineken IPA Alkoholiton olut <0,5% 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer",
+      "names": [
+        "Keisari Amber olut 4,5 til-% 0,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer",
+      "names": [
+        "Praga Premium Pils lager 4,7% 500ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAGAAAA",
+      "sample_product_count": 5,
+      "category_id": "beer",
+      "names": [
+        "Kotimaista IPA olut 4,7% 0,5L",
+        "Lagunitas IPA olut 6,2% 0,33 l",
+        "Mufloni CCCCCIPA 0,44 l tölkki alkoholi 7%",
+        "Mufloni Hazy Hop Idaho 7 0,44 l tölkki alkoholi 5,5%",
+        "OLVI IPA 4,7% olut 0,5 l tlk"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer",
+      "names": [
+        "Pramia Vaarin alkoholiton kotikalja 0,0% 1 litra"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAYAAAA",
+      "sample_product_count": 18,
+      "category_id": "beer",
+      "names": [
+        "6 x A. Le Coq Alkoholiton 0,0% olut 0,33 l tlk",
+        "6 x Heineken alkoholiton olut 0,0% 0,33 l",
+        "6 x Laitilan Kukko Lager Alkoholiton 0,33L olut",
+        "6 x Lapin Kulta alkoholiton olut 0,0% 0,33 l",
+        "A. Le Coq Premium Alkoholiton olut 0,0 % 0,568 l tlk",
+        "Asahi Super Dry olut 0,0% 0,33l",
+        "Budejovicky Budvar Alcohol free beer 0,0% 0,33l alkoholiton olutpullo",
+        "Coop Radler Lemon alkoholiton olut 0,0% 0,33l tlk",
+        "Coop alkoholiton lager 0,0% olut 6x0,33l tlk",
+        "Crisp Radler Ananas alkoholiton olut 0% 33cl tlk",
+        "Crisp Radler Mango-Passion alkoholiton olut 0% 33cl tlk",
+        "Crisp Radler Sitrus alkoholiton olut 0% tölkki 0,33L",
+        "Estrella Damm N.A. 0,0% 0,33l alkoholiton oluttölkki",
+        "Heineken  alkoholiton olut 0,0% 0,33 l",
+        "Heineken 0,0% alkoholiton olut 0,33 l",
+        "Lapin Kulta alkoholiton olut 0,0% 0,33 l",
+        "Peroni Nastro Azzurro alkoholiton olut 0,0% 33cl plo",
+        "Stella Artois 0.0% Premium lager 33 cl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAAAAA",
+      "sample_product_count": 4,
+      "category_id": "cider",
+      "names": [
+        "6 x Happy Joe Cloudy Apple siideri 4,7% 0,33 l",
+        "Bulmers Orginal siideri 4,5% 0,5 l",
+        "Happy Joe Cloudy Apple siideri 4,7% 0,275 l",
+        "Somersby Apple omenasiideri 4,5 til-% tölkki 0,33 L"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAACAA",
+      "sample_product_count": 18,
+      "category_id": "cider",
+      "names": [
+        "6 x Fizz Extra Dry siideri 4,7% 0,33 l tlk kutiste",
+        "6-pack Crowmoor Dry Apple siideri 5,5 % tölkki 0,33 L",
+        "6-pack Crowmoor Extra Dry Apple omenasiideri 5,5 % tölkki 0,33 L",
+        "6xCoop kuiva omenasiideri 4,7% 0,33 l tlk",
+        "6xFIZZ Original Dry siideri 4,7% 0,33 l tlk kutiste",
+        "Coop Strong Dry Apple 8,0 til-% 0,5L kuiva omenasiideri",
+        "Coop kuiva omenasiideri 4,7% 0,33 l tlk",
+        "Coop kuiva omenasiideri 5,5 % 0,5 l tlk",
+        "Crowmoor Dry Apple omenasiideri 5,5 % tölkki 0,5 L",
+        "Crowmoor Dry Sour Apple siideri 5,5 % tölkki 0,5 L",
+        "Crowmoor Extra Dry omenasiideri 5,5 % tölkki 0,5 L",
+        "Fizz Extra Dry siideri 4,7% 0,5 l tlk",
+        "Happy Joe Dry Apple siideri 4,7% 0,33 l",
+        "Happy Joe Sour Cider Apple siideri 5% 0,33 l",
+        "Magners 50cl Irish Cider 4,5% tölkki siideri",
+        "Premium Cider Kopparberg Naked Apple 4,5%, Kuiva omenasiideri tölkki 33cl",
+        "Upcider Extra Dry siideri 4,5% 0,43 l",
+        "Val de Rance L´Authentique French Cider Brut 4,5 til-% omenasiideri 0,33 l plo"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider",
+      "names": [
+        "6 x Coop omenasiideri light 4,7 % 0,33 l tlk",
+        "Xtra Omenasiideri Light 4,5% 500ml kevyt omenasiideri"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "cider",
+      "names": [
+        "6 x Coop päärynäsiideri 4,7 % 0,33 l tlk"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACACAA",
+      "sample_product_count": 1,
+      "category_id": "cider",
+      "names": [
+        "Happy Joe Sour Cider Pear siideri 5% 0,33 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider",
+      "names": [
+        "6 x Coop päärynäsiideri light 4,7 % 0,33 l tlk",
+        "Upcider Pear Light siideri 4,7% 0,43 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEAAAA",
+      "sample_product_count": 6,
+      "category_id": "cider",
+      "names": [
+        "Premium Cider Kopparberg with Raspberry 4,0%, Vadelman makuinen omenasiideri tölkki 33cl",
+        "Premium Cider Kopparberg with Strawberry & Lime 4,0%, Mansikan ja limen makuinen omenasiideri tölkki 33cl",
+        "Somersby Blackberry siideri 4,5 til-% tölkki 0,33 L",
+        "Somersby Raspberry Lime maustettu omenasiideri 4,5 % tölkki 0,33 L",
+        "Somersby Red Orange siideri 4,5 % tölkki 0,33 L",
+        "Thatchers Blood Orange Cider 4% 0,44l siideritölkki"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEACAA",
+      "sample_product_count": 1,
+      "category_id": "cider",
+      "names": [
+        "Coop Dry Rosé 4,5% 500ml kuiva rosé-omenasiideri"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider",
+      "names": [
+        "Coop mustikka-lime light siideri 4,7% 0,5 tlk",
+        "Upcider Wild Berry Light siideri 4,7% 0,43 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAKAAAA",
+      "sample_product_count": 5,
+      "category_id": "cider",
+      "names": [
+        "Hartwall Happy Joe Dry Apple 0% alkoholiton siideri 0,275 l",
+        "Kopparberg Päärynä Light 0%, Alkoholiton päärynäsiideri tölkki 50cl",
+        "Premium Cider Kopparberg with Strawberry & Lime 0%, Mansikan & Limen makuinen alkoholiton omenasiideri tölkki 50cl",
+        "Somersby Apple alkoholiton omenasiideri 0,0 % tölkki 0,33 L",
+        "Somersby Pear alkoholiton päärynäsiideri 0,0 % tölkki 0,33 L"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "long_drink",
+      "names": [
+        "Coop Greippi 4,7% 0,5L greipinmakuinen lonkero"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "long_drink",
+      "names": [
+        "Coop LD Grape Light 5,5 til-% 0,5L greipinmakuinen lonkero"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEACAAAA",
+      "sample_product_count": 2,
+      "category_id": "long_drink",
+      "names": [
+        "6 x Coop Pear 5,5 til-% 0,33L päärynänmakuinen long drink",
+        "6 x Hartwall Original Long Drink Orange lonkero 5,5% 0,33 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAIAAAA",
+      "sample_product_count": 2,
+      "category_id": "long_drink",
+      "names": [
+        "A. Le Coq Grapefruit alkoholiton lonkero 0,0 % 0,33 l tlk",
+        "Coop lonkerojuoma light alkoholiton greipinmakuinen 1.5 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAKAAAA",
+      "sample_product_count": 2,
+      "category_id": "soft_drink",
+      "names": [
+        "Coop päärynä virvoitusjuoma 0,5l",
+        "Coop päärynä virvoitusjuoma 1,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "soft_drink",
+      "names": [
+        "Lotte Milkis juoma"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "water",
+      "names": [
+        "Kotimaista 5,15l lähdevesi",
+        "Kotimaista Lähdevesi 0,5l",
+        "Kotimaista Lähdevesi 1,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAIAAAA",
+      "sample_product_count": 4,
+      "category_id": "water",
+      "names": [
+        "6 x Kotimaista vichy 0,5l",
+        "Kotimaista vichy 0,33l",
+        "Kotimaista vichy 0,5l",
+        "Kotimaista vichy 1,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAOAAACAA",
+      "sample_product_count": 1,
+      "category_id": "energy_drink",
+      "names": [
+        "Mad Croc 250ml Sugar Free juoma"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "alkoholi-ja-virvoitusjuomat/oluet/vaalea-lager-olut",
+      "sample_product_count": 1,
+      "category_id": "beer",
+      "names": [
+        "Coop lager olut 2,8% 6x0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "sample_product_count": 2,
+      "category_id": "energy_drink",
+      "names": [
+        "Clean Drink Wild Strawberry hiilihapotettu juoma 0,33l",
+        "Clean Sav:D Vadelma hiilihapotettu juoma 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat",
+      "sample_product_count": 2,
+      "category_id": "coffee_drink",
+      "names": [
+        "Mode Cold Brew kahvitiiviste 500ml",
+        "Segafredo Choco Cappuccino maitokahvijuoma 235ml laktoositon"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/greippilonkerot",
+      "sample_product_count": 2,
+      "category_id": "long_drink",
+      "names": [
+        "Otto Greippi Lonkero 5,5% 0,5l",
+        "Otto Greippi lonkero 8% 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/karpalolonkerot",
+      "sample_product_count": 2,
+      "category_id": "long_drink",
+      "names": [
+        "Otto Karpalo lonkero 5,5% 0,5l",
+        "Otto Karpalo lonkero 8% 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/muut-lonkerot",
+      "sample_product_count": 3,
+      "category_id": "long_drink",
+      "names": [
+        "KORPILO Mustikka Vanilja lonkero 5,0% 0,33l",
+        "Otto Kultanen lonkero 8% 0,33l",
+        "Otto Omena lonkero 5,5% 0,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/mehukeitot",
+      "sample_product_count": 10,
+      "category_id": "fruit_soup",
+      "names": [
+        "Valio luumu-rusinakeitto 1kg",
+        "Valio mangokeitto 1kg",
+        "Valio mansikkakeitto 1kg",
+        "Valio mansikkakeitto 1kg sokeroimaton",
+        "Valio mustikkakeitto 1kg",
+        "Valio mustikkakeitto 1kg sokeroimaton",
+        "Valio mustikkakeitto 250g siemenetön",
+        "Valio mustikkakeitto 250g siemenetön",
+        "Valio vadelmakeitto 1kg",
+        "Valio vadelmakeitto 1kg sokeroimaton"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/alkoholittomat-oluet",
+      "sample_product_count": 42,
+      "category_id": "beer",
+      "names": [
+        "1664 Blanc alkoholiton olut 0,0% lasipullo 0,33 L",
+        "6-pack Crisp Lager alkoholiton olut 0 % tölkki 0,33 L",
+        "A. Le Coq Alkoholiton 0,0% olut 0,33 l tlk",
+        "A. Le Coq IPA 0,0 % alkoholiton olut 0,33 l tlk",
+        "A.Le Coq 0,0% olut 0,5l",
+        "A.Le Coq Bohem lager olut 0% 0,5l",
+        "Bavaria 0,0% Premium Original Non-Alcoholic Beer 50 cl tölkki alkoholiton olut",
+        "Bavaria IPA olut 0% 0,33l",
+        "Bavaria Premium Original alkoholiton olut 0,0% 4-pack",
+        "Bavaria Wit olut 0,0% 0,5l",
+        "Birra Corelli 0,0% 0,33l alkoholiton oluttölkki",
+        "Birra Moretti Zero alkoholiton olut 0% 0,33l",
+        "Brooklyn SFX Lager alkoholiton olut 0,4 % tölkki 0,33 L",
+        "Brooklyn Special Effects IPA alkoholiton olut 0,4 % lasipullo 0,33 L",
+        "Clausthaler Lemont olut 0% 0,33l",
+        "Clausthaler olut 0,5% 0,33l klp",
+        "Corona Cero 0,0% alkoholiton olut 0,33l",
+        "Crisp Hoppy Lager alkoholiton olut 0,0 % tölkki 0,33 L",
+        "Crisp Hoppy Lager olut 0% 0,33l 6-pack",
+        "Crisp Lager alkoholiton olut 0 % tölkki 0,33 L",
+        "Crisp Radler Sitrus alkoholiton olut 0% 0,33l 6-pack",
+        "Crisp Vaal Lager olut 0% 0,33l 12-pack",
+        "Guinness Draught Stout alkoholiton olut 0 % tölkki 0,44 L",
+        "Guinness alkoholiton Stout olut 0,0% 0,44l",
+        "Karhu Alkoholiton Lager olut 0% 0,33l 8-pack",
+        "Karhu Alkoholiton Lager olut 0,0% tölkki 0,33 L",
+        "Karhu Alkoholiton lager olut 0% 0,5l",
+        "Karhu Tumma Lager olut 0,0 % tölkki 0,33 L",
+        "Krombacher Weizen non-alkoholic 0,5l",
+        "Kukko Summer Ale olut 0,3% 0,33l",
+        "Laitilan Kukko Lager Alkoholiton 0,33L olut",
+        "Lasso Zero alkoholiton 0,0%  lagerolut 33cl tlk",
+        "Leffe Blonde 0,0% alkoholiton",
+        "Obolon Alkoholiton olut 0,4% 0,5l",
+        "SOL Zero olut 0,0% 0,33l",
+        "Saimaa Alkoholiton IPA olut 0,3% 0,33 l tölkki",
+        "Saimaa Lager alkoholiiton olut 0,3% 0,33l",
+        "Samson lager 0,5% 0,33l klp",
+        "Staropramen alkoholiton olut 0,5% 0,33l",
+        "Tsingtao Lager alkoholiton olut 0% 0,33l",
+        "Velkopopovický Kozel alkoholiton 0,0% 50cl tlk",
+        "Õllenaut Kaineken Citra Pale Ale Alkoholiton olut 0,5% 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-oluet",
+      "sample_product_count": 27,
+      "category_id": "beer",
+      "names": [
+        "A.Le Coq olut 4,5% 0,568l",
+        "Aura Bock olut 6,5% 0,5 l",
+        "Aura Tumma olut 5,2% 0,5 l",
+        "Aura olut 4,5% 0,5 l",
+        "Aura olut 5,2% 0,5 l",
+        "Foster's olut 4,5% 0,568 l",
+        "Karhu III olut 4,6% 0,33l",
+        "Karhu Kupari olut 4,7% 0,5l",
+        "Karhu Lager olut 4,6 til-% tölkki 0,568 L",
+        "Karhu Lager olut 5,3 % tölkki 0,5 L",
+        "Karhu Lager olut 8,0 til-% tölkki 0,5 L",
+        "Karhu Platina olut 4,5% 0,5l",
+        "Karjala IVB olut 8% 0,5 l",
+        "Koff Lager olut 4,5 % tölkki 0,33 L",
+        "Koff Light Lager gluteeniton olut 3,5% 0,5l",
+        "Koff Stallion Lager olut 7,2 % tölkki 0,5 L",
+        "Koff Stallion Lager olut 7,2% 0,33l",
+        "Koff olut 4,5% 0,5l",
+        "Lahden Erikois Strong Lager olut 7% 0,5l",
+        "Lapin Kulta North Lite Lager olut 4% 0,33l",
+        "OLVI Export 5,2 % olut 0,33 l tlk",
+        "Sandels 4,7 % olut 0,568 l tlk",
+        "Sandels 5,3 % olut 0,568 l tlk",
+        "Sandels 7,5 % olut 0,33 l tlk",
+        "Sandels olut 7,5% 0,5l",
+        "Sininen olut 3,5% 0,5l tlk",
+        "Sininen olut 4,5% 0,5 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-oluet-max-28",
+      "sample_product_count": 4,
+      "category_id": "beer",
+      "names": [
+        "6-pack Koff Lager olut 2,5 % tölkki 0,33 L",
+        "Karhu Lager olut 2,8 til-% tölkki 0,5 L",
+        "Karhu Tumma I olut 2,8% 0,33l",
+        "Koff I olut 2,5% 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-pienpanimo--ja-erikoisoluet",
+      "sample_product_count": 49,
+      "category_id": "beer",
+      "names": [
+        "FAT LIZARD KIVIMIES LAGER 0,44L 5%",
+        "KOFF Sitruunaolut olut 4,4% 0,5l",
+        "Karhu IPA olut 6,0% 0,5l",
+        "Karhu Juicy Lager olut 4,6 % tölkki 0,5 L",
+        "Karhu Nectaron IPA olut 5,0% 0,5l",
+        "Karhu Polaris IPA olut 4,5% 0,5l",
+        "Karhu Summer Wheat olut 4,8% 0,5l",
+        "Keisari Hinode Rice Lager 5,2 til-%",
+        "Keisari Lager olut 4,5 til-% 0,5l",
+        "Keisari Stout olut 5,5% 0,5l",
+        "Keisari Strong Lager 6,3 til-% 0,5l",
+        "Keisari Talvi Lager olut 5,8% 0,5l",
+        "Koff Porter olut 7,2% 0,33l",
+        "Koff Sour olut 4,2% 0,5l",
+        "Korven Kutsu Red Lager 6,5% 0,44l",
+        "Korven Kutsu Wild Spruce Lager",
+        "Kukko Cerveza Mexicana Lager olut 4,5% 0,5l",
+        "Kukko Vahva Lager olut 5,5% 0,33l 6-pack",
+        "Lahden Erikois Juhlaolut lager 5,5% 0,5l",
+        "Lahden Erikois Motueka Lager olut 5% 0,5 l",
+        "Laitilan Kukko Lager 4,5 til-% 0,33L olut",
+        "Malmgård Hazy IPA 5,5% olut 0,44l",
+        "Malmgård Neipa olut 6,3% 0,44l",
+        "Malmgård Surf Ale olut 4,5% 0,44l",
+        "Marsalkka Lager 4,6% olut 0,568l tölkki",
+        "Marsalkka Lager 4,6% olut 0,5l tölkki",
+        "Marsalkka Tumma Lager 6,0% olut 0,5l tölkki",
+        "Marsalkka Tumma Lager olut 4,5% 0,5l",
+        "Marsalkka Vahva Lager 8,0% olut 0,5l tölkki",
+        "Mufloni DIPA olut 8,0% 0,44l",
+        "Mufloni Tropical Lager olut 5,0% 0,44l",
+        "OLUT M/25 olut 4,5% 0,44l",
+        "OLVI Frisco Hoppy Lager olut 5,0% 0,5l",
+        "OLVI ISB olut 5,0% 0,5l",
+        "OLVI Summer IPA olut 6,0% 0,5l",
+        "OLVI Summer Lager olut 4,3% 0,33l  6-pack",
+        "Olarin Lähiö Lager olut 4,8% 0,44l",
+        "Olvi Aussie XPA olut 0,5l",
+        "Olvi Summer Ale olut 5,0% 0,5l",
+        "RPS Easy IPA olut 4,8% 0,44l",
+        "RPS Paper NEIPA olut 5,0% 0,44l",
+        "RPS Scissors Sour olut 4,8% 0,44l",
+        "Saimaa APA 5% olut 0,5l",
+        "Saimaa Blanc olut 5,0% 0,5l",
+        "Saimaa IPA 4,5% olut 0,5l tölkki",
+        "Saimaa Italo Lager 4,5% olut 0,5 l tölkki",
+        "Saimaa Vahva Lager 7,0% olut 0,5l tölkki",
+        "Toppilan Helles olut 5,1% 0,5l",
+        "Tornion Teräs Lager olut 7,0% 0,44l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/oluiden-monipakkaukset",
+      "sample_product_count": 14,
+      "category_id": "beer",
+      "names": [
+        "1664 Lager olut 5,0% 0,33l 6-pack",
+        "24-pack KOFF Lager olut 4,5 % tölkki 0,33 L",
+        "24-pack Karhu Lager olut 4,6% tölkki 0,33 L",
+        "6 x Aura olut 4,5% 0,33 l",
+        "6-pack Karhu Lager olut 5,3% tölkki 0,33 L",
+        "6-pack Karhu Lager olut 8,0 % tölkki 0,33 L",
+        "8-pack Karhu Lager olut 4,6% tölkki 0,33 L",
+        "Budvar Original Lager olut 5% 0,33l 6-pack",
+        "Foster's olut  4,5% 6 x 0,5 l",
+        "Karhu lager olut 4,6% 0,33l 20-pack",
+        "Karjala olut 8% 0,33l 6-pack",
+        "Koff Stallion Lager olut 7,2% 0,33l 6-pack",
+        "Koff lager olut 4,5% 0,33l 8-pack",
+        "SOL olut 4,2% 0,33l 4-pack"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/ulkomaiset-erikoisoluet",
+      "sample_product_count": 22,
+      "category_id": "beer",
+      "names": [
+        "1664 Blanc olut 5% 0,33l",
+        "Chimay Red Dubbel olut 7,0% 0,33l",
+        "DAB Lemon Radler olut 3,0% 0,5l",
+        "Damm Lemon olut 3,2% 0,33l",
+        "Ettl Helles olut 4,8% 0,5l",
+        "Ettl Weisbier olut 5,2% 0,5l",
+        "Fullers ESB olut 5,9% 0,5l",
+        "Jever Pilsner olut 4,9% 0,33l",
+        "K1664 Blanc olut 5% 0,33l 6-pack",
+        "K1664 Blanc olut 5% 0,5l",
+        "K1664 Blanc olut 5,0% 0,33l",
+        "Kloster Scheyern Gold Hell Lager 5,4% 0,5l",
+        "König Pilsener olut 4,9% 0,5l",
+        "La Trappe Blond olut 6,5% 0,33l",
+        "Leffe Blonde olut 6,6% 0,33l",
+        "Leffe Blonde olut 6,6% 0,5l",
+        "Lvivske Porter olut 8,0% 0,5l",
+        "Saku Porter olut 6,9% 0,5l",
+        "Shepherd Neame IPA olut 6,1% 0,5l",
+        "Spaten Helles olut 5,2% 0,5l",
+        "To Øl IPA olut 5,9% 0,44l",
+        "VolfasEngel Rinktin Lager olut 5,2% 0,568l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/ulkomaiset-oluet",
+      "sample_product_count": 34,
+      "category_id": "beer",
+      "names": [
+        "1664 Lager Olut 5,0% tölkki 0,5L",
+        "Asahi Super Dry lager 5,0% 0,33l",
+        "Asahi Super Dry olut 5% 0,5l",
+        "Birra Corelli lager 4,5% 0,5l oluttölkki",
+        "Birra Moretti 4,6% olut 0,5 l",
+        "Bohemia Prezident Lager Olut 6% 50cl tölkki",
+        "Bohemia Regent Dark Lager olut 4,7% 0,5l",
+        "Brooklyn Lager olut 5,2 % tölkki 0,50 L",
+        "Budejovicky 1795 premium lager 4,7% 0,5l",
+        "Budweiser olut 5,0% 0,5l",
+        "Chang Classic Lager olut 5,0% 0,32l",
+        "Chernigivske Lager olut 4,6% 0,5l",
+        "Corona Extra olut 4,5% 0,33l",
+        "Estrella Damm Lager olut 4,6% 0,5l",
+        "Ettl Pils olut 4,5% 0,5l",
+        "HOFBRÄU ORIGINAL LAGER 50cl plo 5.1%",
+        "Kingfisher Lager olut 4,5% 0,33l",
+        "Kopparberg Fruit Lager olut 5% 0,33l",
+        "Lvivske 1715 Lager 4,5% 0,45L KLPKV",
+        "Mythos Lager 5 til-% lasipullo 33cl",
+        "Obolon Premium lager olut 5% 50cl tlk",
+        "Obolon Strong Lager olut  7,1% 0,5l",
+        "Paulaner Münchner Hell Lager olut 4,9% 0,5l",
+        "Praga Dark Lager olut 4,5% 0,5l",
+        "Saku Tume olut 6,7% 0,5l",
+        "Saku olut 4,6% 0,5l",
+        "Samson Original Czech Lager 5,1% 50cl",
+        "San Miguel olut 4,5% 0,5l",
+        "Singha Lager 5% 0,49l",
+        "Sol olut 4,2% 0,33 l",
+        "Staropramen Lager olut 5% 0,5l",
+        "Stella Artois olut 5% 0,33l",
+        "Tsingtao olut 0,33l 4,7 %",
+        "Warsteiner Premium olut 4,7% 0,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/alkoholittomat-siiderit",
+      "sample_product_count": 8,
+      "category_id": "cider",
+      "names": [
+        "Crowmoor White Crow Dry Apple siideri 0,0% 0,33l",
+        "Kopparberg Apple Rose siideri 0% 0,33l",
+        "Kopparberg Blueberry-Lime siideri 0% 0,33l",
+        "Magners alkoholiton siideri 0% 0,33l",
+        "Saimaa Dry Apple siideri 0,3% 0,33l",
+        "Saimaa Kuiva omena siideri 0% 0,33l",
+        "Saimaa alkoholiton päärynäsiideri 0,0% 0,33 l tölkki",
+        "Spring omenasiiderijuoma 1,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/muut-siiderit",
+      "sample_product_count": 12,
+      "category_id": "cider",
+      "names": [
+        "BROTHERS Toffeeomena siideri 4,0% 33cl tlk",
+        "Ecusson Bio Brut Genereux siideri 5,5% 0,33l luomu",
+        "Frosty Jack siideri 7,5% 0,5l",
+        "Henry Westons British Vintage siideri 7,3% 0,5l",
+        "Laitilan Omenasiideri 8,0% 0,33l",
+        "Nokian Panimo Big Apple siideri 5,5% 0,5l",
+        "Sandford Orchards Reserve Vintage omenasiideri 0,5l 7,4%",
+        "Somersby Apple omenasiideri 4,5 % 0,33l",
+        "Somersby Pineapple Lime siideri 4,5% 0,33L",
+        "Somersby Pink Grapefruit Light siideri 4 % 0,33l",
+        "Somersby Watermelon siideri 4,5% 0,33l",
+        "Strongbow British Dry siideri 5% 0,5l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/omenasiiderit",
+      "sample_product_count": 1,
+      "category_id": "cider",
+      "names": [
+        "Fizz Strong Dry Apple siideri 7,0% 0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/kiusaukset",
+      "sample_product_count": 1,
+      "category_id": "ready_meal",
+      "names": [
+        "Kokkikartano Jauhelihakiusaus 700g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/laatikot-ja-kiusaukset",
+      "sample_product_count": 1,
+      "category_id": "ready_meal",
+      "names": [
+        "Kokkikartano nakkiperunamuusi 700g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad",
+      "names": [
+        "Atria punajuurisalaatti 400g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/muut-valmissalaatit",
+      "sample_product_count": 3,
+      "category_id": "prepared_salad",
+      "names": [
+        "Atria coleslaw salaatti 300g",
+        "Atria grillisalaatti chili 350g",
+        "Atria yrtti grillisalaatti 350g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "sample_product_count": 6,
+      "category_id": "pancakes",
+      "names": [
+        "Atria ohukainen 400g",
+        "Atria pinaattiohukainen 400g",
+        "Atria porkkanaohukainen 400g",
+        "Atria rahkaohukainen banaani 380g",
+        "Atria rahkaohukainen kaakao-vadelma 380 g",
+        "Atria rahkaohukainen mokkapala 380g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-ja-keitot/leivat-paninit-ja-wrapit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich",
+      "names": [
+        "Coop cheddar-kasviswrap 200 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/mikroateriat",
+      "sample_product_count": 2,
+      "category_id": "ready_meal",
+      "names": [
+        "HK Jauhelihakastike ja muusi 300 g",
+        "Saarioinen Spagetti Bolognese; spagettia ja jauhelihakastiketta 310g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/hampurilaiset-ja-hotdogit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich",
+      "names": [
+        "Atria Wilhelm porilainen 148g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+      "sample_product_count": 3,
+      "category_id": "ready_sandwich",
+      "names": [
+        "Chef Lunden kinkku-cheddar sandwich 210g",
+        "Chef Lunden kinkku-juusto patonki 200g",
+        "HK panini kebab-cheddar 210g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "sample_product_count": 10,
+      "category_id": "ready_meal",
+      "names": [
+        "Anton&Anton kana & kerma-tomaattipasta 350g",
+        "Atria chicken rogan josh 350g",
+        "Atria sipulipihvi muusilla 350g",
+        "Fresh Hetki kermainen Kanapasta 300g",
+        "HK kanaa ja muusia kermakastikkeessa 300g",
+        "Juustoportti kanakebab riisillä 350g",
+        "Kokkikartano kermainen broileripasta 300g",
+        "Kokkikartano nakkiperunamuusi 300g",
+        "Kruunu Herkku nakkistroganoff muusilla 350 g",
+        "Saarioinen kermainen kanaruukku 300g"
+      ]
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "CAAAYAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer",
+      "names": [
+        "Kotimaista Tumma Lager 4,5% 0,5L olut"
       ]
     }
   ]

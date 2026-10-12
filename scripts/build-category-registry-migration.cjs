@@ -24,6 +24,7 @@ for (const rule of rules) {
 }
 for (const rule of rules) if (rule.parentCategory) statements.push(`UPDATE ziiply_product_categories SET parent_id=${quote(rule.parentCategory)} WHERE id=${quote(rule.category)}`);
 statements.push("UPDATE ziiply_search_synonyms SET status='draft' WHERE category_id='frozen' AND term_normalized IN ('jaatelo','pakastevihannekset')");
+statements.push("UPDATE ziiply_search_synonyms SET status='draft' WHERE category_id='milk' AND term_normalized='kauramaito'");
 for (const row of mappings.mappings) statements.push(`UPDATE ziiply_source_category_mappings SET ziiply_category_id=${quote(row.category_id)},review_status='reviewed',updated_at=now() WHERE source=${quote(row.source)} AND source_category=${quote(row.source_category)}`);
 const snapshot = JSON.stringify({version:mappings.version,projectId:mappings.projectId,branchId:mappings.branchId,rules},null,2)+'\n';
 const sql = '-- Apply only to Neon branch '+mappings.branchId+'. Search consumes the same versioned rules.\nBEGIN;\n'+statements.join(';\n')+';\nCOMMIT;\n';

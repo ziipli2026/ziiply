@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.7",
+  "version": "2026-10-12.8",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -364,6 +364,12 @@
       "category_id": "meat"
     },
     {
+      "source": "lidl-verified-ean-master",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
       "source": "ruoanhinta-k",
       "source_category": "CAAAOAAAAAAAA",
       "sample_product_count": 1,
@@ -533,6 +539,12 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "sample_product_count": 2,
+      "category_id": "energy_drink"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
       "sample_product_count": 3,
       "category_id": "coffee"
@@ -560,6 +572,36 @@
       "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
       "sample_product_count": 2,
       "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat",
+      "sample_product_count": 6,
+      "category_id": "coffee_drink"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/lonkerot/muut-lonkerot",
+      "sample_product_count": 3,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/mehukeitot",
+      "sample_product_count": 2,
+      "category_id": "fruit_soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/smoothiet",
+      "sample_product_count": 1,
+      "category_id": "smoothie"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/oluet/ulkomaiset-oluet",
+      "sample_product_count": 1,
+      "category_id": "beer"
     },
     {
       "source": "ruoanhinta-k",
@@ -827,9 +869,39 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/muut-valmissalaatit",
+      "sample_product_count": 2,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "valmisruoka/puurot-ja-kiisselit/puurot-ja-vellit",
       "sample_product_count": 3,
       "category_id": "porridge"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "sample_product_count": 2,
+      "category_id": "pancakes"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/hampurilaiset-ja-hotdogit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "sample_product_count": 9,
+      "category_id": "ready_meal"
     },
     {
       "source": "ruoanhinta-k",
@@ -842,6 +914,12 @@
       "source_category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
       "sample_product_count": 4,
       "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/salaattiateriat",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
     },
     {
       "source": "ruoanhinta-s",
@@ -941,6 +1019,18 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAOAA",
+      "sample_product_count": 1,
+      "category_id": "pancakes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAWAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAGAAAEAAAA",
       "sample_product_count": 1,
       "category_id": "porridge"
@@ -962,6 +1052,42 @@
       "source_category": "CAAAGAAAGAAAA",
       "sample_product_count": 1,
       "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGAGAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGASAA",
+      "sample_product_count": 2,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAIACAA",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAAAKAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAGAIAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
     },
     {
       "source": "ruoanhinta-s",
@@ -1277,6 +1403,132 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAAAAAA",
+      "sample_product_count": 32,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAABAAAA",
+      "sample_product_count": 11,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAGAAAA",
+      "sample_product_count": 5,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAYAAAA",
+      "sample_product_count": 18,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAAAAA",
+      "sample_product_count": 4,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAACAA",
+      "sample_product_count": 18,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACACAA",
+      "sample_product_count": 1,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEAAAA",
+      "sample_product_count": 6,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEACAA",
+      "sample_product_count": 1,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAKAAAA",
+      "sample_product_count": 5,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEACAAAA",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAIAAAA",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAYAKACAAAA",
       "sample_product_count": 2,
       "category_id": "cola"
@@ -1286,6 +1538,36 @@
       "source_category": "CAAAYAKACACAA",
       "sample_product_count": 5,
       "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAKAAAA",
+      "sample_product_count": 2,
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "water"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAIAAAA",
+      "sample_product_count": 4,
+      "category_id": "water"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAOAAACAA",
+      "sample_product_count": 1,
+      "category_id": "energy_drink"
     },
     {
       "source": "ruoanhinta-s",
@@ -1967,6 +2249,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "alkoholi-ja-virvoitusjuomat/oluet/vaalea-lager-olut",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "hedelmat-ja-vihannekset/hedelmat/mandariinit",
       "sample_product_count": 2,
       "category_id": "fruit_veg"
@@ -1988,6 +2276,12 @@
       "source_category": "hedelmat-ja-vihannekset/vihannekset/tomaatit",
       "sample_product_count": 1,
       "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "sample_product_count": 2,
+      "category_id": "energy_drink"
     },
     {
       "source": "ruoanhinta-s",
@@ -2018,6 +2312,96 @@
       "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
       "sample_product_count": 1,
       "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat",
+      "sample_product_count": 2,
+      "category_id": "coffee_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/greippilonkerot",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/karpalolonkerot",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/muut-lonkerot",
+      "sample_product_count": 3,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/mehukeitot",
+      "sample_product_count": 10,
+      "category_id": "fruit_soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/alkoholittomat-oluet",
+      "sample_product_count": 42,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-oluet",
+      "sample_product_count": 27,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-oluet-max-28",
+      "sample_product_count": 4,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-pienpanimo--ja-erikoisoluet",
+      "sample_product_count": 49,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/oluiden-monipakkaukset",
+      "sample_product_count": 14,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/ulkomaiset-erikoisoluet",
+      "sample_product_count": 22,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/ulkomaiset-oluet",
+      "sample_product_count": 34,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/alkoholittomat-siiderit",
+      "sample_product_count": 8,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/muut-siiderit",
+      "sample_product_count": 12,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/omenasiiderit",
+      "sample_product_count": 1,
+      "category_id": "cider"
     },
     {
       "source": "ruoanhinta-s",
@@ -2501,9 +2885,51 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/kiusaukset",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/laatikot-ja-kiusaukset",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/muut-valmissalaatit",
+      "sample_product_count": 3,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "valmisruoka/puurot-ja-kiisselit/puurot-ja-vellit",
       "sample_product_count": 1,
       "category_id": "porridge"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "sample_product_count": 6,
+      "category_id": "pancakes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-ja-keitot/leivat-paninit-ja-wrapit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/mikroateriat",
+      "sample_product_count": 2,
+      "category_id": "ready_meal"
     },
     {
       "source": "ruoanhinta-s",
@@ -2519,6 +2945,24 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/hampurilaiset-ja-hotdogit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+      "sample_product_count": 3,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "sample_product_count": 10,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
       "sample_product_count": 7,
       "category_id": "soup"
@@ -2528,6 +2972,12 @@
       "source_category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
       "sample_product_count": 2,
       "category_id": "pizza"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "CAAAYAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
     },
     {
       "source": "s-kaupat-ean",

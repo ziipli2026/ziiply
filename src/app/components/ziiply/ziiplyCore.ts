@@ -200,6 +200,19 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "ready_meal"
+  | "prepared_salad"
+  | "ready_sandwich"
+  | "pancakes"
+  | "beer"
+  | "cider"
+  | "long_drink"
+  | "energy_drink"
+  | "coffee_drink"
+  | "soft_drink"
+  | "water"
+  | "fruit_soup"
+  | "smoothie"
   | "skin_care"
   | "toys"
   | "supplements"

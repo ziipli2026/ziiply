@@ -35,6 +35,9 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["valmisateria", "ready_meal"],["valmissalaatti", "prepared_salad"],["panini", "ready_sandwich"],["ohukainen", "pancakes"],["olut", "beer"],["siideri", "cider"],["lonkero", "long_drink"],["energiajuoma", "energy_drink"],["kahvijuoma", "coffee_drink"],["virvoitusjuoma", "soft_drink"],["lähdevesi", "water"],["mehukeitto", "fruit_soup"],["smoothie", "smoothie"],
+["kauramaito","plant_drink"],
+
 ["kosteusvoide", "skin_care"],["lelu", "toys"],["ravintolisä", "supplements"],["koiranruoka", "pet_food"],["keittiöväline", "kitchen_tools"],["juomapullo", "tableware"],["kahvinkeitin", "kitchen_appliances"],["hiustenhoitoaine", "hair_conditioner"],["hiuslakka", "hair_styling"],["vanupuikko", "hygiene_supplies"],["putkenavaaja", "cleaning_products"],
 
 ["jäätelö", "ice_cream"],["pakastevihannekset", "frozen_vegetables"],["pakastemarjat", "frozen_fruit"],["pakastekala", "frozen_fish"],["pakastetaikina", "frozen_dough"],
@@ -193,6 +196,11 @@ assert.deepEqual(new Set(frozenResults.map(p=>p.id)),new Set([1410,1411,1412]),"
 rankingCases.push({query:"maito",products:[makeProduct(1501,"Kissanmaito 3 x 200 ml Catmilk","kissanruoka"),makeProduct(1502,"Puhdistusmaito Lierac 200 ml","kasvojen puhdistusemulsiot ja -maidot ja -voiteet"),makeProduct(1503,"Kotimaista kevytmaito 1 L","CAAAMAAAAAEAA")],first:1503,excluded:[1501,1502]});
 rankingCases.push({query:"kahvi",products:[makeProduct(1504,"Kahvinkeitin Wilfa CM10B-A125","kahvinkeittimet"),makeProduct(1505,"House kahvilusikka Leo 4 kpl","CACAGACAAACAA"),makeProduct(1506,"Coop kahvi tumma paahto 450g","CAABIAAAAACAA")],first:1506,excluded:[1504,1505]});
 rankingCases.push({query:"kananmuna",products:[makeProduct(1507,"House kananmunaleikkuri ja lohkoja","CACAGAGAAASAE"),makeProduct(1508,"Kotimaista kananmunat 10 kpl","maito-juusto-munat-ja-rasvat/munat/kananmunat")],first:1508,excluded:[1507]});
+
+rankingCases.push({query:"kahvi",products:[makeProduct(1601,"Frezza Latte 250ml maitokahvijuoma","juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat"),makeProduct(1602,"Coop kahvi tumma paahto 450g","CAABIAAAAACAA")],first:1602,excluded:[1601]});
+rankingCases.push({query:"cola",products:[makeProduct(1603,"Nocco Focus cola energiajuoma 0,33l","juomat/energia--ja-urheilujuomat/energiajuomat"),makeProduct(1604,"Coop Cola virvoitusjuoma 1,5l","CAAAYAKACAAAA")],first:1604,excluded:[1603]});
+rankingCases.push({query:"kana",products:[makeProduct(1605,"Hetki kermainen kana-pasta 270g","valmisruoka/valmisruoat-ja--keitot/mikroateriat"),makeProduct(1606,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1606,excluded:[1605]});
+assert.equal(core.isExplicitlyExcludedSearchProduct("virvoitusjuoma",makeProduct(1607,"Coop Cola 1,5l","CAAAYAKACAAAA")),false);
 
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);

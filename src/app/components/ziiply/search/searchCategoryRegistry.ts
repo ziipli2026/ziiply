@@ -2,6 +2,19 @@
 import type { SearchIntent } from "../ziiplyCore";
 export const CATEGORY_REGISTRY_VERSION = "2026-10-12.1";
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {"category": "ready_meal", "label": "Valmisateriat", "variants": ["valmisateria", "mikroateria", "pyttipannu", "lasagne", "kiusaus"], "requiredAny": ["ateria", "pyttipannu", "lasagne", "kiusaus", "stroganoff"], "bannedAny": []},
+  {"category": "prepared_salad", "label": "Valmissalaatit", "variants": ["valmissalaatti", "italiansalaatti", "coleslaw", "punajuurisalaatti"], "requiredAny": ["salaatti", "coleslaw"], "bannedAny": []},
+  {"category": "ready_sandwich", "label": "Täytetyt leivät ja hampurilaiset", "variants": ["panini", "sandwich", "wrap", "hampurilainen", "hot dog"], "requiredAny": ["panini", "sandwich", "wrap", "hampurilainen", "hot dog", "burgeri"], "bannedAny": ["sämpylä", "sampyla", "kastike"]},
+  {"category": "pancakes", "label": "Ohukaiset", "variants": ["ohukainen", "pinaattiohukainen", "rahkaohukainen"], "requiredAny": ["ohukainen"], "bannedAny": []},
+  {"category": "beer", "label": "Oluet", "variants": ["olut", "lager", "ipa-olut", "kotikalja"], "requiredAny": ["olut", "lager", "kotikalja"], "bannedAny": ["olutlasi", "shampoo"]},
+  {"category": "cider", "label": "Siiderit", "variants": ["siideri", "omenasiideri", "päärynäsiideri"], "requiredAny": ["siideri", "cider"], "bannedAny": ["etikka"]},
+  {"category": "long_drink", "label": "Lonkerot", "variants": ["lonkero", "long drink"], "requiredAny": ["lonkero", "long drink"], "bannedAny": []},
+  {"category": "energy_drink", "label": "Energiajuomat", "variants": ["energiajuoma"], "requiredAny": ["energiajuoma", "energy", "nocco", "mad croc"], "bannedAny": []},
+  {"category": "coffee_drink", "label": "Valmiit kahvijuomat", "variants": ["kahvijuoma", "maitokahvijuoma", "cold brew", "frezza"], "requiredAny": ["kahvijuoma", "cold brew", "frezza"], "bannedAny": ["kahvijuomajauhe"]},
+  {"category": "soft_drink", "label": "Virvoitusjuomat", "variants": ["virvoitusjuoma", "limonadi", "limsa"], "requiredAny": ["virvoitusjuoma", "limonadi", "limsa"], "bannedAny": ["mehujää", "limonadijää"]},
+  {"category": "water", "label": "Vedet", "variants": ["lähdevesi", "kivennäisvesi", "vichy"], "requiredAny": ["lähdevesi", "kivennäisvesi", "vichy"], "bannedAny": []},
+  {"category": "fruit_soup", "label": "Mehukeitot", "variants": ["mehukeitto", "mansikkakeitto", "marjakeitto", "päärynäkeitto"], "requiredAny": ["mehukeitto", "mansikkakeitto", "marjakeitto", "päärynäkeitto"], "bannedAny": []},
+  {"category": "smoothie", "label": "Smoothiet", "variants": ["smoothie"], "requiredAny": ["smoothie"], "bannedAny": []},
   {"category": "skin_care", "label": "Ihonhoito", "variants": ["kosteusvoide", "aurinkovoide", "kasvovoide", "vartalovoide", "kasvovoi", "vartalovoi", "shea voi", "puhdistusmaito", "kasvonaamio", "huulivoide"], "requiredAny": ["voide", "kasvovoi", "vartalovoi", "shea", "puhdistusmaito", "kasvonaamio", "huulivoide"], "bannedAny": []},
   {"category": "toys", "label": "Lelut ja pelit", "variants": ["lelu", "muovailuvaha", "play doh", "nukke", "lautapeli", "palapeli"], "requiredAny": ["lelu", "muovailuvaha", "play doh", "play-doh", "nukke", "peli"], "bannedAny": []},
   {"category": "supplements", "label": "Ravintolisät", "variants": ["ravintolisä", "maitohappobakteeri", "monivitamiini", "proteiinijauhe", "heraproteiini"], "requiredAny": ["ravintolisä", "vitamiini", "maitohappobakteeri", "proteiinijauhe", "heraproteiini"], "bannedAny": ["koira", "kissa"]},
@@ -31,7 +44,7 @@ export const SEARCH_INTENTS: SearchIntent[] = [
   {"category": "creme_fraiche", "label": "Ranskankermat", "variants": ["ranskankerma", "crème fraîche", "creme fraiche"], "requiredAny": ["ranskankerma", "crème fraîche", "creme fraiche"], "bannedAny": ["sipsi", "chips"]},
   {"category": "fermented_milk", "label": "Viilit", "variants": ["viili", "kevytviili"], "requiredAny": ["viili"], "bannedAny": ["kermaviili"]},
   {"category": "pudding", "label": "Vanukkaat", "variants": ["vanukas", "proteiinivanukas", "maitosuklaavanukas"], "requiredAny": ["vanukas"], "bannedAny": ["jäätelö"]},
-  {"category": "plant_drink", "label": "Kasvipohjaiset juomat", "variants": ["kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "requiredAny": ["kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "bannedAny": ["jäätelö"]},
+  {"category": "plant_drink", "label": "Kasvipohjaiset juomat", "variants": ["kauramaito", "kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "requiredAny": ["kauramaito", "kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "bannedAny": ["jäätelö"]},
   {"category": "milk_powder", "label": "Maitojauheet", "variants": ["maitojauhe", "rasvaton maitojauhe"], "requiredAny": ["maitojauhe"], "bannedAny": ["äidinmaidonkorvike"]},
   {"category": "pastry", "label": "Pullat ja leivonnaiset", "variants": ["pulla", "pullapitko", "korvapuusti", "wiener", "leivos"], "requiredAny": ["pulla", "pitko", "korvapuusti", "wiener", "leivos"], "bannedAny": ["jäätelö", "taikina"]},
   {category: "cream", label: "Kermat", variants: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], requiredAny: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], bannedAny: ["jäätelö", "kermajuusto", "kermaviili"], ownBrandFriendly: true},
@@ -74,8 +87,8 @@ export const SEARCH_INTENTS: SearchIntent[] = [
   {
     category: "milk",
     label: "Maidot",
-    variants: ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "ykkösmaito", "laktoositon maito", "luomu maito", "pirkka maito", "valio maito", "arla maito", "kauramaito"],
-    requiredAny: ["maito", "kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "kauramaito"],
+    variants: ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "ykkösmaito", "laktoositon maito", "luomu maito", "pirkka maito", "valio maito", "arla maito"],
+    requiredAny: ["maito", "kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"],
     preferredAny: ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "laktoositon"],
     bannedAny: ["maitorahka", "rahka", "kerma", "jogurtti", "jogurt", "kaakao", "suklaa", "kondensoitu", "maitojuoma", "proteiini", "latte", "maitojauhe", "cappuccino", "rasvaseos", "rasvasekoite", "rasvasekoitus", "voi", "levite", "margariini", "piimä", "piima"],
     preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
@@ -115,6 +128,7 @@ export const SEARCH_INTENTS: SearchIntent[] = [
   },
   {
     category: "cola",
+    parentCategory: "soft_drink",
     label: "Cola-juomat",
     variants: ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "cola zero", "coca cola zero", "virvoitusjuoma cola"],
     requiredAny: ["cola", "coca-cola", "coca cola", "pepsi", "pepsi max"],
