@@ -1,340 +1,3687 @@
 // Versioned test registry, persisted with rules in Neon. No database call per search.
 import type { SearchIntent } from "../ziiplyCore";
-export const CATEGORY_REGISTRY_VERSION = "2026-10-12.26";
+export const CATEGORY_REGISTRY_VERSION = "2026-10-12.27";
 export const SEARCH_INTENTS: SearchIntent[] = [
-  {"category": "wine", "label": "Viinit ja viinipohjaiset juomat", "variants": ["viini", "riesling"], "requiredAny": ["viini", "riesling"], "bannedAny": []},
-  {"category": "seafood", "label": "Äyriäiset ja nilviäiset", "variants": ["katkarapu", "jättikatkarapu"], "requiredAny": ["katkarapu", "jättikatkarapu"], "bannedAny": []},
-  {"category": "egg_spread", "label": "Munavoit", "variants": ["munavoi"], "requiredAny": ["munavoi"], "bannedAny": []},
-  {"category": "potato_flakes", "label": "Perunamuusijauheet ja -hiutaleet", "variants": ["perunamuusijauhe", "muusihiutale"], "requiredAny": ["perunamuusijauhe", "muusihiutale"], "bannedAny": []},
-
-  {"category": "outdoor_gear", "label": "Retkeily ja kalastustarvikkeet", "variants": ["onkimato", "retkisuihku"], "requiredAny": ["onkimato", "retkisuihku"], "bannedAny": []},
-  {"category": "personal_care_appliances", "label": "Henkilökohtaisen hoidon laitteet", "variants": ["hiustenkuivain", "hiustenleikkuri", "suoristusrauta"], "requiredAny": ["hiustenkuivain", "hiustenleikkuri", "suoristusrauta"], "bannedAny": []},
-  {"category": "fire_safety", "label": "Paloturvatarvikkeet", "variants": ["palovaroitin", "jauhesammutin"], "requiredAny": ["palovaroitin", "jauhesammutin"], "bannedAny": []},
-  {"category": "charcoal", "label": "Hiilet ja sytytystarvikkeet", "variants": ["grillihiili", "sytytyspala"], "requiredAny": ["grillihiili", "sytytyspala"], "bannedAny": []},
-  {"category": "air_care", "label": "Sisäilmalaitteet", "variants": ["ilmankostutin"], "requiredAny": ["ilmankostutin"], "bannedAny": []},
-  {"category": "health_supplies", "label": "Hyvinvoinnin tuotteet ja tarvikkeet", "variants": ["kinesioteippi", "selkätuki", "ryhtiliivi"], "requiredAny": ["kinesioteippi", "selkätuki", "ryhtiliivi"], "bannedAny": []},
-  {"category": "plant_dairy", "label": "Kasvipohjaiset välipalat", "variants": ["kauravälipala", "soijavalmiste", "kauragurtti"], "requiredAny": ["kauravälipala", "soijavalmiste", "kauragurtti"], "bannedAny": []},
-  {"category": "plant_cream", "label": "Kasvipohjaiset ruokakermat", "variants": ["kauraruoka"], "requiredAny": ["kauraruoka"], "bannedAny": []},
-  {"category": "iced_tea", "label": "Jääteet", "variants": ["jäätee"], "requiredAny": ["jäätee"], "bannedAny": []},
-  {"category": "frozen_confection", "label": "Pakastetut suklaahedelmät", "variants": ["franui", "trü frü"], "requiredAny": ["franui", "trü frü"], "bannedAny": [], "parentCategory": "frozen"},
-
-  {"category": "poultry_ground", "label": "Siipikarjan jauhelihat", "variants": ["siipikarjan jauheliha"], "requiredAny": ["jauheliha"], "bannedAny": ["kastike", "ateria"], "parentCategory": "meat", "parentCategories": ["meat", "chicken"]},
-  {"category": "grills", "label": "Grillit ja savustimet", "variants": ["kaasugrilli", "kamado-grilli", "hiilisavustin"], "requiredAny": ["kaasugrilli", "kamado-grilli", "hiilisavustin"], "bannedAny": []},
-  {"category": "furniture", "label": "Kalusteet", "variants": ["tuoli", "tilanjakajaseinä"], "requiredAny": ["tuoli", "tilanjakajaseinä"], "bannedAny": []},
-  {"category": "plant_protein", "label": "Kasviproteiinit", "variants": ["tofu", "tempeh", "seitan", "härkäpapurouhe"], "requiredAny": ["tofu", "tempeh", "seitan", "härkäpapurouhe"], "bannedAny": []},
-  {"category": "beans", "label": "Kuivatut pavut", "variants": ["mungpapu", "adukipapu"], "requiredAny": ["mungpapu", "adukipapu"], "bannedAny": []},
-  {"category": "cooking_fats", "label": "Ruoanvalmistusrasvat", "variants": ["ankanrasva", "kookosrasva"], "requiredAny": ["ankanrasva", "kookosrasva"], "bannedAny": []},
-  {"category": "essential_oils", "label": "Eteeriset öljyt", "variants": ["eteerinen öljy"], "requiredAny": ["eteerinen öljy"], "bannedAny": []},
-
-  {"category": "home_textiles", "label": "Kodintekstiilit", "variants": ["matto", "keittiöpyyhe", "verho", "torkkuhuopa"], "requiredAny": ["matto", "keittiöpyyhe", "verho", "torkkuhuopa"], "bannedAny": []},
-  {"category": "storage", "label": "Säilytys ja laukut", "variants": ["säilytyslaatikko", "vetolaukku", "säilytysastia"], "requiredAny": ["säilytyslaatikko", "vetolaukku", "säilytysastia"], "bannedAny": []},
-  {"category": "fragrance", "label": "Tuoksut", "variants": ["hajuvesi", "eau de parfum", "eau de toilette"], "requiredAny": ["hajuvesi", "eau de parfum", "eau de toilette"], "bannedAny": []},
-  {"category": "home_appliances", "label": "Kodinkoneet", "variants": ["pölynimuri", "robotti-imuri", "varsi-imuri"], "requiredAny": ["pölynimuri", "robotti-imuri", "varsi-imuri"], "bannedAny": []},
-  {"category": "heating", "label": "Lämmitys ja sähkötarvikkeet", "variants": ["sulanapitokaapeli", "kaasulämmitin", "seinälämpöpuhallin"], "requiredAny": ["sulanapitokaapeli", "kaasulämmitin", "seinälämpöpuhallin"], "bannedAny": []},
-
-  {"category": "dessert", "label": "Jälkiruoat", "variants": ["tiramisu", "mämmi", "kiisseli", "suklaavaahto", "mochi"], "requiredAny": ["tiramisu", "mämmi", "kiisseli", "suklaavaahto", "mochi"], "bannedAny": []},
-  {"category": "skyr", "label": "Skyr-valmisteet", "variants": ["skyr"], "requiredAny": ["skyr"], "bannedAny": []},
-  {"category": "prepared_sides", "label": "Valmiit lisukkeet", "variants": ["kermaperuna", "bataattisose", "porkkanasose"], "requiredAny": ["kermaperuna", "bataattisose", "porkkanasose"], "bannedAny": []},
-  {"category": "hummus", "label": "Hummukset", "variants": ["hummus", "hummis"], "requiredAny": ["hummus", "hummis"], "bannedAny": []},
-  {"category": "flavored_milk", "label": "Maustetut maitojuomat", "variants": ["maitokaakaojuoma", "kaakaomaito"], "requiredAny": ["maitokaakaojuoma", "kaakaomaito"], "bannedAny": []},
-  {"category": "savory_pastry", "label": "Suolaiset piirakat", "variants": ["karjalanpiirakka", "riisipiirakka", "nakkipiilo", "börek"], "requiredAny": ["karjalanpiirakka", "riisipiirakka", "nakkipiilo", "börek"], "bannedAny": []},
-  {"category": "mixed_drink", "label": "Alkoholijuomasekoitukset", "variants": ["hard seltzer", "viinipohjainen juoma", "vodka lemonade"], "requiredAny": ["hard seltzer", "viinipohjainen juoma", "vodka lemonade"], "bannedAny": []},
-  {"category": "mocktail", "label": "Alkoholittomat drinkit", "variants": ["mocktail", "alkoholiton kuohujuoma"], "requiredAny": ["mocktail", "alkoholiton kuohujuoma"], "bannedAny": []},
-  {"category": "kombucha", "label": "Kombuchat", "variants": ["kombucha"], "requiredAny": ["kombucha"], "bannedAny": []},
-  {"category": "sports_drink", "label": "Urheilu- ja hyvinvointijuomat", "variants": ["urheilujuoma", "bcaa-juoma", "vitamiinijuoma"], "requiredAny": ["urheilujuoma", "bcaa-juoma", "vitamiinijuoma"], "bannedAny": []},
-  {"category": "snack_bar", "label": "Välipalapatukat", "variants": ["myslipatukka", "kaurapatukka", "välipalapatukka"], "requiredAny": ["myslipatukka", "kaurapatukka", "välipalapatukka"], "bannedAny": []},
-  {"category": "rice_cakes", "label": "Riisi- ja maissikakut", "variants": ["riisikakku", "maissikakku"], "requiredAny": ["riisikakku", "maissikakku"], "bannedAny": []},
-  {"category": "fruit_puree", "label": "Hedelmäsoseet", "variants": ["omenasose", "mangosose"], "requiredAny": ["omenasose", "mangosose"], "bannedAny": []},
-  {"category": "fabric_softener", "label": "Huuhteluaineet", "variants": ["huuhteluaine"], "requiredAny": ["huuhteluaine"], "bannedAny": []},
-  {"category": "candles", "label": "Kynttilät", "variants": ["lämpökynttilä", "lyhtykynttilä"], "requiredAny": ["lämpökynttilä", "lyhtykynttilä"], "bannedAny": []},
-  {"category": "garden_supplies", "label": "Puutarhatarvikkeet", "variants": ["kukkamulta", "puutarhamulta", "lannoite"], "requiredAny": ["kukkamulta", "puutarhamulta", "lannoite"], "bannedAny": []},
-  {"category": "bacon", "label": "Pekonit", "variants": ["pekoni", "pancetta"], "requiredAny": ["pekoni", "pancetta"], "bannedAny": []},
-  {"category": "home_decor", "label": "Sisustus ja koristeet", "variants": ["paperitähti", "paperienkeli", "paperikoriste"], "requiredAny": ["paperitähti", "paperienkeli", "paperikoriste"], "bannedAny": []},
-  {"category": "electronics", "label": "Elektroniikka", "variants": ["kuuloke", "paperisilppuri", "multimediasoitin"], "requiredAny": ["kuuloke", "paperisilppuri", "multimediasoitin"], "bannedAny": []},
-
-  {"category": "chewing_gum", "label": "Purukumit", "variants": ["purukumi", "ksylitolipurukumi"], "requiredAny": ["purukumi", "ksylitolipurukumi"], "bannedAny": []},
-  {"category": "sports_equipment", "label": "Kuntoiluvälineet", "variants": ["kahvakuula", "jumppapallo", "kuntopallo", "kuntoiluväline"], "requiredAny": ["kahvakuula", "jumppapallo", "kuntopallo", "kuntoiluväline"], "bannedAny": []},
-  {"category": "tools", "label": "Työkalut ja koneet", "variants": ["jakoavain", "hylsyavainsarja", "vesuri", "aggregaatti", "plasmaleikkuri"], "requiredAny": ["jakoavain", "hylsyavainsarja", "vesuri", "aggregaatti", "plasmaleikkuri"], "bannedAny": []},
-  {"category": "building_supplies", "label": "Rakennustarvikkeet", "variants": ["liimapuulevy", "seinämaali", "akustiikkalevy", "rakennustarvike"], "requiredAny": ["liimapuulevy", "seinämaali", "akustiikkalevy", "rakennustarvike"], "bannedAny": []},
-  {"category": "craft_supplies", "label": "Askartelu ja toimistotarvikkeet", "variants": ["askartelupaperi", "silkkipaperi", "kopiopaperi", "paperiliitin", "pyöröpuikko"], "requiredAny": ["askartelupaperi", "silkkipaperi", "kopiopaperi", "paperiliitin", "pyöröpuikko"], "bannedAny": []},
-  {"category": "lighting", "label": "Valaistus", "variants": ["led-valo", "led-putki", "plafondi", "otsavalo"], "requiredAny": ["led-valo", "led-putki", "plafondi", "otsavalo"], "bannedAny": []},
-  {"category": "clothing", "label": "Vaatteet, jalkineet ja asusteet", "variants": ["nilkkuri", "talvisaapas", "neulepusero", "toppahaalari"], "requiredAny": ["nilkkuri", "talvisaapas", "neulepusero", "toppahaalari"], "bannedAny": []},
-  {"category": "automotive", "label": "Autotarvikkeet", "variants": ["moottoriöljy", "jääraappa", "kahvaraappa"], "requiredAny": ["moottoriöljy", "jääraappa", "kahvaraappa"], "bannedAny": []},
-  {"category": "cleaning_tools", "label": "Siivousvälineet", "variants": ["astiaharja", "hankaussieni", "siivousliina", "wc-harja", "rikkasetti"], "requiredAny": ["astiaharja", "hankaussieni", "siivousliina", "wc-harja", "rikkasetti"], "bannedAny": []},
-  {"category": "dip_sauce", "label": "Dipit ja salsat", "variants": ["dippikastike", "juustodippi", "salsakastike", "tacokastike", "guacamole"], "requiredAny": ["dippikastike", "juustodippi", "salsakastike", "tacokastike", "guacamole"], "bannedAny": []},
-  {"category": "tortilla", "label": "Tortillat ja tacokuoret", "variants": ["tortilla", "tacokuori", "tacokuoret"], "requiredAny": ["tortilla", "tacokuori", "tacokuoret"], "bannedAny": []},
-  {"category": "nuts_seeds", "label": "Pähkinät ja siemenet", "variants": ["pähkinä", "manteli", "siemensekoitus"], "requiredAny": ["pähkinä", "manteli", "siemensekoitus"], "bannedAny": []},
-  {"category": "dried_fruit", "label": "Kuivatut hedelmät", "variants": ["rusina", "kuivattu hedelmä", "kuivattu luumu"], "requiredAny": ["rusina", "kuivattu hedelmä", "kuivattu luumu"], "bannedAny": []},
-  {"category": "canned_fruit", "label": "Hedelmäsäilykkeet", "variants": ["hedelmäsäilyke", "säilykeananas", "päärynänpuolikkaat"], "requiredAny": ["hedelmäsäilyke", "säilykeananas", "päärynänpuolikkaat"], "bannedAny": []},
-  {"category": "grain_side", "label": "Viljalisukkeet", "variants": ["kvinoa", "bulgur", "couscous"], "requiredAny": ["kvinoa", "bulgur", "couscous"], "bannedAny": []},
-  {"category": "frozen_potatoes", "label": "Perunapakasteet", "variants": ["ranskanperuna", "röstiperuna", "muusiperuna"], "requiredAny": ["ranskanperuna", "röstiperuna", "muusiperuna"], "bannedAny": [], "parentCategory": "frozen"},
-  {"category": "sweet_spread", "label": "Makeat tahnat ja pähkinävoit", "variants": ["maapähkinävoi", "hasselpähkinälevite", "kaakaolevite", "pistaasikreemi"], "requiredAny": ["maapähkinävoi", "hasselpähkinälevite", "kaakaolevite", "pistaasikreemi"], "bannedAny": []},
-  {"category": "drink_powder", "label": "Juomajauheet", "variants": ["kahvijuomajauhe", "pikacappuccino", "kaakaojauhe"], "requiredAny": ["kahvijuomajauhe", "pikacappuccino", "kaakaojauhe"], "bannedAny": []},
-  {"category": "makeup", "label": "Meikit", "variants": ["huulikiilto", "ripsiväri", "meikkivoide"], "requiredAny": ["huulikiilto", "ripsiväri", "meikkivoide"], "bannedAny": []},
-  {"category": "seasonal_drink", "label": "Glögit ja simat", "variants": ["glögi", "sima"], "requiredAny": ["glögi", "sima"], "bannedAny": []},
-  {"category": "pet_supplies", "label": "Lemmikkitarvikkeet", "variants": ["lintulauta", "lemmikkitarvike"], "requiredAny": ["lintulauta", "lemmikkitarvike"], "bannedAny": []},
-  {"category": "pest_control", "label": "Tuholaistorjunta", "variants": ["kärpäspaperi", "etanasyötti", "kärpäspyydys"], "requiredAny": ["kärpäspaperi", "etanasyötti", "kärpäspyydys"], "bannedAny": []},
-
-  {"category": "prepared_protein", "label": "Pihvit, pyörykät ja kebabit", "variants": ["lihapulla", "lihapyörykkä", "jauhelihapihvi", "kananugetti", "falafel", "kebab", "vegepihvi"], "requiredAny": ["lihapulla", "lihapyörykkä", "jauhelihapihvi", "kananugetti", "nugget", "falafel", "kebab", "vegepihvi", "fileebites", "fileefingers"], "bannedAny": []},
-  {"category": "baby_food", "label": "Lastenruoat", "variants": ["lastenruoka", "vauvanruoka", "äidinmaidonkorvike", "vieroitusvalmiste"], "requiredAny": ["lastenruoka", "vauvanruoka", "vieroitusvalmiste", "korvike"], "bannedAny": []},
-  {"category": "coconut_milk", "label": "Kookosmaidot ja kookoskermat", "variants": ["kookosmaito", "kookoskerma"], "requiredAny": ["kookosmaito", "kookoskerma"], "bannedAny": []},
-  {"category": "sports_nutrition", "label": "Urheiluravinteet", "variants": ["proteiinipatukka", "urheilujuomajauhe", "pre-workout", "gainer"], "requiredAny": ["proteiinipatukka", "urheilujuomajauhe", "pre-workout", "gainer"], "bannedAny": []},
-
-  {"category": "fish", "label": "Kalat ja mädit", "variants": ["kala", "lohi", "kirjolohi", "graavilohi", "kylmäsavulohi", "savulohi", "mäti"], "requiredAny": ["kala", "lohi", "mäti"], "bannedAny": ["keitto", "salaatti", "liemikuutio", "kalanruoka"]},
-  {"category": "processed_cheese", "label": "Sulatejuustot", "variants": ["sulatejuusto", "koskenlaskija"], "requiredAny": ["sulatejuusto", "sulateviipale", "koskenlaskija"], "bannedAny": ["kastike"]},
-  {"category": "butter_blend", "label": "Voita sisältävät rasvaseokset", "variants": ["rasvaseos", "oivariini", "ingmariini", "sipaisu"], "requiredAny": ["rasvaseos", "oivariini", "ingmariini", "sipaisu"], "bannedAny": []},
-  {"category": "baking_ingredients", "label": "Leivonta-ainekset", "variants": ["leivonta-aines", "kuivahiiva", "leivinjauhe", "ruokasooda", "rommiaromi", "vaniljatanko"], "requiredAny": ["hiiva", "leivinjauhe", "ruokasooda", "aromi", "vaniljatanko"], "bannedAny": []},
-  {"category": "condensed_milk", "label": "Kondensoidut maidot", "variants": ["kondensoitu maito"], "requiredAny": ["kondensoitu maito"], "bannedAny": []},
-  {"category": "dessert_sauce", "label": "Jälkiruokakastikkeet", "variants": ["jälkiruokakastike", "suklaakastike", "kinuskikastike"], "requiredAny": ["suklaakastike", "kinuskikastike", "jälkiruokakastike"], "bannedAny": ["jäätelö"]},
-  {"category": "ready_meal", "label": "Valmisateriat", "variants": ["valmisateria", "mikroateria", "pyttipannu", "lasagne", "kiusaus"], "requiredAny": ["ateria", "pyttipannu", "lasagne", "kiusaus", "stroganoff"], "bannedAny": []},
-  {"category": "prepared_salad", "label": "Valmissalaatit", "variants": ["valmissalaatti", "italiansalaatti", "coleslaw", "punajuurisalaatti"], "requiredAny": ["salaatti", "coleslaw"], "bannedAny": []},
-  {"category": "ready_sandwich", "label": "Täytetyt leivät ja hampurilaiset", "variants": ["panini", "sandwich", "wrap", "hampurilainen", "hot dog"], "requiredAny": ["panini", "sandwich", "wrap", "hampurilainen", "hot dog", "burgeri"], "bannedAny": ["sämpylä", "sampyla", "kastike"]},
-  {"category": "pancakes", "label": "Ohukaiset", "variants": ["ohukainen", "pinaattiohukainen", "rahkaohukainen"], "requiredAny": ["ohukainen"], "bannedAny": []},
-  {"category": "beer", "label": "Oluet", "variants": ["olut", "lager", "ipa-olut", "kotikalja"], "requiredAny": ["olut", "lager", "kotikalja"], "bannedAny": ["olutlasi", "shampoo"]},
-  {"category": "cider", "label": "Siiderit", "variants": ["siideri", "omenasiideri", "päärynäsiideri"], "requiredAny": ["siideri", "cider"], "bannedAny": ["etikka"]},
-  {"category": "long_drink", "label": "Lonkerot", "variants": ["lonkero", "long drink"], "requiredAny": ["lonkero", "long drink"], "bannedAny": []},
-  {"category": "energy_drink", "label": "Energiajuomat", "variants": ["energiajuoma"], "requiredAny": ["energiajuoma", "energy", "nocco", "mad croc"], "bannedAny": []},
-  {"category": "coffee_drink", "label": "Valmiit kahvijuomat", "variants": ["kahvijuoma", "maitokahvijuoma", "cold brew", "frezza"], "requiredAny": ["kahvijuoma", "cold brew", "frezza"], "bannedAny": ["kahvijuomajauhe"]},
-  {"category": "soft_drink", "label": "Virvoitusjuomat", "variants": ["virvoitusjuoma", "limonadi", "limsa"], "requiredAny": ["virvoitusjuoma", "limonadi", "limsa"], "bannedAny": ["mehujää", "limonadijää"]},
-  {"category": "water", "label": "Vedet", "variants": ["lähdevesi", "kivennäisvesi", "vichy"], "requiredAny": ["lähdevesi", "kivennäisvesi", "vichy"], "bannedAny": []},
-  {"category": "fruit_soup", "label": "Mehukeitot", "variants": ["mehukeitto", "mansikkakeitto", "marjakeitto", "päärynäkeitto"], "requiredAny": ["mehukeitto", "mansikkakeitto", "marjakeitto", "päärynäkeitto"], "bannedAny": []},
-  {"category": "smoothie", "label": "Smoothiet", "variants": ["smoothie"], "requiredAny": ["smoothie"], "bannedAny": []},
-  {"category": "skin_care", "label": "Ihonhoito", "variants": ["kosteusvoide", "aurinkovoide", "kasvovoide", "vartalovoide", "kasvovoi", "vartalovoi", "shea voi", "puhdistusmaito", "kasvonaamio", "huulivoide"], "requiredAny": ["voide", "kasvovoi", "vartalovoi", "shea", "puhdistusmaito", "kasvonaamio", "huulivoide"], "bannedAny": []},
-  {"category": "toys", "label": "Lelut ja pelit", "variants": ["lelu", "muovailuvaha", "play doh", "nukke", "lautapeli", "palapeli"], "requiredAny": ["lelu", "muovailuvaha", "play doh", "play-doh", "nukke", "peli"], "bannedAny": []},
-  {"category": "supplements", "label": "Ravintolisät", "variants": ["ravintolisä", "maitohappobakteeri", "monivitamiini", "proteiinijauhe", "heraproteiini"], "requiredAny": ["ravintolisä", "vitamiini", "maitohappobakteeri", "proteiinijauhe", "heraproteiini"], "bannedAny": ["koira", "kissa"]},
-  {"category": "pet_food", "label": "Lemmikkien ruoat", "variants": ["koiranruoka", "kissanruoka", "kissanmaito", "kissanherkku", "koiranherkku"], "requiredAny": ["koiranruoka", "kissanruoka", "kissanmaito", "kissanherkku", "koiranherkku", "marsun täysravinto", "jyrsijänruoka"], "bannedAny": ["lelu", "hammastahna"]},
-  {"category": "kitchen_tools", "label": "Keittiövälineet", "variants": ["keittiöväline", "kahvilusikka", "kahvimitta", "leipäveitsi", "kananmunaleikkuri", "raastin", "ruokalusikka"], "requiredAny": ["lusikka", "veitsi", "kahvimitta", "leikkuri", "raastin", "kaavin", "suti", "ruotopihdit", "keittiösakset"], "bannedAny": []},
-  {"category": "tableware", "label": "Astiat ja ruokarasiat", "variants": ["juomapullo", "kahvikuppi", "juomalasi", "uunivuoka", "ruokarasia", "termospullo", "pressopannu"], "requiredAny": ["juomapullo", "kahvikuppi", "juomalasi", "uunivuoka", "ruokarasia", "lounasrasia", "termospullo", "termoskaadin", "pressopannu", "teräskulho", "mikrokupu"], "bannedAny": []},
-  {"category": "kitchen_appliances", "label": "Keittiökoneet", "variants": ["kahvinkeitin", "kahvimylly", "kahviautomaatti", "airfryer"], "requiredAny": ["kahvinkeitin", "kahvimylly", "kahviautomaatti", "airfryer"], "bannedAny": ["lelu", "leikkisetti", "puhdistusneste"]},
-  {"category": "hair_conditioner", "label": "Hiusten hoitoaineet", "variants": ["hiustenhoitoaine", "hiusnaamio"], "requiredAny": ["hoitoaine", "hiusnaamio"], "bannedAny": ["turkki"]},
-  {"category": "hair_styling", "label": "Hiusten muotoilu", "variants": ["hiuslakka", "hiuskiinne", "muotovaahto"], "requiredAny": ["hiuslakka", "hiuskiinne", "muotovaahto"], "bannedAny": []},
-  {"category": "hygiene_supplies", "label": "Hygieniatarvikkeet", "variants": ["vanupuikko", "vanutyyny", "tamponi", "pikkuhousunsuoja"], "requiredAny": ["vanupuikko", "vanutyyny", "tamponi", "pikkuhousunsuoja"], "bannedAny": []},
-  {"category": "cleaning_products", "label": "Kodin puhdistusaineet", "variants": ["putkenavaaja", "wc-puhdistaja", "wc-puhdistusaine", "yleispuhdistusaine"], "requiredAny": ["putkenavaaja", "puhdistaja", "puhdistusaine"], "bannedAny": ["kasvo", "hius"]},
-  {"category": "ice_cream", "label": "Jäätelöt", "variants": ["jäätelö", "jaatelo", "mehujää", "limonadijää"], "requiredAny": ["jäätelö", "mehujää", "limonadijää"], "bannedAny": ["hiusharja", "lelu", "voide"], "parentCategory": "frozen"},
-  {"category": "frozen_vegetables", "label": "Kasvispakasteet", "variants": ["pakastevihannekset", "pakastekasvikset", "kasvispakaste", "pakasteherneet"], "requiredAny": ["pakaste", "vihannes", "kasvis", "herne", "maissi"], "bannedAny": [], "parentCategory": "frozen"},
-  {"category": "frozen_fruit", "label": "Hedelmä- ja marjapakasteet", "variants": ["pakastemarjat", "marjapakaste", "pakastehedelmät"], "requiredAny": ["pakaste", "marja", "mansikka", "mustikka", "vadelma"], "bannedAny": [], "parentCategory": "frozen"},
-  {"category": "frozen_fish", "label": "Kala- ja äyriäispakasteet", "variants": ["pakastekala", "kalapakaste", "pakastekatkarapu"], "requiredAny": ["pakaste", "kala", "lohi", "katkarapu", "mäti"], "bannedAny": [], "parentCategory": "frozen", "parentCategories": ["frozen", "fish"]},
-  {"category": "frozen_dough", "label": "Taikinapakasteet", "variants": ["pakastetaikina", "taikinapakaste", "voitaikina", "pizzataikina"], "requiredAny": ["taikina"], "bannedAny": [], "parentCategory": "frozen"},
-  {"category": "soup", "label": "Keitot", "variants": ["keitto", "hernekeitto", "tomaattikeitto", "kanakeitto"], "requiredAny": ["keitto", "soup"], "bannedAny": ["liemikuutio", "keittojuures"]},
-  {"category": "cooking_sauce", "label": "Ruokakastikkeet", "variants": ["ruokakastike", "ruskeakastike", "bearnaisekastike", "hollandaise", "currykastike", "pippurikastike"], "requiredAny": ["kastike", "sauce", "hollandaise"], "bannedAny": ["sipsi", "chips"]},
-  {"category": "stock", "label": "Liemet ja fondit", "variants": ["liemikuutio", "kanaliemikuutio", "kasvisliemikuutio", "lihaliemikuutio", "fondi"], "requiredAny": ["liemikuutio", "fondi"], "bannedAny": []},
-  {"category": "seasoning", "label": "Mausteet", "variants": ["mauste", "mausteseos", "grillimauste", "jauhelihamauste", "mustapippuri", "kaneli"], "requiredAny": ["mauste", "pippuri", "kaneli"], "bannedAny": ["sipsi", "chips", "pulla", "jogurtti"]},
-  {"category": "vinegar", "label": "Etikat", "variants": ["etikka", "viinietikka", "omenasiiderietikka", "balsamico"], "requiredAny": ["etikka", "balsamico"], "bannedAny": ["pyykkietikka", "siivousetikka"]},
-  {"category": "noodles", "label": "Nuudelit", "variants": ["nuudeli", "nuudelit", "pikanuudeli"], "requiredAny": ["nuudeli", "noodle"], "bannedAny": []},
-  {"category": "pizza", "label": "Pizzat", "variants": ["pizza", "pakastepizza", "pinsa"], "requiredAny": ["pizza", "pinsa"], "bannedAny": ["pizzamauste", "pizzajuusto", "pizzaraaste", "pizzakastike", "pizzataikina", "pizzapohja", "pizzaleikkuri"]},
-  {"category": "meal_kit", "label": "Ateria-ainekset", "variants": ["ateria-aines", "ateria-ainekset", "pata-aines", "lasagne-aines"], "requiredAny": ["ateria", "pata-aines", "lasagne", "lasagnette", "snack pot", "spaghetteria"], "bannedAny": []},
-  {"category": "sour_cream", "label": "Kermaviilit", "variants": ["kermaviili"], "requiredAny": ["kermaviili"], "bannedAny": ["sipsi", "chips", "maissikakku", "riisikakku"]},
-  {"category": "smetana", "label": "Smetanat", "variants": ["smetana"], "requiredAny": ["smetana"], "bannedAny": ["sipsi", "chips"]},
-  {"category": "creme_fraiche", "label": "Ranskankermat", "variants": ["ranskankerma", "crème fraîche", "creme fraiche"], "requiredAny": ["ranskankerma", "crème fraîche", "creme fraiche"], "bannedAny": ["sipsi", "chips"]},
-  {"category": "fermented_milk", "label": "Viilit", "variants": ["viili", "kevytviili"], "requiredAny": ["viili"], "bannedAny": ["kermaviili"]},
-  {"category": "pudding", "label": "Vanukkaat", "variants": ["vanukas", "proteiinivanukas", "maitosuklaavanukas"], "requiredAny": ["vanukas"], "bannedAny": ["jäätelö"]},
-  {"category": "plant_drink", "label": "Kasvipohjaiset juomat", "variants": ["kauramaito", "kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "requiredAny": ["kauramaito", "kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "bannedAny": ["jäätelö"]},
-  {"category": "milk_powder", "label": "Maitojauheet", "variants": ["maitojauhe", "rasvaton maitojauhe"], "requiredAny": ["maitojauhe"], "bannedAny": ["äidinmaidonkorvike"]},
-  {"category": "pastry", "label": "Pullat ja leivonnaiset", "variants": ["pulla", "pullapitko", "korvapuusti", "wiener", "leivos"], "requiredAny": ["pulla", "pitko", "korvapuusti", "wiener", "leivos"], "bannedAny": ["jäätelö", "taikina"]},
-  {category: "cream", label: "Kermat", variants: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], requiredAny: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], bannedAny: ["jäätelö", "kermajuusto", "kermaviili"], ownBrandFriendly: true},
-  {category: "quark", label: "Rahkat", variants: ["rahka", "maitorahka", "proteiinirahka"], requiredAny: ["rahka", "maitorahka", "proteiinirahka"], bannedAny: ["rahkapiirakka", "rahkapulla"], ownBrandFriendly: true},
-  {category: "cottage_cheese", label: "Raejuustot", variants: ["raejuusto"], requiredAny: ["raejuusto"], bannedAny: ["raejuustosalaatti"], ownBrandFriendly: true},
-  {category: "cream_cheese", label: "Tuorejuustot", variants: ["tuorejuusto"], requiredAny: ["tuorejuusto"], bannedAny: ["tuorejuustokakku"], ownBrandFriendly: true},
-  {category: "butter", label: "Voit", variants: ["voi", "meijerivoi"], requiredAny: ["voi", "meijerivoi"], bannedAny: ["voitaikina", "voileipä", "sheavoi", "shea voi", "kasvovoi", "vartalovoi", "play doh", "play-doh", "popcorn", "sipsi", "chips", "maissikakku", "piparkakku", "piparkakut", "pullaset", "superpuusti", "annospuuro", "jäätelö", "grilliperuna", "maustepurkki", "muna & voi", "munavoi", "maapähkinävoi", "kaakaovoi"], ownBrandFriendly: true},
-  {category: "margarine", label: "Margariinit", variants: ["margariini", "kasvirasvalevite"], requiredAny: ["margariini", "kasvirasvalevite"], bannedAny: ["keksi"], ownBrandFriendly: true},
-  {category: "tea", label: "Teet", variants: ["tee", "mustatee", "vihreä tee", "teepussi"], requiredAny: ["tee", "mustatee", "vihreä tee", "teepussi"], bannedAny: ["jäätee", "teejuoma"], ownBrandFriendly: true},
-  {category: "juice", label: "Mehut", variants: ["mehu", "appelsiinimehu", "omenamehu"], requiredAny: ["mehu", "appelsiinimehu", "omenamehu"], bannedAny: ["mehujää", "mehukatti jäätelö"], ownBrandFriendly: true},
-  {category: "sausage", label: "Makkarat", variants: ["makkara", "grillimakkara", "lenkkimakkara", "nakki"], requiredAny: ["makkara", "grillimakkara", "lenkkimakkara", "nakki"], bannedAny: ["makkarakeitto", "makkarakastike"], ownBrandFriendly: true},
-  {category: "cold_cuts", label: "Leikkeleet", variants: ["leikkele", "kinkkuleikkele", "kalkkunaleikkele"], requiredAny: ["leikkele", "kinkkuleikkele", "kalkkunaleikkele"], bannedAny: ["pizza", "salaatti"], ownBrandFriendly: true},
-  {category: "toothpaste", label: "Hammastahnat", variants: ["hammastahna"], requiredAny: ["hammastahna"], bannedAny: ["hammasharja"], ownBrandFriendly: true},
-  {category: "deodorant", label: "Deodorantit", variants: ["deodorantti", "antiperspirantti"], requiredAny: ["deodorantti", "antiperspirantti"], bannedAny: ["suihkugeeli"], ownBrandFriendly: true},
-  { category: "mustard", label: "Sinapit", variants: ["sinappi","dijonsinappi","hunajasinappi"], requiredAny: ["sinappi","dijonsinappi","hunajasinappi"], bannedAny: ["majoneesi","sinappikastike"] },
-  { category: "mayonnaise", label: "Majoneesit", variants: ["majoneesi","mayonnaise","majo"], requiredAny: ["majoneesi","mayonnaise","majo"], bannedAny: ["sinappi","salaattikastike"] },
-  { category: "tomato_crush", label: "Tomaattimurskat", variants: ["tomaattimurska","tomaatti murska","passata"], requiredAny: ["tomaattimurska","tomaatti murska","passata"], bannedAny: ["ketsuppi","tomaattipyree"] },
-  { category: "tomato_paste", label: "Tomaattipyreet", variants: ["tomaattipyree","tomaattitahna"], requiredAny: ["tomaattipyree","tomaattitahna"], bannedAny: ["ketsuppi","tomaattimurska"] },
-  { category: "salad_dressing", label: "Salaattikastikkeet", variants: ["salaattikastike","salaatin kastike"], requiredAny: ["salaattikastike","salaatin kastike"], bannedAny: ["majoneesi"] },
-  { category: "oatmeal", label: "Kaurahiutaleet", variants: ["kaurahiutale","kaurahiutaleet","pikakaurahiutale"], requiredAny: ["kaurahiutale","kaurahiutaleet","pikakaurahiutale"], bannedAny: ["kaurajuoma","kauramaito"] },
-  { category: "porridge", label: "Puurot", variants: ["puuro","puurohiutale","mannapuuro","riisipuuro"], requiredAny: ["puuro","puurohiutale","mannapuuro","riisipuuro"], bannedAny: ["puuropata"] },
-  { category: "muesli", label: "Myslit", variants: ["mysli","müsli","granola"], requiredAny: ["mysli","müsli","granola"], bannedAny: ["myslipatukka"] },
-  { category: "breakfast_cereal", label: "Aamiaismurot", variants: ["aamiaismuro","murot","corn flakes","maissihiutale"], requiredAny: ["aamiaismuro","murot","corn flakes","maissihiutale"], bannedAny: ["suklaapatukka"] },
-  { category: "flour", label: "Jauhot", variants: ["vehnäjauho","ruisjauho","jauhot","sämpyläjauho"], requiredAny: ["vehnäjauho","ruisjauho","jauhot","sämpyläjauho"], bannedAny: ["jauheliha"] },
-  { category: "sugar", label: "Sokerit", variants: ["sokeri","hillosokeri","tomusokeri","ruokosokeri"], requiredAny: ["sokeri","hillosokeri","tomusokeri","ruokosokeri"], bannedAny: ["sokeriton"] },
-  { category: "salt", label: "Suolat", variants: ["suola","merisuola","hienosuola","vuorisuola"], requiredAny: ["suola","merisuola","hienosuola","vuorisuola"], bannedAny: ["suolapähkinä"] },
-  { category: "cookies", label: "Keksit", variants: ["keksi","keksit","digestive","piparkakku"], requiredAny: ["keksi","keksit","digestive","piparkakku"], bannedAny: ["keksijäätelö"] },
-  { category: "candy", label: "Makeiset", variants: ["karkki","makeiset","irtokarkki","lakritsi","salmiakki"], requiredAny: ["karkki","makeiset","irtokarkki","lakritsi","salmiakki"], bannedAny: ["karkkipussi koira"] },
-  { category: "chocolate", label: "Suklaat", variants: ["suklaalevy","suklaa","konvehti"], requiredAny: ["suklaalevy","suklaa","konvehti"], bannedAny: ["suklaamaito","suklaajäätelö"] },
-  { category: "jam", label: "Hillot", variants: ["hillo","mansikkahillo","vadelmahillo","marmeladi"], requiredAny: ["hillo","mansikkahillo","vadelmahillo","marmeladi"], bannedAny: ["hillosokeri"] },
-  { category: "honey", label: "Hunajat", variants: ["hunaja","juokseva hunaja"], requiredAny: ["hunaja","juokseva hunaja"], bannedAny: ["hunajasinappi"] },
-  { category: "canned_fish", label: "Kalasäilykkeet", variants: ["tonnikala","sardiini","makrilli säilyke"], requiredAny: ["tonnikala","sardiini","makrilli säilyke"], bannedAny: ["tonnikalapizza"] },
-  { category: "canned_vegetables", label: "Kasvissäilykkeet", variants: ["säilykemaissi","herne-maissi-paprika","säilykeherne","kidneypapu"], requiredAny: ["säilykemaissi","herne-maissi-paprika","säilykeherne","kidneypapu"], bannedAny: ["pakaste"] },
-  { category: "toilet_paper", label: "WC-paperit", variants: ["wc-paperi","vessapaperi","toalettipaperi"], requiredAny: ["wc-paperi","vessapaperi","toalettipaperi"], bannedAny: ["talouspaperi"] },
-  { category: "paper_towels", label: "Talouspaperit", variants: ["talouspaperi","keittiöpaperi"], requiredAny: ["talouspaperi","keittiöpaperi"], bannedAny: ["wc-paperi"] },
-  { category: "laundry_detergent", label: "Pyykinpesuaineet", variants: ["pyykinpesuaine","pyykkipulveri","pyykinpesuneste"], requiredAny: ["pyykinpesuaine","pyykkipulveri","pyykinpesuneste"], bannedAny: ["astianpesuaine"] },
-  { category: "dishwashing", label: "Astianpesuaineet", variants: ["astianpesuaine","konetiskitabletti","käsitiskiaine"], requiredAny: ["astianpesuaine","konetiskitabletti","käsitiskiaine"], bannedAny: ["pyykinpesuaine"] },
-  { category: "soap", label: "Saippuat", variants: ["saippua","nestesaippua","palasaippua"], requiredAny: ["saippua","nestesaippua","palasaippua"], bannedAny: ["astianpesuaine"] },
-  { category: "shampoo", label: "Shampoot", variants: ["shampoo","hiusshampoo"], requiredAny: ["shampoo","hiusshampoo"], bannedAny: ["suihkusaippua"] },
   {
-    category: "milk",
-    label: "Maidot",
-    variants: ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "ykkösmaito", "laktoositon maito", "luomu maito", "pirkka maito", "valio maito", "arla maito"],
-    requiredAny: ["maito", "kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"],
-    preferredAny: ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "laktoositon"],
-    bannedAny: ["maitorahka", "rahka", "kerma", "jogurtti", "jogurt", "kaakao", "suklaa", "kondensoitu", "maitojuoma", "proteiini", "latte", "maitojauhe", "cappuccino", "rasvaseos", "rasvasekoite", "rasvasekoitus", "voi", "levite", "margariini", "piimä", "piima"],
-    preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
-    preferredBrands: ["kotimaista", "coop", "rainbow", "valio", "arla"],
-    ownBrandFriendly: true,
-  },
-  {
-    category: "buttermilk",
-    label: "Piimät",
-    variants: ["piimä", "piima", "rasvaton piimä", "laktoositon piimä", "valio piimä", "kotimaista piimä"],
-    requiredAny: ["piimä", "piima"],
-    preferredAny: ["piimä", "piima", "rasvaton", "laktoositon"],
-    bannedAny: ["maito", "kerma", "jogurtti", "jogurt", "rahka", "raejuusto", "juusto", "kaakao", "proteiinijuoma", "maitojuoma"],
-    preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
-    preferredBrands: ["valio", "kotimaista", "arla"],
-    ownBrandFriendly: true,
-  },
-  {
-    category: "cooking_oil",
-    label: "Ruokaöljyt",
-    variants: ["öljy", "oljy", "ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "auringonkukkaöljy", "auringonkukkaoljy"],
-    requiredAny: ["öljy", "oljy", "ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "auringonkukkaöljy", "auringonkukkaoljy"],
-    preferredAny: ["ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "paisto", "leivonta"],
-    bannedAny: ["iho", "iholle", "kasvo", "kasvoille", "huuli", "huulikiilto", "arpi", "arville", "hius", "hiuksille", "vartalo", "hieronta", "hoitava", "kosmetiikka", "meikki", "meikinpoisto", "öljypohjainen", "oljyphjainen", "moottori", "voitelu"],
-    preferredSizes: [{ unitGroup: "volume", min: 400, max: 1000, boost: 45 }],
-    ownBrandFriendly: true,
-  },
-  {
-    category: "coffee",
-    label: "Kahvit",
-    variants: ["kahvi", "suodatinkahvi", "kahvi suodatinjauhatus", "jauhettu kahvi", "juhla mokka", "presidentti kahvi", "kulta katriina", "paulig kahvi", "meira kahvi", "kahvipapu", "espresso kahvi", "pikakahvi"],
-    requiredAny: ["kahvi", "suodatinkahvi", "suodatinjauhatus", "jauhettu", "kahvipapu", "espresso", "pikakahvi", "juhla mokka", "presidentti", "kulta katriina"],
-    preferredAny: ["suodatinkahvi", "suodatinjauhatus", "jauhettu", "juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"],
-    bannedAny: ["kahvikuppi", "muki", "kahvimitta", "suodatinpussi", "kahvinkeitin", "energiajuoma", "proteiinijuoma", "jogurtti", "rahka", "jäätelö", "jaatelo", "patukka"],
-    preferredSizes: [{ unitGroup: "weight", min: 400, max: 550, boost: 65 }],
-    preferredBrands: ["juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"],
-  },
-  {
-    category: "cola",
-    parentCategory: "soft_drink",
-    label: "Cola-juomat",
-    variants: ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "cola zero", "coca cola zero", "virvoitusjuoma cola"],
-    requiredAny: ["cola", "coca-cola", "coca cola", "pepsi", "pepsi max"],
-    preferredAny: ["coca-cola", "coca cola", "pepsi", "pepsi max", "zero", "virvoitusjuoma"],
-    bannedAny: ["tiiviste", "siirappi", "syrup", "jauhe", "karkki", "makeinen", "jäätelö", "jaatelo", "kastike", "alkoholi", "olut", "siideri"],
-    preferredSizes: [
-      { unitGroup: "volume", min: 1400, max: 1600, boost: 42 },
-      { unitGroup: "volume", min: 300, max: 550, boost: 24 },
+    "category": "frozen_savory_pastry",
+    "label": "Suolaiset leivonnaispakasteet",
+    "variants": [
+      "pasteijapakaste"
     ],
-    preferredBrands: ["coca-cola", "coca cola", "pepsi", "pepsi max"],
+    "requiredAny": [
+      "pasteija",
+      "piirakka"
+    ],
+    "bannedAny": [],
+    "parentCategory": "savory_pastry",
+    "parentCategories": [
+      "savory_pastry",
+      "frozen"
+    ]
   },
   {
-    category: "ketchup",
-    label: "Ketsupit",
-    variants: ["ketsuppi", "ketchup", "tomaattiketsuppi", "tomaatti ketsuppi"],
-    requiredAny: ["ketsuppi", "ketchup"],
-    preferredAny: ["ketsuppi", "ketchup", "tomaattiketsuppi"],
-    bannedAny: ["sipsi", "maustettu", "dippi", "majoneesi", "sinappi", "kastikejauhe", "mausteseos"],
-    preferredSizes: [{ unitGroup: "weight", min: 400, max: 1100, boost: 25 }],
+    "category": "frozen_pastry",
+    "label": "Leivonnaispakasteet",
+    "variants": [
+      "leivonnaispakaste"
+    ],
+    "requiredAny": [
+      "pulla",
+      "kakku",
+      "viineri",
+      "munkki",
+      "croissant",
+      "churros"
+    ],
+    "bannedAny": [],
+    "parentCategory": "pastry",
+    "parentCategories": [
+      "pastry",
+      "frozen"
+    ]
   },
   {
-    category: "cheese",
-    label: "Juustot",
-    variants: ["juusto", "edam juusto", "emmental juusto", "oltermanni", "kermajuusto", "viipalejuusto", "raastejuusto"],
-    requiredAny: ["juusto", "edam", "emmental", "gouda", "oltermanni"],
-    preferredAny: ["viipale", "raaste", "kermajuusto", "edam", "emmental", "oltermanni"],
-    bannedAny: ["tuorejuusto", "sulatejuusto", "raejuusto", "juustodippi", "dippi", "nacho", "kastike"],
-    preferredSizes: [{ unitGroup: "weight", min: 350, max: 1000, boost: 35 }],
-    preferredBrands: ["valio", "arla", "kotimaista", "pirkka", "oltermanni"],
-    ownBrandFriendly: true,
+    "category": "frozen_bread",
+    "label": "Leipäpakasteet",
+    "variants": [
+      "leipäpakaste"
+    ],
+    "requiredAny": [
+      "leipä",
+      "rieska",
+      "sämpylä"
+    ],
+    "bannedAny": [],
+    "parentCategory": "bread",
+    "parentCategories": [
+      "bread",
+      "frozen"
+    ]
   },
   {
-    category: "yogurt",
-    label: "Jogurtit",
-    variants: ["jogurtti", "jogurt", "maustamaton jogurtti", "turkkilainen jogurtti", "kreikkalainen jogurtti", "jogurtti 1kg"],
-    requiredAny: ["jogurtti", "jogurt"],
-    preferredAny: ["maustamaton", "turkkilainen", "kreikkalainen"],
-    bannedAny: ["rahka", "vanukas", "proteiinijuoma", "raejuusto", "tuorejuusto", "jäätelö", "jaatelo"],
-    preferredSizes: [{ unitGroup: "weight", min: 750, max: 1100, boost: 35 }],
-    ownBrandFriendly: true,
+    "category": "experiences",
+    "label": "Elämyslahjat",
+    "variants": [
+      "ajoelämys",
+      "elämyslahja"
+    ],
+    "requiredAny": [
+      "ajoelämys",
+      "elämyslahja"
+    ],
+    "bannedAny": []
   },
   {
-    category: "meat",
-    label: "Jauhelihat ja lihat",
-    variants: ["liha", "jauheliha", "naudan jauheliha", "sika-nauta jauheliha", "broilerin jauheliha", "jauheliha 400g"],
-    requiredAny: ["jauheliha", "nauta", "sika-nauta", "broilerin jauheliha"],
-    preferredAny: ["jauheliha", "naudan", "sika-nauta"],
-    bannedAny: ["kastike", "keitto", "ateria", "pizza", "piirakka"],
-    preferredSizes: [{ unitGroup: "weight", min: 300, max: 450, boost: 45 }],
-    preferredBrands: ["atria", "hk", "snellman", "kotimaista"],
+    "category": "ice_cubes",
+    "label": "Jääpalat ja jääpallot",
+    "variants": [
+      "jääpala",
+      "jääpallo"
+    ],
+    "requiredAny": [
+      "jääpala",
+      "jääpallo"
+    ],
+    "bannedAny": [],
+    "parentCategory": "frozen"
   },
   {
-    category: "egg",
-    label: "Kananmunat",
-    variants: ["kananmuna", "kananmunat", "kananmunia", "munat", "kananmuna 10 kpl", "kananmunat 10 kpl", "vapaan kanan munat", "luomu kananmunat"],
-    requiredAny: ["kananmuna", "kananmunat", "kananmunia", "munat"],
-    preferredAny: ["kananmuna", "kananmunat", "kananmunia", "munat", "10 kpl", "15 kpl", "6 kpl"],
-    bannedAny: ["suklaa", "pääsiäis", "paasiais", "yllätys", "yllatys", "makeinen", "karkki", "lelu", "majoneesi", "munavoi", "munakas", "kastike", "nuudeli", "pasta"],
-    preferredSizes: [{ unitGroup: "weight", min: 0, max: 0, boost: 0 }],
-    preferredBrands: ["kotimaista", "pirkka", "k-menu", "munax", "dava"],
-    ownBrandFriendly: true,
+    "category": "probiotic_drink",
+    "label": "Maitohappobakteerijuomat",
+    "variants": [
+      "maitohappobakteerijuoma"
+    ],
+    "requiredAny": [
+      "maitohappobakteerijuoma"
+    ],
+    "bannedAny": []
   },
   {
-    category: "chicken",
-    label: "Kana ja broileri",
-    variants: ["kana", "broileri", "kanasuikale", "broilerisuikale", "broilerin fileesuikale", "kanan filee"],
-    requiredAny: ["kana", "broileri", "kanasuikale", "broilerisuikale", "fileesuikale"],
-    preferredAny: ["suikale", "filee", "broileri"],
-    bannedAny: ["kastike", "keitto", "pizza", "salaatti", "ateria"],
-    preferredSizes: [{ unitGroup: "weight", min: 300, max: 700, boost: 35 }],
+    "category": "fresh_dough",
+    "label": "Tuoreet taikinat",
+    "variants": [
+      "tuoretaikina",
+      "tuore pizzataikina"
+    ],
+    "requiredAny": [
+      "tuoretaikina",
+      "tuore pizzataikina"
+    ],
+    "bannedAny": []
   },
   {
-    category: "bread",
-    label: "Leivät",
-    variants: ["leipä", "ruisleipä", "paahtoleipä", "kauraleipä", "sämpylä", "rieska"],
-    requiredAny: ["leipä", "leipa", "ruis", "paahto", "kaura", "sämpylä", "sampyla", "rieska"],
-    preferredAny: ["ruisleipä", "paahtoleipä", "kauraleipä", "sämpylä"],
-    bannedAny: ["keksi", "pullapitko", "kakku", "muro"],
-    ownBrandFriendly: true,
+    "category": "vegetable_paste",
+    "label": "Kasvistahnat",
+    "variants": [
+      "paprikapyree"
+    ],
+    "requiredAny": [
+      "paprikapyree"
+    ],
+    "bannedAny": []
   },
   {
-    category: "pasta",
-    label: "Pastat",
-    variants: ["pasta", "spagetti", "makaroni", "fusilli", "penne", "lasagnelevy"],
-    requiredAny: ["pasta", "spagetti", "makaroni", "fusilli", "penne", "lasagne"],
-    preferredAny: ["spagetti", "makaroni", "fusilli", "penne"],
-    bannedAny: ["kastike", "ateria", "salaatti"],
-    preferredSizes: [{ unitGroup: "weight", min: 400, max: 1000, boost: 35 }],
-    ownBrandFriendly: true,
+    "category": "fruit_snacks",
+    "label": "Hedelmänaposteltavat",
+    "variants": [
+      "hedelmänaposteltava",
+      "fruitfunk"
+    ],
+    "requiredAny": [
+      "hedelmänaposteltava",
+      "fruitfunk"
+    ],
+    "bannedAny": []
   },
   {
-    category: "rice",
-    label: "Riisit",
-    variants: ["riisi", "jasmiiniriisi", "basmatiriisi", "pitkäjyväinen riisi", "puuroriisi"],
-    requiredAny: ["riisi", "jasmiini", "basmati", "pitkäjyväinen", "pitkajyvainen", "puuroriisi"],
-    preferredAny: ["jasmiini", "basmati", "pitkäjyväinen", "puuroriisi"],
-    bannedAny: ["ateria", "salaatti", "riisipiirakka"],
-    preferredSizes: [{ unitGroup: "weight", min: 900, max: 1100, boost: 35 }],
-    ownBrandFriendly: true,
+    "category": "canned_meat",
+    "label": "Lihasäilykkeet ja lihahyytelöt",
+    "variants": [
+      "lihahyytelö",
+      "lihasäilyke",
+      "hovihyytelö"
+    ],
+    "requiredAny": [
+      "lihahyytelö",
+      "lihasäilyke",
+      "hovihyytelö"
+    ],
+    "bannedAny": []
   },
   {
-    category: "fruit_veg",
-    label: "Hedelmät ja vihannekset",
-    variants: ["banaani", "omena", "tomaatti", "kurkku", "peruna", "sipuli", "porkkana"],
-    requiredAny: ["banaani", "omena", "tomaatti", "kurkku", "peruna", "sipuli", "porkkana"],
-    preferredAny: ["suomi", "kotimainen", "luomu"],
-    bannedAny: ["mehu", "sose", "hillo", "kastike", "karkki"],
+    "category": "egg_products",
+    "label": "Kananmunavalmisteet",
+    "variants": [
+      "valkuaisjauhe",
+      "keitetty kananmuna"
+    ],
+    "requiredAny": [
+      "valkuaisjauhe",
+      "keitetty kananmuna"
+    ],
+    "bannedAny": []
   },
   {
-    category: "frozen",
-    label: "Pakasteet",
-    variants: ["pakaste", "kalapuikot", "ranskanperunat"],
-    requiredAny: ["pakaste", "kalapuikko", "kalapuikot", "ranskanperuna", "ranskanperunat", "jäätelö", "jaatelo"],
-    preferredAny: ["pakaste", "kalapuikot", "ranskanperunat"],
-    bannedAny: ["tuore", "säilyke", "sailyke"],
+    "category": "plant_cheese",
+    "label": "Kasvipohjaiset juustovalmisteet",
+    "variants": [
+      "tuorevuusto",
+      "kasvijuusto",
+      "violife creamy"
+    ],
+    "requiredAny": [
+      "tuorevuusto",
+      "kasvijuusto",
+      "violife creamy"
+    ],
+    "bannedAny": []
   },
   {
-    category: "snacks",
-    label: "Herkut ja naposteltavat",
-    variants: ["sipsit", "chips", "tortilla chips", "suolapähkinä"],
-    requiredAny: ["sipsi", "chips", "tortilla", "karkki", "suklaa", "keksi"],
-    preferredAny: ["sipsi", "chips", "tortilla", "suklaa"],
-    bannedAny: ["kastike", "dippi", "jogurtti"],
+    "category": "baking_mix",
+    "label": "Leivontaseokset",
+    "variants": [
+      "leipäsekoitus",
+      "pizzamixjauhoseos"
+    ],
+    "requiredAny": [
+      "leipäsekoitus",
+      "pizzamixjauhoseos"
+    ],
+    "bannedAny": []
   },
+  {
+    "category": "drink_concentrate",
+    "label": "Juomatiivisteet ja makusiirapit",
+    "variants": [
+      "juomatiiviste",
+      "makusiirappi",
+      "juomauute"
+    ],
+    "requiredAny": [
+      "tiiviste",
+      "siirappi",
+      "juomauute",
+      "mysoda"
+    ],
+    "bannedAny": []
+  },
+  {
+    "category": "household_supplies",
+    "label": "Kodin tarvikkeet",
+    "variants": [
+      "wc-paperiteline",
+      "kuivausteline",
+      "jätesäkki",
+      "roskakassi",
+      "kiuaskivi"
+    ],
+    "requiredAny": [
+      "wc-paperiteline",
+      "kuivausteline",
+      "jätesäkki",
+      "roskakassi",
+      "kiuaskivi"
+    ],
+    "bannedAny": []
+  },
+  {
+    "label": "Viinit ja viinipohjaiset juomat",
+    "category": "wine",
+    "variants": [
+      "viini",
+      "riesling"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "viini",
+      "riesling"
+    ]
+  },
+  {
+    "label": "Äyriäiset ja nilviäiset",
+    "category": "seafood",
+    "variants": [
+      "katkarapu",
+      "jättikatkarapu"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "katkarapu",
+      "jättikatkarapu"
+    ]
+  },
+  {
+    "label": "Siipikarjan jauhelihat",
+    "category": "poultry_ground",
+    "variants": [
+      "siipikarjan jauheliha"
+    ],
+    "bannedAny": [
+      "kastike",
+      "ateria"
+    ],
+    "requiredAny": [
+      "jauheliha"
+    ],
+    "parentCategory": "meat",
+    "parentCategories": [
+      "meat",
+      "chicken"
+    ]
+  },
+  {
+    "label": "Perunamuusijauheet ja -hiutaleet",
+    "category": "potato_flakes",
+    "variants": [
+      "perunamuusijauhe",
+      "muusihiutale"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "perunamuusijauhe",
+      "muusihiutale"
+    ]
+  },
+  {
+    "label": "Kasviproteiinit",
+    "category": "plant_protein",
+    "variants": [
+      "tofu",
+      "tempeh",
+      "seitan",
+      "härkäpapurouhe"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "tofu",
+      "tempeh",
+      "seitan",
+      "härkäpapurouhe"
+    ]
+  },
+  {
+    "label": "Kasvipohjaiset välipalat",
+    "category": "plant_dairy",
+    "variants": [
+      "kauravälipala",
+      "soijavalmiste",
+      "kauragurtti"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kauravälipala",
+      "soijavalmiste",
+      "kauragurtti"
+    ]
+  },
+  {
+    "label": "Kasvipohjaiset ruokakermat",
+    "category": "plant_cream",
+    "variants": [
+      "kauraruoka"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kauraruoka"
+    ]
+  },
+  {
+    "label": "Henkilökohtaisen hoidon laitteet",
+    "category": "personal_care_appliances",
+    "variants": [
+      "hiustenkuivain",
+      "hiustenleikkuri",
+      "suoristusrauta"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "hiustenkuivain",
+      "hiustenleikkuri",
+      "suoristusrauta"
+    ]
+  },
+  {
+    "label": "Retkeily ja kalastustarvikkeet",
+    "category": "outdoor_gear",
+    "variants": [
+      "onkimato",
+      "retkisuihku"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "onkimato",
+      "retkisuihku"
+    ]
+  },
+  {
+    "label": "Jääteet",
+    "category": "iced_tea",
+    "variants": [
+      "jäätee"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "jäätee"
+    ]
+  },
+  {
+    "label": "Hyvinvoinnin tuotteet ja tarvikkeet",
+    "category": "health_supplies",
+    "variants": [
+      "kinesioteippi",
+      "selkätuki",
+      "ryhtiliivi"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kinesioteippi",
+      "selkätuki",
+      "ryhtiliivi"
+    ]
+  },
+  {
+    "label": "Grillit ja savustimet",
+    "category": "grills",
+    "variants": [
+      "kaasugrilli",
+      "kamado-grilli",
+      "hiilisavustin"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kaasugrilli",
+      "kamado-grilli",
+      "hiilisavustin"
+    ]
+  },
+  {
+    "label": "Kalusteet",
+    "category": "furniture",
+    "variants": [
+      "tuoli",
+      "tilanjakajaseinä"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "tuoli",
+      "tilanjakajaseinä"
+    ]
+  },
+  {
+    "label": "Pakastetut suklaahedelmät",
+    "category": "frozen_confection",
+    "variants": [
+      "franui",
+      "trü frü"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "franui",
+      "trü frü"
+    ],
+    "parentCategory": "frozen"
+  },
+  {
+    "label": "Paloturvatarvikkeet",
+    "category": "fire_safety",
+    "variants": [
+      "palovaroitin",
+      "jauhesammutin"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "palovaroitin",
+      "jauhesammutin"
+    ]
+  },
+  {
+    "label": "Eteeriset öljyt",
+    "category": "essential_oils",
+    "variants": [
+      "eteerinen öljy"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "eteerinen öljy"
+    ]
+  },
+  {
+    "label": "Munavoit",
+    "category": "egg_spread",
+    "variants": [
+      "munavoi"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "munavoi"
+    ]
+  },
+  {
+    "label": "Ruoanvalmistusrasvat",
+    "category": "cooking_fats",
+    "variants": [
+      "ankanrasva",
+      "kookosrasva"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "ankanrasva",
+      "kookosrasva"
+    ]
+  },
+  {
+    "label": "Hiilet ja sytytystarvikkeet",
+    "category": "charcoal",
+    "variants": [
+      "grillihiili",
+      "sytytyspala"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "grillihiili",
+      "sytytyspala"
+    ]
+  },
+  {
+    "label": "Kuivatut pavut",
+    "category": "beans",
+    "variants": [
+      "mungpapu",
+      "adukipapu"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "mungpapu",
+      "adukipapu"
+    ]
+  },
+  {
+    "label": "Sisäilmalaitteet",
+    "category": "air_care",
+    "variants": [
+      "ilmankostutin"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "ilmankostutin"
+    ]
+  },
+  {
+    "label": "Kodintekstiilit",
+    "category": "home_textiles",
+    "variants": [
+      "matto",
+      "keittiöpyyhe",
+      "verho",
+      "torkkuhuopa"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "matto",
+      "keittiöpyyhe",
+      "verho",
+      "torkkuhuopa"
+    ]
+  },
+  {
+    "label": "Säilytys ja laukut",
+    "category": "storage",
+    "variants": [
+      "säilytyslaatikko",
+      "vetolaukku",
+      "säilytysastia"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "säilytyslaatikko",
+      "vetolaukku",
+      "säilytysastia"
+    ]
+  },
+  {
+    "label": "Tuoksut",
+    "category": "fragrance",
+    "variants": [
+      "hajuvesi",
+      "eau de parfum",
+      "eau de toilette"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "hajuvesi",
+      "eau de parfum",
+      "eau de toilette"
+    ]
+  },
+  {
+    "label": "Kodinkoneet",
+    "category": "home_appliances",
+    "variants": [
+      "pölynimuri",
+      "robotti-imuri",
+      "varsi-imuri"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "pölynimuri",
+      "robotti-imuri",
+      "varsi-imuri"
+    ]
+  },
+  {
+    "label": "Lämmitys ja sähkötarvikkeet",
+    "category": "heating",
+    "variants": [
+      "sulanapitokaapeli",
+      "kaasulämmitin",
+      "seinälämpöpuhallin"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "sulanapitokaapeli",
+      "kaasulämmitin",
+      "seinälämpöpuhallin"
+    ]
+  },
+  {
+    "label": "Jälkiruoat",
+    "category": "dessert",
+    "variants": [
+      "tiramisu",
+      "mämmi",
+      "kiisseli",
+      "suklaavaahto",
+      "mochi"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "tiramisu",
+      "mämmi",
+      "kiisseli",
+      "suklaavaahto",
+      "mochi"
+    ]
+  },
+  {
+    "label": "Skyr-valmisteet",
+    "category": "skyr",
+    "variants": [
+      "skyr"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "skyr"
+    ]
+  },
+  {
+    "label": "Valmiit lisukkeet",
+    "category": "prepared_sides",
+    "variants": [
+      "kermaperuna",
+      "bataattisose",
+      "porkkanasose"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kermaperuna",
+      "bataattisose",
+      "porkkanasose"
+    ]
+  },
+  {
+    "label": "Hummukset",
+    "category": "hummus",
+    "variants": [
+      "hummus",
+      "hummis"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "hummus",
+      "hummis"
+    ]
+  },
+  {
+    "label": "Maustetut maitojuomat",
+    "category": "flavored_milk",
+    "variants": [
+      "maitokaakaojuoma",
+      "kaakaomaito"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "maitokaakaojuoma",
+      "kaakaomaito"
+    ]
+  },
+  {
+    "label": "Suolaiset piirakat",
+    "category": "savory_pastry",
+    "variants": [
+      "karjalanpiirakka",
+      "riisipiirakka",
+      "nakkipiilo",
+      "börek"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "karjalanpiirakka",
+      "riisipiirakka",
+      "nakkipiilo",
+      "börek"
+    ]
+  },
+  {
+    "label": "Alkoholijuomasekoitukset",
+    "category": "mixed_drink",
+    "variants": [
+      "hard seltzer",
+      "viinipohjainen juoma",
+      "vodka lemonade"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "hard seltzer",
+      "viinipohjainen juoma",
+      "vodka lemonade"
+    ]
+  },
+  {
+    "label": "Alkoholittomat drinkit",
+    "category": "mocktail",
+    "variants": [
+      "mocktail",
+      "alkoholiton kuohujuoma"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "mocktail",
+      "alkoholiton kuohujuoma"
+    ]
+  },
+  {
+    "label": "Kombuchat",
+    "category": "kombucha",
+    "variants": [
+      "kombucha"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kombucha"
+    ]
+  },
+  {
+    "label": "Urheilu- ja hyvinvointijuomat",
+    "category": "sports_drink",
+    "variants": [
+      "urheilujuoma",
+      "bcaa-juoma",
+      "vitamiinijuoma"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "urheilujuoma",
+      "bcaa-juoma",
+      "vitamiinijuoma"
+    ]
+  },
+  {
+    "label": "Välipalapatukat",
+    "category": "snack_bar",
+    "variants": [
+      "myslipatukka",
+      "kaurapatukka",
+      "välipalapatukka"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "myslipatukka",
+      "kaurapatukka",
+      "välipalapatukka"
+    ]
+  },
+  {
+    "label": "Riisi- ja maissikakut",
+    "category": "rice_cakes",
+    "variants": [
+      "riisikakku",
+      "maissikakku"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "riisikakku",
+      "maissikakku"
+    ]
+  },
+  {
+    "label": "Hedelmäsoseet",
+    "category": "fruit_puree",
+    "variants": [
+      "omenasose",
+      "mangosose"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "omenasose",
+      "mangosose"
+    ]
+  },
+  {
+    "label": "Huuhteluaineet",
+    "category": "fabric_softener",
+    "variants": [
+      "huuhteluaine"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "huuhteluaine"
+    ]
+  },
+  {
+    "label": "Kynttilät",
+    "category": "candles",
+    "variants": [
+      "lämpökynttilä",
+      "lyhtykynttilä"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lämpökynttilä",
+      "lyhtykynttilä"
+    ]
+  },
+  {
+    "label": "Puutarhatarvikkeet",
+    "category": "garden_supplies",
+    "variants": [
+      "kukkamulta",
+      "puutarhamulta",
+      "lannoite"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kukkamulta",
+      "puutarhamulta",
+      "lannoite"
+    ]
+  },
+  {
+    "label": "Pekonit",
+    "category": "bacon",
+    "variants": [
+      "pekoni",
+      "pancetta"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "pekoni",
+      "pancetta"
+    ]
+  },
+  {
+    "label": "Sisustus ja koristeet",
+    "category": "home_decor",
+    "variants": [
+      "paperitähti",
+      "paperienkeli",
+      "paperikoriste"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "paperitähti",
+      "paperienkeli",
+      "paperikoriste"
+    ]
+  },
+  {
+    "label": "Elektroniikka",
+    "category": "electronics",
+    "variants": [
+      "kuuloke",
+      "paperisilppuri",
+      "multimediasoitin"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kuuloke",
+      "paperisilppuri",
+      "multimediasoitin"
+    ]
+  },
+  {
+    "label": "Purukumit",
+    "category": "chewing_gum",
+    "variants": [
+      "purukumi",
+      "ksylitolipurukumi"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "purukumi",
+      "ksylitolipurukumi"
+    ]
+  },
+  {
+    "label": "Kuntoiluvälineet",
+    "category": "sports_equipment",
+    "variants": [
+      "kahvakuula",
+      "jumppapallo",
+      "kuntopallo",
+      "kuntoiluväline"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kahvakuula",
+      "jumppapallo",
+      "kuntopallo",
+      "kuntoiluväline"
+    ]
+  },
+  {
+    "label": "Työkalut ja koneet",
+    "category": "tools",
+    "variants": [
+      "jakoavain",
+      "hylsyavainsarja",
+      "vesuri",
+      "aggregaatti",
+      "plasmaleikkuri"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "jakoavain",
+      "hylsyavainsarja",
+      "vesuri",
+      "aggregaatti",
+      "plasmaleikkuri"
+    ]
+  },
+  {
+    "label": "Rakennustarvikkeet",
+    "category": "building_supplies",
+    "variants": [
+      "liimapuulevy",
+      "seinämaali",
+      "akustiikkalevy",
+      "rakennustarvike"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "liimapuulevy",
+      "seinämaali",
+      "akustiikkalevy",
+      "rakennustarvike"
+    ]
+  },
+  {
+    "label": "Askartelu ja toimistotarvikkeet",
+    "category": "craft_supplies",
+    "variants": [
+      "askartelupaperi",
+      "silkkipaperi",
+      "kopiopaperi",
+      "paperiliitin",
+      "pyöröpuikko"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "askartelupaperi",
+      "silkkipaperi",
+      "kopiopaperi",
+      "paperiliitin",
+      "pyöröpuikko"
+    ]
+  },
+  {
+    "label": "Valaistus",
+    "category": "lighting",
+    "variants": [
+      "led-valo",
+      "led-putki",
+      "plafondi",
+      "otsavalo"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "led-valo",
+      "led-putki",
+      "plafondi",
+      "otsavalo"
+    ]
+  },
+  {
+    "label": "Vaatteet, jalkineet ja asusteet",
+    "category": "clothing",
+    "variants": [
+      "nilkkuri",
+      "talvisaapas",
+      "neulepusero",
+      "toppahaalari"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "nilkkuri",
+      "talvisaapas",
+      "neulepusero",
+      "toppahaalari"
+    ]
+  },
+  {
+    "label": "Autotarvikkeet",
+    "category": "automotive",
+    "variants": [
+      "moottoriöljy",
+      "jääraappa",
+      "kahvaraappa"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "moottoriöljy",
+      "jääraappa",
+      "kahvaraappa"
+    ]
+  },
+  {
+    "label": "Siivousvälineet",
+    "category": "cleaning_tools",
+    "variants": [
+      "astiaharja",
+      "hankaussieni",
+      "siivousliina",
+      "wc-harja",
+      "rikkasetti"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "astiaharja",
+      "hankaussieni",
+      "siivousliina",
+      "wc-harja",
+      "rikkasetti"
+    ]
+  },
+  {
+    "label": "Dipit ja salsat",
+    "category": "dip_sauce",
+    "variants": [
+      "dippikastike",
+      "juustodippi",
+      "salsakastike",
+      "tacokastike",
+      "guacamole"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "dippikastike",
+      "juustodippi",
+      "salsakastike",
+      "tacokastike",
+      "guacamole"
+    ]
+  },
+  {
+    "label": "Tortillat ja tacokuoret",
+    "category": "tortilla",
+    "variants": [
+      "tortilla",
+      "tacokuori",
+      "tacokuoret"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "tortilla",
+      "tacokuori",
+      "tacokuoret"
+    ]
+  },
+  {
+    "label": "Pähkinät ja siemenet",
+    "category": "nuts_seeds",
+    "variants": [
+      "pähkinä",
+      "manteli",
+      "siemensekoitus"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "pähkinä",
+      "manteli",
+      "siemensekoitus"
+    ]
+  },
+  {
+    "label": "Kuivatut hedelmät",
+    "category": "dried_fruit",
+    "variants": [
+      "rusina",
+      "kuivattu hedelmä",
+      "kuivattu luumu"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "rusina",
+      "kuivattu hedelmä",
+      "kuivattu luumu"
+    ]
+  },
+  {
+    "label": "Hedelmäsäilykkeet",
+    "category": "canned_fruit",
+    "variants": [
+      "hedelmäsäilyke",
+      "säilykeananas",
+      "päärynänpuolikkaat"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "hedelmäsäilyke",
+      "säilykeananas",
+      "päärynänpuolikkaat"
+    ]
+  },
+  {
+    "label": "Viljalisukkeet",
+    "category": "grain_side",
+    "variants": [
+      "kvinoa",
+      "bulgur",
+      "couscous"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kvinoa",
+      "bulgur",
+      "couscous"
+    ]
+  },
+  {
+    "label": "Perunapakasteet",
+    "category": "frozen_potatoes",
+    "variants": [
+      "ranskanperuna",
+      "röstiperuna",
+      "muusiperuna"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "ranskanperuna",
+      "röstiperuna",
+      "muusiperuna"
+    ],
+    "parentCategory": "frozen"
+  },
+  {
+    "label": "Makeat tahnat ja pähkinävoit",
+    "category": "sweet_spread",
+    "variants": [
+      "maapähkinävoi",
+      "hasselpähkinälevite",
+      "kaakaolevite",
+      "pistaasikreemi"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "maapähkinävoi",
+      "hasselpähkinälevite",
+      "kaakaolevite",
+      "pistaasikreemi"
+    ]
+  },
+  {
+    "label": "Juomajauheet",
+    "category": "drink_powder",
+    "variants": [
+      "kahvijuomajauhe",
+      "pikacappuccino",
+      "kaakaojauhe"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kahvijuomajauhe",
+      "pikacappuccino",
+      "kaakaojauhe"
+    ]
+  },
+  {
+    "label": "Meikit",
+    "category": "makeup",
+    "variants": [
+      "huulikiilto",
+      "ripsiväri",
+      "meikkivoide"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "huulikiilto",
+      "ripsiväri",
+      "meikkivoide"
+    ]
+  },
+  {
+    "label": "Glögit ja simat",
+    "category": "seasonal_drink",
+    "variants": [
+      "glögi",
+      "sima"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "glögi",
+      "sima"
+    ]
+  },
+  {
+    "label": "Lemmikkitarvikkeet",
+    "category": "pet_supplies",
+    "variants": [
+      "lintulauta",
+      "lemmikkitarvike"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lintulauta",
+      "lemmikkitarvike"
+    ]
+  },
+  {
+    "label": "Tuholaistorjunta",
+    "category": "pest_control",
+    "variants": [
+      "kärpäspaperi",
+      "etanasyötti",
+      "kärpäspyydys"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kärpäspaperi",
+      "etanasyötti",
+      "kärpäspyydys"
+    ]
+  },
+  {
+    "label": "Pihvit, pyörykät ja kebabit",
+    "category": "prepared_protein",
+    "variants": [
+      "lihapulla",
+      "lihapyörykkä",
+      "jauhelihapihvi",
+      "kananugetti",
+      "falafel",
+      "kebab",
+      "vegepihvi"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lihapulla",
+      "lihapyörykkä",
+      "jauhelihapihvi",
+      "kananugetti",
+      "nugget",
+      "falafel",
+      "kebab",
+      "vegepihvi",
+      "fileebites",
+      "fileefingers"
+    ]
+  },
+  {
+    "label": "Lastenruoat",
+    "category": "baby_food",
+    "variants": [
+      "lastenruoka",
+      "vauvanruoka",
+      "äidinmaidonkorvike",
+      "vieroitusvalmiste"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lastenruoka",
+      "vauvanruoka",
+      "vieroitusvalmiste",
+      "korvike"
+    ]
+  },
+  {
+    "label": "Kookosmaidot ja kookoskermat",
+    "category": "coconut_milk",
+    "variants": [
+      "kookosmaito",
+      "kookoskerma"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kookosmaito",
+      "kookoskerma"
+    ]
+  },
+  {
+    "label": "Urheiluravinteet",
+    "category": "sports_nutrition",
+    "variants": [
+      "proteiinipatukka",
+      "urheilujuomajauhe",
+      "pre-workout",
+      "gainer"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "proteiinipatukka",
+      "urheilujuomajauhe",
+      "pre-workout",
+      "gainer"
+    ]
+  },
+  {
+    "label": "Kalat ja mädit",
+    "category": "fish",
+    "variants": [
+      "kala",
+      "lohi",
+      "kirjolohi",
+      "graavilohi",
+      "kylmäsavulohi",
+      "savulohi",
+      "mäti"
+    ],
+    "bannedAny": [
+      "keitto",
+      "salaatti",
+      "liemikuutio",
+      "kalanruoka"
+    ],
+    "requiredAny": [
+      "kala",
+      "lohi",
+      "mäti"
+    ]
+  },
+  {
+    "label": "Sulatejuustot",
+    "category": "processed_cheese",
+    "variants": [
+      "sulatejuusto",
+      "koskenlaskija"
+    ],
+    "bannedAny": [
+      "kastike"
+    ],
+    "requiredAny": [
+      "sulatejuusto",
+      "sulateviipale",
+      "koskenlaskija"
+    ]
+  },
+  {
+    "label": "Voita sisältävät rasvaseokset",
+    "category": "butter_blend",
+    "variants": [
+      "rasvaseos",
+      "oivariini",
+      "ingmariini",
+      "sipaisu"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "rasvaseos",
+      "oivariini",
+      "ingmariini",
+      "sipaisu"
+    ]
+  },
+  {
+    "label": "Leivonta-ainekset",
+    "category": "baking_ingredients",
+    "variants": [
+      "leivonta-aines",
+      "kuivahiiva",
+      "leivinjauhe",
+      "ruokasooda",
+      "rommiaromi",
+      "vaniljatanko"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "hiiva",
+      "leivinjauhe",
+      "ruokasooda",
+      "aromi",
+      "vaniljatanko"
+    ]
+  },
+  {
+    "label": "Kondensoidut maidot",
+    "category": "condensed_milk",
+    "variants": [
+      "kondensoitu maito"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "kondensoitu maito"
+    ]
+  },
+  {
+    "label": "Jälkiruokakastikkeet",
+    "category": "dessert_sauce",
+    "variants": [
+      "jälkiruokakastike",
+      "suklaakastike",
+      "kinuskikastike"
+    ],
+    "bannedAny": [
+      "jäätelö"
+    ],
+    "requiredAny": [
+      "suklaakastike",
+      "kinuskikastike",
+      "jälkiruokakastike"
+    ]
+  },
+  {
+    "label": "Valmisateriat",
+    "category": "ready_meal",
+    "variants": [
+      "valmisateria",
+      "mikroateria",
+      "pyttipannu",
+      "lasagne",
+      "kiusaus"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "ateria",
+      "pyttipannu",
+      "lasagne",
+      "kiusaus",
+      "stroganoff"
+    ]
+  },
+  {
+    "label": "Valmissalaatit",
+    "category": "prepared_salad",
+    "variants": [
+      "valmissalaatti",
+      "italiansalaatti",
+      "coleslaw",
+      "punajuurisalaatti"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "salaatti",
+      "coleslaw"
+    ]
+  },
+  {
+    "label": "Täytetyt leivät ja hampurilaiset",
+    "category": "ready_sandwich",
+    "variants": [
+      "panini",
+      "sandwich",
+      "wrap",
+      "hampurilainen",
+      "hot dog"
+    ],
+    "bannedAny": [
+      "sämpylä",
+      "sampyla",
+      "kastike"
+    ],
+    "requiredAny": [
+      "panini",
+      "sandwich",
+      "wrap",
+      "hampurilainen",
+      "hot dog",
+      "burgeri"
+    ]
+  },
+  {
+    "label": "Ohukaiset",
+    "category": "pancakes",
+    "variants": [
+      "ohukainen",
+      "pinaattiohukainen",
+      "rahkaohukainen"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "ohukainen"
+    ]
+  },
+  {
+    "label": "Oluet",
+    "category": "beer",
+    "variants": [
+      "olut",
+      "lager",
+      "ipa-olut",
+      "kotikalja"
+    ],
+    "bannedAny": [
+      "olutlasi",
+      "shampoo"
+    ],
+    "requiredAny": [
+      "olut",
+      "lager",
+      "kotikalja"
+    ]
+  },
+  {
+    "label": "Siiderit",
+    "category": "cider",
+    "variants": [
+      "siideri",
+      "omenasiideri",
+      "päärynäsiideri"
+    ],
+    "bannedAny": [
+      "etikka"
+    ],
+    "requiredAny": [
+      "siideri",
+      "cider"
+    ]
+  },
+  {
+    "label": "Lonkerot",
+    "category": "long_drink",
+    "variants": [
+      "lonkero",
+      "long drink"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lonkero",
+      "long drink"
+    ]
+  },
+  {
+    "label": "Energiajuomat",
+    "category": "energy_drink",
+    "variants": [
+      "energiajuoma"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "energiajuoma",
+      "energy",
+      "nocco",
+      "mad croc"
+    ]
+  },
+  {
+    "label": "Valmiit kahvijuomat",
+    "category": "coffee_drink",
+    "variants": [
+      "kahvijuoma",
+      "maitokahvijuoma",
+      "cold brew",
+      "frezza"
+    ],
+    "bannedAny": [
+      "kahvijuomajauhe"
+    ],
+    "requiredAny": [
+      "kahvijuoma",
+      "cold brew",
+      "frezza"
+    ]
+  },
+  {
+    "label": "Virvoitusjuomat",
+    "category": "soft_drink",
+    "variants": [
+      "virvoitusjuoma",
+      "limonadi",
+      "limsa"
+    ],
+    "bannedAny": [
+      "mehujää",
+      "limonadijää"
+    ],
+    "requiredAny": [
+      "virvoitusjuoma",
+      "limonadi",
+      "limsa"
+    ]
+  },
+  {
+    "label": "Vedet",
+    "category": "water",
+    "variants": [
+      "lähdevesi",
+      "kivennäisvesi",
+      "vichy"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lähdevesi",
+      "kivennäisvesi",
+      "vichy"
+    ]
+  },
+  {
+    "label": "Mehukeitot",
+    "category": "fruit_soup",
+    "variants": [
+      "mehukeitto",
+      "mansikkakeitto",
+      "marjakeitto",
+      "päärynäkeitto"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "mehukeitto",
+      "mansikkakeitto",
+      "marjakeitto",
+      "päärynäkeitto"
+    ]
+  },
+  {
+    "label": "Smoothiet",
+    "category": "smoothie",
+    "variants": [
+      "smoothie"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "smoothie"
+    ]
+  },
+  {
+    "label": "Ihonhoito",
+    "category": "skin_care",
+    "variants": [
+      "kosteusvoide",
+      "aurinkovoide",
+      "kasvovoide",
+      "vartalovoide",
+      "kasvovoi",
+      "vartalovoi",
+      "shea voi",
+      "puhdistusmaito",
+      "kasvonaamio",
+      "huulivoide"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "voide",
+      "kasvovoi",
+      "vartalovoi",
+      "shea",
+      "puhdistusmaito",
+      "kasvonaamio",
+      "huulivoide"
+    ]
+  },
+  {
+    "label": "Lelut ja pelit",
+    "category": "toys",
+    "variants": [
+      "lelu",
+      "muovailuvaha",
+      "play doh",
+      "nukke",
+      "lautapeli",
+      "palapeli"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lelu",
+      "muovailuvaha",
+      "play doh",
+      "play-doh",
+      "nukke",
+      "peli"
+    ]
+  },
+  {
+    "label": "Ravintolisät",
+    "category": "supplements",
+    "variants": [
+      "ravintolisä",
+      "maitohappobakteeri",
+      "monivitamiini",
+      "proteiinijauhe",
+      "heraproteiini"
+    ],
+    "bannedAny": [
+      "koira",
+      "kissa"
+    ],
+    "requiredAny": [
+      "ravintolisä",
+      "vitamiini",
+      "maitohappobakteeri",
+      "proteiinijauhe",
+      "heraproteiini"
+    ]
+  },
+  {
+    "label": "Lemmikkien ruoat",
+    "category": "pet_food",
+    "variants": [
+      "koiranruoka",
+      "kissanruoka",
+      "kissanmaito",
+      "kissanherkku",
+      "koiranherkku"
+    ],
+    "bannedAny": [
+      "lelu",
+      "hammastahna"
+    ],
+    "requiredAny": [
+      "koiranruoka",
+      "kissanruoka",
+      "kissanmaito",
+      "kissanherkku",
+      "koiranherkku",
+      "marsun täysravinto",
+      "jyrsijänruoka"
+    ]
+  },
+  {
+    "label": "Keittiövälineet",
+    "category": "kitchen_tools",
+    "variants": [
+      "keittiöväline",
+      "kahvilusikka",
+      "kahvimitta",
+      "leipäveitsi",
+      "kananmunaleikkuri",
+      "raastin",
+      "ruokalusikka"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "lusikka",
+      "veitsi",
+      "kahvimitta",
+      "leikkuri",
+      "raastin",
+      "kaavin",
+      "suti",
+      "ruotopihdit",
+      "keittiösakset"
+    ]
+  },
+  {
+    "label": "Astiat ja ruokarasiat",
+    "category": "tableware",
+    "variants": [
+      "juomapullo",
+      "kahvikuppi",
+      "juomalasi",
+      "uunivuoka",
+      "ruokarasia",
+      "termospullo",
+      "pressopannu"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "juomapullo",
+      "kahvikuppi",
+      "juomalasi",
+      "uunivuoka",
+      "ruokarasia",
+      "lounasrasia",
+      "termospullo",
+      "termoskaadin",
+      "pressopannu",
+      "teräskulho",
+      "mikrokupu"
+    ]
+  },
+  {
+    "label": "Keittiökoneet",
+    "category": "kitchen_appliances",
+    "variants": [
+      "kahvinkeitin",
+      "kahvimylly",
+      "kahviautomaatti",
+      "airfryer"
+    ],
+    "bannedAny": [
+      "lelu",
+      "leikkisetti",
+      "puhdistusneste"
+    ],
+    "requiredAny": [
+      "kahvinkeitin",
+      "kahvimylly",
+      "kahviautomaatti",
+      "airfryer"
+    ]
+  },
+  {
+    "label": "Hiusten hoitoaineet",
+    "category": "hair_conditioner",
+    "variants": [
+      "hiustenhoitoaine",
+      "hiusnaamio"
+    ],
+    "bannedAny": [
+      "turkki"
+    ],
+    "requiredAny": [
+      "hoitoaine",
+      "hiusnaamio"
+    ]
+  },
+  {
+    "label": "Hiusten muotoilu",
+    "category": "hair_styling",
+    "variants": [
+      "hiuslakka",
+      "hiuskiinne",
+      "muotovaahto"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "hiuslakka",
+      "hiuskiinne",
+      "muotovaahto"
+    ]
+  },
+  {
+    "label": "Hygieniatarvikkeet",
+    "category": "hygiene_supplies",
+    "variants": [
+      "vanupuikko",
+      "vanutyyny",
+      "tamponi",
+      "pikkuhousunsuoja"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "vanupuikko",
+      "vanutyyny",
+      "tamponi",
+      "pikkuhousunsuoja"
+    ]
+  },
+  {
+    "label": "Kodin puhdistusaineet",
+    "category": "cleaning_products",
+    "variants": [
+      "putkenavaaja",
+      "wc-puhdistaja",
+      "wc-puhdistusaine",
+      "yleispuhdistusaine"
+    ],
+    "bannedAny": [
+      "kasvo",
+      "hius"
+    ],
+    "requiredAny": [
+      "putkenavaaja",
+      "puhdistaja",
+      "puhdistusaine"
+    ]
+  },
+  {
+    "label": "Jäätelöt",
+    "category": "ice_cream",
+    "variants": [
+      "jäätelö",
+      "jaatelo",
+      "mehujää",
+      "limonadijää"
+    ],
+    "bannedAny": [
+      "hiusharja",
+      "lelu",
+      "voide"
+    ],
+    "requiredAny": [
+      "jäätelö",
+      "mehujää",
+      "limonadijää"
+    ],
+    "parentCategory": "frozen"
+  },
+  {
+    "label": "Kasvispakasteet",
+    "category": "frozen_vegetables",
+    "variants": [
+      "pakastevihannekset",
+      "pakastekasvikset",
+      "kasvispakaste",
+      "pakasteherneet"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "pakaste",
+      "vihannes",
+      "kasvis",
+      "herne",
+      "maissi"
+    ],
+    "parentCategory": "frozen"
+  },
+  {
+    "label": "Hedelmä- ja marjapakasteet",
+    "category": "frozen_fruit",
+    "variants": [
+      "pakastemarjat",
+      "marjapakaste",
+      "pakastehedelmät"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "pakaste",
+      "marja",
+      "mansikka",
+      "mustikka",
+      "vadelma"
+    ],
+    "parentCategory": "frozen"
+  },
+  {
+    "label": "Kala- ja äyriäispakasteet",
+    "category": "frozen_fish",
+    "variants": [
+      "pakastekala",
+      "kalapakaste",
+      "pakastekatkarapu"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "pakaste",
+      "kala",
+      "lohi",
+      "katkarapu",
+      "mäti"
+    ],
+    "parentCategory": "frozen",
+    "parentCategories": [
+      "frozen",
+      "fish"
+    ]
+  },
+  {
+    "label": "Taikinapakasteet",
+    "category": "frozen_dough",
+    "variants": [
+      "pakastetaikina",
+      "taikinapakaste",
+      "voitaikina",
+      "pizzataikina"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "taikina"
+    ],
+    "parentCategory": "frozen"
+  },
+  {
+    "label": "Keitot",
+    "category": "soup",
+    "variants": [
+      "keitto",
+      "hernekeitto",
+      "tomaattikeitto",
+      "kanakeitto"
+    ],
+    "bannedAny": [
+      "liemikuutio",
+      "keittojuures"
+    ],
+    "requiredAny": [
+      "keitto",
+      "soup"
+    ]
+  },
+  {
+    "label": "Ruokakastikkeet",
+    "category": "cooking_sauce",
+    "variants": [
+      "ruokakastike",
+      "ruskeakastike",
+      "bearnaisekastike",
+      "hollandaise",
+      "currykastike",
+      "pippurikastike"
+    ],
+    "bannedAny": [
+      "sipsi",
+      "chips"
+    ],
+    "requiredAny": [
+      "kastike",
+      "sauce",
+      "hollandaise"
+    ]
+  },
+  {
+    "label": "Liemet ja fondit",
+    "category": "stock",
+    "variants": [
+      "liemikuutio",
+      "kanaliemikuutio",
+      "kasvisliemikuutio",
+      "lihaliemikuutio",
+      "fondi"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "liemikuutio",
+      "fondi"
+    ]
+  },
+  {
+    "label": "Mausteet",
+    "category": "seasoning",
+    "variants": [
+      "mauste",
+      "mausteseos",
+      "grillimauste",
+      "jauhelihamauste",
+      "mustapippuri",
+      "kaneli"
+    ],
+    "bannedAny": [
+      "sipsi",
+      "chips",
+      "pulla",
+      "jogurtti"
+    ],
+    "requiredAny": [
+      "mauste",
+      "pippuri",
+      "kaneli"
+    ]
+  },
+  {
+    "label": "Etikat",
+    "category": "vinegar",
+    "variants": [
+      "etikka",
+      "viinietikka",
+      "omenasiiderietikka",
+      "balsamico"
+    ],
+    "bannedAny": [
+      "pyykkietikka",
+      "siivousetikka"
+    ],
+    "requiredAny": [
+      "etikka",
+      "balsamico"
+    ]
+  },
+  {
+    "label": "Nuudelit",
+    "category": "noodles",
+    "variants": [
+      "nuudeli",
+      "nuudelit",
+      "pikanuudeli"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "nuudeli",
+      "noodle"
+    ]
+  },
+  {
+    "label": "Pizzat",
+    "category": "pizza",
+    "variants": [
+      "pizza",
+      "pakastepizza",
+      "pinsa"
+    ],
+    "bannedAny": [
+      "pizzamauste",
+      "pizzajuusto",
+      "pizzaraaste",
+      "pizzakastike",
+      "pizzataikina",
+      "pizzapohja",
+      "pizzaleikkuri"
+    ],
+    "requiredAny": [
+      "pizza",
+      "pinsa"
+    ]
+  },
+  {
+    "label": "Ateria-ainekset",
+    "category": "meal_kit",
+    "variants": [
+      "ateria-aines",
+      "ateria-ainekset",
+      "pata-aines",
+      "lasagne-aines"
+    ],
+    "bannedAny": [],
+    "requiredAny": [
+      "ateria",
+      "pata-aines",
+      "lasagne",
+      "lasagnette",
+      "snack pot",
+      "spaghetteria"
+    ]
+  },
+  {
+    "label": "Kermaviilit",
+    "category": "sour_cream",
+    "variants": [
+      "kermaviili"
+    ],
+    "bannedAny": [
+      "sipsi",
+      "chips",
+      "maissikakku",
+      "riisikakku"
+    ],
+    "requiredAny": [
+      "kermaviili"
+    ]
+  },
+  {
+    "label": "Smetanat",
+    "category": "smetana",
+    "variants": [
+      "smetana"
+    ],
+    "bannedAny": [
+      "sipsi",
+      "chips"
+    ],
+    "requiredAny": [
+      "smetana"
+    ]
+  },
+  {
+    "label": "Ranskankermat",
+    "category": "creme_fraiche",
+    "variants": [
+      "ranskankerma",
+      "crème fraîche",
+      "creme fraiche"
+    ],
+    "bannedAny": [
+      "sipsi",
+      "chips"
+    ],
+    "requiredAny": [
+      "ranskankerma",
+      "crème fraîche",
+      "creme fraiche"
+    ]
+  },
+  {
+    "label": "Viilit",
+    "category": "fermented_milk",
+    "variants": [
+      "viili",
+      "kevytviili"
+    ],
+    "bannedAny": [
+      "kermaviili"
+    ],
+    "requiredAny": [
+      "viili"
+    ]
+  },
+  {
+    "label": "Vanukkaat",
+    "category": "pudding",
+    "variants": [
+      "vanukas",
+      "proteiinivanukas",
+      "maitosuklaavanukas"
+    ],
+    "bannedAny": [
+      "jäätelö"
+    ],
+    "requiredAny": [
+      "vanukas"
+    ]
+  },
+  {
+    "label": "Kasvipohjaiset juomat",
+    "category": "plant_drink",
+    "variants": [
+      "kauramaito",
+      "kaurajuoma",
+      "soijajuoma",
+      "mantelijuoma",
+      "kasvipohjainen juoma"
+    ],
+    "bannedAny": [
+      "jäätelö"
+    ],
+    "requiredAny": [
+      "kauramaito",
+      "kaurajuoma",
+      "soijajuoma",
+      "mantelijuoma",
+      "kasvipohjainen juoma"
+    ]
+  },
+  {
+    "label": "Maitojauheet",
+    "category": "milk_powder",
+    "variants": [
+      "maitojauhe",
+      "rasvaton maitojauhe"
+    ],
+    "bannedAny": [
+      "äidinmaidonkorvike"
+    ],
+    "requiredAny": [
+      "maitojauhe"
+    ]
+  },
+  {
+    "label": "Pullat ja leivonnaiset",
+    "category": "pastry",
+    "variants": [
+      "pulla",
+      "pullapitko",
+      "korvapuusti",
+      "wiener",
+      "leivos"
+    ],
+    "bannedAny": [
+      "jäätelö",
+      "taikina"
+    ],
+    "requiredAny": [
+      "pulla",
+      "pitko",
+      "korvapuusti",
+      "wiener",
+      "leivos"
+    ]
+  },
+  {
+    "label": "Kermat",
+    "category": "cream",
+    "variants": [
+      "kerma",
+      "kuohukerma",
+      "ruokakerma",
+      "vispikerma"
+    ],
+    "bannedAny": [
+      "jäätelö",
+      "kermajuusto",
+      "kermaviili"
+    ],
+    "requiredAny": [
+      "kerma",
+      "kuohukerma",
+      "ruokakerma",
+      "vispikerma"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Rahkat",
+    "category": "quark",
+    "variants": [
+      "rahka",
+      "maitorahka",
+      "proteiinirahka"
+    ],
+    "bannedAny": [
+      "rahkapiirakka",
+      "rahkapulla"
+    ],
+    "requiredAny": [
+      "rahka",
+      "maitorahka",
+      "proteiinirahka"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Raejuustot",
+    "category": "cottage_cheese",
+    "variants": [
+      "raejuusto"
+    ],
+    "bannedAny": [
+      "raejuustosalaatti"
+    ],
+    "requiredAny": [
+      "raejuusto"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Tuorejuustot",
+    "category": "cream_cheese",
+    "variants": [
+      "tuorejuusto"
+    ],
+    "bannedAny": [
+      "tuorejuustokakku"
+    ],
+    "requiredAny": [
+      "tuorejuusto"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Voit",
+    "category": "butter",
+    "variants": [
+      "voi",
+      "meijerivoi"
+    ],
+    "bannedAny": [
+      "voitaikina",
+      "voileipä",
+      "sheavoi",
+      "shea voi",
+      "kasvovoi",
+      "vartalovoi",
+      "play doh",
+      "play-doh",
+      "popcorn",
+      "sipsi",
+      "chips",
+      "maissikakku",
+      "piparkakku",
+      "piparkakut",
+      "pullaset",
+      "superpuusti",
+      "annospuuro",
+      "jäätelö",
+      "grilliperuna",
+      "maustepurkki",
+      "muna & voi",
+      "munavoi",
+      "maapähkinävoi",
+      "kaakaovoi"
+    ],
+    "requiredAny": [
+      "voi",
+      "meijerivoi"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Margariinit",
+    "category": "margarine",
+    "variants": [
+      "margariini",
+      "kasvirasvalevite"
+    ],
+    "bannedAny": [
+      "keksi"
+    ],
+    "requiredAny": [
+      "margariini",
+      "kasvirasvalevite"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Teet",
+    "category": "tea",
+    "variants": [
+      "tee",
+      "mustatee",
+      "vihreä tee",
+      "teepussi"
+    ],
+    "bannedAny": [
+      "jäätee",
+      "teejuoma"
+    ],
+    "requiredAny": [
+      "tee",
+      "mustatee",
+      "vihreä tee",
+      "teepussi"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Mehut",
+    "category": "juice",
+    "variants": [
+      "mehu",
+      "appelsiinimehu",
+      "omenamehu"
+    ],
+    "bannedAny": [
+      "mehujää",
+      "mehukatti jäätelö"
+    ],
+    "requiredAny": [
+      "mehu",
+      "appelsiinimehu",
+      "omenamehu"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Makkarat",
+    "category": "sausage",
+    "variants": [
+      "makkara",
+      "grillimakkara",
+      "lenkkimakkara",
+      "nakki"
+    ],
+    "bannedAny": [
+      "makkarakeitto",
+      "makkarakastike"
+    ],
+    "requiredAny": [
+      "makkara",
+      "grillimakkara",
+      "lenkkimakkara",
+      "nakki"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Leikkeleet",
+    "category": "cold_cuts",
+    "variants": [
+      "leikkele",
+      "kinkkuleikkele",
+      "kalkkunaleikkele"
+    ],
+    "bannedAny": [
+      "pizza",
+      "salaatti"
+    ],
+    "requiredAny": [
+      "leikkele",
+      "kinkkuleikkele",
+      "kalkkunaleikkele"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Hammastahnat",
+    "category": "toothpaste",
+    "variants": [
+      "hammastahna"
+    ],
+    "bannedAny": [
+      "hammasharja"
+    ],
+    "requiredAny": [
+      "hammastahna"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Deodorantit",
+    "category": "deodorant",
+    "variants": [
+      "deodorantti",
+      "antiperspirantti"
+    ],
+    "bannedAny": [
+      "suihkugeeli"
+    ],
+    "requiredAny": [
+      "deodorantti",
+      "antiperspirantti"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Sinapit",
+    "category": "mustard",
+    "variants": [
+      "sinappi",
+      "dijonsinappi",
+      "hunajasinappi"
+    ],
+    "bannedAny": [
+      "majoneesi",
+      "sinappikastike"
+    ],
+    "requiredAny": [
+      "sinappi",
+      "dijonsinappi",
+      "hunajasinappi"
+    ]
+  },
+  {
+    "label": "Majoneesit",
+    "category": "mayonnaise",
+    "variants": [
+      "majoneesi",
+      "mayonnaise",
+      "majo"
+    ],
+    "bannedAny": [
+      "sinappi",
+      "salaattikastike"
+    ],
+    "requiredAny": [
+      "majoneesi",
+      "mayonnaise",
+      "majo"
+    ]
+  },
+  {
+    "label": "Tomaattimurskat",
+    "category": "tomato_crush",
+    "variants": [
+      "tomaattimurska",
+      "tomaatti murska",
+      "passata"
+    ],
+    "bannedAny": [
+      "ketsuppi",
+      "tomaattipyree"
+    ],
+    "requiredAny": [
+      "tomaattimurska",
+      "tomaatti murska",
+      "passata"
+    ]
+  },
+  {
+    "label": "Tomaattipyreet",
+    "category": "tomato_paste",
+    "variants": [
+      "tomaattipyree",
+      "tomaattitahna"
+    ],
+    "bannedAny": [
+      "ketsuppi",
+      "tomaattimurska"
+    ],
+    "requiredAny": [
+      "tomaattipyree",
+      "tomaattitahna"
+    ]
+  },
+  {
+    "label": "Salaattikastikkeet",
+    "category": "salad_dressing",
+    "variants": [
+      "salaattikastike",
+      "salaatin kastike"
+    ],
+    "bannedAny": [
+      "majoneesi"
+    ],
+    "requiredAny": [
+      "salaattikastike",
+      "salaatin kastike"
+    ]
+  },
+  {
+    "label": "Kaurahiutaleet",
+    "category": "oatmeal",
+    "variants": [
+      "kaurahiutale",
+      "kaurahiutaleet",
+      "pikakaurahiutale"
+    ],
+    "bannedAny": [
+      "kaurajuoma",
+      "kauramaito"
+    ],
+    "requiredAny": [
+      "kaurahiutale",
+      "kaurahiutaleet",
+      "pikakaurahiutale"
+    ]
+  },
+  {
+    "label": "Puurot",
+    "category": "porridge",
+    "variants": [
+      "puuro",
+      "puurohiutale",
+      "mannapuuro",
+      "riisipuuro"
+    ],
+    "bannedAny": [
+      "puuropata"
+    ],
+    "requiredAny": [
+      "puuro",
+      "puurohiutale",
+      "mannapuuro",
+      "riisipuuro"
+    ]
+  },
+  {
+    "label": "Myslit",
+    "category": "muesli",
+    "variants": [
+      "mysli",
+      "müsli",
+      "granola"
+    ],
+    "bannedAny": [
+      "myslipatukka"
+    ],
+    "requiredAny": [
+      "mysli",
+      "müsli",
+      "granola"
+    ]
+  },
+  {
+    "label": "Aamiaismurot",
+    "category": "breakfast_cereal",
+    "variants": [
+      "aamiaismuro",
+      "murot",
+      "corn flakes",
+      "maissihiutale"
+    ],
+    "bannedAny": [
+      "suklaapatukka"
+    ],
+    "requiredAny": [
+      "aamiaismuro",
+      "murot",
+      "corn flakes",
+      "maissihiutale"
+    ]
+  },
+  {
+    "label": "Jauhot",
+    "category": "flour",
+    "variants": [
+      "vehnäjauho",
+      "ruisjauho",
+      "jauhot",
+      "sämpyläjauho"
+    ],
+    "bannedAny": [
+      "jauheliha"
+    ],
+    "requiredAny": [
+      "vehnäjauho",
+      "ruisjauho",
+      "jauhot",
+      "sämpyläjauho"
+    ]
+  },
+  {
+    "label": "Sokerit",
+    "category": "sugar",
+    "variants": [
+      "sokeri",
+      "hillosokeri",
+      "tomusokeri",
+      "ruokosokeri"
+    ],
+    "bannedAny": [
+      "sokeriton"
+    ],
+    "requiredAny": [
+      "sokeri",
+      "hillosokeri",
+      "tomusokeri",
+      "ruokosokeri"
+    ]
+  },
+  {
+    "label": "Suolat",
+    "category": "salt",
+    "variants": [
+      "suola",
+      "merisuola",
+      "hienosuola",
+      "vuorisuola"
+    ],
+    "bannedAny": [
+      "suolapähkinä"
+    ],
+    "requiredAny": [
+      "suola",
+      "merisuola",
+      "hienosuola",
+      "vuorisuola"
+    ]
+  },
+  {
+    "label": "Keksit",
+    "category": "cookies",
+    "variants": [
+      "keksi",
+      "keksit",
+      "digestive",
+      "piparkakku"
+    ],
+    "bannedAny": [
+      "keksijäätelö"
+    ],
+    "requiredAny": [
+      "keksi",
+      "keksit",
+      "digestive",
+      "piparkakku"
+    ]
+  },
+  {
+    "label": "Makeiset",
+    "category": "candy",
+    "variants": [
+      "karkki",
+      "makeiset",
+      "irtokarkki",
+      "lakritsi",
+      "salmiakki"
+    ],
+    "bannedAny": [
+      "karkkipussi koira"
+    ],
+    "requiredAny": [
+      "karkki",
+      "makeiset",
+      "irtokarkki",
+      "lakritsi",
+      "salmiakki"
+    ]
+  },
+  {
+    "label": "Suklaat",
+    "category": "chocolate",
+    "variants": [
+      "suklaalevy",
+      "suklaa",
+      "konvehti"
+    ],
+    "bannedAny": [
+      "suklaamaito",
+      "suklaajäätelö"
+    ],
+    "requiredAny": [
+      "suklaalevy",
+      "suklaa",
+      "konvehti"
+    ]
+  },
+  {
+    "label": "Hillot",
+    "category": "jam",
+    "variants": [
+      "hillo",
+      "mansikkahillo",
+      "vadelmahillo",
+      "marmeladi"
+    ],
+    "bannedAny": [
+      "hillosokeri"
+    ],
+    "requiredAny": [
+      "hillo",
+      "mansikkahillo",
+      "vadelmahillo",
+      "marmeladi"
+    ]
+  },
+  {
+    "label": "Hunajat",
+    "category": "honey",
+    "variants": [
+      "hunaja",
+      "juokseva hunaja"
+    ],
+    "bannedAny": [
+      "hunajasinappi"
+    ],
+    "requiredAny": [
+      "hunaja",
+      "juokseva hunaja"
+    ]
+  },
+  {
+    "label": "Kalasäilykkeet",
+    "category": "canned_fish",
+    "variants": [
+      "tonnikala",
+      "sardiini",
+      "makrilli säilyke"
+    ],
+    "bannedAny": [
+      "tonnikalapizza"
+    ],
+    "requiredAny": [
+      "tonnikala",
+      "sardiini",
+      "makrilli säilyke"
+    ]
+  },
+  {
+    "label": "Kasvissäilykkeet",
+    "category": "canned_vegetables",
+    "variants": [
+      "säilykemaissi",
+      "herne-maissi-paprika",
+      "säilykeherne",
+      "kidneypapu"
+    ],
+    "bannedAny": [
+      "pakaste"
+    ],
+    "requiredAny": [
+      "säilykemaissi",
+      "herne-maissi-paprika",
+      "säilykeherne",
+      "kidneypapu"
+    ]
+  },
+  {
+    "label": "WC-paperit",
+    "category": "toilet_paper",
+    "variants": [
+      "wc-paperi",
+      "vessapaperi",
+      "toalettipaperi"
+    ],
+    "bannedAny": [
+      "talouspaperi"
+    ],
+    "requiredAny": [
+      "wc-paperi",
+      "vessapaperi",
+      "toalettipaperi"
+    ]
+  },
+  {
+    "label": "Talouspaperit",
+    "category": "paper_towels",
+    "variants": [
+      "talouspaperi",
+      "keittiöpaperi"
+    ],
+    "bannedAny": [
+      "wc-paperi"
+    ],
+    "requiredAny": [
+      "talouspaperi",
+      "keittiöpaperi"
+    ]
+  },
+  {
+    "label": "Pyykinpesuaineet",
+    "category": "laundry_detergent",
+    "variants": [
+      "pyykinpesuaine",
+      "pyykkipulveri",
+      "pyykinpesuneste"
+    ],
+    "bannedAny": [
+      "astianpesuaine"
+    ],
+    "requiredAny": [
+      "pyykinpesuaine",
+      "pyykkipulveri",
+      "pyykinpesuneste"
+    ]
+  },
+  {
+    "label": "Astianpesuaineet",
+    "category": "dishwashing",
+    "variants": [
+      "astianpesuaine",
+      "konetiskitabletti",
+      "käsitiskiaine"
+    ],
+    "bannedAny": [
+      "pyykinpesuaine"
+    ],
+    "requiredAny": [
+      "astianpesuaine",
+      "konetiskitabletti",
+      "käsitiskiaine"
+    ]
+  },
+  {
+    "label": "Saippuat",
+    "category": "soap",
+    "variants": [
+      "saippua",
+      "nestesaippua",
+      "palasaippua"
+    ],
+    "bannedAny": [
+      "astianpesuaine"
+    ],
+    "requiredAny": [
+      "saippua",
+      "nestesaippua",
+      "palasaippua"
+    ]
+  },
+  {
+    "label": "Shampoot",
+    "category": "shampoo",
+    "variants": [
+      "shampoo",
+      "hiusshampoo"
+    ],
+    "bannedAny": [
+      "suihkusaippua"
+    ],
+    "requiredAny": [
+      "shampoo",
+      "hiusshampoo"
+    ]
+  },
+  {
+    "label": "Maidot",
+    "category": "milk",
+    "variants": [
+      "maito",
+      "kevytmaito",
+      "rasvaton maito",
+      "täysmaito",
+      "ykkösmaito",
+      "laktoositon maito",
+      "luomu maito",
+      "pirkka maito",
+      "valio maito",
+      "arla maito"
+    ],
+    "bannedAny": [
+      "maitorahka",
+      "rahka",
+      "kerma",
+      "jogurtti",
+      "jogurt",
+      "kaakao",
+      "suklaa",
+      "kondensoitu",
+      "maitojuoma",
+      "proteiini",
+      "latte",
+      "maitojauhe",
+      "cappuccino",
+      "rasvaseos",
+      "rasvasekoite",
+      "rasvasekoitus",
+      "voi",
+      "levite",
+      "margariini",
+      "piimä",
+      "piima"
+    ],
+    "requiredAny": [
+      "maito",
+      "kevytmaito",
+      "rasvaton",
+      "täysmaito",
+      "taysmaito",
+      "ykkösmaito",
+      "ykkosmaito"
+    ],
+    "preferredAny": [
+      "kevytmaito",
+      "rasvaton",
+      "täysmaito",
+      "taysmaito",
+      "ykkösmaito",
+      "ykkosmaito",
+      "laktoositon"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1100,
+        "min": 900,
+        "boost": 95,
+        "unitGroup": "volume"
+      }
+    ],
+    "preferredBrands": [
+      "kotimaista",
+      "coop",
+      "rainbow",
+      "valio",
+      "arla"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Piimät",
+    "category": "buttermilk",
+    "variants": [
+      "piimä",
+      "piima",
+      "rasvaton piimä",
+      "laktoositon piimä",
+      "valio piimä",
+      "kotimaista piimä"
+    ],
+    "bannedAny": [
+      "maito",
+      "kerma",
+      "jogurtti",
+      "jogurt",
+      "rahka",
+      "raejuusto",
+      "juusto",
+      "kaakao",
+      "proteiinijuoma",
+      "maitojuoma"
+    ],
+    "requiredAny": [
+      "piimä",
+      "piima"
+    ],
+    "preferredAny": [
+      "piimä",
+      "piima",
+      "rasvaton",
+      "laktoositon"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1100,
+        "min": 900,
+        "boost": 95,
+        "unitGroup": "volume"
+      }
+    ],
+    "preferredBrands": [
+      "valio",
+      "kotimaista",
+      "arla"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Ruokaöljyt",
+    "category": "cooking_oil",
+    "variants": [
+      "öljy",
+      "oljy",
+      "ruokaöljy",
+      "ruokaoljy",
+      "rypsiöljy",
+      "rypsioljy",
+      "rapsiöljy",
+      "rapsioljy",
+      "oliiviöljy",
+      "oliivioljy",
+      "auringonkukkaöljy",
+      "auringonkukkaoljy"
+    ],
+    "bannedAny": [
+      "iho",
+      "iholle",
+      "kasvo",
+      "kasvoille",
+      "huuli",
+      "huulikiilto",
+      "arpi",
+      "arville",
+      "hius",
+      "hiuksille",
+      "vartalo",
+      "hieronta",
+      "hoitava",
+      "kosmetiikka",
+      "meikki",
+      "meikinpoisto",
+      "öljypohjainen",
+      "oljyphjainen",
+      "moottori",
+      "voitelu"
+    ],
+    "requiredAny": [
+      "öljy",
+      "oljy",
+      "ruokaöljy",
+      "ruokaoljy",
+      "rypsiöljy",
+      "rypsioljy",
+      "rapsiöljy",
+      "rapsioljy",
+      "oliiviöljy",
+      "oliivioljy",
+      "auringonkukkaöljy",
+      "auringonkukkaoljy"
+    ],
+    "preferredAny": [
+      "ruokaöljy",
+      "ruokaoljy",
+      "rypsiöljy",
+      "rypsioljy",
+      "rapsiöljy",
+      "rapsioljy",
+      "oliiviöljy",
+      "oliivioljy",
+      "paisto",
+      "leivonta"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1000,
+        "min": 400,
+        "boost": 45,
+        "unitGroup": "volume"
+      }
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Kahvit",
+    "category": "coffee",
+    "variants": [
+      "kahvi",
+      "suodatinkahvi",
+      "kahvi suodatinjauhatus",
+      "jauhettu kahvi",
+      "juhla mokka",
+      "presidentti kahvi",
+      "kulta katriina",
+      "paulig kahvi",
+      "meira kahvi",
+      "kahvipapu",
+      "espresso kahvi",
+      "pikakahvi"
+    ],
+    "bannedAny": [
+      "kahvikuppi",
+      "muki",
+      "kahvimitta",
+      "suodatinpussi",
+      "kahvinkeitin",
+      "energiajuoma",
+      "proteiinijuoma",
+      "jogurtti",
+      "rahka",
+      "jäätelö",
+      "jaatelo",
+      "patukka"
+    ],
+    "requiredAny": [
+      "kahvi",
+      "suodatinkahvi",
+      "suodatinjauhatus",
+      "jauhettu",
+      "kahvipapu",
+      "espresso",
+      "pikakahvi",
+      "juhla mokka",
+      "presidentti",
+      "kulta katriina"
+    ],
+    "preferredAny": [
+      "suodatinkahvi",
+      "suodatinjauhatus",
+      "jauhettu",
+      "juhla mokka",
+      "presidentti",
+      "kulta katriina",
+      "paulig",
+      "meira"
+    ],
+    "preferredSizes": [
+      {
+        "max": 550,
+        "min": 400,
+        "boost": 65,
+        "unitGroup": "weight"
+      }
+    ],
+    "preferredBrands": [
+      "juhla mokka",
+      "presidentti",
+      "kulta katriina",
+      "paulig",
+      "meira"
+    ]
+  },
+  {
+    "label": "Cola-juomat",
+    "category": "cola",
+    "variants": [
+      "cola",
+      "coca cola",
+      "coca-cola",
+      "pepsi",
+      "pepsi max",
+      "cola zero",
+      "coca cola zero",
+      "virvoitusjuoma cola"
+    ],
+    "bannedAny": [
+      "tiiviste",
+      "siirappi",
+      "syrup",
+      "jauhe",
+      "karkki",
+      "makeinen",
+      "jäätelö",
+      "jaatelo",
+      "kastike",
+      "alkoholi",
+      "olut",
+      "siideri"
+    ],
+    "requiredAny": [
+      "cola",
+      "coca-cola",
+      "coca cola",
+      "pepsi",
+      "pepsi max"
+    ],
+    "preferredAny": [
+      "coca-cola",
+      "coca cola",
+      "pepsi",
+      "pepsi max",
+      "zero",
+      "virvoitusjuoma"
+    ],
+    "parentCategory": "soft_drink",
+    "preferredSizes": [
+      {
+        "max": 1600,
+        "min": 1400,
+        "boost": 42,
+        "unitGroup": "volume"
+      },
+      {
+        "max": 550,
+        "min": 300,
+        "boost": 24,
+        "unitGroup": "volume"
+      }
+    ],
+    "preferredBrands": [
+      "coca-cola",
+      "coca cola",
+      "pepsi",
+      "pepsi max"
+    ]
+  },
+  {
+    "label": "Ketsupit",
+    "category": "ketchup",
+    "variants": [
+      "ketsuppi",
+      "ketchup",
+      "tomaattiketsuppi",
+      "tomaatti ketsuppi"
+    ],
+    "bannedAny": [
+      "sipsi",
+      "maustettu",
+      "dippi",
+      "majoneesi",
+      "sinappi",
+      "kastikejauhe",
+      "mausteseos"
+    ],
+    "requiredAny": [
+      "ketsuppi",
+      "ketchup"
+    ],
+    "preferredAny": [
+      "ketsuppi",
+      "ketchup",
+      "tomaattiketsuppi"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1100,
+        "min": 400,
+        "boost": 25,
+        "unitGroup": "weight"
+      }
+    ]
+  },
+  {
+    "label": "Juustot",
+    "category": "cheese",
+    "variants": [
+      "juusto",
+      "edam juusto",
+      "emmental juusto",
+      "oltermanni",
+      "kermajuusto",
+      "viipalejuusto",
+      "raastejuusto"
+    ],
+    "bannedAny": [
+      "tuorejuusto",
+      "sulatejuusto",
+      "raejuusto",
+      "juustodippi",
+      "dippi",
+      "nacho",
+      "kastike"
+    ],
+    "requiredAny": [
+      "juusto",
+      "edam",
+      "emmental",
+      "gouda",
+      "oltermanni"
+    ],
+    "preferredAny": [
+      "viipale",
+      "raaste",
+      "kermajuusto",
+      "edam",
+      "emmental",
+      "oltermanni"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1000,
+        "min": 350,
+        "boost": 35,
+        "unitGroup": "weight"
+      }
+    ],
+    "preferredBrands": [
+      "valio",
+      "arla",
+      "kotimaista",
+      "pirkka",
+      "oltermanni"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Jogurtit",
+    "category": "yogurt",
+    "variants": [
+      "jogurtti",
+      "jogurt",
+      "maustamaton jogurtti",
+      "turkkilainen jogurtti",
+      "kreikkalainen jogurtti",
+      "jogurtti 1kg"
+    ],
+    "bannedAny": [
+      "rahka",
+      "vanukas",
+      "proteiinijuoma",
+      "raejuusto",
+      "tuorejuusto",
+      "jäätelö",
+      "jaatelo"
+    ],
+    "requiredAny": [
+      "jogurtti",
+      "jogurt"
+    ],
+    "preferredAny": [
+      "maustamaton",
+      "turkkilainen",
+      "kreikkalainen"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1100,
+        "min": 750,
+        "boost": 35,
+        "unitGroup": "weight"
+      }
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Jauhelihat ja lihat",
+    "category": "meat",
+    "variants": [
+      "liha",
+      "jauheliha",
+      "naudan jauheliha",
+      "sika-nauta jauheliha",
+      "broilerin jauheliha",
+      "jauheliha 400g"
+    ],
+    "bannedAny": [
+      "kastike",
+      "keitto",
+      "ateria",
+      "pizza",
+      "piirakka"
+    ],
+    "requiredAny": [
+      "jauheliha",
+      "nauta",
+      "sika-nauta",
+      "broilerin jauheliha"
+    ],
+    "preferredAny": [
+      "jauheliha",
+      "naudan",
+      "sika-nauta"
+    ],
+    "preferredSizes": [
+      {
+        "max": 450,
+        "min": 300,
+        "boost": 45,
+        "unitGroup": "weight"
+      }
+    ],
+    "preferredBrands": [
+      "atria",
+      "hk",
+      "snellman",
+      "kotimaista"
+    ]
+  },
+  {
+    "label": "Kananmunat",
+    "category": "egg",
+    "variants": [
+      "kananmuna",
+      "kananmunat",
+      "kananmunia",
+      "munat",
+      "kananmuna 10 kpl",
+      "kananmunat 10 kpl",
+      "vapaan kanan munat",
+      "luomu kananmunat"
+    ],
+    "bannedAny": [
+      "suklaa",
+      "pääsiäis",
+      "paasiais",
+      "yllätys",
+      "yllatys",
+      "makeinen",
+      "karkki",
+      "lelu",
+      "majoneesi",
+      "munavoi",
+      "munakas",
+      "kastike",
+      "nuudeli",
+      "pasta"
+    ],
+    "requiredAny": [
+      "kananmuna",
+      "kananmunat",
+      "kananmunia",
+      "munat"
+    ],
+    "preferredAny": [
+      "kananmuna",
+      "kananmunat",
+      "kananmunia",
+      "munat",
+      "10 kpl",
+      "15 kpl",
+      "6 kpl"
+    ],
+    "preferredSizes": [
+      {
+        "max": 0,
+        "min": 0,
+        "boost": 0,
+        "unitGroup": "weight"
+      }
+    ],
+    "preferredBrands": [
+      "kotimaista",
+      "pirkka",
+      "k-menu",
+      "munax",
+      "dava"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Kana ja broileri",
+    "category": "chicken",
+    "variants": [
+      "kana",
+      "broileri",
+      "kanasuikale",
+      "broilerisuikale",
+      "broilerin fileesuikale",
+      "kanan filee"
+    ],
+    "bannedAny": [
+      "kastike",
+      "keitto",
+      "pizza",
+      "salaatti",
+      "ateria"
+    ],
+    "requiredAny": [
+      "kana",
+      "broileri",
+      "kanasuikale",
+      "broilerisuikale",
+      "fileesuikale"
+    ],
+    "preferredAny": [
+      "suikale",
+      "filee",
+      "broileri"
+    ],
+    "preferredSizes": [
+      {
+        "max": 700,
+        "min": 300,
+        "boost": 35,
+        "unitGroup": "weight"
+      }
+    ]
+  },
+  {
+    "label": "Leivät",
+    "category": "bread",
+    "variants": [
+      "leipä",
+      "ruisleipä",
+      "paahtoleipä",
+      "kauraleipä",
+      "sämpylä",
+      "rieska"
+    ],
+    "bannedAny": [
+      "keksi",
+      "pullapitko",
+      "kakku",
+      "muro"
+    ],
+    "requiredAny": [
+      "leipä",
+      "leipa",
+      "ruis",
+      "paahto",
+      "kaura",
+      "sämpylä",
+      "sampyla",
+      "rieska"
+    ],
+    "preferredAny": [
+      "ruisleipä",
+      "paahtoleipä",
+      "kauraleipä",
+      "sämpylä"
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Pastat",
+    "category": "pasta",
+    "variants": [
+      "pasta",
+      "spagetti",
+      "makaroni",
+      "fusilli",
+      "penne",
+      "lasagnelevy"
+    ],
+    "bannedAny": [
+      "kastike",
+      "ateria",
+      "salaatti"
+    ],
+    "requiredAny": [
+      "pasta",
+      "spagetti",
+      "makaroni",
+      "fusilli",
+      "penne",
+      "lasagne"
+    ],
+    "preferredAny": [
+      "spagetti",
+      "makaroni",
+      "fusilli",
+      "penne"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1000,
+        "min": 400,
+        "boost": 35,
+        "unitGroup": "weight"
+      }
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Riisit",
+    "category": "rice",
+    "variants": [
+      "riisi",
+      "jasmiiniriisi",
+      "basmatiriisi",
+      "pitkäjyväinen riisi",
+      "puuroriisi"
+    ],
+    "bannedAny": [
+      "ateria",
+      "salaatti",
+      "riisipiirakka"
+    ],
+    "requiredAny": [
+      "riisi",
+      "jasmiini",
+      "basmati",
+      "pitkäjyväinen",
+      "pitkajyvainen",
+      "puuroriisi"
+    ],
+    "preferredAny": [
+      "jasmiini",
+      "basmati",
+      "pitkäjyväinen",
+      "puuroriisi"
+    ],
+    "preferredSizes": [
+      {
+        "max": 1100,
+        "min": 900,
+        "boost": 35,
+        "unitGroup": "weight"
+      }
+    ],
+    "ownBrandFriendly": true
+  },
+  {
+    "label": "Hedelmät ja vihannekset",
+    "category": "fruit_veg",
+    "variants": [
+      "banaani",
+      "omena",
+      "tomaatti",
+      "kurkku",
+      "peruna",
+      "sipuli",
+      "porkkana",
+      "mandariini"
+    ],
+    "bannedAny": [
+      "mehu",
+      "sose",
+      "hillo",
+      "kastike",
+      "karkki"
+    ],
+    "requiredAny": [
+      "banaani",
+      "omena",
+      "tomaatti",
+      "kurkku",
+      "peruna",
+      "sipuli",
+      "porkkana",
+      "mandariini"
+    ],
+    "preferredAny": [
+      "suomi",
+      "kotimainen",
+      "luomu"
+    ]
+  },
+  {
+    "label": "Pakasteet",
+    "category": "frozen",
+    "variants": [
+      "pakaste",
+      "kalapuikot",
+      "ranskanperunat"
+    ],
+    "bannedAny": [
+      "tuore",
+      "säilyke",
+      "sailyke"
+    ],
+    "requiredAny": [
+      "pakaste",
+      "kalapuikko",
+      "kalapuikot",
+      "ranskanperuna",
+      "ranskanperunat",
+      "jäätelö",
+      "jaatelo"
+    ],
+    "preferredAny": [
+      "pakaste",
+      "kalapuikot",
+      "ranskanperunat"
+    ]
+  },
+  {
+    "label": "Herkut ja naposteltavat",
+    "category": "snacks",
+    "variants": [
+      "sipsit",
+      "chips",
+      "tortilla chips",
+      "suolapähkinä"
+    ],
+    "bannedAny": [
+      "kastike",
+      "dippi",
+      "jogurtti"
+    ],
+    "requiredAny": [
+      "sipsi",
+      "chips",
+      "tortilla",
+      "karkki",
+      "suklaa",
+      "keksi"
+    ],
+    "preferredAny": [
+      "sipsi",
+      "chips",
+      "tortilla",
+      "suklaa"
+    ]
+  }
 ];

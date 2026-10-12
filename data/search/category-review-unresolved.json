@@ -1,0 +1,17 @@
+{
+  "version": "2026-10-12.27",
+  "projectId": "floral-recipe-40673204",
+  "branchId": "br-weathered-meadow-b1bwpzst",
+  "unresolved": [],
+  "invalidIdentifiers": [
+    {
+      "index": 490,
+      "ean": "6414893310118",
+      "name": "ATRIA Kanan fileesuikale 4 kpl",
+      "source": "lidl-verified-ean-master",
+      "category": "Liha",
+      "category_id": "chicken",
+      "reason": "Invalid GTIN checksum; retained for identity review."
+    }
+  ]
+}

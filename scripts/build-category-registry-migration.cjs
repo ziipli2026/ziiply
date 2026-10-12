@@ -17,7 +17,7 @@ for (const row of exceptions) {
 }
 
 for (const row of exceptions) {
-  if (!/^\d{13}$/.test(row.ean) || ([...row.ean.slice(0,12)].reduce((sum,digit,index)=>sum+Number(digit)*(index%2?3:1),0)+Number(row.ean[12]))%10) throw Error('Invalid reviewed EAN '+row.ean);
+  if (!/^(\d{8}|\d{13})$/.test(row.ean) || [...row.ean].reduce((sum,digit,index)=>sum+Number(digit)*(index===row.ean.length-1?1:(row.ean.length-1-index)%2?3:1),0)%10) throw Error('Invalid reviewed EAN '+row.ean);
   if (!rules.some(rule=>rule.category===row.category_id)) throw Error('Unknown exception category '+row.category_id);
 }
 const normalize = value => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();

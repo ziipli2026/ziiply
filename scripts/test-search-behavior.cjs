@@ -249,6 +249,31 @@ const freeTextResults = core.rankNormalSearchResults("tuotemerkki xyz",[
 assert.deepEqual(new Set(freeTextResults.map(p=>p.id)),new Set([2110,2111]),"Unrecognized free-text searches must not reject reviewed categories");
 assert.equal(core.isExplicitlyExcludedSearchProduct("hiusharja",makeProduct(2112,"Ibero hiusharja jäätelö minttu","kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat")),false);
 
+// Continuation batch: actual reviewed EANs override misleading provider groups.
+const continuationFixtures = [
+  ['voi','2001360902261','Bruno mandariini Nadorcott','Vaakatuote',true],
+  ['mandariini','2001360902261','Bruno mandariini Nadorcott','Vaakatuote',false],
+  ['cola','7340007901683','Nektariini 500g 1lk','Juomat',true],
+  ['cola','6430052001344','MySoda Cola sokeriton 0,5l','Juomat',true],
+  ['maito','6429811623019','Boris maitohappo juoma Berry Mix 1l Luomu','Juomat',true],
+  ['liha','6420613151236','Relaxant Lihastenrentouttaja 100ml','Liha',true],
+  ['liha','2000409600007','Kirjolohi Suomi kg','Kala',true],
+  ['kananmuna','6407800025471','Atria Kunnon Arki Paneroidut Kanapihvit 260g','Valmisruoat',true],
+  ['juusto','6410405356789','Pirkka Raesekoitus 200g','Pähkinät ja siemenet',true],
+  ['maito','59092605','Deo roll-on Dove 50 ml Advanced Extra Fresh','Maitotuotteet',true],
+  ['perunamuusijauhe','6430028235018','Mummon Mielihyvä perunahiutaleet 140g','Leivonta',false],
+  ['perunamuusijauhe','6430028235094','Mummon gluteeniton Muru 210g','Perunatuotteet',true],
+  ['pasta','6410405228093','K-Menu lasagnelevyjä 500g','Valmisruoat',false],
+  ['pasta','6412000037056','Saarioinen arki broilerpyörykät ja muusi 310g','Valmisruoat',true],
+  ['kana','6405857320907','Naapurin Maalaiskan ohut fileepihvi maustamaton 570g','Liha',false],
+  ['kana','6412000038633','Saarioinen mainio kiovan kana ja muusi 320g','Valmisruoat',true],
+  ['pakaste','6410500062042','Vaasan Kotiuunin Omenaviineri 10x48g','Leipä ja leivonnaiset',false],
+  ['jauhot','6410500062042','Vaasan Kotiuunin Omenaviineri 10x48g','Leipä ja leivonnaiset',true],
+];
+for(const [query,ean,name,category,excluded] of continuationFixtures) {
+  const actual=core.isExplicitlyExcludedSearchProduct(query,{...makeProduct(9900,name,category),ean});
+  assert.equal(actual,excluded,`Reviewed EAN continuation: ${query} / ${name}`);
+}
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));
@@ -317,6 +342,7 @@ const collisionCases = [
 collisionCases.push(["maitorahka","quark"],["raejuusto","cottage_cheese"],
  ["tuorejuusto","cream_cheese"],["omenamehu","juice"],
  ["virvoitusjuoma cola","cola"],["kermajuusto","cheese"]);
+collisionCases.push(...require('./fixtures/category-collisions-reviewed-20261012.json'));
 const collisionResults = collisionCases.flatMap(([term, expected]) =>
  [term, `Kotimainen ${term} 500 g`, term.toUpperCase(),
   term.normalize("NFD").replace(/[\u0300-\u036f]/g, "")]
