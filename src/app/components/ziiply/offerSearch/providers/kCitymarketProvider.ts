@@ -82,7 +82,7 @@ function textOf(src:string){
   ).replace(/ ?\n ?/g,"\n");
 }
 export function category(t:string){
-  const s=clean(t).toLowerCase().replace(/\s+/g," ");
+  const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
   // Product forms recovered from split 42AV titles. Category only; never alter prices.
   if(/\bkanan\s+rintafileet\b/.test(s)) return "Liha & makkarat";
