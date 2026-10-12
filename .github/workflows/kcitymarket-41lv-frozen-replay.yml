@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-current-parser.mjs
+          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-41lv-current-parser.mjs
           KCM_REPLAY_REPORT=/tmp/kcm-41lv-replay-report.json node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-41lv-archive tests/fixtures/citymarket/41LV.approved.json /tmp/kcm-41lv-current-parser.mjs
       - name: Publish historical and current replay summaries
         if: always()

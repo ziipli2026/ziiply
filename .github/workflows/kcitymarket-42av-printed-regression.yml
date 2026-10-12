@@ -5,6 +5,7 @@ on:
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarket*'
       - 'src/app/components/ziiply/offerSearch/providers/data/kCitymarket*'
       - 'tests/kcitymarket-42av-printed-transactions.test.mjs'
+      - 'tests/kcitymarket-publisher-image-binding.test.cjs'
       - 'tests/kcitymarket-owned-normal-price.test.mjs'
       - 'tests/fixtures/citymarket/v152-normal-price-transactions.json'
       - '.github/workflows/kcitymarket-42av-printed-regression.yml'
@@ -13,6 +14,7 @@ on:
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarket*'
       - 'src/app/components/ziiply/offerSearch/providers/data/kCitymarket*'
       - 'tests/kcitymarket-42av-printed-transactions.test.mjs'
+      - 'tests/kcitymarket-publisher-image-binding.test.cjs'
       - 'tests/kcitymarket-owned-normal-price.test.mjs'
       - '.github/workflows/kcitymarket-42av-printed-regression.yml'
 permissions:
@@ -26,5 +28,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm install --package-lock=false --ignore-scripts --no-audit --no-fund
       - name: Verify frozen 42AV fixes and retain 41LV transactions
-        run: node --test tests/kcitymarket-approved-publication.test.mjs tests/kcitymarket-owned-normal-price.test.mjs tests/kcitymarket-42av-printed-transactions.test.mjs tests/kcitymarket-category-regression.test.cjs tests/kcitymarket-wrapped-percentage.test.mjs
+        run: node --test tests/kcitymarket-publisher-image-binding.test.cjs tests/kcitymarket-approved-publication.test.mjs tests/kcitymarket-owned-normal-price.test.mjs tests/kcitymarket-42av-printed-transactions.test.mjs tests/kcitymarket-category-regression.test.cjs tests/kcitymarket-wrapped-percentage.test.mjs
+
+      - name: Verify publication images and sprite fragments
+        run: node scripts/citymarket/verify-images.mjs

@@ -21,6 +21,7 @@ import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
 
 export type CitymarketOffer = {
   id: string;
+  publisherOfferId?: string;
   title: string;
   price: number | null;
   discountPercent?: number;
@@ -465,7 +466,12 @@ function extractKCitymarketValidityV16(text:unknown){
 async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[]>{
   const parsed=await parseKCitymarketSpatialLeaflet(entry);
   const leafletUrl=String(parsed?.leaflet||ENTRY);
-  const rows:any[]=canonicalCitymarketProductRows(Array.isArray(parsed?.rows)?parsed.rows:[]);
+  // Keep the publisher's exact card identity before presentation title cleanup.
+  // Reviewed PDF pictures are attached to this source row, never a fuzzy name.
+  const sourceRows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
+  const rows:any[]=canonicalCitymarketProductRows(sourceRows.map(row=>/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0
+    ? {...row,publisherOfferId:`kcm:spatial:${row?.page??0}:${clean(row.title).toLowerCase()}:${Number(row.spatialResolved.value)}`}
+    : row));
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
@@ -534,6 +540,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const campaignType: "offer" | "campaign" = /kampanja|kaikki .*?(?:tuotteet|vaatteet)|-\\d+\\s*%/i.test(title) && !/\\b\\d+(?:[,.]\\d+)?\\s*(?:g|kg|ml|l)\\b/i.test(title) ? "campaign" : "offer";
     offers.push({
       id:`kcm:spatial:${row?.page??0}:${title.toLowerCase()}:${price}`,
+      publisherOfferId:row.publisherOfferId,
       title,
       price,
       normalPrice,
@@ -751,7 +758,8 @@ async function fetchKCitymarketOffersWithImages():Promise<CitymarketOffer[]>{
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
   const publisherImages=dated.map(offer=>{
-    const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id);
+    const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id) ||
+      (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null);
     return imageUrl?{...offer,imageUrl}:offer;
   });
   // Use only explicit price + quantity printed in the offer's own title.

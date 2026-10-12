@@ -24,7 +24,7 @@ jobs:
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-parser.mjs
+          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-parser.mjs
           node --input-type=module <<'NODE'
           import fs from "node:fs";
           import parser from "file:///tmp/kcm-parser.mjs";
