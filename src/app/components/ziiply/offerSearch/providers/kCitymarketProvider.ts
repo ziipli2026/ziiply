@@ -83,6 +83,11 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
   if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
+  // Product forms recovered from split 42AV titles. Category only; never alter prices.
+  if(/\bkanan\s+rintafileet\b/.test(s)) return "Liha & makkarat";
+  if(/\b(?:päivävoiteet|micellar|roll-on\s+ja\s+spray|inkosuojat|pikkuhousunsuojat|siteet\b)\b/.test(s)) return "Hygienia & kosmetiikka";
+  if(/\b(?:suunvesi|suuvesi)\b/.test(s)) return "Hygienia & kosmetiikka";
+  if(/\bsappisaippua\b/.test(s)) return "Kodinhoito";
   // Brand taxonomy affects category only; prices still require printed spatial proof.
   if(/\b(?:eylure|elegant touch|mossa|smuuti skin|cosrx|tena)\b/.test(s)) return "Hygienia & kosmetiikka";
   if(/meikit|puuterit|kulmatuotteet|itseruskettav|hiustenhoito|hiustenmuotoilu/.test(s)) return "Hygienia & kosmetiikka";
