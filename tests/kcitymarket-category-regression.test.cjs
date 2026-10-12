@@ -10,6 +10,8 @@ const categorySource = match[0].replace("export function category(t:string)", "f
 const context = {clean: (s) => String(s).trim()};
 vm.runInNewContext(categorySource + "\nthis.classify=category;", context);
 const cases = [
+  ["AIRFRY KANA- ja POSSUTUOTTEET 300–350 g", "Liha & makkarat"],
+  ["KANA- tai POSSUTUOTTEET 300 g", "Liha & makkarat"],
   ["Findus CHICKEN SHOP PANEROIDUT KANATUOTTEET 170–250 g", "Pakasteet"],
   ["FILEEKALAPUIKOT 896 g", "Pakasteet"],
   ["Tuore kirjolohifilee", "Kala"],
