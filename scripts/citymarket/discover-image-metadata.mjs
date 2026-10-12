@@ -42,7 +42,7 @@ for(const candidate of source.candidates){
                 try{const url=new URL(raw,page);if(url.protocol==="https:")ldImages.push(url.href);}catch{}
               }
             }
-            for(const key of ["@graph","mainEntity","mainEntityOfPage","hasPart","itemListElement"]){if(node[key])walk(node[key]);}
+            for(const key of ["@graph","mainEntity","mainEntityOfPage","hasPart","itemListElement","item"]){if(node[key])walk(node[key]);}
           };
           nodes.forEach(walk);
         }catch{}
