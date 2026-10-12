@@ -792,15 +792,25 @@ export default function DesktopPreviewPage() {
       const found = await runDesktopJustiinaSearch(terms[index], runId);
       if (runId !== desktopVoiceRunRef.current) return;
       // Mobile V509: keep this product's choices open until selection or return.
-      if (found && index < terms.length - 1) {
-        // Wait for explicit product selection or return; never advance on a timer.
+      if (found) {
+        // Wait for an explicit selection or dismissal, including the last item.
         await new Promise<void>(resolve => { desktopVoiceWaitRef.current = resolve; });
       }
     }
-    if (runId === desktopVoiceRunRef.current) setDesktopListPending(false);
+    if (runId === desktopVoiceRunRef.current) {
+      setDesktopListPending(false);
+      setJustiinaResultsOpen(false);
+      setWorkspace(null);
+      setCartOpen(true);
+    }
   }
   function requestDesktopListExit() {
-    if (desktopListPending && desktopVoiceWaitRef.current) { setDesktopListPrompt(true); return; }
+    if (desktopVoiceWaitRef.current) {
+      if (desktopListPending) { setDesktopListPrompt(true); return; }
+      setJustiinaResultsOpen(false);
+      resumeDesktopVoiceList();
+      return;
+    }
     setJustiinaResultsOpen(false);
     setWorkspace(null);
   }
