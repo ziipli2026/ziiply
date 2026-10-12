@@ -274,3 +274,17 @@ test('42AV debug discrepancies are resolved from owned publisher glyphs',async()
  const noDates={...fish,printedValidity:undefined,debugNearbyBoxes:fish.debugNearbyBoxes.filter(b=>b.text!=='VOIMASSA')};
  assert.equal(repairPrintedCard(noDates).printedValidity,undefined);
 });
+
+
+test('Only fragments of the same recovered printed card collapse; distinct publications survive',async()=>{
+ const {collapseRecoveredCardFragments}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js');
+ const part={title:'WC-GEELIT 750 ml',page:6,sourceUrl:'publication-A',debugCardAnchor:{left:.68,top:.84,text:'WC-GEELIT 750 ml'},spatialResolved:{value:4,quantity:2},nearby:['Plussa-korttia']};
+ const title='DOMESTOS WC-GEELIT 750 ml sekä CIF 500 ml';
+ const full={...part,title,debugRecoveredPublisherHeading:title,nearby:[]};
+ const other={...part,sourceUrl:'publication-B'};
+ const rows=collapseRecoveredCardFragments([part,full,other]);
+ assert.equal(rows.length,2);assert.ok(rows.includes(other));
+ assert.deepEqual(rows.find(r=>r.title===title).nearby,['Plussa-korttia']);
+ assert.equal(collapseRecoveredCardFragments([part,{...full,spatialResolved:{value:5,quantity:2}}]).length,2);
+ assert.equal(collapseRecoveredCardFragments([part,{...full,debugCardAnchor:{...full.debugCardAnchor,top:.85}}]).length,2);
+});
