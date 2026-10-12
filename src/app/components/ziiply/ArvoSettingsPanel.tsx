@@ -59,7 +59,7 @@ export function effectiveArvoDiets(diets: string[]) {
   const values = new Set(diets);
   if (values.has("vegan")) { values.add("dairyFree"); values.add("eggFree"); values.add("vegetarian"); }
   if (values.has("dairyFree")) values.add("lactoseFree");
-  if (values.has("grainFree")) values.add("glutenFree");
+  // Viljaton ei yksin takaa gluteenittomuutta (esim. ristikontaminaatio).
   return [...values];
 }
 export function estimateArvoEnergy(p: ArvoPreferences) {
@@ -90,7 +90,7 @@ export function arvoPurchaseSuggestions(purchases: ArvoPurchase[], today = new D
   const byProduct = new Map<string, ArvoPurchase[]>();
   for (const purchase of purchases) {
     const key = purchase.ean ? "ean:" + purchase.ean : "name:" + purchase.name.trim().toLocaleLowerCase("fi");
-    if (!key || key === "name:") continue;
+    if (!key || key === "name:" || !Number.isFinite(Date.parse(purchase.purchasedAt)) || !(purchase.quantity > 0)) continue;
     byProduct.set(key, [...(byProduct.get(key) || []), purchase]);
   }
   return [...byProduct.entries()].flatMap(([key, records]) => {
@@ -99,10 +99,11 @@ export function arvoPurchaseSuggestions(purchases: ArvoPurchase[], today = new D
     const intervals = days.slice(1).map((day, i) => (Date.parse(day + "T12:00:00Z") - Date.parse(days[i] + "T12:00:00Z")) / 86400000).filter(n => n > 0);
     if (intervals.length < 2) return [];
     const sorted = intervals.sort((a, b) => a - b);
-    const median = sorted[Math.floor(sorted.length / 2)];
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     if (!(median >= 1 && median <= 180)) return [];
     const elapsed = (today.getTime() - Date.parse(days[days.length - 1] + "T12:00:00Z")) / 86400000;
-    if (elapsed < median * 0.8) return [];
+    if (elapsed < median * 0.8 || elapsed < 0) return [];
     return [{ key, name: records[records.length - 1].name, intervalDays: median, elapsedDays: Math.max(0, Math.floor(elapsed)) }];
   });
 }
@@ -160,8 +161,8 @@ export default function ArvoSettingsPanel() {
           <button type="submit" className="rounded-lg bg-[#24573e] px-4 py-2 font-bold text-white">Vahvista ostos</button>
         </form>
         <p className="mt-2 text-xs">Täydennysarvio vaatii vähintään kolme eri päivän ostoa samasta tuotteesta. Ostovälin mediaani on vain arvio, ei tieto kotona olevasta määrästä.</p>
-        {arvoPurchaseSuggestions(purchases).filter(item=>!dismissedSuggestions.includes(item.key)).map(item=><div key={item.key} className="mt-2 rounded-lg border p-3 text-sm"><b>{item.name}</b> voi olla vähissä (ostoväli noin {item.intervalDays} vrk).<div className="mt-2 flex flex-wrap gap-2"><button type="button" className="rounded border px-2 py-1" onClick={()=>{setPurchaseName(item.name);setDismissedSuggestions(old=>[...old,item.key]);}}>Lisää ostettavaksi</button><button type="button" className="rounded border px-2 py-1" onClick={()=>setDismissedSuggestions(old=>[...old,item.key])}>Vielä on / muistuta myöhemmin</button></div></div>)}
-        <p className="mt-2 text-xs">”Lisää ostettavaksi” täyttää tässä vaiheessa vahvistuslomakkeen, ei vielä ostoslistaa. Varsinaiset ostoslistakytkennät ja automaattiset ilmoitukset ovat kesken.</p>
+        {arvoPurchaseSuggestions(purchases).filter(item=>!dismissedSuggestions.includes(item.key)).map(item=><div key={item.key} className="mt-2 rounded-lg border p-3 text-sm"><b>{item.name}</b> voi olla vähissä (ostoväli noin {item.intervalDays} vrk).<div className="mt-2 flex flex-wrap gap-2"><button type="button" className="rounded border px-2 py-1" onClick={()=>{window.dispatchEvent(new CustomEvent("ziiply-arvo-add-to-shopping-list",{detail:{name:item.name}}));setDismissedSuggestions(old=>[...old,item.key]);}}>Lisää ostettavaksi</button><button type="button" className="rounded border px-2 py-1" onClick={()=>setDismissedSuggestions(old=>[...old,item.key])}>Vielä on / muistuta myöhemmin</button></div></div>)}
+        <p className="mt-2 text-xs">”Lisää ostettavaksi” lähettää pyynnön ostoslistalle; yhteys varsinaiseen ostoskoriin on vielä kesken, joten lisäys ei vielä näy ostoslistassa. Automaattiset ilmoitukset ovat myös kesken.</p>
         <p className="mt-2 text-xs">Vahvistettuja ostotapahtumia: {purchases.length}</p>
         <button type="button" className="mt-2 rounded border px-3 py-1 text-sm" onClick={()=>{if(!window.confirm("Poistetaanko kaikki Arvon vahvistetut ostokset tältä selaimelta?"))return;setPurchases([]);window.localStorage.removeItem(ARVO_PURCHASES_KEY);}}>Poista ostohistoria</button>
       </>}
