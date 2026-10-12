@@ -8,6 +8,8 @@ on:
       - "src/lib/offerImageEnrichmentQueue.ts"
       - "src/lib/offerImageEanLookup.ts"
       - "scripts/test-offer-image-enrichment.mts"
+      - "scripts/test-citymarket-publisher-images.mts"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
       - "scripts/citymarket/build-image-review-queue.mjs"
       - "scripts/citymarket/check-image-source-candidates.mjs"
       - "scripts/citymarket/probe-image-candidates.mjs"
@@ -46,6 +48,8 @@ jobs:
           # The .mts regression imports ESM TypeScript modules in this isolated checkout.
           npm pkg set type=module
           node --import tsx scripts/test-offer-image-enrichment.mts
+      - name: Verify actual publisher image resolver
+        run: node --import tsx scripts/test-citymarket-publisher-images.mts
       - name: Verify approved 41LV image asset and fragment coverage
         run: node scripts/citymarket/audit-41lv-image-coverage.mjs > /dev/null
       - name: Verify all manifest image assets
