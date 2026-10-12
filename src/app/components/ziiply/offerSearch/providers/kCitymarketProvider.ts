@@ -851,6 +851,12 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     let matched=0,exact=0,similar=0,ambiguous=0,unmatched=0;
     const result=enriched.map(offer=>{
       if(offer.imageUrl)return offer;
+      // Never use a single-product Tjek photo for a mixed offer, assortment,
+      // or a multi-bottle case. Keep those image-free until an exact
+      // publisher crop or a verified matching group image is available.
+      const grouped=/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|sekä)\b|\s+ja\s+|\d+\s*[–-]\s*\d+\s*(?:g|ml|kpl)\b/i.test(offer.title);
+      const casePack=/\b\d{1,2}\s*[- ]?pack\b|\b\d{1,2}\s*(?:plo|pulloa|tölkkiä)\b/i.test(offer.title);
+      if(grouped||casePack)return offer;
       const title=norm(offer.title);
       let url=photos.get(title);
       if(url)exact++;
