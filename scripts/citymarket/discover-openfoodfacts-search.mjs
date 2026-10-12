@@ -43,9 +43,8 @@ for(const row of queue.rows){
     queryCache.set(query.toLocaleLowerCase("fi"),{candidates});
     results.push({offerId:row.offerId,query,status:candidates.length?"unverified-search-candidates":"no-image",candidates,reviewRequired:true,approved:false});
   }catch(error){results.push({offerId:row.offerId,query,status:"fetch-failed",error:String(error),approved:false});}
-  finally{clearTimeout(timer);}
-  await sleep(1200);
+  finally{clearTimeout(timer);await sleep(1200);}
 }
-const report={publication:"41LV",totalMissing:queue.missingImages,searchesPerformed:searches,cacheHits,searchBudget:MAX_SEARCHES,rateLimited,statusCounts:summary(),notice:"Only candidates with shared product-name or brand tokens are shown, ordered by overlap. Search matches are NOT product identity matches. Verify EAN, brand, size, leaflet packshot and rights before approval.",results};
+const report={publication:"41LV",totalMissing:queue.missingImages,searchesPerformed:searches,cacheHits,searchBudget:MAX_SEARCHES,rateLimited,statusCounts:summary(),httpStatusCounts:Object.fromEntries([...new Set(results.filter(row=>row.httpStatus).map(row=>row.httpStatus))].sort().map(status=>[status,results.filter(row=>row.httpStatus===status).length])),notice:"Only candidates with shared product-name or brand tokens are shown, ordered by overlap. Search matches are NOT product identity matches. Verify EAN, brand, size, leaflet packshot and rights before approval.",results};
 fs.writeFileSync("citymarket-openfoodfacts-search.json",JSON.stringify(report,null,2)+"\n");
 console.log("Bulk product-name search:",results.length,"rows,",searches,"requests,",cacheHits,"cache hits; statuses:",JSON.stringify(report.statusCounts));
