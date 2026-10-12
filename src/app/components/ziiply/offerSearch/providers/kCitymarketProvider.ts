@@ -719,7 +719,9 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
         const offerSize=size(offer.packageSize)||size(offer.title);
         const compatible=exact.filter(row=>{
           const bankSize=size(row.quantity)||size(row.name);
-          return !offerSize || !bankSize || bankSize===offerSize;
+          // If the leaflet specifies a size, an unlabelled bank row is not
+          // enough evidence for a trustworthy image match.
+          return !offerSize || bankSize===offerSize;
         });
         const urls=[...new Set(compatible.map(row=>String(row.image_url??"")).filter(url=>/^https:\/\//i.test(url)))];
         if(urls.length===1){stats.matched++;return {...offer,imageUrl:urls[0]};}
