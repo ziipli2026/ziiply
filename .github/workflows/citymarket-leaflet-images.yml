@@ -11,6 +11,7 @@ on:
     paths:
       - ".github/workflows/citymarket-leaflet-images.yml"
       - "scripts/citymarket/**"
+      - "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json"
   schedule:
     # Two checks on publication days, at 15:15 and 17:15 Helsinki.
     # Both UTC offsets are listed; the clock guard skips the extra executions.
