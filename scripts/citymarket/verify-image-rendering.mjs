@@ -6,12 +6,27 @@ import {chromium} from 'playwright';
 const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json','utf8'));
 const images=Object.values(manifest.publications).flatMap(p=>Object.values(p.images));
 assert.ok(images.length>0);
-const html='<!doctype html><style>body{margin:0;display:grid;grid-template-columns:repeat(6,150px)}img{width:150px;height:150px;object-fit:contain}</style>'+images.map(url=>'<img src="'+url+'">').join('');
+// Proxy only approved manifest URLs into this local test origin so pixel checks
+// work even when the source CDN does not send canvas CORS headers.
+const remote=new Map();
+for(const url of new Set(images.filter(url=>url.startsWith('https://')))){
+ const response=await fetch(url,{signal:AbortSignal.timeout(30000)});
+ assert.ok(response.ok,'Image fetch failed: '+response.status+' '+url);
+ const type=response.headers.get('content-type')??'';
+ assert.ok(type.startsWith('image/'),'Image endpoint returned '+type+' '+url);
+ const bytes=Buffer.from(await response.arrayBuffer());
+ assert.ok(bytes.length>0 && bytes.length<10_000_000,'Unexpected image size: '+url);
+ remote.set(url,{route:'/verified-remote/'+remote.size,bytes,type});
+}
+const escape=value=>value.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
+const html='<!doctype html><style>body{margin:0;display:grid;grid-template-columns:repeat(6,150px)}img{width:150px;height:150px;object-fit:contain}</style>'+images.map(url=>'<img src="'+escape(remote.get(url)?.route??url)+'">').join('');
 const server=http.createServer((req,res)=>{
  if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end(html);return;}
+ const cached=[...remote.values()].find(image=>image.route===req.url);
+ if(cached){res.setHeader('Content-Type',cached.type);res.end(cached.bytes);return;}
  const filename=path.resolve('public','.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));
  if(!filename.startsWith(path.resolve('public')+path.sep)||!fs.existsSync(filename)){res.statusCode=404;res.end();return;}
- res.setHeader('Content-Type','image/svg+xml');res.end(fs.readFileSync(filename));
+ res.setHeader('Content-Type',filename.endsWith('.png')?'image/png':'image/svg+xml');res.end(fs.readFileSync(filename));
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let browser;

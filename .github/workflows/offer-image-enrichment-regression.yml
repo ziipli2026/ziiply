@@ -1,0 +1,127 @@
+name: Offer image enrichment regression
+on:
+  push:
+    branches:
+      - feature/offer-image-enrichment-20261011
+      - preview/mobile-citymarket-41lv-corrected
+    paths:
+      - "src/lib/offerImageEnrichment.ts"
+      - "src/lib/offerImageEnrichmentQueue.ts"
+      - "src/lib/offerImageEanLookup.ts"
+      - "scripts/test-offer-image-enrichment.mts"
+      - "scripts/test-citymarket-publisher-images.mts"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
+      - "scripts/citymarket/build-image-review-queue.mjs"
+      - "scripts/citymarket/check-image-source-candidates.mjs"
+      - "scripts/citymarket/probe-image-candidates.mjs"
+      - "scripts/citymarket/discover-image-metadata.mjs"
+      - "scripts/citymarket/discover-openfoodfacts-images.mjs"
+      - "scripts/citymarket/discover-openfoodfacts-search.mjs"
+      - "scripts/citymarket/test-image-metadata-regex.mjs"
+      - "scripts/citymarket/build-image-review-html.mjs"
+      - "scripts/citymarket/test-image-review-html.mjs"
+      - "scripts/citymarket/41lv-image-source-candidates.json"
+      - "scripts/citymarket/41lv-bank-image-review.json"
+      - "scripts/citymarket/41lv-verified-bank-images.json"
+      - "scripts/citymarket/audit-41lv-image-coverage.mjs"
+      - "scripts/citymarket/verify-images.mjs"
+      - "scripts/citymarket/verify-image-rendering.mjs"
+      - "tests/fixtures/citymarket/41LV.approved.json"
+      - "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json"
+      - "public/citymarket-leaflets/**"
+      - ".github/workflows/offer-image-enrichment-regression.yml"
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run isolated image matcher regression
+        run: |
+          npm install --prefix "$RUNNER_TEMP/ziiply-image-tests" --no-audit --no-fund --ignore-scripts tsx@4.20.6 @neondatabase/serverless@1.2.0 playwright@1.58.2 typescript@5.9.3
+          ln -s "$RUNNER_TEMP/ziiply-image-tests/node_modules" node_modules
+          # The .mts regression imports ESM TypeScript modules in this isolated checkout.
+          npm pkg set type=module
+          node --import tsx scripts/test-offer-image-enrichment.mts
+      - name: Run corrected Citymarket parser regressions
+        if: github.ref == 'refs/heads/preview/mobile-citymarket-41lv-corrected'
+        run: node --test tests/kcitymarket*.test.cjs tests/kcitymarket*.test.mjs
+      - name: Verify actual publisher image resolver
+        run: node --import tsx scripts/test-citymarket-publisher-images.mts
+      - name: Verify approved 41LV image asset and fragment coverage
+        run: node scripts/citymarket/audit-41lv-image-coverage.mjs > /dev/null
+      - name: Verify all manifest image assets
+        run: node scripts/citymarket/verify-images.mjs
+      - name: Verify real browser image rendering
+        run: |
+          "$RUNNER_TEMP/ziiply-image-tests/node_modules/.bin/playwright" install --with-deps chromium
+          node scripts/citymarket/verify-image-rendering.mjs
+      - name: Verify external image candidate records
+        run: node scripts/citymarket/check-image-source-candidates.mjs
+      - name: Regression test generated review gallery
+        run: node scripts/citymarket/test-image-review-html.mjs
+      - name: Generate missing image review queue
+        if: always()
+        run: node scripts/citymarket/build-image-review-queue.mjs > citymarket-image-review-queue.json
+      - name: Probe external image candidates
+        if: always()
+        run: node scripts/citymarket/probe-image-candidates.mjs
+      - name: Verify JSON-LD product image extraction regex
+        run: node scripts/citymarket/test-image-metadata-regex.mjs
+      - name: Discover product image URLs from source metadata
+        if: always()
+        run: node scripts/citymarket/discover-image-metadata.mjs
+      - name: Bulk Open Food Facts lookup for known EANs
+        if: always()
+        run: node scripts/citymarket/discover-openfoodfacts-images.mjs
+      - name: Bulk product-name search for missing single-product images
+        if: always()
+        env:
+          IMAGE_RESEARCH_MAX_SEARCHES: "80"
+        run: node scripts/citymarket/discover-openfoodfacts-search.mjs
+      - name: Summarize image discovery results
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const file = "citymarket-openfoodfacts-search.json";
+          if (!fs.existsSync(file)) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "### 41LV image search\nSearch report missing; check previous steps.\n");
+          } else {
+            const report = JSON.parse(fs.readFileSync(file, "utf8"));
+            const lines = [
+              "### 41LV image search (unverified candidates)",
+              "Missing images: " + report.totalMissing,
+              "API requests: " + report.searchesPerformed,
+              "Cache hits: " + report.cacheHits,
+              "Rate limited: " + report.rateLimited,
+              ...Object.entries(report.statusCounts ?? {}).map(([key, count]) => key + ": " + count),
+              "No candidate is approved automatically."
+            ];
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          }
+          NODE
+      - name: Generate visual image review page
+        if: always()
+        run: node scripts/citymarket/build-image-review-html.mjs
+      - name: Upload image review queue
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: citymarket-image-review-queue
+          path: |
+            citymarket-image-review-queue.json
+            citymarket-image-probe.json
+            citymarket-image-discovery.json
+            citymarket-openfoodfacts-discovery.json
+            citymarket-openfoodfacts-search.json
+            citymarket-image-review.html
+            artifacts/citymarket-images/browser-images.png
+          retention-days: 14
+          if-no-files-found: error

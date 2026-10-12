@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json'));
 const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts','utf8');
 const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
-const mod={exports:{}};new Function('exports','module','require',code)(mod.exports,mod,()=>manifest);
+const mod={exports:{}};new Function('exports','module','require',code)(mod.exports,mod,specifier=>specifier.includes('41lv-verified-bank-images')?JSON.parse(fs.readFileSync('scripts/citymarket/41lv-verified-bank-images.json')):manifest);
 const get=mod.exports.getKCitymarketPublisherImage;
 const [url,pub]=Object.entries(manifest.publications).find(([u])=>u.includes('41LV'));
 const [id,image]=Object.entries(pub.images)[0];
