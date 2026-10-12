@@ -13,7 +13,7 @@ function statement(prefix) {
 const comparisonStatement = statement("const comparison = offerDescription.match(");
 const depositStatement = statement("const depositMatch = sourceDescription.match(");
 function parseDescription(description) {
-  const ctx = { offerDescription: description.split(/ilman\\s+plussa(?:-korttia)?/i)[0], sourceDescription: description };
+  const ctx = { offerDescription: description.split(/ilman\s+plussa(?:-korttia)?/i)[0], sourceDescription: description };
   vm.runInNewContext(comparisonStatement + "\n" + depositStatement +
     "\nthis.comparison = comparison; this.depositMatch = depositMatch;", ctx);
   return { comparison: ctx.comparison, deposit: ctx.depositMatch };
