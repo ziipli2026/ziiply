@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.10",
+  "version": "2026-10-12.11",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "note": "Reviewed coded provider categories against every currently stored product name. Product rows are unchanged.",
@@ -4767,6 +4767,947 @@
         "Valio Hyvä suomalainen Arki™juustoviipale 500 g n.36 kpl/pak"
       ],
       "allowGlobalMatch": false
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAMAAAA",
+      "sample_product_count": 5,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop Vesimeloni",
+        "Coop vesimeloni luomu Espanja",
+        "Keltainen vesimeloni, siemenetön",
+        "Makea vesimeloni",
+        "Oranssi vesimeloni"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAYAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Vesimeloni palana"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAACAQAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg",
+      "names": [
+        "Bataatti",
+        "Inkivääri Suomi"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Chili Rawit tulinen 7"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista pakattu kaalipala"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIAEAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "H&H Tuominen Kukkakaali, Suomi"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIAGAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg",
+      "names": [
+        "H&H Tuominen parsakaali",
+        "Parsakaali pakattu"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAMAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kesäkurpitsa Luomu Suomi"
+      ]
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEBKAAAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg",
+      "names": [
+        "Valkosipuli",
+        "Valkosipuli Luomu Suomi",
+        "Valkosipuli Suomi"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAAEAAAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts",
+      "names": [
+        "Savuhovi Priima Liekitetty kalkkuna 120g",
+        "Savuhovi Priima Liekitetty kana 130g",
+        "Savuhovi Priima Liekitetty kinkku 150g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAASACAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "butter_blend",
+      "names": [
+        "Valio Oivariini® 250g normaalisuolainen HYLA®"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAKAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "bread",
+      "names": [
+        "VAASAN KOULUNÄKKI Maukas 460 g Täysjyväruisnäkkileipä",
+        "VAASAN MAUKAS näkkileipä 230 g",
+        "Vaasan Koulunäkki Ohut herkku Maukas 265g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop Verigreippi"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop aprikoosi 500 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista muusiperuna 1 kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAEAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista Kesäperuna 1 kg",
+        "Kotimaista Kesäperuna 700 g",
+        "Kotimaista kesäperuna 2 kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAIAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista arkiperuna 1 kg",
+        "Kotimaista yleisperuna 2 kg",
+        "Kotimaista yleisperuna 5kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACAEACAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista porkkana 1 kg",
+        "Kotimaista porkkana 500 g",
+        "Kotimaista porkkananippu"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop paprikamix 500g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAKAIAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop Rukola 50 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAYAAAA",
+      "sample_product_count": 16,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista basilika",
+        "Kotimaista herneenverso",
+        "Kotimaista korianteri",
+        "Kotimaista lehtipersilja",
+        "Kotimaista minttu",
+        "Kotimaista oregano",
+        "Kotimaista persilja",
+        "Kotimaista rosmariini",
+        "Kotimaista ruohosipuli",
+        "Kotimaista salvia",
+        "Kotimaista sitruunamelissa",
+        "Kotimaista thaibasilika",
+        "Kotimaista tilli",
+        "Kotimaista timjami",
+        "Kotimaista vehnänoras",
+        "Kotimaista viinisuolaheinä"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAYACAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop tillinippu 50 g",
+        "Kotimaista persilja 30g",
+        "Kotimaista tilli 30g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBGAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop makeasipuli 350g",
+        "Kotimaista sipulimix 1 kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBGAIAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista punasipuli 500g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBKAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista valkosipuli 100g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBOAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg",
+      "names": [
+        "Coop China wok 200 g",
+        "Coop Thai wok 200 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista karviainen 250g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACACAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista mansikka 250g",
+        "Kotimaista mansikka 500 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACAKAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "names": [
+        "Kotimaista vadelma 175 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAAAAAA",
+      "sample_product_count": 13,
+      "category_id": "cold_cuts",
+      "names": [
+        "Coop Ohut Broilerileikkele 200g",
+        "Coop Ohut Kalkkunaleikkele 200g",
+        "Coop ohut keittokinkku 200 g",
+        "Coop ohut pippurikinkku 200 g",
+        "Coop ohut saunapalvi 200 g",
+        "Coop saunapalvi 300 g",
+        "Kotimaista Saunapalvi 300 g",
+        "Savuhovi Priima Ohuen ohut chili kalkkuna 120g",
+        "Savuhovi Priima Ohuen ohut chili kinkku 150g",
+        "Savuhovi Priima Ohuen ohut kalkkunafilee 120g",
+        "Savuhovi Priima Ohuen ohut pippurikalkkuna 120g",
+        "Savuhovi Priima Ohuen ohut pippurikinkku 150g",
+        "Savuhovi Priima ohuen ohut Saunapalvi 150g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "sausage",
+      "names": [
+        "Kotimaista Savulenkki 400g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Xtra mätitahna 250 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Kotimaista Ahvenfilee pakaste n200g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Kalaneuvos Tuore kirjolohifilee, pala B 500 g vak"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Kotimaista Kuhafilee pakaste n300g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAMAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Kotimaista Siikafilee pakaste n300g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Xtra graavilohi 100 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAGAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Kalaneuvos Savustettu kirjolohifilee pala n 250g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAWAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish",
+      "names": [
+        "Xtra sinappisilli 650 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "milk",
+      "names": [
+        "Arla Laktoositon rasvaton maitojuoma 1 L Suomi ESL",
+        "Kotimaista laktoositon 1 L rasvaton maitojuoma"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "milk",
+      "names": [
+        "Kotimaista laktoositon kevytmaitojuoma 1 L"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "milk",
+      "names": [
+        "Kotimaista laktoositon 3% maitojuoma 1 L ESL"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAEACACAA",
+      "sample_product_count": 1,
+      "category_id": "fermented_milk",
+      "names": [
+        "Coop päärynä-vaniljaviili vähälaktoosinen 200 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAASAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "margarine",
+      "names": [
+        "Xtra margariini 60 400 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAASAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "margarine",
+      "names": [
+        "Xtra margariini 60 500 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg",
+      "names": [
+        "Xtra kananmunat M15 855 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAACAAAA",
+      "sample_product_count": 5,
+      "category_id": "egg",
+      "names": [
+        "Farmimuna 348g M6 Vapaa kananmuna",
+        "Kotimaista Isot vapaan kanan munat L6 408g",
+        "Kotimaista vapaan kanan munat M10",
+        "Kotimaista vapaan kanan munat M6 348 g",
+        "Kotimaista vapaan kanan munat omega-3 M6 348 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "egg",
+      "names": [
+        "Kultamuna luomu kananmuna M/L10 630g",
+        "Kultamuna luomu kananmuna S/M6 318g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg",
+      "names": [
+        "Kotimaista ulkokanan munat M10"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAEACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "names": [
+        "Coop ciabatta 300 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAGAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry",
+      "names": [
+        "Coop donitsi 200g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAGASAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry",
+      "names": [
+        "Kotimaista kakkupohja 320 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAKAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "names": [
+        "Hannan Gluteenittomat Herkut gluteenittomat piimälimppu gluteeniton"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "names": [
+        "Paprika-juusto herkkuciabatta kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAEAA",
+      "sample_product_count": 2,
+      "category_id": "pastry",
+      "names": [
+        "Bridor Kinkku-Juusto Pasteija n.100g",
+        "Vaasan Cheddarpasteija 90g/80g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAGAA",
+      "sample_product_count": 2,
+      "category_id": "pastry",
+      "names": [
+        "Coop voicroissant 55g",
+        "Fazer Leipurit Vadelma-kermacroissant kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry",
+      "names": [
+        "KANELI-MAITOSUKLAAPULLA"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice",
+      "names": [
+        "Xtra appelsiinimehu 1 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAACAAAA",
+      "sample_product_count": 3,
+      "category_id": "juice",
+      "names": [
+        "Coop omenatäysmehu 1l",
+        "Xtra omenamehu 1l",
+        "Xtra omenamehujuoma 1l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice",
+      "names": [
+        "Coop päärynäjuoma 1l",
+        "Coop sokeriton päärynäjuoma 1l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice",
+      "names": [
+        "Xtra sitruunamehu 200 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAASAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice",
+      "names": [
+        "Coop karpalomehu 1l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice",
+      "names": [
+        "10 x Coop päärynäjuoma 2dl",
+        "Coop päärynäjuoma 2dl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACBEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice",
+      "names": [
+        "10 x Coop vadelma-mansikka juoma 2dl",
+        "Coop vadelma-mansikka juoma 2dl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAGBUAAAA",
+      "sample_product_count": 3,
+      "category_id": "coffee_drink",
+      "names": [
+        "Frezza Salted Caramel 250 ml maitokahvijuoma laktoositon",
+        "Kotimaista maitokahvijuoma Karamelli 250 ml",
+        "Kotimaista maitokahvijuoma latte 250 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGACBCACAA",
+      "sample_product_count": 2,
+      "category_id": "canned_vegetables",
+      "names": [
+        "Coop kikherneet 400 g",
+        "Coop kikherneet 400 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "breakfast_cereal",
+      "names": [
+        "Xtra maissihiutaleet 750 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAAAAC",
+      "sample_product_count": 2,
+      "category_id": "breakfast_cereal",
+      "names": [
+        "Coop riisimurot 500 g",
+        "Kotimaista Kauramuro 300 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAACAC",
+      "sample_product_count": 1,
+      "category_id": "breakfast_cereal",
+      "names": [
+        "Kotimaista kaakaomuro 320 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEACAAAE",
+      "sample_product_count": 1,
+      "category_id": "muesli",
+      "names": [
+        "Xtra hedelmämysli 1 kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEACACAG",
+      "sample_product_count": 1,
+      "category_id": "muesli",
+      "names": [
+        "Coop crunchy granola suolakinuski ja maitosuklaa 500 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAACAA",
+      "sample_product_count": 2,
+      "category_id": "pasta",
+      "names": [
+        "Coop spaghetti 1 kg",
+        "Xtra Spaghetti 1kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "pasta",
+      "names": [
+        "Coop Lasagne pasta, sisältää kananmunaa 500 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAIAM",
+      "sample_product_count": 1,
+      "category_id": "pasta",
+      "names": [
+        "Xtra gnocchi 500 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGACAGAA",
+      "sample_product_count": 2,
+      "category_id": "rice",
+      "names": [
+        "Coop puuroriisi 1 kg",
+        "Xtra puuroriisi 1 kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAAACAA",
+      "sample_product_count": 1,
+      "category_id": "cookies",
+      "names": [
+        "Danvita cheddar cracker 100g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAAAEAA",
+      "sample_product_count": 2,
+      "category_id": "cookies",
+      "names": [
+        "Coop leipätikku twist juusto 125 g",
+        "Coop suolakeksi 200 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAIACAA",
+      "sample_product_count": 1,
+      "category_id": "cookies",
+      "names": [
+        "Artiach 110g Cubes maitosuklaavohveli"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "names": [
+        "Coop näkkileipä 200 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "names": [
+        "Kotimaista ruisnappi 150 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAMAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "names": [
+        "Coop korppu 125 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACACAC",
+      "sample_product_count": 2,
+      "category_id": "candy",
+      "names": [
+        "Astra Kirpeät Cola jättitutit 2,5kg",
+        "Matthijs Colapullo Makeinen Kirpeä 4kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACAMAE",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "Panda maitosuklaa lakupallo 2,2kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACAOAC",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "MAOAM hedelmätoffee Cola -irtomakeinen 3kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAEAMAA",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "Bello Dolce vaahtomakeiset jäätelö 150g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "candy",
+      "names": [
+        "Coop lakritsi 300 g",
+        "Coop lakritsikuulat maitosuklaalla 115 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAAAC",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "names": [
+        "Xtra tummasuklaa 100 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAAAE",
+      "sample_product_count": 3,
+      "category_id": "chocolate",
+      "names": [
+        "MrBeast Feastables Cookies & Creme maitosuklaalevy 60g",
+        "Xtra valkosuklaa 100 g",
+        "Xtra valkosuklaa 100 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "Coop Cola Chews makeiset 80 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAMAEAA",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "Coop täysksylitolipastilli mansikka-päärynä 65 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAAAA",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "names": [
+        "Brunberg Laktoositon Maitosuklaakonvehti 250g",
+        "Lindt LINDOR Joulu Maito valko hasselpähkinä tumma 45% suklaakuula pehmeällä täytteellä 337g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAMAA",
+      "sample_product_count": 3,
+      "category_id": "chocolate",
+      "names": [
+        "Kinder Joy Rapeita vohvelipalloja maitoisassa kaakao- ja maitokreemissä. Sisältää lelun 20g",
+        "Kinder Surprise Hangable maitosuklaahahmo maitoisalla sisäpinnalla. sisältää lelun 20g Joulu",
+        "Kinder Surprise maitosuklaahahmo maitoisalla sisäpinnalla. sisältää lelun 20g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAUAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "snacks",
+      "names": [
+        "Kotimaista Kermaviili & sipuli sipsit 200g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAUAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "snacks",
+      "names": [
+        "Coop suolatikut 250 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAWAAAAAE",
+      "sample_product_count": 1,
+      "category_id": "snacks",
+      "names": [
+        "Xtra suolapähkinät 250 g"
+      ]
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "CAAAUAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg",
+      "names": [
+        "Kotimaista isot vapaan kanan munat L15"
+      ]
     }
   ]
 }

@@ -210,6 +210,10 @@ rankingCases.push({query:"voi",products:[makeProduct(1803,"Valio Oivariini rasva
 assert.equal(core.isExplicitlyExcludedSearchProduct("kala",makeProduct(1805,"Rainbow lohifilee 250g pakaste","CAABQAIACAAAA")),false);
 assert.equal(core.isExplicitlyExcludedSearchProduct("pakaste",makeProduct(1806,"Rainbow lohifilee 250g pakaste","CAABQAIACAAAA")),false);
 
+rankingCases.push({query:"jäätelö",products:[makeProduct(1901,"Bello Dolce vaahtomakeiset jäätelö 150g","CAABGAQAEAMAA"),makeProduct(1902,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")],first:1902,excluded:[1901]});
+rankingCases.push({query:"juusto",products:[makeProduct(1903,"Vaasan Cheddarpasteija 90g","CAAAWAMAIAEAA"),makeProduct(1904,"Valio Arkijuusto 750g","CAAAOAAAAAAAA")],first:1904,excluded:[1903]});
+rankingCases.push({query:"cola",products:[makeProduct(1905,"Coop Cola Chews makeiset 80g","CAABGAQAKAAAA"),makeProduct(1906,"Coop Cola virvoitusjuoma 1,5l","CAAAYAKACAAAA")],first:1906,excluded:[1905]});
+
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));

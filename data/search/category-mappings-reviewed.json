@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.10",
+  "version": "2026-10-12.11",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -155,6 +155,12 @@
     },
     {
       "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAMAAAA",
+      "sample_product_count": 5,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
       "source_category": "CAAAAAAAMACAA",
       "sample_product_count": 1,
       "category_id": "fruit_veg"
@@ -191,6 +197,12 @@
     },
     {
       "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAYAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
       "source_category": "CAAAAACAAAAAA",
       "sample_product_count": 2,
       "category_id": "fruit_veg"
@@ -215,6 +227,12 @@
     },
     {
       "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAACAQAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
       "source_category": "CAAAAAEACAAAA",
       "sample_product_count": 2,
       "category_id": "fruit_veg"
@@ -227,6 +245,36 @@
     },
     {
       "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIAEAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIAGAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAMAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
       "source_category": "CAAAAAEAOAAAA",
       "sample_product_count": 1,
       "category_id": "fruit_veg"
@@ -235,6 +283,12 @@
       "source": "hevi-mass-harvest-s",
       "source_category": "CAAAAAEBGAGAA",
       "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEBKAAAA",
+      "sample_product_count": 3,
       "category_id": "fruit_veg"
     },
     {
@@ -385,6 +439,12 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "CAAAEAAAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "CAAAOAAAAAAAA",
       "sample_product_count": 1,
       "category_id": "cheese"
@@ -403,6 +463,12 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "CAAASACAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "butter_blend"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "CAAAWAAAAAAAA",
       "sample_product_count": 5,
       "category_id": "bread"
@@ -412,6 +478,12 @@
       "source_category": "CAABGAGAEAAAC",
       "sample_product_count": 2,
       "category_id": "noodles"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAKAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "bread"
     },
     {
       "source": "ruoanhinta-k",
@@ -996,6 +1068,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAAAAAAAEAA",
       "sample_product_count": 1,
       "category_id": "fruit_veg"
@@ -1004,6 +1082,12 @@
       "source": "ruoanhinta-s",
       "source_category": "CAAAAAAAEAEAA",
       "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAKAAAA",
+      "sample_product_count": 1,
       "category_id": "fruit_veg"
     },
     {
@@ -1044,6 +1128,30 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAEAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAIAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACAEACAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAAACAGACAA",
       "sample_product_count": 1,
       "category_id": "fruit_veg"
@@ -1062,8 +1170,38 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAKAIAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAAAEAOAAAA",
       "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAYAAAA",
+      "sample_product_count": 16,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAYACAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBGAAAA",
+      "sample_product_count": 2,
       "category_id": "fruit_veg"
     },
     {
@@ -1074,9 +1212,51 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBGAIAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBKAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBOAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACACAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACAKAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAAAIACAAAA",
       "sample_product_count": 1,
       "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAAAAAA",
+      "sample_product_count": 13,
+      "category_id": "cold_cuts"
     },
     {
       "source": "ruoanhinta-s",
@@ -1086,9 +1266,21 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAEAAAGAGAA",
       "sample_product_count": 7,
       "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
     },
     {
       "source": "ruoanhinta-s",
@@ -1164,6 +1356,48 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAMAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAGAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAWAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAMAAAAAAAA",
       "sample_product_count": 1,
       "category_id": "milk"
@@ -1177,6 +1411,24 @@
     {
       "source": "ruoanhinta-s",
       "source_category": "CAAAMAAAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGAEAA",
       "sample_product_count": 1,
       "category_id": "milk"
     },
@@ -1458,6 +1710,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAQAEACACAA",
+      "sample_product_count": 1,
+      "category_id": "fermented_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAQAGAAACAA",
       "sample_product_count": 3,
       "category_id": "quark"
@@ -1476,6 +1734,42 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAASAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "margarine"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAASAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "margarine"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAACAAAA",
+      "sample_product_count": 5,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAWACAGAAAA",
       "sample_product_count": 1,
       "category_id": "bread"
@@ -1485,6 +1779,54 @@
       "source_category": "CAAAWACAMAGAA",
       "sample_product_count": 1,
       "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAEACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAGAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAGASAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAKAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAEAA",
+      "sample_product_count": 2,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAGAA",
+      "sample_product_count": 2,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
     },
     {
       "source": "ruoanhinta-s",
@@ -1656,6 +1998,54 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAACAAAA",
+      "sample_product_count": 3,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAASAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACBEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAGBUAAAA",
+      "sample_product_count": 3,
+      "category_id": "coffee_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABGAAAAAAAC",
       "sample_product_count": 1,
       "category_id": "oatmeal"
@@ -1674,7 +2064,55 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABGACBCACAA",
+      "sample_product_count": 2,
+      "category_id": "canned_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "breakfast_cereal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAAAAC",
+      "sample_product_count": 2,
+      "category_id": "breakfast_cereal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAACAC",
+      "sample_product_count": 1,
+      "category_id": "breakfast_cereal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEACAAAE",
+      "sample_product_count": 1,
+      "category_id": "muesli"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEACACAG",
+      "sample_product_count": 1,
+      "category_id": "muesli"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABGAGAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAACAA",
+      "sample_product_count": 2,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAEAA",
       "sample_product_count": 1,
       "category_id": "pasta"
     },
@@ -1698,8 +2136,32 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAIAM",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGACAGAA",
+      "sample_product_count": 2,
+      "category_id": "rice"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABGAIAAAAAA",
       "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAAACAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAAAEAA",
+      "sample_product_count": 2,
       "category_id": "cookies"
     },
     {
@@ -1728,6 +2190,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAIACAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABGAIAKAAAA",
       "sample_product_count": 1,
       "category_id": "cookies"
@@ -1737,6 +2205,12 @@
       "source_category": "CAABGAIASACAA",
       "sample_product_count": 1,
       "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
     },
     {
       "source": "ruoanhinta-s",
@@ -1752,13 +2226,67 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAMAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABGAQACACAA",
       "sample_product_count": 2,
       "category_id": "candy"
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACACAC",
+      "sample_product_count": 2,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACAMAE",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACAOAC",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAEAMAA",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABGAQAIAAAA",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAAAC",
+      "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAAAE",
       "sample_product_count": 3,
       "category_id": "chocolate"
     },
@@ -1776,8 +2304,32 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAMAEAA",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAAAA",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABGAQAQAEAE",
       "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAMAA",
+      "sample_product_count": 3,
       "category_id": "chocolate"
     },
     {
@@ -1815,6 +2367,24 @@
       "source_category": "CAABGASAGAAAC",
       "sample_product_count": 1,
       "category_id": "honey"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAUAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAUAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAWAAAAAE",
+      "sample_product_count": 1,
+      "category_id": "snacks"
     },
     {
       "source": "ruoanhinta-s",
@@ -3111,6 +3681,12 @@
       "source_category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
       "sample_product_count": 2,
       "category_id": "pizza"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "CAAAUAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg"
     },
     {
       "source": "s-kaupat-ean",
