@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.11",
+  "version": "2026-10-12.13",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "note": "Reviewed coded provider categories against every currently stored product name. Product rows are unchanged.",
@@ -5708,6 +5708,395 @@
       "names": [
         "Kotimaista isot vapaan kanan munat L15"
       ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/kerta-annosmehut",
+      "sample_product_count": 6,
+      "category_id": "juice",
+      "names": [
+        "Juustoportti Hyvin mansikkainen mehu 2dl sokeroimaton",
+        "Juustoportti Hyvin sokeroimaton ja makeutusaineeton hedelmäinen mehu 2dl",
+        "Juustoportti Hyvin sokeroimaton ja makeutusaineeton omenamehu 2dl",
+        "Juustoportti Hyvin sokeroimaton ja makeutusaineeton päärynämehu 2dl",
+        "Mehukatti Trip Appelsiini-colamehujuoma 2dl",
+        "Valio Grandi 2dl appelsiini-cola"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 3,
+      "category_id": "chocolate",
+      "names": [
+        "Kinder Joy Rapeita vohvelipalloja maitoisassa kaakao- ja maitokreemissä. Sisältää lelun 20g",
+        "Kinder Surprise maitosuklaahahmo maitoisalla sisäpinnalla. sisältää lelun 20g",
+        "Maitosuklaapäällysteinen Kinder Halloween-hahmo maitoisalla sisäpinnalla 35g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkit-suklaat-ja-keksit/suklaa-ja-toffeepatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate",
+      "names": [
+        "Kinder Country Hienolla maitosuklaata maitoisalla täytteellä (59%) sisältäen viljaisia muroja",
+        "Kinder Maxi maitosuklaata maitoisalla täytteellä 126g (6kpl)",
+        "Kinder Maxi maitosuklaata maitoisalla täytteellä 21g (1kpl)"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kodinhoito-ja-taloustarvikkeet/astianpesu/astiaharjat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Aino kahvinkeitinharja"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vitamiinit",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "names": [
+        "Sana-sol Vitanallet Cola monivitamiini 120kpl kolanmakuinen"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/leivonnais-ja-leipapakasteet/kakut-pullat-ja-leivokset",
+      "sample_product_count": 1,
+      "category_id": "pastry",
+      "names": [
+        "Almondy 400g Daim Maitosuklaamousse kakku"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/perunapakasteet/ranskanperunat",
+      "sample_product_count": 1,
+      "category_id": "frozen",
+      "names": [
+        "Aviko super skinny ranskanperuna 600g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/kerta-annosmehut",
+      "sample_product_count": 2,
+      "category_id": "juice",
+      "names": [
+        "Capri-Sun mango-maracuja juoma 0,33l",
+        "Capri-Sun orange-peach juoma  0,33l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juustot-tofut-ja-kasvipohjaiset/pala-ja-viipalejuustot/gouda-juustot",
+      "sample_product_count": 1,
+      "category_id": "cheese",
+      "names": [
+        "Coop Gouda Holland juusto 1 kk 450 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 3,
+      "category_id": "chocolate",
+      "names": [
+        "Coop ruohomunat 380 g",
+        "Coop ruohomunat 96 g",
+        "Lindt suklaa minimunat lajitelma maitosuklaa, maitosuklaa nougat-, maitokreemi- ja nougatkreemitäytteellä 200g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/suklaalevyt-ja-patukat/muut-suklaalevyt",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "names": [
+        "Maitosuklaa-fudge 95g",
+        "Supernainen maitosuklaa-kinuskikrokantti 95g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/karkkipussit/hedelma-ja-makeissekoituspussit",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "Konnichiwa Lotto Malrang cow (maito) chewy candy 79 g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/sesonkisuklaat",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "names": [
+        "ASBA Maitosuklaaruusu 18g",
+        "Kinder Chocolate maitosuklaata maitoisalla täytteellä 150g (12kp) Joulu"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 4,
+      "category_id": "chocolate",
+      "names": [
+        "Kinder Maxi Surprise maitosuklaahahmo maitoisalla sisäpinnalla. sisältää lelun 100g Joulu",
+        "Kinder Surprise Hangable maitosuklaahahmo maitoisalla sisäpinnalla. sisältää lelun 20g Joulu",
+        "Kinder Surprise maitosuklaahahmo maitoisalla sisäpinnalla. sisältää lelun 3x20g",
+        "Kinder maitosuklaapäällysteisiä suklaahahmoja maitoisalla täytteellä"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/suklaa-ja-toffeepatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate",
+      "names": [
+        "Kinder Bueno 3-pack maitosuklaapäällysteinen vohveli maitoisalla hasselpähkinätäytteellä x 43g",
+        "Kinder Bueno 43g maitosuklaapäällysteinen vohveli maitoisalla hasselpähkinätäytteellä",
+        "Kinder Happy Hippo Maito- ja kaakaokreemillä täytetty rapea vohvelipatukka\n 20,7g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/astiat-ja-aterimet/mukit-ja-kupit",
+      "sample_product_count": 2,
+      "category_id": "tableware",
+      "names": [
+        "GastroMax juomamuki 4 dl",
+        "GastroMax juomamuki 4 dl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/muut-sailontatarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "tableware",
+      "names": [
+        "House kahvipurkki Laivat"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/sailytysrasiat-ja-purkit",
+      "sample_product_count": 3,
+      "category_id": "tableware",
+      "names": [
+        "Peltipurkki Kahvi mu NORDIC HOME",
+        "Peltipurkki Kahvi valk NORDIC HOME",
+        "Purkki musta. kahvi EVERYDAY"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/vesipullot",
+      "sample_product_count": 4,
+      "category_id": "tableware",
+      "names": [
+        "House juomapullo 0,6 l valkoinen",
+        "House juomapullo 0,6 l vihreä",
+        "House juomapullo Laivat 0,5 l",
+        "House juomapullo Laivat 500 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoanlaittovalineet/kauhat-lastat-ja-ottimet",
+      "sample_product_count": 4,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra kauha 31 cm",
+        "Xtra pastakauha 31 cm",
+        "Xtra pihdit 28 cm",
+        "Xtra reikäkauha"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoanlaittovalineet/leivontavalineet",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra vispilä 27,5 cm"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-ja-hygienia/kasvojenhoito/huulivoiteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care",
+      "names": [
+        "Lipsmacker Coca Cola huulivoide 4g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-ja-hygienia/miesten-kosmetiikka/parranajo",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies",
+      "names": [
+        "Coop partahöylä"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat",
+      "sample_product_count": 3,
+      "category_id": "hygiene_supplies",
+      "names": [
+        "Ibero hiusharja jäätelö keltainen 59244",
+        "Ibero hiusharja jäätelö liila 59243",
+        "Ibero hiusharja jäätelö minttu 59242"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/kasvojenhoito/kasvovedet",
+      "sample_product_count": 1,
+      "category_id": "skin_care",
+      "names": [
+        "Erisan alkoholiton kasvovesi 200ml hajusteeton"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/kissanruoat/kissan-makupalat",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "Dreamies Juusto 180g kissan makupalat"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-makkarat",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "Best-In possukiusaus koiran tuoreruoka 500g peruna-kananmuna"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-makupalat",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "Vitakraft Dog Minis koiran nakit 120g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+      "sample_product_count": 2,
+      "category_id": "pet_food",
+      "names": [
+        "DIBO Naudan rustoluut koirille pakaste 1kg pakaste",
+        "DIBO possu-kasvispullat 1kg pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koirat/koiran-raakaruoka",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "DIBO Jauheliha raakapakaste koirille ja kissoille 1kg"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/muut-makeiset/muut-makeiset",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "Chupa Chups 15g Fizzy tikkari Cola ja appelsiini"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "names": [
+        "Fisherman´s Friend Cola sokeriton 25g Limited Edition"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/muut-snacksit",
+      "sample_product_count": 2,
+      "category_id": "snacks",
+      "names": [
+        "Estrella Linssisnacks 125g Cheddar",
+        "Estrella Linssisnacks 125g cheddar-ranch"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/leipa--ja-leivonnaispakasteet/leivos--ja-kakkupakasteet",
+      "sample_product_count": 1,
+      "category_id": "pastry",
+      "names": [
+        "Billys sweet apple pie 170g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakasteateriat/pannu--ja-uunivalmiit-ateriat",
+      "sample_product_count": 5,
+      "category_id": "ready_meal",
+      "names": [
+        "Findus Vegepyttipannu 700g pakaste",
+        "Findus chicken curry 1kg pakaste",
+        "Mummon Pyttipannu 500 g, pakaste",
+        "Oolannin pyttipannu 1kg pakaste",
+        "Oolannin pyttipannu 500g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/perunapakasteet/ranskanperunat",
+      "sample_product_count": 9,
+      "category_id": "frozen",
+      "names": [
+        "Aviko Super Crunch Big Fries 750g ranskanperunat pakaste",
+        "Findus Mikrovalmiit Ranskanperunat 2 x 100 g pakaste",
+        "McCain Golden longs ranskanperuna 6mm 750g pakaste",
+        "Mummon Ranskanperunat 450 g pakaste",
+        "Mummon poimutetut ranskanperunat 900g pa",
+        "Mummon tikkuperunat 450g pakaste",
+        "Mummon tikkuperunat 900g pakaste",
+        "Oolannin tikkuperunat 400g pakaste",
+        "Oolannin uunirapeat sileät ranskanperunat 1kg pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "urheiluravinteet-terveys-ja-itsehoito/ruoansulatusvalmisteet/maitohappobakteerit-pro-ja-prebiootit",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "names": [
+        "Gefilus mansikka maitohappobakteeri-D3-C-vitamiinivalmiste purutabletti 30tabl 13g gravintolisä"
+      ]
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/mehut-lampimasta",
+      "sample_product_count": 3,
+      "category_id": "juice",
+      "names": [
+        "Juustoportti Hyvin mehu 1l hedelmäinen",
+        "Juustoportti Hyvin sokeroimaton ja makeutusaineeton omenamehu 1l",
+        "Juustoportti Hyvin sokeroimaton ja makeutusaineeton päärynämehu 1l"
+      ],
+      "allowGlobalMatch": false
     }
   ]
 }

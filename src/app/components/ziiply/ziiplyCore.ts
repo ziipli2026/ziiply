@@ -2634,7 +2634,7 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
   const intent = detectSearchIntent(query);
   const name = normalize(product.name);
   const normalizedQuery = normalize(query);
-  const genericGroupQuery = intent.variants.some(term => normalize(term) === normalizedQuery);
+  const genericGroupQuery = intent.category !== "generic" && intent.variants.some(term => normalize(term) === normalizedQuery);
   const reviewedCategory = getReviewedEanCategory(product.ean) || getReviewedProductCategory(product.category);
   const explicitlyFrozen = name.includes("pakaste") || product.category?.startsWith("pakasteet/") || product.category?.startsWith("CAABQ");
   if (genericGroupQuery && reviewedCategory && !isReviewedCategoryCompatible(intent.category, reviewedCategory) &&

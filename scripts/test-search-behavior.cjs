@@ -220,6 +220,17 @@ rankingCases.push({query:"kana",products:[{...makeProduct(2005,"Kissanruoka Fris
 rankingCases.push({query:"kasvovoi",products:[{...makeProduct(2007,"Kasvovoi Nivea Q10 50 ml","Maitotuotteet"),ean:"4006000233840"}],first:2007});
 assert.equal(core.isExplicitlyExcludedSearchProduct("paahdettu voi piparkakku",{...makeProduct(2008,"Ohuet piparkakut Momma 150 g paahdettu voi","Maitotuotteet"),ean:"6410580429575"}),false);
 
+rankingCases.push({query:"jäätelö",products:[makeProduct(2101,"Ibero hiusharja jäätelö minttu 59242","kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat"),makeProduct(2102,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")],first:2102,excluded:[2101]});
+rankingCases.push({query:"cola",products:[makeProduct(2103,"Lipsmacker Coca Cola huulivoide 4g","kosmetiikka-ja-hygienia/kasvojenhoito/huulivoiteet"),makeProduct(2104,"Coop Cola virvoitusjuoma 1,5l","CAAAYAKACAAAA")],first:2104,excluded:[2103]});
+
+assert.equal(core.detectSearchIntent("tuotemerkki xyz").category,"generic");
+const freeTextResults = core.rankNormalSearchResults("tuotemerkki xyz",[
+  makeProduct(2110,"Tuotemerkki XYZ kevytmaito 1L","CAAAMAAAAAEAA"),
+  {...makeProduct(2111,"Tuotemerkki XYZ kasvovoi 50ml","Maitotuotteet"),ean:"4006000233840"}
+]);
+assert.deepEqual(new Set(freeTextResults.map(p=>p.id)),new Set([2110,2111]),"Unrecognized free-text searches must not reject reviewed categories");
+assert.equal(core.isExplicitlyExcludedSearchProduct("hiusharja",makeProduct(2112,"Ibero hiusharja jäätelö minttu","kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat")),false);
+
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));

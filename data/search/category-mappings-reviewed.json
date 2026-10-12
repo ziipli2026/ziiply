@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.12",
+  "version": "2026-10-12.13",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -701,9 +701,22 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/kerta-annosmehut",
+      "sample_product_count": 6,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "juomat/mehut/mehukeitot",
       "sample_product_count": 2,
       "category_id": "fruit_soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/mehut-lampimasta",
+      "sample_product_count": 3,
+      "category_id": "juice",
+      "allowGlobalMatch": false
     },
     {
       "source": "ruoanhinta-k",
@@ -722,6 +735,30 @@
       "source_category": "juomat/virvoitusjuomat/cola-juomat",
       "sample_product_count": 38,
       "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkit-suklaat-ja-keksit/suklaa-ja-toffeepatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kodinhoito-ja-taloustarvikkeet/astianpesu/astiaharjat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vitamiinit",
+      "sample_product_count": 1,
+      "category_id": "supplements"
     },
     {
       "source": "ruoanhinta-k",
@@ -990,9 +1027,21 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "pakasteet/leivonnais-ja-leipapakasteet/kakut-pullat-ja-leivokset",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "pakasteet/pakasteateriat/keitot",
       "sample_product_count": 1,
       "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/perunapakasteet/ranskanperunat",
+      "sample_product_count": 1,
+      "category_id": "frozen"
     },
     {
       "source": "ruoanhinta-k",
@@ -3012,6 +3061,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/kerta-annosmehut",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "juomat/mehut/mehukeitot",
       "sample_product_count": 10,
       "category_id": "fruit_soup"
@@ -3084,6 +3139,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "juustot-tofut-ja-kasvipohjaiset/pala-ja-viipalejuustot/gouda-juustot",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "kala-ja-merenelavat/muut-kalatuotteet/mati",
       "sample_product_count": 2,
       "category_id": "fish"
@@ -3108,15 +3169,111 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/suklaalevyt-ja-patukat/muut-suklaalevyt",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/karkkipussit/hedelma-ja-makeissekoituspussit",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/sesonkisuklaat",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 4,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/suklaa-ja-toffeepatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "karkit-suklaat-ja-keksit/suklaalevyt/maitosuklaalevyt",
       "sample_product_count": 9,
       "category_id": "chocolate"
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/astiat-ja-aterimet/mukit-ja-kupit",
+      "sample_product_count": 2,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/muut-sailontatarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/sailytysrasiat-ja-purkit",
+      "sample_product_count": 3,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/vesipullot",
+      "sample_product_count": 4,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoanlaittovalineet/kauhat-lastat-ja-ottimet",
+      "sample_product_count": 4,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoanlaittovalineet/leivontavalineet",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "kodinhoito-ja-taloustarvikkeet/kodin-paperit/wc-paperit",
       "sample_product_count": 1,
       "category_id": "toilet_paper"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-ja-hygienia/kasvojenhoito/huulivoiteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-ja-hygienia/miesten-kosmetiikka/parranajo",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat",
+      "sample_product_count": 3,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/kasvojenhoito/kasvovedet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
     },
     {
       "source": "ruoanhinta-s",
@@ -3159,6 +3316,36 @@
       "source_category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/leivokset-ja-wienerit",
       "sample_product_count": 1,
       "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/kissanruoat/kissan-makupalat",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-makkarat",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-makupalat",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+      "sample_product_count": 2,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koirat/koiran-raakaruoka",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
     },
     {
       "source": "ruoanhinta-s",
@@ -3384,8 +3571,26 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/muut-makeiset/muut-makeiset",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/juusto--ja-muotosnacksit",
       "sample_product_count": 5,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/muut-snacksit",
+      "sample_product_count": 2,
       "category_id": "snacks"
     },
     {
@@ -3486,6 +3691,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "pakasteet/leipa--ja-leivonnaispakasteet/leivos--ja-kakkupakasteet",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "pakasteet/liha--kala--ja-kasvispakasteet/kalapuikot-ja-paneroidut-kalat",
       "sample_product_count": 1,
       "category_id": "frozen_fish"
@@ -3504,9 +3715,21 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakasteateriat/pannu--ja-uunivalmiit-ateriat",
+      "sample_product_count": 5,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "pakasteet/pakastepizzat/pakastepizzat",
       "sample_product_count": 3,
       "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/perunapakasteet/ranskanperunat",
+      "sample_product_count": 9,
+      "category_id": "frozen"
     },
     {
       "source": "ruoanhinta-s",
@@ -3585,6 +3808,12 @@
       "source_category": "texmex-ja-maailman-maut/texmex/texmex-mausteet",
       "sample_product_count": 2,
       "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "urheiluravinteet-terveys-ja-itsehoito/ruoansulatusvalmisteet/maitohappobakteerit-pro-ja-prebiootit",
+      "sample_product_count": 1,
+      "category_id": "supplements"
     },
     {
       "source": "ruoanhinta-s",
