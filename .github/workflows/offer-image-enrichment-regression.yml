@@ -13,6 +13,7 @@ on:
       - "scripts/citymarket/probe-image-candidates.mjs"
       - "scripts/citymarket/discover-image-metadata.mjs"
       - "scripts/citymarket/discover-openfoodfacts-images.mjs"
+      - "scripts/citymarket/discover-openfoodfacts-search.mjs"
       - "scripts/citymarket/test-image-metadata-regex.mjs"
       - "scripts/citymarket/build-image-review-html.mjs"
       - "scripts/citymarket/test-image-review-html.mjs"
@@ -56,6 +57,9 @@ jobs:
       - name: Bulk Open Food Facts lookup for known EANs
         if: always()
         run: node scripts/citymarket/discover-openfoodfacts-images.mjs
+      - name: Bulk product-name search for missing single-product images
+        if: always()
+        run: node scripts/citymarket/discover-openfoodfacts-search.mjs
       - name: Generate visual image review page
         if: always()
         run: node scripts/citymarket/build-image-review-html.mjs
@@ -69,6 +73,7 @@ jobs:
             citymarket-image-probe.json
             citymarket-image-discovery.json
             citymarket-openfoodfacts-discovery.json
+            citymarket-openfoodfacts-search.json
             citymarket-image-review.html
           retention-days: 14
           if-no-files-found: error
