@@ -35,6 +35,8 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["purukumi", "chewing_gum"],["kahvakuula", "sports_equipment"],["jakoavain", "tools"],["liimapuulevy", "building_supplies"],["askartelupaperi", "craft_supplies"],["led-valo", "lighting"],["nilkkuri", "clothing"],["moottoriöljy", "automotive"],["astiaharja", "cleaning_tools"],["dippikastike", "dip_sauce"],["tortilla", "tortilla"],["pähkinä", "nuts_seeds"],["rusina", "dried_fruit"],["hedelmäsäilyke", "canned_fruit"],["kvinoa", "grain_side"],["ranskanperuna", "frozen_potatoes"],["maapähkinävoi", "sweet_spread"],["kahvijuomajauhe", "drink_powder"],["huulikiilto", "makeup"],["glögi", "seasonal_drink"],["lintulauta", "pet_supplies"],["kärpäspaperi", "pest_control"],
+["lastenruoka","baby_food"],["vieroitusvalmiste","baby_food"],["kookosmaito","coconut_milk"],["proteiinipatukka","sports_nutrition"],["falafel","prepared_protein"],["kebab","prepared_protein"],
 ["kala", "fish"],["sulatejuusto", "processed_cheese"],["rasvaseos", "butter_blend"],["leivonta-aines", "baking_ingredients"],["kondensoitu maito", "condensed_milk"],["jälkiruokakastike", "dessert_sauce"],
 
 ["valmisateria", "ready_meal"],["valmissalaatti", "prepared_salad"],["panini", "ready_sandwich"],["ohukainen", "pancakes"],["olut", "beer"],["siideri", "cider"],["lonkero", "long_drink"],["energiajuoma", "energy_drink"],["kahvijuoma", "coffee_drink"],["virvoitusjuoma", "soft_drink"],["lähdevesi", "water"],["mehukeitto", "fruit_soup"],["smoothie", "smoothie"],
@@ -85,6 +87,9 @@ for (const [query,expected] of samples) {
 // Verify the real result ranker, not only intent detection.
 const makeProduct = (id, name, category) => ({id,name,category,price:2.5});
 const rankingCases = [
+  {query:"maito",products:[makeProduct(1601,"Xtra kookosmaito 400 ml","CAABGBCAGAAAA"),makeProduct(1602,"Valio kevytmaito 1 l","Maidot")],first:1602,excluded:[1601]},
+  {query:"cola",products:[makeProduct(1603,"Leader urheilujuomajauhe cola","kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet"),makeProduct(1604,"Coca Cola 0,33 l","Colajuomat")],first:1604,excluded:[1603]},
+  {query:"smoothie",products:[makeProduct(1605,"Coop Eko smoothie 6 kk","CAABGAOAIAAAI"),makeProduct(1606,"Mun smoothie 300 ml","Smoothiet")],first:1606,excluded:[1605]},
   {query:"ketsuppi", products:[makeProduct(1,"Ketsupin makuinen kastike","Kastikkeet"),makeProduct(2,"Felix Ketsuppi 500 g","Ketsupit")], first:2},
   {query:"kananmuna", products:[makeProduct(3,"Kananmunaton leivonnainen","Leivonta"),makeProduct(4,"Kotimainen kananmuna 10 kpl","Kananmunat")], first:4, excluded:[3]},
   {query:"sinappi", products:[makeProduct(5,"Sinappikastike 250 ml","Kastikkeet"),makeProduct(6,"Turun sinappi 250 g","Sinapit")], first:6, excluded:[5]},
