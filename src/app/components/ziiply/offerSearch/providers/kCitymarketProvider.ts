@@ -902,6 +902,16 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
           if(wantedSize && candidates.some(([name])=>packageSizes(name).includes(wantedSize))){
             candidates=candidates.filter(([name])=>packageSizes(name).includes(wantedSize));
           }
+          // Image enrichment must not guess between brands or pack sizes.
+          // A leaflet with an explicit package size needs an explicitly
+          // matching Tjek size; otherwise leave the existing photo untouched.
+          if(wantedSize) candidates=candidates.filter(([name])=>packageSizes(name).includes(wantedSize));
+          // Reject a fuzzy photo if the first distinctive leaflet word (often
+          // the brand) is absent from the source image title.
+          const firstDistinctive=[...wanted][0];
+          if(firstDistinctive && wanted.size>1){
+            candidates=candidates.filter(([name])=>tokens(name).has(firstDistinctive));
+          }
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
           else if(unique.length>1)ambiguous++;
