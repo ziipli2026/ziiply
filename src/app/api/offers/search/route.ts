@@ -64,7 +64,6 @@
 import { NextResponse } from "next/server";
 import { enrichOfferImage, type OfferImageCandidate } from "../../../../lib/offerImageEnrichment";
 import { lookupKnownEanImages, lookupKnownNameImages } from "../../../../lib/offerImageEanLookup";
-import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
@@ -491,9 +490,11 @@ function dedupe(items: UnknownRecord[]) {
     const publicationId = String((item.debug as UnknownRecord | undefined)?.publicationId ?? "").trim();
     const sourceOfferId = String(item.offerId ?? "").trim();
     const nationalLeafletId = String(item.source ?? "") === "K-Citymarket tarjouslehti" && String(item.id ?? "").startsWith("kcm:spatial:") ? String(item.id) : "";
-    const key = nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
+    const localPublicationKey = item.provider === "kcitymarket-local" && publicationId && sourceOfferId
+      ? ["kcm-local", item.storeId, publicationId, sourceOfferId].join("|") : "";
+    const key = localPublicationKey || (nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
       ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
-      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
+      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|"));
     // The provider has already deduplicated Tjek rows by their source identity.
     // Never collapse its regional and local leaflet rows in this cross-provider pass.
     if (String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId) {
@@ -874,11 +875,9 @@ export async function GET(request: Request) {
         if (selectedCitymarket) {
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
-          // The reviewed national leaflet is the Tarjoukset master. Local/store
-          // publications are Kampanjat, but an exact product+price copy must not
-          // appear in both tabs.
-          const nationalLeafletOffers = citymarketResults.filter(offer => offer.campaignType !== "campaign");
-          const uniqueLocalCampaigns = removeCampaignCopiesOfLeaflet(nationalLeafletOffers, matchingLocalOffers);
+          // Store publications are independent sources. Equal names, EANs or
+          // prices in the national leaflet must not suppress their offers.
+          const uniqueLocalCampaigns = matchingLocalOffers;
           citymarketLocalCount = uniqueLocalCampaigns.length;
           citymarketLocalStoreId = uniqueLocalCampaigns.length ? String(uniqueLocalCampaigns[0].storeId ?? "") || null : null;
           citymarketResults.push(...uniqueLocalCampaigns);
