@@ -46,7 +46,7 @@ type Feed = {
   offers?: FeedOffer[];
 };
 
-export const EUROSPAR_PROVIDER_VERSION = 9;
+export const EUROSPAR_PROVIDER_VERSION = 10;
 
 const norm = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("fi-FI");
 const normEurosparStore = (value: unknown) =>
@@ -160,5 +160,37 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
 }
 
 export async function fetchEurosparOffers(storeName: string, date: string): Promise<EurosparOffer[]> {
-  return adaptEurosparFeed(bundledFeed as Feed, storeName, date);
+  const offers = adaptEurosparFeed(bundledFeed as Feed, storeName, date);
+  if (!offers.length || !process.env.DATABASE_URL) return offers;
+  try {
+    const { neon } = await import("@neondatabase/serverless");
+    const sql = neon(process.env.DATABASE_URL);
+    // Image-only publication: never use stored prices, categories or EANs.
+    const publication = `${bundledFeed.issue}:image-bank:v1`;
+    const rows = await sql`
+      SELECT item->>'id' AS id, item->>'name' AS name,
+             item->'imageEvidence'->>'pdfSha256' AS pdf_sha,
+             item->'imageEvidence'->>'imageSha256' AS image_sha
+      FROM ziiply_offer_publications p, jsonb_array_elements(p.offers) item
+      WHERE p.chain = 'EUROSPAR' AND p.publication_id = ${publication}
+        AND p.approval_state = 'image-verified'
+        AND item->>'imageVerified' = 'true'
+        AND item->>'imageMime' = 'image/png'
+        AND length(item->>'imageData') > 0
+    `;
+    const images = new Map(rows.map((row) => [String(row.id), row]));
+    const originals = new Map(bundledFeed.offers.map((row) => [row.id, row]));
+    return offers.map((offer) => {
+      if (offer.imageUrl) return offer;
+      const image = images.get(offer.id);
+      const original = originals.get(offer.id);
+      if (!image || image.name !== offer.title ||
+          image.pdf_sha !== original?.sourceEvidence?.pdfSha256 ||
+          !/^[a-f0-9]{64}$/.test(String(image.image_sha))) return offer;
+      return { ...offer, imageUrl: `/api/eurospar-image?id=${encodeURIComponent(offer.id)}&v=${image.image_sha}` };
+    });
+  } catch (error) {
+    console.warn("[EUROSPAR] Optional Neon image enrichment unavailable", error);
+    return offers;
+  }
 }
