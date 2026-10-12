@@ -128,3 +128,16 @@ test('42AV page 17 tuna heading recovery is reflected in parsed product rows',as
  assert.ok(rows.some(r=>/TONNIKALAPALOJA AURINGONKUKKAÖLJYSSÄ ja VEDESSÄ/i.test(r.title)),
   'Tuna heading not recovered. Candidate rows: '+JSON.stringify(rows.map(r=>({page:r.page,title:r.title,heading:r.debugRecoveredPublisherHeading}))));
 });
+
+test('42AV supplement never inherits the adjacent Nachips percentage',async()=>{
+ const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{
+  const r=archive.responses[String(input)];
+  assert.ok(r,'Frozen publisher response required: '+input);
+  return {ok:true,status:200,url:r.url,text:async()=>r.body};
+ });
+ const vitamin=parsed.rows.find(r=>/PEHMOVITA MONIVITAMIINIT/.test(r.title));
+ assert.ok(vitamin,'Supplement row must remain available for review');
+ assert.notEqual(vitamin.percentageOffer?.percent,30,'Adjacent Nachips -30% is not owned by the supplement');
+ const nachips=parsed.rows.find(r=>/NACHIPS/.test(r.title));
+ assert.ok(nachips,'Adjacent Nachips row must survive');
+});
