@@ -302,7 +302,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                     checked ? "border-[#0b8c3d] opacity-80" : "border-[#c7aa67]"
                   }`}
                 >
-                  <div className="grid grid-cols-[52px_66px_minmax(0,1fr)_92px] items-center gap-3">
+                  <div className="grid grid-cols-[52px_minmax(0,1fr)_92px] items-center gap-3">
                     <button
                       ref={(node) => {
                         if (shoppingItemRefs?.current) shoppingItemRefs.current[key] = node;
@@ -318,14 +318,6 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                     >
                       {checked ? "✓" : index + 1}
                     </button>
-
-                    <div className="flex h-[66px] w-[66px] items-center justify-center overflow-hidden rounded-[18px] border-[2px] border-[#d6be84] bg-[#fffdf3] shadow-[0_0_0_2px_rgba(255,255,255,0.6)_inset]">
-                      {image ? (
-                        <img src={image} alt="" className="h-full w-full object-contain p-1" />
-                      ) : (
-                        <span className="text-3xl">🛒</span>
-                      )}
-                    </div>
 
                     <div className="min-w-0 pr-1">
                       <div
