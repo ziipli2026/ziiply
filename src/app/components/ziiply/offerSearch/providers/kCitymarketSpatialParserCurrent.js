@@ -797,7 +797,7 @@ if(!spatialResolved&&anchor&&pk){
 // Reconstruct a fragmented local percentage token such as "-19" + "%".
 if(!percentageOffer&&anchor){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,ps=[];
- for(const n of wordBoxes.filter(b=>/^-\d{1,2}$/.test(String(b.text||"").trim())&&(Number(b.left)||0)>=ax-.03&&Math.abs((Number(b.left)||0)-ax)<.25&&Math.abs((Number(b.top)||0)-ay)<.08)){const pct=Number(String(n.text).slice(1));if(wordBoxes.some(b=>String(b.text||"").trim()==="%"&&Math.abs((Number(b.top)||0)-(Number(n.top)||0))<.012&&Math.abs((Number(b.left)||0)-(Number(n.left)||0))<.08))ps.push(pct);}
+ for(const n of wordBoxes.filter(b=>/^-\d{1,2}$/.test(String(b.text||"").trim())&&(!/_42AV_KCM/i.test(l.url)||(Number(b.left)||0)>=ax-.03)&&Math.abs((Number(b.left)||0)-ax)<.25&&Math.abs((Number(b.top)||0)-ay)<.08)){const pct=Number(String(n.text).slice(1));if(wordBoxes.some(b=>String(b.text||"").trim()==="%"&&Math.abs((Number(b.top)||0)-(Number(n.top)||0))<.012&&Math.abs((Number(b.left)||0)-(Number(n.left)||0))<.08))ps.push(pct);}
  const uniq=[...new Set(ps)];if(uniq.length===1)percentageOffer={percent:uniq[0],source:"fragmented-local-percentage-proof",confidence:"high"};
 }
 
