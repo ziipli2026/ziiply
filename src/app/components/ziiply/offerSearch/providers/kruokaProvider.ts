@@ -519,7 +519,7 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   const offerDescription = sourceDescription.split(/ilman\s+plussa(?:-korttia)?/i)[0];
   // Accept both "4,29 €/kg" and "4,29 €/ kg", including explicit ranges.
   // Never derive a comparison-price range from package sizes: source figures win.
-  const comparison = offerDescription.match(/(?:^|\s)(\d+[,.]\d{1,2})(?:\s*[-–—]\s*(\d+[,.]\d{1,2}))?\s*(?:€\s*)?\/\s*(kg|l|kpl)(?=\s|[),.;]|$)/i);
+  const comparison = offerDescription.match(/(?:^|[\s(])(\d+[,.]\d{1,2})(?:\s*[-–—]\s*(\d+[,.]\d{1,2}))?\s*(?:€\s*)?\/\s*(kg|l|kpl)(?=\s|[),.;]|$)/i);
   const sourceMin = comparison ? num(comparison[1].replace(",", ".")) : null;
   const sourceMax = comparison?.[2] ? num(comparison[2].replace(",", ".")) : null;
   const rawUnit = String(offer.baseUnit ?? "").trim().toLowerCase();
