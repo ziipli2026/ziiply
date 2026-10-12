@@ -1,0 +1,6422 @@
+{
+  "version": "2026-10-12.27",
+  "projectId": "floral-recipe-40673204",
+  "branchId": "br-weathered-meadow-b1bwpzst",
+  "mappings": [
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/banaanit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/melonit",
+      "sample_product_count": 6,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/muut-hedelmat",
+      "sample_product_count": 10,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/paarynat",
+      "sample_product_count": 5,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitrukset",
+      "sample_product_count": 14,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/lantut",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "sample_product_count": 8,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/marjat-ja-sienet/sienet",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/sipulit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/valkosipulit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "sample_product_count": 8,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurkut",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurpitsat",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-k",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/paprikat",
+      "sample_product_count": 9,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAAAEAA",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAAAGAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAEAEAA",
+      "sample_product_count": 7,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAGAAAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAKAEAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAKAGAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAKAIAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAMAAAA",
+      "sample_product_count": 5,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAMACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAMAEAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAASAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAUAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAAAYAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAACAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAACAAACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAACAGACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAACAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAACAQAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEACAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAEAAAA",
+      "sample_product_count": 6,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIAEAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAIAGAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAMAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEBGAGAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAEBKAAAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAAAIACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/appelsiinit",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/banaanit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/mandariinit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/melonit",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/muut-hedelmat",
+      "sample_product_count": 7,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/omenat",
+      "sample_product_count": 4,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitrukset",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitruunat",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/lantut",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "sample_product_count": 5,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/punajuuret",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/muut-sipulit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/sipulit/valkosipulit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurkut",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurpitsat",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/sipulit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/tomaatit",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "k-weight-label",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/kurkut",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Kahvi",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Keksit",
+      "sample_product_count": 1,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+      "sample_product_count": 1,
+      "category_id": "meat"
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAAEAAAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAAOAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAAOACAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAAOAGACAGAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAASACAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "butter_blend"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAAWAAAAAAAA",
+      "sample_product_count": 5,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAGAEAAAC",
+      "sample_product_count": 2,
+      "category_id": "noodles"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAKAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAKACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAQAIACAE",
+      "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAAAAAA",
+      "sample_product_count": 10,
+      "category_id": "meal_kit"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAAACAA",
+      "sample_product_count": 1,
+      "category_id": "meal_kit"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAAACAC",
+      "sample_product_count": 6,
+      "category_id": "meal_kit"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYACAAAC",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYACAAAE",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYACACAC",
+      "sample_product_count": 3,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYACAEAC",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYACAEAE",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAEAEAA",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAEAEAE",
+      "sample_product_count": 3,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAEAEAG",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAEAEAI",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGAYAEAEAK",
+      "sample_product_count": 2,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAGAAAE",
+      "sample_product_count": 1,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAGACAE",
+      "sample_product_count": 2,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAGAEAA",
+      "sample_product_count": 2,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAGAEAE",
+      "sample_product_count": 2,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAGAGAA",
+      "sample_product_count": 2,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAGAGAE",
+      "sample_product_count": 2,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAKAKAC",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Keksit",
+      "sample_product_count": 29,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Leipä",
+      "sample_product_count": 1,
+      "category_id": "bread",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Makkarat",
+      "sample_product_count": 9,
+      "category_id": "sausage",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Suklaat",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "sample_product_count": 2,
+      "category_id": "energy_drink"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+      "sample_product_count": 3,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+      "sample_product_count": 33,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+      "sample_product_count": 14,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
+      "sample_product_count": 2,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat",
+      "sample_product_count": 6,
+      "category_id": "coffee_drink"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/lonkerot/muut-lonkerot",
+      "sample_product_count": 3,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/kerta-annosmehut",
+      "sample_product_count": 6,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/mehukeitot",
+      "sample_product_count": 2,
+      "category_id": "fruit_soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/mehut-lampimasta",
+      "sample_product_count": 3,
+      "category_id": "juice",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/mehut/smoothiet",
+      "sample_product_count": 1,
+      "category_id": "smoothie"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/oluet/ulkomaiset-oluet",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/virvoitusjuomat/cola-juomat",
+      "sample_product_count": 38,
+      "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkit-suklaat-ja-keksit/suklaa-ja-toffeepatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kodinhoito-ja-taloustarvikkeet/astianpesu/astiaharjat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vitamiinit",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kuivatuotteet-ja-leivonta/jalkiruoat/jalkiruokakastikkeet",
+      "sample_product_count": 1,
+      "category_id": "dessert_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kuivatuotteet-ja-leivonta/leivontatarvikkeet/perustuotteet-leivontaan",
+      "sample_product_count": 1,
+      "category_id": "baking_ingredients"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivat/tummat-leivat",
+      "sample_product_count": 4,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/pullat-ja-kakut",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "sample_product_count": 1,
+      "category_id": "chicken"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/muu-broileri-kana-ja-kalkkuna",
+      "sample_product_count": 1,
+      "category_id": "chicken"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/broileri--ja-kalkkunaleikkeleet",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/kinkut-ja-kokolihaleikkeleet",
+      "sample_product_count": 2,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/leikkelemakkarat",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/grillimakkarat",
+      "sample_product_count": 5,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/lenkkimakkarat",
+      "sample_product_count": 1,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/nakit",
+      "sample_product_count": 7,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+      "sample_product_count": 13,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/maustamattomat-jogurtit",
+      "sample_product_count": 3,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/suurpakkausjogurtit",
+      "sample_product_count": 13,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/terveysvaikutteiset-jogurtit",
+      "sample_product_count": 13,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/edamit",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/emmentalit",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/goudat",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/kermajuustot",
+      "sample_product_count": 3,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/viipaleet",
+      "sample_product_count": 16,
+      "category_id": "cheese",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "sample_product_count": 6,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/piimat",
+      "sample_product_count": 4,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "sample_product_count": 3,
+      "category_id": "cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermaviilit",
+      "sample_product_count": 1,
+      "category_id": "sour_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+      "sample_product_count": 2,
+      "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/smetanat",
+      "sample_product_count": 2,
+      "category_id": "smetana"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+      "sample_product_count": 6,
+      "category_id": "pudding"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "sample_product_count": 19,
+      "category_id": "butter_blend"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/rasvat-leivontaan-ja-ruoanlaittoon",
+      "sample_product_count": 1,
+      "category_id": "butter_blend"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "sample_product_count": 8,
+      "category_id": "butter"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/maustamattomat-raejuustot",
+      "sample_product_count": 6,
+      "category_id": "cottage_cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/muut-erikoisjuustot",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/viilit/maustamattomat-viilit",
+      "sample_product_count": 2,
+      "category_id": "fermented_milk"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-munat-ja-rasvat/maidot-ja-piimat/piimat",
+      "sample_product_count": 1,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "mausteet-ja-maustaminen/liemivalmiseet-ja-fondit/kasvisliemikuutiot",
+      "sample_product_count": 1,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "mausteet-ja-maustaminen/marinointi-ja--grillauskastikkeet/marinointi-ja--grillauskastikkeet",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/jaatelopaketit",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+      "sample_product_count": 1,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/jaatelot/mehujaat",
+      "sample_product_count": 1,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/leivonnais-ja-leipapakasteet/kakut-pullat-ja-leivokset",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/pakasteateriat/keitot",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/perunapakasteet/ranskanperunat",
+      "sample_product_count": 1,
+      "category_id": "frozen"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/kastikkeet-pestot-ja-suolaiset-levitteet/kastikeainekset",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/keitot-ja-keittoainekset/tetra--ja-pussikeitot",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/muut-valmissalaatit",
+      "sample_product_count": 2,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/puurot-ja-kiisselit/puurot-ja-vellit",
+      "sample_product_count": 3,
+      "category_id": "porridge"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "sample_product_count": 2,
+      "category_id": "pancakes"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/hampurilaiset-ja-hotdogit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "sample_product_count": 9,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+      "sample_product_count": 10,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
+      "sample_product_count": 4,
+      "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/salaattiateriat",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAEAEAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAKAEAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAKAGAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAKAIAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAAOAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAAASAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAEAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACACAIAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACAEACAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACAGACAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAACAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAKAIAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAYAAAA",
+      "sample_product_count": 16,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAYACAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBGAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBGAGAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBGAIAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBKAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEBOAAAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACACAA",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAGACAKAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAIACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAAAAAA",
+      "sample_product_count": 13,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAAACAA",
+      "sample_product_count": 3,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAGAGAA",
+      "sample_product_count": 7,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAOAA",
+      "sample_product_count": 1,
+      "category_id": "pancakes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAWAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "porridge"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAEACAA",
+      "sample_product_count": 1,
+      "category_id": "porridge"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAEAEAA",
+      "sample_product_count": 1,
+      "category_id": "porridge"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGAGAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAGASAA",
+      "sample_product_count": 2,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAIACAA",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAAAKAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAGAIAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAIAAAAAMAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAGAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAKAAAWAGAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGACAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMACAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMACAEAEAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMACAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMACAGACAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMACAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAEAAACAA",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAEAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAGAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAIACAAAA",
+      "sample_product_count": 1,
+      "category_id": "sour_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAIACACAA",
+      "sample_product_count": 1,
+      "category_id": "sour_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAIASAAAA",
+      "sample_product_count": 2,
+      "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAACAAAA",
+      "sample_product_count": 6,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAAEAEAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAAEAGAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAAGAAAA",
+      "sample_product_count": 3,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAAIAAAA",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAAAMAAAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOACAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOACACAAAA",
+      "sample_product_count": 3,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOACAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOACAIAAAA",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOACAKAAAA",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOACAMAAAA",
+      "sample_product_count": 3,
+      "category_id": "processed_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAEAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "cream_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAEAAACAA",
+      "sample_product_count": 8,
+      "category_id": "cream_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAGAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAGAGAAAA",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAGAIAAAA",
+      "sample_product_count": 2,
+      "category_id": "cottage_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIAAACAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIACAAAA",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIACAEAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIACAGAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIACAIAA",
+      "sample_product_count": 3,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIACAMAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAIAKAAAA",
+      "sample_product_count": 15,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAAAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAAAKACAA",
+      "sample_product_count": 3,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQACAAACAA",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQACACAAAA",
+      "sample_product_count": 3,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAEACACAA",
+      "sample_product_count": 1,
+      "category_id": "fermented_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAGAAACAA",
+      "sample_product_count": 3,
+      "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAIAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "pudding"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAIAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "pudding"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAASAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "margarine"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAASAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "margarine"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAACAAAA",
+      "sample_product_count": 5,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAAAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAUAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWACAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWACAMAGAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAEACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAGAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAGASAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAKAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAEAA",
+      "sample_product_count": 2,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAGAA",
+      "sample_product_count": 2,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAAAAAA",
+      "sample_product_count": 32,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAABAAAA",
+      "sample_product_count": 11,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAGAAAA",
+      "sample_product_count": 5,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAAAYAAAA",
+      "sample_product_count": 18,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAAAAA",
+      "sample_product_count": 4,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAACAA",
+      "sample_product_count": 18,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAAAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACACAA",
+      "sample_product_count": 1,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACACAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEAAAA",
+      "sample_product_count": 6,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEACAA",
+      "sample_product_count": 1,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAEAEAA",
+      "sample_product_count": 2,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYACAKAAAA",
+      "sample_product_count": 5,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEACAAAA",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAEAIAAAA",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKACAAAA",
+      "sample_product_count": 2,
+      "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKACACAA",
+      "sample_product_count": 5,
+      "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAKAAAA",
+      "sample_product_count": 2,
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "water"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAIAAAA",
+      "sample_product_count": 4,
+      "category_id": "water"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAOAAACAA",
+      "sample_product_count": 1,
+      "category_id": "energy_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAACAAAA",
+      "sample_product_count": 3,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAASAAAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACBEAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAGBUAAAA",
+      "sample_product_count": 3,
+      "category_id": "coffee_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAAAAAAAC",
+      "sample_product_count": 1,
+      "category_id": "oatmeal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGACAAACAA",
+      "sample_product_count": 1,
+      "category_id": "flour"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGACACAAAA",
+      "sample_product_count": 2,
+      "category_id": "flour"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGACBCACAA",
+      "sample_product_count": 2,
+      "category_id": "canned_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "breakfast_cereal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAAAAC",
+      "sample_product_count": 2,
+      "category_id": "breakfast_cereal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEAAACAC",
+      "sample_product_count": 1,
+      "category_id": "breakfast_cereal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEACAAAE",
+      "sample_product_count": 1,
+      "category_id": "muesli"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAEACACAG",
+      "sample_product_count": 1,
+      "category_id": "muesli"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAACAA",
+      "sample_product_count": 2,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAGAC",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAIAA",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAIAC",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGAAAIAM",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGACAGAA",
+      "sample_product_count": 2,
+      "category_id": "rice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAAACAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAAAEAA",
+      "sample_product_count": 2,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIABAAAA",
+      "sample_product_count": 2,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAEAKAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAIACAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIASACAA",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKACAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAMAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACACAA",
+      "sample_product_count": 2,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACACAC",
+      "sample_product_count": 2,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACAMAE",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQACAOAC",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAEAMAA",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAAAA",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAAAC",
+      "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAAAE",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIACAG",
+      "sample_product_count": 5,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAIAEAC",
+      "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAMAEAA",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAAAA",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAEAE",
+      "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAMAA",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAMAE",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAQAQAOAA",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGASAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "sugar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGASAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "sugar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGASAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "honey"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGASAGAAAC",
+      "sample_product_count": 1,
+      "category_id": "honey"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAUAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAUAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAWAAAAAE",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYAAACAE",
+      "sample_product_count": 1,
+      "category_id": "meal_kit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYACAAAA",
+      "sample_product_count": 2,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYAEACAA",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "mayonnaise"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "ketchup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAAAIAA",
+      "sample_product_count": 1,
+      "category_id": "mustard"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "vinegar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAACACAG",
+      "sample_product_count": 1,
+      "category_id": "vinegar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "stock"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAAAA",
+      "sample_product_count": 2,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAGAA",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAIAC",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAKAA",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAKAC",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAKAE",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAOAA",
+      "sample_product_count": 2,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAOAC",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAOAE",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKAOAI",
+      "sample_product_count": 2,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAKASAC",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAMAAAA",
+      "sample_product_count": 4,
+      "category_id": "cooking_oil"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAMAEAA",
+      "sample_product_count": 1,
+      "category_id": "cooking_oil"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAAAA",
+      "sample_product_count": 3,
+      "category_id": "baking_ingredients"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAAAI",
+      "sample_product_count": 1,
+      "category_id": "baking_ingredients"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAAAK",
+      "sample_product_count": 1,
+      "category_id": "condensed_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIAAAAAAAA",
+      "sample_product_count": 5,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIAAAAACAA",
+      "sample_product_count": 6,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIAAAEACAA",
+      "sample_product_count": 2,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIAAAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAAAACAA",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAAACAGAA",
+      "sample_product_count": 1,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQACAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACACAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAEAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAGAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAIAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAGACAKAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAAAAAA",
+      "sample_product_count": 5,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIACAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIACACAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAIAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAMAAAAAA",
+      "sample_product_count": 13,
+      "category_id": "frozen_fruit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAMACAAAA",
+      "sample_product_count": 5,
+      "category_id": "frozen_fruit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "shampoo"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "hair_styling"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACACAA",
+      "sample_product_count": 1,
+      "category_id": "hair_styling"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACAGAA",
+      "sample_product_count": 1,
+      "category_id": "shampoo"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAOACAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "toothpaste"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAGAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAMACAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAMAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "dishwashing"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_products"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAGAKAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_products"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABWAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "paper_towels"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABWACAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "toilet_paper"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAAACAAAA",
+      "sample_product_count": 16,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAAACACAA",
+      "sample_product_count": 2,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAACAA",
+      "sample_product_count": 3,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAACAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAEAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAGAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAKAA",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAEACACAA",
+      "sample_product_count": 3,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAK",
+      "sample_product_count": 5,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAIAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAMAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAASAE",
+      "sample_product_count": 3,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAWAI",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAWAK",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAYAG",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAABCAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGACACAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGACAEAA",
+      "sample_product_count": 2,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAIAAAEAA",
+      "sample_product_count": 13,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAIACACAA",
+      "sample_product_count": 4,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAIAGAEAOAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "alkoholi-ja-virvoitusjuomat/oluet/vaalea-lager-olut",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/mandariinit",
+      "sample_product_count": 2,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/hedelmat/sitrukset",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/vihannekset/tomaatit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "sample_product_count": 2,
+      "category_id": "energy_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+      "sample_product_count": 22,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+      "sample_product_count": 6,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-espresso",
+      "sample_product_count": 2,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+      "sample_product_count": 6,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat",
+      "sample_product_count": 2,
+      "category_id": "coffee_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/greippilonkerot",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/karpalolonkerot",
+      "sample_product_count": 2,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/lonkerot/muut-lonkerot",
+      "sample_product_count": 3,
+      "category_id": "long_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/kerta-annosmehut",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/mehukeitot",
+      "sample_product_count": 10,
+      "category_id": "fruit_soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/alkoholittomat-oluet",
+      "sample_product_count": 42,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-oluet",
+      "sample_product_count": 27,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-oluet-max-28",
+      "sample_product_count": 4,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/kotimaiset-pienpanimo--ja-erikoisoluet",
+      "sample_product_count": 49,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/oluiden-monipakkaukset",
+      "sample_product_count": 14,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/ulkomaiset-erikoisoluet",
+      "sample_product_count": 22,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/oluet/ulkomaiset-oluet",
+      "sample_product_count": 34,
+      "category_id": "beer"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/alkoholittomat-siiderit",
+      "sample_product_count": 8,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/muut-siiderit",
+      "sample_product_count": 12,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/siiderit/omenasiiderit",
+      "sample_product_count": 1,
+      "category_id": "cider"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/virvoitusjuomat/cola-juomat",
+      "sample_product_count": 12,
+      "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juustot-tofut-ja-kasvipohjaiset/pala-ja-viipalejuustot/gouda-juustot",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/muut-kalatuotteet/mati",
+      "sample_product_count": 2,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/savu--ja-graavikala/muut-savu--ja-graavikalat",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/suklaalevyt-ja-patukat/muut-suklaalevyt",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/karkkipussit/hedelma-ja-makeissekoituspussit",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/sesonkisuklaat",
+      "sample_product_count": 2,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaamunat-ja-kuviot",
+      "sample_product_count": 4,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/suklaa-ja-toffeepatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/suklaalevyt/maitosuklaalevyt",
+      "sample_product_count": 9,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/astiat-ja-aterimet/mukit-ja-kupit",
+      "sample_product_count": 2,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/muut-sailontatarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/sailytysrasiat-ja-purkit",
+      "sample_product_count": 3,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/vesipullot",
+      "sample_product_count": 4,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoanlaittovalineet/kauhat-lastat-ja-ottimet",
+      "sample_product_count": 4,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "keittio-ja-kattaus/ruoanlaittovalineet/leivontavalineet",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kodinhoito-ja-taloustarvikkeet/kodin-paperit/wc-paperit",
+      "sample_product_count": 1,
+      "category_id": "toilet_paper"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-ja-hygienia/kasvojenhoito/huulivoiteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-ja-hygienia/miesten-kosmetiikka/parranajo",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat",
+      "sample_product_count": 3,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/kasvojenhoito/kasvovedet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kuivatuotteet-ja-leivonta/sokerit-makeutusaineet-ja-hunaja/hunajat",
+      "sample_product_count": 1,
+      "category_id": "honey"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kuivatuotteet-ja-leivonta/sokerit-makeutusaineet-ja-hunaja/sokerit",
+      "sample_product_count": 1,
+      "category_id": "sugar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-keksit",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/suola--ja-valipalakeksit",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "sample_product_count": 3,
+      "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/leivokset-ja-wienerit",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/kissanruoat/kissan-makupalat",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-makkarat",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-makupalat",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+      "sample_product_count": 2,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "lemmikit/koirat/koiran-raakaruoka",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "sample_product_count": 2,
+      "category_id": "chicken"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/muu-broileri-kana-ja-kalkkuna",
+      "sample_product_count": 2,
+      "category_id": "chicken"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/muut-jauhelihat",
+      "sample_product_count": 7,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+      "sample_product_count": 9,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/porsaan-jauheliha",
+      "sample_product_count": 2,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+      "sample_product_count": 2,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/siipikarjan-jauheliha",
+      "sample_product_count": 3,
+      "category_id": "poultry_ground"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/broileri--ja-kalkkunaleikkeleet",
+      "sample_product_count": 2,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/kinkut-ja-kokolihaleikkeleet",
+      "sample_product_count": 2,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/leikkelemakkarat",
+      "sample_product_count": 5,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/meetvurstit-ja-salamit",
+      "sample_product_count": 1,
+      "category_id": "cold_cuts"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/grillimakkarat",
+      "sample_product_count": 13,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/lenkkimakkarat",
+      "sample_product_count": 1,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/nakit",
+      "sample_product_count": 15,
+      "category_id": "sausage"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
+      "sample_product_count": 6,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/maustamattomat-jogurtit",
+      "sample_product_count": 4,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/suurpakkausjogurtit",
+      "sample_product_count": 6,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/edamit",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/emmentalit",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/goudat",
+      "sample_product_count": 5,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/kermajuustot",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
+      "sample_product_count": 7,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "sample_product_count": 20,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/piimat",
+      "sample_product_count": 6,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "sample_product_count": 11,
+      "category_id": "cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermaviilit",
+      "sample_product_count": 7,
+      "category_id": "sour_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+      "sample_product_count": 4,
+      "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "sample_product_count": 6,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+      "sample_product_count": 6,
+      "category_id": "pudding"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "sample_product_count": 2,
+      "category_id": "butter_blend"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/cheddar",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/homejuustot",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+      "sample_product_count": 7,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/maustamattomat-raejuustot",
+      "sample_product_count": 2,
+      "category_id": "cottage_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/muut-erikoisjuustot",
+      "sample_product_count": 6,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-munat-ja-rasvat/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot",
+      "sample_product_count": 2,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-munat-ja-rasvat/rahkat-vanukkaat-ja-jalkiruoka/maustamattomat-rahkat",
+      "sample_product_count": 1,
+      "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/muut-makeiset/muut-makeiset",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "sample_product_count": 1,
+      "category_id": "candy"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/juusto--ja-muotosnacksit",
+      "sample_product_count": 5,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/muut-snacksit",
+      "sample_product_count": 2,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "sample_product_count": 3,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/snacks-pahkinat",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/konvehdit",
+      "sample_product_count": 5,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "sample_product_count": 9,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+      "sample_product_count": 3,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "sample_product_count": 3,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "oljyt-maustaminen-ja-kastikkeet/etikat-ja-balsamicot/viinietikat",
+      "sample_product_count": 1,
+      "category_id": "vinegar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "oljyt-maustaminen-ja-kastikkeet/mausteet/mausteseokset",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/hedelma-ja-marjapakasteet/marjapakasteet",
+      "sample_product_count": 2,
+      "category_id": "frozen_fruit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/erikoisruokavaliojaatelot",
+      "sample_product_count": 13,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelopaketit",
+      "sample_product_count": 54,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+      "sample_product_count": 13,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/jaatelotuutit-ja--pikarit",
+      "sample_product_count": 5,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/jaatelot/mehujaat",
+      "sample_product_count": 2,
+      "category_id": "ice_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/kasvispakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/leipa--ja-leivonnaispakasteet/leivos--ja-kakkupakasteet",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha--kala--ja-kasvispakasteet/kalapuikot-ja-paneroidut-kalat",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha-ja-kalapakasteet/kala-ja-ayriaiset",
+      "sample_product_count": 1,
+      "category_id": "frozen_fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakasteateriat/keitot",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakasteateriat/pannu--ja-uunivalmiit-ateriat",
+      "sample_product_count": 5,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pakastepizzat/pakastepizzat",
+      "sample_product_count": 3,
+      "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/perunapakasteet/ranskanperunat",
+      "sample_product_count": 9,
+      "category_id": "frozen"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pizzat-ja-pizzapohjat/pizzapohjat-ja-muut-pizzapakasteet",
+      "sample_product_count": 1,
+      "category_id": "frozen_dough"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/pizzat-ja-pizzapohjat/pizzat",
+      "sample_product_count": 1,
+      "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/taikinapakasteet/piirakkataikinat",
+      "sample_product_count": 1,
+      "category_id": "frozen_dough"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset",
+      "sample_product_count": 2,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/wokit-ja-muut",
+      "sample_product_count": 4,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "sample_product_count": 1,
+      "category_id": "frozen_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pastat-riisit-ja-nuudelit/pastat/fusillit-pennet-ja-muut-kuviopastat",
+      "sample_product_count": 1,
+      "category_id": "pasta"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/kastikkeet-pestot-ja-suolaiset-levitteet/valmiskastikkeet-ja-kastikepohjat",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/keitot-ja-keittoainekset/keittoainekset",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/keitot-ja-keittoainekset/tetra--ja-pussikeitot",
+      "sample_product_count": 2,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/kuivaruoka-ateriat-ja--ainekset/pata-ainekset",
+      "sample_product_count": 1,
+      "category_id": "meal_kit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "texmex-ja-maailman-makuja/maissilastut-ja-nachot/maustetut-lastut",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "texmex-ja-maailman-maut/texmex/texmex-mausteet",
+      "sample_product_count": 2,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "urheiluravinteet-terveys-ja-itsehoito/ruoansulatusvalmisteet/maitohappobakteerit-pro-ja-prebiootit",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/ateriaratkaisut/pastakastikkeet",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/kiusaukset",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/laatikot-ja-kiusaukset",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/lisakesalaatit-ja-tuorepasta/muut-valmissalaatit",
+      "sample_product_count": 3,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/puurot-ja-kiisselit/puurot-ja-vellit",
+      "sample_product_count": 1,
+      "category_id": "porridge"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "sample_product_count": 6,
+      "category_id": "pancakes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-ja-keitot/leivat-paninit-ja-wrapit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/mikroateriat",
+      "sample_product_count": 2,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/mikrokeitot",
+      "sample_product_count": 1,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/pizzat",
+      "sample_product_count": 1,
+      "category_id": "pizza"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/hampurilaiset-ja-hotdogit",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+      "sample_product_count": 3,
+      "category_id": "ready_sandwich"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "sample_product_count": 10,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+      "sample_product_count": 7,
+      "category_id": "soup"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
+      "sample_product_count": 2,
+      "category_id": "pizza"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "CAAAUAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "egg"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "CAAAYAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "beer"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "CAAAYAKACACAA",
+      "sample_product_count": 1,
+      "category_id": "cola"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "sample_product_count": 1,
+      "category_id": "chicken"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+      "sample_product_count": 1,
+      "category_id": "yogurt"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "sample_product_count": 1,
+      "category_id": "milk"
+    },
+    {
+      "source": "s-kaupat-ean",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/smetanat",
+      "sample_product_count": 1,
+      "category_id": "smetana"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoiskissanruoka junior",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoiskissanruoka senior",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoisruoka jyrsijälle",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hiustenhoitoaineet vaurioituneille hiuksille",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hiustenhoitonaamiot ja teho/syvähoidot",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;kasvojen puhdistusemulsiot ja -maidot ja -voiteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;meikinpoistoaineet ja -laput",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;suihkusaippuat",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahviautomaatit",
+      "sample_product_count": 2,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahviautomaatit;;äitienpäivä;;uuteen kotiin",
+      "sample_product_count": 1,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvimyllyt",
+      "sample_product_count": 1,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet",
+      "sample_product_count": 4,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet;;uuteen kotiin",
+      "sample_product_count": 3,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvipannut;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kasvojen puhdistusemulsiot ja -maidot ja -voiteet",
+      "sample_product_count": 2,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kasvojen puhdistusemulsiot ja -maidot ja -voiteet;;lumene ihonhoito;;lumene puhdistustuotteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kertakäyttö kahvi- ja pikkulusikat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kertakäyttöiset kuumajuomakupit ja -mukit",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan erikoisruokavalio ja ravintolisät",
+      "sample_product_count": 2,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan herkut",
+      "sample_product_count": 2,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan kuivaruoka",
+      "sample_product_count": 3,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan makupalat",
+      "sample_product_count": 5,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan märkäruoka",
+      "sample_product_count": 4,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissanruoka",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "koti- ja kauppaleikit",
+      "sample_product_count": 1,
+      "category_id": "toys"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maitopohjaiset proteiinijauheet",
+      "sample_product_count": 3,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maitopohjaiset proteiinijauheet;;hyggeily",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "majoneesit",
+      "sample_product_count": 1,
+      "category_id": "mayonnaise",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny ale;;miny lasit ja mukit",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny kasvonaamiot",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny saippuat ja suihkugeelit",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "mitta-astiat ja mittasarjat;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "monivitamiinit",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "raastinraudat;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokailuvälineet;;kotikulta astiat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "shampoo vaurioituneille hiuksille",
+      "sample_product_count": 1,
+      "category_id": "shampoo"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "superfood-jauheet ja jauhot",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "termoskaatimet;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "vatsavalmisteet",
+      "sample_product_count": 3,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "vauvanuket ja tarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "toys"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "wc-paperit",
+      "sample_product_count": 7,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Hillot",
+      "sample_product_count": 1,
+      "category_id": "jam",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Kahvi",
+      "sample_product_count": 2,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Keksit",
+      "sample_product_count": 6,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Ruokaöljyt",
+      "sample_product_count": 1,
+      "category_id": "cooking_oil",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Sinapit",
+      "sample_product_count": 2,
+      "category_id": "mustard",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Sokerit",
+      "sample_product_count": 1,
+      "category_id": "sugar",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Suolat",
+      "sample_product_count": 1,
+      "category_id": "salt",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+      "sample_product_count": 1,
+      "category_id": "coffee"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maitopohjaiset proteiinijauheet",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maitopohjaiset proteiinijauheet;;sportlife jauheet",
+      "sample_product_count": 11,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maitopohjaiset proteiinijauheet;;terveys ja hyvinvointi",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "wc-paperit",
+      "sample_product_count": 3,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+      "sample_product_count": 2,
+      "category_id": "sports_nutrition"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAOAAACAC",
+      "sample_product_count": 1,
+      "category_id": "baby_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAOAEACAC",
+      "sample_product_count": 1,
+      "category_id": "baby_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAOAIAAAG",
+      "sample_product_count": 1,
+      "category_id": "baby_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAOAIAAAI",
+      "sample_product_count": 6,
+      "category_id": "baby_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hillot-ja-sailykkeet/maitosailykkeet/kookosmaidot",
+      "sample_product_count": 1,
+      "category_id": "coconut_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+      "sample_product_count": 3,
+      "category_id": "sports_nutrition"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kookosmaidot",
+      "sample_product_count": 1,
+      "category_id": "coconut_milk"
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "kookosmaidot",
+      "sample_product_count": 2,
+      "category_id": "coconut_milk"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+      "sample_product_count": 1,
+      "category_id": "sports_nutrition"
+    },
+    {
+      "source": "hevi-mass-harvest-s",
+      "source_category": "CAAAGACAAAMAA",
+      "sample_product_count": 1,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAAAOAGAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "CAABGBAAIAGAA",
+      "sample_product_count": 2,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAAAEAKAKAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAACACACAEAA",
+      "sample_product_count": 1,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAACACAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAACACAEACAA",
+      "sample_product_count": 1,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAEAAAEAA",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAGACAGAA",
+      "sample_product_count": 3,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAEAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAKAEAGAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAKAEAKAA",
+      "sample_product_count": 1,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYAIACAC",
+      "sample_product_count": 1,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYAIAGAA",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAIAGAA",
+      "sample_product_count": 1,
+      "category_id": "seasoning"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAEAAAC",
+      "sample_product_count": 1,
+      "category_id": "tomato_crush"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAEACAC",
+      "sample_product_count": 1,
+      "category_id": "canned_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAEAEAA",
+      "sample_product_count": 1,
+      "category_id": "canned_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAEAIAA",
+      "sample_product_count": 1,
+      "category_id": "canned_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAEAYAA",
+      "sample_product_count": 1,
+      "category_id": "canned_vegetables"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "coconut_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQAKAA",
+      "sample_product_count": 1,
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQAMAA",
+      "sample_product_count": 1,
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIACAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "tea"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIACAAAIAA",
+      "sample_product_count": 2,
+      "category_id": "tea"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIACACAGAA",
+      "sample_product_count": 1,
+      "category_id": "tea"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABKAAAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABKAAAEACAA",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABKAAAGAAAA",
+      "sample_product_count": 2,
+      "category_id": "supplements"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABOAAACACAA",
+      "sample_product_count": 2,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQACACACAA",
+      "sample_product_count": 2,
+      "category_id": "ready_meal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQACAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAEAAAGAA",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYACACAEAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYACAEACAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYACAEAGAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAABAAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAABEAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAABGAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+      "sample_product_count": 3,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAEAAACAGAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAKAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha--kala--ja-kasvispakasteet/kasvispihvit--pyorykat-ja--nakit",
+      "sample_product_count": 2,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha--kala--ja-kasvispakasteet/kypsat-lihat-ja-broilerit",
+      "sample_product_count": 1,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/liha--kala--ja-kasvispakasteet/pihvit-ja-pyorykat",
+      "sample_product_count": 1,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pihvit",
+      "sample_product_count": 1,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+      "sample_product_count": 4,
+      "category_id": "prepared_protein"
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Levitteet ja tahnat",
+      "sample_product_count": 1,
+      "category_id": "sweet_spread",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Mausteet",
+      "sample_product_count": 1,
+      "category_id": "seasoning",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Purukumi",
+      "sample_product_count": 3,
+      "category_id": "chewing_gum",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Puutarha ja torjunta",
+      "sample_product_count": 2,
+      "category_id": "pest_control",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "papukahvit",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "purukumit",
+      "sample_product_count": 1,
+      "category_id": "chewing_gum",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "sokeroimattomat mehutiivisteet",
+      "sample_product_count": 2,
+      "category_id": "juice",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "suklaakonvehdit",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "suklaalevyt",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "suklaapatukat",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "vatsavalmisteet",
+      "sample_product_count": 2,
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "vatsavalmisteet;;puhdas+ ravintolisät",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "äidinmaidon vieroitusvalmisteet 6-12kk",
+      "sample_product_count": 1,
+      "category_id": "baby_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "äidinmaidonkorvikkeet 0-6kk",
+      "sample_product_count": 1,
+      "category_id": "baby_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGACASAA",
+      "sample_product_count": 1,
+      "category_id": "grain_side"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAGACASAE",
+      "sample_product_count": 2,
+      "category_id": "grain_side"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAWAAAAAC",
+      "sample_product_count": 2,
+      "category_id": "nuts_seeds"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAWAEAEAA",
+      "sample_product_count": 3,
+      "category_id": "dried_fruit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYAIAEAA",
+      "sample_product_count": 1,
+      "category_id": "dip_sauce"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYAIAEAC",
+      "sample_product_count": 2,
+      "category_id": "dip_sauce"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAYAIAEAE",
+      "sample_product_count": 1,
+      "category_id": "dip_sauce"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAAAGAC",
+      "sample_product_count": 1,
+      "category_id": "canned_fruit"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCASAOAC",
+      "sample_product_count": 2,
+      "category_id": "sweet_spread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIAAAGAGAA",
+      "sample_product_count": 1,
+      "category_id": "drink_powder"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABIAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "drink_powder"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAKAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_potatoes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAKAAACAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_potatoes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAKACACAA",
+      "sample_product_count": 1,
+      "category_id": "frozen_potatoes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQAKAEACAA",
+      "sample_product_count": 2,
+      "category_id": "frozen_potatoes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "vatsavalmisteet",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "vatsavalmisteet;;puhdas+ ravintolisät",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "askartelukoristeet",
+      "sample_product_count": 1,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "askartelukoristeet;;halloween askartelu;;kesäjuhlat",
+      "sample_product_count": 1,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "askartelukoristeet;;kesäjuhlat",
+      "sample_product_count": 1,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "askartelupaperi ja -huovat",
+      "sample_product_count": 1,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "glögit",
+      "sample_product_count": 1,
+      "category_id": "seasonal_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hankaussienet ja teräsvillat",
+      "sample_product_count": 1,
+      "category_id": "cleaning_tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hyllylevyt puu",
+      "sample_product_count": 9,
+      "category_id": "building_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "jakoavaimet ja -avainsarjat",
+      "sample_product_count": 1,
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "jouluaskartelu",
+      "sample_product_count": 1,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "jyrsimet",
+      "sample_product_count": 1,
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvijuomat",
+      "sample_product_count": 5,
+      "category_id": "drink_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvikapselit",
+      "sample_product_count": 3,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kiinnitystarvikkeet",
+      "sample_product_count": 2,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kortit ja paketointi",
+      "sample_product_count": 2,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ksylitolipurukumit",
+      "sample_product_count": 2,
+      "category_id": "chewing_gum",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kuntoiluvälineet",
+      "sample_product_count": 11,
+      "category_id": "sports_equipment",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kärpäslätkät ja paperit",
+      "sample_product_count": 1,
+      "category_id": "pest_control",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "lasten juhlat",
+      "sample_product_count": 2,
+      "category_id": "tableware",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "leivinpaperirullat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maalauspohjat ja paperit",
+      "sample_product_count": 2,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "makeat keksit",
+      "sample_product_count": 2,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maustepurkit",
+      "sample_product_count": 1,
+      "category_id": "seasoning",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maustepussit",
+      "sample_product_count": 5,
+      "category_id": "seasoning",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "pesuharjat ja -hankaimet",
+      "sample_product_count": 1,
+      "category_id": "cleaning_tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "pillimehut",
+      "sample_product_count": 1,
+      "category_id": "juice",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruoanvalmistus- ja säilöntäpaperit",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "sisustusmaalit",
+      "sample_product_count": 1,
+      "category_id": "building_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "skrapat",
+      "sample_product_count": 1,
+      "category_id": "automotive",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "sokeroimattomat mehutiivisteet",
+      "sample_product_count": 2,
+      "category_id": "juice",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "suklaakonvehdit",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "suodatinkahvit",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "vesurit",
+      "sample_product_count": 1,
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "äidinmaidon vieroitusvalmisteet 6-12kk",
+      "sample_product_count": 1,
+      "category_id": "baby_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "äidinmaidonkorvikkeet 0-6kk",
+      "sample_product_count": 3,
+      "category_id": "baby_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Dipit",
+      "sample_product_count": 1,
+      "category_id": "dip_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Maissisäilykkeet",
+      "sample_product_count": 1,
+      "category_id": "canned_vegetables",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Oliivit",
+      "sample_product_count": 3,
+      "category_id": "canned_vegetables",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Papusäilykkeet",
+      "sample_product_count": 3,
+      "category_id": "canned_vegetables",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Pestot",
+      "sample_product_count": 2,
+      "category_id": "cooking_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Popcorn",
+      "sample_product_count": 2,
+      "category_id": "snacks",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Salsat",
+      "sample_product_count": 2,
+      "category_id": "dip_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Sipsit, snacksit ja pähkinät",
+      "sample_product_count": 2,
+      "category_id": "snacks",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Säilykkeet",
+      "sample_product_count": 4,
+      "category_id": "canned_vegetables",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Texmex-kastikkeet",
+      "sample_product_count": 3,
+      "category_id": "dip_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Texmex-lastut ja nachot",
+      "sample_product_count": 2,
+      "category_id": "snacks",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Texmex-lisukkeet",
+      "sample_product_count": 1,
+      "category_id": "canned_vegetables",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Texmex-mausteet",
+      "sample_product_count": 2,
+      "category_id": "seasoning",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Tortillat",
+      "sample_product_count": 2,
+      "category_id": "tortilla",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Valmiit ateriakastikkeet",
+      "sample_product_count": 2,
+      "category_id": "cooking_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "kahvikapselit",
+      "sample_product_count": 2,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "maustepurkit",
+      "sample_product_count": 1,
+      "category_id": "seasoning",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "spagetit ja tagliatellet",
+      "sample_product_count": 1,
+      "category_id": "pasta",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "suklaalevyt",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "suklaalevyt;;ystävänpäivä",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Autoilu",
+      "sample_product_count": 2,
+      "category_id": "automotive",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Kengät ja pukeutuminen",
+      "sample_product_count": 8,
+      "category_id": "clothing",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Koti ja pukeutuminen",
+      "sample_product_count": 10,
+      "category_id": "clothing",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Käsityöt",
+      "sample_product_count": 4,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Työkalut ja koneet",
+      "sample_product_count": 25,
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Valaistus",
+      "sample_product_count": 29,
+      "category_id": "lighting",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "kuntoiluvälineet;;kuntoilu",
+      "sample_product_count": 7,
+      "category_id": "sports_equipment",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "vatsavalmisteet",
+      "sample_product_count": 2,
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "vatsavalmisteet;;puhdas+ ravintolisät",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Aamiaistuotteet",
+      "sample_product_count": 1,
+      "category_id": "breakfast_cereal",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Jälkiruoat",
+      "sample_product_count": 1,
+      "category_id": "dessert",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Salaatit",
+      "sample_product_count": 1,
+      "category_id": "prepared_salad",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Hillot ja levitteet",
+      "sample_product_count": 4,
+      "category_id": "sweet_spread",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Hillot ja marmeladit",
+      "sample_product_count": 14,
+      "category_id": "jam",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Jälkiruoat",
+      "sample_product_count": 1,
+      "category_id": "pudding",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Jäätelöt",
+      "sample_product_count": 1,
+      "category_id": "ice_cream",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Liha & makkarat",
+      "sample_product_count": 2,
+      "category_id": "stock",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Muut",
+      "sample_product_count": 1,
+      "category_id": "sports_nutrition",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Säilykkeet ja hedelmät",
+      "sample_product_count": 2,
+      "category_id": "canned_fruit",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Vapaa-aika ja lelut",
+      "sample_product_count": 7,
+      "category_id": "toys",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/pikakahvit",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kahvit-teet-ja-mehut/valmiit-kahvi-ja-kaakaojuomat",
+      "sample_product_count": 1,
+      "category_id": "coffee_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkkipastillit",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+      "sample_product_count": 1,
+      "category_id": "condensed_milk",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kurkkupastillit",
+      "sample_product_count": 2,
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "lasten juomat",
+      "sample_product_count": 1,
+      "category_id": "baby_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "leivontamausteet ja -ainekset",
+      "sample_product_count": 2,
+      "category_id": "condensed_milk",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/porsas/suikaleet-ja-kuutiot",
+      "sample_product_count": 1,
+      "category_id": "meat",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liikelahjat;;papukahvit",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maito--kerma--ja-kasvirasvajauheet/maito--ja-kasvirasvajauheet",
+      "sample_product_count": 2,
+      "category_id": "milk_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/muut-ruokajuustot-ja-mifu",
+      "sample_product_count": 2,
+      "category_id": "cheese",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-munat-ja-rasvat/rahkat-vanukkaat-ja-jalkiruoka/maustetut-rahkat",
+      "sample_product_count": 3,
+      "category_id": "skyr",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+      "sample_product_count": 6,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/peruna--ja-kasvilisakkeet",
+      "sample_product_count": 4,
+      "category_id": "prepared_sides",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "wc- ja talouspaperit;;wc-paperit",
+      "sample_product_count": 1,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "wc- ja talouspaperit;;wc-paperit;;halloween askartelu",
+      "sample_product_count": 1,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Öljyt",
+      "sample_product_count": 1,
+      "category_id": "cooking_oil",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAQAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_sides"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAASAA",
+      "sample_product_count": 1,
+      "category_id": "hummus"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAAAQAA",
+      "sample_product_count": 1,
+      "category_id": "prepared_sides"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAKACAA",
+      "sample_product_count": 1,
+      "category_id": "flavored_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAGACAAAA",
+      "sample_product_count": 5,
+      "category_id": "skyr"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAIAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "dessert"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAIAA",
+      "sample_product_count": 3,
+      "category_id": "savory_pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAGAAAAAA",
+      "sample_product_count": 6,
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAGAAACAA",
+      "sample_product_count": 4,
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAGAIAAAA",
+      "sample_product_count": 1,
+      "category_id": "mocktail"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAIAAAAAA",
+      "sample_product_count": 3,
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAIACAAAA",
+      "sample_product_count": 1,
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAIAQAAAA",
+      "sample_product_count": 5,
+      "category_id": "mocktail"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAGAAAA",
+      "sample_product_count": 4,
+      "category_id": "kombucha"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMACACAA",
+      "sample_product_count": 2,
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAGACAA",
+      "sample_product_count": 11,
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAOAGAAAA",
+      "sample_product_count": 1,
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAKAAAA",
+      "sample_product_count": 3,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAABKAAAA",
+      "sample_product_count": 2,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACAKAAAA",
+      "sample_product_count": 3,
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAEAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "mocktail"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAGAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "flavored_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAIAAACAA",
+      "sample_product_count": 1,
+      "category_id": "dessert"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGACBEAAAA",
+      "sample_product_count": 1,
+      "category_id": "oatmeal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAMAAAA",
+      "sample_product_count": 1,
+      "category_id": "snack_bar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAMACAA",
+      "sample_product_count": 1,
+      "category_id": "rice_cakes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAWAKAAAI",
+      "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAGAK",
+      "sample_product_count": 1,
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQACAA",
+      "sample_product_count": 1,
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQAEAA",
+      "sample_product_count": 1,
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCASAMAA",
+      "sample_product_count": 3,
+      "category_id": "fruit_puree"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABKAGAGAIAA",
+      "sample_product_count": 2,
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABOAAAAACAA",
+      "sample_product_count": 5,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQACACAGAA",
+      "sample_product_count": 2,
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAEACAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUACACAAAA",
+      "sample_product_count": 1,
+      "category_id": "fabric_softener"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABWAGAAAAAA",
+      "sample_product_count": 4,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEAAAA",
+      "sample_product_count": 2,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEACAA",
+      "sample_product_count": 2,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEAEAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEAGAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAGACAA",
+      "sample_product_count": 2,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAIAAAA",
+      "sample_product_count": 2,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAKACAE",
+      "sample_product_count": 2,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAQAAAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAASAAAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAGAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "candles"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACBGAAAEAEAE",
+      "sample_product_count": 2,
+      "category_id": "garden_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "Maitotuotteet",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "alkoholi-ja-virvoitusjuomat/glogit-simat-ja-muut-kausijuomat",
+      "sample_product_count": 1,
+      "category_id": "seasonal_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/helpot-ja-nopeat-kasvisratkaisut/leikatut-ja-pilkotut-salaatit",
+      "sample_product_count": 1,
+      "category_id": "fruit_veg",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hillot-ja-sailykkeet/hedelma-ja-marjasailykkeet/muut-hedelmasailykkeet",
+      "sample_product_count": 1,
+      "category_id": "canned_fruit",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kaakaot/kaakaojauheet",
+      "sample_product_count": 1,
+      "category_id": "drink_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kausijuomat/glogit",
+      "sample_product_count": 1,
+      "category_id": "seasonal_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/mehutiivisteet",
+      "sample_product_count": 2,
+      "category_id": "juice",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "sample_product_count": 1,
+      "category_id": "cola",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kahvit-teet-ja-mehut/teet/teejuomajauheet-ja-uutteet",
+      "sample_product_count": 1,
+      "category_id": "drink_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/karkkipussit/suklaa-ja-toffeepussit",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/karkkipussit/suklaapussit",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/sesonki-ja-lahjamakeiset/sesonkikarkit",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/karkkipussit/suklaa-ja-toffeepussit",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/makeisjoulukalenterit",
+      "sample_product_count": 2,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaakonvehdit-ja-kaareelliset-makeiset",
+      "sample_product_count": 4,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "konvehtiboxit;;uutuudet",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "sample_product_count": 1,
+      "category_id": "ready_sandwich",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/paistopisteen-tuotteet/paistopisteen-tuotteet",
+      "sample_product_count": 1,
+      "category_id": "savory_pastry",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "sample_product_count": 4,
+      "category_id": "rice_cakes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/kinkkusuikaleet-ja--palat",
+      "sample_product_count": 1,
+      "category_id": "cold_cuts",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/pekonit",
+      "sample_product_count": 2,
+      "category_id": "bacon",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/nauta/sisaelimet-ja-muu-naudanliha",
+      "sample_product_count": 1,
+      "category_id": "meat",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/porsas/suikaleet-ja-kuutiot",
+      "sample_product_count": 1,
+      "category_id": "meat",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/munat/muut-munat-ja-munavalmisteet",
+      "sample_product_count": 2,
+      "category_id": "egg",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-munat-ja-rasvat/rahkat-vanukkaat-ja-jalkiruoka/muut-valipalat-ja-jalkiruoat",
+      "sample_product_count": 2,
+      "category_id": "dessert",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+      "sample_product_count": 7,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/dipit",
+      "sample_product_count": 1,
+      "category_id": "dip_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "oljyt-etikat-ja-salaattikastikkeet/etikat-ja-sailontaaineet/muut-etikat-ja-sailontaaineet",
+      "sample_product_count": 3,
+      "category_id": "vinegar",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/perunapakasteet/perunasoseet",
+      "sample_product_count": 2,
+      "category_id": "frozen_potatoes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/perunapakasteet/perunasuikaleet-ja-lohkoperunat",
+      "sample_product_count": 2,
+      "category_id": "frozen_potatoes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/lihatiski/leikkeleet-makkarat-ja-muut-lihavalmisteet",
+      "sample_product_count": 2,
+      "category_id": "sausage",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/valmisruoka/jalkiruoat",
+      "sample_product_count": 1,
+      "category_id": "pastry",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/valmisruoka/sushibaari",
+      "sample_product_count": 2,
+      "category_id": "drink_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/valmisruoka/sushit",
+      "sample_product_count": 3,
+      "category_id": "soft_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/valmisruokasailykkeet",
+      "sample_product_count": 1,
+      "category_id": "soup",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "texmex-ja-maailman-maut/texmex/texmex-kastikkeet",
+      "sample_product_count": 2,
+      "category_id": "dip_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/puurot-ja-kiisselit/mammit",
+      "sample_product_count": 3,
+      "category_id": "dessert",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/valmiit-aterian-osat",
+      "sample_product_count": 2,
+      "category_id": "prepared_sides",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "energiajuomat;;äitienpäivä",
+      "sample_product_count": 1,
+      "category_id": "energy_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoispesu- ja käsittelyaineet tekstiileille",
+      "sample_product_count": 2,
+      "category_id": "laundry_detergent",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "halloween-makeiset",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "huulikiillot;;trendaavat kosmetiikkatuotteet",
+      "sample_product_count": 1,
+      "category_id": "makeup",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "isänpäivälahjat;;kuntoiluvälineet",
+      "sample_product_count": 1,
+      "category_id": "sports_equipment",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "joulukoristeet ja -asusteet;;edulliset lahjavinkit;;kotikulta sesonkikoristeet",
+      "sample_product_count": 1,
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "joulukoristeet ja -asusteet;;kotikulta sesonkikoristeet",
+      "sample_product_count": 1,
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet;;kahvikapselit",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimien tarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "cleaning_products",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kakkupaperit;;kesäjuhlat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "karkkipastillit",
+      "sample_product_count": 2,
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kesä outlet;;kalan käsittelytarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kopiopaperit;;halloween askartelu",
+      "sample_product_count": 1,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kurkkupastillit",
+      "sample_product_count": 8,
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "käärekarkkipussit",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "lauta- ja palapelit;;ravensburger maalaussetit",
+      "sample_product_count": 1,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "liikelahjat;;papukahvit",
+      "sample_product_count": 2,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "lintulaudat",
+      "sample_product_count": 1,
+      "category_id": "pet_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "liuskapaperit",
+      "sample_product_count": 1,
+      "category_id": "paper_towels",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokakomeron täydennys;;kahvinkeittimet;;kahvikapselit",
+      "sample_product_count": 2,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokakomeron täydennys;;liikelahjat;;papukahvit",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokakomeron täydennys;;liikelahjat;;suodatinkahvit",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "seinäkalenterit;;uutuudet",
+      "sample_product_count": 2,
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "sisäkoristevalot;;koristevalot",
+      "sample_product_count": 3,
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "sisäkoristevalot;;kotikulta koristevalot;;koristevalot",
+      "sample_product_count": 3,
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "suojapaperit ja -kankaat;;kaikki muuttoon",
+      "sample_product_count": 1,
+      "category_id": "building_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "tietokoneen oheislaitteet",
+      "sample_product_count": 1,
+      "category_id": "electronics",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "uht-maidot",
+      "sample_product_count": 4,
+      "category_id": "milk",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "wc- ja talouspaperit;;wc-paperit",
+      "sample_product_count": 1,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "wc-paperit;;halloween koristeet;;halloween askartelu",
+      "sample_product_count": 1,
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Juomat",
+      "sample_product_count": 1,
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Kauneus, terveys ja hyvinvointi",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Keksit, korput ja riisikakut",
+      "sample_product_count": 2,
+      "category_id": "rice_cakes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Lastenhoito",
+      "sample_product_count": 3,
+      "category_id": "hygiene_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Lemmikit",
+      "sample_product_count": 13,
+      "category_id": "pet_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Levitteet",
+      "sample_product_count": 3,
+      "category_id": "sweet_spread",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Makeiset ja purukumit",
+      "sample_product_count": 1,
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Murot, myslit ja hiutaleet",
+      "sample_product_count": 1,
+      "category_id": "oatmeal",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Pastat, riisit ja jauhot",
+      "sample_product_count": 3,
+      "category_id": "pasta",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Elektroniikka ja sähkö",
+      "sample_product_count": 5,
+      "category_id": "electronics",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Kastikkeet ja levitteet",
+      "sample_product_count": 1,
+      "category_id": "cooking_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Puutarha ja työkalut",
+      "sample_product_count": 1,
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "hylsyavainsarjat;;työkalut",
+      "sample_product_count": 1,
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "konvehtirasiat;;lahjaksi;;joulupöytään;;yrityslahjat",
+      "sample_product_count": 1,
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "makeiset-ja-naposteltavat/purukumit/ksylitoli-isot",
+      "sample_product_count": 1,
+      "category_id": "chewing_gum",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "piparit;;uutuudet",
+      "sample_product_count": 1,
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "proteiinijuomat",
+      "sample_product_count": 2,
+      "category_id": "sports_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "wc- ja talouspaperit;;talouspaperit;;halloween askartelu",
+      "sample_product_count": 1,
+      "category_id": "paper_towels",
+      "allowGlobalMatch": false
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
+import { extendedCitymarketCategory, categoryFromOwnedContext } from "./kCitymarketCategoryExtensions";
 
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V14
@@ -81,6 +82,8 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/\s+/g," ");
+  const extended=extendedCitymarketCategory(s);
+  if(extended) return extended;
 
   // Product form must outrank incidental words and nearby leaflet categories.
   if(/maissikakut|riisikakut|riisikakku|maissikakku/.test(s)) return "Kuivatuotteet";
@@ -494,6 +497,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const nearbyText=(row?.nearby||[]).map((x:any)=>typeof x==="string"?x:String(x?.text||x?.raw||"")).join(" ");
     const benefitText=/mobiilietu/i.test(nearbyText)?"Mobiilietu":/plussa(?:-etu|-kortilla)?/i.test(nearbyText)?"Plussa-etu":/erä/i.test(nearbyText)?"Erä":"";
     const campaignType: "offer" | "campaign" = /kampanja|kaikki .*?(?:tuotteet|vaatteet)|[-–−]\d+\s*%/i.test(title) && !/\b\d+(?:[,.]\d+)?\s*(?:g|kg|ml|l)\b/i.test(title) ? "campaign" : "offer";
+    const resolvedCategory=categoryFromOwnedContext(title,(row?.nearby||[]).map((x:any)=>String(x)),Boolean(row?.imageAnchor),category,
+      row?.imageAnchor && Array.isArray(row?.debugNearbyBoxes) ? {anchor:row.imageAnchor,boxes:row.debugNearbyBoxes} : undefined);
     offers.push({
       id:`kcm:spatial:${row?.page??0}:${title.toLowerCase()}:${price}`,
       title,
@@ -511,7 +516,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       campaignType,
       validFrom:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
       validTo:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
-      category:category(title),
+      category:resolvedCategory,
       chain:"K",
       storeType:"K-Citymarket",
       source:"K-Citymarket tarjouslehti",
@@ -596,7 +601,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v8-daily-goods-categories-20261004"],
+  ["ziiply-kcitymarket-offers-v11-column-ingredient-categories-20261012"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){

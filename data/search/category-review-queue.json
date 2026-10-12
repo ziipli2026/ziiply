@@ -1,0 +1,16 @@
+{
+  "version": "2026-10-12.27",
+  "projectId": "floral-recipe-40673204",
+  "branchId": "br-weathered-meadow-b1bwpzst",
+  "note": "Remaining product review queue; these rows are not approved classifications. Mixed source labels remain unmapped rather than being forced into one product type.",
+  "products": [
+    {
+      "ean": "6414893310118",
+      "name": "ATRIA Kanan fileesuikale 4 kpl",
+      "source": "lidl-verified-ean-master",
+      "source_category": "Liha",
+      "review_status": "pending",
+      "reason": "invalid_ean_checksum"
+    }
+  ]
+}

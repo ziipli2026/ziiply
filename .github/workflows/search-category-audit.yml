@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - test/search-category-audit-20261011
+      - fix/neon-category-registry-20261012
   workflow_dispatch:
 jobs:
   category-audit:
@@ -18,6 +19,10 @@ jobs:
       # Keep this independent of the application dependency migration.
       - name: Install isolated search test runtime
         run: npm ci --prefix scripts/search-test-runtime --ignore-scripts --no-audit --no-fund
+      - name: Verify category registry and Neon migration use identical rules
+        run: node scripts/build-category-registry-migration.cjs --check
+      - name: Test reported Citymarket category gaps and owned-context safety
+        run: NODE_PATH="$PWD/scripts/search-test-runtime/node_modules" node --test tests/citymarket-category-extensions.test.cjs
       - name: Test real search intent and local learning logic
         if: success() || failure()
         run: |

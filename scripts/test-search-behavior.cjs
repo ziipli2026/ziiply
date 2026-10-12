@@ -32,9 +32,34 @@ Module._load = function(request, parent, isMain) {
   return originalLoad.call(this, request, parent, isMain);
 };
 const core = require(root+"/ziiplyCore.ts");
+const poultryGroundFixture = {id:18001,name:"Atria Kanan Jauheliha 400g",category:"Liha",ean:"6407810013475"};
+assert.equal(core.isExplicitlyExcludedSearchProduct("jauheliha",poultryGroundFixture),false,"Poultry mince must remain in minced-meat searches");
+assert.equal(core.isExplicitlyExcludedSearchProduct("kana",poultryGroundFixture),false,"Poultry mince must remain in poultry searches");
+
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["viini", "wine"],["katkarapu", "seafood"],["munavoi", "egg_spread"],["perunamuusijauhe", "potato_flakes"],
+["onkimato", "outdoor_gear"],["hiustenkuivain", "personal_care_appliances"],["palovaroitin", "fire_safety"],["grillihiili", "charcoal"],["ilmankostutin", "air_care"],["kinesioteippi", "health_supplies"],["kauravälipala", "plant_dairy"],["kauraruoka", "plant_cream"],["jäätee", "iced_tea"],["franui", "frozen_confection"],
+["siipikarjan jauheliha","poultry_ground"],
+["kaasugrilli", "grills"],["tuoli", "furniture"],["tofu", "plant_protein"],["mungpapu", "beans"],["ankanrasva", "cooking_fats"],["eteerinen öljy", "essential_oils"],
+["matto", "home_textiles"],["säilytyslaatikko", "storage"],["hajuvesi", "fragrance"],["pölynimuri", "home_appliances"],["sulanapitokaapeli", "heating"],
+["tiramisu", "dessert"],["skyr", "skyr"],["kermaperuna", "prepared_sides"],["hummus", "hummus"],["maitokaakaojuoma", "flavored_milk"],["karjalanpiirakka", "savory_pastry"],["hard seltzer", "mixed_drink"],["mocktail", "mocktail"],["kombucha", "kombucha"],["urheilujuoma", "sports_drink"],["myslipatukka", "snack_bar"],["riisikakku", "rice_cakes"],["omenasose", "fruit_puree"],["huuhteluaine", "fabric_softener"],["lämpökynttilä", "candles"],["kukkamulta", "garden_supplies"],["pekoni", "bacon"],["paperitähti", "home_decor"],["kuuloke", "electronics"],
+["purukumi", "chewing_gum"],["kahvakuula", "sports_equipment"],["jakoavain", "tools"],["liimapuulevy", "building_supplies"],["askartelupaperi", "craft_supplies"],["led-valo", "lighting"],["nilkkuri", "clothing"],["moottoriöljy", "automotive"],["astiaharja", "cleaning_tools"],["dippikastike", "dip_sauce"],["tortilla", "tortilla"],["pähkinä", "nuts_seeds"],["rusina", "dried_fruit"],["hedelmäsäilyke", "canned_fruit"],["kvinoa", "grain_side"],["ranskanperuna", "frozen_potatoes"],["maapähkinävoi", "sweet_spread"],["kahvijuomajauhe", "drink_powder"],["huulikiilto", "makeup"],["glögi", "seasonal_drink"],["lintulauta", "pet_supplies"],["kärpäspaperi", "pest_control"],
+["lastenruoka","baby_food"],["vieroitusvalmiste","baby_food"],["kookosmaito","coconut_milk"],["proteiinipatukka","sports_nutrition"],["falafel","prepared_protein"],["kebab","prepared_protein"],
+["kala", "fish"],["sulatejuusto", "processed_cheese"],["rasvaseos", "butter_blend"],["leivonta-aines", "baking_ingredients"],["kondensoitu maito", "condensed_milk"],["jälkiruokakastike", "dessert_sauce"],
+
+["valmisateria", "ready_meal"],["valmissalaatti", "prepared_salad"],["panini", "ready_sandwich"],["ohukainen", "pancakes"],["olut", "beer"],["siideri", "cider"],["lonkero", "long_drink"],["energiajuoma", "energy_drink"],["kahvijuoma", "coffee_drink"],["virvoitusjuoma", "soft_drink"],["lähdevesi", "water"],["mehukeitto", "fruit_soup"],["smoothie", "smoothie"],
+["kauramaito","plant_drink"],
+
+["kosteusvoide", "skin_care"],["lelu", "toys"],["ravintolisä", "supplements"],["koiranruoka", "pet_food"],["keittiöväline", "kitchen_tools"],["juomapullo", "tableware"],["kahvinkeitin", "kitchen_appliances"],["hiustenhoitoaine", "hair_conditioner"],["hiuslakka", "hair_styling"],["vanupuikko", "hygiene_supplies"],["putkenavaaja", "cleaning_products"],
+
+["jäätelö", "ice_cream"],["pakastevihannekset", "frozen_vegetables"],["pakastemarjat", "frozen_fruit"],["pakastekala", "frozen_fish"],["pakastetaikina", "frozen_dough"],
+
+["keitto", "soup"],["ruokakastike", "cooking_sauce"],["liemikuutio", "stock"],["mauste", "seasoning"],["etikka", "vinegar"],["nuudeli", "noodles"],["pizza", "pizza"],["ateria-aines", "meal_kit"],
+
+["kermaviili", "sour_cream"],["smetana", "smetana"],["ranskankerma", "creme_fraiche"],["viili", "fermented_milk"],["vanukas", "pudding"],["kaurajuoma", "plant_drink"],["maitojauhe", "milk_powder"],["pulla", "pastry"],
+
   ["ketsuppi","ketchup"],["sinappi","mustard"],["majoneesi","mayonnaise"],
   ["tomaattimurska","tomato_crush"],["tomaattipyree","tomato_paste"],
   ["mysli","muesli"],["wc-paperi","toilet_paper"],["talouspaperi","paper_towels"],
@@ -60,7 +85,7 @@ const samples = [
 ];
 assert(samples.length >= 16, "Insufficient intent regression coverage");
 samples.push(...[["kerma", "cream"], ["kuohukerma", "cream"], ["ruokakerma", "cream"], ["vispikerma", "cream"], ["rahka", "quark"], ["maitorahka", "quark"], ["proteiinirahka", "quark"], ["raejuusto", "cottage_cheese"], ["tuorejuusto", "cream_cheese"], ["voi", "butter"], ["meijerivoi", "butter"], ["margariini", "margarine"], ["kasvirasvalevite", "margarine"], ["tee", "tea"], ["mustatee", "tea"], ["vihreä tee", "tea"], ["teepussi", "tea"], ["mehu", "juice"], ["appelsiinimehu", "juice"], ["omenamehu", "juice"], ["makkara", "sausage"], ["grillimakkara", "sausage"], ["lenkkimakkara", "sausage"], ["nakki", "sausage"], ["leikkele", "cold_cuts"], ["kinkkuleikkele", "cold_cuts"], ["kalkkunaleikkele", "cold_cuts"], ["hammastahna", "toothpaste"], ["deodorantti", "deodorant"], ["antiperspirantti", "deodorant"]]);
-samples.push(["kosteusvoide","generic"],["aurinkovoide","generic"],
+samples.push(["kosteusvoide","skin_care"],["aurinkovoide","skin_care"],
  ["proteesi","generic"],["apteekki","generic"],
  ["Valio voi 500 g","butter"],["musta tee 20 pussia","tea"],
  ["meijerivoi 500 g","butter"],["vihreä tee 20 pussia","tea"]);
@@ -72,6 +97,12 @@ for (const [query,expected] of samples) {
 // Verify the real result ranker, not only intent detection.
 const makeProduct = (id, name, category) => ({id,name,category,price:2.5});
 const rankingCases = [
+  {query:"liha",products:[{...makeProduct(1701,"Kennelpakaste Naudan lihaseos 800 g","Liha"),ean:"6409580010081"},makeProduct(1702,"Naudan jauheliha 400 g","Jauhelihat")],first:1702,excluded:[1701]},
+  {query:"tonnikala",products:[{...makeProduct(1703,"Hetki Arki tonnikala-pastasalaatti 200g","Kala ja äyriäiset"),ean:"6406510093664"},makeProduct(1704,"Tonnikala 140 g","Tonnikalat")],first:1704,excluded:[1703]},
+  {query:"kana",products:[{...makeProduct(1705,"Saarioinen PROTSKU kanan sisäfilee ja couscous 350g","Kuivatuotteet"),ean:"6412000036301"},makeProduct(1706,"Kanan fileesuikale 400 g","Broilerit")],first:1706,excluded:[1705]},
+  {query:"maito",products:[makeProduct(1601,"Xtra kookosmaito 400 ml","CAABGBCAGAAAA"),makeProduct(1602,"Valio kevytmaito 1 l","Maidot")],first:1602,excluded:[1601]},
+  {query:"cola",products:[makeProduct(1603,"Leader urheilujuomajauhe cola","kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet"),makeProduct(1604,"Coca Cola 0,33 l","Colajuomat")],first:1604,excluded:[1603]},
+  {query:"smoothie",products:[makeProduct(1605,"Coop Eko smoothie 6 kk","CAABGAOAIAAAI"),makeProduct(1606,"Mun smoothie 300 ml","Smoothiet")],first:1606,excluded:[1605]},
   {query:"ketsuppi", products:[makeProduct(1,"Ketsupin makuinen kastike","Kastikkeet"),makeProduct(2,"Felix Ketsuppi 500 g","Ketsupit")], first:2},
   {query:"kananmuna", products:[makeProduct(3,"Kananmunaton leivonnainen","Leivonta"),makeProduct(4,"Kotimainen kananmuna 10 kpl","Kananmunat")], first:4, excluded:[3]},
   {query:"sinappi", products:[makeProduct(5,"Sinappikastike 250 ml","Kastikkeet"),makeProduct(6,"Turun sinappi 250 g","Sinapit")], first:6, excluded:[5]},
@@ -86,6 +117,28 @@ const rankingCases = [
   {query:"tomaattimurska", products:[makeProduct(19,"Tomaattimurska ja tomaattipyree 400 g","Säilykkeet")], first:19},
 ];
 rankingCases.push(...[{"query": "kuohukerma", "products": [{"id": 500, "name": "Kermajäätelö 1 l", "category": "Kermat", "price": 2.5}, {"id": 501, "name": "Valio kuohukerma 2 dl", "category": "Kermat", "price": 2.5}], "first": 501}, {"query": "maitorahka", "products": [{"id": 502, "name": "Rahkapiirakka 400 g", "category": "Rahkat", "price": 2.5}, {"id": 503, "name": "Valio maitorahka 250 g", "category": "Rahkat", "price": 2.5}], "first": 503}, {"query": "raejuusto", "products": [{"id": 504, "name": "Raejuustosalaatti 300 g", "category": "Raejuustot", "price": 2.5}, {"id": 505, "name": "Arla raejuusto 200 g", "category": "Raejuustot", "price": 2.5}], "first": 505}, {"query": "tuorejuusto", "products": [{"id": 506, "name": "Tuorejuustokakku 400 g", "category": "Tuorejuustot", "price": 2.5}, {"id": 507, "name": "Philadelphia tuorejuusto 200 g", "category": "Tuorejuustot", "price": 2.5}], "first": 507}, {"query": "meijerivoi", "products": [{"id": 508, "name": "Voitaikina 500 g", "category": "Voit", "price": 2.5}, {"id": 509, "name": "Valio meijerivoi 500 g", "category": "Voit", "price": 2.5}], "first": 509}, {"query": "kasvirasvalevite", "products": [{"id": 510, "name": "Margariinikeksi 300 g", "category": "Margariinit", "price": 2.5}, {"id": 511, "name": "Kasvirasvalevite 400 g", "category": "Margariinit", "price": 2.5}], "first": 511}, {"query": "vihreä tee", "products": [{"id": 512, "name": "Jäätee 1 l", "category": "Teet", "price": 2.5}, {"id": 513, "name": "Vihreä tee 20 teepussia", "category": "Teet", "price": 2.5}], "first": 513}, {"query": "appelsiinimehu", "products": [{"id": 514, "name": "Appelsiinimehujää 100 g", "category": "Mehut", "price": 2.5}, {"id": 515, "name": "Appelsiinimehu 1 l", "category": "Mehut", "price": 2.5}], "first": 515}, {"query": "grillimakkara", "products": [{"id": 516, "name": "Makkarakeitto 300 g", "category": "Makkarat", "price": 2.5}, {"id": 517, "name": "HK grillimakkara 400 g", "category": "Makkarat", "price": 2.5}], "first": 517}, {"query": "kinkkuleikkele", "products": [{"id": 518, "name": "Kinkkuleikkele pizza 400 g", "category": "Leikkeleet", "price": 2.5}, {"id": 519, "name": "Kinkkuleikkele 200 g", "category": "Leikkeleet", "price": 2.5}], "first": 519}, {"query": "hammastahna", "products": [{"id": 520, "name": "Hammasharja 1 kpl", "category": "Hammastahnat", "price": 2.5}, {"id": 521, "name": "Hammastahna 75 ml", "category": "Hammastahnat", "price": 2.5}], "first": 521}, {"query": "deodorantti", "products": [{"id": 522, "name": "Deodorantti suihkugeeli 250 ml", "category": "Deodorantit", "price": 2.5}, {"id": 523, "name": "Deodorantti 50 ml", "category": "Deodorantit", "price": 2.5}], "first": 523}]);
+// User-reported voi false positives and reviewed provider category contracts.
+rankingCases.push({query:"voi", products:[
+  makeProduct(800,"Valio voi normaalisuolainen 500 g","maito-juusto-munat-ja-rasvat/rasvat/voit"),
+  makeProduct(801,"Puhdas+ shea voi 50ml","Ihonhoito"),
+  makeProduct(802,"Play Doh Voi, pilvi, kupla","Lelut"),
+  makeProduct(803,"Atria grilliperunat voi-tilli 500g","Valmisruoka"),
+  makeProduct(804,"Aaria Voi popcorn maustepurkki 110g","Mausteet"),
+  makeProduct(805,"Top of the Pop mikropopcorn 100g voi","Snacksit"),
+  makeProduct(806,"Momma ohuet piparkakut 150g paahd voi","Keksit"),
+  makeProduct(807,"Estrella Maalaissipsi voi & merisuola 180g","Snacksit"),
+  makeProduct(808,"Elonen Superpuusti Paahdettu voi 2kpl/220g","Leivonnaiset"),
+  makeProduct(809,"Friggs Maissikakku Voi-Merisuola 120g","Keksit"),
+  makeProduct(810,"Myllyn Paras annospuuro paahdettu voi-chia 5x45g","Puurot"),
+  makeProduct(811,"Classic Paahtoinen Voi-Suolainen Karamelli kermajäätelö","Pakasteet"),
+  makeProduct(812,"Jokilaakson Juusto kirkastettu voi 200g","maito-juusto-munat-ja-rasvat/rasvat/voit"),
+  makeProduct(813,"Juustoportti kirnuvoi 200 g","maito-juusto-munat-ja-rasvat/rasvat/voit"),
+],first:800,excluded:[801,802,803,804,805,806,807,808,809,810,811]});
+rankingCases.push({query:"kerma",products:[
+  makeProduct(814,"Kerma maustettu tuorejuusto 200g","maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/kermajuustot"),
+  makeProduct(815,"Valio kuohukerma 2dl","maito-juusto-munat-ja-rasvat/maitotuotteet/kermat"),
+],first:815,excluded:[814]});
+rankingCases.push({query:"voi popcorn",products:[makeProduct(816,"Top of the Pop voi popcorn 100g","Snacksit")],first:816});
 // Retail-style regression fixtures based on known Finnish grocery product naming.
 // These are deterministic examples, NOT fresh responses from store APIs.
 const retailFixtures = [
@@ -136,6 +189,91 @@ const exclusionResults = exclusionCases.map(([query,name,expected]) => {
   const actual = core.isExplicitlyExcludedSearchProduct(query, makeProduct(0,name,""));
   return {query,name,expected,actual,pass:actual===expected};
 });
+rankingCases.push({query:"maito",products:[makeProduct(1101,"Elovena kaurajuoma kahviin 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat"),makeProduct(1102,"Valio kevytmaito 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot")],first:1102,excluded:[1101]});
+rankingCases.push({query:"kerma",products:[makeProduct(1103,"Valio kermaviili 200g","maito-juusto-munat-ja-rasvat/maitotuotteet/kermaviilit"),makeProduct(1104,"Valio kuohukerma 2dl","maito-juusto-munat-ja-rasvat/maitotuotteet/kermat")],first:1104,excluded:[1103]});
+rankingCases.push({query:"kaurajuoma",products:[makeProduct(1105,"Elovena kaurajuoma kahviin 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat"),makeProduct(1106,"Valio kevytmaito 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot")],first:1105,excluded:[1106]});
+rankingCases.push({query:"vanukas",products:[makeProduct(1107,"Jacky maitosuklaavanukas 120g","maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat"),makeProduct(1108,"Valio maitorahka 250g","maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat")],first:1107,excluded:[1108]});
+
+rankingCases.push({query:"maito",products:[makeProduct(1201,"Coop kaurajuoma 1 l","CAAAMAEAAAAAA"),makeProduct(1202,"Kotimaista kevytmaito 1 L","CAAAMAAAAAEAA")],first:1202,excluded:[1201]});
+rankingCases.push({query:"kahvi",products:[makeProduct(1203,"Coop kahvi tumma paahto 450 g","CAABIAAAAACAA"),makeProduct(1204,"Olympus Aito kreikkalainen jogurtti 0% rasvaa 150g kahvi","CAAAQAAAKACAA")],first:1203,excluded:[1204]});
+
+rankingCases.push({query:"kana",products:[makeProduct(1301,"Knorr kanaliemikuutio 10x10g","CAABGBAAGACAE"),makeProduct(1302,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1302,excluded:[1301]});
+rankingCases.push({query:"juusto",products:[makeProduct(1303,"Knorr tomaattikeitto mascarponejuustolla 570 ml","CAABGAYACAAAE"),makeProduct(1304,"Valio Arkijuusto 750g","CAAAOAAAAAAAA")],first:1304,excluded:[1303]});
+rankingCases.push({query:"pizza",products:[makeProduct(1305,"Xtra pizzamauste 30 g","CAABGBAAKAOAC"),makeProduct(1306,"Coop Pizza Salami 345 g pakaste","CAABQACAAAAAA")],first:1306,excluded:[1305]});
+rankingCases.push({query:"kanaliemikuutio",products:[makeProduct(1307,"Knorr kanaliemikuutio 10x10g","CAABGBAAGACAE"),makeProduct(1308,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1307,excluded:[1308]});
+
+rankingCases.push({query:"jäätelö",products:[makeProduct(1401,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA"),makeProduct(1402,"Coop kukkakaalinuput 400g pakaste","CAABQAGACAEAA")],first:1401,excluded:[1402]});
+assert.equal(core.isExplicitlyExcludedSearchProduct("pakaste",makeProduct(1403,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")),false);
+assert.equal(core.isExplicitlyExcludedSearchProduct("pakaste",makeProduct(1404,"Coop Pizza Salami 345g pakaste","CAABQACAAAAAA")),false);
+assert.equal(core.isExplicitlyExcludedSearchProduct("kerma",makeProduct(1405,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")),true);
+
+const frozenResults = core.rankNormalSearchResults("pakaste",[
+  makeProduct(1410,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA"),
+  makeProduct(1411,"Coop Pizza Salami 345g pakaste","CAABQACAAAAAA"),
+  makeProduct(1412,"Coop kukkakaalinuput 400g pakaste","CAABQAGACAEAA")
+]);
+assert.deepEqual(new Set(frozenResults.map(p=>p.id)),new Set([1410,1411,1412]),"Parent search must retain different frozen product groups");
+rankingCases.push({query:"maito",products:[makeProduct(1501,"Kissanmaito 3 x 200 ml Catmilk","kissanruoka"),makeProduct(1502,"Puhdistusmaito Lierac 200 ml","kasvojen puhdistusemulsiot ja -maidot ja -voiteet"),makeProduct(1503,"Kotimaista kevytmaito 1 L","CAAAMAAAAAEAA")],first:1503,excluded:[1501,1502]});
+rankingCases.push({query:"kahvi",products:[makeProduct(1504,"Kahvinkeitin Wilfa CM10B-A125","kahvinkeittimet"),makeProduct(1505,"House kahvilusikka Leo 4 kpl","CACAGACAAACAA"),makeProduct(1506,"Coop kahvi tumma paahto 450g","CAABIAAAAACAA")],first:1506,excluded:[1504,1505]});
+rankingCases.push({query:"kananmuna",products:[makeProduct(1507,"House kananmunaleikkuri ja lohkoja","CACAGAGAAASAE"),makeProduct(1508,"Kotimaista kananmunat 10 kpl","maito-juusto-munat-ja-rasvat/munat/kananmunat")],first:1508,excluded:[1507]});
+
+rankingCases.push({query:"kahvi",products:[makeProduct(1601,"Frezza Latte 250ml maitokahvijuoma","juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat"),makeProduct(1602,"Coop kahvi tumma paahto 450g","CAABIAAAAACAA")],first:1602,excluded:[1601]});
+rankingCases.push({query:"cola",products:[makeProduct(1603,"Nocco Focus cola energiajuoma 0,33l","juomat/energia--ja-urheilujuomat/energiajuomat"),makeProduct(1604,"Coop Cola virvoitusjuoma 1,5l","CAAAYAKACAAAA")],first:1604,excluded:[1603]});
+rankingCases.push({query:"kana",products:[makeProduct(1605,"Hetki kermainen kana-pasta 270g","valmisruoka/valmisruoat-ja--keitot/mikroateriat"),makeProduct(1606,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:1606,excluded:[1605]});
+assert.equal(core.isExplicitlyExcludedSearchProduct("virvoitusjuoma",makeProduct(1607,"Coop Cola 1,5l","CAAAYAKACAAAA")),false);
+
+assert.equal(core.isExplicitlyExcludedSearchProduct("kahvijuoma",makeProduct(1701,"Frezza maitokahvijuoma 250ml","Kahvi")),false,"A source-specific Kahvi mapping must not exclude other providers' coffee drinks");
+rankingCases.push({query:"maito",products:[makeProduct(1801,"Dogan Kondensoitu maito 300g","CAABGBAAOAAAK"),makeProduct(1802,"Kotimaista kevytmaito 1 L","CAAAMAAAAAEAA")],first:1802,excluded:[1801]});
+rankingCases.push({query:"voi",products:[makeProduct(1803,"Valio Oivariini rasvaseos 400g","maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet"),makeProduct(1804,"Valio voi 500g","maito-juusto-munat-ja-rasvat/rasvat/voit")],first:1804,excluded:[1803]});
+assert.equal(core.isExplicitlyExcludedSearchProduct("kala",makeProduct(1805,"Rainbow lohifilee 250g pakaste","CAABQAIACAAAA")),false);
+assert.equal(core.isExplicitlyExcludedSearchProduct("pakaste",makeProduct(1806,"Rainbow lohifilee 250g pakaste","CAABQAIACAAAA")),false);
+
+rankingCases.push({query:"jäätelö",products:[makeProduct(1901,"Bello Dolce vaahtomakeiset jäätelö 150g","CAABGAQAEAMAA"),makeProduct(1902,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")],first:1902,excluded:[1901]});
+rankingCases.push({query:"juusto",products:[makeProduct(1903,"Vaasan Cheddarpasteija 90g","CAAAWAMAIAEAA"),makeProduct(1904,"Valio Arkijuusto 750g","CAAAOAAAAAAAA")],first:1904,excluded:[1903]});
+rankingCases.push({query:"cola",products:[makeProduct(1905,"Coop Cola Chews makeiset 80g","CAABGAQAKAAAA"),makeProduct(1906,"Coop Cola virvoitusjuoma 1,5l","CAAAYAKACAAAA")],first:1906,excluded:[1905]});
+
+rankingCases.push({query:"maito",products:[{...makeProduct(2001,"Kasvovoi Nivea Q10 50 ml","Maitotuotteet"),ean:"4006000233840"},makeProduct(2002,"Kotimaista kevytmaito 1L","CAAAMAAAAAEAA")],first:2002,excluded:[2001]});
+rankingCases.push({query:"juusto",products:[{...makeProduct(2003,"Juustonaksu Priima 150g","Maitotuotteet"),ean:"6416485840521"},makeProduct(2004,"Valio Arkijuusto 750g","CAAAOAAAAAAAA")],first:2004,excluded:[2003]});
+rankingCases.push({query:"kana",products:[{...makeProduct(2005,"Kissanruoka Friskies kana-kasvis 2kg","Liha & makkarat"),ean:"7336012472508"},makeProduct(2006,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:2006,excluded:[2005]});
+rankingCases.push({query:"kasvovoi",products:[{...makeProduct(2007,"Kasvovoi Nivea Q10 50 ml","Maitotuotteet"),ean:"4006000233840"}],first:2007});
+assert.equal(core.isExplicitlyExcludedSearchProduct("paahdettu voi piparkakku",{...makeProduct(2008,"Ohuet piparkakut Momma 150 g paahdettu voi","Maitotuotteet"),ean:"6410580429575"}),false);
+
+rankingCases.push({query:"jäätelö",products:[makeProduct(2101,"Ibero hiusharja jäätelö minttu 59242","kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat"),makeProduct(2102,"Kotimaista kermajäätelö vanilja 1L","CAABQAAAAAAAA")],first:2102,excluded:[2101]});
+rankingCases.push({query:"cola",products:[makeProduct(2103,"Lipsmacker Coca Cola huulivoide 4g","kosmetiikka-ja-hygienia/kasvojenhoito/huulivoiteet"),makeProduct(2104,"Coop Cola virvoitusjuoma 1,5l","CAAAYAKACAAAA")],first:2104,excluded:[2103]});
+
+assert.equal(core.detectSearchIntent("tuotemerkki xyz").category,"generic");
+const freeTextResults = core.rankNormalSearchResults("tuotemerkki xyz",[
+  makeProduct(2110,"Tuotemerkki XYZ kevytmaito 1L","CAAAMAAAAAEAA"),
+  {...makeProduct(2111,"Tuotemerkki XYZ kasvovoi 50ml","Maitotuotteet"),ean:"4006000233840"}
+]);
+assert.deepEqual(new Set(freeTextResults.map(p=>p.id)),new Set([2110,2111]),"Unrecognized free-text searches must not reject reviewed categories");
+assert.equal(core.isExplicitlyExcludedSearchProduct("hiusharja",makeProduct(2112,"Ibero hiusharja jäätelö minttu","kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusharjat-ja-kammat")),false);
+
+// Continuation batch: actual reviewed EANs override misleading provider groups.
+const continuationFixtures = [
+  ['voi','2001360902261','Bruno mandariini Nadorcott','Vaakatuote',true],
+  ['mandariini','2001360902261','Bruno mandariini Nadorcott','Vaakatuote',false],
+  ['cola','7340007901683','Nektariini 500g 1lk','Juomat',true],
+  ['cola','6430052001344','MySoda Cola sokeriton 0,5l','Juomat',true],
+  ['maito','6429811623019','Boris maitohappo juoma Berry Mix 1l Luomu','Juomat',true],
+  ['liha','6420613151236','Relaxant Lihastenrentouttaja 100ml','Liha',true],
+  ['liha','2000409600007','Kirjolohi Suomi kg','Kala',true],
+  ['kananmuna','6407800025471','Atria Kunnon Arki Paneroidut Kanapihvit 260g','Valmisruoat',true],
+  ['juusto','6410405356789','Pirkka Raesekoitus 200g','Pähkinät ja siemenet',true],
+  ['maito','59092605','Deo roll-on Dove 50 ml Advanced Extra Fresh','Maitotuotteet',true],
+  ['perunamuusijauhe','6430028235018','Mummon Mielihyvä perunahiutaleet 140g','Leivonta',false],
+  ['perunamuusijauhe','6430028235094','Mummon gluteeniton Muru 210g','Perunatuotteet',true],
+  ['pasta','6410405228093','K-Menu lasagnelevyjä 500g','Valmisruoat',false],
+  ['pasta','6412000037056','Saarioinen arki broilerpyörykät ja muusi 310g','Valmisruoat',true],
+  ['kana','6405857320907','Naapurin Maalaiskan ohut fileepihvi maustamaton 570g','Liha',false],
+  ['kana','6412000038633','Saarioinen mainio kiovan kana ja muusi 320g','Valmisruoat',true],
+  ['pakaste','6410500062042','Vaasan Kotiuunin Omenaviineri 10x48g','Leipä ja leivonnaiset',false],
+  ['jauhot','6410500062042','Vaasan Kotiuunin Omenaviineri 10x48g','Leipä ja leivonnaiset',true],
+];
+for(const [query,ean,name,category,excluded] of continuationFixtures) {
+  const actual=core.isExplicitlyExcludedSearchProduct(query,{...makeProduct(9900,name,category),ean});
+  assert.equal(actual,excluded,`Reviewed EAN continuation: ${query} / ${name}`);
+}
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));
@@ -204,6 +342,7 @@ const collisionCases = [
 collisionCases.push(["maitorahka","quark"],["raejuusto","cottage_cheese"],
  ["tuorejuusto","cream_cheese"],["omenamehu","juice"],
  ["virvoitusjuoma cola","cola"],["kermajuusto","cheese"]);
+collisionCases.push(...require('./fixtures/category-collisions-reviewed-20261012.json'));
 const collisionResults = collisionCases.flatMap(([term, expected]) =>
  [term, `Kotimainen ${term} 500 g`, term.toUpperCase(),
   term.normalize("NFD").replace(/[\u0300-\u036f]/g, "")]

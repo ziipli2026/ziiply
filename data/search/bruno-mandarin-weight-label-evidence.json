@@ -1,0 +1,24 @@
+{
+  "storeName": "K-Supermarket Jokela",
+  "scannedEan": "2000638805044",
+  "canonicalEan": "2000638800001",
+  "plu": "6388",
+  "labelTotalEur": 5.04,
+  "name": "Bruno mandariini Nadorcott",
+  "identitySource": "User identified the weighed product and supplied the Jokela label code.",
+  "providerProducts": [
+    {
+      "source": "s-kaupat",
+      "ean": "2007006000001",
+      "name": "Bruno Mandariini Nadorcott I",
+      "url": "https://www.s-kaupat.fi/tuote/bruno-mandariini-nadorcott-i/2007006000001"
+    },
+    {
+      "source": "k-ruoka",
+      "ean": "2000533500006",
+      "name": "Mandariini Bruno",
+      "url": "https://www.k-ruoka.fi/kauppa/tuote/mandariini-bruno-kg-2000533500006"
+    }
+  ],
+  "note": "Label total is the historical scanned package total, not a current price or a unit price. Provider base codes are separate product identifiers; current Jokela store availability has not been verified."
+}
