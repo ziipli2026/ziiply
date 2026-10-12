@@ -40,8 +40,10 @@ jobs:
           const hiddenSignal=hidden.map(x=>({ean:String(x.ean??""),title:x.title,price:price(x),validUntil:String(x.validUntil??x.debugOfferEvidenceV226?.campaignPriceValidUntil??""),labels:String(x.debugOfferEvidenceV226?.rawLabels??""),campaignPrice:x.debugOfferEvidenceV226?.campaignPrice??null,currentPrice:x.debugOfferEvidenceV226?.currentPrice??null,regularPrice:x.debugOfferEvidenceV226?.regularPrice??null}));
           const noSignal=hiddenSignal.filter(x=>!x.labels&&!x.validUntil&&x.campaignPrice==null&&!(Number.isFinite(Number(x.currentPrice))&&Number.isFinite(Number(x.regularPrice))&&Number(x.currentPrice)<Number(x.regularPrice)));
           const muikku={offersBefore:offers.filter(x=>String(x.ean)==="2004657500003").length,offersAfter:kept.filter(x=>String(x.ean)==="2004657500003").length,campaigns:campaigns.filter(x=>String(x.ean)==="2004657500003").length};
+          // A broad EAN+price overlap is diagnostic only: V805 deliberately also
+          // requires matching selected store and validity, so zero removals can be correct.
           console.log("TAB_LAYER_SIM",JSON.stringify({counts:{offersBefore:offers.length,campaignsBefore:campaigns.length,hiddenFromOffersOnly:hidden.length,offersAfter:kept.length,campaignsAfter:campaigns.length,totalVisibleAcrossTabsAfter:kept.length+campaigns.length,hiddenWithoutDiscountedSignal:noSignal.length,helperOffers:helperOffers.length,helperCampaigns:helperCampaigns.length,foreignChainRowsPreserved:foreignResult.length},muikku,offerCategoriesBefore:byCat(offers),offerCategoriesAfter:byCat(kept),campaignCategories:byCat(campaigns),hiddenSample:hiddenSignal.slice(0,20),hiddenWithoutSignal:noSignal},null,2));
-          if(!offers.length||!campaigns.length||hidden.length<1||helperOffers.length>=offers.length||helperOffers.length+helperCampaigns.length!==productionHelperResult.length||helperCampaigns.length!==campaigns.length||foreignResult.length!==2||noSignal.length!==0)process.exitCode=1;
+          if(!offers.length||!campaigns.length||helperOffers.length>offers.length||helperOffers.length+helperCampaigns.length!==productionHelperResult.length||helperCampaigns.length!==campaigns.length||foreignResult.length!==2||noSignal.length!==0)process.exitCode=1;
           TS
           npx tsx scripts/.tmp-tab-layer-dedupe.mts
           rm scripts/.tmp-tab-layer-dedupe.mts
