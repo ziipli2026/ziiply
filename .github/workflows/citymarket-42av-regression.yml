@@ -14,3 +14,5 @@ jobs:
           node-version: '22'
       - name: Test 42AV publisher archive
         run: node --test tests/kcitymarket-42av-printed-transactions.test.mjs
+      - name: Verify published Citymarket image manifest and fragments
+        run: node scripts/citymarket/verify-images.mjs
