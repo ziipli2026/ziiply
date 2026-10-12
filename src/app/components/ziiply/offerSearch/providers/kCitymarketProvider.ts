@@ -90,6 +90,7 @@ export function category(t:string){
   if(/\bsappisaippua\b/.test(s)) return "Kodinhoito";
   // 42AV: identifiable household, hobby and clothing product forms.
   if(/\b(?:lautapeli|palikkarasia|taskulamppu|lämpökynttilä|spraymoppi|valonauha|peittosetti|toppahaalari|softshell\s+haalari|fleecekerrasto|merinovilla\s+aluspaita|sähkömoppi|silitysrauta|kampanjapokkareita|kiihdytysauto)\b/.test(s)) return "Koti & vapaa-aika";
+  if(/lämpökynttilä|\bunicorn\s+25\s*cm\b/.test(s)) return "Koti & vapaa-aika";
   if(/\b(?:rouhe\s+tai\s+palat)\b/.test(s)) return "Valmisruoka";
   // Brand taxonomy affects category only; prices still require printed spatial proof.
   if(/\b(?:eylure|elegant touch|mossa|smuuti skin|cosrx|tena)\b/.test(s)) return "Hygienia & kosmetiikka";
