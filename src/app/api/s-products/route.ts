@@ -1,7 +1,14 @@
+import { streamProductSearch } from "@/lib/productSearchStream";
 import { NextResponse } from "next/server";
 import { fetchSKaupatDirectNormalProducts } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
 
 export async function GET(request: Request) {
+  if (new URL(request.url).searchParams.get("stream") === "1") {
+    return streamProductSearch(emit => handleProductSearch(request, emit));
+  }
+  return handleProductSearch(request);
+}
+async function handleProductSearch(request: Request, onBatch?: (data: any) => void) {
   const params = new URL(request.url).searchParams;
   const search = (params.get("search") || "").trim();
   const store = params.get("store") || "";
@@ -13,7 +20,7 @@ export async function GET(request: Request) {
   if (!search) return NextResponse.json({ source, priceUnit: "cents", items: [] });
   if (!storeName) return NextResponse.json({ source, items: [], error: "Selected S store name required" }, { status: 400 });
   try {
-    const result = await fetchSKaupatDirectNormalProducts(search, storeName, store);
+    const result = await fetchSKaupatDirectNormalProducts(search, storeName, store, data => onBatch?.({ ...data, source, priceUnit: "cents" }));
     return NextResponse.json({ ...result, store, storeName, source, priceUnit: "cents", status: 200 });
   } catch (error) {
     console.warn("[S direct preview]", String(error));

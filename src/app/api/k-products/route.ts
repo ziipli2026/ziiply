@@ -1,3 +1,4 @@
+import { streamProductSearch } from "@/lib/productSearchStream";
 import { fetchKDirectNormalProducts } from "@/lib/kRuokaDirect";
 import { getZeroResultFallbackQuery } from "@/lib/normalSearchFallback";
 import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
@@ -60,6 +61,12 @@ function resolveKStoreId(store: string) {
 }
 
 export async function GET(request: Request) {
+  if (new URL(request.url).searchParams.get("stream") === "1") {
+    return streamProductSearch(emit => handleProductSearch(request, emit));
+  }
+  return handleProductSearch(request);
+}
+async function handleProductSearch(request: Request, onBatch?: (data: any) => void) {
   const { searchParams } = new URL(request.url);
   let directFailure = "";
   if (searchParams.get("direct") === "1") {
@@ -75,7 +82,7 @@ export async function GET(request: Request) {
       if (Date.now() < directKBlockedUntil) {
         directFailure = directKBlockDiagnostic;
       } else {
-        const result = await fetchKDirectNormalProducts(search, storeName, externalId);
+        const result = await fetchKDirectNormalProducts(search, storeName, externalId, data => onBatch?.({ ...data, source, priceUnit: "cents" }));
         return NextResponse.json({ ...result, source, priceUnit: "cents", status: 200 });
       }
     } catch (error) {

@@ -2643,7 +2643,7 @@ export async function fetchSKaupatNormalProductsV220(query: string, storeName: s
 
 
 /** Preview direct normal search. Prices use the existing Ziiply cent contract. */
-export async function fetchSKaupatDirectNormalProducts(query: string, storeName: string, inputStoreId: string) {
+export async function fetchSKaupatDirectNormalProducts(query: string, storeName: string, inputStoreId: string, onBatch?: (data: any) => void) {
   const normalizedName = normalizeSKaupatStoreNameForMatchV198(storeName);
   const chain = /^prisma\b/i.test(storeName) ? "prisma"
     : /^s[ -]?market\b/i.test(storeName) ? "s-market"
@@ -2729,6 +2729,7 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
           comparisonPriceUnit: firstString(pricing.comparisonUnit, product.comparisonUnit) }],
       });
     }
+    onBatch?.({ items: [...items], storeId, total, pages });
     if (!raw.length || !added || raw.length < 48 || offset + 48 >= total) break;
   }
   return { items, storeId, total, pages, truncated: pages * 48 < total, inputStoreId, storeResolutionSource };

@@ -113,7 +113,7 @@ export function mapKDirectProduct(row: KRecord, storeId: string, storeName: stri
   };
 }
 
-export async function fetchKDirectNormalProducts(query: string, storeName: string, externalId: string) {
+export async function fetchKDirectNormalProducts(query: string, storeName: string, externalId: string, onBatch?: (data: any) => void) {
   const context = await resolveKDirectStoreContext(storeName, externalId);
   const items: NonNullable<ReturnType<typeof mapKDirectProduct>>[] = [];
   const seen = new Set<string>();
@@ -147,6 +147,7 @@ export async function fetchKDirectNormalProducts(query: string, storeName: strin
       if (!item || seen.has(item.ean)) continue;
       seen.add(item.ean); items.push(item);
     }
+    onBatch?.({ items: [...items], storeId: context.storeId, storeName, total, pages });
     if (!raw.length || !newRaw || raw.length < 30 || (total > 0 && offset + 30 >= total)) break;
   }
   return { items, storeId: context.storeId, storeName: context.storeName, total, pages, rawCount,
