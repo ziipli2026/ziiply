@@ -20873,7 +20873,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }`}
                 >
                   <img
-                    src={store.key === "s" ? "/ui/store-backgrounds/store-bg-prisma-v3.svg" : "/ui/store-backgrounds/store-bg-kcitymarket-v3.svg"}
+                    src={store.key === "s" ? "/ui/mobile-store-backgrounds/store-bg-prisma.svg" : "/ui/mobile-store-backgrounds/store-bg-kcitymarket.svg"}
                     alt=""
                     aria-hidden="true"
                     draggable={false}
@@ -21143,11 +21143,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       ? "/ui/store-backgrounds/store-bg-spar-v3.svg"
                       : storeMode === "hyper"
                         ? store.key === "s"
-                          ? "/ui/store-backgrounds/store-bg-prisma-v3.svg"
-                          : "/ui/store-backgrounds/store-bg-kcitymarket-v3.svg"
+                          ? "/ui/mobile-store-backgrounds/store-bg-prisma.svg"
+                          : "/ui/mobile-store-backgrounds/store-bg-kcitymarket.svg"
                         : store.key === "s"
-                          ? "/ui/store-backgrounds/store-bg-alepa-v3.svg"
-                          : "/ui/store-backgrounds/store-bg-kmarket-v3.svg"
+                          ? "/ui/mobile-store-backgrounds/store-bg-alepa.svg"
+                          : "/ui/mobile-store-backgrounds/store-bg-kmarket.svg"
                 }
                 alt=""
                 aria-hidden="true"
