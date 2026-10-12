@@ -52,3 +52,16 @@ test("Different source publications must both retain their offer", () => {
   assert.match(provider, /samePublicationOffers = kOfferRows\.filter\(offer => publicationOf\(offer\) === publicationId\)/);
   assert.match(provider, /removeCampaignCopiesOfLeaflet\(samePublicationOffers, \[campaign\]\)/);
 });
+
+test("Source-specific deduplication keeps identical offer IDs from separate publications", () => {
+  const provider = fs.readFileSync("src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts", "utf8");
+  const baseKey = provider.match(/const knownOfferIds = new Set\(offers\.map\(o => (\x60[^\n]+\x60)\)/);
+  const regionalKey = provider.match(/const key = (\x60\$\{String\(offer\.publicationPublicId[^\n]+\x60);/);
+  assert.ok(baseKey, "Base source key must include publication ID");
+  assert.ok(regionalKey, "Regional source key must include publication ID");
+  const original = { publicationPublicId: "paper", publicId: "same-id", campaignType: "offer" };
+  const electronic = { publicationPublicId: "electronic", publicId: "same-id", campaignType: "offer" };
+  const key = offer => [offer.publicationPublicId, offer.publicId, offer.campaignType].join("|");
+  assert.notEqual(key(original), key(electronic));
+  assert.match(provider, /const key = \x60\$\{publicationId\}\|/);
+});
