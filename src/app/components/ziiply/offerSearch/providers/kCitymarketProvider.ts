@@ -801,7 +801,14 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     if(offer.price===total&&offer.offerQuantity===quantity)return offer;
     return {...offer,price:total,offerQuantity:quantity,offerUnit:match[3].toUpperCase(),resolutionSource:"explicit-leaflet-title-multibuy"};
   });
-  const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(corrected));
+  // A campaign selling multiple retail units must not inherit a single-unit EAN photo.
+  // The package count is transaction metadata; a single bottle is misleading for a case.
+  const imageSafe=corrected.map(offer=>{
+    const multiPack=/\b(?:\d{1,2}\s*[- ]?pack|\d{1,2}\s*(?:plo|tölkkiä|pulloa))\b/i.test(offer.title);
+    if(!multiPack || !offer.offerQuantity || offer.offerQuantity<2)return offer;
+    return {...offer,imageUrl:undefined,ean:undefined};
+  });
+  const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(imageSafe));
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
