@@ -2738,6 +2738,11 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
     if (/voide|vartalovoi|kasvovoi|saippua|shampoo|suihkugeeli|ihonhoito|kosmetiikka|kasvonaamio|kuorintavoide/.test(text)) return true;
     if ((intent.bannedAny || []).some(term => name.includes(normalize(term)))) return true;
   }
+  if (normalizedQuery === "maito") {
+    const milkWords = new Set(["maito", "kevytmaito", "taysmaito", "ykkosmaito", "luomumaito", "kauramaito", "soijamaito", "mantelimaito", "maitojuoma"]);
+    if (!getNormalizedWords(product.name).some(word => milkWords.has(word))) return true;
+    if (/kondens|maitojauhe|korvike|vieroitusvalmiste|pikkulasten|vauva|kaakao|suklaa|maitokahvi|latte|cappuccino|proteiinijuoma|rasvaseos|rahka|jogurtti|voide|saippua/.test(name)) return true;
+  }
   const explicitlyFrozen = name.includes("pakaste") || product.category?.startsWith("pakasteet/") || product.category?.startsWith("CAABQ");
   if (genericGroupQuery && reviewedCategory && !isReviewedCategoryCompatible(intent.category, reviewedCategory) &&
       !(intent.category === "frozen" && explicitlyFrozen)) return true;
