@@ -87,6 +87,8 @@ export function category(t:string){
   // Use the existing offer category for supplements; do not catch vitamin drinks.
   if(/(?:monivitamiin|vitamiini(?:t|valmiste|tabletti|kapseli)?\b|ravintolis|magnesium|sinkki\b|omega[- ]?3|kollageeni|biotiini|melatoniini)/.test(s) && !/(?:vitamiinijuoma|juotava\s+vitamiini|virvoitusjuoma)/.test(s)) return "Vitamiinit & ravinteet";
   if(/(?:luku\s*[-–]?\s*ja\s*käsityövalo|lukuja\s*käsityövalo|askartelu\s*[-–]?\s*ja\s*korjausvalo|askarteluja\s*korjausvalo|\b(?:luku|käsityö|askartelu|korjaus)valo\b)/.test(s)) return "Koti & vapaa-aika";
+  // Home lighting must not be interpreted as food or dry groceries.
+  if(/(?:led[- ]?lyhty|lumihiutale\s+led|led[- ]?valaisin|led[- ]?lukuvalo|käsityövalo|korjausvalo)/.test(s)) return "Koti & vapaa-aika";
   // Product forms recovered from split 42AV titles. Category only; never alter prices.
   if(/\bkanan\s+rintafileet\b/.test(s)) return "Liha & makkarat";
   if(/\b(?:päivävoiteet|micellar|roll-on\s+ja\s+spray|inkosuojat|pikkuhousunsuojat|siteet\b)\b/.test(s)) return "Hygienia & kosmetiikka";
