@@ -2640,3 +2640,73 @@ export async function fetchSKaupatNormalProductsV220(query: string, storeName: s
     }];
   });
 }
+
+
+/** Preview direct normal search. Prices use the existing Ziiply cent contract. */
+export async function fetchSKaupatDirectNormalProducts(query: string, storeName: string, inputStoreId: string) {
+  const storeId = storeName
+    ? await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName)
+    : null;
+  if (!storeId) throw new Error("Selected S store could not be resolved");
+  const protocol = await getSKaupatProtocolConfig();
+  const items: any[] = [];
+  const seen = new Set<string>();
+  let total = 0;
+  let pages = 0;
+  const categorySlug = query.trim().toLocaleLowerCase("fi") === "voi"
+    ? "maito-munat-ja-rasvat/rasvat/voi" : "";
+  for (let offset = 0; offset < 384; offset += 48) {
+    const url = new URL(buildRemoteFilteredProductsUrl(query, offset, storeId, false, protocol));
+    const variables = JSON.parse(url.searchParams.get("variables") || "{}");
+    variables.availabilityDate = getCurrentLocalDateYYYYMMDDV202();
+    variables.sortForAvailabilityLabelDate = variables.availabilityDate;
+    if (categorySlug) variables.slug = categorySlug;
+    url.searchParams.set("variables", JSON.stringify(variables));
+    const response = await fetch(url, {
+      cache: "no-store", signal: AbortSignal.timeout(8000),
+      headers: { accept: "application/json", "accept-language": "fi",
+        origin: "https://www.s-kaupat.fi", referer: "https://www.s-kaupat.fi/",
+        "x-client-name": "skaupat-web", "x-client-version": protocol.clientVersion },
+    });
+    if (!response.ok) throw new Error("S direct search HTTP " + response.status);
+    const data = await response.json();
+    if (data.errors?.length) throw new Error("S direct search GraphQL error");
+    const raw = getSProductListItems(data);
+    const meta = getSProductsPagingMetaV184(data);
+    total = meta.total;
+    pages++;
+    let added = 0;
+    for (const row of raw) {
+      const product = getProductFromListItem(row);
+      if (!product || isSponsoredSProductListItem(row, product)) continue;
+      if (!belongsToSelectedSHypermarketV163(product, storeId)) continue;
+      const pricing = getPricing(product);
+      const euros = numberFromUnknown(pricing.currentPrice ?? product.price);
+      const name = firstString(product.name);
+      const id = firstString(product.ean, product.id, product.sokId);
+      if (!id || !name || seen.has(id)) continue;
+      seen.add(id); added++;
+      const hierarchy = asArray(product.hierarchyPath).map(asRecord).filter(Boolean);
+      const category = hierarchy.map((entry) => firstString(entry?.name)).filter(Boolean).join(" > ");
+      const comparison = numberFromUnknown(pricing.comparisonPrice ?? product.comparisonPrice);
+      const price = euros != null && euros > 0 ? Math.round(euros * 100) : 0;
+      items.push({
+        id, name, ean: firstString(product.ean) || undefined,
+        brandName: firstString(product.brandName) || undefined,
+        pictureUrl: getImageDebugV189(product, row).url,
+        category, categoryPath: hierarchy.map((entry) => firstString(entry?.slug)),
+        price, priceUnit: "cents", regularPrice: numberFromUnknown(pricing.regularPrice),
+        comparisonPrice: comparison == null ? undefined : Math.round(comparison * 100),
+        comparisonPriceUnit: firstString(pricing.comparisonUnit, product.comparisonUnit),
+        approximatePrice: Boolean(pricing.isApproximatePrice),
+        salesUnit: pricing.salesUnit, depositPriceEur: pricing.depositPrice ?? product.depositPrice,
+        campaignPriceEur: pricing.campaignPrice, campaignValidUntil: pricing.campaignPriceValidUntil,
+        availability: product.availability, storeId, storeName,
+        storeItems: [{ price, comparisonPrice: comparison == null ? undefined : Math.round(comparison * 100),
+          comparisonPriceUnit: firstString(pricing.comparisonUnit, product.comparisonUnit) }],
+      });
+    }
+    if (!raw.length || !added || raw.length < 48 || offset + 48 >= total) break;
+  }
+  return { items, storeId, total, pages, truncated: pages * 48 < total, inputStoreId };
+}
