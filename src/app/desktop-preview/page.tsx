@@ -1012,7 +1012,7 @@ export default function DesktopPreviewPage() {
     const k=selected.find(x=>{const t=storeKind(x);return t==="kHyper"||t==="kLocal"});
     if(!s&&!k){setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
     setJustiinaLoading(true);setJustiinaMessage("");
-    if(justiinaDelay) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
+    if(justiinaDelay && voiceRunId === undefined) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
     try{
       async function fetchSearchData(url: string) {
         const queries = voiceRunId === undefined ? [query] : getNormalSearchQueries(query).slice(0, 6);
@@ -1046,7 +1046,7 @@ export default function DesktopPreviewPage() {
     if(justiinaQuery.trim().length<2)return;
     // Sama ehto kuin mobiilissa: pelkkä paluu/remount ei laukaise uutta hakua.
     if(!justiinaUserEditedRef.current || justiinaLastSearchedRef.current===justiinaQuery.trim() || justiinaSuppressedTermsRef.current.has(justiinaQuery.trim().toLowerCase()))return;
-    const timer=window.setTimeout(()=>{void runDesktopJustiinaSearch(justiinaQuery)},550);
+    const timer=window.setTimeout(()=>{void runDesktopVoiceList(justiinaQuery)},justiinaDelay*1000);
     return ()=>window.clearTimeout(timer);
   // Deliberately trigger only on user query edits, not result updates.
   // eslint-disable-next-line react-hooks/exhaustive-deps
