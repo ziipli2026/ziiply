@@ -905,7 +905,7 @@ export default function DesktopPreviewPage() {
   const offerRequestId=useRef(0);
   const offerViewState=useRef<Map<string,{tab:"offers"|"campaigns";category:string}>>(new Map());
   const activeOfferKey=useRef("");
-  useEffect(()=>{try{const saved=JSON.parse(window.sessionStorage.getItem("ziiply-desktop-offers-cache-v4")||"[]");if(Array.isArray(saved))for(const [key,value] of saved){if(typeof key==="string"&&Array.isArray(value?.results)){offerWarmCache.current.set(key,value);if(value.diagnostic)offerDiagnostics.current.set(key,value.diagnostic)}}}catch{}},[]);
+  useEffect(()=>{try{const saved=JSON.parse(window.sessionStorage.getItem("ziiply-desktop-offers-cache-v5")||"[]");if(Array.isArray(saved))for(const [key,value] of saved){if(typeof key==="string"&&Array.isArray(value?.results)){offerWarmCache.current.set(key,value);if(value.diagnostic)offerDiagnostics.current.set(key,value.diagnostic)}}}catch{}},[]);
   function offerContext(chain:string,store:any){const ctx:any={};if(chain==="S"){ctx.sStoreId=store?.externalId||store?.id;ctx.sStoreName=store?.name}if(chain==="K"){ctx.kStoreId=store?.externalId||store?.id;ctx.kStoreName=store?.name}if(chain==="LIDL"){ctx.lidlStoreKey=store?.storeKey||store?.externalId||store?.id;ctx.lidlStoreName=store?.name||"Lidl"}if(chain==="TOKMANNI"){ctx.tokmanniStoreId=store?.externalId||store?.id;ctx.tokmanniStoreName=store?.name||"Tokmanni"}if(chain==="EUROSPAR"){ctx.eurosparStoreId=store?.externalId||store?.id;ctx.eurosparStoreName=store?.name||"Eurospar";ctx.eurosparStoreChain=store?.chain}return ctx}
   function offerKey(chain:string,store:any){const ctx=offerContext(chain,store);return JSON.stringify([chain,ctx.sStoreId||ctx.kStoreId||ctx.lidlStoreKey||ctx.tokmanniStoreId||ctx.eurosparStoreId||store?.id||store?.name])}
   function warmOffers(chain:string,store:any) {
@@ -924,7 +924,7 @@ export default function DesktopPreviewPage() {
           desktopRemoved:r.results.filter(p=>!cleaned.includes(p))};
         offerDiagnostics.current.set(key,diagnostic);
         offerWarmCache.current.set(key,{time:Date.now(),results,diagnostic});
-        try{window.sessionStorage.setItem("ziiply-desktop-offers-cache-v4",JSON.stringify([...offerWarmCache.current]))}catch{}
+        try{window.sessionStorage.setItem("ziiply-desktop-offers-cache-v5",JSON.stringify([...offerWarmCache.current]))}catch{}
         return results;
       })
       .catch(error=>{
