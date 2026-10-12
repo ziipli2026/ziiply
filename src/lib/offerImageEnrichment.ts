@@ -18,7 +18,7 @@ const validImage = (v: unknown) => {
   if (typeof v !== "string" || !v.trim() || v.startsWith("//") || v.startsWith("\\\\")) return false;
   // Only root-relative local assets or explicit HTTPS URLs are accepted.
   if (!v.startsWith("/") && !v.startsWith("https://")) return false;
-  if (/[\\\\\\x00-\\x1f\\x7f]/.test(v)) return false;
+  if (/[\\\x00-\x1f\x7f]/.test(v)) return false;
   try {
     const url = new URL(v, "https://ziiply.fi");
     return (url.protocol === "https:" || (v.startsWith("/") && !v.startsWith("//"))) && !/\s/.test(v);

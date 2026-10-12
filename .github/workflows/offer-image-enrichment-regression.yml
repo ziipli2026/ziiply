@@ -35,9 +35,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm ci
       - name: Run isolated image matcher regression
-        run: npx --yes tsx scripts/test-offer-image-enrichment.mts
+        run: |
+          npm install --prefix "$RUNNER_TEMP/ziiply-image-tests" --no-audit --no-fund --ignore-scripts tsx@4.20.6 @neondatabase/serverless@1.2.0
+          ln -s "$RUNNER_TEMP/ziiply-image-tests/node_modules" node_modules
+          # The .mts regression imports ESM TypeScript modules in this isolated checkout.
+          npm pkg set type=module
+          node --import tsx scripts/test-offer-image-enrichment.mts
       - name: Verify approved 41LV image asset and fragment coverage
         run: node scripts/citymarket/audit-41lv-image-coverage.mjs > /dev/null
       - name: Verify external image candidate records
@@ -70,7 +74,7 @@ jobs:
           import fs from "node:fs";
           const file = "citymarket-openfoodfacts-search.json";
           if (!fs.existsSync(file)) {
-            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "### 41LV image search\\nSearch report missing; check previous steps.\\n");
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "### 41LV image search\nSearch report missing; check previous steps.\n");
           } else {
             const report = JSON.parse(fs.readFileSync(file, "utf8"));
             const lines = [
@@ -82,7 +86,7 @@ jobs:
               ...Object.entries(report.statusCounts ?? {}).map(([key, count]) => key + ": " + count),
               "No candidate is approved automatically."
             ];
-            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\\n") + "\\n");
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
           }
           NODE
       - name: Generate visual image review page
