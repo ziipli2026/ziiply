@@ -164,3 +164,18 @@ test('42AV campaign headings and badges belong to the same printed card',async()
  assert.equal(cleaning.spatialResolved.value,4);
  assert.equal(cleaning.spatialResolved.quantity,2);
 });
+
+
+test('42AV missing discount is restored only from a unique owned printed badge',async()=>{
+ const {recover42AVPrintedCampaignRows}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarket42AVCampaignRecovery.js');
+ const row={title:'DEODORANTIT 75–150 ml',percentageOffer:null};
+ const heading=[{text:'Whole',left:.05,top:.2,height:.03,width:.08},
+  {text:'Body',left:.13,top:.2,height:.03,width:.08},
+  {text:'DEODORANTIT',left:.05,top:.23,height:.03,width:.15},
+  {text:'75–150',left:.20,top:.23,height:.03,width:.08}];
+ const badge={text:'-27%',left:.1,top:.24,height:.03,width:.08};
+ const restored=recover42AVPrintedCampaignRows([row],[...heading,badge])[0];
+ assert.equal(restored.percentageOffer?.percent,27);
+ const ambiguous=recover42AVPrintedCampaignRows([row],[...heading,badge,{...badge,text:'-20%',left:.22}])[0];
+ assert.equal(ambiguous.percentageOffer,null);
+});
