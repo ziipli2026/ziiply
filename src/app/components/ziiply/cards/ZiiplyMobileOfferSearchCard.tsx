@@ -602,7 +602,12 @@ function getNormalPrice(offer: ZiiplyMobileOfferSearchItem) {
 
   if (isMultiBuy) {
     const normalText = String(source.normalPriceText || "").trim();
-    if (normalText) return `${normalText} €/${String(source.offerUnit || "kpl").trim()}`;
+    if (normalText) {
+      const unit = String(source.offerUnit || "kpl").trim();
+      return source.normalPriceBasis === "multi-buy-total"
+        ? `${normalText} € / ${quantity} ${unit}`
+        : `${normalText} €/${unit}`;
+    }
     return "";
   }
 
