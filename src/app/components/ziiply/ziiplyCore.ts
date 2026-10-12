@@ -2,7 +2,7 @@
 
 import type React from "react";
 import posthog from "posthog-js";
-import { correctSearchQuery } from "./search/searchIntentAI";
+import { correctSearchQuery, getIntentSearchQueries, resolveSearchIntentAI } from "./search/searchIntentAI";
 
 export type Offer = {
   id: number;
@@ -827,6 +827,11 @@ export function getMetricSizeKey(value: string) {
 }
 
 export function getNormalSearchQueries(term: string) {
+  // Generic soft-drink intent must reach providers as a category query, not a cola-only query.
+  // Keep the original phrase as a fallback for providers with different indexing.
+  if (resolveSearchIntentAI(term).intent === "soft_drink") {
+    return uniqueNormalizedQueries(getIntentSearchQueries(term, 8));
+  }
   const intent = detectSearchIntent(term);
   const normalizedTerm = normalize(term);
   const looseTerm = normalizeLooseProductMatch(term);
