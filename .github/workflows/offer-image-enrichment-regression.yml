@@ -27,6 +27,7 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -59,6 +60,8 @@ jobs:
         run: node scripts/citymarket/discover-openfoodfacts-images.mjs
       - name: Bulk product-name search for missing single-product images
         if: always()
+        env:
+          IMAGE_RESEARCH_MAX_SEARCHES: "80"
         run: node scripts/citymarket/discover-openfoodfacts-search.mjs
       - name: Generate visual image review page
         if: always()
