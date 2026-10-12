@@ -179,3 +179,11 @@ test('42AV missing discount is restored only from a unique owned printed badge',
  const ambiguous=recover42AVPrintedCampaignRows([row],[...heading,badge,{...badge,text:'-20%',left:.22}])[0];
  assert.equal(ambiguous.percentageOffer,null);
 });
+
+test('42AV detached title prefixes are cleaned without altering product quantities',async()=>{
+ const {clean42AVPrintedTitle}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarket42AVTitleCleanup.js');
+ assert.equal(clean42AVPrintedTitle('-18% SAPPISAIPPUA 519 500 ml'),'SAPPISAIPPUA 519 500 ml');
+ assert.equal(clean42AVPrintedTitle('5. PASTAT 500 g (3,50/kg)'),'PASTAT 500 g (3,50/kg)');
+ assert.equal(clean42AVPrintedTitle('6 TLK Arla 2 TLK 9. LEMPI RUOKAKERMAT 3 dl 3.'),'6 TLK Arla 2 TLK 9. LEMPI RUOKAKERMAT 3 dl 3.');
+ assert.equal(clean42AVPrintedTitle('3 KPL / 4 €'),'3 KPL / 4 €');
+});
