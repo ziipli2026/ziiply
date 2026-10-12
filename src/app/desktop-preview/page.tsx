@@ -817,6 +817,7 @@ export default function DesktopPreviewPage() {
   const [cartIncrementKey, setCartIncrementKey] = useState("");
   const [notebookOpen, setNotebookOpen] = useState(false);
   const [savedLists, setSavedLists] = useState<any[]>([]);
+  const [pendingNotebookRestore,setPendingNotebookRestore]=useState<any[]|null>(null);
   const [saveListOpen, setSaveListOpen] = useState(false);
   const [saveListName, setSaveListName] = useState("");
   const [openedSavedListId, setOpenedSavedListId] = useState<string|null>(null);
@@ -1012,27 +1013,28 @@ export default function DesktopPreviewPage() {
   function restoreSavedList(list:any){
     const items=Array.isArray(list?.items)?list.items.map(desktopRestoreNotebookItem):[];
     if(!items.length){flashCartNotice("Tallennettu ostoslista on tyhjä");return;}
-    const currentHasItems=cartItems.length>0;
-    if(currentHasItems){
-      const merge=window.confirm("Ostoskorissa on jo tuotteita.\n\nOK = yhdistä tallennettu lista nykyiseen koriin.\nPeruuta = valitse seuraavaksi, korvataanko kori.");
-      if(merge){
-        setCartItems(current=>{
-          const next=[...current];
-          for(const item of items){
-            const key=desktopCartKey(item);
-            const index=next.findIndex(existing=>desktopCartKey(existing)===key);
-            if(index<0)next.push(item);
-            else next[index]={...next[index],quantity:Number(next[index].quantity||1)+Number(item.quantity||1)};
-          }
-          return next;
-        });
-        setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko yhdistetty ostoskoriin");return;
-      }
-      if(!window.confirm("Korvataanko nykyinen ostoskori tallennetulla listalla?\n\nPeruuta = säilytä nykyinen kori muuttumattomana."))return;
+    if(cartItems.length){setPendingNotebookRestore(items);return;}
+    completeNotebookRestore(items,"replace");
+  }
+  function completeNotebookRestore(items:any[],mode:"merge"|"replace"){
+    if(mode==="merge"){
+      setCartItems(current=>{
+        const next=[...current];
+        for(const item of items){
+          const key=desktopCartKey(item);
+          const index=next.findIndex(existing=>desktopCartKey(existing)===key);
+          if(index<0)next.push(item);
+          else next[index]={...next[index],quantity:Number(next[index].quantity||1)+Number(item.quantity||1)};
+        }
+        return next;
+      });
+    } else {
+      desktopCompareCache.current.clear();setDesktopCompareResults({});
+      setCartItems(items);
     }
-    desktopCompareCache.current.clear();setDesktopCompareResults({});
-    setCartItems(items);setNotebookOpen(false);setCartOpen(true);
-    flashCartNotice("Ostelusvihko palautettu ostoskoriin");
+    setPendingNotebookRestore(null);
+    setNotebookOpen(false);setCartOpen(true);
+    flashCartNotice(mode==="merge"?"Ostelusvihko yhdistetty ostoskoriin":"Ostelusvihko palautettu ostoskoriin");
   }
   function saveCartToNotebook(){desktopRememberPrices(cartItems);const name=saveListName.trim()||"Ostelusvihko";persistSavedLists([{id:String(Date.now()),name,createdAt:new Date().toISOString(),items:cartItems.map(desktopNotebookItem)},...savedLists]);setSaveListOpen(false);flashCartNotice(`Tallennettu Ostelusvihkoon: ${name}`)}
 
@@ -1526,6 +1528,7 @@ export default function DesktopPreviewPage() {
 <div className="pointer-events-none absolute inset-x-0 bottom-[112px] z-[70] flex justify-center"><button type="button" className="pointer-events-auto rounded-full border-2 border-[#17573c] bg-[#e2edcf] px-5 py-3 font-black text-[#174c35]" onClick={()=>setDesktopScannerCameraOn(v=>!v)}>{desktopScannerCameraOn?"Sulje kamera":"Käynnistä kamera"}</button></div>
 <div className="absolute bottom-3 left-3 right-3 z-[100] rounded-xl bg-[#fff5dc] p-3 shadow-xl"><div className="flex flex-wrap items-center justify-center gap-3"><button type="button" onClick={()=>{setDesktopScannerMessage("");void pasteDesktopScannerEan()}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#28492f] shadow-[inset_0_2px_0_rgba(255,255,255,0.7)]">Liitä EAN</button><button type="button" aria-label="Avaa ostoskori" title="Avaa ostoskori" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false);setCartOpen(true)}} className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border-[5px] border-[#7b6034] bg-[#d8c08c] shadow-[0_6px_16px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.55)]"><span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border-[3px] border-[#efe2b8] bg-[#16472c] text-[31px] leading-none text-[#fff6d9]">🧺</span></button><button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#7d2b1d] bg-[linear-gradient(180deg,#c64235_0%,#922016_100%)] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#fff3dc] shadow-[inset_0_2px_0_rgba(255,255,255,0.20)]">Sulje kamera</button></div></div></div></div>}
         <ZiiplyDesktopNotebookCard open={notebookOpen} lists={savedLists} currentCartCount={cartItems.length} openedListId={openedSavedListId} onToggleList={(id)=>setOpenedSavedListId(openedSavedListId===id?null:id)} onSaveCurrentCart={beginSaveCart} onRestoreList={restoreSavedList} onDeleteList={(id)=>persistSavedLists(savedLists.filter((list:any)=>list.id!==id))} onClose={()=>setNotebookOpen(false)} />
+        {pendingNotebookRestore&&<div role="dialog" aria-modal="true" aria-label="Ostoslistan palautus" className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 p-4"><div className="w-full max-w-md rounded-2xl bg-[#fffaf0] p-6 shadow-2xl"><h2 className="text-xl font-black">Palauta ostoslista</h2><p className="mt-2">Ostoskorissa on jo tuotteita. Mitä tehdään tallennetulle listalle?</p><div className="mt-5 flex flex-wrap gap-2"><button type="button" className="rounded-lg bg-[#24573e] px-4 py-2 font-bold text-white" onClick={()=>completeNotebookRestore(pendingNotebookRestore,"merge")}>Yhdistä koriin</button><button type="button" className="rounded-lg border border-[#9b614b] px-4 py-2 font-bold" onClick={()=>completeNotebookRestore(pendingNotebookRestore,"replace")}>Korvaa kori</button><button type="button" className="rounded-lg border px-4 py-2" onClick={()=>setPendingNotebookRestore(null)}>Peruuta</button></div></div></div>}
         {cartNotice&&!(workspace==="justiina"&&justiinaResultsOpen)&&<div role="status" className="fixed left-1/2 top-[calc(var(--desktop-overlay-top)+29px)] z-[110] flex h-[44px] w-[min(340px,calc(100vw-240px))] min-w-0 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-[14px] bg-[#08a36d] px-3 text-center text-[14px] font-black text-white shadow-2xl"><span className="block min-w-0 truncate whitespace-nowrap">{cartNotice}</span></div>}
         {/* Debug overlay hidden from the desktop UI; comparison logging remains available internally. */}
         {cartOpen && cartPaperReady && <div className="fixed bottom-[24px] left-[24px] right-[24px] top-[var(--desktop-overlay-top)] z-[90] flex overflow-hidden rounded-[30px] border-[3px] border-[#8a6c3d] bg-[#f7edcf] p-3 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
