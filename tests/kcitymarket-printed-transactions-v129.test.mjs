@@ -28,7 +28,9 @@ test('Full immutable 41LV source retains all other transactions',async()=>{
  ['PENTIK LAUTASLIINAT 20 kpl 25 ja 33 cm',15,null]]);
  const tissue=parsed.rows.find(r=>r.title==='Lotus Nessu NENÄLIINA 100 kpl Valkoinen');
  assert.ok(tissue);assert.deepEqual(transaction(tissue.spatialResolved),{value:4,quantity:2,unit:'PKT'});assert.equal(tissue.percentageOffer,null);
- const existing=parsed.rows.filter(r=>r!==meal[0]&&r!==tissue&&!percentages.includes(r)&&!wrapped.includes(r));
+ const recovered=parsed.rows.filter(r=>r.debugRecoveredPrintedPrice);
+ assert.deepEqual(recovered.map(r=>[r.page,r.title,transaction(r.spatialResolved)]),[[20,'WOK-KASTIKKEET 120 g',{value:1,quantity:null,unit:'PS'}],[20,'PEHMOVITA MONIVITAMIINIT 75 kpl (0,13/kpl)',{value:9.99,quantity:null,unit:'PRK'}]]);
+ const existing=parsed.rows.filter(r=>!recovered.includes(r)&&r!==meal[0]&&r!==tissue&&!percentages.includes(r)&&!wrapped.includes(r));
  const baseline=fixture.baseline.filter(r=>!r.title.startsWith('Lotus Nessu NENÄLIINA 100 kpl Valkoinen Plussa-kortilla'));
  assert.equal(existing.length,baseline.length);
  const fixes=new Map([...fixture.corrections,...next.corrections].map(x=>[x.row.page+':'+x.row.title,x.expected]));
