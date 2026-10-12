@@ -200,6 +200,14 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "sour_cream"
+  | "smetana"
+  | "creme_fraiche"
+  | "fermented_milk"
+  | "pudding"
+  | "plant_drink"
+  | "milk_powder"
+  | "pastry"
   | "milk"
   | "coffee"
   | "cola"

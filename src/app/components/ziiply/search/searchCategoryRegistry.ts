@@ -2,6 +2,14 @@
 import type { SearchIntent } from "../ziiplyCore";
 export const CATEGORY_REGISTRY_VERSION = "2026-10-12.1";
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {"category": "sour_cream", "label": "Kermaviilit", "variants": ["kermaviili"], "requiredAny": ["kermaviili"], "bannedAny": ["sipsi", "chips", "maissikakku", "riisikakku"]},
+  {"category": "smetana", "label": "Smetanat", "variants": ["smetana"], "requiredAny": ["smetana"], "bannedAny": ["sipsi", "chips"]},
+  {"category": "creme_fraiche", "label": "Ranskankermat", "variants": ["ranskankerma", "crème fraîche", "creme fraiche"], "requiredAny": ["ranskankerma", "crème fraîche", "creme fraiche"], "bannedAny": ["sipsi", "chips"]},
+  {"category": "fermented_milk", "label": "Viilit", "variants": ["viili", "kevytviili"], "requiredAny": ["viili"], "bannedAny": ["kermaviili"]},
+  {"category": "pudding", "label": "Vanukkaat", "variants": ["vanukas", "proteiinivanukas", "maitosuklaavanukas"], "requiredAny": ["vanukas"], "bannedAny": ["jäätelö"]},
+  {"category": "plant_drink", "label": "Kasvipohjaiset juomat", "variants": ["kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "requiredAny": ["kaurajuoma", "soijajuoma", "mantelijuoma", "kasvipohjainen juoma"], "bannedAny": ["jäätelö"]},
+  {"category": "milk_powder", "label": "Maitojauheet", "variants": ["maitojauhe", "rasvaton maitojauhe"], "requiredAny": ["maitojauhe"], "bannedAny": ["äidinmaidonkorvike"]},
+  {"category": "pastry", "label": "Pullat ja leivonnaiset", "variants": ["pulla", "pullapitko", "korvapuusti", "wiener", "leivos"], "requiredAny": ["pulla", "pitko", "korvapuusti", "wiener", "leivos"], "bannedAny": ["jäätelö", "taikina"]},
   {category: "cream", label: "Kermat", variants: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], requiredAny: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], bannedAny: ["jäätelö", "kermajuusto", "kermaviili"], ownBrandFriendly: true},
   {category: "quark", label: "Rahkat", variants: ["rahka", "maitorahka", "proteiinirahka"], requiredAny: ["rahka", "maitorahka", "proteiinirahka"], bannedAny: ["rahkapiirakka", "rahkapulla"], ownBrandFriendly: true},
   {category: "cottage_cheese", label: "Raejuustot", variants: ["raejuusto"], requiredAny: ["raejuusto"], bannedAny: ["raejuustosalaatti"], ownBrandFriendly: true},

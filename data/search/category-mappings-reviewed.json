@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.2",
+  "version": "2026-10-12.3",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -208,6 +208,12 @@
       "category_id": "fruit_veg"
     },
     {
+      "source": "lidl-verified-ean-master",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+      "sample_product_count": 1,
+      "category_id": "meat"
+    },
+    {
       "source": "ruoanhinta-k",
       "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
       "sample_product_count": 3,
@@ -248,6 +254,24 @@
       "source_category": "leivat-keksit-ja-leivonnaiset/leivat/tummat-leivat",
       "sample_product_count": 4,
       "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/pullat-ja-kakut",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "sample_product_count": 1,
+      "category_id": "chicken"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/muu-broileri-kana-ja-kalkkuna",
+      "sample_product_count": 1,
+      "category_id": "chicken"
     },
     {
       "source": "ruoanhinta-k",
@@ -359,9 +383,27 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermaviilit",
+      "sample_product_count": 1,
+      "category_id": "sour_cream"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
       "sample_product_count": 2,
       "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/smetanat",
+      "sample_product_count": 2,
+      "category_id": "smetana"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+      "sample_product_count": 6,
+      "category_id": "pudding"
     },
     {
       "source": "ruoanhinta-k",
@@ -380,6 +422,18 @@
       "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/maustamattomat-raejuustot",
       "sample_product_count": 6,
       "category_id": "cottage_cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/muut-erikoisjuustot",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/viilit/maustamattomat-viilit",
+      "sample_product_count": 2,
+      "category_id": "fermented_milk"
     },
     {
       "source": "ruoanhinta-k",
@@ -485,9 +539,75 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-keksit",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/suola--ja-valipalakeksit",
+      "sample_product_count": 1,
+      "category_id": "cookies"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
       "sample_product_count": 3,
       "category_id": "bread"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/leivokset-ja-wienerit",
+      "sample_product_count": 1,
+      "category_id": "pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "sample_product_count": 2,
+      "category_id": "chicken"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/muu-broileri-kana-ja-kalkkuna",
+      "sample_product_count": 2,
+      "category_id": "chicken"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/muut-jauhelihat",
+      "sample_product_count": 7,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+      "sample_product_count": 9,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/porsaan-jauheliha",
+      "sample_product_count": 2,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+      "sample_product_count": 2,
+      "category_id": "meat"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/jauheliha/siipikarjan-jauheliha",
+      "sample_product_count": 3,
+      "category_id": "meat"
     },
     {
       "source": "ruoanhinta-s",
@@ -575,6 +695,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
+      "sample_product_count": 7,
+      "category_id": "plant_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
       "sample_product_count": 20,
       "category_id": "milk"
@@ -593,6 +719,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermaviilit",
+      "sample_product_count": 7,
+      "category_id": "sour_cream"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
       "sample_product_count": 4,
       "category_id": "quark"
@@ -605,6 +737,24 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+      "sample_product_count": 6,
+      "category_id": "pudding"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/cheddar",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/homejuustot",
+      "sample_product_count": 1,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
       "sample_product_count": 7,
       "category_id": "cheese"
@@ -614,6 +764,12 @@
       "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/maustamattomat-raejuustot",
       "sample_product_count": 2,
       "category_id": "cottage_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/muut-erikoisjuustot",
+      "sample_product_count": 6,
+      "category_id": "cheese"
     },
     {
       "source": "ruoanhinta-s",
@@ -659,6 +815,12 @@
     },
     {
       "source": "s-kaupat-ean",
+      "source_category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "sample_product_count": 1,
+      "category_id": "chicken"
+    },
+    {
+      "source": "s-kaupat-ean",
       "source_category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
       "sample_product_count": 1,
       "category_id": "yogurt"
@@ -670,16 +832,34 @@
       "category_id": "milk"
     },
     {
+      "source": "s-kaupat-ean",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/smetanat",
+      "sample_product_count": 1,
+      "category_id": "smetana"
+    },
+    {
       "source": "tokmanni-klevu",
       "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
       "sample_product_count": 1,
       "category_id": "coffee"
     },
     {
+      "source": "tokmanni-klevu",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
+    },
+    {
       "source": "tokmanni-viikkotarjoukset",
       "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
       "sample_product_count": 1,
       "category_id": "coffee"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
+      "sample_product_count": 1,
+      "category_id": "plant_drink"
     },
     {
       "source": "tokmanni-viikkotarjoukset",

@@ -35,6 +35,8 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["kermaviili", "sour_cream"],["smetana", "smetana"],["ranskankerma", "creme_fraiche"],["viili", "fermented_milk"],["vanukas", "pudding"],["kaurajuoma", "plant_drink"],["maitojauhe", "milk_powder"],["pulla", "pastry"],
+
   ["ketsuppi","ketchup"],["sinappi","mustard"],["majoneesi","mayonnaise"],
   ["tomaattimurska","tomato_crush"],["tomaattipyree","tomato_paste"],
   ["mysli","muesli"],["wc-paperi","toilet_paper"],["talouspaperi","paper_towels"],
@@ -158,6 +160,11 @@ const exclusionResults = exclusionCases.map(([query,name,expected]) => {
   const actual = core.isExplicitlyExcludedSearchProduct(query, makeProduct(0,name,""));
   return {query,name,expected,actual,pass:actual===expected};
 });
+rankingCases.push({query:"maito",products:[makeProduct(1101,"Elovena kaurajuoma kahviin 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat"),makeProduct(1102,"Valio kevytmaito 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot")],first:1102,excluded:[1101]});
+rankingCases.push({query:"kerma",products:[makeProduct(1103,"Valio kermaviili 200g","maito-juusto-munat-ja-rasvat/maitotuotteet/kermaviilit"),makeProduct(1104,"Valio kuohukerma 2dl","maito-juusto-munat-ja-rasvat/maitotuotteet/kermat")],first:1104,excluded:[1103]});
+rankingCases.push({query:"kaurajuoma",products:[makeProduct(1105,"Elovena kaurajuoma kahviin 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat"),makeProduct(1106,"Valio kevytmaito 1 l","maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot")],first:1105,excluded:[1106]});
+rankingCases.push({query:"vanukas",products:[makeProduct(1107,"Jacky maitosuklaavanukas 120g","maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat"),makeProduct(1108,"Valio maitorahka 250g","maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat")],first:1107,excluded:[1108]});
+
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));
