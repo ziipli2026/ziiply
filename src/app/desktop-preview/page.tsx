@@ -957,7 +957,8 @@ export default function DesktopPreviewPage() {
   function warmOffers(chain:string,store:any) {
     const ctx=offerContext(chain,store), key=offerKey(chain,store);
     const hit=offerWarmCache.current.get(key);
-    if(hit)return Promise.resolve(hit.results);
+    // Cached offers are a quick first paint, but refresh them after 15 minutes.
+    if(hit && Date.now()-hit.time<15*60*1000)return Promise.resolve(hit.results);
     const pending=offerWarmPending.current.get(key);
     if(pending)return pending;
     const promise=searchZiiplyGostaOffersV146({query:"",terms:[],context:ctx,captureDiagnostics:true})
@@ -981,14 +982,14 @@ export default function DesktopPreviewPage() {
     return promise;
   }
 
-  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":String(store?.chain||"").toUpperCase()==="EUROSPAR"?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
+  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
   async function openDesktopGostaChain(chain:"S"|"K"|"LIDL"|"TOKMANNI"|"EUROSPAR", store:any) {
     const key=offerKey(chain,store);const request=++offerRequestId.current;
     if(activeOfferKey.current)offerViewState.current.set(activeOfferKey.current,{tab:gostaTab,category:gostaCategory});
     activeOfferKey.current=key;const previous=offerViewState.current.get(key);
     setGostaChainPicker(false);setGostaChain(chain);setGostaTab(previous?.tab||"offers");setGostaCategory(previous?.category||"");
     const cached=offerWarmCache.current.get(key);
-    if(cached){setGostaOffers(cached.results);setGostaLoading(false);return}
+    if(cached && Date.now()-cached.time<15*60*1000){setGostaOffers(cached.results);setGostaLoading(false);return}
     setGostaOffers([]);setGostaLoading(true);
     try{const results=await warmOffers(chain,store);if(request===offerRequestId.current)setGostaOffers(results)}
     catch{if(request===offerRequestId.current)setGostaOffers([])}
