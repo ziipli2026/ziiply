@@ -5,6 +5,8 @@ export type EurosparOffer = {
   id: string;
   title: string;
   price: number;
+  priceText: string;
+  comparisonUnit?: string | null;
   normalPrice?: number | null;
   normalPriceText?: string | null;
   normalPriceMin?: number | null;
@@ -43,7 +45,7 @@ type Feed = {
   offers?: FeedOffer[];
 };
 
-export const EUROSPAR_PROVIDER_VERSION = 7;
+export const EUROSPAR_PROVIDER_VERSION = 8;
 
 const norm = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("fi-FI");
 const normEurosparStore = (value: unknown) =>
@@ -99,12 +101,16 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
       id: String(raw.id ?? ""),
       title: String(raw.name ?? ""),
       price,
+      priceText: `${price.toFixed(2).replace(".", ",")} €${priceBasis === "per-kg" ? " / kg" : ""}`,
+      comparisonUnit: raw.unitPriceUnit ? String(raw.unitPriceUnit) : priceBasis === "per-kg" ? "kg" : null,
       normalPrice: normalRange.min === normalRange.max ? normalRange.min : null,
       normalPriceText: normalRange.text,
       normalPriceMin: normalRange.min,
       normalPriceMax: normalRange.max,
       unitPrice: unitRange.min === unitRange.max ? unitRange.min : null,
-      unitPriceText: unitRange.text,
+      unitPriceText: unitRange.text && raw.unitPriceUnit
+        ? `${unitRange.text} €/${String(raw.unitPriceUnit)}`
+        : priceBasis === "per-kg" ? `${price.toFixed(2).replace(".", ",")} €/kg` : null,
       unitPriceMin: unitRange.min,
       unitPriceMax: unitRange.max,
       unit: raw.unitPriceUnit ? String(raw.unitPriceUnit) : null,
