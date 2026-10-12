@@ -41,13 +41,13 @@ export const ZIIPLY_SYNONYM_GROUPS: ZiiplySynonymGroup[] = [
       "cola",
       "coca cola",
       "coca-cola",
-      "pepsi",
-      "pepsi max",
       "cola zero",
-      "virvoitusjuoma",
-      "limsa",
-      "limonadi",
     ],
+    categories: ["virvoitusjuomat", "juomat"],
+  },
+  {
+    canonical: "virvoitusjuoma",
+    terms: ["virvoitusjuoma", "virvoitusjuomat", "limsa", "limonadi", "limut", "limu"],
     categories: ["virvoitusjuomat", "juomat"],
   },
   {
@@ -156,7 +156,7 @@ export function getSynonymGroupForQuery(query: string): ZiiplySynonymGroup | nul
       const canonical = normalizeSearchText(group.canonical);
       const terms = group.terms.map(normalizeSearchText);
 
-      return canonical === q || terms.includes(q) || terms.some((term) => term.includes(q) || q.includes(term));
+      return canonical === q || terms.includes(q) || false;
     }) || null
   );
 }
