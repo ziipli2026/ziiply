@@ -195,7 +195,6 @@ test('42AV mixed Arla HTML heading is replaced by the printed heading without ch
   return {ok:true,status:200,url:response.url,text:async()=>response.body};
  });
  const arla=parsed.rows.filter(row=>row.page===15&&/LEMPI RUOKAKERMAT/i.test(row.title));
- console.log('42AV_ARLA_ASSERT_DIAGNOSTIC',JSON.stringify(arla.map(row=>({title:row.title,anchor:row.debugCardAnchor?.text,heading:row.debugRecoveredPublisherHeading,price:row.spatialResolved}))));
  assert.equal(arla.length,1,'Arla must appear exactly once');
  assert.equal(arla[0].title,'LEMPI RUOKAKERMAT 3 dl');
  assert.equal(arla[0].spatialResolved?.value,3);
@@ -234,6 +233,7 @@ test('42AV automatic full-leaflet audit reports title anomalies without guessing
  // Anomalies are diagnostic: fixing one must not cause this audit to fail.
  // The complete list remains visible in the test log for review.
  assert.ok(report.every(row=>Number.isInteger(row.page)&&row.title),'Audit rows retain page and title');
+ assert.ok(!report.some(row=>/SAPPISAIPPUA\s+519\b|6 TLK Arla 2 TLK 9\.\s*LEMPI/i.test(row.title)),'Corrected publisher headings must not regress');
  const byPage=Array.from({length:parsed.pageCount},(_,index)=>{
   const page=index+1;
   const pageRows=rows.filter(row=>Number(row.page)===page);
