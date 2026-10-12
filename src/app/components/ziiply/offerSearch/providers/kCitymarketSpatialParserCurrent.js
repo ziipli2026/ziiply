@@ -1417,6 +1417,33 @@ if(p===6){
   row.debugRecoveredPublisherHeading='PYYKINPESUNESTEET';
  }
 }
+// Prefer the actual publisher heading over HTML reading-order debris only when
+// a single matching printed card anchor is available. Prices stay untouched.
+if(/_42AV_KCM/i.test(l.url)){
+ for(const row of out.rows.filter(r=>r.page===p)){
+  const printed=String(row.debugCardAnchor?.text||'').trim();
+  if(!printed||!row.debugCardAnchor?.boxes?.length)continue;
+  const title=String(row.title||'');
+  const normalize=v=>v.toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,'');
+  if(!normalize(title).includes(normalize(printed)))continue;
+  // The publisher heading may omit package information found in basic HTML.
+  // Restrict recovery to clearly corrupted prefixes/suffixes; never remove
+  // quantity, unit, package or other meaningful product metadata.
+  const isDetached=/^[-−–]\\s*\\d{1,2}\\s*%\\s+/i.test(title)||/^\\d\\.\\s+/i.test(title);
+  const isMixed=/^\\d+\\s+(?:KPL|TLK|PKT|PS|PRK)\\s+.*\\d+\\s+(?:KPL|TLK|PKT|PS|PRK)\\s+\\d+\\.\\s+/i.test(title);
+  if(!isDetached&&!isMixed)continue;
+  if(isMixed){
+   // Require the printed heading to include its own package measurement.
+   if(!/\\b\\d+(?:[,.]\\d+)?\\s*(?:ml|cl|dl|l|g|kg)\\b/i.test(printed))continue;
+   row.title=printed;
+  }else{
+   // Existing title cleanup already removes simple prefixes in the provider.
+   // Keep package sizes and other trailing text until individually proven.
+   continue;
+  }
+  row.debugRecoveredPublisherHeading=printed;
+ }
+}
 if(/_42AV_KCM/i.test(l.url))out.rows=out.rows.map(row=>row.page===p?recover42AVPrintedCampaignRows([row],wordBoxes)[0]:row);
 for(let i=0;i<out.rows.length;i++)if(out.rows[i].page===p)out.rows[i]=restorePrintedPackageTitle(out.rows[i],wordBoxes);
 resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
