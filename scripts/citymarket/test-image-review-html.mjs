@@ -6,12 +6,14 @@ assert.equal(queue.totalOffers, queue.existingImages + queue.missingImages);
 assert.equal(queue.rows.length, queue.missingImages);
 const originalQueue = fs.existsSync("citymarket-image-review-queue.json") ? fs.readFileSync("citymarket-image-review-queue.json") : null;
 const originalHtml = fs.existsSync("citymarket-image-review.html") ? fs.readFileSync("citymarket-image-review.html") : null;
+const originalOffEan = fs.existsSync("citymarket-openfoodfacts-discovery.json") ? fs.readFileSync("citymarket-openfoodfacts-discovery.json") : null;
 const originalOff = fs.existsSync("citymarket-openfoodfacts-search.json") ? fs.readFileSync("citymarket-openfoodfacts-search.json") : null;
 const originalDiscovery = fs.existsSync("citymarket-image-discovery.json") ? fs.readFileSync("citymarket-image-discovery.json") : null;
 fs.writeFileSync("citymarket-image-review-queue.json", JSON.stringify(queue));
 const sample = queue.rows[0];
 assert.ok(sample?.offerId, "Review queue must contain an offer");
 fs.writeFileSync("citymarket-image-discovery.json", JSON.stringify({results:[{offerId:sample.offerId,page:"https://example.org/product",imageCandidates:["https://example.org/product-image.jpg"],identityEvidence:{eanPresentInHtml:true,structuredProductImageCount:1}}]}));
+fs.writeFileSync("citymarket-openfoodfacts-discovery.json",JSON.stringify({results:[]}));
 fs.writeFileSync("citymarket-openfoodfacts-search.json",JSON.stringify({results:[{offerId:sample.offerId,candidates:[{ean:"1234567890123",productName:"Testituote",imageCandidates:["https://example.org/openfoodfacts.jpg"]}]}]}));
 try {
   execFileSync(process.execPath, ["scripts/citymarket/build-image-review-html.mjs"], { stdio: "pipe" });
@@ -44,7 +46,7 @@ try {
   assert.ok(!html.includes("<img") || html.includes("Ei hyväksytty käyttöön"));
   console.log("Verified gallery controls, handlers, and " + queue.missingImages + " review cards.");
 } finally {
-  for(const [name,original] of [["citymarket-openfoodfacts-search.json",originalOff],["citymarket-image-review-queue.json",originalQueue],["citymarket-image-review.html",originalHtml],["citymarket-image-discovery.json",originalDiscovery]]){
+  for(const [name,original] of [["citymarket-openfoodfacts-discovery.json",originalOffEan],["citymarket-openfoodfacts-search.json",originalOff],["citymarket-image-review-queue.json",originalQueue],["citymarket-image-review.html",originalHtml],["citymarket-image-discovery.json",originalDiscovery]]){
     if(original===null)fs.rmSync(name,{force:true});
     else fs.writeFileSync(name,original);
   }
