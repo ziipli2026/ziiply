@@ -93,9 +93,11 @@ jobs:
           git add public/citymarket-leaflets src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json
           if ! git diff --cached --quiet; then
             git commit -m 'Refresh verified Citymarket publisher images'
-            git fetch origin main
-            git rebase origin/main
-            git push origin HEAD:main
+            target_branch="${GITHUB_REF_NAME}"
+            if [ "${GITHUB_EVENT_NAME}" = schedule ]; then target_branch=main; fi
+            git fetch origin "$target_branch"
+            git rebase "origin/$target_branch"
+            git push origin "HEAD:$target_branch"
           fi
       - uses: actions/upload-artifact@v4
         if: always() && steps.clock.outputs.run == 'true'
