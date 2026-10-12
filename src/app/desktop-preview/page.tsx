@@ -1007,7 +1007,7 @@ export default function DesktopPreviewPage() {
   useEffect(()=>()=>{justiinaSearchGeneration.current++;justiinaSearchAbort.current?.abort()},[workspace]);
   async function runDesktopJustiinaSearch(raw=justiinaQuery) {
     const originalQuery=String(raw||"").trim();
-    const query=/\d/.test(originalQuery)
+    const query=/^ranskikset$/i.test(originalQuery) ? "ranskanperunat" : /\d/.test(originalQuery)
       ? originalQuery.split(/(\s+)/).map(part=>/\d|^\s+$/.test(part)?part:correctSearchQuery(part)).join("")
       : correctSearchQuery(originalQuery);if(!query)return;
     const selected=Object.values(selectedStores) as any[];
