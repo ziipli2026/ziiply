@@ -721,7 +721,12 @@ function getOfferImage(offer: ZiiplyMobileOfferSearchItem) {
   // Publisher crop is the actual campaign image; later EAN enrichment must not replace it.
   const publisherImage = String(source.imageUrl || "").trim();
   if (publisherImage.includes("image-transformer-api.tjek.com/")) return publisherImage;
-  const explicit = String(offer.imageUrl || offer.pictureUrl || offer.image || source.imageUrl || "").trim();
+  const campaignImage = String(source.imageUrl || "").trim();
+  const packOffer = Number(source.offerQuantity) >= 2 && /(?:24-pack|\d+\s*[- ]?pack|\d+\s*(?:plo|pulloa|tölkkiä)|\b\d+\s*kpl\b)/i.test(String(source.additionalInfo || "") + " " + String(offer.title || offer.name || ""));
+  // A multi-pack campaign crop represents the entire offer. Never replace it
+  // with a single-unit EAN-bank/Kesko image during progressive enrichment.
+  if (packOffer) return /^https:\/\//i.test(campaignImage) ? campaignImage : "";
+  const explicit = String(offer.imageUrl || offer.pictureUrl || offer.image || campaignImage).trim();
   if (explicit) return explicit;
   if (String(offer.chain || source.chain || "").toUpperCase() === "K" && ean) {
     return `https://public.keskofiles.com/f/k-ruoka/product/${ean}`;
