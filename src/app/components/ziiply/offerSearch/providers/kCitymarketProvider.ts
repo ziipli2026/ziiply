@@ -496,7 +496,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // Limit to the 42AV archive until older leaflet regressions are verified.
     const rawTitle=clean(row?.title||"");
     const title=/_42AV_KCM/i.test(leafletUrl)
-      ? rawTitle.replace(/^[-−–]\\s*\\d{1,2}\\s*%\\s+(?=[A-ZÅÄÖ])/i,"").replace(/^\\d\\.\\s+(?=[A-ZÅÄÖ])/i,"")
+      ? rawTitle.replace(/^[-−–]\s*\d{1,2}\s*%\s+(?=[A-ZÅÄÖ])/i,"").replace(/^\d\.\s+(?=[A-ZÅÄÖ])/i,"")
       : rawTitle;
     if(!title || isNoiseLine(title)) continue;
 
