@@ -7,12 +7,10 @@
   "readOnly": true,
   "totalReviewed": 79,
   "summary": {
-    "approved-leaflet-image": 60,
+    "approved-leaflet-image": 62,
     "approved-bank-image": 12,
-    "no-compatible-candidate": 3,
-    "bank-image-is-webpage": 2,
-    "approved-manufacturer-image": 1,
-    "candidate-needs-leaflet-check": 1
+    "approved-manufacturer-image": 4,
+    "approved-retailer-image": 1
   },
   "notice": "Database image URL presence is not URL reachability or visual identity verification. EAN matches use previously recorded candidate EAN evidence. Name and size matches remain unapproved; brand, variant, multipack count and leaflet artwork must be checked. No matching candidate does not prove absence. Tokmanni weekly-offer webpage links are not image URLs.",
   "rows": [
@@ -347,24 +345,26 @@
     {
       "offerId": "kcm:spatial:6:suihkeet 600 ml,:5",
       "identity": "suihkeet 600 ml,",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-11.png"
     },
     {
       "offerId": "kcm:spatial:6:tiivisteet 1 l,:5",
       "identity": "tiivisteet 1 l,",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-12.png"
     },
     {
       "offerId": "kcm:spatial:6:wc-geelit 750 ml,:5",
       "identity": "wc-geelit 750 ml,",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-manufacturer-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -375,13 +375,14 @@
           "source": "tokmanni-viikkotarjoukset",
           "quantity": null
         }
-      ]
+      ],
+      "verifiedImageUrl": "https://kiiltokodinpuhdistus.fi/wp-content/uploads/2026/08/72F62F42Fa2F764ab1967877fa60f60e241fcf745329152d0629_57940_Kiilto_Hajusteeton_WC_geeli_750ml_1.png"
     },
     {
       "offerId": "kcm:spatial:6:ja käsitiski 500 ml:5",
       "identity": "ja käsitiski 500 ml",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-manufacturer-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -400,7 +401,8 @@
           "source": "tokmanni-viikkotarjoukset",
           "quantity": null
         }
-      ]
+      ],
+      "verifiedImageUrl": "https://kiiltokodinpuhdistus.fi/wp-content/uploads/2026/06/62Ff2F72F52F6f75cb1463d045a3845cbd3b9506dedf6417964580570_CWu8AGSwKRIAUeDOY0phVv_1.png"
     },
     {
       "offerId": "kcm:spatial:6:tahranpoistajat 940 g:7.59",
@@ -753,8 +755,8 @@
     {
       "offerId": "kcm:spatial:13:tai savusauna- palvirouhe 250–400 g (7,48–11,96/kg):2.99",
       "identity": "tai savusauna- palvirouhe 250–400 g (7,48–11,96/kg)",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-retailer-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -772,7 +774,8 @@
         "source": "approved-41LV-PDF",
         "page": 13,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "https://cdn.s-cloud.fi/v1/w720h720%40_q75/assets/dam-id/5Kjy7t4ca-8AB4NhfmE3yx.webp"
     },
     {
       "offerId": "kcm:spatial:13:tai punajuuri 2 kg:1.49",
@@ -1708,8 +1711,8 @@
     {
       "offerId": "kcm:spatial:17:jäätelöt 440 ml,:10",
       "identity": "jäätelöt 440 ml,",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-manufacturer-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "8721274813562",
@@ -1750,7 +1753,8 @@
         "source": "approved-41LV-PDF",
         "page": 17,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "https://assets.unileversolutions.com/v1/144478932.jpg?im=AspectCrop=(400,400);Resize=(400,400)"
     },
     {
       "offerId": "kcm:spatial:17:gold & green rouhe tai palat 180 g:2",

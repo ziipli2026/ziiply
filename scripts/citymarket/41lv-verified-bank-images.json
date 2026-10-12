@@ -1134,6 +1134,101 @@
       ],
       "assetSha256": "69cdf22c9ef251edd1112728f8bd374468b251be9c4fc65fd242e746c56e10a5",
       "verificationScope": "Exact packshot artwork from the original leaflet; this does not independently validate publisher caption quantities."
+    },
+    {
+      "offerId": "kcm:spatial:6:suihkeet 600 ml,:5",
+      "name": "suihkeet 600 ml,",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-11.png",
+      "page": 6,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        264,
+        240
+      ],
+      "assetSha256": "388399b575a655608b32ae6ca38a880afeff099fa55357c6139406dc2ff02065"
+    },
+    {
+      "offerId": "kcm:spatial:6:tiivisteet 1 l,:5",
+      "name": "tiivisteet 1 l,",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-12.png",
+      "page": 6,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        215
+      ],
+      "assetSha256": "6df951e7ed8c78eb494060fcedc34c87e60dd130066e1e8b2e60567bbadd809f"
+    },
+    {
+      "offerId": "kcm:spatial:6:wc-geelit 750 ml,:5",
+      "name": "Kiilto biohajoava WC-geeli Hajusteeton 750 ml",
+      "ean": "6417964579406",
+      "imageUrl": "https://kiiltokodinpuhdistus.fi/wp-content/uploads/2026/08/72F62F42Fa2F764ab1967877fa60f60e241fcf745329152d0629_57940_Kiilto_Hajusteeton_WC_geeli_750ml_1.png",
+      "page": 6,
+      "approved": true,
+      "leafletVisualMatch": false,
+      "printedIdentityVerified": true,
+      "sourceIdentityVerified": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "manufacturer",
+      "sourceUrl": "https://kiiltokodinpuhdistus.fi/tuote/kiilto-biohajoava-wc-geeli-hajusteeton/",
+      "representativeVariant": true,
+      "verificationScope": "Printed brand and product family plus exact declared pack size checked against product page and downloaded packshot. An eligible variant, not a claim that all variants were pictured in the leaflet."
+    },
+    {
+      "offerId": "kcm:spatial:6:ja käsitiski 500 ml:5",
+      "name": "Kiilto käsitiskiaine Saaristo 500 ml",
+      "ean": "6417964580570",
+      "imageUrl": "https://kiiltokodinpuhdistus.fi/wp-content/uploads/2026/06/62Ff2F72F52F6f75cb1463d045a3845cbd3b9506dedf6417964580570_CWu8AGSwKRIAUeDOY0phVv_1.png",
+      "page": 6,
+      "approved": true,
+      "leafletVisualMatch": false,
+      "printedIdentityVerified": true,
+      "sourceIdentityVerified": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "manufacturer",
+      "sourceUrl": "https://kiiltokodinpuhdistus.fi/tuote/kiilto-kasitiskiaine-saaristo/",
+      "representativeVariant": true,
+      "verificationScope": "Printed brand and product family plus exact declared pack size checked against product page and downloaded packshot. An eligible variant, not a claim that all variants were pictured in the leaflet."
+    },
+    {
+      "offerId": "kcm:spatial:13:tai savusauna- palvirouhe 250–400 g (7,48–11,96/kg):2.99",
+      "name": "Tamminen Savusaunapalvirouhe 250 g",
+      "ean": "6405244331004",
+      "imageUrl": "https://cdn.s-cloud.fi/v1/w720h720%40_q75/assets/dam-id/5Kjy7t4ca-8AB4NhfmE3yx.webp",
+      "page": 13,
+      "approved": true,
+      "leafletVisualMatch": false,
+      "printedIdentityVerified": true,
+      "sourceIdentityVerified": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "retailer-verified",
+      "sourceUrl": "https://www.s-kaupat.fi/tuote/tamminen-savusaunapalvirouhe-250g/6405244331004",
+      "representativeVariant": true,
+      "verificationScope": "Printed brand and product family plus exact declared pack size checked against product page and downloaded packshot. An eligible variant, not a claim that all variants were pictured in the leaflet."
+    },
+    {
+      "offerId": "kcm:spatial:17:jäätelöt 440 ml,:10",
+      "name": "Magnum Classic jäätelö 440 ml",
+      "ean": "8721274813562",
+      "imageUrl": "https://assets.unileversolutions.com/v1/144478932.jpg?im=AspectCrop=(400,400);Resize=(400,400)",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": false,
+      "printedIdentityVerified": true,
+      "sourceIdentityVerified": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "manufacturer",
+      "sourceUrl": "https://www.magnumicecream.com/de/p/magnum-crackables-becher-classic-440-ml.html/08721274813562",
+      "representativeVariant": true,
+      "verificationScope": "Printed brand and product family plus exact declared pack size checked against product page and downloaded packshot. An eligible variant, not a claim that all variants were pictured in the leaflet."
     }
   ]
 }

@@ -48,7 +48,7 @@ if (!entry) {
     }
     if (image.startsWith("https://")) {
       const proof = approvedBankById.get(key);
-      assert.ok(proof?.approved && proof.leafletVisualMatch && proof.imageFetchedAndViewed, "External image lacks visual approval");
+      assert.ok(proof?.approved && proof.imageFetchedAndViewed && (proof.leafletVisualMatch || (proof.printedIdentityVerified && proof.sourceIdentityVerified && proof.sourceUrl?.startsWith("https://"))), "External image lacks verified identity evidence");
       assert.equal(image, proof.imageUrl, "Bank image differs from reviewed URL");
       assert.match(proof.ean, /^\d{13}$/);
       assert.ok(keys.has(proof.offerId));

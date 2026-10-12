@@ -9,6 +9,13 @@ const originalHtml = fs.existsSync("citymarket-image-review.html") ? fs.readFile
 const originalOffEan = fs.existsSync("citymarket-openfoodfacts-discovery.json") ? fs.readFileSync("citymarket-openfoodfacts-discovery.json") : null;
 const originalOff = fs.existsSync("citymarket-openfoodfacts-search.json") ? fs.readFileSync("citymarket-openfoodfacts-search.json") : null;
 const originalDiscovery = fs.existsSync("citymarket-image-discovery.json") ? fs.readFileSync("citymarket-image-discovery.json") : null;
+// Keep exercising candidate isolation and escaping after coverage reaches 100%.
+if (queue.rows.length === 0) {
+  queue.rows.push({ offerId: "gallery-regression", page: 1, identity: "Gallery regression fixture", reviewPriority: "manual-single-product", imageSearchQuery: "gallery regression" });
+  queue.totalOffers = 1;
+  queue.existingImages = 0;
+  queue.missingImages = 1;
+}
 const sample = queue.rows[0];
 assert.ok(sample?.offerId, "Review queue must contain an offer");
 sample.bankCandidates = [{ ean: "9876543210123", name: "Pankkituote <test>", image: "https://example.org/bank-image.jpg" }];
