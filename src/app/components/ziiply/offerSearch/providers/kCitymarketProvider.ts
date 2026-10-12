@@ -490,7 +490,14 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const price=Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
-    const title=clean(row?.title||"");
+    // A printed discount badge or detached page/list numeral may precede the
+    // product heading in the flattened publisher text. Strip only these leading
+    // decorations; never change the price, quantity, package or unit metadata.
+    // Limit to the 42AV archive until older leaflet regressions are verified.
+    const rawTitle=clean(row?.title||"");
+    const title=/_42AV_KCM/i.test(leafletUrl)
+      ? rawTitle.replace(/^[-−–]\\s*\\d{1,2}\\s*%\\s+(?=[A-ZÅÄÖ])/i,"").replace(/^\\d\\.\\s+(?=[A-ZÅÄÖ])/i,"")
+      : rawTitle;
     if(!title || isNoiseLine(title)) continue;
 
     const normalMin=Number(row?.normal?.min);
