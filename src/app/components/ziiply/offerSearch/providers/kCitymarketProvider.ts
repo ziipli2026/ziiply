@@ -811,7 +811,9 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const imageSafe=corrected.map(offer=>{
     const multiPack=/\b(?:\d{1,2}\s*[- ]?pack|\d{1,2}\s*(?:plo|tölkkiä|pulloa))\b/i.test(offer.title);
     if(!multiPack || !offer.offerQuantity || offer.offerQuantity<2)return offer;
-    return {...offer,imageUrl:undefined,ean:undefined};
+    // Preserve a verified publication image of the complete pack. Only remove
+    // the EAN that could subsequently resolve to a single-unit product photo.
+    return {...offer,ean:undefined};
   });
   const enriched=visibleCitymarketDailyOffers(await enrichCitymarketFromEanBank(imageSafe));
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
