@@ -1004,7 +1004,8 @@ export default function DesktopPreviewPage() {
   function desktopCartKey(p:any){return String(p?.ean||p?.id||p?.offerId||p?.title||p?.name||"").trim()}
   function flashCartNotice(message:string){setCartNotice(message);window.setTimeout(()=>setCartNotice(current=>current===message?"":current),2200)}
   function addDesktopCartItem(p:any){
-    if(desktopScannerOpen && desktopPhysicalCollectionRef.current){p={...p,collected:true};}
+    if(desktopScannerOpen && desktopPhysicalCollectionRef.current && p?.__physicalScannerAdd===true){p={...p,collected:true};}
+    if(p?.__physicalScannerAdd!==undefined){const {__physicalScannerAdd,...clean}=p;p=clean;}
     const key=desktopCartKey(p);if(!key)return;
     if(p?.source==="justiina" && p?.__chain && justiinaQuery.trim())rememberSearchChoice(justiinaQuery,{...p,name:String(p.name||p.title||""),ean:p.ean==null?null:String(p.ean)},"added_to_cart");
     setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return isDesktopMemoItem(found)?current:current.map(x=>desktopCartKey(x)===key?{...x,collected:p.collected?true:Boolean(x.collected),quantity:p.collected&&!x.collected?Number(x.quantity||1):Number(x.quantity||1)+1}:x)}flashCartNotice(`Lisätty: ${p?.title||p?.name||"tuote"}`);return [...current,{...p,source:p?.source||"normal",quantity:1}]});
@@ -1114,9 +1115,11 @@ export default function DesktopPreviewPage() {
       setDesktopScannerLoading(false);
       setDesktopScannerFlash("idle");
       setDesktopScannerMessage("");
-      setDesktopScannerIncrement(true);
+      const firstCollection=collect && cartItems.some(item=>String(item.ean||item.product?.ean||"")===code&&!item.collected);
+      setDesktopScannerIncrement(!firstCollection);
+      if(firstCollection)setDesktopScannerMessage("✓ Kerätty");
       setCartItems(current=>current.map(item=>String(item.ean||item.product?.ean||"")===code?{...item,collected:collect?true:Boolean(item.collected),quantity:collect&&!item.collected?Number(item.quantity||1):Number(item.quantity||1)+1}:item));
-      desktopScannerIncrementTimer.current=setTimeout(()=>setDesktopScannerIncrement(false),900);
+      desktopScannerIncrementTimer.current=setTimeout(()=>{setDesktopScannerIncrement(false);setDesktopScannerMessage(current=>current==="✓ Kerätty"?"":current)},900);
       return;
     }
     setDesktopScannerIncrement(false);
@@ -1134,7 +1137,7 @@ export default function DesktopPreviewPage() {
       const knownName=String(bankProduct?.name||"").trim();
       // Known Neon EAN identity must never wait for chain price searches.
       if(knownName){
-        addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina"});
+        addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina",__physicalScannerAdd:physicalScan});
         setDesktopScannerLoading(false);
         setDesktopScannerMessage("TUOTE LISÄTTY");
         flashDesktopScanner("success");
@@ -1163,7 +1166,7 @@ export default function DesktopPreviewPage() {
         if(knownName){
           if(priceEur>0)setCartItems(current=>current.map(item=>String(item.ean||"")===code?{...item,price:priceEur,storeName:String(matched.__store||""),chain:matched.__chain}:item));
         }else{
-          addDesktopCartItem({id:code,ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:matched.__chain});
+          addDesktopCartItem({id:code,ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:matched.__chain,__physicalScannerAdd:physicalScan});
           setDesktopScannerMessage("TUOTE LISÄTTY");
           flashDesktopScanner("success");
         }
