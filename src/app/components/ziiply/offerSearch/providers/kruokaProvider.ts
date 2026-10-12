@@ -510,7 +510,7 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   const sourceDescription = String(offer.description ?? "").trim();
   // Only the offer-side comparison price is authoritative here. A normal
   // price after "Ilman Plussa-korttia" must never replace the offer price.
-  const offerDescription = sourceDescription.split(/ilman\s+plussa(?:-korttia)?/i)[0];
+  const offerDescription = sourceDescription.replace(/[\u00a0\u202f]/g, " ").split(/ilman\s+(?:aktivointia\s+ja\s+)?plussa(?:-korttia)?/i)[0];
   // Accept both "4,29 €/kg" and "4,29 €/ kg", including explicit ranges.
   // Never derive a comparison-price range from package sizes: source figures win.
   const comparison = offerDescription.match(/(?:^|[\s(])(\d+[,.]\d{1,2})(?:\s*[-–—]\s*(\d+[,.]\d{1,2}))?\s*(?:€\s*)?\/\s*(kg|l|kpl)(?=\s|[),.;]|$)/i);
@@ -580,7 +580,7 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
-    debug: { providerVersion: "V75_KLOCAL_PRICE_UNITS", publicationId, tjekStoreId: displayStoreId, chain, offerQuantity },
+    debug: { providerVersion: "V76_KLOCAL_PRICE_RANGE_DIAGNOSTIC", publicationId, tjekStoreId: displayStoreId, chain, offerQuantity },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
