@@ -540,9 +540,14 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   const soldByWeight = offerQuantity == null && category === "Hevi" && !hasPackSize &&
     comparison?.[3]?.toLowerCase() === "kg" && sourceMax == null &&
     sourceMin != null && Math.abs(sourceMin - effective) < 0.005;
+  // Shared K-offer presentation: preserve source prices and source descriptions.
+  // Weight-priced fish/meat and other loose goods must not lose their selling unit.
+  const explicitWeightPrice = offerQuantity == null && !hasPackSize &&
+    comparison?.[3]?.toLowerCase() === "kg" && sourceMax == null &&
+    sourceMin != null && Math.abs(sourceMin - effective) < 0.005;
   const effectivePriceText = offerQuantity != null
     ? `${priceText(effective)} € / ${offerQuantity} kpl`
-    : soldByWeight ? `${priceText(effective)} € / kg` : priceText(effective);
+    : (soldByWeight || explicitWeightPrice) ? `${priceText(effective)} € / kg` : priceText(effective);
   // Only explicit source campaign metadata may move an item to Gösta's
   // campaign tab. Plussa/app prices and multi-buy alone are still offers.
   const campaignMarker = [
