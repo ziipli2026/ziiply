@@ -547,8 +547,9 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   // Shared K-offer presentation: preserve source prices and source descriptions.
   // Weight-priced fish/meat and other loose goods must not lose their selling unit.
   const explicitWeightPrice = offerQuantity == null && !hasPackSize &&
-    comparison?.[3]?.toLowerCase() === "kg" && sourceMax == null &&
-    sourceMin != null && Math.abs(sourceMin - effective) < 0.005;
+    unit === "kg" && sourceMax == null &&
+    (sourceMin ?? num(offer.unitPrice)) != null &&
+    Math.abs((sourceMin ?? num(offer.unitPrice))! - effective) < 0.005;
   const effectivePriceText = offerQuantity != null
     ? `${priceText(effective)} € / ${offerQuantity} kpl`
     : (soldByWeight || explicitWeightPrice) ? `${priceText(effective)} € / kg` : priceText(effective);
