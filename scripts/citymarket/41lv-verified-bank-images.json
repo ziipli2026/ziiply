@@ -113,6 +113,153 @@
       "approved": true,
       "leafletVisualMatch": true,
       "imageFetchedAndViewed": true
+    },
+    {
+      "offerId": "kcm:spatial:17:vihannessekoitukset 300 g:5",
+      "name": "vihannessekoitukset 300 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-49.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        809,
+        786,
+        759
+      ],
+      "assetSha256": "62e43cc0fc6962d50a0f8bf752bcbace48e2546208b8e04b3419fae6674aa233"
+    },
+    {
+      "offerId": "kcm:spatial:17:gold & green rouhe tai palat 180 g:2",
+      "name": "gold & green rouhe tai palat 180 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-51.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        147,
+        1031
+      ],
+      "assetSha256": "6d7f6ead533efcd6fc0164978110e7a2c9059d7ebebd4fe1102b22c4d2d414f7"
+    },
+    {
+      "offerId": "kcm:spatial:17:fileekalapuikot 896 g:6",
+      "name": "fileekalapuikot 896 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-54.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        349
+      ],
+      "assetSha256": "7c6b13db3e110fa495f611bdba0432a3254864a3e4a063505631c0fca6b747b5"
+    },
+    {
+      "offerId": "kcm:spatial:17:tonnikalapaloja auringonkukkaöljyssä ja vedessä 145/95–102 g (19,61–21,05/kg):4",
+      "name": "tonnikalapaloja auringonkukkaöljyssä ja vedessä 145/95–102 g (19,61–21,05/kg)",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-55.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        294
+      ],
+      "assetSha256": "bc71b7973eda43883df9f687cb5c519e0f64a664f89bf55801cc674d96ff1ddb"
+    },
+    {
+      "offerId": "kcm:spatial:17:tomaattimurska 3 x 400 g:2.69",
+      "name": "tomaattimurska 3 x 400 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-56.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        447
+      ],
+      "assetSha256": "e0120213f3348ce0dbc24dd5e2b2f6922131007d9853d4369a352467ebdde343"
+    },
+    {
+      "offerId": "kcm:spatial:17:6. kanatuotteet 170–250 g:6.99",
+      "name": "6. kanatuotteet 170–250 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-57.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        192
+      ],
+      "assetSha256": "5dba42151ebe59702bcbf9baca036b82d7e5bc291e410bc04d9d27980bc58ce6"
+    },
+    {
+      "offerId": "kcm:spatial:17:fasupalat 175–199 g:3",
+      "name": "fasupalat 175–199 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-52.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        534,
+        395,
+        265
+      ],
+      "assetSha256": "c59280b2e890efada55bd2d7db2bb600292dd6311e6e777f316bf9a896e975e1"
+    },
+    {
+      "offerId": "kcm:spatial:17:pastat 500 g:3.5",
+      "name": "pastat 500 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-53.png",
+      "page": 17,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        839
+      ],
+      "assetSha256": "bf3b3c3883346e8f06ee2343b45c12486b4fd8bb1cc79fe8c8afd533d3cb3d16"
+    },
+    {
+      "offerId": "kcm:spatial:1:lotus nessu nenäliina 100 kpl valkoinen plussa-kortilla 4,00/2 pkt ilman plussa-korttia 2,19/pkt:percent:42",
+      "ean": "6413200995399",
+      "name": "Lotus Nessu nenäliina 100 kpl",
+      "imageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6413200995399",
+      "page": 1,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "bank"
+    },
+    {
+      "offerId": "kcm:spatial:15:ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l):1.5",
+      "ean": "7394376616037",
+      "name": "Oatly iKaffe maustamaton 1 l UHT, ei luomu",
+      "imageUrl": "https://assets.oatly.com/m/314660a423dfef17/w1800-WEB-61603-Oatly-iKaffe-Barista-Edition-Right-1L-Front.png",
+      "page": 15,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "manufacturer"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 
 const fixturePath = "tests/fixtures/citymarket/41LV.approved.json";
 const manifestPath = "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json";
@@ -17,7 +18,7 @@ if (!entry) {
   assert.equal(bankApproval.leafletSha256, fixture.pdfSha256, "Bank approval belongs to another leaflet");
   const approvedBankById = new Map(bankApproval.images.map(row => [row.offerId, row]));
   assert.equal(approvedBankById.size, bankApproval.images.length, "Duplicate bank approvals");
-  const localImageKeys = imageKeys.filter(key => publication.images[key].startsWith("/citymarket-leaflets/"));
+  const localImageKeys = imageKeys.filter(key => publication.images[key].includes("/images.svg#"));
   assert.equal(fixture.offers.length, fixture.offerCount);
   assert.equal(publication.offerCount, fixture.offerCount);
   assert.equal(keys.size, fixture.offerCount, "Duplicate fixture offer identifiers");
@@ -32,6 +33,19 @@ if (!entry) {
   assert.equal(fragmentIds.size, localImageKeys.length, "Unexpected or duplicate 41LV SVG view IDs");
   const usedFragments = new Set();
   for (const [key, image] of Object.entries(publication.images)) {
+    if (image.startsWith("/") && image.endsWith(".png")) {
+      const proof = approvedBankById.get(key);
+      assert.ok(proof?.approved && proof.leafletVisualMatch && proof.imageFetchedAndViewed, "Embedded image lacks visual approval");
+      assert.equal(proof.sourceType, "leaflet-embedded");
+      assert.equal(proof.sourcePdfSha256, fixture.pdfSha256);
+      assert.equal(image, proof.imageUrl);
+      assert.ok(image.startsWith("/citymarket-leaflets/" + fixture.pdfSha256 + "/"));
+      assert.ok(Array.isArray(proof.imageXrefs) && proof.imageXrefs.every(x => Number.isInteger(x) && x > 0));
+      const bytes = fs.readFileSync("public" + image);
+      assert.equal(bytes.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", "Not a PNG");
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), proof.assetSha256);
+      continue;
+    }
     if (image.startsWith("https://")) {
       const proof = approvedBankById.get(key);
       assert.ok(proof?.approved && proof.leafletVisualMatch && proof.imageFetchedAndViewed, "External image lacks visual approval");
@@ -85,7 +99,8 @@ if (!entry) {
     publicationUrl, approvedOffers: fixture.offerCount,
     existingImages: imageKeys.length, missingImages: uncovered.length,
     imageAssetVerified: true, verifiedImageFragments: localImageKeys.length,
-    verifiedBankImages: imageKeys.length - localImageKeys.length,
+    verifiedBankImages: imageKeys.filter(key => publication.images[key].startsWith("https://")).length,
+    verifiedEmbeddedImages: imageKeys.filter(key => publication.images[key].startsWith("/") && publication.images[key].endsWith(".png")).length,
     diagnosticOnly: true,
     reviewCandidates,
     reviewSummary: { pending: reviewCandidates.length, brandVerification: reviewCandidates.filter(row => row.status === "brand-unverified").length, multiProduct: reviewCandidates.filter(row => row.status === "multi-product-offer").length, approved: 0 },

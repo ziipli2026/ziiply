@@ -7,11 +7,12 @@
   "readOnly": true,
   "totalReviewed": 79,
   "summary": {
-    "candidate-needs-leaflet-check": 29,
-    "no-compatible-candidate": 29,
+    "candidate-needs-leaflet-check": 25,
+    "approved-bank-image": 12,
+    "no-compatible-candidate": 24,
     "bank-image-is-webpage": 9,
-    "approved-bank-image": 11,
-    "bank-image-wrong-package": 1
+    "approved-manufacturer-image": 1,
+    "approved-leaflet-image": 8
   },
   "notice": "Database image URL presence is not URL reachability or visual identity verification. EAN matches use previously recorded candidate EAN evidence. Name and size matches remain unapproved; brand, variant, multipack count and leaflet artwork must be checked. No matching candidate does not prove absence. Tokmanni weekly-offer webpage links are not image URLs.",
   "rows": [
@@ -115,8 +116,8 @@
     {
       "offerId": "kcm:spatial:1:lotus nessu nenäliina 100 kpl valkoinen plussa-kortilla 4,00/2 pkt ilman plussa-korttia 2,19/pkt:percent:42",
       "identity": "lotus nessu nenäliina 100 kpl valkoinen plussa-kortilla 4,00/2 pkt ilman plussa-korttia 2,19/pkt",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-bank-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6413200995399",
@@ -127,7 +128,8 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "https://public.keskofiles.com/f/k-ruoka/product/6413200995399"
     },
     {
       "offerId": "kcm:spatial:1:kananpojan fileepihvit 1 kg (7,99/kg):7.99",
@@ -1147,8 +1149,8 @@
     {
       "offerId": "kcm:spatial:15:ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l):1.5",
       "identity": "ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l)",
-      "status": "bank-image-wrong-package",
-      "approved": false,
+      "status": "approved-manufacturer-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -1232,7 +1234,8 @@
           "quantity": null,
           "rejectionReason": "Downloaded image shows 0.33 l, leaflet requires 1 l"
         }
-      ]
+      ],
+      "verifiedImageUrl": "https://assets.oatly.com/m/314660a423dfef17/w1800-WEB-61603-Oatly-iKaffe-Barista-Edition-Right-1L-Front.png"
     },
     {
       "offerId": "kcm:spatial:15:lempi ruokakermat 3 dl:3",
@@ -1662,10 +1665,11 @@
     {
       "offerId": "kcm:spatial:17:vihannessekoitukset 300 g:5",
       "identity": "vihannessekoitukset 300 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-49.png"
     },
     {
       "offerId": "kcm:spatial:17:jäätelöt 440 ml,:10",
@@ -1717,16 +1721,17 @@
     {
       "offerId": "kcm:spatial:17:gold & green rouhe tai palat 180 g:2",
       "identity": "gold & green rouhe tai palat 180 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-51.png"
     },
     {
       "offerId": "kcm:spatial:17:fasupalat 175–199 g:3",
       "identity": "fasupalat 175–199 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6416453077294",
@@ -1799,13 +1804,14 @@
         "source": "approved-41LV-PDF",
         "page": 17,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-52.png"
     },
     {
       "offerId": "kcm:spatial:17:pastat 500 g:3.5",
       "identity": "pastat 500 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "8004690052815",
@@ -2114,29 +2120,32 @@
         "source": "approved-41LV-PDF",
         "page": 17,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-53.png"
     },
     {
       "offerId": "kcm:spatial:17:fileekalapuikot 896 g:6",
       "identity": "fileekalapuikot 896 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-54.png"
     },
     {
       "offerId": "kcm:spatial:17:tonnikalapaloja auringonkukkaöljyssä ja vedessä 145/95–102 g (19,61–21,05/kg):4",
       "identity": "tonnikalapaloja auringonkukkaöljyssä ja vedessä 145/95–102 g (19,61–21,05/kg)",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-55.png"
     },
     {
       "offerId": "kcm:spatial:17:tomaattimurska 3 x 400 g:2.69",
       "identity": "tomaattimurska 3 x 400 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "8000320010118",
@@ -2155,15 +2164,17 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-56.png"
     },
     {
       "offerId": "kcm:spatial:17:6. kanatuotteet 170–250 g:6.99",
       "identity": "6. kanatuotteet 170–250 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-57.png"
     },
     {
       "offerId": "kcm:spatial:18:pohjoisen maut ateriat 8 kk 190 g:5",
