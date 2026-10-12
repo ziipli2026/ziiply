@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {parseKCitymarketSpatialLeaflet} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js';
-import {resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketDetachedPackage.js';
+import {resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketDetachedPackage.js';
 const archive=JSON.parse(fs.readFileSync(new URL('../src/app/components/ziiply/offerSearch/providers/data/kCitymarket42AVPublisherArchive.json',import.meta.url)));
 test('42AV prices and counted totals follow the original printed pages',async()=>{
  const visited=new Set();
@@ -18,6 +18,7 @@ test('42AV prices and counted totals follow the original printed pages',async()=
   [1,/^SUODATINKAHVIT 500 g$/,3.99,1,'PKT'],
   [4,/^HAMMASTAHNAT 75 ml/,12,3,'KPL'],
   [4,/^ROLL-ON ja SPRAY/,5.5,2,'KPL'],
+  [6,/^MICELLAR/,5,1,'KPL'],
   [6,/^WC-GEELIT 750 ml$/,4,2,'KPL'],
   [14,/^ISOT KUORELLISET KATKARAVUT/,6.95,1,'PS'],
   [15,/^TÄYSMEHUT 900 ml$/,3.79,1,'PL'],
@@ -25,6 +26,7 @@ test('42AV prices and counted totals follow the original printed pages',async()=
   [16,/^LEIPÄJUUSTO 140 g$/,1.99,1,'KPL'],
   [18,/^VIHREÄT TEET/,3.99,1,'PKT'],
   [18,/^VITAL HYVINVOINTIMEHUT 1 l$/,4.5,2,'TLK'],
+  [19,/^VICHY/,10.99,1,'PKT'],
   [20,/^SININEN SUKLAALEVY 180 g ja MAKU- ja TUMMASUKLAALEVYT/,10,4,'KPL'],
   [20,/^MAISSIKAKUT 130 g$/,4,2,null],
   [20,/^KETSUPPI 1350 g$/,3.99,1,'KPL'],
@@ -37,6 +39,7 @@ test('42AV prices and counted totals follow the original printed pages',async()=
  }
  const bun=parsed.rows.find(r=>r.title==='KORVAPUUSTI 6/360 g');
  assert.equal(bun.spatialResolved.value,2.99);assert.equal(bun.unitPrice.min,8.31);
+ const vichy=parsed.rows.find(r=>r.title.startsWith('VICHY'));assert.equal(vichy.package.min,7.92);assert.equal(vichy.spatialResolved.depositTotal,2.4);
  const ketchup=parsed.rows.find(r=>r.title==='KETSUPPI 1350 g');assert.equal(ketchup.package.min,1.35);
  assert.equal(parsed.rows.find(r=>r.title==='KIRJOLOHI').unitPrice.min,6.99);
 });
@@ -68,4 +71,15 @@ test('Sachet packet recovery needs its own PKT glyph and matching physical mass 
  assert.equal(resolvePrintedSachetPacket({...row,unitPrice:{min:10,max:20}},boxes),null);
  assert.equal(resolvePrintedSachetPacket(row,boxes.map(x=>({...x,left:x.left+.4}))),null);
  assert.equal(resolvePrintedSachetPacket({...row,spatialResolved:{value:5}},boxes),null);
+});
+
+test('Single reference recovery requires its own unit, whole-price dash and lower sale price',()=>{
+ const row={title:'MICELLAR 400 ml ja SORBET PÄIVÄVOITEET',debugCardAnchor:{left:.035,top:.88}};
+ const boxes=[b('5',.256,.866,.021,.048),b('-',.278,.864,.017,.048),b('KPL',.281,.879,.016,.011)];
+ const ref={min:6.65,max:6.99,unit:'KPL'};
+ assert.equal(resolvePrintedSingleWithReference(row,boxes,ref).value,5);
+ assert.equal(resolvePrintedSingleWithReference(row,boxes.filter(x=>x.text!=='-'),ref),null);
+ assert.equal(resolvePrintedSingleWithReference(row,boxes,{...ref,unit:'PKT'}),null);
+ assert.equal(resolvePrintedSingleWithReference(row,boxes,{...ref,min:4}),null);
+ assert.equal(resolvePrintedSingleWithReference(row,boxes,null),null);
 });

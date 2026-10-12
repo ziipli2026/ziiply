@@ -1,4 +1,4 @@
-import {reattachDetachedPackage,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket} from './kCitymarketDetachedPackage.js';
+import {reattachDetachedPackage,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
 import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy} from './kCitymarketProductRows.js';
 import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
@@ -389,7 +389,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V156-KCITYMARKET-SACHET-PACKETS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V157-KCITYMARKET-REFERENCES-AND-DEPOSITS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1398,6 +1398,8 @@ out.rows.push(...recoverWrappedPercentageCards(wordBoxes,p,out.rows.filter(r=>r.
 for(const row of out.rows.filter(r=>r.page===p)){
  const proof=ownedPrintedNormalPrice(row,wordBoxes,out.rows.filter(r=>r.page===p));
  if(proof&&row.normal)row.debugOwnedNormalPrice=proof;
+ const single=resolvePrintedSingleWithReference(row,wordBoxes,proof);
+ if(single)row.debugPrintedSingleWithReference=single;
  const counted=resolvePrintedCountedTransaction(row,wordBoxes);
  if(counted)row.debugCountedPrintedTransaction=counted;
  const sachet=resolvePrintedSachetPacket(row,wordBoxes);
@@ -1534,6 +1536,7 @@ out.rows=out.rows.map(row=>row.debugCorroboratedPrintedPrice&&
 out.rows=out.rows.map(row=>row.debugCountedPrintedTransaction&&
  (!row.spatialResolved||Math.abs(row.debugCountedPrintedTransaction.value-row.spatialResolved.value)>.011||(row.spatialResolved.quantity||1)!==row.debugCountedPrintedTransaction.quantity)
  ?{...row,spatialResolved:row.debugCountedPrintedTransaction,percentageOffer:null}:row);
+out.rows=out.rows.map(row=>row.debugPrintedSingleWithReference&&!row.spatialResolved?{...row,spatialResolved:row.debugPrintedSingleWithReference,percentageOffer:null}:row);
 out.rows=out.rows.map(row=>row.debugPrintedSachetPacket?{...row,package:row.debugPrintedSachetPacket.package,spatialResolved:row.debugPrintedSachetPacket.price,percentageOffer:null}:row);
 out.rows=out.rows.map(row=>row.debugWeightPrintedTransaction?{...row,spatialResolved:row.debugWeightPrintedTransaction,
  unitPrice:{min:row.debugWeightPrintedTransaction.value,max:row.debugWeightPrintedTransaction.value,raw:'printed/kg'},percentageOffer:null}:row);

@@ -124,3 +124,16 @@ export function resolvePrintedSachetPacket(row, boxes) {
  const unique=[...new Map(proofs.map(p=>[p.value,p])).values()];
  return unique.length===1?{price:unique[0],package:{min:countMin*massMin,max:countMax*massMax,raw:m[0],innerCountMin:countMin,innerCountMax:countMax}}:null;
 }
+
+export function resolvePrintedSingleWithReference(row, boxes, reference) {
+ if(row.spatialResolved||!reference||/\bps\//i.test(String(row.title||'')))return null;
+ const a=row.debugCardAnchor;
+ const recovered=resolveRecoveredPrintedPrice(row,boxes).debugRecoveredPrintedPrice;
+ if(!a||!recovered||recovered.unit!==reference.unit||recovered.value>=reference.min)return null;
+ // Whole-euro prices need their own printed dash; absence of cents alone is insufficient.
+ const euros=boxes.filter(b=>String(b.text)===String(recovered.value)&&b.height>=.045&&b.height<.06&&
+  b.left>a.left+.10&&b.left<a.left+.26&&Math.abs(b.top-a.top)<.035);
+ if(Number.isInteger(recovered.value)&&!euros.some(e=>boxes.some(b=>/^[-–]$/.test(b.text)&&b.height>=.04&&
+  Math.abs(b.left-e.left-e.width)<.006&&Math.abs(b.top-e.top)<.004)))return null;
+ return {...recovered,source:'owned-printed-single-with-reference-label'};
+}

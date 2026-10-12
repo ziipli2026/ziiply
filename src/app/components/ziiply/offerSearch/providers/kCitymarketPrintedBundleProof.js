@@ -269,8 +269,9 @@ export function verifiedMissingCents(row) {
 
 export function verifiedDepositPack(row) {
   const pk=row.package,rate=row.unitPrice,anchor=row.debugAnchor;
-  if(!pk||!rate||!anchor||pk.min!==pk.max||!row.spatialResolved)return null;
+  if(!pk||!rate||!anchor||pk.min!==pk.max)return null;
   const count=Number(String(row.title).match(/\b(\d{1,2})-pack\b/i)?.[1]||1);
+  if(count===1&&!row.spatialResolved)return null;
   const deposits=[...new Set((row.nearby||[]).flatMap(t=>
     [...t.matchAll(/Sis\.?\s*pant(?:it|in)\s+(\d+)[, .](\d{2})/gi)].map(m=>Number(m[1]+'.'+m[2]))))];
   if(deposits.length!==1)return null;
