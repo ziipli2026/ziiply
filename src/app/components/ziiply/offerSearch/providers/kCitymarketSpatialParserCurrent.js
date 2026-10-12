@@ -4,6 +4,35 @@ import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedM
 // Publisher coordinates, rather than PDF reading order, define price ownership.
 const norm=s=>String(s).toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"");
 const distance=(a,b)=>Math.hypot((a.left-b.left)*1.5,(a.top-b.top)*2);
+// Normal prices need their own same-column label; broad HTML context can
+// contain another product's price even when the offer total is proven.
+export function ownedPrintedNormalPrice(row, rawBoxes, pageRows=[]) {
+ const anchor=row.imageAnchor||row.debugCardAnchor;
+ if(!anchor)return null;
+ const boxes=[...new Map(rawBoxes.map(b=>[`${b.text}:${b.left}:${b.top}:${b.width}:${b.height}`,b])).values()];
+ const columnTolerance=anchor.height<.012?.045:.018;
+ const labels=boxes.filter(b=>/^Ilman$/i.test(b.text)&&
+  Math.abs(b.left-anchor.left)<columnTolerance&&b.top>=anchor.top-.003&&b.top-anchor.top<.14);
+ const proofs=[];
+ for(const label of labels){
+  // A following title in this column owns its own reference price.
+  if(pageRows.some(other=>other!==row&&other.imageAnchor&&
+   Math.abs(other.imageAnchor.left-anchor.left)<.018&&
+   other.imageAnchor.top>anchor.top+.006&&other.imageAnchor.top<label.top-.003))continue;
+  let line=boxes.filter(b=>Math.abs(b.top-label.top)<.002&&
+   b.height<.016&&b.left>=label.left-.001&&b.left<label.left+.30);
+  // Prefer a complete numeric fragment over characters duplicated inside it.
+  line=line.filter(b=>!/^\d+$/.test(b.text)||!line.some(c=>c!==b&&
+   c.width>b.width+.001&&Math.abs(c.height-b.height)<.002&&
+   c.left<=b.left+.001&&c.left+c.width>=b.left+b.width-.001));
+  const text=line.sort((a,b)=>a.left-b.left).map(b=>b.text).join(' ')
+   .replace(/(\d+)\s+(\d{2})(?=[–-]|\/(?:kpl|pkt|ps|rs|tlk|pl|prk)\b)/gi,'$1,$2');
+  const match=text.match(/Ilman\s+Plussa-korttia\s+(\d+[,.]\d{2})(?:[–-](\d+[,.]\d{2}))?\/(kpl|pkt|ps|rs|tlk|pl|prk)\b/i);
+  if(match)proofs.push({min:Number(match[1].replace(',','.')),max:Number((match[2]||match[1]).replace(',','.')),unit:match[3].toUpperCase(),text,left:label.left,top:label.top});
+ }
+ const unique=[...new Map(proofs.map(p=>[`${p.min}:${p.max}:${p.unit}`,p])).values()];
+ return unique.length===1?unique[0]:null;
+}
 function resolveCards(rows,rawBoxes){
  let boxes=[...new Map(rawBoxes.map(b=>[`${b.text}:${b.left}:${b.top}:${b.width}:${b.height}`,b])).values()];
  // The publisher emits character fragments as well as complete words.
@@ -322,7 +351,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V152-KCITYMARKET-DETACHED-PACKAGE-HEADLINES",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V153-KCITYMARKET-OWNED-NORMAL-PRICES",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1327,6 +1356,10 @@ for(let ri=0;ri<out.rows.length;ri++){
  if(recovered)out.rows[ri]=resolveRecoveredPrintedPrice(row,wordBoxes);
 }
 out.rows.push(...recoverWrappedPercentageCards(wordBoxes,p,out.rows.filter(r=>r.page===p)));
+for(const row of out.rows.filter(r=>r.page===p)){
+ const proof=ownedPrintedNormalPrice(row,wordBoxes,out.rows.filter(r=>r.page===p));
+ if(proof&&row.normal)row.debugOwnedNormalPrice=proof;
+}
 // Preserve multi-buy quantities independently verified by the product's own
 // unit-price arithmetic, without hardcoding any product or offer amount.
 for(const row of out.rows.filter(r=>r.page===p)){
@@ -1436,8 +1469,10 @@ out.rows=out.rows.map(rejectUnownedMixedSetPercentage).map(resolveAlignedStandal
  return {...row,title:proof.title,percentageOffer:null,spatialResolved:{value:proof.price,quantity:proof.offerQuantity,unit:proof.offerUnit,source:proof.resolutionSource,sanity:'pass',confidence:'high'}};
 });
 out.rows=out.rows.map(row=>row.debugRecoveredPrintedPrice?{...row,spatialResolved:row.debugRecoveredPrintedPrice,percentageOffer:null}:row);
+out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
 return out;
 }
 
 export default parseKCitymarketSpatialLeaflet;
+
 
