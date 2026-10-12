@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.9",
+  "version": "2026-10-12.10",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -653,6 +653,18 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "kuivatuotteet-ja-leivonta/jalkiruoat/jalkiruokakastikkeet",
+      "sample_product_count": 1,
+      "category_id": "dessert_sauce"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kuivatuotteet-ja-leivonta/leivontatarvikkeet/perustuotteet-leivontaan",
+      "sample_product_count": 1,
+      "category_id": "baking_ingredients"
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "leivat-keksit-ja-leivonnaiset/leivat/tummat-leivat",
       "sample_product_count": 4,
       "category_id": "bread"
@@ -767,6 +779,13 @@
     },
     {
       "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/viipaleet",
+      "sample_product_count": 16,
+      "category_id": "cheese",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
       "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
       "sample_product_count": 6,
       "category_id": "milk"
@@ -806,6 +825,18 @@
       "source_category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
       "sample_product_count": 6,
       "category_id": "pudding"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "sample_product_count": 19,
+      "category_id": "butter_blend"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/rasvat-leivontaan-ja-ruoanlaittoon",
+      "sample_product_count": 1,
+      "category_id": "butter_blend"
     },
     {
       "source": "ruoanhinta-k",
@@ -1307,8 +1338,20 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAAAOACAMAAAA",
+      "sample_product_count": 3,
+      "category_id": "processed_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAAAOAEAAAAAA",
       "sample_product_count": 2,
+      "category_id": "cream_cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAOAEAAACAA",
+      "sample_product_count": 8,
       "category_id": "cream_cheese"
     },
     {
@@ -1907,6 +1950,24 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAAAA",
+      "sample_product_count": 3,
+      "category_id": "baking_ingredients"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAAAI",
+      "sample_product_count": 1,
+      "category_id": "baking_ingredients"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAAAK",
+      "sample_product_count": 1,
+      "category_id": "condensed_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABIAAAAAAAA",
       "sample_product_count": 5,
       "category_id": "coffee"
@@ -2453,6 +2514,30 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/muut-kalatuotteet/mati",
+      "sample_product_count": 2,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kala-ja-merenelavat/savu--ja-graavikala/muut-savu--ja-graavikalat",
+      "sample_product_count": 1,
+      "category_id": "fish"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "karkit-suklaat-ja-keksit/suklaalevyt/maitosuklaalevyt",
       "sample_product_count": 9,
       "category_id": "chocolate"
@@ -2681,6 +2766,12 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "sample_product_count": 2,
+      "category_id": "butter_blend"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/cheddar",
       "sample_product_count": 2,
       "category_id": "cheese"
@@ -2714,6 +2805,12 @@
       "source_category": "maito-munat-ja-rasvat/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot",
       "sample_product_count": 2,
       "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-munat-ja-rasvat/rahkat-vanukkaat-ja-jalkiruoka/maustamattomat-rahkat",
+      "sample_product_count": 1,
+      "category_id": "quark"
     },
     {
       "source": "ruoanhinta-s",
@@ -3371,6 +3468,24 @@
       "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
       "sample_product_count": 1,
       "category_id": "plant_drink"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maitopohjaiset proteiinijauheet",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maitopohjaiset proteiinijauheet;;sportlife jauheet",
+      "sample_product_count": 11,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "maitopohjaiset proteiinijauheet;;terveys ja hyvinvointi",
+      "sample_product_count": 1,
+      "category_id": "supplements"
     },
     {
       "source": "tokmanni-viikkotarjoukset",

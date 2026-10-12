@@ -2,6 +2,12 @@
 import type { SearchIntent } from "../ziiplyCore";
 export const CATEGORY_REGISTRY_VERSION = "2026-10-12.1";
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {"category": "fish", "label": "Kalat ja mädit", "variants": ["kala", "lohi", "kirjolohi", "graavilohi", "kylmäsavulohi", "savulohi", "mäti"], "requiredAny": ["kala", "lohi", "mäti"], "bannedAny": ["keitto", "salaatti", "liemikuutio", "kalanruoka"]},
+  {"category": "processed_cheese", "label": "Sulatejuustot", "variants": ["sulatejuusto", "koskenlaskija"], "requiredAny": ["sulatejuusto", "sulateviipale", "koskenlaskija"], "bannedAny": ["kastike"]},
+  {"category": "butter_blend", "label": "Voita sisältävät rasvaseokset", "variants": ["rasvaseos", "oivariini", "ingmariini", "sipaisu"], "requiredAny": ["rasvaseos", "oivariini", "ingmariini", "sipaisu"], "bannedAny": []},
+  {"category": "baking_ingredients", "label": "Leivonta-ainekset", "variants": ["leivonta-aines", "kuivahiiva", "leivinjauhe", "ruokasooda", "rommiaromi", "vaniljatanko"], "requiredAny": ["hiiva", "leivinjauhe", "ruokasooda", "aromi", "vaniljatanko"], "bannedAny": []},
+  {"category": "condensed_milk", "label": "Kondensoidut maidot", "variants": ["kondensoitu maito"], "requiredAny": ["kondensoitu maito"], "bannedAny": []},
+  {"category": "dessert_sauce", "label": "Jälkiruokakastikkeet", "variants": ["jälkiruokakastike", "suklaakastike", "kinuskikastike"], "requiredAny": ["suklaakastike", "kinuskikastike", "jälkiruokakastike"], "bannedAny": ["jäätelö"]},
   {"category": "ready_meal", "label": "Valmisateriat", "variants": ["valmisateria", "mikroateria", "pyttipannu", "lasagne", "kiusaus"], "requiredAny": ["ateria", "pyttipannu", "lasagne", "kiusaus", "stroganoff"], "bannedAny": []},
   {"category": "prepared_salad", "label": "Valmissalaatit", "variants": ["valmissalaatti", "italiansalaatti", "coleslaw", "punajuurisalaatti"], "requiredAny": ["salaatti", "coleslaw"], "bannedAny": []},
   {"category": "ready_sandwich", "label": "Täytetyt leivät ja hampurilaiset", "variants": ["panini", "sandwich", "wrap", "hampurilainen", "hot dog"], "requiredAny": ["panini", "sandwich", "wrap", "hampurilainen", "hot dog", "burgeri"], "bannedAny": ["sämpylä", "sampyla", "kastike"]},
@@ -29,7 +35,7 @@ export const SEARCH_INTENTS: SearchIntent[] = [
   {"category": "ice_cream", "label": "Jäätelöt", "variants": ["jäätelö", "jaatelo", "mehujää", "limonadijää"], "requiredAny": ["jäätelö", "mehujää", "limonadijää"], "bannedAny": ["hiusharja", "lelu", "voide"], "parentCategory": "frozen"},
   {"category": "frozen_vegetables", "label": "Kasvispakasteet", "variants": ["pakastevihannekset", "pakastekasvikset", "kasvispakaste", "pakasteherneet"], "requiredAny": ["pakaste", "vihannes", "kasvis", "herne", "maissi"], "bannedAny": [], "parentCategory": "frozen"},
   {"category": "frozen_fruit", "label": "Hedelmä- ja marjapakasteet", "variants": ["pakastemarjat", "marjapakaste", "pakastehedelmät"], "requiredAny": ["pakaste", "marja", "mansikka", "mustikka", "vadelma"], "bannedAny": [], "parentCategory": "frozen"},
-  {"category": "frozen_fish", "label": "Kala- ja äyriäispakasteet", "variants": ["pakastekala", "kalapakaste", "pakastekatkarapu"], "requiredAny": ["pakaste", "kala", "lohi", "katkarapu", "mäti"], "bannedAny": [], "parentCategory": "frozen"},
+  {"category": "frozen_fish", "label": "Kala- ja äyriäispakasteet", "variants": ["pakastekala", "kalapakaste", "pakastekatkarapu"], "requiredAny": ["pakaste", "kala", "lohi", "katkarapu", "mäti"], "bannedAny": [], "parentCategory": "frozen", "parentCategories": ["frozen", "fish"]},
   {"category": "frozen_dough", "label": "Taikinapakasteet", "variants": ["pakastetaikina", "taikinapakaste", "voitaikina", "pizzataikina"], "requiredAny": ["taikina"], "bannedAny": [], "parentCategory": "frozen"},
   {"category": "soup", "label": "Keitot", "variants": ["keitto", "hernekeitto", "tomaattikeitto", "kanakeitto"], "requiredAny": ["keitto", "soup"], "bannedAny": ["liemikuutio", "keittojuures"]},
   {"category": "cooking_sauce", "label": "Ruokakastikkeet", "variants": ["ruokakastike", "ruskeakastike", "bearnaisekastike", "hollandaise", "currykastike", "pippurikastike"], "requiredAny": ["kastike", "sauce", "hollandaise"], "bannedAny": ["sipsi", "chips"]},

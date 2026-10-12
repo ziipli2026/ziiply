@@ -41,11 +41,14 @@ for (const row of reviewedMappings) {
 // A parent query accepts its descendants; a child query remains specific.
 export function isReviewedCategoryCompatible(query: SearchIntentCategory, product: SearchIntentCategory): boolean {
   const seen = new Set<SearchIntentCategory>();
-  let current: SearchIntentCategory | undefined = product;
-  while (current && !seen.has(current)) {
+  const pending: SearchIntentCategory[] = [product];
+  while (pending.length) {
+    const current = pending.pop()!;
     if (current === query) return true;
+    if (seen.has(current)) continue;
     seen.add(current);
-    current = SEARCH_INTENTS.find(rule => rule.category === current)?.parentCategory;
+    const rule = SEARCH_INTENTS.find(rule => rule.category === current);
+    pending.push(...(rule?.parentCategories || (rule?.parentCategory ? [rule.parentCategory] : [])));
   }
   return false;
 }

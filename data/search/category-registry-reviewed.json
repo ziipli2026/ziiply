@@ -1,8 +1,113 @@
 {
-  "version": "2026-10-12.9",
+  "version": "2026-10-12.10",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "rules": [
+    {
+      "category": "fish",
+      "label": "Kalat ja mädit",
+      "variants": [
+        "kala",
+        "lohi",
+        "kirjolohi",
+        "graavilohi",
+        "kylmäsavulohi",
+        "savulohi",
+        "mäti"
+      ],
+      "requiredAny": [
+        "kala",
+        "lohi",
+        "mäti"
+      ],
+      "bannedAny": [
+        "keitto",
+        "salaatti",
+        "liemikuutio",
+        "kalanruoka"
+      ]
+    },
+    {
+      "category": "processed_cheese",
+      "label": "Sulatejuustot",
+      "variants": [
+        "sulatejuusto",
+        "koskenlaskija"
+      ],
+      "requiredAny": [
+        "sulatejuusto",
+        "sulateviipale",
+        "koskenlaskija"
+      ],
+      "bannedAny": [
+        "kastike"
+      ]
+    },
+    {
+      "category": "butter_blend",
+      "label": "Voita sisältävät rasvaseokset",
+      "variants": [
+        "rasvaseos",
+        "oivariini",
+        "ingmariini",
+        "sipaisu"
+      ],
+      "requiredAny": [
+        "rasvaseos",
+        "oivariini",
+        "ingmariini",
+        "sipaisu"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "baking_ingredients",
+      "label": "Leivonta-ainekset",
+      "variants": [
+        "leivonta-aines",
+        "kuivahiiva",
+        "leivinjauhe",
+        "ruokasooda",
+        "rommiaromi",
+        "vaniljatanko"
+      ],
+      "requiredAny": [
+        "hiiva",
+        "leivinjauhe",
+        "ruokasooda",
+        "aromi",
+        "vaniljatanko"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "condensed_milk",
+      "label": "Kondensoidut maidot",
+      "variants": [
+        "kondensoitu maito"
+      ],
+      "requiredAny": [
+        "kondensoitu maito"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "dessert_sauce",
+      "label": "Jälkiruokakastikkeet",
+      "variants": [
+        "jälkiruokakastike",
+        "suklaakastike",
+        "kinuskikastike"
+      ],
+      "requiredAny": [
+        "suklaakastike",
+        "kinuskikastike",
+        "jälkiruokakastike"
+      ],
+      "bannedAny": [
+        "jäätelö"
+      ]
+    },
     {
       "category": "ready_meal",
       "label": "Valmisateriat",
@@ -521,7 +626,11 @@
         "mäti"
       ],
       "bannedAny": [],
-      "parentCategory": "frozen"
+      "parentCategory": "frozen",
+      "parentCategories": [
+        "frozen",
+        "fish"
+      ]
     },
     {
       "category": "frozen_dough",

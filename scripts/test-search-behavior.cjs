@@ -35,6 +35,8 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["kala", "fish"],["sulatejuusto", "processed_cheese"],["rasvaseos", "butter_blend"],["leivonta-aines", "baking_ingredients"],["kondensoitu maito", "condensed_milk"],["jälkiruokakastike", "dessert_sauce"],
+
 ["valmisateria", "ready_meal"],["valmissalaatti", "prepared_salad"],["panini", "ready_sandwich"],["ohukainen", "pancakes"],["olut", "beer"],["siideri", "cider"],["lonkero", "long_drink"],["energiajuoma", "energy_drink"],["kahvijuoma", "coffee_drink"],["virvoitusjuoma", "soft_drink"],["lähdevesi", "water"],["mehukeitto", "fruit_soup"],["smoothie", "smoothie"],
 ["kauramaito","plant_drink"],
 
@@ -203,6 +205,11 @@ rankingCases.push({query:"kana",products:[makeProduct(1605,"Hetki kermainen kana
 assert.equal(core.isExplicitlyExcludedSearchProduct("virvoitusjuoma",makeProduct(1607,"Coop Cola 1,5l","CAAAYAKACAAAA")),false);
 
 assert.equal(core.isExplicitlyExcludedSearchProduct("kahvijuoma",makeProduct(1701,"Frezza maitokahvijuoma 250ml","Kahvi")),false,"A source-specific Kahvi mapping must not exclude other providers' coffee drinks");
+rankingCases.push({query:"maito",products:[makeProduct(1801,"Dogan Kondensoitu maito 300g","CAABGBAAOAAAK"),makeProduct(1802,"Kotimaista kevytmaito 1 L","CAAAMAAAAAEAA")],first:1802,excluded:[1801]});
+rankingCases.push({query:"voi",products:[makeProduct(1803,"Valio Oivariini rasvaseos 400g","maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet"),makeProduct(1804,"Valio voi 500g","maito-juusto-munat-ja-rasvat/rasvat/voit")],first:1804,excluded:[1803]});
+assert.equal(core.isExplicitlyExcludedSearchProduct("kala",makeProduct(1805,"Rainbow lohifilee 250g pakaste","CAABQAIACAAAA")),false);
+assert.equal(core.isExplicitlyExcludedSearchProduct("pakaste",makeProduct(1806,"Rainbow lohifilee 250g pakaste","CAABQAIACAAAA")),false);
+
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));

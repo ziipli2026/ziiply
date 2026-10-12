@@ -200,6 +200,12 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "fish"
+  | "processed_cheese"
+  | "butter_blend"
+  | "baking_ingredients"
+  | "condensed_milk"
+  | "dessert_sauce"
   | "ready_meal"
   | "prepared_salad"
   | "ready_sandwich"
@@ -304,6 +310,7 @@ export type SearchIntentCategory =
 export type SearchIntent = {
   category: SearchIntentCategory;
   parentCategory?: SearchIntentCategory;
+  parentCategories?: SearchIntentCategory[];
   label: string;
   variants: string[];
   requiredAny?: string[];
