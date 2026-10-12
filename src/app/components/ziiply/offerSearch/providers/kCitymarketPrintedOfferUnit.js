@@ -2,7 +2,7 @@
 // Neither the price nor the purchase count is inferred or changed here.
 export function printedOfferUnit(row) {
   const resolved = row?.spatialResolved;
-  if (resolved?.unit) return resolved.unit;
+  if (resolved?.unit) return String(resolved.unit).toUpperCase();
   const anchor = row?.debugCardAnchor;
   if (!resolved || !anchor) return null;
   const boxes = row.debugNearbyBoxes || [];
