@@ -12,6 +12,10 @@ test('42AV recovered product titles retain specific product-form categories',()=
   ['INKOSUOJAT ja PIKKUHOUSUNSUOJAT 6–34 kpl','Hygienia & kosmetiikka'],
   ['SUUVESI 500 ml','Hygienia & kosmetiikka'],
   ['SAPPISAIPPUA 500 ml','Kodinhoito'],
+  ['Suomen Aarre tai Inkan Aarre LAUTAPELI','Koti & vapaa-aika'],
+  ['LÄMPÖKYNTTILÄ 30 kpl 6 h','Koti & vapaa-aika'],
+  ['UNICORN 25 cm','Koti & vapaa-aika'],
+  ['Puhdas+ PEHMOVITA MONIVITAMIINIT 75 kpl','Muut'],
   ['PUSSILAKANASETTI','Koti & vapaa-aika'],
   ['KIRJOLOHI','Kala'],
   ['KORVAPUUSTI 6/360 g','Leipomo']
