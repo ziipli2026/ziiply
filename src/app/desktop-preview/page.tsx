@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
+import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate, isExplicitlyExcludedSearchProduct } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
@@ -989,6 +989,7 @@ export default function DesktopPreviewPage() {
       return words.length>0&&words.every(word=>tokens.some(token=>token===word||token.startsWith(word)));
     };
     return products.filter(matchesQuery)
+      .filter(product=>!isExplicitlyExcludedSearchProduct(query,{...product,name:String(product.name||product.title||product.product?.name||"")}))
       .filter(product=>getLearnedSearchBoost(query,{...product,name:String(product.name||product.title||product.product?.name||"")}).reason!=="blocked_by_intent_guardrail")
       .map((product,index)=>({product,index,rank:score(product)+getLearnedStructureBoost(query,{...product,name:String(product.name||product.title||product.product?.name||"")}).boost}))
       .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
