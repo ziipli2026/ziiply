@@ -1,0 +1,157 @@
+{
+  "version": "2026-10-12.1",
+  "projectId": "floral-recipe-40673204",
+  "branchId": "br-weathered-meadow-b1bwpzst",
+  "mappings": [
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/virvoitusjuomat/cola-juomat",
+      "sample_product_count": 38,
+      "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/edamit",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/emmentalit",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/goudat",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/kermajuustot",
+      "sample_product_count": 3,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "sample_product_count": 6,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/piimat",
+      "sample_product_count": 4,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "sample_product_count": 3,
+      "category_id": "cream"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+      "sample_product_count": 2,
+      "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "sample_product_count": 8,
+      "category_id": "butter"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/maustamattomat-raejuustot",
+      "sample_product_count": 6,
+      "category_id": "cottage_cheese"
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-munat-ja-rasvat/maidot-ja-piimat/piimat",
+      "sample_product_count": 1,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/virvoitusjuomat/cola-juomat",
+      "sample_product_count": 12,
+      "category_id": "cola"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/edamit",
+      "sample_product_count": 2,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/emmentalit",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/goudat",
+      "sample_product_count": 5,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/kermajuustot",
+      "sample_product_count": 4,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "sample_product_count": 20,
+      "category_id": "milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/piimat",
+      "sample_product_count": 6,
+      "category_id": "buttermilk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "sample_product_count": 11,
+      "category_id": "cream"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+      "sample_product_count": 4,
+      "category_id": "quark"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "sample_product_count": 6,
+      "category_id": "egg"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+      "sample_product_count": 7,
+      "category_id": "cheese"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/maustamattomat-raejuustot",
+      "sample_product_count": 2,
+      "category_id": "cottage_cheese"
+    }
+  ]
+}

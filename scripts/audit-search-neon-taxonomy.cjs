@@ -5,7 +5,7 @@
 // TO STDOUT WITH (FORMAT CSV, HEADER TRUE);
 // Usage: node scripts/audit-search-neon-taxonomy.cjs path/to/export.csv
 const fs=require('node:fs');
-const source=fs.readFileSync('src/app/components/ziiply/ziiplyCore.ts','utf8');
+const source=fs.readFileSync('src/app/components/ziiply/search/searchCategoryRegistry.ts','utf8');
 const section=source.split('const SEARCH_INTENTS: SearchIntent[] = [')[1]?.split('\n];')[0];
 if(!section)throw Error('SEARCH_INTENTS missing');
 const intents=[...section.matchAll(/category:\s*"([^"]+)"[\s\S]*?(?=\bcategory:\s*"|$)/g)].map(m=>{

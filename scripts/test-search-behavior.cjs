@@ -86,6 +86,28 @@ const rankingCases = [
   {query:"tomaattimurska", products:[makeProduct(19,"Tomaattimurska ja tomaattipyree 400 g","Säilykkeet")], first:19},
 ];
 rankingCases.push(...[{"query": "kuohukerma", "products": [{"id": 500, "name": "Kermajäätelö 1 l", "category": "Kermat", "price": 2.5}, {"id": 501, "name": "Valio kuohukerma 2 dl", "category": "Kermat", "price": 2.5}], "first": 501}, {"query": "maitorahka", "products": [{"id": 502, "name": "Rahkapiirakka 400 g", "category": "Rahkat", "price": 2.5}, {"id": 503, "name": "Valio maitorahka 250 g", "category": "Rahkat", "price": 2.5}], "first": 503}, {"query": "raejuusto", "products": [{"id": 504, "name": "Raejuustosalaatti 300 g", "category": "Raejuustot", "price": 2.5}, {"id": 505, "name": "Arla raejuusto 200 g", "category": "Raejuustot", "price": 2.5}], "first": 505}, {"query": "tuorejuusto", "products": [{"id": 506, "name": "Tuorejuustokakku 400 g", "category": "Tuorejuustot", "price": 2.5}, {"id": 507, "name": "Philadelphia tuorejuusto 200 g", "category": "Tuorejuustot", "price": 2.5}], "first": 507}, {"query": "meijerivoi", "products": [{"id": 508, "name": "Voitaikina 500 g", "category": "Voit", "price": 2.5}, {"id": 509, "name": "Valio meijerivoi 500 g", "category": "Voit", "price": 2.5}], "first": 509}, {"query": "kasvirasvalevite", "products": [{"id": 510, "name": "Margariinikeksi 300 g", "category": "Margariinit", "price": 2.5}, {"id": 511, "name": "Kasvirasvalevite 400 g", "category": "Margariinit", "price": 2.5}], "first": 511}, {"query": "vihreä tee", "products": [{"id": 512, "name": "Jäätee 1 l", "category": "Teet", "price": 2.5}, {"id": 513, "name": "Vihreä tee 20 teepussia", "category": "Teet", "price": 2.5}], "first": 513}, {"query": "appelsiinimehu", "products": [{"id": 514, "name": "Appelsiinimehujää 100 g", "category": "Mehut", "price": 2.5}, {"id": 515, "name": "Appelsiinimehu 1 l", "category": "Mehut", "price": 2.5}], "first": 515}, {"query": "grillimakkara", "products": [{"id": 516, "name": "Makkarakeitto 300 g", "category": "Makkarat", "price": 2.5}, {"id": 517, "name": "HK grillimakkara 400 g", "category": "Makkarat", "price": 2.5}], "first": 517}, {"query": "kinkkuleikkele", "products": [{"id": 518, "name": "Kinkkuleikkele pizza 400 g", "category": "Leikkeleet", "price": 2.5}, {"id": 519, "name": "Kinkkuleikkele 200 g", "category": "Leikkeleet", "price": 2.5}], "first": 519}, {"query": "hammastahna", "products": [{"id": 520, "name": "Hammasharja 1 kpl", "category": "Hammastahnat", "price": 2.5}, {"id": 521, "name": "Hammastahna 75 ml", "category": "Hammastahnat", "price": 2.5}], "first": 521}, {"query": "deodorantti", "products": [{"id": 522, "name": "Deodorantti suihkugeeli 250 ml", "category": "Deodorantit", "price": 2.5}, {"id": 523, "name": "Deodorantti 50 ml", "category": "Deodorantit", "price": 2.5}], "first": 523}]);
+// User-reported voi false positives and reviewed provider category contracts.
+rankingCases.push({query:"voi", products:[
+  makeProduct(800,"Valio voi normaalisuolainen 500 g","maito-juusto-munat-ja-rasvat/rasvat/voit"),
+  makeProduct(801,"Puhdas+ shea voi 50ml","Ihonhoito"),
+  makeProduct(802,"Play Doh Voi, pilvi, kupla","Lelut"),
+  makeProduct(803,"Atria grilliperunat voi-tilli 500g","Valmisruoka"),
+  makeProduct(804,"Aaria Voi popcorn maustepurkki 110g","Mausteet"),
+  makeProduct(805,"Top of the Pop mikropopcorn 100g voi","Snacksit"),
+  makeProduct(806,"Momma ohuet piparkakut 150g paahd voi","Keksit"),
+  makeProduct(807,"Estrella Maalaissipsi voi & merisuola 180g","Snacksit"),
+  makeProduct(808,"Elonen Superpuusti Paahdettu voi 2kpl/220g","Leivonnaiset"),
+  makeProduct(809,"Friggs Maissikakku Voi-Merisuola 120g","Keksit"),
+  makeProduct(810,"Myllyn Paras annospuuro paahdettu voi-chia 5x45g","Puurot"),
+  makeProduct(811,"Classic Paahtoinen Voi-Suolainen Karamelli kermajäätelö","Pakasteet"),
+  makeProduct(812,"Jokilaakson Juusto kirkastettu voi 200g","maito-juusto-munat-ja-rasvat/rasvat/voit"),
+  makeProduct(813,"Juustoportti kirnuvoi 200 g","maito-juusto-munat-ja-rasvat/rasvat/voit"),
+],first:800,excluded:[801,802,803,804,805,806,807,808,809,810,811]});
+rankingCases.push({query:"kerma",products:[
+  makeProduct(814,"Kerma maustettu tuorejuusto 200g","maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/kermajuustot"),
+  makeProduct(815,"Valio kuohukerma 2dl","maito-juusto-munat-ja-rasvat/maitotuotteet/kermat"),
+],first:815,excluded:[814]});
+rankingCases.push({query:"voi popcorn",products:[makeProduct(816,"Top of the Pop voi popcorn 100g","Snacksit")],first:816});
 // Retail-style regression fixtures based on known Finnish grocery product naming.
 // These are deterministic examples, NOT fresh responses from store APIs.
 const retailFixtures = [
