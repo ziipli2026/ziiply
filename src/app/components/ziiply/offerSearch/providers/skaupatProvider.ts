@@ -2658,7 +2658,7 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
     .filter((match) => normalizeSKaupatStoreNameForMatchV198(decodeURIComponent(match[1]).replace(/-/g, " ")) === normalizedName);
   const ids = [...new Set(candidates.map((match) => match[2]))];
   const storeId = ids.length === 1 ? ids[0] : null;
-  if (!storeId) throw new Error("Selected S store could not be resolved exactly");
+  if (!storeId) throw new Error("S directory exact-match failed: " + JSON.stringify({storeName,normalizedName,htmlLength:html.length,exactCandidateIds:ids}));
   const protocol = await getSKaupatProtocolConfig();
   const items: any[] = [];
   const seen = new Set<string>();
@@ -2681,7 +2681,7 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
     });
     if (!response.ok) throw new Error("S direct search HTTP " + response.status);
     const data = await response.json();
-    if (data.errors?.length) throw new Error("S direct search GraphQL error");
+    if (data.errors?.length) throw new Error("S direct search GraphQL error: " + JSON.stringify(data.errors.map((error: any) => ({message:error.message,code:error.extensions?.code}))).slice(0,1000));
     const raw = getSProductListItems(data);
     const meta = getSProductsPagingMetaV184(data);
     total = meta.total;
