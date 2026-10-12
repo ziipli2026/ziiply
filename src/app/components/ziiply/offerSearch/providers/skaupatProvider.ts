@@ -2668,7 +2668,9 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
     if (!storeId) throw new Error("S directory exact-match failed: " + JSON.stringify({storeName,normalizedName,htmlLength:html.length,exactCandidateIds:ids}));
   
   }
-  const protocol = await getSKaupatProtocolConfig();
+  if (!storeId) throw new Error("Selected S store ID missing");
+  const resolvedStoreId: string = storeId;
+  const protocol: SKaupatProtocolConfig = await getSKaupatProtocolConfig();
   const items: any[] = [];
   const seen = new Set<string>();
   let total = 0;
@@ -2676,8 +2678,8 @@ export async function fetchSKaupatDirectNormalProducts(query: string, storeName:
   const categorySlug = query.trim().toLocaleLowerCase("fi") === "voi"
     ? "maito-munat-ja-rasvat/rasvat/voi" : "";
   for (let offset = 0; offset < 384; offset += 48) {
-    const url = new URL(buildRemoteFilteredProductsUrl(query, offset, storeId, false, protocol));
-    const variables = JSON.parse(url.searchParams.get("variables") || "{}");
+    const url: URL = new URL(buildRemoteFilteredProductsUrl(query, offset, resolvedStoreId, false, protocol));
+    const variables: UnknownRecord = JSON.parse(url.searchParams.get("variables") || "{}");
     variables.availabilityDate = getCurrentLocalDateYYYYMMDDV202();
     variables.sortForAvailabilityLabelDate = variables.availabilityDate;
     if (categorySlug) variables.slug = categorySlug;
