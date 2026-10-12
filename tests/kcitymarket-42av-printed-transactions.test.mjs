@@ -141,3 +141,25 @@ test('42AV supplement never inherits the adjacent Nachips percentage',async()=>{
  const nachips=parsed.rows.find(r=>/NACHIPS/.test(r.title));
  assert.ok(nachips,'Adjacent Nachips row must survive');
 });
+
+test('42AV campaign headings and badges belong to the same printed card',async()=>{
+ const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{
+  const r=archive.responses[String(input)];assert.ok(r);
+  return {ok:true,status:200,url:r.url,text:async()=>r.body};
+ });
+ const expected=[
+  ['SoftEmbo WC-PAPERI 40 rl ja Lotus Emilia TALOUSPAPERI 20 rl',38],
+  ['Lempi WC-PAPERI 6 rl ja TALOUSPAPERI 3 rl',26],
+  ['DOVE SUIHKUSAIPPUAT ja NESTESAIPPUAT 225–450 ml',20],
+  ['PIRKKA ARGAN IHONHOITOTUOTTEET',20],
+  ['DOMESTOS WC-PUHDISTUSAINEET ja WC-GEELIT 750 ml sekä CIF HANKAUSNESTEET 500 ml',30],
+ ];
+ for(const [title,percent] of expected){
+  const rows=parsed.rows.filter(row=>row.title===title);
+  assert.equal(rows.length,1,title);
+  assert.equal(rows[0].percentageOffer?.percent,percent,title);
+ }
+ const cleaning=parsed.rows.find(row=>row.title.startsWith('DOMESTOS WC-PUHDISTUSAINEET'));
+ assert.equal(cleaning.spatialResolved.value,4);
+ assert.equal(cleaning.spatialResolved.quantity,2);
+});
