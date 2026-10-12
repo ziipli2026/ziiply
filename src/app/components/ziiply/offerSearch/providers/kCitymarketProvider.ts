@@ -705,6 +705,10 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     const stats={total:offers.length,bankRows:rows.length,matched:0,ambiguous:0,missing:0,invalidImage:0,groupOffer:0};
     const enriched=offers.map(offer=>{
       if(offer.imageUrl)return offer;
+      // Publisher images already won above. Never enrich a multi-unit case
+      // with a single retail-unit image, even if an EAN is supplied.
+      const casePack=/\b\d{1,2}\s*[- ]?pack\b|\b\d{1,2}\s*(?:plo|pulloa|tölkkiä)\b/i.test(offer.title);
+      if(casePack){stats.groupOffer++;return offer;}
       // Prefer a supplied EAN over fuzzy title matching. This also works when
       // a publisher title is abbreviated or contains OCR artifacts.
       const knownEan=String(offer.ean??"").trim();
