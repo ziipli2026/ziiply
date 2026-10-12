@@ -20,6 +20,15 @@ assert.equal(rules.length, 191);
 assert.equal(new Set(rules.map(r=>r.category)).size, rules.length);
 for(const [q,expected] of Object.entries({voi:"butter",maito:"milk",liha:"meat",kana:"chicken",cola:"cola",oltermanni:"cheese",mandariini:"fruit_veg",porkkana:"fruit_veg"})) assert.equal(detect(q),expected,q);
 assert.equal(detect("porkkana"),"fruit_veg");
+for (const [q, expected] of Object.entries({
+  "kanasuikale": "chicken",
+  "broilerin jauheliha": "meat",
+  "meijerivoi": "butter",
+  "coca-cola": "cola",
+})) {
+  const actual = detect(q);
+  assert.equal(actual, expected, q);
+}
 assert.ok(core.includes("!isExplicitlyExcludedSearchProduct(query, product)"));
 assert.ok(core.includes("const standaloneTerms = new Set"));
 console.log("Desktop category registry smoke checks passed (191 categories; 8 queries).");
