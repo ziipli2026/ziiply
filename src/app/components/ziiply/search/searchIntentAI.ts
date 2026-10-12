@@ -450,6 +450,9 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
   }
 
   if (intent.intent === "cola") return hasAny([name, brand].join(" "), ["cola", "pepsi"]);
+  if (intent.intent === "soft_drink") {
+    return hasAny(category, ["virvoitusjuoma"]) || hasAny([name, brand].join(" "), ["limsa", "limonadi", "limu", "cola", "pepsi", "fanta", "sprite"]);
+  }
 
   if (intent.categoryHints.length > 0 && hasAny(category, intent.categoryHints)) {
     if (intent.intent === "milk_drink" && hasAny(text, ["suklaa", "voi", "jogurtti", "kerma", "maitojauhe"])) return false;
