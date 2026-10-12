@@ -1551,7 +1551,17 @@ export default function DesktopPreviewPage() {
                           })}
                         </div>
                       </div>
-                      <div className="mt-2 flex justify-between gap-2 text-[11px] font-bold text-[#6d604c]"><span>{new Date(available[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>Ziiplyn sähkörajapinta · snt/kWh</span><span>{new Date(available[available.length-1].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
+                      <div className="relative mt-2 h-5 text-[11px] font-bold text-[#6d604c]" aria-label="Kellonajat neljän tunnin välein">
+                        {Array.from({length:7},(_,i)=>{
+                          const start=available[0].start;
+                          const end=available[available.length-1].end;
+                          const time=start+i*4*60*60*1000;
+                          if(time>end)return null;
+                          const position=Math.max(0,Math.min(100,(time-start)/(end-start)*100));
+                          return <span key={time} className="absolute top-0 -translate-x-1/2 whitespace-nowrap" style={{left:`calc(${position}% + ${(0.5-position/100)*100/available.length}%)`}}>{new Date(time).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})}</span>;
+                        })}
+                      </div>
+                      <div className="mt-1 flex justify-between gap-2 text-[11px] font-bold text-[#6d604c]"><span>{new Date(available[0].start).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span>Ziiplyn sähkörajapinta · snt/kWh</span><span>{new Date(available[available.length-1].end).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
                     </div>;
                   })()}
                 </section>
