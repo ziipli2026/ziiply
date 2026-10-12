@@ -2781,7 +2781,7 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
   }
 
   return products
-    .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
+    .filter((product: Product) => (!queryIsEgg || isClearlyEggProduct(product.name)) && !isExplicitlyExcludedSearchProduct(query, product))
     .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
       product,
       score: scoreNormalSResult(query, product),
