@@ -3,6 +3,7 @@
 export function recover42AVPrintedCampaignRows(rows, rawBoxes) {
  const boxes=[...new Map(rawBoxes.map(b=>[`${b.text}:${b.left}:${b.top}:${b.height}`,b])).values()];
  const specs=[
+  {word:'Whole',match:/^DEODORANTIT 75–150 ml$/,required:['Body','DEODORANTIT','75–150'],title:'Whole Body DEODORANTIT 75–150 ml'},
   {word:'SoftEmbo', match:/^KG WC-PAPERI 40 rl$/, required:['WC-PAPERI','40','TALOUSPAPERI','20'],title:'SoftEmbo WC-PAPERI 40 rl ja Lotus Emilia TALOUSPAPERI 20 rl'},
   {word:'Lempi', match:/^WC-PAPERI 6 rl YHTEI-/,required:['WC-PAPERI','6','TALOUSPAPERI','3'],title:'Lempi WC-PAPERI 6 rl ja TALOUSPAPERI 3 rl'},
   {word:'DOVE',match:/^SAIPPUAT ja NESTE- SAIPPUAT/,required:['SUIHKU-','SAIPPUAT','NESTE-','225–450'],title:'DOVE SUIHKUSAIPPUAT ja NESTESAIPPUAT 225–450 ml'},
