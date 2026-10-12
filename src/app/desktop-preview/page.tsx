@@ -472,7 +472,8 @@ export default function DesktopPreviewPage() {
         const selectedStoreId=isS?String(store.externalId||store.id||""):(/^\d+$/.test(kStoreId)?kStoreId:"");
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
-        if(isS){params.set("storeName",String(store.name||""));}
+        params.set("storeName",String(store.name||""));
+        if(!isS){params.set("direct","1");params.set("externalId",String(store.externalId||""));}
         const response=await desktopProductFetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
@@ -485,12 +486,12 @@ export default function DesktopPreviewPage() {
         })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
       }catch{return []}
     };
-    if(isS&&normalizedEan){
+    if(normalizedEan){
       const exactRows=await fetchSelectedProducts(normalizedEan);
       const exact=exactRows.filter((product:any)=>normalizeEan(product.ean)===normalizedEan);
       if(exact.length)return exact;
     }
-    const responses=await Promise.all(queries.filter(search=>!isS||!normalizedEan||search!==normalizedEan).map(fetchSelectedProducts));
+    const responses=await Promise.all(queries.filter(search=>!normalizedEan||search!==normalizedEan).map(fetchSelectedProducts));
     return responses.flat();
   }
   // Never attach a different package's price to the original cart product.
@@ -930,7 +931,8 @@ export default function DesktopPreviewPage() {
         const kind=storeKind(store);
         const sChain=kind==="sHyper"||kind==="sLocal";
         const params=new URLSearchParams({search:knownName||code,store:String(store.externalId||store.id)});
-        if(sChain)params.set("storeName",String(store.name||""));
+        params.set("storeName",String(store.name||""));
+        if(!sChain){params.set("direct","1");params.set("externalId",String(store.externalId||""));}
         const response=await desktopProductFetch((sChain?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
@@ -1005,7 +1007,7 @@ export default function DesktopPreviewPage() {
       const failures:string[]=[];
       const readProductResponse=async(response:Response)=>{const data=await response.json();if(!response.ok){failures.push(`HTTP ${response.status}: ${String(data?.diagnostic||data?.error||"Hakupalvelun virhe")}`);return null}return data};
       if(s)calls.push(desktopProductFetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(readProductResponse).then(d=>({chain:"S",store:s,data:d})));
-      if(k)calls.push(desktopProductFetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`,{cache:"no-store"}).then(readProductResponse).then(d=>({chain:"K",store:k,data:d})));
+      if(k)calls.push(desktopProductFetch(`/api/k-products?direct=1&search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}&storeName=${encodeURIComponent(String(k.name||""))}&externalId=${encodeURIComponent(String(k.externalId||""))}`,{cache:"no-store"}).then(readProductResponse).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
       for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankDesktopJustiinaResults(items,query).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
       setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(failures.length){setJustiinaMessage(rows.length?"Osa kauppahauista epäonnistui. Katso DEBUG · S/K.":"Hakupalvelussa tapahtui virhe. Katso DEBUG · S/K.");directSearchDebug(`HAKUVIRHEET: ${failures.join(" | ")}`)}else if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
