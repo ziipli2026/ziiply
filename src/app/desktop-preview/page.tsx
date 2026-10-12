@@ -358,6 +358,29 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{try{const raw=window.sessionStorage.getItem("ziiply-desktop-current-cart-v1");const items=raw?JSON.parse(raw):[];if(Array.isArray(items)&&items.length){setCartItems(items.map((item:any)=>{if(item?.ziiplyWeightLabel||item?.product?.ziiplyWeightLabel||String(item?.id||"").startsWith("weight-"))return {...item,price:null,product:{...(item.product||{}),price:null,ziiplyWeightLabel:true}};const value=Number(item?.price);return item?.storeName&&/^prisma|s[ -]?market/i.test(String(item.storeName))&&value>0&&value<0.1?{...item,price:null,priceNeedsRefresh:true}:item}));const nav=performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming|undefined;if(nav?.type==="reload")setReloadCartDecisionOpen(true)}}catch{}finally{desktopCartHydratedRef.current=true}},[]);
   useEffect(()=>{if(!desktopCartHydratedRef.current)return;try{window.sessionStorage.setItem("ziiply-desktop-current-cart-v1",JSON.stringify(cartItems))}catch{}},[cartItems]);
   const [desktopDebugLines,setDesktopDebugLines]=useState<string[]>([]);
+  const [directSearchDebugOpen,setDirectSearchDebugOpen]=useState(false);
+  const [directSearchDebugLines,setDirectSearchDebugLines]=useState<string[]>([]);
+  const [directSearchDebugCopyStatus,setDirectSearchDebugCopyStatus]=useState("");
+  const directSearchDebugTextRef=useRef<HTMLTextAreaElement>(null);
+  const directSearchDebugSequence=useRef(0);
+  const directSearchDebug=(message:string)=>setDirectSearchDebugLines(current=>[...current,`${new Date().toLocaleTimeString("fi-FI")} ${message}`].slice(-80));
+  async function desktopProductFetch(input:string,init?:RequestInit):Promise<Response>{
+    const requestId=++directSearchDebugSequence.current;
+    const started=performance.now();
+    directSearchDebug(`#${requestId} HAKU ${input}`);
+    try{
+      const response=await fetch(input,init);
+      const text=await response.clone().text();
+      let body:unknown;
+      try{body=JSON.parse(text)}catch{body=text.slice(0,2000)}
+      directSearchDebug(`#${requestId} HTTP ${response.status}, ${Math.round(performance.now()-started)} ms\n${JSON.stringify(body,null,2).slice(0,100000)}`);
+      return response;
+    }catch(error){
+      directSearchDebug(`#${requestId} VIRHE ${Math.round(performance.now()-started)} ms: ${String(error)}`);
+      throw error;
+    }
+  }
+
   const desktopDebug=(message:string)=>setDesktopDebugLines(current=>[...current,`${new Date().toLocaleTimeString("fi-FI")} ${message}`].slice(-100));
   const [desktopPackageProposals,setDesktopPackageProposals]=useState<Array<{itemId:string;original:string;candidate:any;storeName:string}>>([]);
   const [desktopCheckoutOpen,setDesktopCheckoutOpen]=useState(false);
@@ -450,7 +473,7 @@ export default function DesktopPreviewPage() {
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
         if(isS){params.set("storeName",String(store.name||""));}
-        const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
+        const response=await desktopProductFetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
         const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
@@ -581,7 +604,7 @@ export default function DesktopPreviewPage() {
               const fallbackResponses=await Promise.all(fallbackQueries.map(async search=>{
                 try{
                   const params=new URLSearchParams({search,store:String(store.id),storeName:String(store.name||"")});
-                  const response=await fetch("/api/s-products?"+params.toString(),{cache:"no-store"});
+                  const response=await desktopProductFetch("/api/s-products?"+params.toString(),{cache:"no-store"});
                   if(!response.ok)return [];
                   const data=await response.json();
                   const rows=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:[];
@@ -902,7 +925,7 @@ export default function DesktopPreviewPage() {
         const sChain=kind==="sHyper"||kind==="sLocal";
         const params=new URLSearchParams({search:knownName||code,store:String(store.externalId||store.id)});
         if(sChain)params.set("storeName",String(store.name||""));
-        const response=await fetch((sChain?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
+        const response=await desktopProductFetch((sChain?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
         const items=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
@@ -973,8 +996,8 @@ export default function DesktopPreviewPage() {
     if(justiinaDelay) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
     try{
       const calls:any[]=[];
-      if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
-      if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
+      if(s)calls.push(desktopProductFetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
+      if(k)calls.push(desktopProductFetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
       for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankDesktopJustiinaResults(items,query).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
       setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
@@ -1214,7 +1237,18 @@ export default function DesktopPreviewPage() {
 <div className="absolute bottom-3 left-3 right-3 z-[100] rounded-xl bg-[#fff5dc] p-3 shadow-xl"><div className="flex flex-wrap items-center justify-center gap-3"><button type="button" onClick={()=>{setDesktopScannerMessage("");void pasteDesktopScannerEan()}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#28492f] shadow-[inset_0_2px_0_rgba(255,255,255,0.7)]">Liitä EAN</button><button type="button" aria-label="Avaa ostoskori" title="Avaa ostoskori" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false);setCartOpen(true)}} className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border-[5px] border-[#7b6034] bg-[#d8c08c] shadow-[0_6px_16px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.55)]"><span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border-[3px] border-[#efe2b8] bg-[#16472c] text-[31px] leading-none text-[#fff6d9]">🧺</span></button><button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#7d2b1d] bg-[linear-gradient(180deg,#c64235_0%,#922016_100%)] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#fff3dc] shadow-[inset_0_2px_0_rgba(255,255,255,0.20)]">Sulje kamera</button></div></div></div></div>}
         <ZiiplyDesktopNotebookCard open={notebookOpen} lists={savedLists} currentCartCount={cartItems.length} openedListId={openedSavedListId} onToggleList={(id)=>setOpenedSavedListId(openedSavedListId===id?null:id)} onSaveCurrentCart={beginSaveCart} onRestoreList={restoreSavedList} onDeleteList={(id)=>persistSavedLists(savedLists.filter((list:any)=>list.id!==id))} onClose={()=>setNotebookOpen(false)} />
         {cartNotice&&<div className="fixed left-1/2 top-[142px] z-[110] max-w-[760px] -translate-x-1/2 rounded-[18px] bg-[#08a36d] px-8 py-4 text-center text-[16px] font-black text-white shadow-2xl">{cartNotice}</div>}
-        {/* Debug overlay hidden from the desktop UI; comparison logging remains available internally. */}
+        <button type="button" onClick={()=>setDirectSearchDebugOpen(open=>!open)} className="fixed right-3 top-3 z-[20000] rounded-lg border-2 border-[#17573c] bg-[#fff8dc] px-3 py-2 font-mono text-sm font-black text-[#174c35] shadow-lg">DEBUG · S/K ({directSearchDebugLines.length})</button>
+        {directSearchDebugOpen&&<section aria-label="Desktop S/K-hakudebug" className="fixed inset-x-4 bottom-4 top-16 z-[20001] flex flex-col overflow-hidden rounded-2xl border-[3px] border-[#17573c] bg-[#fff8dc] p-4 shadow-2xl">
+          <div className="flex flex-wrap items-center gap-3">
+            <strong className="mr-auto text-[#174c35]">DESKTOP DEBUG · suora S/K-haku · V2</strong>
+            <button type="button" onClick={async()=>{const text=directSearchDebugTextRef.current?.value||"";try{await navigator.clipboard.writeText(text);setDirectSearchDebugCopyStatus("Kopioitu")}catch{directSearchDebugTextRef.current?.focus();directSearchDebugTextRef.current?.select();setDirectSearchDebugCopyStatus("Teksti valittu – kopioi Ctrl/Cmd+C")}}} className="rounded-lg border-2 border-[#17573c] px-3 py-2 font-bold">KOPIOI DEBUG</button>
+            <button type="button" onClick={()=>{setDirectSearchDebugLines([]);setDesktopDebugLines([]);setDirectSearchDebugCopyStatus("")}} className="rounded-lg border px-3 py-2 font-bold">TYHJENNÄ</button>
+            <button type="button" onClick={()=>setDirectSearchDebugOpen(false)} className="rounded-lg border px-3 py-2 font-bold">SULJE</button>
+          </div>
+          <p className="my-2 text-sm">Hae tuotetta Justiinassa ja avaa debug. Mukana hakukutsut, HTTP-tila, vastaukset, hinnat ja vertailuloki.</p>
+          <span role="status" className="text-sm">{directSearchDebugCopyStatus}</span>
+          <textarea ref={directSearchDebugTextRef} readOnly aria-label="Kopioitavat hakudebug-tiedot" className="mt-2 min-h-0 flex-1 resize-none rounded-lg border bg-white p-3 font-mono text-xs text-black" value={JSON.stringify({version:"direct-sk-desktop-debug-v2",view:"desktop-preview",query:justiinaQuery,selectedStores,searchLoading:justiinaLoading,searchMessage:justiinaMessage,displayedResults:justiinaResults,requests:directSearchDebugLines,comparison:desktopDebugLines},null,2)}/>
+        </section>}
         {cartOpen && cartPaperReady && <div className="fixed bottom-[24px] left-[24px] right-[24px] top-[var(--desktop-overlay-top)] z-[90] flex overflow-hidden rounded-[30px] border-[3px] border-[#8a6c3d] bg-[#f7edcf] p-3 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
 <div className="relative mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-hidden" style={{backgroundImage:"url('/ui/cart/desktop-virtanen.svg')",backgroundSize:"100% 100%",backgroundPosition:"center",backgroundRepeat:"no-repeat"}}>
  <div className="absolute left-[4%] right-[4%] top-[2.5%] z-10 flex items-start justify-between gap-4">
