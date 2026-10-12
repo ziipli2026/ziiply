@@ -49,5 +49,7 @@ for(const [name, expected] of cases){
   test("Citymarket category: "+name, () => assert.equal(context.classify(name),expected));
 }
 
-test("Soft supplement name does not imply a plush toy",()=>{assert.equal(context.classify("PEHMOVITA MONIVITAMIINIT 75 kpl"),"Muut");assert.equal(context.classify("PEHMOLELU"),"Koti & vapaa-aika");});
+test("Soft supplement name does not imply a plush toy",()=>{assert.equal(context.classify("PEHMOVITA MONIVITAMIINIT 75 kpl"),"Vitamiinit & ravinteet");assert.equal(context.classify("PEHMOLELU"),"Koti & vapaa-aika");});
 
+
+test("Vitamin drinks remain beverages",()=>{assert.equal(context.classify("VITAMIINIJUOMA 0,5 l"),"Juomat");});
