@@ -1,0 +1,186 @@
+{
+  "publicationId": "42/26:image-bank:v1",
+  "storage": "Neon ziiply_offer_publications; chain EUROSPAR; approval_state image-verified; offers contain PNG base64 imageData, imageMime, imageVerified and imageEvidence. Images are original PDF XObjects with their alpha masks, not regenerated. Group offers use one pictured variant; identity EANs remain untouched.",
+  "images": [
+    {
+      "id": "eurospar:42/26:1:1",
+      "name": "tomaatti",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 46,
+        "imageSha256": "5ee3640bfa1ba397713837b23766041899a7765ae5086ac0442b9adea068dc15"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:2",
+      "name": "kalaneuvos kirjolohifileepala c-leikkuu 500 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 69,
+        "imageSha256": "7855cf0716cf52cef24756ac7eecd12c4ce55cbb55e6ff1793b297f797540f2f"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:3",
+      "name": "valio profeel proteiinivanukkaat ja -mousset 150–185 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 42,
+        "imageSha256": "c870528db7c04ae1fecc47a4fea913ef7141b9c72f78458fa9577cbae30916c0"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:4",
+      "name": "atria nauta-viljapossu jauheliha 700 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 78,
+        "imageSha256": "dea64315d04c92ba3bbb6982ccd9957f6df84095dc576ae9e9dd97c919c18671"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:5",
+      "name": "kariniemen kananpojan siivet 700 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 41,
+        "imageSha256": "d61474bd67457e37f6640aff4de3f6fa410be6a65ab965b0cfe41cdd4fa26e41"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:6",
+      "name": "hk uunilenkki tai poprilli 400 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 55,
+        "imageSha256": "7c920bba202050739a1833369015258b44a6c7ab6a71bfe32514d74170e55e39"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:7",
+      "name": "hk/atria mikroateriat 250–300 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 54,
+        "imageSha256": "29134f499979df06cbf5b70d33f5a65bcc4de2145e633a4fcb908e1fc334e5f3"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:8",
+      "name": "arla juustoviipaleet 150 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 79,
+        "imageSha256": "b8bc288df8f20eb084b1de7fbb5def5e4676055ccfc7b01740c84c3c7655163b"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:9",
+      "name": "pingo jäätelöt 350 ml",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 64,
+        "imageSha256": "efa8a5d58563dc2ab875374bdfee3d81fdd09fce7dbe4c66d29914322d73d545"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:10",
+      "name": "omena",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 44,
+        "imageSha256": "6e810769dc3f1f37598d43c5ee592506aecb790d25c1b7e986c2cbce452e9a8b"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:11",
+      "name": "vaasan munariisi- tai lihapasteija 75 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 57,
+        "imageSha256": "93389cdf0d6c88f5256c01b436babf910fc344d3132b48ffe4ef9254f7a76f5f"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:12",
+      "name": "hillomunkki tai munkkirinkeli 60 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 60,
+        "imageSha256": "102688c9f52e102b32c79fc2b31a4cea243943be4ad05e332da7ec507212b172"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:13",
+      "name": "fazer paahtoleivät 350 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 73,
+        "imageSha256": "acdf50f1ad12ce78c6787078c32258e866b731d9c1f9eaa8c192a5bb888b6aa3"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:14",
+      "name": "fazer marjapiirakka 2 kpl/140 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 39,
+        "imageSha256": "7f8e6d3944a49d622038830e5ccab87fdc10a282f0e63fcc68013a939e4bfaef"
+      }
+    },
+    {
+      "id": "eurospar:42/26:1:15",
+      "name": "kiivi vihreä 500 g",
+      "imageSource": "EUROSPAR publisher PDF 42/26",
+      "imageSourceUrl": "https://tarjoussanomat.tokmanni.fi/eurospar-ruokasanomat/",
+      "imageEvidence": {
+        "pdfSha256": "e49629d028bc1ed6c0b02ee3815fce6d513ee95b9fe421eea7be14aef1a93620",
+        "page": 1,
+        "xref": 45,
+        "imageSha256": "f6d6582a89e292d3db5d3fb4f555c72485c1eaa2c34f7209eb76ab72c9c5a18a"
+      }
+    }
+  ]
+}
