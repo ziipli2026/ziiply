@@ -148,6 +148,7 @@ test('42AV campaign headings and badges belong to the same printed card',async()
   return {ok:true,status:200,url:r.url,text:async()=>r.body};
  });
  const expected=[
+  ['Whole Body DEODORANTIT 75–150 ml',27],
   ['SoftEmbo WC-PAPERI 40 rl ja Lotus Emilia TALOUSPAPERI 20 rl',38],
   ['Lempi WC-PAPERI 6 rl ja TALOUSPAPERI 3 rl',26],
   ['DOVE SUIHKUSAIPPUAT ja NESTESAIPPUAT 225–450 ml',20],
