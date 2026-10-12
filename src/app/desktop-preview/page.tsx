@@ -787,7 +787,15 @@ export default function DesktopPreviewPage() {
       if (runId !== desktopVoiceRunRef.current) return;
       // Mobile V509: keep this product's choices open until selection or return.
       if (found && index < terms.length - 1) {
-        await new Promise<void>(resolve => { desktopVoiceWaitRef.current = resolve; });
+        // Continue automatically after the configured search pace, also when no item is selected.
+        await new Promise<void>(resolve => {
+          const timer = window.setTimeout(() => {
+            if (desktopVoiceWaitRef.current === resume) desktopVoiceWaitRef.current = null;
+            resolve();
+          }, justiinaDelay * 1000);
+          const resume = () => { window.clearTimeout(timer); resolve(); };
+          desktopVoiceWaitRef.current = resume;
+        });
       }
     }
   }
