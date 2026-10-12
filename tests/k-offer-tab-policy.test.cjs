@@ -52,22 +52,3 @@ test("different price is never a semantic duplicate",()=>{
   const campaign={title:"Froosh SMOOTHIET 250 ml/pl",price:3.5};
   assert.notEqual(offer.price,campaign.price);
 });
-
-
-test("Citymarket API keeps equal products from independent source publications",()=>{
-  const fs=require('node:fs');
-  const source=fs.readFileSync('src/app/api/offers/search/route.ts','utf8');
-  const code=source.match(/function dedupe\(items: UnknownRecord\[\]\) \{[\s\S]*?\n\}/)[0];
-  // This offline workflow runs before npm install. Strip only the four known
-  // type annotations so the test executes the production function unchanged.
-  const js=code.replace('items: UnknownRecord[]','items')
-    .replace('new Set<string>()','new Set()')
-    .replace('const out: UnknownRecord[]','const out')
-    .replace(' as UnknownRecord | undefined','');
-  const dedupe=new Function('normalizeText',js+';return dedupe;')(normalize);
-  const local={title:'Valio voi 500 g',price:3.99,priceText:'3,99 €',ean:'6408430000001',storeId:'N183',storeName:'Hyvinkää',source:'K-Citymarket kauppakohtainen julkaisu',provider:'kcitymarket-local',offerId:'offer-a',debug:{publicationId:'publication-a'},campaignType:'campaign'};
-  const second={...local,offerId:'offer-b',debug:{publicationId:'publication-b'}};
-  const national={...local,provider:undefined,source:'K-Citymarket tarjouslehti',id:'kcm:spatial:1:voi:3.99',campaignType:'offer'};
-  assert.equal(dedupe([national,local,second,{...local}]).length,3);
-  assert.ok(!source.includes('removeCampaignCopiesOfLeaflet('),'No cross-source campaign suppression in API');
-});

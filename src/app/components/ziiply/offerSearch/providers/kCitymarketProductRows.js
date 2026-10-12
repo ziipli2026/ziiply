@@ -1,6 +1,5 @@
 /** Canonical product identities from contiguous lines of one printed card. */
 export function canonicalCitymarketProductRows(rows) {
-  rows=collapseRecoveredCardFragments(rows);
   const items=mergeSharedPrintedVariants(rows).map(row=>restoreDescriptiveHeadline(restoreCountedVariantHeadline(row,rows),rows)).sort((a,b)=>a.page-b.page||(a.debugCardAnchor?.top??0)-(b.debugCardAnchor?.top??0));
   const consumed=new Set();
   const quantity=r=>r?.quantity==null||r.quantity===1?1:r.quantity;
@@ -266,23 +265,3 @@ export function restoreDescriptiveHeadline(row,rows=[]){
  return {...row,title:[...(brands.length===1?[brands[0].text]:[]),prefix,original].join(' '),productRowProof:{source:'same-column-descriptive-headline',titles:[original]}};
 }
 
-
-
-/** A recovered full heading and its fragment are one printed card, not two sources. */
-export function collapseRecoveredCardFragments(rows){
- const consumed=new Set(), replacements=new Map();
- for(const full of rows){
-  const a=full.debugCardAnchor,p=full.spatialResolved;
-  if(!a||!p||full.debugRecoveredPublisherHeading!==full.title)continue;
-  const fragments=rows.filter(part=>part!==full&&!consumed.has(part)&&!part.debugRecoveredPublisherHeading&&
-   part.page===full.page&&part.sourceUrl===full.sourceUrl&&part.publicationId===full.publicationId&&
-   part.debugCardAnchor?.left===a.left&&part.debugCardAnchor?.top===a.top&&
-   part.debugCardAnchor?.text===a.text&&part.title===a.text&&full.title.includes(part.title)&&
-   part.spatialResolved?.value===p.value&&(part.spatialResolved?.quantity||1)===(p.quantity||1));
-  if(fragments.length!==1)continue;
-  const part=fragments[0];consumed.add(part);
-  replacements.set(full,{...full,nearby:[...new Set([...(part.nearby||[]),...(full.nearby||[])])],
-   productRowProof:{source:'same-printed-card-recovered-heading',titles:[part.title,full.title]}});
- }
- return rows.filter(row=>!consumed.has(row)).map(row=>replacements.get(row)||row);
-}

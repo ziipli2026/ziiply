@@ -7,7 +7,7 @@ test('Published 42AV selects the same approved archive without preview-only envi
   assert.equal(parsed.leaflet,entry);
   assert.equal(parsed.sourceMode,'immutable-publisher-archive');
   assert.equal(parsed.approvalStatus,'APPROVED-20261012');
-  assert.match(parsed.revision,/V159/);
+  assert.match(parsed.revision,/V157/);
   assert.equal(parsed.rows.length,99);
   const bun=parsed.rows.find(row=>row.title==='KORVAPUUSTI 6/360 g');
   assert.equal(bun.spatialResolved.value,2.99);

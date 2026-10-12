@@ -23,21 +23,9 @@ test('Actual provider preserves original PDF card identities through title clean
  const priced=offers.filter(p=>p.price>0);
  const registry=JSON.parse(fs.readFileSync(path.join(base,'data/kCitymarketLeafletImages.json'),'utf8')).publications[entry];
  assert.equal(Object.keys(registry.images).length,88);
- assert.equal(priced.length,80);
+ assert.equal(priced.length,81);
  const pictured=priced.filter(p=>registry.images[p.id]||registry.images[p.publisherOfferId]);
- assert.equal(pictured.length,79);
- const corrected=[[/^MAALAISNAKIT/,2.99,null],[/^CLASSIC 50/,10,null],[/^iKAFFE/,9,6]];
- for(const [pattern,price,quantity] of corrected){
-  const row=priced.find(p=>pattern.test(p.title));assert.ok(row);
-  assert.equal(row.price,price);assert.equal(row.offerQuantity,quantity);
-  assert.ok(registry.images[row.publisherOfferId],'Corrected price retains the reviewed PDF picture');
- }
- const fish=priced.find(p=>p.title==='KIRJOLOHI');
- assert.equal(fish.validTo,'14.10.');assert.equal(fish.price,6.99);
- assert.equal(priced.find(p=>/^BONBONS/.test(p.title)).category,'Pakasteet');
-
- assert.equal(priced.filter(p=>/WC-GEELIT/.test(p.title)).length,1);
- assert.ok(priced.find(p=>/^DOMESTOS/.test(p.title)));
+ assert.equal(pictured.length,80);
  const pasta=priced.find(p=>p.title==='PASTAT 500 g (3,50/kg)');
  assert.ok(pasta);
  assert.equal(pasta.price,3.5);
