@@ -1386,6 +1386,24 @@ if(!spatialResolved&&anchor&&/KOKONAINEN\s+LOHI/i.test(title)){
 title=cleanOfferTitle(title);
 if(pk&&/\b(?:cl|dl)\b/i.test(pk.raw))spatialResolved=null;
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,initialExpectedSingle:expectedAtStart==null?null:Number(expectedAtStart.toFixed(3)),candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,debugNearbyBoxes:anchor?wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.28&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.14).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height})):[],spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}
+// 42AV page 17: a detached multibuy quantity may precede the
+// John West tuna title. Require all three consecutive printed title lines
+// in the same publisher column before repairing the text; leave price intact.
+if(p===17){
+ const names=['TONNIKALAPALOJA','AURINGONKUKKAÖLJYSSÄ','VEDESSÄ'];
+ const anchors=names.map(t=>wordBoxes.filter(b=>String(b.text).toUpperCase()===t));
+ const candidates=out.rows.filter(r=>r.page===p&&/^2\s+PS\s+ja\s+VEDESSÄ\b/i.test(r.title));
+ if(anchors.every(a=>a.length===1)&&candidates.length===1){
+  const [a,b,c]=anchors.map(x=>x[0]);
+  if(Math.abs(a.left-b.left)<.005&&Math.abs(b.left-c.left)<.025&&
+     b.top>a.top+.005&&b.top-a.top<.018&&
+     c.top>b.top+.005&&c.top-b.top<.018){
+   const row=candidates[0];
+   row.title='TONNIKALAPALOJA AURINGONKUKKAÖLJYSSÄ '+row.title.replace(/^2\s+PS\s+ja\s+/i,'ja ');
+   row.debugRecoveredPublisherHeading='TONNIKALAPALOJA AURINGONKUKKAÖLJYSSÄ';
+  }
+ }
+}
 // 42AV page 6: the basic-HTML title can lose the start of the printed
 // PYYKINPESUNESTEET heading. Restore only with unique publisher evidence;
 // never infer or change a printed price.
