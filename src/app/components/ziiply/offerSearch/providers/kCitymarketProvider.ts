@@ -470,7 +470,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   // Reviewed PDF pictures are attached to this source row, never a fuzzy name.
   const sourceRows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
   const rows:any[]=canonicalCitymarketProductRows(sourceRows.map(row=>/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0
-    ? {...row,publisherOfferId:`kcm:spatial:${row?.page??0}:${clean(row.title).toLowerCase()}:${Number(row.spatialResolved.value)}`}
+    ? {...row,publisherOfferId:row.publisherOfferId??`kcm:spatial:${row?.page??0}:${clean(row.title).toLowerCase()}:${Number(row.spatialResolved.value)}`}
     : row));
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
@@ -555,9 +555,9 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       plussa:/plussa/i.test(nearbyText),
       benefitText,
       campaignType,
-      validFrom:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
-      validTo:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
-      category:category(title),
+      validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
+      validTo:row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
+      category:/\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":category(title),
       chain:"K",
       storeType:"K-Citymarket",
       source:"K-Citymarket tarjouslehti",
@@ -643,7 +643,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-approved-42av-v157-conjunctions-v2-20261012"],
+  ["ziiply-kcitymarket-approved-42av-v158-owned-cards-20261012"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
