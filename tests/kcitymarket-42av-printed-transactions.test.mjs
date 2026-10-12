@@ -195,6 +195,7 @@ test('42AV mixed Arla HTML heading is replaced by the printed heading without ch
   return {ok:true,status:200,url:response.url,text:async()=>response.body};
  });
  const arla=parsed.rows.filter(row=>row.page===15&&/LEMPI RUOKAKERMAT/i.test(row.title));
+ console.log('42AV_ARLA_ASSERT_DIAGNOSTIC',JSON.stringify(arla.map(row=>({title:row.title,anchor:row.debugCardAnchor?.text,heading:row.debugRecoveredPublisherHeading,price:row.spatialResolved}))));
  assert.equal(arla.length,1,'Arla must appear exactly once');
  assert.equal(arla[0].title,'LEMPI RUOKAKERMAT 3 dl');
  assert.equal(arla[0].spatialResolved?.value,3);
