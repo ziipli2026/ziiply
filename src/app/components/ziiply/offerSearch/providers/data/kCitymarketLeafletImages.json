@@ -72,6 +72,19 @@
         "kcm:spatial:19:aakkoset 280–340 g:4.5": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#5e29a0437078fc923ad2",
         "kcm:spatial:20:original nachips 450 g:2.99": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/images.svg#3b84cb250a41853aebb3"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/83z6h5o_tarjouslehti_42AV_KCM/index.html": {
+      "pdfSha256": "505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797",
+      "pageCount": 20,
+      "offerCount": 90,
+      "images": {
+        "kcm:spatial:14:isot kuorelliset katkaravut 70/90 500 g msc-sertifioitu, pakaste (13,90/kg):6.95": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#f15707c623d3327df6d3",
+        "kcm:spatial:14:kebab 250–280 g:3.99": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#8751a3ec3c21914d2787",
+        "kcm:spatial:14:ohuen ohuet kokolihaleikkeleet 120–150 g:5": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#ab94fed5d951b866063a",
+        "kcm:spatial:16:makupala vanukkaat 120 g (5,21/kg):2.5": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#cf358e87c8b85dd1d227",
+        "kcm:spatial:17:vihannes- sekoitukset 300 g (5,56/kg):5": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#a749685edd1a7d1fb157",
+        "kcm:spatial:18:smoothiet 120 g:5.5": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#6de0c9b144c92fc02efc"
+      }
     }
   }
 }
