@@ -7,6 +7,7 @@ import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 export type ZiiplyMobileAssistantPanelProps = {
   activeAssistant: ZiiplyAssistantKey | null;
   onClose: () => void;
+  onSearchIngredients?: (terms: string[]) => void;
 };
 
 const assistantContent: Record<
@@ -41,6 +42,7 @@ const assistantContent: Record<
 export default function ZiiplyMobileAssistantPanel({
   activeAssistant,
   onClose,
+  onSearchIngredients,
 }: ZiiplyMobileAssistantPanelProps) {
   if (!activeAssistant) return null;
 
@@ -80,7 +82,7 @@ export default function ZiiplyMobileAssistantPanel({
         </div>
 
         <div className="px-4 pb-4 pt-3 text-[14px] font-bold leading-snug text-[#374151]">
-          {activeAssistant === "justiina" ? <JustiinaRecipeEditor /> : content.body}
+          {activeAssistant === "justiina" ? <JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} /> : content.body}
         </div>
       </section>
     </div>
