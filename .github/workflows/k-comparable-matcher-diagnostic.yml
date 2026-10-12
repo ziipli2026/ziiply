@@ -7,6 +7,8 @@ on:
       - 'src/app/components/ziiply/ziiplyCore.ts'
       - 'src/app/components/ziiply/search/searchCategoryRegistry.ts'
       - 'src/app/components/ziiply/search/reviewedCategoryMappings.ts'
+      - 'src/app/components/ziiply/search/reviewedProductCategoryExceptions.ts'
+      - 'data/search/product-category-exceptions-reviewed.json'
       - 'scripts/audit-k-comparable-diagnostics-20261001.cjs'
       - '.github/workflows/k-comparable-matcher-diagnostic.yml'
 

@@ -1,0 +1,383 @@
+{
+  "version": "2026-10-12.12",
+  "projectId": "floral-recipe-40673204",
+  "branchId": "br-weathered-meadow-b1bwpzst",
+  "exceptions": [
+    {
+      "ean": "6420256915080",
+      "name": "Aakkoset Malaco 280 g Hedelmäkätkö",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "candy",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6420256016510",
+      "name": "Aakkoset Malaco 340 g Hedelmä",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "candy",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430077254862",
+      "name": "Elektrolyyttijauhe Puhdas+ 120 g mango",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430039223370",
+      "name": "Elektrolyyttijauhe Puhdistamo 120 g mango-appelsiini",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430039223387",
+      "name": "Elektrolyyttijauhe Puhdistamo 240 g Metsän Marjat",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430039223394",
+      "name": "Elektrolyyttijauhe Puhdistamo 240 g mango-appelsiini",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6416485900959",
+      "name": "Hedelmänektari Priima 1 l ACE+B",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "juice",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6414504980722",
+      "name": "Hiushuuhde XZ 150 ml Omena",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "hair_conditioner",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6414504293198",
+      "name": "Hoitoaine XZ 200 ml omena",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "hair_conditioner",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430077256019",
+      "name": "Kollageeni & tyrnimarja Puhdas+ 120 kpl",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6420256011232",
+      "name": "Mini Aakkoset Malaco 120 g Hedelmä",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "candy",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "5702071381464",
+      "name": "Monivitamiini Fruitmix hedelmä 20 kpl",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6420256910870",
+      "name": "Mynthon Original 39 g omena sokeriton +C",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "candy",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430050002558",
+      "name": "Ruusunmarjaöljy Puhdas+ 50 ml Moisturising",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "skin_care",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6414504293167",
+      "name": "Shampoo XZ 250 ml omena",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Hevi",
+      "category_id": "shampoo",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6410530036150",
+      "name": "B12-vitamiini + Foolihappo Betax 100 kpl",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "5700551172649",
+      "name": "Kanakierre Best Friend Naturals 750 g Big Bag",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "8585002485786",
+      "name": "Kanaliemikuutio Maggi 18 kpl 180 g",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "stock",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "7336012472508",
+      "name": "Kissanruoka Friskies 2 kg Adult nauta-kana-kasvis",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "8445291676640",
+      "name": "Kissanruoka Latz 400 g Doubly Delicious kanaa ja kalkkunaa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "8445291676749",
+      "name": "Kissanruoka Latz 400 g Doubly Delicious nautaa ja kanaa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "5900951304286",
+      "name": "Kissanruoka Whiskas 3,8 kg 1+ Häränlihaa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "5900951304323",
+      "name": "Kissanruoka Whiskas 3,8 kg 1+ Kanaa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "5700551172502",
+      "name": "Koiran herkku Best Friend Naturals 750 g kanafilee Big Bag",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "4008429171673",
+      "name": "Koiran herkku Pedigree 70 g Ranchos Cubes kanaa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "4008429046414",
+      "name": "Koiranmakkara 500 g liha",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "5700551111006",
+      "name": "Koiranruoka Best Friend 150 g nautapatee luomu",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430066382705",
+      "name": "Koiranruoka Dagsmark 8 x 120 g Lappi kana-peruna kastikkeessa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6438554010529",
+      "name": "Koiranruoka Hau-Hau 2 kg kanaa, riisiä & kauraa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6438554010642",
+      "name": "Koiranruoka Hau-Hau 2 kg pienille koirille, kanaa, riisiä & kauraa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6438554010673",
+      "name": "Koiranruoka Hau-Hau 2 kg senioreille ja keventäjille, kanaa, riisiä & kauraa",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "pet_food",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "8585002485809",
+      "name": "Lihaliemikuutio Maggi 18 kpl 180 g Extra",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "stock",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6409944200493",
+      "name": "Lihaliemivalmiste luomu 8 kpl 88 g",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "stock",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430050002497",
+      "name": "Porkkanaöljy Puhdas+ 100 ml Bronzing",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Liha & makkarat",
+      "category_id": "skin_care",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6416485840521",
+      "name": "Juustonaksu Priima 150 g",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "snacks",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "4006000233840",
+      "name": "Kasvovoi Nivea Q10 50 ml Anti-Wrinkle Collagen Expert Day & Night Facial Butter",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "skin_care",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430039222830",
+      "name": "Maitohappobakteeri + Boulardii Puhdistamo 30 kpl",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430039222847",
+      "name": "Maitohappobakteeri + Boulardii Puhdistamo 60 kpl",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6410530035740",
+      "name": "Maitohappobakteeri + D-vitamiini Vitabalans 50 kpl Lacto Seven",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6419860991269",
+      "name": "Maitohappobakteeri Arki 360° 50 kpl 400 mg",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6417187102085",
+      "name": "Maitohappobakteerivalmiste Harmonia 60 kpl triGUT",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6410580429575",
+      "name": "Ohuet piparkakut Momma 150 g paahdettu voi",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "cookies",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430050004958",
+      "name": "Sheavoi Puhdas+ 50 ml",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "skin_care",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6430039225992",
+      "name": "Vahva Maitohappobakteeri Puhdistamo 60 kpl 30mrd.",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Maitotuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6417612820881",
+      "name": "Mustaherukka+Tyrniöljy Via Naturale 60 kpl",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Ruokakomeron tuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6417612820430",
+      "name": "Vahva tyrniöljy + mustikka Via Naturale 60 kpl 58 g",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Ruokakomeron tuotteet",
+      "category_id": "supplements",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    },
+    {
+      "ean": "6414505192155",
+      "name": "Öljyhoito XZ 75 ml Aito",
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Ruokakomeron tuotteet",
+      "category_id": "hair_conditioner",
+      "reason": "Product name reviewed: source category contains unrelated product groups; use the EAN-specific product type."
+    }
+  ]
+}

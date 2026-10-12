@@ -214,6 +214,12 @@ rankingCases.push({query:"jäätelö",products:[makeProduct(1901,"Bello Dolce va
 rankingCases.push({query:"juusto",products:[makeProduct(1903,"Vaasan Cheddarpasteija 90g","CAAAWAMAIAEAA"),makeProduct(1904,"Valio Arkijuusto 750g","CAAAOAAAAAAAA")],first:1904,excluded:[1903]});
 rankingCases.push({query:"cola",products:[makeProduct(1905,"Coop Cola Chews makeiset 80g","CAABGAQAKAAAA"),makeProduct(1906,"Coop Cola virvoitusjuoma 1,5l","CAAAYAKACAAAA")],first:1906,excluded:[1905]});
 
+rankingCases.push({query:"maito",products:[{...makeProduct(2001,"Kasvovoi Nivea Q10 50 ml","Maitotuotteet"),ean:"4006000233840"},makeProduct(2002,"Kotimaista kevytmaito 1L","CAAAMAAAAAEAA")],first:2002,excluded:[2001]});
+rankingCases.push({query:"juusto",products:[{...makeProduct(2003,"Juustonaksu Priima 150g","Maitotuotteet"),ean:"6416485840521"},makeProduct(2004,"Valio Arkijuusto 750g","CAAAOAAAAAAAA")],first:2004,excluded:[2003]});
+rankingCases.push({query:"kana",products:[{...makeProduct(2005,"Kissanruoka Friskies kana-kasvis 2kg","Liha & makkarat"),ean:"7336012472508"},makeProduct(2006,"Atria kanan fileesuikale 400g","liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat")],first:2006,excluded:[2005]});
+rankingCases.push({query:"kasvovoi",products:[{...makeProduct(2007,"Kasvovoi Nivea Q10 50 ml","Maitotuotteet"),ean:"4006000233840"}],first:2007});
+assert.equal(core.isExplicitlyExcludedSearchProduct("paahdettu voi piparkakku",{...makeProduct(2008,"Ohuet piparkakut Momma 150 g paahdettu voi","Maitotuotteet"),ean:"6410580429575"}),false);
+
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));

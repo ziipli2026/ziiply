@@ -3,6 +3,7 @@
 import type React from "react";
 import { SEARCH_INTENTS } from "./search/searchCategoryRegistry";
 export { SEARCH_INTENTS } from "./search/searchCategoryRegistry";
+import { getReviewedEanCategory } from "./search/reviewedProductCategoryExceptions";
 import { getReviewedProductCategory, isReviewedCategoryCompatible } from "./search/reviewedCategoryMappings";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
@@ -2634,7 +2635,7 @@ export function isExplicitlyExcludedSearchProduct(query: string, product: Produc
   const name = normalize(product.name);
   const normalizedQuery = normalize(query);
   const genericGroupQuery = intent.variants.some(term => normalize(term) === normalizedQuery);
-  const reviewedCategory = getReviewedProductCategory(product.category);
+  const reviewedCategory = getReviewedEanCategory(product.ean) || getReviewedProductCategory(product.category);
   const explicitlyFrozen = name.includes("pakaste") || product.category?.startsWith("pakasteet/") || product.category?.startsWith("CAABQ");
   if (genericGroupQuery && reviewedCategory && !isReviewedCategoryCompatible(intent.category, reviewedCategory) &&
       !(intent.category === "frozen" && explicitlyFrozen)) return true;
