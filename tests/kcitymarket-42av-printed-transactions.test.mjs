@@ -210,5 +210,12 @@ test('42AV automatic full-leaflet audit reports title anomalies without guessing
  // Anomalies are diagnostic: fixing one must not cause this audit to fail.
  // The complete list remains visible in the test log for review.
  assert.ok(report.every(row=>Number.isInteger(row.page)&&row.title),'Audit rows retain page and title');
+ const byPage=Array.from({length:parsed.pageCount},(_,index)=>{
+  const page=index+1;
+  const pageRows=rows.filter(row=>Number(row.page)===page);
+  return {page,rows:pageRows.length,anomalies:report.filter(row=>Number(row.page)===page).length};
+ });
+ assert.equal(byPage.length,20);
+ console.log('42AV_PAGE_AUDIT',JSON.stringify(byPage));
  console.log('42AV_TITLE_AUDIT',JSON.stringify(report));
 });
