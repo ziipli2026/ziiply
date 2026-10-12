@@ -323,6 +323,12 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
       return "Kuivatuotteet";
     }
   }
+  // Cards retain the official S taxonomy in their nested source row. Resolve
+  // that row, not the presentation card which omits the source URL/department.
+  if (source === "skaupat" && String(sourceItem?.sourceUrl || "").includes("s-kaupat.fi")) {
+    return getOfferCategoryV106(sourceItem);
+  }
+
   const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
   // V182: EUROSPAR provider already emits Ziiply's authoritative category.
   // Preserve it instead of reclassifying leaflet titles with generic regexes.
