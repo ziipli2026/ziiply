@@ -734,7 +734,10 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title)){stats.groupOffer++;return offer;}
       const direct=index.get(norm(offer.title))||[];
       const offerSize=size(offer.packageSize)||size(offer.title);
-      const candidates=direct.length?direct:(byProductName.get(nameOnly(offer.title))||[]).filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
+      // Apply the same package-size check to both exact-name and fallback
+      // matches. An exact title alone must not bypass image verification.
+      const candidates=(direct.length?direct:(byProductName.get(nameOnly(offer.title))||[]))
+        .filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
       const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()];
       if(matches.length!==1){if(matches.length>1)stats.ambiguous++;else stats.missing++;return offer;}
       const row=matches[0];
