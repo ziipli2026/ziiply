@@ -389,7 +389,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V154-KCITYMARKET-PRINTED-COLUMNS-AND-COUNTS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V155-KCITYMARKET-OWNED-UNIT-RATES",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1534,6 +1534,16 @@ out.rows=out.rows.map(row=>row.debugCountedPrintedTransaction&&
  ?{...row,spatialResolved:row.debugCountedPrintedTransaction,percentageOffer:null}:row);
 out.rows=out.rows.map(row=>row.debugWeightPrintedTransaction?{...row,spatialResolved:row.debugWeightPrintedTransaction,
  unitPrice:{min:row.debugWeightPrintedTransaction.value,max:row.debugWeightPrintedTransaction.value,raw:'printed/kg'},percentageOffer:null}:row);
+// Replace a conflicting unit rate only with same-column printed evidence and arithmetic.
+out.rows=out.rows.map(row=>{
+ const price=row.spatialResolved,pk=row.package,old=row.unitPrice;
+ if(!price||!pk||pk.min!==pk.max||!old||old.min!==old.max)return row;
+ const quantity=price.quantity||1;
+ if(Math.abs(old.min*pk.min*quantity-price.value)<=.04)return row;
+ const rate=verifiedOwnedUnitRate(row);
+ if(!rate||rate.min!==rate.max||Math.abs(rate.min*pk.min*quantity-price.value)>.04)return row;
+ return {...row,unitPrice:rate,debugReplacedUnitRate:old};
+});
 out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
 return out;
 }

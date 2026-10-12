@@ -34,6 +34,8 @@ test('42AV prices and counted totals follow the original printed pages',async()=
   assert.equal(price.value,value,String(title));assert.equal(price.quantity||1,quantity,String(title));
   if(unit)assert.equal(price.unit,unit,String(title));
  }
+ const bun=parsed.rows.find(r=>r.title==='KORVAPUUSTI 6/360 g');
+ assert.equal(bun.spatialResolved.value,2.99);assert.equal(bun.unitPrice.min,8.31);
  const ketchup=parsed.rows.find(r=>r.title==='KETSUPPI 1350 g');assert.equal(ketchup.package.min,1.35);
  assert.equal(parsed.rows.find(r=>r.title==='KIRJOLOHI').unitPrice.min,6.99);
 });
