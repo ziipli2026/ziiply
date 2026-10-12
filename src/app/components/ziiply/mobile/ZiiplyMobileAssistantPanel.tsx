@@ -1,4 +1,5 @@
 "use client";
+import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 
 import React from "react";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
@@ -79,7 +80,7 @@ export default function ZiiplyMobileAssistantPanel({
         </div>
 
         <div className="px-4 pb-4 pt-3 text-[14px] font-bold leading-snug text-[#374151]">
-          {content.body}
+          {activeAssistant === "justiina" ? <JustiinaRecipeEditor /> : content.body}
         </div>
       </section>
     </div>
