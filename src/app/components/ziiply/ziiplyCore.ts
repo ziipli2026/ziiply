@@ -2709,6 +2709,32 @@ export function scoreCategorySpecificResult(query: string, product: Product) {
 
 // Conservative hard exclusions: only explicit, unambiguous product-name conflicts.
 // Keep ambiguous category mismatches in the ranked results to avoid false negatives.
+export function isExplicitlyExcludedSearchProduct(query: string, product: Product) {
+  const intent = detectSearchIntent(query);
+  const name = normalize(product.name);
+  const normalizedQuery = normalize(query);
+  const genericGroupQuery = intent.category !== "generic" && intent.variants.some(term => normalize(term) === normalizedQuery);
+  const reviewedCategory = getReviewedEanCategory(product.ean) || getReviewedProductCategory(product.category);
+  const explicitlyFrozen = name.includes("pakaste") || product.category?.startsWith("pakasteet/") || product.category?.startsWith("CAABQ");
+  if (genericGroupQuery && reviewedCategory && !isReviewedCategoryCompatible(intent.category, reviewedCategory) &&
+      !(intent.category === "frozen" && explicitlyFrozen)) return true;
+  if (genericGroupQuery && intent.category === "butter" &&
+      (intent.bannedAny || []).some(term => name.includes(normalize(term)))) return true;
+  // Hard exclusions apply only to an unambiguous generic product query.
+  // A compound query such as "sinappikastike" must not exclude its exact product.
+  const strictQueryTerms: Partial<Record<SearchIntentCategory, string[]>> = {
+    mustard: ["sinappi", "sinapit"],
+    tomato_crush: ["tomaattimurska", "tomaattimurskat"],
+    tomato_paste: ["tomaattipyree", "tomaattitahna"],
+  };
+  const strictTerms = strictQueryTerms[intent.category];
+  if (!strictTerms?.includes(normalizedQuery)) return false;
+  if (intent.category === "mustard") return /sinappikastike|majoneesi/.test(name) && !/dijonsinappi|hunajasinappi/.test(name) && !/\bsinappi\b/.test(name.replace(/sinappikastike/g, ""));
+  if (intent.category === "tomato_crush") return /ketsuppi|tomaattipyree/.test(name) && !/tomaattimurska/.test(name);
+  if (intent.category === "tomato_paste") return /ketsuppi|tomaattimurska/.test(name) && !/tomaattipyree|tomaattitahna/.test(name);
+  return false;
+}
+
 export function scoreNormalSResult(query: string, product: Product) {
   return scoreCategorySpecificResult(query, product);
 }
