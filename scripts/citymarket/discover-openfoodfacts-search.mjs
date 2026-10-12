@@ -6,6 +6,7 @@ const MAX_SEARCHES=Number(process.env.IMAGE_RESEARCH_MAX_SEARCHES??80);
 if(!Number.isInteger(MAX_SEARCHES)||MAX_SEARCHES<0||MAX_SEARCHES>100)throw Error("IMAGE_RESEARCH_MAX_SEARCHES must be an integer from 0 to 100");
 let searches=0;
 let rateLimited=false;
+const summary=()=>Object.fromEntries([...new Set(results.map(row=>row.status))].sort().map(status=>[status,results.filter(row=>row.status===status).length]));
 const tokens=value=>new Set(String(value??"").toLocaleLowerCase("fi").normalize("NFKC").match(/[a-zåäö0-9]{3,}/g)??[]);
 const overlap=(query,name,brand)=>{const requested=tokens(query);const found=tokens([name,brand].filter(Boolean).join(" "));return requested.size?[...requested].filter(token=>found.has(token)).length/requested.size:0;};
 for(const row of queue.rows){
@@ -40,6 +41,6 @@ for(const row of queue.rows){
   finally{clearTimeout(timer);}
   await sleep(1200);
 }
-const report={publication:"41LV",totalMissing:queue.missingImages,searchesPerformed:searches,searchBudget:MAX_SEARCHES,rateLimited,notice:"Only candidates with shared product-name or brand tokens are shown, ordered by overlap. Search matches are NOT product identity matches. Verify EAN, brand, size, leaflet packshot and rights before approval.",results};
+const report={publication:"41LV",totalMissing:queue.missingImages,searchesPerformed:searches,searchBudget:MAX_SEARCHES,rateLimited,statusCounts:summary(),notice:"Only candidates with shared product-name or brand tokens are shown, ordered by overlap. Search matches are NOT product identity matches. Verify EAN, brand, size, leaflet packshot and rights before approval.",results};
 fs.writeFileSync("citymarket-openfoodfacts-search.json",JSON.stringify(report,null,2)+"\n");
-console.log("Bulk product-name search:",results.length,"rows,",results.filter(x=>x.status==="unverified-search-candidates").length,"rows with unverified image candidates.");
+console.log("Bulk product-name search:",results.length,"rows,",searches,"requests; statuses:",JSON.stringify(report.statusCounts));
