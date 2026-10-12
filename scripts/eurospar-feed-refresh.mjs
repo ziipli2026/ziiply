@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-import {readFileSync,writeFileSync} from "node:fs";
+import {readFileSync,writeFileSync,mkdtempSync,rmSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
+import {spawnSync} from "node:child_process";
 
 const FEED="src/app/components/ziiply/offerSearch/providers/eurospar-feed.json";
 const HUB="https://www.tokmanni.fi/tarjouslehti";
@@ -22,39 +25,29 @@ const imageUrls=[...new Set([...frameHtml.matchAll(/"(?:normalImage|zoomImage|im
 const seoEscaped=frameHtml.match(/\\\\\"seoPageText\\\\\"\s*:\s*\\\\\"([\\s\\S]*?)\\\\\"\s*,\\\\\"metaDescription/i)?.[1]??"";
 const seoRaw=seoEscaped || (frameHtml.match(/["']seoPageText["']\s*:\s*["']([\s\S]*?)["']\s*[,}]/i)?.[1] ?? frameHtml.match(/seoPageText[^>]*>([\s\S]*?)<\//i)?.[1] ?? "");
 const seoText=stripTags(seoRaw.replace(/\\\\n/g,"\n").replace(/\\\\u003[cC]/g,"<").replace(/\\\\u003[eE]/g,">").replace(/\\\\\"/g,'"').replace(/\\\\\\\\/g,"\\"));
-const issue=seoText.match(/\b(\d{1,2})\/(\d{2})\b/)?.[0]??null;
-const validityMatch=seoText.match(/\b(\d{1,2})[.]\s*[–-]\s*(\d{1,2})[.](\d{1,2})[.](20\d{2})\b/);
-const validity=validityMatch?{from:isoDate(validityMatch[1],validityMatch[3],validityMatch[4]),to:isoDate(validityMatch[2],validityMatch[3],validityMatch[4])}:null;
+// Use the same PDF download route as the publisher's iPaper viewer.
+// Flat SEO text has no reliable spatial price ownership.
+const paperUrl=frameHtml.match(/"paperCompleteUrl"\s*:\s*"([^"]+)"/)?.[1];
+if(!paperUrl) throw new Error("Publisher PDF download origin missing");
+const downloadUrl=new URL("GetPDF.ashx",paperUrl);
+if(downloadUrl.protocol!=="https:" || downloadUrl.hostname!=="tarjoussanomat.tokmanni.fi") throw new Error("Unexpected EUROSPAR PDF origin");
+const pdfResponse=await fetch(downloadUrl,{method:"POST",body:new URLSearchParams({pageNumbers:""}),redirect:"follow",signal:AbortSignal.timeout(60000)});
+if(!pdfResponse.ok) throw new Error("EUROSPAR PDF HTTP "+pdfResponse.status);
+const pdf=Buffer.from(await pdfResponse.arrayBuffer());
+if(pdf.length>32*1024*1024 || pdf.subarray(0,5).toString()!=="%PDF-") throw new Error("Invalid publisher PDF");
+const folder=mkdtempSync(join(tmpdir(),"eurospar-pdf-"));
+let parsed;
+try{
+ const filename=join(folder,"leaflet.pdf");writeFileSync(filename,pdf);
+ const result=spawnSync("python",["scripts/eurospar-pdf-parser.py",filename],{encoding:"utf8",timeout:60000,maxBuffer:8*1024*1024});
+ if(result.status!==0) throw new Error("EUROSPAR spatial PDF parse failed: "+result.stderr);
+ parsed=JSON.parse(result.stdout);
+}finally{rmSync(folder,{recursive:true,force:true});}
+const {issue,validity,stores:storeNames,offers:parsedOffers}=parsed;
+const seoIssue=seoText.match(/\b(\d{1,2}\/\d{2})\b/)?.[0];
+if(seoIssue && seoIssue!==issue) throw new Error("Publisher HTML/PDF issue mismatch");
+const storeHits=storeNames.filter(x=>seoText.toLocaleLowerCase("fi").includes(x.toLocaleLowerCase("fi")));
 const priceTokens=[...seoText.matchAll(/\b\d{1,3}[,.]\d{2}\b/g)].map(m=>m[0]);
-const offerText=seoText.replace(/\s+/g," ").trim();
-const productStarts=[...offerText.matchAll(/(?=(ATRIA|VALIO|BILLYS|TAMSIN|MAKEA|KELTAINEN|SNELLMAN|MAATILAN PARHAAT|HERKKUTILAN|POROKYLÄN|HK BURGERI|MUNKKIMIEHET|PIZZADONITSI|FLORA|FAZER|OULULAINEN|SAARIOINEN|EMMA)\b)/gi)].map(m=>m.index);
-const offerSegments=productStarts.map((s,i)=>offerText.slice(s,productStarts[i+1]??offerText.length).trim()).filter(x=>x.length>10&&/\d+[,.]\d{2}/.test(x));
-const storeHits=["Iisalmi","Joensuu","Järvenpää","Masku","Tornio","Ylöjärvi"].filter(x=>seoText.toLocaleLowerCase("fi").includes(x.toLocaleLowerCase("fi")));
-const storeNames=["Iisalmi","Joensuu","Järvenpää","Masku","Tornio","Ylöjärvi"];
-const toPrice=(whole,dec)=>Number((String(whole)+"."+String(dec).padStart(2,"0")).replace(",", "."));
-function parseOfferSegment(segment,index){
-  const s=segment.replace(/\s+/g," ").trim();
-  const normalMatch=s.match(/Norm\.\s*(\d{1,2}[,.]\d{2})(?:\s*[–-]\s*(\d{1,2}[,.]\d{2}))?(?:\s*\/\s*(kpl|pkt|kg))?/i);
-  const unitMatch=s.match(/\((\d{1,3}[,.]\d{2})(?:\s*[–-]\s*(\d{1,3}[,.]\d{2}))?\s*\/\s*(kg|l|kpl)\)/i);
-  const multi=[...s.matchAll(/(\d+)\s+(kpl|pkt|ps|rs|rasia|pussi|kilo)\s+(\d{1,2})\s+(\d{2})(?:\s*-\s*(\d{1,2})\s*%)?/gi)].at(-1);
-  const single=[...s.matchAll(/(?:^|\s)(\d{1,2})\s+(\d{2})\s+(kpl|pkt|ps|rs|rasia|pussi|kilo)(?:\s|$)/gi)].at(-1);
-  const compact=[...s.matchAll(/(?:^|\s)(\d{1,2}[,.]\d{2})\s+(kpl|pkt|ps|rs|rasia|pussi|kilo)(?:\s|$)/gi)].at(-1);
-  let offerPrice=null,multiUnit=null;
-  if(multi){offerPrice=toPrice(multi[3],multi[4]);multiUnit={quantity:Number(multi[1]),unit:multi[2].toLowerCase()};}
-  else if(single){offerPrice=toPrice(single[1],single[2]);}
-  else if(compact){offerPrice=Number(compact[1].replace(",", "."));}
-  const discountMatch=s.match(/(?:^|\s)-\s*(\d{1,2})\s*%/);
-  const discount=discountMatch?Number(discountMatch[1]):null;
-  const size=s.match(/\b(\d+(?:[.,]\d+)?\s*(?:g|kg)|n\.\s*\d+(?:[.,]\d+)?\s*kg|\d+(?:[.,]\d+)?\s*[–-]\s*\d+(?:[.,]\d+)?\s*(?:g|kg))\b/i)?.[1]??null;
-  const firstPrice=s.match(/^(.+?)(?:\s+\(\d+[,.]\d{2}(?:\s*[–-]\s*\d+[,.]\d{2})?\s*\/\s*(?:kg|l|kpl)\)|\s+Norm\.)/i);
-  const title=(firstPrice?.[1]??s).replace(/^EUROSPAR\s+41\/26\s+/i,"").trim();
-  const unitPrice=unitMatch?unitMatch[1]+(unitMatch[2]?("-"+unitMatch[2]):""):null;
-  const unitPriceUnit=unitMatch?.[3]??null;
-  const normal=normalMatch?normalMatch[1]+(normalMatch[2]?("-"+normalMatch[2]):""):null;
-  const category=/salaatti|luumu|kiivi|hevi/i.test(title)?"Hevi":/jogurtti|raejuusto|juustoraaste|juustoviipale/i.test(title)?"Maitotuotteet":/leike|jauheliha|reisikoipi|burgeri/i.test(title)?"Liha & makkarat":/ruis|pikkueväs|munkki|donitsi/i.test(title)?"Leipomo":/pizz|mikroateria/i.test(title)?"Valmisruoka":"Muut";
-  return {name:title.toLocaleLowerCase("fi-FI"),category,size,packCount:null,unitPrice,unitPriceUnit,normalPrice:normal,normalUnit:normalMatch?.[3]??null,discountPercent:discount,restriction:null,offerPrice,multiUnit,eans:[],identityStatus:"leaflet-only",identityReason:"EUROSPAR fresh-food catalog identity is not exposed by Tokmanni web/Klevu; do not infer EAN",id:"eurospar:"+issue+":1:"+(index+1),chain:"EUROSPAR",storeType:"EUROSPAR",source:"EUROSPAR tarjouslehti",priceBasis:multiUnit?"multi-buy-total":"single-unit",issue,validFrom:validity?.from??null,validTo:validity?.to??null,stores:storeNames,page:1};
-}
-const parsedOffers=offerSegments.map(parseOfferSegment);
 const normalizeOfferName=s=>String(s??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/gi," ").trim();
 const previousImagesByName=new Map((Array.isArray(oldFeed?.offers)?oldFeed.offers:[]).filter(x=>x?.imageUrl).map(x=>[normalizeOfferName(x.name),x.imageUrl]));
 if(issue&&String(oldFeed?.issue??"")===issue){
