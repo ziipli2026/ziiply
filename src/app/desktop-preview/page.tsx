@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { correctSearchQuery } from "../components/ziiply/search/searchIntentAI";
 import { readProductSearchStream } from "@/lib/productSearchStream";
 import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate, isExplicitlyExcludedSearchProduct } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
@@ -1005,7 +1006,10 @@ export default function DesktopPreviewPage() {
   const justiinaSearchAbort=useRef<AbortController|null>(null);
   useEffect(()=>()=>{justiinaSearchGeneration.current++;justiinaSearchAbort.current?.abort()},[workspace]);
   async function runDesktopJustiinaSearch(raw=justiinaQuery) {
-    const query=String(raw||"").trim();if(!query)return;
+    const originalQuery=String(raw||"").trim();
+    const query=/\d/.test(originalQuery)
+      ? originalQuery.split(/(\s+)/).map(part=>/\d|^\s+$/.test(part)?part:correctSearchQuery(part)).join("")
+      : correctSearchQuery(originalQuery);if(!query)return;
     const selected=Object.values(selectedStores) as any[];
     const stores=selected.filter(x=>["sHyper","sLocal","kHyper","kLocal"].includes(storeKind(x)));
     if(!stores.length){setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
@@ -1051,7 +1055,7 @@ export default function DesktopPreviewPage() {
         }catch(error){if(current())failures.push(chain+": "+String(error))}
       }));
       if(!current())return;
-      justiinaLastSearchedRef.current=query;justiinaUserEditedRef.current=false;
+      justiinaLastSearchedRef.current=originalQuery;justiinaUserEditedRef.current=false;
       if(!opened&&rows.length){setJustiinaResultsOpen(true)}
       if(failures.length){setJustiinaMessage(rows.length?"Osa tuloksista jäi hakematta. Katso DEBUG · S/K.":"Haku epäonnistui. Katso DEBUG · S/K.");directSearchDebug(failures.join(" | "))}
       else if(!rows.length)setJustiinaMessage('Hakemaasi "'+query+'" ei löydy.');
