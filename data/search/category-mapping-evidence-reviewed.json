@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.16",
+  "version": "2026-10-12.20",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "note": "Reviewed coded provider categories against every currently stored product name. Product rows are unchanged.",
@@ -7746,6 +7746,1772 @@
         "Maitohappobakteeri + kaurakuitu Puhdas+ 200 g"
       ],
       "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Aamiaistuotteet",
+      "sample_product_count": 1,
+      "names": [
+        "MYLLÄRIN Murot"
+      ],
+      "category_id": "breakfast_cereal",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Jälkiruoat",
+      "sample_product_count": 1,
+      "names": [
+        "ITALIAMO Tiramisu 2 x 80 g"
+      ],
+      "category_id": "dessert",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "lidl-verified-ean-master",
+      "source_category": "Salaatit",
+      "sample_product_count": 1,
+      "names": [
+        "KULJANKA Valkokaalisalaatti"
+      ],
+      "category_id": "prepared_salad",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Hillot ja levitteet",
+      "sample_product_count": 4,
+      "names": [
+        "Amona Maapähkinävoi Crunchy 100% 350g",
+        "Amona Maapähkinävoi Crunchy 100% 600g",
+        "Amona Maapähkinävoi Smooth 100% 600g",
+        "URTEKRAM Luomu Maapähkinävoi Crunchy 230g"
+      ],
+      "category_id": "sweet_spread",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Hillot ja marmeladit",
+      "sample_product_count": 14,
+      "names": [
+        "Dronningholm Omena-raparperihillo 280g",
+        "Dronningholm Omena-vaniljahillo440g",
+        "Dronningholm Tähtitorttu Omena-kanelimarmeladi 270g",
+        "Hommanäs vadelmahillo 320g",
+        "Pimeäpullo omena-tyrni-sherryhilloke 110g",
+        "Saarioinen Lettuhillo vähemmän sokeria, sekahillo 320g",
+        "Saarioinen Mansikkahillo 500g",
+        "Saarioinen Mansikkahillo sileä vähemmän sokeria 320g",
+        "Saarioinen Omenahillo 500g",
+        "Saarioinen Puolukkahillo 500g",
+        "Saarioinen Puolukkahillo vähemmän sokeria 320g",
+        "Saarioinen Vadelmahillo 500g",
+        "Saarioinen Vadelmahillo vähemmän sokeria 320g",
+        "St. Dalfour Omena-kanelihillo 284g"
+      ],
+      "category_id": "jam",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Jälkiruoat",
+      "sample_product_count": 1,
+      "names": [
+        "Juustoportti Hyvin sokeroimaton ja makeutusaineeton proteiinivanukas 180g banaani-suklaa laktoosito"
+      ],
+      "category_id": "pudding",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Jäätelöt",
+      "sample_product_count": 1,
+      "names": [
+        "Friidu tuutti Crunchy Caramel 95g"
+      ],
+      "category_id": "ice_cream",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Liha & makkarat",
+      "sample_product_count": 2,
+      "names": [
+        "Knorr FOND DU CHEF Kana-annosfondi 8 x 28 g",
+        "Knorr FOND DU CHEF Naudanliha-annosfondi 8 x 28 g"
+      ],
+      "category_id": "stock",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Muut",
+      "sample_product_count": 1,
+      "names": [
+        "Puhdistamo Athletics Optimal Luomu Vege proteiini Natural 600g"
+      ],
+      "category_id": "sports_nutrition",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Säilykkeet ja hedelmät",
+      "sample_product_count": 2,
+      "names": [
+        "Pirkka ananasviipale 500g",
+        "Pirkka isot ananaspalat 270g"
+      ],
+      "category_id": "canned_fruit",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Vapaa-aika ja lelut",
+      "sample_product_count": 7,
+      "names": [
+        "Kimble Original peli",
+        "LEGO Botanicals 10374 Vaaleanpunainen ruusukimppu",
+        "LEGO Icons 10328 Ruusukimppu",
+        "Original Alias matkapeli",
+        "Original Alias peli",
+        "Play Doh Voi, pilvi, kupla",
+        "SPY X Voice Changer -äänenmuunnin"
+      ],
+      "category_id": "toys",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "juomat/kahvi-ja-suodatinpussit/pikakahvit",
+      "sample_product_count": 1,
+      "names": [
+        "Clipper instant kahvi 100g luomu Reilu kauppa"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kahvit-teet-ja-mehut/valmiit-kahvi-ja-kaakaojuomat",
+      "sample_product_count": 1,
+      "names": [
+        "Starbucks 220 ml Cappuccino kahvi- ja maitojuoma"
+      ],
+      "category_id": "coffee_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "karkkipastillit",
+      "sample_product_count": 1,
+      "names": [
+        "Sisu raikas pastilli 36g sokeriton"
+      ],
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+      "sample_product_count": 1,
+      "names": [
+        "Dovgan Kondensoitu maito kaakaolla, makeutettu 300 g / 232 ml"
+      ],
+      "category_id": "condensed_milk",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "kurkkupastillit",
+      "sample_product_count": 2,
+      "names": [
+        "Mynthon Extra väkevä kurkkupastilli 85g sokeriton",
+        "Mynthon Viileä Minttu kurkkupastilli 85g sokeriton"
+      ],
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "lasten juomat",
+      "sample_product_count": 1,
+      "names": [
+        "Nestlé NAN PRO 3 pikkulasten maitojuoma 1l"
+      ],
+      "category_id": "baby_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "leivontamausteet ja -ainekset",
+      "sample_product_count": 2,
+      "names": [
+        "Dovgan Kondensoitu maito makeutettu 397g",
+        "Dovgan kondensoitu maito 397g karamel"
+      ],
+      "category_id": "condensed_milk",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liha-ja-kasviproteiinit/porsas/suikaleet-ja-kuutiot",
+      "sample_product_count": 1,
+      "names": [
+        "Atria Possun Lihasuikale 350g"
+      ],
+      "category_id": "meat",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "liikelahjat;;papukahvit",
+      "sample_product_count": 1,
+      "names": [
+        "Presidentti kahvi 450g papu"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/maito--kerma--ja-kasvirasvajauheet/maito--ja-kasvirasvajauheet",
+      "sample_product_count": 2,
+      "names": [
+        "Valio laktoositon kevyt maitojauhe instant 400 g",
+        "Valio rasvaton maitojauhe instant 400 g"
+      ],
+      "category_id": "milk_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/muut-ruokajuustot-ja-mifu",
+      "sample_product_count": 2,
+      "names": [
+        "Juustoportti Halla 150g paistettava juusto laktoositon",
+        "Juustoportti Leipäjuusto 140 g laktoositon"
+      ],
+      "category_id": "cheese",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "maito-munat-ja-rasvat/rahkat-vanukkaat-ja-jalkiruoka/maustetut-rahkat",
+      "sample_product_count": 3,
+      "names": [
+        "Isey Skyr Kuningatar maitovalmiste 170g",
+        "Isey Skyr Mansikka maitovalmiste 400g",
+        "Isey Skyr Persikka maitovalmiste 170g"
+      ],
+      "category_id": "skyr",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+      "sample_product_count": 6,
+      "names": [
+        "Kinder pääsiäispupu maitosuklaa 3x15g",
+        "Kinder pääsiäispupu maitosuklaa 55g",
+        "Lindt LINDOR maitosuklaamunat pussi 90g",
+        "Lindt Mini Lampaat maitosuklaakuvio 5x10g",
+        "Lindt Mini Tipu maitosuklaakuvio 5x10g",
+        "Rocher Golden maitosuklaatäytemunia 90g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "valmisruoka/laatikot-pastat-ja-lasagnet/peruna--ja-kasvilisakkeet",
+      "sample_product_count": 4,
+      "names": [
+        "Atria Fetaperunavuoka 300g",
+        "Saarioinen kermaperunat 320g",
+        "Saarioinen kermaperunat 600g",
+        "Saarioinen ranch-kermaperunat 600g"
+      ],
+      "category_id": "prepared_sides",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "wc- ja talouspaperit;;wc-paperit",
+      "sample_product_count": 1,
+      "names": [
+        "LOTUS Soft Embo wc-paperi 8 rll"
+      ],
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "wc- ja talouspaperit;;wc-paperit;;halloween askartelu",
+      "sample_product_count": 1,
+      "names": [
+        "Lambi wc-paperi 8 rl valkoinen"
+      ],
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-k",
+      "source_category": "Öljyt",
+      "sample_product_count": 1,
+      "names": [
+        "Neito rypsiöljy 250ml voin maku"
+      ],
+      "category_id": "cooking_oil",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAAQAA",
+      "sample_product_count": 1,
+      "names": [
+        "Kotimaista Kermaperunat 700g laktoositon"
+      ],
+      "category_id": "prepared_sides"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGAAAAASAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop hummus 140 g"
+      ],
+      "category_id": "hummus"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAGACAAAQAA",
+      "sample_product_count": 1,
+      "names": [
+        "Delitalo Kermaperunat 2,6kg"
+      ],
+      "category_id": "prepared_sides"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAMAAAKACAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop maitokaakaojuoma 1 l UHT"
+      ],
+      "category_id": "flavored_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAGACAAAA",
+      "sample_product_count": 5,
+      "names": [
+        "Isey Skyr Air Kirsikka laktoositon maitovalmiste 125g",
+        "Isey Skyr Air Mango-panna cotta laktoositon maitovalmiste 125g",
+        "Isey Skyr Air Vadelma-panna cotta laktoositon maitovalmiste 125g",
+        "Isey Skyr Citrus Yuzu laktoositon maitovalmiste 170g",
+        "Isey Skyr Mango-matcha laktoositon maitovalmiste 170g Limited Edition"
+      ],
+      "category_id": "skyr"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAQAIAGAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Dukat Maitosuklaavaahto 100g"
+      ],
+      "category_id": "dessert"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAWAMAIAIAA",
+      "sample_product_count": 3,
+      "names": [
+        "Eesti Pagar Nakkipiilo Sinappi-Kurkkutäytteellä 120g",
+        "Fazer Leipurit Juusto-kana snack kpl",
+        "La Lorraine Börek juusto-fetatäyte unikonsiemen 95g"
+      ],
+      "category_id": "savory_pastry"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAGAAAAAA",
+      "sample_product_count": 6,
+      "names": [
+        "Garage Vodka Lemonade Lime maustettu alkoholijuoma 4,1 % tölkki 0,5 L",
+        "Garage Vodka Lemonade Raspberry maustettu alkoholijuoma 4,1 % tölkki 0,5 L",
+        "Ginger Joe 4% 33cl juomasekoitus",
+        "Laitilan Naku Hard Seltzer Peach Mojito 4,0 til-% 0,33L hard seltzer persikkamojiton makuinen makeuttamaton alkoholijuoma",
+        "Laitilan Skumppa Chardonnay 8,0% 0,33L viinipohjainen juoma",
+        "S&R's Garage Vodka Lemonade Strawberry maustettu alkoholijuoma 4,1 % tölkki 0,5 L"
+      ],
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAGAAACAA",
+      "sample_product_count": 4,
+      "names": [
+        "Koff Hard Seltzer Lemon-Lime maustettu alkoholijuoma 4,5 % tölkki 0,33 L",
+        "Koff Hard Seltzer Mandarin-Blood Orange maustettu alkoholijuoma 4,5 % tölkki 0,33 L",
+        "Koff Hard Seltzer Mango-Passionfruit maustettu alkoholijuoma 4,5 % tölkki 0,33 L",
+        "Koff Hard Seltzer Strawberry-Raspberry maustettu alkoholijuoma 4,5 % tölkki 0,33 L"
+      ],
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAGAIAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Ginger Joe 0% 33cl alkoholiton juomasekoitus"
+      ],
+      "category_id": "mocktail"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAIAAAAAA",
+      "sample_product_count": 3,
+      "names": [
+        "2U Duas Uvas Red maustettu viinipohjainen juoma 8,0 til-% 1L tetra",
+        "Viva Valentina Rosso maustettu viinipohjainen juoma 8,0 til-% 1,5L BIB",
+        "Viva Valentina Rosso maustettu viinipohjainen juoma 8,0 til-% 75cl plo"
+      ],
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAIACAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "2U Duas Uvas white maustettu viinipohjainen juoma 8,0 til-% 1L tetra"
+      ],
+      "category_id": "mixed_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAIAQAAAA",
+      "sample_product_count": 5,
+      "names": [
+        "KontioMehu Lehtikuohu alkoholiton mustaherukanlehtikuohujuoma 0,2 l pullo",
+        "KontioMehu Lehtikuohu alkoholiton mustaherukanlehtikuohujuoma 0,75 l pullo",
+        "Källarbacken mansikanmakuinen alkoholiton kuohujuoma 0,75 l plo",
+        "Törley makea alkoholiton hiilihapotettu kuohujuoma alc <0,5 til-% 0,75l plo",
+        "Törley rosé alkoholiton hiilihapotettu kuohujuoma alk <0,5 til- % 0,75l  plo"
+      ],
+      "category_id": "mocktail"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAKAGAAAA",
+      "sample_product_count": 4,
+      "names": [
+        "The Gutsy Captain Kombucha Ginger Lemon kombucha juoma LUOMU 250ml",
+        "The Gutsy Captain Kombucha Ginger Lemon, inkiväärin ja sitruunan makuinen kombucha-juoma LUOMU 950ml",
+        "The Gutsy Captain Kombucha Raspberry, vadelmanmakuinen kombucha-juoma LUOMU 950ml",
+        "The Gutsy Captain Kombucha Sunny Peach kombucha juoma 250ml LUOMU"
+      ],
+      "category_id": "kombucha"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMACACAA",
+      "sample_product_count": 2,
+      "names": [
+        "6-pack Bonaqua Villivadelma Hiilihapotettu juoma tölkki 0,33 L",
+        "Bonaqua Villivadelma Hiilihapotettu juoma muovipullo 1,5 L"
+      ],
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAEAAAA",
+      "sample_product_count": 2,
+      "names": [
+        "6-pack Bonaqua Juicy Villipäärynä Hiilihapotettu juoma tlk 0.33 L",
+        "6-pack Bonaqua Juicy Villit Vatukat Hiilihapotettu juoma tlk 0.33 L"
+      ],
+      "category_id": "soft_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAGAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Vitamin Well All day, lemonaden makuinen vitaminoitu hiilihapoton juoma 500ml"
+      ],
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAMAGACAA",
+      "sample_product_count": 11,
+      "names": [
+        "Coop Sitruuna-Inkivääri Elektrolyytit B6 + B12 hiilihapotettu juoma 500 ml",
+        "Coop aprikoosi-jasmiini sinkki + E-vitamiini hiilihapotettu juoma 0,5l",
+        "Coop aprikoosi-jasmiini sinkki + E-vitamiini hiilihapotettu juoma 1,5l",
+        "Coop mango B6 + B12-vitamiini hiilihapotettu juoma 0,5l",
+        "Coop mango hiilihapotettu juoma B6 + B12-vitamiini 1,5l",
+        "Coop päärynä magnesium + C-vitamiini hiilihapotettu juoma 0,5l",
+        "Coop päärynä magnesium + C-vitamiini hiilihapotettu juoma 1,5l",
+        "Coop vadelma B + C-vitamiini hiilihapotettu juoma 0,5l",
+        "Coop vadelma B + C-vitamiini hiilihapotettu juoma 1,5l",
+        "Kotimaista mansikka-raparperi Mg + foolihappo hiilihapotettu juoma 1,5l",
+        "Kotimaista mustaherukka-omena B6 + B12 hiilihapotettu juoma 1,5l"
+      ],
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAAAYAOAGAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop Exe isotoninen urheilujuoma päärynänmakuinen 0,75l"
+      ],
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAAAKAAAA",
+      "sample_product_count": 3,
+      "names": [
+        "Coop Hedelmäjuoma 1l",
+        "Coop hedelmämehu 1l",
+        "Happy Vibes Pina Colada Mocktail 1 L"
+      ],
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAABKAAAA",
+      "sample_product_count": 2,
+      "names": [
+        "Coop appelsiini-colajuoma 1l",
+        "Coop sekajuoma 1l"
+      ],
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAACAKAAAA",
+      "sample_product_count": 3,
+      "names": [
+        "Coop appelsiini-colajuoma 2dl",
+        "Coop hedelmämehu 2dl",
+        "Coop tuttifrutti hedelmänmakuinen juoma 2dl"
+      ],
+      "category_id": "juice"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAEAKAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop Piña colada mocktail 750ml"
+      ],
+      "category_id": "mocktail"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAGAQAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Kotimaista maitokaakaojuoma 250 ml"
+      ],
+      "category_id": "flavored_milk"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABAAIAAACAA",
+      "sample_product_count": 1,
+      "names": [
+        "Xtra vadelmakiisseli 1 l"
+      ],
+      "category_id": "dessert"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGACBEAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Kotimaista kauralese 500 g"
+      ],
+      "category_id": "oatmeal"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAIAMAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop myslipatukka maitosuklaa-suolakinuski 6 kpl 138 g"
+      ],
+      "category_id": "snack_bar"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAKAMACAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop riisikakut maitosuklaa gluteeniton 100 g"
+      ],
+      "category_id": "rice_cakes"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGAWAKAAAI",
+      "sample_product_count": 1,
+      "names": [
+        "Dave & Jon´s DRIPS Mangoja maitosuklaalla"
+      ],
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBAAOAGAK",
+      "sample_product_count": 1,
+      "names": [
+        "Coop maitosuklaarouhe leivontaan 100 g"
+      ],
+      "category_id": "chocolate"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Xtra mansikkavalmiste 800 g"
+      ],
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQACAA",
+      "sample_product_count": 1,
+      "names": [
+        "Xtra vadelmavalmiste 800 g"
+      ],
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCAQAEAA",
+      "sample_product_count": 1,
+      "names": [
+        "Xtra puolukkavalmiste 800 g"
+      ],
+      "category_id": "jam"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABGBCASAMAA",
+      "sample_product_count": 3,
+      "names": [
+        "Coop mangosose 500 ml",
+        "Coop omenasose 500 ml",
+        "Xtra omenasose 720 g"
+      ],
+      "category_id": "fruit_puree"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABKAGAGAIAA",
+      "sample_product_count": 2,
+      "names": [
+        "ProBrands BCAA-juoma ananaksenmakuinen 330ml",
+        "ProBrands BCAA-juoma päärynänmakuinen 330ml"
+      ],
+      "category_id": "sports_drink"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABOAAAAACAA",
+      "sample_product_count": 5,
+      "names": [
+        "Mac´s koiran voima juoma kana 200g",
+        "Mac´s koiran voima juoma nauta 200g",
+        "Xtra koiranruoka 1240 g e",
+        "Xtra koiranruoka 1240 g e",
+        "Xtra koiranruoka 1240 g e"
+      ],
+      "category_id": "pet_food"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABQACACAGAA",
+      "sample_product_count": 2,
+      "names": [
+        "Coop paneroidut cheddar-jalapenot 200 g",
+        "Fingies - Cheddar jalapenos diplillä 250g"
+      ],
+      "category_id": "snacks"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAEACAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop matkahammasharja"
+      ],
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUACACAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Xtra huuhteluaine 1 l"
+      ],
+      "category_id": "fabric_softener"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABWAGAAAAAA",
+      "sample_product_count": 4,
+      "names": [
+        "Xtra nenäliina 10x10 kpl",
+        "Xtra nenäliina 150 kpl",
+        "Xtra paperinenäliina 10 pkt",
+        "Xtra taskunenäliina 1pkt"
+      ],
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEAAAA",
+      "sample_product_count": 2,
+      "names": [
+        "Xtra astiaharja",
+        "Xtra astiaharja"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEACAA",
+      "sample_product_count": 2,
+      "names": [
+        "Xtra hankaussieni 10 kpl",
+        "Xtra hankaussieni 10 kpl"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEAEAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop sieniliina 4 kpl"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAEAGAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop pulloharja 50 mm"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAGACAA",
+      "sample_product_count": 2,
+      "names": [
+        "Xtra mikrokuituliina 2kpl",
+        "Xtra siivousliina 10 kpl"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAIAAAA",
+      "sample_product_count": 2,
+      "names": [
+        "Coop rikkasetti",
+        "Xtra rikkasetti"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAKACAE",
+      "sample_product_count": 2,
+      "names": [
+        "Coop WC-harja",
+        "Xtra wc-harja"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAAQAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop teippiharja 5 m"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAAASAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Coop pyykkinaru 20 m"
+      ],
+      "category_id": "cleaning_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABYAGAEAAAA",
+      "sample_product_count": 1,
+      "names": [
+        "Xtra lämpökynttilä 50 kpl"
+      ],
+      "category_id": "candles"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACBGAAAEAEAE",
+      "sample_product_count": 2,
+      "names": [
+        "Kotimaista kukkamulta 10 L",
+        "Kotimaista kukkamulta 5 L"
+      ],
+      "category_id": "garden_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "Maitotuotteet",
+      "sample_product_count": 1,
+      "names": [
+        "Puhdistamo Vahva Maitohappobakteeri 12 mrd. 30 kaps"
+      ],
+      "category_id": "supplements",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "alkoholi-ja-virvoitusjuomat/glogit-simat-ja-muut-kausijuomat",
+      "sample_product_count": 1,
+      "names": [
+        "Coop sima 1,5l"
+      ],
+      "category_id": "seasonal_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hedelmat-ja-vihannekset/helpot-ja-nopeat-kasvisratkaisut/leikatut-ja-pilkotut-salaatit",
+      "sample_product_count": 1,
+      "names": [
+        "Coop Vuonankaali 50 g"
+      ],
+      "category_id": "fruit_veg",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "hillot-ja-sailykkeet/hedelma-ja-marjasailykkeet/muut-hedelmasailykkeet",
+      "sample_product_count": 1,
+      "names": [
+        "Coop päärynänpuolikkaat sokeriliemessä 410/230 g"
+      ],
+      "category_id": "canned_fruit",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kaakaot/kaakaojauheet",
+      "sample_product_count": 1,
+      "names": [
+        "Nesquik Strawberry juomajauhe 350g"
+      ],
+      "category_id": "drink_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/kausijuomat/glogit",
+      "sample_product_count": 1,
+      "names": [
+        "Valio glögi vaalea 1 l kausituote"
+      ],
+      "category_id": "seasonal_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/mehut/mehutiivisteet",
+      "sample_product_count": 2,
+      "names": [
+        "FUN Light juomatiiviste 0,5l kola",
+        "FUN Light juomatiiviste 0,5l vadelma"
+      ],
+      "category_id": "juice",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "sample_product_count": 1,
+      "names": [
+        "Club Mate Cola 0,33l"
+      ],
+      "category_id": "cola",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "kahvit-teet-ja-mehut/teet/teejuomajauheet-ja-uutteet",
+      "sample_product_count": 1,
+      "names": [
+        "Konnichiwa maitoteetä (original) 80 g"
+      ],
+      "category_id": "drink_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/karkkipussit/suklaa-ja-toffeepussit",
+      "sample_product_count": 1,
+      "names": [
+        "Simpl Mini maitosuklaapatukkalajitelma 450 g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/karkkipussit/suklaapussit",
+      "sample_product_count": 1,
+      "names": [
+        "Coop linnunmunat maitosuklaarakeet 200 g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-ja-suklaat/sesonki-ja-lahjamakeiset/sesonkikarkit",
+      "sample_product_count": 1,
+      "names": [
+        "Suklaatikkari pääsiäinen maito & valkosuklaasta 20g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/karkkipussit/suklaa-ja-toffeepussit",
+      "sample_product_count": 1,
+      "names": [
+        "Kinder Schokobons maitosuklaata maitoisalla hasselpähkinärouhetäytteellä 125g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/makeisjoulukalenterit",
+      "sample_product_count": 2,
+      "names": [
+        "Lindt LINDOR suklaakalenteri valikoima maito-, tumma ja valkosuklaata pehmeällä täytteellä 117g",
+        "Nestlé Smarties 193,9g Joulukalenteri, maitosuklaa, täytteenä sokerikuorrutettuja maitosuklaarakeita"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/suklaakonvehdit-ja-kaareelliset-makeiset",
+      "sample_product_count": 4,
+      "names": [
+        "Lindt CHAMPS ELYSÉES valikoima hienoja maito-, tumma- ja valkosuklaakonvehteja 182g",
+        "Lindt CHAMPS ÉLYSÉES valikoima hienoja maito-, tumma- ja valkosuklaakonvehteja rasia 469g",
+        "Lindt LINDOR Maito, valkosuklaa, Double Chocolate ja pistaasi suklaakuula pehmeällä täytteellä 337g",
+        "Lindt Lindor Maito valko hasselpähkinä tumma suklaakuula pehmeällä täytteellä 137g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "konvehtiboxit;;uutuudet",
+      "sample_product_count": 1,
+      "names": [
+        "After Eight Caramel karamellitäytteinen maitosuklaa 200g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "sample_product_count": 1,
+      "names": [
+        "Wasa Sandwich Juusto & ruohosipuli 37g"
+      ],
+      "category_id": "ready_sandwich",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/paistopisteen-tuotteet/paistopisteen-tuotteet",
+      "sample_product_count": 1,
+      "names": [
+        "Pirkka riisipiirakka 64g"
+      ],
+      "category_id": "savory_pastry",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "sample_product_count": 4,
+      "names": [
+        "Friggs maissikakku 125g juusto",
+        "Friggs maissikakut 125g kermaviili-sipuli gluteeniton",
+        "Friggs proteiinikakku 125g juusto",
+        "Friggs riisikakku 125g juusto"
+      ],
+      "category_id": "rice_cakes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/kinkkusuikaleet-ja--palat",
+      "sample_product_count": 1,
+      "names": [
+        "Atria Vuolu Kana Fajitas 200g"
+      ],
+      "category_id": "cold_cuts",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/pekonit",
+      "sample_product_count": 2,
+      "names": [
+        "Atria Suomalainen Pekoni 100g",
+        "Atria Suomalainen Pekoni 200g"
+      ],
+      "category_id": "bacon",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/nauta/sisaelimet-ja-muu-naudanliha",
+      "sample_product_count": 1,
+      "names": [
+        "Atria naudan maksaviipale n.400g"
+      ],
+      "category_id": "meat",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "liha-ja-kasviproteiinit/porsas/suikaleet-ja-kuutiot",
+      "sample_product_count": 1,
+      "names": [
+        "Atria Possun Pataliha 350 g"
+      ],
+      "category_id": "meat",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-juusto-munat-ja-rasvat/munat/muut-munat-ja-munavalmisteet",
+      "sample_product_count": 2,
+      "names": [
+        "DAVA whitePRO vapaa kananmunan valkuainen 1 kg",
+        "WhitePRO vapaa kananmunan valkuainen 230g"
+      ],
+      "category_id": "egg",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "maito-munat-ja-rasvat/rahkat-vanukkaat-ja-jalkiruoka/muut-valipalat-ja-jalkiruoat",
+      "sample_product_count": 2,
+      "names": [
+        "Konnichiwa mochi (bubble maito tee ) 120 g",
+        "Konnichiwa mochi (maito ) 120 g"
+      ],
+      "category_id": "dessert",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+      "sample_product_count": 7,
+      "names": [
+        "Karl Fazer piparkakku maitosuklaalevy 200g",
+        "Lindt Joulupukki maitosuklaakuvio 70g",
+        "Lindt Pikkutipu maitosuklaakuvio 100g",
+        "Lindt Teddy maitosuklaa joulukalenteri 170g",
+        "Lindt Teddy maitosuklaakuvio 40g",
+        "Lindt Thins maitosuklaa 125g",
+        "Toblerone Maitosuklaa suklaalevy 340g"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/dipit",
+      "sample_product_count": 1,
+      "names": [
+        "Estrella Cheddar & Chili dippimix 16g"
+      ],
+      "category_id": "dip_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "oljyt-etikat-ja-salaattikastikkeet/etikat-ja-sailontaaineet/muut-etikat-ja-sailontaaineet",
+      "sample_product_count": 3,
+      "names": [
+        "Borges Luomu Omenasiiderietikka 250ml",
+        "Foodin Luomu Omenasiiderietikka 500ml",
+        "Rajamäen Luomu Omenasiiderietikka 250 ml"
+      ],
+      "category_id": "vinegar",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/perunapakasteet/perunasoseet",
+      "sample_product_count": 2,
+      "names": [
+        "Apetit perunamuusi 350g pakaste",
+        "Oolannin muusiperuna 400g pakaste"
+      ],
+      "category_id": "frozen_potatoes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "pakasteet/perunapakasteet/perunasuikaleet-ja-lohkoperunat",
+      "sample_product_count": 2,
+      "names": [
+        "Oolannin pannuperuna 400g pakaste",
+        "ROOTY wokkiperuna 450g pakaste"
+      ],
+      "category_id": "frozen_potatoes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/lihatiski/leikkeleet-makkarat-ja-muut-lihavalmisteet",
+      "sample_product_count": 2,
+      "names": [
+        "Kivikylän Pitkä nakki n. 2,5 kg Dyno",
+        "Savuhovi Juustogangsteri nakki"
+      ],
+      "category_id": "sausage",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/valmisruoka/jalkiruoat",
+      "sample_product_count": 1,
+      "names": [
+        "Maitotyttökakku"
+      ],
+      "category_id": "pastry",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/valmisruoka/sushibaari",
+      "sample_product_count": 2,
+      "names": [
+        "Maitoteetä (Mango Pudding) 80g",
+        "Maitoteetä (Vehnä ) 80g"
+      ],
+      "category_id": "drink_powder",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "ruokatori/valmisruoka/sushit",
+      "sample_product_count": 3,
+      "names": [
+        "Tomomasu mango juoma 300 ml",
+        "Tomomasu persikka juoma 300 ml",
+        "Tomomasu vesimeloni juoma 300 ml"
+      ],
+      "category_id": "soft_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/valmisruokasailykkeet",
+      "sample_product_count": 1,
+      "names": [
+        "Jalostaja Kermainen Riistakeitto 400g"
+      ],
+      "category_id": "soup",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "texmex-ja-maailman-maut/texmex/texmex-kastikkeet",
+      "sample_product_count": 2,
+      "names": [
+        "Auran Cheddar juustokastike 120g",
+        "Kavli Cheddar Dip 185g Original"
+      ],
+      "category_id": "dip_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/puurot-ja-kiisselit/mammit",
+      "sample_product_count": 3,
+      "names": [
+        "Kymppi marjamämmi 550g pakaste",
+        "Kymppi mämmi 100g pakaste",
+        "Kymppi mämmi 700g pakaste"
+      ],
+      "category_id": "dessert",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/valmiit-aterian-osat",
+      "sample_product_count": 2,
+      "names": [
+        "Juustoportti Bataattisose, 400g",
+        "Juustoportti Porkkanasose 500g"
+      ],
+      "category_id": "prepared_sides",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "energiajuomat;;äitienpäivä",
+      "sample_product_count": 1,
+      "names": [
+        "Nocco 330 ml Berruba"
+      ],
+      "category_id": "energy_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoispesu- ja käsittelyaineet tekstiileille",
+      "sample_product_count": 2,
+      "names": [
+        "Sappisaippua 500 ml Tahranpoistoon",
+        "Sappisaippuapala 100 g"
+      ],
+      "category_id": "laundry_detergent",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "halloween-makeiset",
+      "sample_product_count": 1,
+      "names": [
+        "Kuviot Crest 90 g Halloween maitotäytteellä"
+      ],
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "huulikiillot;;trendaavat kosmetiikkatuotteet",
+      "sample_product_count": 1,
+      "names": [
+        "Huulikiilto Essence 10 ml Juicy Bomb Shiny 103 Proud Papaya"
+      ],
+      "category_id": "makeup",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "isänpäivälahjat;;kuntoiluvälineet",
+      "sample_product_count": 1,
+      "names": [
+        "Kahvallinen kuntopallo Gymstick Medicine Ball, 10 kg"
+      ],
+      "category_id": "sports_equipment",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "joulukoristeet ja -asusteet;;edulliset lahjavinkit;;kotikulta sesonkikoristeet",
+      "sample_product_count": 1,
+      "names": [
+        "Paperienkeli Kotikulta 2 kpl 7 cm ruskea"
+      ],
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "joulukoristeet ja -asusteet;;kotikulta sesonkikoristeet",
+      "sample_product_count": 1,
+      "names": [
+        "Paperienkeli Kotikulta 2 kpl 7 cm luonnonvalkoinen"
+      ],
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet;;kahvikapselit",
+      "sample_product_count": 1,
+      "names": [
+        "Cappuccino 16 kpl kahvikapseli"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimien tarvikkeet",
+      "sample_product_count": 1,
+      "names": [
+        "Kahvinkeittimien puhdistusneste Wilfa 250 ml"
+      ],
+      "category_id": "cleaning_products",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kakkupaperit;;kesäjuhlat",
+      "sample_product_count": 1,
+      "names": [
+        "Kakkupaperi Fredman 28 cm 15 kpl pyöreä"
+      ],
+      "category_id": "kitchen_tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "karkkipastillit",
+      "sample_product_count": 2,
+      "names": [
+        "Läkerol 25 g Salmiak pastilli",
+        "Sisu Xylitol 36 g pastilli"
+      ],
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kesä outlet;;kalan käsittelytarvikkeet",
+      "sample_product_count": 1,
+      "names": [
+        "Kalastuspihdit Fisherman 29 cm pistoolikahva"
+      ],
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kopiopaperit;;halloween askartelu",
+      "sample_product_count": 1,
+      "names": [
+        "Kopiopaperi Xerox A4 80 g 500 arkkia Business"
+      ],
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kurkkupastillit",
+      "sample_product_count": 8,
+      "names": [
+        "Kurkkupastilli Mynthon 85 g Appelsiini-Inkivääri sokeriton",
+        "Kurkkupastilli Vicks 40 g Fruity Fresh Lemon sokeriton",
+        "Kurkkupastilli Vicks 40 g Menthol Fresh sokeriton",
+        "Mynthon 30 g Zip Mint Eucaminttu",
+        "Mynthon 30 g Zip Mint Menthol",
+        "Mynthon 30 g Zip Mint Salmiakki",
+        "Mynthon 30 g Zip Mint Vadelma 2-layer",
+        "Mynthon 30 g Zip Mint omena"
+      ],
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "käärekarkkipussit",
+      "sample_product_count": 1,
+      "names": [
+        "Woogie 250 g Milk Caramel"
+      ],
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "lauta- ja palapelit;;ravensburger maalaussetit",
+      "sample_product_count": 1,
+      "names": [
+        "Maalaussetti Ravensburger CreArt Blue Lamborghini"
+      ],
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "liikelahjat;;papukahvit",
+      "sample_product_count": 2,
+      "names": [
+        "Kharisma 400 g papukahvi",
+        "Pausa Segafredo 425 g papukahvi"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "lintulaudat",
+      "sample_product_count": 1,
+      "names": [
+        "Lintujen ruokintakahvila Real Bird"
+      ],
+      "category_id": "pet_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "liuskapaperit",
+      "sample_product_count": 1,
+      "names": [
+        "Käsipaperi Grite Ecological 150 kpl"
+      ],
+      "category_id": "paper_towels",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokakomeron täydennys;;kahvinkeittimet;;kahvikapselit",
+      "sample_product_count": 2,
+      "names": [
+        "Cafe au Lait 16 kpl kahvikapseli",
+        "Espresso Intenso 16 kpl kahvikapseli"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokakomeron täydennys;;liikelahjat;;papukahvit",
+      "sample_product_count": 1,
+      "names": [
+        "Espresso Giusto 500 g kahvipapu luomu"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokakomeron täydennys;;liikelahjat;;suodatinkahvit",
+      "sample_product_count": 1,
+      "names": [
+        "Kahvi Priima 500 g vaalea paahto SJ"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "seinäkalenterit;;uutuudet",
+      "sample_product_count": 2,
+      "names": [
+        "Perhekalenteri Burde 2027 Hauska paperitaskulla",
+        "Perhekalenteri Burde 2027 Moderni paperitaskulla"
+      ],
+      "category_id": "craft_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "sisäkoristevalot;;koristevalot",
+      "sample_product_count": 3,
+      "names": [
+        "Paperilumihiutale Kotikulta 50 cm",
+        "Paperitähti Kotikulta 60 cm punainen",
+        "Paperitähti Kotikulta 75 cm GF"
+      ],
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "sisäkoristevalot;;kotikulta koristevalot;;koristevalot",
+      "sample_product_count": 3,
+      "names": [
+        "Paperitähti Kotikulta 60 cm valkoinen",
+        "Paperitähti Kotikulta 75 cm kulta",
+        "Paperitähti Kotikulta 75 cm valkoinen"
+      ],
+      "category_id": "home_decor",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "suojapaperit ja -kankaat;;kaikki muuttoon",
+      "sample_product_count": 1,
+      "names": [
+        "Lattiasuojapaperi 0,95x30m"
+      ],
+      "category_id": "building_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "tietokoneen oheislaitteet",
+      "sample_product_count": 1,
+      "names": [
+        "Paperisilppuri Nedis A4 10 l"
+      ],
+      "category_id": "electronics",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "uht-maidot",
+      "sample_product_count": 4,
+      "names": [
+        "Annosmaito Arla 100 x 2 cl 1,5 % laktoositon UHT",
+        "Kevytmaitojuoma Juustoportti 1 l Perhemeijerin laktoositon UHT",
+        "Maitojuoma 3 % Juustoportti 1 l Perhemeijerin laktoositon UHT",
+        "Rasvaton maitojuoma Juustoportti 1 l Perhemeijerin laktoositon UHT"
+      ],
+      "category_id": "milk",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "wc- ja talouspaperit;;wc-paperit",
+      "sample_product_count": 1,
+      "names": [
+        "WC-paperi 32 rl"
+      ],
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "wc-paperit;;halloween koristeet;;halloween askartelu",
+      "sample_product_count": 1,
+      "names": [
+        "WC-paperi Iisi 8 rl valkoinen"
+      ],
+      "category_id": "toilet_paper",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Juomat",
+      "sample_product_count": 1,
+      "names": [
+        "Pikakahvi SPAR 100 g Classic"
+      ],
+      "category_id": "coffee",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Kauneus, terveys ja hyvinvointi",
+      "sample_product_count": 1,
+      "names": [
+        "Partavaahto SPAR 250 ml Daily"
+      ],
+      "category_id": "hygiene_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Keksit, korput ja riisikakut",
+      "sample_product_count": 2,
+      "names": [
+        "Riisikakku SPAR 100 g merisuola",
+        "Riisikakku SPAR 105 g suklaa"
+      ],
+      "category_id": "rice_cakes",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Lastenhoito",
+      "sample_product_count": 3,
+      "names": [
+        "Teippivaippa SPAR 22 kpl koko 5, 11-23 kg",
+        "Teippivaippa SPAR 24 kpl koko 4, 8-16 kg",
+        "Teippivaippa SPAR 26 kpl koko 3, 5-9 kg"
+      ],
+      "category_id": "hygiene_supplies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Lemmikit",
+      "sample_product_count": 13,
+      "names": [
+        "Kissanruoka SPAR 100 g patee kana",
+        "Kissanruoka SPAR 100 g patee lohi",
+        "Kissanruoka SPAR 100 g patee nauta",
+        "Kissanruoka SPAR 415 g kana kastikkeessa",
+        "Kissanruoka SPAR 415 g lohi kastikkeessa",
+        "Kissanruoka SPAR 415 g nauta kastikkeessa",
+        "Koiranruoka SPAR 150 g patee kana-kalkkuna",
+        "Koiranruoka SPAR 150 g patee vasikka-kani",
+        "Koiranruoka SPAR 300 g patee kana",
+        "Koiranruoka SPAR 300 g patee nauta",
+        "Koiranruoka SPAR 415 g kalkkuna kastikkeessa",
+        "Koiranruoka SPAR 415 g nauta kastikkeessa",
+        "SPAR koiranruoka säilyke 415g lammas"
+      ],
+      "category_id": "pet_food",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Levitteet",
+      "sample_product_count": 3,
+      "names": [
+        "Hasselpähkinälevite SPAR 400 g",
+        "Maapähkinävoi SPAR 350 g Creamy",
+        "Maapähkinävoi SPAR 350 g crunchy"
+      ],
+      "category_id": "sweet_spread",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Makeiset ja purukumit",
+      "sample_product_count": 1,
+      "names": [
+        "Vaahtokarkki SPAR 150 g Pink & White"
+      ],
+      "category_id": "candy",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Murot, myslit ja hiutaleet",
+      "sample_product_count": 1,
+      "names": [
+        "Pikakaurahiutale SPAR 1 kg"
+      ],
+      "category_id": "oatmeal",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-spar",
+      "source_category": "Pastat, riisit ja jauhot",
+      "sample_product_count": 3,
+      "names": [
+        "Penne Rigate SPAR 500 g",
+        "Penne SPAR 1 kg",
+        "Spaghetti SPAR 500 g"
+      ],
+      "category_id": "pasta",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Elektroniikka ja sähkö",
+      "sample_product_count": 5,
+      "names": [
+        "Kuulokkeet JBL Tune 530 BT beige",
+        "Kuulokkeet JBL Tune 530 BT lila",
+        "Kuulokkeet JBL Tune 530 BT musta",
+        "Kuulokkeet JBL Tune 530 BT valkoinen",
+        "Multimediasoitin Motorwerk carplay / mirrorlink 6,86\" kosketusnäytöllä"
+      ],
+      "category_id": "electronics",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Kastikkeet ja levitteet",
+      "sample_product_count": 1,
+      "names": [
+        "Lihapullakastike Jalostaja 400 g"
+      ],
+      "category_id": "cooking_sauce",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "Puutarha ja työkalut",
+      "sample_product_count": 1,
+      "names": [
+        "Kottikärryn rengas 15x4.00-8 puhkeamaton"
+      ],
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "hylsyavainsarjat;;työkalut",
+      "sample_product_count": 1,
+      "names": [
+        "Räikkäväänninsarja Tactix 43 osaa, T-kahvalla"
+      ],
+      "category_id": "tools",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "konvehtirasiat;;lahjaksi;;joulupöytään;;yrityslahjat",
+      "sample_product_count": 1,
+      "names": [
+        "Suklaakonvehti Karl Fazer 250 g vaalea maitosuklaa"
+      ],
+      "category_id": "chocolate",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "makeiset-ja-naposteltavat/purukumit/ksylitoli-isot",
+      "sample_product_count": 1,
+      "names": [
+        "Purukumi Jenkki 70 g Enjoy Hearts Lemon-Cola"
+      ],
+      "category_id": "chewing_gum",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "piparit;;uutuudet",
+      "sample_product_count": 1,
+      "names": [
+        "Piparipallot Pipariset 120 g Valko- ja Maitosuklaa"
+      ],
+      "category_id": "cookies",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "proteiinijuomat",
+      "sample_product_count": 2,
+      "names": [
+        "Juicy BCAA SportLife Nutrition 330 ml mango-persikka",
+        "Juicy BCAA SportLife Nutrition 330 ml vesimeloni-vadelma"
+      ],
+      "category_id": "sports_drink",
+      "allowGlobalMatch": false
+    },
+    {
+      "source": "tokmanni-viikkotarjoukset",
+      "source_category": "wc- ja talouspaperit;;talouspaperit;;halloween askartelu",
+      "sample_product_count": 1,
+      "names": [
+        "Talouspaperi 8 rl valkoinen"
+      ],
+      "category_id": "paper_towels",
       "allowGlobalMatch": false
     }
   ]

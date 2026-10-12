@@ -35,6 +35,8 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["matto", "home_textiles"],["säilytyslaatikko", "storage"],["hajuvesi", "fragrance"],["pölynimuri", "home_appliances"],["sulanapitokaapeli", "heating"],
+["tiramisu", "dessert"],["skyr", "skyr"],["kermaperuna", "prepared_sides"],["hummus", "hummus"],["maitokaakaojuoma", "flavored_milk"],["karjalanpiirakka", "savory_pastry"],["hard seltzer", "mixed_drink"],["mocktail", "mocktail"],["kombucha", "kombucha"],["urheilujuoma", "sports_drink"],["myslipatukka", "snack_bar"],["riisikakku", "rice_cakes"],["omenasose", "fruit_puree"],["huuhteluaine", "fabric_softener"],["lämpökynttilä", "candles"],["kukkamulta", "garden_supplies"],["pekoni", "bacon"],["paperitähti", "home_decor"],["kuuloke", "electronics"],
 ["purukumi", "chewing_gum"],["kahvakuula", "sports_equipment"],["jakoavain", "tools"],["liimapuulevy", "building_supplies"],["askartelupaperi", "craft_supplies"],["led-valo", "lighting"],["nilkkuri", "clothing"],["moottoriöljy", "automotive"],["astiaharja", "cleaning_tools"],["dippikastike", "dip_sauce"],["tortilla", "tortilla"],["pähkinä", "nuts_seeds"],["rusina", "dried_fruit"],["hedelmäsäilyke", "canned_fruit"],["kvinoa", "grain_side"],["ranskanperuna", "frozen_potatoes"],["maapähkinävoi", "sweet_spread"],["kahvijuomajauhe", "drink_powder"],["huulikiilto", "makeup"],["glögi", "seasonal_drink"],["lintulauta", "pet_supplies"],["kärpäspaperi", "pest_control"],
 ["lastenruoka","baby_food"],["vieroitusvalmiste","baby_food"],["kookosmaito","coconut_milk"],["proteiinipatukka","sports_nutrition"],["falafel","prepared_protein"],["kebab","prepared_protein"],
 ["kala", "fish"],["sulatejuusto", "processed_cheese"],["rasvaseos", "butter_blend"],["leivonta-aines", "baking_ingredients"],["kondensoitu maito", "condensed_milk"],["jälkiruokakastike", "dessert_sauce"],
@@ -87,6 +89,9 @@ for (const [query,expected] of samples) {
 // Verify the real result ranker, not only intent detection.
 const makeProduct = (id, name, category) => ({id,name,category,price:2.5});
 const rankingCases = [
+  {query:"liha",products:[{...makeProduct(1701,"Kennelpakaste Naudan lihaseos 800 g","Liha"),ean:"6409580010081"},makeProduct(1702,"Naudan jauheliha 400 g","Jauhelihat")],first:1702,excluded:[1701]},
+  {query:"tonnikala",products:[{...makeProduct(1703,"Hetki Arki tonnikala-pastasalaatti 200g","Kala ja äyriäiset"),ean:"6406510093664"},makeProduct(1704,"Tonnikala 140 g","Tonnikalat")],first:1704,excluded:[1703]},
+  {query:"kana",products:[{...makeProduct(1705,"Saarioinen PROTSKU kanan sisäfilee ja couscous 350g","Kuivatuotteet"),ean:"6412000036301"},makeProduct(1706,"Kanan fileesuikale 400 g","Broilerit")],first:1706,excluded:[1705]},
   {query:"maito",products:[makeProduct(1601,"Xtra kookosmaito 400 ml","CAABGBCAGAAAA"),makeProduct(1602,"Valio kevytmaito 1 l","Maidot")],first:1602,excluded:[1601]},
   {query:"cola",products:[makeProduct(1603,"Leader urheilujuomajauhe cola","kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet"),makeProduct(1604,"Coca Cola 0,33 l","Colajuomat")],first:1604,excluded:[1603]},
   {query:"smoothie",products:[makeProduct(1605,"Coop Eko smoothie 6 kk","CAABGAOAIAAAI"),makeProduct(1606,"Mun smoothie 300 ml","Smoothiet")],first:1606,excluded:[1605]},

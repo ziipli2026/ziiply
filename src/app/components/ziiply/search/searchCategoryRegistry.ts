@@ -1,7 +1,33 @@
 // Versioned test registry, persisted with rules in Neon. No database call per search.
 import type { SearchIntent } from "../ziiplyCore";
-export const CATEGORY_REGISTRY_VERSION = "2026-10-12.16";
+export const CATEGORY_REGISTRY_VERSION = "2026-10-12.20";
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {"category": "home_textiles", "label": "Kodintekstiilit", "variants": ["matto", "keittiöpyyhe", "verho", "torkkuhuopa"], "requiredAny": ["matto", "keittiöpyyhe", "verho", "torkkuhuopa"], "bannedAny": []},
+  {"category": "storage", "label": "Säilytys ja laukut", "variants": ["säilytyslaatikko", "vetolaukku", "säilytysastia"], "requiredAny": ["säilytyslaatikko", "vetolaukku", "säilytysastia"], "bannedAny": []},
+  {"category": "fragrance", "label": "Tuoksut", "variants": ["hajuvesi", "eau de parfum", "eau de toilette"], "requiredAny": ["hajuvesi", "eau de parfum", "eau de toilette"], "bannedAny": []},
+  {"category": "home_appliances", "label": "Kodinkoneet", "variants": ["pölynimuri", "robotti-imuri", "varsi-imuri"], "requiredAny": ["pölynimuri", "robotti-imuri", "varsi-imuri"], "bannedAny": []},
+  {"category": "heating", "label": "Lämmitys ja sähkötarvikkeet", "variants": ["sulanapitokaapeli", "kaasulämmitin", "seinälämpöpuhallin"], "requiredAny": ["sulanapitokaapeli", "kaasulämmitin", "seinälämpöpuhallin"], "bannedAny": []},
+
+  {"category": "dessert", "label": "Jälkiruoat", "variants": ["tiramisu", "mämmi", "kiisseli", "suklaavaahto", "mochi"], "requiredAny": ["tiramisu", "mämmi", "kiisseli", "suklaavaahto", "mochi"], "bannedAny": []},
+  {"category": "skyr", "label": "Skyr-valmisteet", "variants": ["skyr"], "requiredAny": ["skyr"], "bannedAny": []},
+  {"category": "prepared_sides", "label": "Valmiit lisukkeet", "variants": ["kermaperuna", "bataattisose", "porkkanasose"], "requiredAny": ["kermaperuna", "bataattisose", "porkkanasose"], "bannedAny": []},
+  {"category": "hummus", "label": "Hummukset", "variants": ["hummus", "hummis"], "requiredAny": ["hummus", "hummis"], "bannedAny": []},
+  {"category": "flavored_milk", "label": "Maustetut maitojuomat", "variants": ["maitokaakaojuoma", "kaakaomaito"], "requiredAny": ["maitokaakaojuoma", "kaakaomaito"], "bannedAny": []},
+  {"category": "savory_pastry", "label": "Suolaiset piirakat", "variants": ["karjalanpiirakka", "riisipiirakka", "nakkipiilo", "börek"], "requiredAny": ["karjalanpiirakka", "riisipiirakka", "nakkipiilo", "börek"], "bannedAny": []},
+  {"category": "mixed_drink", "label": "Alkoholijuomasekoitukset", "variants": ["hard seltzer", "viinipohjainen juoma", "vodka lemonade"], "requiredAny": ["hard seltzer", "viinipohjainen juoma", "vodka lemonade"], "bannedAny": []},
+  {"category": "mocktail", "label": "Alkoholittomat drinkit", "variants": ["mocktail", "alkoholiton kuohujuoma"], "requiredAny": ["mocktail", "alkoholiton kuohujuoma"], "bannedAny": []},
+  {"category": "kombucha", "label": "Kombuchat", "variants": ["kombucha"], "requiredAny": ["kombucha"], "bannedAny": []},
+  {"category": "sports_drink", "label": "Urheilu- ja hyvinvointijuomat", "variants": ["urheilujuoma", "bcaa-juoma", "vitamiinijuoma"], "requiredAny": ["urheilujuoma", "bcaa-juoma", "vitamiinijuoma"], "bannedAny": []},
+  {"category": "snack_bar", "label": "Välipalapatukat", "variants": ["myslipatukka", "kaurapatukka", "välipalapatukka"], "requiredAny": ["myslipatukka", "kaurapatukka", "välipalapatukka"], "bannedAny": []},
+  {"category": "rice_cakes", "label": "Riisi- ja maissikakut", "variants": ["riisikakku", "maissikakku"], "requiredAny": ["riisikakku", "maissikakku"], "bannedAny": []},
+  {"category": "fruit_puree", "label": "Hedelmäsoseet", "variants": ["omenasose", "mangosose"], "requiredAny": ["omenasose", "mangosose"], "bannedAny": []},
+  {"category": "fabric_softener", "label": "Huuhteluaineet", "variants": ["huuhteluaine"], "requiredAny": ["huuhteluaine"], "bannedAny": []},
+  {"category": "candles", "label": "Kynttilät", "variants": ["lämpökynttilä", "lyhtykynttilä"], "requiredAny": ["lämpökynttilä", "lyhtykynttilä"], "bannedAny": []},
+  {"category": "garden_supplies", "label": "Puutarhatarvikkeet", "variants": ["kukkamulta", "puutarhamulta", "lannoite"], "requiredAny": ["kukkamulta", "puutarhamulta", "lannoite"], "bannedAny": []},
+  {"category": "bacon", "label": "Pekonit", "variants": ["pekoni", "pancetta"], "requiredAny": ["pekoni", "pancetta"], "bannedAny": []},
+  {"category": "home_decor", "label": "Sisustus ja koristeet", "variants": ["paperitähti", "paperienkeli", "paperikoriste"], "requiredAny": ["paperitähti", "paperienkeli", "paperikoriste"], "bannedAny": []},
+  {"category": "electronics", "label": "Elektroniikka", "variants": ["kuuloke", "paperisilppuri", "multimediasoitin"], "requiredAny": ["kuuloke", "paperisilppuri", "multimediasoitin"], "bannedAny": []},
+
   {"category": "chewing_gum", "label": "Purukumit", "variants": ["purukumi", "ksylitolipurukumi"], "requiredAny": ["purukumi", "ksylitolipurukumi"], "bannedAny": []},
   {"category": "sports_equipment", "label": "Kuntoiluvälineet", "variants": ["kahvakuula", "jumppapallo", "kuntopallo", "kuntoiluväline"], "requiredAny": ["kahvakuula", "jumppapallo", "kuntopallo", "kuntoiluväline"], "bannedAny": []},
   {"category": "tools", "label": "Työkalut ja koneet", "variants": ["jakoavain", "hylsyavainsarja", "vesuri", "aggregaatti", "plasmaleikkuri"], "requiredAny": ["jakoavain", "hylsyavainsarja", "vesuri", "aggregaatti", "plasmaleikkuri"], "bannedAny": []},
@@ -207,7 +233,7 @@ export const SEARCH_INTENTS: SearchIntent[] = [
   {
     category: "meat",
     label: "Jauhelihat ja lihat",
-    variants: ["jauheliha", "naudan jauheliha", "sika-nauta jauheliha", "broilerin jauheliha", "jauheliha 400g"],
+    variants: ["liha", "jauheliha", "naudan jauheliha", "sika-nauta jauheliha", "broilerin jauheliha", "jauheliha 400g"],
     requiredAny: ["jauheliha", "nauta", "sika-nauta", "broilerin jauheliha"],
     preferredAny: ["jauheliha", "naudan", "sika-nauta"],
     bannedAny: ["kastike", "keitto", "ateria", "pizza", "piirakka"],

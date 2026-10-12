@@ -201,6 +201,32 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "home_textiles"
+  | "storage"
+  | "fragrance"
+  | "home_appliances"
+  | "heating"
+
+  | "dessert"
+  | "skyr"
+  | "prepared_sides"
+  | "hummus"
+  | "flavored_milk"
+  | "savory_pastry"
+  | "mixed_drink"
+  | "mocktail"
+  | "kombucha"
+  | "sports_drink"
+  | "snack_bar"
+  | "rice_cakes"
+  | "fruit_puree"
+  | "fabric_softener"
+  | "candles"
+  | "garden_supplies"
+  | "bacon"
+  | "home_decor"
+  | "electronics"
+
   | "chewing_gum"
   | "sports_equipment"
   | "tools"
