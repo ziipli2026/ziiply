@@ -14,6 +14,7 @@ import { hasAny, hasWord, normalizeFi, uniqueStable } from "./searchNormalizer";
 export type ZiiplySearchIntentName =
   | "milk_drink"
   | "cola"
+  | "soft_drink"
   | "coffee"
   | "eggs"
   | "meat"
@@ -216,10 +217,17 @@ const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySea
   },
   cola: {
     confidence: 0.9,
-    includeTerms: ["cola", "coca cola", "coca-cola", "pepsi", "zero", "max", "limsa", "virvoitusjuoma"],
+    includeTerms: ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "cola zero"],
     preferredTerms: ["coca cola", "coca-cola", "pepsi", "cola zero", "pepsi max"],
     excludeTerms: ["makeinen", "karkki", "jäätelö", "siirappi"],
     categoryHints: ["virvoitusjuomat", "juomat", "cola"],
+  },
+  soft_drink: {
+    confidence: 0.9,
+    includeTerms: ["virvoitusjuoma", "limsa", "limonadi", "limu", "cola", "pepsi", "fanta", "sprite"],
+    preferredTerms: ["virvoitusjuoma", "limonadi", "limsa"],
+    excludeTerms: ["makeinen", "karkki", "jäätelö", "siirappi"],
+    categoryHints: ["virvoitusjuomat"],
   },
   coffee: {
     confidence: 0.88,
@@ -336,7 +344,8 @@ export function resolveSearchIntentAI(query: string): ZiiplySearchIntent {
 
   const directRules: Array<[ZiiplySearchIntentName, (value: string) => boolean, string]> = [
     ["milk_drink", (v) => hasWord(v, "maito") || hasAny(v, ["kevytmaito", "täysmaito", "rasvaton maito", "maitojuoma"]), "maito"],
-    ["cola", (v) => hasAny(v, ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "kokis", "cokis", "limsa"]), "cola"],
+    ["soft_drink", (v) => hasAny(v, ["limsa", "limonadi", "limu", "virvoitusjuoma"]), "virvoitusjuoma"],
+    ["cola", (v) => hasAny(v, ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "kokis", "cokis"]), "cola"],
     ["coffee", (v) => hasWord(v, "kahvi") || hasAny(v, ["juhla mokka", "presidentti", "suodatinkahvi"]), q],
     ["eggs", (v) => hasAny(v, ["kananmuna", "kananmunat"]) || hasWord(v, "munat"), "kananmuna"],
     ["meat", (v) => hasAny(v, ["jauheliha", "broileri", "kana", "naudan", "sika-nauta", "sika nauta"]), q],
@@ -439,6 +448,8 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
       (hasAny(category, ["hiutale", "puurohiutale"]) && hasAny(text, ["kaura"]))
     );
   }
+
+  if (intent.intent === "cola") return hasAny([name, brand].join(" "), ["cola", "pepsi"]);
 
   if (intent.categoryHints.length > 0 && hasAny(category, intent.categoryHints)) {
     if (intent.intent === "milk_drink" && hasAny(text, ["suklaa", "voi", "jogurtti", "kerma", "maitojauhe"])) return false;
