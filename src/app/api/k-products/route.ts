@@ -1,3 +1,4 @@
+import { fetchKDirectNormalProducts } from "@/lib/kRuokaDirect";
 import { getZeroResultFallbackQuery } from "@/lib/normalSearchFallback";
 import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
 import { after } from "next/server";
@@ -57,6 +58,25 @@ function resolveKStoreId(store: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  if (searchParams.get("direct") === "1") {
+    const search = (searchParams.get("search") || "").trim();
+    const storeName = (searchParams.get("storeName") || "").trim();
+    const externalId = (searchParams.get("externalId") || "").trim();
+    const source = "k-ruoka-direct-preview-v1";
+    if (search.length > 120 || storeName.length > 160 || externalId.length > 160 || !storeName) {
+      return NextResponse.json({ source, items: [], error: "Invalid selected K-store query" }, { status: 400 });
+    }
+    if (!search) return NextResponse.json({ source, priceUnit: "cents", items: [] });
+    try {
+      const result = await fetchKDirectNormalProducts(search, storeName, externalId);
+      return NextResponse.json({ ...result, source, priceUnit: "cents", status: 200 });
+    } catch (error) {
+      const diagnostic = (error instanceof Error ? error.message : String(error)).slice(0, 1500);
+      console.warn("[K direct preview]", diagnostic);
+      return NextResponse.json({ source, storeName, items: [], status: 502, error: "Selected K-store search failed", diagnostic }, { status: 502 });
+    }
+  }
+
 
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "";
