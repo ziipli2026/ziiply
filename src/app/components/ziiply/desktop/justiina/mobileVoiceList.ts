@@ -1,3 +1,4 @@
+import { explainNormalSearch as explainZiiplyNormalSearch } from "../../search/searchEngine";
 import { fixText, normalize, parseTerms } from "../../ziiplyCore";
 
 // Copied unchanged from mobile getVoiceSearchInputV447; preserve compound product names.
@@ -78,5 +79,27 @@ function getVoiceSearchInputV447(value: string) {
   }
 
 export function parseMobileVoiceList(value: string): string[] {
-  return parseTerms(getVoiceSearchInputV447(value)).map(term => fixText(term).trim()).filter(Boolean);
+  return parseTerms(getVoiceSearchInputV447(value)).map(term => autocorrectNormalSearchTerm(fixText(term).trim())).filter(Boolean);
 }
+
+// Mobile normal-search canonicalization, used after splitting the spoken list.
+export function autocorrectNormalSearchTerm(term: string) {
+    const original = String(term || "").trim();
+    if (!original) return original;
+
+    // Autocorrect is only for text searches. Do not touch EAN/barcode searches.
+    if (/^\d{6,14}$/.test(original.replace(/\D/g, ""))) {
+      return original;
+    }
+
+    try {
+      const intent = explainZiiplyNormalSearch(original) as any;
+      const corrected = String(intent?.correctedQuery || intent?.canonicalQuery || original)
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return corrected || original;
+    } catch {
+      return original;
+    }
+  }

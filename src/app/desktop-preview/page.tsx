@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
+import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, productGroupGate } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -1006,11 +1006,27 @@ export default function DesktopPreviewPage() {
     setJustiinaLoading(true);setJustiinaMessage("");
     if(justiinaDelay) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
     try{
+      async function fetchSearchData(url: string) {
+        const queries = voiceRunId === undefined ? [query] : getNormalSearchQueries(query).slice(0, 6);
+        let lastData: any = null;
+        for (const searchQuery of queries.length ? queries : [query]) {
+          if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return null;
+          const params = new URLSearchParams(url.split("?")[1]);
+          params.set("search", searchQuery);
+          const response = await fetch(url.split("?")[0] + "?" + params.toString(), { cache: "no-store" });
+          if (!response.ok) throw new Error(`Kauppahaku epäonnistui (HTTP ${response.status}).`);
+          const data = await response.json();
+          lastData = data;
+          const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+          if (voiceRunId === undefined || rankNormalSearchResults(query, items).length > 0) return data;
+        }
+        return lastData;
+      }
       const calls:any[]=[];
-      if(s)calls.push(fetch(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"S",store:s,data:d})));
-      if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
+      if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`).then(d=>({chain:"S",store:s,data:d})));
+      if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
-      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankDesktopJustiinaResults(items,query).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
+      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of (voiceRunId === undefined ? rankDesktopJustiinaResults(items,query) : rankNormalSearchResults(query,items)).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
       if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
       setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
       return rows.length > 0;
