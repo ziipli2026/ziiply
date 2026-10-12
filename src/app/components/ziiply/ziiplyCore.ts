@@ -1602,6 +1602,10 @@ export function isClearlyColaProduct(name: string) {
     "likoori",
     "drink",
     "cocktail",
+    "mocktail",
+    "colada",
+    "pre-workout",
+    "pre workout",
 
     // Ei valmiita cola-limsoja
     "mysoda",
