@@ -201,7 +201,7 @@ test('42AV automatic full-leaflet audit reports title anomalies without guessing
   || /\bSAPPISAIPPUA\s+519\b/i.test(row.title)
   || /\b6 TLK Arla 2 TLK 9\.\s*LEMPI\b/i.test(row.title)
  );
- const report=anomalies.map(row=>({page:row.page,title:row.title,price:row.spatialResolved?.value??null,quantity:row.spatialResolved?.quantity??null}));
+ const report=anomalies.map(row=>({page:row.page,title:row.title,price:row.spatialResolved?.value??null,quantity:row.spatialResolved?.quantity??null,cardAnchor:row.debugCardAnchor??null,printedHeading:row.debugRecoveredPublisherHeading??null}));
  // These are known source-layout anomalies, not grounds for deleting offers.
  // Parsed publisher rows are not the same collection as the 79+96 UI debug
  // results. Assert source completeness and non-empty parsed output instead.
