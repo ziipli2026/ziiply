@@ -58,6 +58,8 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   cocacola: "coca cola",
   vola: "cola",
   kola: "cola",
+  limsa: "virvoitusjuoma",
+  limsat: "virvoitusjuoma",
   kokis: "coca cola",
   cokis: "coca cola",
   kookis: "coca cola",
