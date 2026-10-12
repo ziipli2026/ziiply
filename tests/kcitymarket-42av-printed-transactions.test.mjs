@@ -202,6 +202,7 @@ test('42AV mixed Arla HTML heading is replaced by the printed heading without ch
  assert.equal(arla[0].spatialResolved?.quantity,2);
  const soap=parsed.rows.find(row=>row.page===6&&/SAPPISAIPPUA/.test(row.title));
  assert.ok(soap,'Soap must remain available');
+ assert.equal(soap.title,'SAPPISAIPPUA 500 ml','Detached 519 must not enter printed product heading');
  assert.equal(soap.spatialResolved?.value,3.99);
  const pasta=parsed.rows.find(row=>row.page===17&&/PASTAT 500 g/.test(row.title));
  assert.ok(pasta,'Pasta must remain available');
