@@ -9,10 +9,12 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
   const [target, setTarget] = useState("");
   const [notice, setNotice] = useState("");
   const [ingredientIndex, setIngredientIndex] = useState<number | null>(null);
+  const [done, setDone] = useState<string[]>([]);
   const importText = () => {
     if (!text.trim()) { setNotice("Liitä ensin reseptin teksti."); return; }
     const next = parseRecipeText(text);
     setDraft(next);
+    setDone([]);
     setIngredientIndex(null);
     setOriginal(next.servings ? String(next.servings) : "");
     setTarget(next.servings ? String(next.servings) : "");
@@ -47,6 +49,7 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
       <button type="button" onClick={()=>{setIngredientIndex(null);setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now())+"-"+ingredients.length,name:"",amount:null,unit:null,uncertain:true,atHome:false}]});}} className="rounded-lg border border-[#b99d62] bg-[#fff4d6] px-3 py-2 text-xs font-bold">+ Lisää aines</button>
       <p className="text-xs">Tarkista reseptin jokainen aines. Poistettuja aineksia ei haeta.</p>
       <label className="block text-xs font-bold">Valmistusohje<textarea rows={3} value={draft.instructions} onChange={e=>setDraft({...draft,instructions:e.target.value})} className="mt-1 w-full rounded border p-2"/></label>
+      <div className="rounded-xl border p-2"><p className="font-bold">Ainesten seuranta: {done.filter(id=>pending.some(x=>x.id===id)).length}/{pending.length}</p>{pending.map(x=><label key={x.id} className="block text-xs"><input type="checkbox" checked={done.includes(x.id)} onChange={e=>setDone(prev=>e.target.checked?[...prev,x.id]:prev.filter(id=>id!==x.id))}/> {x.name} ({x.amount} {x.unit})</label>)}<p className="text-xs">Merkitse käsitellyksi vasta tuotteen lisäämisen jälkeen. Tämä ei muuta ostoskoria.</p></div>
       <button type="button" disabled={!canSearch || !onSearchIngredients || pending.length===0} onClick={()=>{setIngredientIndex(0);onSearchIngredients?.([pending[0].name]);setNotice("Valitse sopiva tuote nykyisestä tuotehausta. Justiina ei lisää sitä automaattisesti.");}} className="rounded-xl bg-[#174c3a] px-4 py-2 font-black text-white disabled:opacity-40">Hae ainekset</button>
       {ingredientIndex !== null && pending.length > 0 && <div className="mt-2 rounded-xl border border-[#b99d62] bg-[#fff4d6] p-2">
         <p className="font-black">Aines {Math.min(ingredientIndex+1,pending.length)} / {pending.length}</p>
