@@ -41,9 +41,10 @@ jobs:
       - name: Replay archived publisher geometry with current parser
         shell: bash
         run: |
+          mkdir -p /tmp/data
+          cp src/app/components/ziiply/offerSearch/providers/*.js /tmp/
+          cp src/app/components/ziiply/offerSearch/providers/data/*.json /tmp/data/
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
           printf '{"type":"module"}\n' > /tmp/package.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -61,9 +62,10 @@ jobs:
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
+          mkdir -p /tmp/data
+          cp src/app/components/ziiply/offerSearch/providers/*.js /tmp/
+          cp src/app/components/ziiply/offerSearch/providers/data/*.json /tmp/data/
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-parser.mjs
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
           printf '{"type":"module"}\n' > /tmp/package.json
           node --input-type=module <<'NODE'
           import fs from "node:fs";
@@ -145,9 +147,10 @@ jobs:
       - name: Preserve original publisher PDF and parser evidence
         shell: bash
         run: |
+          mkdir -p /tmp/data
+          cp src/app/components/ziiply/offerSearch/providers/*.js /tmp/
+          cp src/app/components/ziiply/offerSearch/providers/data/*.json /tmp/data/
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-archive-parser.mjs
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
           printf '{"type":"module"}\n' > /tmp/package.json
           ENTRY=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.url")
           node scripts/citymarket/export-leaflet.mjs "$ENTRY" /tmp/kcm-leaflet-archive /tmp/kcm-archive-parser.mjs
@@ -167,9 +170,10 @@ jobs:
       - name: Replay newly captured publication without network
         shell: bash
         run: |
+          mkdir -p /tmp/data
+          cp src/app/components/ziiply/offerSearch/providers/*.js /tmp/
+          cp src/app/components/ziiply/offerSearch/providers/data/*.json /tmp/data/
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
           printf '{"type":"module"}\n' > /tmp/package.json
           FIXTURE=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.fixture")
           node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-leaflet-archive "$FIXTURE" /tmp/kcm-replay-parser.mjs
