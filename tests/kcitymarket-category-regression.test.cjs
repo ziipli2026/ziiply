@@ -22,6 +22,8 @@ const cases = [
   ["TENA PRO SKIN TUOTTEET", "Hygienia & kosmetiikka"],
   ["MUSTA TEE 100 g", "Kahvi & tee"],
   ["TUNTEMATON TUOTTEET", "Muut"],
+  ["myhome Lumihiutale LED-lyhty", "Koti & vapaa-aika"],
+  ["LUKU- ja KÄSITYÖVALO", "Koti & vapaa-aika"],
   ["MAX FACTOR MEIKIT", "Hygienia & kosmetiikka"],
   ["LUMENE IHONHOITO- ja PUHDISTUSTUOTTEET", "Hygienia & kosmetiikka"],
   ["BONDI SANDS ITSERUSKETTAVAT TUOTTEET", "Hygienia & kosmetiikka"],
