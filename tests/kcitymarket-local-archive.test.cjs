@@ -27,3 +27,12 @@ test('All archived offer payloads belong to the original publication and have so
  const ids=new Set(Object.values(archive.pages).flatMap(p=>p.hotspots.map(h=>h.offer?.id).filter(Boolean)));
  assert.ok(archive.offers.length>0);for(const {id,offer} of archive.offers){assert.ok(ids.has(id)||(archive.supplementalOfferIds||[]).includes(id));assert.equal(offer.publicationPublicId,archive.publicationId);}
 });
+test('Expired structured offers recover only from inspected, archived printed cards',async()=>{
+ const rows=await load(env).fetch(archive.storeName);
+ const expected=[['jEiQJbpBBkKZ9hb-90qm4',.99,null,'KG'],['xQ_GMgNjttZCVgLrp4BU5',10,3,'PKT'],['pCX3kBx90u0BhPsbdQiys',25,4,'PKT'],['7pvt5_v_-IObJY2tR35D-',2.99,null,'KG'],['Hr1If-kCatucapUwcAvps',12.99,null,'KG'],['NlOph3PX7hCkNerLkfc7d',2.99,null,'KPL'],['XAbjcA8QRWJKfwjfaaGzB',2.29,null,'PS'],['dQmSWHX9wTI_gcDU0kQ8C',2.99,null,'RS'],['nvpTXq9JDTFOlxYX6GvSj',4,2,'RS']];
+ for(const [id,price,quantity,unit] of expected){const row=rows.find(r=>r.offerId===id);assert.ok(row,id);assert.equal(row.price,price,id);assert.equal(row.offerQuantity,quantity,id);assert.equal(row.offerUnit,unit,id);assert.equal(row.debug.printedSource.method,'VISUALLY_VERIFIED_PRINTED_CARD_TRANSCRIPTION');if(unit==='KG'){assert.equal(row.priceBasis,'PER_KG');assert.match(row.priceText,/€ \/ kg$/);}}
+});
+test('Printed-source evidence remains immutable and content counts never become multibuy counts',async()=>{
+ const crypto=require('node:crypto');for(const entry of archive.offers.filter(x=>x.printedSource)){assert.equal(crypto.createHash('sha256').update(fs.readFileSync(entry.printedSource.archivePath)).digest('hex'),entry.printedSource.sha256);}
+ const rows=await load(env).fetch(archive.storeName);const buns=rows.find(r=>r.offerId==='XAbjcA8QRWJKfwjfaaGzB');assert.equal(buns.offerQuantity,null);assert.match(buns.title,/5 kpl\/325 g/);assert.equal(buns.price,2.29);assert.equal(buns.unitPrice,"");assert.equal(buns.resolutionSanity,"review");assert.equal(buns.debug.printedSource.unitPriceReview.printedUnitPrice,8.33);
+});

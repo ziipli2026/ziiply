@@ -26,7 +26,7 @@ async function tjek(name: string, params: Row): Promise<unknown> {
   }
   throw new Error("Tjek "+name+" response missing");
 }
-function selectedStoreOffer(entry:{id:string;offer:Row},store:Row,publication:Row,now:number):Row|null{
+function selectedStoreOffer(entry:{id:string;offer:Row;printedSource?:Row},store:Row,publication:Row,now:number):Row|null{
   const {id,offer}=entry;
   const storeId=String(store.id??""),publicationId=String(publication.id??"");
   if(String(offer.publicationPublicId??publicationId)!==publicationId)return null;
@@ -43,18 +43,20 @@ function selectedStoreOffer(entry:{id:string;offer:Row},store:Row,publication:Ro
   const rawQuantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
   const transaction=resolvePackageTransaction(title,String(offer.description??""),price,rawQuantity,numeric(offer.unitPrice),String(offer.baseUnit??""));
   const quantity=transaction.quantity,unit=transaction.unit,unitValue=transaction.unitPrice;
+  const printedUnit=typeof offer.printedOfferUnit==="string"&&/^(KPL|PKT|PS|RS|KG)$/.test(offer.printedOfferUnit)?offer.printedOfferUnit:null;
+  const printedPriceUnit=offer.printedPriceUnit==="kg"?"kg":null;
   return {id:"citymarket-local-"+storeId+"-"+id,title,name:title,productName:title,price,
-    priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
+    priceText:printedPriceUnit?price.toFixed(2).replace(".",",")+" € / "+printedPriceUnit:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" "+(printedUnit||"kpl") : price.toFixed(2).replace(".",",")+" €",
     previousPrice:regular!=null&&regular!==price?regular:null,
-    unitPrice:unitValue==null?"":unitValue.toFixed(2).replace(".",",")+(unit?"/"+unit:""),
+    unitPrice:entry.printedSource?.unitPriceReview||unitValue==null?"":unitValue.toFixed(2).replace(".",",")+(unit?"/"+unit:""),
     imageUrl:String(offer.imageLarge??offer.image??""),
     storeId,storeName:String(store.name),storeLabel:String(store.name),chain:"K",storeType:"K-Citymarket",
     source:"K-Citymarket kauppakohtainen julkaisu",provider:"kcitymarket-local",offerId:id,
     additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null?"Plussa-tarjous":undefined,
     validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
-    isPlussaOffer:member!=null,offerQuantity:quantity,offerUnit:transaction.packageCount?"PKT":quantity?"KPL":null,packageCount:transaction.packageCount,deposit:transaction.deposit,
+    isPlussaOffer:member!=null,offerQuantity:quantity,offerUnit:transaction.packageCount?"PKT":printedUnit|| (quantity?"KPL":null),packageCount:transaction.packageCount,deposit:transaction.deposit,
     sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
-    category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}};
+    category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION",...(entry.printedSource?{printedSource:entry.printedSource}:{} )},...(printedPriceUnit?{priceBasis:"PER_KG",priceUnit:printedPriceUnit}:{} ),...(entry.printedSource?.unitPriceReview?{resolutionSanity:"review",resolutionSource:"printed-source-unit-rate-conflict"}:{} )};
 }
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const wanted=normalize(selectedStoreName);

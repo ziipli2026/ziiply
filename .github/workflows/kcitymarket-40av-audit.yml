@@ -133,7 +133,7 @@ jobs:
           NODE
 
   archive-current:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref_name != 'preview/mobile-citymarket-41lv-corrected'
     permissions:
       contents: write
     needs: audit
