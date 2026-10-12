@@ -1430,7 +1430,7 @@ if(/_42AV_KCM/i.test(l.url)){
   // Restrict recovery to clearly corrupted prefixes/suffixes; never remove
   // quantity, unit, package or other meaningful product metadata.
   const isDetached=/^[-−–]\s*\d{1,2}\s*%\s+/i.test(title)||/^\d\.\s+/i.test(title);
-  const isMixed=/^\d+\s+(?:KPL|TLK|PKT|PS|PRK)\s+.*\d+\s+(?:KPL|TLK|PKT|PS|PRK)\s+\d+\.\s+/i.test(title);
+  const isMixed=/^\d+\s+(?:KPL|TLK|PKT|PS|PRK)\s+.*\d+\s+(?:KPL|TLK|PKT|PS|PRK)\s+\d+\.\s+/i.test(title)||/^\d+\s+(?:KPL|TLK|PKT|PS|PRK)\s+.*\b\d+\.\s+[A-ZÅÄÖ]/i.test(title);
   if(!isDetached&&!isMixed)continue;
   if(isMixed){
    // Require the printed heading to include its own package measurement.
