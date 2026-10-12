@@ -62,13 +62,14 @@ jobs:
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-parser.mjs
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
-          printf '{"type":"module"}\n' > /tmp/package.json
+          mkdir -p /tmp/kcm-replay/data
+          cp src/app/components/ziiply/offerSearch/providers/*.js /tmp/kcm-replay/
+          cp src/app/components/ziiply/offerSearch/providers/data/kCitymarket41LVPublisherArchive.json /tmp/kcm-replay/data/
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay/parser.mjs
+          printf '{"type":"module"}\n' > /tmp/kcm-replay/package.json
           node --input-type=module <<'NODE'
           import fs from "node:fs";
-          import parser from "file:///tmp/kcm-parser.mjs";
+          import parser from "file:///tmp/kcm-replay/parser.mjs";
 
           const manifest=JSON.parse(fs.readFileSync("scripts/citymarket/leaflet-regression-publications.json","utf8"));
           const historical=Array.isArray(manifest?.historicalFixtures)?manifest.historicalFixtures:[];
