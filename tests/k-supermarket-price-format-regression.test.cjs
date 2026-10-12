@@ -45,3 +45,10 @@ test("Normal price after Ilman Plussa-korttia cannot override offer unit price",
   assert.equal(parsed.comparison[1], "8,31");
   assert.equal(parsed.comparison[2], "11,96");
 });
+
+test("Different source publications must both retain their offer", () => {
+  const provider = fs.readFileSync("src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts", "utf8");
+  assert.match(provider, /const publicationOf = \(row: ZiiplyOfferSearchResult\)/);
+  assert.match(provider, /samePublicationOffers = kOfferRows\.filter\(offer => publicationOf\(offer\) === publicationId\)/);
+  assert.match(provider, /removeCampaignCopiesOfLeaflet\(samePublicationOffers, \[campaign\]\)/);
+});
