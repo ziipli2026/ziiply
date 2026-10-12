@@ -531,6 +531,10 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   const comparisonAmount = unitPriceValue == null ? "" : priceText(unitPriceValue) +
     (sourceMax != null && sourceMax !== sourceMin ? `–${priceText(sourceMax)}` : "");
   const unitPrice = comparisonAmount ? `${comparisonAmount} €${displayUnit ? `/${displayUnit}` : ""}` : "";
+  // Extract display-only deposit information; never alter the source description.
+  // Match explicit total deposits only (e.g. "sis. pantit 0,45 €").
+  const depositMatch = sourceDescription.match(/\bsis\.?\s*pantit?\s*(\d+[,.]\d{1,2})\s*€?/i);
+  const depositText = depositMatch ? `Sis. pantit ${priceText(depositMatch[1].replace(",", "."))} €` : "";
   const isPlussa = membership != null;
   const pieceCountFrom = num(offer.pieceCountFrom);
   const pieceCountTo = num(offer.pieceCountTo);
@@ -577,7 +581,7 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
     chain: "K", source: "etarjouslehdet", provider: "kruoka", offerId,
     campaignType: isCampaign ? "campaign" : "offer",
     additionalInfo: offer.description ?? null,
-    benefitText: isPlussa ? "Plussa-tarjous" : app != null ? "Mobiilitarjous" : undefined,
+    benefitText: [isPlussa ? "Plussa-tarjous" : app != null ? "Mobiilitarjous" : "", depositText].filter(Boolean).join(" · ") || undefined,
     validityText: validityText(offer.validUntil),
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
