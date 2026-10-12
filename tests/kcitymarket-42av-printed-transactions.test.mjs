@@ -187,3 +187,25 @@ test('42AV detached title prefixes are cleaned without altering product quantiti
  assert.equal(clean42AVPrintedTitle('6 TLK Arla 2 TLK 9. LEMPI RUOKAKERMAT 3 dl 3.'),'6 TLK Arla 2 TLK 9. LEMPI RUOKAKERMAT 3 dl 3.');
  assert.equal(clean42AVPrintedTitle('3 KPL / 4 €'),'3 KPL / 4 €');
 });
+
+test('42AV automatic full-leaflet audit reports title anomalies without guessing prices',async()=>{
+ const parsed=await parseKCitymarketSpatialLeaflet(archive.entry,async input=>{
+  const response=archive.responses[String(input)];
+  assert.ok(response,'Missing frozen publisher evidence: '+input);
+  return {ok:true,status:200,url:response.url,text:async()=>response.body};
+ });
+ const rows=parsed.rows.filter(row=>row?.title);
+ const anomalies=rows.filter(row=>
+  /^[-−–]\s*\d{1,2}\s*%\s+[A-ZÅÄÖ]/i.test(row.title)
+  || /^\d\.\s+[A-ZÅÄÖ]/i.test(row.title)
+  || /\bSAPPISAIPPUA\s+519\b/i.test(row.title)
+  || /\b6 TLK Arla 2 TLK 9\.\s*LEMPI\b/i.test(row.title)
+ );
+ const report=anomalies.map(row=>({page:row.page,title:row.title,price:row.spatialResolved?.value??null,quantity:row.spatialResolved?.quantity??null}));
+ // These are known source-layout anomalies, not grounds for deleting offers.
+ assert.ok(rows.length>=175,'Unexpectedly small frozen 42AV parse');
+ assert.ok(report.some(row=>/SAPPISAIPPUA/.test(row.title)),'Keep tracking the soap layout anomaly');
+ assert.ok(report.some(row=>/LEMPI RUOKAKERMAT/.test(row.title)),'Keep tracking the cream layout anomaly');
+ assert.ok(report.some(row=>/PASTAT 500 g/.test(row.title)),'Keep tracking the pasta layout anomaly');
+ console.log('42AV_TITLE_AUDIT',JSON.stringify(report));
+});
