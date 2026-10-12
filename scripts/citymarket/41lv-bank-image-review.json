@@ -7,12 +7,12 @@
   "readOnly": true,
   "totalReviewed": 79,
   "summary": {
-    "candidate-needs-leaflet-check": 25,
+    "candidate-needs-leaflet-check": 19,
     "approved-bank-image": 12,
-    "no-compatible-candidate": 24,
-    "bank-image-is-webpage": 9,
+    "no-compatible-candidate": 19,
+    "bank-image-is-webpage": 7,
     "approved-manufacturer-image": 1,
-    "approved-leaflet-image": 8
+    "approved-leaflet-image": 21
   },
   "notice": "Database image URL presence is not URL reachability or visual identity verification. EAN matches use previously recorded candidate EAN evidence. Name and size matches remain unapproved; brand, variant, multipack count and leaflet artwork must be checked. No matching candidate does not prove absence. Tokmanni weekly-offer webpage links are not image URLs.",
   "rows": [
@@ -2353,8 +2353,8 @@
     {
       "offerId": "kcm:spatial:19:virvoitusjuomat 0,33 l/pl 24-pack:0.36",
       "identity": "virvoitusjuomat 0,33 l/pl 24-pack",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6410405365064",
@@ -3173,13 +3173,14 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-63.png"
     },
     {
       "offerId": "kcm:spatial:19:4kpl-33–44% maku- ja tummasuklaalevyt 160–200 g:10",
       "identity": "4kpl-33–44% maku- ja tummasuklaalevyt 160–200 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6416453014442",
@@ -3554,13 +3555,14 @@
         "source": "approved-41LV-PDF",
         "page": 19,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-64.png"
     },
     {
       "offerId": "kcm:spatial:19:sininen suklaalevy 180 g ja:10",
       "identity": "sininen suklaalevy 180 g ja",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6416453095014",
@@ -3577,15 +3579,17 @@
         "source": "approved-41LV-PDF",
         "page": 19,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-65.png"
     },
     {
       "offerId": "kcm:spatial:19:tangle pasta pussi- ateriat 100–105 g (15,87-16,67/kg):5",
       "identity": "tangle pasta pussi- ateriat 100–105 g (15,87-16,67/kg)",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-66.png"
     },
     {
       "offerId": "kcm:spatial:19:ketsuppi 1350 g:3.99",
@@ -3608,8 +3612,8 @@
     {
       "offerId": "kcm:spatial:19:pastakastikkeet 390–450 g (5,56–6,41/kg):2.5",
       "identity": "pastakastikkeet 390–450 g (5,56–6,41/kg)",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -3720,13 +3724,14 @@
         "source": "approved-41LV-PDF",
         "page": 19,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-68.png"
     },
     {
       "offerId": "kcm:spatial:19:perunalastut 160–165 g:5",
       "identity": "perunalastut 160–165 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "5053990121922",
@@ -3749,13 +3754,14 @@
         "source": "approved-41LV-PDF",
         "page": 19,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-69.png"
     },
     {
       "offerId": "kcm:spatial:19:purukumipussit 26–29 g:1",
       "identity": "purukumipussit 26–29 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "4009900582018",
@@ -3854,7 +3860,8 @@
           "quantity": "29 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-70.png"
     },
     {
       "offerId": "kcm:spatial:20:alkoholiton olut 0,0 % 0,33 l/tlk 8-pack:0.85",
@@ -3877,8 +3884,8 @@
     {
       "offerId": "kcm:spatial:20:sriracha kastikkeet 215 ml:2.79",
       "identity": "sriracha kastikkeet 215 ml",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "8710605030556",
@@ -3889,15 +3896,17 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-72.png"
     },
     {
       "offerId": "kcm:spatial:20:kuivattu mango 200 g:2.99",
       "identity": "kuivattu mango 200 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-73.png"
     },
     {
       "offerId": "kcm:spatial:20:vichy 0,33 l/pl 24-pack:0.85",
@@ -3920,8 +3929,8 @@
     {
       "offerId": "kcm:spatial:20:cashewpähkinä 500 g:6.99",
       "identity": "cashewpähkinä 500 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -3948,13 +3957,14 @@
         "source": "approved-41LV-PDF",
         "page": 20,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-75.png"
     },
     {
       "offerId": "kcm:spatial:20:proteiinipatukat 45–55 g:5",
       "identity": "proteiinipatukat 45–55 g",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -4131,23 +4141,26 @@
         "source": "approved-41LV-PDF",
         "page": 20,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-76.png"
     },
     {
       "offerId": "kcm:spatial:20:original vehnätortilla medium 326 g:1.15",
       "identity": "original vehnätortilla medium 326 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-77.png"
     },
     {
       "offerId": "kcm:spatial:20:thick and chunky salsat 340 g:2.29",
       "identity": "thick and chunky salsat 340 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-78.png"
     }
   ],
   "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",

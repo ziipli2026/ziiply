@@ -260,6 +260,215 @@
       "leafletVisualMatch": true,
       "imageFetchedAndViewed": true,
       "sourceType": "manufacturer"
+    },
+    {
+      "offerId": "kcm:spatial:19:virvoitusjuomat 0,33 l/pl 24-pack:0.36",
+      "name": "virvoitusjuomat 0,33 l/pl 24-pack",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-63.png",
+      "page": 19,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        828,
+        754,
+        458
+      ],
+      "assetSha256": "40fb9494e8e9407a1b598968a9c7a340deaafd7731e8ce22c64911aafc930fd4"
+    },
+    {
+      "offerId": "kcm:spatial:19:4kpl-33–44% maku- ja tummasuklaalevyt 160–200 g:10",
+      "name": "4kpl-33–44% maku- ja tummasuklaalevyt 160–200 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-64.png",
+      "page": 19,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        949,
+        975,
+        408,
+        595
+      ],
+      "assetSha256": "a8b8bf38e2654bb7b6e608b3dd077f689d3766e36a996115d74095071d2c0ef9"
+    },
+    {
+      "offerId": "kcm:spatial:19:sininen suklaalevy 180 g ja:10",
+      "name": "sininen suklaalevy 180 g ja",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-65.png",
+      "page": 19,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        975
+      ],
+      "assetSha256": "a29260124cd7bd38e1c9633b0dc855c6daec3455e4062439aff072f499b91529"
+    },
+    {
+      "offerId": "kcm:spatial:19:tangle pasta pussi- ateriat 100–105 g (15,87-16,67/kg):5",
+      "name": "tangle pasta pussi- ateriat 100–105 g (15,87-16,67/kg)",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-66.png",
+      "page": 19,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        622,
+        646
+      ],
+      "assetSha256": "40f017a7939be7f71b1c965fb0b1544f8a4a5e86d41a6bc459d9b07bb0502790"
+    },
+    {
+      "offerId": "kcm:spatial:19:pastakastikkeet 390–450 g (5,56–6,41/kg):2.5",
+      "name": "pastakastikkeet 390–450 g (5,56–6,41/kg)",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-68.png",
+      "page": 19,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        427
+      ],
+      "assetSha256": "5d15c5e561356b6d178a8196faf4e87d9766380f029ac2e3660a25fa9f7f7a59"
+    },
+    {
+      "offerId": "kcm:spatial:19:perunalastut 160–165 g:5",
+      "name": "perunalastut 160–165 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-69.png",
+      "page": 19,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        75,
+        800,
+        671
+      ],
+      "assetSha256": "9eb56dfbc12317c4c76eb701302d9f88a34482ef7cbfe64f39acae6990adca30"
+    },
+    {
+      "offerId": "kcm:spatial:19:purukumipussit 26–29 g:1",
+      "name": "purukumipussit 26–29 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-70.png",
+      "page": 19,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        905,
+        921,
+        855
+      ],
+      "assetSha256": "4dbdc22fe0ca600c3456a1eacff9586bff010dd7c3a1fc805dc8902218b7daaa"
+    },
+    {
+      "offerId": "kcm:spatial:20:sriracha kastikkeet 215 ml:2.79",
+      "name": "sriracha kastikkeet 215 ml",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-72.png",
+      "page": 20,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        150,
+        1057
+      ],
+      "assetSha256": "f8f079d813e149a33c80b9b4491657b780f2e3e0c8c90302c8c9ce35906412a6"
+    },
+    {
+      "offerId": "kcm:spatial:20:kuivattu mango 200 g:2.99",
+      "name": "kuivattu mango 200 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-73.png",
+      "page": 20,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        263
+      ],
+      "assetSha256": "2925fa729d26cd781cd9d89d9762447a64443540508409f4fd3a6e69e367d1e7"
+    },
+    {
+      "offerId": "kcm:spatial:20:cashewpähkinä 500 g:6.99",
+      "name": "cashewpähkinä 500 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-75.png",
+      "page": 20,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        765
+      ],
+      "assetSha256": "aed4af8d1fff3ec02b40ccf5466d5a805b5f5142e5545ca62aa5a2ddd4945b20"
+    },
+    {
+      "offerId": "kcm:spatial:20:proteiinipatukat 45–55 g:5",
+      "name": "proteiinipatukat 45–55 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-76.png",
+      "page": 20,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        312,
+        238
+      ],
+      "assetSha256": "cb898602974eecf1bd8fdd339e3a731857da2c9953109a02e064ca87693f835a"
+    },
+    {
+      "offerId": "kcm:spatial:20:original vehnätortilla medium 326 g:1.15",
+      "name": "original vehnätortilla medium 326 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-77.png",
+      "page": 20,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        910
+      ],
+      "assetSha256": "e206d017fa5fc5b1f2e791ee04ff2281aca1297cbcc2ee6babf5f8239c543684"
+    },
+    {
+      "offerId": "kcm:spatial:20:thick and chunky salsat 340 g:2.29",
+      "name": "thick and chunky salsat 340 g",
+      "imageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-78.png",
+      "page": 20,
+      "approved": true,
+      "leafletVisualMatch": true,
+      "imageFetchedAndViewed": true,
+      "sourceType": "leaflet-embedded",
+      "sourcePdfSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+      "imageXrefs": [
+        16,
+        956,
+        864
+      ],
+      "assetSha256": "f471eade2d851758a336d3ef026585c286e80f4d7a92192af746c2f3a0a96354"
     }
   ]
 }
