@@ -39,6 +39,18 @@ for (const file of ["citymarket-openfoodfacts-discovery.json", "citymarket-openf
     discoveredById.set(result.offerId, existing);
   }
 }
+// Bank candidates stay unapproved and are shown separately from external searches.
+for (const row of queue.rows) {
+  const existing = discoveredById.get(row.offerId) ?? [];
+  for (const product of row.bankCandidates ?? []) {
+    const url = product.image;
+    if (typeof url !== "string" || !url.startsWith("https://") || existing.some(item => item.url === url)) continue;
+    existing.push({ url, source: url, eanPresentInHtml: false, structuredProductImageCount: 0,
+      origin: "Neonin tuotepankki – tarkistamaton kohdistus",
+      productName: product.name ?? "", productEan: product.ean ?? "" });
+  }
+  discoveredById.set(row.offerId, existing);
+}
 const escape = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 assert.equal(queue.rows.length, queue.missingImages);
 const cards = queue.rows.map(row => {
@@ -48,7 +60,7 @@ const cards = queue.rows.map(row => {
     : '<div class="placeholder">Ei tarkistettua kuvatiedostoa</div>';
   const discovered = discoveredById.get(row.offerId) ?? [];
   const discoveredHtml = discovered.length
-    ? '<details><summary>' + discovered.length + ' uutta kuvaehdokasta (ei hyväksytty)</summary>' + discovered.map(item=>'<div class="candidate"><small>'+escape(item.origin ? item.origin + ' · ' + item.productName + ' · EAN ' + item.productEan + ' · ' : '') + (item.eanPresentInHtml ? 'EAN löytyi lähdesivulta' : 'EAN ei vahvistunut lähdesivulta') + (item.structuredProductImageCount ? ' · rakenteinen tuotekuva' : ' · sivun esikatselukuva') + '</small><img loading="lazy" referrerpolicy="no-referrer" src="'+escape(item.url)+'" alt="Löydetty kuvaehdokas, tarkistamatta"><p><a target="_blank" rel="noopener noreferrer" href="'+escape(item.url)+'">Avaa kuvaehdokas</a> <a target="_blank" rel="noopener noreferrer" href="'+escape(item.source)+'">Lähdesivu</a></p></div>').join("") + '</details>'
+    ? '<details><summary>' + discovered.length + ' kuvaehdokasta (ei hyväksytty)</summary>' + discovered.map(item=>'<div class="candidate"><small>'+escape(item.origin ? item.origin + ' · ' + item.productName + ' · EAN ' + item.productEan + ' · ' : '') + (item.eanPresentInHtml ? 'EAN löytyi lähdesivulta' : 'EAN ei vahvistunut lähdesivulta') + (item.structuredProductImageCount ? ' · rakenteinen tuotekuva' : ' · sivun esikatselukuva') + '</small><img loading="lazy" referrerpolicy="no-referrer" src="'+escape(item.url)+'" alt="Löydetty kuvaehdokas, tarkistamatta"><p><a target="_blank" rel="noopener noreferrer" href="'+escape(item.url)+'">Avaa kuvaehdokas</a> <a target="_blank" rel="noopener noreferrer" href="'+escape(item.source)+'">Lähdesivu</a></p></div>').join("") + '</details>'
     : '';
   const source = row.productSourceUrl ? '<a target="_blank" rel="noopener noreferrer" href="' + escape(row.productSourceUrl) + '">Tuotetiedot</a>' : '';
   const evidence = row.imageEvidenceUrl ? '<a target="_blank" rel="noopener noreferrer" href="' + escape(row.imageEvidenceUrl) + '">Kuvan lähde</a>' : '';
