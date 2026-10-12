@@ -7,9 +7,9 @@
   "readOnly": true,
   "totalReviewed": 79,
   "summary": {
-    "candidate-needs-leaflet-check": 31,
+    "candidate-needs-leaflet-check": 29,
     "no-compatible-candidate": 29,
-    "bank-image-is-webpage": 7,
+    "bank-image-is-webpage": 9,
     "approved-bank-image": 11,
     "bank-image-wrong-package": 1
   },
@@ -177,12 +177,23 @@
       "approved": false,
       "candidates": [
         {
+          "ean": "6408430348282",
+          "name": "Valio Salaneuvos® vahvempi gouda juustoviipale e270 g",
+          "brand": "Valio Salaneuvos",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6408430348282",
+          "source": "ruoanhinta-k",
+          "quantity": null
+        }
+      ],
+      "invalidImageCandidates": [
+        {
           "ean": "5711953215698",
           "name": "Arla maasdam juustoviipale 270g",
           "brand": "Arla",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/5711953215698",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Valio"
         },
         {
           "ean": "6405020030848",
@@ -190,7 +201,8 @@
           "brand": "Kuusamon Juusto",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6405020030848",
           "source": "ruoanhinta-k",
-          "quantity": "280 g"
+          "quantity": "280 g",
+          "rejectionReason": "Printed leaflet brand is Valio"
         },
         {
           "ean": "6410405299444",
@@ -198,7 +210,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405299444",
           "source": "ruoanhinta-k",
-          "quantity": "300 g"
+          "quantity": "300 g",
+          "rejectionReason": "Printed leaflet brand is Valio"
         },
         {
           "ean": "6430020460517",
@@ -206,7 +219,8 @@
           "brand": null,
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6430020460517",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Valio"
         },
         {
           "ean": "5711953215667",
@@ -214,15 +228,8 @@
           "brand": "Arla",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/5711953215667",
           "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6408430348282",
-          "name": "Valio Salaneuvos® vahvempi gouda juustoviipale e270 g",
-          "brand": "Valio Salaneuvos",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6408430348282",
-          "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Valio"
         },
         {
           "ean": "6430020460524",
@@ -230,7 +237,8 @@
           "brand": null,
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6430020460524",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Valio"
         },
         {
           "ean": "6405020030930",
@@ -238,10 +246,16 @@
           "brand": "Kuusamon Juusto",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6405020030930",
           "source": "ruoanhinta-k",
-          "quantity": "280 g"
+          "quantity": "280 g",
+          "rejectionReason": "Printed leaflet brand is Valio"
         }
       ],
-      "invalidImageCandidates": []
+      "printedBrand": "Valio",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 1,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:1:creamy jäätelöt 750–850 ml:10",
@@ -719,19 +733,26 @@
     {
       "offerId": "kcm:spatial:13:tai savusauna- palvirouhe 250–400 g (7,48–11,96/kg):2.99",
       "identity": "tai savusauna- palvirouhe 250–400 g (7,48–11,96/kg)",
-      "status": "candidate-needs-leaflet-check",
+      "status": "no-compatible-candidate",
       "approved": false,
-      "candidates": [
+      "candidates": [],
+      "invalidImageCandidates": [
         {
           "ean": "6407880085020",
           "name": "Atria Palvirouhe 250g",
           "brand": "Atria",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6407880085020",
           "source": "ruoanhinta-k",
-          "quantity": "250 g"
+          "quantity": "250 g",
+          "rejectionReason": "Printed leaflet brand is Tamminen"
         }
       ],
-      "invalidImageCandidates": []
+      "printedBrand": "Tamminen",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 13,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:13:tai punajuuri 2 kg:1.49",
@@ -816,22 +837,6 @@
           "quantity": "150 g"
         },
         {
-          "ean": "6409620011740",
-          "name": "Snellman Ohuen ohut pippurinen kinkku 150g",
-          "brand": "Snellman",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6409620011740",
-          "source": "ruoanhinta-k",
-          "quantity": "150 g"
-        },
-        {
-          "ean": "6407880082302",
-          "name": "Atria Ohuen Ohut Ylikypsä Kinkku 150g",
-          "brand": "Atria",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6407880082302",
-          "source": "ruoanhinta-k",
-          "quantity": "150 g"
-        },
-        {
           "ean": "6405753001672",
           "name": "Savuhovi Priima Ohuen ohut chili kalkkuna 120g",
           "brand": "Savuhovi",
@@ -854,14 +859,6 @@
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6405753001665_kuva1.jpg",
           "source": "ruoanhinta-s",
           "quantity": "120 g"
-        },
-        {
-          "ean": "6409620000072",
-          "name": "Snellman Ohuen ohut kalkkunanfilee 150g",
-          "brand": "Snellman",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6409620000072",
-          "source": "ruoanhinta-k",
-          "quantity": "150 g"
         },
         {
           "ean": "6405753001856",
@@ -904,7 +901,41 @@
           "quantity": "150 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [
+        {
+          "ean": "6409620011740",
+          "name": "Snellman Ohuen ohut pippurinen kinkku 150g",
+          "brand": "Snellman",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6409620011740",
+          "source": "ruoanhinta-k",
+          "quantity": "150 g",
+          "rejectionReason": "Printed leaflet brand is Savuhovi"
+        },
+        {
+          "ean": "6407880082302",
+          "name": "Atria Ohuen Ohut Ylikypsä Kinkku 150g",
+          "brand": "Atria",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6407880082302",
+          "source": "ruoanhinta-k",
+          "quantity": "150 g",
+          "rejectionReason": "Printed leaflet brand is Savuhovi"
+        },
+        {
+          "ean": "6409620000072",
+          "name": "Snellman Ohuen ohut kalkkunanfilee 150g",
+          "brand": "Snellman",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6409620000072",
+          "source": "ruoanhinta-k",
+          "quantity": "150 g",
+          "rejectionReason": "Printed leaflet brand is Savuhovi"
+        }
+      ],
+      "printedBrand": "Savuhovi",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 14,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:14:isot kuorelliset katkaravut 70/90 500 g:6.95",
@@ -1012,7 +1043,13 @@
           "quantity": "230 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Hetki",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 14,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:15:korvapuusti 6/360 g:2.99",
@@ -1099,7 +1136,13 @@
           "source": "ruoanhinta-k"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Fazer",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 15,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:15:ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l):1.5",
@@ -1214,7 +1257,13 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Arla",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 15,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:15:rasvaton maitorahka ja 79 rahkajogurtti 250 g:0.67",
@@ -1223,12 +1272,23 @@
       "approved": false,
       "candidates": [
         {
+          "ean": "4002971466102",
+          "name": "Ehrmann Maitorahka 0,2 % g 250 g",
+          "brand": "Ehrmann",
+          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/4002971466102_kuva1.jpg",
+          "source": "ruoanhinta-s",
+          "quantity": "250 g"
+        }
+      ],
+      "invalidImageCandidates": [
+        {
           "ean": "6410405150073",
           "name": "Pirkka laktoositon mieto maitorahka 250g",
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405150073",
           "source": "ruoanhinta-k",
-          "quantity": "250 g"
+          "quantity": "250 g",
+          "rejectionReason": "Printed leaflet brand is Ehrmann"
         },
         {
           "ean": "6408430042081",
@@ -1236,7 +1296,8 @@
           "brand": "Valio",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6408430042081",
           "source": "ruoanhinta-s",
-          "quantity": "250 g"
+          "quantity": "250 g",
+          "rejectionReason": "Printed leaflet brand is Ehrmann"
         },
         {
           "ean": "6410405111340",
@@ -1244,7 +1305,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405111340",
           "source": "ruoanhinta-k",
-          "quantity": "250 g"
+          "quantity": "250 g",
+          "rejectionReason": "Printed leaflet brand is Ehrmann"
         },
         {
           "ean": "6410405150097",
@@ -1252,15 +1314,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405150097",
           "source": "ruoanhinta-k",
-          "quantity": "250 g"
-        },
-        {
-          "ean": "4002971466102",
-          "name": "Ehrmann Maitorahka 0,2 % g 250 g",
-          "brand": "Ehrmann",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/4002971466102_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": "250 g"
+          "quantity": "250 g",
+          "rejectionReason": "Printed leaflet brand is Ehrmann"
         },
         {
           "ean": "6414893386969",
@@ -1268,18 +1323,61 @@
           "brand": "Kotimaista",
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/6414893386969_kuva1.jpg",
           "source": "ruoanhinta-s",
-          "quantity": "250 g"
+          "quantity": "250 g",
+          "rejectionReason": "Printed leaflet brand is Ehrmann"
         }
       ],
-      "invalidImageCandidates": []
+      "printedBrand": "Ehrmann",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 15,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:16:pakasteateriat ja -keitot 200–350 g:10",
       "identity": "pakasteateriat ja -keitot 200–350 g",
-      "status": "no-compatible-candidate",
+      "status": "candidate-needs-leaflet-check",
       "approved": false,
-      "candidates": [],
-      "invalidImageCandidates": []
+      "candidates": [
+        {
+          "ean": "8858984830951",
+          "name": "Kitchen Joy 320g green curry chicken pakaste",
+          "brand": "Kitchen Joy",
+          "quantity": "320 g",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8858984830951"
+        },
+        {
+          "ean": "8858984837806",
+          "name": "Kitchen Joy Intialaiasta voikanaa ja jasmiiniriisiä, pakasteteria 350g",
+          "brand": "Kitchen Joy",
+          "quantity": "350 g",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8858984837806"
+        },
+        {
+          "ean": "8858984842206",
+          "name": "Kitchen Joy Yellow Curry Khao Soi -kanaa ja nuudeleita 320g pakaste",
+          "brand": "Kitchen Joy",
+          "quantity": "320 g",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8858984842206"
+        },
+        {
+          "ean": "8858984832146",
+          "name": "Kitchen Joy creamy tom yum - kanaa ja nuudeleita 320g pakaste",
+          "brand": "Kitchen Joy",
+          "quantity": "320 g",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8858984832146"
+        },
+        {
+          "ean": "8858984830029",
+          "name": "Kitchen Joy mausteista seesami broileria ja nuudelia 320g pakaste",
+          "brand": "Kitchen Joy",
+          "quantity": "320 g",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8858984830029"
+        }
+      ],
+      "invalidImageCandidates": [],
+      "printedBrand": "Kitchen Joy"
     },
     {
       "offerId": "kcm:spatial:16:muusiperuna 400 g:1.5",
@@ -1314,7 +1412,13 @@
           "source": "ruoanhinta-s"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Ehrmann",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 16,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:16:makupala vanukkaat 120 g (5,21/kg):2.5",
@@ -1355,7 +1459,13 @@
           "quantity": "120 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Jacky",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 16,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:16:actimel jogurtti-:3.69",
@@ -1436,7 +1546,13 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Danone",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 16,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:16:juomat 8 x 100 g 369 (4,61/kg):3.69",
@@ -1517,7 +1633,13 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Danone",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 16,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:16:juustoportti 1 leipäjuusto 140 g 99 (14,21/kg):1.99",
@@ -1584,7 +1706,13 @@
           "quantity": "440 ml"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Magnum",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 17,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:17:gold & green rouhe tai palat 180 g:2",
@@ -1665,7 +1793,13 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Fazer",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 17,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:17:pastat 500 g:3.5",
@@ -1674,12 +1808,71 @@
       "approved": false,
       "candidates": [
         {
+          "ean": "8004690052815",
+          "name": "La Molisana Caserecce Molisane N°29 500g",
+          "brand": "Molisana",
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690052815"
+        },
+        {
+          "ean": "8004690052501",
+          "name": "La Molisana Conchiglie Rigate N°25 500g",
+          "brand": "La Molisana",
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690052501"
+        },
+        {
+          "ean": "8004690106600",
+          "name": "La Molisana Farfalle Rigate N°66 500g",
+          "brand": "La Molisana",
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690106600"
+        },
+        {
+          "ean": "8004690172803",
+          "name": "La Molisana Fusilli Corti Bucati N°108 500g",
+          "brand": "Molisana",
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690172803"
+        },
+        {
+          "ean": "8004690110010",
+          "name": "La Molisana Fusilli Tricolori N°309 500g",
+          "brand": "La Molisana",
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690110010"
+        },
+        {
+          "ean": "8004690052044",
+          "name": "La Molisana Penne Rigate N°20 500g",
+          "brand": "Molisana",
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690052044"
+        },
+        {
+          "ean": "8004690053195",
+          "name": "La Molisana Rigatoni N°31 500g",
+          "brand": "La Molisana",
+          "quantity": "500 g",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690053195"
+        },
+        {
+          "ean": "8004690107201",
+          "name": "La Molisana Tagliatelle N°103 500g",
+          "brand": "La Molisana",
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8004690107201"
+        }
+      ],
+      "invalidImageCandidates": [
+        {
           "ean": "6410405242327",
           "name": "Pirkka gnocchi kuviopasta 500g",
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405242327",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6410405242303",
@@ -1687,7 +1880,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405242303",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8050538263066",
@@ -1695,7 +1889,8 @@
           "brand": null,
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8050538263066",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6410405242280",
@@ -1703,7 +1898,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405242280",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "5201193206551",
@@ -1711,7 +1907,8 @@
           "brand": "Melissa",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/5201193206551",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8008343201193",
@@ -1719,7 +1916,8 @@
           "brand": "Rummo",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8008343201193",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8008343200066",
@@ -1727,7 +1925,8 @@
           "brand": "Rummo",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8008343200066",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6411200108894",
@@ -1735,7 +1934,8 @@
           "brand": "Torino",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6411200108894",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8001665722131",
@@ -1743,7 +1943,8 @@
           "brand": "Rana",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8001665722131",
           "source": "ruoanhinta-s",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "7340191142619",
@@ -1751,7 +1952,8 @@
           "brand": "Coop",
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191142619_kuva1.jpg",
           "source": "ruoanhinta-s",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8008343200318",
@@ -1759,7 +1961,8 @@
           "brand": "Rummo",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8008343200318",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6410405365484",
@@ -1767,7 +1970,8 @@
           "brand": null,
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405365484",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6410405322951",
@@ -1775,7 +1979,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405322951",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8008698048535",
@@ -1783,7 +1988,8 @@
           "brand": null,
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8008698048535",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8008343200516",
@@ -1791,7 +1997,8 @@
           "brand": "Rummo",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8008343200516",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6410405322937",
@@ -1799,7 +2006,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405322937",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8076800195132",
@@ -1807,7 +2015,8 @@
           "brand": "Barilla",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8076800195132",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "7340191153516",
@@ -1815,7 +2024,8 @@
           "brand": "Xtra",
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191153516_kuva1.jpg",
           "source": "ruoanhinta-s",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "7340191144866",
@@ -1823,7 +2033,8 @@
           "brand": "Coop",
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191144866_kuva1.jpg",
           "source": "ruoanhinta-s",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8001250120878",
@@ -1831,7 +2042,8 @@
           "brand": "DE CECCO",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8001250120878",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8008343200134",
@@ -1839,7 +2051,8 @@
           "brand": "Rummo",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8008343200134",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6416710060069",
@@ -1847,7 +2060,8 @@
           "brand": "Filos",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6416710060069",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "7340191153493",
@@ -1855,7 +2069,8 @@
           "brand": "Xtra",
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191153493_kuva1.jpg",
           "source": "ruoanhinta-s",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8001250120748",
@@ -1863,7 +2078,8 @@
           "brand": "DE CECCO",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8001250120748",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "7340191144880",
@@ -1871,7 +2087,8 @@
           "brand": "Coop",
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191144880_kuva1.jpg",
           "source": "ruoanhinta-s",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "6410405107077",
@@ -1879,7 +2096,8 @@
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405107077",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         },
         {
           "ean": "8008343201070",
@@ -1887,10 +2105,16 @@
           "brand": "Rummo",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8008343201070",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is La Molisana"
         }
       ],
-      "invalidImageCandidates": []
+      "printedBrand": "La Molisana",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 17,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:17:fileekalapuikot 896 g:6",
@@ -1956,7 +2180,13 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Piltti",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 18,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:18:trip mehut 2 dl 24-pack:percent:21",
@@ -2077,7 +2307,13 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Mehukatti",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 18,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:18:iso välipalalajitelma yli 1,5 v. 12 x 150 g tai hedelmäsoselajitelma 4–6 kk 14 x 90 g (6,66–9,52/kg):11.99",
@@ -2943,42 +3179,10 @@
           "quantity": "180 g"
         },
         {
-          "ean": "7622202218187",
-          "name": "Marabou Jordgubb maitosuklaalevy 185g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622202218187",
-          "source": "ruoanhinta-k",
-          "quantity": "185 g"
-        },
-        {
-          "ean": "7622201727420",
-          "name": "Marabou Schweizernöt maitosuklaalevy 200g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201727420",
-          "source": "ruoanhinta-k",
-          "quantity": "200 g"
-        },
-        {
-          "ean": "7622202276934",
-          "name": "Suklaalevy Marabou 160 g Japp",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202276934.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
-        },
-        {
           "ean": "6416453014480",
           "name": "Karl Fazer Suffeli Riisipuffi maitosuklaalevy 185g",
           "brand": "Karl Fazer",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453014480",
-          "source": "ruoanhinta-k",
-          "quantity": "185 g"
-        },
-        {
-          "ean": "7622201726898",
-          "name": "Marabou Fudge & Havssalt maitosuklaalevy 185g",
-          "brand": "MARABOU",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201726898",
           "source": "ruoanhinta-k",
           "quantity": "185 g"
         },
@@ -3004,14 +3208,6 @@
           "brand": "Karl Fazer",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453095137",
           "source": "ruoanhinta-s",
-          "quantity": null
-        },
-        {
-          "ean": "7622202277184",
-          "name": "Suklaalevy Marabou 160 g Fudge & Havssalt",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202277184.png",
-          "source": "tokmanni-viikkotarjoukset",
           "quantity": null
         },
         {
@@ -3063,67 +3259,11 @@
           "quantity": null
         },
         {
-          "ean": "7622202238413",
-          "name": "Suklaalevy Marabou 160 g Daim",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238413.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
-        },
-        {
           "ean": "6416453054813",
           "name": "Karl Fazer Vanilla-Kaakao Fudge suklaalevy 180g",
           "brand": "Karl Fazer",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453054813",
           "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "8720701149007",
-          "name": "Tony's Chocolonely Greatest Bits maitosuklaalevy 180g",
-          "brand": "Tony's Chocolonely",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/8720701149007",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "7622202238383",
-          "name": "Suklaalevy Marabou 160 g Schweitzernöt",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238383.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
-        },
-        {
-          "ean": "7622202276859",
-          "name": "Marabou Oreo suklaalevy 160g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202276859",
-          "source": "ruoanhinta-s",
-          "quantity": null
-        },
-        {
-          "ean": "7622202293719",
-          "name": "Marabou Jordgubb suklaalevy 160g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202293719",
-          "source": "ruoanhinta-s",
-          "quantity": null
-        },
-        {
-          "ean": "7622202277092",
-          "name": "Marabou Cookie Dough suklaalevy 160g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202277092",
-          "source": "ruoanhinta-s",
-          "quantity": null
-        },
-        {
-          "ean": "7622202277320",
-          "name": "Marabou Lakrits & Hallon suklaalevy 160g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202277320",
-          "source": "ruoanhinta-s",
           "quantity": null
         },
         {
@@ -3143,52 +3283,12 @@
           "quantity": "200 g"
         },
         {
-          "ean": "7622202239427",
-          "name": "Suklaalevy Marabou 160 g Apelsinkrokant",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202239427.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
-        },
-        {
-          "ean": "7622202238529",
-          "name": "Suklaalevy Marabou 160 g Salta Mandlar",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238529.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
-        },
-        {
-          "ean": "7622202238475",
-          "name": "Suklaalevy Marabou 160 g Mjölkchoklad",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238475.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
-        },
-        {
           "ean": "6416453095120",
           "name": "Karl Fazer Rusina & Hasselpähkinä maitosuklaalevy 180g",
           "brand": "KARL FAZER",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453095120",
           "source": "ruoanhinta-k",
           "quantity": "180 g"
-        },
-        {
-          "ean": "7622202367618",
-          "name": "Suklaalevy Marabou 160 g Biscoff",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202367618.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
-        },
-        {
-          "ean": "7622201766511",
-          "name": "Suklaalevy Marabou 160 g Caramello",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622201766511.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
         },
         {
           "ean": "6416453014374",
@@ -3199,28 +3299,12 @@
           "quantity": "180 g"
         },
         {
-          "ean": "7622201727390",
-          "name": "Marabou Mjölkchoklad maitosuklaalevy 200g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201727390",
-          "source": "ruoanhinta-k",
-          "quantity": "200 g"
-        },
-        {
           "ean": "6416453015265",
           "name": "Karl Fazer Kokonainen Hasselpähkinä tummasuklaalevy 200g",
           "brand": "Fazer",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453015265",
           "source": "ruoanhinta-k",
           "quantity": "200 g"
-        },
-        {
-          "ean": "7622201726867",
-          "name": "Marabou Oreo maitosuklaalevy 185g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201726867",
-          "source": "ruoanhinta-k",
-          "quantity": "185 g"
         },
         {
           "ean": "6416453016439",
@@ -3247,28 +3331,12 @@
           "quantity": "180 g"
         },
         {
-          "ean": "7622201727758",
-          "name": "Marabou Mintkrokant maitosuklaalevy 200g",
-          "brand": "Marabou",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201727758",
-          "source": "ruoanhinta-k",
-          "quantity": "200 g"
-        },
-        {
           "ean": "6416453014381",
           "name": "Karl Fazer Dumle maitosuklaalevy 180g",
           "brand": "Karl Fazer",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453014381",
           "source": "ruoanhinta-k",
           "quantity": "180 g"
-        },
-        {
-          "ean": "7622202239090",
-          "name": "Suklaalevy Marabou 160 g Mintkrokant",
-          "brand": "Marabou",
-          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202239090.png",
-          "source": "tokmanni-viikkotarjoukset",
-          "quantity": null
         },
         {
           "ean": "6416453014428",
@@ -3279,7 +3347,203 @@
           "quantity": "180 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [
+        {
+          "ean": "7622202218187",
+          "name": "Marabou Jordgubb maitosuklaalevy 185g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622202218187",
+          "source": "ruoanhinta-k",
+          "quantity": "185 g",
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622201727420",
+          "name": "Marabou Schweizernöt maitosuklaalevy 200g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201727420",
+          "source": "ruoanhinta-k",
+          "quantity": "200 g",
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202276934",
+          "name": "Suklaalevy Marabou 160 g Japp",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202276934.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622201726898",
+          "name": "Marabou Fudge & Havssalt maitosuklaalevy 185g",
+          "brand": "MARABOU",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201726898",
+          "source": "ruoanhinta-k",
+          "quantity": "185 g",
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202277184",
+          "name": "Suklaalevy Marabou 160 g Fudge & Havssalt",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202277184.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202238413",
+          "name": "Suklaalevy Marabou 160 g Daim",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238413.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "8720701149007",
+          "name": "Tony's Chocolonely Greatest Bits maitosuklaalevy 180g",
+          "brand": "Tony's Chocolonely",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/8720701149007",
+          "source": "ruoanhinta-k",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202238383",
+          "name": "Suklaalevy Marabou 160 g Schweitzernöt",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238383.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202276859",
+          "name": "Marabou Oreo suklaalevy 160g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202276859",
+          "source": "ruoanhinta-s",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202293719",
+          "name": "Marabou Jordgubb suklaalevy 160g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202293719",
+          "source": "ruoanhinta-s",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202277092",
+          "name": "Marabou Cookie Dough suklaalevy 160g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202277092",
+          "source": "ruoanhinta-s",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202277320",
+          "name": "Marabou Lakrits & Hallon suklaalevy 160g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/0NNH0/7622202277320",
+          "source": "ruoanhinta-s",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202239427",
+          "name": "Suklaalevy Marabou 160 g Apelsinkrokant",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202239427.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202238529",
+          "name": "Suklaalevy Marabou 160 g Salta Mandlar",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238529.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202238475",
+          "name": "Suklaalevy Marabou 160 g Mjölkchoklad",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202238475.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202367618",
+          "name": "Suklaalevy Marabou 160 g Biscoff",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202367618.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622201766511",
+          "name": "Suklaalevy Marabou 160 g Caramello",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622201766511.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622201727390",
+          "name": "Marabou Mjölkchoklad maitosuklaalevy 200g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201727390",
+          "source": "ruoanhinta-k",
+          "quantity": "200 g",
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622201726867",
+          "name": "Marabou Oreo maitosuklaalevy 185g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201726867",
+          "source": "ruoanhinta-k",
+          "quantity": "185 g",
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622201727758",
+          "name": "Marabou Mintkrokant maitosuklaalevy 200g",
+          "brand": "Marabou",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/7622201727758",
+          "source": "ruoanhinta-k",
+          "quantity": "200 g",
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        },
+        {
+          "ean": "7622202239090",
+          "name": "Suklaalevy Marabou 160 g Mintkrokant",
+          "brand": "Marabou",
+          "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/7622202239090.png",
+          "source": "tokmanni-viikkotarjoukset",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Fazer"
+        }
+      ],
+      "printedBrand": "Fazer",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 19,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:19:sininen suklaalevy 180 g ja:10",
@@ -3296,7 +3560,13 @@
           "quantity": "180 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "printedBrand": "Fazer",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 19,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:19:tangle pasta pussi- ateriat 100–105 g (15,87-16,67/kg):5",
@@ -3327,16 +3597,18 @@
     {
       "offerId": "kcm:spatial:19:pastakastikkeet 390–450 g (5,56–6,41/kg):2.5",
       "identity": "pastakastikkeet 390–450 g (5,56–6,41/kg)",
-      "status": "candidate-needs-leaflet-check",
+      "status": "bank-image-is-webpage",
       "approved": false,
-      "candidates": [
+      "candidates": [],
+      "invalidImageCandidates": [
         {
           "ean": "8710671155122",
           "name": "Pastakastike SPAR 390 g Carbonara",
           "brand": "SPAR",
           "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/8710671155122.png",
           "source": "tokmanni-spar",
-          "quantity": "390 g"
+          "quantity": "390 g",
+          "rejectionReason": "Printed leaflet brand is Dolmio"
         },
         {
           "ean": "8710671155078",
@@ -3344,7 +3616,8 @@
           "brand": "SPAR",
           "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/8710671155078.png",
           "source": "tokmanni-spar",
-          "quantity": "400 g"
+          "quantity": "400 g",
+          "rejectionReason": "Printed leaflet brand is Dolmio"
         },
         {
           "ean": "8710671155030",
@@ -3352,7 +3625,8 @@
           "brand": "SPAR",
           "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/8710671155030.png",
           "source": "tokmanni-spar",
-          "quantity": "400 g"
+          "quantity": "400 g",
+          "rejectionReason": "Printed leaflet brand is Dolmio"
         },
         {
           "ean": "8710671154996",
@@ -3360,7 +3634,8 @@
           "brand": "SPAR",
           "image": "https://res.cloudinary.com/tokmanni/image/upload/c_pad,b_white,f_auto,h_328,w_328/d_default.png/8710671154996.png",
           "source": "tokmanni-spar",
-          "quantity": "400 g"
+          "quantity": "400 g",
+          "rejectionReason": "Printed leaflet brand is Dolmio"
         },
         {
           "ean": "7340191156364",
@@ -3368,7 +3643,8 @@
           "brand": "Coop",
           "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191156364_kuva1.jpg",
           "source": "ruoanhinta-s",
-          "quantity": "420 g"
+          "quantity": "420 g",
+          "rejectionReason": "Printed leaflet brand is Dolmio"
         },
         {
           "ean": "8005110000775",
@@ -3376,18 +3652,93 @@
           "brand": "Mutti",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/8005110000775",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Dolmio"
+        },
+        {
+          "ean": "4002359021022",
+          "name": "Bolognesekastike Dolmio 450 g Original",
+          "brand": "Dolmio",
+          "quantity": null,
+          "image": "https://www.tokmanni.fi/viikkotarjoukset",
+          "rejectionReason": "Stored URL is a webpage, not an image"
+        },
+        {
+          "ean": "4002359021060",
+          "name": "Bolognesekastike Dolmio 450 g Smooth Tomato",
+          "brand": "Dolmio",
+          "quantity": null,
+          "image": "https://www.tokmanni.fi/viikkotarjoukset",
+          "rejectionReason": "Stored URL is a webpage, not an image"
+        },
+        {
+          "ean": "4002359020988",
+          "name": "Bolognesekastike Dolmio 450 g Tomato & Basil",
+          "brand": "Dolmio",
+          "quantity": null,
+          "image": "https://www.tokmanni.fi/viikkotarjoukset",
+          "rejectionReason": "Stored URL is a webpage, not an image"
+        },
+        {
+          "ean": "4002359021077",
+          "name": "Bolognesekastike Dolmio 450 g valkosipuli",
+          "brand": "Dolmio",
+          "quantity": null,
+          "image": "https://www.tokmanni.fi/viikkotarjoukset",
+          "rejectionReason": "Stored URL is a webpage, not an image"
+        },
+        {
+          "ean": "4002359021091",
+          "name": "Lasagnekastike Dolmio 440 g Creamy",
+          "brand": "Dolmio",
+          "quantity": null,
+          "image": "https://www.tokmanni.fi/viikkotarjoukset",
+          "rejectionReason": "Stored URL is a webpage, not an image"
+        },
+        {
+          "ean": "4002359021015",
+          "name": "Lasagnekastike Dolmio 450 g Tomato",
+          "brand": "Dolmio",
+          "quantity": null,
+          "image": "https://www.tokmanni.fi/viikkotarjoukset",
+          "rejectionReason": "Stored URL is a webpage, not an image"
         }
       ],
-      "invalidImageCandidates": []
+      "printedBrand": "Dolmio",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 19,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:19:perunalastut 160–165 g:5",
       "identity": "perunalastut 160–165 g",
-      "status": "no-compatible-candidate",
+      "status": "candidate-needs-leaflet-check",
       "approved": false,
-      "candidates": [],
-      "invalidImageCandidates": []
+      "candidates": [
+        {
+          "ean": "5053990121922",
+          "name": "Pringles Ketchup 165g",
+          "brand": null,
+          "quantity": null,
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/5053990121922"
+        },
+        {
+          "ean": "5053990127726",
+          "name": "Pringles Original 165g",
+          "brand": "Pringles",
+          "quantity": "165 g",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/5053990127726"
+        }
+      ],
+      "invalidImageCandidates": [],
+      "printedBrand": "Pringles",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 19,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:19:purukumipussit 26–29 g:1",
@@ -3558,16 +3909,18 @@
     {
       "offerId": "kcm:spatial:20:cashewpähkinä 500 g:6.99",
       "identity": "cashewpähkinä 500 g",
-      "status": "candidate-needs-leaflet-check",
+      "status": "no-compatible-candidate",
       "approved": false,
-      "candidates": [
+      "candidates": [],
+      "invalidImageCandidates": [
         {
           "ean": "6410405286376",
           "name": "Pirkka cashewpähkinä 500g",
           "brand": "Pirkka",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6410405286376",
           "source": "ruoanhinta-k",
-          "quantity": "500 g"
+          "quantity": "500 g",
+          "rejectionReason": "Printed leaflet brand is Finnut"
         },
         {
           "ean": "6430055215557",
@@ -3575,82 +3928,23 @@
           "brand": "Foodin",
           "image": "https://public.keskofiles.com/f/k-ruoka/product/6430055215557",
           "source": "ruoanhinta-k",
-          "quantity": null
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Finnut"
         }
       ],
-      "invalidImageCandidates": []
+      "printedBrand": "Finnut",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 20,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:20:proteiinipatukat 45–55 g:5",
       "identity": "proteiinipatukat 45–55 g",
-      "status": "candidate-needs-leaflet-check",
+      "status": "bank-image-is-webpage",
       "approved": false,
-      "candidates": [
-        {
-          "ean": "6416453093218",
-          "name": "Fazer proteiinipatukka 45g Pätkis Crunchy",
-          "brand": "Fazer",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453093218",
-          "source": "ruoanhinta-k",
-          "quantity": "45 g"
-        },
-        {
-          "ean": "6430080441211",
-          "name": "Leader Promour proteiinipatukka 45g maitosuklaa-vadelma",
-          "brand": "Leader",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441211",
-          "source": "ruoanhinta-s",
-          "quantity": "45 g"
-        },
-        {
-          "ean": "6430080441303",
-          "name": "Leader Promour proteiinipatukka 45g maitosuklaa-minttu",
-          "brand": "Leader",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441303",
-          "source": "ruoanhinta-s",
-          "quantity": "45 g"
-        },
-        {
-          "ean": "7340191143845",
-          "name": "Coop proteiinipatukka suklaa 50 g",
-          "brand": "Coop",
-          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191143845_kuva1.jpg",
-          "source": "ruoanhinta-s",
-          "quantity": null
-        },
-        {
-          "ean": "6430077257849",
-          "name": "Hart-Sport Proteiinipatukka Appelsiini-suklaa 55g",
-          "brand": "Hart-Sport",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430077257849",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6430080441334",
-          "name": "Leader Promour proteiinipatukka 45g suklaatryffeli-appelsiini",
-          "brand": "Leader",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441334",
-          "source": "ruoanhinta-k",
-          "quantity": null
-        },
-        {
-          "ean": "6430080441242",
-          "name": "Leader Promour proteiinipatukka 45g maitosuklaa-hasselpähkinä",
-          "brand": "Leader",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441242",
-          "source": "ruoanhinta-k",
-          "quantity": "45 g"
-        },
-        {
-          "ean": "6416453093201",
-          "name": "Fazer proteiinipatukka 45g Dumle Crunchy",
-          "brand": "Fazer",
-          "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453093201",
-          "source": "ruoanhinta-k",
-          "quantity": "45 g"
-        }
-      ],
+      "candidates": [],
       "invalidImageCandidates": [
         {
           "ean": "6430080441396",
@@ -3747,8 +4041,86 @@
           "image": "https://www.tokmanni.fi/viikkotarjoukset",
           "source": "tokmanni-viikkotarjoukset",
           "quantity": null
+        },
+        {
+          "ean": "6416453093218",
+          "name": "Fazer proteiinipatukka 45g Pätkis Crunchy",
+          "brand": "Fazer",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453093218",
+          "source": "ruoanhinta-k",
+          "quantity": "45 g",
+          "rejectionReason": "Printed leaflet brand is Barebells"
+        },
+        {
+          "ean": "6430080441211",
+          "name": "Leader Promour proteiinipatukka 45g maitosuklaa-vadelma",
+          "brand": "Leader",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441211",
+          "source": "ruoanhinta-s",
+          "quantity": "45 g",
+          "rejectionReason": "Printed leaflet brand is Barebells"
+        },
+        {
+          "ean": "6430080441303",
+          "name": "Leader Promour proteiinipatukka 45g maitosuklaa-minttu",
+          "brand": "Leader",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441303",
+          "source": "ruoanhinta-s",
+          "quantity": "45 g",
+          "rejectionReason": "Printed leaflet brand is Barebells"
+        },
+        {
+          "ean": "7340191143845",
+          "name": "Coop proteiinipatukka suklaa 50 g",
+          "brand": "Coop",
+          "image": "https://cdn.s-cloud.fi/v1/w256_q75/product/ean/7340191143845_kuva1.jpg",
+          "source": "ruoanhinta-s",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Barebells"
+        },
+        {
+          "ean": "6430077257849",
+          "name": "Hart-Sport Proteiinipatukka Appelsiini-suklaa 55g",
+          "brand": "Hart-Sport",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430077257849",
+          "source": "ruoanhinta-k",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Barebells"
+        },
+        {
+          "ean": "6430080441334",
+          "name": "Leader Promour proteiinipatukka 45g suklaatryffeli-appelsiini",
+          "brand": "Leader",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441334",
+          "source": "ruoanhinta-k",
+          "quantity": null,
+          "rejectionReason": "Printed leaflet brand is Barebells"
+        },
+        {
+          "ean": "6430080441242",
+          "name": "Leader Promour proteiinipatukka 45g maitosuklaa-hasselpähkinä",
+          "brand": "Leader",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6430080441242",
+          "source": "ruoanhinta-k",
+          "quantity": "45 g",
+          "rejectionReason": "Printed leaflet brand is Barebells"
+        },
+        {
+          "ean": "6416453093201",
+          "name": "Fazer proteiinipatukka 45g Dumle Crunchy",
+          "brand": "Fazer",
+          "image": "https://public.keskofiles.com/f/k-ruoka/product/6416453093201",
+          "source": "ruoanhinta-k",
+          "quantity": "45 g",
+          "rejectionReason": "Printed leaflet brand is Barebells"
         }
-      ]
+      ],
+      "printedBrand": "Barebells",
+      "brandEvidence": {
+        "source": "approved-41LV-PDF",
+        "page": 20,
+        "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+      }
     },
     {
       "offerId": "kcm:spatial:20:original vehnätortilla medium 326 g:1.15",
@@ -3767,5 +4139,6 @@
       "invalidImageCandidates": []
     }
   ],
-  "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
+  "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6",
+  "checkedAgainstOriginalLeaflet": true
 }
