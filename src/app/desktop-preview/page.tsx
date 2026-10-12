@@ -1031,7 +1031,7 @@ export default function DesktopPreviewPage() {
     if(justiinaDelay && voiceRunId === undefined) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
     try{
       async function fetchSearchData(url: string) {
-        const queries = voiceRunId === undefined ? [query] : getNormalSearchQueries(query).slice(0, 6);
+        const queries = [...new Set(getNormalSearchQueries(query))].slice(0, 6);
         let lastData: any = null;
         for (const searchQuery of queries.length ? queries : [query]) {
           if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return null;
@@ -1042,7 +1042,7 @@ export default function DesktopPreviewPage() {
           const data = await response.json();
           lastData = data;
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
-          if (voiceRunId === undefined || rankNormalSearchResults(query, items).length > 0) return data;
+          if (rankNormalSearchResults(query, items).length > 0) return data;
         }
         return lastData;
       }
@@ -1050,7 +1050,7 @@ export default function DesktopPreviewPage() {
       if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
-      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of (voiceRunId === undefined ? rankDesktopJustiinaResults(items,query) : rankNormalSearchResults(query,items)).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
+      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankNormalSearchResults(query,items).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
       if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
       setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
       return rows.length > 0;
