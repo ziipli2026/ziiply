@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.20",
+  "version": "2026-10-12.26",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -3387,7 +3387,7 @@
       "source": "ruoanhinta-s",
       "source_category": "liha-ja-kasviproteiinit/jauheliha/siipikarjan-jauheliha",
       "sample_product_count": 3,
-      "category_id": "meat"
+      "category_id": "poultry_ground"
     },
     {
       "source": "ruoanhinta-s",

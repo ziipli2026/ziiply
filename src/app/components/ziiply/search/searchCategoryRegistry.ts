@@ -1,7 +1,31 @@
 // Versioned test registry, persisted with rules in Neon. No database call per search.
 import type { SearchIntent } from "../ziiplyCore";
-export const CATEGORY_REGISTRY_VERSION = "2026-10-12.20";
+export const CATEGORY_REGISTRY_VERSION = "2026-10-12.26";
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {"category": "wine", "label": "Viinit ja viinipohjaiset juomat", "variants": ["viini", "riesling"], "requiredAny": ["viini", "riesling"], "bannedAny": []},
+  {"category": "seafood", "label": "Äyriäiset ja nilviäiset", "variants": ["katkarapu", "jättikatkarapu"], "requiredAny": ["katkarapu", "jättikatkarapu"], "bannedAny": []},
+  {"category": "egg_spread", "label": "Munavoit", "variants": ["munavoi"], "requiredAny": ["munavoi"], "bannedAny": []},
+  {"category": "potato_flakes", "label": "Perunamuusijauheet ja -hiutaleet", "variants": ["perunamuusijauhe", "muusihiutale"], "requiredAny": ["perunamuusijauhe", "muusihiutale"], "bannedAny": []},
+
+  {"category": "outdoor_gear", "label": "Retkeily ja kalastustarvikkeet", "variants": ["onkimato", "retkisuihku"], "requiredAny": ["onkimato", "retkisuihku"], "bannedAny": []},
+  {"category": "personal_care_appliances", "label": "Henkilökohtaisen hoidon laitteet", "variants": ["hiustenkuivain", "hiustenleikkuri", "suoristusrauta"], "requiredAny": ["hiustenkuivain", "hiustenleikkuri", "suoristusrauta"], "bannedAny": []},
+  {"category": "fire_safety", "label": "Paloturvatarvikkeet", "variants": ["palovaroitin", "jauhesammutin"], "requiredAny": ["palovaroitin", "jauhesammutin"], "bannedAny": []},
+  {"category": "charcoal", "label": "Hiilet ja sytytystarvikkeet", "variants": ["grillihiili", "sytytyspala"], "requiredAny": ["grillihiili", "sytytyspala"], "bannedAny": []},
+  {"category": "air_care", "label": "Sisäilmalaitteet", "variants": ["ilmankostutin"], "requiredAny": ["ilmankostutin"], "bannedAny": []},
+  {"category": "health_supplies", "label": "Hyvinvoinnin tuotteet ja tarvikkeet", "variants": ["kinesioteippi", "selkätuki", "ryhtiliivi"], "requiredAny": ["kinesioteippi", "selkätuki", "ryhtiliivi"], "bannedAny": []},
+  {"category": "plant_dairy", "label": "Kasvipohjaiset välipalat", "variants": ["kauravälipala", "soijavalmiste", "kauragurtti"], "requiredAny": ["kauravälipala", "soijavalmiste", "kauragurtti"], "bannedAny": []},
+  {"category": "plant_cream", "label": "Kasvipohjaiset ruokakermat", "variants": ["kauraruoka"], "requiredAny": ["kauraruoka"], "bannedAny": []},
+  {"category": "iced_tea", "label": "Jääteet", "variants": ["jäätee"], "requiredAny": ["jäätee"], "bannedAny": []},
+  {"category": "frozen_confection", "label": "Pakastetut suklaahedelmät", "variants": ["franui", "trü frü"], "requiredAny": ["franui", "trü frü"], "bannedAny": [], "parentCategory": "frozen"},
+
+  {"category": "poultry_ground", "label": "Siipikarjan jauhelihat", "variants": ["siipikarjan jauheliha"], "requiredAny": ["jauheliha"], "bannedAny": ["kastike", "ateria"], "parentCategory": "meat", "parentCategories": ["meat", "chicken"]},
+  {"category": "grills", "label": "Grillit ja savustimet", "variants": ["kaasugrilli", "kamado-grilli", "hiilisavustin"], "requiredAny": ["kaasugrilli", "kamado-grilli", "hiilisavustin"], "bannedAny": []},
+  {"category": "furniture", "label": "Kalusteet", "variants": ["tuoli", "tilanjakajaseinä"], "requiredAny": ["tuoli", "tilanjakajaseinä"], "bannedAny": []},
+  {"category": "plant_protein", "label": "Kasviproteiinit", "variants": ["tofu", "tempeh", "seitan", "härkäpapurouhe"], "requiredAny": ["tofu", "tempeh", "seitan", "härkäpapurouhe"], "bannedAny": []},
+  {"category": "beans", "label": "Kuivatut pavut", "variants": ["mungpapu", "adukipapu"], "requiredAny": ["mungpapu", "adukipapu"], "bannedAny": []},
+  {"category": "cooking_fats", "label": "Ruoanvalmistusrasvat", "variants": ["ankanrasva", "kookosrasva"], "requiredAny": ["ankanrasva", "kookosrasva"], "bannedAny": []},
+  {"category": "essential_oils", "label": "Eteeriset öljyt", "variants": ["eteerinen öljy"], "requiredAny": ["eteerinen öljy"], "bannedAny": []},
+
   {"category": "home_textiles", "label": "Kodintekstiilit", "variants": ["matto", "keittiöpyyhe", "verho", "torkkuhuopa"], "requiredAny": ["matto", "keittiöpyyhe", "verho", "torkkuhuopa"], "bannedAny": []},
   {"category": "storage", "label": "Säilytys ja laukut", "variants": ["säilytyslaatikko", "vetolaukku", "säilytysastia"], "requiredAny": ["säilytyslaatikko", "vetolaukku", "säilytysastia"], "bannedAny": []},
   {"category": "fragrance", "label": "Tuoksut", "variants": ["hajuvesi", "eau de parfum", "eau de toilette"], "requiredAny": ["hajuvesi", "eau de parfum", "eau de toilette"], "bannedAny": []},

@@ -7,6 +7,15 @@ const section = source.split('export const SEARCH_INTENTS: SearchIntent[] = ')[1
 const rules = vm.runInNewContext(section.replace(/;\s*$/, ''));
 const mappings = JSON.parse(fs.readFileSync('data/search/category-mappings-reviewed.json', 'utf8'));
 const exceptions = JSON.parse(fs.readFileSync('data/search/product-category-exceptions-reviewed.json', 'utf8')).exceptions;
+const declaredVersion = source.match(/CATEGORY_REGISTRY_VERSION = "([^"]+)"/)?.[1];
+if (declaredVersion !== mappings.version) throw Error('Registry module and mapping manifest versions differ');
+const exceptionCategories = new Map();
+for (const row of exceptions) {
+  const existing = exceptionCategories.get(row.ean);
+  if (existing && existing !== row.category_id) throw Error('Conflicting reviewed categories for EAN '+row.ean);
+  exceptionCategories.set(row.ean,row.category_id);
+}
+
 for (const row of exceptions) {
   if (!/^\d{13}$/.test(row.ean) || ([...row.ean.slice(0,12)].reduce((sum,digit,index)=>sum+Number(digit)*(index%2?3:1),0)+Number(row.ean[12]))%10) throw Error('Invalid reviewed EAN '+row.ean);
   if (!rules.some(rule=>rule.category===row.category_id)) throw Error('Unknown exception category '+row.category_id);

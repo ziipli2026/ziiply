@@ -201,6 +201,30 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "wine"
+  | "seafood"
+  | "egg_spread"
+  | "potato_flakes"
+
+  | "outdoor_gear"
+  | "personal_care_appliances"
+  | "fire_safety"
+  | "charcoal"
+  | "air_care"
+  | "health_supplies"
+  | "plant_dairy"
+  | "plant_cream"
+  | "iced_tea"
+  | "frozen_confection"
+
+  | "poultry_ground"
+  | "grills"
+  | "furniture"
+  | "plant_protein"
+  | "beans"
+  | "cooking_fats"
+  | "essential_oils"
+
   | "home_textiles"
   | "storage"
   | "fragrance"

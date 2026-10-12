@@ -32,9 +32,17 @@ Module._load = function(request, parent, isMain) {
   return originalLoad.call(this, request, parent, isMain);
 };
 const core = require(root+"/ziiplyCore.ts");
+const poultryGroundFixture = {id:18001,name:"Atria Kanan Jauheliha 400g",category:"Liha",ean:"6407810013475"};
+assert.equal(core.isExplicitlyExcludedSearchProduct("jauheliha",poultryGroundFixture),false,"Poultry mince must remain in minced-meat searches");
+assert.equal(core.isExplicitlyExcludedSearchProduct("kana",poultryGroundFixture),false,"Poultry mince must remain in poultry searches");
+
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["viini", "wine"],["katkarapu", "seafood"],["munavoi", "egg_spread"],["perunamuusijauhe", "potato_flakes"],
+["onkimato", "outdoor_gear"],["hiustenkuivain", "personal_care_appliances"],["palovaroitin", "fire_safety"],["grillihiili", "charcoal"],["ilmankostutin", "air_care"],["kinesioteippi", "health_supplies"],["kauravälipala", "plant_dairy"],["kauraruoka", "plant_cream"],["jäätee", "iced_tea"],["franui", "frozen_confection"],
+["siipikarjan jauheliha","poultry_ground"],
+["kaasugrilli", "grills"],["tuoli", "furniture"],["tofu", "plant_protein"],["mungpapu", "beans"],["ankanrasva", "cooking_fats"],["eteerinen öljy", "essential_oils"],
 ["matto", "home_textiles"],["säilytyslaatikko", "storage"],["hajuvesi", "fragrance"],["pölynimuri", "home_appliances"],["sulanapitokaapeli", "heating"],
 ["tiramisu", "dessert"],["skyr", "skyr"],["kermaperuna", "prepared_sides"],["hummus", "hummus"],["maitokaakaojuoma", "flavored_milk"],["karjalanpiirakka", "savory_pastry"],["hard seltzer", "mixed_drink"],["mocktail", "mocktail"],["kombucha", "kombucha"],["urheilujuoma", "sports_drink"],["myslipatukka", "snack_bar"],["riisikakku", "rice_cakes"],["omenasose", "fruit_puree"],["huuhteluaine", "fabric_softener"],["lämpökynttilä", "candles"],["kukkamulta", "garden_supplies"],["pekoni", "bacon"],["paperitähti", "home_decor"],["kuuloke", "electronics"],
 ["purukumi", "chewing_gum"],["kahvakuula", "sports_equipment"],["jakoavain", "tools"],["liimapuulevy", "building_supplies"],["askartelupaperi", "craft_supplies"],["led-valo", "lighting"],["nilkkuri", "clothing"],["moottoriöljy", "automotive"],["astiaharja", "cleaning_tools"],["dippikastike", "dip_sauce"],["tortilla", "tortilla"],["pähkinä", "nuts_seeds"],["rusina", "dried_fruit"],["hedelmäsäilyke", "canned_fruit"],["kvinoa", "grain_side"],["ranskanperuna", "frozen_potatoes"],["maapähkinävoi", "sweet_spread"],["kahvijuomajauhe", "drink_powder"],["huulikiilto", "makeup"],["glögi", "seasonal_drink"],["lintulauta", "pet_supplies"],["kärpäspaperi", "pest_control"],
