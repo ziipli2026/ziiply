@@ -154,6 +154,17 @@ def build(folder,manifest_path,public_folder,review_path):
  manifest['publications'][meta['leaflet']]={'pdfSha256':digest,'pageCount':len(doc),'offerCount':len(meta['rows']),'images':mapping}
  manifest_path.parent.mkdir(parents=True,exist_ok=True);manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
  (folder/'image-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+ # Give the image-review pass a compact, actionable queue instead of requiring
+ # reviewers to search through every accepted and rejected offer.
+ unresolved=[entry for entry in report if entry.get('method')=='unresolved']
+ candidates={entry['id']:entry for entry in report if entry.get('status')=='manual-review-needed'}
+ queue=[{'id':entry['id'],'title':entry['title'],'page':entry['page'],
+         'candidateImageRectangles':candidates.get(entry['id'],{}).get('candidateImageRectangles',[])}
+        for entry in unresolved]
+ (folder/'unresolved-image-queue.json').write_text(json.dumps({
+  'leaflet':meta['leaflet'],'pdfSha256':digest,'totalOffers':len(meta['rows']),
+  'verifiedImages':len(mapping),'unresolvedOffers':len(queue),'offers':queue
+ },ensure_ascii=False,indent=2)+'\n')
  print(f"Publisher images: {len(mapping)}/{len(meta['rows'])}; unresolved: {len(meta['rows'])-len(mapping)}; PDF {digest}")
 
 if __name__=='__main__':
