@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, productGroupGate } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
+import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
 import dynamic from "next/dynamic";
@@ -757,6 +758,39 @@ export default function DesktopPreviewPage() {
   const [justiinaLoading, setJustiinaLoading] = useState(false);
   const [justiinaResults, setJustiinaResults] = useState<any[]>([]);
   const [justiinaResultsOpen, setJustiinaResultsOpen] = useState(false);
+  const desktopVoiceRunRef = useRef(0);
+  const desktopVoiceWaitRef = useRef<null | (() => void)>(null);
+  function resumeDesktopVoiceList() {
+    const resolve = desktopVoiceWaitRef.current;
+    desktopVoiceWaitRef.current = null;
+    resolve?.();
+  }
+  function cancelDesktopVoiceList() {
+    desktopVoiceRunRef.current += 1;
+    resumeDesktopVoiceList();
+  }
+  useEffect(() => {
+    if (workspace !== "justiina") cancelDesktopVoiceList();
+    else if (!justiinaResultsOpen) resumeDesktopVoiceList();
+  }, [workspace, justiinaResultsOpen]);
+  useEffect(() => () => cancelDesktopVoiceList(), []);
+
+  async function runDesktopVoiceList(transcript: string) {
+    cancelDesktopVoiceList();
+    const runId = desktopVoiceRunRef.current;
+    const terms = parseMobileVoiceList(transcript);
+    justiinaUserEditedRef.current = false;
+    for (let index = 0; index < terms.length; index++) {
+      if (runId !== desktopVoiceRunRef.current) return;
+      setJustiinaQuery(terms[index]);
+      const found = await runDesktopJustiinaSearch(terms[index], runId);
+      if (runId !== desktopVoiceRunRef.current) return;
+      // Mobile V509: keep this product's choices open until selection or return.
+      if (found && index < terms.length - 1) {
+        await new Promise<void>(resolve => { desktopVoiceWaitRef.current = resolve; });
+      }
+    }
+  }
   const justiinaUserEditedRef = useRef(false);
   const justiinaAddedDuringSelectionRef = useRef(false);
   const justiinaLastSearchedRef = useRef("");
@@ -963,7 +997,7 @@ export default function DesktopPreviewPage() {
       .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
   }
 
-  async function runDesktopJustiinaSearch(raw=justiinaQuery) {
+  async function runDesktopJustiinaSearch(raw=justiinaQuery, voiceRunId?:number) {
     const query=String(raw||"").trim(); if(!query)return;
     const selected=Object.values(selectedStores) as any[];
     const s=selected.find(x=>{const k=storeKind(x);return k==="sHyper"||k==="sLocal"});
@@ -977,8 +1011,10 @@ export default function DesktopPreviewPage() {
       if(k)calls.push(fetch(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>({chain:"K",store:k,data:d})));
       const batches=await Promise.all(calls);const rows:any[]=[];
       for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankDesktopJustiinaResults(items,query).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??x?.storeItem?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
+      if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
       setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
-    }catch{setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.")}finally{setJustiinaLoading(false)}
+      return rows.length > 0;
+    }catch{if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");return false}finally{setJustiinaLoading(false)}
   }
 
   useEffect(()=>{
@@ -1485,8 +1521,8 @@ export default function DesktopPreviewPage() {
 </div>
 </div>)}</div>}</div></>}</div>})()}
 
-            {workspace==="justiina" && justiinaResultsOpen && <div className="fixed inset-x-6 bottom-6 top-[var(--desktop-overlay-top)] z-[65] flex flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]"><div className="relative mx-auto flex h-[58px] w-[min(100%,620px)] shrink-0 items-center justify-center gap-3 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-3"><button type="button" onClick={()=>{setJustiinaResultsOpen(false);setWorkspace(null)}} aria-label="Sulje tuotevalinta" className="absolute left-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button><div className="flex min-w-0 max-w-[calc(100%-112px)] items-center justify-center gap-3"><button type="button" onClick={()=>{justiinaUserEditedRef.current=false;if(justiinaAddedDuringSelectionRef.current){setJustiinaMessage("");setJustiinaQuery("");justiinaLastSearchedRef.current="";justiinaAddedDuringSelectionRef.current=false}setJustiinaResultsOpen(false)}} aria-label="Takaisin hakuun" className="shrink-0 rounded-full border-[3px] border-[#17573c] bg-[#fff9dd] px-3 py-1 text-[22px] font-black text-[#174c35]">←</button><span className="min-w-0 truncate whitespace-nowrap font-serif text-[21px] font-black italic text-[#174c35]" title={`Tuotevalinta · ${justiinaQuery}`}>Tuotevalinta · {justiinaQuery}</span></div><button type="button" onClick={()=>{setJustiinaResultsOpen(false);setWorkspace(null)}} aria-label="Sulje tuotevalinta" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button></div><div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4"><div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=><div key={String(p.id||p.ean||i)} className="grid h-[258px] min-h-0 grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,storeName:p.__store});justiinaAddedDuringSelectionRef.current=true}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">🛒 Lisää koriin</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}</div></div>)}</div></div></div>}
-            {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(false);setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void runDesktopJustiinaSearch()}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
+            {workspace==="justiina" && justiinaResultsOpen && <div className="fixed inset-x-6 bottom-6 top-[var(--desktop-overlay-top)] z-[65] flex flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]"><div className="relative mx-auto flex h-[58px] w-[min(100%,620px)] shrink-0 items-center justify-center gap-3 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-3"><button type="button" onClick={()=>{setJustiinaResultsOpen(false);setWorkspace(null)}} aria-label="Sulje tuotevalinta" className="absolute left-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button><div className="flex min-w-0 max-w-[calc(100%-112px)] items-center justify-center gap-3"><button type="button" onClick={()=>{justiinaUserEditedRef.current=false;if(justiinaAddedDuringSelectionRef.current){setJustiinaMessage("");setJustiinaQuery("");justiinaLastSearchedRef.current="";justiinaAddedDuringSelectionRef.current=false}setJustiinaResultsOpen(false)}} aria-label="Takaisin hakuun" className="shrink-0 rounded-full border-[3px] border-[#17573c] bg-[#fff9dd] px-3 py-1 text-[22px] font-black text-[#174c35]">←</button><span className="min-w-0 truncate whitespace-nowrap font-serif text-[21px] font-black italic text-[#174c35]" title={`Tuotevalinta · ${justiinaQuery}`}>Tuotevalinta · {justiinaQuery}</span></div><button type="button" onClick={()=>{setJustiinaResultsOpen(false);setWorkspace(null)}} aria-label="Sulje tuotevalinta" className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button></div><div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4"><div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=><div key={String(p.id||p.ean||i)} className="grid h-[258px] min-h-0 grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,storeName:p.__store});justiinaAddedDuringSelectionRef.current=true;resumeDesktopVoiceList()}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">🛒 Lisää koriin</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}</div></div>)}</div></div></div>}
+            {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onVoiceTranscript={(text)=>{void runDesktopVoiceList(text)}} onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(false);setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{cancelDesktopVoiceList();justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void runDesktopJustiinaSearch()}} message={justiinaMessage} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
                 <div className="flex items-center justify-between"><div className="text-[26px] font-black text-[#14291f]">{({ gosta: "Gösta", justiina: "Justiina", arvo: "Arvo" } as const)[workspace]}</div><button onClick={()=>setWorkspace(null)} className="rounded-full bg-white px-4 py-2 font-black">← Takaisin</button></div>
