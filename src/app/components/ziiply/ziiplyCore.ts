@@ -2717,10 +2717,6 @@ export function scoreCategorySpecificResult(query: string, product: Product) {
   return scoreBaseNormalResult(query, product);
 }
 
-export function scoreNormalSResult(query: string, product: Product) {
-  return scoreCategorySpecificResult(query, product);
-}
-
 export function isExplicitlyExcludedSearchProduct(query: string, product: Product) {
   const intent = detectSearchIntent(query);
   const name = normalize(product.name);
