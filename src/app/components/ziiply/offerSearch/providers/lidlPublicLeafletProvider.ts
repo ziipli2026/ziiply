@@ -81,7 +81,22 @@ const GROCERY_CATEGORIES = new Set([
   "Lastenruoat", "Lemmikit", "Kodinhoito",
 ]);
 
+/** Product form takes precedence over ingredients and broad campaign headings. */
+function lidlProductCategory(name: string): string | null {
+  const s = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  // Pet products must precede both clothing and fish/food substrings.
+  if (/koira|kissa|lemmik|elainten|turkinhoito/.test(s)) return 'Lemmikit';
+  if (/jaatelo|pakaste|pakastettu/.test(s)) return 'Pakasteet';
+  if (/pikkuleip|keksi|nougat|konvehti|karamelli|suklaa|makeis|karkki|tikkari/.test(s)) return 'Makeiset & keksit';
+  if (/pasteija|juustokierre|juustotanko|korvapuusti|croissant|sampyla|patonki|karjalanpiirakka|ruisleipa|rieska|leivonnainen|leivos/.test(s)) return 'Leipomo';
+  if (/aurinkokuivattu|kuivattu tomaatti|sailyke|pastakastike|pesto\b|oliivioljy|marmeladi|pistaasikreemi/.test(s)) return 'Kuivatuotteet';
+  if (/kaurajuoma|riisijuoma|soijajuoma|kookosjuoma|mantelijuoma/.test(s)) return 'Juomat';
+  return null;
+}
+
 function categoryFor(name: string, sourceUrl: string) {
+  const productCategory = lidlProductCategory(name);
+  if (productCategory) return productCategory;
   const s = normalize(name + " " + sourceUrl);
   // Explicit non-food exclusions run first so words such as "liha" in a tool
   // name can never leak a general-merchandise campaign into Gösta.
