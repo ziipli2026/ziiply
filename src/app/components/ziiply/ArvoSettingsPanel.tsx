@@ -67,10 +67,43 @@ export function estimateArvoEnergy(p: ArvoPreferences) {
   const target = p.manualKcal.trim() && manual > 0 ? manual : tdee + (p.goal === "lose" ? -300 : p.goal === "gain" ? 300 : 0);
   return { bmr: Math.round(bmr), tdee: Math.round(tdee), target: Math.round(target), method: "Mifflin–St Jeor, aktiivisuuskerroin" };
 }
+export type ArvoPurchase = { id: string; ean?: string; name: string; quantity: number; purchasedAt: string };
+export const ARVO_PURCHASES_KEY = "ziiply-arvo-confirmed-purchases-v1";
+export function readArvoPurchases(): ArvoPurchase[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const value: unknown = JSON.parse(window.localStorage.getItem(ARVO_PURCHASES_KEY) || "[]");
+    return Array.isArray(value) ? value.filter((p): p is ArvoPurchase => Boolean(p && typeof p === "object" && typeof p.name === "string" && typeof p.purchasedAt === "string" && Number.isFinite(Number(p.quantity)))) : [];
+  } catch { return []; }
+}
+export function arvoPurchaseSuggestions(purchases: ArvoPurchase[], today = new Date()) {
+  const byProduct = new Map<string, ArvoPurchase[]>();
+  for (const purchase of purchases) {
+    const key = purchase.ean ? "ean:" + purchase.ean : "name:" + purchase.name.trim().toLocaleLowerCase("fi");
+    if (!key || key === "name:") continue;
+    byProduct.set(key, [...(byProduct.get(key) || []), purchase]);
+  }
+  return [...byProduct.entries()].flatMap(([key, records]) => {
+    const days = [...new Set(records.map(r => r.purchasedAt.slice(0, 10)))].sort();
+    if (days.length < 3) return [];
+    const intervals = days.slice(1).map((day, i) => (Date.parse(day + "T12:00:00Z") - Date.parse(days[i] + "T12:00:00Z")) / 86400000).filter(n => n > 0);
+    if (intervals.length < 2) return [];
+    const sorted = intervals.sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+    if (!(median >= 1 && median <= 180)) return [];
+    const elapsed = (today.getTime() - Date.parse(days[days.length - 1] + "T12:00:00Z")) / 86400000;
+    if (elapsed < median * 0.8) return [];
+    return [{ key, name: records[records.length - 1].name, intervalDays: median, elapsedDays: Math.max(0, Math.floor(elapsed)) }];
+  });
+}
 export default function ArvoSettingsPanel() {
   const [p, setP] = useState<ArvoPreferences>(DEFAULT_ARVO_PREFERENCES);
   const [loaded, setLoaded] = useState(false);
-  useEffect(() => { setP(readArvoPreferences()); setLoaded(true); }, []);
+  const [purchases,setPurchases]=useState<ArvoPurchase[]>([]);
+  const [purchaseName,setPurchaseName]=useState("");
+  const [purchaseQuantity,setPurchaseQuantity]=useState("1");
+  const [dismissedSuggestions,setDismissedSuggestions]=useState<string[]>([]);
+  useEffect(() => { setP(readArvoPreferences()); setPurchases(readArvoPurchases()); setLoaded(true); }, []);
   useEffect(() => { if (loaded) { try { window.localStorage.setItem(ARVO_STORAGE_KEY, JSON.stringify(p)); window.dispatchEvent(new Event("ziiply-arvo-preferences-updated")); } catch {} } }, [p, loaded]);
   const update = <K extends keyof ArvoPreferences>(key: K, value: ArvoPreferences[K]) => setP(prev => ({ ...prev, [key]: value }));
   const energy = estimateArvoEnergy(p);
@@ -105,7 +138,23 @@ export default function ArvoSettingsPanel() {
       {p.dietEnabled&&(energy?<p className="mt-3 rounded-lg bg-[#e5eedf] p-3">Arvioitu perusaineenvaihdunta <b>{energy.bmr} kcal/vrk</b>, kokonaiskulutus <b>{energy.tdee} kcal/vrk</b>, syömisen tavoite <b>{energy.target} kcal/vrk</b>. Menetelmä: {energy.method}. Nämä eivät ole mittauksia. Liikuntadataa ei ole lisätty erikseen.</p>:<p className="mt-3 text-sm">Arviota ei lasketa ennen tarvittavia tietoja. Raskauden, imetyksen ja muun erityistilanteen aikana tavallista laskentaa ei käytetä.</p>)}
     </section>
     <section className="mb-5 rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Terveystiedot</h3><p className="text-sm">Salli terveystietojen käyttö mobiilistasi — ei vielä käytettävissä selainversiossa. Apple Health / Health Connect -yhteys ja oikeuksien peruminen toteutetaan vasta toimivalla integraatiolla. Terveystietoja ei haeta.</p></section>
-    <section className="mb-5 rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Ostohistoria ja kulutus</h3><label><input type="checkbox" checked={p.purchaseTracking} onChange={e=>update("purchaseTracking",e.target.checked)} /> Salli vahvistettujen ostosten perusteella tehtävät täydennysarviot</label><p className="text-sm">Ostotapahtumien vahvistus, ostorytmin laskenta ja muistutukset eivät ole vielä käytössä. Pelkkää ostoslistalle lisäämistä ei kirjata ostokseksi.</p></section>
+    <section className="mb-5 rounded-xl bg-white/75 p-4">
+      <h3 className="text-xl font-bold">Ostohistoria ja kulutus</h3>
+      <label><input type="checkbox" checked={p.purchaseTracking} onChange={e=>update("purchaseTracking",e.target.checked)} /> Salli vahvistettujen ostosten perusteella tehtävät täydennysarviot</label>
+      <p className="mt-2 text-sm">Vain itse vahvistetut ostokset lasketaan mukaan. Ostoskorin tuotteita ei kirjata automaattisesti ostetuiksi.</p>
+      {p.purchaseTracking && <>
+        <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={e=>{e.preventDefault();const name=purchaseName.trim();const quantity=Number(purchaseQuantity);if(!name||!(quantity>0))return;const next=[...purchases,{id:String(Date.now())+"-"+purchases.length,name,quantity,purchasedAt:new Date().toISOString()}];setPurchases(next);try{window.localStorage.setItem(ARVO_PURCHASES_KEY,JSON.stringify(next));}catch{}setPurchaseName("");setPurchaseQuantity("1");}}>
+          <label className="text-sm">Ostettu tuote<input className="block rounded border p-2" required value={purchaseName} onChange={e=>setPurchaseName(e.target.value)} placeholder="Esim. maito 1 l" /></label>
+          <label className="text-sm">Määrä<input className="block w-20 rounded border p-2" type="number" min="0.01" step="0.01" required value={purchaseQuantity} onChange={e=>setPurchaseQuantity(e.target.value)} /></label>
+          <button type="submit" className="rounded-lg bg-[#24573e] px-4 py-2 font-bold text-white">Vahvista ostos</button>
+        </form>
+        <p className="mt-2 text-xs">Täydennysarvio vaatii vähintään kolme eri päivän ostoa samasta tuotteesta. Ostovälin mediaani on vain arvio, ei tieto kotona olevasta määrästä.</p>
+        {arvoPurchaseSuggestions(purchases).filter(item=>!dismissedSuggestions.includes(item.key)).map(item=><div key={item.key} className="mt-2 rounded-lg border p-3 text-sm"><b>{item.name}</b> voi olla vähissä (ostoväli noin {item.intervalDays} vrk).<div className="mt-2 flex flex-wrap gap-2"><button type="button" className="rounded border px-2 py-1" onClick={()=>{setPurchaseName(item.name);setDismissedSuggestions(old=>[...old,item.key]);}}>Lisää ostettavaksi</button><button type="button" className="rounded border px-2 py-1" onClick={()=>setDismissedSuggestions(old=>[...old,item.key])}>Vielä on / muistuta myöhemmin</button></div></div>)}
+        <p className="mt-2 text-xs">”Lisää ostettavaksi” täyttää tässä vaiheessa vahvistuslomakkeen, ei vielä ostoslistaa. Varsinaiset ostoslistakytkennät ja automaattiset ilmoitukset ovat kesken.</p>
+        <p className="mt-2 text-xs">Vahvistettuja ostotapahtumia: {purchases.length}</p>
+        <button type="button" className="mt-2 rounded border px-3 py-1 text-sm" onClick={()=>{if(!window.confirm("Poistetaanko kaikki Arvon vahvistetut ostokset tältä selaimelta?"))return;setPurchases([]);window.localStorage.removeItem(ARVO_PURCHASES_KEY);}}>Poista ostohistoria</button>
+      </>}
+    </section>
     <section className="rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Muistutukset ja sijainti</h3><p className="text-sm">Ruokailu-, kalenteri- ja sijaintimuistutukset tulevat myöhemmässä vaiheessa. Taustasijaintia tai ilmoituslupia ei pyydetä.</p></section>
   </div>;
 }
