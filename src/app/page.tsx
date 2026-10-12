@@ -22483,6 +22483,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
                   onClose={() => setActiveAssistant(null)}
+                  onSearchIngredients={(terms) => { setInput(terms[0] || ""); setActiveAssistant(null); }}
                 />
               </>
             )}
