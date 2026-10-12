@@ -7,7 +7,7 @@ for(const row of queue.rows){
     results.push({offerId:row.offerId,status:row.candidateEan?"known-ean-handled-separately":"ambiguous-multi-product",approved:false});
     continue;
   }
-  const query=row.identity.replace(/\\([^)]*\\)/g," ").replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l|kpl|rl|pkt)\\b/gi," ").replace(/\\s+/g," ").trim().slice(0,100);
+  const query=row.identity.replace(/\([^)]*\)/g," ").replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l|kpl|rl|pkt)\b/gi," ").replace(/\s+/g," ").trim().slice(0,100);
   if(query.length<5){results.push({offerId:row.offerId,status:"query-too-short",approved:false});continue;}
   const url="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(query)+"&search_simple=1&action=process&json=1&page_size=5&fields=code,product_name,brands,quantity,image_front_url,image_url";
   const controller=new AbortController();
@@ -26,5 +26,5 @@ for(const row of queue.rows){
   await sleep(1200);
 }
 const report={publication:"41LV",totalMissing:queue.missingImages,notice:"Search matches are NOT product identity matches. Verify EAN, brand, size, leaflet packshot and rights before approval.",results};
-fs.writeFileSync("citymarket-openfoodfacts-search.json",JSON.stringify(report,null,2)+"\\n");
+fs.writeFileSync("citymarket-openfoodfacts-search.json",JSON.stringify(report,null,2)+"\n");
 console.log("Bulk product-name search:",results.length,"rows,",results.filter(x=>x.status==="unverified-search-candidates").length,"rows with unverified image candidates.");
