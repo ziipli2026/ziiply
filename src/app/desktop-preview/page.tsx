@@ -981,12 +981,13 @@ export default function DesktopPreviewPage() {
       value-=Math.max(0,name.length-needle.length)*0.08;
       return value;
     };
+    const milkWords=new Set(["maito","kevytmaito","taysmaito","ykkosmaito","luomumaito","kauramaito","soijamaito","mantelimaito"]);
     // API search may return related-category products (e.g. milk for "piimä").
     // Only show products whose names actually match every search term.
     const matchesQuery=(product:any)=>{
       const name=normalize(String(product.name||product.title||product.product?.name||""));
       const tokens=name.split(" ").filter(Boolean);
-      return words.length>0&&words.every(word=>tokens.some(token=>token===word||token.startsWith(word)));
+      return words.length>0&&words.every(word=>tokens.some(token=>token===word||token.startsWith(word)||(word==="maito"&&milkWords.has(token))));
     };
     return products.filter(matchesQuery)
       .filter(product=>!isExplicitlyExcludedSearchProduct(query,{...product,name:String(product.name||product.title||product.product?.name||"")}))
