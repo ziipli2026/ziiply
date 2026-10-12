@@ -3,6 +3,7 @@ const queue=JSON.parse(fs.readFileSync("citymarket-image-review-queue.json","utf
 const results=[];
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const MAX_SEARCHES=Number(process.env.IMAGE_RESEARCH_MAX_SEARCHES??80);
+if(!Number.isInteger(MAX_SEARCHES)||MAX_SEARCHES<0||MAX_SEARCHES>100)throw Error("IMAGE_RESEARCH_MAX_SEARCHES must be an integer from 0 to 100");
 let searches=0;
 const tokens=value=>new Set(String(value??"").toLocaleLowerCase("fi").normalize("NFKC").match(/[a-zåäö0-9]{3,}/g)??[]);
 const overlap=(query,name,brand)=>{const requested=tokens(query);const found=tokens([name,brand].filter(Boolean).join(" "));return requested.size?[...requested].filter(token=>found.has(token)).length/requested.size:0;};
@@ -22,7 +23,11 @@ for(const row of queue.rows){
     const response=await fetch(url,{signal:controller.signal,headers:{"user-agent":"Ziiply-ImageResearch/0.1 (non-production research)","accept":"application/json"}});
     if(!response.ok){results.push({offerId:row.offerId,query,status:"http-error",httpStatus:response.status,approved:false});continue;}
     const json=await response.json();
-    const candidates=(json.products??[]).map(product=>({
+    if(!Array.isArray(json.products)){
+      results.push({offerId:row.offerId,query,status:"invalid-search-response",approved:false});
+      continue;
+    }
+    const candidates=json.products.map(product=>({
       ean:product.code??null,productName:product.product_name??null,brand:product.brands??null,quantity:product.quantity??null,
       queryTokenOverlap:overlap(query,product.product_name,product.brands),
       imageCandidates:[...new Set([product.image_front_url,product.image_url].filter(value=>typeof value==="string"&&value.startsWith("https://")))]
