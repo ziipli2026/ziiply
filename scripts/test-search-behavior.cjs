@@ -35,6 +35,8 @@ const core = require(root+"/ziiplyCore.ts");
 Module._load = originalLoad;
 const memory = require(root+"/search/searchIntentMemory.ts");
 const samples = [
+["kosteusvoide", "skin_care"],["lelu", "toys"],["ravintolisä", "supplements"],["koiranruoka", "pet_food"],["keittiöväline", "kitchen_tools"],["juomapullo", "tableware"],["kahvinkeitin", "kitchen_appliances"],["hiustenhoitoaine", "hair_conditioner"],["hiuslakka", "hair_styling"],["vanupuikko", "hygiene_supplies"],["putkenavaaja", "cleaning_products"],
+
 ["jäätelö", "ice_cream"],["pakastevihannekset", "frozen_vegetables"],["pakastemarjat", "frozen_fruit"],["pakastekala", "frozen_fish"],["pakastetaikina", "frozen_dough"],
 
 ["keitto", "soup"],["ruokakastike", "cooking_sauce"],["liemikuutio", "stock"],["mauste", "seasoning"],["etikka", "vinegar"],["nuudeli", "noodles"],["pizza", "pizza"],["ateria-aines", "meal_kit"],
@@ -66,7 +68,7 @@ const samples = [
 ];
 assert(samples.length >= 16, "Insufficient intent regression coverage");
 samples.push(...[["kerma", "cream"], ["kuohukerma", "cream"], ["ruokakerma", "cream"], ["vispikerma", "cream"], ["rahka", "quark"], ["maitorahka", "quark"], ["proteiinirahka", "quark"], ["raejuusto", "cottage_cheese"], ["tuorejuusto", "cream_cheese"], ["voi", "butter"], ["meijerivoi", "butter"], ["margariini", "margarine"], ["kasvirasvalevite", "margarine"], ["tee", "tea"], ["mustatee", "tea"], ["vihreä tee", "tea"], ["teepussi", "tea"], ["mehu", "juice"], ["appelsiinimehu", "juice"], ["omenamehu", "juice"], ["makkara", "sausage"], ["grillimakkara", "sausage"], ["lenkkimakkara", "sausage"], ["nakki", "sausage"], ["leikkele", "cold_cuts"], ["kinkkuleikkele", "cold_cuts"], ["kalkkunaleikkele", "cold_cuts"], ["hammastahna", "toothpaste"], ["deodorantti", "deodorant"], ["antiperspirantti", "deodorant"]]);
-samples.push(["kosteusvoide","generic"],["aurinkovoide","generic"],
+samples.push(["kosteusvoide","skin_care"],["aurinkovoide","skin_care"],
  ["proteesi","generic"],["apteekki","generic"],
  ["Valio voi 500 g","butter"],["musta tee 20 pussia","tea"],
  ["meijerivoi 500 g","butter"],["vihreä tee 20 pussia","tea"]);
@@ -188,6 +190,10 @@ const frozenResults = core.rankNormalSearchResults("pakaste",[
   makeProduct(1412,"Coop kukkakaalinuput 400g pakaste","CAABQAGACAEAA")
 ]);
 assert.deepEqual(new Set(frozenResults.map(p=>p.id)),new Set([1410,1411,1412]),"Parent search must retain different frozen product groups");
+rankingCases.push({query:"maito",products:[makeProduct(1501,"Kissanmaito 3 x 200 ml Catmilk","kissanruoka"),makeProduct(1502,"Puhdistusmaito Lierac 200 ml","kasvojen puhdistusemulsiot ja -maidot ja -voiteet"),makeProduct(1503,"Kotimaista kevytmaito 1 L","CAAAMAAAAAEAA")],first:1503,excluded:[1501,1502]});
+rankingCases.push({query:"kahvi",products:[makeProduct(1504,"Kahvinkeitin Wilfa CM10B-A125","kahvinkeittimet"),makeProduct(1505,"House kahvilusikka Leo 4 kpl","CACAGACAAACAA"),makeProduct(1506,"Coop kahvi tumma paahto 450g","CAABIAAAAACAA")],first:1506,excluded:[1504,1505]});
+rankingCases.push({query:"kananmuna",products:[makeProduct(1507,"House kananmunaleikkuri ja lohkoja","CACAGAGAAASAE"),makeProduct(1508,"Kotimaista kananmunat 10 kpl","maito-juusto-munat-ja-rasvat/munat/kananmunat")],first:1508,excluded:[1507]});
+
 const rankingResults = rankingCases.map(({query,products,first,excluded=[]}) => {
   const ranked = core.rankNormalSearchResults(query,products);
   const excludedPresent = excluded.filter(id => ranked.some(p => p.id === id));

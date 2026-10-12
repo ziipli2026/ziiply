@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.6",
+  "version": "2026-10-12.7",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "mappings": [
@@ -1721,6 +1721,102 @@
     },
     {
       "source": "ruoanhinta-s",
+      "source_category": "CAABSAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "shampoo"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "hair_styling"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACACAA",
+      "sample_product_count": 1,
+      "category_id": "hair_styling"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACAGAA",
+      "sample_product_count": 1,
+      "category_id": "shampoo"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAOACAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "toothpaste"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAGAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAMACAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAMAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "dishwashing"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_products"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAGAKAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_products"
+    },
+    {
+      "source": "ruoanhinta-s",
       "source_category": "CAABWAAAAAAAA",
       "sample_product_count": 1,
       "category_id": "paper_towels"
@@ -1730,6 +1826,144 @@
       "source_category": "CAABWACAAAAAA",
       "sample_product_count": 1,
       "category_id": "toilet_paper"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAAACAAAA",
+      "sample_product_count": 16,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAAACACAA",
+      "sample_product_count": 2,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAACAA",
+      "sample_product_count": 3,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAACAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAEAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAGAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAKAA",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAEACACAA",
+      "sample_product_count": 3,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAK",
+      "sample_product_count": 5,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAIAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAMAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAASAE",
+      "sample_product_count": 3,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAWAI",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAWAK",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAYAG",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAABCAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGACACAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGACAEAA",
+      "sample_product_count": 2,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAIAAAEAA",
+      "sample_product_count": 13,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAIACACAA",
+      "sample_product_count": 4,
+      "category_id": "tableware"
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAIAGAEAOAA",
+      "sample_product_count": 1,
+      "category_id": "tableware"
     },
     {
       "source": "ruoanhinta-s",
@@ -2327,15 +2561,249 @@
     },
     {
       "source": "tokmanni-klevu",
+      "source_category": "erikoiskissanruoka junior",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoiskissanruoka senior",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoisruoka jyrsijälle",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hiustenhoitoaineet vaurioituneille hiuksille",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hiustenhoitonaamiot ja teho/syvähoidot",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;kasvojen puhdistusemulsiot ja -maidot ja -voiteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;meikinpoistoaineet ja -laput",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;suihkusaippuat",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "tokmanni-klevu",
       "source_category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
       "sample_product_count": 1,
       "category_id": "coffee"
     },
     {
       "source": "tokmanni-klevu",
+      "source_category": "kahviautomaatit",
+      "sample_product_count": 2,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahviautomaatit;;äitienpäivä;;uuteen kotiin",
+      "sample_product_count": 1,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvimyllyt",
+      "sample_product_count": 1,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet",
+      "sample_product_count": 4,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet;;uuteen kotiin",
+      "sample_product_count": 3,
+      "category_id": "kitchen_appliances"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvipannut;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kasvojen puhdistusemulsiot ja -maidot ja -voiteet",
+      "sample_product_count": 2,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kasvojen puhdistusemulsiot ja -maidot ja -voiteet;;lumene ihonhoito;;lumene puhdistustuotteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kertakäyttö kahvi- ja pikkulusikat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kertakäyttöiset kuumajuomakupit ja -mukit",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan erikoisruokavalio ja ravintolisät",
+      "sample_product_count": 2,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan herkut",
+      "sample_product_count": 2,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan kuivaruoka",
+      "sample_product_count": 3,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan makupalat",
+      "sample_product_count": 5,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan märkäruoka",
+      "sample_product_count": 4,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissanruoka",
+      "sample_product_count": 1,
+      "category_id": "pet_food"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "koti- ja kauppaleikit",
+      "sample_product_count": 1,
+      "category_id": "toys"
+    },
+    {
+      "source": "tokmanni-klevu",
       "source_category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
       "sample_product_count": 1,
       "category_id": "plant_drink"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maitopohjaiset proteiinijauheet",
+      "sample_product_count": 3,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maitopohjaiset proteiinijauheet;;hyggeily",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny ale;;miny lasit ja mukit",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny kasvonaamiot",
+      "sample_product_count": 1,
+      "category_id": "skin_care"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny saippuat ja suihkugeelit",
+      "sample_product_count": 1,
+      "category_id": "soap"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "mitta-astiat ja mittasarjat;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "monivitamiinit",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "raastinraudat;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokailuvälineet;;kotikulta astiat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "shampoo vaurioituneille hiuksille",
+      "sample_product_count": 1,
+      "category_id": "shampoo"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "superfood-jauheet ja jauhot",
+      "sample_product_count": 1,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "termoskaatimet;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "tableware"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "vatsavalmisteet",
+      "sample_product_count": 3,
+      "category_id": "supplements"
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "vauvanuket ja tarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "toys"
     },
     {
       "source": "tokmanni-viikkotarjoukset",

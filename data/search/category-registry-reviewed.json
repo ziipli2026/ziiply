@@ -1,8 +1,240 @@
 {
-  "version": "2026-10-12.6",
+  "version": "2026-10-12.7",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "rules": [
+    {
+      "category": "skin_care",
+      "label": "Ihonhoito",
+      "variants": [
+        "kosteusvoide",
+        "aurinkovoide",
+        "kasvovoide",
+        "vartalovoide",
+        "kasvovoi",
+        "vartalovoi",
+        "shea voi",
+        "puhdistusmaito",
+        "kasvonaamio",
+        "huulivoide"
+      ],
+      "requiredAny": [
+        "voide",
+        "kasvovoi",
+        "vartalovoi",
+        "shea",
+        "puhdistusmaito",
+        "kasvonaamio",
+        "huulivoide"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "toys",
+      "label": "Lelut ja pelit",
+      "variants": [
+        "lelu",
+        "muovailuvaha",
+        "play doh",
+        "nukke",
+        "lautapeli",
+        "palapeli"
+      ],
+      "requiredAny": [
+        "lelu",
+        "muovailuvaha",
+        "play doh",
+        "play-doh",
+        "nukke",
+        "peli"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "supplements",
+      "label": "Ravintolisät",
+      "variants": [
+        "ravintolisä",
+        "maitohappobakteeri",
+        "monivitamiini",
+        "proteiinijauhe",
+        "heraproteiini"
+      ],
+      "requiredAny": [
+        "ravintolisä",
+        "vitamiini",
+        "maitohappobakteeri",
+        "proteiinijauhe",
+        "heraproteiini"
+      ],
+      "bannedAny": [
+        "koira",
+        "kissa"
+      ]
+    },
+    {
+      "category": "pet_food",
+      "label": "Lemmikkien ruoat",
+      "variants": [
+        "koiranruoka",
+        "kissanruoka",
+        "kissanmaito",
+        "kissanherkku",
+        "koiranherkku"
+      ],
+      "requiredAny": [
+        "koiranruoka",
+        "kissanruoka",
+        "kissanmaito",
+        "kissanherkku",
+        "koiranherkku",
+        "marsun täysravinto",
+        "jyrsijänruoka"
+      ],
+      "bannedAny": [
+        "lelu",
+        "hammastahna"
+      ]
+    },
+    {
+      "category": "kitchen_tools",
+      "label": "Keittiövälineet",
+      "variants": [
+        "keittiöväline",
+        "kahvilusikka",
+        "kahvimitta",
+        "leipäveitsi",
+        "kananmunaleikkuri",
+        "raastin",
+        "ruokalusikka"
+      ],
+      "requiredAny": [
+        "lusikka",
+        "veitsi",
+        "kahvimitta",
+        "leikkuri",
+        "raastin",
+        "kaavin",
+        "suti",
+        "ruotopihdit",
+        "keittiösakset"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "tableware",
+      "label": "Astiat ja ruokarasiat",
+      "variants": [
+        "juomapullo",
+        "kahvikuppi",
+        "juomalasi",
+        "uunivuoka",
+        "ruokarasia",
+        "termospullo",
+        "pressopannu"
+      ],
+      "requiredAny": [
+        "juomapullo",
+        "kahvikuppi",
+        "juomalasi",
+        "uunivuoka",
+        "ruokarasia",
+        "lounasrasia",
+        "termospullo",
+        "termoskaadin",
+        "pressopannu",
+        "teräskulho",
+        "mikrokupu"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "kitchen_appliances",
+      "label": "Keittiökoneet",
+      "variants": [
+        "kahvinkeitin",
+        "kahvimylly",
+        "kahviautomaatti",
+        "airfryer"
+      ],
+      "requiredAny": [
+        "kahvinkeitin",
+        "kahvimylly",
+        "kahviautomaatti",
+        "airfryer"
+      ],
+      "bannedAny": [
+        "lelu",
+        "leikkisetti",
+        "puhdistusneste"
+      ]
+    },
+    {
+      "category": "hair_conditioner",
+      "label": "Hiusten hoitoaineet",
+      "variants": [
+        "hiustenhoitoaine",
+        "hiusnaamio"
+      ],
+      "requiredAny": [
+        "hoitoaine",
+        "hiusnaamio"
+      ],
+      "bannedAny": [
+        "turkki"
+      ]
+    },
+    {
+      "category": "hair_styling",
+      "label": "Hiusten muotoilu",
+      "variants": [
+        "hiuslakka",
+        "hiuskiinne",
+        "muotovaahto"
+      ],
+      "requiredAny": [
+        "hiuslakka",
+        "hiuskiinne",
+        "muotovaahto"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "hygiene_supplies",
+      "label": "Hygieniatarvikkeet",
+      "variants": [
+        "vanupuikko",
+        "vanutyyny",
+        "tamponi",
+        "pikkuhousunsuoja"
+      ],
+      "requiredAny": [
+        "vanupuikko",
+        "vanutyyny",
+        "tamponi",
+        "pikkuhousunsuoja"
+      ],
+      "bannedAny": []
+    },
+    {
+      "category": "cleaning_products",
+      "label": "Kodin puhdistusaineet",
+      "variants": [
+        "putkenavaaja",
+        "wc-puhdistaja",
+        "wc-puhdistusaine",
+        "yleispuhdistusaine"
+      ],
+      "requiredAny": [
+        "putkenavaaja",
+        "puhdistaja",
+        "puhdistusaine"
+      ],
+      "bannedAny": [
+        "kasvo",
+        "hius"
+      ]
+    },
     {
       "category": "ice_cream",
       "label": "Jäätelöt",

@@ -200,6 +200,17 @@ export type SearchDebugEntry = {
 };
 
 export type SearchIntentCategory =
+  | "skin_care"
+  | "toys"
+  | "supplements"
+  | "pet_food"
+  | "kitchen_tools"
+  | "tableware"
+  | "kitchen_appliances"
+  | "hair_conditioner"
+  | "hair_styling"
+  | "hygiene_supplies"
+  | "cleaning_products"
   | "ice_cream"
   | "frozen_vegetables"
   | "frozen_fruit"

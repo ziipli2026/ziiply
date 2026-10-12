@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-12.6",
+  "version": "2026-10-12.7",
   "projectId": "floral-recipe-40673204",
   "branchId": "br-weathered-meadow-b1bwpzst",
   "note": "Reviewed coded provider categories against every currently stored product name. Product rows are unchanged.",
@@ -2523,6 +2523,775 @@
       "category_id": "frozen_vegetables",
       "names": [
         "Apetit parsakaali 200g pakaste"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAAACAAAA",
+      "sample_product_count": 16,
+      "category_id": "tableware",
+      "names": [
+        "House juomapullo Heponen 4,7 dl",
+        "House juomapullo Kirahfiini 4,7 dl",
+        "House juomapullo Porukat 4,7 dl",
+        "House juomapullo Valaskala 4,7 dl",
+        "Juomapullo Pipsa Possu 5 dl",
+        "Juomapullo Ryhmä Hau 5 dl",
+        "Stor juomapullo Gigantosaurus 4 dl",
+        "Stor juomapullo Mikki 6,2 dl",
+        "Stor juomapullo Muumi 4 dl",
+        "Stor juomapullo Muumi 4,3 dl",
+        "Stor juomapullo Pipsa Possu 4,8 dl",
+        "Stor juomapullo Prinsessat 4 dl",
+        "Stor juomapullo Ryhmä Hau 4 dl",
+        "Stor juomapullo Spiderman 6,2 dl",
+        "Stor juomapullo Star Wars 4,8 dl",
+        "Stor juomapullo Yksisarvinen 4,3 dl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAAACACAA",
+      "sample_product_count": 2,
+      "category_id": "tableware",
+      "names": [
+        "House juomalasi akryyli Rilla 3,5 dl",
+        "Juomalasi 25 cl muovia"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAACAA",
+      "sample_product_count": 3,
+      "category_id": "kitchen_tools",
+      "names": [
+        "House kahvilusikka Leo 4 kpl",
+        "House kahvilusikkaIlmo 4 kpl",
+        "Xtra kahvilusikka 6 kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAACAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra ruokalusikka 6kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAEAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra ruokahaarukka 6 kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAGAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra ruokaveitsi 3 kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGACAAAKAA",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra kakkulapio"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAEACACAA",
+      "sample_product_count": 3,
+      "category_id": "tableware",
+      "names": [
+        "Xtra uunivuoka 2,0 l",
+        "Xtra uunivuoka 2,7 l",
+        "Xtra uunivuoka 3,8 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra tomaattiveitsi",
+        "Xtra vihannesveitsi"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAE",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra leipäveitsi"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAAAK",
+      "sample_product_count": 5,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra kokkiveitsi 8\"",
+        "Xtra kokkiveitsi pieni",
+        "Xtra santoku-veitsi",
+        "Xtra santokuveitsi 8\"",
+        "Xtra yleisveitsi pieni 5\""
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAIAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra keittiösakset"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAMAC",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra ruotopihdit"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAASAE",
+      "sample_product_count": 3,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Daloplast kananmunaleikkuri 130x90x35 mm",
+        "House kananmunaleikkuri 21153449",
+        "House kananmunaleikkuri ja -lohkoja"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAWAI",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra silikonisuti 22 cm"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAWAK",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Xtra silikonikaavin 25 cm"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAAAYAG",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "House kahvimitta"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGAABCAA",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools",
+      "names": [
+        "GastroMax kahvimitta 7 g valkoinen",
+        "Nordiska Plast kahvisuppilo"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGACACAA",
+      "sample_product_count": 1,
+      "category_id": "tableware",
+      "names": [
+        "Xtra mikrokupu 24 cm"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAGACAEAA",
+      "sample_product_count": 2,
+      "category_id": "tableware",
+      "names": [
+        "Xtra teräskulho 20 cm",
+        "Xtra teräskulho 26 cm"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAIAAAEAA",
+      "sample_product_count": 13,
+      "category_id": "tableware",
+      "names": [
+        "House juomapullo 0,5 l terästä",
+        "House juomapullo 0,5 l terästä",
+        "House juomapullo 0,50 l terästä",
+        "House juomapullo 0,67 l terästä",
+        "House juomapullo 440 ml",
+        "House juomapullo 550 ml",
+        "House juomapullo 560 ml, erilaisia",
+        "House juomapullo 800 ml",
+        "House juomapullo teräs 400 ml",
+        "House juomapullo terästä 0,55 l",
+        "House juomapullo terästä 0,67 l",
+        "House juomapullo terästä 0,67 l",
+        "House juomapullo terästä 0,70 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAGAIACACAA",
+      "sample_product_count": 4,
+      "category_id": "tableware",
+      "names": [
+        "Xtra lounasrasia 5 kpl",
+        "Xtra tiiviö 0,5 l",
+        "Xtra tiiviö 0,9 l",
+        "Xtra tiiviö 1,2 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CACAIAGAEAOAA",
+      "sample_product_count": 1,
+      "category_id": "tableware",
+      "names": [
+        "Hukka juomajäähdytin vuolukiveä"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoiskissanruoka junior",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanruoka Best Friend 700 g Bilanx Kitten kana kissanpennuille"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoiskissanruoka senior",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanruoka Best Friend 700 g Bilanx Senior kana"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "erikoisruoka jyrsijälle",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "Marsun täysravinto Vitakraft 3 kg Menu Vital"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hiustenhoitoaineet vaurioituneille hiuksille",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner",
+      "names": [
+        "Hoitoaine Garnier 350 ml Papaya Hair Food vaurioituneille hiuksille"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "hiustenhoitonaamiot ja teho/syvähoidot",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner",
+      "names": [
+        "Hiusnaamio Garnier Fructis 400 ml Hair Food Papaya"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;kasvojen puhdistusemulsiot ja -maidot ja -voiteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care",
+      "names": [
+        "Puhdistusmaito, Sisley 250 ml Lyslait With White Lily"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;meikinpoistoaineet ja -laput",
+      "sample_product_count": 1,
+      "category_id": "skin_care",
+      "names": [
+        "Meikinpoistoaine, Lancome 400 ml Galatee Douceur Gentle With Papaya Extract"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ihonhoito;;suihkusaippuat",
+      "sample_product_count": 1,
+      "category_id": "soap",
+      "names": [
+        "Suihkumaito, Biotherm 200 ml Lait De Douche"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahviautomaatit",
+      "sample_product_count": 2,
+      "category_id": "kitchen_appliances",
+      "names": [
+        "Kahviautomaatti DeLonghi Magnifica Evo Next",
+        "Kahviautomaatti DeLonghi Magnifica Start Milk"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahviautomaatit;;äitienpäivä;;uuteen kotiin",
+      "sample_product_count": 1,
+      "category_id": "kitchen_appliances",
+      "names": [
+        "Kahviautomaatti De’Longhi Magnifica Start, valkoinen"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvimyllyt",
+      "sample_product_count": 1,
+      "category_id": "kitchen_appliances",
+      "names": [
+        "Kahvimylly TSM6A011W"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet",
+      "sample_product_count": 4,
+      "category_id": "kitchen_appliances",
+      "names": [
+        "Kahvinkeitin Bosch MyMoment, musta",
+        "Kahvinkeitin Braun Breakfast 1 KF1100WH, valkoinen",
+        "Kahvinkeitin Electrolux E3CM1-3ST",
+        "Kahvinkeitin Wilfa CM10B-A125"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvinkeittimet;;uuteen kotiin",
+      "sample_product_count": 3,
+      "category_id": "kitchen_appliances",
+      "names": [
+        "Kahvinkeitin Braun PurShine",
+        "Kahvinkeitin OBH Nordica 2329 Bronx 1,4 l, ruostumaton teräs",
+        "Termoskahvinkeitin Braun PurShine"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kahvipannut;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "tableware",
+      "names": [
+        "Pressopannu Kotikulta 900 ml"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kasvojen puhdistusemulsiot ja -maidot ja -voiteet",
+      "sample_product_count": 2,
+      "category_id": "skin_care",
+      "names": [
+        "Puhdistusmaito, Lierac 200 ml",
+        "Puhdistusmaito, Sensai 150 ml Absolute Silk"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kasvojen puhdistusemulsiot ja -maidot ja -voiteet;;lumene ihonhoito;;lumene puhdistustuotteet",
+      "sample_product_count": 1,
+      "category_id": "skin_care",
+      "names": [
+        "Kauramaito-öljypuhdistus Lumene LÄHDE 150 ml"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kertakäyttö kahvi- ja pikkulusikat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Puinen kahvilusikka Kotikulta 40 kpl"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kertakäyttöiset kuumajuomakupit ja -mukit",
+      "sample_product_count": 1,
+      "category_id": "tableware",
+      "names": [
+        "Kahvikuppi Kotikulta 30 kpl 18 cl"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan erikoisruokavalio ja ravintolisät",
+      "sample_product_count": 2,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanruoka Best Friend 2 kg Bilanx Sterilized kana",
+        "Kissanruoka Best Friend 700 g Bilanx Sterilized kana"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan herkut",
+      "sample_product_count": 2,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanherkku Miamor 6 x 15 g mallastahna",
+        "Kissanherkku Miamor 6 x 15 g vitamiinitahna"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan kuivaruoka",
+      "sample_product_count": 3,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanruoka Best Friend 2 kg Bilanx Adult kana",
+        "Kissanruoka Best Friend 700 g Bilanx Adult kana",
+        "Kissanruoka Best Friend 700 g Bilanx Adult lohi"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan makupalat",
+      "sample_product_count": 5,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanherkku Best Friend 50 g Bilanx Crunchy Snacks kanatassu",
+        "Kissanherkku Best Friend 50 g Bilanx Meaty Snacks kanafilesuikale",
+        "Kissanherkku Best Friend 50 g Bilanx Meaty Snacks kanalempiherkku",
+        "Kissanherkku Best Friend 50 g Bilanx Meaty Snacks tonnikala- ja kanakerrosherkku",
+        "Kissanherkku Dogman 75 g Crunchies Dental"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissan märkäruoka",
+      "sample_product_count": 4,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanruoka Best Friend 12 x 85 g Bilanx Adult kana, nauta & kalkkuna kastikkeessa",
+        "Kissanruoka Best Friend 4 x 85 g Bilanx Adult kana & nauta kastikkeessa",
+        "Kissanruoka Best Friend 4 x 85 g Bilanx Sterilized kana & kalkkuna kastikkeessa",
+        "Kissanruoka Best Friend Bilanx 12 x 85 g Sterilized kana, nauta & kalkkuna kastikkeessa"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "kissanruoka",
+      "sample_product_count": 1,
+      "category_id": "pet_food",
+      "names": [
+        "Kissanmaito 3 x 200 ml Catmilk"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "koti- ja kauppaleikit",
+      "sample_product_count": 1,
+      "category_id": "toys",
+      "names": [
+        "Leikkisetti Little Dutch kahvinkeitin"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maitopohjaiset proteiinijauheet",
+      "sample_product_count": 3,
+      "category_id": "supplements",
+      "names": [
+        "Heraproteiinijauhe Arki 360° 450 g Whey suklaa",
+        "Palautusjuomajauhe Puls 550 g Reco vanilja",
+        "Proteiinipannukakkujauhe Puls 500 g banaanisuklaa"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "maitopohjaiset proteiinijauheet;;hyggeily",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "names": [
+        "Heraproteiinijauhe Arki 360° 450 g Whey vanilja"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny ale;;miny lasit ja mukit",
+      "sample_product_count": 1,
+      "category_id": "tableware",
+      "names": [
+        "Kahvikuppi Mica vinkkaava pukki"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny kasvonaamiot",
+      "sample_product_count": 1,
+      "category_id": "skin_care",
+      "names": [
+        "Kasvonaamiosetti IDC Institute 12 ml Go Vegan Pink Clay & Papaya"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "miny saippuat ja suihkugeelit",
+      "sample_product_count": 1,
+      "category_id": "soap",
+      "names": [
+        "Kylpymaito Sorry not Sorry 500 ml Milky Way Bae"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "mitta-astiat ja mittasarjat;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 2,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Kahvimitta 15 ml",
+        "Kahvimitta Kotikulta 24/7"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "monivitamiinit",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "names": [
+        "Monivitamiini Sana-sol 120k pl Vitanallet Tuttifrutti hedelmänmakuinen"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "raastinraudat;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Raastin Kotikulta kahvalla kullanvärinen"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "ruokailuvälineet;;kotikulta astiat",
+      "sample_product_count": 1,
+      "category_id": "kitchen_tools",
+      "names": [
+        "Kahvilusikka Kotikulta 6 kpl"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "shampoo vaurioituneille hiuksille",
+      "sample_product_count": 1,
+      "category_id": "shampoo",
+      "names": [
+        "Shampoo Garnier 350 ml Papaya Hair Food vaurioituneille hiuksille"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "superfood-jauheet ja jauhot",
+      "sample_product_count": 1,
+      "category_id": "supplements",
+      "names": [
+        "Lisäravinnejauhe Terranova 227 g Life Drink"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "termoskaatimet;;kotikulta ruoanvalmistusastiat",
+      "sample_product_count": 1,
+      "category_id": "tableware",
+      "names": [
+        "Termoskaadin Kotikulta 1 l puukahvalla"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "vatsavalmisteet",
+      "sample_product_count": 3,
+      "category_id": "supplements",
+      "names": [
+        "Maitohappobakteeri Gefilus 50 kpl Forte",
+        "Maitohappobakteeri Purelife 60 kpl vahva 10 miljardia",
+        "Maitohappobakteeri Terranova 50 kpl Probiotic Complex with Prebiotics"
+      ]
+    },
+    {
+      "source": "tokmanni-klevu",
+      "source_category": "vauvanuket ja tarvikkeet",
+      "sample_product_count": 1,
+      "category_id": "toys",
+      "names": [
+        "Nuken maitopullo Baby Annabell"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "shampoo",
+      "names": [
+        "Xtra shampoo 500 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAAAACAA",
+      "sample_product_count": 1,
+      "category_id": "hair_conditioner",
+      "names": [
+        "Xtra hoitoaine 500 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACAAAA",
+      "sample_product_count": 1,
+      "category_id": "hair_styling",
+      "names": [
+        "Xtra hiuskiinne 300 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACACAA",
+      "sample_product_count": 1,
+      "category_id": "hair_styling",
+      "names": [
+        "Xtra muotovaahto 150 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAAACAGAA",
+      "sample_product_count": 1,
+      "category_id": "shampoo",
+      "names": [
+        "Xtra kuivashampoo 200 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAKAAAA",
+      "sample_product_count": 1,
+      "category_id": "skin_care",
+      "names": [
+        "Xtra vartalovoide 500 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAOAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies",
+      "names": [
+        "Xtra vanutyynyt 120 kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSACAOACAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies",
+      "names": [
+        "Xtra vanupuikot 200 kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAEAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "toothpaste",
+      "names": [
+        "Xtra hammastahna 125 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAGACAAAA",
+      "sample_product_count": 1,
+      "category_id": "soap",
+      "names": [
+        "Xtra palasaippua 3x90g"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAGAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "soap",
+      "names": [
+        "Xtra suihkugeeli 500 ml"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAMACAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies",
+      "names": [
+        "Xtra pikkuhousunsuoja 50 kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABSAMAEAAAA",
+      "sample_product_count": 1,
+      "category_id": "hygiene_supplies",
+      "names": [
+        "Xtra Tamponi Super 32 kpl"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAAAAAA",
+      "sample_product_count": 1,
+      "category_id": "dishwashing",
+      "names": [
+        "Xtra astianpesuaine 1 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAGAEAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_products",
+      "names": [
+        "Coop putkenavaaja 1 l"
+      ]
+    },
+    {
+      "source": "ruoanhinta-s",
+      "source_category": "CAABUAAAGAKAA",
+      "sample_product_count": 1,
+      "category_id": "cleaning_products",
+      "names": [
+        "Xtra WC-puhdistaja 1 l"
       ]
     }
   ]
