@@ -1009,7 +1009,31 @@ export default function DesktopPreviewPage() {
   }
 
   useEffect(()=>{desktopRememberPrices(cartItems)},[cartItems]);
-  function restoreSavedList(list:any){desktopCompareCache.current.clear();setDesktopCompareResults({});setCartItems((list.items||[]).map(desktopRestoreNotebookItem));setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko palautettu ostoskoriin")}
+  function restoreSavedList(list:any){
+    const items=Array.isArray(list?.items)?list.items.map(desktopRestoreNotebookItem):[];
+    if(!items.length){flashCartNotice("Tallennettu ostoslista on tyhjä");return;}
+    const currentHasItems=cartItems.length>0;
+    if(currentHasItems){
+      const merge=window.confirm("Ostoskorissa on jo tuotteita.\n\nOK = yhdistä tallennettu lista nykyiseen koriin.\nPeruuta = valitse seuraavaksi, korvataanko kori.");
+      if(merge){
+        setCartItems(current=>{
+          const next=[...current];
+          for(const item of items){
+            const key=desktopCartKey(item);
+            const index=next.findIndex(existing=>desktopCartKey(existing)===key);
+            if(index<0)next.push(item);
+            else next[index]={...next[index],quantity:Number(next[index].quantity||1)+Number(item.quantity||1)};
+          }
+          return next;
+        });
+        setNotebookOpen(false);setCartOpen(true);flashCartNotice("Ostelusvihko yhdistetty ostoskoriin");return;
+      }
+      if(!window.confirm("Korvataanko nykyinen ostoskori tallennetulla listalla?\n\nPeruuta = säilytä nykyinen kori muuttumattomana."))return;
+    }
+    desktopCompareCache.current.clear();setDesktopCompareResults({});
+    setCartItems(items);setNotebookOpen(false);setCartOpen(true);
+    flashCartNotice("Ostelusvihko palautettu ostoskoriin");
+  }
   function saveCartToNotebook(){desktopRememberPrices(cartItems);const name=saveListName.trim()||"Ostelusvihko";persistSavedLists([{id:String(Date.now()),name,createdAt:new Date().toISOString(),items:cartItems.map(desktopNotebookItem)},...savedLists]);setSaveListOpen(false);flashCartNotice(`Tallennettu Ostelusvihkoon: ${name}`)}
 
   function desktopCartPrice(value:any):number|null{if(value==null||value==="")return null;const normalized=String(value).replace(/\s/g,"").replace("€","").replace(",",".");const price=Number(normalized);return Number.isFinite(price)&&price>=0?price:null}
