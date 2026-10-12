@@ -4057,21 +4057,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function buildMobileCartShareTextV729() {
-    const lines = cart.map((item: any, index: number) => {
-      const name =
-        item.name ??
-        item.product?.name ??
-        item.title ??
-        item.productName ??
-        "Tuote";
-
-      const quantity = Number(item.quantity ?? item.amount ?? 1);
-      const safeQuantity = Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
-
-      return `${index + 1}. ${name} (${safeQuantity} kpl)`;
-    });
-
-    return ["Ziiply ostoskori", ...lines].join("\n");
+    const groups = new Map<string, Map<string, { name: string; quantity: number }>>();
+    for (const item of cart as any[]) {
+      const name = String(item.name ?? item.product?.name ?? item.title ?? item.productName ?? "Tuote").trim();
+      const store = String(item.storeName ?? item.store?.name ?? item.product?.storeName ?? "Kauppa").trim() || "Kauppa";
+      const rawQuantity = Number(item.quantity ?? item.amount ?? 1);
+      const quantity = Number.isFinite(rawQuantity) && rawQuantity > 0 ? rawQuantity : 1;
+      if (!groups.has(store)) groups.set(store, new Map());
+      const products = groups.get(store)!;
+      const key = name.toLocaleLowerCase("fi");
+      const previous = products.get(key);
+      if (previous) previous.quantity += quantity;
+      else products.set(key, { name, quantity });
+    }
+    const lines = ["Ziiply – Ostoslista", ""];
+    for (const [store, products] of groups) {
+      lines.push(`${store} (${products.size} tuotetta)`, "");
+      for (const product of products.values()) lines.push(`${product.quantity} × ${product.name}`);
+      lines.push("");
+    }
+    lines.push("Ostoslista tehty Ziiplyllä");
+    return lines.join("\\n");
   }
 
   async function shareTextV729(title: string, text: string) {
@@ -18334,26 +18340,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function buildShoppingListText(chain: ChainResult) {
-    const lines = chain.matches.map((match) => {
-      const ean = getMatchEan(match);
-      const eanLine = ean ? `\nEAN: ${ean}` : "";
-      return `${match.quantity} × ${fixText(match.product.name)} — ${formatEuro(match.price * match.quantity)}${eanLine}`;
-    });
-
-    const savingsLine =
-      cheapest && secondCheapest && cheapest.key === chain.key && savings > 0
-        ? `\nSäästö seuraavaan täyteen koriin verrattuna: ${formatEuro(savings)} (${savingsPercent.toFixed(1).replace(".", ",")} %)`
-        : "";
-
-    return [
-      `Ziiply ostoskori — ${chain.storeName}`,
-      `Yhteensä: ${chain.totalPrice > 0 ? formatEuro(chain.totalPrice) : "—"}`,
-      savingsLine.trim(),
-      "",
-      ...lines,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const products = new Map<string, { name: string; quantity: number }>();
+    for (const match of chain.matches) {
+      const name = fixText(match.product.name);
+      const quantity = Number(match.quantity) || 1;
+      const key = name.toLocaleLowerCase("fi");
+      const previous = products.get(key);
+      if (previous) previous.quantity += quantity;
+      else products.set(key, { name, quantity });
+    }
+    return ["Ziiply – Ostoslista", "", `${chain.storeName} (${products.size} tuotetta)`, "",
+      ...Array.from(products.values()).map(product => `${product.quantity} × ${product.name}`),
+      "", "Ostoslista tehty Ziiplyllä"].join("\\n");
   }
 
   async function copyTextToClipboard(textToCopy: string) {
