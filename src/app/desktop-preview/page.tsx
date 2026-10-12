@@ -885,6 +885,32 @@ export default function DesktopPreviewPage() {
   const month = ["TAMMIKUU","HELMIKUU","MAALISKUU","HUHTIKUU","TOUKOKUU","KESÄKUU","HEINÄKUU","ELOKUU","SYYSKUU","LOKAKUU","MARRASKUU","JOULUKUU"][now.getMonth()];
 
 
+
+  // Match mobile: map only the user's selected stores, including manual overrides.
+  const desktopMapStores=(Object.values(selectedStores) as any[]).filter(store=>{
+    const name=String(store?.name||"").trim();
+    return name&&!/valitse ensin|ei valittu/i.test(name);
+  }).map(store=>{
+    const coordinate=(value:any)=>value==null||value===""?null:Number.isFinite(Number(value))?Number(value):null;
+    return {...store,address:String(store.address||store.streetAddress||""),
+      city:String(store.city||appliedLocation||"Suomi"),
+      latitude:coordinate(store.latitude??store.lat??store.location?.lat??store.coordinates?.latitude),
+      longitude:coordinate(store.longitude??store.lng??store.lon??store.location?.lng??store.location?.lon??store.coordinates?.longitude)};
+  });
+  function desktopMapStoreQuery(store?:any){
+    if(store?.latitude!=null&&store?.longitude!=null)return `${store.latitude},${store.longitude}`;
+    return [store?.name,store?.address,store?.city,"Suomi"].filter(Boolean).join(", ");
+  }
+  function desktopMapRouteUrl(store:any){
+    const destination=encodeURIComponent(desktopMapStoreQuery(store));
+    const origin=gpsCoords?encodeURIComponent(`${gpsCoords.latitude},${gpsCoords.longitude}`):"";
+    return origin?`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`:
+      `https://www.google.com/maps/search/?api=1&query=${destination}`;
+  }
+  const desktopMapQuery=desktopMapStores.length>1?desktopMapStores.map(store=>[store.name,store.city].filter(Boolean).join(", ")).join(" | "):
+    desktopMapStores.length?desktopMapStoreQuery(desktopMapStores[0]):`${appliedLocation||"Hyvinkää"}, Suomi`;
+  const desktopMapIframeSrc=`https://maps.google.com/maps?q=${encodeURIComponent(desktopMapQuery)}&z=13&output=embed`;
+
   function distanceKm(s:any){ if(!gpsCoords)return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const lat=Number(s?.latitude ?? s?.lat); const lon=Number(s?.longitude ?? s?.lon ?? s?.lng); if(!Number.isFinite(lat)||!Number.isFinite(lon))return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const r=6371, p1=gpsCoords.latitude*Math.PI/180, p2=lat*Math.PI/180, dp=(lat-gpsCoords.latitude)*Math.PI/180, dl=(lon-gpsCoords.longitude)*Math.PI/180; const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2; return 2*r*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
   function byDistance(items:any[]){return [...items].sort((a,b)=>distanceKm(a)-distanceKm(b));}
   function storeKind(s:any){const chain=String(s?.chain||s?.type||s?.brand||"").toLowerCase();const n=String(s?.name||"").toLowerCase();if(chain==="lidl")return "lidl";if(chain.includes("tokmanni")||chain.includes("spar"))return "spar";if(n.includes("prisma"))return "sHyper";if(n.includes("citymarket"))return "kHyper";if(n.includes("s-market")||n.includes("sale")||n.includes("alepa"))return "sLocal";if(n.includes("k-market")||n.includes("k-supermarket"))return "kLocal";if(n.includes("lidl"))return "lidl";if(n.includes("tokmanni")||n.includes("spar"))return "spar";return ""}
@@ -1489,8 +1515,12 @@ export default function DesktopPreviewPage() {
                 <div><div className="text-[11px] font-black uppercase tracking-[.15em] text-[#7d745e]">Ziiply · kartta</div><div className="mt-1 text-[27px] font-black text-[#17352a]">{appliedLocation}</div></div>
                 <button onClick={() => setMapOpen(false)} className="rounded-full border border-[#6f806a]/25 bg-white px-4 py-2 text-[13px] font-black">Sulje ×</button>
               </div>
-              <div className="relative mt-5 grid h-[430px] place-items-center overflow-hidden rounded-[24px] border border-[#7b8b75]/25 bg-[linear-gradient(30deg,#dce8cf_25%,#f1e7c9_25%,#f1e7c9_50%,#d5e3cf_50%,#d5e3cf_75%,#efe1bd_75%)] bg-[length:90px_90px]">
-                <div className="text-center"><img src="/icons/ziiply-compass.png" alt="" className="mx-auto h-24 w-24"/><div className="mt-4 text-[18px] font-black text-[#244b38]">Kauppakartta</div><div className="mt-1 text-[13px] font-bold text-[#687267]">Sijainti: {appliedLocation}</div><div className="mt-4 text-[12px] font-bold text-[#7b745f]">Seuraavaksi tähän kytketään Ziiplyn kauppapisteet ja etäisyydet.</div></div>
+              <div className="mt-5 flex h-[min(560px,65vh)] min-h-0 flex-col overflow-hidden rounded-[24px] border border-[#7b8b75]/25">
+                <iframe title="Ziiply kauppakartta" src={desktopMapIframeSrc} className="min-h-[220px] w-full flex-[0_0_55%] border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#d6bd76] bg-[#fff8dc] p-3">
+                  <div className="mb-3 rounded-xl bg-[#e7f6ee] px-3 py-2 text-sm font-bold text-[#244b38]">{gpsCoords?"Oma sijainti mukana reittilinkeissä.":"GPS ei ole päällä. Reitti avautuu ilman lähtöpistettä."}</div>
+                  {desktopMapStores.length===0?<p className="px-3 py-2 font-bold text-[#687267]">Valitse kaupat, niin näet niiden reittilinkit täällä.</p>:<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{desktopMapStores.map(store=><a key={String(store.id)+"-"+store.name} href={desktopMapRouteUrl(store)} target="_blank" rel="noreferrer" className="flex items-center justify-between rounded-xl border border-[#ead99f] bg-[#fff8df] px-4 py-3 text-[#17352a]"><span><span className="block font-black">{store.name}</span><span className="block text-xs font-bold uppercase tracking-wide">Näytä reitti</span></span><span className="text-2xl">↗</span></a>)}</div>}
+                </div>
               </div>
             </div>
           </div>
