@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const search = (params.get("search") || "").trim();
   const store = params.get("store") || "";
   const storeName = (params.get("storeName") || "").trim();
-  const source = "s-kaupat-direct-preview-v1";
+  const source = "s-kaupat-direct-preview-v2";
   if (search.length > 120 || store.length > 32 || storeName.length > 120) {
     return NextResponse.json({ error: "Invalid query", source, items: [] }, { status: 400 });
   }
@@ -17,6 +17,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ ...result, store, storeName, source, priceUnit: "cents", status: 200 });
   } catch (error) {
     console.warn("[S direct preview]", String(error));
-    return NextResponse.json({ source, store, storeName, status: 502, items: [], error: "Selected S store lookup failed" }, { status: 502 });
+    return NextResponse.json({ source, store, storeName, status: 502, items: [], error: "Selected S store lookup failed", diagnostic: (error instanceof Error ? error.message : String(error)).slice(0,1500) }, { status: 502 });
   }
 }
