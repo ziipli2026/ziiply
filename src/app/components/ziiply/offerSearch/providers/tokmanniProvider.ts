@@ -48,7 +48,7 @@ function normalize(value: unknown) {
 function category(title: string) {
   const s = clean(title).toLowerCase().replace(/\s+/g, " ");
   if (/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli|grilli|työkalu|valaisin|lamppu|liimapuulevy|kasteluletku|moppi|pesuri|liina|käsine|kenkä|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|lanka|asuste|lelu/.test(s)) return "Koti & vapaa-aika";
-  if (/kaurajuoma/.test(s)) return "Juomat";
+  if (/\b(?:kaura|soija|manteli|riisi|kookos|herne)juom[\p{L}]*/u.test(s)) return "Maitotuotteet";
   if (/piparkak|piparipallo|pikkuleip/.test(s)) return "Makeiset & keksit";
   if (/piltti|lastenateria|lastenruoka|hedelmäsose|marjasose|luumua .*\b\d+ kk\b/.test(s)) return "Lastenruoat";
   if (/snack pot|kuppiateria|spaghetti|mac & cheese|bolognese/.test(s)) return "Kuivatuotteet";
