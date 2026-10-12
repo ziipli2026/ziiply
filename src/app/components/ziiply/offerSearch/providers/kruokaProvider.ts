@@ -859,7 +859,17 @@ export async function fetchKruokaOffers(
     const kCampaignRows = results.filter(result =>
       String((result as unknown as UnknownRecord).campaignType ?? "offer") === "campaign",
     );
-    const uniqueCampaignRows = removeCampaignCopiesOfLeaflet(kOfferRows, kCampaignRows);
+    // Only suppress a duplicate within the same source publication.
+    // A leaflet and a separate electronic/local publication may legitimately
+    // advertise the same product at the same price: both must remain visible.
+    const publicationOf = (row: ZiiplyOfferSearchResult): string =>
+      String((row as unknown as { debug?: { publicationId?: unknown } }).debug?.publicationId ?? "");
+    const uniqueCampaignRows = kCampaignRows.filter(campaign => {
+      const publicationId = publicationOf(campaign);
+      if (!publicationId) return true;
+      const samePublicationOffers = kOfferRows.filter(offer => publicationOf(offer) === publicationId);
+      return removeCampaignCopiesOfLeaflet(samePublicationOffers, [campaign]).length > 0;
+    });
     const removedCampaignCount = kCampaignRows.length - uniqueCampaignRows.length;
     if (debug.campaignProbe) {
       debug.campaignProbe.returnedCampaignRows = uniqueCampaignRows.length;
