@@ -49,6 +49,9 @@ export function categoryFromOwnedContext(
     }
     evidence = rows.map(row=>row.boxes.sort((a,b)=>a.left-b.left).map(box=>box.text).join(' '));
   }
-  const categories = new Set(evidence.map(classify).filter(value => value !== 'Muut'));
+  // Finnish inessive ingredient descriptions (e.g. auringonkukkaöljyssä)
+  // describe what the product is packed in, not a second product department.
+  const categoryEvidence = evidence.map(line => line.replace(/\p{L}+ss[äa](?=$|[\s,.;:()])/giu,' '));
+  const categories = new Set(categoryEvidence.map(classify).filter(value => value !== 'Muut'));
   return categories.size === 1 ? [...categories][0] : 'Muut';
 }

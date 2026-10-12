@@ -8,6 +8,14 @@ const compiled = ts.transpileModule(fs.readFileSync(filename,'utf8'), {compilerO
 const loaded = new Module(filename, module);
 loaded._compile(compiled, filename);
 const {extendedCitymarketCategory: category, categoryFromOwnedContext} = loaded.exports;
+// Execute the actual provider classifier without fetching or importing its API dependencies.
+const provider = fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+const providerFunction = provider.slice(provider.indexOf('export function category('),provider.indexOf('\nfunction isNoiseLine('));
+const cleanSource = provider.split('\n').find(line=>line.startsWith('const clean='));
+const providerCompiled = ts.transpileModule(cleanSource+'\n'+providerFunction,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+const providerExports = {};
+new Function('exports','extendedCitymarketCategory',providerCompiled)(providerExports,category);
+const actualCategory = providerExports.category;
 const cases = [
   ['KANAN RINTAFILEET 600 g','Liha & makkarat'],
   ['Tamminen MAALAISNAKIT tai SAVUSAUNAPALVIROUHE','Liha & makkarat'],
@@ -79,4 +87,12 @@ test('Page 17 tuna context excludes the adjacent Fasupalat column',()=>{
   assert.equal(categoryFromOwnedContext(title,context,true,classify,{...geometry,anchor:{...geometry.anchor,left:NaN}}),'Muut');
   const conflicting={...geometry,boxes:[...geometry.boxes,{text:'FASUPALAT',left:0.685826,top:0.875,width:0.08}]};
   assert.equal(categoryFromOwnedContext(title,context,true,classify,conflicting),'Muut');
+});
+test('Captured full page 17 evidence works with the real provider classifier',()=>{
+  const fixture=require('./fixtures/citymarket-42av-owned-category.json');
+  assert.equal(actualCategory(fixture.title),'Muut');
+  assert.equal(actualCategory('TONNIKALAPALOJA'),'Kala');
+  assert.equal(categoryFromOwnedContext(fixture.title,fixture.context,true,actualCategory,fixture.geometry),'Kala');
+  assert.equal(categoryFromOwnedContext(fixture.title,fixture.context,false,actualCategory,fixture.geometry),'Muut');
+  assert.equal(categoryFromOwnedContext('ROUHE tai PALAT',['FASUPALAT'],true,actualCategory,{...fixture.geometry,boxes:[]}),'Muut');
 });

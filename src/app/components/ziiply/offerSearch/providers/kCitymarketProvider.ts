@@ -601,7 +601,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-offers-v10-column-categories-20261012"],
+  ["ziiply-kcitymarket-offers-v11-column-ingredient-categories-20261012"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
