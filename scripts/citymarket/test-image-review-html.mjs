@@ -25,8 +25,8 @@ try {
   assert.match(html, /Open Food Facts – tarkistamaton hakutulos/);
   assert.match(html, /Testituote/);
   assert.match(html, /1234567890123/);
-  assert.match(html, /https:\\/\\/example.org\\/openfoodfacts.jpg/);
-  const articles = [...html.matchAll(/<article\\b[\\s\\S]*?<\\/article>/g)].map(match=>match[0]);
+  assert.ok(html.includes("https://example.org/openfoodfacts.jpg"));
+  const articles = html.split("<article data-page=").slice(1).map(part => part.split("</article>")[0]);
   assert.equal(articles.length,queue.missingImages);
   const candidateArticles=articles.filter(article=>article.includes("https://example.org/product-image.jpg"));
   assert.equal(candidateArticles.length,1,"Candidate image must appear in exactly one product card");
