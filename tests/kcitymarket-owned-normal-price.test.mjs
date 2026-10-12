@@ -33,7 +33,7 @@ test('Frozen 41LV corrects three reference prices and retains all V152 transacti
   const r=archive.responses[String(input)];assert.ok(r,'Every response comes from the immutable source');
   return {ok:true,status:200,url:r.url,text:async()=>r.body};
  });
- assert.equal(parsed.revision,'V157-KCITYMARKET-REFERENCES-AND-DEPOSITS');
+ assert.equal(parsed.revision,'V159-KCITYMARKET-OWNED-CARD-TRANSACTIONS');
  const snapshot=parsed.rows.map(x=>{const p=x.spatialResolved||{};return {
   page:x.page,title:x.title,value:p.value??null,quantity:p.quantity??null,unit:p.unit??null,
   percent:x.percentageOffer?.percent??null,package:x.package??null,unitPrice:x.unitPrice??null};});

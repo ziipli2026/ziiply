@@ -1,3 +1,4 @@
+import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
 import {reattachDetachedPackage,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
 import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy} from './kCitymarketProductRows.js';
@@ -390,7 +391,7 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
-const out={revision:"V157-KCITYMARKET-REFERENCES-AND-DEPOSITS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
+const out={revision:"V159-KCITYMARKET-OWNED-CARD-TRANSACTIONS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
 const configPage=await ft(new URL("javascript/config.js",l.url).href);
@@ -1618,6 +1619,7 @@ out.rows=out.rows.map(row=>{
  return {...row,unitPrice:rate,debugReplacedUnitRate:old};
 });
 out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
+if(/_42AV_KCM/i.test(out.leaflet))out.rows=out.rows.map(repairPrintedCard);
 return out;
 }
 
