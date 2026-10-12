@@ -36,7 +36,7 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
         <label className="text-xs font-bold">Alkuperäinen annosmäärä<input type="number" min="1" value={original} onChange={e=>setOriginal(e.target.value)} className="mt-1 w-full rounded border p-2"/></label>
         <label className="text-xs font-bold">Tehdään henkilölle<input type="number" min="1" value={target} onChange={e=>setTarget(e.target.value)} className="mt-1 w-full rounded border p-2"/></label>
       </div>
-      {ingredients.map((item,i)=><div key={item.id} className="rounded-xl border p-2">
+      {ingredients.map((item,i)=><div key={item.id} className="rounded-xl border p-2"><div className="mb-1 flex justify-end"><button type="button" aria-label={"Poista aines "+item.name} onClick={()=>{setIngredientIndex(null);setDraft({...draft,ingredients:ingredients.filter(x=>x.id!==item.id)});}} className="rounded border px-2 py-1 text-xs">Poista aines</button></div>
         <div className="grid grid-cols-[1fr_70px_65px] gap-1">
           <input aria-label={"Aines "+(i+1)} value={item.name} onChange={e=>setDraft({...draft,ingredients:ingredients.map(x=>x.id===item.id?{...x,name:e.target.value}:x)})} className="min-w-0 rounded border p-1"/>
           <input aria-label={"Määrä "+(i+1)} type="number" min="0" step="any" value={item.amount ?? ""} onChange={e=>setDraft({...draft,ingredients:ingredients.map(x=>x.id===item.id?{...x,amount:e.target.value===""?null:Number(e.target.value),uncertain:e.target.value===""}:x)})} className="min-w-0 rounded border p-1"/>
@@ -44,6 +44,8 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
         </div>
         <div className="mt-1 flex items-center justify-between text-xs"><label><input type="checkbox" checked={item.atHome} onChange={e=>setDraft({...draft,ingredients:ingredients.map(x=>x.id===item.id?{...x,atHome:e.target.checked}:x)})}/> On jo kotona</label><span>{validServings && !item.uncertain ? scaled[i].amount+" "+(item.unit||"") : "Tarkista määrä"}</span></div>
       </div>)}
+      <button type="button" onClick={()=>{setIngredientIndex(null);setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now())+"-"+ingredients.length,name:"",amount:null,unit:null,uncertain:true,atHome:false}]});}} className="rounded-lg border border-[#b99d62] bg-[#fff4d6] px-3 py-2 text-xs font-bold">+ Lisää aines</button>
+      <p className="text-xs">Tarkista reseptin jokainen aines. Poistettuja aineksia ei haeta.</p>
       <label className="block text-xs font-bold">Valmistusohje<textarea rows={3} value={draft.instructions} onChange={e=>setDraft({...draft,instructions:e.target.value})} className="mt-1 w-full rounded border p-2"/></label>
       <button type="button" disabled={!canSearch || !onSearchIngredients || pending.length===0} onClick={()=>{setIngredientIndex(0);onSearchIngredients?.([pending[0].name]);setNotice("Valitse sopiva tuote nykyisestä tuotehausta. Justiina ei lisää sitä automaattisesti.");}} className="rounded-xl bg-[#174c3a] px-4 py-2 font-black text-white disabled:opacity-40">Hae ainekset</button>
       {ingredientIndex !== null && pending.length > 0 && <div className="mt-2 rounded-xl border border-[#b99d62] bg-[#fff4d6] p-2">
