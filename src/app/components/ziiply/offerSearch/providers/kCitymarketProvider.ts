@@ -2,6 +2,7 @@ import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kC
 import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
+import { clean42AVPrintedTitle } from "./kCitymarket42AVTitleCleanup.js";
 import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
 
 // ============================================================================
@@ -496,7 +497,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // Limit to the 42AV archive until older leaflet regressions are verified.
     const rawTitle=clean(row?.title||"");
     const title=/_42AV_KCM/i.test(leafletUrl)
-      ? rawTitle.replace(/^[-−–]\s*\d{1,2}\s*%\s+(?=[A-ZÅÄÖ])/i,"").replace(/^\d\.\s+(?=[A-ZÅÄÖ])/i,"")
+      ? clean42AVPrintedTitle(rawTitle)
       : rawTitle;
     if(!title || isNoiseLine(title)) continue;
 
