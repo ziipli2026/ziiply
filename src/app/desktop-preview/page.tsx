@@ -836,8 +836,31 @@ export default function DesktopPreviewPage() {
   function distanceKm(s:any){ if(!gpsCoords)return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const lat=Number(s?.latitude ?? s?.lat); const lon=Number(s?.longitude ?? s?.lon ?? s?.lng); if(!Number.isFinite(lat)||!Number.isFinite(lon))return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const r=6371, p1=gpsCoords.latitude*Math.PI/180, p2=lat*Math.PI/180, dp=(lat-gpsCoords.latitude)*Math.PI/180, dl=(lon-gpsCoords.longitude)*Math.PI/180; const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2; return 2*r*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
   function byDistance(items:any[]){return [...items].sort((a,b)=>distanceKm(a)-distanceKm(b));}
   function storeKind(s:any){const chain=String(s?.chain||s?.type||s?.brand||"").toLowerCase();const n=String(s?.name||"").toLowerCase();if(chain==="lidl")return "lidl";if(chain.includes("tokmanni")||chain.includes("spar"))return "spar";if(n.includes("prisma"))return "sHyper";if(n.includes("citymarket"))return "kHyper";if(n.includes("s-market")||n.includes("sale")||n.includes("alepa"))return "sLocal";if(n.includes("k-market")||n.includes("k-supermarket"))return "kLocal";if(n.includes("lidl"))return "lidl";if(n.includes("tokmanni")||n.includes("spar"))return "spar";return ""}
-  function applyModeDefaults(_nextMode:"hyper"|"local"){
-    // Selections are stored independently per mode; switching only changes the visible mode.
+  function applyModeDefaults(nextMode:"hyper"|"local"){
+    // Keep manual choices for each store type. In between-chain multi mode,
+    // complete only missing chains using the nearest matching store in the new type.
+    if(betweenMode!=="many" || storeCompareScope==="within_chain")return;
+    const source=allStoreSelections[storeMode];
+    const wanted=new Set(Object.values(source).map((store:any)=>{
+      const kind=storeKind(store);
+      return kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":kind==="spar"?"SPAR":"";
+    }).filter(Boolean));
+    if(!wanted.size)return;
+    setAllStoreSelections(prev=>{
+      const next={...prev[nextMode]};
+      const present=new Set(Object.values(next).map((store:any)=>{
+        const kind=storeKind(store);
+        return kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":kind==="spar"?"SPAR":"";
+      }));
+      for(const chain of wanted){
+        if(present.has(chain))continue;
+        const pool=chain==="LIDL"?lidlStores:chain==="SPAR"?sparStores:stores;
+        const expected=chain==="S"?(nextMode==="hyper"?"sHyper":"sLocal"):chain==="K"?(nextMode==="hyper"?"kHyper":"kLocal"):chain==="LIDL"?"lidl":"spar";
+        const candidate=byDistance(pool.filter((store:any)=>storeKind(store)===expected))[0];
+        if(candidate){next[String(candidate.id)]=candidate;present.add(chain)}
+      }
+      return {...prev,[nextMode]:next};
+    });
   }
 
   function applyLocation() {
