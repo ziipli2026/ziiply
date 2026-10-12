@@ -202,6 +202,8 @@ test('42AV automatic full-leaflet audit reports title anomalies without guessing
   || /\b6 TLK Arla 2 TLK 9\.\s*LEMPI\b/i.test(row.title)
  );
  const report=anomalies.map(row=>({page:row.page,title:row.title,price:row.spatialResolved?.value??null,quantity:row.spatialResolved?.quantity??null,cardAnchor:row.debugCardAnchor??null,printedHeading:row.debugRecoveredPublisherHeading??null}));
+ const targetTitles=rows.filter(row=>/SAPPISAIPPUA|LEMPI RUOKAKERMAT/i.test(row.title));
+ console.log('42AV_TARGET_TITLE_GEOMETRY',JSON.stringify(targetTitles.map(row=>({page:row.page,title:row.title,cardAnchor:row.debugCardAnchor??null,price:row.spatialResolved??null}))));
  // These are known source-layout anomalies, not grounds for deleting offers.
  // Parsed publisher rows are not the same collection as the 79+96 UI debug
  // results. Assert source completeness and non-empty parsed output instead.
