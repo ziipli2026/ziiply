@@ -17,7 +17,8 @@ export type EurosparOffer = {
   packageSize?: string | null;
   offerQuantity?: number | null;
   offerUnit?: string | null;
-  priceBasis: "single-unit" | "multi-buy-total";
+  priceBasis: "single-unit" | "multi-buy-total" | "per-kg";
+  isWeightedProduct?: boolean;
   singleEquivalentPrice: number;
   discountPercent?: number | null;
   restriction?: string | null;
@@ -87,7 +88,7 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
       : null;
     const quantity = Number.isInteger(multi?.quantity) ? Number(multi?.quantity) : null;
     const rawPriceBasis = String(raw.priceBasis ?? "");
-    if (!(price && price > 0) || (rawPriceBasis !== "single-unit" && rawPriceBasis !== "multi-buy-total")) return [];
+    if (!(price && price > 0) || (rawPriceBasis !== "single-unit" && rawPriceBasis !== "multi-buy-total" && rawPriceBasis !== "per-kg")) return [];
     const priceBasis: EurosparOffer["priceBasis"] = rawPriceBasis;
     if (priceBasis === "multi-buy-total" && (!quantity || quantity < 2)) return [];
 
@@ -109,7 +110,8 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
       unit: raw.unitPriceUnit ? String(raw.unitPriceUnit) : null,
       packageSize: raw.size ? String(raw.size) : null,
       offerQuantity: quantity,
-      offerUnit: multi?.unit ? String(multi.unit) : null,
+      offerUnit: multi?.unit ? String(multi.unit) : priceBasis === "per-kg" ? "kg" : null,
+      isWeightedProduct: priceBasis === "per-kg",
       priceBasis,
       singleEquivalentPrice: priceBasis === "multi-buy-total"
         ? Number((price / Number(quantity)).toFixed(4))
