@@ -1440,9 +1440,16 @@ if(/_42AV_KCM/i.test(l.url)){
    if(!/\b\d+(?:[,.]\d+)?\s*(?:ml|cl|dl|l|g|kg)\b/i.test(printed))continue;
    row.title=printed;
   }else{
-   // Existing title cleanup already removes simple prefixes in the provider.
-   // Keep package sizes and other trailing text until individually proven.
-   continue;
+   // Only remove an HTML-injected numeric fragment when the same publisher
+   // card contains a complete heading and the original package size survives.
+   const prefix=title.match(/^[-−–]\s*\d{1,2}\s*%\s+|^\d\.\s+/i)?.[0]||'';
+   const remainder=title.slice(prefix.length);
+   const printedAt=remainder.toUpperCase().indexOf(printed.toUpperCase());
+   if(printedAt!==0)continue;
+   const suffix=remainder.slice(printed.length);
+   const stray=suffix.match(/^\s+\d{3}\s+(?=\d+(?:[,.]\d+)?\s*(?:ml|cl|dl|l|g|kg)\b)/i);
+   if(!stray)continue;
+   row.title=printed+suffix.slice(stray[0].length-1);
   }
   row.debugRecoveredPublisherHeading=printed;
  }
