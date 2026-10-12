@@ -156,7 +156,7 @@ export function getSynonymGroupForQuery(query: string): ZiiplySynonymGroup | nul
       const canonical = normalizeSearchText(group.canonical);
       const terms = group.terms.map(normalizeSearchText);
 
-      return canonical === q || terms.includes(q) || false;
+      return canonical === q || terms.includes(q);
     }) || null
   );
 }
