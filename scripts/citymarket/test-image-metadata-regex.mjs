@@ -17,4 +17,16 @@ for(const match of samples.join("\n").matchAll(matcher)){
   found.push(JSON.parse(match[2]).image);
 }
 assert.deepEqual(found,["https://example.org/a.jpg","https://example.org/b.jpg","https://example.org/c.jpg"]);
-console.log("JSON-LD script matching regression passed.");
+const nested = {"@type":"WebPage","mainEntity":{"@type":"ItemList","itemListElement":[{"@type":"ListItem","item":{"@type":"Product","image":"https://example.org/nested-packshot.jpg"}}]}};
+const foundNested=[];
+const walk=node=>{
+  if(!node||typeof node!=="object")return;
+  if(Array.isArray(node)){node.forEach(walk);return;}
+  if([].concat(node["@type"]??[]).map(String).some(type=>type.toLowerCase()==="product")){
+    for(const item of [].concat(node.image??[]))if(typeof item==="string")foundNested.push(item);
+  }
+  for(const key of ["@graph","mainEntity","mainEntityOfPage","hasPart","itemListElement","item"]){if(node[key])walk(node[key]);}
+};
+walk(nested);
+assert.deepEqual(foundNested,["https://example.org/nested-packshot.jpg"]);
+console.log("JSON-LD script and nested Product regression passed.");
