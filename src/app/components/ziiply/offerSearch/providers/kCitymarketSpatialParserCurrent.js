@@ -1417,6 +1417,9 @@ if(p===6){
   row.debugRecoveredPublisherHeading='PYYKINPESUNESTEET';
  }
 }
+if(/_42AV_KCM/i.test(l.url))out.rows=out.rows.map(row=>row.page===p?recover42AVPrintedCampaignRows([row],wordBoxes)[0]:row);
+for(let i=0;i<out.rows.length;i++)if(out.rows[i].page===p)out.rows[i]=restorePrintedPackageTitle(out.rows[i],wordBoxes);
+resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
 // Prefer the actual publisher heading over HTML reading-order debris only when
 // a single matching printed card anchor is available. Prices stay untouched.
 if(/_42AV_KCM/i.test(l.url)){
@@ -1444,9 +1447,7 @@ if(/_42AV_KCM/i.test(l.url)){
   row.debugRecoveredPublisherHeading=printed;
  }
 }
-if(/_42AV_KCM/i.test(l.url))out.rows=out.rows.map(row=>row.page===p?recover42AVPrintedCampaignRows([row],wordBoxes)[0]:row);
-for(let i=0;i<out.rows.length;i++)if(out.rows[i].page===p)out.rows[i]=restorePrintedPackageTitle(out.rows[i],wordBoxes);
-resolveCards(out.rows.filter(r=>r.page===p),wordBoxes);
+
 for(let ri=0;ri<out.rows.length;ri++){
  const row=out.rows[ri];
  if(row.page!==p)continue;
