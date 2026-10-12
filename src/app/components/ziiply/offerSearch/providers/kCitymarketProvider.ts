@@ -863,7 +863,12 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       const casePack=/\b\d{1,2}\s*[- ]?pack\b|\b\d{1,2}\s*(?:plo|pulloa|tölkkiä)\b/i.test(offer.title);
       if(grouped||casePack)return offer;
       const title=norm(offer.title);
-      let url=photos.get(title);
+      // Exact text alone is insufficient if the source image represents a
+      // different package size. Verify the Tjek title even on exact hits.
+      const exactImage=photos.get(title);
+      const requiredSize=packageMatch(offer.packageSize||offer.title);
+      const exactSizes=packageSizes(title);
+      let url=exactImage && (!requiredSize || exactSizes.includes(requiredSize)) ? exactImage : undefined;
       if(url)exact++;
       if(!url){
         const wanted=tokens(offer.title.replace(/\bUOLATTU\b/i,"SUOLATTU"));
