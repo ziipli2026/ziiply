@@ -718,6 +718,9 @@ function getOfferComparisonPrice(offer: ZiiplyMobileOfferSearchItem) {
 function getOfferImage(offer: ZiiplyMobileOfferSearchItem) {
   const ean = getOfferEan(offer);
   const source = offer.__sourceOfferSearchResult || {};
+  // Publisher crop is the actual campaign image; later EAN enrichment must not replace it.
+  const publisherImage = String(source.imageUrl || "").trim();
+  if (publisherImage.includes("image-transformer-api.tjek.com/")) return publisherImage;
   const explicit = String(offer.imageUrl || offer.pictureUrl || offer.image || source.imageUrl || "").trim();
   if (explicit) return explicit;
   if (String(offer.chain || source.chain || "").toUpperCase() === "K" && ean) {
