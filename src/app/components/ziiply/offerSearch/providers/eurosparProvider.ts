@@ -11,6 +11,7 @@ export type EurosparOffer = {
   normalPriceText?: string | null;
   normalPriceMin?: number | null;
   normalPriceMax?: number | null;
+  normalPriceBasis?: "single-unit" | "multi-buy-total" | "per-kg";
   unitPrice?: number | null;
   unitPriceText?: string | null;
   unitPriceMin?: number | null;
@@ -45,7 +46,7 @@ type Feed = {
   offers?: FeedOffer[];
 };
 
-export const EUROSPAR_PROVIDER_VERSION = 8;
+export const EUROSPAR_PROVIDER_VERSION = 9;
 
 const norm = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("fi-FI");
 const normEurosparStore = (value: unknown) =>
@@ -95,6 +96,23 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
     if (priceBasis === "multi-buy-total" && (!quantity || quantity < 2)) return [];
 
     const normalRange = range(raw.normalPrice);
+    // The publisher's normal price is per item; the offer is a bundle total.
+    // Convert both endpoints, preserving ranges rather than inventing one price.
+    if (priceBasis === "multi-buy-total") {
+      const normalUnit = norm(raw.normalUnit);
+      const compatibleUnit = !normalUnit || normalUnit === "kpl" || normalUnit === norm(multi?.unit);
+      if (compatibleUnit && normalRange.min !== null && normalRange.max !== null) {
+        normalRange.min = Number((normalRange.min * Number(quantity)).toFixed(2));
+        normalRange.max = Number((normalRange.max * Number(quantity)).toFixed(2));
+        const money = (value: number) => value.toFixed(2).replace(".", ",");
+        normalRange.text = normalRange.min === normalRange.max
+          ? money(normalRange.min) : `${money(normalRange.min)}–${money(normalRange.max)}`;
+      } else {
+        // A weight/litre reference cannot be compared with a counted bundle.
+        normalRange.min = normalRange.max = null;
+        normalRange.text = null;
+      }
+    }
     const unitRange = range(raw.unitPrice);
 
     const offer: EurosparOffer = {
@@ -107,6 +125,7 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
       normalPriceText: normalRange.text,
       normalPriceMin: normalRange.min,
       normalPriceMax: normalRange.max,
+      normalPriceBasis: priceBasis,
       unitPrice: unitRange.min === unitRange.max ? unitRange.min : null,
       unitPriceText: unitRange.text && raw.unitPriceUnit
         ? `${unitRange.text} €/${String(raw.unitPriceUnit)}`
