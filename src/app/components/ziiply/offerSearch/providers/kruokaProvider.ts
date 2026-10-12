@@ -511,16 +511,24 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   // Only the offer-side comparison price is authoritative here. A normal
   // price after "Ilman Plussa-korttia" must never replace the offer price.
   const offerDescription = sourceDescription.split(/ilman\s+plussa(?:-korttia)?/i)[0];
-  const comparison = offerDescription.match(/(?:^|\s)(\d+[,.]\d{1,2})(?:\s*[-–—]\s*(\d+[,.]\d{1,2}))?\s*(?:€\s*)?\/\s*(kg|l|kpl)(?=\s|[),.;]|$)/i);
+  // Accept both "4,29 €/kg" and "4,29 €/ kg", including explicit ranges.
+  // Never derive a comparison-price range from package sizes: source figures win.
+  const comparison = offerDescription.match(/(?:^|[\s(])(\d+[,.]\d{1,2})(?:\s*[-–—]\s*(\d+[,.]\d{1,2}))?\s*(?:€\s*)?\/\s*(kg|l|kpl)(?=\s|[),.;]|$)/i);
   const sourceMin = comparison ? num(comparison[1].replace(",", ".")) : null;
   const sourceMax = comparison?.[2] ? num(comparison[2].replace(",", ".")) : null;
   const rawUnit = String(offer.baseUnit ?? "").trim().toLowerCase();
   const unitAliases: Record<string, string> = { kilogram: "kg", liter: "l", litre: "l", piece: "kpl" };
   const unit = comparison?.[3]?.toLowerCase() ?? unitAliases[rawUnit] ?? rawUnit;
+  // The raw Tjek baseUnit can be an English API enum; never expose it in the UI.
+  const displayUnit = /^(kg|l|kpl)$/.test(unit) ? unit : "";
   const unitPriceValue = sourceMin ?? num(offer.unitPrice);
   const comparisonAmount = unitPriceValue == null ? "" : priceText(unitPriceValue) +
     (sourceMax != null && sourceMax !== sourceMin ? `–${priceText(sourceMax)}` : "");
-  const unitPrice = comparisonAmount ? `${comparisonAmount} €${unit ? `/${unit}` : ""}` : "";
+  const unitPrice = comparisonAmount ? `${comparisonAmount} €${displayUnit ? `/${displayUnit}` : ""}` : "";
+  // Extract display-only deposit information; never alter the source description.
+  // Match explicit total deposits only (e.g. "sis. pantit 0,45 €").
+  const depositMatch = sourceDescription.match(/\bsis\.?\s*pantit?\s*(\d+[,.]\d{1,2})\s*€?/i);
+  const depositText = depositMatch ? `Sis. pantit ${priceText(depositMatch[1].replace(",", "."))} €` : "";
   const isPlussa = membership != null;
   const pieceCountFrom = num(offer.pieceCountFrom);
   const pieceCountTo = num(offer.pieceCountTo);
@@ -534,9 +542,15 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
   const soldByWeight = offerQuantity == null && category === "Hevi" && !hasPackSize &&
     comparison?.[3]?.toLowerCase() === "kg" && sourceMax == null &&
     sourceMin != null && Math.abs(sourceMin - effective) < 0.005;
+  // Shared K-offer presentation: preserve source prices and source descriptions.
+  // Weight-priced fish/meat and other loose goods must not lose their selling unit.
+  const explicitWeightPrice = offerQuantity == null && !hasPackSize &&
+    unit === "kg" && sourceMax == null &&
+    (sourceMin ?? num(offer.unitPrice)) != null &&
+    Math.abs((sourceMin ?? num(offer.unitPrice))! - effective) < 0.005;
   const effectivePriceText = offerQuantity != null
     ? `${priceText(effective)} € / ${offerQuantity} kpl`
-    : soldByWeight ? `${priceText(effective)} € / kg` : priceText(effective);
+    : (soldByWeight || explicitWeightPrice) ? `${priceText(effective)} € / kg` : priceText(effective);
   // Only explicit source campaign metadata may move an item to Gösta's
   // campaign tab. Plussa/app prices and multi-buy alone are still offers.
   const campaignMarker = [
@@ -555,13 +569,13 @@ export function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId
     title, name: title, productName: title,
     price: effective, priceText: effectivePriceText, offerPrice: effectivePriceText,
     previousPrice: regular != null && regular !== effective ? regular : null,
-    unitPrice, unitPriceText: unitPrice, unitPriceUnit: unit || null,
+    unitPrice, unitPriceText: unitPrice, unitPriceUnit: displayUnit || null,
     imageUrl: image, image, pictureUrl: image,
     storeId: displayStoreId, storeName: displayStoreName, storeLabel: displayStoreName,
     chain: "K", source: "etarjouslehdet", provider: "kruoka", offerId,
     campaignType: isCampaign ? "campaign" : "offer",
     additionalInfo: offer.description ?? null,
-    benefitText: isPlussa ? "Plussa-tarjous" : app != null ? "Mobiilitarjous" : undefined,
+    benefitText: [isPlussa ? "Plussa-tarjous" : app != null ? "Mobiilitarjous" : "", depositText].filter(Boolean).join(" · ") || undefined,
     validityText: validityText(offer.validUntil),
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
@@ -642,10 +656,10 @@ export async function fetchKruokaOffers(
     const offers: UnknownRecord[] = baseOffers.map(offer => ({ ...offer,
       campaignType: campaignPublicationIds.has(String(offer.publicationPublicId ?? "")) ? localBenefitType(offer) : offer.campaignType,
     }));
-    const knownOfferIds = new Set(offers.map(o => `${String(o.publicId ?? "")}|${String(o.campaignType ?? "offer")}`).filter(Boolean));
+    const knownOfferIds = new Set(offers.map(o => `${String(o.publicationPublicId ?? "")}|${String(o.publicId ?? "")}|${String(o.campaignType ?? "offer")}`).filter(Boolean));
     for (const offer of regionalOffers) {
       const id = String(offer.publicId ?? "");
-      const key = `${id}|${String(offer.campaignType ?? "offer")}`;
+      const key = `${String(offer.publicationPublicId ?? "")}|${id}|${String(offer.campaignType ?? "offer")}`;
       const fetchEntry = publicationFetch.find(entry => entry.publicationId === String(offer.publicationPublicId ?? ""));
       if (!id || knownOfferIds.has(key)) {
         if (fetchEntry) fetchEntry.skippedAsDuplicate++;
@@ -816,7 +830,7 @@ export async function fetchKruokaOffers(
       entry.mapped++;
       if (!matchesQuery(mapped, query)) continue;
       entry.queryMatched++;
-      const key = `${String((mapped as unknown as UnknownRecord).campaignType ?? "offer")}|${String((mapped as unknown as UnknownRecord).offerId ?? mapped.id)}`;
+      const key = `${publicationId}|${String((mapped as unknown as UnknownRecord).campaignType ?? "offer")}|${String((mapped as unknown as UnknownRecord).offerId ?? mapped.id)}`;
       if (seen.has(key)) { entry.duplicate++; continue; }
       seen.add(key);
       entry.returned++;
@@ -839,7 +853,17 @@ export async function fetchKruokaOffers(
     const kCampaignRows = results.filter(result =>
       String((result as unknown as UnknownRecord).campaignType ?? "offer") === "campaign",
     );
-    const uniqueCampaignRows = removeCampaignCopiesOfLeaflet(kOfferRows, kCampaignRows);
+    // Only suppress a duplicate within the same source publication.
+    // A leaflet and a separate electronic/local publication may legitimately
+    // advertise the same product at the same price: both must remain visible.
+    const publicationOf = (row: ZiiplyOfferSearchResult): string =>
+      String((row as unknown as { debug?: { publicationId?: unknown } }).debug?.publicationId ?? "");
+    const uniqueCampaignRows = kCampaignRows.filter(campaign => {
+      const publicationId = publicationOf(campaign);
+      if (!publicationId) return true;
+      const samePublicationOffers = kOfferRows.filter(offer => publicationOf(offer) === publicationId);
+      return removeCampaignCopiesOfLeaflet(samePublicationOffers, [campaign]).length > 0;
+    });
     const removedCampaignCount = kCampaignRows.length - uniqueCampaignRows.length;
     if (debug.campaignProbe) {
       debug.campaignProbe.returnedCampaignRows = uniqueCampaignRows.length;
