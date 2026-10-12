@@ -17,7 +17,7 @@ export function parseRecipeText(text: string): RecipeDraft {
     const clean = line.replace(/^[-*•]\s*/, "");
     const m = clean.match(amountPattern);
     const a = m?.[1] ? Number(m[1].replace(",", ".")) : null;
-    const uncertain = !m || a === null || !!m[2] || /[?/]/.test(m?.[3] || "");
+    const uncertain = !m || a === null || !!m[2] || !m[3] || !m[4] || /[?/]/.test(clean);
     return { id: String(i), name: (m?.[4] || clean).trim(), amount: a, unit: m?.[3]?.toLowerCase() || null, uncertain, atHome: false };
   });
   return { title, servings, ingredients, instructions: end < 0 ? "" : lines.slice(end + 1).join("\n"), source: "text" };
