@@ -7,20 +7,20 @@
   "readOnly": true,
   "totalReviewed": 79,
   "summary": {
-    "candidate-needs-leaflet-check": 19,
+    "approved-leaflet-image": 60,
     "approved-bank-image": 12,
-    "no-compatible-candidate": 19,
-    "bank-image-is-webpage": 7,
+    "no-compatible-candidate": 3,
+    "bank-image-is-webpage": 2,
     "approved-manufacturer-image": 1,
-    "approved-leaflet-image": 21
+    "candidate-needs-leaflet-check": 1
   },
   "notice": "Database image URL presence is not URL reachability or visual identity verification. EAN matches use previously recorded candidate EAN evidence. Name and size matches remain unapproved; brand, variant, multipack count and leaflet artwork must be checked. No matching candidate does not prove absence. Tokmanni weekly-offer webpage links are not image URLs.",
   "rows": [
     {
       "offerId": "kcm:spatial:1:costa rica tai premium blend jauhetut kahvit sekä pavut 250–500 g:3.33",
       "identity": "costa rica tai premium blend jauhetut kahvit sekä pavut 250–500 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6410405201522",
@@ -111,7 +111,8 @@
           "quantity": "450 g"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-0.png"
     },
     {
       "offerId": "kcm:spatial:1:lotus nessu nenäliina 100 kpl valkoinen plussa-kortilla 4,00/2 pkt ilman plussa-korttia 2,19/pkt:percent:42",
@@ -134,8 +135,8 @@
     {
       "offerId": "kcm:spatial:1:kananpojan fileepihvit 1 kg (7,99/kg):7.99",
       "identity": "kananpojan fileepihvit 1 kg (7,99/kg)",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6409100026400",
@@ -162,21 +163,23 @@
           "quantity": "1 kg"
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-2.png"
     },
     {
       "offerId": "kcm:spatial:1:wc-paperi 40 rl:percent:42",
       "identity": "wc-paperi 40 rl",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-3.png"
     },
     {
       "offerId": "kcm:spatial:1:juustoviipaleet 270–300 g:10",
       "identity": "juustoviipaleet 270–300 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6408430348282",
@@ -257,13 +260,14 @@
         "source": "approved-41LV-PDF",
         "page": 1,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-4.png"
     },
     {
       "offerId": "kcm:spatial:1:creamy jäätelöt 750–850 ml:10",
       "identity": "creamy jäätelöt 750–850 ml",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "8721274814705",
@@ -274,13 +278,14 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-5.png"
     },
     {
       "offerId": "kcm:spatial:4:mattameikkivoide 30 ml:9.9",
       "identity": "mattameikkivoide 30 ml",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6412600847277",
@@ -291,13 +296,14 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-6.png"
     },
     {
       "offerId": "kcm:spatial:4:cc-meikkivoide jättikoko 50 ml:12.9",
       "identity": "cc-meikkivoide jättikoko 50 ml",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -308,31 +314,35 @@
           "image": "https://www.tokmanni.fi/viikkotarjoukset",
           "source": "tokmanni-viikkotarjoukset"
         }
-      ]
+      ],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-7.png"
     },
     {
       "offerId": "kcm:spatial:4:vaseline 40 g:3.5",
       "identity": "vaseline 40 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-8.png"
     },
     {
       "offerId": "kcm:spatial:5:suihkugeelit 400 ml:3",
       "identity": "suihkugeelit 400 ml",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-9.png"
     },
     {
       "offerId": "kcm:spatial:5:biohajoava suihkusaippua 225 ml:3",
       "identity": "biohajoava suihkusaippua 225 ml",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-10.png"
     },
     {
       "offerId": "kcm:spatial:6:suihkeet 600 ml,:5",
@@ -395,8 +405,8 @@
     {
       "offerId": "kcm:spatial:6:tahranpoistajat 940 g:7.59",
       "identity": "tahranpoistajat 940 g",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -415,21 +425,23 @@
           "source": "tokmanni-viikkotarjoukset",
           "quantity": null
         }
-      ]
+      ],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-15.png"
     },
     {
       "offerId": "kcm:spatial:6:konetiskitabletit 3 kpl/pkt tai konetiskigeeli 650 ml:10",
       "identity": "konetiskitabletit 3 kpl/pkt tai konetiskigeeli 650 ml",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-16.png"
     },
     {
       "offerId": "kcm:spatial:6:pyykinpesunesteet 840–1000 ml:12",
       "identity": "pyykinpesunesteet 840–1000 ml",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -544,21 +556,23 @@
           "source": "tokmanni-viikkotarjoukset",
           "quantity": null
         }
-      ]
+      ],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-17.png"
     },
     {
       "offerId": "kcm:spatial:6:pyykkietikat 475 ml:9",
       "identity": "pyykkietikat 475 ml",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-18.png"
     },
     {
       "offerId": "kcm:spatial:6:vaalea kissanhiekka paakkuuntuva 10 l ljus kattsand:5.99",
       "identity": "vaalea kissanhiekka paakkuuntuva 10 l ljus kattsand",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -609,13 +623,14 @@
           "source": "tokmanni-viikkotarjoukset",
           "quantity": null
         }
-      ]
+      ],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-19.png"
     },
     {
       "offerId": "kcm:spatial:6:huuhteluaineet 750–762 ml:5",
       "identity": "huuhteluaineet 750–762 ml",
-      "status": "bank-image-is-webpage",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
       "invalidImageCandidates": [
         {
@@ -714,23 +729,26 @@
           "source": "tokmanni-viikkotarjoukset",
           "quantity": null
         }
-      ]
+      ],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-20.png"
     },
     {
       "offerId": "kcm:spatial:12:yksivärinen neulelanka 100 g enfärgat stickgarn:7.1",
       "identity": "yksivärinen neulelanka 100 g enfärgat stickgarn",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-21.png"
     },
     {
       "offerId": "kcm:spatial:13:naudan takuumurea ulkofilee n. 800 g palana:24",
       "identity": "naudan takuumurea ulkofilee n. 800 g palana",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-22.png"
     },
     {
       "offerId": "kcm:spatial:13:tai savusauna- palvirouhe 250–400 g (7,48–11,96/kg):2.99",
@@ -759,10 +777,11 @@
     {
       "offerId": "kcm:spatial:13:tai punajuuri 2 kg:1.49",
       "identity": "tai punajuuri 2 kg",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-24.png"
     },
     {
       "offerId": "kcm:spatial:13:porsaan marinoitu fileesuikale 700 g (7,13/kg):4",
@@ -803,16 +822,17 @@
     {
       "offerId": "kcm:spatial:14:paistetut lohipyörykät 900 g (7,77/kg):6",
       "identity": "paistetut lohipyörykät 900 g (7,77/kg)",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-27.png"
     },
     {
       "offerId": "kcm:spatial:14:ohuen ohuet kokoliha- leikkeleet 120–150 g:2.5",
       "identity": "ohuen ohuet kokoliha- leikkeleet 120–150 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6405753001603",
@@ -937,21 +957,23 @@
         "source": "approved-41LV-PDF",
         "page": 14,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-28.png"
     },
     {
       "offerId": "kcm:spatial:14:isot kuorelliset katkaravut 70/90 500 g:6.95",
       "identity": "isot kuorelliset katkaravut 70/90 500 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-29.png"
     },
     {
       "offerId": "kcm:spatial:14:kebab 250–280 g:3",
       "identity": "kebab 250–280 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6416345001642",
@@ -978,15 +1000,17 @@
           "quantity": null
         }
       ],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-30.png"
     },
     {
       "offerId": "kcm:spatial:14:kasvipohjainen savulauantai tai savukalgguna 120 g (16,58/kg):1.99",
       "identity": "kasvipohjainen savulauantai tai savukalgguna 120 g (16,58/kg)",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-31.png"
     },
     {
       "offerId": "kcm:spatial:14:arkimeetvursti 400 g:4.99",
@@ -1009,8 +1033,8 @@
     {
       "offerId": "kcm:spatial:14:suosikkisalaatit 220–280 g (11,89–15,14/kg):3.1",
       "identity": "suosikkisalaatit 220–280 g (11,89–15,14/kg)",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6406510096719",
@@ -1051,7 +1075,8 @@
         "source": "approved-41LV-PDF",
         "page": 14,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-33.png"
     },
     {
       "offerId": "kcm:spatial:15:korvapuusti 6/360 g:2.99",
@@ -1110,8 +1135,8 @@
     {
       "offerId": "kcm:spatial:15:kuorrutemunkki- laatikko 12 x 100–115 g myös uutuus:9",
       "identity": "kuorrutemunkki- laatikko 12 x 100–115 g myös uutuus",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6413467518508",
@@ -1144,7 +1169,8 @@
         "source": "approved-41LV-PDF",
         "page": 15,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-37.png"
     },
     {
       "offerId": "kcm:spatial:15:ikaffe maustamaton kaurajuoma 1 l uht, ei luomu (1,50/l):1.5",
@@ -1240,16 +1266,17 @@
     {
       "offerId": "kcm:spatial:15:lempi ruokakermat 3 dl:3",
       "identity": "lempi ruokakermat 3 dl",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-39.png"
     },
     {
       "offerId": "kcm:spatial:15:proteiini- 3. pirtelöt 200 ml:2.5",
       "identity": "proteiini- 3. pirtelöt 200 ml",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "5711953201677",
@@ -1266,13 +1293,14 @@
         "source": "approved-41LV-PDF",
         "page": 15,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-40.png"
     },
     {
       "offerId": "kcm:spatial:15:rasvaton maitorahka ja 79 rahkajogurtti 250 g:0.67",
       "identity": "rasvaton maitorahka ja 79 rahkajogurtti 250 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "4002971466102",
@@ -1335,13 +1363,14 @@
         "source": "approved-41LV-PDF",
         "page": 15,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-41.png"
     },
     {
       "offerId": "kcm:spatial:16:pakasteateriat ja -keitot 200–350 g:10",
       "identity": "pakasteateriat ja -keitot 200–350 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "8858984830951",
@@ -1380,7 +1409,8 @@
         }
       ],
       "invalidImageCandidates": [],
-      "printedBrand": "Kitchen Joy"
+      "printedBrand": "Kitchen Joy",
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-42.png"
     },
     {
       "offerId": "kcm:spatial:16:muusiperuna 400 g:1.5",
@@ -1403,8 +1433,8 @@
     {
       "offerId": "kcm:spatial:16:proteiinivaahdolla 200 g:5",
       "identity": "proteiinivaahdolla 200 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "4002971247909",
@@ -1421,13 +1451,14 @@
         "source": "approved-41LV-PDF",
         "page": 16,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-44.png"
     },
     {
       "offerId": "kcm:spatial:16:makupala vanukkaat 120 g (5,21/kg):2.5",
       "identity": "makupala vanukkaat 120 g (5,21/kg)",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6417803661767",
@@ -1468,13 +1499,14 @@
         "source": "approved-41LV-PDF",
         "page": 16,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-45.png"
     },
     {
       "offerId": "kcm:spatial:16:actimel jogurtti-:3.69",
       "identity": "actimel jogurtti-",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "5410146407963",
@@ -1555,13 +1587,14 @@
         "source": "approved-41LV-PDF",
         "page": 16,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-46.png"
     },
     {
       "offerId": "kcm:spatial:16:juomat 8 x 100 g 369 (4,61/kg):3.69",
       "identity": "juomat 8 x 100 g 369 (4,61/kg)",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "5410146407963",
@@ -1642,7 +1675,8 @@
         "source": "approved-41LV-PDF",
         "page": 16,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-47.png"
     },
     {
       "offerId": "kcm:spatial:16:juustoportti 1 leipäjuusto 140 g 99 (14,21/kg):1.99",
@@ -2179,8 +2213,8 @@
     {
       "offerId": "kcm:spatial:18:pohjoisen maut ateriat 8 kk 190 g:5",
       "identity": "pohjoisen maut ateriat 8 kk 190 g",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "7613039969847",
@@ -2197,13 +2231,14 @@
         "source": "approved-41LV-PDF",
         "page": 18,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-58.png"
     },
     {
       "offerId": "kcm:spatial:18:trip mehut 2 dl 24-pack:percent:21",
       "identity": "trip mehut 2 dl 24-pack",
-      "status": "candidate-needs-leaflet-check",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [
         {
           "ean": "6415130118398",
@@ -2324,31 +2359,35 @@
         "source": "approved-41LV-PDF",
         "page": 18,
         "leafletSha256": "34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6"
-      }
+      },
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-59.png"
     },
     {
       "offerId": "kcm:spatial:18:iso välipalalajitelma yli 1,5 v. 12 x 150 g tai hedelmäsoselajitelma 4–6 kk 14 x 90 g (6,66–9,52/kg):11.99",
       "identity": "iso välipalalajitelma yli 1,5 v. 12 x 150 g tai hedelmäsoselajitelma 4–6 kk 14 x 90 g (6,66–9,52/kg)",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-60.png"
     },
     {
       "offerId": "kcm:spatial:18:kissan kuivaruoat 400 g:4.2",
       "identity": "kissan kuivaruoat 400 g",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-61.png"
     },
     {
       "offerId": "kcm:spatial:18:double koiran puruluut 160–180 g (19,44–21,88/kg):3.5",
       "identity": "double koiran puruluut 160–180 g (19,44–21,88/kg)",
-      "status": "no-compatible-candidate",
-      "approved": false,
+      "status": "approved-leaflet-image",
+      "approved": true,
       "candidates": [],
-      "invalidImageCandidates": []
+      "invalidImageCandidates": [],
+      "verifiedImageUrl": "/citymarket-leaflets/34e790cb72ffb0388be16cc1f4af97115f013a2f10f3bdf10df0c9faa8f46cd6/verified-group-62.png"
     },
     {
       "offerId": "kcm:spatial:19:virvoitusjuomat 0,33 l/pl 24-pack:0.36",
