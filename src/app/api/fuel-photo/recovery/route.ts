@@ -23,11 +23,14 @@ export async function POST(request: NextRequest) {
   const form = await request.formData().catch(() => null);
   const photo = form?.get("photo");
   const recognized = Number(form?.get("recognizedCount"));
+  const initialReliable = form?.get("initialRecognitionReliable") === "true";
   const expected = Number(form?.get("expectedCount"));
   if (form?.get("allowRecovery") !== "true")
     return NextResponse.json({ ok: false, error: "Permission required" }, { status: 400 });
   if (!(photo instanceof File) || !TYPES.has(photo.type) || photo.size < 100 || photo.size > MAX_BYTES)
     return NextResponse.json({ ok: false, error: "Invalid photo" }, { status: 400 });
+  // Fully and reliably read photos are never uploaded to recovery storage.
+  if (initialReliable) return NextResponse.json({ ok: true, queued: false, discarded: true });
   if (!Number.isSafeInteger(recognized) || !Number.isSafeInteger(expected) ||
       recognized < 0 || expected < 1 || expected > 20 || recognized >= expected)
     return NextResponse.json({ ok: false, error: "Incomplete recognition required" }, { status: 400 });
@@ -37,6 +40,10 @@ export async function POST(request: NextRequest) {
   payload.set("recognizedCount", String(recognized));
   payload.set("expectedCount", String(expected));
   payload.set("retentionHours", "24");
+  payload.set("deleteOnCompletion", "true");
+  payload.set("deleteAllDerivatives", "true");
+  payload.set("persistImageAfterSuccess", "false");
+  payload.set("persistImageAfterFailure", "false");
   payload.set("mode", "private-recovery-no-publication");
   try {
     const response = await fetch(url, {
