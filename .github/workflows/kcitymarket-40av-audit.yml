@@ -41,7 +41,7 @@ jobs:
       - name: Replay archived publisher geometry with current parser
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
+          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-replay-parser.mjs
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import {execFileSync} from 'node:child_process';
@@ -58,7 +58,7 @@ jobs:
       - name: Verify frozen Citymarket fixtures and current live leaflet
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-parser.mjs
+          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-parser.mjs
           node --input-type=module <<'NODE'
           import fs from "node:fs";
           import parser from "file:///tmp/kcm-parser.mjs";
@@ -139,7 +139,7 @@ jobs:
       - name: Preserve original publisher PDF and parser evidence
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-archive-parser.mjs
+          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-archive-parser.mjs
           ENTRY=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.url")
           node scripts/citymarket/export-leaflet.mjs "$ENTRY" /tmp/kcm-leaflet-archive /tmp/kcm-archive-parser.mjs
           node --input-type=module <<'NODE'
@@ -158,7 +158,7 @@ jobs:
       - name: Replay newly captured publication without network
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
+          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-replay-parser.mjs
           FIXTURE=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.fixture")
           node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-leaflet-archive "$FIXTURE" /tmp/kcm-replay-parser.mjs
       - name: Commit verified source to permanent archive branch

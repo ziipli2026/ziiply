@@ -1,0 +1,35 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const ts=require('typescript');
+const base=path.resolve('src/app/components/ziiply/offerSearch/providers');
+const entry='https://kcm-tarjouslehdet.k-ruoka.fi/83z6h5o_tarjouslehti_42AV_KCM/index.html';
+test('Actual provider preserves original PDF card identities through title cleanup',async()=>{
+ const modules={
+  './kCitymarketSpatialParser.js':await import(path.join(base,'kCitymarketSpatialParser.js')),
+  './kCitymarketProductRows.js':await import(path.join(base,'kCitymarketProductRows.js')),
+  './kCitymarket42AVTitleCleanup.js':await import(path.join(base,'kCitymarket42AVTitleCleanup.js')),
+  'next/cache':{unstable_cache:fn=>fn},
+  '@neondatabase/serverless':{neon:()=>{throw Error('No database allowed in frozen replay');}},
+  './kCitymarketPublisherImages':{}
+ };
+ const source=fs.readFileSync(path.join(base,'kCitymarketProvider.ts'),'utf8')
+  .replace('async function fetchKCitymarketOffersFresh(', 'export async function fetchKCitymarketOffersFresh(');
+ const js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2021,module:ts.ModuleKind.CommonJS}}).outputText;
+ const mod={exports:{}};
+ new Function('require','module','exports',js)(name=>{assert.ok(modules[name],name);return modules[name]},mod,mod.exports);
+ const offers=await mod.exports.fetchKCitymarketOffersFresh(entry);
+ const priced=offers.filter(p=>p.price>0);
+ const registry=JSON.parse(fs.readFileSync(path.join(base,'data/kCitymarketLeafletImages.json'),'utf8')).publications[entry];
+ assert.equal(Object.keys(registry.images).length,88);
+ assert.equal(priced.length,81);
+ const pictured=priced.filter(p=>registry.images[p.id]||registry.images[p.publisherOfferId]);
+ assert.equal(pictured.length,80);
+ const pasta=priced.find(p=>p.title==='PASTAT 500 g (3,50/kg)');
+ assert.ok(pasta);
+ assert.equal(pasta.price,3.5);
+ assert.equal(pasta.offerQuantity,2);
+ assert.match(pasta.publisherOfferId,/:5\. pastat /);
+ assert.ok(registry.images[pasta.publisherOfferId]);
+});

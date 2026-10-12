@@ -24,8 +24,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-41lv-parser.mjs
-          node scripts/citymarket/export-leaflet.mjs "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/" /tmp/kcm-41lv-probe /tmp/kcm-41lv-parser.mjs
+          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-41lv-parser.mjs
+          node scripts/citymarket/export-leaflet.mjs "https://kcm-tarjouslehdet.k-ruoka.fi/82qjhs6_tarjouslehti_41LV_KCM/index.html" /tmp/kcm-41lv-probe /tmp/kcm-41lv-parser.mjs
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const dir='/tmp/kcm-41lv-probe/';
