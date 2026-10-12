@@ -16694,11 +16694,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Camera, HID reader and manual/pasted EAN inside the scanner are equivalent here.
     const confirmedScannerStoreV836 = normalize(scannerConfirmedStoreNameRefV828.current);
     const resultScannerStoreV836 = normalize(String(result.storeName || ""));
-    const scannerStoreStillMatchesResultV836 = Boolean(
-      confirmedScannerStoreV836 &&
-      resultScannerStoreV836 &&
-      confirmedScannerStoreV836 === resultScannerStoreV836
-    );
+    // Collection follows the user's confirmed physical scanner session, not the
+    // price lookup's storeName (which can be missing or come from a fallback).
+    const scannerStoreStillMatchesResultV836 = Boolean(confirmedScannerStoreV836);
     const isPhysicalBarcodeScanV815 = Boolean(
       isUsableEan(ean) &&
       scannerInStoreRefV828.current &&
@@ -16863,6 +16861,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const nextCart = [...baseCart, newItem];
+      if (isPhysicalBarcodeScanV815) {
+        setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
+      }
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
