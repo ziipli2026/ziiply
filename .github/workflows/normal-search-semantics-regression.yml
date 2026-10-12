@@ -4,7 +4,7 @@ name: Normal search semantics regression
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/unified-query-intent-20261012]
     paths:
       - "src/app/components/ziiply/ziiplyCore.ts"
       - "src/app/components/ziiply/search/**"
@@ -187,6 +187,21 @@ jobs:
               process.exit(1);
             }
             console.log('PASS typo autocorrect+intent:', input, '=>', actual, '=>', resolved.intent);
+          }
+
+          const drinks = [
+            ['cokis', 'coca cola', 'cola'],
+            ['kokis', 'coca cola', 'cola'],
+            ['limsa', 'limsa', 'soft_drink'],
+            ['virvoitusjuoma', 'virvoitusjuoma', 'soft_drink'],
+          ];
+          for (const [input, expectedCorrection, expectedIntent] of drinks) {
+            const corrected = correctSearchQuery(input);
+            const intent = resolveSearchIntentAI(input);
+            if (corrected !== expectedCorrection || intent.intent !== expectedIntent) {
+              console.error('FAIL drink intent', {input, corrected, intent: intent.intent});
+              process.exit(1);
+            }
           }
 
           // Piimä is intentionally not in the newer intent enum yet; still verify the typo
