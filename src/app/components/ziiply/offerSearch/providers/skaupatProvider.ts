@@ -2645,16 +2645,16 @@ export async function fetchSKaupatNormalProductsV220(query: string, storeName: s
 /** Preview direct normal search. Prices use the existing Ziiply cent contract. */
 export async function fetchSKaupatDirectNormalProducts(query: string, storeName: string, inputStoreId: string) {
   const normalizedName = normalizeSKaupatStoreNameForMatchV198(storeName);
-  const chain = /^prisma\\b/i.test(storeName) ? "prisma"
-    : /^s[ -]?market\\b/i.test(storeName) ? "s-market"
-    : /^alepa\\b/i.test(storeName) ? "alepa" : /^sale\\b/i.test(storeName) ? "sale" : "";
+  const chain = /^prisma\b/i.test(storeName) ? "prisma"
+    : /^s[ -]?market\b/i.test(storeName) ? "s-market"
+    : /^alepa\b/i.test(storeName) ? "alepa" : /^sale\b/i.test(storeName) ? "sale" : "";
   if (!chain) throw new Error("Selected S store chain unsupported");
-  const directory = await fetch("https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent(storeName.replace(/^(?:prisma|s[ -]?market|alepa|sale)\\s+/i, "")), {
+  const directory = await fetch("https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent(storeName.replace(/^(?:prisma|s[ -]?market|alepa|sale)\s+/i, "")), {
     cache: "no-store", signal: AbortSignal.timeout(8000), headers: { accept: "text/html", "accept-language": "fi" },
   });
   if (!directory.ok) throw new Error("S store directory HTTP " + directory.status);
   const html = await directory.text();
-  const candidates = [...html.matchAll(/\\/myymala\\/([a-z0-9%._~-]+)\\/(\\d{5,})/gi)]
+  const candidates = [...html.matchAll(/\/myymala\/([a-z0-9%._~-]+)\/(\d{5,})/gi)]
     .filter((match) => normalizeSKaupatStoreNameForMatchV198(decodeURIComponent(match[1]).replace(/-/g, " ")) === normalizedName);
   const ids = [...new Set(candidates.map((match) => match[2]))];
   const storeId = ids.length === 1 ? ids[0] : null;
