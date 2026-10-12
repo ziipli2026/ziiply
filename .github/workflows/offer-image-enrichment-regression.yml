@@ -8,8 +8,6 @@ on:
       - "src/lib/offerImageEnrichmentQueue.ts"
       - "src/lib/offerImageEanLookup.ts"
       - "scripts/test-offer-image-enrichment.mts"
-      - "scripts/test-citymarket-publisher-images.mts"
-      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
       - "scripts/citymarket/build-image-review-queue.mjs"
       - "scripts/citymarket/check-image-source-candidates.mjs"
       - "scripts/citymarket/probe-image-candidates.mjs"
@@ -23,6 +21,8 @@ on:
       - "scripts/citymarket/41lv-bank-image-review.json"
       - "scripts/citymarket/41lv-verified-bank-images.json"
       - "scripts/citymarket/audit-41lv-image-coverage.mjs"
+      - "scripts/citymarket/verify-images.mjs"
+      - "scripts/citymarket/verify-image-rendering.mjs"
       - "tests/fixtures/citymarket/41LV.approved.json"
       - "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json"
       - "public/citymarket-leaflets/**"
@@ -41,15 +41,19 @@ jobs:
           node-version: "22"
       - name: Run isolated image matcher regression
         run: |
-          npm install --prefix "$RUNNER_TEMP/ziiply-image-tests" --no-audit --no-fund --ignore-scripts tsx@4.20.6 @neondatabase/serverless@1.2.0
+          npm install --prefix "$RUNNER_TEMP/ziiply-image-tests" --no-audit --no-fund --ignore-scripts tsx@4.20.6 @neondatabase/serverless@1.2.0 playwright@1.58.2
           ln -s "$RUNNER_TEMP/ziiply-image-tests/node_modules" node_modules
           # The .mts regression imports ESM TypeScript modules in this isolated checkout.
           npm pkg set type=module
           node --import tsx scripts/test-offer-image-enrichment.mts
-      - name: Verify actual publisher image resolver
-        run: node --import tsx scripts/test-citymarket-publisher-images.mts
       - name: Verify approved 41LV image asset and fragment coverage
         run: node scripts/citymarket/audit-41lv-image-coverage.mjs > /dev/null
+      - name: Verify all manifest image assets
+        run: node scripts/citymarket/verify-images.mjs
+      - name: Verify real browser image rendering
+        run: |
+          "$RUNNER_TEMP/ziiply-image-tests/node_modules/.bin/playwright" install --with-deps chromium
+          node scripts/citymarket/verify-image-rendering.mjs
       - name: Verify external image candidate records
         run: node scripts/citymarket/check-image-source-candidates.mjs
       - name: Regression test generated review gallery
@@ -110,5 +114,6 @@ jobs:
             citymarket-openfoodfacts-discovery.json
             citymarket-openfoodfacts-search.json
             citymarket-image-review.html
+            artifacts/citymarket-images/browser-images.png
           retention-days: 14
           if-no-files-found: error
