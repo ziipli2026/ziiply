@@ -497,6 +497,10 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const nearbyText=(row?.nearby||[]).map((x:any)=>typeof x==="string"?x:String(x?.text||x?.raw||"")).join(" ");
     const benefitText=/mobiilietu/i.test(nearbyText)?"Mobiilietu":/plussa(?:-etu|-kortilla)?/i.test(nearbyText)?"Plussa-etu":/erä/i.test(nearbyText)?"Erä":"";
     const campaignType: "offer" | "campaign" = /kampanja|kaikki .*?(?:tuotteet|vaatteet)|[-–−]\d+\s*%/i.test(title) && !/\b\d+(?:[,.]\d+)?\s*(?:g|kg|ml|l)\b/i.test(title) ? "campaign" : "offer";
+    const resolvedCategory=categoryFromOwnedContext(title,(row?.nearby||[]).map((x:any)=>String(x)),Boolean(row?.imageAnchor),category);
+    if(process.env.GITHUB_ACTIONS==="true" && resolvedCategory==="Muut"){
+      console.info("[K-Citymarket] unresolved category evidence",JSON.stringify({title,page:row?.page,leafletUrl,owned:Boolean(row?.imageAnchor),context:row?.nearby,anchor:row?.imageAnchor,boxes:row?.debugNearbyBoxes}));
+    }
     offers.push({
       id:`kcm:spatial:${row?.page??0}:${title.toLowerCase()}:${price}`,
       title,
@@ -514,7 +518,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       campaignType,
       validFrom:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
       validTo:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
-      category:categoryFromOwnedContext(title,(row?.nearby||[]).map((x:any)=>String(x)),Boolean(row?.imageAnchor),category),
+      category:resolvedCategory,
       chain:"K",
       storeType:"K-Citymarket",
       source:"K-Citymarket tarjouslehti",
