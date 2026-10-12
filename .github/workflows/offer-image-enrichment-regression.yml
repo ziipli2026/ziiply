@@ -63,6 +63,28 @@ jobs:
         env:
           IMAGE_RESEARCH_MAX_SEARCHES: "80"
         run: node scripts/citymarket/discover-openfoodfacts-search.mjs
+      - name: Summarize image discovery results
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const file = "citymarket-openfoodfacts-search.json";
+          if (!fs.existsSync(file)) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "### 41LV image search\\nSearch report missing; check previous steps.\\n");
+          } else {
+            const report = JSON.parse(fs.readFileSync(file, "utf8"));
+            const lines = [
+              "### 41LV image search (unverified candidates)",
+              "Missing images: " + report.totalMissing,
+              "API requests: " + report.searchesPerformed,
+              "Cache hits: " + report.cacheHits,
+              "Rate limited: " + report.rateLimited,
+              ...Object.entries(report.statusCounts ?? {}).map(([key, count]) => key + ": " + count),
+              "No candidate is approved automatically."
+            ];
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\\n") + "\\n");
+          }
+          NODE
       - name: Generate visual image review page
         if: always()
         run: node scripts/citymarket/build-image-review-html.mjs
