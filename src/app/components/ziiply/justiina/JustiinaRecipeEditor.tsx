@@ -25,6 +25,7 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
   const canSearch = validServings && ingredients.length > 0 && ingredients.every(x => x.atHome || (!x.uncertain && x.name.trim() && x.amount !== null && x.unit));
   return <div className="mt-3 max-h-[55dvh] overflow-y-auto rounded-2xl border border-[#d0aa58] bg-[#fffdf5] p-3 text-left text-sm text-[#27412a]">
     <h3 className="font-black">Resepti tekstistä</h3>
+    <button type="button" className="my-2 rounded-lg border px-3 py-2 text-xs" onClick={()=>setText("Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.")}>Kokeile esimerkkireseptiä: uunilohi</button>
     <p className="my-2 text-xs">Liitä resepti muodossa: nimi, annosmäärä, Ainekset:, ainesrivit ja Valmistus:. Kuvasta tunnistus lisätään myöhemmin.</p>
     <textarea aria-label="Reseptiteksti" value={text} onChange={e=>setText(e.target.value)} rows={4} placeholder={"Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä uunissa."} className="w-full rounded-xl border p-2 text-sm" />
     <button type="button" onClick={importText} className="mt-2 rounded-xl bg-[#174c3a] px-4 py-2 font-bold text-white">Tuo resepti</button>
