@@ -1392,7 +1392,7 @@ out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,ex
 if(p===17){
  const names=['TONNIKALAPALOJA','AURINGONKUKKAÖLJYSSÄ','VEDESSÄ'];
  const anchors=names.map(t=>wordBoxes.filter(b=>String(b.text).toUpperCase()===t));
- const candidates=out.rows.filter(r=>r.page===p&&/^2\s+PS\s+ja\s+VEDESSÄ\b/i.test(r.title));
+ const candidates=out.rows.filter(r=>r.page===p&&/^2\s+PS\s+ja\s+VEDESSÄ(?=\s|$)/i.test(r.title));
  if(anchors.every(a=>a.length===1)&&candidates.length===1){
   const [a,b,c]=anchors.map(x=>x[0]);
   if(Math.abs(a.left-b.left)<.005&&Math.abs(b.left-c.left)<.025&&
