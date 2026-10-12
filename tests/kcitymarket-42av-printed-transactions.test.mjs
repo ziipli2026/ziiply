@@ -217,5 +217,6 @@ test('42AV automatic full-leaflet audit reports title anomalies without guessing
  });
  assert.equal(byPage.length,20);
  console.log('42AV_PAGE_AUDIT',JSON.stringify(byPage));
+ for(const page of byPage)console.log('42AV_PAGE',page.page,'ROWS',page.rows,'TITLE_ANOMALIES',page.anomalies);
  console.log('42AV_TITLE_AUDIT',JSON.stringify(report));
 });
