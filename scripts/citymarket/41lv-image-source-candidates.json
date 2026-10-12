@@ -11,7 +11,12 @@
       "offerId": "kcm:spatial:15:fazer puikula täysjyväruis 9 kpl/500 g:1.79",
       "approved": false,
       "imageUrl": "https://www.minimani.fi/media/catalog/product/cache/9b19c45c70084e218fc0ce0c3e43ed6e/b/7/b7b08cbf620b2dc65f91693af08dbe9ac356b675_6411402202208.jpg",
-      "imageEvidenceUrl": "https://www.minimani.fi/fazer-puikula-taysrjyvaruis-9kpl-500-g.html"
+      "imageEvidenceUrl": "https://www.minimani.fi/fazer-puikula-taysrjyvaruis-9kpl-500-g.html",
+      "additionalProductEvidenceUrls": [
+        "https://www.s-kaupat.fi/tuote/fazer-puikula-taysjyvaruis-9kpl-500g-taysjyvaruisleipa/6411402202208",
+        "https://www.kespro.com/tuotteet/fazer-puikula-taysjyvaruis-ruisleipa-9kpl-500g-6411402202208",
+        "https://www.metrotukku.fi/fi/EUR/tuotteet/leivat-ja-leivonnaiset/fazer-puikula-taysjyvaruisleipa-9kpl-500g/6411402202208"
+      ]
     },
     {
       "fragment": "ikaffe maustamaton kaurajuoma 1 l",
