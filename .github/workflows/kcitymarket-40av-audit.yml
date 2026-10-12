@@ -41,10 +41,11 @@ jobs:
       - name: Replay archived publisher geometry with current parser
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
-          printf '{"type":"module"}\n' > /tmp/package.json
+          mkdir -p /tmp/kcm-replay/data
+          cp src/app/components/ziiply/offerSearch/providers/*.js /tmp/kcm-replay/
+          cp src/app/components/ziiply/offerSearch/providers/data/kCitymarket41LVPublisherArchive.json /tmp/kcm-replay/data/
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay/parser.mjs
+          printf '{"type":"module"}\n' > /tmp/kcm-replay/package.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import {execFileSync} from 'node:child_process';
@@ -55,7 +56,7 @@ jobs:
               console.log('KCM_REPLAY_PENDING_CAPTURE',entry.id);
               continue;
             }
-            execFileSync('node',['scripts/citymarket/replay-frozen-parser.mjs',folder,entry.fixture,'/tmp/kcm-replay-parser.mjs'],{stdio:'inherit'});
+            execFileSync('node',['scripts/citymarket/replay-frozen-parser.mjs',folder,entry.fixture,'/tmp/kcm-replay/parser.mjs'],{stdio:'inherit'});
           }
           NODE
       - name: Verify frozen Citymarket fixtures and current live leaflet
@@ -167,12 +168,13 @@ jobs:
       - name: Replay newly captured publication without network
         shell: bash
         run: |
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay-parser.mjs
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserApproved41LV.js /tmp/kCitymarketSpatialParserApproved41LV.js
-          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js /tmp/kCitymarketSpatialParserCurrent.js
-          printf '{"type":"module"}\n' > /tmp/package.json
+          mkdir -p /tmp/kcm-replay/data
+          cp src/app/components/ziiply/offerSearch/providers/*.js /tmp/kcm-replay/
+          cp src/app/components/ziiply/offerSearch/providers/data/kCitymarket41LVPublisherArchive.json /tmp/kcm-replay/data/
+          cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-replay/parser.mjs
+          printf '{"type":"module"}\n' > /tmp/kcm-replay/package.json
           FIXTURE=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.fixture")
-          node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-leaflet-archive "$FIXTURE" /tmp/kcm-replay-parser.mjs
+          node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-leaflet-archive "$FIXTURE" /tmp/kcm-replay/parser.mjs
       - name: Commit verified source to permanent archive branch
         shell: bash
         run: |

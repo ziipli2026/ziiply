@@ -26,9 +26,46 @@ async function tjek(name: string, params: Row): Promise<unknown> {
   }
   throw new Error("Tjek "+name+" response missing");
 }
+function selectedStoreOffer(entry:{id:string;offer:Row},store:Row,publication:Row,now:number):Row|null{
+  const {id,offer}=entry;
+  const storeId=String(store.id??""),publicationId=String(publication.id??"");
+  if(String(offer.publicationPublicId??publicationId)!==publicationId)return null;
+  const title=String(offer.name??"").trim();
+  const regular=numeric(offer.price),member=numeric(offer.membershipPrice),app=numeric(offer.appPrice);
+  const price=app??member??regular??numeric(offer.fromPrice);
+  const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
+  const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
+  if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now)return null;
+  // Exclude non-daily merchandise from store-specific campaigns too.
+  // National leaflet filtering alone does not cover this independent source.
+  if(classifyCitymarketCategory(title)==="Koti & vapaa-aika")return null;
+  const qty=numeric(offer.pieceCountFrom);
+  const rawQuantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
+  const transaction=resolvePackageTransaction(title,String(offer.description??""),price,rawQuantity,numeric(offer.unitPrice),String(offer.baseUnit??""));
+  const quantity=transaction.quantity,unit=transaction.unit,unitValue=transaction.unitPrice;
+  return {id:"citymarket-local-"+storeId+"-"+id,title,name:title,productName:title,price,
+    priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
+    previousPrice:regular!=null&&regular!==price?regular:null,
+    unitPrice:unitValue==null?"":unitValue.toFixed(2).replace(".",",")+(unit?"/"+unit:""),
+    imageUrl:String(offer.imageLarge??offer.image??""),
+    storeId,storeName:String(store.name),storeLabel:String(store.name),chain:"K",storeType:"K-Citymarket",
+    source:"K-Citymarket kauppakohtainen julkaisu",provider:"kcitymarket-local",offerId:id,
+    additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null?"Plussa-tarjous":undefined,
+    validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
+    isPlussaOffer:member!=null,offerQuantity:quantity,offerUnit:transaction.packageCount?"PKT":quantity?"KPL":null,packageCount:transaction.packageCount,deposit:transaction.deposit,
+    sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
+    category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}};
+}
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const wanted=normalize(selectedStoreName);
   if (!wanted.includes("citymarket") || wanted.length < 13) return [];
+  if(process.env.VERCEL_ENV==="preview"&&process.env.VERCEL_GIT_COMMIT_REF==="preview/mobile-citymarket-41lv-corrected"){
+    const {default:archive}=await import("./data/kCitymarket41LVLocalPublisherArchive.json");
+    if(wanted!==normalize(archive.storeName))return [];
+    const store={id:archive.storeId,name:archive.storeName},publication={id:archive.publicationId};
+    const now=Date.parse(archive.referenceTime);
+    return archive.offers.flatMap(entry=>{const row=selectedStoreOffer(entry,store,publication,now);return row?[row]:[];});
+  }
   const stores=asRows(await tjek("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
   const matching=stores.filter(s => normalize(s.name)===wanted);
   // No substring fallback: never silently import another store's publication.
@@ -58,33 +95,8 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       }));
       for(const entry of fetched){
         if(!entry)continue;
-        const {id,offer}=entry;
-        if(String(offer.publicationPublicId??publicationId)!==publicationId)continue;
-        const title=String(offer.name??"").trim();
-        const regular=numeric(offer.price),member=numeric(offer.membershipPrice),app=numeric(offer.appPrice);
-        const price=app??member??regular??numeric(offer.fromPrice);
-        const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
-        const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
-        if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now)continue;
-        // Exclude non-daily merchandise from store-specific campaigns too.
-        // National leaflet filtering alone does not cover this independent source.
-        if(classifyCitymarketCategory(title)==="Koti & vapaa-aika")continue;
-        const qty=numeric(offer.pieceCountFrom);
-        const rawQuantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
-        const transaction=resolvePackageTransaction(title,String(offer.description??""),price,rawQuantity,numeric(offer.unitPrice),String(offer.baseUnit??""));
-        const quantity=transaction.quantity,unit=transaction.unit,unitValue=transaction.unitPrice;
-        output.push({id:"citymarket-local-"+storeId+"-"+id,title,name:title,productName:title,price,
-          priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
-          previousPrice:regular!=null&&regular!==price?regular:null,
-          unitPrice:unitValue==null?"":unitValue.toFixed(2).replace(".",",")+(unit?"/"+unit:""),
-          imageUrl:String(offer.imageLarge??offer.image??""),
-          storeId,storeName:String(store.name),storeLabel:String(store.name),chain:"K",storeType:"K-Citymarket",
-          source:"K-Citymarket kauppakohtainen julkaisu",provider:"kcitymarket-local",offerId:id,
-          additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null?"Plussa-tarjous":undefined,
-          validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
-          isPlussaOffer:member!=null,offerQuantity:quantity,offerUnit:transaction.packageCount?"PKT":quantity?"KPL":null,packageCount:transaction.packageCount,deposit:transaction.deposit,
-          sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
-          category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
+        const parsed=selectedStoreOffer(entry,store,publication,now);
+        if(parsed)output.push(parsed);
       }
       }
       if(hotspots.length===0)break;

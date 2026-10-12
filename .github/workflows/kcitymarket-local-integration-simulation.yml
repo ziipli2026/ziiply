@@ -13,6 +13,7 @@ on:
   workflow_dispatch:
 jobs:
   simulation:
+    if: github.ref_name != 'preview/mobile-citymarket-41lv-corrected' && github.head_ref != 'preview/mobile-citymarket-41lv-corrected'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -122,3 +123,19 @@ jobs:
           if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
+
+  archive-simulation:
+    if: github.ref_name == 'preview/mobile-citymarket-41lv-corrected' || github.head_ref == 'preview/mobile-citymarket-41lv-corrected'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install --package-lock=false --no-audit --no-fund
+      - name: Replay corrected archive and selected-store isolation without live publication rollover
+        run: node --test tests/kcitymarket-*.test.* tests/k-offer-tab-policy.test.cjs tests/k-offer-transaction-identity.test.cjs
+      - name: Read-only price audit regression
+        run: node scripts/test-citymarket-price-audit.cjs
