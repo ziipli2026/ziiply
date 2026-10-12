@@ -27,7 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          # Scheduled runs remain on main; manual runs use the selected ref.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref_name || 'main' }}
       - name: Helsinki publication clock
         id: clock
         env:
