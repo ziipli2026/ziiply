@@ -2913,15 +2913,15 @@ function KauppiasMobileTopBar({
       </div>
     </div>
       {electricityChartOpen && (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-[#092e25]/60 px-3 sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
-          <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
+        <div className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+96px)] z-[250] flex items-start justify-center overflow-y-auto bg-[#092e25]/60 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
+          <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-3">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
               <button type="button" onClick={() => setElectricityChartOpen(false)} className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
             </div>
-            {electricityChartStatus ? <p className="py-10 text-center text-[#164b38]">{electricityChartStatus}</p> : (
+            {electricityChartStatus ? <p className="min-h-[210px] py-20 text-center text-[#164b38]">{electricityChartStatus}</p> : (
               <>
-                <div className="flex h-[210px] items-end gap-[2px] border-b-2 border-[#b99961]">
+                <div className="flex h-[210px] animate-[fadeIn_350ms_ease-out] items-end gap-[2px] border-b-2 border-[#b99961]">
                   {electricityChartRows.map((item,index) => {
                     const min = Math.min(0,...electricityChartRows.map(row=>row.price));
                     const max = Math.max(10,...electricityChartRows.map(row=>row.price));
