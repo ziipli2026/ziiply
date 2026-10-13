@@ -8,7 +8,7 @@ const assistants = [
   { key: "arvo" as const, name: "Arvo", title: "Asetukset", subtitle: "Omat valinnat", description: "Ruokavaliot, suosikit, kaupat, sijainti ja muut pysyvät valinnat.", image: "/assistants/arvo.png", frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]", ink: "text-[#314633]" },
 ];
 
-export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false,onReportFuel,onGostaDetails}:{onReportFuel?:()=>void;onGostaDetails?:()=>void;fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
+export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false,onReportFuel,onGostaDetails,onGostaHomeSearch}:{onReportFuel?:()=>void;onGostaDetails?:()=>void;onGostaHomeSearch?:()=>void;fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
   return (
     <div className="grid h-full min-h-0 grid-cols-3 gap-3 xl:gap-4 -mt-3">
       {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
@@ -23,7 +23,7 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
             <button type="button" aria-label={`Avaa ${item.name}`} onClick={()=>onSelect(item.key)} className={`absolute inset-0 z-20 rounded-[31px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#17573c] ${item.key==="gosta"&&!fuelMode?"bottom-[145px]":""}`} />
             <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#7f6a3e_1px,transparent_1px)] [background-size:12px_12px]" />
             {selected && <div className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-[#0a7f3a] text-lg font-black text-white shadow-md">✓</div>}
-            {item.key==="gosta"&&!fuelMode&&<button type="button" onClick={()=>onSelect("gosta")} className="relative z-30 w-full rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-3 py-2 text-[15px] font-black text-[#174c35] shadow-sm hover:bg-white">Tarjoushaku</button>}
+            {item.key==="gosta"&&!fuelMode&&<button type="button" onClick={()=>onGostaHomeSearch?.()} className="relative z-30 w-full rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-3 py-2 text-[15px] font-black text-[#174c35] shadow-sm hover:bg-white">Tarjoushaku</button>}
             <div className="relative z-10 mt-5 h-[clamp(150px,19vh,205px)] w-[clamp(150px,19vh,205px)] shrink-0 self-center overflow-hidden rounded-full border-[6px] border-[#f7e7c4] bg-[#f5e5c1] shadow-[0_11px_0_rgba(65,45,20,0.16),0_24px_38px_rgba(40,55,38,0.18)]">
               <img src={item.image} alt={item.name} className="h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.025]" />
             </div>
