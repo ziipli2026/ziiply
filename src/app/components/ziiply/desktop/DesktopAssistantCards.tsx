@@ -8,7 +8,7 @@ const assistants = [
   { key: "arvo" as const, name: "Arvo", title: "Asetukset", subtitle: "Omat valinnat", description: "Ruokavaliot, suosikit, kaupat, sijainti ja muut pysyvät valinnat.", image: "/assistants/arvo.png", frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]", ink: "text-[#314633]" },
 ];
 
-export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false,onReportFuel}:{onReportFuel?:()=>void;fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
+export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false,onReportFuel,onGostaDetails}:{onReportFuel?:()=>void;onGostaDetails?:()=>void;fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
   return (
     <div className="grid h-full min-h-0 grid-cols-3 gap-3 xl:gap-4 -mt-3">
       {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
@@ -20,9 +20,10 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
             item.frame,
             selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
           ].join(" ")}>
-            <button type="button" aria-label={`Avaa ${item.name}`} onClick={()=>onSelect(item.key)} className="absolute inset-0 z-20 rounded-[31px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#17573c]" />
+            <button type="button" aria-label={`Avaa ${item.name}`} onClick={()=>onSelect(item.key)} className={`absolute inset-0 z-20 rounded-[31px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#17573c] ${item.key==="gosta"&&!fuelMode?"bottom-[145px]":""}`} />
             <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#7f6a3e_1px,transparent_1px)] [background-size:12px_12px]" />
             {selected && <div className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-[#0a7f3a] text-lg font-black text-white shadow-md">✓</div>}
+            {item.key==="gosta"&&!fuelMode&&<button type="button" onClick={()=>onSelect("gosta")} className="relative z-30 w-full rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-3 py-2 text-[15px] font-black text-[#174c35] shadow-sm hover:bg-white">Tarjoushaku</button>}
             <div className="relative z-10 mt-5 h-[clamp(150px,19vh,205px)] w-[clamp(150px,19vh,205px)] shrink-0 self-center overflow-hidden rounded-full border-[6px] border-[#f7e7c4] bg-[#f5e5c1] shadow-[0_11px_0_rgba(65,45,20,0.16),0_24px_38px_rgba(40,55,38,0.18)]">
               <img src={item.image} alt={item.name} className="h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.025]" />
             </div>
@@ -35,7 +36,7 @@ export default function DesktopAssistantCards({active,hasSelectedStores,chooseSt
               </div>
             )}
             <div className={`pointer-events-none relative z-30 -mx-5 mt-auto flex w-[calc(100%+2.5rem)] shrink-0 flex-col items-center justify-start gap-3 border-t-2 border-[#8d805e]/25 px-4 pt-3 pb-5 ${fuelMode && item.key==="gosta"?"min-h-[176px]":"h-[145px]"}`}>
-              <p className={`w-full font-bold text-[#3f4654] ${fuelMode && item.key==="gosta"?"text-[13px] leading-[1.35]":"text-[15px] leading-snug"}`}>{fuelMode && item.key==="gosta" ? "Valittujen asemien hinnat ja havaintoajat. Lähin ensin." : item.description}</p>
+              <p onClick={item.key==="gosta"&&!fuelMode?onGostaDetails:undefined} role={item.key==="gosta"&&!fuelMode?"button":undefined} tabIndex={item.key==="gosta"&&!fuelMode?0:undefined} onKeyDown={item.key==="gosta"&&!fuelMode?(event)=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();onGostaDetails?.();}}:undefined} className={`w-full font-bold text-[#3f4654] ${item.key==="gosta"&&!fuelMode?"pointer-events-auto relative z-30 cursor-pointer rounded-lg p-2 hover:bg-white/40 focus-visible:outline focus-visible:outline-2":""} ${fuelMode && item.key==="gosta"?"text-[13px] leading-[1.35]":"text-[15px] leading-snug"}`}>{fuelMode && item.key==="gosta" ? "Valittujen asemien hinnat ja havaintoajat. Lähin ensin." : item.description}</p>
               {fuelMode && item.key==="gosta" && onReportFuel && <button type="button" onClick={event=>{event.stopPropagation();onReportFuel();}} className="pointer-events-auto relative z-30 flex h-[48px] shrink-0 items-center justify-center gap-3 whitespace-nowrap rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-6 text-[13px] font-black text-[#174c35] shadow-[0_3px_0_rgba(23,87,60,.2)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"><img src="/fuel/nozzle-photo.png" alt="" className="h-7 w-7 shrink-0 object-contain"/><span>Ilmoita hintoja</span></button>}
             </div>
           </div>
