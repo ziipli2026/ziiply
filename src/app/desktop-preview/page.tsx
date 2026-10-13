@@ -234,23 +234,33 @@ export default function DesktopPreviewPage() {
   const [gostaHomeError, setGostaHomeError] = useState("");
   const gostaHomeRequestId = useRef(0);
   const [gostaHomeHasSearched, setGostaHomeHasSearched] = useState(false);
-  const gostaHomeRestored=useRef(false);
   const [gostaHomeHydrated,setGostaHomeHydrated]=useState(false);
   const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
+  const gostaHomeCache=useRef<{query:string;time:number;results:any[]}|null>(null);
+  const gostaHomeCacheKey="ziiply-gosta-home-search-v2";
   useEffect(()=>{
     try{
-      const saved=JSON.parse(window.sessionStorage.getItem("ziiply-gosta-home-search-v1")||"null");
+      const raw=window.localStorage.getItem(gostaHomeCacheKey);
+      const saved=raw?JSON.parse(raw):null;
       if(saved&&typeof saved.query==="string"&&Array.isArray(saved.results)){
-        setGostaHomeQuery(saved.query);setGostaHomeResults(saved.results);
-        setGostaHomeHasSearched(Boolean(saved.query));gostaHomeLastSearch.current={query:saved.query,time:Number(saved.time)||0};
+        gostaHomeCache.current=saved;
+        gostaHomeLastSearch.current={query:saved.query,time:Number(saved.time)||0};
+        setGostaHomeQuery(saved.query);
+        setGostaHomeResults(saved.results);
+        setGostaHomeHasSearched(Boolean(saved.query));
       }
     }catch{}
-    gostaHomeRestored.current=true;
     setGostaHomeHydrated(true);
   },[]);
   useEffect(()=>{
     if(!gostaHomeHydrated)return;
-    try{window.sessionStorage.setItem("ziiply-gosta-home-search-v1",JSON.stringify({query:gostaHomeQuery,results:gostaHomeResults,time:gostaHomeLastSearch.current.query===gostaHomeQuery?gostaHomeLastSearch.current.time:0}));}catch{}
+    if(gostaHomeCache.current?.query===gostaHomeQuery&&gostaHomeCache.current.results===gostaHomeResults)return;
+    if(!gostaHomeQuery.trim()||!gostaHomeResults.length)return;
+    // Persist only display fields; full parser diagnostics and images can exceed browser storage limits.
+    const fields=["id","ean","title","name","pictureUrl","imageUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
+    const results=gostaHomeResults.map((offer:any)=>Object.fromEntries(fields.filter(key=>offer[key]!==undefined).map(key=>[key,offer[key]])));
+    const saved={query:gostaHomeQuery,results,time:gostaHomeLastSearch.current.query===gostaHomeQuery?gostaHomeLastSearch.current.time:Date.now()};
+    try{window.localStorage.setItem(gostaHomeCacheKey,JSON.stringify(saved));gostaHomeCache.current=saved;}catch{}
   },[gostaHomeQuery,gostaHomeResults,gostaHomeHydrated]);
 
   const [gostaSavedWatches, setGostaSavedWatches] = useState<string[]>([]);
@@ -1171,10 +1181,10 @@ export default function DesktopPreviewPage() {
 
   useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
   useEffect(()=>{if(!gostaHomeSearchOpen||gostaHomeQuery.trim().length<2)return;const timer=window.setTimeout(()=>setGostaHomeDebouncedQuery(gostaHomeQuery.trim()),450);return()=>window.clearTimeout(timer);},[gostaHomeQuery,gostaHomeSearchOpen]);
-  useEffect(()=>{if(!gostaHomeHydrated||!gostaHomeSearchOpen||gostaHomeDebouncedQuery.trim().length<2||gostaHomeDebouncedQuery!==gostaHomeQuery.trim())return;if(gostaHomeLastSearch.current.query===gostaHomeQuery&&Date.now()-gostaHomeLastSearch.current.time<15*60*1000)return;void searchGostaHomepageOffers();},[gostaHomeDebouncedQuery,gostaHomeSearchOpen,gostaHomeHydrated]);
+  useEffect(()=>{if(!gostaHomeHydrated||!gostaHomeSearchOpen||gostaHomeDebouncedQuery.trim().length<2||gostaHomeDebouncedQuery!==gostaHomeQuery.trim())return;if(gostaHomeCache.current?.query===gostaHomeQuery&&Date.now()-gostaHomeCache.current.time<15*60*1000)return;void searchGostaHomepageOffers();},[gostaHomeDebouncedQuery,gostaHomeSearchOpen,gostaHomeHydrated]);
   useEffect(()=>{
     if(!gostaHomeSearchOpen||!gostaHomeHydrated||!gostaHomeQuery.trim())return;
-    if(gostaHomeLastSearch.current.query===gostaHomeQuery&&Date.now()-gostaHomeLastSearch.current.time<15*60*1000)return;
+    if(gostaHomeCache.current?.query===gostaHomeQuery&&Date.now()-gostaHomeCache.current.time<15*60*1000)return;
     if(!stores.length&&!lidlStores.length&&!sparStores.length)return;
     const timer=window.setTimeout(()=>{void searchGostaHomepageOffers();},750);
     return()=>window.clearTimeout(timer);
@@ -1208,6 +1218,14 @@ export default function DesktopPreviewPage() {
   async function searchGostaHomepageOffers() {
     const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
     if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
+    const cached=gostaHomeCache.current;
+    if(cached&&cached.query.trim().toLocaleLowerCase("fi")===query&&Date.now()-cached.time<15*60*1000){
+      setGostaHomeResults(cached.results);
+      setGostaHomeHasSearched(true);
+      setGostaHomeLoading(false);
+      setGostaHomeError("");
+      return;
+    }
     const nearbyOfferStores=gostaNearbyOfferStores();
     if(!nearbyOfferStores.length){setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
     const request=++gostaHomeRequestId.current;
@@ -1220,7 +1238,7 @@ export default function DesktopPreviewPage() {
     }));
     if(request!==gostaHomeRequestId.current)return;
     const refreshed=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]).sort((a:any,b:any)=>a.__gostaHomeDistance-b.__gostaHomeDistance).slice(0,120);
-    if(refreshed.length||batches.every(batch=>batch.status==="fulfilled")){setGostaHomeResults(refreshed);gostaHomeLastSearch.current={query:gostaHomeQuery,time:Date.now()};}
+    if(refreshed.length||batches.every(batch=>batch.status==="fulfilled")){const time=Date.now();setGostaHomeResults(refreshed);gostaHomeLastSearch.current={query:gostaHomeQuery,time};gostaHomeCache.current=null;}
     if(batches.some(batch=>batch.status==="rejected"))setGostaHomeError("Osan kaupoista tarjouksia ei saatu ladattua.");
     setGostaHomeLoading(false);
   }
