@@ -255,13 +255,9 @@ export default function DesktopPreviewPage() {
   function gostaCacheResults(saved:{query:string;time:number;results:any[]}){
     const now=Date.now();
     if(!Array.isArray(saved.results)||!Number.isFinite(saved.time))return null;
-    // A cached set is reusable only while its unknown-date offers are fresh.
-    if(saved.results.some(offer=>gostaCacheExpiry(offer)===null)&&now-saved.time>=gostaHomeCacheTtl)return null;
-    const valid=saved.results.filter(offer=>{const until=gostaCacheExpiry(offer);return until===null||until>=now;});
-    // Expired offers require a fresh search so newly started campaigns are not missed.
-    if(valid.length!==saved.results.length)return null;
-    if(now-saved.time>=gostaHomeCacheTtl)return null;
-    return valid;
+    // Show the previous results instantly even when background refresh is due.
+    // Never show offers whose explicit expiry date has passed.
+    return saved.results.filter(offer=>{const until=gostaCacheExpiry(offer);return until===null||until>=now;});
   }
   function readGostaCache(queryInput:string){
     const query=queryInput.trim().toLocaleLowerCase("fi");
@@ -1254,16 +1250,17 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{
     if(!gostaHomeSearchOpen||!gostaHomeHydrated||gostaHomeQuery.trim().length<2)return;
     const query=gostaHomeQuery.trim();
+    const cached=readGostaCache(query);
+    if(cached){
+      setGostaHomeResults(cached.results);
+      setGostaHomeHasSearched(true);
+      setGostaHomeLoading(false);
+      // A cached search must never wait for the typing debounce.
+      if(Date.now()-cached.time<gostaHomeCacheTtl)return;
+    }
     const timer=window.setTimeout(()=>{
-      const cached=readGostaCache(query);
-      if(cached){
-        setGostaHomeResults(cached.results);
-        setGostaHomeHasSearched(true);
-        setGostaHomeLoading(false);
-        return;
-      }
-      void searchGostaHomepageOffers();
-    },justiinaDelay*1000);
+      void searchGostaHomepageOffers(true);
+    },cached?100:justiinaDelay*1000);
     return()=>window.clearTimeout(timer);
   // Search only on edited query and opening; results must not trigger another request.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1294,11 +1291,11 @@ export default function DesktopPreviewPage() {
     },1200);
     return ()=>{cancelled=true;window.clearTimeout(timer);};
   },[stores,lidlStores,sparStores,allStoreSelections,selectedStores,withinStoreSlots,gpsCoords,appliedLocation]);
-  async function searchGostaHomepageOffers() {
+  async function searchGostaHomepageOffers(forceRefresh=false) {
     const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
     if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
     const cached=readGostaCache(query);
-    if(cached){
+    if(cached&&!forceRefresh){
       setGostaHomeResults(cached.results);
       setGostaCacheStatus(`Välimuistiosuma (${cached.results.length} tarjousta)`);
       setGostaHomeHasSearched(true);
@@ -1309,7 +1306,7 @@ export default function DesktopPreviewPage() {
     const nearbyOfferStores=gostaNearbyOfferStores();
     if(!nearbyOfferStores.length){setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
     const request=++gostaHomeRequestId.current;
-    setGostaHomeLoading(true);setGostaHomeHasSearched(true);setGostaHomeError("");
+    if(!cached)setGostaHomeLoading(true);setGostaHomeHasSearched(true);setGostaHomeError("");
     const batches=await Promise.allSettled(nearbyOfferStores.map(async store=>{
       const kind=storeKind(store);
       const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
