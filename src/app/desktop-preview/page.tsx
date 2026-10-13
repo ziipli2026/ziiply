@@ -238,22 +238,46 @@ export default function DesktopPreviewPage() {
   const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
   const gostaHomeCache=useRef<{query:string;time:number;results:any[]}|null>(null);
   const [gostaCacheStatus,setGostaCacheStatus]=useState("Välimuistia ei vielä tarkistettu");
-  const gostaHomeCacheKey="ziiply-gosta-home-search-v5";
-  const gostaHomeCacheTtl=60*60*1000;
+  const gostaHomeCacheKey="ziiply-gosta-home-search-v6";
+  const gostaHomeHistoryKey="ziiply-gosta-home-search-history-v1";
+  const gostaHomeCacheTtl=15*60*1000; // Unknown validity: recheck after 15 minutes.
   const gostaHomeCacheMap=useRef<Record<string,{query:string;time:number;results:any[]}>>({});
-  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
+  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validFrom","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
+  function gostaCacheExpiry(offer:any){
+    const raw=String(offer.validUntil||"").trim();
+    if(!raw)return null;
+    // Only interpret unambiguous full dates; never guess the year from display text.
+    const match=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})(?:[T ](.*))?$/);
+    if(!match)return null;
+    const parsed=match[4]?Date.parse(raw):new Date(Number(match[1]),Number(match[2])-1,Number(match[3]),23,59,59,999).getTime();
+    return Number.isFinite(parsed)?parsed:null;
+  }
+  function gostaCacheResults(saved:{query:string;time:number;results:any[]}){
+    const now=Date.now();
+    if(!Array.isArray(saved.results)||!Number.isFinite(saved.time))return null;
+    // A cached set is reusable only while its unknown-date offers are fresh.
+    if(saved.results.some(offer=>gostaCacheExpiry(offer)===null)&&now-saved.time>=gostaHomeCacheTtl)return null;
+    const valid=saved.results.filter(offer=>{const until=gostaCacheExpiry(offer);return until===null||until>=now;});
+    // Expired offers require a fresh search so newly started campaigns are not missed.
+    if(valid.length!==saved.results.length)return null;
+    if(now-saved.time>=gostaHomeCacheTtl)return null;
+    return valid;
+  }
   function readGostaCache(queryInput:string){
     const query=queryInput.trim().toLocaleLowerCase("fi");
     if(query.length<2)return null;
-    const existing=gostaHomeCacheMap.current[query];
-    if(existing&&Array.isArray(existing.results)&&Date.now()-existing.time<gostaHomeCacheTtl)return existing;
-    try{
-      const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey);
-      const parsed=raw?JSON.parse(raw):{};
-      if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))gostaHomeCacheMap.current=parsed;
-    }catch{}
-    const saved=gostaHomeCacheMap.current[query];
-    return saved&&Array.isArray(saved.results)&&Number.isFinite(saved.time)&&Date.now()-saved.time<gostaHomeCacheTtl?saved:null;
+    let saved=gostaHomeCacheMap.current[query];
+    if(!saved){
+      try{
+        const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey);
+        const parsed=raw?JSON.parse(raw):{};
+        if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))gostaHomeCacheMap.current=parsed;
+      }catch{}
+      saved=gostaHomeCacheMap.current[query];
+    }
+    if(!saved)return null;
+    const results=gostaCacheResults(saved);
+    return results?{...saved,results}:null;
   }
   function restoreGostaCachedQuery(input:string){
     const cached=readGostaCache(input);
@@ -272,13 +296,18 @@ export default function DesktopPreviewPage() {
     const saved={query,results,time};
     gostaHomeCache.current=saved;
     gostaHomeCacheMap.current[query]=saved;
-    const entries=Object.entries(gostaHomeCacheMap.current).filter(([,value])=>value&&Array.isArray(value.results)&&time-value.time<gostaHomeCacheTtl).sort((a,b)=>b[1].time-a[1].time).slice(0,12);
-    gostaHomeCacheMap.current=Object.fromEntries(entries);
-    const serialized=JSON.stringify(gostaHomeCacheMap.current);
+    try{
+      const old=JSON.parse(window.localStorage.getItem(gostaHomeHistoryKey)||"[]");
+      const history=Array.isArray(old)?old.filter((q:any)=>typeof q==="string"&&q!==query):[];
+      history.push(query);
+      window.localStorage.setItem(gostaHomeHistoryKey,JSON.stringify(history));
+    }catch{}
+    // Keep all search terms in history. Result snapshots are best-effort under browser storage quotas.
+    const entries=Object.entries(gostaHomeCacheMap.current).filter(([,value])=>value&&Array.isArray(value.results)).sort((a,b)=>b[1].time-a[1].time);
     for(const storage of [window.localStorage,window.sessionStorage]){
-      try{storage.setItem(gostaHomeCacheKey,serialized);}
-      catch{
-        try{storage.removeItem("ziiply-desktop-offers-cache-v9");storage.setItem(gostaHomeCacheKey,serialized);}catch{}
+      for(let count=entries.length;count>=0;count--){
+        try{storage.setItem(gostaHomeCacheKey,JSON.stringify(Object.fromEntries(entries.slice(0,count))));break;}
+        catch{if(count===0)break;}
       }
     }
   }
@@ -1225,7 +1254,6 @@ export default function DesktopPreviewPage() {
     if(!gostaHomeSearchOpen||!gostaHomeHydrated||gostaHomeQuery.trim().length<2)return;
     const query=gostaHomeQuery.trim();
     const timer=window.setTimeout(()=>{
-      if(gostaHomeLastSearch.current.query===query&&Date.now()-gostaHomeLastSearch.current.time<gostaHomeCacheTtl&&gostaHomeResults.length)return;
       const cached=readGostaCache(query);
       if(cached){
         setGostaHomeResults(cached.results);
