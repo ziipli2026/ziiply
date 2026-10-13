@@ -14,7 +14,7 @@ useEffect(()=>{
   const check=()=>{
     const input=inputRef.current,measure=measureRef.current;
     if(!input||!measure)return;
-    setListExpanded(Boolean(query)&&measure.getBoundingClientRect().width>input.getBoundingClientRect().width-106);
+    setListExpanded(Boolean(query)&&measure.getBoundingClientRect().width>Math.max(80,(input.closest("[data-justiina-search-grid]")?.getBoundingClientRect().width||480)/2-122));
   };
   check();
   window.addEventListener("resize",check);
@@ -28,7 +28,7 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
     <button type="button" onClick={onDelayChange} title="Vaihda hakutahtia" aria-label={`Hakutahti: ${delay===2?"Normaali, 2 sekuntia":delay===1?"Nopea, 1 sekunti":"Heti, 0 sekuntia"}. Vaihda hakutahtia.`} className="absolute left-12 top-0 flex h-9 items-center gap-1 rounded-full border-2 border-[#b89959] bg-[#fff8dd] px-2 text-[11px] font-black text-[#174c3a] shadow-sm hover:bg-[#f7e8b9]">⏱ <span>{delay===2?"2 s":delay===1?"1 s":"0 s"}</span></button>
   </div>
   <div className="mt-2 flex min-h-0 flex-col">
-    <div className="relative mt-2 grid grid-cols-2 items-start gap-x-3 gap-y-2">
+    <div data-justiina-search-grid className="relative mt-2 grid grid-cols-2 items-center gap-x-3 gap-y-1">
       <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 col-start-1 row-start-1 h-[54px] min-w-0 ${listExpanded?"col-span-2":"col-span-1"}`}>
         <div className="relative h-[54px]">
           <span ref={measureRef} aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-0 whitespace-pre font-serif text-[17px] font-black">{query||""}</span>
@@ -36,14 +36,15 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
           {query.trim()&&<><button type="button" onClick={()=>{onQueryChange("");setListExpanded(false);inputRef.current?.focus()}} aria-label="Tyhjennä hakukenttä" className="absolute right-[51px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#d0aa4f] bg-[#fff1c9]">🧽</button><button type="submit" aria-label="Hae kirjoitetut tuotteet" className="absolute right-[7px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#477350] bg-[#e2edcf]">🧺</button></>}
         </div>
       </form>
-      <div className="col-start-2 row-start-1 min-w-0"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
+      <div role="status" aria-live="polite" className="col-start-1 row-start-2 min-w-0 px-1 text-center text-[12px] font-bold text-[#765f3f]">{!loading && results.length===0 ? (message||"Kirjoita tuote, tuoteryhmä tai ostoslista.") : ""}</div>
+      <div className="col-start-2 row-start-1 row-span-2 min-w-0 self-center"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
     </div>
     {loading ? <div role="status" aria-live="polite" aria-label="Justiina hakee tuotteita" className="relative mt-2 h-[38px] overflow-hidden rounded-xl border border-[#d0aa58] bg-[#fff8dd]">
       <style>{`@keyframes justiina-cart-drive{0%{left:-58px}100%{left:calc(100% + 8px)}}@keyframes justiina-cart-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}@media(prefers-reduced-motion:reduce){.justiina-cart-drive,.justiina-cart-bob{animation:none!important}.justiina-cart-drive{left:12px!important}}`}</style>
       <div aria-hidden="true" className="absolute left-4 right-4 top-[15px] border-t-2 border-dashed border-[#65866b]" />
       <span aria-hidden="true" className="justiina-cart-drive absolute top-[2px] z-10 text-[25px] leading-none" style={{animation:"justiina-cart-drive 3.8s linear infinite"}}><span className="justiina-cart-bob inline-block" style={{animation:"justiina-cart-bob .55s ease-in-out infinite"}}>🛒</span></span>
       <span className="absolute inset-x-0 bottom-[1px] z-20 text-center text-[11px] font-black text-[#174c3a] [text-shadow:0_1px_2px_#fff8dd,0_-1px_2px_#fff8dd]">Justiina kerää tuotteita ostoskoriin…</span>
-    </div> : results.length>0 ? <button type="button" onClick={onReopenResults} aria-label="Avaa tehdyn haun tuotevalinta" className="mt-1 rounded-xl border border-[#d0aa58] bg-[#fff8dd] px-3 py-2 text-center text-[12px] font-bold text-[#174c3a] hover:bg-[#f7e8b9]">Tehty haku: <span className="font-black">{query.trim()}</span> · {results.length} tuotetta löytyi <span aria-hidden="true">→</span></button> : <div role="status" aria-live="polite" className="mt-2 min-h-[24px] text-center text-[13px] font-black text-[#765f3f]">{message||"Kirjoita tuote, tuoteryhmä tai ostoslista."}</div>}
+    </div> : results.length>0 ? <button type="button" onClick={onReopenResults} aria-label="Avaa tehdyn haun tuotevalinta" className="mt-1 rounded-xl border border-[#d0aa58] bg-[#fff8dd] px-3 py-2 text-center text-[12px] font-bold text-[#174c3a] hover:bg-[#f7e8b9]">Tehty haku: <span className="font-black">{query.trim()}</span> · {results.length} tuotetta löytyi <span aria-hidden="true">→</span></button> : null}
     {voice.message && <div role="status" aria-live="polite" className="mt-1 text-center text-[13px] font-bold text-[#174c3a]">{voice.message}</div>}
     <div className="mt-2 flex shrink-0 items-center gap-2"><button type="button" onClick={()=>void voice.toggle()} disabled={voice.state==="processing"} aria-label={voice.state==="recording"?"Lopeta äänitys":"Äänitä ostoslista"} aria-pressed={voice.state==="recording"} title={voice.state==="recording"?"Lopeta äänitys":"Äänitä ostoslista"} className="relative h-[104px] min-w-0 flex-1 overflow-hidden rounded-[20px] border-2 border-[#c89b44] bg-gradient-to-b from-[#2f3326] to-[#0f140f] p-0 disabled:cursor-wait"><img src={voice.state==="recording"?"/ui/voice/aanita-on.webp":voice.state==="processing"?"/ui/voice/aanita-search.webp":"/ui/voice/aanita-off.webp"} alt="" draggable={false} className="absolute inset-[4%] h-[92%] w-[92%] object-contain" /></button><button type="button" onClick={onOpenCart} aria-label="Avaa ostoskori" title="Avaa ostoskori" className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-full border-[4px] border-[#7b6034] bg-[#d8c08c] shadow-[0_5px_12px_rgba(0,0,0,0.18),inset_0_2px_0_rgba(255,255,255,0.55)]"><span className="flex h-[46px] w-[46px] items-center justify-center rounded-full border-[2px] border-[#efe2b8] bg-[#16472c] text-[26px] leading-none">🧺</span></button><button type="button" onClick={onOpenScanner} aria-label="Avaa EAN-skanneri" title="Avaa EAN-skanneri" className="relative h-[104px] min-w-0 flex-1 overflow-hidden rounded-[20px] border-2 border-[#c89b44] bg-gradient-to-b from-[#2f3326] to-[#0f140f] p-0"><img src="/ui/scanner/scanner-idle.webp" alt="" draggable={false} className="absolute inset-[4%] h-[92%] w-[92%] object-contain" /></button></div>
   </div>
