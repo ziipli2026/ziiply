@@ -1823,8 +1823,8 @@ export function productGroupGate(sourceName: string, targetName: string) {
   };
   const excludedPrepared: Record<string, RegExp> = {
     sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen/i,
-    merisuola: /riisikakku|sipsi|perunalastu|näkkileipä|keksi|pähkinä/i,
-    etikka: /mausteseos|grillimauste|kastike|sipsi|etikkapunajuuri/i,
+    merisuola: /riisikak|sips|perunalast|näkkilei|keks|pähkin|suolapähkin/i,
+    etikka: /mausteseos|grillimauste|kastike|sips|etikkapunajuuri|maalaissips/i,
     silakka: /silakkalaatikko|silakkapihvi|silakkasäilyke|silakkapyörykkä/i,
   };
   if (exactGroups[requested]) {
