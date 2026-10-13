@@ -493,6 +493,12 @@ export const SEARCH_ALIASES: Record<string, string> = {
   oljy: "öljy",
   kahvi: "kahvi",
   kahvia: "kahvi",
+  // Broad category words: expand to the product families, not only literal names.
+  limsa: "virvoitusjuoma",
+  limsat: "virvoitusjuoma",
+  limu: "virvoitusjuoma",
+  limut: "virvoitusjuoma",
+  virvoitusjuomat: "virvoitusjuoma",
   cola: "cola",
   vola: "cola",
   kokis: "cola",
@@ -707,6 +713,14 @@ export const SEARCH_INTENTS: SearchIntent[] = [
     preferredBrands: ["juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"],
   },
   {
+    category: "soft_drink",
+    label: "Virvoitusjuomat",
+    variants: ["limsa", "limsat", "limu", "limut", "virvoitusjuoma", "virvoitusjuomat"],
+    requiredAny: ["virvoitusjuoma", "limsa", "limu", "cola", "coca-cola", "pepsi", "fanta", "sprite", "jaffa", "7up", "7-up", "pommac", "schweppes", "mountain dew", "dr pepper"],
+    preferredAny: ["virvoitusjuoma", "cola", "coca-cola", "pepsi", "fanta", "sprite", "jaffa"],
+    bannedAny: ["karkki", "makeinen", "pastilli", "purukumi", "jäätelö", "jaatelo", "siirappi", "tiiviste", "energiajuoma", "olut", "alkoholi", "kastike"],
+  },
+  {
     category: "cola",
     label: "Cola-juomat",
     variants: ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "cola zero", "coca cola zero", "virvoitusjuoma cola"],
@@ -919,6 +933,11 @@ export function getNormalSearchQueries(term: string) {
   const words = getNormalizedWords(term).filter((word) => word.length > 2);
   const primaryProductNounQuery = getPrimaryProductNounQuery(term);
   const colaSpecificQueries = getColaSpecificSearchQueries(term);
+  // Category-first query expansion shared by desktop and mobile normal search.
+  // Exact brand/variant searches remain unchanged.
+  if(intent.category==="soft_drink"){
+    return uniqueNormalizedQueries([term,"virvoitusjuoma","cola","pepsi","fanta","sprite","jaffa","limsa","limu","pommac","schweppes"]);
+  }
 
   // Tarkat moniosaiset haut eivät saa pudota yksittäiseen sanaan.
   // Tämä estää loopit kuten "Coca Cola zero 1,5L" -> "cola"
@@ -1969,6 +1988,11 @@ export function productGroupGate(sourceName: string, targetName: string) {
 
   // Maito ja kahvi eivät saa käyttää kovaa tuoteryhmäporttia:
   // aiempi versio pudotti liikaa oikeita tuotteita pois.
+
+  if (["limsa","limsat","limu","limut","virvoitusjuoma","virvoitusjuomat"].includes(source)) {
+    if (/(karkki|makeinen|pastilli|purukumi|jaatelo|siirappi|tiiviste|energiajuoma|olut|alkohol|kastike)/.test(target)) return false;
+    if (!/(virvoitusjuoma|limsa|limu|cola|coca-cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes|mountain dew|dr pepper)/.test(target)) return false;
+  }
 
   const sourceIsCola = hasAnyToken(source, ["cola", "coca-cola", "coca cola", "pepsi", "kokis"]);
   if (sourceIsCola) {
