@@ -7869,7 +7869,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return true;
   }
 
-  async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false) {
+  async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false, recipeTerms?: string[]) {
     const cleaned = getVoiceSearchCandidateV456(rawValue);
     const recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1"));
     if (recipeDebugActive) appendRecipeDebug("search-start", { rawValue, cleaned, force });
@@ -7909,9 +7909,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .map((term) => fixText(String(term || "")).trim())
       .filter(Boolean);
 
-    const voiceTerms = parsedVoiceTerms.length > 0
-      ? parsedVoiceTerms
-      : [getSingleSearchTerm(cleaned) || cleaned].filter(Boolean);
+    // A structured recipe is already a list: do not run it through speech
+    // cleanup, which truncates long lists and drops the final ingredients.
+    const voiceTerms = recipeTerms?.length
+      ? recipeTerms.map(term => fixText(String(term || "")).trim()).filter(Boolean)
+      : parsedVoiceTerms.length > 0
+        ? parsedVoiceTerms
+        : [getSingleSearchTerm(cleaned) || cleaned].filter(Boolean);
     if (recipeDebugActive) appendRecipeDebug("terms-after-normalization", { parsedVoiceTerms, voiceTerms });
 
     pushVoiceDebugV507(
@@ -22588,7 +22592,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
                   onClose={() => setActiveAssistant(null)}
-                  onSearchIngredients={(terms) => { setActiveAssistant(null); void runVoiceSearchFromSpeechV453(terms.join(", "), true); }}
+                  onSearchIngredients={(terms) => { setActiveAssistant(null); void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms); }}
                   selectedChains={selectedChains}
                   onChangeChain={(chain, enabled) => setSelectedChains(current => ({...current, [chain]: enabled}))}
                   locationLabel={activeArea.label || locationInput}
@@ -23813,7 +23817,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setNotebookOpen(false);
             }}
             onDeleteList={(list) => deleteSavedShoppingList(String(list.id))}
-            onSearchIngredients={(terms) => { setNotebookOpen(false); void runVoiceSearchFromSpeechV453(terms.join(", "), true); }}
+            onSearchIngredients={(terms) => { setNotebookOpen(false); void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms); }}
           />
         )}
 
