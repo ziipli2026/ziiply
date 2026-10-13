@@ -1,8 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { parseRecipeText, scaleIngredients, type RecipeDraft } from "./recipeCore";
 
 export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearchIngredients?: (terms: string[]) => void }) {
+  const [open,setOpen]=useState(false);
+  const [hydrated,setHydrated]=useState(false);
   const [text, setText] = useState("");
   const [draft, setDraft] = useState<RecipeDraft | null>(null);
   const [original, setOriginal] = useState("");
@@ -10,6 +13,21 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
   const [notice, setNotice] = useState("");
   const [ingredientIndex, setIngredientIndex] = useState<number | null>(null);
   const [done, setDone] = useState<string[]>([]);
+  useEffect(()=>{
+    try{const saved=JSON.parse(sessionStorage.getItem("ziiply-justiina-recipe-draft-v1")||"null");
+      if(saved){setText(String(saved.text||""));setOriginal(String(saved.original||""));setTarget(String(saved.target||""));
+        if(saved.draft&&Array.isArray(saved.draft.ingredients))setDraft(saved.draft);
+        if(Array.isArray(saved.done))setDone(saved.done);
+        if(Number.isInteger(saved.ingredientIndex)&&saved.ingredientIndex>=0)setIngredientIndex(saved.ingredientIndex);
+      }
+    }catch{}setHydrated(true);
+  },[]);
+  useEffect(()=>{if(!hydrated)return;try{sessionStorage.setItem("ziiply-justiina-recipe-draft-v1",JSON.stringify({text,draft,original,target,done,ingredientIndex}))}catch{}},[hydrated,text,draft,original,target,done,ingredientIndex]);
+  useEffect(()=>{if(!open)return;const close=(event:KeyboardEvent)=>{if(event.key==="Escape")setOpen(false)};document.addEventListener("keydown",close);return()=>document.removeEventListener("keydown",close)},[open]);
+  const searchIngredient=(name:string,index:number)=>{
+    try{sessionStorage.setItem("ziiply-justiina-recipe-draft-v1",JSON.stringify({text,draft,original,target,done,ingredientIndex:index}))}catch{}
+    onSearchIngredients?.([name]);setOpen(false);
+  };
   const importText = () => {
     if (!text.trim()) { setNotice("Liitä ensin reseptin teksti."); return; }
     const next = parseRecipeText(text);
@@ -25,7 +43,11 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
   const scaled = validServings ? scaleIngredients(ingredients, Number(original), Number(target)) : ingredients;
   const pending = scaled.filter(x => !x.atHome && x.name.trim());
   const canSearch = validServings && ingredients.length > 0 && ingredients.every(x => x.atHome || (!x.uncertain && x.name.trim() && x.amount !== null && x.unit));
-  return <div className="mt-3 max-h-[55dvh] overflow-y-auto rounded-2xl border border-[#d0aa58] bg-[#fffdf5] p-3 text-left text-sm text-[#27412a]">
+  return <><button type="button" onClick={()=>setOpen(true)} className="mt-3 shrink-0 rounded-xl border-2 border-[#b99d62] bg-[#fff4d6] px-4 py-3 font-black text-[#174c3a]">{draft?"Jatka reseptiä: "+draft.title:"Resepti tekstistä"}</button>
+    {open&&hydrated&&createPortal(<div className="fixed inset-0 z-[180] flex items-center justify-center bg-[#17352a]/40 p-3">
+    <section role="dialog" aria-modal="true" aria-label="Justiinan resepti" className="flex max-h-[calc(100dvh-32px)] w-full max-w-[720px] flex-col overflow-hidden rounded-2xl border-2 border-[#b99d62] bg-[#fffdf5] text-left text-sm text-[#27412a]">
+    <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#d0aa58] bg-[#fff4d6] p-3"><strong>Justiina · Resepti</strong><button type="button" onClick={()=>setOpen(false)} aria-label="Sulje resepti" className="rounded-full border px-3 py-2 font-black">Sulje ×</button></header>
+    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
     <h3 className="font-black">Resepti tekstistä</h3>
     <button type="button" className="my-2 rounded-lg border px-3 py-2 text-xs" onClick={()=>setText("Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.")}>Kokeile esimerkkireseptiä: uunilohi</button>
     <p className="my-2 text-xs">Liitä resepti muodossa: nimi, annosmäärä, Ainekset:, ainesrivit ja Valmistus:. Kuvasta tunnistus lisätään myöhemmin.</p>
@@ -50,18 +72,18 @@ export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearch
       <p className="text-xs">Tarkista reseptin jokainen aines. Poistettuja aineksia ei haeta.</p>
       <label className="block text-xs font-bold">Valmistusohje<textarea rows={3} value={draft.instructions} onChange={e=>setDraft({...draft,instructions:e.target.value})} className="mt-1 w-full rounded border p-2"/></label>
       <div className="rounded-xl border p-2"><p className="font-bold">Ainesten seuranta: {done.filter(id=>pending.some(x=>x.id===id)).length}/{pending.length}</p>{pending.map(x=><label key={x.id} className="block text-xs"><input type="checkbox" checked={done.includes(x.id)} onChange={e=>setDone(prev=>e.target.checked?[...prev,x.id]:prev.filter(id=>id!==x.id))}/> {x.name} ({x.amount} {x.unit})</label>)}<p className="text-xs">Merkitse käsitellyksi vasta tuotteen lisäämisen jälkeen. Tämä ei muuta ostoskoria.</p></div>
-      <button type="button" disabled={!canSearch || !onSearchIngredients || pending.length===0} onClick={()=>{setIngredientIndex(0);onSearchIngredients?.([pending[0].name]);setNotice("Valitse sopiva tuote nykyisestä tuotehausta. Justiina ei lisää sitä automaattisesti.");}} className="rounded-xl bg-[#174c3a] px-4 py-2 font-black text-white disabled:opacity-40">Hae ainekset</button>
+      <button type="button" disabled={!canSearch || !onSearchIngredients || pending.length===0} onClick={()=>{setIngredientIndex(0);searchIngredient(pending[0].name,0);setNotice("Valitse sopiva tuote nykyisestä tuotehausta. Justiina ei lisää sitä automaattisesti.");}} className="rounded-xl bg-[#174c3a] px-4 py-2 font-black text-white disabled:opacity-40">Hae ainekset</button>
       {ingredientIndex !== null && pending.length > 0 && <div className="mt-2 rounded-xl border border-[#b99d62] bg-[#fff4d6] p-2">
         <p className="font-black">Aines {Math.min(ingredientIndex+1,pending.length)} / {pending.length}</p>
         <p>Tarvitset: {pending[Math.min(ingredientIndex,pending.length-1)].name} · {pending[Math.min(ingredientIndex,pending.length-1)].amount} {pending[Math.min(ingredientIndex,pending.length-1)].unit}</p>
         <p className="text-xs">Valitse tuote tavallisesta hakutuloksesta ja lisää se koriin itse. Jatka seuraavaan aineeseen vasta sen jälkeen.</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          <button type="button" disabled={ingredientIndex===0} onClick={()=>{const i=Math.max(0,ingredientIndex-1);setIngredientIndex(i);onSearchIngredients?.([pending[i].name]);}} className="rounded-lg border px-3 py-1 disabled:opacity-40">Edellinen</button>
-          <button type="button" onClick={()=>{const i=ingredientIndex+1;if(i>=pending.length){setIngredientIndex(null);setNotice("Aineslista käsitelty. Tarkista ostoskori.");}else{setIngredientIndex(i);onSearchIngredients?.([pending[i].name]);}}} className="rounded-lg bg-[#174c3a] px-3 py-1 font-bold text-white">{ingredientIndex+1===pending.length?"Valmis":"Seuraava aines / ohita"}</button>
+          <button type="button" disabled={ingredientIndex===0} onClick={()=>{const i=Math.max(0,ingredientIndex-1);setIngredientIndex(i);searchIngredient(pending[i].name,i);}} className="rounded-lg border px-3 py-1 disabled:opacity-40">Edellinen</button>
+          <button type="button" onClick={()=>{const i=ingredientIndex+1;if(i>=pending.length){setIngredientIndex(null);setNotice("Aineslista käsitelty. Tarkista ostoskori.");}else{setIngredientIndex(i);searchIngredient(pending[i].name,i);}}} className="rounded-lg bg-[#174c3a] px-3 py-1 font-bold text-white">{ingredientIndex+1===pending.length?"Valmis":"Seuraava aines / ohita"}</button>
           <button type="button" onClick={()=>setIngredientIndex(null)} className="rounded-lg border px-3 py-1">Keskeytä</button>
         </div>
       </div>}
       {!onSearchIngredients && <p className="text-xs">Aineshaku kytketään seuraavassa vaiheessa nykyiseen tuotevalintaan.</p>}
     </div>}
-  </div>;
+  </div></section></div>,document.body)}</>;
 }
