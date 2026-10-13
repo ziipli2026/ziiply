@@ -74,7 +74,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <p className="text-xs">{scaled.filter(item=>!item.atHome).map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join(" · ")}</p>
       <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
         <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false);setInstructionsOpen(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{editing?"Sulje muokkaus":"✎ Muokkaa reseptiä"}</button>
-        <button type="button" aria-expanded={instructionsOpen} onClick={()=>setInstructionsOpen(value=>!value);setEditing(false);setImporting(false)} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{instructionsOpen?"Piilota ohje":"▤ Valmistusohje"}</button>
+        <button type="button" aria-expanded={instructionsOpen} onClick={()=>{setInstructionsOpen(value=>!value);setEditing(false);setImporting(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{instructionsOpen?"Piilota ohje":"▤ Valmistusohje"}</button>
         <button type="button" onClick={()=>{setImporting(value=>!value);setEditing(false);setInstructionsOpen(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">↻ Vaihda resepti</button>
       </div>
     </div>}
