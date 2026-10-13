@@ -1,12 +1,19 @@
 name: Lidl official product page audit
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
   push:
     branches: [main]
+    paths:
+      - 'data/lidl/official-grocery-candidates-v44-2026-10-01.json'
 jobs:
   audit:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: lidl-official-page-audit
+      cancel-in-progress: false
     permissions:
       contents: write
       actions: read
@@ -46,13 +53,16 @@ jobs:
           node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));fs.writeFileSync('lidl-image-candidates.json',JSON.stringify({source:d.source,researchOnly:true,visuallyVerified:false,records:d.records.filter(x=>x.imageStatus==='product_page_image_candidate').map(x=>({lidlProductId:x.lidlProductId,name:x.name,officialUrl:x.officialUrl,imageUrl:x.candidateImageUrl,imageHttpStatus:x.imageHttpStatus,imageContentType:x.imageContentType,priceEur:null,ean:null}))},null,2)+'\\n')"
       - name: Publish confirmed image URLs to source data
         run: |
-          node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));const rows=d.records.filter(x=>x.imageStatus==='product_page_image_candidate' && x.imageReachable===true);if(rows.length<90)throw new Error('Too few confirmed official Lidl images: '+rows.length);const ids=new Set(rows.map(x=>x.lidlProductId));if(ids.size!==rows.length)throw new Error('Duplicate Lidl product ID');fs.writeFileSync('data/lidl/official-product-images.generated.json',JSON.stringify({source:'lidl.fi-official-product-page',researchOnly:true,checkedAt:d.records[0]?.checkedAt,records:rows.map(x=>({lidlProductId:x.lidlProductId,imageUrl:x.candidateImageUrl,officialUrl:x.officialUrl}))},null,2)+'\\n')"
+          node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));const rows=d.records.filter(x=>x.imageStatus==='product_page_image_candidate' && x.imageReachable===true);if(rows.length<90)throw new Error('Too few confirmed official Lidl images: '+rows.length);const ids=new Set(rows.map(x=>x.lidlProductId));if(ids.size!==rows.length)throw new Error('Duplicate Lidl product ID');fs.writeFileSync('data/lidl/official-product-images.generated.json',JSON.stringify({source:'lidl.fi-official-product-page',researchOnly:true,records:rows.map(x=>({lidlProductId:x.lidlProductId,imageUrl:x.candidateImageUrl,officialUrl:x.officialUrl}))},null,2)+'\\n')"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/lidl/official-product-images.generated.json
           if ! git diff --cached --quiet; then
+            echo 'Lidl image URLs changed: committing verified source data'
             git commit -m "Update verified Lidl official product image URLs"
             git push
+          else
+            echo 'Lidl image URLs unchanged: no commit or production deployment needed'
           fi
       - uses: actions/upload-artifact@v4
         if: always()
