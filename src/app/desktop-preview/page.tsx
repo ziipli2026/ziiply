@@ -233,6 +233,23 @@ export default function DesktopPreviewPage() {
   const [gostaHomeError, setGostaHomeError] = useState("");
   const gostaHomeRequestId = useRef(0);
   const [gostaHomeHasSearched, setGostaHomeHasSearched] = useState(false);
+  const gostaHomeRestored=useRef(false);
+  const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
+  useEffect(()=>{
+    try{
+      const saved=JSON.parse(window.sessionStorage.getItem("ziiply-gosta-home-search-v1")||"null");
+      if(saved&&typeof saved.query==="string"&&Array.isArray(saved.results)){
+        setGostaHomeQuery(saved.query);setGostaHomeResults(saved.results);
+        setGostaHomeHasSearched(Boolean(saved.query));gostaHomeLastSearch.current={query:saved.query,time:Number(saved.time)||0};
+      }
+    }catch{}
+    gostaHomeRestored.current=true;
+  },[]);
+  useEffect(()=>{
+    if(!gostaHomeRestored.current)return;
+    try{window.sessionStorage.setItem("ziiply-gosta-home-search-v1",JSON.stringify({query:gostaHomeQuery,results:gostaHomeResults,time:gostaHomeLastSearch.current.query===gostaHomeQuery?gostaHomeLastSearch.current.time:0}));}catch{}
+  },[gostaHomeQuery,gostaHomeResults]);
+
   const [gostaSavedWatches, setGostaSavedWatches] = useState<string[]>([]);
   const [gostaShowSavedWatches,setGostaShowSavedWatches]=useState(false);
   const [gostaSelectedOfferKeys,setGostaSelectedOfferKeys]=useState<string[]>([]);
@@ -1150,6 +1167,14 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
   useEffect(()=>{if(!gostaHomeSearchOpen||gostaHomeQuery.trim().length<2)return;const timer=window.setTimeout(()=>setGostaHomeDebouncedQuery(gostaHomeQuery.trim()),450);return()=>window.clearTimeout(timer);},[gostaHomeQuery,gostaHomeSearchOpen]);
   useEffect(()=>{if(gostaHomeSearchOpen&&gostaHomeDebouncedQuery.trim().length>=2&&gostaHomeDebouncedQuery===gostaHomeQuery.trim())void searchGostaHomepageOffers();},[gostaHomeDebouncedQuery,gostaHomeSearchOpen]);
+  useEffect(()=>{
+    if(!gostaHomeSearchOpen||!gostaHomeRestored.current||!gostaHomeQuery.trim())return;
+    if(gostaHomeLastSearch.current.query===gostaHomeQuery&&Date.now()-gostaHomeLastSearch.current.time<15*60*1000)return;
+    if(!stores.length&&!lidlStores.length&&!sparStores.length)return;
+    const timer=window.setTimeout(()=>{void searchGostaHomepageOffers();},750);
+    return()=>window.clearTimeout(timer);
+  },[gostaHomeSearchOpen,stores,lidlStores,sparStores]);
+
   function gostaNearbyOfferStores(){
     const known=[...stores,...lidlStores,...sparStores].filter(Boolean) as any[];
     const manuallySelected=[...Object.values(allStoreSelections.hyper),...Object.values(allStoreSelections.local),...Object.values(selectedStores),...withinStoreSlots.S,...withinStoreSlots.K].filter(Boolean) as any[];
@@ -1179,9 +1204,9 @@ export default function DesktopPreviewPage() {
     const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
     if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
     const nearbyOfferStores=gostaNearbyOfferStores();
-    if(!nearbyOfferStores.length){setGostaHomeResults([]);setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
+    if(!nearbyOfferStores.length){setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
     const request=++gostaHomeRequestId.current;
-    setGostaHomeLoading(true);setGostaHomeHasSearched(true);setGostaHomeResults([]);setGostaHomeError("");
+    setGostaHomeLoading(true);setGostaHomeHasSearched(true);setGostaHomeError("");
     const batches=await Promise.allSettled(nearbyOfferStores.map(async store=>{
       const kind=storeKind(store);
       const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
@@ -1189,7 +1214,8 @@ export default function DesktopPreviewPage() {
       return results.filter((offer:any)=>String(offer.title||offer.name||"").toLocaleLowerCase("fi").includes(query)).map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
     }));
     if(request!==gostaHomeRequestId.current)return;
-    setGostaHomeResults(batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]).sort((a:any,b:any)=>a.__gostaHomeDistance-b.__gostaHomeDistance).slice(0,120));
+    const refreshed=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]).sort((a:any,b:any)=>a.__gostaHomeDistance-b.__gostaHomeDistance).slice(0,120);
+    if(refreshed.length||batches.every(batch=>batch.status==="fulfilled")){setGostaHomeResults(refreshed);gostaHomeLastSearch.current={query:gostaHomeQuery,time:Date.now()};}
     if(batches.some(batch=>batch.status==="rejected"))setGostaHomeError("Osan kaupoista tarjouksia ei saatu ladattua.");
     setGostaHomeLoading(false);
   }
