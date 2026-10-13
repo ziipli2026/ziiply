@@ -1816,10 +1816,10 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const requested = correctSearchQuery(sourceName).toLocaleLowerCase("fi").trim();
   const candidate = targetName.toLocaleLowerCase("fi").trim();
   const exactGroups: Record<string, RegExp> = {
-    sokeri: /\\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\\b/i,
-    merisuola: /\\bmerisuola(?:a)?\\b/i,
-    etikka: /\\b(?:etikka|väkiviinaetikka|omenaviinietikka|viinietikka)\\b/i,
-    silakka: /\\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\\b/i,
+    sokeri: /\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\b/i,
+    merisuola: /\bmerisuola(?:a)?\b/i,
+    etikka: /\b(?:etikka|väkiviinaetikka|omenaviinietikka|viinietikka)\b/i,
+    silakka: /\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\b/i,
   };
   const excludedPrepared: Record<string, RegExp> = {
     sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen/i,
