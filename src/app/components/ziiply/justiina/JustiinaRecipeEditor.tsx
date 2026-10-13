@@ -1,89 +1,80 @@
 "use client";
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { parseRecipeText, scaleIngredients, type RecipeDraft } from "./recipeCore";
+import { correctSearchQuery } from "../search/searchIntentAI";
 
-export default function JustiinaRecipeEditor({ onSearchIngredients }: { onSearchIngredients?: (terms: string[]) => void }) {
-  const [open,setOpen]=useState(false);
+const STORAGE = "ziiply-justiina-recipe-draft-v1";
+const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
+export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngredients?:(terms:string[])=>void}){
+  const [draft,setDraft]=useState<RecipeDraft|null>(null);
+  const [text,setText]=useState("");
+  const [original,setOriginal]=useState("");
+  const [target,setTarget]=useState("");
+  const [editing,setEditing]=useState(false);
+  const [importing,setImporting]=useState(false);
+  const [instructionsOpen,setInstructionsOpen]=useState(false);
+  const [notice,setNotice]=useState("");
   const [hydrated,setHydrated]=useState(false);
-  const [text, setText] = useState("");
-  const [draft, setDraft] = useState<RecipeDraft | null>(null);
-  const [original, setOriginal] = useState("");
-  const [target, setTarget] = useState("");
-  const [notice, setNotice] = useState("");
-  const [ingredientIndex, setIngredientIndex] = useState<number | null>(null);
-  const [done, setDone] = useState<string[]>([]);
-  useEffect(()=>{
-    try{const saved=JSON.parse(sessionStorage.getItem("ziiply-justiina-recipe-draft-v1")||"null");
-      if(saved){setText(String(saved.text||""));setOriginal(String(saved.original||""));setTarget(String(saved.target||""));
-        if(saved.draft&&Array.isArray(saved.draft.ingredients))setDraft(saved.draft);
-        if(Array.isArray(saved.done))setDone(saved.done);
-        if(Number.isInteger(saved.ingredientIndex)&&saved.ingredientIndex>=0)setIngredientIndex(saved.ingredientIndex);
-      }
-    }catch{}setHydrated(true);
-  },[]);
-  useEffect(()=>{if(!hydrated)return;try{sessionStorage.setItem("ziiply-justiina-recipe-draft-v1",JSON.stringify({text,draft,original,target,done,ingredientIndex}))}catch{}},[hydrated,text,draft,original,target,done,ingredientIndex]);
-  useEffect(()=>{if(!open)return;const close=(event:KeyboardEvent)=>{if(event.key==="Escape")setOpen(false)};document.addEventListener("keydown",close);return()=>document.removeEventListener("keydown",close)},[open]);
-  const searchIngredient=(name:string,index:number)=>{
-    try{sessionStorage.setItem("ziiply-justiina-recipe-draft-v1",JSON.stringify({text,draft,original,target,done,ingredientIndex:index}))}catch{}
-    onSearchIngredients?.([name]);setOpen(false);
+  useEffect(()=>{try{
+    const saved=JSON.parse(sessionStorage.getItem(STORAGE)||"null");
+    if(saved?.draft&&Array.isArray(saved.draft.ingredients)){
+      setDraft(saved.draft);setText(String(saved.text||""));
+      setOriginal(String(saved.original||saved.draft.servings||""));setTarget(String(saved.target||saved.draft.servings||""));
+    }
+  }catch{}setHydrated(true)},[]);
+  const persist=(next:RecipeDraft|null=draft,source=text,base=original,people=target)=>{
+    try{sessionStorage.setItem(STORAGE,JSON.stringify({draft:next,text:source,original:base,target:people}))}catch{}
   };
-  const importText = () => {
-    if (!text.trim()) { setNotice("Liitä ensin reseptin teksti."); return; }
-    const next = parseRecipeText(text);
-    setDraft(next);
-    setDone([]);
-    setIngredientIndex(null);
-    setOriginal(next.servings ? String(next.servings) : "");
-    setTarget(next.servings ? String(next.servings) : "");
-    setNotice(next.ingredients.length ? "Tarkista ainekset ja määrät ennen hakua." : "Lisää reseptiin Ainekset:-otsikko ja ainesrivit.");
+  useEffect(()=>{if(hydrated)persist()},[hydrated,draft,text,original,target]);
+  const load=(source:string)=>{
+    const next=parseRecipeText(source);const people=next.servings?String(next.servings):"";
+    setText(source);setDraft(next);setOriginal(people);setTarget(people);setEditing(false);setImporting(false);
+    setNotice(next.ingredients.length?"":"Ainesrivejä ei löytynyt. Lisää Ainekset:-otsikko tai muokkaa aineksia.");
+    persist(next,source,people,people);return next;
   };
-  const ingredients = draft?.ingredients || [];
-  const validServings = Number(original) > 0 && Number(target) > 0;
-  const scaled = validServings ? scaleIngredients(ingredients, Number(original), Number(target)) : ingredients;
-  const pending = scaled.filter(x => !x.atHome && x.name.trim());
-  const canSearch = validServings && ingredients.length > 0 && ingredients.every(x => x.atHome || (!x.uncertain && x.name.trim() && x.amount !== null && x.unit));
-  return <><button type="button" onClick={()=>setOpen(true)} className="mt-3 shrink-0 rounded-xl border-2 border-[#b99d62] bg-[#fff4d6] px-4 py-3 font-black text-[#174c3a]">{draft?"Jatka reseptiä: "+draft.title:"Resepti tekstistä"}</button>
-    {open&&hydrated&&createPortal(<div className="fixed inset-0 z-[180] flex items-center justify-center bg-[#17352a]/40 p-3">
-    <section role="dialog" aria-modal="true" aria-label="Justiinan resepti" className="flex max-h-[calc(100dvh-32px)] w-full max-w-[720px] flex-col overflow-hidden rounded-2xl border-2 border-[#b99d62] bg-[#fffdf5] text-left text-sm text-[#27412a]">
-    <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#d0aa58] bg-[#fff4d6] p-3"><strong>Justiina · Resepti</strong><button type="button" onClick={()=>setOpen(false)} aria-label="Sulje resepti" className="rounded-full border px-3 py-2 font-black">Sulje ×</button></header>
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
-    <h3 className="font-black">Resepti tekstistä</h3>
-    <button type="button" className="my-2 rounded-lg border px-3 py-2 text-xs" onClick={()=>setText("Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.")}>Kokeile esimerkkireseptiä: uunilohi</button>
-    <p className="my-2 text-xs">Liitä resepti muodossa: nimi, annosmäärä, Ainekset:, ainesrivit ja Valmistus:. Kuvasta tunnistus lisätään myöhemmin.</p>
-    <textarea aria-label="Reseptiteksti" value={text} onChange={e=>setText(e.target.value)} rows={4} placeholder={"Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä uunissa."} className="w-full rounded-xl border p-2 text-sm" />
-    <button type="button" onClick={importText} className="mt-2 rounded-xl bg-[#174c3a] px-4 py-2 font-bold text-white">Tuo resepti</button>
-    {notice && <p role="status" className="my-2 text-xs">{notice}</p>}
-    {draft && <div className="mt-3 space-y-3">
-      <label className="block text-xs font-bold">Reseptin nimi<input value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})} className="mt-1 w-full rounded border p-2"/></label>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="text-xs font-bold">Alkuperäinen annosmäärä<input type="number" min="1" value={original} onChange={e=>setOriginal(e.target.value)} className="mt-1 w-full rounded border p-2"/></label>
-        <label className="text-xs font-bold">Tehdään henkilölle<input type="number" min="1" value={target} onChange={e=>setTarget(e.target.value)} className="mt-1 w-full rounded border p-2"/></label>
-      </div>
-      {ingredients.map((item,i)=><div key={item.id} className="rounded-xl border p-2"><div className="mb-1 flex justify-end"><button type="button" aria-label={"Poista aines "+item.name} onClick={()=>{setIngredientIndex(null);setDraft({...draft,ingredients:ingredients.filter(x=>x.id!==item.id)});}} className="rounded border px-2 py-1 text-xs">Poista aines</button></div>
-        <div className="grid grid-cols-[1fr_70px_65px] gap-1">
-          <input aria-label={"Aines "+(i+1)} value={item.name} onChange={e=>setDraft({...draft,ingredients:ingredients.map(x=>x.id===item.id?{...x,name:e.target.value}:x)})} className="min-w-0 rounded border p-1"/>
-          <input aria-label={"Määrä "+(i+1)} type="number" min="0" step="any" value={item.amount ?? ""} onChange={e=>setDraft({...draft,ingredients:ingredients.map(x=>x.id===item.id?{...x,amount:e.target.value===""?null:Number(e.target.value),uncertain:e.target.value===""}:x)})} className="min-w-0 rounded border p-1"/>
-          <input aria-label={"Yksikkö "+(i+1)} value={item.unit ?? ""} onChange={e=>setDraft({...draft,ingredients:ingredients.map(x=>x.id===item.id?{...x,unit:e.target.value,uncertain:!e.target.value||x.amount===null}:x)})} className="min-w-0 rounded border p-1"/>
-        </div>
-        <div className="mt-1 flex items-center justify-between text-xs"><label><input type="checkbox" checked={item.atHome} onChange={e=>setDraft({...draft,ingredients:ingredients.map(x=>x.id===item.id?{...x,atHome:e.target.checked}:x)})}/> On jo kotona</label><span>{validServings && !item.uncertain ? scaled[i].amount+" "+(item.unit||"") : "Tarkista määrä"}</span></div>
-      </div>)}
-      <button type="button" onClick={()=>{setIngredientIndex(null);setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now())+"-"+ingredients.length,name:"",amount:null,unit:null,uncertain:true,atHome:false}]});}} className="rounded-lg border border-[#b99d62] bg-[#fff4d6] px-3 py-2 text-xs font-bold">+ Lisää aines</button>
-      <p className="text-xs">Tarkista reseptin jokainen aines. Poistettuja aineksia ei haeta.</p>
-      <label className="block text-xs font-bold">Valmistusohje<textarea rows={3} value={draft.instructions} onChange={e=>setDraft({...draft,instructions:e.target.value})} className="mt-1 w-full rounded border p-2"/></label>
-      <div className="rounded-xl border p-2"><p className="font-bold">Ainesten seuranta: {done.filter(id=>pending.some(x=>x.id===id)).length}/{pending.length}</p>{pending.map(x=><label key={x.id} className="block text-xs"><input type="checkbox" checked={done.includes(x.id)} onChange={e=>setDone(prev=>e.target.checked?[...prev,x.id]:prev.filter(id=>id!==x.id))}/> {x.name} ({x.amount} {x.unit})</label>)}<p className="text-xs">Merkitse käsitellyksi vasta tuotteen lisäämisen jälkeen. Tämä ei muuta ostoskoria.</p></div>
-      <button type="button" disabled={!canSearch || !onSearchIngredients || pending.length===0} onClick={()=>{setIngredientIndex(0);searchIngredient(pending[0].name,0);setNotice("Valitse sopiva tuote nykyisestä tuotehausta. Justiina ei lisää sitä automaattisesti.");}} className="rounded-xl bg-[#174c3a] px-4 py-2 font-black text-white disabled:opacity-40">Hae ainekset</button>
-      {ingredientIndex !== null && pending.length > 0 && <div className="mt-2 rounded-xl border border-[#b99d62] bg-[#fff4d6] p-2">
-        <p className="font-black">Aines {Math.min(ingredientIndex+1,pending.length)} / {pending.length}</p>
-        <p>Tarvitset: {pending[Math.min(ingredientIndex,pending.length-1)].name} · {pending[Math.min(ingredientIndex,pending.length-1)].amount} {pending[Math.min(ingredientIndex,pending.length-1)].unit}</p>
-        <p className="text-xs">Valitse tuote tavallisesta hakutuloksesta ja lisää se koriin itse. Jatka seuraavaan aineeseen vasta sen jälkeen.</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button type="button" disabled={ingredientIndex===0} onClick={()=>{const i=Math.max(0,ingredientIndex-1);setIngredientIndex(i);searchIngredient(pending[i].name,i);}} className="rounded-lg border px-3 py-1 disabled:opacity-40">Edellinen</button>
-          <button type="button" onClick={()=>{const i=ingredientIndex+1;if(i>=pending.length){setIngredientIndex(null);setNotice("Aineslista käsitelty. Tarkista ostoskori.");}else{setIngredientIndex(i);searchIngredient(pending[i].name,i);}}} className="rounded-lg bg-[#174c3a] px-3 py-1 font-bold text-white">{ingredientIndex+1===pending.length?"Valmis":"Seuraava aines / ohita"}</button>
-          <button type="button" onClick={()=>setIngredientIndex(null)} className="rounded-lg border px-3 py-1">Keskeytä</button>
-        </div>
-      </div>}
-      {!onSearchIngredients && <p className="text-xs">Aineshaku kytketään seuraavassa vaiheessa nykyiseen tuotevalintaan.</p>}
+  const startSearch=(recipe:RecipeDraft|null=draft,base=original,people=target)=>{
+    if(!recipe||!onSearchIngredients)return;
+    if(!(Number(base)>0&&Number(people)>0)){setNotice("Anna alkuperäinen annosmäärä ja henkilömäärä ennen hakua.");setEditing(true);return}
+    const items=scaleIngredients(recipe.ingredients,Number(base),Number(people)).filter(item=>!item.atHome&&item.name.trim());
+    if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
+    if(items.some(item=>item.uncertain||item.amount===null||!Number.isFinite(item.amount)||item.amount<=0||!item.unit)){
+      setNotice("Tarkista epäselvät ainesmäärät ennen hakua.");setEditing(true);return;
+    }
+    persist(recipe,recipe===draft?text:EXAMPLE,base,people);
+    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:Number(people),items}))}catch{}
+    onSearchIngredients(items.map(item=>correctSearchQuery(item.name)));
+  };
+  const ingredients=draft?.ingredients||[];
+  const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
+  const update=(id:string,patch:Partial<RecipeDraft["ingredients"][number]>)=>{
+    if(!draft)return;setDraft({...draft,ingredients:ingredients.map(item=>{
+      if(item.id!==id)return item;const next={...item,...patch};
+      return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
+    })});
+  };
+  return <section aria-label="Justiinan resepti" className="mt-2 w-full min-w-0 shrink-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-3 text-left text-sm text-[#27412a]">
+    {!draft?<div className="space-y-2"><p className="font-black">Reseptistä ostoksille</p>
+      <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
+      <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
+      <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
+    </div>:<div className="space-y-2">
+      <div className="flex items-center justify-between gap-2"><strong className="min-w-0 break-words">{draft.title}</strong><label className="flex shrink-0 items-center gap-1 text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-12 rounded border p-1"/> hlö</label></div>
+      <p className="text-xs">{scaled.filter(item=>!item.atHome).map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join(" · ")}</p>
+      <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Hae ainekset · {target||"?"} henkilölle</button>
+      <div className="flex flex-wrap gap-4 text-xs font-bold"><button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="underline">{editing?"Sulje muokkaus":"Muokkaa"}</button><button type="button" aria-expanded={instructionsOpen} onClick={()=>setInstructionsOpen(value=>!value)} className="underline">Valmistusohje</button><button type="button" onClick={()=>{setImporting(value=>!value);setEditing(false)}} className="underline">Vaihda resepti</button></div>
     </div>}
-  </div></section></div>,document.body)}</>;
+    {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
+    {importing&&<div className="mt-3 space-y-2"><textarea aria-label="Reseptiteksti" rows={4} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
+    {instructionsOpen&&draft&&<p className="mt-3 whitespace-pre-wrap text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
+    {editing&&draft&&<div className="mt-3 max-h-[35dvh] space-y-2 overflow-y-auto overscroll-contain border-t pt-2">
+      <label className="block text-xs">Reseptin nimi<input value={draft.title} onChange={event=>setDraft({...draft,title:event.target.value})} className="w-full rounded border p-1"/></label>
+      <label className="flex items-center gap-2 text-xs">Alkuperäinen annosmäärä<input aria-label="Alkuperäinen annosmäärä" type="number" min="1" value={original} onChange={event=>setOriginal(event.target.value)} className="w-16 rounded border p-1"/></label>
+      {ingredients.map((item,index)=><div key={item.id} className="rounded-lg border p-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_52px_44px] gap-1"><input aria-label={"Aines "+(index+1)} value={item.name} onChange={event=>update(item.id,{name:event.target.value})} className="min-w-0 rounded border p-1"/><input aria-label={"Määrä "+(index+1)} type="number" step="any" min="0" value={item.amount??""} onChange={event=>update(item.id,{amount:event.target.value===""?null:Number(event.target.value)})} className="min-w-0 rounded border p-1"/><input aria-label={"Yksikkö "+(index+1)} value={item.unit??""} onChange={event=>update(item.id,{unit:event.target.value})} className="min-w-0 rounded border p-1"/></div>
+        <div className="mt-1 flex items-center justify-between text-xs"><label><input type="checkbox" checked={item.atHome} onChange={event=>update(item.id,{atHome:event.target.checked})}/> On jo kotona</label><button type="button" onClick={()=>setDraft({...draft,ingredients:ingredients.filter(value=>value.id!==item.id)})} className="underline">Poista</button></div>
+      </div>)}
+      <button type="button" onClick={()=>setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now()),name:"",amount:null,unit:null,uncertain:true,atHome:false}]})} className="rounded border px-2 py-1 text-xs">+ Lisää aines</button>
+      <textarea aria-label="Valmistusohje" rows={3} value={draft.instructions} onChange={event=>setDraft({...draft,instructions:event.target.value})} className="w-full rounded border p-2"/>
+    </div>}
+  </section>;
 }
