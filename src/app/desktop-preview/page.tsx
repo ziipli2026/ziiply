@@ -1140,15 +1140,30 @@ export default function DesktopPreviewPage() {
   }
 
   useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
-  async function searchGostaHomepageOffers() {
-    const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
-    if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
+  function gostaNearbyOfferStores(){
     const allKnownStores=[...stores.filter(Boolean),...lidlStores,...sparStores,...Object.values(allStoreSelections.hyper),...Object.values(allStoreSelections.local)] as any[];
     const uniqueStores=new Map<string,any>();
     for(const store of allKnownStores){if(!store||!storeKind(store))continue;const key=String(store.externalId||store.id||store.name||"");if(key&&!uniqueStores.has(key))uniqueStores.set(key,store);}
     const grouped=new Map<string,any[]>();
     for(const store of uniqueStores.values()){const kind=storeKind(store);const group=kind==="sHyper"||kind==="kHyper"?"marketit":kind==="sLocal"||kind==="kLocal"?"lähikaupat":kind;grouped.set(group,[...(grouped.get(group)||[]),store]);}
     const nearbyOfferStores=[...grouped.values()].flatMap(group=>byDistance(group).slice(0,3));
+    return nearbyOfferStores;
+  }
+  useEffect(()=>{
+    if(!stores.length&&!lidlStores.length&&!sparStores.length)return;
+    const nearby=gostaNearbyOfferStores();
+    let cancelled=false;
+    const timer=window.setTimeout(async()=>{
+      const jobs=nearby.map(store=>async()=>{if(cancelled)return;const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";try{await warmOffers(chain,store);}catch{}});
+      let cursor=0;
+      await Promise.all(Array.from({length:Math.min(3,jobs.length)},async()=>{while(!cancelled&&cursor<jobs.length){const job=jobs[cursor++];await job();}}));
+    },1200);
+    return ()=>{cancelled=true;window.clearTimeout(timer);};
+  },[stores,lidlStores,sparStores,allStoreSelections,gpsCoords]);
+  async function searchGostaHomepageOffers() {
+    const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
+    if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
+    const nearbyOfferStores=gostaNearbyOfferStores();
     if(!nearbyOfferStores.length){setGostaHomeResults([]);setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
     const request=++gostaHomeRequestId.current;
     setGostaHomeLoading(true);setGostaHomeHasSearched(true);setGostaHomeResults([]);setGostaHomeError("");
