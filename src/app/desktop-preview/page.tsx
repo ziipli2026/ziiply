@@ -235,6 +235,7 @@ export default function DesktopPreviewPage() {
   const gostaHomeRequestId = useRef(0);
   const [gostaHomeHasSearched, setGostaHomeHasSearched] = useState(false);
   const gostaHomeRestored=useRef(false);
+  const [gostaHomeHydrated,setGostaHomeHydrated]=useState(false);
   const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
   useEffect(()=>{
     try{
@@ -245,11 +246,12 @@ export default function DesktopPreviewPage() {
       }
     }catch{}
     gostaHomeRestored.current=true;
+    setGostaHomeHydrated(true);
   },[]);
   useEffect(()=>{
-    if(!gostaHomeRestored.current)return;
+    if(!gostaHomeHydrated)return;
     try{window.sessionStorage.setItem("ziiply-gosta-home-search-v1",JSON.stringify({query:gostaHomeQuery,results:gostaHomeResults,time:gostaHomeLastSearch.current.query===gostaHomeQuery?gostaHomeLastSearch.current.time:0}));}catch{}
-  },[gostaHomeQuery,gostaHomeResults]);
+  },[gostaHomeQuery,gostaHomeResults,gostaHomeHydrated]);
 
   const [gostaSavedWatches, setGostaSavedWatches] = useState<string[]>([]);
   const [gostaShowSavedWatches,setGostaShowSavedWatches]=useState(false);
@@ -1167,9 +1169,9 @@ export default function DesktopPreviewPage() {
 
   useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
   useEffect(()=>{if(!gostaHomeSearchOpen||gostaHomeQuery.trim().length<2)return;const timer=window.setTimeout(()=>setGostaHomeDebouncedQuery(gostaHomeQuery.trim()),450);return()=>window.clearTimeout(timer);},[gostaHomeQuery,gostaHomeSearchOpen]);
-  useEffect(()=>{if(gostaHomeSearchOpen&&gostaHomeDebouncedQuery.trim().length>=2&&gostaHomeDebouncedQuery===gostaHomeQuery.trim())void searchGostaHomepageOffers();},[gostaHomeDebouncedQuery,gostaHomeSearchOpen]);
+  useEffect(()=>{if(!gostaHomeHydrated||!gostaHomeSearchOpen||gostaHomeDebouncedQuery.trim().length<2||gostaHomeDebouncedQuery!==gostaHomeQuery.trim())return;if(gostaHomeLastSearch.current.query===gostaHomeQuery&&Date.now()-gostaHomeLastSearch.current.time<15*60*1000)return;void searchGostaHomepageOffers();},[gostaHomeDebouncedQuery,gostaHomeSearchOpen,gostaHomeHydrated]);
   useEffect(()=>{
-    if(!gostaHomeSearchOpen||!gostaHomeRestored.current||!gostaHomeQuery.trim())return;
+    if(!gostaHomeSearchOpen||!gostaHomeHydrated||!gostaHomeQuery.trim())return;
     if(gostaHomeLastSearch.current.query===gostaHomeQuery&&Date.now()-gostaHomeLastSearch.current.time<15*60*1000)return;
     if(!stores.length&&!lidlStores.length&&!sparStores.length)return;
     const timer=window.setTimeout(()=>{void searchGostaHomepageOffers();},750);
