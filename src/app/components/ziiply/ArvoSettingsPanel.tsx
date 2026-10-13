@@ -111,6 +111,8 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const [activeSection,setActiveSection]=useState<string|null>(null);
   const [reminderPage,setReminderPage]=useState<"times"|"suggestions"|null>(null);
   const [energyPage,setEnergyPage]=useState<"measurements"|"goals"|null>(null);
+  const [purchasePage,setPurchasePage]=useState<"record"|"suggestions"|"history"|null>(null);
+  const [suggestionIndex,setSuggestionIndex]=useState(0);
   const [p, setP] = useState<ArvoPreferences>(DEFAULT_ARVO_PREFERENCES);
   const [loaded, setLoaded] = useState(false);
   const [purchases,setPurchases]=useState<ArvoPurchase[]>([]);
@@ -123,7 +125,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const energy = estimateArvoEnergy(p);
   const mealLabels: { key: keyof ArvoPreferences["mealTimes"]; label: string }[] = [{key:"breakfast",label:"Aamiainen"},{key:"lunch",label:"Lounas"},{key:"dinner",label:"Päivällinen"},{key:"evening",label:"Iltapala"}];
   return <div className="flex h-full min-h-0 flex-col overflow-hidden px-1 py-1 text-[#173b2b]">
-    <div className="relative mb-2 flex h-12 shrink-0 items-center"><h2 className="text-[26px] font-black text-[#14291f]">Arvo</h2><button type="button" className="absolute left-1/2 -translate-x-1/2 rounded-lg border border-[#173b2b] px-3 py-1 text-sm font-bold" onClick={()=>{if(activeSection==="reminders"&&reminderPage)setReminderPage(null);else if(activeSection==="energy"&&energyPage)setEnergyPage(null);else if(activeSection)setActiveSection(null);else onClose?.()}}>← Takaisin</button></div>
+    <div className="relative mb-2 flex h-12 shrink-0 items-center"><h2 className="text-[26px] font-black text-[#14291f]">Arvo</h2><button type="button" className="absolute left-1/2 -translate-x-1/2 rounded-lg border border-[#173b2b] px-3 py-1 text-sm font-bold" onClick={()=>{if(activeSection==="reminders"&&reminderPage)setReminderPage(null);else if(activeSection==="energy"&&energyPage)setEnergyPage(null);else if(activeSection==="purchases"&&purchasePage)setPurchasePage(null);else if(activeSection)setActiveSection(null);else onClose?.()}}>← Takaisin</button></div>
     <div className="relative min-h-0 flex-1 overflow-hidden">
     {!activeSection&&<p className="mb-2 text-xs text-[#6d6a5c]">Asetukset tallentuvat tähän selaimeen.</p>}
     <div className="grid gap-1.5">
@@ -176,25 +178,27 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       {activeSection==="health"&&(<>
     <section className="mb-5 rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Terveystiedot</h3><p className="text-sm">Salli terveystietojen käyttö mobiilistasi — ei vielä käytettävissä selainversiossa. Apple Health / Health Connect -yhteys ja oikeuksien peruminen toteutetaan vasta toimivalla integraatiolla. Terveystietoja ei haeta.</p></section>
       </>)}
-      {activeSection==="purchases"&&(<>
-    <section className="mb-5 rounded-xl bg-white/75 p-4">
-      <h3 className="text-xl font-bold">Ostohistoria ja kulutus</h3>
-      <label><input type="checkbox" checked={p.purchaseTracking} onChange={e=>update("purchaseTracking",e.target.checked)} /> Salli vahvistettujen ostosten perusteella tehtävät täydennysarviot</label>
-      <p className="mt-2 text-sm">Vain itse vahvistetut ostokset lasketaan mukaan. Ostoskorin tuotteita ei kirjata automaattisesti ostetuiksi.</p>
-      {p.purchaseTracking && <>
-        <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={e=>{e.preventDefault();const name=purchaseName.trim();const quantity=Number(purchaseQuantity);if(!name||!(quantity>0))return;const next=[...purchases,{id:String(Date.now())+"-"+purchases.length,name,quantity,purchasedAt:new Date().toISOString()}];setPurchases(next);try{window.localStorage.setItem(ARVO_PURCHASES_KEY,JSON.stringify(next));}catch{}setPurchaseName("");setPurchaseQuantity("1");}}>
+      {activeSection==="purchases"&&<section className="h-full rounded-xl bg-white/75 p-3 text-sm">
+        <label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={p.purchaseTracking} onChange={e=>update("purchaseTracking",e.target.checked)}/> Käytä vahvistettuja ostoksia täydennysarvioihin</label>
+        <p className="mt-1 text-xs text-[#6d6a5c]">Ostoskorin tuotteita ei merkitä automaattisesti ostetuiksi.</p>
+        {!purchasePage&&<div className="mt-3 grid gap-2">
+          <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-left" onClick={()=>setPurchasePage("record")}><span><b className="block">Vahvista ostos</b><small>Kirjaa ostettu tuote ja määrä</small></span>›</button>
+          <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-left" onClick={()=>{setSuggestionIndex(0);setPurchasePage("suggestions")}}><span><b className="block">Täydennysarviot</b><small>Vahvistetuista ostoksista lasketut arviot</small></span>›</button>
+          <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-left" onClick={()=>setPurchasePage("history")}><span><b className="block">Ostohistoria</b><small>{purchases.length} vahvistettua ostotapahtumaa</small></span>›</button>
+        </div>}
+        {purchasePage==="record"&&<div className="mt-2"><h3 className="font-bold">Kirjaa vahvistettu ostos</h3>        <form className="mt-2 flex flex-wrap items-end gap-2" onSubmit={e=>{e.preventDefault();const name=purchaseName.trim();const quantity=Number(purchaseQuantity);if(!name||!(quantity>0))return;const next=[...purchases,{id:String(Date.now())+"-"+purchases.length,name,quantity,purchasedAt:new Date().toISOString()}];setPurchases(next);try{window.localStorage.setItem(ARVO_PURCHASES_KEY,JSON.stringify(next));}catch{}setPurchaseName("");setPurchaseQuantity("1");}}>
           <label className="text-sm">Ostettu tuote<input className="block rounded border p-2" required value={purchaseName} onChange={e=>setPurchaseName(e.target.value)} placeholder="Esim. maito 1 l" /></label>
           <label className="text-sm">Määrä<input className="block w-20 rounded border p-2" type="number" min="0.01" step="0.01" required value={purchaseQuantity} onChange={e=>setPurchaseQuantity(e.target.value)} /></label>
           <button type="submit" className="rounded-lg bg-[#24573e] px-4 py-2 font-bold text-white">Vahvista ostos</button>
         </form>
-        <p className="mt-2 text-xs">Täydennysarvio vaatii vähintään kolme eri päivän ostoa samasta tuotteesta. Ostovälin mediaani on vain arvio, ei tieto kotona olevasta määrästä.</p>
-        {arvoPurchaseSuggestions(purchases).filter(item=>!dismissedSuggestions.includes(item.key)).map(item=><div key={item.key} className="mt-2 rounded-lg border p-3 text-sm"><b>{item.name}</b> voi olla vähissä (ostoväli noin {item.intervalDays} vrk).<div className="mt-2 flex flex-wrap gap-2"><button type="button" className="rounded border px-2 py-1" onClick={()=>{window.dispatchEvent(new CustomEvent("ziiply-arvo-add-to-shopping-list",{detail:{name:item.name}}));setDismissedSuggestions(old=>[...old,item.key]);}}>Lisää ostettavaksi</button><button type="button" className="rounded border px-2 py-1" onClick={()=>setDismissedSuggestions(old=>[...old,item.key])}>Vielä on / muistuta myöhemmin</button></div></div>)}
-        <p className="mt-2 text-xs">”Lisää ostettavaksi” lisää tuotteen desktopin ostoskoriin. Automaattiset ilmoitukset ovat vielä kesken.</p>
-        <p className="mt-2 text-xs">Vahvistettuja ostotapahtumia: {purchases.length}</p>
-        <button type="button" className="mt-2 rounded border px-3 py-1 text-sm" onClick={()=>{if(!window.confirm("Poistetaanko kaikki Arvon vahvistetut ostokset tältä selaimelta?"))return;setPurchases([]);window.localStorage.removeItem(ARVO_PURCHASES_KEY);}}>Poista ostohistoria</button>
+<p className="mt-2 text-xs">Ostoksi lasketaan vain itse vahvistamasi tapahtuma.</p></div>}
+        {purchasePage==="suggestions"&&<div className="mt-2"><h3 className="font-bold">Täydennysarviot</h3><p className="mt-1 text-xs">Arvio edellyttää vähintään kolmea eri ostopäivää. Ostoväli ei kerro kotona olevaa määrää.</p>{(()=>{const items=arvoPurchaseSuggestions(purchases).filter(item=>!dismissedSuggestions.includes(item.key));const item=items[Math.min(suggestionIndex,Math.max(0,items.length-1))];return item?<><div className="mt-2 rounded-lg border bg-white p-2"><b>{item.name}</b> voi olla vähissä (ostoväli noin {item.intervalDays} vrk).<div className="mt-2 flex flex-wrap gap-2"><button type="button" className="rounded border px-2 py-1" onClick={()=>{window.dispatchEvent(new CustomEvent("ziiply-arvo-add-to-shopping-list",{detail:{name:item.name}}));setDismissedSuggestions(old=>[...old,item.key]);setSuggestionIndex(0)}}>Lisää ostettavaksi</button><button type="button" className="rounded border px-2 py-1" onClick={()=>{setDismissedSuggestions(old=>[...old,item.key]);setSuggestionIndex(0)}}>Vielä on / myöhemmin</button></div></div><div className="mt-2 flex items-center justify-between"><button type="button" disabled={suggestionIndex===0} onClick={()=>setSuggestionIndex(i=>Math.max(0,i-1))}>← Edellinen</button><span>{Math.min(suggestionIndex+1,items.length)} / {items.length}</span><button type="button" disabled={suggestionIndex>=items.length-1} onClick={()=>setSuggestionIndex(i=>Math.min(items.length-1,i+1))}>Seuraava →</button></div></>:<p className="mt-2">Ei täydennysarvioita.</p>})()}<p className="mt-2 text-xs">Lisää ostettavaksi -toiminto lisää tuotteen desktopin ostoskoriin. Automaattisia ilmoituksia ei lähetetä.</p></div>}
+        {purchasePage==="history"&&<div className="mt-2"><h3 className="font-bold">Ostohistoria</h3><p className="mt-2">Vahvistettuja ostotapahtumia: <b>{purchases.length}</b></p>        <button type="button" className="mt-2 rounded border px-3 py-1 text-sm" onClick={()=>{if(!window.confirm("Poistetaanko kaikki Arvon vahvistetut ostokset tältä selaimelta?"))return;setPurchases([]);window.localStorage.removeItem(ARVO_PURCHASES_KEY);}}>Poista ostohistoria</button>
       </>}
     </section>
-      </>)}
+</div>}
+      </section>}
+
       {activeSection==="reminders"&&<section className="h-full rounded-xl bg-white/75 p-3">
         {!reminderPage&&<div className="grid gap-2">
           <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setReminderPage("times")}><span><b className="block">Ruokailuajat ja hiljainen aika</b><small>Neljä ruokailuaikaa ja hiljainen aika</small></span>›</button>
