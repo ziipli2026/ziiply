@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { parseRecipeText, scaleIngredients, type RecipeDraft } from "./recipeCore";
+import { parseRecipeText, scaleIngredients, classifyRecipeIngredient, type RecipeDraft } from "./recipeCore";
 import { correctSearchQuery } from "../search/searchIntentAI";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
@@ -40,9 +40,16 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     if(items.some(item=>item.uncertain||item.amount===null||!Number.isFinite(item.amount)||item.amount<=0||!item.unit)){
       setNotice("Tarkista epäselvät ainesmäärät ennen hakua.");setEditing(true);return;
     }
+    const classified = items.map(item => classifyRecipeIngredient(item.name));
+    const unknown = items.filter((_, index) => !classified[index]);
+    if (unknown.length) {
+      setNotice("Tarkista ruoka-aineen ryhmä ennen hakua: " + unknown.map(item => item.name).join(", "));
+      setEditing(true);
+      return;
+    }
     persist(recipe,recipe===draft?text:EXAMPLE,base,people);
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:Number(people),items}))}catch{}
-    onSearchIngredients(items.map(item=>correctSearchQuery(item.name)));
+    onSearchIngredients(classified.map(group=>correctSearchQuery(group!.searchTerm)));
   };
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
