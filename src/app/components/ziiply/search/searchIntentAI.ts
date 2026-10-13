@@ -75,6 +75,10 @@ const QUERY_CORRECTIONS: Record<string, string> = {
 
   // Yleiset suomalaiset ruokahaun taivutusmuodot. Canonicalisointi tehdään
   // eksplisiittisesti, ei yleisellä suffix-stemmerillä, jotta tuotenimet eivät rikkoudu.
+  lohta: "lohi",
+  lohen: "lohi",
+  kirjolohta: "kirjolohi",
+  suolaa: "suola",
   maitoa: "maito",
   maidon: "maito",
   kahvia: "kahvi",
@@ -427,6 +431,17 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
   if (intent.intent === "meat" && hasAny(text, ["jauhelihamauste", "liemikuutio", "jauhelihakastike"])) return false;
   if (intent.intent === "bread" && hasAny(text, ["leipäveitsi", "leipävuoka", "leipäkori", "korppujauho"])) return false;
   if (intent.intent === "eggs" && hasAny(text, ["suklaamuna", "pääsiäismuna", "munavoi", "majoneesi"])) return false;
+
+  // A plain salmon ingredient means raw cooking fish, not a ready meal.
+  // Explicit smoked/cured/processed searches retain their original intent.
+  if (intent.intent === "fish") {
+    const query=normalizeFi(intent.correctedQuery);
+    const plainSalmon=/^(?:lohi|kirjolohi|lohifilee|kirjolohifilee)(?:\\s+\\d.*)?$/.test(query);
+    if(plainSalmon){
+      if(!/(?:^|[\\s-])(?:lohi|kirjolohi|lohifilee|kirjolohifilee)/.test(name))return false;
+      if(hasAny(name,["savulohi","savustettu","kylmasavu","lamminsavu","graavi","keitto","kastike","kiusaus","salaatti","pasteija","piirakka","levite","tuorejuusto","kalapuikko","kalapihvi","kalapyorykka","sushi","ateria","vauva","piltti","kissan","koiran","kalanruoka"]))return false;
+    }
+  }
 
   if (intent.intent === "rye_bread") {
     return hasAny(text, ["ruis", "ruisleipa", "ruisleipapala", "ruispala", "ruislimppu"]);
