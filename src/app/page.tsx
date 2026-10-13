@@ -23760,6 +23760,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setNotebookOpen(false);
             }}
             onDeleteList={(list) => deleteSavedShoppingList(String(list.id))}
+            onSearchIngredients={(terms) => { setNotebookOpen(false); void runVoiceSearchFromSpeechV453(terms.join(", "), true); }}
           />
         )}
 
