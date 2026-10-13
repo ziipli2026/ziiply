@@ -2780,17 +2780,11 @@ function KauppiasMobileTopBar({
     if (!electricityChartOpen) return;
     let cancelled = false;
     setElectricityChartStatus("Haetaan hintoja…");
-    fetch("https://api.porssisahko.net/v1/latest-prices.json", { cache: "no-store" })
+    fetch("/api/electricity-chart", { cache: "no-store" })
       .then(async response => { if (!response.ok) throw new Error("HTTP " + response.status); return response.json(); })
       .then(data => {
         if (cancelled) return;
-        const now = Date.now();
-        const items = Array.isArray(data?.prices) ? data.prices : Array.isArray(data) ? data : [];
-        const rows = items.map((item: any) => ({
-          time: new Date(String(item.startDate ?? item.start ?? item.StartDate ?? "")).getTime(),
-          price: Number(item.price ?? item.priceWithTax ?? item.PriceWithTax ?? item.centsPerKwh),
-        })).filter((item: {time:number;price:number}) => Number.isFinite(item.time) && item.time >= now - 3600000 && item.time < now + 86400000 && Number.isFinite(item.price))
-          .sort((x: {time:number}, y: {time:number}) => x.time - y.time).slice(0, 24);
+        const rows = Array.isArray(data?.rows) ? data.rows.filter((row: any) => Number.isFinite(row.time) && Number.isFinite(row.price)) : [];
         setElectricityChartRows(rows);
         setElectricityChartStatus(rows.length ? "" : "Tuntihintoja ei ole saatavilla.");
       })
