@@ -130,7 +130,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
     {!activeSection&&<p className="mb-2 text-xs text-[#6d6a5c]">Asetukset tallentuvat tähän selaimeen.</p>}
     <div className="grid gap-1.5">
       <div className="flex items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 shadow-sm">
-        <button type="button" className="min-w-0 flex-1 text-left" onClick={()=>{setActiveSection("household")}}><strong className="block">Kotitalous ja reseptit</strong><span className="text-xs text-[#6d6a5c]">Ruokavaliot ja allergiat ›</span></button>
+        <button type="button" className="min-w-0 flex-1 text-left" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection("household")}}><strong className="block">Kotitalous ja reseptit</strong><span className="text-xs text-[#6d6a5c]">Ruokavaliot ja allergiat ›</span></button>
         <label className="flex shrink-0 items-center gap-2 text-sm font-bold">Henkilöitä <input aria-label="Kotitalouden henkilömäärä suoraan Arvon päävalikossa" type="number" min={1} max={50} className="w-16 rounded-lg border p-2 text-center font-bold" value={p.householdSize} onChange={e=>update("householdSize",Math.min(50,Math.max(1,Number(e.target.value)||1)))}/></label>
       </div>
       {[
@@ -139,9 +139,9 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       ["energy","Henkilökohtainen dieetti",p.dietEnabled?"Käytössä":"Ei käytössä"],
       ["health","Terveystiedot","Yhteys ei vielä käytettävissä"],
       ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"]
-    ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 text-left shadow-sm hover:bg-white" onClick={()=>{setActiveSection(id)}}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
+    ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 text-left shadow-sm hover:bg-white" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection(id)}}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
     {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
-      <div className="flex shrink-0 items-center border-b bg-[#f8f5ed] px-2 py-1"><strong>{({household:"Kotitalous ja reseptit",energy:"Henkilökohtainen dieetti",health:"Terveystiedot",purchases:"Ostohistoria ja kulutus",reminders:"Ruokailuajat ja muistutukset"} as Record<string,string>)[activeSection]}</strong></div>
+      
       <div className="min-h-0 flex-1 overflow-hidden p-1">
 
       {activeSection==="household"&&<section className="h-full rounded-xl bg-white/75 px-2 py-1">
