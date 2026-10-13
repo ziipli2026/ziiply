@@ -988,10 +988,16 @@ export default function DesktopPreviewPage() {
     const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
     if(!ingredient)return null;
     const name=String(product.name||product.title||product.productName||"");
-    const matches=[...name.matchAll(/(\d+(?:[,.]\d+)?)\s*(kg|g|l|dl|cl|ml|kpl)\b/gi)];
-    const pack=matches.length?matches[matches.length-1]:null;
-    const size=pack?Number(pack[1].replace(",",".")):Number(product.packageSize||0);
-    const unit=pack?.[2]?.toLowerCase()||String(product.packageUnit||"").toLowerCase();
+    // Prefer the total package amount: "300 g (2 x 150 g)" is ONE 300 g package.
+    // If only a multipack expression is given, calculate its total.
+    const normalizeAmount=(value:string)=>Number(value.replace(",","."));
+    const multipack=[...name.matchAll(/(\d+)\s*[x×]\s*(\d+(?:[,.]\d+)?)\s*(kg|g|l|dl|cl|ml|kpl)\b/gi)];
+    const multi=multipack.length?multipack[multipack.length-1]:null;
+    const withoutMultipacks=name.replace(/\d+\s*[x×]\s*\d+(?:[,.]\d+)?\s*(?:kg|g|l|dl|cl|ml|kpl)\b/gi," ");
+    const totals=[...withoutMultipacks.matchAll(/(\d+(?:[,.]\d+)?)\s*(kg|g|l|dl|cl|ml|kpl)\b/gi)];
+    const total=totals.length?totals[totals.length-1]:null;
+    const size=total?normalizeAmount(total[1]):multi?Number(multi[1])*normalizeAmount(multi[2]):Number(product.packageSize||0);
+    const unit=total?.[2]?.toLowerCase()||multi?.[3]?.toLowerCase()||String(product.packageUnit||"").toLowerCase();
     return packageCount(ingredient.amount,ingredient.unit,size||null,unit||null);
   }
   function addRecipeSelectionToCart(product:any) {
