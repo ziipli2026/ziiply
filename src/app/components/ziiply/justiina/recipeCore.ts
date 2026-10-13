@@ -44,3 +44,10 @@ export function recipePackageSuggestion(needed: number | null, neededUnit: strin
   const factor = units[neededUnit];
   return { count, purchased: Math.round(basePurchased / factor * 1000) / 1000, surplus: Math.round((basePurchased - baseNeeded) / factor * 1000) / 1000, unit: neededUnit };
 }
+
+/** Match an ingredient to a retail package without confusing unrelated products. */
+export function suggestIngredientPurchase(ingredient: RecipeIngredient, product: { name?: string; packageSize?: number | null; packageUnit?: string | null }) {
+  const quantity = recipePackageSuggestion(ingredient.amount, ingredient.unit, product.packageSize ?? null, product.packageUnit ?? null);
+  if (!quantity) return null;
+  return { ingredientId: ingredient.id, needed: ingredient.amount, neededUnit: ingredient.unit, productName: product.name ?? "", suggestedCount: quantity.count, purchased: quantity.purchased, surplus: quantity.surplus, unit: quantity.unit };
+}
