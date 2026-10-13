@@ -34,3 +34,13 @@ export function packageCount(needed: number | null, neededUnit: string | null, p
 export function ingredientSearchTerms(items: RecipeIngredient[]): string[] {
   return items.filter(item => !item.atHome && item.name.trim()).map(item => item.name.trim());
 }
+
+/** Recipe requirement versus selected retail package; never silently round down. */
+export function recipePackageSuggestion(needed: number | null, neededUnit: string | null, packageSize: number | null, packageUnit: string | null): { count: number; purchased: number; surplus: number; unit: string } | null {
+  const count = packageCount(needed, neededUnit, packageSize, packageUnit);
+  if (count === null || needed === null || packageSize === null || !neededUnit || !packageUnit) return null;
+  const baseNeeded = needed * units[neededUnit];
+  const basePurchased = count * packageSize * units[packageUnit];
+  const factor = units[neededUnit];
+  return { count, purchased: Math.round(basePurchased / factor * 1000) / 1000, surplus: Math.round((basePurchased - baseNeeded) / factor * 1000) / 1000, unit: neededUnit };
+}
