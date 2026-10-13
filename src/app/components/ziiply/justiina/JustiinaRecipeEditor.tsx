@@ -128,48 +128,33 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };
-  return <section aria-label="Justiinan resepti" className="mt-2 w-full min-w-0 shrink-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-3 text-left text-sm text-[#27412a]">
-    {!draft?<div className="space-y-2"><p className="font-black">Reseptistä ostoksille</p>
-      <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
-      <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
-      <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
-    </div>:<div className="space-y-2">
-      <div className="flex items-center justify-between gap-2"><strong className="min-w-0 break-words">{draft.title}</strong><label className="flex shrink-0 items-center gap-1 text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-12 rounded border p-1"/> hlö</label></div>
-      <p className="text-xs">{scaled.filter(item=>!item.atHome).map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join(" · ")}</p>
-      <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Hae ainekset · {target||"?"} henkilölle</button>
-      <div className="flex flex-wrap gap-4 text-xs font-bold"><button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="underline">{editing?"Sulje muokkaus":"Muokkaa"}</button><button type="button" aria-expanded={instructionsOpen} onClick={()=>setInstructionsOpen(value=>!value)} className="underline">Valmistusohje</button><button type="button" onClick={()=>{setImporting(value=>!value);setEditing(false)}} className="underline">Vaihda resepti</button></div>
-    </div>}
-    <div className="mt-3 rounded-xl border border-[#b99d62] bg-[#fff5d8] p-2">
+  return <section aria-label="Justiinan resepti" className="w-full min-w-0 shrink-0 rounded-xl border border-[#d0aa58] bg-[#fff5d8] p-2 text-left text-sm text-[#27412a]">
+    <div className="rounded-xl bg-[#fff5d8] p-1">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <button type="button" onClick={recordRecipe} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src={voiceRecording?"/ui/voice/aanita-on.webp":"/ui/voice/aanita-off.webp"} alt="Äänitä" className="mx-auto h-16 w-16 object-contain"/><span className="block text-xs font-bold text-[#fff4d5]">Äänitä</span></button>
-        <strong className="text-center font-serif text-2xl text-[#174c3a]">Reseptit</strong>
-        <button type="button" onClick={()=>{void startCamera()}} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-16 w-16 object-contain"/><span className="block text-xs font-bold text-[#fff4d5]">Filmaa</span></button>
+        <button type="button" onClick={recordRecipe} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src={voiceRecording?"/ui/voice/aanita-on.webp":"/ui/voice/aanita-off.webp"} alt="Äänitä" className="mx-auto h-[clamp(70px,22vw,120px)] w-[clamp(70px,22vw,120px)] object-contain"/></button>
+        <strong className="text-center font-serif text-[clamp(23px,7vw,42px)] text-[#174c3a]">Reseptit</strong>
+        <button type="button" onClick={()=>{void startCamera()}} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-[clamp(70px,22vw,120px)] w-[clamp(70px,22vw,120px)] object-contain"/></button>
       </div>
       <div className="mt-2 flex gap-2"><input aria-label="Hae reseptiä omista" value={notebookFilter} onChange={event=>setNotebookFilter(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 flex-1 rounded-lg border border-[#b99d62] bg-white px-2 py-2"/><button type="button" onClick={()=>{setText("");setImporting(true);setEditing(false);setSavedId(null)}} className="shrink-0 rounded-lg bg-[#174c3a] px-3 text-xs font-bold text-white">Luo resepti</button></div>
-      <div className="mt-2 max-h-[25dvh] space-y-1.5 overflow-y-auto overscroll-contain rounded-lg bg-[#fff9e9] p-1">
+      <div className="mt-2 h-[min(30dvh,260px)] space-y-1.5 overflow-y-auto overscroll-contain rounded-lg bg-[#fff9e9] p-1">
         {notebook.filter(item=>item.title?.toLowerCase().includes(notebookFilter.toLowerCase())).map(item=><div key={item.id} className="rounded-xl border border-[#b99d62] bg-[#fff5d8] p-2">
           <div className="flex items-center gap-1"><button type="button" className="min-w-0 flex-1 truncate text-left font-bold" onClick={()=>{const source=[item.title,"4 annosta","Ainekset:",item.ingredients,"Valmistus:",item.instructions].join("\n");load(source);setSavedId(item.id);setNotebookOpen(open=>!open)}}>{item.title} ▾</button><button type="button" onClick={()=>{const source=[item.title,"4 annosta","Ainekset:",item.ingredients,"Valmistus:",item.instructions].join("\n");load(source);setSavedId(item.id);setEditing(true)}} className="rounded-full bg-[#174c3a] px-2 py-1 text-xs font-bold text-white">Vaihda</button><button type="button" onClick={()=>{if(!window.confirm("Poistetaanko resepti?"))return;const next=notebook.filter(recipe=>recipe.id!==item.id);localStorage.setItem("ziiply-desktop-vihkonen-recipes-v1",JSON.stringify(next));setNotebook(next);window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"))}} className="rounded-full border border-[#923c2f] px-2 py-1 text-xs text-[#923c2f]">Poista</button></div>
           {notebookOpen&&savedId===item.id&&<div className="mt-1 whitespace-pre-wrap text-xs">{item.ingredients}</div>}
         </div>)}
       </div>
     </div>
-    {cameraOpen&&<div className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+92px)] top-[calc(env(safe-area-inset-top)+96px)] z-[200] flex items-start justify-center overflow-y-auto rounded-2xl border-[3px] border-[#b99d62] bg-[#14271e] p-3 text-[#fff7df] shadow-2xl">
+    {cameraOpen&&<div className="fixed inset-x-3 bottom-auto top-[calc(env(safe-area-inset-top)+96px)] z-[200] flex max-h-[calc(100dvh-env(safe-area-inset-top)-190px)] items-start justify-center overflow-y-auto rounded-[22px] border-[4px] border-double border-[#b99d62] bg-[#14271e] p-3 text-[#fff7df] shadow-2xl">
       <div className="w-full max-w-[520px]">
         <div className="mb-3 flex items-center justify-between"><h3 className="font-serif text-xl font-bold">Kuvaa resepti {cameraReview&&<span className="text-sm font-sans">Tarkasta / muokkaa</span>}</h3><button type="button" aria-label="Sulje kamera" onClick={closeCamera} className="rounded-xl border border-[#b99d62] px-3 py-2">×</button></div>
-        {!cameraReview&&<div className="flex h-[30dvh] items-center justify-center overflow-hidden rounded-xl bg-black">{cameraShot?<img src={imagePreview} alt="Otettu reseptikuva" className="h-full w-full object-contain"/>:<video ref={cameraVideoRef} autoPlay playsInline muted className="h-full w-full object-contain"/>}</div>}
-        {cameraReview&&<textarea aria-label="Tarkasta reseptiteksti" value={text} onChange={event=>setText(event.target.value)} rows={9} className="h-[34dvh] w-full resize-none rounded-xl bg-[#fffdf5] p-3 text-[#183b2a]"/>}
+        {!cameraReview&&<div className="flex h-[min(35dvh,330px)] items-center justify-center overflow-hidden rounded-xl bg-black">{cameraShot?<img src={imagePreview} alt="Otettu reseptikuva" className="h-full w-full object-contain"/>:<video ref={cameraVideoRef} autoPlay playsInline muted className="h-full w-full object-contain"/>}</div>}
+        {cameraReview&&<textarea aria-label="Tarkasta reseptiteksti" value={text} onChange={event=>setText(event.target.value)} rows={9} className="h-[min(35dvh,330px)] w-full resize-none rounded-xl bg-[#fffdf5] p-3 text-[#183b2a]"/>}
         {cameraError&&<p className="mt-2 text-sm">{cameraError}</p>}
         <div className="mt-3 flex flex-wrap justify-center gap-2">
           {cameraReview?<><button type="button" onClick={()=>{setCameraReview(false);void startCamera()}} className="rounded-xl bg-[#e8d8a9] px-3 py-2 font-bold text-[#14271e]">Ota uusi</button><button type="button" onClick={closeCamera} className="rounded-xl border px-3 py-2">Peruuta</button><button type="button" onClick={()=>saveNotebook(text)} className="rounded-xl bg-[#e8d8a9] px-3 py-2 font-bold text-[#14271e]">Tallenna</button></>:<><button type="button" onClick={()=>{if(cameraShot){void startCamera()}else takePicture()}} className="rounded-xl bg-[#e8d8a9] px-3 py-2 font-bold text-[#14271e]">{cameraShot?"Ota uusi":"Ota kuva"}</button><button type="button" onClick={()=>{if(cameraShot){stopCamera();void readRecipeImage(capturedFileRef.current||undefined);setCameraReview(true)}else imageInputRef.current?.click()}} className="rounded-xl border px-3 py-2">{cameraShot?"Lue resepti":"Liitä kuva"}</button><button type="button" onClick={closeCamera} className="rounded-xl border px-3 py-2">Peruuta</button></>}
         </div>
       </div>
     </div>}
-    <div className="mt-3 rounded-lg border border-[#d0aa58] bg-white p-2">
-      <button type="button" onClick={()=>{setImporting(true);setEditing(false);imageInputRef.current?.click()}} className="w-full rounded-lg border border-[#174c3a] px-3 py-2 font-bold text-[#174c3a]">📷 Lue resepti</button>
-      <input ref={imageInputRef} type="file" accept="image/*" capture="environment" aria-label="Ota kuva reseptistä tai valitse kuva" className="sr-only" onChange={event=>{void readRecipeImage(event.target.files?.[0]);event.target.value=""}}/>
-      {readingImage&&<p role="status" className="mt-2 text-xs">Luetaan kuvaa…</p>}
-      {imagePreview&&importing&&<img src={imagePreview} alt="Valittu reseptikuva" className="mt-2 max-h-44 w-full rounded object-contain"/>}
-    </div>
+    <input ref={imageInputRef} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="sr-only" onChange={event=>{void readRecipeImage(event.target.files?.[0]);event.target.value=""}}/>
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {importing&&<div className="mt-3 space-y-2"><textarea aria-label="Reseptiteksti" rows={4} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
     {instructionsOpen&&draft&&<p className="mt-3 whitespace-pre-wrap text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
