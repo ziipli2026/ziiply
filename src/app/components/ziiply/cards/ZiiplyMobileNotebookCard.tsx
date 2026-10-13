@@ -10,7 +10,7 @@
 // - Alareuna: tallenna nykyinen kori.
 // - Riviltä voi avata listan koriin. Pieni poistomerkki poistaa tallennetun listan.
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 export type ZiiplyNotebookItem = {
   id?: string | number;
@@ -49,6 +49,15 @@ export type ZiiplyMobileNotebookCardProps = {
   className?: string;
 };
 
+type SavedRecipe = { id: string; title: string; ingredients: string; instructions: string; sourceText?: string; servings?: number | null };
+const RECIPE_STORAGE = "ziiply-desktop-vihkonen-recipes-v1";
+function readRecipes(): SavedRecipe[] {
+  try { const entries = JSON.parse(localStorage.getItem(RECIPE_STORAGE) || "[]"); return Array.isArray(entries) ? entries : []; }
+  catch { return []; }
+}
+function recipeText(recipe: SavedRecipe) {
+  return recipe.sourceText || [recipe.title, recipe.servings ? recipe.servings + " annosta" : "", "Ainekset:", recipe.ingredients, "Valmistus:", recipe.instructions].filter(Boolean).join("\\n");
+}
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
 const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
 const serifFont = '"Baskerville", Georgia, serif';
@@ -179,6 +188,20 @@ export default function ZiiplyMobileNotebookCard({
 }: ZiiplyMobileNotebookCardProps) {
   if (!open) return null;
 
+  const [page, setPage] = useState<"lists" | "recipes">("lists");
+  const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
+  const [recipeFilter, setRecipeFilter] = useState("");
+  const [selectedRecipe, setSelectedRecipe] = useState<SavedRecipe | null>(null);
+  const [editingRecipe, setEditingRecipe] = useState(false);
+  const [recipeDraft, setRecipeDraft] = useState("");
+  const [deleteRecipe, setDeleteRecipe] = useState<SavedRecipe | null>(null);
+  useEffect(() => {
+    const refresh = () => setRecipes(readRecipes());
+    refresh();
+    window.addEventListener("ziiply-vihkonen-recipes-changed", refresh);
+    window.addEventListener("storage", refresh);
+    return () => { window.removeEventListener("ziiply-vihkonen-recipes-changed", refresh); window.removeEventListener("storage", refresh); };
+  }, []);
   const hasCurrentCartItems = currentCartItems.length > 0;
   const hasLists = lists.length > 0;
   const defaultSaveName = useMemo(() => getOstelusvihkoDefaultName(lists), [lists]);
@@ -240,16 +263,46 @@ export default function ZiiplyMobileNotebookCard({
               className="text-[1.48rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
               style={{ fontFamily: cooperFont }}
             >
-              Ostelusvihko
+              {page === "lists" ? "Ostelusvihko" : "Reseptit"}
             </div>
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
-              Tallennetut ostelusvihkot
+              {page === "lists" ? "Tallennetut ostelusvihkot" : "Omat tallennetut reseptit"}
             </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {(["lists", "recipes"] as const).map(tab => <button key={tab} type="button" onClick={() => { setPage(tab); setSelectedRecipe(null); setEditingRecipe(false); }} aria-pressed={page === tab} className={`rounded-lg border-2 border-[#795b2c] px-2 py-2 text-xs font-black ${page === tab ? "bg-[#285039] text-[#fff5d8]" : "bg-[#f6e3b8] text-[#49361e]"}`}>{tab === "lists" ? "Ostosvihko" : "Reseptit"}</button>)}
           </div>
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[7.85rem] pt-[1.10rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {!hasLists ? (
+          {page === "recipes" ? (
+            <div className="space-y-2">
+              <input value={recipeFilter} onChange={event => setRecipeFilter(event.target.value)} aria-label="Hae tallennettuja reseptejä" placeholder="Hae reseptiä..." className="w-full rounded-lg border border-[#9a7a3d] bg-[#fff9e9] px-3 py-2 text-sm" />
+              {recipes.filter(recipe => recipe.title.toLocaleLowerCase("fi-FI").includes(recipeFilter.toLocaleLowerCase("fi-FI"))).map(recipe => (
+                <article key={recipe.id} className="flex items-center gap-2 rounded-xl border-2 border-[#9a7a3d] bg-[#fff4d8]/80 p-2">
+                  <button type="button" onClick={() => { setSelectedRecipe(recipe); setRecipeDraft(recipeText(recipe)); setEditingRecipe(false); }} className="min-w-0 flex-1 truncate py-2 text-left font-bold text-[#28402a]">{recipe.title}</button>
+                  <button type="button" onClick={() => setDeleteRecipe(recipe)} aria-label={`Poista ${recipe.title}`} className="rounded-md border border-[#8b3c27] px-2 py-1 text-[#8b3c27]">⌫</button>
+                </article>
+              ))}
+              {!recipes.length && <p className="py-6 text-center text-sm font-bold text-[#665338]">Ei vielä tallennettuja reseptejä.</p>}
+              {selectedRecipe && <div className="rounded-xl border-2 border-[#9a7a3d] bg-[#fff9e9] p-3">
+                <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-[#28402a]">{selectedRecipe.title}</strong><button type="button" onClick={() => setSelectedRecipe(null)} aria-label="Sulje resepti">✕</button></div>
+                {editingRecipe ? <textarea rows={9} className="w-full rounded-lg border p-2 text-sm" value={recipeDraft} onChange={event => setRecipeDraft(event.target.value)} /> : <div className="whitespace-pre-wrap text-sm">{recipeText(selectedRecipe)}</div>}
+                <div className="mt-3 flex gap-2">
+                  <button type="button" className="flex-1 rounded-lg bg-[#285039] px-3 py-2 text-sm font-bold text-white" onClick={() => {
+                    if (!editingRecipe) { setEditingRecipe(true); return; }
+                    const source = recipeDraft.trim(); if (!source) return;
+                    const lines = source.split(/\\r?\\n/); const title = lines.find(line => line.trim())?.trim() || selectedRecipe.title;
+                    const updated = { ...selectedRecipe, title, sourceText: source };
+                    const next = readRecipes().map(item => item.id === selectedRecipe.id ? updated : item);
+                    localStorage.setItem(RECIPE_STORAGE, JSON.stringify(next)); setRecipes(next); setSelectedRecipe(updated); setEditingRecipe(false);
+                    window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));
+                  }}>{editingRecipe ? "Tallenna" : "Muokkaa"}</button>
+                  {editingRecipe && <button type="button" className="rounded-lg border px-3 py-2 text-sm" onClick={() => setEditingRecipe(false)}>Peru</button>}
+                </div>
+              </div>}
+            </div>
+          ) : !hasLists ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
                 Ostelusvihko on vielä tyhjä
@@ -320,7 +373,7 @@ export default function ZiiplyMobileNotebookCard({
           )}
         </main>
 
-        <footer className="absolute bottom-[0.86rem] left-0 right-0 z-[40] px-5 pb-2 pt-2">
+        {page === "lists" && <footer className="absolute bottom-[0.86rem] left-0 right-0 z-[40] px-5 pb-2 pt-2">
           <div className="relative min-h-[2.65rem]">
             {savePanelOpen ? (
               <div className="mx-auto max-w-[20rem] rounded-[0.82rem] border-[2px] border-[#8a6b32] bg-[#fff4d4]/90 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.46),0_4px_10px_rgba(62,43,20,0.16)]">
@@ -377,10 +430,19 @@ export default function ZiiplyMobileNotebookCard({
               </button>
             )}
           </div>
-        </footer>
+        </footer>}
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
 
+        {deleteRecipe && <div className="absolute inset-0 z-[101] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true">
+          <div className="w-full rounded-xl bg-[#fff4d8] p-5"><strong>Poistetaanko resepti {deleteRecipe.title}?</strong><div className="mt-4 flex gap-2">
+            <button type="button" className="flex-1 rounded-lg border p-3" onClick={() => setDeleteRecipe(null)}>Peruuta</button>
+            <button type="button" className="flex-1 rounded-lg bg-[#8b3c27] p-3 text-white" onClick={() => {
+              const next = readRecipes().filter(item => item.id !== deleteRecipe.id);
+              localStorage.setItem(RECIPE_STORAGE, JSON.stringify(next)); setRecipes(next); setSelectedRecipe(null); setDeleteRecipe(null);
+              window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));
+            }}>Poista</button>
+          </div></div></div>}
         {pendingDeleteList && (
           <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="delete-saved-list-title">
             <div className="w-full max-w-[23rem] rounded-[1.35rem] border-[3px] border-[#886635] bg-[#fff4d8] p-5 text-[#214b33] shadow-[0_12px_35px_rgba(28,19,8,0.35),inset_0_0_0_2px_#fff9e8]">
