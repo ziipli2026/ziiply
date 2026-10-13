@@ -214,16 +214,21 @@ export default function ZiiplyMobileNotebookCard({
       setRecipeError("Reseptistä ei löytynyt aineksia. Avaa resepti muokattavaksi ja tarkista Ainekset-kohta.");
       return;
     }
-    const terms = ingredients.map(item => {
-      const classified = classifyRecipeIngredient(item.name);
-      return correctSearchQuery(classified?.searchTerm || item.name);
+    // Recipe search identifies the actual grocery item before running the common product search.
+    // Tap water is a preparation ingredient, not a supermarket product.
+    const searchableIngredients = ingredients.filter(item => !/^(?:vettä|vesi|hanavettä|hanavesi)$/i.test(item.name.trim()));
+    const terms = searchableIngredients.map(item => {
+      const name = item.name.replace(/\\s+tai\\s+\\d+(?:[,.]\\d+)?\\s*(?:kg|g|l|dl|cl|ml)\\s+.+$/i, "").trim();
+      const classified = classifyRecipeIngredient(name);
+      const simplified = name.replace(/^(?:hienonnettua|karkeaa|tuoretta|tuoreita)\\s+/i, "").trim();
+      return correctSearchQuery(classified?.searchTerm || simplified);
     }).filter(Boolean);
     appendRecipeDebug("ingredients-to-search", { servings, householdSize: preferences.householdSize, ingredients, terms });
     if (!terms.length) { setRecipeError("Reseptin aineksia ei voitu hakea."); appendRecipeDebug("blocked", "No search terms"); return; }
     setRecipeError("");
     try {
       sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({
-        title: draft.title, servings, items: ingredients,
+        title: draft.title, servings, items: searchableIngredients,
       }));
     } catch {}
     appendRecipeDebug("handoff-to-search", { terms, count: terms.length });
