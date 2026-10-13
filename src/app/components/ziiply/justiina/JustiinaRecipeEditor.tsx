@@ -62,14 +62,13 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };
-  return <><style>{`@keyframes recipe-switch-nudge{0%,60%,100%{transform:translate(0,-50%)}73%{transform:translate(-14px,-50%)}86%{transform:translate(0,-50%)}}`}</style><section aria-label="Justiinan resepti" className="mt-2 w-full min-w-0 shrink-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
+  return <><style>{`@keyframes recipe-switch-nudge{0%,60%,100%{transform:translate(0,-50%)}73%{transform:translate(-14px,-50%)}86%{transform:translate(0,-50%)}}`}</style><div className="relative mt-4 w-full min-w-0 shrink-0"><span className="absolute bottom-full left-2 mb-0.5 text-[10px] font-semibold leading-tight text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span><section aria-label="Justiinan resepti" className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
     {!draft?<div className="space-y-2"><p className="font-black">Reseptistä ostoksille</p>
       <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
       <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
       <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
     </div>:<div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2">
       <div className="min-w-0 space-y-2">
-        <span className="block text-center text-[10px] font-semibold leading-tight text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span>
         <strong className="block min-w-0 break-words text-center text-base leading-tight">{draft.title}</strong>
         <div className="grid min-w-0 grid-cols-2 gap-1">
           <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-1 text-[10px] font-bold text-white disabled:opacity-40">Hae</button>
@@ -109,5 +108,5 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       </div>
     </div>}
     </div>, document.body)}
-  </section></>;
+  </section></div></>;
 }
