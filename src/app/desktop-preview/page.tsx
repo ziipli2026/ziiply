@@ -1141,13 +1141,18 @@ export default function DesktopPreviewPage() {
 
   useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
   function gostaNearbyOfferStores(){
-    const allKnownStores=[...stores.filter(Boolean),...lidlStores,...sparStores,...Object.values(allStoreSelections.hyper),...Object.values(allStoreSelections.local)] as any[];
-    const uniqueStores=new Map<string,any>();
-    for(const store of allKnownStores){if(!store||!storeKind(store))continue;const key=String(store.externalId||store.id||store.name||"");if(key&&!uniqueStores.has(key))uniqueStores.set(key,store);}
-    const grouped=new Map<string,any[]>();
-    for(const store of uniqueStores.values()){const kind=storeKind(store);const group=kind==="sHyper"||kind==="kHyper"?"marketit":kind==="sLocal"||kind==="kLocal"?"lähikaupat":kind;grouped.set(group,[...(grouped.get(group)||[]),store]);}
-    const nearbyOfferStores=[...grouped.values()].flatMap(group=>byDistance(group).slice(0,3));
-    return nearbyOfferStores;
+    const known=[...stores,...lidlStores,...sparStores].filter(Boolean) as any[];
+    const manuallySelected=[...Object.values(allStoreSelections.hyper),...Object.values(allStoreSelections.local),...Object.values(selectedStores),...withinStoreSlots.S,...withinStoreSlots.K].filter(Boolean) as any[];
+    const storeId=(store:any)=>String(store?.externalId||store?.id||store?.storeKey||store?.name||"");
+    const chosen=new Map<string,any>();
+    // Default: nearest store per S/K hypermarket, S/K local, Lidl and Spar/Tokmanni.
+    for(const kind of ["sHyper","kHyper","sLocal","kLocal","lidl","spar"]){
+      const nearest=byDistance(known.filter(store=>storeKind(store)===kind))[0];
+      if(nearest)chosen.set(storeId(nearest),nearest);
+    }
+    // Explicit four-field and within-chain selections are always warmed as well.
+    for(const store of manuallySelected){if(storeKind(store)&&storeId(store))chosen.set(storeId(store),store);}
+    return [...chosen.values()];
   }
   useEffect(()=>{
     if(!stores.length&&!lidlStores.length&&!sparStores.length)return;
@@ -1159,7 +1164,7 @@ export default function DesktopPreviewPage() {
       await Promise.all(Array.from({length:Math.min(3,jobs.length)},async()=>{while(!cancelled&&cursor<jobs.length){const job=jobs[cursor++];await job();}}));
     },1200);
     return ()=>{cancelled=true;window.clearTimeout(timer);};
-  },[stores,lidlStores,sparStores,allStoreSelections,gpsCoords]);
+  },[stores,lidlStores,sparStores,allStoreSelections,selectedStores,withinStoreSlots,gpsCoords,appliedLocation]);
   async function searchGostaHomepageOffers() {
     const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
     if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
