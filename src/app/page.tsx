@@ -17174,6 +17174,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               ? selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || ""
               : activeStores.sStoreName;
 
+    if (typeof window !== "undefined" && sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1")) {
+      appendRecipeDebug("cart-product-price", {
+        productId: product.id, name: product.name, ean: product.ean,
+        rawPrice: product.price, priceVerified: (product as Product & { priceVerified?: boolean }).priceVerified,
+        normalizedPrice: getProductPrice(product), pictureUrl: product.pictureUrl,
+        selectedStore: normalSearchStoreName, selectedChain: normalSearchChain,
+      });
+    }
     const newItem: CartItem = {
       id: `search-${product.id}`,
       name: fixText(product.name),
