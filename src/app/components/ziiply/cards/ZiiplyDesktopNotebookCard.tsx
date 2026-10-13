@@ -16,6 +16,21 @@ const [recipeIngredients,setRecipeIngredients]=React.useState("");
 const [recipeInstructions,setRecipeInstructions]=React.useState("");
 const [recipeEditing,setRecipeEditing]=React.useState(false);
 const [recipeSaveNotice,setRecipeSaveNotice]=React.useState("");
+const [recipeReadOpen,setRecipeReadOpen]=React.useState(false);
+const [recipePhoto,setRecipePhoto]=React.useState<string|null>(null);
+const [recipePhotoError,setRecipePhotoError]=React.useState("");
+const recipeCameraInput=React.useRef<HTMLInputElement>(null);
+const recipeFileInput=React.useRef<HTMLInputElement>(null);
+const handleRecipePhoto=(file?:File)=>{
+  if(!file)return;
+  if(!file.type.startsWith("image/")){setRecipePhotoError("Valitse kuvatiedosto.");return;}
+  if(file.size>12*1024*1024){setRecipePhotoError("Kuva on liian suuri (enintään 12 Mt).");return;}
+  setRecipePhotoError("");
+  const reader=new FileReader();
+  reader.onload=()=>{setRecipePhoto(String(reader.result||""));setRecipeReadOpen(true);};
+  reader.onerror=()=>setRecipePhotoError("Kuvan avaaminen epäonnistui.");
+  reader.readAsDataURL(file);
+};
 const [expandedRecipe,setExpandedRecipe]=React.useState<string|null>(null);
 const [activeRecipe,setActiveRecipe]=React.useState<{id:string|null;title:string}>({id:null,title:""});
 React.useEffect(()=>{if(!open)return;try{const active=JSON.parse(sessionStorage.getItem("ziiply-justiina-recipe-draft-v1")||"null");const id=sessionStorage.getItem("ziiply-justiina-active-recipe-id-v1");setActiveRecipe({id:id||null,title:String(active?.draft?.title||"").trim()})}catch{}},[open]);
@@ -32,6 +47,13 @@ return <div className="fixed inset-0 z-[95] bg-[#17352a]/10">
 <main className={`relative z-10 grid min-h-0 flex-1 gap-4 overflow-hidden px-6 py-5 ${focusRecipes?"grid-cols-1":"grid-cols-2"}`}>
 <section className={`${focusRecipes?"hidden":"flex"} min-h-0 flex-col rounded-2xl border-2 border-[#b89552] bg-[#fff6d9]/60 p-4`}><h3 className="mb-3 shrink-0 text-center font-serif text-2xl font-black text-[#174c3a]">Ostelusvihko</h3><div className="min-h-0 flex-1 space-y-3 overflow-y-auto">{lists.length===0?<p className="text-center text-sm text-[#76684f]">Ei vielä tallennettuja ostoslistoja.</p>:lists.map(list=><article key={list.id} className="rounded-xl border border-[#b89552] bg-[#fff6d9] p-3"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="break-words font-black text-[#26352b]">{list.name}</div><div className="text-xs text-[#76684f]">{new Date(list.createdAt).toLocaleDateString("fi-FI")} · {list.items.length} tuotetta</div></div><button onClick={()=>onDeleteList(list.id)} className="rounded-full border border-[#9a4e3e] px-2 py-1 text-xs font-bold text-[#8b3d31]">Poista</button></div><button onClick={()=>onRestoreList(list)} className="mt-3 rounded-full border border-[#315d45] bg-[#dfead4] px-3 py-2 text-xs font-black text-[#174c3a]">Laita ostoskoriin</button></article>)}</div></section>
 <section className="flex min-h-0 flex-col rounded-2xl border-2 border-[#b89552] bg-[#fff6d9]/60 p-4"><h3 className="mb-3 shrink-0 text-center font-serif text-2xl font-black text-[#174c3a]">Reseptit</h3>{focusRecipes&&<button type="button" onClick={()=>setFocusRecipes(false)} className="mb-2 self-start rounded-lg border border-[#b89552] px-3 py-1 text-xs font-bold">← Koko Vihkonen</button>}<div className="flex shrink-0 flex-wrap gap-2"><input aria-label="Hae resepti" value={recipeQuery} onChange={event=>setRecipeQuery(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 flex-1 rounded-lg border border-[#b89552] bg-white px-3 py-2 text-sm"/><button type="button" onClick={()=>{setRecipeSaveNotice("");setRecipeEditing(v=>!v)}} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">{recipeEditing?"Peruuta":"Tallenna resepti"}</button></div>
+<div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={()=>setRecipeReadOpen(v=>!v)} aria-expanded={recipeReadOpen} className="rounded-lg border border-[#b89552] bg-[#fffdf5] px-3 py-2 text-xs font-bold text-[#174c3a]">📷 Lue resepti</button></div>
+{recipeReadOpen&&<div className="mt-2 rounded-xl border border-[#b89552] bg-[#fffdf5] p-3">
+<p className="mb-2 text-xs font-bold text-[#174c3a]">Reseptin kuva</p><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>recipeCameraInput.current?.click()} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">Ota kuva</button><button type="button" onClick={()=>recipeFileInput.current?.click()} className="rounded-lg border border-[#b89552] px-3 py-2 text-xs font-bold">Liitä kuva</button></div>
+<input ref={recipeCameraInput} type="file" accept="image/*" capture="environment" aria-label="Kuvaa resepti" className="hidden" onChange={e=>{handleRecipePhoto(e.target.files?.[0]);e.target.value="";}}/>
+<input ref={recipeFileInput} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="hidden" onChange={e=>{handleRecipePhoto(e.target.files?.[0]);e.target.value="";}}/>
+{recipePhoto&&<div className="mt-2"><img src={recipePhoto} alt="Reseptin kuva" className="max-h-48 w-full rounded-lg object-contain"/><div className="mt-2 flex gap-3"><button type="button" onClick={()=>{setRecipeEditing(true);setRecipeReadOpen(false)}} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">Kirjoita resepti kuvan perusteella</button><button type="button" onClick={()=>setRecipePhoto(null)} className="text-xs underline">Poista kuva</button></div><p className="mt-2 text-xs">Kuva näkyy tarkistusta varten. Automaattinen tekstintunnistus ei ole vielä käytössä.</p></div>}
+{recipePhotoError&&<p role="alert" className="mt-2 text-xs text-red-700">{recipePhotoError}</p>}</div>}
 {recipeSaveNotice&&<p role="status" className="mt-2 text-center text-xs font-bold text-[#174c3a]">{recipeSaveNotice}</p>}
 {recipeEditing&&createPortal(<div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#17352a]/30 p-3"><form onSubmit={event=>{event.preventDefault();if(!recipeTitle.trim()||!recipeIngredients.trim()){setRecipeSaveNotice("Täytä nimi ja vähintään yksi aines.");return}const saved=saveRecipes([{id:String(Date.now()),title:recipeTitle.trim(),ingredients:recipeIngredients.trim(),instructions:recipeInstructions.trim(),createdAt:new Date().toISOString()},...recipes]);if(saved){setRecipeTitle("");setRecipeIngredients("");setRecipeInstructions("");setRecipeEditing(false);setRecipeSaveNotice("Resepti tallennettu Vihkoseen.")}}} className="flex w-full max-w-[540px] flex-col gap-3 rounded-2xl border-[3px] border-[#b89552] bg-[#fffdf5] p-4 shadow-2xl sm:p-5">
 <label className="shrink-0 text-xs font-bold text-[#27412a]">Nimi<input autoFocus required placeholder="Esim. sköödi" value={recipeTitle} onChange={e=>setRecipeTitle(e.target.value)} className="mt-1 w-full rounded-lg border border-[#b89552] bg-white px-3 py-2 text-sm font-normal"/></label>
