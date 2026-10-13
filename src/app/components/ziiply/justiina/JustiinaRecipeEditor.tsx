@@ -67,15 +67,15 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
       <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
       <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
-    </div>:<div className="grid grid-cols-[minmax(235px,1fr)_minmax(0,1fr)] items-start gap-3 max-[470px]:grid-cols-1">
-      <div className="min-w-0 space-y-2">
+    </div>:<div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2 max-[470px]:grid-cols-1">
+      <div className="min-w-0 space-y-1.5">
         <strong className="block text-center text-base leading-tight">{draft.title}</strong>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <label className="flex shrink-0 items-center gap-1 whitespace-nowrap text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-12 rounded border p-1"/> hlö</label>
           <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="rounded-lg bg-[#174c3a] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">Hae</button>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold">
-          <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-2.5 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{editing?"Sulje":"✎ Muokkaa"}</button>
+        <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-bold">
+          <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-2 py-1 text-[#27412a] hover:bg-[#ecdfc0]">{editing?"Sulje":"✎ Muokkaa"}</button>
           <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-2.5 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">↻ Vaihda</button>
         </div>
       </div>
