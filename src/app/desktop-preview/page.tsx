@@ -1530,11 +1530,21 @@ export default function DesktopPreviewPage() {
       const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
       const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
       const rows:any[]=[];
-      for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankNormalSearchResults(query,items).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
+      for(const batch of batches){
+        const items=Array.isArray(batch.data?.products)?batch.data.products:Array.isArray(batch.data?.items)?batch.data.items:Array.isArray(batch.data)?batch.data:[];
+        for(const x of items){
+          const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);
+          const priceIsEuros=batch.chain==="S"&&batch.data?.source==="s-kaupat-normal-v220";
+          const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
+          const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:batch.data?.source||""};
+          if(!isBadNormalResult(product,query))rows.push(product);
+        }
+      }
+      const sortedRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY).slice(0,120);
       if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
-      setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:rows.length});
-      setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
-      return rows.length > 0;
+      setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:sortedRows.length});
+      setJustiinaResults(sortedRows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
+      return sortedRows.length > 0;
     }catch(error){setJustiinaDebug({query,status:"Poikkeus",error:String(error)});if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");return false}finally{setJustiinaLoading(false)}
   }
 
