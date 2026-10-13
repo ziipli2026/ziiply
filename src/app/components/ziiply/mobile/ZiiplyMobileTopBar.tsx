@@ -197,6 +197,10 @@ export default function ZiiplyMobileTopBar({
   onOpenFuel,
   onOpenCalendar,
 }: ZiiplyMobileTopBarProps) {
+  const [chartOpen, setChartOpen] = useState(false);
+  const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
+  const [chartError, setChartError] = useState("");
+  const [chartLoading, setChartLoading] = useState(false);
   const [autoWeatherValue, setAutoWeatherValue] = useState("+18°");
   const [autoWeatherText, setAutoWeatherText] = useState(areaLabel);
   const [autoElectricityValue, setAutoElectricityValue] = useState("—");
@@ -430,6 +434,33 @@ export default function ZiiplyMobileTopBar({
     };
   }, [hidden]);
 
+  useEffect(() => {
+    if (!chartOpen) return;
+    let cancelled = false;
+    setChartLoading(true);
+    setChartError("");
+    fetch("https://api.porssisahko.net/v1/latest-prices.json", { cache: "no-store" })
+      .then(async response => { if (!response.ok) throw new Error("Hintatietojen lataus epäonnistui"); return response.json(); })
+      .then(data => {
+        if (cancelled) return;
+        const items = Array.isArray(data?.prices) ? data.prices : [];
+        const now = Date.now();
+        const end = now + 24 * 60 * 60 * 1000;
+        const rows = items.map((item: any) => ({
+          start: String(item.startDate ?? item.start ?? ""),
+          price: Number(item.price ?? item.priceWithTax ?? item.PriceWithTax),
+        })).filter((item: {start: string; price: number}) => {
+          const time = Date.parse(item.start);
+          return Number.isFinite(time) && time >= now - 60 * 60 * 1000 && time < end && Number.isFinite(item.price);
+        }).sort((a: {start: string}, b: {start: string}) => Date.parse(a.start) - Date.parse(b.start)).slice(0, 24);
+        setChartPrices(rows);
+        if (!rows.length) setChartError("Seuraavan 24 tunnin hintatietoja ei ole saatavilla.");
+      })
+      .catch(() => { if (!cancelled) setChartError("Hintakäyrän lataus epäonnistui."); })
+      .finally(() => { if (!cancelled) setChartLoading(false); });
+    return () => { cancelled = true; };
+  }, [chartOpen]);
+
   const today = useMemo(() => new Date(), []);
   const dayValue = useMemo(() => {
     if (calendarValue) return calendarValue;
@@ -458,7 +489,7 @@ export default function ZiiplyMobileTopBar({
       unit: effectiveElectricityText === "c/kWh" ? "c/kWh" : undefined,
       detail: effectiveElectricityText,
       graphic: <ElectricityGraphic />,
-      onClick: onOpenElectricity,
+      onClick: onOpenElectricity || (() => setChartOpen(true)),
       level: electricityPriceLevel,
     },
     {
@@ -483,7 +514,7 @@ export default function ZiiplyMobileTopBar({
   if (hidden) return null;
 
   return (
-    <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full px-[6px] pt-[4px] sm:hidden">
+    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full px-[6px] pt-[4px] sm:hidden">
       <div className="pointer-events-none absolute left-[16px] top-[0px] z-[999] rounded-full bg-fuchsia-600 px-3 py-0.5 text-[11px] font-black text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)]">
         TOPBAR DEBUG V6
       </div>
@@ -555,6 +586,41 @@ export default function ZiiplyMobileTopBar({
         </div>
       </div>
     </div>
+      {chartOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#092e25]/55 px-3 sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä">
+          <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
+            <div className="mb-3 flex items-start justify-between gap-2">
+              <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
+              <button type="button" onClick={() => setChartOpen(false)} className="shrink-0 rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
+            </div>
+            {chartLoading ? <p className="py-10 text-center">Haetaan tuntihintoja…</p> : chartError ? <p className="py-10 text-center">{chartError}</p> : (
+              <>
+                <div className="relative h-[210px] border-b-2 border-[#b99961]">
+                  <div className="flex h-full items-end gap-[2px]">
+                    {chartPrices.map((item, index) => {
+                      const min = Math.min(0, ...chartPrices.map(row => row.price));
+                      const max = Math.max(10, ...chartPrices.map(row => row.price));
+                      const height = Math.max(3, (item.price - min + 0.4) / (max - min + 0.4) * 100);
+                      const color = item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544";
+                      return <div key={item.start + index} title={new Date(item.start).toLocaleString("fi-FI", {hour:"2-digit",minute:"2-digit"}) + ": " + fmtFi(item.price) + " snt/kWh"} className="min-w-0 flex-1 rounded-t-[3px]" style={{height: height + "%", backgroundColor: color}} />;
+                    })}
+                  </div>
+                </div>
+                <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
+                  <span>{chartPrices[0] ? new Date(chartPrices[0].start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
+                  <span>snt/kWh</span>
+                  <span>{chartPrices.length ? new Date(chartPrices[chartPrices.length-1].start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
+                </div>
+                <div className="mt-3 flex justify-between gap-2 text-[12px] font-bold text-[#164b38]">
+                  <span>Halvin {fmtFi(Math.min(...chartPrices.map(row=>row.price)))} snt/kWh</span>
+                  <span>Kallein {fmtFi(Math.max(...chartPrices.map(row=>row.price)))} snt/kWh</span>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      )}
+    </>
   );
 }
 
