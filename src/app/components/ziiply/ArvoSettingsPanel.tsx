@@ -108,6 +108,7 @@ export function arvoPurchaseSuggestions(purchases: ArvoPurchase[], today = new D
   });
 }
 export default function ArvoSettingsPanel() {
+  const [activeSection,setActiveSection]=useState<string|null>(null);
   const [p, setP] = useState<ArvoPreferences>(DEFAULT_ARVO_PREFERENCES);
   const [loaded, setLoaded] = useState(false);
   const [purchases,setPurchases]=useState<ArvoPurchase[]>([]);
@@ -119,8 +120,20 @@ export default function ArvoSettingsPanel() {
   const update = <K extends keyof ArvoPreferences>(key: K, value: ArvoPreferences[K]) => setP(prev => ({ ...prev, [key]: value }));
   const energy = estimateArvoEnergy(p);
   const mealLabels: { key: keyof ArvoPreferences["mealTimes"]; label: string }[] = [{key:"breakfast",label:"Aamiainen"},{key:"lunch",label:"Lounas"},{key:"dinner",label:"Päivällinen"},{key:"evening",label:"Iltapala"}];
-  return <div className="h-full overflow-y-auto px-2 py-4 text-[#173b2b]">
-    <p className="mb-4 text-sm">Asetukset tallentuvat tähän selaimeen. Eivät vielä synkronoidu eri laitteiden välillä.</p>
+  return <div className="relative h-full min-h-0 overflow-hidden px-2 py-4 text-[#173b2b]">
+    <p className="mb-4 text-sm">Valitse osa-alue. Asetukset tallentuvat tähän selaimeen, eivät vielä synkronoidu eri laitteille.</p>
+    <div className="grid gap-2">{[
+      ["household","Kotitalous ja reseptit",p.householdSize+" henkilöä"+(p.diets.length?" · "+p.diets.length+" ruokavaliota":"")],
+      ["energy","Henkilökohtainen dieetti",p.dietEnabled?"Käytössä":"Ei käytössä"],
+      ["health","Terveystiedot","Yhteys ei vielä käytettävissä"],
+      ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"],
+      ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Muistutukset eivät käytössä"]
+    ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-4 py-3 text-left shadow-sm hover:bg-white" onClick={()=>setActiveSection(id)}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
+    {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
+      <div className="flex shrink-0 items-center gap-3 border-b bg-[#f8f5ed] px-3 py-3"><button type="button" className="rounded-lg border px-3 py-2 font-bold" onClick={()=>setActiveSection(null)}>← Takaisin</button><strong>{({household:"Kotitalous ja reseptit",energy:"Henkilökohtainen dieetti",health:"Terveystiedot",purchases:"Ostohistoria ja kulutus",reminders:"Ruokailuajat ja muistutukset"} as Record<string,string>)[activeSection]}</strong></div>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
+
+      {activeSection==="household"&&(<>
     <section className="mb-5 rounded-xl bg-white/75 p-4">
       <h3 className="mb-2 text-xl font-bold">Kotitalous ja reseptit</h3>
       <label className="block">Henkilömäärä <input aria-label="Kotitalouden henkilömäärä" className="ml-3 w-20 rounded border p-2" type="number" min={1} max={50} value={p.householdSize} onChange={e=>update("householdSize",Math.min(50,Math.max(1,Number(e.target.value)||1)))} /></label>
@@ -132,6 +145,8 @@ export default function ArvoSettingsPanel() {
       <label className="mt-3 block font-bold">Muut vältettävät ainekset <textarea className="mt-1 w-full rounded border p-2 font-normal" value={p.avoidedIngredients} onChange={e=>update("avoidedIngredients",e.target.value)} /></label>
       <p className="text-xs">Puutteellisten tuotetietojen perusteella ei voi varmistaa allergeeniturvallisuutta.</p>
     </section>
+      </>)}
+      {activeSection==="energy"&&(<>
     <section className="mb-5 rounded-xl bg-white/75 p-4">
       <h3 className="mb-2 text-xl font-bold">Henkilökohtainen dieetti</h3>
       <label><input type="checkbox" checked={p.dietEnabled} onChange={e=>update("dietEnabled",e.target.checked)} /> Käytä henkilökohtaista energiasuunnittelua</label>
@@ -149,7 +164,11 @@ export default function ArvoSettingsPanel() {
       </div>}
       {p.dietEnabled&&(energy?<p className="mt-3 rounded-lg bg-[#e5eedf] p-3">Arvioitu perusaineenvaihdunta <b>{energy.bmr} kcal/vrk</b>, kokonaiskulutus <b>{energy.tdee} kcal/vrk</b>, syömisen tavoite <b>{energy.target} kcal/vrk</b>. Menetelmä: {energy.method}. Nämä eivät ole mittauksia. Liikuntadataa ei ole lisätty erikseen.</p>:<p className="mt-3 text-sm">Arviota ei lasketa ennen tarvittavia tietoja. Raskauden, imetyksen ja muun erityistilanteen aikana tavallista laskentaa ei käytetä.</p>)}
     </section>
+      </>)}
+      {activeSection==="health"&&(<>
     <section className="mb-5 rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Terveystiedot</h3><p className="text-sm">Salli terveystietojen käyttö mobiilistasi — ei vielä käytettävissä selainversiossa. Apple Health / Health Connect -yhteys ja oikeuksien peruminen toteutetaan vasta toimivalla integraatiolla. Terveystietoja ei haeta.</p></section>
+      </>)}
+      {activeSection==="purchases"&&(<>
     <section className="mb-5 rounded-xl bg-white/75 p-4">
       <h3 className="text-xl font-bold">Ostohistoria ja kulutus</h3>
       <label><input type="checkbox" checked={p.purchaseTracking} onChange={e=>update("purchaseTracking",e.target.checked)} /> Salli vahvistettujen ostosten perusteella tehtävät täydennysarviot</label>
@@ -162,11 +181,13 @@ export default function ArvoSettingsPanel() {
         </form>
         <p className="mt-2 text-xs">Täydennysarvio vaatii vähintään kolme eri päivän ostoa samasta tuotteesta. Ostovälin mediaani on vain arvio, ei tieto kotona olevasta määrästä.</p>
         {arvoPurchaseSuggestions(purchases).filter(item=>!dismissedSuggestions.includes(item.key)).map(item=><div key={item.key} className="mt-2 rounded-lg border p-3 text-sm"><b>{item.name}</b> voi olla vähissä (ostoväli noin {item.intervalDays} vrk).<div className="mt-2 flex flex-wrap gap-2"><button type="button" className="rounded border px-2 py-1" onClick={()=>{window.dispatchEvent(new CustomEvent("ziiply-arvo-add-to-shopping-list",{detail:{name:item.name}}));setDismissedSuggestions(old=>[...old,item.key]);}}>Lisää ostettavaksi</button><button type="button" className="rounded border px-2 py-1" onClick={()=>setDismissedSuggestions(old=>[...old,item.key])}>Vielä on / muistuta myöhemmin</button></div></div>)}
-        <p className="mt-2 text-xs">”Lisää ostettavaksi” lähettää pyynnön ostoslistalle; yhteys varsinaiseen ostoskoriin on vielä kesken, joten lisäys ei vielä näy ostoslistassa. Automaattiset ilmoitukset ovat myös kesken.</p>
+        <p className="mt-2 text-xs">”Lisää ostettavaksi” lisää tuotteen desktopin ostoskoriin. Automaattiset ilmoitukset ovat vielä kesken.</p>
         <p className="mt-2 text-xs">Vahvistettuja ostotapahtumia: {purchases.length}</p>
         <button type="button" className="mt-2 rounded border px-3 py-1 text-sm" onClick={()=>{if(!window.confirm("Poistetaanko kaikki Arvon vahvistetut ostokset tältä selaimelta?"))return;setPurchases([]);window.localStorage.removeItem(ARVO_PURCHASES_KEY);}}>Poista ostohistoria</button>
       </>}
     </section>
+      </>)}
+      {activeSection==="reminders"&&(<>
     <section className="rounded-xl bg-white/75 p-4">
       <h3 className="text-xl font-bold">Ruokailuajat ja muistutukset</h3>
       <p className="mb-3 text-sm">Valitse haluamasi ruokailuajat. Ajat tallentuvat asetuksiin; selainilmoituksia ei vielä lähetetä.</p>
@@ -179,5 +200,8 @@ export default function ArvoSettingsPanel() {
       <label className="mt-2 block"><input type="checkbox" checked={p.calendarSuggestions} onChange={e=>update("calendarSuggestions",e.target.checked)}/> Salli kalenteriin liittyvät ehdotukset, kun yhteys on toteutettu</label>
       <p className="mt-3 text-xs">Kalenteria ei lueta, eikä ilmoitus- tai sijaintilupia pyydetä. Taustamuistutukset ja kaupan lähestymisen tunnistus vaativat erilliset integraatiot.</p>
     </section>
+      </>)}
+      </div>
+    </div>}
   </div>;
 }
