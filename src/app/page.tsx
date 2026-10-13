@@ -1630,6 +1630,7 @@ import {
   scoreCategorySpecificResult,
   scoreNormalSResult,
   rankNormalSearchResults,
+  rankProductResultsByRelevanceAndPrice,
   isNonFoodOffer,
   isBadNormalResult,
   findArea,
@@ -12439,9 +12440,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             searchQuery,
           );
 
+          // Use the desktop preview's relevance-first, price-aware shared ranking.
+          // Never promote a product merely because the ingredient is mentioned in its name.
+          const groupMatchedItems = safeItems.filter((product: Product) =>
+            productGroupGate(searchQuery, product.name),
+          );
           const finalItems = (betweenSingleLidl
-            ? safeItems.filter((product) => Boolean(product.name?.trim()) && (product as Product & { source?: string }).source === "lidl.fi-public-research")
-            : rankNormalSearchResults(searchQuery, safeItems))
+            ? groupMatchedItems.filter((product) => Boolean(product.name?.trim()) && (product as Product & { source?: string }).source === "lidl.fi-public-research")
+            : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, (product: Product) => getProductPrice(product)))
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
