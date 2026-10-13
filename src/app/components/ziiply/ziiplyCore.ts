@@ -1811,6 +1811,26 @@ export function isPremiumBrandProduct(name: string) {
 // Maito ja kahvi jätetään tarkoituksella
 // hieman löysemmiksi, jotta hakutuloksia ei katoa liikaa.
 export function productGroupGate(sourceName: string, targetName: string) {
+  // Classify the requested grocery product before accepting ingredient mentions.
+  // Applies to every entry point using the shared product-group gate.
+  const requested = correctSearchQuery(sourceName).toLocaleLowerCase("fi").trim();
+  const candidate = targetName.toLocaleLowerCase("fi").trim();
+  const exactGroups: Record<string, RegExp> = {
+    sokeri: /\\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\\b/i,
+    merisuola: /\\bmerisuola(?:a)?\\b/i,
+    etikka: /\\b(?:etikka|väkiviinaetikka|omenaviinietikka|viinietikka)\\b/i,
+    silakka: /\\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\\b/i,
+  };
+  const excludedPrepared: Record<string, RegExp> = {
+    sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen/i,
+    merisuola: /riisikakku|sipsi|perunalastu|näkkileipä|keksi|pähkinä/i,
+    etikka: /mausteseos|grillimauste|kastike|sipsi|etikkapunajuuri/i,
+    silakka: /silakkalaatikko|silakkapihvi|silakkasäilyke|silakkapyörykkä/i,
+  };
+  if (exactGroups[requested]) {
+    if (!exactGroups[requested].test(candidate) || excludedPrepared[requested].test(candidate)) return false;
+  }
+
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
