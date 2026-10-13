@@ -22538,6 +22538,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   activeAssistant={activeAssistant}
                   onClose={() => setActiveAssistant(null)}
                   onSearchIngredients={(terms) => { setActiveAssistant(null); void runVoiceSearchFromSpeechV453(terms.join(", "), true); }}
+                  selectedChains={selectedChains}
+                  onChangeChain={(chain, enabled) => setSelectedChains(current => ({...current, [chain]: enabled}))}
+                  locationLabel={activeArea.label || locationInput}
+                  onOpenStoreSettings={() => { setActiveAssistant(null); setShopsPanelOpen(true); }}
+
                 />
               </>
             )}
