@@ -244,6 +244,29 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     ...(quality.missingCategory?[{level:"yellow",title:"Aktiivisista julkaisuista puuttuu kategorioita",detail:quality.missingCategory+" riviä"}]:[]),
     ...missingMonitoring.map(c=>({level:"gray",title:c.name+": health-seuranta puuttuu",detail:"Ei kirjattua ajoa 14 vuorokauden ikkunassa"}))
   ];
+
+  const summaryChecks=[
+    {name:"Prisma Hyvinkää",source:"s-prisma-hyvinkaa",success:"Tarjoushaku onnistui",failure:"Tarjoushaku epäonnistui"},
+    {name:"Citymarket",source:"k-citymarket-cache",success:"Aktiivisen tarjousvälimuistin tarkistus onnistui",failure:"Tarjousvälimuistin tarkistus epäonnistui"},
+    {name:"K-Supermarket Jokela",source:"k-supermarket-jokela",success:"Parserin tarkistus onnistui",failure:"Parserin tarkistus epäonnistui"},
+    {name:"K-Market Hakalantori",source:"k-market-hakalantori",success:"Parserin tarkistus onnistui",failure:"Parserin tarkistus epäonnistui"},
+    {name:"Eurospar",source:"eurospar-validated-feed",success:"Validoidun syötteen tarkistus onnistui",failure:"Validoidun syötteen tarkistus epäonnistui"},
+    {name:"Lidl",source:"official-lidl-combined",success:"Julkaisujen käsittely valmistui; luku sisältää eri voimassaolojaksoja",failure:"Julkaisujen käsittely epäonnistui"},
+    {name:"S-kauppojen yhteys",source:"s-kaupat-protocol",success:"Rajapinnan toimintatarkistus onnistui",failure:"Rajapinnan toimintatarkistus epäonnistui"},
+  ].map(check=>{
+    const run=d.runs.find(r=>r.source===check.source)??null;
+    const ageH=run?(Date.now()-new Date(run.checked_at).getTime())/3600000:null;
+    const warnAfterH=check.source==="official-lidl-combined"?30:check.source==="k-citymarket-cache"?24:8;
+    const level=!run?"gray":!run.ok?"red":ageH!==null&&ageH>warnAfterH?"yellow":"green";
+    const checkedDate=run?new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(run.checked_at)):null;
+    const clock=run?new Intl.DateTimeFormat("fi-FI",{timeZone:"Europe/Helsinki",hour:"2-digit",minute:"2-digit"}).format(new Date(run.checked_at)):null;
+    const date=run?new Intl.DateTimeFormat("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric",year:"numeric"}).format(new Date(run.checked_at)):null;
+    const when=run?(checkedDate===todayFi?"tänään":date)+", klo "+clock:null;
+    const result=!run?"Ei kirjattua tarkistusta 14 vrk aikana":(check.source==="s-kaupat-protocol"?(run.ok?"OK":"VIRHE"):run.offer_count+" tarjousta")+", "+when;
+    const meaning=!run?"Seurannan tila ei ole tiedossa":(run.ok?check.success:check.failure)+(level==="yellow"?". Tarkistus on vanha; uutta tulosta odotetaan.":"");
+    return {...check,run,level,result,meaning};
+  });
+
   const states=cards.map(c=>state(c.runs));
   const hasCriticalQuality=quality.missingPrice>0;
   const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0||thinNext.length>0||nextCandidates.length>0||Boolean(eanPriceRisk);
@@ -281,15 +304,18 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       </article>
     </section>
 
-    <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {cards.map((c,i)=>{const [s,label]=states[i];const r=c.runs[0];return <article key={c.key} style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:18}}>
-        <div style={{fontWeight:800,fontSize:16}}>{dot(s)} {c.name}</div>
-        <div style={{marginTop:7,fontWeight:800,color:s==="red"?"#b42318":s==="yellow"?"#a15c00":s==="green"?"#087443":"#667085"}}>{label}</div>
-        <div style={{fontSize:31,fontWeight:900,marginTop:14}}>{r?(r.source==="s-kaupat-protocol"?(r.ok?"OK":"VIRHE"):r.offer_count):"—"}</div>
-        <div style={{fontSize:12,color:"#667085"}}>{r?.source==="s-kaupat-protocol"?"protokollan health-probe":"viimeisin parseritulos"}</div>
-        <div style={{fontSize:12,color:"#667085",marginTop:9}}>{r?new Date(r.checked_at).toLocaleString("fi-FI"):"Ei ajoa 14 vrk"}</div>
-        {r&&<div style={{fontSize:13,marginTop:7}}>{r.outcome}</div>}
-      </article>})}
+    <section style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20,marginBottom:18}}>
+      <h2 style={{marginTop:0}}>Viimeisimmät kirjatut tarkistukset</h2>
+      <p style={{fontSize:13,color:"#64748b",marginTop:0}}>Tiedot luettu tietokannasta {new Date().toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}. Kaikki kellonajat ovat Suomen aikaa.</p>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:14}}>
+        <thead><tr>{["Kohde","Tietokannan tulos","Mitä se käytännössä kertoo"].map(label=><th key={label} scope="col" style={{textAlign:"left",padding:"12px 10px",borderBottom:"2px solid #e2e8f0"}}>{label}</th>)}</tr></thead>
+        <tbody>{summaryChecks.map(check=><tr key={check.source}>
+          <th scope="row" style={{textAlign:"left",padding:"14px 10px",borderBottom:"1px solid #edf0f2",whiteSpace:"nowrap"}}>{dot(check.level)} {check.name}</th>
+          <td style={{padding:"14px 10px",borderBottom:"1px solid #edf0f2"}}>{check.result}</td>
+          <td style={{padding:"14px 10px",borderBottom:"1px solid #edf0f2",lineHeight:1.5}}>{check.meaning}</td>
+        </tr>)}</tbody>
+      </table></div>
+      <p style={{fontSize:12,color:"#64748b",marginBottom:0,lineHeight:1.6}}>🟢 Tarkistus onnistui · 🟡 Tarkistus on vanha · 🔴 Tarkistus epäonnistui · ⚪ Seurantatieto puuttuu.<br/>Onnistunut tarkistus kertoo tiedonhaun tai käsittelyn onnistumisesta. Se ei yksin varmista jokaisen hinnan, kuvan tai tuoteryhmän oikeellisuutta. Tarjousmäärä on kyseisen tarkistuksen tulos, ei koko ketjun yhteismäärä.</p>
     </section>
 
     </>}
