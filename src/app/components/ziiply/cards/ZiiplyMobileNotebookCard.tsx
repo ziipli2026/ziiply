@@ -13,6 +13,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { parseRecipeText, classifyRecipeIngredient } from "../justiina/recipeCore";
 import { readArvoPreferences } from "../ArvoSettingsPanel";
+import { appendRecipeDebug, RECIPE_DEBUG_KEY } from "../mobile/ZiiplyRecipeSearchDebug";
 import { correctSearchQuery } from "../search/searchIntentAI";
 
 export type ZiiplyNotebookItem = {
@@ -202,7 +203,10 @@ export default function ZiiplyMobileNotebookCard({
   const [deleteRecipe, setDeleteRecipe] = useState<SavedRecipe | null>(null);
   const [recipeError, setRecipeError] = useState("");
   const searchRecipe = (recipe: SavedRecipe) => {
-    const draft = parseRecipeText(recipeText(recipe));
+    try { sessionStorage.removeItem(RECIPE_DEBUG_KEY); } catch {}
+    const rawText = recipeText(recipe);
+    const draft = parseRecipeText(rawText);
+    appendRecipeDebug("recipe-parsed", { recipeId: recipe.id, title: recipe.title, rawText, parsed: draft });
     const preferences = readArvoPreferences();
     const servings = draft.servings || recipe.servings || preferences.householdSize;
     const ingredients = draft.ingredients.filter(item => !item.atHome && item.name.trim());
@@ -214,13 +218,15 @@ export default function ZiiplyMobileNotebookCard({
       const classified = classifyRecipeIngredient(item.name);
       return correctSearchQuery(classified?.searchTerm || item.name);
     }).filter(Boolean);
-    if (!terms.length) { setRecipeError("Reseptin aineksia ei voitu hakea."); return; }
+    appendRecipeDebug("ingredients-to-search", { servings, householdSize: preferences.householdSize, ingredients, terms });
+    if (!terms.length) { setRecipeError("Reseptin aineksia ei voitu hakea."); appendRecipeDebug("blocked", "No search terms"); return; }
     setRecipeError("");
     try {
       sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({
         title: draft.title, servings, items: ingredients,
       }));
     } catch {}
+    appendRecipeDebug("handoff-to-search", { terms, count: terms.length });
     onSearchIngredients?.(terms);
   };
   const openRecipe = (recipe: SavedRecipe, edit = false) => {
