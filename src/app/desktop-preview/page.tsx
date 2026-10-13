@@ -76,7 +76,7 @@ function sortDesktopCategories(categories: string[]): string[] {
 function FuelStationCardDetails({ chain, station }: { chain: string; station: any }) {
   const price = (v: unknown) => v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v).toFixed(3).replace(".", ",") : "–";
   const compact = chain.includes("Gulf") || chain.includes("Ritoil") || chain === "Muut";
-  return <div className="pointer-events-none absolute inset-x-0 top-1 z-10 flex h-[calc(100%-8px)] min-w-0 flex-col items-center text-center"><label className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-lg bg-white/90 px-2 py-1 text-xs font-bold"><input type="checkbox" checked={gostaSelectedOfferKeys.includes(gostaOfferKey(p))} onChange={event=>setGostaSelectedOfferKeys(previous=>event.target.checked?[...previous,gostaOfferKey(p)]:previous.filter(k=>k!==gostaOfferKey(p)))} /> Valitse</label>
+  return <div className="pointer-events-none absolute inset-x-0 top-1 z-10 flex h-[calc(100%-8px)] min-w-0 flex-col items-center text-center">
     <div className="flex w-[calc(100%-128px)] min-w-0 flex-col items-center">
       <div className={`w-full text-center font-black leading-[1.05] text-[#111827] ${compact ? "whitespace-nowrap text-[clamp(9px,.72vw,12px)]" : "text-[clamp(12px,1vw,16px)]"}`}>{chain}</div>
       <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei asemaa saatavilla"}</div>
