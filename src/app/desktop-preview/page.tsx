@@ -239,6 +239,7 @@ export default function DesktopPreviewPage() {
   const gostaHomeCache=useRef<{query:string;time:number;results:any[]}|null>(null);
   const [gostaCacheStatus,setGostaCacheStatus]=useState("Välimuistia ei vielä tarkistettu");
   const gostaHomeCacheKey="ziiply-gosta-home-search-v9";
+  const gostaPreviousCacheKeys=["ziiply-gosta-home-search-v8","ziiply-gosta-home-search-v7","ziiply-gosta-home-search-v6"];
   const gostaHomeHistoryKey="ziiply-gosta-home-search-history-v1";
   const gostaHomeCacheTtl=15*60*1000; // Unknown validity: recheck after 15 minutes.
   const gostaHomeCacheMap=useRef<Record<string,{query:string;time:number;results:any[]}>>({});
@@ -265,7 +266,7 @@ export default function DesktopPreviewPage() {
     let saved=gostaHomeCacheMap.current[query];
     if(!saved){
       try{
-        const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey);
+        const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey)||gostaPreviousCacheKeys.map(key=>window.localStorage.getItem(key)||window.sessionStorage.getItem(key)).find(Boolean);
         const parsed=raw?JSON.parse(raw):{};
         if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))gostaHomeCacheMap.current=parsed;
       }catch{}
@@ -309,7 +310,7 @@ export default function DesktopPreviewPage() {
   }
   useEffect(()=>{
     try{
-      const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey);
+      const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey)||gostaPreviousCacheKeys.map(key=>window.localStorage.getItem(key)||window.sessionStorage.getItem(key)).find(Boolean);
       const parsed=raw?JSON.parse(raw):{};
       if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))gostaHomeCacheMap.current=parsed;
       setGostaCacheStatus(`Välimuistissa ${Object.keys(gostaHomeCacheMap.current).length} hakua`);
