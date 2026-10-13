@@ -91,6 +91,23 @@ const recipeGroups: Array<{ pattern: RegExp; group: RecipeFoodGroup }> = [
   { pattern: /^(?:sitruuna|sitruunaa|sitruunoita)$/, group: { ingredient: "sitruuna", mainGroup: "Hedelmät", subGroup: "Sitrushedelmät", searchTerm: "sitruuna" } },
   { pattern: /^(?:jauheliha|jauhelihaa|naudan jauheliha)$/, group: { ingredient: "jauheliha", mainGroup: "Liha", subGroup: "Jauheliha", searchTerm: "jauheliha" } },
 ];
+/** Normalize OCR recipe lines before product search; preserve quantities in the recipe itself. */
+export function recipeProductSearchTerm(input: string): string | null {
+  let name=input.toLocaleLowerCase("fi").trim().replace(/^[•*\-–]+\s*/,"");
+  if (/^(?:mausteliemi|lisäksi tarvitaan|ainekset|valmistus)\s*:?$/i.test(name)) return null;
+  name=name.replace(/^\d+\s+\d+\s*\/\s*\d+\s*/,"").replace(/^\d+\s*\/\s*\d+\s*/,"").replace(/^\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?\s*/,"");
+  name=name.replace(/^(?:kg|g|l|dl|cl|ml|rkl|tl|kpl|kpl\.|pkt|prk|pss)\b\.?\s*/i,"").replace(/^(?:\d+\s*)?(?:kg|g|l|dl|cl|ml|rkl|tl)\b\s*/i,"");
+  name=name.replace(/\s*\(\s*\d+\s*%\s*\)/g,"").replace(/\s+\d+\s*%\s*$/,"").replace(/\s+/g," ").trim();
+  if (/^(?:vesi|vettä|veden|vesiä)$/.test(name)) return null;
+  if (/silakk/.test(name)) return /file/.test(name)?"silakkafilee":"silakka";
+  if (/\btilli/.test(name)) return "tilli";
+  if (/\betikk/.test(name)) return "väkiviinaetikka";
+  if (/\bsoker/.test(name)) return "taloussokeri";
+  if (/merisuol/.test(name)) return "merisuola";
+  if (/maustepippur/.test(name)) return "maustepippuri";
+  if (/valkopippur/.test(name)) return "valkopippuri";
+  return name||null;
+}
 export function classifyRecipeIngredient(name: string): RecipeFoodGroup | null {
   const normalized = name.toLocaleLowerCase("fi").trim().replace(/\s+/g, " ");
   return recipeGroups.find(entry => entry.pattern.test(normalized))?.group ?? null;
