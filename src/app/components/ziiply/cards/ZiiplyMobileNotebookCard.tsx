@@ -200,6 +200,22 @@ export default function ZiiplyMobileNotebookCard({
   const [recipeDraft, setRecipeDraft] = useState("");
   const [deleteRecipe, setDeleteRecipe] = useState<SavedRecipe | null>(null);
   const [recipeError, setRecipeError] = useState("");
+  const searchRecipe = (recipe: SavedRecipe) => {
+                  const draft = parseRecipeText(recipeText(recipe));
+                  const ingredients = draft.ingredients.filter(item => !item.atHome && item.name.trim());
+                  if (!ingredients.length) { setRecipeError("Reseptistä ei löytynyt haettavia aineksia."); return; }
+                  if (!draft.servings || ingredients.some(item => item.uncertain || !item.amount || !item.unit)) {
+                    setRecipeError("Tarkista reseptin annosmäärä ja ainesmäärät ennen hakua."); return;
+                  }
+                  const classified = ingredients.map(item => classifyRecipeIngredient(item.name));
+                  if (classified.some(group => !group)) { setRecipeError("Tarkista tunnistamattomat ruoka-aineryhmät Justiinan reseptieditorissa."); return; }
+                  setRecipeError("");
+                  try { sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({title:draft.title, servings:draft.servings, items:ingredients})); } catch {}
+                  onSearchIngredients?.(classified.map(group => correctSearchQuery(group!.searchTerm)));
+  };
+  const openRecipe = (recipe: SavedRecipe, edit = false) => {
+    setSelectedRecipe(recipe); setRecipeDraft(recipeText(recipe)); setEditingRecipe(edit); setRecipeError("");
+  };
   useEffect(() => {
     const refresh = () => setRecipes(readRecipes());
     refresh();
@@ -285,26 +301,21 @@ export default function ZiiplyMobileNotebookCard({
               <input value={recipeFilter} onChange={event => setRecipeFilter(event.target.value)} aria-label="Hae tallennettuja reseptejä" placeholder="Hae reseptiä..." className="w-full rounded-lg border border-[#9a7a3d] bg-[#fff9e9] px-3 py-2 text-sm" />
               {recipes.filter(recipe => recipe.title.toLocaleLowerCase("fi-FI").includes(recipeFilter.toLocaleLowerCase("fi-FI"))).map(recipe => (
                 <article key={recipe.id} className="flex items-center gap-2 rounded-xl border-2 border-[#9a7a3d] bg-[#fff4d8]/80 p-2">
-                  <button type="button" onClick={() => { setSelectedRecipe(recipe); setRecipeDraft(recipeText(recipe)); setEditingRecipe(false); }} className="min-w-0 flex-1 truncate py-2 text-left font-bold text-[#28402a]">{recipe.title}</button>
-                  <button type="button" onClick={() => setDeleteRecipe(recipe)} aria-label={`Poista ${recipe.title}`} className="rounded-md border border-[#8b3c27] px-2 py-1 text-[#8b3c27]">⌫</button>
+                  <button type="button" onClick={() => openRecipe(recipe)} className="min-w-0 flex-1 truncate py-2 text-left text-[clamp(12px,3.2vw,16px)] font-bold text-[#28402a]">{recipe.title}</button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button type="button" onClick={() => searchRecipe(recipe)} aria-label={`Hae reseptin ${recipe.title} ainekset ostoskoriin`} title="Hae ainekset ostoskoriin" className="grid h-9 w-9 place-items-center rounded-lg border border-[#6b8b61] bg-[#edf3df] text-lg">🛒</button>
+                    <button type="button" onClick={() => openRecipe(recipe, true)} aria-label={`Muokkaa reseptiä ${recipe.title}`} title="Muokkaa reseptiä" className="grid h-9 w-9 place-items-center rounded-lg border border-[#9a7a3d] bg-[#fff7dd] text-lg">✎</button>
+                    <button type="button" onClick={() => setDeleteRecipe(recipe)} aria-label={`Poista ${recipe.title}`} title="Poista resepti" className="grid h-9 w-9 place-items-center rounded-lg border border-[#bca04c] bg-[#fff2b8] text-lg">🧽</button>
+                  </div>
                 </article>
               ))}
+              {recipeError && !selectedRecipe && <p role="alert" className="rounded-lg bg-[#fff2d8] p-2 text-xs font-bold text-[#8b3c27]">{recipeError}</p>}
               {!recipes.length && <p className="py-6 text-center text-sm font-bold text-[#665338]">Ei vielä tallennettuja reseptejä.</p>}
               {selectedRecipe && <div className="rounded-xl border-2 border-[#9a7a3d] bg-[#fff9e9] p-3">
                 <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-[#28402a]">{selectedRecipe.title}</strong><button type="button" onClick={() => setSelectedRecipe(null)} aria-label="Sulje resepti">✕</button></div>
                 {editingRecipe ? <textarea rows={9} className="w-full rounded-lg border p-2 text-sm" value={recipeDraft} onChange={event => setRecipeDraft(event.target.value)} /> : <div className="whitespace-pre-wrap text-sm">{recipeText(selectedRecipe)}</div>}
                 {!editingRecipe && <button type="button" className="mb-2 w-full rounded-lg bg-[#285039] px-3 py-3 text-sm font-black text-white" onClick={() => {
-                  const draft = parseRecipeText(recipeText(selectedRecipe));
-                  const ingredients = draft.ingredients.filter(item => !item.atHome && item.name.trim());
-                  if (!ingredients.length) { setRecipeError("Reseptistä ei löytynyt haettavia aineksia."); return; }
-                  if (!draft.servings || ingredients.some(item => item.uncertain || !item.amount || !item.unit)) {
-                    setRecipeError("Tarkista reseptin annosmäärä ja ainesmäärät ennen hakua."); return;
-                  }
-                  const classified = ingredients.map(item => classifyRecipeIngredient(item.name));
-                  if (classified.some(group => !group)) { setRecipeError("Tarkista tunnistamattomat ruoka-aineryhmät Justiinan reseptieditorissa."); return; }
-                  setRecipeError("");
-                  try { sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({title:draft.title, servings:draft.servings, items:ingredients})); } catch {}
-                  onSearchIngredients?.(classified.map(group => correctSearchQuery(group!.searchTerm)));
+                  searchRecipe(selectedRecipe);
                 }}>Hae ainekset ostoskoriin</button>}
                 {recipeError && <p role="alert" className="mb-2 text-xs font-bold text-[#8b3c27]">{recipeError}</p>}
                 <div className="mt-3 flex gap-2">
