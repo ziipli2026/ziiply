@@ -2798,6 +2798,31 @@ export function scoreNormalSResult(query: string, product: Product) {
   return scoreCategorySpecificResult(query, product);
 }
 
+// Shared relevance-first, lowest-price-first ordering for product result lists.
+// Rank the correct product group before comparing prices within a relevance tier.
+export function rankProductResultsByRelevanceAndPrice<T extends Product>(
+  query: string,
+  products: T[],
+  priceOf: (product: T) => number,
+): T[] {
+  const ranked = rankNormalSearchResults(query, products);
+  const order = new Map(ranked.map((product, index) => [product, index]));
+  return [...products].sort((a, b) => {
+    const aScore = scoreNormalSResult(query, a);
+    const bScore = scoreNormalSResult(query, b);
+    const aTier = Math.floor(aScore / 40);
+    const bTier = Math.floor(bScore / 40);
+    if (aTier !== bTier) return bTier - aTier;
+    const aPrice = priceOf(a);
+    const bPrice = priceOf(b);
+    const validA = Number.isFinite(aPrice) && aPrice > 0;
+    const validB = Number.isFinite(bPrice) && bPrice > 0;
+    if (validA !== validB) return validA ? -1 : 1;
+    if (validA && aPrice !== bPrice) return aPrice - bPrice;
+    return (order.get(a) ?? 0) - (order.get(b) ?? 0);
+  });
+}
+
 export function rankNormalSearchResults(query: string, products: Product[]) {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
