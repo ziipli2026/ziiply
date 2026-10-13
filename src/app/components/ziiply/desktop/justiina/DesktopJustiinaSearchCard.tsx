@@ -29,14 +29,14 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
   </div>
   <div className="mt-2 flex min-h-0 flex-col">
     <div data-justiina-search-grid className="relative mt-2 grid grid-cols-2 items-center gap-x-3 gap-y-1">
-      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 col-start-1 row-start-1 h-[54px] min-w-0 ${listExpanded?"col-span-2":"col-span-1"}`}>
+      <div role="status" aria-live="polite" className="col-start-1 row-start-1 min-w-0 px-1 text-center text-[12px] font-bold text-[#765f3f]">{!loading && results.length===0 ? (message||"Kirjoita tuote, tuoteryhmä tai ostoslista.") : ""}</div>
+      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 col-start-1 row-start-2 h-[54px] min-w-0 ${listExpanded?"col-span-2":"col-span-1"}`}>
         <div className="relative h-[54px]">
           <span ref={measureRef} aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-0 whitespace-pre font-serif text-[17px] font-black">{query||""}</span>
           <input ref={inputRef} autoFocus type="text" value={query.replace(/\r?\n/g," ")} onChange={e=>onQueryChange(e.target.value)} placeholder="Kirjoita tuote tai ostoslista" aria-label="Hae tuotteita" className="block h-[54px] w-full min-w-0 rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-4 pr-[96px] text-center font-serif text-[17px] font-black text-[#6f6657] outline-none placeholder:text-[15px] placeholder:text-[#8b806e]"/>
           {query.trim()&&<><button type="button" onClick={()=>{onQueryChange("");setListExpanded(false);inputRef.current?.focus()}} aria-label="Tyhjennä hakukenttä" className="absolute right-[51px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#d0aa4f] bg-[#fff1c9]">🧽</button><button type="submit" aria-label="Hae kirjoitetut tuotteet" className="absolute right-[7px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#477350] bg-[#e2edcf]">🧺</button></>}
         </div>
       </form>
-      <div role="status" aria-live="polite" className="col-start-1 row-start-2 min-w-0 px-1 text-center text-[12px] font-bold text-[#765f3f]">{!loading && results.length===0 ? (message||"Kirjoita tuote, tuoteryhmä tai ostoslista.") : ""}</div>
       <div className="col-start-2 row-start-1 row-span-2 min-w-0 self-center"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
     </div>
     {loading ? <div role="status" aria-live="polite" aria-label="Justiina hakee tuotteita" className="relative mt-2 h-[38px] overflow-hidden rounded-xl border border-[#d0aa58] bg-[#fff8dd]">
