@@ -24,8 +24,20 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     if(saved?.draft&&Array.isArray(saved.draft.ingredients)){
       setDraft(saved.draft);setText(String(saved.text||""));
       setOriginal(String(saved.original||saved.draft.servings||""));setTarget(String(saved.target||saved.draft.servings||""));
+    }else{
+      // Always open the search card with a real recipe, prioritizing the user's notebook.
+      const recipes=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");
+      const latest=Array.isArray(recipes)?recipes.find((item:any)=>item&&typeof item.ingredients==="string"&&item.ingredients.trim()):null;
+      const source=latest?[String(latest.title||"Oma resepti"),"4 annosta","Ainekset:",latest.ingredients,"Valmistus:",String(latest.instructions||"")].join("\\n"):EXAMPLE;
+      const parsed=parseRecipeText(source);
+      const people=String(parsed.servings||4);
+      setDraft(parsed);setText(source);setOriginal(people);setTarget(people);
+      if(latest)setSavedRecipeId(String(latest.id||""));
     }
-  }catch{}setHydrated(true)},[]);
+  }catch{
+    const parsed=parseRecipeText(EXAMPLE);
+    setDraft(parsed);setText(EXAMPLE);setOriginal(String(parsed.servings||4));setTarget(String(parsed.servings||4));
+  }setHydrated(true)},[]);
   const persist=(next:RecipeDraft|null=draft,source=text,base=original,people=target)=>{
     try{sessionStorage.setItem(STORAGE,JSON.stringify({draft:next,text:source,original:base,target:people}))}catch{}
   };
@@ -88,7 +100,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
           <div className="relative min-w-0"><button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[10px] font-bold text-[#27412a]">Vaihda</button>{showSwitchHint&&<span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-10 flex h-8 -translate-y-1/2 items-center"><span className="block motion-safe:animate-[recipe-switch-nudge_2s_ease-in-out_infinite]"><svg viewBox="0 0 42 22" width="42" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 11H40M2 11L12 2M2 11L12 20" stroke="#174c3a" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/></svg></span></span>}</div>
         </div>
       </div>
-      <div className="min-w-0 space-y-1 border-l border-[#d0aa58] pl-2 text-xs leading-relaxed">{scaled.filter(item=>!item.atHome).map((item,index)=><div key={`${item.name}-${index}`} className="break-words">{[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")}</div>)}</div>
+      <div className="min-w-0 max-h-[190px] space-y-1 overflow-y-auto border-l border-[#d0aa58] pl-2 pr-1 text-xs leading-relaxed">{scaled.filter(item=>!item.atHome).map((item,index)=><div key={`${item.name}-${index}`} className="break-words">{[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")}</div>)}</div>
     </div>}
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {hydrated && typeof document !== "undefined" && (importing||editing) && createPortal(<div className="fixed left-1/2 top-3 z-[9999] w-[min(520px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto -translate-x-1/2 rounded-2xl border-2 border-[#b89959] bg-[#fffdf5] p-3 text-[#27412a] shadow-2xl">
