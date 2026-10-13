@@ -28,6 +28,36 @@ const recipeVoice=useDesktopVoiceInput((transcript)=>{
   setRecipeReadOpen(false);
   setRecipeSaveNotice("Sanelu lisättiin ainestekstiin. Tarkista nimi, määrät ja valmistusohje ennen tallennusta.");
 });
+const [recipeOcrBusy,setRecipeOcrBusy]=React.useState(false);
+const [recipeOcrText,setRecipeOcrText]=React.useState("");
+const readRecipeImage=async()=>{
+  if(!recipePhoto)return;
+  setRecipeOcrBusy(true);setRecipePhotoError("");
+  try{
+    type RecognizedLine={rawValue:string;boundingBox?:{y:number;x:number}};
+    type Detector=new()=>{detect:(image:HTMLImageElement)=>Promise<RecognizedLine[]>};
+    const detector=(window as unknown as {TextDetector?:Detector}).TextDetector;
+    if(!detector)throw Error("Tämä selain ei tue paikallista tekstintunnistusta. Käytä tuettua selainta tai syötä resepti käsin.");
+    const image=new Image();image.src=recipePhoto;await image.decode();
+    const lines=await new detector().detect(image);
+    const raw=lines.sort((a,b)=>(a.boundingBox?.y||0)-(b.boundingBox?.y||0)||(a.boundingBox?.x||0)-(b.boundingBox?.x||0)).map(line=>line.rawValue.trim()).filter(Boolean).join("\n");
+    if(!raw)throw Error("Kuvasta ei löytynyt luettavaa tekstiä. Kokeile tarkempaa kuvaa.");
+    setRecipeOcrText(raw);
+  }catch(e){setRecipePhotoError(e instanceof Error?e.message:"Tekstin tunnistus epäonnistui.");}
+  finally{setRecipeOcrBusy(false);}
+};
+const applyRecipeOcr=()=>{
+  const lines=recipeOcrText.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(!lines.length)return;
+  const heading=lines.findIndex(x=>/^(ainekset|raaka-aineet|tarvikkeet)\s*:?$/i.test(x));
+  const method=lines.findIndex(x=>/^(valmistus|valmistusohje|ohje|työvaiheet)\s*:?$/i.test(x));
+  const ingredientLines=heading>=0?lines.slice(heading+1,method>heading?method:undefined):lines.slice(1,method>=0?method:undefined);
+  setRecipeTitle(lines[0]||"");
+  setRecipeIngredients(ingredientLines.join("\n"));
+  setRecipeInstructions(method>=0?lines.slice(method+1).join("\n"):"");
+  setRecipeEditing(true);setRecipeReadOpen(false);
+  setRecipeSaveNotice("Kuvan teksti tuotu. Tarkista nimi, ainekset ja valmistusohje ennen tallennusta.");
+};
 const recipeCameraInput=React.useRef<HTMLInputElement>(null);
 const recipeVideo=React.useRef<HTMLVideoElement>(null);
 const recipeStream=React.useRef<MediaStream|null>(null);
@@ -87,7 +117,8 @@ return <div className="fixed inset-0 z-[95] bg-[#17352a]/10">
 {recipeCameraLive&&<div className="mt-3 space-y-2 rounded-xl bg-[#14241c] p-3 text-center"><video ref={recipeVideo} autoPlay muted playsInline aria-label="Reseptin kameranäkymä" className="max-h-[42dvh] w-full rounded-lg object-contain"/><p className="text-xs text-white">Kohdista koko resepti kuvaan niin, että teksti näkyy tarkasti.</p><div className="flex justify-center gap-2"><button type="button" onClick={captureRecipeCamera} className="rounded-lg bg-[#e4d6ac] px-4 py-2 text-sm font-bold">Ota kuva</button><button type="button" onClick={stopRecipeCamera} className="rounded-lg border border-white px-4 py-2 text-sm font-bold text-white">Peruuta</button></div></div>}
 <input ref={recipeCameraInput} type="file" accept="image/*" capture="environment" aria-label="Kuvaa resepti" className="hidden" onChange={e=>{handleRecipePhoto(e.target.files?.[0]);e.target.value="";}}/>
 <input ref={recipeFileInput} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="hidden" onChange={e=>{handleRecipePhoto(e.target.files?.[0]);e.target.value="";}}/>
-{recipePhoto&&<div className="mt-2"><img src={recipePhoto} alt="Reseptin kuva" className="max-h-48 w-full rounded-lg object-contain"/><div className="mt-2 flex gap-3"><button type="button" onClick={()=>{setRecipeEditing(true);setRecipeReadOpen(false)}} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">Kirjoita resepti kuvan perusteella</button><button type="button" onClick={()=>setRecipePhoto(null)} className="text-xs underline">Poista kuva</button></div><p className="mt-2 text-xs">Kuva näkyy tarkistusta varten. Automaattinen tekstintunnistus ei ole vielä käytössä.</p></div>}
+{recipePhoto&&<div className="mt-2"><button type="button" disabled={recipeOcrBusy} onClick={()=>void readRecipeImage()} className="mb-2 rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{recipeOcrBusy?"Luetaan tekstiä…":"Tunnista teksti kuvasta"}</button>
+{recipeOcrText&&<div className="mb-2 space-y-2"><label className="block text-xs font-bold">Tunnistettu teksti – tarkista ja korjaa<textarea value={recipeOcrText} onChange={e=>setRecipeOcrText(e.target.value)} rows={6} className="mt-1 w-full rounded-lg border border-[#b89552] bg-white p-2 text-xs"/></label><button type="button" onClick={applyRecipeOcr} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">Siirrä reseptiksi</button></div>}<img src={recipePhoto} alt="Reseptin kuva" className="max-h-48 w-full rounded-lg object-contain"/><div className="mt-2 flex gap-3"><button type="button" onClick={()=>{setRecipeEditing(true);setRecipeReadOpen(false)}} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">Kirjoita resepti kuvan perusteella</button><button type="button" onClick={()=>setRecipePhoto(null)} className="text-xs underline">Poista kuva</button></div><p className="mt-2 text-xs">Kuva näkyy tarkistusta varten. Automaattinen tekstintunnistus ei ole vielä käytössä.</p></div>}
 {recipePhotoError&&<p role="alert" className="mt-2 text-xs text-red-700">{recipePhotoError}</p>}</div>}
 {recipeSaveNotice&&<p role="status" className="mt-2 text-center text-xs font-bold text-[#174c3a]">{recipeSaveNotice}</p>}
 {recipeEditing&&createPortal(<div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#17352a]/30 p-3"><form onSubmit={event=>{event.preventDefault();if(!recipeTitle.trim()||!recipeIngredients.trim()){setRecipeSaveNotice("Täytä nimi ja vähintään yksi aines.");return}const saved=saveRecipes([{id:String(Date.now()),title:recipeTitle.trim(),ingredients:recipeIngredients.trim(),instructions:recipeInstructions.trim(),createdAt:new Date().toISOString()},...recipes]);if(saved){setRecipeTitle("");setRecipeIngredients("");setRecipeInstructions("");setRecipeEditing(false);setRecipeSaveNotice("Resepti tallennettu Vihkoseen.")}}} className="flex w-full max-w-[540px] flex-col gap-3 rounded-2xl border-[3px] border-[#b89552] bg-[#fffdf5] p-4 shadow-2xl sm:p-5">
