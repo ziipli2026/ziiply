@@ -14,11 +14,11 @@ export function parseRecipeText(text: string): RecipeDraft {
   const end = lines.findIndex((x, i) => i > start && /^(?:valmistus|ohje|valmistusohje)\s*:?$/i.test(x));
   const ingredientLines = start < 0 ? [] : lines.slice(start + 1, end < 0 ? undefined : end);
   const ingredients = ingredientLines.filter(x => x !== servingsLine).map((line, i) => {
-    const clean = line.replace(/^[-*•]\\s*/, "");
+    const clean = line.replace(/^[-*•]\s*/, "");
     // Recognize Finnish fractional recipe quantities before the ordinary numeric parser.
     // Examples: 1/2 dl, 1 1/2 dl, 5–7 kpl and 10 maustepippuria.
-    const fraction = clean.match(/^(?:(\\d+)\\s+)?(\\d+)\\s*\\/\\s*(\\d+)\\s+(kg|g|l|dl|cl|ml|rkl|tl|kpl|pkt|prk|pss)\\s+(.+)$/i);
-    const range = !fraction && clean.match(/^(\\d+(?:[,.]\\d+)?)\\s*[-–]\\s*(\\d+(?:[,.]\\d+)?)\\s+(?:(kg|g|l|dl|cl|ml|rkl|tl|kpl|pkt|prk|pss)\\s+)?(.+)$/i);
+    const fraction = clean.match(/^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)\s+(kg|g|l|dl|cl|ml|rkl|tl|kpl|pkt|prk|pss)\s+(.+)$/i);
+    const range = !fraction && clean.match(/^(\d+(?:[,.]\d+)?)\s*[-–]\s*(\d+(?:[,.]\d+)?)\s+(?:(kg|g|l|dl|cl|ml|rkl|tl|kpl|pkt|prk|pss)\s+)?(.+)$/i);
     const m = !fraction && !range ? clean.match(amountPattern) : null;
     const amount = fraction
       ? Number(fraction[1] || 0) + Number(fraction[2]) / Number(fraction[3])
@@ -26,7 +26,7 @@ export function parseRecipeText(text: string): RecipeDraft {
       : m?.[1] ? Number(m[1].replace(",", ".")) : null;
     const unit = (fraction?.[4] || range?.[3] || m?.[3] || "").toLowerCase() || null;
     const name = (fraction?.[5] || range?.[4] || m?.[4] || clean).trim();
-    const uncertain = amount === null || !!range || !unit || !name || /\\?/.test(clean);
+    const uncertain = amount === null || !!range || !unit || !name || /\?/.test(clean);
     return { id: String(i), name, amount, unit, uncertain, atHome: false };
   });
   return { title, servings, ingredients, instructions: end < 0 ? "" : lines.slice(end + 1).join("\n"), source: "text" };
