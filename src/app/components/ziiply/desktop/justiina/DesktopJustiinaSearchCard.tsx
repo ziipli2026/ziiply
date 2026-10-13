@@ -16,13 +16,13 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
   <div className="mt-2 flex min-h-0 flex-col">
     <button type="button" onClick={onDelayChange} className="self-end rounded-xl border border-[#d0aa58] bg-[#fff8dd] px-3 py-2 text-[12px] font-black text-[#174c3a]">⏱ Hakutahti: {delay===2?"Normaali · 2 s":delay===1?"Nopea · 1 s":"Heti · 0 s"}</button>
     <div className="relative mt-2 grid grid-cols-2 items-start gap-x-3 gap-y-2">
-      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className="relative z-20 col-span-2 row-start-1">
+      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 col-start-1 row-start-1 ${listMode?"col-span-2":"col-span-1"}`}>
         <div className="relative">
           <textarea ref={inputRef} autoFocus rows={listRows} value={query} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if(query.trim())onSearch()}}} onChange={e=>{onQueryChange(e.target.value);setListExpanded(e.target.value.includes("\n")||e.target.value.length>65)}} placeholder="Kirjoita tuote tai ostoslista" aria-label="Hae tuotteita" className={`block w-full min-w-0 resize-none rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-4 py-3 pr-[108px] text-center font-serif text-[17px] font-black text-[#6f6657] outline-none placeholder:text-[#8b806e] ${listMode?"relative z-30 shadow-lg":"min-h-[54px]"}`}/>
           {query.trim()&&<><button type="button" onClick={()=>{onQueryChange("");setListExpanded(false);inputRef.current?.focus()}} aria-label="Tyhjennä hakukenttä" className="absolute right-[58px] top-2 z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#d0aa4f] bg-[#fff1c9]">🧽</button><button type="button" onClick={onSearch} aria-label="Hae kirjoitetut tuotteet" className="absolute right-[9px] top-2 z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#477350] bg-[#e2edcf]">🧺</button></>}
         </div>
       </form>
-      <div className="col-start-2 row-start-2 min-w-0"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
+      <div className="col-start-2 row-start-1 min-w-0"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
     </div>
     {loading ? <div role="status" aria-live="polite" aria-label="Justiina hakee tuotteita" className="relative mt-2 h-[38px] overflow-hidden rounded-xl border border-[#d0aa58] bg-[#fff8dd]">
       <style>{`@keyframes justiina-cart-drive{0%{left:-58px}100%{left:calc(100% + 8px)}}@keyframes justiina-cart-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}@media(prefers-reduced-motion:reduce){.justiina-cart-drive,.justiina-cart-bob{animation:none!important}.justiina-cart-drive{left:12px!important}}`}</style>
