@@ -17235,6 +17235,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         selectedStore: normalSearchStoreName, selectedChain: normalSearchChain,
       });
     }
+    // A recipe search can expose a stale result card from a previous ingredient.
+    // Never add a product whose grocery group does not match the active recipe term.
+    const activeRecipeStep = typeof window !== "undefined"
+      ? sessionStorage.getItem("ziiply-justiina-recipe-step-v1")
+      : null;
+    if (activeRecipeStep !== null) {
+      const recipeQuery = String(activeNormalSearchTerm || input || "").trim();
+      if (!recipeQuery || !productGroupGate(recipeQuery, product.name)) {
+        appendRecipeDebug("recipe-product-rejected", {
+          recipeQuery, product: product.name, reason: "wrong-product-group",
+        });
+        return;
+      }
+    }
     const recipeQuantity = recipeSelectedPackageQuantity(product);
     const newItem: CartItem = {
       id: `search-${product.id}`,
