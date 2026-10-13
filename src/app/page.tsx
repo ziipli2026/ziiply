@@ -22473,7 +22473,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             !eanModalOpen &&
             activeResult === "none" && (
               <>
-                <div className="ziiply-mobile-home-layer-lock -translate-y-[24px] transform-gpu">
+                <div className="ziiply-mobile-home-layer-lock">
                   <ZiiplyMobileHomeView
                     activeAssistant={activeAssistant}
                     onSelectAssistant={setActiveAssistant}
