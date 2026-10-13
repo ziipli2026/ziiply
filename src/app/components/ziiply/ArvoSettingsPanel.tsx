@@ -141,7 +141,6 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
 
       {activeSection==="household"&&<section className="h-full rounded-xl bg-white/75 p-3">
       {!householdPage&&<div className="grid gap-2">
-        <label className="flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2"><span><b className="block">Henkilömäärä</b><small className="text-[#6d6a5c]">Reseptien oletusannosmäärä</small></span><input aria-label="Kotitalouden henkilömäärä" className="w-20 rounded border p-2 text-center font-bold" type="number" min={1} max={50} value={p.householdSize} onChange={e=>update("householdSize",Math.min(50,Math.max(1,Number(e.target.value)||1)))} /></label>
         {[["diets","Ruokavaliot",p.diets.length+" valintaa"],["allergies","Allergiat ja vältettävät",p.allergies||p.avoidedIngredients?"Rajauksia tallennettu":"Ei rajauksia"]].map(([id,title,summary])=><button key={id} type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-left" onClick={()=>setHouseholdPage(id as "diets"|"allergies")}><span><b className="block">{title}</b><small>{summary}</small></span>›</button>)}
       </div>}
       {householdPage==="diets"&&<div className="text-sm">      <h4 className="mt-4 font-bold">Ruokavaliot (voit valita useita)</h4>
