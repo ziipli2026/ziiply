@@ -9,6 +9,7 @@ const CHAINS=[
   {key:"Tokmanni",name:"Tokmanni / SPAR",match:(v:string)=>/^(tokmanni(?:-spar)?|spar|eurospar)(?::|$)/i.test(v)}
 ];
 
+type HistoryRow={chain:string;source:string;total:number;succeeded:number;days:number;previous_total:number;previous_succeeded:number;previous_days:number};
 type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;checked_at:string};
 type Pub={chain:string;publication_id:string;valid_from:string;valid_until:string;parsed_at:string;approval_state:string;offer_count:number;missing_price:number;missing_image:number;missing_category:number};
 type EanStats={total:number;with_image:number;classified:number;seen_24h:number;missing_image:number;missing_category:number;stale_30d:number;lidl_price_rows:number;lidl_price_eans:number;lidl_fresh_prices:number;lidl_verified_prices:number;lidl_stale_prices:number};
@@ -16,12 +17,20 @@ type ScanStats={events_24h:number;unresolved_24h:number;unknown_24h:number;no_pr
 
 async function load(){
   const url=process.env.DATABASE_URL;
-  if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],pubs:[] as Pub[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats};
+  if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],pubs:[] as Pub[],history:[] as HistoryRow[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats};
   try{
     const sql=neon(url);
     const runs=await sql`SELECT checked_at::text AS checked_at,chain,source,ok,offer_count,outcome
       FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days'
       ORDER BY checked_at DESC,id DESC LIMIT 300`;
+    const history=await sql`SELECT chain,source,
+      COUNT(*) FILTER(WHERE checked_at>NOW()-INTERVAL '7 days')::int AS total,
+      COUNT(*) FILTER(WHERE checked_at>NOW()-INTERVAL '7 days' AND ok)::int AS succeeded,
+      COUNT(DISTINCT (checked_at AT TIME ZONE 'Europe/Helsinki')::date) FILTER(WHERE checked_at>NOW()-INTERVAL '7 days')::int AS days,
+      COUNT(*) FILTER(WHERE checked_at<=NOW()-INTERVAL '7 days')::int AS previous_total,
+      COUNT(*) FILTER(WHERE checked_at<=NOW()-INTERVAL '7 days' AND ok)::int AS previous_succeeded,
+      COUNT(DISTINCT (checked_at AT TIME ZONE 'Europe/Helsinki')::date) FILTER(WHERE checked_at<=NOW()-INTERVAL '7 days')::int AS previous_days
+      FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days' GROUP BY chain,source`;
     const pubs=await sql`SELECT chain,publication_id,valid_from::text,valid_until::text,parsed_at::text,approval_state,
       jsonb_array_length(offers)::int AS offer_count,
       (SELECT COUNT(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(NULLIF(o->>'offerPrice',''),NULLIF(o->>'price',''),NULLIF(o->>'priceText','')) IS NULL AND COALESCE(o->>'hasConcretePrice','true')<>'false') AS missing_price,
@@ -42,8 +51,8 @@ async function load(){
     let scan:ScanStats={events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0};
     try { const rows=await sql`SELECT COUNT(*)::int events_24h,COUNT(*) FILTER(WHERE outcome IN ('unresolved','not_found','no_match'))::int unresolved_24h,COUNT(*) FILTER(WHERE outcome IN ('unknown','ean_unknown'))::int unknown_24h,COUNT(*) FILTER(WHERE outcome IN ('no_price','added_without_price'))::int no_price_24h,COUNT(*) FILTER(WHERE outcome IN ('chain_mismatch','wrong_chain'))::int chain_mismatch_24h FROM ziiply_ean_scan_event_log WHERE created_at>NOW()-INTERVAL '24 hours'`; if(rows[0]) scan=rows[0] as ScanStats; } catch { /* scanner event table is created lazily */ }
     const eanStats={...(ean[0] as EanStats),lidl_price_rows:Number(eanPrice[0]?.price_rows??0),lidl_price_eans:Number(eanPrice[0]?.price_eans??0),lidl_fresh_prices:Number(eanPrice[0]?.fresh_prices??0),lidl_verified_prices:Number(eanPrice[0]?.verified_prices??0),lidl_stale_prices:Number(eanPrice[0]?.stale_prices??0)};
-    return {error:null,runs:runs as Row[],pubs:pubs as Pub[],ean:eanStats,scan};
-  }catch(e){return {error:e instanceof Error?e.message:"Tietokantavirhe",runs:[] as Row[],pubs:[] as Pub[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats}}
+    return {error:null,runs:runs as Row[],pubs:pubs as Pub[],ean:eanStats,scan,history:history as HistoryRow[]};
+  }catch(e){return {error:e instanceof Error?e.message:"Tietokantavirhe",runs:[] as Row[],pubs:[] as Pub[],history:[] as HistoryRow[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats}}
 }
 
 function state(rows:Row[]){
@@ -267,6 +276,27 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     return {...check,run,level,result,meaning};
   });
 
+
+  const trendRows=summaryChecks.map(check=>{
+    const rows=d.history.filter(r=>r.source===check.source);
+    const total=rows.reduce((n,r)=>n+r.total,0),succeeded=rows.reduce((n,r)=>n+r.succeeded,0);
+    const previousTotal=rows.reduce((n,r)=>n+r.previous_total,0),previousSucceeded=rows.reduce((n,r)=>n+r.previous_succeeded,0);
+    const enough=total>=5&&rows.some(r=>r.days>=3);
+    const previousEnough=previousTotal>=5&&rows.some(r=>r.previous_days>=3);
+    const rate=total?Math.round(succeeded/total*1000)/10:null;
+    const change=enough&&previousEnough&&rate!==null?Math.round((rate-previousSucceeded/previousTotal*100)*10)/10:null;
+    return {...check,total,succeeded,failures:total-succeeded,enough,rate,change};
+  });
+  const offerTrends=trendRows.filter(r=>r.source!=="s-kaupat-protocol");
+  const totalChecks=offerTrends.reduce((n,r)=>n+r.total,0),totalSuccess=offerTrends.reduce((n,r)=>n+r.succeeded,0);
+  const enoughOfferHistory=offerTrends.every(r=>r.enough);
+  const offerRate=totalChecks?Math.round(totalSuccess/totalChecks*1000)/10:null;
+  const discoveryRows=d.history.filter(r=>r.source==="future-publication-discovery");
+  const discoveryTotal=discoveryRows.reduce((n,r)=>n+r.total,0),discoveryOk=discoveryRows.reduce((n,r)=>n+r.succeeded,0);
+  const discoveryRate=discoveryTotal?Math.round(discoveryOk/discoveryTotal*1000)/10:null;
+  const repeatedProblems=offerTrends.filter(r=>r.failures>=2);
+  const weeklySummary=!totalChecks?"Tarjoushakujen tarkistushistoria puuttuu.":!enoughOfferHistory?"Seurantahistoriaa kertyy vielä. Alla näkyvät tähän mennessä kirjatut tarkistukset.":repeatedProblems.length?"Toistuvia epäonnistumisia on kirjattu: "+repeatedProblems.map(r=>r.name).join(", ")+". Katso nykyinen tila yllä olevasta taulukosta.":offerRate!==null&&offerRate>=95?"Nykyisten tarjousten tarkistukset ovat onnistuneet yleensä hyvin.":"Nykyisten tarjousten tarkistuksissa on ollut epäonnistumisia; katso kauppakohtaiset tulokset.";
+
   const states=cards.map(c=>state(c.runs));
   const hasCriticalQuality=quality.missingPrice>0;
   const hasQualityWarning=quality.missingImage>0||quality.missingCategory>0||overlappingApproved.length>0||rolloverWithoutNext.length>0||thinNext.length>0||nextCandidates.length>0||Boolean(eanPriceRisk);
@@ -316,6 +346,27 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
         </tr>)}</tbody>
       </table></div>
       <p style={{fontSize:12,color:"#64748b",marginBottom:0,lineHeight:1.6}}>🟢 Tarkistus onnistui · 🟡 Tarkistus on vanha · 🔴 Tarkistus epäonnistui · ⚪ Seurantatieto puuttuu.<br/>Onnistunut tarkistus kertoo tiedonhaun tai käsittelyn onnistumisesta. Se ei yksin varmista jokaisen hinnan, kuvan tai tuoteryhmän oikeellisuutta. Tarjousmäärä on kyseisen tarkistuksen tulos, ei koko ketjun yhteismäärä.</p>
+    </section>
+
+
+    <section style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20,marginBottom:18}}>
+      <h2 style={{marginTop:0}}>Tilanne viimeisen 7 päivän aikana</h2>
+      <p style={{lineHeight:1.6}}>{weeklySummary}</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:18}}>
+        {statusCard("Nykyisten tarjousten tarkistukset",offerRate===null?"—":offerRate.toLocaleString("fi-FI")+" %",!enoughOfferHistory?"gray":offerRate!==null&&offerRate>=95?"green":"yellow",totalSuccess+" / "+totalChecks+" kirjattua tarkistusta onnistui. Osuus kuvaa tarkistuksia, ei hintojen oikeellisuutta.")}
+        {statusCard("Epäonnistuneet tarjous­tarkistukset",totalChecks-totalSuccess,totalChecks===0?"gray":totalChecks>totalSuccess?"yellow":"green","Viimeisen 7 päivän aikana. Virhe on voinut korjaantua myöhemmässä tarkistuksessa.")}
+        {statusCard("Tulevien lehtien etsinnät",discoveryRate===null?"—":discoveryRate.toLocaleString("fi-FI")+" %",discoveryTotal===0?"gray":discoveryOk===discoveryTotal?"green":"yellow",discoveryOk+" / "+discoveryTotal+" etsintää onnistui. Onnistunut etsintä voi myös todeta, ettei tulevaa lehteä vielä löydy.")}
+      </div>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:14}}>
+        <thead><tr>{["Kohde","Onnistuneet tarkistukset","Epäonnistumisia","Muutos edelliseen 7 päivään"].map(label=><th key={label} scope="col" style={{textAlign:"left",padding:10,borderBottom:"2px solid #e2e8f0"}}>{label}</th>)}</tr></thead>
+        <tbody>{trendRows.map(row=><tr key={row.source}>
+          <th scope="row" style={{textAlign:"left",padding:12,borderBottom:"1px solid #edf0f2"}}>{row.name}</th>
+          <td style={{padding:12,borderBottom:"1px solid #edf0f2"}}>{row.rate===null?"Ei kirjattuja tarkistuksia":row.rate.toLocaleString("fi-FI")+" % · "+row.succeeded+" / "+row.total}{!row.enough&&row.total>0&&<div style={{fontSize:12,color:"#64748b"}}>Vielä vähän seurantatietoa</div>}</td>
+          <td style={{padding:12,borderBottom:"1px solid #edf0f2"}}>{row.total?row.failures:"—"}</td>
+          <td style={{padding:12,borderBottom:"1px solid #edf0f2"}}>{row.change===null?"Ei vielä riittävästi vertailutietoa":row.change===0?"Ennallaan":(row.change>0?"Parantunut +":"Heikentynyt ")+row.change.toLocaleString("fi-FI")+" prosenttiyksikköä"}</td>
+        </tr>)}</tbody>
+      </table></div>
+      <p style={{fontSize:12,color:"#64748b",lineHeight:1.6,marginBottom:0}}>Luvut lasketaan kaikista viimeisen 7 × 24 tunnin kirjatuista tarkistuksista. S-kauppojen yhteystarkistus ja tulevien lehtien etsintä eivät kuulu tarjoushakujen yhteisprosenttiin. Viikkovertailuun vaaditaan molemmilta jaksoilta vähintään 5 tarkistusta vähintään 3 eri päivänä tietolähdettä kohti. Kirjaamatta jääneet tarkistukset eivät näy luvuissa.</p>
     </section>
 
     </>}
