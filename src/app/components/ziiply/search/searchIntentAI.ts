@@ -435,11 +435,15 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
   // A plain salmon ingredient means raw cooking fish, not a ready meal.
   // Explicit smoked/cured/processed searches retain their original intent.
   if (intent.intent === "fish") {
-    const query=normalizeFi(intent.correctedQuery);
-    const plainSalmon=/^(?:lohi|kirjolohi|lohifilee|kirjolohifilee)(?:\\s+\\d.*)?$/.test(query);
-    if(plainSalmon){
-      if(!/(?:^|[\\s-])(?:lohi|kirjolohi|lohifilee|kirjolohifilee)/.test(name))return false;
-      if(hasAny(name,["lohilo","jaatelo","proteiinijaatelo","savulohi","savustettu","kylmasavu","lamminsavu","graavi","keitto","kastike","kiusaus","salaatti","pasteija","piirakka","levite","tuorejuusto","kalapuikko","kalapihvi","kalapyorykka","sushi","ateria","vauva","piltti","kissan","koiran","kalanruoka"]))return false;
+    const query = normalizeFi(intent.correctedQuery);
+    const plainSalmon = /^(?:lohi|kirjolohi|lohifilee|kirjolohifilee)$/.test(query);
+    if (plainSalmon) {
+      const fishName = /(?:^|[ -])(?:lohi|kirjolohi|lohifilee|kirjolohifilee)(?:$|[ -])/.test(name) ||
+        /^(?:lohi|kirjolohi)(?:filee|file|pala|suikale|kuutio)/.test(name);
+      if (!fishName) return false;
+      if (hasAny(name, ["lohilo", "jäätelö", "jaatelo", "proteiinijäätelö", "savulohi", "savustettu", "kylmäsavu", "lämminsavu", "graavi", "keitto", "kastike", "kiusaus", "salaatti", "pasteija", "piirakka", "levite", "tuorejuusto", "kalapuikko", "kalapihvi", "sushi", "ateria", "kissan", "koiran", "kalanruoka"])) return false;
+      if (hasAny(category, ["jäätelö", "makeiset", "valmisruoka", "valmisateriat", "maitotuotteet"])) return false;
+      return true;
     }
   }
 
