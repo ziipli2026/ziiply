@@ -22,13 +22,14 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     setShowSwitchHint(sessionStorage.getItem("ziiply-recipe-switch-hint-seen-v1")!=="1");
     const saved=JSON.parse(sessionStorage.getItem(STORAGE)||"null");
     if(saved?.draft&&Array.isArray(saved.draft.ingredients)){
-      setDraft(saved.draft);setText(String(saved.text||""));
+      const source=String(saved.text||"").replace(/\\n/g,"\n");
+      setDraft(String(saved.draft.title||"").includes("\\n")?parseRecipeText(source):saved.draft);setText(source);
       setOriginal(String(saved.original||saved.draft.servings||""));setTarget(String(saved.target||saved.draft.servings||""));
     }else{
       // Always open the search card with a real recipe, prioritizing the user's notebook.
       const recipes=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");
       const latest=Array.isArray(recipes)?recipes.find((item:any)=>item&&typeof item.ingredients==="string"&&item.ingredients.trim()):null;
-      const source=latest?[String(latest.title||"Oma resepti"),"4 annosta","Ainekset:",latest.ingredients,"Valmistus:",String(latest.instructions||"")].join("\\n"):EXAMPLE;
+      const source=latest?[String(latest.title||"Oma resepti"),"4 annosta","Ainekset:",latest.ingredients,"Valmistus:",String(latest.instructions||"")].join("\n"):EXAMPLE;
       const parsed=parseRecipeText(source);
       const people=String(parsed.servings||4);
       setDraft(parsed);setText(source);setOriginal(people);setTarget(people);
@@ -85,14 +86,14 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };
-  return <><style>{`@keyframes recipe-switch-nudge{0%,58%,100%{transform:translateX(0)}72%{transform:translateX(-12px)}86%{transform:translateX(0)}}`}</style><div className="relative mt-4 w-full min-w-0 shrink-0"><span className="absolute bottom-full left-2 mb-0.5 text-[10px] font-semibold leading-tight text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span><section aria-label="Justiinan resepti" onClickCapture={dismissSwitchHint} onChangeCapture={dismissSwitchHint} className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
+  return <><style>{`@keyframes recipe-switch-nudge{0%,58%,100%{transform:translateX(0)}72%{transform:translateX(-12px)}86%{transform:translateX(0)}}`}</style><div className="relative mt-4 w-full min-w-0 shrink-0"><span className="absolute bottom-full left-2 mb-0.5 text-[10px] font-semibold leading-tight text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span>{draft&&<button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista resepti hakunäkymästä (ei poista Vihkosesta)" className="absolute bottom-full right-0 mb-0.5 text-[10px] font-bold text-[#923c2f]">Tyhjennä ×</button>}<section aria-label="Justiinan resepti" onClickCapture={dismissSwitchHint} onChangeCapture={dismissSwitchHint} className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
     {!draft?<div className="space-y-2"><p className="font-black">Reseptistä ostoksille</p>
       <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
       <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
       <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
     </div>:<div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2">
       <div className="min-w-0 space-y-2">
-        <div className="flex min-w-0 items-start justify-between gap-1"><strong className="min-w-0 flex-1 break-words text-center text-base leading-tight">{draft.title}</strong><button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista resepti hakunäkymästä (ei poista Vihkosesta)" className="shrink-0 rounded-md border border-[#a34c3d] bg-[#fffdf5] px-2 py-1 text-[10px] font-bold text-[#923c2f]">Tyhjennä ×</button></div>
+        <strong className="block min-w-0 break-words text-center text-base leading-tight">{draft.title}</strong>
         <div className="grid min-w-0 grid-cols-2 gap-1">
           <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-1 text-[10px] font-bold text-white disabled:opacity-40">Hae</button>
           <label className="flex h-8 w-full min-w-0 items-center justify-center gap-0.5 rounded-md border border-[#b89959] bg-[#fffdf5] px-0.5 text-[10px]"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-8 min-w-0 bg-transparent text-center text-[10px] outline-none"/>hlö</label>
@@ -100,7 +101,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
           <div className="relative min-w-0"><button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[10px] font-bold text-[#27412a]">Vaihda</button>{showSwitchHint&&<span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-10 flex h-8 -translate-y-1/2 items-center"><span className="block motion-safe:animate-[recipe-switch-nudge_2s_ease-in-out_infinite]"><svg viewBox="0 0 42 22" width="42" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 11H40M2 11L12 2M2 11L12 20" stroke="#174c3a" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/></svg></span></span>}</div>
         </div>
       </div>
-      <div className="min-w-0 max-h-[190px] space-y-1 overflow-y-auto border-l border-[#d0aa58] pl-2 pr-1 text-xs leading-relaxed">{scaled.filter(item=>!item.atHome).map((item,index)=><div key={`${item.name}-${index}`} className="break-words">{[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")}</div>)}</div>
+      <div className="min-w-0 space-y-1 border-l border-[#d0aa58] pl-2 text-xs leading-relaxed">{scaled.filter(item=>!item.atHome).map((item,index)=><div key={`${item.name}-${index}`} className="break-words">{[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")}</div>)}</div>
     </div>}
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {hydrated && typeof document !== "undefined" && (importing||editing) && createPortal(<div className="fixed left-1/2 top-3 z-[9999] w-[min(520px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto -translate-x-1/2 rounded-2xl border-2 border-[#b89959] bg-[#fffdf5] p-3 text-[#27412a] shadow-2xl">
