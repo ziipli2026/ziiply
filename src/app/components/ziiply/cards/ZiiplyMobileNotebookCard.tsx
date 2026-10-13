@@ -11,6 +11,8 @@
 // - Riviltä voi avata listan koriin. Pieni poistomerkki poistaa tallennetun listan.
 
 import React, { useEffect, useMemo, useState } from "react";
+import { parseRecipeText, classifyRecipeIngredient } from "../justiina/recipeCore";
+import { correctSearchQuery } from "../search/searchIntentAI";
 
 export type ZiiplyNotebookItem = {
   id?: string | number;
@@ -46,6 +48,7 @@ export type ZiiplyMobileNotebookCardProps = {
   onSaveCurrentCart?: (name?: string) => void;
   onOpenList?: (list: ZiiplySavedShoppingList) => void;
   onDeleteList?: (list: ZiiplySavedShoppingList) => void;
+  onSearchIngredients?: (terms: string[]) => void;
   className?: string;
 };
 
@@ -184,6 +187,7 @@ export default function ZiiplyMobileNotebookCard({
   onSaveCurrentCart,
   onOpenList,
   onDeleteList,
+  onSearchIngredients,
   className = "",
 }: ZiiplyMobileNotebookCardProps) {
   if (!open) return null;
@@ -195,6 +199,7 @@ export default function ZiiplyMobileNotebookCard({
   const [editingRecipe, setEditingRecipe] = useState(false);
   const [recipeDraft, setRecipeDraft] = useState("");
   const [deleteRecipe, setDeleteRecipe] = useState<SavedRecipe | null>(null);
+  const [recipeError, setRecipeError] = useState("");
   useEffect(() => {
     const refresh = () => setRecipes(readRecipes());
     refresh();
@@ -288,6 +293,20 @@ export default function ZiiplyMobileNotebookCard({
               {selectedRecipe && <div className="rounded-xl border-2 border-[#9a7a3d] bg-[#fff9e9] p-3">
                 <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-[#28402a]">{selectedRecipe.title}</strong><button type="button" onClick={() => setSelectedRecipe(null)} aria-label="Sulje resepti">✕</button></div>
                 {editingRecipe ? <textarea rows={9} className="w-full rounded-lg border p-2 text-sm" value={recipeDraft} onChange={event => setRecipeDraft(event.target.value)} /> : <div className="whitespace-pre-wrap text-sm">{recipeText(selectedRecipe)}</div>}
+                {!editingRecipe && <button type="button" className="mb-2 w-full rounded-lg bg-[#285039] px-3 py-3 text-sm font-black text-white" onClick={() => {
+                  const draft = parseRecipeText(recipeText(selectedRecipe));
+                  const ingredients = draft.ingredients.filter(item => !item.atHome && item.name.trim());
+                  if (!ingredients.length) { setRecipeError("Reseptistä ei löytynyt haettavia aineksia."); return; }
+                  if (!draft.servings || ingredients.some(item => item.uncertain || !item.amount || !item.unit)) {
+                    setRecipeError("Tarkista reseptin annosmäärä ja ainesmäärät ennen hakua."); return;
+                  }
+                  const classified = ingredients.map(item => classifyRecipeIngredient(item.name));
+                  if (classified.some(group => !group)) { setRecipeError("Tarkista tunnistamattomat ruoka-aineryhmät Justiinan reseptieditorissa."); return; }
+                  setRecipeError("");
+                  try { sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({title:draft.title, servings:draft.servings, items:ingredients})); } catch {}
+                  onSearchIngredients?.(classified.map(group => correctSearchQuery(group!.searchTerm)));
+                }}>Hae ainekset ostoskoriin</button>}
+                {recipeError && <p role="alert" className="mb-2 text-xs font-bold text-[#8b3c27]">{recipeError}</p>}
                 <div className="mt-3 flex gap-2">
                   <button type="button" className="flex-1 rounded-lg bg-[#285039] px-3 py-2 text-sm font-bold text-white" onClick={() => {
                     if (!editingRecipe) { setEditingRecipe(true); return; }
