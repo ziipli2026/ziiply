@@ -11,7 +11,8 @@
 // - Riviltä voi avata listan koriin. Pieni poistomerkki poistaa tallennetun listan.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { parseRecipeText, classifyRecipeIngredient } from "../justiina/recipeCore";
+import { parseRecipeText, scaleIngredients, classifyRecipeIngredient } from "../justiina/recipeCore";
+import { readArvoPreferences } from "../ArvoSettingsPanel";
 import { correctSearchQuery } from "../search/searchIntentAI";
 
 export type ZiiplyNotebookItem = {
@@ -202,15 +203,17 @@ export default function ZiiplyMobileNotebookCard({
   const [recipeError, setRecipeError] = useState("");
   const searchRecipe = (recipe: SavedRecipe) => {
                   const draft = parseRecipeText(recipeText(recipe));
-                  const ingredients = draft.ingredients.filter(item => !item.atHome && item.name.trim());
+                  const preferences = readArvoPreferences();
+                  const servings = draft.servings || recipe.servings || preferences.householdSize;
+                  const ingredients = (draft.servings && servings !== draft.servings ? scaleIngredients(draft.ingredients, draft.servings, servings) : draft.ingredients).filter(item => !item.atHome && item.name.trim());
                   if (!ingredients.length) { setRecipeError("Reseptistä ei löytynyt haettavia aineksia."); return; }
-                  if (!draft.servings || ingredients.some(item => item.uncertain || !item.amount || !item.unit)) {
+                  if (!(servings > 0) || ingredients.some(item => item.uncertain || !item.amount || !item.unit)) {
                     setRecipeError("Tarkista reseptin annosmäärä ja ainesmäärät ennen hakua."); return;
                   }
                   const classified = ingredients.map(item => classifyRecipeIngredient(item.name));
                   if (classified.some(group => !group)) { setRecipeError("Tarkista tunnistamattomat ruoka-aineryhmät Justiinan reseptieditorissa."); return; }
                   setRecipeError("");
-                  try { sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({title:draft.title, servings:draft.servings, items:ingredients})); } catch {}
+                  try { sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({title:draft.title, servings, items:ingredients})); } catch {}
                   onSearchIngredients?.(classified.map(group => correctSearchQuery(group!.searchTerm)));
   };
   const openRecipe = (recipe: SavedRecipe, edit = false) => {
