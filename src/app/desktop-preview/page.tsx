@@ -1328,12 +1328,8 @@ export default function DesktopPreviewPage() {
     if(justiinaDelay && voiceRunId === undefined) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
     try{
       async function fetchSearchData(url: string) {
-        const fishCategoryQueries = /^(?:kala|kalat|kalatuotteet)$/i.test(query.trim())
-          ? ["kala", "lohi", "tonnikala", "seiti", "kirjolohi", "kuha", "siika"]
-          : [];
-        const queries = [...new Set([...fishCategoryQueries, ...getNormalSearchQueries(query)])].slice(0, fishCategoryQueries.length ? 10 : 6);
+        const queries = [...new Set(getNormalSearchQueries(query))].slice(0, 6);
         let lastData: any = null;
-        const collected: any[] = [];
         for (const searchQuery of queries.length ? queries : [query]) {
           if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return null;
           const params = new URLSearchParams(url.split("?")[1]);
@@ -1343,13 +1339,9 @@ export default function DesktopPreviewPage() {
           const data = await response.json();
           lastData = data;
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
-          if (fishCategoryQueries.length) {
-            collected.push(...items);
-            continue;
-          }
           if (rankNormalSearchResults(query, items).length > 0) return data;
         }
-        return fishCategoryQueries.length ? {products: collected, source: lastData?.source} : lastData;
+        return lastData;
       }
       const calls:any[]=[];
       if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`).then(d=>({chain:"S",store:s,data:d})));
