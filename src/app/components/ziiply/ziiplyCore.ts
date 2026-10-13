@@ -200,6 +200,7 @@ export type SearchIntentCategory =
   | "milk"
   | "coffee"
   | "cola"
+  | "soft_drink"
   | "ketchup"
   | "cheese"
   | "yogurt"
