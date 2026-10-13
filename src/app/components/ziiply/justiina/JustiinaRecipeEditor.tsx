@@ -31,6 +31,11 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   };
   useEffect(()=>{if(hydrated)persist()},[hydrated,draft,text,original,target]);
   useEffect(()=>{const onSelect=(event:Event)=>{const detail=(event as CustomEvent<{id?:string;title?:string;ingredients?:string;instructions?:string}>).detail;if(!detail)return;const source=[detail.title||"Resepti","4 annosta","Ainekset:",detail.ingredients||"","Valmistus:",detail.instructions||""].join("\n");load(source);setSavedRecipeId(detail.id||null)};window.addEventListener("ziiply-vihkonen-recipe-select",onSelect);return()=>window.removeEventListener("ziiply-vihkonen-recipe-select",onSelect)},[]);
+  const clearRecipe=()=>{
+    setDraft(null);setText("");setOriginal("");setTarget("");setSavedRecipeId(null);
+    setEditing(false);setImporting(false);setNotice("");
+    try{sessionStorage.removeItem(STORAGE);sessionStorage.removeItem("ziiply-justiina-active-ingredients-v1")}catch{}
+  };
   const saveToNotebook=(asNew:boolean)=>{if(!draft)return;const key="ziiply-desktop-vihkonen-recipes-v1";try{const existing=JSON.parse(localStorage.getItem(key)||"[]");const recipes=Array.isArray(existing)?existing:[];const id=!asNew&&savedRecipeId?savedRecipeId:String(Date.now());const recipe={id,title:draft.title,ingredients:draft.ingredients.map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join("\n"),instructions:draft.instructions,createdAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify([recipe,...recipes.filter((item:{id:string})=>item.id!==id)]));setSavedRecipeId(id);setNotice(asNew?"Tallennettu uutena Vihkoseen.":"Resepti tallennettu Vihkoseen.");window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));setEditing(false)}catch{setNotice("Reseptin tallennus epäonnistui.")}};
   const load=(source:string)=>{
     const next=parseRecipeText(source);const people=next.servings?String(next.servings):"";
@@ -67,7 +72,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
     </div>:<div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2">
       <div className="min-w-0 space-y-2">
-        <strong className="block min-w-0 break-words text-center text-base leading-tight">{draft.title}</strong>
+        <div className="flex min-w-0 items-start justify-between gap-1"><strong className="min-w-0 flex-1 break-words text-center text-base leading-tight">{draft.title}</strong><button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista resepti hakunäkymästä (ei poista Vihkosesta)" className="shrink-0 rounded-md border border-[#a34c3d] bg-[#fffdf5] px-2 py-1 text-[10px] font-bold text-[#923c2f]">Tyhjennä ×</button></div>
         <div className="grid min-w-0 grid-cols-2 gap-1">
           <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-1 text-[10px] font-bold text-white disabled:opacity-40">Hae</button>
           <label className="flex h-8 w-full min-w-0 items-center justify-center gap-0.5 rounded-md border border-[#b89959] bg-[#fffdf5] px-0.5 text-[10px]"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-8 min-w-0 bg-transparent text-center text-[10px] outline-none"/>hlö</label>
