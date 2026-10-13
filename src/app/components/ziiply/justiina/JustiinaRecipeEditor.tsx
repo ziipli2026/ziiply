@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseRecipeText, scaleIngredients, classifyRecipeIngredient, type RecipeDraft } from "./recipeCore";
 import { correctSearchQuery } from "../search/searchIntentAI";
 
@@ -15,6 +15,27 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const [instructionsOpen,setInstructionsOpen]=useState(false);
   const [notice,setNotice]=useState("");
   const [hydrated,setHydrated]=useState(false);
+  const imageInputRef=useRef<HTMLInputElement|null>(null);
+  const [imagePreview,setImagePreview]=useState("");
+  const [readingImage,setReadingImage]=useState(false);
+  const readRecipeImage=async(file?:File)=>{
+    if(!file)return;
+    if(!file.type.startsWith("image/")){setNotice("Valitse kuva.");return}
+    setImporting(true);setEditing(false);setReadingImage(true);
+    const url=URL.createObjectURL(file);
+    setImagePreview(old=>{if(old)URL.revokeObjectURL(old);return url});
+    try{
+      const TextDetector=(window as unknown as {TextDetector?:new()=>{detect:(image:HTMLImageElement)=>Promise<Array<{rawValue?:string;text?:string}>>}}).TextDetector;
+      if(!TextDetector){setNotice("Kuva avattu. Selain ei tue automaattista tekstinlukua. Kirjoita tai liitä reseptin teksti kuvan alle.");return}
+      const image=new Image();image.src=url;await image.decode();
+      const lines=await new TextDetector().detect(image);
+      const recognized=lines.map(line=>line.rawValue||line.text||"").filter(Boolean).join("\n").trim();
+      if(recognized){setText(recognized);setNotice("Tarkista tunnistettu teksti ja valitse Tuo resepti.");}
+      else setNotice("Tekstiä ei tunnistettu. Voit kirjoittaa sen kuvan alle.");
+    }catch{setNotice("Kuvan tekstinluku epäonnistui. Kirjoita tai liitä teksti kuvan alle.");}
+    finally{setReadingImage(false)}
+  };
+
   useEffect(()=>{try{
     const saved=JSON.parse(sessionStorage.getItem(STORAGE)||"null");
     if(saved?.draft&&Array.isArray(saved.draft.ingredients)){
@@ -70,6 +91,12 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Hae ainekset · {target||"?"} henkilölle</button>
       <div className="flex flex-wrap gap-4 text-xs font-bold"><button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="underline">{editing?"Sulje muokkaus":"Muokkaa"}</button><button type="button" aria-expanded={instructionsOpen} onClick={()=>setInstructionsOpen(value=>!value)} className="underline">Valmistusohje</button><button type="button" onClick={()=>{setImporting(value=>!value);setEditing(false)}} className="underline">Vaihda resepti</button></div>
     </div>}
+    <div className="mt-3 rounded-lg border border-[#d0aa58] bg-white p-2">
+      <button type="button" onClick={()=>{setImporting(true);setEditing(false);imageInputRef.current?.click()}} className="w-full rounded-lg border border-[#174c3a] px-3 py-2 font-bold text-[#174c3a]">📷 Lue resepti</button>
+      <input ref={imageInputRef} type="file" accept="image/*" capture="environment" aria-label="Ota kuva reseptistä tai valitse kuva" className="sr-only" onChange={event=>{void readRecipeImage(event.target.files?.[0]);event.target.value=""}}/>
+      {readingImage&&<p role="status" className="mt-2 text-xs">Luetaan kuvaa…</p>}
+      {imagePreview&&importing&&<img src={imagePreview} alt="Valittu reseptikuva" className="mt-2 max-h-44 w-full rounded object-contain"/>}
+    </div>
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {importing&&<div className="mt-3 space-y-2"><textarea aria-label="Reseptiteksti" rows={4} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
     {instructionsOpen&&draft&&<p className="mt-3 whitespace-pre-wrap text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
