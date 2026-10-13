@@ -1671,6 +1671,7 @@ import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
+import ZiiplyRecipeSearchDebug, { appendRecipeDebug } from "./components/ziiply/mobile/ZiiplyRecipeSearchDebug";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
 import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
@@ -7812,6 +7813,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function forceStartVoiceSearchV456(rawValue?: string) {
     const cleaned = getVoiceSearchCandidateV456(rawValue);
+    const recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1"));
+    if (recipeDebugActive) appendRecipeDebug("search-start", { rawValue, cleaned, force });
     pushVoiceDebugV507(`forceStart raw=${String(rawValue || "").slice(0, 120)} cleaned=${cleaned}`);
     if (!cleaned) {
       pushVoiceDebugV507("forceStart STOP cleaned empty");
@@ -7906,6 +7909,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const voiceTerms = parsedVoiceTerms.length > 0
       ? parsedVoiceTerms
       : [getSingleSearchTerm(cleaned) || cleaned].filter(Boolean);
+    if (recipeDebugActive) appendRecipeDebug("terms-after-normalization", { parsedVoiceTerms, voiceTerms });
 
     pushVoiceDebugV507(
       `runVoice terms=${voiceTerms.length} [${voiceTerms.join(" | ")}] mode=sequential`,
@@ -7929,7 +7933,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceForceJustiinaCartSearchRefV461.current = true;
         setInput(term);
         pushVoiceDebugV507(`VOICE ITEM ${index + 1}/${voiceTerms.length} CALL ${term}`);
+        if (recipeDebugActive) appendRecipeDebug("item-search-start", { index, term });
         await searchNormalPrices(term);
+        if (recipeDebugActive) appendRecipeDebug("item-search-returned", { index, term });
         pushVoiceDebugV507(`VOICE ITEM ${index + 1}/${voiceTerms.length} DONE ${term}`);
 
         // V509: jos hakutuloskortti aukesi, odota käyttäjän valinta/sulku ennen seuraavaa tuotetta.
@@ -7941,8 +7947,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       scrollToNormalResults();
     } catch (error: any) {
+      if (recipeDebugActive) appendRecipeDebug("search-error", { message: String(error?.message || error), stack: String(error?.stack || "") });
       pushVoiceDebugV507(`runVoice CATCH ${String(error?.message || error).slice(0, 160)}`);
     } finally {
+      if (recipeDebugActive) appendRecipeDebug("search-finished", { terms: voiceTerms });
       pushVoiceDebugV507("runVoice FINALLY cleanup");
       setInput("");
       setVoicePromptText("");
@@ -23741,6 +23749,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onDecreaseItem={(item: any) => updateMobileCartItemQuantityV546(item, -1)}
           />
         )}
+
+        {!showLaunchScreen && <ZiiplyRecipeSearchDebug />}
 
         {!showLaunchScreen && notebookOpen && (
           <ZiiplyMobileNotebookCard
