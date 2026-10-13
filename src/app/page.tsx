@@ -19676,8 +19676,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const selectedKeys = (["s", "k", "lidl", "tokmanni"] as const).filter(
           (key) => Boolean(current[key]),
         );
-        if (selectedKeys.length === 1) return current;
-        return { ...current, s: false, k: false, lidl: false, tokmanni: false };
+        if (selectedKeys.length <= 1) return current;
+        // Preserve one of the previously selected chains when switching Monta -> Yksi.
+        const keep = selectedKeys[0];
+        return { ...current, s: keep === "s", k: keep === "k", lidl: keep === "lidl", tokmanni: keep === "tokmanni" };
       }
       return current;
     });
