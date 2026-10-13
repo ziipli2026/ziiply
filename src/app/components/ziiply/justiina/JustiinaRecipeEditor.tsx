@@ -6,7 +6,7 @@ import { correctSearchQuery } from "../search/searchIntentAI";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
-export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngredients?:(terms:string[])=>void}){
+export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenChange}:{onSearchIngredients?:(terms:string[])=>void;onCameraOpenChange?:(open:boolean)=>void}){
   const [draft,setDraft]=useState<RecipeDraft|null>(null);
   const [text,setText]=useState("");
   const [original,setOriginal]=useState("");
@@ -20,6 +20,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const [imagePreview,setImagePreview]=useState("");
   const [readingImage,setReadingImage]=useState(false);
   const [cameraOpen,setCameraOpen]=useState(false);
+  useEffect(()=>{onCameraOpenChange?.(cameraOpen);return()=>onCameraOpenChange?.(false)},[cameraOpen,onCameraOpenChange]);
   const [cameraShot,setCameraShot]=useState(false);
   const [cameraReview,setCameraReview]=useState(false);
   const [cameraError,setCameraError]=useState("");
@@ -215,8 +216,8 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };
-  return <section aria-label="Justiinan resepti" className="w-full min-w-0 shrink-0 rounded-xl border border-[#d0aa58] bg-[#fff5d8] p-2 text-left text-sm text-[#27412a]">
-    <div className="rounded-xl bg-[#fff5d8] p-1">
+  return <section aria-label="Justiinan resepti" className={`w-full min-w-0 shrink-0 rounded-xl border p-2 text-left text-sm text-[#27412a] ${cameraOpen?"border-transparent bg-transparent":"border-[#d0aa58] bg-[#fff5d8]"}`}>
+    <div className={`rounded-xl bg-[#fff5d8] p-1 ${cameraOpen?"invisible":""}`}>
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-stretch gap-2">
         <button type="button" onClick={recordRecipe} aria-label={voiceRecording?"Äänitetään reseptiä":"Äänitä resepti"} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src={voiceRecording?"/ui/voice/aanita-on.webp":"/ui/voice/aanita-off.webp"} alt="Äänitä" className="mx-auto h-[clamp(84px,25vw,120px)] w-full object-contain"/></button>
         <div className="flex min-w-0 flex-col items-center justify-between gap-3 pb-1">
