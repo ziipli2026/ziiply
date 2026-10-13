@@ -1339,7 +1339,7 @@ export default function DesktopPreviewPage() {
           const data = await response.json();
           lastData = data;
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
-          if (rankNormalSearchResults(query, items).length > 0) return data;
+          if (items.length > 0) return data;
         }
         return lastData;
       }
@@ -1349,7 +1349,7 @@ export default function DesktopPreviewPage() {
       const settled=await Promise.allSettled(calls);const batches=settled.filter((entry):entry is PromiseFulfilledResult<any>=>entry.status==="fulfilled").map(entry=>entry.value);const failedCount=settled.length-batches.length;const rows:any[]=[];
       for(const b of batches){const items=Array.isArray(b.data?.products)?b.data.products:Array.isArray(b.data?.items)?b.data.items:Array.isArray(b.data)?b.data:[];for(const x of rankNormalSearchResults(query,items).slice(0,40)){const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);const priceIsEuros=b.chain==="S"&&b.data?.source==="s-kaupat-normal-v220";const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;rows.push({...x,__chain:b.chain,__store:b.store?.name,__price:euro,__priceSource:b.data?.source||""})}}
       if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
-      setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(failedCount ? "Kauppojen hakuyhteys epäonnistui. Yritä uudelleen." : `Hakemaasi "${query}" ei löydy.`);else if(failedCount)setJustiinaMessage("Osan kauppojen hakuyhteys epäonnistui.");
+      setJustiinaResults(rows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(rows.length>0);if(!rows.length)setJustiinaMessage(failedCount ? "Kauppojen hakuyhteys epäonnistui. Yritä uudelleen." : `Hakemaasi "${query}" ei löydy kauppojen palauttamista tuotteista.`);else if(failedCount)setJustiinaMessage("Osan kauppojen hakuyhteys epäonnistui.");
       return rows.length > 0;
     }catch{if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");return false}finally{setJustiinaLoading(false)}
   }
