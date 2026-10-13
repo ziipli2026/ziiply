@@ -1366,7 +1366,7 @@ export default function DesktopPreviewPage() {
         return lastData;
       }
       const calls:any[]=[];
-      if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.externalId||s.id))}&storeName=${encodeURIComponent(String(s.name||""))}`).then(d=>({chain:"S",store:s,data:d})));
+      if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.id))}&storeName=${encodeURIComponent(String(s.name||""))}&storeType=${storeKind(s)==="sLocal"?"local":"hyper"}`).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
       const settled=await Promise.allSettled(calls);
       const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
