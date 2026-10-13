@@ -51,6 +51,23 @@ jobs:
       - name: Export reachable image candidates separately
         run: |
           node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));fs.writeFileSync('lidl-image-candidates.json',JSON.stringify({source:d.source,researchOnly:true,visuallyVerified:false,records:d.records.filter(x=>x.imageStatus==='product_page_image_candidate').map(x=>({lidlProductId:x.lidlProductId,name:x.name,officialUrl:x.officialUrl,imageUrl:x.candidateImageUrl,imageHttpStatus:x.imageHttpStatus,imageContentType:x.imageContentType,priceEur:null,ean:null}))},null,2)+'\\n')"
+      - name: Report image coverage changes
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const audit = JSON.parse(fs.readFileSync('lidl-official-page-results.json', 'utf8'));
+          const previous = JSON.parse(fs.readFileSync('data/lidl/official-product-images.generated.json', 'utf8'));
+          const before = new Map(previous.records.map(x => [String(x.lidlProductId), x.imageUrl]));
+          const found = new Map(audit.records.filter(x => x.imageStatus === 'product_page_image_candidate' && x.imageReachable === true).map(x => [String(x.lidlProductId), x.candidateImageUrl]));
+          const newImages = [...found].filter(([id]) => !before.has(id));
+          const changedImages = [...found].filter(([id, url]) => before.has(id) && before.get(id) !== url);
+          const missingImages = audit.records.filter(x => !found.has(String(x.lidlProductId)));
+          const unavailablePrevious = [...before].filter(([id]) => !found.has(id));
+          const summary = {checked: audit.records.length, verifiedImages: found.size, newImages: newImages.length, changedImages: changedImages.length, missingImages: missingImages.length, previouslyVerifiedNowUnavailable: unavailablePrevious.length, newProductIds: newImages.map(([id]) => id), changedProductIds: changedImages.map(([id]) => id), missingProducts: missingImages.map(x => ({id: x.lidlProductId, name: x.name, status: x.imageStatus, error: x.error || null}))};
+          console.log('LIDL IMAGE AUDIT SUMMARY');
+          console.log(JSON.stringify(summary, null, 2));
+          fs.writeFileSync('lidl-image-coverage-summary.json', JSON.stringify(summary, null, 2) + '\\n');
+          NODE
       - name: Publish confirmed image URLs to source data
         run: |
           node --input-type=module -e "import fs from 'node:fs';const d=JSON.parse(fs.readFileSync('lidl-official-page-results.json'));const rows=d.records.filter(x=>x.imageStatus==='product_page_image_candidate' && x.imageReachable===true);if(rows.length<90)throw new Error('Too few confirmed official Lidl images: '+rows.length);const ids=new Set(rows.map(x=>x.lidlProductId));if(ids.size!==rows.length)throw new Error('Duplicate Lidl product ID');fs.writeFileSync('data/lidl/official-product-images.generated.json',JSON.stringify({source:'lidl.fi-official-product-page',researchOnly:true,records:rows.map(x=>({lidlProductId:x.lidlProductId,imageUrl:x.candidateImageUrl,officialUrl:x.officialUrl}))},null,2)+'\\n')"
@@ -71,6 +88,7 @@ jobs:
           path: |
             lidl-official-page-results.json
             lidl-image-candidates.json
+            lidl-image-coverage-summary.json
             lidl-official-gtin-candidates.json
           if-no-files-found: warn
           retention-days: 14
