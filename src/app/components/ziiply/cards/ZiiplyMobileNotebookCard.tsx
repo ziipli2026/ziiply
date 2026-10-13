@@ -301,7 +301,7 @@ export default function ZiiplyMobileNotebookCard({
               <input value={recipeFilter} onChange={event => setRecipeFilter(event.target.value)} aria-label="Hae tallennettuja reseptejä" placeholder="Hae reseptiä..." className="w-full rounded-lg border border-[#9a7a3d] bg-[#fff9e9] px-3 py-2 text-sm" />
               {recipes.filter(recipe => recipe.title.toLocaleLowerCase("fi-FI").includes(recipeFilter.toLocaleLowerCase("fi-FI"))).map(recipe => (
                 <article key={recipe.id} className="flex items-center gap-2 rounded-xl border-2 border-[#9a7a3d] bg-[#fff4d8]/80 p-2">
-                  <button type="button" onClick={() => openRecipe(recipe)} className="min-w-0 flex-1 truncate py-2 text-left text-[clamp(12px,3.2vw,16px)] font-bold text-[#28402a]">{recipe.title}</button>
+                  <button type="button" onClick={() => openRecipe(recipe)} className="min-w-0 flex-1 break-words py-2 text-left text-[clamp(12px,3.2vw,16px)] font-bold leading-snug text-[#28402a] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">{recipe.title}</button>
                   <div className="flex shrink-0 items-center gap-1">
                     <button type="button" onClick={() => searchRecipe(recipe)} aria-label={`Hae reseptin ${recipe.title} ainekset ostoskoriin`} title="Hae ainekset ostoskoriin" className="grid h-9 w-9 place-items-center rounded-lg border border-[#6b8b61] bg-[#edf3df] text-lg">🛒</button>
                     <button type="button" onClick={() => openRecipe(recipe, true)} aria-label={`Muokkaa reseptiä ${recipe.title}`} title="Muokkaa reseptiä" className="grid h-9 w-9 place-items-center rounded-lg border border-[#9a7a3d] bg-[#fff7dd] text-lg">✎</button>
