@@ -1505,7 +1505,7 @@ export default function DesktopPreviewPage() {
     if(!s&&!k){setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
     setJustiinaResults([]);setJustiinaResultsOpen(true);
     setJustiinaLoading(true);setJustiinaMessage("");
-    if(justiinaDelay && voiceRunId === undefined) await new Promise(r=>window.setTimeout(r,justiinaDelay*1000));
+    // The typing debounce is applied in the effect below; never delay a started search again.
     try{
       async function fetchSearchData(url: string) {
         const queries = [...new Set(getNormalSearchQueries(query))].slice(0, 6);
@@ -1547,7 +1547,7 @@ export default function DesktopPreviewPage() {
     return ()=>window.clearTimeout(timer);
   // Deliberately trigger only on user query edits, not result updates.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[justiinaQuery,workspace]);
+  },[justiinaQuery,workspace,justiinaDelay]);
 
   const independentStoresRequestRef = useRef(0);
   async function loadIndependentStores(search:string, coords?:{latitude:number;longitude:number}) {
