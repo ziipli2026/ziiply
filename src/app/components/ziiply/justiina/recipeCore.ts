@@ -62,3 +62,20 @@ export function recipeIngredientForSearch(items: RecipeIngredient[], searchTerm:
   const actual = normalize(searchTerm);
   return actual === expected ? ingredient : null;
 }
+
+/** Strict recipe-only ingredient classification. Unknown ingredients must be clarified before search. */
+export type RecipeFoodGroup = { ingredient: string; mainGroup: string; subGroup: string; searchTerm: string };
+const recipeGroups: Array<{ pattern: RegExp; group: RecipeFoodGroup }> = [
+  { pattern: /^(?:lohi|lohta|lohen|tuore lohi|lohifilee|lohifile|kirjolohi|kirjolohta)$/, group: { ingredient: "lohi", mainGroup: "Kala ja äyriäiset", subGroup: "Tuore kala", searchTerm: "lohifilee" } },
+  { pattern: /^(?:suola|suolaa|merisuola)$/, group: { ingredient: "suola", mainGroup: "Mausteet ja maustaminen", subGroup: "Suolat", searchTerm: "suola" } },
+  { pattern: /^(?:maito|maitoa|kevytmaito|täysmaito)$/, group: { ingredient: "maito", mainGroup: "Maitotuotteet", subGroup: "Maito", searchTerm: "maito" } },
+  { pattern: /^(?:voi|voita)$/, group: { ingredient: "voi", mainGroup: "Maitotuotteet", subGroup: "Voi", searchTerm: "voi" } },
+  { pattern: /^(?:kananmuna|kananmunia|munia)$/, group: { ingredient: "kananmuna", mainGroup: "Kananmunat", subGroup: "Kananmunat", searchTerm: "kananmuna" } },
+  { pattern: /^(?:peruna|perunaa|perunoita)$/, group: { ingredient: "peruna", mainGroup: "Kasvikset", subGroup: "Perunat", searchTerm: "peruna" } },
+  { pattern: /^(?:porkkana|porkkanaa|porkkanoita)$/, group: { ingredient: "porkkana", mainGroup: "Kasvikset", subGroup: "Juurekset", searchTerm: "porkkana" } },
+  { pattern: /^(?:jauheliha|jauhelihaa|naudan jauheliha)$/, group: { ingredient: "jauheliha", mainGroup: "Liha", subGroup: "Jauheliha", searchTerm: "jauheliha" } },
+];
+export function classifyRecipeIngredient(name: string): RecipeFoodGroup | null {
+  const normalized = name.toLocaleLowerCase("fi").trim().replace(/\s+/g, " ");
+  return recipeGroups.find(entry => entry.pattern.test(normalized))?.group ?? null;
+}
