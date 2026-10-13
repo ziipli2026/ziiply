@@ -13,7 +13,7 @@ function numberValue(value: unknown): number | null {
 function parseRows(data: any): PriceRow[] {
   const items = Array.isArray(data?.prices) ? data.prices : Array.isArray(data) ? data : [];
   const now = Date.now();
-  const rows = items.flatMap((item: any) => {
+  const rows: PriceRow[] = items.flatMap((item: any): PriceRow[] => {
     const time = Date.parse(String(item.startDate ?? item.start ?? item.StartDate ?? item.time_start ?? item.date ?? ""));
     const cents = numberValue(item.price ?? item.value ?? item.priceWithTax ?? item.PriceWithTax ?? item.centsPerKwh);
     const euros = numberValue(item.EUR_per_kWh ?? item.eur_per_kwh);
