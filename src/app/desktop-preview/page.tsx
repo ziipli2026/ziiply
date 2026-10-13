@@ -982,10 +982,11 @@ export default function DesktopPreviewPage() {
   const desktopVoiceRunRef = useRef(0);
   const desktopVoiceWaitRef = useRef<null | (() => void)>(null);
   const recipeSearchStepRef = useRef(-1);
+  const recipeTermsRef = useRef<string[]>([]);
   const recipeSearchItemsRef = useRef<RecipeIngredient[]>([]);
   function selectedRecipePackageCount(product:any):number|null {
     const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
-    if(!ingredient)return null;
+    if(!ingredient||recipeTermsRef.current[recipeSearchStepRef.current]!==justiinaActiveTerm)return null;
     const name=String(product.name||product.title||product.productName||"");
     const matches=[...name.matchAll(/(\d+(?:[,.]\d+)?)\s*(kg|g|l|dl|cl|ml|kpl)\b/gi)];
     const pack=matches.length?matches[matches.length-1]:null;
@@ -994,8 +995,18 @@ export default function DesktopPreviewPage() {
     return packageCount(ingredient.amount,ingredient.unit,size||null,unit||null);
   }
   function addRecipeSelectionToCart(product:any) {
+    const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
     const count=selectedRecipePackageCount(product);
-    addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1});
+    if(ingredient && count===null){
+      const needed=`${ingredient.amount} ${ingredient.unit||""} ${ingredient.name}`;
+      const typed=window.prompt(`Resepti tarvitsee ${needed}. Pakkauksen kokoa ei voitu tunnistaa. Montako pakkausta lisätään?`,"1");
+      if(typed===null)return;
+      const quantity=Number(typed);
+      if(!Number.isSafeInteger(quantity)||quantity<1){window.alert("Anna positiivinen kokonaisluku.");return;}
+      addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:quantity});
+    }else{
+      addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1});
+    }
     justiinaAddedDuringSelectionRef.current=true;
     resumeDesktopVoiceList();
   }
@@ -1022,9 +1033,13 @@ export default function DesktopPreviewPage() {
     const terms = parseMobileVoiceList(transcript);
     recipeSearchStepRef.current=-1;
     recipeSearchItemsRef.current=[];
+    recipeTermsRef.current=[];
     try {
       const saved=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"null");
-      if(saved?.items && Array.isArray(saved.items) && saved.items.length===terms.length)recipeSearchItemsRef.current=saved.items;
+      if(saved?.items && Array.isArray(saved.items) && saved.items.length===terms.length){
+        recipeSearchItemsRef.current=saved.items;
+        recipeTermsRef.current=terms;
+      }
     }catch{}
     justiinaUserEditedRef.current = false;
     setDesktopListPending(terms.length > 1);
