@@ -56,7 +56,6 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   "kevyt mait": "kevytmaito",
   kevytmait: "kevytmaito",
   cocacola: "coca cola",
-  vola: "cola",
   kokis: "coca cola",
   cokis: "coca cola",
   kookis: "coca cola",
@@ -75,10 +74,6 @@ const QUERY_CORRECTIONS: Record<string, string> = {
 
   // Yleiset suomalaiset ruokahaun taivutusmuodot. Canonicalisointi tehdään
   // eksplisiittisesti, ei yleisellä suffix-stemmerillä, jotta tuotenimet eivät rikkoudu.
-  lohta: "lohi",
-  lohen: "lohi",
-  kirjolohta: "kirjolohi",
-  suolaa: "suola",
   maitoa: "maito",
   maidon: "maito",
   kahvia: "kahvi",
@@ -112,7 +107,6 @@ const QUERY_CORRECTIONS: Record<string, string> = {
 
 const FUZZY_GROCERY_TERMS = [
   "maito",
-  "cola",
   "piimä",
   "jogurtti",
   "jauheliha",
@@ -169,44 +163,39 @@ function editDistance(a: string, b: string) {
 function correctSingleGroceryTypo(value: string) {
   const word = normalizeFi(value);
   if (!word || word.length < 4 || /\d/.test(word)) return word;
-  if (QUERY_CORRECTIONS[word]) return QUERY_CORRECTIONS[word];
-
-  // Build candidates from the search intent vocabulary rather than maintaining
-  // one hardcoded typo -> correction for every possible keyboard mistake.
-  const vocabulary = new Set<string>(FUZZY_GROCERY_TERMS);
-  for (const intent of Object.values(INTENTS)) {
-    for (const phrase of [...intent.includeTerms, ...intent.preferredTerms]) {
-      for (const token of normalizeFi(phrase).split(/[\s-]+/)) {
-        if (token.length >= 4 && !/\d/.test(token)) vocabulary.add(token);
-      }
-    }
-  }
-  if (vocabulary.has(word)) return word;
 
   let best = "";
-  let bestDistance = Infinity;
+  let bestDistance = Number.POSITIVE_INFINITY;
   let tied = false;
-  for (const candidate of vocabulary) {
-    if (Math.abs(candidate.length - word.length) > (word.length >= 8 ? 2 : 1)) continue;
-    const distance = editDistance(word, candidate);
+
+  for (const candidate of FUZZY_GROCERY_TERMS) {
+    const normalizedCandidate = normalizeFi(candidate);
+    const distance = editDistance(word, normalizedCandidate);
     if (distance < bestDistance) {
       best = candidate;
       bestDistance = distance;
       tied = false;
-    } else if (distance === bestDistance) tied = true;
+    } else if (distance === bestDistance) {
+      tied = true;
+    }
   }
+
+  // Conservative on purpose: one typo for short words, at most two for longer
+  // grocery nouns. Ambiguous matches are never autocorrected.
   const maxDistance = word.length >= 8 ? 2 : 1;
   return !tied && bestDistance <= maxDistance ? best : word;
 }
 
 export function correctSearchQuery(query: string) {
   const q = normalizeFi(query);
-  if (QUERY_CORRECTIONS[q]) return QUERY_CORRECTIONS[q];
-  // Correct individual grocery words in multiword searches while leaving
-  // short brand tokens, sizes, quantities and EANs unchanged.
-  return q.split(/(\s+)/).map(part =>
-    /^\s+$/.test(part) ? part : correctSingleGroceryTypo(part)
-  ).join("");
+  const explicit = QUERY_CORRECTIONS[q];
+  if (explicit) return explicit;
+
+  // Fuzzy correction is deliberately limited to a single grocery noun.
+  // Brand names and multi-word product searches stay untouched unless they have
+  // an explicit correction above.
+  if (!q.includes(" ")) return correctSingleGroceryTypo(q);
+  return q;
 }
 
 const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySearchIntent, "originalQuery" | "correctedQuery" | "canonicalQuery" | "intent">> = {
@@ -301,7 +290,7 @@ const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySea
     confidence: 0.8,
     includeTerms: ["lohi", "kala", "tonnikala", "kirjolohi", "seiti"],
     preferredTerms: ["lohi", "kala", "tonnikala"],
-    excludeTerms: ["kalanruoka", "kalakastike", "jäätelö", "proteiinijäätelö", "lohilo"],
+    excludeTerms: ["kalanruoka", "kalakastike"],
     categoryHints: ["kalat", "tuoretuotteet", "säilykkeet"],
   },
   fruit: {
@@ -431,21 +420,6 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
   if (intent.intent === "meat" && hasAny(text, ["jauhelihamauste", "liemikuutio", "jauhelihakastike"])) return false;
   if (intent.intent === "bread" && hasAny(text, ["leipäveitsi", "leipävuoka", "leipäkori", "korppujauho"])) return false;
   if (intent.intent === "eggs" && hasAny(text, ["suklaamuna", "pääsiäismuna", "munavoi", "majoneesi"])) return false;
-
-  // A plain salmon ingredient means raw cooking fish, not a ready meal.
-  // Explicit smoked/cured/processed searches retain their original intent.
-  if (intent.intent === "fish") {
-    const query = normalizeFi(intent.correctedQuery);
-    const plainSalmon = /^(?:lohi|kirjolohi|lohifilee|kirjolohifilee)$/.test(query);
-    if (plainSalmon) {
-      const fishName = /(?:^|[ -])(?:lohi|kirjolohi|lohifilee|kirjolohifilee)(?:$|[ -])/.test(name) ||
-        /^(?:lohi|kirjolohi)(?:filee|file|pala|suikale|kuutio)/.test(name);
-      if (!fishName) return false;
-      if (hasAny(name, ["lohilo", "jäätelö", "jaatelo", "proteiinijäätelö", "savulohi", "savustettu", "kylmäsavu", "lämminsavu", "graavi", "keitto", "kastike", "kiusaus", "salaatti", "pasteija", "piirakka", "levite", "tuorejuusto", "kalapuikko", "kalapihvi", "sushi", "ateria", "kissan", "koiran", "kalanruoka"])) return false;
-      if (hasAny(category, ["jäätelö", "makeiset", "valmisruoka", "valmisateriat", "maitotuotteet"])) return false;
-      return true;
-    }
-  }
 
   if (intent.intent === "rye_bread") {
     return hasAny(text, ["ruis", "ruisleipa", "ruisleipapala", "ruispala", "ruislimppu"]);
