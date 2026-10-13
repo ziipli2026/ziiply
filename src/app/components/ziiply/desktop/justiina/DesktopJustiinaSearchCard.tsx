@@ -1,11 +1,12 @@
 "use client";
 import JustiinaRecipeEditor from "../../justiina/JustiinaRecipeEditor";
+import type { RecipeIngredient } from "../../justiina/recipeCore";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useDesktopVoiceInput } from "./useDesktopVoiceInput";
 
 type Product = { id?:string|number;ean?:string|number;name?:string;title?:string;productName?:string;pictureUrl?:string;imageUrl?:string;image?:string;__store?:string;__price?:number };
-export default function DesktopJustiinaSearchCard({onClose,onOpenCart,onVoiceTranscript,query,onQueryChange,loading,onSearch,message,debug,results,delay,onDelayChange,onAddToCart,onAddInputToCart,onReopenResults,onOpenScanner}:{onVoiceTranscript:(text:string)=>void;onClose:()=>void;onOpenCart:()=>void;query:string;onQueryChange:(value:string)=>void;loading:boolean;onSearch:()=>void;message:string;debug:Record<string,unknown>;results:Product[];delay:0|1|2;onDelayChange:()=>void;onAddToCart:(product:Product)=>void;onAddInputToCart:(text:string)=>void;onReopenResults:()=>void;onOpenScanner:()=>void}){
+export default function DesktopJustiinaSearchCard({onClose,onOpenCart,onVoiceTranscript,query,onQueryChange,loading,onSearch,message,debug,results,delay,onDelayChange,onAddToCart,onAddInputToCart,onReopenResults,onOpenScanner}:{onVoiceTranscript:(text:string,recipeItems?:RecipeIngredient[])=>void;onClose:()=>void;onOpenCart:()=>void;query:string;onQueryChange:(value:string)=>void;loading:boolean;onSearch:()=>void;message:string;debug:Record<string,unknown>;results:Product[];delay:0|1|2;onDelayChange:()=>void;onAddToCart:(product:Product)=>void;onAddInputToCart:(text:string)=>void;onReopenResults:()=>void;onOpenScanner:()=>void}){
 const voice = useDesktopVoiceInput(onVoiceTranscript);
 const [listExpanded,setListExpanded]=useState(false);
 const inputRef=useRef<HTMLInputElement|null>(null);
@@ -39,7 +40,7 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
         </div>
       </form>
       </div>
-      <div className="col-start-2 row-start-1 min-w-0 self-center"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
+      <div className="col-start-2 row-start-1 min-w-0 self-center"><JustiinaRecipeEditor onSearchIngredients={(terms,items)=>onVoiceTranscript(terms.join(", "),items)}/></div>
     </div>
     {loading ? <div role="status" aria-live="polite" aria-label="Justiina hakee tuotteita" className="relative mt-2 h-[38px] overflow-hidden rounded-xl border border-[#d0aa58] bg-[#fff8dd]">
       <style>{`@keyframes justiina-cart-drive{0%{left:-58px}100%{left:calc(100% + 8px)}}@keyframes justiina-cart-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}@media(prefers-reduced-motion:reduce){.justiina-cart-drive,.justiina-cart-bob{animation:none!important}.justiina-cart-drive{left:12px!important}}`}</style>
