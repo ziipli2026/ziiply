@@ -984,6 +984,17 @@ export default function DesktopPreviewPage() {
   const recipeSearchStepRef = useRef(-1);
   const recipeTermsRef = useRef<string[]>([]);
   const recipeSearchItemsRef = useRef<RecipeIngredient[]>([]);
+  useEffect(()=>{
+    const clear=()=>{
+      cancelDesktopVoiceList();
+      recipeSearchStepRef.current=-1;
+      recipeTermsRef.current=[];
+      recipeSearchItemsRef.current=[];
+    };
+    window.addEventListener("ziiply-clear-active-recipe",clear);
+    return()=>window.removeEventListener("ziiply-clear-active-recipe",clear);
+  },[]);
+
   function selectedRecipePackageCount(product:any):number|null {
     const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
     if(!ingredient)return null;
