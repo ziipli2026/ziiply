@@ -17230,9 +17230,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const newItem: CartItem = {
       id: `search-${product.id}`,
       name: fixText(product.name),
+      // Cart prices are euros; the normal product API returns integer cents.
       price: (product as Product & { priceVerified?: boolean }).priceVerified === false
         ? undefined
-        : getProductPrice(product),
+        : getProductPrice(product) / 100,
       image: product.pictureUrl,
       chain: normalSearchChain,
       storeName: normalSearchStoreName,
