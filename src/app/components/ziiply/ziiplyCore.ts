@@ -1813,18 +1813,23 @@ export function isPremiumBrandProduct(name: string) {
 export function productGroupGate(sourceName: string, targetName: string) {
   // Classify the requested grocery product before accepting ingredient mentions.
   // Applies to every entry point using the shared product-group gate.
-  const requested = correctSearchQuery(sourceName).toLocaleLowerCase("fi").trim();
+  // Identify the requested grocery ingredient BEFORE scoring by price.
+  // Recipe modifiers (such as "etikkaa 10 %") must not turn into unrelated matches.
+  const requestedRaw = correctSearchQuery(sourceName).toLocaleLowerCase("fi").trim();
+  const requested = /^(?:etikkaa?|väkiviinaetikkaa?)(?:\\s+10\\s*%)?$/.test(requestedRaw)
+    ? "etikka"
+    : requestedRaw;
   const candidate = targetName.toLocaleLowerCase("fi").trim();
   const exactGroups: Record<string, RegExp> = {
-    sokeri: /\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\b/i,
-    merisuola: /\bmerisuola(?:a)?\b/i,
-    etikka: /\b(?:etikka|väkiviinaetikka|omenaviinietikka|viinietikka)\b/i,
-    silakka: /\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\b/i,
+    sokeri: /\\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\\b/i,
+    merisuola: /\\bmerisuola(?:a)?\\b/i,
+    etikka: /(?:^|\\s|-)etikka\\b|väkiviinaetikka|omenaviinietikka|viinietikka/i,
+    silakka: /\\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\\b/i,
   };
   const excludedPrepared: Record<string, RegExp> = {
-    sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen/i,
-    merisuola: /riisikak|sips|perunalast|näkkilei|keks|pähkin|suolapähkin/i,
-    etikka: /mausteseos|grillimauste|kastike|sips|etikkapunajuuri|maalaissips/i,
+    sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen|vartalo|kuorinta|kosmeti|ihonhoito|shampoo|saippua|suihkugeeli/i,
+    merisuola: /riisikak|sips|perunalast|näkkilei|keks|pähkin|pretzel|suolatik|napostel|snack|maissinaks/i,
+    etikka: /mausteseos|grillimauste|kastike|sips|etikkapunajuuri|maalaissips|pretzel|puhdistusliina/i,
     silakka: /silakkalaatikko|silakkapihvi|silakkasäilyke|silakkapyörykkä/i,
   };
   if (exactGroups[requested]) {
