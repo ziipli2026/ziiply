@@ -12236,7 +12236,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const cachedNormalSearchV441 = normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
 
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
-      setNormalResultsStableV441(cachedNormalSearchV441.results);
+      // Revalidate cached results against the current product-group gate.
+      const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
+      const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
+        productGroupGate(cachedTerm, product.name),
+      );
+      if (cachedValidated.length > 0) {
+      setNormalResultsStableV441(cachedValidated);
       setSearchDebug(cachedNormalSearchV441.debug || []);
       setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
       setVisibleNormalCount(8);
@@ -12245,6 +12251,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
       setActiveResult("none");
       return;
+      }
+      // All cached hits failed the new gate: fetch fresh products instead.
+      normalSearchCacheRefV441.current.delete(normalSearchCacheKeyV441);
     }
 
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
