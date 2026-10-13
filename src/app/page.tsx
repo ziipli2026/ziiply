@@ -2151,6 +2151,9 @@ function KauppiasMobileTopBar({
     latitude: number;
     longitude: number;
   } | null>(null);
+  const [electricityChartOpen, setElectricityChartOpen] = useState(false);
+  const [electricityChartRows, setElectricityChartRows] = useState<Array<{time:number;price:number}>>([]);
+  const [electricityChartStatus, setElectricityChartStatus] = useState("Haetaan hintoja…");
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
@@ -2773,6 +2776,28 @@ function KauppiasMobileTopBar({
     };
   }, []);
 
+  useEffect(() => {
+    if (!electricityChartOpen) return;
+    let cancelled = false;
+    setElectricityChartStatus("Haetaan hintoja…");
+    fetch("https://api.porssisahko.net/v1/latest-prices.json", { cache: "no-store" })
+      .then(async response => { if (!response.ok) throw new Error("HTTP " + response.status); return response.json(); })
+      .then(data => {
+        if (cancelled) return;
+        const now = Date.now();
+        const items = Array.isArray(data?.prices) ? data.prices : Array.isArray(data) ? data : [];
+        const rows = items.map((item: any) => ({
+          time: new Date(String(item.startDate ?? item.start ?? item.StartDate ?? "")).getTime(),
+          price: Number(item.price ?? item.priceWithTax ?? item.PriceWithTax ?? item.centsPerKwh),
+        })).filter((item: {time:number;price:number}) => Number.isFinite(item.time) && item.time >= now - 3600000 && item.time < now + 86400000 && Number.isFinite(item.price))
+          .sort((x: {time:number}, y: {time:number}) => x.time - y.time).slice(0, 24);
+        setElectricityChartRows(rows);
+        setElectricityChartStatus(rows.length ? "" : "Tuntihintoja ei ole saatavilla.");
+      })
+      .catch(() => { if (!cancelled) setElectricityChartStatus("Hintojen haku epäonnistui."); });
+    return () => { cancelled = true; };
+  }, [electricityChartOpen]);
+
   const panels = [
     {
       id: "weather" as const,
@@ -2789,6 +2814,7 @@ function KauppiasMobileTopBar({
       unit: "c/kWh",
       detail: electricityText,
       graphic: <KauppiasElectricityTrendGraphicV717 trend={electricityTrend} />,
+      onClick: () => setElectricityChartOpen(true),
     },
     {
       id: "fuel" as const,
@@ -2812,7 +2838,7 @@ function KauppiasMobileTopBar({
   if (hidden) return null;
 
   return (
-    <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
+    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
       <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
         <div className="grid min-w-0 flex-1 grid-cols-[0.96fr_1.20fr_1.12fr_0.96fr] gap-[6px]">
           {panels.map((panel) => {
@@ -2892,6 +2918,38 @@ function KauppiasMobileTopBar({
         </div>
       </div>
     </div>
+      {electricityChartOpen && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-[#092e25]/60 px-3 sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
+          <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
+              <button type="button" onClick={() => setElectricityChartOpen(false)} className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
+            </div>
+            {electricityChartStatus ? <p className="py-10 text-center text-[#164b38]">{electricityChartStatus}</p> : (
+              <>
+                <div className="flex h-[210px] items-end gap-[2px] border-b-2 border-[#b99961]">
+                  {electricityChartRows.map((item,index) => {
+                    const min = Math.min(0,...electricityChartRows.map(row=>row.price));
+                    const max = Math.max(10,...electricityChartRows.map(row=>row.price));
+                    const height = Math.max(3,(item.price-min+0.4)/(max-min+0.4)*100);
+                    return <div key={item.time+index} className="min-w-0 flex-1 rounded-t-[3px]" style={{height:height+"%",backgroundColor:item.price>=10?"#b84c32":item.price>=6?"#dba32b":"#77a544"}} title={new Date(item.time).toLocaleString("fi-FI",{hour:"2-digit",minute:"2-digit"})+": "+item.price.toFixed(2)+" snt/kWh"}/>;
+                  })}
+                </div>
+                <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
+                  <span>{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
+                  <span>snt/kWh</span>
+                  <span>{new Date(electricityChartRows[electricityChartRows.length-1].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
+                </div>
+                <div className="mt-3 flex justify-between text-[12px] font-bold text-[#164b38]">
+                  <span>Halvin {Math.min(...electricityChartRows.map(row=>row.price)).toLocaleString("fi-FI",{maximumFractionDigits:2})} snt/kWh</span>
+                  <span>Kallein {Math.max(...electricityChartRows.map(row=>row.price)).toLocaleString("fi-FI",{maximumFractionDigits:2})} snt/kWh</span>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      )}
+    </>
   );
 }
 
