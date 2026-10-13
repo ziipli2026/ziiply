@@ -83,16 +83,29 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     {hydrated && typeof document !== "undefined" && (importing||editing) && createPortal(<div className="fixed left-1/2 top-3 z-[9999] w-[min(520px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto -translate-x-1/2 rounded-2xl border-2 border-[#b89959] bg-[#fffdf5] p-3 text-[#27412a] shadow-2xl">
       <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-sm">{editing?"Muokkaa reseptiä":importing?"Vaihda resepti":"Valmistusohje"}</strong><button type="button" onClick={()=>{setEditing(false);setImporting(false)}} className="rounded-lg border border-[#b89959] px-3 py-1 font-bold">Sulje ×</button></div>
     {importing&&<div className="space-y-2"><textarea aria-label="Reseptiteksti" rows={3} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
-    {editing&&draft&&<div className="grid grid-cols-1 gap-2 border-t pt-2 text-sm">
-      <label className="block text-xs">Reseptin nimi<input value={draft.title} onChange={event=>setDraft({...draft,title:event.target.value})} className="w-full rounded border p-1"/></label>
-      <label className="flex items-center gap-2 text-xs">Annoksia<input aria-label="Alkuperäinen annosmäärä" type="number" min="1" value={original} onChange={event=>setOriginal(event.target.value)} className="w-16 rounded border p-1"/></label>
-      {ingredients.map((item,index)=><div key={item.id} className="rounded-lg border p-2">
-        <div className="grid grid-cols-[minmax(0,1fr)_76px_54px] gap-1"><input aria-label={"Aines "+(index+1)} value={item.name} onChange={event=>update(item.id,{name:event.target.value})} className="min-w-0 rounded border p-1"/><input aria-label={"Määrä "+(index+1)} type="number" step="any" min="0" value={item.amount??""} onChange={event=>update(item.id,{amount:event.target.value===""?null:Number(event.target.value)})} className="min-w-0 rounded border p-1"/><input aria-label={"Yksikkö "+(index+1)} value={item.unit??""} onChange={event=>update(item.id,{unit:event.target.value})} className="min-w-0 rounded border p-1"/></div>
-        <div className="mt-1 flex items-center justify-between text-xs"><label><input type="checkbox" checked={item.atHome} onChange={event=>update(item.id,{atHome:event.target.checked})}/> On jo kotona</label><button type="button" onClick={()=>setDraft({...draft,ingredients:ingredients.filter(value=>value.id!==item.id)})} className="underline">Poista</button></div>
-      </div>)}
-      <button type="button" onClick={()=>setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now()),name:"",amount:null,unit:null,uncertain:true,atHome:false}]})} className="rounded border px-2 py-1 text-xs">+ Lisää aines</button>
-      <textarea aria-label="Valmistusohje" rows={2} value={draft.instructions} onChange={event=>setDraft({...draft,instructions:event.target.value})} className="w-full rounded border p-2"/>
-      <div className="flex flex-wrap items-center justify-center gap-2"><button type="button" onClick={()=>saveToNotebook(false)} className="rounded-lg bg-[#174c3a] px-3 py-2 font-bold text-white">Tallenna Vihkoseen</button><button type="button" onClick={()=>saveToNotebook(true)} className="rounded-lg border border-[#b89959] px-3 py-2 font-bold">Tallenna uutena</button></div>
+    {editing&&draft&&<div className="space-y-3 border-t border-[#d0aa58] pt-3 text-sm">
+      <div className="grid grid-cols-[minmax(0,1fr)_76px] items-end gap-3">
+        <label className="block min-w-0 text-xs font-semibold">Ruoan nimi<input value={draft.title} onChange={event=>setDraft({...draft,title:event.target.value})} className="mt-1 w-full rounded-lg border border-[#b89959] bg-white p-2 text-sm"/></label>
+        <label className="block text-xs font-semibold">Annoksia<input aria-label="Alkuperäinen annosmäärä" type="number" min="1" value={original} onChange={event=>setOriginal(event.target.value)} className="mt-1 w-full rounded-lg border border-[#b89959] bg-white p-2 text-sm"/></label>
+      </div>
+      <div>
+        <strong className="text-xs">Ainekset</strong>
+        <div className="mt-1 space-y-1">
+          {ingredients.map((item,index)=><div key={item.id} className="grid grid-cols-[minmax(0,1fr)_64px_44px_28px] items-center gap-1">
+            <input aria-label={"Aines "+(index+1)} placeholder="Aines" value={item.name} onChange={event=>update(item.id,{name:event.target.value})} className="min-w-0 rounded-md border border-[#d0c3a4] bg-white px-2 py-1.5 text-xs"/>
+            <input aria-label={"Määrä "+(index+1)} type="number" step="any" min="0" value={item.amount??""} onChange={event=>update(item.id,{amount:event.target.value===""?null:Number(event.target.value)})} className="min-w-0 rounded-md border border-[#d0c3a4] bg-white px-1 py-1.5 text-xs"/>
+            <input aria-label={"Yksikkö "+(index+1)} value={item.unit??""} onChange={event=>update(item.id,{unit:event.target.value})} className="min-w-0 rounded-md border border-[#d0c3a4] bg-white px-1 py-1.5 text-xs"/>
+            <button type="button" aria-label={"Poista aines "+(index+1)} title="Poista aines" onClick={()=>setDraft({...draft,ingredients:ingredients.filter(value=>value.id!==item.id)})} className="text-lg text-[#934b3a]">×</button>
+          </div>)}
+        </div>
+        <button type="button" onClick={()=>setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now()),name:"",amount:null,unit:null,uncertain:true,atHome:false}]})} className="mt-2 rounded-md border border-[#b89959] px-3 py-1 text-xs font-semibold">+ Lisää aines</button>
+      </div>
+      <label className="block text-xs font-semibold">Valmistusohje<textarea aria-label="Valmistusohje" rows={3} value={draft.instructions} onChange={event=>setDraft({...draft,instructions:event.target.value})} className="mt-1 w-full rounded-lg border border-[#b89959] bg-white p-2 text-sm"/></label>
+      <div className="grid grid-cols-3 gap-2 text-xs font-bold">
+        <button type="button" onClick={()=>saveToNotebook(false)} className="rounded-lg bg-[#174c3a] px-1 py-2 text-white">Tallenna</button>
+        <button type="button" onClick={()=>saveToNotebook(true)} className="rounded-lg border border-[#b89959] px-1 py-2">Tallenna uutena</button>
+        <button type="button" onClick={()=>setEditing(false)} className="rounded-lg border border-[#b89959] px-1 py-2">Peruuta</button>
+      </div>
     </div>}
     </div>, document.body)}
   </section>;
