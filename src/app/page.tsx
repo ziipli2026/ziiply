@@ -2919,7 +2919,7 @@ function KauppiasMobileTopBar({
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
               <button type="button" onClick={() => setElectricityChartOpen(false)} className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
             </div>
-            {electricityChartStatus ? <p className="min-h-[210px] py-20 text-center text-[#164b38]">{electricityChartStatus}</p> : (
+            {electricityChartStatus ? <div className="h-[260px]" aria-live="off" /> : (
               <>
                 <div className="flex h-[210px] animate-[fadeIn_350ms_ease-out] items-end gap-[2px] border-b-2 border-[#b99961]">
                   {electricityChartRows.map((item,index) => {
