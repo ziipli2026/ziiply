@@ -1186,15 +1186,26 @@ export default function DesktopPreviewPage() {
   }
 
   useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
-  useEffect(()=>{if(!gostaHomeSearchOpen||gostaHomeQuery.trim().length<2)return;const timer=window.setTimeout(()=>setGostaHomeDebouncedQuery(gostaHomeQuery.trim()),450);return()=>window.clearTimeout(timer);},[gostaHomeQuery,gostaHomeSearchOpen]);
-  useEffect(()=>{if(!gostaHomeHydrated||!gostaHomeSearchOpen||gostaHomeDebouncedQuery.trim().length<2||gostaHomeDebouncedQuery!==gostaHomeQuery.trim())return;if(gostaHomeCache.current?.query.trim().toLocaleLowerCase("fi")===gostaHomeQuery.trim().toLocaleLowerCase("fi")&&Date.now()-gostaHomeCache.current.time<15*60*1000){setGostaHomeResults(gostaHomeCache.current.results);setGostaHomeHasSearched(true);setGostaHomeLoading(false);return;}void searchGostaHomepageOffers();},[gostaHomeDebouncedQuery,gostaHomeSearchOpen,gostaHomeHydrated]);
+  // Match Justiina: search only after the user has entered at least 2 characters
+  // and stopped typing for the configured delay (default 2 seconds).
   useEffect(()=>{
-    if(!gostaHomeSearchOpen||!gostaHomeHydrated||!gostaHomeQuery.trim())return;
-    if(gostaHomeCache.current?.query===gostaHomeQuery&&Date.now()-gostaHomeCache.current.time<15*60*1000)return;
-    if(!stores.length&&!lidlStores.length&&!sparStores.length)return;
-    const timer=window.setTimeout(()=>{void searchGostaHomepageOffers();},750);
+    if(!gostaHomeSearchOpen||!gostaHomeHydrated||gostaHomeQuery.trim().length<2)return;
+    const query=gostaHomeQuery.trim();
+    const timer=window.setTimeout(()=>{
+      if(gostaHomeLastSearch.current.query===query&&Date.now()-gostaHomeLastSearch.current.time<15*60*1000&&gostaHomeResults.length)return;
+      const cached=gostaHomeCache.current;
+      if(cached&&cached.query.trim().toLocaleLowerCase("fi")===query.toLocaleLowerCase("fi")&&Date.now()-cached.time<15*60*1000){
+        setGostaHomeResults(cached.results);
+        setGostaHomeHasSearched(true);
+        setGostaHomeLoading(false);
+        return;
+      }
+      void searchGostaHomepageOffers();
+    },justiinaDelay*1000);
     return()=>window.clearTimeout(timer);
-  },[gostaHomeSearchOpen,stores,lidlStores,sparStores]);
+  // Search only on edited query and opening; results must not trigger another request.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[gostaHomeQuery,gostaHomeSearchOpen,gostaHomeHydrated,justiinaDelay]);
 
   function gostaNearbyOfferStores(){
     const known=[...stores,...lidlStores,...sparStores].filter(Boolean) as any[];
