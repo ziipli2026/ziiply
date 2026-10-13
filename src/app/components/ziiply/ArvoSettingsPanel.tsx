@@ -135,10 +135,10 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       </div>
       {[
 
+      ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Muistutukset eivät käytössä"],
       ["energy","Henkilökohtainen dieetti",p.dietEnabled?"Käytössä":"Ei käytössä"],
       ["health","Terveystiedot","Yhteys ei vielä käytettävissä"],
-      ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"],
-      ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Muistutukset eivät käytössä"]
+      ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"]
     ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 text-left shadow-sm hover:bg-white" onClick={()=>{setActiveSection(id)}}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
     {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
       <div className="flex shrink-0 items-center border-b bg-[#f8f5ed] px-2 py-1"><strong>{({household:"Kotitalous ja reseptit",energy:"Henkilökohtainen dieetti",health:"Terveystiedot",purchases:"Ostohistoria ja kulutus",reminders:"Ruokailuajat ja muistutukset"} as Record<string,string>)[activeSection]}</strong></div>
