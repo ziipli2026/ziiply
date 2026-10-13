@@ -70,13 +70,11 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     </div>:<div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2">
       <div className="min-w-0 space-y-2">
         <strong className="block min-w-0 break-words text-center text-base leading-tight">{draft.title}</strong>
-        <div className="flex min-w-0 items-center justify-center gap-1 whitespace-nowrap">
-          <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="shrink-0 rounded-md bg-[#174c3a] px-2 py-1 text-[11px] font-bold text-white disabled:opacity-40">Hae</button>
-          <label className="flex min-w-0 items-center gap-0.5 text-[10px]"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-10 min-w-0 rounded border p-0.5 text-xs"/> hlö</label>
-        </div>
-        <div className="flex min-w-0 items-center justify-center gap-1 whitespace-nowrap text-[10px] font-bold">
-          <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="min-w-0 rounded-md border border-[#b89959] bg-[#f7eed8] px-1.5 py-1 text-[#27412a]">{editing?"Sulje":"Muokkaa"}</button>
-          <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="min-w-0 rounded-md border border-[#b89959] bg-[#f7eed8] px-1.5 py-1 text-[#27412a]">Vaihda</button>
+        <div className="grid min-w-0 grid-cols-2 gap-1">
+          <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-1 text-[10px] font-bold text-white disabled:opacity-40">Hae</button>
+          <label className="flex h-8 w-full min-w-0 items-center justify-center gap-0.5 rounded-md border border-[#b89959] bg-[#fffdf5] px-0.5 text-[10px]"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-8 min-w-0 bg-transparent text-center text-[10px] outline-none"/>hlö</label>
+          <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[10px] font-bold text-[#27412a]">{editing?"Sulje":"Muokkaa"}</button>
+          <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[10px] font-bold text-[#27412a]">Vaihda</button>
         </div>
       </div>
       <div className="min-w-0 space-y-1 border-l border-[#d0aa58] pl-2 text-xs leading-relaxed">{scaled.filter(item=>!item.atHome).map((item,index)=><div key={`${item.name}-${index}`} className="break-words">{[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")}</div>)}</div>
