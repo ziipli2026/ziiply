@@ -238,53 +238,56 @@ export default function DesktopPreviewPage() {
   const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
   const gostaHomeCache=useRef<{query:string;time:number;results:any[]}|null>(null);
   const [gostaCacheStatus,setGostaCacheStatus]=useState("Välimuistia ei vielä tarkistettu");
-  const gostaHomeCacheKey="ziiply-gosta-home-search-v4";
+  const gostaHomeCacheKey="ziiply-gosta-home-search-v5";
   const gostaHomeCacheTtl=60*60*1000;
+  const gostaHomeCacheMap=useRef<Record<string,{query:string;time:number;results:any[]}>>({});
+  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
+  function readGostaCache(queryInput:string){
+    const query=queryInput.trim().toLocaleLowerCase("fi");
+    if(query.length<2)return null;
+    const existing=gostaHomeCacheMap.current[query];
+    if(existing&&Array.isArray(existing.results)&&Date.now()-existing.time<gostaHomeCacheTtl)return existing;
+    try{
+      const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey);
+      const parsed=raw?JSON.parse(raw):{};
+      if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))gostaHomeCacheMap.current=parsed;
+    }catch{}
+    const saved=gostaHomeCacheMap.current[query];
+    return saved&&Array.isArray(saved.results)&&Number.isFinite(saved.time)&&Date.now()-saved.time<gostaHomeCacheTtl?saved:null;
+  }
   function restoreGostaCachedQuery(input:string){
-    const query=input.trim().toLocaleLowerCase("fi");
-    if(query.length<2)return false;
-    let cached=gostaHomeCache.current;
-    if(!cached||cached.query.trim().toLocaleLowerCase("fi")!==query){
-      try{
-        const raw=window.sessionStorage.getItem(gostaHomeCacheKey)||window.localStorage.getItem(gostaHomeCacheKey);
-        cached=raw?JSON.parse(raw):null;
-        if(cached&&cached.query.trim().toLocaleLowerCase("fi")===query)gostaHomeCache.current=cached;
-      }catch{cached=null;}
-    }
-    if(!cached||cached.query.trim().toLocaleLowerCase("fi")!==query||!Array.isArray(cached.results)||Date.now()-cached.time>=gostaHomeCacheTtl)return false;
+    const cached=readGostaCache(input);
+    if(!cached)return false;
+    gostaHomeCache.current=cached;
     setGostaHomeResults(cached.results);
     setGostaHomeHasSearched(true);
     setGostaHomeLoading(false);
     setGostaHomeError("");
     return true;
   }
-
-  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
-  function persistGostaHomeCache(query:string,offers:any[],time:number){
+  function persistGostaHomeCache(queryInput:string,offers:any[],time:number){
+    const query=queryInput.trim().toLocaleLowerCase("fi");
+    if(!query)return;
     const results=offers.slice(0,120).map((offer:any)=>Object.fromEntries(gostaHomeCacheFields.filter(key=>offer[key]!==undefined).map(key=>[key,offer[key]])));
     const saved={query,results,time};
     gostaHomeCache.current=saved;
-    const serialized=JSON.stringify(saved);
-    let savedCount=0;
-    // Session cache is prioritized for reload; local cache survives reopening the browser.
-    for(const storage of [window.sessionStorage,window.localStorage]){
-      try{storage.setItem(gostaHomeCacheKey,serialized);savedCount++;}
+    gostaHomeCacheMap.current[query]=saved;
+    const entries=Object.entries(gostaHomeCacheMap.current).filter(([,value])=>value&&Array.isArray(value.results)&&time-value.time<gostaHomeCacheTtl).sort((a,b)=>b[1].time-a[1].time).slice(0,12);
+    gostaHomeCacheMap.current=Object.fromEntries(entries);
+    const serialized=JSON.stringify(gostaHomeCacheMap.current);
+    for(const storage of [window.localStorage,window.sessionStorage]){
+      try{storage.setItem(gostaHomeCacheKey,serialized);}
       catch{
-        // Old diagnostics caches can fill Safari's small Web Storage quota.
-        try{storage.removeItem("ziiply-desktop-offers-cache-v9");storage.setItem(gostaHomeCacheKey,serialized);savedCount++;}catch{}
+        try{storage.removeItem("ziiply-desktop-offers-cache-v9");storage.setItem(gostaHomeCacheKey,serialized);}catch{}
       }
     }
   }
   useEffect(()=>{
     try{
-      const raw=window.sessionStorage.getItem(gostaHomeCacheKey)||window.localStorage.getItem(gostaHomeCacheKey);
-      const saved=raw?JSON.parse(raw):null;
-      if(saved&&typeof saved.query==="string"&&Array.isArray(saved.results)&&Number.isFinite(saved.time)){
-        gostaHomeCache.current=saved;
-        gostaHomeLastSearch.current={query:saved.query,time:saved.time};
-        // Keep the cached search ready, but open the search window empty.
-        setGostaCacheStatus(`Palautettu välimuistista (${saved.results.length} tarjousta)`);
-      }else setGostaCacheStatus("Välimuistista ei löytynyt tallennettua hakua");
+      const raw=window.localStorage.getItem(gostaHomeCacheKey)||window.sessionStorage.getItem(gostaHomeCacheKey);
+      const parsed=raw?JSON.parse(raw):{};
+      if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))gostaHomeCacheMap.current=parsed;
+      setGostaCacheStatus(`Välimuistissa ${Object.keys(gostaHomeCacheMap.current).length} hakua`);
     }catch{setGostaCacheStatus("Välimuistin lukeminen epäonnistui");}
     setGostaHomeHydrated(true);
   },[]);
@@ -1223,8 +1226,8 @@ export default function DesktopPreviewPage() {
     const query=gostaHomeQuery.trim();
     const timer=window.setTimeout(()=>{
       if(gostaHomeLastSearch.current.query===query&&Date.now()-gostaHomeLastSearch.current.time<gostaHomeCacheTtl&&gostaHomeResults.length)return;
-      const cached=gostaHomeCache.current;
-      if(cached&&cached.query.trim().toLocaleLowerCase("fi")===query.toLocaleLowerCase("fi")&&Date.now()-cached.time<gostaHomeCacheTtl){
+      const cached=readGostaCache(query);
+      if(cached){
         setGostaHomeResults(cached.results);
         setGostaHomeHasSearched(true);
         setGostaHomeLoading(false);
@@ -1265,8 +1268,8 @@ export default function DesktopPreviewPage() {
   async function searchGostaHomepageOffers() {
     const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
     if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
-    const cached=gostaHomeCache.current;
-    if(cached&&cached.query.trim().toLocaleLowerCase("fi")===query&&Date.now()-cached.time<gostaHomeCacheTtl){
+    const cached=readGostaCache(query);
+    if(cached){
       setGostaHomeResults(cached.results);
       setGostaCacheStatus(`Välimuistiosuma (${cached.results.length} tarjousta)`);
       setGostaHomeHasSearched(true);
