@@ -22,6 +22,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const [cameraShot,setCameraShot]=useState(false);
   const [cameraReview,setCameraReview]=useState(false);
   const [cameraError,setCameraError]=useState("");
+  const [voiceRecording,setVoiceRecording]=useState(false);
   const [notebookOpen,setNotebookOpen]=useState(true);
   const [notebook,setNotebook]=useState<Array<{id:string;title:string;ingredients:string;instructions:string}>>([]);
   const [notebookFilter,setNotebookFilter]=useState("");
@@ -31,6 +32,17 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const capturedFileRef=useRef<File|null>(null);
   const refreshNotebook=()=>{try{const value=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");setNotebook(Array.isArray(value)?value:[])}catch{setNotebook([])}};
   const stopCamera=()=>{cameraStreamRef.current?.getTracks().forEach(track=>track.stop());cameraStreamRef.current=null};
+  useEffect(()=>{if(cameraOpen&&!cameraShot&&!cameraReview&&cameraVideoRef.current&&cameraStreamRef.current){cameraVideoRef.current.srcObject=cameraStreamRef.current;void cameraVideoRef.current.play().catch(()=>{})}},[cameraOpen,cameraShot,cameraReview]);
+  const recordRecipe=()=>{
+    const browser=window as unknown as {SpeechRecognition?:new()=>any;webkitSpeechRecognition?:new()=>any};
+    const Speech=browser.SpeechRecognition||browser.webkitSpeechRecognition;
+    if(!Speech){setNotice("Puheentunnistus ei ole käytettävissä tässä selaimessa.");return}
+    const recognition=new Speech();recognition.lang="fi-FI";recognition.continuous=false;recognition.interimResults=false;
+    recognition.onresult=(event:any)=>{const result=String(event.results?.[0]?.[0]?.transcript||"").trim();if(result){setText(old=>[old,result].filter(Boolean).join("\n"));setImporting(true)}};
+    recognition.onerror=()=>{setVoiceRecording(false);setNotice("Puheentunnistus epäonnistui.")};
+    recognition.onend=()=>setVoiceRecording(false);
+    try{recognition.start();setVoiceRecording(true)}catch{setVoiceRecording(false);setNotice("Mikrofoni ei auennut.")}
+  };
   const closeCamera=()=>{stopCamera();setCameraOpen(false);setCameraShot(false);setCameraReview(false);setCameraError("")};
   const startCamera=async()=>{
     setCameraOpen(true);setCameraShot(false);setCameraReview(false);setCameraError("");capturedFileRef.current=null;
@@ -129,9 +141,9 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     </div>}
     <div className="mt-3 rounded-xl border border-[#b99d62] bg-[#fff5d8] p-2">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <button type="button" onClick={()=>setNotice("Äänitä-toiminto on käytettävissä hakukortissa.")} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/assets/voice-button.png" alt="Äänitä" className="mx-auto h-16 w-16 object-contain" onError={event=>{event.currentTarget.style.display="none"}}/><span className="block text-xs font-bold text-[#fff4d5]">Äänitä</span></button>
+        <button type="button" onClick={recordRecipe} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src={voiceRecording?"/ui/voice/aanita-on.webp":"/ui/voice/aanita-off.webp"} alt="Äänitä" className="mx-auto h-16 w-16 object-contain"/><span className="block text-xs font-bold text-[#fff4d5]">Äänitä</span></button>
         <strong className="text-center font-serif text-2xl text-[#174c3a]">Reseptit</strong>
-        <button type="button" onClick={()=>{void startCamera()}} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><span className="block text-3xl">📷</span><span className="block text-xs font-bold text-[#fff4d5]">Filmaa</span></button>
+        <button type="button" onClick={()=>{void startCamera()}} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-16 w-16 object-contain"/><span className="block text-xs font-bold text-[#fff4d5]">Filmaa</span></button>
       </div>
       <div className="mt-2 flex gap-2"><input aria-label="Hae reseptiä omista" value={notebookFilter} onChange={event=>setNotebookFilter(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 flex-1 rounded-lg border border-[#b99d62] bg-white px-2 py-2"/><button type="button" onClick={()=>{setText("");setImporting(true);setEditing(false);setSavedId(null)}} className="shrink-0 rounded-lg bg-[#174c3a] px-3 text-xs font-bold text-white">Luo resepti</button></div>
       <div className="mt-2 max-h-[25dvh] space-y-1.5 overflow-y-auto overscroll-contain rounded-lg bg-[#fff9e9] p-1">
