@@ -14373,8 +14373,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const physicalScan = Boolean(options.physicalScan);
     const selectedWeightChainV849 = selectedChains.s ? "S" : selectedChains.k ? "K" : selectedChains.lidl ? "Lidl" : "Tokmanni";
     const selectedWeightStoreV849 = (selectedChains.s ? activeStores.sStoreName : selectedChains.k ? activeStores.kStoreName : selectedChains.lidl ? "Lidl" : "Tokmanni / Spar") || "Valittu kauppa";
-    // Vaakatuote lisätään ilman tarran kokonaishintaa; punnitushinta ei ole tuotteen pysyvä yksikköhinta.
-    const cartPrice = 0;
+    // Physical 200x price labels carry the weighed total in cents, not a unit price.
+    // Remote/manual weight items remain unpriced until physically scanned.
+    const labelPriceV852 = resolvePriceWeightLabel(ean)?.price;
+    const cartPrice = physicalScan && Number.isFinite(labelPriceV852) ? Number(labelPriceV852) : 0;
     const addKey = `weight-${ean}-${product.id}-${physicalScan ? "scan" : "remote"}`;
     const now = Date.now();
 
@@ -14395,10 +14397,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     triggerHaptic();
     if (physicalScan) showScanSuccessFlash();
-    // Display the same acknowledgement for desktop HID and camera scans, even outside the store.
-    const weightAddedNoticeV851 = "Vaakatuote lisätty";
-    setEanScannerMessage(weightAddedNoticeV851);
-    setEanMessage(weightAddedNoticeV851);
+    // Physical scans already show the timed green success flash. Avoid extra overlays.
+    // Non-physical adds use only the cart toast below.
+    setEanScannerMessage("");
+    setEanMessage("");
 
     setCart((currentCart) => {
       const baseCart = mergeCartPoolsByIdV129(currentCart);
@@ -14443,7 +14445,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
-        showCartToast(firstPhysicalCollection ? "✓ Vaakatuote kerätty" : physicalScan ? `Määrä +1: ${existingItem.name}` : "Vaakatuote on jo ostoskorissa");
+        if (!physicalScan) showCartToast("Vaakatuote on jo ostoskorissa");
         return nextCart;
       }
 
@@ -14476,7 +14478,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      showCartToast(physicalScan ? scannerWeightAddedMessageV847() : "Vaakatuote lisätty ilman hintaa");
+      if (!physicalScan) showCartToast("Vaakatuote lisätty ilman hintaa");
       return nextCart;
     });
 
