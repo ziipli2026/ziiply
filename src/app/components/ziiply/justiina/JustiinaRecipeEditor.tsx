@@ -65,9 +65,17 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
       <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
     </div>:<div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2"><strong className="min-w-0 flex-1 break-words">{draft.title}</strong><label className="flex shrink-0 items-center gap-1 text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-12 rounded border p-1"/> hlö</label><button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="shrink-0 rounded-xl bg-[#174c3a] px-3 py-2 text-xs font-black text-white disabled:opacity-40">Hae ainekset</button></div>
+      <div className="grid grid-cols-[minmax(190px,1fr)_auto_auto] items-center gap-2 max-[470px]:grid-cols-[minmax(145px,1fr)_auto]">
+        <strong className="min-w-0 break-words text-base leading-tight">{draft.title}</strong>
+        <label className="flex shrink-0 items-center gap-1 whitespace-nowrap text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-12 rounded border p-1"/> hlö</label>
+        <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="shrink-0 whitespace-nowrap rounded-xl bg-[#174c3a] px-3 py-2 text-xs font-black text-white disabled:opacity-40 max-[470px]:col-span-2 max-[470px]:justify-self-end">Hae ainekset</button>
+      </div>
       <p className="text-xs">{scaled.filter(item=>!item.atHome).map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join(" · ")}</p>
-      <div className="flex flex-wrap gap-4 text-xs font-bold"><button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="underline">{editing?"Sulje muokkaus":"Muokkaa"}</button><button type="button" aria-expanded={instructionsOpen} onClick={()=>setInstructionsOpen(value=>!value)} className="underline">Valmistusohje</button><button type="button" onClick={()=>{setImporting(value=>!value);setEditing(false)}} className="underline">Vaihda resepti</button></div>
+      <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+        <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{editing?"Sulje muokkaus":"✎ Muokkaa reseptiä"}</button>
+        <button type="button" aria-expanded={instructionsOpen} onClick={()=>setInstructionsOpen(value=>!value)} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{instructionsOpen?"Piilota ohje":"▤ Valmistusohje"}</button>
+        <button type="button" onClick={()=>{setImporting(value=>!value);setEditing(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">↻ Vaihda resepti</button>
+      </div>
     </div>}
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {importing&&<div className="mt-3 space-y-2"><textarea aria-label="Reseptiteksti" rows={4} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
