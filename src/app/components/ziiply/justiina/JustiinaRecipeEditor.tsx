@@ -71,8 +71,8 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <div className="min-w-0">
         <strong className="block truncate text-center text-base leading-tight">{draft.title}</strong>
         <div className="mt-2 flex items-center justify-center gap-2 whitespace-nowrap">
-          <label className="flex shrink-0 items-center gap-1 text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-11 rounded border p-1"/> hlö</label>
           <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="shrink-0 rounded-lg bg-[#174c3a] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">Hae</button>
+          <label className="flex shrink-0 items-center gap-1 text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-11 rounded border p-1"/> hlö</label>
         </div>
         <div className="mt-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[11px] font-bold">
           <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="shrink-0 rounded-lg border border-[#b89959] bg-[#f7eed8] px-2 py-1.5 text-[#27412a]">{editing?"Sulje":"✎ Muokkaa"}</button>
