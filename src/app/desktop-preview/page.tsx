@@ -225,6 +225,7 @@ export default function DesktopPreviewPage() {
 
   const [gostaChainPicker, setGostaChainPicker] = useState(false);
   const [gostaDetailsOpen, setGostaDetailsOpen] = useState(false);
+  const [gostaHomeSearchOpen, setGostaHomeSearchOpen] = useState(false);
   const [chooseStoresNoticeFor, setChooseStoresNoticeFor] = useState<Assistant|null>(null);
   const [gostaChain, setGostaChain] = useState<"S"|"K"|"LIDL"|"TOKMANNI"|"EUROSPAR"|null>(null);
   const [gostaOffers, setGostaOffers] = useState<any[]>([]);
@@ -1664,7 +1665,8 @@ export default function DesktopPreviewPage() {
               onlyGosta={fuelSelected}
               fuelMode={fuelSelected}
               onReportFuel={()=>{setFuelCompared(false);setFuelReportOpen(true);}}
-              onGostaDetails={()=>{setGostaDetailsOpen(true);setGostaChainPicker(false);}}
+              onGostaDetails={()=>{setGostaDetailsOpen(true);setGostaHomeSearchOpen(false);setGostaChainPicker(false);}}
+              onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
               chooseStoresNoticeFor={chooseStoresNoticeFor}
               onSelect={(key) => {
@@ -1682,7 +1684,8 @@ export default function DesktopPreviewPage() {
               }}
             />
 
-            {gostaDetailsOpen && !fuelSelected && <div role="dialog" aria-modal="true" aria-label="Göstan lisävalinnat" className="fixed inset-0 z-[90] flex items-center justify-center bg-black/45 p-5"><div className="w-full max-w-[440px] rounded-[24px] border-[3px] border-[#8bb56d] bg-[#f4ffe3] p-5 shadow-2xl"><div className="flex items-center justify-between gap-3"><h2 className="text-2xl font-black text-[#244a28]">Göstan lisävalinnat</h2><button type="button" onClick={()=>setGostaDetailsOpen(false)} className="rounded-xl border border-[#8bb56d] bg-white px-4 py-2 font-bold">Sulje</button></div><p className="mt-4 text-sm font-semibold text-[#244a28]">Hakuhälytykset, tarjousvahdit ja säästövinkit tulevat tähän. Hälytyksiä ei vielä voi ottaa käyttöön.</p><button type="button" onClick={()=>{setGostaDetailsOpen(false);setActive("gosta");setGostaChainPicker(true);}} className="mt-5 w-full rounded-xl bg-[#244a28] px-4 py-3 font-black text-white">Avaa tarjoushaku</button></div></div>}
+            {gostaHomeSearchOpen && !fuelSelected && <div role="dialog" aria-modal="true" aria-label="Pääsivun Göstan tarjoushaku" className="fixed inset-0 z-[90] flex items-center justify-center bg-black/45 p-5"><div className="w-full max-w-[440px] rounded-[24px] border-[3px] border-[#8bb56d] bg-[#f4ffe3] p-5 shadow-2xl"><div className="flex items-center justify-between gap-3"><h2 className="text-2xl font-black text-[#244a28]">Göstan tarjoushaku</h2><button type="button" onClick={()=>setGostaHomeSearchOpen(false)} className="rounded-xl border border-[#8bb56d] bg-white px-4 py-2 font-bold">Sulje</button></div><p className="mt-4 text-sm font-semibold text-[#244a28]">Pääsivun Göstan oma tarjoushaku. Tämä ei käytä Hae-kortin tarjoushakua. Hakutoiminto on vielä rakenteilla.</p></div></div>}
+            {gostaDetailsOpen && !fuelSelected && <div role="dialog" aria-modal="true" aria-label="Göstan lisävalinnat" className="fixed inset-0 z-[90] flex items-center justify-center bg-black/45 p-5"><div className="w-full max-w-[440px] rounded-[24px] border-[3px] border-[#8bb56d] bg-[#f4ffe3] p-5 shadow-2xl"><div className="flex items-center justify-between gap-3"><h2 className="text-2xl font-black text-[#244a28]">Göstan lisävalinnat</h2><button type="button" onClick={()=>setGostaDetailsOpen(false)} className="rounded-xl border border-[#8bb56d] bg-white px-4 py-2 font-bold">Sulje</button></div><p className="mt-4 text-sm font-semibold text-[#244a28]">Hakuhälytykset, tarjousvahdit ja säästövinkit tulevat tähän. Hälytyksiä ei vielä voi ottaa käyttöön.</p><button type="button" onClick={()=>{setGostaDetailsOpen(false);setGostaHomeSearchOpen(true);}} className="mt-5 w-full rounded-xl bg-[#244a28] px-4 py-3 font-black text-white">Avaa tarjoushaku</button></div></div>}
             {electricityOpen && <div role="dialog" aria-modal="true" aria-label="Göstan sähkövertailu" className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[70]`}>
               <div className="relative flex min-h-[70px] shrink-0 items-center justify-center rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-[220px] py-3">                <div className="absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-xl border border-[#caa15d] bg-[#fff4cf] px-3 py-2"><span className="font-serif text-[16px] font-black italic text-[#174c35]">Hinta nyt</span><span className="text-[25px] font-black text-[#174c35]">{electricity.value}</span><span className="text-xs font-black text-[#174c35]">snt/kWh</span></div>
                 <h2 className="font-serif text-[22px] font-black italic text-[#174c35]">Göstan sähkövertailu</h2>
