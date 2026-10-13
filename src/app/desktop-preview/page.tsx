@@ -258,7 +258,23 @@ export default function DesktopPreviewPage() {
     if(!Array.isArray(saved.results)||!Number.isFinite(saved.time))return null;
     // Show the previous results instantly even when background refresh is due.
     // Never show offers whose explicit expiry date has passed.
-    return saved.results.filter(offer=>{const until=gostaCacheExpiry(offer);return until===null||until>=now;});
+    const query=saved.query.trim().toLocaleLowerCase("fi");
+    const searchTerms=getNormalSearchQueries(query);
+    const valid=saved.results.filter((offer:any)=>{
+      const until=gostaCacheExpiry(offer);
+      if(until!==null&&until<now)return false;
+      const title=String(offer.title||offer.name||"");
+      const category=String(offer.categoryName||offer.category||"");
+      const normalizedTitle=title.toLocaleLowerCase("fi");
+      return searchTerms.some(term=>normalizedTitle.includes(String(term).toLocaleLowerCase("fi")))
+        &&productGroupGate(query,title)
+        &&!isBadNormalResult({name:title,category} as any,query);
+    });
+    return rankProductResultsByRelevanceAndPrice(query,valid.map((offer:any)=>({...offer,name:String(offer.title||offer.name||"")})),(offer:any)=>{
+      const displayed=splitOfferDisplayPrice(getOfferPrice(offer)).amount;
+      const value=Number.parseFloat(String(displayed).replace(/[^\\d,.]/g,"").replace(",","."));
+      return Number.isFinite(value)?value:NaN;
+    });
   }
   function readGostaCache(queryInput:string){
     const query=queryInput.trim().toLocaleLowerCase("fi");
