@@ -4,7 +4,7 @@ import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferences } from "../components/ziiply/ArvoSettingsPanel";
 
 import { useEffect, useRef, useState } from "react";
-import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible } from "../components/ziiply/ziiplyCore";
+import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -238,7 +238,7 @@ export default function DesktopPreviewPage() {
   const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
   const gostaHomeCache=useRef<{query:string;time:number;results:any[]}|null>(null);
   const [gostaCacheStatus,setGostaCacheStatus]=useState("Välimuistia ei vielä tarkistettu");
-  const gostaHomeCacheKey="ziiply-gosta-home-search-v8";
+  const gostaHomeCacheKey="ziiply-gosta-home-search-v9";
   const gostaHomeHistoryKey="ziiply-gosta-home-search-history-v1";
   const gostaHomeCacheTtl=15*60*1000; // Unknown validity: recheck after 15 minutes.
   const gostaHomeCacheMap=useRef<Record<string,{query:string;time:number;results:any[]}>>({});
@@ -1322,7 +1322,12 @@ export default function DesktopPreviewPage() {
       return rankNormalSearchResults(query,matching.map((offer:any)=>({...offer,name:String(offer.title||offer.name||"")}))).map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
     }));
     if(request!==gostaHomeRequestId.current)return;
-    const refreshed=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]).sort((a:any,b:any)=>a.__gostaHomeDistance-b.__gostaHomeDistance).slice(0,120);
+    const allMatches=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]);
+    const refreshed=rankProductResultsByRelevanceAndPrice(query,allMatches,(offer:any)=>{
+      const displayed=splitOfferDisplayPrice(getOfferPrice(offer)).amount;
+      const value=Number.parseFloat(String(displayed).replace(/[^\\d,.]/g,"").replace(",","."));
+      return Number.isFinite(value)?value:NaN;
+    }).slice(0,120);
     if(refreshed.length||batches.every(batch=>batch.status==="fulfilled")){const time=Date.now();persistGostaHomeCache(gostaHomeQuery,refreshed,time);setGostaHomeResults(refreshed);gostaHomeLastSearch.current={query:gostaHomeQuery,time};}
     if(batches.some(batch=>batch.status==="rejected"))setGostaHomeError("Osan kaupoista tarjouksia ei saatu ladattua.");
     setGostaHomeLoading(false);
