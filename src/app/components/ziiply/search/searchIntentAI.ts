@@ -301,7 +301,7 @@ const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySea
     confidence: 0.8,
     includeTerms: ["lohi", "kala", "tonnikala", "kirjolohi", "seiti"],
     preferredTerms: ["lohi", "kala", "tonnikala"],
-    excludeTerms: ["kalanruoka", "kalakastike"],
+    excludeTerms: ["kalanruoka", "kalakastike", "jäätelö", "proteiinijäätelö", "lohilo"],
     categoryHints: ["kalat", "tuoretuotteet", "säilykkeet"],
   },
   fruit: {
@@ -439,7 +439,7 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
     const plainSalmon=/^(?:lohi|kirjolohi|lohifilee|kirjolohifilee)(?:\\s+\\d.*)?$/.test(query);
     if(plainSalmon){
       if(!/(?:^|[\\s-])(?:lohi|kirjolohi|lohifilee|kirjolohifilee)/.test(name))return false;
-      if(hasAny(name,["savulohi","savustettu","kylmasavu","lamminsavu","graavi","keitto","kastike","kiusaus","salaatti","pasteija","piirakka","levite","tuorejuusto","kalapuikko","kalapihvi","kalapyorykka","sushi","ateria","vauva","piltti","kissan","koiran","kalanruoka"]))return false;
+      if(hasAny(name,["lohilo","jaatelo","proteiinijaatelo","savulohi","savustettu","kylmasavu","lamminsavu","graavi","keitto","kastike","kiusaus","salaatti","pasteija","piirakka","levite","tuorejuusto","kalapuikko","kalapihvi","kalapyorykka","sushi","ateria","vauva","piltti","kissan","koiran","kalanruoka"]))return false;
     }
   }
 
