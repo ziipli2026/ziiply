@@ -123,8 +123,13 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const mealLabels: { key: keyof ArvoPreferences["mealTimes"]; label: string }[] = [{key:"breakfast",label:"Aamiainen"},{key:"lunch",label:"Lounas"},{key:"dinner",label:"Päivällinen"},{key:"evening",label:"Iltapala"}];
   return <div className="relative h-full min-h-0 overflow-hidden px-2 py-4 text-[#173b2b]">
     <div className="mb-2 flex items-center justify-between"><p className="text-xs">Asetukset tallentuvat tähän selaimeen.</p>{onClose&&<button type="button" onClick={onClose} className="rounded border px-2 py-1">← Takaisin</button>}</div>
-    <div className="grid gap-2">{[
-      ["household","Kotitalous ja reseptit",p.householdSize+" henkilöä"+(p.diets.length?" · "+p.diets.length+" ruokavaliota":"")],
+    <div className="grid gap-2">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-4 py-3 shadow-sm">
+        <button type="button" className="min-w-0 flex-1 text-left" onClick={()=>{setHouseholdPage(null);setActiveSection("household")}}><strong className="block">Kotitalous ja reseptit</strong><span className="text-xs text-[#6d6a5c]">Ruokavaliot ja allergiat ›</span></button>
+        <label className="flex shrink-0 items-center gap-2 text-sm font-bold">Henkilöitä <input aria-label="Kotitalouden henkilömäärä suoraan Arvon päävalikossa" type="number" min={1} max={50} className="w-16 rounded-lg border p-2 text-center font-bold" value={p.householdSize} onChange={e=>update("householdSize",Math.min(50,Math.max(1,Number(e.target.value)||1)))}/></label>
+      </div>
+      {[
+
       ["energy","Henkilökohtainen dieetti",p.dietEnabled?"Käytössä":"Ei käytössä"],
       ["health","Terveystiedot","Yhteys ei vielä käytettävissä"],
       ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"],
