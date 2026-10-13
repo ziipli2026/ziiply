@@ -156,23 +156,23 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       </section>}
       {activeSection==="energy"&&<section className="h-full rounded-xl bg-white/75 p-3 text-sm">
         <label className="flex items-center gap-2 font-bold"><input type="checkbox" checked={p.dietEnabled} onChange={e=>update("dietEnabled",e.target.checked)}/> Henkilökohtainen energiasuunnittelu käytössä</label>
-        {!energyPage&&<div className="mt-3 grid gap-2">
-          <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setEnergyPage("measurements")}><span><b className="block">Omat tiedot ja aktiivisuus</b><small>Syntymäaika, paino, pituus ja aktiivisuus</small></span>›</button>
-          <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setEnergyPage("goals")}><span><b className="block">Tavoitteet ja erityistilanteet</b><small>Painotavoite, kcal ja erityistilanteet</small></span>›</button>
-          {p.dietEnabled&&(energy?<p className="rounded-lg bg-[#e5eedf] p-2 text-xs">Arvio: perusaineenvaihdunta <b>{energy.bmr}</b>, kulutus <b>{energy.tdee}</b>, tavoite <b>{energy.target} kcal/vrk</b>. Ei mittaustulos.</p>:<p className="text-xs">Energia-arvio edellyttää tarvittavia tietoja. Erityistilanteissa tavallista laskentaa ei käytetä.</p>)}
-        </div>}
-        {energyPage==="measurements"&&<div className="mt-2 grid grid-cols-2 gap-2">        <label>Syntymäaika <input type="date" className="block w-full rounded border px-2 py-1" value={p.birthDate} onChange={e=>update("birthDate",e.target.value)} /></label>
+        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
+          <div className="col-span-2 text-xs font-bold text-[#49634f]">Omat tiedot ja aktiivisuus</div>
+          <div className="contents">        <label>Syntymäaika <input type="date" className="block w-full rounded border px-2 py-1" value={p.birthDate} onChange={e=>update("birthDate",e.target.value)} /></label>
         <label>Laskentakaavan sukupuolikerroin <select className="block w-full rounded border px-2 py-1" value={p.sexForEquation} onChange={e=>update("sexForEquation",e.target.value as ArvoPreferences["sexForEquation"])}><option value="">Valitse</option><option value="female">Naisille johdettu kaava</option><option value="male">Miehille johdettu kaava</option></select><small>Käytetään vain energiankulutusarvion kaavakertoimeen.</small></label>
         <label>Paino (kg) <input type="number" min="1" step=".1" className="block w-full rounded border px-2 py-1" value={p.weightKg} onChange={e=>update("weightKg",e.target.value)} /></label>
         <label>Painon mittauspäivä <input type="date" className="block w-full rounded border px-2 py-1" value={p.weightMeasuredAt} onChange={e=>update("weightMeasuredAt",e.target.value)} /></label>
         <label>Pituus (cm) <input type="number" min="1" className="block w-full rounded border px-2 py-1" value={p.heightCm} onChange={e=>update("heightCm",e.target.value)} /></label>
         <label>Aktiivisuustaso <select className="block w-full rounded border px-2 py-1" value={p.activity} onChange={e=>update("activity",e.target.value as ArvoPreferences["activity"])}><option value="sedentary">Vähäinen</option><option value="light">Kevyt</option><option value="moderate">Kohtalainen</option><option value="active">Runsas</option></select></label>
-</div>}
-        {energyPage==="goals"&&<div className="mt-2 grid grid-cols-2 gap-2">        <label>Tavoite <select className="block w-full rounded border px-2 py-1" value={p.goal} onChange={e=>update("goal",e.target.value as ArvoPreferences["goal"])}><option value="maintain">Ylläpito</option><option value="lose">Pudotus</option><option value="gain">Nousu</option></select></label>
+</div>
+          <div className="col-span-2 mt-1 border-t pt-2 text-xs font-bold text-[#49634f]">Tavoitteet ja erityistilanteet</div>
+          <div className="contents">        <label>Tavoite <select className="block w-full rounded border px-2 py-1" value={p.goal} onChange={e=>update("goal",e.target.value as ArvoPreferences["goal"])}><option value="maintain">Ylläpito</option><option value="lose">Pudotus</option><option value="gain">Nousu</option></select></label>
         <label>Tavoitepaino (kg, vapaaehtoinen) <input type="number" min="1" className="block w-full rounded border px-2 py-1" value={p.targetWeightKg} onChange={e=>update("targetWeightKg",e.target.value)} /></label>
         <label>Oma kcal-tavoite (vapaaehtoinen) <input type="number" min="1" className="block w-full rounded border px-2 py-1" value={p.manualKcal} onChange={e=>update("manualKcal",e.target.value)} /></label>
         <label>Erityistilanne <select className="block w-full rounded border px-2 py-1" value={p.specialSituation} onChange={e=>update("specialSituation",e.target.value as ArvoPreferences["specialSituation"])}><option value="none">Ei</option><option value="pregnancy">Raskaus</option><option value="breastfeeding">Imetys</option><option value="other">Muu</option></select></label>
-</div>}
+</div>
+        </div>
+        {p.dietEnabled&&(energy?<p className="mt-2 rounded-lg bg-[#e5eedf] p-2 text-xs">Arvio: perusaineenvaihdunta <b>{energy.bmr}</b>, kulutus <b>{energy.tdee}</b>, tavoite <b>{energy.target} kcal/vrk</b>. Ei mittaustulos.</p>:<p className="mt-2 text-xs">Energia-arvio edellyttää tarvittavia tietoja. Erityistilanteissa tavallista laskentaa ei käytetä.</p>)}
       </section>}
 
       {activeSection==="health"&&(<>
