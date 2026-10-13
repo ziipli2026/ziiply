@@ -7814,7 +7814,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function forceStartVoiceSearchV456(rawValue?: string) {
     const cleaned = getVoiceSearchCandidateV456(rawValue);
     const recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1"));
-    if (recipeDebugActive) appendRecipeDebug("search-start", { rawValue, cleaned, force });
+    if (recipeDebugActive) appendRecipeDebug("force-search-start", { rawValue, cleaned });
     pushVoiceDebugV507(`forceStart raw=${String(rawValue || "").slice(0, 120)} cleaned=${cleaned}`);
     if (!cleaned) {
       pushVoiceDebugV507("forceStart STOP cleaned empty");
