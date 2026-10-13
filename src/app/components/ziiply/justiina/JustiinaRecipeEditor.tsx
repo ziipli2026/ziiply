@@ -22,6 +22,8 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const [cameraShot,setCameraShot]=useState(false);
   const [cameraReview,setCameraReview]=useState(false);
   const [cameraError,setCameraError]=useState("");
+  const [cameraCountdown,setCameraCountdown]=useState<number|null>(null);
+  const imageReadIdRef=useRef(0);
   const [voiceRecording,setVoiceRecording]=useState(false);
   const [notebookOpen,setNotebookOpen]=useState(true);
   const [notebook,setNotebook]=useState<Array<{id:string;title:string;ingredients:string;instructions:string}>>([]);
@@ -31,7 +33,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const cameraStreamRef=useRef<MediaStream|null>(null);
   const capturedFileRef=useRef<File|null>(null);
   const refreshNotebook=()=>{try{const value=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");setNotebook(Array.isArray(value)?value:[])}catch{setNotebook([])}};
-  const stopCamera=()=>{cameraStreamRef.current?.getTracks().forEach(track=>track.stop());cameraStreamRef.current=null};
+  const stopCamera=()=>{setCameraCountdown(null);cameraStreamRef.current?.getTracks().forEach(track=>track.stop());cameraStreamRef.current=null};
   useEffect(()=>{if(cameraOpen&&!cameraShot&&!cameraReview&&cameraVideoRef.current&&cameraStreamRef.current){cameraVideoRef.current.srcObject=cameraStreamRef.current;void cameraVideoRef.current.play().catch(()=>{})}},[cameraOpen,cameraShot,cameraReview]);
   const recordRecipe=()=>{
     const browser=window as unknown as {SpeechRecognition?:new()=>any;webkitSpeechRecognition?:new()=>any};
@@ -43,13 +45,17 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     recognition.onend=()=>setVoiceRecording(false);
     try{recognition.start();setVoiceRecording(true)}catch{setVoiceRecording(false);setNotice("Mikrofoni ei auennut.")}
   };
-  const closeCamera=()=>{stopCamera();setCameraOpen(false);setCameraShot(false);setCameraReview(false);setCameraError("")};
-  const startCamera=async()=>{
+  const closeCamera=()=>{imageReadIdRef.current++;setReadingImage(false);stopCamera();setCameraOpen(false);setCameraShot(false);setCameraReview(false);setCameraError("")};
+  const startCamera=async(autoCapture=false)=>{
+    imageReadIdRef.current++;setReadingImage(false);setImagePreview("");setText("");setSavedId(null);
     setCameraOpen(true);setCameraShot(false);setCameraReview(false);setCameraError("");capturedFileRef.current=null;
     stopCamera();
     try{
-      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+      let stream:MediaStream;
+      try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})}
+      catch{stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false})}
       cameraStreamRef.current=stream;
+      if(autoCapture)setCameraCountdown(5);
       requestAnimationFrame(()=>{if(cameraVideoRef.current){cameraVideoRef.current.srcObject=stream;void cameraVideoRef.current.play().catch(()=>{})}});
     }catch{setCameraError("Kamera ei auennut. Voit liittää kuvan laitteen kuvista.");}
   };
@@ -60,29 +66,53 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     canvas.toBlob(blob=>{if(!blob)return;capturedFileRef.current=new File([blob],"resepti.jpg",{type:"image/jpeg"});setImagePreview(old=>{if(old)URL.revokeObjectURL(old);return URL.createObjectURL(blob)});setCameraShot(true);stopCamera()},"image/jpeg",0.9);
   };
   const saveNotebook=(source:string)=>{
-    const parsed=parseRecipeText(source);if(!parsed.title.trim()){setNotice("Anna reseptille nimi.");return}
+    const parsed=parseRecipeText(source);if(!source.trim()||!parsed.title.trim()){setCameraError("Anna reseptille nimi ja teksti ennen tallennusta.");return}
     const key="ziiply-desktop-vihkonen-recipes-v1";
     try{const entries=JSON.parse(localStorage.getItem(key)||"[]");const list=Array.isArray(entries)?entries:[];const id=savedId||String(Date.now());const entry={id,title:parsed.title,ingredients:parsed.ingredients.map(item=>[item.amount,item.unit,item.name].filter(x=>x!==null&&x!=="").join(" ")).join("\n"),instructions:parsed.instructions,createdAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify([entry,...list.filter((item:{id:string})=>item.id!==id)]));setSavedId(id);refreshNotebook();load(source);setNotice("Resepti tallennettu.");window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));closeCamera()}catch{setNotice("Tallennus epäonnistui.")}
   };
   useEffect(()=>{refreshNotebook();return()=>{cameraStreamRef.current?.getTracks().forEach(track=>track.stop())}},[]);
 
-  const readRecipeImage=async(file?:File)=>{
+  const prepareRecipeImage=(file?:File)=>{
     if(!file)return;
-    if(!file.type.startsWith("image/")){setNotice("Valitse kuva.");return}
-    setImporting(true);setEditing(false);setReadingImage(true);
-    const url=URL.createObjectURL(file);
-    setImagePreview(old=>{if(old)URL.revokeObjectURL(old);return url});
-    try{
-      const TextDetector=(window as unknown as {TextDetector?:new()=>{detect:(image:HTMLImageElement)=>Promise<Array<{rawValue?:string;text?:string}>>}}).TextDetector;
-      if(!TextDetector){setNotice("Tällä laitteella automaattinen tekstintunnistus ei ole käytettävissä. Voit kirjoittaa tai liittää tekstin.");setCameraReview(true);return}
-      const image=new Image();image.src=url;await image.decode();
-      const lines=await new TextDetector().detect(image);
-      const recognized=lines.map(line=>line.rawValue||line.text||"").filter(Boolean).join("\n").trim();
-      if(recognized){setText(recognized);setCameraReview(true);setNotice("Tarkista tunnistettu teksti ennen tallennusta.");}
-      else setNotice("Tekstiä ei tunnistettu. Voit kirjoittaa sen kuvan alle.");
-    }catch{setCameraReview(true);setNotice("Kuvan tekstinluku epäonnistui. Kirjoita tai liitä teksti kuvan alle.");}
-    finally{setReadingImage(false)}
+    if(!file.type.startsWith("image/")){setCameraError("Valitse kuvatiedosto.");return}
+    if(file.size>12*1024*1024){setCameraError("Kuva on liian suuri (enintään 12 Mt).");return}
+    imageReadIdRef.current++;setReadingImage(false);stopCamera();
+    capturedFileRef.current=file;
+    setCameraOpen(true);setCameraShot(true);setCameraReview(false);setCameraError("");
+    setText("");setSavedId(null);
+    setImagePreview(old=>{if(old)URL.revokeObjectURL(old);return URL.createObjectURL(file)});
   };
+  const readRecipeImage=async()=>{
+    const file=capturedFileRef.current;
+    if(!file||readingImage)return;
+    const requestId=++imageReadIdRef.current;
+    setReadingImage(true);setCameraError("");
+    try{
+      const image=new Image();image.src=imagePreview;await image.decode();
+      const canvas=document.createElement("canvas");canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+      const context=canvas.getContext("2d");if(!context)throw Error("Kuvan avaaminen epäonnistui.");
+      context.drawImage(image,0,0);
+      const response=await fetch("/api/recipe/read-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:canvas.toDataURL("image/jpeg",0.88)})});
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||"Reseptin lukeminen epäonnistui.");
+      const title=String(result.title||"").trim();
+      const ingredients=String(result.ingredients||"").trim();
+      const instructions=String(result.instructions||"").trim();
+      const raw=String(result.rawText||"").trim();
+      if(!title&&!ingredients&&!instructions&&!raw)throw Error("Kuvasta ei löytynyt luettavaa reseptiä.");
+      const recognized=[title,ingredients&&"Ainekset:\n"+ingredients,instructions&&"Valmistus:\n"+instructions].filter(Boolean).join("\n\n")||raw;
+      if(requestId!==imageReadIdRef.current)return;
+      setText(recognized);setCameraReview(true);
+    }catch(error){
+      if(requestId===imageReadIdRef.current)setCameraError(error instanceof Error?error.message:"Kuvan tekstinlukeminen epäonnistui.");
+    }finally{if(requestId===imageReadIdRef.current)setReadingImage(false)}
+  };
+  useEffect(()=>{
+    if(cameraCountdown===null)return;
+    if(cameraCountdown===0){takePicture();setCameraCountdown(null);return}
+    const timer=window.setTimeout(()=>setCameraCountdown(value=>value===null?null:value-1),1000);
+    return()=>window.clearTimeout(timer);
+  },[cameraCountdown]);
 
   useEffect(()=>{try{
     const saved=JSON.parse(sessionStorage.getItem(STORAGE)||"null");
@@ -133,7 +163,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <button type="button" onClick={recordRecipe} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src={voiceRecording?"/ui/voice/aanita-on.webp":"/ui/voice/aanita-off.webp"} alt="Äänitä" className="mx-auto h-[clamp(70px,22vw,120px)] w-[clamp(70px,22vw,120px)] object-contain"/></button>
         <strong className="text-center font-serif text-[clamp(23px,7vw,42px)] text-[#174c3a]">Reseptit</strong>
-        <button type="button" onClick={()=>{void startCamera()}} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-[clamp(70px,22vw,120px)] w-[clamp(70px,22vw,120px)] object-contain"/></button>
+        <button type="button" onClick={()=>{setCameraOpen(true);setCameraShot(false);setCameraReview(false);setCameraError("");setImagePreview("");setText("");setSavedId(null);stopCamera()}} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-[clamp(70px,22vw,120px)] w-[clamp(70px,22vw,120px)] object-contain"/></button>
       </div>
       <div className="mt-2 flex gap-2"><input aria-label="Hae reseptiä omista" value={notebookFilter} onChange={event=>setNotebookFilter(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 flex-1 rounded-lg border border-[#b99d62] bg-white px-2 py-2"/><button type="button" onClick={()=>{setText("");setImporting(true);setEditing(false);setSavedId(null)}} className="shrink-0 rounded-lg bg-[#174c3a] px-3 text-xs font-bold text-white">Luo resepti</button></div>
       <div className="mt-2 h-[min(30dvh,260px)] space-y-1.5 overflow-y-auto overscroll-contain rounded-lg bg-[#fff9e9] p-1">
@@ -146,15 +176,21 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     {cameraOpen&&<div className="fixed inset-x-3 bottom-auto top-[calc(env(safe-area-inset-top)+96px)] z-[200] flex max-h-[calc(100dvh-env(safe-area-inset-top)-190px)] items-start justify-center overflow-y-auto rounded-[22px] border-[4px] border-double border-[#b99d62] bg-[#14271e] p-3 text-[#fff7df] shadow-2xl">
       <div className="w-full max-w-[520px]">
         <div className="mb-3 flex items-center justify-between"><h3 className="font-serif text-xl font-bold">Kuvaa resepti {cameraReview&&<span className="text-sm font-sans">Tarkasta / muokkaa</span>}</h3><button type="button" aria-label="Sulje kamera" onClick={closeCamera} className="rounded-xl border border-[#b99d62] px-3 py-2">×</button></div>
-        {!cameraReview&&<div className="flex h-[min(35dvh,330px)] items-center justify-center overflow-hidden rounded-xl bg-black">{cameraShot?<img src={imagePreview} alt="Otettu reseptikuva" className="h-full w-full object-contain"/>:<video ref={cameraVideoRef} autoPlay playsInline muted className="h-full w-full object-contain"/>}</div>}
+        {!cameraReview&&<div className="relative flex h-[min(35dvh,330px)] items-center justify-center overflow-hidden rounded-xl bg-black">{cameraShot?<img src={imagePreview} alt="Otettu reseptikuva" className="h-full w-full object-contain"/>:<><video ref={cameraVideoRef} autoPlay playsInline muted className="h-full w-full object-contain"/>{cameraCountdown!==null&&<div aria-live="polite" className="absolute inset-0 grid place-items-center bg-black/30 text-[72px] font-black text-white">{cameraCountdown||"●"}</div>}</>}</div>}
         {cameraReview&&<textarea aria-label="Tarkasta reseptiteksti" value={text} onChange={event=>setText(event.target.value)} rows={9} className="h-[min(35dvh,330px)] w-full resize-none rounded-xl bg-[#fffdf5] p-3 text-[#183b2a]"/>}
         {cameraError&&<p className="mt-2 text-sm">{cameraError}</p>}
         <div className="mt-3 flex flex-wrap justify-center gap-2">
-          {cameraReview?<><button type="button" onClick={()=>{setCameraReview(false);void startCamera()}} className="rounded-xl bg-[#e8d8a9] px-3 py-2 font-bold text-[#14271e]">Ota uusi</button><button type="button" onClick={closeCamera} className="rounded-xl border px-3 py-2">Peruuta</button><button type="button" onClick={()=>saveNotebook(text)} className="rounded-xl bg-[#e8d8a9] px-3 py-2 font-bold text-[#14271e]">Tallenna</button></>:<><button type="button" onClick={()=>{if(cameraShot){void startCamera()}else takePicture()}} className="rounded-xl bg-[#e8d8a9] px-3 py-2 font-bold text-[#14271e]">{cameraShot?"Ota uusi":"Ota kuva"}</button><button type="button" onClick={()=>{if(cameraShot){stopCamera();void readRecipeImage(capturedFileRef.current||undefined);setCameraReview(true)}else imageInputRef.current?.click()}} className="rounded-xl border px-3 py-2">{cameraShot?"Lue resepti":"Liitä kuva"}</button><button type="button" onClick={closeCamera} className="rounded-xl border px-3 py-2">Peruuta</button></>}
+          {cameraShot?<><button type="button" disabled={readingImage} onClick={()=>void startCamera(true)} className="rounded-xl bg-[#e8d8a9] px-3 py-2 text-sm font-bold text-[#14271e] disabled:opacity-50">Ota uusi</button>
+          {!cameraReview&&<button type="button" disabled={readingImage} onClick={()=>void readRecipeImage()} className="rounded-xl border border-white px-3 py-2 text-sm font-bold disabled:opacity-50">{readingImage?"Luetaan…":"Lue resepti"}</button>}
+          <button type="button" onClick={closeCamera} className="rounded-xl border border-white px-3 py-2 text-sm font-bold">Peruuta</button>
+          {cameraReview&&<button type="button" disabled={!text.trim()} onClick={()=>saveNotebook(text)} className="rounded-xl bg-[#e8d8a9] px-3 py-2 text-sm font-bold text-[#14271e] disabled:opacity-50">Tallenna</button>}</>:<>
+          <button type="button" disabled={cameraCountdown!==null} onClick={()=>{if(cameraStreamRef.current)setCameraCountdown(5);else void startCamera(true)}} className="rounded-xl bg-[#e8d8a9] px-3 py-2 text-sm font-bold text-[#14271e] disabled:opacity-50">Ota kuva</button>
+          <button type="button" onClick={()=>{stopCamera();imageInputRef.current?.click()}} className="rounded-xl border border-white px-3 py-2 text-sm font-bold">Liitä kuva</button>
+          <button type="button" onClick={closeCamera} className="rounded-xl border border-white px-3 py-2 text-sm font-bold">Peruuta</button></>}
         </div>
       </div>
     </div>}
-    <input ref={imageInputRef} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="sr-only" onChange={event=>{void readRecipeImage(event.target.files?.[0]);event.target.value=""}}/>
+    <input ref={imageInputRef} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="sr-only" onChange={event=>{prepareRecipeImage(event.target.files?.[0]);event.target.value=""}}/>
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {importing&&<div className="mt-3 space-y-2"><textarea aria-label="Reseptiteksti" rows={4} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
     {instructionsOpen&&draft&&<p className="mt-3 whitespace-pre-wrap text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
