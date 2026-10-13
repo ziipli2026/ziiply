@@ -237,14 +237,29 @@ export default function DesktopPreviewPage() {
   const [gostaHomeHydrated,setGostaHomeHydrated]=useState(false);
   const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
   const gostaHomeCache=useRef<{query:string;time:number;results:any[]}|null>(null);
-  const gostaHomeCacheKey="ziiply-gosta-home-search-v2";
+  const gostaHomeCacheKey="ziiply-gosta-home-search-v3";
+  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
+  function persistGostaHomeCache(query:string,offers:any[],time:number){
+    const results=offers.slice(0,120).map((offer:any)=>Object.fromEntries(gostaHomeCacheFields.filter(key=>offer[key]!==undefined).map(key=>[key,offer[key]])));
+    const saved={query,results,time};
+    gostaHomeCache.current=saved;
+    const serialized=JSON.stringify(saved);
+    // Session cache is prioritized for reload; local cache survives reopening the browser.
+    for(const storage of [window.sessionStorage,window.localStorage]){
+      try{storage.setItem(gostaHomeCacheKey,serialized);}
+      catch{
+        // Old diagnostics caches can fill Safari's small Web Storage quota.
+        try{storage.removeItem("ziiply-desktop-offers-cache-v9");storage.setItem(gostaHomeCacheKey,serialized);}catch{}
+      }
+    }
+  }
   useEffect(()=>{
     try{
-      const raw=window.localStorage.getItem(gostaHomeCacheKey);
+      const raw=window.sessionStorage.getItem(gostaHomeCacheKey)||window.localStorage.getItem(gostaHomeCacheKey);
       const saved=raw?JSON.parse(raw):null;
-      if(saved&&typeof saved.query==="string"&&Array.isArray(saved.results)){
+      if(saved&&typeof saved.query==="string"&&Array.isArray(saved.results)&&Number.isFinite(saved.time)){
         gostaHomeCache.current=saved;
-        gostaHomeLastSearch.current={query:saved.query,time:Number(saved.time)||0};
+        gostaHomeLastSearch.current={query:saved.query,time:saved.time};
         setGostaHomeQuery(saved.query);
         setGostaHomeResults(saved.results);
         setGostaHomeHasSearched(Boolean(saved.query));
@@ -252,16 +267,6 @@ export default function DesktopPreviewPage() {
     }catch{}
     setGostaHomeHydrated(true);
   },[]);
-  useEffect(()=>{
-    if(!gostaHomeHydrated)return;
-    if(gostaHomeCache.current?.query===gostaHomeQuery&&gostaHomeCache.current.results===gostaHomeResults)return;
-    if(!gostaHomeQuery.trim()||!gostaHomeResults.length)return;
-    // Persist only display fields; full parser diagnostics and images can exceed browser storage limits.
-    const fields=["id","ean","title","name","pictureUrl","imageUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
-    const results=gostaHomeResults.map((offer:any)=>Object.fromEntries(fields.filter(key=>offer[key]!==undefined).map(key=>[key,offer[key]])));
-    const saved={query:gostaHomeQuery,results,time:gostaHomeLastSearch.current.query===gostaHomeQuery?gostaHomeLastSearch.current.time:Date.now()};
-    try{window.localStorage.setItem(gostaHomeCacheKey,JSON.stringify(saved));gostaHomeCache.current=saved;}catch{}
-  },[gostaHomeQuery,gostaHomeResults,gostaHomeHydrated]);
 
   const [gostaSavedWatches, setGostaSavedWatches] = useState<string[]>([]);
   const [gostaShowSavedWatches,setGostaShowSavedWatches]=useState(false);
@@ -1238,7 +1243,7 @@ export default function DesktopPreviewPage() {
     }));
     if(request!==gostaHomeRequestId.current)return;
     const refreshed=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]).sort((a:any,b:any)=>a.__gostaHomeDistance-b.__gostaHomeDistance).slice(0,120);
-    if(refreshed.length||batches.every(batch=>batch.status==="fulfilled")){const time=Date.now();setGostaHomeResults(refreshed);gostaHomeLastSearch.current={query:gostaHomeQuery,time};gostaHomeCache.current=null;}
+    if(refreshed.length||batches.every(batch=>batch.status==="fulfilled")){const time=Date.now();persistGostaHomeCache(gostaHomeQuery,refreshed,time);setGostaHomeResults(refreshed);gostaHomeLastSearch.current={query:gostaHomeQuery,time};}
     if(batches.some(batch=>batch.status==="rejected"))setGostaHomeError("Osan kaupoista tarjouksia ei saatu ladattua.");
     setGostaHomeLoading(false);
   }
