@@ -109,7 +109,6 @@ export function arvoPurchaseSuggestions(purchases: ArvoPurchase[], today = new D
 }
 export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const [activeSection,setActiveSection]=useState<string|null>(null);
-  const [householdPage,setHouseholdPage]=useState<"people"|"diets"|"allergies"|null>(null);
   const [p, setP] = useState<ArvoPreferences>(DEFAULT_ARVO_PREFERENCES);
   const [loaded, setLoaded] = useState(false);
   const [purchases,setPurchases]=useState<ArvoPurchase[]>([]);
@@ -125,7 +124,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
     <div className="mb-2 flex items-center justify-between"><p className="text-xs">Asetukset tallentuvat tähän selaimeen.</p>{onClose&&<button type="button" onClick={onClose} className="rounded border px-2 py-1">← Takaisin</button>}</div>
     <div className="grid gap-2">
       <div className="flex items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-4 py-3 shadow-sm">
-        <button type="button" className="min-w-0 flex-1 text-left" onClick={()=>{setHouseholdPage(null);setActiveSection("household")}}><strong className="block">Kotitalous ja reseptit</strong><span className="text-xs text-[#6d6a5c]">Ruokavaliot ja allergiat ›</span></button>
+        <button type="button" className="min-w-0 flex-1 text-left" onClick={()=>{setActiveSection("household")}}><strong className="block">Kotitalous ja reseptit</strong><span className="text-xs text-[#6d6a5c]">Ruokavaliot ja allergiat ›</span></button>
         <label className="flex shrink-0 items-center gap-2 text-sm font-bold">Henkilöitä <input aria-label="Kotitalouden henkilömäärä suoraan Arvon päävalikossa" type="number" min={1} max={50} className="w-16 rounded-lg border p-2 text-center font-bold" value={p.householdSize} onChange={e=>update("householdSize",Math.min(50,Math.max(1,Number(e.target.value)||1)))}/></label>
       </div>
       {[
@@ -136,21 +135,18 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Muistutukset eivät käytössä"]
     ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-4 py-3 text-left shadow-sm hover:bg-white" onClick={()=>{setHouseholdPage(null);setActiveSection(id)}}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
     {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
-      <div className="flex shrink-0 items-center gap-3 border-b bg-[#f8f5ed] px-3 py-3"><button type="button" className="rounded-lg border px-3 py-2 font-bold" onClick={()=>{if(activeSection==="household"&&householdPage)setHouseholdPage(null);else setActiveSection(null)}}>← Takaisin</button><strong>{({household:"Kotitalous ja reseptit",energy:"Henkilökohtainen dieetti",health:"Terveystiedot",purchases:"Ostohistoria ja kulutus",reminders:"Ruokailuajat ja muistutukset"} as Record<string,string>)[activeSection]}</strong></div>
+      <div className="flex shrink-0 items-center gap-3 border-b bg-[#f8f5ed] px-3 py-3"><button type="button" className="rounded-lg border px-3 py-2 font-bold" onClick={()=>{setActiveSection(null)}}>← Takaisin</button><strong>{({household:"Kotitalous ja reseptit",energy:"Henkilökohtainen dieetti",health:"Terveystiedot",purchases:"Ostohistoria ja kulutus",reminders:"Ruokailuajat ja muistutukset"} as Record<string,string>)[activeSection]}</strong></div>
       <div className="min-h-0 flex-1 overflow-hidden p-2">
 
-      {activeSection==="household"&&<section className="h-full rounded-xl bg-white/75 p-3">
-      {!householdPage&&<div className="grid gap-2">
-        {[["diets","Ruokavaliot",p.diets.length+" valintaa"],["allergies","Allergiat ja vältettävät",p.allergies||p.avoidedIngredients?"Rajauksia tallennettu":"Ei rajauksia"]].map(([id,title,summary])=><button key={id} type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-left" onClick={()=>setHouseholdPage(id as "diets"|"allergies")}><span><b className="block">{title}</b><small>{summary}</small></span>›</button>)}
-      </div>}
-      {householdPage==="diets"&&<div className="text-sm">      <h4 className="mt-4 font-bold">Ruokavaliot (voit valita useita)</h4>
-      <div className="mt-2 grid grid-cols-2 gap-1">{ARVO_DIETS.map(([key,label,description])=><label key={key} className="rounded-lg border bg-white px-2 py-1 text-xs"><input type="checkbox" checked={p.diets.includes(key)} onChange={e=>update("diets",e.target.checked?[...p.diets,key]:p.diets.filter(d=>d!==key))} /> <strong>{label}</strong><span className="sr-only">{description}</span></label>)}</div>
-      <p className="mt-2 text-xs">Yhdistetyt rajaukset: {effectiveArvoDiets(p.diets).map(key=>ARVO_DIETS.find(([id])=>id===key)?.[1]).join(", ")||"Ei valintoja"}</p>
-</div>}
-      {householdPage==="allergies"&&<div className="grid grid-cols-2 gap-3">      <label className="block font-bold">Allergiat <textarea rows={3} className="mt-1 w-full rounded border p-2 font-normal" value={p.allergies} onChange={e=>update("allergies",e.target.value)} placeholder="Esim. seesami, äyriäiset" /></label>
-      <label className="block font-bold">Muut vältettävät ainekset <textarea rows={3} className="mt-1 w-full rounded border p-2 font-normal" value={p.avoidedIngredients} onChange={e=>update("avoidedIngredients",e.target.value)} /></label>
-      <p className="text-xs">Puutteellisten tuotetietojen perusteella ei voi varmistaa allergeeniturvallisuutta.</p>
-</div>}
+      {activeSection==="household"&&<section className="h-full rounded-xl bg-white/75 px-3 py-2">
+        <div className="mb-2 flex items-center justify-between gap-2"><h3 className="font-bold">Ruokavaliot</h3><span className="text-xs text-[#6d6a5c]">Valitse tarvittaessa useita</span></div>
+        <div className="grid grid-cols-2 gap-1.5">{ARVO_DIETS.map(([key,label,description])=><label key={key} title={description} className="flex min-h-9 items-center gap-2 rounded-lg border bg-white px-2 py-1 text-sm"><input type="checkbox" checked={p.diets.includes(key)} onChange={e=>update("diets",e.target.checked?[...p.diets,key]:p.diets.filter(d=>d!==key))}/><span className="font-semibold">{label}</span></label>)}</div>
+        {p.diets.length>0&&<p className="mt-1 text-xs">Valitut: {effectiveArvoDiets(p.diets).map(key=>ARVO_DIETS.find(([id])=>id===key)?.[1]).join(", ")}</p>}
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <label className="block text-sm font-bold">Allergiat<textarea rows={2} className="mt-1 w-full resize-none rounded-lg border bg-white p-2 font-normal" value={p.allergies} onChange={e=>update("allergies",e.target.value)} placeholder="Esim. seesami, äyriäiset"/></label>
+          <label className="block text-sm font-bold">Muut vältettävät ainekset<textarea rows={2} className="mt-1 w-full resize-none rounded-lg border bg-white p-2 font-normal" value={p.avoidedIngredients} onChange={e=>update("avoidedIngredients",e.target.value)} placeholder="Esim. sipuli"/></label>
+        </div>
+        <p className="mt-2 text-xs text-[#6d6a5c]">Tuotetietojen puutteiden vuoksi allergeeniturvallisuutta ei voida taata. Maidoton ei ole sama kuin laktoositon; viljaton ei takaa gluteenittomuutta.</p>
       </section>}
       {activeSection==="energy"&&(<>
     <section className="mb-5 rounded-xl bg-white/75 p-4">
