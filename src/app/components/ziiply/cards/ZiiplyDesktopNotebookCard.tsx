@@ -29,6 +29,28 @@ const recipeVoice=useDesktopVoiceInput((transcript)=>{
   setRecipeSaveNotice("Sanelu lisättiin ainestekstiin. Tarkista nimi, määrät ja valmistusohje ennen tallennusta.");
 });
 const recipeCameraInput=React.useRef<HTMLInputElement>(null);
+const recipeVideo=React.useRef<HTMLVideoElement>(null);
+const recipeStream=React.useRef<MediaStream|null>(null);
+const [recipeCameraLive,setRecipeCameraLive]=React.useState(false);
+const [recipeCameraBusy,setRecipeCameraBusy]=React.useState(false);
+const stopRecipeCamera=()=>{recipeStream.current?.getTracks().forEach(t=>t.stop());recipeStream.current=null;setRecipeCameraLive(false);};
+const startRecipeCamera=async()=>{
+  setRecipePhotoError("");setRecipeCameraBusy(true);
+  try{
+    if(!navigator.mediaDevices?.getUserMedia)throw Error("Kamera ei ole käytettävissä tässä selaimessa.");
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    recipeStream.current=stream;setRecipeCameraLive(true);
+  }catch(e){setRecipePhotoError(e instanceof Error?e.message:"Kameran avaus epäonnistui.");}
+  finally{setRecipeCameraBusy(false);}
+};
+React.useEffect(()=>{if(recipeCameraLive&&recipeVideo.current&&recipeStream.current){recipeVideo.current.srcObject=recipeStream.current;void recipeVideo.current.play().catch(()=>setRecipePhotoError("Kameran toisto epäonnistui."));}},[recipeCameraLive]);
+React.useEffect(()=>()=>{recipeStream.current?.getTracks().forEach(t=>t.stop());},[]);
+const captureRecipeCamera=()=>{
+  const video=recipeVideo.current;if(!video?.videoWidth)return;
+  const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  canvas.getContext("2d")?.drawImage(video,0,0);
+  setRecipePhoto(canvas.toDataURL("image/jpeg",0.88));stopRecipeCamera();
+};
 const recipeFileInput=React.useRef<HTMLInputElement>(null);
 const handleRecipePhoto=(file?:File)=>{
   if(!file)return;
@@ -58,10 +80,11 @@ return <div className="fixed inset-0 z-[95] bg-[#17352a]/10">
 <section className="flex min-h-0 flex-col rounded-2xl border-2 border-[#b89552] bg-[#fff6d9]/60 p-4"><h3 className="mb-3 shrink-0 text-center font-serif text-2xl font-black text-[#174c3a]">Reseptit</h3>{focusRecipes&&<button type="button" onClick={()=>setFocusRecipes(false)} className="mb-2 self-start rounded-lg border border-[#b89552] px-3 py-1 text-xs font-bold">← Koko Vihkonen</button>}<div className="flex shrink-0 flex-wrap gap-2"><input aria-label="Hae resepti" value={recipeQuery} onChange={event=>setRecipeQuery(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 flex-1 rounded-lg border border-[#b89552] bg-white px-3 py-2 text-sm"/><button type="button" onClick={()=>{setRecipeSaveNotice("");setRecipeEditing(v=>!v)}} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">{recipeEditing?"Peruuta":"Tallenna resepti"}</button></div>
 <div className="mt-2 flex items-center gap-3">
 <button type="button" onClick={()=>void recipeVoice.toggle()} disabled={recipeVoice.state==="processing"} aria-pressed={recipeVoice.state==="recording"} aria-label={recipeVoice.state==="recording"?"Lopeta reseptin sanelu":"Sanele resepti"} title="Sanele resepti" className="relative h-[82px] min-w-0 flex-1 overflow-hidden rounded-[18px] border-2 border-[#c89b44] bg-gradient-to-b from-[#2f3326] to-[#0f140f] disabled:opacity-60"><img src={recipeVoice.state==="recording"?"/ui/voice/aanita-on.webp":recipeVoice.state==="processing"?"/ui/voice/aanita-search.webp":"/ui/voice/aanita-off.webp"} alt="" className="absolute inset-[4%] h-[92%] w-[92%] object-contain"/></button>
-<button type="button" onClick={()=>setRecipeReadOpen(v=>!v)} aria-expanded={recipeReadOpen} aria-label="Lue resepti kuvasta" title="Lue resepti kuvasta" className="relative h-[82px] min-w-0 flex-1 overflow-hidden rounded-[18px] border-2 border-[#c89b44] bg-gradient-to-b from-[#2f3326] to-[#0f140f]"><img src="/ui/scanner/scanner-idle.webp" alt="" className="absolute inset-[4%] h-[92%] w-[92%] object-contain"/></button></div>
+<button type="button" onClick={()=>{if(recipeReadOpen)stopRecipeCamera();setRecipeReadOpen(v=>!v)}} aria-expanded={recipeReadOpen} aria-label="Lue resepti kuvasta" title="Lue resepti kuvasta" className="relative h-[82px] min-w-0 flex-1 overflow-hidden rounded-[18px] border-2 border-[#c89b44] bg-gradient-to-b from-[#2f3326] to-[#0f140f]"><img src="/ui/scanner/scanner-idle.webp" alt="" className="absolute inset-[4%] h-[92%] w-[92%] object-contain"/></button></div>
 {recipeVoice.message&&<p role="status" className="mt-2 text-xs font-bold text-[#174c3a]">{recipeVoice.message}</p>}
 {recipeReadOpen&&<div className="mt-2 rounded-xl border border-[#b89552] bg-[#fffdf5] p-3">
 <p className="mb-2 text-xs font-bold text-[#174c3a]">Reseptin kuva</p><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>recipeCameraInput.current?.click()} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">Ota kuva</button><button type="button" onClick={()=>recipeFileInput.current?.click()} className="rounded-lg border border-[#b89552] px-3 py-2 text-xs font-bold">Liitä kuva</button></div>
+{recipeCameraLive&&<div className="mt-3 space-y-2 rounded-xl bg-[#14241c] p-3 text-center"><video ref={recipeVideo} autoPlay muted playsInline aria-label="Reseptin kameranäkymä" className="max-h-[42dvh] w-full rounded-lg object-contain"/><p className="text-xs text-white">Kohdista koko resepti kuvaan niin, että teksti näkyy tarkasti.</p><div className="flex justify-center gap-2"><button type="button" onClick={captureRecipeCamera} className="rounded-lg bg-[#e4d6ac] px-4 py-2 text-sm font-bold">Ota kuva</button><button type="button" onClick={stopRecipeCamera} className="rounded-lg border border-white px-4 py-2 text-sm font-bold text-white">Peruuta</button></div></div>}
 <input ref={recipeCameraInput} type="file" accept="image/*" capture="environment" aria-label="Kuvaa resepti" className="hidden" onChange={e=>{handleRecipePhoto(e.target.files?.[0]);e.target.value="";}}/>
 <input ref={recipeFileInput} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="hidden" onChange={e=>{handleRecipePhoto(e.target.files?.[0]);e.target.value="";}}/>
 {recipePhoto&&<div className="mt-2"><img src={recipePhoto} alt="Reseptin kuva" className="max-h-48 w-full rounded-lg object-contain"/><div className="mt-2 flex gap-3"><button type="button" onClick={()=>{setRecipeEditing(true);setRecipeReadOpen(false)}} className="rounded-lg bg-[#174c3a] px-3 py-2 text-xs font-bold text-white">Kirjoita resepti kuvan perusteella</button><button type="button" onClick={()=>setRecipePhoto(null)} className="text-xs underline">Poista kuva</button></div><p className="mt-2 text-xs">Kuva näkyy tarkistusta varten. Automaattinen tekstintunnistus ei ole vielä käytössä.</p></div>}
