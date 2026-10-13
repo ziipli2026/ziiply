@@ -218,9 +218,9 @@ export default function ZiiplyMobileNotebookCard({
     // Tap water is a preparation ingredient, not a supermarket product.
     const searchableIngredients = ingredients.filter(item => !/^(?:vettä|vesi|hanavettä|hanavesi)$/i.test(item.name.trim()));
     const terms = searchableIngredients.map(item => {
-      const name = item.name.replace(/\\s+tai\\s+\\d+(?:[,.]\\d+)?\\s*(?:kg|g|l|dl|cl|ml)\\s+.+$/i, "").trim();
+      const name = item.name.replace(/\s+tai\s+\d+(?:[,.]\d+)?\s*(?:kg|g|l|dl|cl|ml)\s+.+$/i, "").trim();
       const classified = classifyRecipeIngredient(name);
-      const simplified = name.replace(/^(?:hienonnettua|karkeaa|tuoretta|tuoreita)\\s+/i, "").trim();
+      const simplified = name.replace(/^(?:hienonnettua|karkeaa|tuoretta|tuoreita)\s+/i, "").trim();
       return correctSearchQuery(classified?.searchTerm || simplified);
     }).filter(Boolean);
     appendRecipeDebug("ingredients-to-search", { servings, householdSize: preferences.householdSize, ingredients, terms });
