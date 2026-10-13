@@ -1866,7 +1866,7 @@ export default function DesktopPreviewPage() {
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
                 {workspace!=="arvo"&&<div className="flex items-center justify-between gap-3"><div className="text-[26px] font-black text-[#14291f]">{({ gosta: "Gösta", justiina: "Justiina", arvo: "Arvo" } as const)[workspace]}</div><button onClick={()=>setWorkspace(null)} className="rounded-lg border border-[#173b2b] px-3 py-1 text-sm font-bold text-[#173b2b]">← Takaisin</button></div>}
-                {workspace==="arvo"&&<div className="min-h-0 flex-1"><ArvoSettingsPanel onClose={()=>setWorkspace(null)} /></div>}}
+                {workspace==="arvo"&&<div className="min-h-0 flex-1"><ArvoSettingsPanel onClose={()=>setWorkspace(null)} /></div>}
               </div>
             )}
 
