@@ -65,14 +65,14 @@ const [recipeCameraLive,setRecipeCameraLive]=React.useState(false);
 const [recipeCameraBusy,setRecipeCameraBusy]=React.useState(false);
 const [recipeCountdown,setRecipeCountdown]=React.useState<number|null>(null);
 const stopRecipeCamera=()=>{setRecipeCountdown(null);recipeStream.current?.getTracks().forEach(t=>t.stop());recipeStream.current=null;setRecipeCameraLive(false);};
-const startRecipeCamera=async()=>{
+const startRecipeCamera=async(autoCapture=false)=>{
   setRecipePhotoError("");setRecipeCameraBusy(true);stopRecipeCamera();
   try{
     if(!navigator.mediaDevices?.getUserMedia)throw Error("Kamera ei ole käytettävissä tässä selaimessa.");
     let stream:MediaStream;
     try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});}
     catch{stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}
-    recipeStream.current=stream;setRecipeCameraLive(true);
+    recipeStream.current=stream;setRecipeCameraLive(true);if(autoCapture)setRecipeCountdown(5);
   }catch(e){setRecipePhotoError(e instanceof Error?e.message:"Kameran avaus epäonnistui. Salli kamera selaimen asetuksista.");}
   finally{setRecipeCameraBusy(false);}
 };
@@ -130,7 +130,7 @@ return <div className="fixed inset-0 z-[95] bg-[#17352a]/10">
 </div>
 {recipeOcrText&&<textarea aria-label="Tunnistettu reseptiteksti" value={recipeOcrText} onChange={e=>setRecipeOcrText(e.target.value)} className="mb-2 min-h-0 w-full flex-1 rounded-lg border border-[#b89552] p-2 text-sm"/>}
 <div className="flex shrink-0 flex-wrap justify-center gap-3">
-{recipePhoto?<><button type="button" onClick={()=>{setRecipePhoto(null);setRecipeOcrText("");stopRecipeCamera();}} className="rounded-lg bg-[#e4d6ac] px-5 py-2 text-sm font-bold text-[#14241c]">Ota uusi</button><button type="button" disabled={recipeOcrBusy} onClick={()=>void readRecipeImage()} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">{recipeOcrBusy?"Luetaan…":"Lue resepti"}</button><button type="button" onClick={()=>{stopRecipeCamera();setRecipeReadOpen(false);setRecipePhoto(null);setRecipeOcrText("");}} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">Peruuta</button>{recipeOcrText&&<button type="button" onClick={applyRecipeOcr} className="rounded-lg bg-[#e4d6ac] px-5 py-2 text-sm font-bold">Siirrä reseptiksi</button>}</>:<><button type="button" onClick={recipeCameraLive?startTimedRecipeCapture:()=>void startRecipeCamera()} disabled={recipeCameraBusy||recipeCountdown!==null} className="rounded-lg bg-[#e4d6ac] px-5 py-2 text-sm font-bold text-[#14241c]">Ota kuva</button><button type="button" onClick={()=>{stopRecipeCamera();recipeFileInput.current?.click();}} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">Liitä kuva</button><button type="button" onClick={()=>{stopRecipeCamera();setRecipeReadOpen(false);}} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">Peruuta</button></>}
+{recipePhoto?<><button type="button" onClick={()=>{setRecipePhoto(null);setRecipeOcrText("");stopRecipeCamera();}} className="rounded-lg bg-[#e4d6ac] px-5 py-2 text-sm font-bold text-[#14241c]">Ota uusi</button><button type="button" disabled={recipeOcrBusy} onClick={()=>void readRecipeImage()} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">{recipeOcrBusy?"Luetaan…":"Lue resepti"}</button><button type="button" onClick={()=>{stopRecipeCamera();setRecipeReadOpen(false);setRecipePhoto(null);setRecipeOcrText("");}} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">Peruuta</button>{recipeOcrText&&<button type="button" onClick={applyRecipeOcr} className="rounded-lg bg-[#e4d6ac] px-5 py-2 text-sm font-bold">Siirrä reseptiksi</button>}</>:<><button type="button" onClick={recipeCameraLive?startTimedRecipeCapture:()=>void startRecipeCamera(true)} disabled={recipeCameraBusy||recipeCountdown!==null} className="rounded-lg bg-[#e4d6ac] px-5 py-2 text-sm font-bold text-[#14241c]">Ota kuva</button><button type="button" onClick={()=>{stopRecipeCamera();recipeFileInput.current?.click();}} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">Liitä kuva</button><button type="button" onClick={()=>{stopRecipeCamera();setRecipeReadOpen(false);}} className="rounded-lg border border-white px-5 py-2 text-sm font-bold text-white">Peruuta</button></>}
 </div>
 <input ref={recipeFileInput} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="hidden" onChange={e=>{stopRecipeCamera();handleRecipePhoto(e.target.files?.[0]);e.target.value="";}}/>
 {recipePhotoError&&<p role="alert" className="shrink-0 text-xs text-red-300">{recipePhotoError}</p>}</div>}
