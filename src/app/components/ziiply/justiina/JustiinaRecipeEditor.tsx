@@ -40,22 +40,15 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   };
   const startSearch=(recipe:RecipeDraft|null=draft,base=original,people=target)=>{
     if(!recipe||!onSearchIngredients)return;
-    if(!(Number(base)>0&&Number(people)>0)){setNotice("Anna alkuperäinen annosmäärä ja henkilömäärä ennen hakua.");setEditing(true);return}
-    const items=scaleIngredients(recipe.ingredients,Number(base),Number(people)).filter(item=>!item.atHome&&item.name.trim());
+    const originalServings=Number(base)>0?Number(base):1;const targetServings=Number(people)>0?Number(people):originalServings;
+    const items=scaleIngredients(recipe.ingredients,originalServings,targetServings).filter(item=>!item.atHome&&item.name.trim());
     if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
-    if(items.some(item=>item.uncertain||item.amount===null||!Number.isFinite(item.amount)||item.amount<=0||!item.unit)){
-      setNotice("Tarkista epäselvät ainesmäärät ennen hakua.");setEditing(true);return;
-    }
-    const classified = items.map(item => classifyRecipeIngredient(item.name));
-    const unknown = items.filter((_, index) => !classified[index]);
-    if (unknown.length) {
-      setNotice("Tarkista ruoka-aineen ryhmä ennen hakua: " + unknown.map(item => item.name).join(", "));
-      setEditing(true);
-      return;
-    }
-    persist(recipe,recipe===draft?text:EXAMPLE,base,people);
-    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:Number(people),items}))}catch{}
-    onSearchIngredients(classified.map(group=>correctSearchQuery(group!.searchTerm)),items);
+    // Missing or ambiguous quantities do not block product discovery.
+    // Keep original recipe quantities available for later confirmation.
+    const classified=items.map(item=>classifyRecipeIngredient(item.name));
+    persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
+    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items}))}catch{}
+    onSearchIngredients(classified.map((group,index)=>correctSearchQuery(group?.searchTerm||items[index].name)),items);
   };
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
