@@ -2924,6 +2924,22 @@ export function isBadNormalResult(product: Product, query: string) {
   const category = normalize(product.category || "");
   const productText = `${normalizedName} ${category}`;
 
+  // Shared product-group validation for all normal searches and offer searches.
+  const intentCategory = detectSearchIntent(query).category;
+  if (intentCategory === "butter") {
+    if (!/(?:^|[\\s-])(?:voi|meijerivoi)(?:$|[\\s-])/.test(normalizedName)) return true;
+    if (/(?:voitäyte|voitäytte|voiherkku|kasvovoi|vartalovoi|hiusvoi|voide|pullapitko|leivonnainen|margariini)/.test(normalizedName)) return true;
+    if (/(?:kosmetiikka|hygienia|leipomo|leivonnaiset)/.test(category)) return true;
+  }
+  if (intentCategory === "meat" && /jauheliha/.test(normalizedQuery)) {
+    if (!/jauheliha/.test(normalizedName) || /(?:lastenateria|lastenruoka|piltti|kastike|perunasose|spagetti|lasagne|ateria|keitto)/.test(normalizedName)) return true;
+  }
+  if (intentCategory === "soft_drink") {
+    if (!/(?:virvoitusjuoma|limsa|limu|cola|coca-cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes|mountain dew|dr pepper)/.test(normalizedName)) return true;
+    if (/(?:karkki|makeinen|pastilli|purukumi|jaatelo|sorbet|siirappi|energiajuoma|olut|lonkero|alkohol|keksi|suklaa|kastike|jogurtti|rahka)/.test(normalizedName)) return true;
+    if (/(?:makeis|kark|leipom|maito|liha|pakaste|alkohol)/.test(category)) return true;
+  }
+
   if (normalizedQuery.includes("jauheliha") && !productText.includes("jauheliha")) return true;
 
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
