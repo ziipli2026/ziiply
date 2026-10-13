@@ -299,7 +299,7 @@ const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySea
   },
   fish: {
     confidence: 0.8,
-    includeTerms: ["lohi", "kala", "tonnikala", "kirjolohi", "seiti"],
+    includeTerms: ["lohi", "kala", "tonnikala", "kirjolohi", "seiti", "silakka", "muikku", "ahven", "kuha", "siika", "turska", "taimen", "silli", "makrilli", "kalafilee", "kalat", "kalatuotteet", "äyriäiset"],
     preferredTerms: ["lohi", "kala", "tonnikala"],
     excludeTerms: ["kalanruoka", "kalakastike", "jäätelö", "proteiinijäätelö", "lohilo"],
     categoryHints: ["kalat", "tuoretuotteet", "säilykkeet"],
@@ -445,6 +445,14 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
       if (hasAny(category, ["jäätelö", "makeiset", "valmisruoka", "valmisateriat", "maitotuotteet"])) return false;
       return true;
     }
+  }
+
+  // Broad fish-group queries must match fish categories and species, not only
+  // products whose names literally contain "kala". Keep the strict salmon
+  // ingredient guard above separate from this broad product-group search.
+  if (intent.intent === "fish" && /^(?:kala|kalat|kalatuotteet)$/.test(normalizeFi(intent.correctedQuery))) {
+    if (hasAny(category, ["kala", "kalat", "kalatuotteet", "äyriäiset", "kalasäilykkeet"])) return true;
+    if (hasAny(name, ["lohi", "kirjolohi", "tonnikala", "seiti", "silakka", "muikku", "ahven", "kuha", "siika", "turska", "taimen", "silli", "makrilli", "kalafilee"])) return true;
   }
 
   if (intent.intent === "rye_bread") {
