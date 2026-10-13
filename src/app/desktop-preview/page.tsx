@@ -951,6 +951,7 @@ export default function DesktopPreviewPage() {
   const [cartNotice, setCartNotice] = useState("");
   const [cartIncrementKey, setCartIncrementKey] = useState("");
   const [notebookOpen, setNotebookOpen] = useState(false);
+  useEffect(()=>{const open=()=>setNotebookOpen(true);window.addEventListener("ziiply-open-recipe-notebook",open);return()=>window.removeEventListener("ziiply-open-recipe-notebook",open)},[]);
   const [savedLists, setSavedLists] = useState<any[]>([]);
   const [pendingNotebookRestore,setPendingNotebookRestore]=useState<any[]|null>(null);
   useEffect(()=>{
