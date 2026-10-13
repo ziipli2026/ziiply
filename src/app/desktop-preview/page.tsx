@@ -1001,18 +1001,10 @@ export default function DesktopPreviewPage() {
     return packageCount(ingredient.amount,ingredient.unit,size||null,unit||null);
   }
   function addRecipeSelectionToCart(product:any) {
-    const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
     const count=selectedRecipePackageCount(product);
-    if(ingredient && count===null){
-      const needed=`${ingredient.amount} ${ingredient.unit||""} ${ingredient.name}`;
-      const typed=window.prompt(`Resepti tarvitsee ${needed}. Pakkauksen kokoa ei voitu tunnistaa. Montako pakkausta lisätään?`,"1");
-      if(typed===null)return;
-      const quantity=Number(typed);
-      if(!Number.isSafeInteger(quantity)||quantity<1){window.alert("Anna positiivinen kokonaisluku.");return;}
-      addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:quantity});
-    }else{
-      addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1});
-    }
+    // Unknown package sizes (e.g. salt measured in teaspoons) default to one
+    // retail package. The shopper can change the quantity in the cart.
+    addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1});
     justiinaAddedDuringSelectionRef.current=true;
     resumeDesktopVoiceList();
   }
