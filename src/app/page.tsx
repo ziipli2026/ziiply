@@ -1672,6 +1672,7 @@ import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompar
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyRecipeSearchDebug, { appendRecipeDebug } from "./components/ziiply/mobile/ZiiplyRecipeSearchDebug";
+import { packageCount, type RecipeIngredient } from "./components/ziiply/justiina/recipeCore";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
 import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
@@ -7931,6 +7932,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       for (let index = 0; index < voiceTerms.length; index += 1) {
         const term = voiceTerms[index];
         if (!term) continue;
+        if (recipeDebugActive) {
+          try { sessionStorage.setItem("ziiply-justiina-recipe-step-v1", String(index)); } catch {}
+          appendRecipeDebug("recipe-search-step", { index, term });
+        }
 
         voiceForceJustiinaCartSearchRefV461.current = true;
         setInput(term);
@@ -7953,6 +7958,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       pushVoiceDebugV507(`runVoice CATCH ${String(error?.message || error).slice(0, 160)}`);
     } finally {
       if (recipeDebugActive) appendRecipeDebug("search-finished", { terms: voiceTerms });
+      if (recipeDebugActive) { try { sessionStorage.removeItem("ziiply-justiina-recipe-step-v1"); } catch {} }
       pushVoiceDebugV507("runVoice FINALLY cleanup");
       setInput("");
       setVoicePromptText("");
@@ -17091,6 +17097,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function recipeSelectedPackageQuantity(product: Product): number {
+    try {
+      const raw = sessionStorage.getItem("ziiply-justiina-active-ingredients-v1");
+      const indexRaw = sessionStorage.getItem("ziiply-justiina-recipe-step-v1");
+      if (!raw || indexRaw === null) return 1;
+      const index = Number(indexRaw);
+      const recipe = JSON.parse(raw) as { items?: RecipeIngredient[] };
+      const ingredient = Number.isInteger(index) ? recipe.items?.[index] : undefined;
+      if (!ingredient) return 1;
+      const name = String(product.name || "");
+      const multipacks = [...name.matchAll(/(\\d+)\\s*[x×]\\s*(\\d+(?:[,.]\\d+)?)\\s*(kg|g|l|dl|cl|ml|kpl)\\b/gi)];
+      const multi = multipacks[multipacks.length - 1];
+      const stripped = name.replace(/\\d+\\s*[x×]\\s*\\d+(?:[,.]\\d+)?\\s*(?:kg|g|l|dl|cl|ml|kpl)\\b/gi, " ");
+      const totals = [...stripped.matchAll(/(\\d+(?:[,.]\\d+)?)\\s*(kg|g|l|dl|cl|ml|kpl)\\b/gi)];
+      const total = totals[totals.length - 1];
+      const size = total ? Number(total[1].replace(",", ".")) : multi ? Number(multi[1]) * Number(multi[2].replace(",", ".")) : null;
+      const unit = total?.[2]?.toLowerCase() || multi?.[3]?.toLowerCase() || null;
+      const count = packageCount(ingredient.amount, ingredient.unit, size, unit);
+      appendRecipeDebug("recipe-package-calculation", { ingredient, product: name, packageSize: size, packageUnit: unit, packages: count ?? 1, fallback: count === null });
+      return count ?? 1;
+    } catch (error) {
+      appendRecipeDebug("recipe-package-error", { message: String(error) });
+      return 1;
+    }
+  }
+
   function addProductToCart(product: Product) {
     // Tallenna käyttäjän onnistunut valinta ennen kuin hakukenttää muutetaan.
     // activeNormalSearchTerm on juuri valmistuneen tuloslistan hakutermi;
@@ -17184,6 +17216,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         selectedStore: normalSearchStoreName, selectedChain: normalSearchChain,
       });
     }
+    const recipeQuantity = recipeSelectedPackageQuantity(product);
     const newItem: CartItem = {
       id: `search-${product.id}`,
       name: fixText(product.name),
@@ -17193,7 +17226,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       image: product.pictureUrl,
       chain: normalSearchChain,
       storeName: normalSearchStoreName,
-      quantity: 1,
+      quantity: recipeQuantity,
       source: "search",
       product,
       ean: product.ean,
