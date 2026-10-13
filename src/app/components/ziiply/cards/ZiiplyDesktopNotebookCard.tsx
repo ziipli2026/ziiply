@@ -34,16 +34,17 @@ const readRecipeImage=async()=>{
   if(!recipePhoto)return;
   setRecipeOcrBusy(true);setRecipePhotoError("");
   try{
-    type RecognizedLine={rawValue:string;boundingBox?:{y:number;x:number}};
-    type Detector=new()=>{detect:(image:HTMLImageElement)=>Promise<RecognizedLine[]>};
-    const detector=(window as unknown as {TextDetector?:Detector}).TextDetector;
-    if(!detector)throw Error("Tämä selain ei tue paikallista tekstintunnistusta. Käytä tuettua selainta tai syötä resepti käsin.");
-    const image=new Image();image.src=recipePhoto;await image.decode();
-    const lines=await new detector().detect(image);
-    const raw=lines.sort((a,b)=>(a.boundingBox?.y||0)-(b.boundingBox?.y||0)||(a.boundingBox?.x||0)-(b.boundingBox?.x||0)).map(line=>line.rawValue.trim()).filter(Boolean).join("\n");
-    if(!raw)throw Error("Kuvasta ei löytynyt luettavaa tekstiä. Kokeile tarkempaa kuvaa.");
-    setRecipeOcrText(raw);
-  }catch(e){setRecipePhotoError(e instanceof Error?e.message:"Tekstin tunnistus epäonnistui.");}
+    const response=await fetch("/api/recipe/read-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:recipePhoto})});
+    const result=await response.json();
+    if(!response.ok)throw Error(result.error||"Reseptin lukeminen epäonnistui.");
+    const title=String(result.title||"").trim();
+    const ingredients=String(result.ingredients||"").trim();
+    const instructions=String(result.instructions||"").trim();
+    const raw=String(result.rawText||"").trim();
+    if(!title&&!ingredients&&!instructions&&!raw)throw Error("Kuvasta ei löytynyt luettavaa reseptiä.");
+    setRecipeOcrText([title,ingredients&&"Ainekset:\n"+ingredients,instructions&&"Valmistus:\n"+instructions].filter(Boolean).join("\n\n")||raw);
+    setRecipeTitle(title);setRecipeIngredients(ingredients);setRecipeInstructions(instructions);
+  }catch(e){setRecipePhotoError(e instanceof Error?e.message:"Reseptin lukeminen epäonnistui.");}
   finally{setRecipeOcrBusy(false);}
 };
 const applyRecipeOcr=()=>{
