@@ -1,5 +1,6 @@
 "use client";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
+import ArvoSettingsPanel from "../ArvoSettingsPanel";
 
 import React from "react";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
@@ -70,7 +71,7 @@ export default function ZiiplyMobileAssistantPanel({
 
   return (
     <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+76px)] top-[calc(env(safe-area-inset-top)+96px)] z-[70] flex items-start justify-center px-3 sm:hidden">
-      <section style={{"--recipe-panel-header-height":`${headerHeight}px`} as React.CSSProperties} className={`relative flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[1.8rem] border-[3px] border-[#b99d62] ${activeAssistant==="justiina"?"h-full":""} ${recipeCameraOpen?"bg-transparent":"bg-[#fff7df]"} shadow-[0_22px_60px_rgba(7,47,37,0.28)]`}>
+      <section style={{"--recipe-panel-header-height":`${headerHeight}px`} as React.CSSProperties} className={`relative flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[1.8rem] border-[3px] border-[#b99d62] ${activeAssistant==="justiina"||activeAssistant==="arvo"?"h-full":""} ${recipeCameraOpen?"bg-transparent":"bg-[#fff7df]"} shadow-[0_22px_60px_rgba(7,47,37,0.28)]`}>
         <div ref={headerRef} className="flex shrink-0 items-center gap-4 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] px-4 py-3">
           <div className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-full border-[3px] border-[#f8e8bf] bg-[#314633]">
             <img
@@ -102,23 +103,7 @@ export default function ZiiplyMobileAssistantPanel({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151]">
-          {activeAssistant === "justiina" ? <JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen} /> : activeAssistant === "arvo" ? (
-            <div className="space-y-4 rounded-xl bg-[#fff5d8] p-3 text-[#27412a]">
-              <h3 className="font-serif text-lg font-black">Omat kauppavalinnat</h3>
-              <p className="text-xs">Valitse vertailuun mukaan tulevat kauppaketjut. Kauppojen tarkempi valinta ja GPS tehdään nykyisessä kauppavalikossa.</p>
-              {([["s","S-ryhmä"],["k","K-ryhmä"],["lidl","Lidl"],["tokmanni","Tokmanni / Spar"]] as const).map(([key,label]) => (
-                <label key={key} className="flex min-h-11 items-center gap-3 rounded-lg border border-[#c7aa70] bg-white/60 px-3">
-                  <input type="checkbox" className="h-5 w-5 accent-[#285039]" checked={Boolean(selectedChains?.[key])} onChange={event=>onChangeChain?.(key,event.target.checked)} />
-                  <span>{label}</span>
-                </label>
-              ))}
-              <div className="rounded-lg border border-[#c7aa70] bg-white/60 p-3">
-                <div className="text-xs uppercase">Nykyinen alue</div>
-                <strong>{locationLabel || "Ei valittua aluetta"}</strong>
-              </div>
-              <button type="button" onClick={onOpenStoreSettings} className="w-full rounded-xl bg-[#285039] px-4 py-3 font-black text-white">Valitse kaupat ja sijainti</button>
-            </div>
-          ) : content.body}
+          {activeAssistant === "justiina" ? <JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen} /> : activeAssistant === "arvo" ? <ArvoSettingsPanel onClose={onClose} />  : content.body}
         </div>
       </section>
     </div>
