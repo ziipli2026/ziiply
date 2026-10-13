@@ -31,7 +31,7 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
     <div data-justiina-search-grid className="relative mt-2 grid grid-cols-2 items-center gap-x-3">
       <div className="relative col-start-1 row-start-1 flex h-full min-h-[126px] min-w-0 items-center">
         <div role="status" aria-live="polite" className="absolute bottom-[calc(50%+36px)] left-0 right-0 px-1 text-center text-[12px] font-bold leading-tight text-[#765f3f]">{!loading && results.length===0 ? (message||"Kirjoita tuote, tuoteryhmä tai ostoslista.") : ""}</div>
-      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 h-[54px] min-w-0 ${listExpanded?"col-span-2":"col-span-1"}`}>
+      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 h-[54px] min-w-0 shrink-0 ${listExpanded?"w-[calc(200%+12px)]":"w-full"}`}>
         <div className="relative h-[54px]">
           <span ref={measureRef} aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-0 whitespace-pre font-serif text-[17px] font-black">{query||""}</span>
           <input ref={inputRef} autoFocus type="text" value={query.replace(/\r?\n/g," ")} onChange={e=>onQueryChange(e.target.value)} placeholder="Kirjoita tähän…" aria-label="Hae tuotteita" className="block h-[54px] w-full min-w-0 rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-4 pr-[96px] text-center font-serif text-[17px] font-black text-[#6f6657] outline-none placeholder:text-[15px] placeholder:text-[#8b806e]"/>
