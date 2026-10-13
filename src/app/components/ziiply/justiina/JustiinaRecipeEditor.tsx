@@ -67,16 +67,16 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
       <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
       <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
-    </div>:<div className="grid grid-cols-[minmax(210px,1fr)_minmax(0,1fr)] items-start gap-2">
-      <div className="min-w-0 space-y-2">
-        <strong className="block text-left text-base leading-tight">{draft.title}</strong>
-        <div className="flex items-center justify-center gap-2 whitespace-nowrap">
-          <label className="flex shrink-0 items-center gap-1 whitespace-nowrap text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-12 rounded border p-1"/> hlö</label>
+    </div>:<div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-3">
+      <div className="min-w-0">
+        <strong className="block truncate text-center text-base leading-tight">{draft.title}</strong>
+        <div className="mt-2 flex items-center justify-center gap-2 whitespace-nowrap">
+          <label className="flex shrink-0 items-center gap-1 text-xs"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-11 rounded border p-1"/> hlö</label>
           <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="shrink-0 rounded-lg bg-[#174c3a] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">Hae</button>
         </div>
-        <div className="flex items-center justify-center gap-2 whitespace-nowrap text-xs font-bold">
-          <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="shrink-0 rounded-lg border border-[#b89959] bg-[#f7eed8] px-2 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">✎ Muokkaa</button>
-          <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="shrink-0 rounded-lg border border-[#b89959] bg-[#f7eed8] px-2 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">↻ Vaihda</button>
+        <div className="mt-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[11px] font-bold">
+          <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="shrink-0 rounded-lg border border-[#b89959] bg-[#f7eed8] px-2 py-1.5 text-[#27412a]">{editing?"Sulje":"✎ Muokkaa"}</button>
+          <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="shrink-0 rounded-lg border border-[#b89959] bg-[#f7eed8] px-2 py-1.5 text-[#27412a]">↻ Vaihda</button>
         </div>
       </div>
       <div className="min-w-0 border-l border-[#d0aa58] pl-3 text-xs leading-relaxed">{scaled.filter(item=>!item.atHome).map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join(" · ")}</div>
