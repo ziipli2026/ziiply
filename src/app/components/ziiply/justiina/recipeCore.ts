@@ -13,12 +13,18 @@ export function parseRecipeText(text: string): RecipeDraft {
   const start = lines.findIndex(x => /^(?:ainekset|raaka-aineet|tarvikkeet)\s*:?$/i.test(x));
   const end = lines.findIndex((x, i) => i > start && /^(?:valmistus|ohje|valmistusohje)\s*:?$/i.test(x));
   const ingredientLines = start < 0 ? [] : lines.slice(start + 1, end < 0 ? undefined : end);
-  const ingredients = ingredientLines.filter(x => x !== servingsLine).map((line, i) => {
-    const clean = line.replace(/^[-*•]\s*/, "");
-    const m = clean.match(amountPattern);
-    const a = m?.[1] ? Number(m[1].replace(",", ".")) : null;
-    const uncertain = !m || a === null || !!m[2] || !m[3] || !m[4] || /[?/]/.test(clean);
-    return { id: String(i), name: (m?.[4] || clean).trim(), amount: a, unit: m?.[3]?.toLowerCase() || null, uncertain, atHome: false };
+  const ingredients = ingredientLines.filter(x => x !== servingsLine && !/^(?:mausteliemi|lisäksi tarvitaan|ainekset)\s*:?$/i.test(x)).map((line, i) => {
+    const clean = line.replace(/^[-*•]\s*/, "").replace(/\u00bd/g,"1/2").replace(/\u00bc/g,"1/4").replace(/\u00be/g,"3/4");
+    // "600 g silakoita tai 300 g silakkafileitä": one selectable alternative, never add both.
+    const alternatives = clean.match(/^(.+?)\s+tai\s+(\d+(?:[,.]\d+)?\s*(?:kg|g|l|dl|cl|ml|rkl|tl|kpl)\s+.+)$/i);
+    const chosen = alternatives ? alternatives[2] : clean;
+    const fraction = chosen.match(/^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)\s*(kg|g|l|dl|cl|ml|rkl|tl|kpl)\s+(.+)$/i);
+    const m = fraction ? null : chosen.match(amountPattern);
+    const amount = fraction ? Number(fraction[1]||0)+Number(fraction[2])/Number(fraction[3]) : m?.[1] ? Number(m[1].replace(",", ".")) : null;
+    const unit = fraction ? fraction[4].toLowerCase() : m?.[3]?.toLowerCase()||null;
+    const name = (fraction ? fraction[5] : m?.[4]||chosen).trim();
+    const uncertain = amount===null || !unit || !name || /[?]/.test(clean);
+    return { id: String(i), name, amount, unit, uncertain, atHome: false };
   });
   return { title, servings, ingredients, instructions: end < 0 ? "" : lines.slice(end + 1).join("\n"), source: "text" };
 }
