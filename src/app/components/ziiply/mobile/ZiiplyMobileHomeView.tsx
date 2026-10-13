@@ -55,9 +55,10 @@ export default function ZiiplyMobileHomeView({
 
   return (
     <div
-      className="relative isolate sm:hidden -mx-4 px-4 pb-[150px] pt-0 overflow-hidden"
+      className="relative isolate sm:hidden -mx-4 px-4 pt-[calc(env(safe-area-inset-top)+68px)] pb-[calc(env(safe-area-inset-bottom)+104px)] overflow-hidden"
       style={{
         minHeight: viewportHeight ? `${viewportHeight}px` : "100dvh",
+        boxSizing: "border-box",
         // V3: 70 % rauhallinen salvianvihreä, 20 % lämmin paperi, 10 % vanha kauppakirja.
         // Sävy pidetty lämpimänä, mutta ei liian antiikkisena eikä startup-turkoosina.
         background:
@@ -86,7 +87,7 @@ export default function ZiiplyMobileHomeView({
       <section
         className="flex flex-col items-center text-center"
         style={{
-          minHeight: viewportHeight ? `${Math.round(viewportHeight * 0.23)}px` : "23dvh",
+          minHeight: "min(23dvh, 190px)",
           justifyContent: "flex-start",
           paddingTop: "0.25vh",
         }}
