@@ -61,7 +61,7 @@ function readRecipes(): SavedRecipe[] {
   catch { return []; }
 }
 function recipeText(recipe: SavedRecipe) {
-  return recipe.sourceText || [recipe.title, recipe.servings ? recipe.servings + " annosta" : "", "Ainekset:", recipe.ingredients, "Valmistus:", recipe.instructions].filter(Boolean).join("\\n");
+  return recipe.sourceText || [recipe.title, recipe.servings ? recipe.servings + " annosta" : "", "Ainekset:", recipe.ingredients, "Valmistus:", recipe.instructions].filter(Boolean).join("\n");
 }
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
 const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
