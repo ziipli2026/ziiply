@@ -115,7 +115,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const parserRegressionYellow=parserRegressions.filter(x=>x.level==="yellow").length;
   const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
-  const latestBySource=[...d.runs.reduce((m,r)=>{const k=`${r.chain}::${r.source}`;if(!m.has(k))m.set(k,r);return m},new Map<string,Row>()).values()];
+  const latestBySource=[...d.runs.reduce((m,r)=>{const k=`${r.chain}::${explainSource(r.source)}`;if(!m.has(k))m.set(k,r);return m},new Map<string,Row>()).values()];
   const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count>0?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source==="s-kaupat-protocol"||r.source==="future-publication-discovery";const level=!r.ok?(r.source==="future-publication-discovery"?"yellow":"red"):(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const latestSuccessBySource=sourceHealth.map(s=>{const okRun=d.runs.find(r=>r.chain===s.chain&&r.source===s.source&&r.ok);const successAgeH=okRun?(Date.now()-new Date(okRun.checked_at).getTime())/3600000:null;return {...s,lastSuccess:okRun?.checked_at??null,successAgeH};});
   const successStale=latestSuccessBySource.filter(s=>s.successAgeH!==null&&s.successAgeH>48);
@@ -230,7 +230,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const attention=[
     ...activeCandidates.map(p=>({level:"red",title:p.chain+": aktiivinen candidate",detail:p.publication_id+" · "+p.offer_count+" tarjousta · "+p.valid_from+"–"+p.valid_until})),
     ...currentFailures.map(r=>({level:"red",title:r.chain+": viimeisin ajo epäonnistui",detail:r.source+" · "+r.offer_count+" · "+r.outcome})),
-    ...staleRuns.map(r=>({level:"yellow",title:r.chain+": health-ajo vanhentunut",detail:r.source+" · "+new Date(r.checked_at).toLocaleString("fi-FI")})),
+    ...staleRuns.map(r=>({level:"yellow",title:r.chain+": health-ajo vanhentunut",detail:r.source+" · "+new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})})),
     ...expiringToday.map(p=>({level:"yellow",title:p.chain+": julkaisu päättyy tänään",detail:p.publication_id+" · "+p.offer_count+" tarjousta"})),
     ...overlappingApproved.map(p=>({level:"yellow",title:p.chain+": useita aktiivisia approved-julkaisuja",detail:p.publication_id+" · "+p.offer_count+" tarjousta"})),
     ...rolloverGaps.map(r=>({level:"red",title:r.chain+": julkaisuvaihtoon jää katkos",detail:(r.current?.valid_until||"—")+" → "+(r.future?.valid_from||"—")})),
@@ -277,10 +277,10 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       <div><div style={{fontSize:12,letterSpacing:2,fontWeight:800,color:"#64748b"}}>ZIIPLY / INTERNAL</div>
       <h1 style={{margin:"5px 0",fontSize:36}}>Control Center</h1>
       <div style={{color:"#64748b"}}>Tarjousjulkaisut · automaatiot · EAN-pankki</div></div>
-      <div style={{textAlign:"right"}}><div style={{fontSize:19,fontWeight:850}}>{dot(overall[0])} {overall[1]}</div><div style={{fontSize:11,color:"#667085",marginTop:5}}>Päivitetty {new Date().toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</div></div>
+      <div style={{textAlign:"right"}}><div style={{fontSize:19,fontWeight:850}}>{dot(overall[0])} {overall[1]}</div><div style={{fontSize:11,color:"#667085",marginTop:5}}>Päivitetty {new Date().toLocaleString("fi-FI")}</div></div>
     </header>
 
-    <nav aria-label="Control Center -näkymät" style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:20}}>{([{id:"overview",label:"Yleiskatsaus"},{id:"publications",label:"Tarjouslehdet ja parserit"},{id:"data",label:"Tuotedata ja järjestelmä"}] as const).map(tab=><a key={tab.id} href={tab.id==="overview"?"/":"/?view="+tab.id} aria-current={view===tab.id?"page":undefined} style={{padding:"12px 18px",borderRadius:12,textDecoration:"none",fontWeight:800,background:view===tab.id?"#0f172a":"#fff",color:view===tab.id?"#fff":"#334155",border:"1px solid #cbd5e1"}}>{tab.label}</a>)}</nav>
+    <nav aria-label="Control Center -näkymät" style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:20}}>{([{id:"overview",label:"Yleiskatsaus"},{id:"publications",label:"Tarjousten päivitykset"},{id:"data",label:"Tuotteet ja skanneri"}] as const).map(tab=><a key={tab.id} href={tab.id==="overview"?"/":"/?view="+tab.id} aria-current={view===tab.id?"page":undefined} style={{padding:"12px 18px",borderRadius:12,textDecoration:"none",fontWeight:800,background:view===tab.id?"#0f172a":"#fff",color:view===tab.id?"#fff":"#334155",border:"1px solid #cbd5e1"}}>{tab.label}</a>)}</nav>
     {d.error&&<div style={{background:"#fee4e2",border:"1px solid #fecdca",padding:16,borderRadius:12,marginBottom:16}}>🔴 {d.error}</div>}
 
     {view==="overview"&&<>
@@ -294,8 +294,8 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginTop:18}}>
           <div><div style={{fontSize:11,color:"#667085"}}>Lidlin aktiiviset tarjoukset julkaisuvarastossa</div><b style={{fontSize:22}}>{activeOfferTotal.toLocaleString("fi-FI")}</b></div>
           <div><div style={{fontSize:11,color:"#667085"}}>Avoimet lähdevirheet</div><b style={{fontSize:22}}>{currentFailures.length}</b></div>
-          <div><div style={{fontSize:11,color:"#667085"}}>Toimintajono</div><b style={{fontSize:22}}>{actionQueue.length}</b></div>
-          <div><div style={{fontSize:11,color:"#667085"}}>EAN-pankki</div><b style={{fontSize:22}}>{d.ean?d.ean.total.toLocaleString("fi-FI"):"—"}</b></div>
+          <div><div style={{fontSize:11,color:"#667085"}}>Mitä pitää tarkistaa seuraavaksi?</div><b style={{fontSize:22}}>{actionQueue.length}</b></div>
+          <div><div style={{fontSize:11,color:"#667085"}}>Tuotteita viivakoodirekisterissä</div><b style={{fontSize:22}}>{d.ean?d.ean.total.toLocaleString("fi-FI"):"—"}</b></div>
         </div>
       </article>
       <article style={{background:"#0f172a",color:"#f8fafc",borderRadius:20,padding:22}}>
@@ -306,7 +306,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
 
     <section style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20,marginBottom:18}}>
       <h2 style={{marginTop:0}}>Viimeisimmät kirjatut tarkistukset</h2>
-      <p style={{fontSize:13,color:"#64748b",marginTop:0}}>Tiedot luettu tietokannasta {new Date().toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}. Kaikki kellonajat ovat Suomen aikaa.</p>
+      <p style={{fontSize:13,color:"#64748b",marginTop:0}}>Tiedot luettu tietokannasta {new Date().toLocaleString("fi-FI")}. Kaikki kellonajat ovat Suomen aikaa.</p>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:14}}>
         <thead><tr>{["Kohde","Tietokannan tulos","Mitä se käytännössä kertoo"].map(label=><th key={label} scope="col" style={{textAlign:"left",padding:"12px 10px",borderBottom:"2px solid #e2e8f0"}}>{label}</th>)}</tr></thead>
         <tbody>{summaryChecks.map(check=><tr key={check.source}>
@@ -319,12 +319,12 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     </>}
-    {view==="publications"&&<>
+    {view==="publications"&&<><section style={{padding:18,background:"#eef6ff",border:"1px solid #cbdff5",borderRadius:14,marginBottom:18,fontSize:14,lineHeight:1.6}}><strong>Mitä tämä sivu kertoo?</strong><p style={{margin:"8px 0 0"}}>Näet, onnistuivatko automaattiset tarkistukset, puuttuuko tarjouksista tietoja ja onko seuraava tarjousjakso valmiina. Tulevan lehden etsintä on eri tarkistus kuin nykyisten tarjousten haku: etsinnän virhe ei yksin tarkoita, että nykyiset tarjoukset ovat väärin.</p></section><section style={{padding:18,background:"#eef6ff",border:"1px solid #cbdff5",borderRadius:14,marginBottom:18,fontSize:14,lineHeight:1.6}}><strong>Näin tulkitset tiedot</strong><p style={{margin:"8px 0 0"}}>Hyväksytty = järjestelmä on merkinnyt jakson hyväksytyksi. Odottaa hyväksyntää = tiedot on käsitelty, mutta hyväksyntä puuttuu. Tuoteryhmä tai kuva löytyy = kenttä on täytetty; sen sisällön oikeellisuutta ei tällä mittarilla tarkisteta. Määrän väheneminen voi johtua myös erikokoisista tarjousjaksoista. Julkaisuvaraston laatutiedot painottuvat tällä hetkellä Lidliin; ne eivät kata kaikkien kauppojen asiakasnäkymiä.</p></section>
     <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {statusCard("Future discovery kunnossa",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors||futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Onnistunut tarkistus viimeisen 8 päivän aikana")}
+      {statusCard("Tulevien lehtien tarkistukset onnistuneet",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors||futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Onnistunut tarkistus viimeisen 8 päivän aikana")}
       {statusCard("Tulevia lehtiä löydetty",futureFound,futureFound?"green":"gray","Digitaalisesta lähteestä löytyneet tulevat jaksot")}
-      {statusCard("Future discovery puuttuu",futureDiscoveryMissing,futureDiscoveryMissing?"yellow":"green","Ketjut, joilta ensimmäinen tarkistus ei ole vielä kirjautunut")}
-      {statusCard("Future discovery varoitukset",futureDiscoveryErrors,futureDiscoveryErrors?"yellow":"green","Ennakkotarkistus epäonnistui; ei tarkoita parseri- tai tarjousdatavirhettä")}
+      {statusCard("Tarkistusta ei ole vielä kirjattu",futureDiscoveryMissing,futureDiscoveryMissing?"yellow":"green","Ketjut, joilta ensimmäinen tarkistus ei ole vielä kirjautunut")}
+      {statusCard("Tulevan lehden etsintä epäonnistui",futureDiscoveryErrors,futureDiscoveryErrors?"yellow":"green","Ennakkotarkistus epäonnistui; ei tarkoita parseri- tai tarjousdatavirhettä")}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
@@ -332,7 +332,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       <div style={{marginBottom:12,fontSize:13}}>Ajastus: su-ilta, ke-ilta sekä ma/to-aamu. Puuttuva tuleva lehti on normaali tila. Todelliset alkupäivät kerätään hyväksytyistä parserijulkaisuista.</div>
       <div style={{padding:12,border:"1px solid #e5e7eb",borderRadius:10,marginBottom:12}}><strong>Poikkeavat julkaisupäivät / oppimishistoria: {unexpectedPublicationDays.length}</strong><div style={{fontSize:12,marginTop:5}}>Havaitut uudet viikonpäivät: {learnedWeekdays.length}. Havainnot eivät muuta ajastusta automaattisesti ennen vahvistusta.</div>{unexpectedPublicationDays.slice(0,15).map((p,i)=><div key={p.publication+"-"+i} style={{fontSize:12,marginTop:5}}>⚠️ {p.chain} · {p.validFrom} · {["su","ma","ti","ke","to","pe","la"][p.weekday]} · {p.publication}</div>)}</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:12}}>
-        {futureDiscovery.map(x=>{const r=x.run;const level=!r?"gray":!r.ok?"red":r.outcome==="future-publication-found"?"green":"yellow";const label=!r?"Ei vielä ajoa":!r.ok?"Tarkistus epäonnistui":r.outcome==="future-publication-found"?"Tuleva lehti löydetty":"Ei vielä julkaistu digitaalisena";return <div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900}}>{dot(level)} {x.chain}</div><div style={{fontSize:16,fontWeight:850,marginTop:8}}>{label}</div><div style={{fontSize:12,color:"#667085",marginTop:7}}>{r?"Viimeksi tarkistettu "+new Date(r.checked_at).toLocaleString("fi-FI"):"Ensimmäinen cron-ajo ei ole vielä kirjautunut"}</div><div style={{fontSize:12,color:"#667085",marginTop:4}}>{r?.outcome||"future-publication-discovery"}</div></div>})}
+        {futureDiscovery.map(x=>{const r=x.run;const level=!r?"gray":!r.ok?"red":r.outcome==="future-publication-found"?"green":"yellow";const label=!r?"Ei vielä ajoa":!r.ok?"Tarkistus epäonnistui":r.outcome==="future-publication-found"?"Tuleva lehti löydetty":"Ei vielä julkaistu digitaalisena";return <div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900}}>{dot(level)} {x.chain}</div><div style={{fontSize:16,fontWeight:850,marginTop:8}}>{label}</div><div style={{fontSize:12,color:"#667085",marginTop:7}}>{r?"Viimeksi tarkistettu "+new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"Ensimmäinen cron-ajo ei ole vielä kirjautunut"}</div><div style={{fontSize:12,color:"#667085",marginTop:4}}>{r?.outcome||"future-publication-discovery"}</div></div>})}
       </div>
       <div style={{fontSize:12,color:"#667085",marginTop:12}}>Digitaalisen lähteen puuttuminen ei ole virhe. Punainen tila tarkoittaa, että itse tarkistus epäonnistui. Löydetty tuleva julkaisu siirtyy erikseen parseroinnin ja julkaisuvaraston tarkastukseen.</div>
     </section>
@@ -344,31 +344,31 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(6,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {statusCard("Aktiivinen candidate",activeCandidates.length,activeCandidates.length?"red":"green",activeCandidates.length?"Voimassa oleva julkaisu odottaa hyväksyntää":"Ei jumissa olevia aktiivisia candidateja")}
-      {statusCard("Segmenttejä päättyy tänään",expiringToday.length,expiringToday.length?"yellow":"green",expiringToday.length?"Tarkista seuraavan julkaisun valmius":"Ei tänään päättyviä hyväksyttyjä julkaisuja")}
+      {statusCard("Voimassa, mutta hyväksyntä puuttuu",activeCandidates.length,activeCandidates.length?"red":"green",activeCandidates.length?"Voimassa oleva julkaisu odottaa hyväksyntää":"Ei voimassa olevia hyväksyntää odottavia jaksoja")}
+      {statusCard("Tarjousjaksoja päättyy tänään",expiringToday.length,expiringToday.length?"yellow":"green",expiringToday.length?"Tarkista seuraavan julkaisun valmius":"Ei tänään päättyviä hyväksyttyjä julkaisuja")}
       {statusCard("Vanhentuneet ajot",staleRuns.length,staleRuns.length?"yellow":"green","Raja 36 h / vain lähteen viimeisin ajo")}
-      {statusCard("Viimeisin health-ajo",latestRun?new Date(latestRun.checked_at).toLocaleString("fi-FI"):"—",latestRun?.ok?"green":"yellow",latestRun?.source||"Ei ajohistoriaa")}
-      {statusCard("Seuraava approved",nextApproved?nextApproved.valid_from:"—",nextApproved?"green":"gray",nextApproved?nextApproved.chain+" · "+nextApproved.publication_id:"Ei tulevaa approved-julkaisua varastossa")}
+      {statusCard("Viimeisin toimintatarkistus",latestRun?new Date(latestRun.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"—",latestRun?.ok?"green":"yellow",latestRun?explainSource(latestRun.source):"Ei ajohistoriaa")}
+      {statusCard("Seuraava hyväksytty jakso",nextApproved?nextApproved.valid_from:"—",nextApproved?"green":"gray",nextApproved?nextApproved.chain+" · "+nextApproved.publication_id:"Seuraavaa hyväksyttyä jaksoa ei löydy tallennetuista tiedoista")}
       {statusCard("Päättyy ≤36 h ilman seuraajaa",unreadyExpiring.length,unreadyExpiring.length?"red":"green",unreadyExpiring.length?"Julkaisuvaihto ei ole valmis":"Ei välitöntä vaihtoriskiä")}
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {statusCard("Hinta puuttuu",quality.missingPrice,quality.missingPrice?"red":"green","Aktiiviset approved-julkaisut")}
-      {statusCard("Kuva puuttuu",quality.missingImage,quality.missingImage?"yellow":"green","Aktiiviset approved-julkaisut")}
-      {statusCard("Kategoria puuttuu",quality.missingCategory,quality.missingCategory?"yellow":"green","Aktiiviset approved-julkaisut")}
+      {statusCard("Hinta puuttuu",quality.missingPrice,quality.missingPrice?"red":"green","Voimassa olevat hyväksytyt tarjousjaksot")}
+      {statusCard("Kuva puuttuu",quality.missingImage,quality.missingImage?"yellow":"green","Voimassa olevat hyväksytyt tarjousjaksot")}
+      {statusCard("Tuoteryhmä puuttuu",quality.missingCategory,quality.missingCategory?"yellow":"green","Voimassa olevat hyväksytyt tarjousjaksot")}
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {statusCard("Valmiit vaihdot",healthyNext.length,healthyNext.length?"green":"gray","Approved-seuraaja ilman katkosta tai vakavaa määräpudotusta")}
-      {statusCard("Vakava määräpudotus",severeNextDrop.length,severeNextDrop.length?"red":"green","Approved-seuraaja alle 25 % nykyisen tarjousmäärästä")}
-      {statusCard("Vaihtoriski ≤36 h",unreadyExpiring.length,unreadyExpiring.length?"red":"green","Päättyvä julkaisu ilman approved-seuraajaa")}
+      {statusCard("Valmiit vaihdot",healthyNext.length,healthyNext.length?"green":"gray","Seuraava hyväksytty jakso ilman katkosta tai suurta määräpudotusta")}
+      {statusCard("Vakava määräpudotus",severeNextDrop.length,severeNextDrop.length?"red":"green","Seuraavan hyväksytyn jakson tarjousmäärä on alle neljäsosa nykyisestä")}
+      {statusCard("Vaihtoriski ≤36 h",unreadyExpiring.length,unreadyExpiring.length?"red":"green","Päättyvä jakso ilman hyväksyttyä seuraajaa")}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Parserin regressiohälytys</h2>
+      <h2 style={{marginTop:0}}>Heikkenikö seuraavan jakson tarjousdata?</h2>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginBottom:12}}>
-        {statusCard("Vakava regressio",parserRegressionRed,parserRegressionRed?"red":"green","Määrä tai datan laatu heikkeni voimakkaasti")}
-        {statusCard("Regressiovaroitus",parserRegressionYellow,parserRegressionYellow?"yellow":"green","Seuraava julkaisu on nykyistä heikompi")}
+        {statusCard("Suuri muutos tarjousdatassa",parserRegressionRed,parserRegressionRed?"red":"green","Määrä tai datan laatu heikkeni voimakkaasti")}
+        {statusCard("Tarkistettava muutos tarjousdatassa",parserRegressionYellow,parserRegressionYellow?"yellow":"green","Seuraava julkaisu on nykyistä heikompi")}
       </div>
       <div style={{display:"grid",gap:8}}>{parserRegressions.map(x=><div key={x.key} style={{display:"grid",gridTemplateColumns:"24px minmax(180px,280px) 1fr",gap:10,padding:"10px 12px",border:"1px solid #e5e7eb",borderRadius:10}}>
         <div>{dot(x.level)}</div><div style={{fontWeight:900}}>{x.name}</div><div>{!x.current||!x.next?"Ei vielä vertailukelpoista seuraavaa julkaisua":x.signals.length?x.signals.join(" · "):"Ei havaittua regressiota"}</div>
@@ -377,9 +377,9 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Julkaisun laatutrendi / nykyinen → seuraava</h2>
+      <h2 style={{marginTop:0}}>Nykyisen ja seuraavan tarjousjakson vertailu</h2>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <thead><tr>{["Tila","Ketju","Nykyinen / seuraava","Hinta puuttuu","Kuva puuttuu","Kategoria puuttuu"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <thead><tr>{["Tila","Ketju","Nykyinen / seuraava","Hinta puuttuu","Kuva puuttuu","Tuoteryhmä puuttuu"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
         <tbody>{publicationQuality.map(x=>{const pair=(a:number|null,b:number|null)=>a===null?"—":a+" % → "+(b===null?"—":b+" %");return <tr key={x.key}>
           <td style={{padding:8}}>{dot(x.level)}</td><td style={{padding:8,fontWeight:900}}>{x.name}</td>
           <td style={{padding:8}}>{x.current?x.current.offer_count:"—"} → {x.next?x.next.offer_count:"—"}{x.next&&<div style={{fontSize:11,color:"#667085"}}>{x.next.approval_state} · {x.next.valid_from}–{x.next.valid_until}</div>}</td>
@@ -390,22 +390,22 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Ketjujen ajohistoria / trendi</h2>
+      <h2 style={{marginTop:0}}>Viimeisten tarkistusten tulokset ketjuittain</h2>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead><tr>{["Tila","Ketju","Viimeisin onnistunut","Muutos","Virheitä / 6 ajoa","Viimeiset ajot"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
         <tbody>{chainHistory.map(x=><tr key={x.key}>
           <td style={{padding:8}}>{dot(x.level)}</td><td style={{padding:8,fontWeight:900}}>{x.name}</td>
-          <td style={{padding:8}}>{x.newest?x.newest.offer_count+" · "+new Date(x.newest.checked_at).toLocaleString("fi-FI"):"—"}</td>
+          <td style={{padding:8}}>{x.newest?x.newest.offer_count+" · "+new Date(x.newest.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"—"}</td>
           <td style={{padding:8,fontWeight:800}}>{x.delta===null?"—":(x.delta>0?"+":"")+x.delta+" %"}</td>
           <td style={{padding:8}}>{x.failures} / {x.rows.length}</td>
-          <td style={{padding:8}}><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{x.rows.length?x.rows.map((r,i)=><span key={i} title={r.source+" · "+r.outcome+" · "+new Date(r.checked_at).toLocaleString("fi-FI")} style={{padding:"3px 6px",borderRadius:7,background:r.ok?"#ecfdf3":"#fef2f2",fontWeight:800}}>{r.ok?"✓":"✕"} {r.offer_count}</span>):"Ei ajoja"}</div></td>
+          <td style={{padding:8}}><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{x.rows.length?x.rows.map((r,i)=><span key={i} title={r.source+" · "+r.outcome+" · "+new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})} style={{padding:"3px 6px",borderRadius:7,background:r.ok?"#ecfdf3":"#fef2f2",fontWeight:800}}>{r.ok?"✓":"✕"} {r.offer_count}</span>):"Ei ajoja"}</div></td>
         </tr>)}</tbody>
       </table></div>
       <div style={{fontSize:12,color:"#667085",marginTop:10}}>Tarjousmäärän trendistä on rajattu pois future-discovery ja protokollaprobet, jotta nollatulokset eivät vääristä varsinaisen parserin kehitystä. Muutos vertaa kahta viimeisintä onnistunutta ajoa.</div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Toimintajono</h2>
+      <h2 style={{marginTop:0}}>Mitä pitää tarkistaa seuraavaksi?</h2>
       {actionQueue.length===0?<div style={{padding:14,borderRadius:12,background:"#ecfdf3",fontWeight:800}}>🟢 Ei avoimia julkaisuvaihdon toimenpiteitä.</div>:
       <div style={{display:"grid",gap:8}}>{actionQueue.slice(0,12).map((a,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"34px minmax(160px,240px) 1fr",gap:10,alignItems:"center",padding:"10px 12px",border:"1px solid #e5e7eb",borderRadius:10}}>
         <div style={{fontWeight:900,fontSize:16}}>{i+1}</div><div style={{fontWeight:900}}>{dot(a.level)} {a.title}</div><div>{a.detail}</div>
@@ -414,10 +414,10 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Ennakoiva julkaisuvaihdon riski</h2>
+      <h2 style={{marginTop:0}}>Ovatko tarjoukset valmiina nykyisen jakson päättyessä?</h2>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginBottom:12}}>
-        {statusCard("Kriittinen ≤24 h",urgentRollover,urgentRollover?"red":"green","Seuraava approved puuttuu tai nykyinen julkaisu puuttuu")}
-        {statusCard("Varoitus ≤48 h",warningRollover,warningRollover?"yellow":"green","Seuraava approved ei vielä ole valmiina")}
+        {statusCard("Kriittinen ≤24 h",urgentRollover,urgentRollover?"red":"green","Seuraava hyväksytty jakso tai nykyinen jakso puuttuu")}
+        {statusCard("Varoitus ≤48 h",warningRollover,warningRollover?"yellow":"green","Seuraava hyväksytty jakso ei vielä ole valmiina")}
       </div>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead><tr>{["Tila","Ketju","Aikaa jäljellä","Seuraajan vaihe / syy"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
@@ -427,14 +427,14 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Julkaisuketju / nykyinen → seuraava</h2>
+      <h2 style={{marginTop:0}}>Mihin vaiheeseen seuraavan tarjousjakson käsittely on edennyt?</h2>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <thead><tr>{["Tila","Ketju","Nykyinen approved","Future discovery","Candidate","Seuraava approved"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <thead><tr>{["Tila","Ketju","Nykyinen hyväksytty jakso","Tulevan lehden etsintä","Odottaa hyväksyntää","Seuraava hyväksytty jakso"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
         <tbody>{publicationPipeline.map(x=>{const candidate=x.future?.approval_state==="candidate"?x.future:null;const approved=x.future?.approval_state==="approved"?x.future:null;return <tr key={x.key}>
           <td style={{padding:8}}>{dot(x.level)}</td>
           <td style={{padding:8,fontWeight:800}}>{x.name}</td>
           <td style={{padding:8}}>{x.current?x.current.valid_from+"–"+x.current.valid_until+" · "+x.current.publication_id+" · "+x.current.offer_count+" tarjousta":"—"}</td>
-          <td style={{padding:8}}>{!x.discoveryApplicable?"Ei erillistä future-probea":!x.discovery?"Ei vielä ajoa":!x.discovery.ok?"🔴 Virhe":x.discoveryFound?"🟢 Löydetty":"🟡 Ei vielä digijulkaisua"}{x.discovery&&<div style={{fontSize:11,color:"#667085"}}>{new Date(x.discovery.checked_at).toLocaleString("fi-FI")}</div>}</td>
+          <td style={{padding:8}}>{!x.discoveryApplicable?"Ei erillistä future-probea":!x.discovery?"Ei vielä ajoa":!x.discovery.ok?"🔴 Virhe":x.discoveryFound?"🟢 Löydetty":"🟡 Ei vielä digijulkaisua"}{x.discovery&&<div style={{fontSize:11,color:"#667085"}}>{new Date(x.discovery.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</div>}</td>
           <td style={{padding:8}}>{candidate?"🟡 "+candidate.valid_from+"–"+candidate.valid_until+" · "+candidate.offer_count:"—"}</td>
           <td style={{padding:8}}>{approved?"🟢 "+approved.valid_from+"–"+approved.valid_until+" · "+approved.offer_count:"—"}</td>
         </tr>})}</tbody>
@@ -444,29 +444,29 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
       <h2 style={{marginTop:0}}>Julkaisuvaihdon valmius</h2>
-      {rolloverChains.length===0?<div style={{color:"#667085"}}>Ei julkaisuvaraston ketjuja.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Nykyinen päättyy","Seuraava alkaa","Seuraavan tila","Seuraavan määrä"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{rolloverChains.map(r=><tr key={r.chain}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.current?.valid_until||"Ei aktiivista approved-julkaisua"}</td><td style={{padding:8}}>{r.future?.valid_from||"—"}</td><td style={{padding:8}}>{r.future?.approval_state||"—"}{r.gap?" · KATKOS":""}</td><td style={{padding:8,fontWeight:800}}>{r.future?.offer_count??"—"}{r.current&&r.future&&r.future.offer_count<Math.max(3,Math.floor(r.current.offer_count*.5))?" ⚠️":""}</td></tr>)}</tbody></table></div>}
+      {rolloverChains.length===0?<div style={{color:"#667085"}}>Ei julkaisuvaraston ketjuja.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Nykyinen päättyy","Seuraava alkaa","Seuraavan tila","Seuraavan määrä"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{rolloverChains.map(r=><tr key={r.chain}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.current?.valid_until||"Ei voimassa olevaa hyväksyttyä jaksoa"}</td><td style={{padding:8}}>{r.future?.valid_from||"—"}</td><td style={{padding:8}}>{r.future?explainApproval(r.future.approval_state):"—"}{r.gap?" · KATKOS":""}</td><td style={{padding:8,fontWeight:800}}>{r.future?.offer_count??"—"}{r.current&&r.future&&r.future.offer_count<Math.max(3,Math.floor(r.current.offer_count*.5))?" ⚠️":""}</td></tr>)}</tbody></table></div>}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Aktiivisen datan laatu ketjuittain</h2>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:12,marginBottom:16}}>{chainHealth.map(x=><div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900}}>{dot(x.level)} {x.chain}</div><div style={{fontSize:25,fontWeight:900,marginTop:7}}>{x.offers.toLocaleString("fi-FI")}</div><div style={{fontSize:11,color:"#667085"}}>aktiivista tarjousta</div><div style={{fontSize:12,marginTop:8}}>Hinta {x.missingPrice?"🔴 "+x.missingPrice:"🟢"} · Kuva {x.missingImage?"🟡 "+x.missingImage:"🟢"} · Kat. {x.missingCategory?"🟡 "+x.missingCategory:"🟢"}</div><div style={{fontSize:11,color:"#667085",marginTop:6}}>Health-lähteitä {x.runs} · {x.stale?"vanhentunut / puuttuu":"tuore"}</div></div>)}</div>
-      {chainQuality.length===0?<div style={{color:"#667085"}}>Ei aktiivisia julkaisuja julkaisuvarastossa.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Ketju","Julkaisuja","Tarjouksia","Hinta puuttuu","Kuva puuttuu","Kategoria puuttuu","Tila"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{chainQuality.map(q=>{const level=q.missingPrice?"red":q.missingImage||q.missingCategory?"yellow":"green";return <tr key={q.chain}><td style={{padding:8,fontWeight:800}}>{q.chain}</td><td style={{padding:8}}>{q.publications}</td><td style={{padding:8,fontWeight:800}}>{q.offers}</td><td style={{padding:8}}>{q.missingPrice}</td><td style={{padding:8}}>{q.missingImage}</td><td style={{padding:8}}>{q.missingCategory}</td><td style={{padding:8}}>{dot(level)} {level==="green"?"OK":level==="red"?"HINTAVIRHE":"PUUTTEITA"}</td></tr>})}</tbody></table></div>}
+      <h2 style={{marginTop:0}}>Puuttuvat tiedot voimassa olevista tarjouksista</h2>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:12,marginBottom:16}}>{chainHealth.map(x=><div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900}}>{dot(x.level)} {x.chain}</div><div style={{fontSize:25,fontWeight:900,marginTop:7}}>{x.offers.toLocaleString("fi-FI")}</div><div style={{fontSize:11,color:"#667085"}}>aktiivista tarjousta</div><div style={{fontSize:12,marginTop:8}}>Hinta {x.missingPrice?"🔴 "+x.missingPrice:"🟢"} · Kuva {x.missingImage?"🟡 "+x.missingImage:"🟢"} · Tuoteryhmä {x.missingCategory?"🟡 "+x.missingCategory:"🟢"}</div><div style={{fontSize:11,color:"#667085",marginTop:6}}>Seurattuja lähteitä {x.runs} · {x.stale?"vanhentunut / puuttuu":"tuore"}</div></div>)}</div>
+      {chainQuality.length===0?<div style={{color:"#667085"}}>Ei aktiivisia julkaisuja julkaisuvarastossa.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Ketju","Julkaisuja","Tarjouksia","Hinta puuttuu","Kuva puuttuu","Tuoteryhmä puuttuu","Tila"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{chainQuality.map(q=>{const level=q.missingPrice?"red":q.missingImage||q.missingCategory?"yellow":"green";return <tr key={q.chain}><td style={{padding:8,fontWeight:800}}>{q.chain}</td><td style={{padding:8}}>{q.publications}</td><td style={{padding:8,fontWeight:800}}>{q.offers}</td><td style={{padding:8}}>{q.missingPrice}</td><td style={{padding:8}}>{q.missingImage}</td><td style={{padding:8}}>{q.missingCategory}</td><td style={{padding:8}}>{dot(level)} {level==="green"?"OK":level==="red"?"HINTAVIRHE":"PUUTTEITA"}</td></tr>})}</tbody></table></div>}
     </section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {statusCard("Avoimia virheitä 24 h",unresolvedFailures24h.length,unresolvedFailures24h.length?"red":"green",unresolvedFailures24h.length?"Viimeisin ajo on yhä virheellinen":"Ei avoimia tuoreita automaatiovirheitä")}
-      {statusCard("Palautuneet virheet 24 h",recoveredFailures24h.length,recoveredFailures24h.length?"yellow":"green",recoveredFailures24h.length?"Virhe on jo korjaantunut uudemmassa ajossa":"Ei palautuneita virheitä 24 h")}
-      {statusCard("Palautumishistoria 14 vrk",recoveredFailures.length,recoveredFailures.length?"yellow":"green",recoveredFailures.length?"Uudempi onnistunut ajo löytyy samalle lähteelle":"Ei palautumishistoriaa")}
+      {statusCard("Jo korjaantuneet virheet 24 h",recoveredFailures24h.length,recoveredFailures24h.length?"yellow":"green",recoveredFailures24h.length?"Virhe on jo korjaantunut uudemmassa ajossa":"Ei palautuneita virheitä 24 h")}
+      {statusCard("Korjaantuneet virheet tarkastelujaksolla",recoveredFailures.length,recoveredFailures.length?"yellow":"green",recoveredFailures.length?"Uudempi onnistunut ajo löytyy samalle lähteelle":"Ei palautumishistoriaa")}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Ketjujen automaatiopulssi</h2>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:12}}>{chainRunSummary.map(x=><div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900,fontSize:18}}>{dot(x.level)} {x.chain}</div><div style={{fontSize:13,marginTop:8}}>Viimeisin ajo: <b>{x.ageH===null?"—":x.ageH.toFixed(1)+" h sitten"}</b></div><div style={{fontSize:13,marginTop:4}}>Viimeisin OK: <b>{x.okAgeH===null?"Ei koskaan":x.okAgeH.toFixed(1)+" h sitten"}</b></div><div style={{fontSize:12,color:"#667085",marginTop:6}}>{x.latest?.source||"Ei run-log-dataa"}</div></div>)}</div>
+      <h2 style={{marginTop:0}}>Milloin ketjujen tiedot viimeksi tarkistettiin?</h2>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:12}}>{chainRunSummary.map(x=><div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900,fontSize:18}}>{dot(x.level)} {x.chain}</div><div style={{fontSize:13,marginTop:8}}>Viimeisin ajo: <b>{x.ageH===null?"—":x.ageH.toFixed(1)+" h sitten"}</b></div><div style={{fontSize:13,marginTop:4}}>Viimeisin OK: <b>{x.okAgeH===null?"Ei kirjattua onnistumista":x.okAgeH.toFixed(1)+" h sitten"}</b></div><div style={{fontSize:12,color:"#667085",marginTop:6}}>{x.latest?explainSource(x.latest.source):"Tarkistushistoria puuttuu"}</div></div>)}</div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Automaatiot / lähteet</h2>
-      {sourceHealth.length===0?<div style={{color:"#667085"}}>Ei health-lähteitä 14 vrk ajalta.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Lähde","Viimeisin ajo","Ikä","Tarjouksia","Muutos","5 viimeistä","Virheputki","Outcome"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{sourceHealth.map(r=><tr key={r.chain+"::"+r.source}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.source}</td><td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI")}</td><td style={{padding:8}}>{r.ageH.toLocaleString("fi-FI")} h</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"probe":r.offer_count}</td><td style={{padding:8}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"—":r.delta===null?"—":(r.delta>0?"+":"")+r.delta.toLocaleString("fi-FI")+" %"}</td><td style={{padding:8,whiteSpace:"nowrap"}}>{r.history.map((h,i)=><span key={i} title={new Date(h.checked_at).toLocaleString("fi-FI")+" · "+h.outcome}>{h.ok?"🟢":"🔴"}</span>)}</td><td style={{padding:8,fontWeight:r.streak?800:400}}>{r.streak||"—"}</td><td style={{padding:8}}>{r.outcome}</td></tr>)}</tbody></table></div>}
+      <h2 style={{marginTop:0}}>Automaattiset tarkistukset tietolähteittäin</h2>
+      {sourceHealth.length===0?<div style={{color:"#667085"}}>Ei health-lähteitä 14 vrk ajalta.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Lähde","Viimeisin ajo","Ikä","Tarjouksia","Muutos","5 viimeistä","Peräkkäisiä epäonnistumisia","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{sourceHealth.map(r=><tr key={r.chain+"::"+r.source}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{explainSource(r.source)}</td><td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8}}>{r.ageH.toLocaleString("fi-FI")} h</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"—":r.delta===null?"—":(r.delta>0?"+":"")+r.delta.toLocaleString("fi-FI")+" %"}</td><td style={{padding:8,whiteSpace:"nowrap"}}>{r.history.map((h,i)=><span key={i} title={new Date(h.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+h.outcome}>{h.ok?"🟢":"🔴"}</span>)}</td><td style={{padding:8,fontWeight:r.streak?800:400}}>{r.streak||"—"}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}</td></tr>)}</tbody></table></div>}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
@@ -474,43 +474,43 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       {attention.length===0?<div style={{padding:12,background:"#ecfdf3",borderRadius:10}}>🟢 Ei tällä hetkellä kirjattuja kriittisiä huomioita.</div>:attention.slice(0,20).map((a,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"28px 1fr",padding:"10px 0",borderBottom:"1px solid #edf0f2"}}><div>{dot(a.level)}</div><div><b>{a.title}</b><div style={{fontSize:12,color:"#667085",marginTop:3}}>{a.detail}</div></div></div>)}
     </section>
 
-    <section style={{marginTop:18,marginBottom:12}}><div style={{fontSize:12,fontWeight:900,letterSpacing:1.4,color:"#667085"}}>YKSITYISKOHTAISET KPI-MITTARIT</div></section>
+    <section style={{marginTop:18,marginBottom:12}}><div style={{fontSize:12,fontWeight:900,letterSpacing:1.4,color:"#667085"}}>MITTARIEN TARKEMMAT TIEDOT</div></section>
 
     <section style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:14,marginBottom:18}}>
-      {statusCard("Ketjuvalvonnan kattavuus",monitoredChains+" / "+CHAINS.length,monitoredChains===CHAINS.length?"green":"yellow",missingMonitoring.length?"Puuttuu: "+missingMonitoring.map(c=>c.name).join(", "):"Kaikilla ketjuilla health-dataa")}
-      {statusCard("Instrumentoidut lähteet",latestBySource.length,latestBySource.length?"green":"yellow","Uniikit chain + source -valvonnat 14 vrk")}
+      {statusCard("Ketjuvalvonnan kattavuus",monitoredChains+" / "+CHAINS.length,monitoredChains===CHAINS.length?"green":"yellow",missingMonitoring.length?"Puuttuu: "+missingMonitoring.map(c=>c.name).join(", "):"Kaikilta ketjuilta löytyy kirjattuja tarkistuksia")}
+      {statusCard("Seurattuja tietolähteitä",latestBySource.length,latestBySource.length?"green":"yellow","Erilliset ketjun ja tietolähteen tarkistukset tallennetussa historiassa")}
       {statusCard("Avoimet lähdevirheet",currentFailures.length,currentFailures.length?"red":"green",currentFailures.length?"Lähteen viimeisin ajo epäonnistunut":"Kaikkien kirjattujen lähteiden viimeisin ajo OK")}
-      {statusCard("Lidl EAN-hintakattavuus",eanPriceCoverage+" %",eanPriceCoverage<50?"yellow":"green",eanFreshCoverage+" % EAN-pankista tuoreella hinnalla")}
+      {statusCard("Lidl-hinnallisten osuus koko tuoterekisteristä",eanPriceCoverage+" %",eanPriceCoverage<50?"yellow":"green",eanFreshCoverage+" % EAN-pankista tuoreella hinnalla")}
       {statusCard("Lidl EAN-hintojen tuoreus",d.ean?d.ean.lidl_fresh_prices:0,eanPriceRisk?"yellow":"green",d.ean?d.ean.lidl_stale_prices+" vanhentunutta hintariviä":"Ei EAN-dataa")}
       {statusCard("Lidl hintojen varmennus",eanVerifiedCoverage+" %",eanVerifiedCoverage<10?"yellow":"green",d.ean?d.ean.lidl_verified_prices+" hintariviä kassavarmennettu":"Ei varmennettuja hintoja")}
       {statusCard("Vanhentuneiden osuus",eanStaleRatio+" %",eanStaleRatio>50?"red":eanStaleRatio>25?"yellow":"green","Lidl EAN-hintariveistä")}
-      {statusCard("EAN-pankin nähty 24 h",d.ean?d.ean.seen_24h:0,d.ean&&d.ean.seen_24h>0?"green":"yellow","Käyttäjien viimeisen 24 h aikana skannaamat/esiin tuomat EANit")}
-      {statusCard("Lidl EAN ilman hintaa",eanUnpricedRatio+" %",eanUnpricedRatio>50?"yellow":"green",eanUnpriced+" EANia ilman Lidl-hintariviä")}
-      {statusCard("EAN-kuvakattavuus",eanImageCoverage+" %",eanImageCoverage<75?"yellow":"green",d.ean?d.ean.missing_image+" EANia ilman kuvaa":"Ei EAN-dataa")}
-      {statusCard("EAN-kategoriakattavuus",eanCategoryCoverage+" %",eanCategoryCoverage<75?"yellow":"green",d.ean?d.ean.missing_category+" EANia ilman kategoriaa":"Ei EAN-dataa")}
-      {statusCard("EAN-datan kokonaisterveys",eanDataHealth+"/4",eanHealthState,"Hinta · tuoreus · kuva · kategoria, tavoite ≥75 %")}
-      {statusCard("Datan kokonaisterveys",overallDataHealth+"/7",overallDataHealthState,"EAN 4/4 + aktiiviset hinnat + automaatiot + julkaisuvaihdot")}
+      {statusCard("Tuotetietoja päivitetty 24 h",d.ean?d.ean.seen_24h:0,d.ean&&d.ean.seen_24h>0?"green":"yellow","Tuotteet, joiden last_seen_at päivittyi 24 tunnissa. Mukana voi olla myös automaattisia päivityksiä.")}
+      {statusCard("Koko rekisterin tuotteita ilman Lidl-hintaa",eanUnpricedRatio+" %",eanUnpricedRatio>50?"yellow":"green",eanUnpriced+" EANia ilman Lidl-hintariviä")}
+      {statusCard("Kuinka monella tuotteella on kuva?",eanImageCoverage+" %",eanImageCoverage<75?"yellow":"green",d.ean?d.ean.missing_image+" EANia ilman kuvaa":"Ei EAN-dataa")}
+      {statusCard("Kuinka monella tuotteella on tuoteryhmä?",eanCategoryCoverage+" %",eanCategoryCoverage<75?"yellow":"green",d.ean?d.ean.missing_category+" EANia ilman kategoriaa":"Ei EAN-dataa")}
+      {statusCard("Tuotedatan laskennallinen pisteytys",eanDataHealth+"/4",eanHealthState,"Hinta · tuoreus · kuva · kategoria, tavoite ≥75 %")}
+      {statusCard("Seurannan laskennallinen pisteytys",overallDataHealth+"/7",overallDataHealthState,"EAN 4/4 + aktiiviset hinnat + automaatiot + julkaisuvaihdot")}
       {statusCard("Skannerin onnistumisaste 24 h",scannerTotal24h?scannerSuccessRate24h+" %":"—",scannerVolumeState,scannerTotal24h?scannerSuccess24h+" / "+scannerTotal24h+" kirjattua skannausta onnistui":"Ei kirjattuja skannauksia 24 h")}
     </section>
 
 
     </>}
-    {view==="data"&&<>
+    {view==="data"&&<><section style={{padding:18,background:"#eef6ff",border:"1px solid #cbdff5",borderRadius:14,marginBottom:18,fontSize:14,lineHeight:1.6}}><strong>Mitä tämä sivu kertoo?</strong><p style={{margin:"8px 0 0"}}>Vasemmalla näkyy automaattisten tarkistusten historia. Oikealla näkyy viivakoodilla tunnistettavien tuotteiden rekisteri, erilliset Lidl-hintatiedot ja skanneriin kirjautuneet tapahtumat. Tuoterekisteri ei ole kaupan varastosaldo.</p></section><section style={{padding:18,background:"#eef6ff",border:"1px solid #cbdff5",borderRadius:14,marginBottom:18,fontSize:14,lineHeight:1.6}}><strong>Mitä luvuista voi päätellä?</strong><p style={{margin:"8px 0 0"}}>Tuore hinta = järjestelmään tallennettu voimassaoloaika ei ole päättynyt; se ei tarkoita kassalla varmennettua hintaa. Kassalla varmennettu = hintarivin varmennusmerkintä on asetettu. Skanneriluvut kuvaavat vain kirjattuja tapahtumia. Jos tapahtumaloki ei ole käytettävissä, nollat eivät todista ettei skanneria käytetty. Lidl-hintojen osuus koko tuoterekisteristä ei mittaa Lidlin valikoiman kattavuutta.</p></section>
     <section style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:18}}>
       <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-        <h2 style={{marginTop:0}}>Julkaisujen ajohistoria</h2>
+        <h2 style={{marginTop:0}}>Tarkistusten tapahtumahistoria</h2>
         <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-          <thead><tr>{["Aika","Ketju","Lähde","Tulos","Määrä","Outcome"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+          <thead><tr>{["Aika","Ketju","Lähde","Tulos","Määrä","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
           <tbody>{d.runs.slice(0,80).map((r,i)=><tr key={i}>
-            <td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI")}</td><td style={{padding:8,fontWeight:700}}>{r.chain}</td><td style={{padding:8}}>{r.source}</td>
-            <td style={{padding:8}}>{r.ok?"🟢":"🔴"}</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"probe":r.offer_count}</td><td style={{padding:8}}>{r.outcome}</td>
+            <td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8,fontWeight:700}}>{r.chain}</td><td style={{padding:8}}>{explainSource(r.source)}</td>
+            <td style={{padding:8}}>{r.ok?"🟢":"🔴"}</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}</td>
           </tr>)}</tbody>
         </table></div>
       </article>
 
       <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-        <h2 style={{marginTop:0}}>EAN / skanneri</h2>
-        {d.ean?<>{metric("EAN-pankki",d.ean.total)}{metric("Kuvalliset",d.ean.with_image)}{metric("Luokitellut",d.ean.classified)}{metric("Nähty 24 h",d.ean.seen_24h)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Lidl-hinnat</div>{metric("Lidl EAN-hintarivejä",d.ean.lidl_price_rows)}{metric("EANeja hinnoilla",d.ean.lidl_price_eans)}{metric("Tuoreita hintoja",d.ean.lidl_fresh_prices)}{metric("Varmistettu kassalla",d.ean.lidl_verified_prices)}{metric("Vanhentuneita hintoja",d.ean.lidl_stale_prices)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Kattavuus</div>{coverage("Kuvat",d.ean.with_image,d.ean.total)}{coverage("Luokittelu",d.ean.classified,d.ean.total)}<div style={{marginTop:14}}>{metric("Kuva puuttuu",d.ean.missing_image)}{metric("Luokka puuttuu",d.ean.missing_category)}{metric("Ei nähty 30 vrk",d.ean.stale_30d)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Skanneri 24 h</div>{metric("Skannauksia",d.scan.events_24h)}{metric("Selvitettäviä",d.scan.unresolved_24h)}{metric("Tuntemattomia",d.scan.unknown_24h)}{metric("Ilman hintaa",d.scan.no_price_24h)}{metric("Väärä ketju",d.scan.chain_mismatch_24h)}{metric("Ongelmat yhteensä",scannerProblem24h)}{metric("Ongelmaosuus %",scannerProblemRate24h)}{metric("Onnistuneet",scannerSuccess24h)}{metric("Onnistumisaste %",scannerSuccessRate24h)}</div></>:<div>Ei EAN-dataa.</div>}
+        <h2 style={{marginTop:0}}>Tuoterekisteri ja viivakoodiskanneri</h2>
+        {d.ean?<>{metric("Tuotteita viivakoodirekisterissä",d.ean.total)}{metric("Kuvalliset",d.ean.with_image)}{metric("Tuoteryhmä tunnistettu",d.ean.classified)}{metric("Tuotetietoa päivitetty 24 h",d.ean.seen_24h)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Lidl-hinnat</div>{metric("Lidl EAN-hintarivejä",d.ean.lidl_price_rows)}{metric("EANeja hinnoilla",d.ean.lidl_price_eans)}{metric("Tuoreita hintoja",d.ean.lidl_fresh_prices)}{metric("Varmistettu kassalla",d.ean.lidl_verified_prices)}{metric("Vanhentuneita hintoja",d.ean.lidl_stale_prices)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Kattavuus</div>{coverage("Kuvat",d.ean.with_image,d.ean.total)}{coverage("Luokittelu",d.ean.classified,d.ean.total)}<div style={{marginTop:14}}>{metric("Kuva puuttuu",d.ean.missing_image)}{metric("Luokka puuttuu",d.ean.missing_category)}{metric("Tuotetietoa ei päivitetty 30 vrk",d.ean.stale_30d)}<div style={{marginTop:14,fontSize:12,color:"#667085"}}>Skanneri 24 h</div>{metric("Skannauksia",d.scan.events_24h)}{metric("Tuotetta ei saatu tunnistettua",d.scan.unresolved_24h)}{metric("Tuntematon viivakoodi",d.scan.unknown_24h)}{metric("Ilman hintaa",d.scan.no_price_24h)}{metric("Tuote yhdistyi väärään ketjuun",d.scan.chain_mismatch_24h)}{metric("Ongelmat yhteensä",scannerProblem24h)}{metric("Ongelmaosuus %",scannerProblemRate24h)}{metric("Onnistuneet",scannerSuccess24h)}{metric("Onnistumisaste %",scannerSuccessRate24h)}</div></>:<div>Ei EAN-dataa.</div>}
         <div style={{marginTop:18,padding:12,background:scannerVolumeState==="red"?"#fee4e2":scannerVolumeState==="yellow"?"#fff8e6":"#ecfdf3",borderRadius:10,fontSize:13}}><b>{dot(scannerVolumeState)} {scannerSummary}</b><div style={{marginTop:4,color:"#667085"}}>{scanRisk?"Selvitettäviä, tuntemattomia tai väärän ketjun tapauksia havaittu.":scanNoPriceRisk?"Tuotteita lisätty ilman hintaa.":scannerTotal24h===0?"Skanneriloki ei ole saanut tapahtumia viimeisen 24 tunnin aikana.":"Ei kirjattuja skanneriongelmia."}</div></div>
       </article>
     </section>
@@ -518,22 +518,22 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </>}
     {view==="publications"&&<>
     <section style={{marginTop:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Julkaisuvarasto / voimassaolo</h2>
+      <h2 style={{marginTop:0}}>Tallennetut tarjousjaksot ja niiden voimassaolo</h2>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <thead><tr>{["Ketju","Julkaisu","Tila","Voimassa","Määrä","Laatu","Parsittu"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <thead><tr>{["Ketju","Julkaisu","Tila","Voimassa","Määrä","Laatu","Käsitelty"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
         <tbody>{d.pubs.slice(0,60).map((p,i)=><tr key={i}>
           <td style={{padding:8,fontWeight:700}}>{p.chain}</td><td style={{padding:8}}>{p.publication_id}</td>
-          <td style={{padding:8}}>{p.approval_state==="approved"?"🟢":p.approval_state==="candidate"?"🟡":"⚪"} {p.approval_state}</td>
+          <td style={{padding:8}}>{p.approval_state==="approved"?"🟢":p.approval_state==="candidate"?"🟡":"⚪"} {explainApproval(p.approval_state)}</td>
           <td style={{padding:8}}>{p.valid_from} – {p.valid_until}</td><td style={{padding:8,fontWeight:800}}>{p.offer_count}</td>
           <td style={{padding:8}}>{p.missing_price?"🔴 "+p.missing_price+" hinta":p.missing_image||p.missing_category?"🟡 "+p.missing_image+" kuva / "+p.missing_category+" kat.":"🟢 OK"}</td>
-          <td style={{padding:8}}>{new Date(p.parsed_at).toLocaleString("fi-FI")}</td>
+          <td style={{padding:8}}>{new Date(p.parsed_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td>
         </tr>)}</tbody>
       </table></div>
     </section>
 
     </>}
     <section style={{marginTop:18,padding:16,background:"#eef6ff",borderRadius:12,fontSize:13,color:"#334155"}}>
-      <b>Erillinen sovellus.</b> Control Center lukee Neonista health-lokia, julkaisuvarastoa ja EAN-pankkia. Se ei muuta Ziiplyn asiakassovelluksen käyttöliittymää eikä hyväksy julkaisuja automaattisesti.
+      <b>Erillinen sovellus.</b> Control Center näyttää tietokantaan kirjatut tarkistukset, tarjousjaksot ja viivakoodilla tunnistettavat tuotteet. Se ei muuta Ziiplyn asiakassovelluksen käyttöliittymää eikä hyväksy julkaisuja automaattisesti.
     </section>
   </main>
 }
@@ -541,3 +541,6 @@ function statusCard(label:string,value:number|string,state:string,note:string){r
 function coverage(label:string,value:number,total:number){const pct=total?Math.round(value/total*1000)/10:0;return <div style={{marginTop:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12}}><span>{label}</span><b>{pct.toLocaleString("fi-FI")} %</b></div><div style={{height:7,background:"#edf0f2",borderRadius:99,overflow:"hidden",marginTop:5}}><div style={{height:"100%",width:`${Math.min(100,pct)}%`,background:pct>=95?"#12b76a":pct>=75?"#f79009":"#f04438"}}/></div></div>}
 function metricCard(label:string,value:number,state:string){return <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:18}}><div style={{fontSize:13,color:"#667085"}}>{dot(state)} {label}</div><div style={{fontSize:30,fontWeight:900,marginTop:8}}>{value.toLocaleString("fi-FI")}</div></article>}
 function metric(label:string,value:number){return <div style={{display:"flex",justifyContent:"space-between",padding:"11px 0",borderBottom:"1px solid #edf0f2"}}><span>{label}</span><b>{value.toLocaleString("fi-FI")}</b></div>}
+function explainApproval(value:string){return ({approved:"Hyväksytty",candidate:"Odottaa hyväksyntää","image-verified":"Kuvasta tarkistettu aineisto"} as Record<string,string>)[value]??"Muu tila: "+value}
+function explainSource(value:string){return ({"s-prisma-hyvinkaa":"Prisma Hyvinkään tarjoushaku","k-citymarket-cache":"Citymarketin tarjousvälimuisti","k-supermarket-jokela":"K-Supermarket Jokelan tarjoushaku","k-market-hakalantori":"K-Market Hakalantorin tarjoushaku","eurospar-validated-feed":"Eurosparin validoitu tarjousaineisto","official-lidl-combined":"Lidlin virallisten tarjousjaksojen käsittely","s-kaupat-protocol":"S-kauppojen rajapinnan yhteystarkistus","future-publication-discovery":"Tulevan tarjouslehden etsintä"} as Record<string,string>)[value]??value}
+function explainOutcome(value:string){return ({"active-cache-ok":"Nykyisen tarjousvälimuistin tarkistus onnistui","parser-health-ok":"Tarjousaineiston käsittely onnistui","validated-feed-ok":"Validoidun tarjousaineiston tarkistus onnistui","candidate-staging-completed":"Tarjousjaksojen käsittely valmistui","protocol-verified":"Rajapinnan yhteystarkistus onnistui","future-discovery-http-error":"Tulevan lehden etsintä epäonnistui verkkopyynnön virheeseen","future-publication-not-yet-found":"Tulevaa lehteä ei vielä löytynyt","future-publication-found":"Tuleva tarjouslehti löytyi"} as Record<string,string>)[value]??"Tekninen tulos: "+value}
