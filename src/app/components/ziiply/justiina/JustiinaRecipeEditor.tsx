@@ -62,19 +62,20 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };
-  return <section aria-label="Justiinan resepti" className="mt-2 w-full min-w-0 shrink-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
+  return <><style>{`@keyframes recipe-switch-nudge{0%,72%,100%{transform:translate(0,-50%)}80%{transform:translate(-4px,-50%)}88%{transform:translate(0,-50%)}}`}</style><section aria-label="Justiinan resepti" className="mt-2 w-full min-w-0 shrink-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
     {!draft?<div className="space-y-2"><p className="font-black">Reseptistä ostoksille</p>
       <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
       <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
       <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
     </div>:<div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2">
       <div className="min-w-0 space-y-2">
+        <span className="block text-center text-[10px] font-semibold leading-tight text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span>
         <strong className="block min-w-0 break-words text-center text-base leading-tight">{draft.title}</strong>
         <div className="grid min-w-0 grid-cols-2 gap-1">
           <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-1 text-[10px] font-bold text-white disabled:opacity-40">Hae</button>
           <label className="flex h-8 w-full min-w-0 items-center justify-center gap-0.5 rounded-md border border-[#b89959] bg-[#fffdf5] px-0.5 text-[10px]"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-8 min-w-0 bg-transparent text-center text-[10px] outline-none"/>hlö</label>
           <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[10px] font-bold text-[#27412a]">{editing?"Sulje":"Muokkaa"}</button>
-          <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[10px] font-bold text-[#27412a]">Vaihda</button>
+          <div className="relative min-w-0"><button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-8 w-full min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[10px] font-bold text-[#27412a]">Vaihda</button><span aria-hidden="true" className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 text-[14px] font-black text-[#174c3a] motion-safe:animate-[recipe-switch-nudge_2.8s_ease-in-out_infinite]">←</span></div>
         </div>
       </div>
       <div className="min-w-0 space-y-1 border-l border-[#d0aa58] pl-2 text-xs leading-relaxed">{scaled.filter(item=>!item.atHome).map((item,index)=><div key={`${item.name}-${index}`} className="break-words">{[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")}</div>)}</div>
@@ -108,5 +109,5 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       </div>
     </div>}
     </div>, document.body)}
-  </section>;
+  </section></>;
 }
