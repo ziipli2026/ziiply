@@ -44,14 +44,24 @@ export default function ZiiplyMobileAssistantPanel({
   onClose,
   onSearchIngredients,
 }: ZiiplyMobileAssistantPanelProps) {
+  const headerRef=React.useRef<HTMLDivElement|null>(null);
+  const [headerHeight,setHeaderHeight]=React.useState(82);
+  React.useLayoutEffect(()=>{
+    const header=headerRef.current;
+    if(!header)return;
+    const measure=()=>setHeaderHeight(header.getBoundingClientRect().height);
+    measure();
+    const observer=new ResizeObserver(measure);observer.observe(header);
+    return()=>observer.disconnect();
+  },[activeAssistant]);
   if (!activeAssistant) return null;
 
   const content = assistantContent[activeAssistant];
 
   return (
     <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+84px)] top-[calc(env(safe-area-inset-top)+96px)] z-[70] flex items-start justify-center px-3 sm:hidden">
-      <section className="relative flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[1.8rem] border-[3px] border-[#b99d62] bg-[#fff7df] shadow-[0_22px_60px_rgba(7,47,37,0.28)]">
-        <div className="flex shrink-0 items-center gap-4 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] px-4 py-3">
+      <section style={{"--recipe-panel-header-height":`${headerHeight}px`} as React.CSSProperties} className="relative flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[1.8rem] border-[3px] border-[#b99d62] bg-[#fff7df] shadow-[0_22px_60px_rgba(7,47,37,0.28)]">
+        <div ref={headerRef} className="flex shrink-0 items-center gap-4 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] px-4 py-3">
           <div className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-full border-[3px] border-[#f8e8bf] bg-[#314633]">
             <img
               src={content.imageSrc}
