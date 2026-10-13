@@ -75,13 +75,13 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       </div>
       <p className="text-xs">{scaled.filter(item=>!item.atHome).map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join(" · ")}</p>
       <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
-        <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false);setInstructionsOpen(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{editing?"Sulje muokkaus":"✎ Muokkaa reseptiä"}</button>
+        <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{editing?"Sulje muokkaus":"✎ Muokkaa reseptiä"}</button>
         <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">↻ Vaihda resepti</button>
       </div>
     </div>}
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {hydrated && typeof document !== "undefined" && (importing||editing) && createPortal(<div className="fixed left-1/2 top-3 z-[9999] w-[min(650px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto -translate-x-1/2 rounded-2xl border-2 border-[#b89959] bg-[#fffdf5] p-3 text-[#27412a] shadow-2xl">
-      <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-sm">{editing?"Muokkaa reseptiä":importing?"Vaihda resepti":"Valmistusohje"}</strong><button type="button" onClick={()=>{setEditing(false);setImporting(false);setInstructionsOpen(false)}} className="rounded-lg border border-[#b89959] px-3 py-1 font-bold">Sulje ×</button></div>
+      <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-sm">{editing?"Muokkaa reseptiä":importing?"Vaihda resepti":"Valmistusohje"}</strong><button type="button" onClick={()=>{setEditing(false);setImporting(false)}} className="rounded-lg border border-[#b89959] px-3 py-1 font-bold">Sulje ×</button></div>
     {importing&&<div className="space-y-2"><textarea aria-label="Reseptiteksti" rows={3} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
     {editing&&draft&&<div className="grid grid-cols-1 gap-2 border-t pt-2">
       <label className="block text-xs">Reseptin nimi<input value={draft.title} onChange={event=>setDraft({...draft,title:event.target.value})} className="w-full rounded border p-1"/></label>
