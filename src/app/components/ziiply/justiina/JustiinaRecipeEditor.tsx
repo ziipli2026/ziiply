@@ -78,9 +78,11 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       </div>
     </div>}
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
-    {importing&&<div className="mt-3 space-y-2"><textarea aria-label="Reseptiteksti" rows={4} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
-    {instructionsOpen&&draft&&<p className="mt-3 whitespace-pre-wrap text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
-    {editing&&draft&&<div className="mt-3 max-h-[35dvh] space-y-2 overflow-y-auto overscroll-contain border-t pt-2">
+    {(importing||instructionsOpen||editing)&&<div className="fixed inset-x-3 top-3 z-[100] mx-auto w-[min(900px,calc(100vw-24px))] rounded-2xl border-2 border-[#b89959] bg-[#fffdf5] p-3 text-[#27412a] shadow-2xl">
+      <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-sm">{editing?"Muokkaa reseptiä":importing?"Vaihda resepti":"Valmistusohje"}</strong><button type="button" onClick={()=>{setEditing(false);setImporting(false);setInstructionsOpen(false)}} className="rounded-lg border border-[#b89959] px-3 py-1 font-bold">Sulje ×</button></div>
+    {importing&&<div className="space-y-2"><textarea aria-label="Reseptiteksti" rows={3} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
+    {instructionsOpen&&draft&&<p className="whitespace-pre-wrap text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
+    {editing&&draft&&<div className="grid grid-cols-1 gap-2 border-t pt-2 sm:grid-cols-2">
       <label className="block text-xs">Reseptin nimi<input value={draft.title} onChange={event=>setDraft({...draft,title:event.target.value})} className="w-full rounded border p-1"/></label>
       <label className="flex items-center gap-2 text-xs">Alkuperäinen annosmäärä<input aria-label="Alkuperäinen annosmäärä" type="number" min="1" value={original} onChange={event=>setOriginal(event.target.value)} className="w-16 rounded border p-1"/></label>
       {ingredients.map((item,index)=><div key={item.id} className="rounded-lg border p-2">
@@ -89,6 +91,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       </div>)}
       <button type="button" onClick={()=>setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now()),name:"",amount:null,unit:null,uncertain:true,atHome:false}]})} className="rounded border px-2 py-1 text-xs">+ Lisää aines</button>
       <textarea aria-label="Valmistusohje" rows={3} value={draft.instructions} onChange={event=>setDraft({...draft,instructions:event.target.value})} className="w-full rounded border p-2"/>
+    </div>}
     </div>}
   </section>;
 }
