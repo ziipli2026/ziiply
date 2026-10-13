@@ -1143,16 +1143,16 @@ export default function DesktopPreviewPage() {
   async function searchGostaHomepageOffers() {
     const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
     if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
-    const allKnownStores=[...stores,...lidlStores,...sparStores,...Object.values(allStoreSelections.hyper),...Object.values(allStoreSelections.local)] as any[];
+    const allKnownStores=[...stores.filter(Boolean),...lidlStores,...sparStores,...Object.values(allStoreSelections.hyper),...Object.values(allStoreSelections.local)] as any[];
     const uniqueStores=new Map<string,any>();
     for(const store of allKnownStores){if(!store||!storeKind(store))continue;const key=String(store.externalId||store.id||store.name||"");if(key&&!uniqueStores.has(key))uniqueStores.set(key,store);}
     const grouped=new Map<string,any[]>();
     for(const store of uniqueStores.values()){const kind=storeKind(store);const group=kind==="sHyper"||kind==="kHyper"?"marketit":kind==="sLocal"||kind==="kLocal"?"lähikaupat":kind;grouped.set(group,[...(grouped.get(group)||[]),store]);}
-    const stores=[...grouped.values()].flatMap(group=>byDistance(group).slice(0,3));
-    if(!stores.length){setGostaHomeResults([]);setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
+    const nearbyOfferStores=[...grouped.values()].flatMap(group=>byDistance(group).slice(0,3));
+    if(!nearbyOfferStores.length){setGostaHomeResults([]);setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
     const request=++gostaHomeRequestId.current;
     setGostaHomeLoading(true);setGostaHomeHasSearched(true);setGostaHomeResults([]);setGostaHomeError("");
-    const batches=await Promise.allSettled(stores.map(async store=>{
+    const batches=await Promise.allSettled(nearbyOfferStores.map(async store=>{
       const kind=storeKind(store);
       const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
       const results=await warmOffers(chain,store);
