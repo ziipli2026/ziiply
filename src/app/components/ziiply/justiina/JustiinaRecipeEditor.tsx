@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { parseRecipeText, scaleIngredients, classifyRecipeIngredient, recipeProductSearchTerm, type RecipeDraft } from "./recipeCore";
 import { correctSearchQuery } from "../search/searchIntentAI";
@@ -7,6 +7,8 @@ import { correctSearchQuery } from "../search/searchIntentAI";
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
 export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngredients?:(terms:string[],items:RecipeDraft["ingredients"])=>void}){
+  const recipeSlotRef=useRef<HTMLDivElement|null>(null);
+  const [clearedHeight,setClearedHeight]=useState<number|null>(null);
   const [draft,setDraft]=useState<RecipeDraft|null>(null);
   const [text,setText]=useState("");
   const [original,setOriginal]=useState("");
@@ -25,6 +27,8 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       const source=String(saved.text||"").replace(/\\n/g,"\n");
       setDraft(String(saved.draft.title||"").includes("\\n")?parseRecipeText(source):saved.draft);setText(source);
       setOriginal(String(saved.original||saved.draft.servings||""));setTarget(String(saved.target||saved.draft.servings||""));
+    }else if(saved?.cleared){
+      setClearedHeight(Number(saved.height)||0);
     }else{
       // Always open the search card with a real recipe, prioritizing the user's notebook.
       const recipes=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");
@@ -40,19 +44,21 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     setDraft(parsed);setText(EXAMPLE);setOriginal(String(parsed.servings||4));setTarget(String(parsed.servings||4));
   }setHydrated(true)},[]);
   const persist=(next:RecipeDraft|null=draft,source=text,base=original,people=target)=>{
-    try{sessionStorage.setItem(STORAGE,JSON.stringify({draft:next,text:source,original:base,target:people}))}catch{}
+    try{sessionStorage.setItem(STORAGE,JSON.stringify({draft:next,text:source,original:base,target:people,cleared:next===null&&clearedHeight!==null,height:clearedHeight}))}catch{}
   };
-  useEffect(()=>{if(hydrated)persist()},[hydrated,draft,text,original,target]);
+  useEffect(()=>{if(hydrated)persist()},[hydrated,draft,text,original,target,clearedHeight]);
   useEffect(()=>{const onSelect=(event:Event)=>{const detail=(event as CustomEvent<{id?:string;title?:string;ingredients?:string;instructions?:string}>).detail;if(!detail)return;const source=[detail.title||"Resepti","4 annosta","Ainekset:",detail.ingredients||"","Valmistus:",detail.instructions||""].join("\n");load(source);setSavedRecipeId(detail.id||null)};window.addEventListener("ziiply-vihkonen-recipe-select",onSelect);return()=>window.removeEventListener("ziiply-vihkonen-recipe-select",onSelect)},[]);
   const clearRecipe=()=>{
+    const height=recipeSlotRef.current?.getBoundingClientRect().height||0;
+    setClearedHeight(height);
     setDraft(null);setText("");setOriginal("");setTarget("");setSavedRecipeId(null);
     setEditing(false);setImporting(false);setNotice("");
-    try{sessionStorage.removeItem(STORAGE);sessionStorage.removeItem("ziiply-justiina-active-ingredients-v1")}catch{}
+    try{sessionStorage.setItem(STORAGE,JSON.stringify({draft:null,text:"",original:"",target:"",cleared:true,height}));sessionStorage.removeItem("ziiply-justiina-active-ingredients-v1")}catch{}
   };
   const saveToNotebook=(asNew:boolean)=>{if(!draft)return;const key="ziiply-desktop-vihkonen-recipes-v1";try{const existing=JSON.parse(localStorage.getItem(key)||"[]");const recipes=Array.isArray(existing)?existing:[];const id=!asNew&&savedRecipeId?savedRecipeId:String(Date.now());const recipe={id,title:draft.title,ingredients:draft.ingredients.map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join("\n"),instructions:draft.instructions,createdAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify([recipe,...recipes.filter((item:{id:string})=>item.id!==id)]));setSavedRecipeId(id);setNotice(asNew?"Tallennettu uutena Vihkoseen.":"Resepti tallennettu Vihkoseen.");window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));setEditing(false)}catch{setNotice("Reseptin tallennus epäonnistui.")}};
   const load=(source:string)=>{
     const next=parseRecipeText(source);const people=next.servings?String(next.servings):"";
-    setSavedRecipeId(null);setText(source);setDraft(next);setOriginal(people);setTarget(people);setEditing(false);setImporting(false);
+    setClearedHeight(null);setSavedRecipeId(null);setText(source);setDraft(next);setOriginal(people);setTarget(people);setEditing(false);setImporting(false);
     setNotice(next.ingredients.length?"":"Ainesrivejä ei löytynyt. Lisää Ainekset:-otsikko tai muokkaa aineksia.");
     persist(next,source,people,people);return next;
   };
@@ -86,12 +92,8 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };
-  return <><style>{`@keyframes recipe-switch-nudge{0%,58%,100%{transform:translateX(0)}72%{transform:translateX(-12px)}86%{transform:translateX(0)}}`}</style><div className="relative mt-4 w-full min-w-0 shrink-0"><span className="absolute bottom-full left-2 mb-0.5 text-[10px] font-semibold leading-tight text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span>{draft&&<button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista resepti hakunäkymästä (ei poista Vihkosesta)" className="absolute bottom-full right-0 mb-0.5 text-[10px] font-bold text-[#923c2f]">Tyhjennä ×</button>}<section aria-label="Justiinan resepti" onClickCapture={dismissSwitchHint} onChangeCapture={dismissSwitchHint} className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
-    {!draft?<div className="space-y-2"><p className="font-black">Reseptistä ostoksille</p>
-      <button type="button" disabled={!onSearchIngredients} onClick={()=>{const next=load(EXAMPLE);startSearch(next,"4","4")}} className="w-full rounded-xl bg-[#174c3a] px-3 py-3 font-black text-white disabled:opacity-40">Uunilohi · 4 henkilölle — Hae ainekset</button>
-      <button type="button" onClick={()=>{load(EXAMPLE)}} className="mr-3 text-xs font-bold underline">Katso tai muokkaa uunilohta</button>
-      <button type="button" onClick={()=>setImporting(value=>!value)} className="text-xs font-bold underline">Liitä oma resepti</button>
-    </div>:<div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2">
+  return <><style>{`@keyframes recipe-switch-nudge{0%,58%,100%{transform:translateX(0)}72%{transform:translateX(-12px)}86%{transform:translateX(0)}}`}</style><div ref={recipeSlotRef} style={!draft&&clearedHeight!==null?{height:clearedHeight,visibility:"hidden"}:undefined} className="relative mt-4 w-full min-w-0 shrink-0"><span className="absolute bottom-full left-2 mb-0.5 text-[10px] font-semibold leading-tight text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span>{draft&&<button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista resepti hakunäkymästä (ei poista Vihkosesta)" className="absolute bottom-full right-0 mb-0.5 text-[10px] font-bold text-[#923c2f]">Tyhjennä ×</button>}<section aria-label="Justiinan resepti" onClickCapture={dismissSwitchHint} onChangeCapture={dismissSwitchHint} className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
+    {draft&&<div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2">
       <div className="min-w-0 space-y-2">
         <strong className="block min-w-0 break-words text-center text-base leading-tight">{draft.title}</strong>
         <div className="grid min-w-0 grid-cols-2 gap-1">
