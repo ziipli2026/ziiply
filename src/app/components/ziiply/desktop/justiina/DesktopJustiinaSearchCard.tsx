@@ -28,16 +28,18 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
     <button type="button" onClick={onDelayChange} title="Vaihda hakutahtia" aria-label={`Hakutahti: ${delay===2?"Normaali, 2 sekuntia":delay===1?"Nopea, 1 sekunti":"Heti, 0 sekuntia"}. Vaihda hakutahtia.`} className="absolute left-12 top-0 flex h-9 items-center gap-1 rounded-full border-2 border-[#b89959] bg-[#fff8dd] px-2 text-[11px] font-black text-[#174c3a] shadow-sm hover:bg-[#f7e8b9]">⏱ <span>{delay===2?"2 s":delay===1?"1 s":"0 s"}</span></button>
   </div>
   <div className="mt-2 flex min-h-0 flex-col">
-    <div data-justiina-search-grid className="relative mt-2 grid grid-cols-2 items-center gap-x-3 gap-y-1">
-      <div role="status" aria-live="polite" className="col-start-1 row-start-1 min-w-0 px-1 text-center text-[12px] font-bold text-[#765f3f]">{!loading && results.length===0 ? (message||"Kirjoita tuote, tuoteryhmä tai ostoslista.") : ""}</div>
-      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 col-start-1 row-start-2 h-[54px] min-w-0 ${listExpanded?"col-span-2":"col-span-1"}`}>
+    <div data-justiina-search-grid className="relative mt-2 grid grid-cols-2 items-center gap-x-3">
+      <div className="relative col-start-1 row-start-1 flex h-full min-h-[126px] min-w-0 items-center">
+        <div role="status" aria-live="polite" className="absolute bottom-[calc(50%+36px)] left-0 right-0 px-1 text-center text-[12px] font-bold leading-tight text-[#765f3f]">{!loading && results.length===0 ? (message||"Kirjoita tuote, tuoteryhmä tai ostoslista.") : ""}</div>
+      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 h-[54px] min-w-0 ${listExpanded?"col-span-2":"col-span-1"}`}>
         <div className="relative h-[54px]">
           <span ref={measureRef} aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-0 whitespace-pre font-serif text-[17px] font-black">{query||""}</span>
-          <input ref={inputRef} autoFocus type="text" value={query.replace(/\r?\n/g," ")} onChange={e=>onQueryChange(e.target.value)} placeholder="Kirjoita tuote tai ostoslista" aria-label="Hae tuotteita" className="block h-[54px] w-full min-w-0 rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-4 pr-[96px] text-center font-serif text-[17px] font-black text-[#6f6657] outline-none placeholder:text-[15px] placeholder:text-[#8b806e]"/>
+          <input ref={inputRef} autoFocus type="text" value={query.replace(/\r?\n/g," ")} onChange={e=>onQueryChange(e.target.value)} placeholder="Kirjoita tähän…" aria-label="Hae tuotteita" className="block h-[54px] w-full min-w-0 rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-4 pr-[96px] text-center font-serif text-[17px] font-black text-[#6f6657] outline-none placeholder:text-[15px] placeholder:text-[#8b806e]"/>
           {query.trim()&&<><button type="button" onClick={()=>{onQueryChange("");setListExpanded(false);inputRef.current?.focus()}} aria-label="Tyhjennä hakukenttä" className="absolute right-[51px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#d0aa4f] bg-[#fff1c9]">🧽</button><button type="submit" aria-label="Hae kirjoitetut tuotteet" className="absolute right-[7px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#477350] bg-[#e2edcf]">🧺</button></>}
         </div>
       </form>
-      <div className="col-start-2 row-start-1 row-span-2 min-w-0 self-center"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
+      </div>
+      <div className="col-start-2 row-start-1 min-w-0 self-center"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
     </div>
     {loading ? <div role="status" aria-live="polite" aria-label="Justiina hakee tuotteita" className="relative mt-2 h-[38px] overflow-hidden rounded-xl border border-[#d0aa58] bg-[#fff8dd]">
       <style>{`@keyframes justiina-cart-drive{0%{left:-58px}100%{left:calc(100% + 8px)}}@keyframes justiina-cart-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}@media(prefers-reduced-motion:reduce){.justiina-cart-drive,.justiina-cart-bob{animation:none!important}.justiina-cart-drive{left:12px!important}}`}</style>
