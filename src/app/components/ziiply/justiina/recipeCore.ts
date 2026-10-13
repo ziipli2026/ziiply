@@ -18,7 +18,7 @@ export function parseRecipeText(text: string): RecipeDraft {
     // Recognize Finnish fractional recipe quantities before the ordinary numeric parser.
     // Examples: 1/2 dl, 1 1/2 dl, 5–7 kpl and 10 maustepippuria.
     const fraction = clean.match(/^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)\s+(kg|g|l|dl|cl|ml|rkl|tl|kpl|pkt|prk|pss)\s+(.+)$/i);
-    const range = !fraction && clean.match(/^(\d+(?:[,.]\d+)?)\s*[-–]\s*(\d+(?:[,.]\d+)?)\s+(?:(kg|g|l|dl|cl|ml|rkl|tl|kpl|pkt|prk|pss)\s+)?(.+)$/i);
+    const range = fraction ? null : clean.match(/^(\d+(?:[,.]\d+)?)\s*[-–]\s*(\d+(?:[,.]\d+)?)\s+(?:(kg|g|l|dl|cl|ml|rkl|tl|kpl|pkt|prk|pss)\s+)?(.+)$/i);
     const m = !fraction && !range ? clean.match(amountPattern) : null;
     const amount = fraction
       ? Number(fraction[1] || 0) + Number(fraction[2]) / Number(fraction[3])
