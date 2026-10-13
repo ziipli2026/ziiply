@@ -109,6 +109,7 @@ export function arvoPurchaseSuggestions(purchases: ArvoPurchase[], today = new D
 }
 export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const [activeSection,setActiveSection]=useState<string|null>(null);
+  const [reminderPage,setReminderPage]=useState<"times"|"suggestions"|null>(null);
   const [p, setP] = useState<ArvoPreferences>(DEFAULT_ARVO_PREFERENCES);
   const [loaded, setLoaded] = useState(false);
   const [purchases,setPurchases]=useState<ArvoPurchase[]>([]);
@@ -135,7 +136,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Muistutukset eivät käytössä"]
     ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-4 py-3 text-left shadow-sm hover:bg-white" onClick={()=>{setHouseholdPage(null);setActiveSection(id)}}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
     {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
-      <div className="flex shrink-0 items-center gap-3 border-b bg-[#f8f5ed] px-3 py-3"><button type="button" className="rounded-lg border px-3 py-2 font-bold" onClick={()=>{setActiveSection(null)}}>← Takaisin</button><strong>{({household:"Kotitalous ja reseptit",energy:"Henkilökohtainen dieetti",health:"Terveystiedot",purchases:"Ostohistoria ja kulutus",reminders:"Ruokailuajat ja muistutukset"} as Record<string,string>)[activeSection]}</strong></div>
+      <div className="flex shrink-0 items-center gap-3 border-b bg-[#f8f5ed] px-3 py-3"><button type="button" className="rounded-lg border px-3 py-2 font-bold" onClick={()=>{if(activeSection==="reminders"&&reminderPage)setReminderPage(null);else setActiveSection(null)}}>← Takaisin</button><strong>{({household:"Kotitalous ja reseptit",energy:"Henkilökohtainen dieetti",health:"Terveystiedot",purchases:"Ostohistoria ja kulutus",reminders:"Ruokailuajat ja muistutukset"} as Record<string,string>)[activeSection]}</strong></div>
       <div className="min-h-0 flex-1 overflow-hidden p-2">
 
       {activeSection==="household"&&<section className="h-full rounded-xl bg-white/75 px-3 py-2">
@@ -189,20 +190,24 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       </>}
     </section>
       </>)}
-      {activeSection==="reminders"&&(<>
-    <section className="rounded-xl bg-white/75 p-4">
-      <h3 className="text-xl font-bold">Ruokailuajat ja muistutukset</h3>
-      <p className="mb-3 text-sm">Valitse haluamasi ruokailuajat. Ajat tallentuvat asetuksiin; selainilmoituksia ei vielä lähetetä.</p>
-      <div className="grid gap-3 sm:grid-cols-2">{mealLabels.map(({key,label})=><label key={key} className="text-sm">{label}<input type="time" className="block w-full rounded border p-2" value={p.mealTimes[key]||""} onChange={e=>update("mealTimes",{...p.mealTimes,[key]:e.target.value})}/></label>)}</div>
-      <label className="mt-4 block"><input type="checkbox" checked={p.mealRemindersEnabled} onChange={e=>update("mealRemindersEnabled",e.target.checked)} /> Haluan ruokailumuistutukset, kun toiminto on käytettävissä</label>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2"><label className="text-sm">Hiljainen aika alkaa<input type="time" className="block w-full rounded border p-2" value={p.quietHoursStart} onChange={e=>update("quietHoursStart",e.target.value)}/></label><label className="text-sm">Hiljainen aika päättyy<input type="time" className="block w-full rounded border p-2" value={p.quietHoursEnd} onChange={e=>update("quietHoursEnd",e.target.value)}/></label></div>
-      <h4 className="mt-5 font-bold">Viikonloput, juhlat ja kalenteri</h4>
-      <label className="mt-2 block"><input type="checkbox" checked={p.weekendSuggestions} onChange={e=>update("weekendSuggestions",e.target.checked)}/> Ehdota viikonloppuruokia perjantaisin, lauantaisin ja sunnuntaisin</label>
-      <label className="mt-2 block"><input type="checkbox" checked={p.celebrationSuggestions} onChange={e=>update("celebrationSuggestions",e.target.checked)}/> Ehdota ruokia juhliin ja merkkipäiviin</label>
-      <label className="mt-2 block"><input type="checkbox" checked={p.calendarSuggestions} onChange={e=>update("calendarSuggestions",e.target.checked)}/> Salli kalenteriin liittyvät ehdotukset, kun yhteys on toteutettu</label>
-      <p className="mt-3 text-xs">Kalenteria ei lueta, eikä ilmoitus- tai sijaintilupia pyydetä. Taustamuistutukset ja kaupan lähestymisen tunnistus vaativat erilliset integraatiot.</p>
-    </section>
-      </>)}
+      {activeSection==="reminders"&&<section className="h-full rounded-xl bg-white/75 p-3">
+        {!reminderPage&&<div className="grid gap-2">
+          <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setReminderPage("times")}><span><b className="block">Ruokailuajat ja hiljainen aika</b><small>Neljä ruokailuaikaa ja hiljainen aika</small></span>›</button>
+          <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setReminderPage("suggestions")}><span><b className="block">Viikonloput, juhlat ja kalenteri</b><small>Valitse haluamasi ehdotukset</small></span>›</button>
+          <p className="text-xs">Valinnat tallentuvat, mutta automaattiset ilmoitukset ja kalenteriyhteys eivät vielä ole käytössä.</p>
+        </div>}
+        {reminderPage==="times"&&<div className="text-sm"><h3 className="mb-2 font-bold">Ruokailuajat</h3>      <div className="grid gap-2 grid-cols-2">{mealLabels.map(({key,label})=><label key={key} className="text-sm">{label}<input type="time" className="block w-full rounded border p-2" value={p.mealTimes[key]||""} onChange={e=>update("mealTimes",{...p.mealTimes,[key]:e.target.value})}/></label>)}</div>
+      <label className="mt-2 block"><input type="checkbox" checked={p.mealRemindersEnabled} onChange={e=>update("mealRemindersEnabled",e.target.checked)} /> Haluan ruokailumuistutukset, kun toiminto on käytettävissä</label>
+      <div className="mt-2 grid gap-2 grid-cols-2"><label className="text-sm">Hiljainen aika alkaa<input type="time" className="block w-full rounded border p-2" value={p.quietHoursStart} onChange={e=>update("quietHoursStart",e.target.value)}/></label><label className="text-sm">Hiljainen aika päättyy<input type="time" className="block w-full rounded border p-2" value={p.quietHoursEnd} onChange={e=>update("quietHoursEnd",e.target.value)}/></label></div>
+<p className="mt-2 text-xs">Ajat tallennetaan. Selainilmoituksia ei vielä lähetetä.</p></div>}
+        {reminderPage==="suggestions"&&<div className="text-sm">      <h4 className="mb-2 font-bold">Viikonloput, juhlat ja kalenteri</h4>
+      <label className="mt-2 flex items-start gap-2"><input type="checkbox" checked={p.weekendSuggestions} onChange={e=>update("weekendSuggestions",e.target.checked)}/> Ehdota viikonloppuruokia perjantaisin, lauantaisin ja sunnuntaisin</label>
+      <label className="mt-2 flex items-start gap-2"><input type="checkbox" checked={p.celebrationSuggestions} onChange={e=>update("celebrationSuggestions",e.target.checked)}/> Ehdota ruokia juhliin ja merkkipäiviin</label>
+      <label className="mt-2 flex items-start gap-2"><input type="checkbox" checked={p.calendarSuggestions} onChange={e=>update("calendarSuggestions",e.target.checked)}/> Salli kalenteriin liittyvät ehdotukset, kun yhteys on toteutettu</label>
+      <p className="mt-2 text-xs">Kalenteria ei lueta, eikä ilmoitus- tai sijaintilupia pyydetä. Taustamuistutukset ja kaupan lähestymisen tunnistus vaativat erilliset integraatiot.</p>
+</div>}
+      </section>}
+
       </div>
     </div>}
   </div>;
