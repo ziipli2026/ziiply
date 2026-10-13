@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { parseRecipeText, scaleIngredients, classifyRecipeIngredient, type RecipeDraft } from "./recipeCore";
+import { parseRecipeText, scaleIngredients, classifyRecipeIngredient, recipeProductSearchTerm, type RecipeDraft } from "./recipeCore";
 import { correctSearchQuery } from "../search/searchIntentAI";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
@@ -45,10 +45,12 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
     // Missing or ambiguous quantities do not block product discovery.
     // Keep original recipe quantities available for later confirmation.
-    const classified=items.map(item=>classifyRecipeIngredient(item.name));
+    const searchable=items.map(item=>({item,term:recipeProductSearchTerm(item.name)})).filter((entry):entry is {item:typeof items[number];term:string}=>Boolean(entry.term));
+    if(!searchable.length){setNotice("Reseptissä ei ole ostettavia aineksia.");return;}
+    const classified=searchable.map(({term})=>classifyRecipeIngredient(term));
     persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
-    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items}))}catch{}
-    onSearchIngredients(classified.map((group,index)=>correctSearchQuery(group?.searchTerm||items[index].name)),items);
+    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:searchable.map(entry=>entry.item)}))}catch{}
+    onSearchIngredients(classified.map((group,index)=>correctSearchQuery(group?.searchTerm||searchable[index].term)),searchable.map(entry=>entry.item));
   };
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
