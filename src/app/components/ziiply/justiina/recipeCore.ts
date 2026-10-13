@@ -51,3 +51,14 @@ export function suggestIngredientPurchase(ingredient: RecipeIngredient, product:
   if (!quantity) return null;
   return { ingredientId: ingredient.id, needed: ingredient.amount, neededUnit: ingredient.unit, productName: product.name ?? "", suggestedCount: quantity.count, purchased: quantity.purchased, surplus: quantity.surplus, unit: quantity.unit };
 }
+
+/** Read the recipe requirement for the current search step; do not apply it to unrelated searches. */
+export function recipeIngredientForSearch(items: RecipeIngredient[], searchTerm: string, step: number): RecipeIngredient | null {
+  const normalize = (value: string) => value.toLocaleLowerCase("fi").trim().replace(/\s+/g, " ");
+  if (!Number.isInteger(step) || step < 0 || step >= items.length) return null;
+  const ingredient = items[step];
+  if (!ingredient || ingredient.atHome || !ingredient.name.trim()) return null;
+  const expected = normalize(ingredient.name);
+  const actual = normalize(searchTerm);
+  return actual === expected ? ingredient : null;
+}
