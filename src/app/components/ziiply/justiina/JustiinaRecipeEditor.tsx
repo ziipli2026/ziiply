@@ -14,7 +14,6 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const [editing,setEditing]=useState(false);
   const [importing,setImporting]=useState(false);
   const [savedRecipeId,setSavedRecipeId]=useState<string|null>(null);
-  const [instructionsOpen,setInstructionsOpen]=useState(false);
   const [notice,setNotice]=useState("");
   const [hydrated,setHydrated]=useState(false);
   useEffect(()=>{try{
@@ -77,11 +76,9 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
       <p className="text-xs">{scaled.filter(item=>!item.atHome).map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join(" · ")}</p>
       <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
         <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false);setInstructionsOpen(false)}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{editing?"Sulje muokkaus":"✎ Muokkaa reseptiä"}</button>
-        <button type="button" aria-expanded={instructionsOpen} onClick={()=>setInstructionsOpen(value=>!value)} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">{instructionsOpen?"Piilota ohje":"▤ Valmistusohje"}</button>
         <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="rounded-lg border border-[#b89959] bg-[#f7eed8] px-3 py-1.5 text-[#27412a] hover:bg-[#ecdfc0]">↻ Vaihda resepti</button>
       </div>
     </div>}
-    {instructionsOpen&&draft&&<p className="mt-2 whitespace-pre-wrap rounded-lg bg-[#f7eed8] p-2 text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
     {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
     {hydrated && typeof document !== "undefined" && (importing||editing) && createPortal(<div className="fixed left-1/2 top-3 z-[9999] w-[min(650px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto -translate-x-1/2 rounded-2xl border-2 border-[#b89959] bg-[#fffdf5] p-3 text-[#27412a] shadow-2xl">
       <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-sm">{editing?"Muokkaa reseptiä":importing?"Vaihda resepti":"Valmistusohje"}</strong><button type="button" onClick={()=>{setEditing(false);setImporting(false);setInstructionsOpen(false)}} className="rounded-lg border border-[#b89959] px-3 py-1 font-bold">Sulje ×</button></div>
