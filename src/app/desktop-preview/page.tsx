@@ -4,7 +4,7 @@ import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferences } from "../components/ziiply/ArvoSettingsPanel";
 
 import { useEffect, useRef, useState } from "react";
-import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, productGroupGate, isComparisonAttributeCompatible } from "../components/ziiply/ziiplyCore";
+import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -238,7 +238,7 @@ export default function DesktopPreviewPage() {
   const gostaHomeLastSearch=useRef<{query:string;time:number}>({query:"",time:0});
   const gostaHomeCache=useRef<{query:string;time:number;results:any[]}|null>(null);
   const [gostaCacheStatus,setGostaCacheStatus]=useState("Välimuistia ei vielä tarkistettu");
-  const gostaHomeCacheKey="ziiply-gosta-home-search-v7";
+  const gostaHomeCacheKey="ziiply-gosta-home-search-v8";
   const gostaHomeHistoryKey="ziiply-gosta-home-search-history-v1";
   const gostaHomeCacheTtl=15*60*1000; // Unknown validity: recheck after 15 minutes.
   const gostaHomeCacheMap=useRef<Record<string,{query:string;time:number;results:any[]}>>({});
@@ -1311,30 +1311,15 @@ export default function DesktopPreviewPage() {
       const kind=storeKind(store);
       const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
       const results=await warmOffers(chain,store);
-      const beverageCategory=/^(?:limsa|limsat|limu|limut|virvoitusjuoma|virvoitusjuomat)$/i.test(query);
-      // Category expansion: broad soft-drink searches must also find Cola, Fanta,
-      // Sprite and other drinks whose product names do not contain "limsa".
-      const searchTerms=beverageCategory
-        ?["limsa","limu","virvoitusjuoma","cola","coca-cola","pepsi","fanta","sprite","jaffa","7up","7-up","mountain dew","dr pepper","pommac","hartwall original long drink alkoholiton","schweppes"]
-        :getNormalSearchQueries(query);
-      const normalizedQuery=/^jauhel/i.test(query)?"jauheliha":query;
+      const searchTerms=getNormalSearchQueries(query);
       const matching=results.filter((offer:any)=>{
         const title=String(offer.title||offer.name||"");
+        const category=String(offer.categoryName||offer.category||"");
         const normalizedTitle=title.toLocaleLowerCase("fi");
-        if(!searchTerms.some(term=>normalizedTitle.includes(String(term).toLocaleLowerCase("fi")))&&!normalizedTitle.includes(query))return false;
-        if(beverageCategory){
-          // Reject products merely flavored with soft drinks or unrelated categories.
-          if(/(?:karkki|makeinen|pastilli|purukumi|jaatel|jäätel|sorbet|mehu|mehukeitto|siirappi|energiajuoma|olut|lonkero|alkohol|keksi|suklaa|kastike|jogurtti|rahka)/i.test(title))return false;
-          const category=String(offer.categoryName||offer.category||"").toLocaleLowerCase("fi");
-          if(category&&/(?:makeis|kark|leipom|maito|liha|pakaste|alkohol)/i.test(category))return false;
-        }else if(!productGroupGate(normalizedQuery,title))return false;
-        // Butter is a food product, not a substring in pastries or cosmetics.
-        if(/^(?:voi|voita|meijerivoi)$/i.test(query) && (!/(?:^|[\\s-])(?:voi|meijerivoi|suolattu voi|suolaamaton voi)(?:$|[\\s-])/i.test(title) || /(?:voitäyte|voitäytte|voiherkku|kasvovoi|vartalovoi|hiusvoi|voide|pullapitko|leivonnainen|margariini)/i.test(title)))return false;
-        // A meat search must not include ready meals, baby food or sauces containing mince.
-        if(/^jauhel/i.test(query)&&(/lastenateria|lastenruoka|piltti|kastike|perunasose|spagetti|lasagne|ateria|keitto/i.test(title)||!/jauhelih/i.test(title)))return false;
-        return true;
+        if(!searchTerms.some(term=>normalizedTitle.includes(String(term).toLocaleLowerCase("fi"))))return false;
+        return productGroupGate(query,title) && !isBadNormalResult({name:title,category} as any,query);
       });
-      return rankNormalSearchResults(normalizedQuery,matching.map((offer:any)=>({...offer,name:String(offer.title||offer.name||"")}))).map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
+      return rankNormalSearchResults(query,matching.map((offer:any)=>({...offer,name:String(offer.title||offer.name||"")}))).map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
     }));
     if(request!==gostaHomeRequestId.current)return;
     const refreshed=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]).sort((a:any,b:any)=>a.__gostaHomeDistance-b.__gostaHomeDistance).slice(0,120);
