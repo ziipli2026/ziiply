@@ -6,7 +6,7 @@ import { correctSearchQuery } from "../search/searchIntentAI";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
-export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngredients?:(terms:string[])=>void}){
+export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngredients?:(terms:string[],items:RecipeDraft["ingredients"])=>void}){
   const [draft,setDraft]=useState<RecipeDraft|null>(null);
   const [text,setText]=useState("");
   const [original,setOriginal]=useState("");
@@ -52,7 +52,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     }
     persist(recipe,recipe===draft?text:EXAMPLE,base,people);
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:Number(people),items}))}catch{}
-    onSearchIngredients(classified.map(group=>correctSearchQuery(group!.searchTerm)));
+    onSearchIngredients(classified.map(group=>correctSearchQuery(group!.searchTerm)),items);
   };
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
