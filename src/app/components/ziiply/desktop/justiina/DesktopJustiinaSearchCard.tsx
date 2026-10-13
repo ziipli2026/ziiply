@@ -1,25 +1,39 @@
 "use client";
 import JustiinaRecipeEditor from "../../justiina/JustiinaRecipeEditor";
 import type { FormEvent } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDesktopVoiceInput } from "./useDesktopVoiceInput";
 
 type Product = { id?:string|number;ean?:string|number;name?:string;title?:string;productName?:string;pictureUrl?:string;imageUrl?:string;image?:string;__store?:string;__price?:number };
 export default function DesktopJustiinaSearchCard({onClose,onOpenCart,onVoiceTranscript,query,onQueryChange,loading,onSearch,message,debug,results,delay,onDelayChange,onAddToCart,onAddInputToCart,onReopenResults,onOpenScanner}:{onVoiceTranscript:(text:string)=>void;onClose:()=>void;onOpenCart:()=>void;query:string;onQueryChange:(value:string)=>void;loading:boolean;onSearch:()=>void;message:string;debug:Record<string,unknown>;results:Product[];delay:0|1|2;onDelayChange:()=>void;onAddToCart:(product:Product)=>void;onAddInputToCart:(text:string)=>void;onReopenResults:()=>void;onOpenScanner:()=>void}){
 const voice = useDesktopVoiceInput(onVoiceTranscript);
 const [listExpanded,setListExpanded]=useState(false);
-const inputRef=useRef<HTMLTextAreaElement|null>(null);
-const listMode = listExpanded || query.includes("\n") || query.length > 65;
-const listRows = listMode ? Math.min(7,Math.max(2,query.split("\n").length+Math.floor(query.length/65)+1)) : 1;
+const inputRef=useRef<HTMLInputElement|null>(null);
+const measureRef=useRef<HTMLSpanElement|null>(null);
+useEffect(()=>{
+  const check=()=>{
+    const input=inputRef.current,measure=measureRef.current;
+    if(!input||!measure)return;
+    setListExpanded(Boolean(query)&&measure.getBoundingClientRect().width>input.getBoundingClientRect().width-106);
+  };
+  check();
+  window.addEventListener("resize",check);
+  return()=>window.removeEventListener("resize",check);
+},[query]);
 return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-50 flex max-h-[calc(100dvh-var(--desktop-overlay-top,128px)-28px)] w-[min(522px,94vw)] -translate-x-1/2 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#174c3a] bg-[#fff3cf] p-4 shadow-[0_28px_80px_rgba(34,54,43,.28)]">
-  <div className="relative flex items-center justify-center px-12 text-center"><button type="button" onClick={onClose} aria-label="Sulje Justiinan haku" className="absolute left-0 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button><div className="min-w-0"><div className="text-[10px] font-black uppercase tracking-[.22em] text-[#7c745d]">JUSTIINA · TUOTEHAKU</div><h2 className="font-serif text-[25px] font-black italic leading-tight text-[#174c3a]">Tuotteet ja vertailu</h2></div><button type="button" onClick={onClose} aria-label="Sulje Justiinan haku" className="absolute right-0 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button></div>
+  <div className="relative flex items-center justify-center px-12 text-center">
+    <button type="button" onClick={onClose} aria-label="Sulje Justiinan haku" className="absolute left-0 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button>
+    <div className="min-w-0"><div className="text-[10px] font-black uppercase tracking-[.22em] text-[#7c745d]">JUSTIINA · TUOTEHAKU</div><h2 className="font-serif text-[25px] font-black italic leading-tight text-[#174c3a]">Tuotteet ja vertailu</h2></div>
+    <button type="button" onClick={onClose} aria-label="Sulje Justiinan haku" className="absolute right-0 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button>
+    <button type="button" onClick={onDelayChange} title="Vaihda hakutahtia" aria-label={`Hakutahti: ${delay===2?"Normaali, 2 sekuntia":delay===1?"Nopea, 1 sekunti":"Heti, 0 sekuntia"}. Vaihda hakutahtia.`} className="absolute left-12 top-0 flex h-9 items-center gap-1 rounded-full border-2 border-[#b89959] bg-[#fff8dd] px-2 text-[11px] font-black text-[#174c3a] shadow-sm hover:bg-[#f7e8b9]">⏱ <span>{delay===2?"2 s":delay===1?"1 s":"0 s"}</span></button>
+  </div>
   <div className="mt-2 flex min-h-0 flex-col">
-    <button type="button" onClick={onDelayChange} className="self-end rounded-xl border border-[#d0aa58] bg-[#fff8dd] px-3 py-2 text-[12px] font-black text-[#174c3a]">⏱ Hakutahti: {delay===2?"Normaali · 2 s":delay===1?"Nopea · 1 s":"Heti · 0 s"}</button>
     <div className="relative mt-2 grid grid-cols-2 items-start gap-x-3 gap-y-2">
-      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 col-start-1 row-start-1 ${listMode?"col-span-2":"col-span-1"}`}>
-        <div className="relative">
-          <textarea ref={inputRef} autoFocus rows={listRows} value={query} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if(query.trim())onSearch()}}} onChange={e=>{onQueryChange(e.target.value);setListExpanded(e.target.value.includes("\n")||e.target.value.length>65)}} placeholder="Kirjoita tuote tai ostoslista" aria-label="Hae tuotteita" className={`block w-full min-w-0 resize-none rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-4 py-3 pr-[108px] text-center font-serif text-[17px] font-black text-[#6f6657] outline-none placeholder:text-[#8b806e] ${listMode?"relative z-30 shadow-lg":"min-h-[54px]"}`}/>
-          {query.trim()&&<><button type="button" onClick={()=>{onQueryChange("");setListExpanded(false);inputRef.current?.focus()}} aria-label="Tyhjennä hakukenttä" className="absolute right-[58px] top-2 z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#d0aa4f] bg-[#fff1c9]">🧽</button><button type="button" onClick={onSearch} aria-label="Hae kirjoitetut tuotteet" className="absolute right-[9px] top-2 z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#477350] bg-[#e2edcf]">🧺</button></>}
+      <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 col-start-1 row-start-1 h-[54px] min-w-0 ${listExpanded?"col-span-2":"col-span-1"}`}>
+        <div className="relative h-[54px]">
+          <span ref={measureRef} aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-0 whitespace-pre font-serif text-[17px] font-black">{query||""}</span>
+          <input ref={inputRef} autoFocus type="text" value={query.replace(/\r?\n/g," ")} onChange={e=>onQueryChange(e.target.value)} placeholder="Kirjoita tuote tai ostoslista" aria-label="Hae tuotteita" className="block h-[54px] w-full min-w-0 rounded-[24px] border-[3px] border-[#b89959] bg-[#fffdf5] px-4 pr-[96px] text-center font-serif text-[17px] font-black text-[#6f6657] outline-none placeholder:text-[15px] placeholder:text-[#8b806e]"/>
+          {query.trim()&&<><button type="button" onClick={()=>{onQueryChange("");setListExpanded(false);inputRef.current?.focus()}} aria-label="Tyhjennä hakukenttä" className="absolute right-[51px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#d0aa4f] bg-[#fff1c9]">🧽</button><button type="submit" aria-label="Hae kirjoitetut tuotteet" className="absolute right-[7px] top-[8px] z-40 grid h-9 w-9 place-items-center rounded-full border-2 border-[#477350] bg-[#e2edcf]">🧺</button></>}
         </div>
       </form>
       <div className="col-start-2 row-start-1 min-w-0"><JustiinaRecipeEditor onSearchIngredients={terms=>onVoiceTranscript(terms.join(", "))}/></div>
