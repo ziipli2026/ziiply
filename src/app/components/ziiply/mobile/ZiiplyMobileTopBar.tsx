@@ -12,6 +12,7 @@
 // - paneelit ovat tasaisemmat, tekstit eivät leikkaannu yhtä helposti
 
 import React, { useEffect, useMemo, useState } from "react";
+import DesktopFuelPhotoReport from "../desktop/DesktopFuelPhotoReport";
 
 type InfoKind = "weather" | "electricity" | "fuel" | "calendar";
 type PriceLevel = "low" | "normal" | "high" | "unknown";
@@ -197,6 +198,7 @@ export default function ZiiplyMobileTopBar({
   onOpenFuel,
   onOpenCalendar,
 }: ZiiplyMobileTopBarProps) {
+  const [fuelReportOpen, setFuelReportOpen] = useState(false);
   const [chartOpen, setChartOpen] = useState(false);
   const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
   const [chartError, setChartError] = useState("");
@@ -499,7 +501,7 @@ export default function ZiiplyMobileTopBar({
       unit: fuelValue === "—" ? undefined : "€/l",
       detail: fuelText,
       graphic: <FuelGraphic />,
-      onClick: onOpenFuel,
+      onClick: onOpenFuel ?? (() => setFuelReportOpen(true)),
     },
     {
       id: "calendar",
@@ -620,6 +622,7 @@ export default function ZiiplyMobileTopBar({
           </section>
         </div>
       )}
+      {fuelReportOpen && <DesktopFuelPhotoReport onClose={() => setFuelReportOpen(false)} />}
     </>
   );
 }
