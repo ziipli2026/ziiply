@@ -13864,8 +13864,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V837: a fast second HID/camera scan must not disappear while A is still resolving.
       // One waiting slot is enough for the scanner UI: a newer waiting scan replaces an
       // older not-yet-started one, while the active scan always completes first.
+      // The camera sees the same barcode in consecutive frames. Never queue it
+      // as a second purchase while its first lookup is still running.
+      if (eanSearchInFlightRef.current === normalizedCode ||
+          eanLookupPendingRefV120.current.has(normalizedCode) ||
+          queuedPhysicalScanRefV837.current === normalizedCode) {
+        return;
+      }
       queuedPhysicalScanRefV837.current = normalizedCode;
-      pushScannerDebugV493(`QUEUE physical scan ean=${normalizedCode}`);
+      pushScannerDebugV493(`QUEUE different physical scan ean=${normalizedCode}`);
       return;
     }
 
@@ -15866,21 +15873,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
 
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
-      console.error(error);
-      const gpsErrorCode =
-        typeof error === "object" && error !== null && "code" in error
-          ? Number((error as { code?: number }).code)
-          : 0;
-      if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else {
-        setGpsErrorMessage("GPS ei löydy");
-      }
+      // An EAN network failure is not a GPS failure. Do not overwrite the
+      // location UI with an unrelated GPS warning.
+      pushScannerDebugV493(`EAN lookup error: ${String((error as any)?.message || error).slice(0, 180)}`);
+      console.error("[Ziiply EAN lookup]", error);
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
@@ -15902,12 +15898,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         if (isPhysicalSearchScanV825 || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
           // V133: hetkellinen verkkovirhe kameraskannauksessa ei saa tehdä unknown-tilaa
           // eikä lukita seuraavaa onnistuvaa OFF/S/K-tunnistusta pois.
-          setEanMessage("");
-          setEanScannerMessage("");
+          setEanMessage("Tuotteen haku epäonnistui. Skannaa uudelleen.");
+          setEanScannerMessage("Haku epäonnistui – yritä uudelleen");
           return;
         }
         setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-        setEanMessage("EAN-haku epäonnistui. Tuotetta ei lisätty koriin.");
+        setEanMessage("Tuotteen haku epäonnistui. Yritä uudelleen.");
       }
     } finally {
       pushScannerDebugV493("FINALLY cleanup pending/inFlight/loading");
