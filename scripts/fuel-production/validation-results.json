@@ -1,0 +1,67 @@
+{
+  "migration": {
+    "sourceBranch": "br-weathered-meadow-b1bwpzst",
+    "targetBranch": "br-aged-water-b1u2adko",
+    "tables": {
+      "ziiply_fuel_stations": {
+        "sourceRows": 1354,
+        "targetRows": 1376,
+        "verifiedSourceRows": 1354
+      },
+      "ziiply_fuel_price_observations": {
+        "sourceRows": 1761,
+        "targetRows": 1761,
+        "verifiedSourceRows": 1761
+      },
+      "ziiply_tankkaus_feed_observations": {
+        "sourceRows": 1767,
+        "targetRows": 1767,
+        "verifiedSourceRows": 1767
+      },
+      "ziiply_fuel_station_identity_candidates": {
+        "sourceRows": 3,
+        "targetRows": 3,
+        "verifiedSourceRows": 3
+      },
+      "ziiply_user_fuel_reports": {
+        "sourceRows": 1,
+        "targetRows": 1,
+        "verifiedSourceRows": 1
+      }
+    },
+    "retainedReport": {
+      "id": "c7d664a0-c0ab-4a0e-8d73-3e1f15db8041",
+      "source_station_id": "218954893261391",
+      "prices": {
+        "diesel": 2.421,
+        "price95": 2.178,
+        "price98": 2.275
+      },
+      "photo_length": 599795,
+      "status": "pending_review"
+    },
+    "completed": true
+  },
+  "api": {
+    "ok": true,
+    "stationTotal": 1326,
+    "nearest": "ABC Sale Monninkylä",
+    "distanceM": 36,
+    "reportPrices": {
+      "diesel": 2.421,
+      "price95": 2.178,
+      "price98": 2.275
+    },
+    "reportCount": 1,
+    "duplicatePrevented": true
+  },
+  "idempotent": true,
+  "sourceRowsVerified": true,
+  "productionUnchanged": {
+    "stations": 107,
+    "prices": 31,
+    "reportTableAbsent": true
+  },
+  "typecheck": "passed",
+  "connectionTests": "passed"
+}

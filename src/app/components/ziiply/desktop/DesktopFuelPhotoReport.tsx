@@ -194,7 +194,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     try{
       const response=await fetch("/api/fuel/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:requestId.current,stationId,prices,photo,observedAt:date.toISOString(),gps,mode,timeSource,locationSource,evidence,conflictConfirmed,confirmed:true})});
       const data=await response.json();if(!response.ok)throw new Error(data.error||"Ilmoituksen lähettäminen epäonnistui.");
-      if(alive.current){setSent(true);setStatus("Kiitos! Hintailmoitus tallennettiin esikatselun testikantaan tarkistettavaksi.");}
+      if(alive.current){setSent(true);setStatus(data.environment==="production"?"Kiitos! Hintailmoitus tallennettiin tarkistettavaksi.":"Kiitos! Hintailmoitus tallennettiin testikantaan tarkistettavaksi.");}
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Lähetys epäonnistui.");}finally{if(alive.current)setBusy(false);}
   }
   const input="w-full rounded-xl border border-[#baa46a] bg-[#fffaf0] px-3 py-1.5 text-[#174c35]";
