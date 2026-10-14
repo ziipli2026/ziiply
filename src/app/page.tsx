@@ -23682,12 +23682,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   />
                 )}
 
-                {scannerDebugLinesV493.length > 0 && (
-                  <pre className="pointer-events-none fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+7.2rem)] z-[185] max-h-[36dvh] overflow-auto whitespace-pre-wrap rounded-2xl border-2 border-lime-500/70 bg-black/75 px-3 py-2 text-left text-[10px] font-black leading-tight text-lime-200 shadow-2xl sm:hidden">
-                    {`SKANNERI DEBUG V503\n${scannerDebugLinesV493.slice(-28).join("\n")}`}
-                  </pre>
-                )}
-
                 </>
               )}
 
