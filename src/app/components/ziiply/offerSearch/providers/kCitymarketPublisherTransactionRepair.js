@@ -7,7 +7,7 @@ export function repairPublisherTransaction(row) {
   if (!(current > 0)) return row;
   // Reject a percentage mistaken for a euro price BEFORE any nearby pack repair.
   // A publisher discount percentage is not a transaction price.
-  const pct = [...context.matchAll(/(?:^|\s)[−–-]\s*(\d{1,2})(?!\d)\s*%/g)].map(m=>Number(m[1]));
+  const pct = [...context.matchAll(/(?:^|\s)[−–-]\s*(100|\d{1,2})(?!\d)\s*%/g)].map(m=>Number(m[1]));
   if (pct.includes(current) && !/printed|verified-transaction|publisher-owned-pack-total/i.test(String(row.spatialResolved?.source||''))) {
     return {...row,spatialResolved:null,debugRejectedPercentageAsPrice:{value:current,reason:'publisher-discount-percentage-not-transaction'}};
   }
