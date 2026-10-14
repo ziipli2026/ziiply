@@ -21,6 +21,11 @@ const COMPLEMENTARY_HASH =
 const ROUTE_DEADLINE_MS = 8500;
 const FETCH_TIMEOUT_MS = 3500;
 
+// Ruoanhinta and S-kaupat use different store ID namespaces.
+function sGraphqlStoreId(id: string): string {
+  return id === "721" ? "685839110" : id;
+}
+
 const BROAD_SLUGS = [
   "",
   // S-kaupatin oikea alkoholi-/virvoitusjuomapuu.
@@ -439,6 +444,7 @@ export async function GET(request: NextRequest) {
     // S-kaupat GraphQL uses the official S-group unit ID instead.
     const graphqlStoreId = storeId === "721" ? "685839110" : storeId;
     const nameHint = fixText(searchParams.get("name") || "");
+    const graphqlStoreId = sGraphqlStoreId(storeId);
     const origin = new URL(request.url).origin;
 
     if (!/^\d{8,14}$/.test(ean)) {
