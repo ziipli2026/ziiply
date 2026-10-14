@@ -4915,6 +4915,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   const [eanScannerMessage, setEanScannerMessage] = useState("");
+  // Scanner notices are transient even if an older lookup leaves its status set.
+  useEffect(() => {
+    if (!eanScannerMessage) return;
+    const timer = window.setTimeout(() => setEanScannerMessage(""), 2800);
+    return () => window.clearTimeout(timer);
+  }, [eanScannerMessage]);
+
   const [scannerStoreMismatchV801, setScannerStoreMismatchV801] = useState<{ name: string; searchTerm: string; selectedName: string; reason?: "foreign_private_label" | "not_found" } | null>(null);
   const [scannerEquivalentNoticeV813, setScannerEquivalentNoticeV813] = useState("");
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
