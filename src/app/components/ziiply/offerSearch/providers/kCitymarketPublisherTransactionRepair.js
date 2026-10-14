@@ -1,5 +1,5 @@
 // Evidence-only transaction-price repair. Never guess from a unit price or discount.
-// Enabled for the candidate publication until historical replays pass.
+// Evidence-based repair for any publisher issue; historical baselines are guarded by replay tests.
 export function repairPublisherTransaction(row) {
   const nearby = Array.isArray(row.nearby) ? row.nearby.map(String) : [];
   const context = nearby.join(' ').replace(/\s+/g, ' ');
