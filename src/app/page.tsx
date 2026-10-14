@@ -15895,15 +15895,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return;
         }
 
-        if (isPhysicalSearchScanV825 || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-          // V133: hetkellinen verkkovirhe kameraskannauksessa ei saa tehdä unknown-tilaa
-          // eikä lukita seuraavaa onnistuvaa OFF/S/K-tunnistusta pois.
-          setEanMessage("Tuotteen haku epäonnistui. Skannaa uudelleen.");
-          setEanScannerMessage("Haku epäonnistui – yritä uudelleen");
-          return;
-        }
-        setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-        setEanMessage("Tuotteen haku epäonnistui. Yritä uudelleen.");
+        // A valid EAN is useful even offline. Save it in the cart now; the
+        // product identity and price can be enriched when connectivity returns.
+        // Do not show a network error or force the customer to scan again.
+        pushScannerDebugV493(`OFFLINE cart fallback ean=${ean}`);
+        addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
       }
     } finally {
       pushScannerDebugV493("FINALLY cleanup pending/inFlight/loading");
