@@ -16667,10 +16667,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const keptItem = {
           ...baseCart[keepIndex],
           name: fallbackCartName,
-          price: 0,
+          // A repeated bank-recognized scan must never erase a price already
+          // resolved for this basket item by the selected store.
+          price: Number(baseCart[keepIndex].price || 0) > 0 ? baseCart[keepIndex].price : 0,
           image: fallbackProduct.imageUrl || baseCart[keepIndex].image || "",
-          chain: undefined,
-          product: fallbackProductForCart,
+          chain: Number(baseCart[keepIndex].price || 0) > 0 ? baseCart[keepIndex].chain : undefined,
+          product: Number(baseCart[keepIndex].price || 0) > 0
+            ? { ...fallbackProductForCart, price: baseCart[keepIndex].price }
+            : fallbackProductForCart,
           ean: normalizedEan,
           quantity: Math.max(1, nextQuantity),
           ...(offSingleChainKeyV782
