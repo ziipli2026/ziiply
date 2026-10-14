@@ -22,7 +22,7 @@ export function repairPublisherTransaction(row) {
   }
   // A publisher discount percentage is not a transaction price.
   const pct = [...context.matchAll(/(?:^|\s)-\s*(\d{1,2})\s*%/g)].map(m=>Number(m[1]));
-  if (pct.includes(current) && !String(row.spatialResolved?.source||'').includes('printed')) {
+  if (pct.includes(current) && !/printed|verified-transaction|publisher-owned-pack-total/i.test(String(row.spatialResolved?.source||''))) {
     return {...row,spatialResolved:null,debugRejectedPercentageAsPrice:{value:current,reason:'publisher-discount-percentage-not-transaction'}};
   }
   return row;
