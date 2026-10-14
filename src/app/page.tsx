@@ -15815,19 +15815,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      // In a confirmed in-store session an unresolved barcode is still a physical
-      // purchase. Keep its EAN in the cart and let checkout supply the details.
-      if (scannerInStoreRefV828.current && (isPhysicalSearchScanV825 || eanScannerOpen || eanHtml5ScannerRef.current)) {
-        addUnknownScannedEanToCartV724(ean);
-        return;
-      }
-
-      // Outside a confirmed store session retain the existing rejection behavior.
-      setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-      setEanMessage("Tuotetta ei tunnistettu.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current || isPhysicalSearchScanV825) {
-        setEanScannerMessage("Tuotetta ei tunnistettu");
-      }
+      // An unknown but valid EAN remains a real shopping-list item regardless
+      // of location. Store confirmation controls only the collected status.
+      addUnknownScannedEanToCartV724(ean);
+      return;
 
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -16423,7 +16414,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const inStore = scannerInStoreRefV828.current;
     const message = inStore
       ? "Tuotteen tiedot lisätään kassalla"
-      : "❌ Tuotetta ei tunnistettu — ei lisätty koriin";
+      : "Tuote lisätty – tuotteen tiedot haetaan kaupassa";
 
     if (inStore) {
       setCart((currentCart) => {
