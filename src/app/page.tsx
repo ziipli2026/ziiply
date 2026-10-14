@@ -17067,7 +17067,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         storeName: result.storeName,
         quantity: 1,
         source: "search",
-        product: looseShelfEanV853 ? { ...result.product, price: 0, ziiplyWeightLabel: true } : result.product,
+        product: looseShelfEanV853 ? ({ ...result.product, price: 0, ziiplyWeightLabel: true } as Product & { ziiplyWeightLabel: true }) : result.product,
         ean: ean || result.product.ean,
       };
       const exactEanPriceV794 = getProductPrice(result.product);
