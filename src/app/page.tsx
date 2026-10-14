@@ -15815,40 +15815,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      // V132: kameraskannerissa EI lisätä tuntematonta riviä automaattisesti.
-      // Syy: live-lukija ja still-fallback voivat tuottaa saman fyysisen skannauksen aikana
-      // rinnakkaisia hakuketjuja. Jos Open Food Facts tunnistaa tuotteen yhdessä ketjussa,
-      // toinen ketju saattoi silti päätyä myöhemmin unknown-fallbackiin ja luoda rinnakkaisen
-      // "Tuntematon tuote" -rivin. Käsin käynnistetty EAN-haku saa edelleen tehdä unknown-fallbackin.
-      if (isPhysicalSearchScanV825 || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-        // V525: kameraskannerissa ei lisätä tuntematonta riviä automaattisesti,
-        // mutta ketjua ei saa enää katkaista hiljaa.
-        const scannerNoResultMessageV525 = "❌ Tuotetta ei tunnistettu — ei lisätty koriin";
-        setEanInput("");
-        setEanResults([]);
-        setEanLoading(false);
-        setEanSearchStartedAutomatically(false);
-        eanAutoSearchActiveRef.current = false;
-        setLastAutoEanSearch("");
-        setEanMessage(scannerNoResultMessageV525);
-        void logEanScanEventV845(ean, "unresolved", scannerNoResultMessageV525, { reason: "s-k-off-no-result" });
-        pushScannerDebugV493(`STOP scanner mode: S/K/OFF no result ean=${ean}`);
-        setEanScannerMessage(scannerNoResultMessageV525);
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === scannerNoResultMessageV525 ? "" : current,
-          );
-        }, 3600);
+      // In a confirmed in-store session an unresolved barcode is still a physical
+      // purchase. Keep its EAN in the cart and let checkout supply the details.
+      if (scannerInStoreRefV828.current && (isPhysicalSearchScanV825 || eanScannerOpen || eanHtml5ScannerRef.current)) {
+        addUnknownScannedEanToCartV724(ean);
         return;
       }
 
+      // Outside a confirmed store session retain the existing rejection behavior.
       setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-      if (isPhysicalSearchScanV825 || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-        void logEanScanEventV845(ean, "unknown", "Tuotetta ei tunnistettu", { reason: "unknown-ean" });
-      }
-
-      // Täysin tunnistamatonta EANia ei lisätä koriin. EAN voidaan edelleen
-      // havaita/tallentaa taustalla, mutta korissa pitää olla vähintään tuotteen nimi.
       setEanMessage("Tuotetta ei tunnistettu.");
       if (eanScannerOpen || eanHtml5ScannerRef.current || isPhysicalSearchScanV825) {
         setEanScannerMessage("Tuotetta ei tunnistettu");
@@ -16444,9 +16419,45 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalizedEan = normalizeEan(ean);
     if (!isUsableEan(normalizedEan)) return;
 
-    // Täysin tunnistamatonta EANia ei lisätä ostoskoriin.
-    // Koodi kirjataan silti talteen myöhempää tunnistamista varten.
     logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
+    const inStore = scannerInStoreRefV828.current;
+    const message = inStore
+      ? "Tuotteen tiedot lisätään kassalla"
+      : "❌ Tuotetta ei tunnistettu — ei lisätty koriin";
+
+    if (inStore) {
+      setCart((currentCart) => {
+        const baseCart = mergeCartPoolsByIdV129(currentCart);
+        const existing = baseCart.find((item) => cartItemMatchesEanLooseV129(item, normalizedEan));
+        if (existing) {
+          const next = baseCart.map((item) =>
+            item.id === existing.id ? { ...item, quantity: Number(item.quantity || 1) + 1 } : item,
+          );
+          cartRefV124.current = next;
+          persistCartImmediately(next);
+          void updateChainComparison(next, { openCompare: false });
+          return next;
+        }
+        if (baseCart.length >= MAX_ITEMS) return currentCart;
+        const newItem: CartItem = {
+          id: `ean-unknown-${normalizedEan}-${Date.now()}`,
+          name: `Tuote ${normalizedEan}`,
+          price: 0,
+          quantity: 1,
+          source: "search",
+          ean: normalizedEan,
+        };
+        const next = [...baseCart, newItem];
+        setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
+        cartRefV124.current = next;
+        persistCartImmediately(next);
+        void updateChainComparison(next, { openCompare: false });
+        return next;
+      });
+      showScanSuccessFlash();
+    } else {
+      showScanMissFlash();
+    }
 
     setEanInput("");
     setEanResults([]);
@@ -16454,16 +16465,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
-
-    const message = "❌ Tuotetta ei tunnistettu — ei lisätty koriin";
     setEanMessage(message);
-    showScanMissFlash();
-
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       setEanScannerOpen(true);
       setEanScannerMessage(message);
       window.setTimeout(() => {
-        setEanScannerMessage((current) => (current === message ? "" : current));
+        setEanScannerMessage((current) => current === message ? "" : current);
       }, 3000);
     }
   }
