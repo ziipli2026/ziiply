@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
+import { fuelDatabaseConfig } from "../../../../lib/fuelDatabase";
+
 export const dynamic = "force-dynamic";
 
 function distanceKm(a: number, b: number, c: number, d: number) {
@@ -19,14 +21,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "GPS coordinates required" }, { status: 400 });
   }
   // Station lookup and photo report submission must use the same fuel registry.
-  const testConnection = process.env.TANKKAUS_TEST_DATABASE_URL;
-  const connection = testConnection || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const database = fuelDatabaseConfig();
+  const testConnection = database.production ? undefined : database.connection;
+  const connection = database.connection || process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!connection) return NextResponse.json({ ok: false, error: "Fuel database not configured" }, { status: 503 });
   try {
     const sql = neon(connection);
     const identity = await sql`SELECT current_setting(\'neon.branch_id\',true) AS branch_id`;
-    if (testConnection && identity[0]?.branch_id !== "br-weathered-meadow-b1bwpzst") {
-      return NextResponse.json({ ok: false, error: "Fuel preview database does not identify the approved test branch" }, { status: 503 });
+    if ((testConnection || database.production) && identity[0]?.branch_id !== database.expectedBranch) {
+      return NextResponse.json({ ok: false, error: "Fuel database does not identify the configured branch" }, { status: 503 });
     }
     // Production may not have the optional raw provider feed used by preview.
     const feed = await sql`SELECT to_regclass('public.ziiply_tankkaus_feed_observations') IS NOT NULL AS available`;

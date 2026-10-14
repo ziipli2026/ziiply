@@ -1,10 +1,12 @@
 import {NextRequest,NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
 import {comparePhotoEvidence,validPhotoLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {fuelDatabaseConfig} from "../../../../lib/fuelDatabase";
 export const dynamic="force-dynamic";
 export async function POST(req:NextRequest){
-  // Preview collection is isolated: never fall back to a production connection.
-  if(!process.env.TANKKAUS_TEST_DATABASE_URL)return NextResponse.json({error:"Hintailmoitukset ovat toistaiseksi käytössä vain testiesikatselussa."},{status:503});
+  // Production collection is enabled only after the registry migration is verified.
+  const database=fuelDatabaseConfig();
+  if(!database.connection)return NextResponse.json({error:"Hintailmoitukset eivät ole tällä hetkellä käytettävissä."},{status:503});
   if(req.headers.get("origin")!==req.nextUrl.origin)return NextResponse.json({error:"Virheellinen lähetyslähde."},{status:403});
   if(Number(req.headers.get("content-length")||0)>1600000)return NextResponse.json({error:"Kuva on liian suuri."},{status:413});
   try{
@@ -22,14 +24,14 @@ export async function POST(req:NextRequest){
     if(manual&&(body.timeSource!=="manual"||body.locationSource!=="manual"||gps||evidence.photoGps||evidence.deviceGps||evidence.photoTime||evidence.captureTime||body.conflictConfirmed===true))return NextResponse.json({error:"Käsinsyötetty ilmoitus ei voi sisältää kuvan tai kuvaushetken vahvistustietoja."},{status:400});
     const comparison=comparePhotoEvidence(body.mode,evidence);
     if(comparison.reasons.length&&body.conflictConfirmed!==true)return NextResponse.json({error:"Vahvista kuvattu asema ja kuvausaika erikseen: tiedoissa on ristiriita."},{status:400});
-    const sql=neon(process.env.TANKKAUS_TEST_DATABASE_URL);
+    const sql=neon(database.connection);
     const branch=await sql`SELECT current_setting('neon.branch_id',true) AS id`;
-    if(branch[0]?.id!=="br-weathered-meadow-b1bwpzst")return NextResponse.json({error:"Testikannan varmistus epäonnistui."},{status:503});
+    if(branch[0]?.id!==database.expectedBranch)return NextResponse.json({error:"Tankkauskannan varmistus epäonnistui."},{status:503});
     const station=await sql`SELECT source_station_id FROM ziiply_fuel_stations WHERE source_station_id=${stationId} AND lower(coalesce(name,'')||' '||coalesce(chain,'')) NOT LIKE '%teboil%' LIMIT 1`;
     if(!station.length)return NextResponse.json({error:"Asemaa ei löytynyt."},{status:400});
     const rows=await sql`INSERT INTO ziiply_user_fuel_reports(id,source_station_id,observed_at,prices,photo_data_url,gps_latitude,gps_longitude,gps_accuracy_m,metadata)
       VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${gps?.lat??null},${gps?.lon??null},${gps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
       ON CONFLICT(id) DO NOTHING RETURNING id`;
-    return NextResponse.json({ok:true,id:body.id,status:"pending_review",duplicate:rows.length===0});
+    return NextResponse.json({ok:true,id:body.id,status:"pending_review",duplicate:rows.length===0,environment:database.production?"production":"test"});
   }catch{return NextResponse.json({error:"Ilmoituksen tallennus epäonnistui. Yritä uudelleen."},{status:503});}
 }

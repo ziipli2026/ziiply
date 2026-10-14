@@ -1,0 +1,73 @@
+// Run against an explicitly identified validation branch. Production requires a separate opt-in.
+const fs=require('node:fs');
+const {neon,neonConfig}=require('@neondatabase/serverless');
+neonConfig.fetchFunction=(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(30000)});
+const tables=['ziiply_fuel_stations','ziiply_fuel_price_observations','ziiply_tankkaus_feed_observations','ziiply_fuel_station_identity_candidates','ziiply_user_fuel_reports'];
+const SOURCE='br-weathered-meadow-b1bwpzst',PRODUCTION='br-lucky-fog-b1hwz641';
+const keep='c7d664a0-c0ab-4a0e-8d73-3e1f15db8041';
+const quote=s=>'"'+s.replaceAll('"','""')+'"';
+async function migrate(config,expectedTarget,allowProduction=false){
+ if(!expectedTarget||expectedTarget===SOURCE||(expectedTarget===PRODUCTION&&!allowProduction))throw Error('Explicit validation branch required; production is a separate action');
+ const source=neon(config.source),target=neon(config.target);
+ for(const [sql,expected] of [[source,SOURCE],[target,expectedTarget]]){
+  const [identity]=await sql`SELECT current_setting('neon.branch_id',true) AS branch_id`;
+  if(identity.branch_id!==expected)throw Error('Database branch mismatch');
+ }
+ console.log('Branch identities verified');
+ const report=await source`SELECT id::text,prices FROM ziiply_user_fuel_reports ORDER BY submitted_at DESC`;
+ if(report.length!==1||report[0].id!==keep||report[0].prices.price95!==2.178||report[0].prices.price98!==2.275||report[0].prices.diesel!==2.421)throw Error('The one retained correct report must be present; review any newer reports before migration');
+ const statements=[],summary={sourceBranch:SOURCE,targetBranch:expectedTarget,tables:{}};
+ const pending=[];
+ const snapshot=await source.transaction(tables.flatMap(table=>[
+  source.query(`SELECT a.attname AS name,format_type(a.atttypid,a.atttypmod) AS type,a.attnotnull AS not_null,a.attidentity AS identity,pg_get_expr(d.adbin,d.adrelid) AS default_value FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum WHERE n.nspname='public' AND c.relname=$1 AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum`,[table]),
+  source.query(`SELECT con.conname AS name,con.contype AS type,pg_get_constraintdef(con.oid) AS definition FROM pg_constraint con JOIN pg_class c ON c.oid=con.conrelid WHERE c.relnamespace='public'::regnamespace AND c.relname=$1 AND con.contype<>'n'`,[table]),
+  source.query(`SELECT * FROM public.${quote(table)} r WHERE ${table==='ziiply_fuel_stations'?"lower(coalesce(r.name,'')||' '||coalesce(r.chain,'')) NOT LIKE '%teboil%'":table==='ziiply_user_fuel_reports'?`r.id='${keep}'::uuid`:table==='ziiply_fuel_station_identity_candidates'?"EXISTS (SELECT 1 FROM ziiply_fuel_stations s WHERE s.source_station_id::text=r.source_station_id_a AND lower(coalesce(s.name,'')||' '||coalesce(s.chain,'')) NOT LIKE '%teboil%') AND EXISTS (SELECT 1 FROM ziiply_fuel_stations s WHERE s.source_station_id::text=r.source_station_id_b AND lower(coalesce(s.name,'')||' '||coalesce(s.chain,'')) NOT LIKE '%teboil%')":"EXISTS (SELECT 1 FROM ziiply_fuel_stations s WHERE s.source_station_id=r.source_station_id AND lower(coalesce(s.name,'')||' '||coalesce(s.chain,'')) NOT LIKE '%teboil%')"}`),
+  source.query(`SELECT indexdef FROM pg_indexes WHERE schemaname='public' AND tablename=$1 AND indexname NOT IN (SELECT conname FROM pg_constraint WHERE conrelid=$2::regclass)`,[table,'public.'+table])
+ ]),{readOnly:true,isolationLevel:'RepeatableRead'});
+ const targetColumns=await target`SELECT table_name,column_name,is_identity,column_default FROM information_schema.columns WHERE table_schema='public'`;
+ for(const [tableIndex,table] of tables.entries()){
+  console.log('Preparing',table);
+  const [cols,constraints,rows,indexes]=snapshot.slice(tableIndex*4,tableIndex*4+4);
+  const existing=targetColumns.filter(c=>c.table_name===table);
+  const declaration=c=>`${quote(c.name)} ${c.type}${c.identity?` GENERATED ${c.identity==='a'?'ALWAYS':'BY DEFAULT'} AS IDENTITY`:c.default_value?` DEFAULT ${c.default_value}`:''}${c.not_null?' NOT NULL':''}`;
+  if(!existing.length)statements.push(target.query(`CREATE TABLE public.${quote(table)} (${cols.map(declaration).join(',')}${constraints.length?','+constraints.map(c=>`CONSTRAINT ${quote(c.name)} ${c.definition}`).join(','):''})`));
+  else for(const col of cols){
+   const current=existing.find(c=>c.column_name===col.name);
+   if(!current)statements.push(target.query(`ALTER TABLE public.${quote(table)} ADD COLUMN ${declaration(col)}`));
+   else if(col.identity&&current.is_identity==='NO'){
+    if(current.column_default)throw Error('Review the existing ID default before migration');
+    // BY DEFAULT preserves compatibility with existing importers that supply explicit IDs.
+    statements.push(target.query(`ALTER TABLE public.${quote(table)} ALTER COLUMN ${quote(col.name)} ADD GENERATED BY DEFAULT AS IDENTITY`));
+    statements.push(target.query(`SELECT setval(pg_get_serial_sequence($1,$2),COALESCE((SELECT max(${quote(col.name)}) FROM public.${quote(table)}),0)+1,false)`,['public.'+table,col.name]));
+   }
+  }
+  // IDs on observations are local identity values; preserve natural-key history instead.
+  const selected=cols.filter(c=>!c.identity),names=selected.map(c=>quote(c.name));
+  let conflict='ON CONFLICT DO NOTHING';
+  if(table==='ziiply_fuel_stations')conflict=`ON CONFLICT (source,source_station_id) DO UPDATE SET ${selected.filter(c=>!['source','source_station_id'].includes(c.name)).map(c=>`${quote(c.name)}=EXCLUDED.${quote(c.name)}`).join(',')}`;
+  for(let start=0;start<rows.length;start+=200){const chunk=rows.slice(start,start+200);pending.push(target.query(`INSERT INTO public.${quote(table)} (${names.join(',')}) SELECT ${names.join(',')} FROM jsonb_populate_recordset(NULL::public.${quote(table)},$1::jsonb) ${conflict}`,[JSON.stringify(chunk)]));}
+  summary.tables[table]={sourceRows:rows.length};
+
+  for(const index of indexes)pending.push(target.query(index.indexdef.replace('CREATE INDEX ','CREATE INDEX IF NOT EXISTS ').replace('CREATE UNIQUE INDEX ','CREATE UNIQUE INDEX IF NOT EXISTS ')));
+ }
+ console.log('Applying validation transaction',statements.length+pending.length);
+ await target.transaction([...statements,...pending]);
+ const targetSnapshot=await target.transaction(tables.map(table=>target.query(`SELECT * FROM public.${quote(table)}`)),{readOnly:true,isolationLevel:'RepeatableRead'});
+ const stable=value=>value&&typeof value==='object'?Array.isArray(value)?value.map(stable):Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])])):value;
+ for(const [i,table] of tables.entries()){
+  const sourceRows=snapshot[i*4+2],targetRows=targetSnapshot[i];summary.tables[table].targetRows=targetRows.length;
+  const keyNames=table==='ziiply_fuel_stations'?['source','source_station_id']:table==='ziiply_fuel_price_observations'?['source','source_station_id','fuel_type','observed_at','price_eur_per_litre']:table==='ziiply_tankkaus_feed_observations'?['source_observation_id']:table==='ziiply_user_fuel_reports'?['id']:['source','source_station_id_a','source_station_id_b'];
+  const key=row=>JSON.stringify(keyNames.map(name=>row[name]));const targetByKey=new Map(targetRows.map(row=>[key(row),row]));
+  for(const sourceRow of sourceRows){
+   const actual=targetByKey.get(key(sourceRow));if(!actual)throw Error('Source record missing after migration: '+table);
+   if(table!=='ziiply_fuel_price_observations'&&JSON.stringify(stable(sourceRow))!==JSON.stringify(stable(actual)))throw Error('Source record differs after migration: '+table);
+  }
+  summary.tables[table].verifiedSourceRows=sourceRows.length;
+ }
+ const [saved]=await target`SELECT id::text,source_station_id::text,prices,length(photo_data_url) AS photo_length,status FROM ziiply_user_fuel_reports WHERE id=${keep}::uuid`;
+ if(!saved||saved.prices.price95!==2.178||saved.prices.price98!==2.275||saved.prices.diesel!==2.421||saved.photo_length<100)throw Error('Retained report validation failed');
+ summary.retainedReport=saved;summary.completed=true;
+ return summary;
+}
+module.exports={migrate};
+if(require.main===module){const [configFile,expectedTarget,flag]=process.argv.slice(2);migrate(JSON.parse(fs.readFileSync(configFile)),expectedTarget,flag==='--apply-production').then(r=>{console.log(JSON.stringify(r,null,2));if(process.env.FUEL_MIGRATION_REPORT)fs.writeFileSync(process.env.FUEL_MIGRATION_REPORT,JSON.stringify(r,null,2)+'\n')}).catch(e=>{console.error(e.name,e.code||'',e.message.replace(/postgres(?:ql)?:\/\/\S+/g,'[redacted]'));process.exitCode=1});}
