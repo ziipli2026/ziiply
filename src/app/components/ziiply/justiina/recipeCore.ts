@@ -1,5 +1,6 @@
+import { inferRecipeProtein, type RecipeProteinRequirement } from "./recipeProtein";
 /** Shared Justiina recipe draft logic. No product is added to the cart here. */
-export type RecipeIngredient = { id: string; name: string; amount: number | null; unit: string | null; uncertain: boolean; atHome: boolean };
+export type RecipeIngredient = { id: string; name: string; amount: number | null; unit: string | null; uncertain: boolean; atHome: boolean; sourceLine?:string; searchTerm?:string; proteinRequirement?:RecipeProteinRequirement|null; wholeSpice?:boolean };
 export type RecipeDraft = { title: string; servings: number | null; ingredients: RecipeIngredient[]; instructions: string; source: "text" | "dish" };
 const units: Record<string, number> = { kg: 1000, g: 1, l: 1000, dl: 100, cl: 10, ml: 1, rkl: 15, tl: 5, kpl: 1, pkt: 1, prk: 1, pss: 1, rs: 1, tlk: 1, pussi: 1, ruukku: 1, nippu: 1 };
 const family: Record<string, string> = { kg: "mass", g: "mass", l: "volume", dl: "volume", cl: "volume", ml: "volume", rkl: "volume", tl: "volume", kpl: "count", pkt: "pack", prk: "can", pss: "bag", rs: "pack", tlk: "can", pussi: "bag", ruukku: "count", nippu: "count" };
@@ -43,7 +44,7 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   name=name.replace(/^(?:ripaus|tilkka|loraus|hyppysellinen|maun mukaan|iso|pieni|keskikokoinen)\s+/i,"").replace(/^\(\d+(?:[,.]\d+)?\s*(?:kg|g|dl|ml)\)\s*/,"");
   if(amount!==null&&!unit&&/^(?:kananmun|mun[ai]|sipul|punasipul|valkosipulinkyn|laakerinleh|kokonaista maustepippur)/i.test(name))unit="kpl";
   if(!Number.isFinite(amount)||amount===0)amount=null;
-  return {id,name:name.trim(),amount,unit,uncertain:amount===null||!unit||alternative.length>1||/[?]/.test(line),atHome:false};
+  return {id,name:name.trim(),amount,unit,uncertain:amount===null||!unit||alternative.length>1||/[?]/.test(line),atHome:false,sourceLine:clean};
 }
 export function parseRecipeText(text: string): RecipeDraft {
   // Plain pasted lists and one-line "Title: amount ingredient" recipes are accepted.
@@ -124,17 +125,20 @@ export { recipeProductSearchTerm, classifyRecipeIngredient, recipeProductCompati
 export type { RecipeFoodGroup } from "./recipeSearch";
 
 /** The editor and desktop simulation use exactly the same search requirements. */
-export function prepareRecipeSearch(items: RecipeIngredient[]): {terms:string[];items:RecipeIngredient[]} {
+export function prepareRecipeSearch(items: RecipeIngredient[], instructions=""): {terms:string[];items:RecipeIngredient[]} {
   const entries:Array<{term:string;item:RecipeIngredient}>=[];
   for(const item of items){
     if(item.atHome)continue;
-    const term=recipeProductSearchTerm(item.name);if(!term)continue;
-    const normalized={...item};
+    const proteinRequirement=inferRecipeProtein(item.name,instructions,item.sourceLine||item.name);
+    const baseTerm=recipeProductSearchTerm(item.name);
+    const term=proteinRequirement&&(proteinRequirement.processing!=="raw"||proteinRequirement.storage==="frozen"||!classifyRecipeIngredient(item.name))?proteinRequirement.searchTerm:baseTerm;if(!term)continue;
+    const wholeSpice=/pippur/.test(item.name)&&item.amount!==null&&(!item.unit||item.unit==="kpl")&&!/jauhe|rouh/.test(item.name);
+    const normalized={...item,proteinRequirement,wholeSpice,searchTerm:term};
     if(normalized.amount!==null&&normalized.unit){
       if(family[normalized.unit]==="mass"){normalized.amount*=units[normalized.unit];normalized.unit="g";}
       if(family[normalized.unit]==="volume"){normalized.amount*=units[normalized.unit];normalized.unit="ml";}
     }
-    const existing=entries.find(x=>x.term===term&&(x.item.unit===normalized.unit||!x.item.unit||!normalized.unit));
+    const existing=entries.find(x=>x.term===term&&JSON.stringify(x.item.proteinRequirement)===JSON.stringify(normalized.proteinRequirement)&&(x.item.unit===normalized.unit||!x.item.unit||!normalized.unit));
     if(existing){existing.item.amount=existing.item.amount!==null&&normalized.amount!==null?existing.item.amount+normalized.amount:null;existing.item.uncertain ||= normalized.uncertain;}
     else entries.push({term,item:normalized});
   }

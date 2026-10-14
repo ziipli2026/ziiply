@@ -14,13 +14,13 @@ for(const c of cases){
  const lines=d.ingredients.map(i=>[i.amount,i.unit,i.name].filter(x=>x!==null&&x!=="").join(' '));
  const variants=[lines.join('\n'),c.title+'\nIngredients:\n'+lines.join('\n'),c.title+': '+lines.join('; '),c.title+'\nRaaka-aineet:\n'+lines.map(x=>'• '+x).join('\n')];
  for(const text of variants)assert.deepEqual(core.parseRecipeText(text).ingredients.map(i=>core.recipeProductSearchTerm(i.name)).filter(Boolean),c.expected,c.title+' format variant');
- const search=core.prepareRecipeSearch(d.ingredients);
+ const search=core.prepareRecipeSearch(d.ingredients,d.instructions);
  const cart=[];
  for(let i=0;i<search.terms.length;i++){
   const term=search.terms[i],item=search.items[i];
   // API simulation intentionally returns every product, cheap distractors first.
   const products=distractors.map((name,j)=>({id:'bad'+j,name,__price:0.01})).concat(Object.entries(catalog).map(([key,name],j)=>({id:key,name,__price:2+j/100})));
-  const allowed=products.filter(p=>core.recipeProductCompatible(item.name,p));
+  const allowed=products.filter(p=>core.recipeProductCompatible(item.name,p,item));
   assert.ok(allowed.length,c.title+' missing '+term);
   assert.ok(!allowed.some(p=>String(p.id).startsWith('bad')),c.title+' wrong type '+term);
   const ranked=rankProductResultsByRelevanceAndPrice(term,allowed,p=>p.__price);

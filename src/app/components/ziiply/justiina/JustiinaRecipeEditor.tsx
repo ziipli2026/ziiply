@@ -62,7 +62,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     const originalServings=Number(base)>0?Number(base):1;const targetServings=Number(people)>0?Number(people):originalServings;
     const items=scaleIngredients(recipe.ingredients,originalServings,targetServings).filter(item=>!item.atHome&&item.name.trim());
     if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
-    const search=prepareRecipeSearch(items);
+    const search=prepareRecipeSearch(items,recipe.instructions);
     appendDesktopRecipeDebug("recipe_search_plan",{originalServings,targetServings,scaledIngredients:items,searchTerms:search.terms,searchItems:search.items});
     if(!search.terms.length){setNotice("Reseptissä ei ole ostettavia aineksia.");return;}
     persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
@@ -74,7 +74,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
   const update=(id:string,patch:Partial<RecipeDraft["ingredients"][number]>)=>{
     if(!draft)return;setDraft({...draft,ingredients:ingredients.map(item=>{
-      if(item.id!==id)return item;const next={...item,...patch};
+      if(item.id!==id)return item;const next={...item,...patch,...(patch.name!==undefined?{sourceLine:undefined,proteinRequirement:undefined}: {})};
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };

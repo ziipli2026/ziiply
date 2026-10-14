@@ -1,3 +1,5 @@
+import { inferRecipeProtein, proteinProductRejection, type RecipeProteinRequirement } from "./recipeProtein";
+type RecipeContext={proteinRequirement?:RecipeProteinRequirement|null;wholeSpice?:boolean};
 /** Recipe-only canonicalization. Preserve the ingredient type before looking at price. */
 export type RecipeFoodGroup = { ingredient: string; mainGroup: string; subGroup: string; searchTerm: string };
 type Kind = { term: string; pattern: RegExp; product: RegExp; group: string; exclude?: RegExp };
@@ -70,8 +72,10 @@ const kinds: Kind[] = [
  {term:"hiiva",pattern:/^hiivaa?$/,product:/\bhiiva\b/,exclude:/hiivaleip|ravintohiiva|oluthiiva/,group:"Leivonta"},
  {term:"mantelirouhe",pattern:/mantelirouhe/,product:/mantelirouhe/,group:"Leivonta"},
  {term:"vaniljasokeri",pattern:/vaniljasoker/,product:/vaniljasokeri/,group:"Sokerit"},
+ {term:"fariinisokeri",pattern:/fariinisoker/,product:/fariinisokeri/,group:"Sokerit"},
+ {term:"ruokosokeri",pattern:/ruokosoker/,product:/ruokosokeri/,group:"Sokerit"},
  {term:"tomusokeri",pattern:/tomusoker/,product:/tomusokeri/,group:"Sokerit"},
- {term:"taloussokeri",pattern:/^(?:sokeri|sokeria|taloussokeri)$/,product:/taloussokeri|\bsokeri\b|hienosokeri/,exclude:/vanilja|tomu|fariini|hillo|vartalo|kuorinta|karvanpoisto/,group:"Sokerit"},
+ {term:"sokeri",pattern:/^(?:sokeri|sokeria|taloussokeri|hienosokeri|kidesokeri|erikoishieno sokeri)$/,product:/sokeri|\bsiro\b/,exclude:/vanilja|tomu|hillo|vartalo|kuorinta|karvanpoisto|suklaa|karkki|makeinen|pastilli|juoma|jogurtti|keksi|siirappi/,group:"Sokerit"},
  {term:"merisuola",pattern:/merisuol/,product:/merisuola/,exclude:/saippua|kylpy|suihku/,group:"Suolat"},
  {term:"suola",pattern:/^suolaa?$/,product:/\bsuola\b|ruokasuola|hienosuola|merisuola|vuorisuola/,exclude:/kylpy|saippua|suihku|suolakur|sipsi|suolapäh|suolainen/,group:"Suolat"},
  {term:"maustepippuri",pattern:/maustepippur/,product:/maustepippuri/,group:"Mausteet"},
@@ -113,17 +117,30 @@ export function classifyRecipeIngredient(input: string): RecipeFoodGroup | null 
  return kind?{ingredient:kind.term,searchTerm:kind.term,mainGroup:kind.group,subGroup:kind.group}:null;
 }
 /** Unknown ingredients require a literal match, never an arbitrary cheapest item. */
-export function recipeProductRejectionReason(input: string, product: { name?: string; category?: string }): string | null {
+export function recipeProductRejectionReason(input: string, product: { name?: string; category?: string },context?:RecipeContext): string | null {
  const term=recipeProductSearchTerm(input);if(!term)return "not_purchasable_ingredient";
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
- if(/kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
- if(isRawRecipeFish(term)){
-   if(/valmisruoka|kalajaloste|sillit-ja-anjovikset|säilyke/.test(category)||/laatikko|keitto|pihvi|pyörykk|pullat|rulla|salaatti|paistett|kypsennet|savust|savu|graav|marino|suutarinlohi|säilyke|kastik|loimut|palv|sushi|suolattu|etikka|sinappi/.test(name))return "raw_fish_required";
- }
+ if(/kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
+ const protein=context?.proteinRequirement||inferRecipeProtein(input);
+ if(protein)return proteinProductRejection(protein,product);
  const kind=kinds.find(x=>x.term===term);
  if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
  if(!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
+ const spiceTerms=["suola","merisuola","maustepippuri","mustapippuri","valkopippuri","laakerinlehti","curry","juustokumina","kardemumma","kaneli","oregano","paprikajauhe"];
+ if(spiceTerms.includes(term)&&(/liha|broileri|snack|sips|leip|keksi|riisikak|maissikak|suklaa|jaatel|jäätel|rasvalev|ranskanker|valmisruoka|juoma/.test(category)||/riisikak|maissikak|keksi|sips|chips|suklaa|pretzel|korppu|näkk|leipä|flatbread|levite|broiler|kanan|pähkin|oliivi|jäätel|ateria|keitto/.test(name)))return "spice_category_required";
+ if(["sokeri","fariinisokeri","ruokosokeri","vaniljasokeri","tomusokeri"].includes(term)&&/liha|broileri|snack|sips|leip|keksi|riisikak|maissikak|suklaa|jaatel|jäätel|rasvalev|ranskanker|valmisruoka|juoma|jogur/.test(category))return "sugar_category_required";
+ if(["suola","merisuola"].includes(term)){
+   if(category.includes("/")&&!/suola/.test(category))return "salt_category_required";
+   if(/riisikak|maissikak|keksi|sips|chips|lastu|snack|suklaa|pretzel|korppu|näkk|leip|flatbread|levite|oivariini|ingmariini|broiler|kanan|manteli|pähkin|oliivi|kinuski|jäätel|siemen|härkäpapu|mausteseos|grillimauste|merisuolavoi|b\+tter/.test(name))return "salt_product_required";
+ }
+ if(term==="tilli"){
+   if(/sips|perunalastu|oliivi|creme fraiche|ranskankerma|peruna|valmisruoka/.test(name+" "+category))return "herb_product_required";
+   const dried=/kuivatt|mauste|purkki|\bpussi\b/.test(name+" "+category)||/^caabgbaak/i.test(category);
+   if(/kuivatt/.test(requirement)&&!dried)return "dried_herb_required";
+   if(!/kuivatt/.test(requirement)&&/hienonnet|tuore/.test(requirement)&&dried)return "fresh_or_raw_frozen_herb_required";
+ }
+ if(context?.wholeSpice&&/jauhe|\bjauh\b|rouh/.test(name))return "whole_spice_required";
  if(/laktoosito/.test(requirement)&&! /laktoositon|laktoositonta/.test(name))return "lactose_free_requirement_missing";
  if(/gluteenito/.test(requirement)&&! /gluteeniton|gluteenitonta/.test(name))return "gluten_free_requirement_missing";
  if(/maustamaton/.test(requirement)&&! /maustamaton|maustamattom/.test(name))return "unseasoned_requirement_missing";
@@ -137,18 +154,23 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  return null;
 }
 
-export function recipeProductCompatible(input:string,product:{name?:string;category?:string}):boolean {
- return recipeProductRejectionReason(input,product)===null;
+export function recipeProductCompatible(input:string,product:{name?:string;category?:string},context?:RecipeContext):boolean {
+ return recipeProductRejectionReason(input,product,context)===null;
 }
 
 function isRawRecipeFish(term:string|null):boolean {
  return term!==null&&["silakka","silakkafilee","lohifilee","kirjolohifilee"].includes(term);
 }
 /** Freshness tier precedes price; an uncooked frozen fish remains a fallback. */
-export function recipeFishFreshnessTier(input:string,product:{name?:string;category?:string}):number {
- if(!isRawRecipeFish(recipeProductSearchTerm(input)))return 0;
+export function recipeFishFreshnessTier(input:string,product:{name?:string;category?:string},context?:RecipeContext):number {
+ const protein=context?.proteinRequirement||inferRecipeProtein(input);
+ if(protein&&protein.storage!=="prefer_fresh")return 0;
+ if(!protein&&!isRawRecipeFish(recipeProductSearchTerm(input)))return 0;
  return /pakast|frozen/i.test((product.name||"")+" "+(product.category||""))?1:0;
 }
-export function prioritizeRecipeFishProducts<T extends {name?:string;category?:string}>(input:string,products:T[]):T[] {
- return products.map((product,index)=>({product,index,tier:recipeFishFreshnessTier(input,product)})).sort((a,b)=>a.tier-b.tier||a.index-b.index).map(x=>x.product);
+export function prioritizeRecipeFishProducts<T extends {name?:string;category?:string}>(input:string,products:T[],context?:RecipeContext):T[] {
+ const term=recipeProductSearchTerm(input);
+ const salt=/suola/.test(term||"");
+ const herb=term==="tilli"&&!/kuivatt/i.test(input);
+ return products.map((product,index)=>({product,index,tier:herb?(/mauste|kuivatt|purkki|^caabgbaak/i.test((product.name||"")+" "+(product.category||""))||/^caabgbaak/i.test(product.category||"")?2:/pakast/i.test((product.name||"")+" "+(product.category||""))?1:0):salt&&/karke/i.test(input)?(/karkea|coarse/i.test(product.name||"")?0:/hieno|fine/i.test(product.name||"")?2:1):recipeFishFreshnessTier(input,product,context)})).sort((a,b)=>a.tier-b.tier||a.index-b.index).map(x=>x.product);
 }

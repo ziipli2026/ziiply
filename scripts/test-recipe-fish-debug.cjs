@@ -15,7 +15,7 @@ for(const input of ['silakoita','silakkafileitä']){
  assert.equal(ordered.at(-1).name,'Merihyvä silakkafile 300g irtopakaste');
 }
 assert.equal(recipeProductRejectionReason('silakoita',products.find(p=>p.id===1859892)),'non_food_product');
-assert.equal(recipeProductRejectionReason('silakoita',products.find(p=>p.id===3919)),'raw_fish_required');
+assert.equal(recipeProductRejectionReason('silakoita',products.find(p=>p.id===3919)),'ready_meal_is_not_ingredient');
 for(const name of ['Lohikeitto 300 g','Savulohifilee 300 g','Graavilohifilee 200 g','Lohifilee teriyakikastikkeessa 300 g'])assert.equal(recipeProductCompatible('lohta',{name}),false,name);
 assert.equal(recipeProductCompatible('lohta',{name:'Tuore lohifilee 600 g'}),true);
 const fish=parseRecipeIngredient('600 g silakoita tai 300 g silakkafileitä');

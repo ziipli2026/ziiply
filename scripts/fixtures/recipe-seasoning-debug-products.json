@@ -1,0 +1,808 @@
+{
+  "merisuola": [
+    {
+      "id": 1803499,
+      "name": "Estrella Maalaissipsi 180g merisuola-etikka",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 279
+    },
+    {
+      "id": 1924781,
+      "name": "Elephant kierrepretzelit 80g merisuola-hunaja",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "price": 165
+    },
+    {
+      "id": 1938804,
+      "name": "Gårdschips Merisuola 240g",
+      "category": "snacksit/sipsit/perunalastut",
+      "price": 199
+    },
+    {
+      "id": 4831,
+      "name": "Jozo hieno merisuola 500g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 179
+    },
+    {
+      "id": 1838894,
+      "name": "Flora & voi Merisuola 500g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 299
+    },
+    {
+      "id": 4877,
+      "name": "Jozo karkea merisuola 500g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 179
+    },
+    {
+      "id": 4394,
+      "name": "Meira Merisuola 800g karkea",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 105
+    },
+    {
+      "id": 5919,
+      "name": "Taffel Manteli 90g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/snacks-pahkinat",
+      "price": 255
+    },
+    {
+      "id": 1815797,
+      "name": "Elephant pretzel 80g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/juusto--ja-muotosnacksit",
+      "price": 159
+    },
+    {
+      "id": 1806125,
+      "name": "Maldon merisuola chilillä 100g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 497
+    },
+    {
+      "id": 1798378,
+      "name": "Coop riisikakut merisuola 100 g",
+      "category": "CAABGAKAMAAAA",
+      "price": 59
+    },
+    {
+      "id": 1851661,
+      "name": "Oikia kaurasipsi 150g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/muut-snacksit",
+      "price": 219
+    },
+    {
+      "id": 5206,
+      "name": "Guéranden harmaa merisuola 1 kg",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 495
+    },
+    {
+      "id": 79065,
+      "name": "Flora Plant B+tter Merisuola 600g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 369
+    },
+    {
+      "id": 9915,
+      "name": "Estrella Merisuola sipsipussi 275g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 295
+    },
+    {
+      "id": 1113,
+      "name": "Kantolan Pikkukeksi Merisuola 120g",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/suola--ja-valipalakeksit",
+      "price": 198
+    },
+    {
+      "id": 2755,
+      "name": "Valio Oivariini 350g merisuola HYLA",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 349
+    },
+    {
+      "id": 4481,
+      "name": "Meira merisuola 450g hieno, jodioitu",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 164
+    },
+    {
+      "id": 1806146,
+      "name": "Maldon merisuola valkosipulilla 100g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 497
+    },
+    {
+      "id": 22324,
+      "name": "Foodin Guerande Merisuola hieno 400g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 269
+    },
+    {
+      "id": 9903,
+      "name": "Estrella Maalaissipsi 180g Merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 279
+    },
+    {
+      "id": 1864115,
+      "name": "Coop leipätikku twist merisuola 125 g",
+      "category": "CAABGAIAAAEAA",
+      "price": 189
+    },
+    {
+      "id": 22325,
+      "name": "Foodin Guerande Merisuola karkea 300g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 208
+    },
+    {
+      "id": 1833683,
+      "name": "Vaasan hapankorppu 195g chia merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/hapankorput",
+      "price": 184
+    },
+    {
+      "id": 1818658,
+      "name": "Atria Kanan Minuuttifilee Merisuola 220g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "price": 325
+    },
+    {
+      "id": 1818693,
+      "name": "Atria Kanan Minuuttifilee Merisuola 650g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "price": 849
+    },
+    {
+      "id": 1943245,
+      "name": "URTEKRAM Merisuola muotoilusuihke 100 ml",
+      "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet",
+      "price": 795
+    },
+    {
+      "id": 76251,
+      "name": "Coop maalaisperunalastut merisuola 175 g",
+      "category": "CAABGAUAAAAAA",
+      "price": 157
+    },
+    {
+      "id": 1865140,
+      "name": "Estrella Maalaissipsi voi & merisuola 180g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 279
+    },
+    {
+      "id": 78449,
+      "name": "Jyväbroiler 350g Broilerin Filee Merisuola",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "price": 549
+    },
+    {
+      "id": 1161,
+      "name": "Leksands näkkileipä 200g siemenet merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 239
+    },
+    {
+      "id": 1837553,
+      "name": "Kotimaista Ruissipsi Merisuola&Pippuri 150g",
+      "category": "CAABGAUAKAAAA",
+      "price": 219
+    },
+    {
+      "id": 1845499,
+      "name": "Ryvita ohut keksi 125g rosmariini-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 328
+    },
+    {
+      "id": 9981,
+      "name": "Estrella Paprika & Merisuola sipsipussi 275g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 295
+    },
+    {
+      "id": 1947171,
+      "name": "Atria kanan iso fileesuikale merisuola 350 g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/suikaleet-ja-kuutiot",
+      "price": 399
+    },
+    {
+      "id": 13771,
+      "name": "Foodin NUTI tumma suklaa & merisuola 35g luomu",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/valipalakeksit-ja--patukat",
+      "price": 165
+    },
+    {
+      "id": 921,
+      "name": "Friggs maissikakku 130g chiasiemen & merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "price": 219
+    },
+    {
+      "id": 1945471,
+      "name": "LEKSANDS PAIMENTUVAN SIEMENET & MERISUOLA 365G",
+      "category": "CAABGAKAAAAAA",
+      "price": 459
+    },
+    {
+      "id": 78090,
+      "name": "Wasa 100 vuotta näkkäri 245g merisuola siemenet",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 249
+    },
+    {
+      "id": 4419,
+      "name": "Meira Merisuola 800g hieno Voimakas ja aromikas",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 125
+    },
+    {
+      "id": 1865940,
+      "name": "Vaasan Ruissipsi 150g ruskistettu voi-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "price": 239
+    },
+    {
+      "id": 10218,
+      "name": "Lindt Excellence Merisuola tumma suklaalevy 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    },
+    {
+      "id": 13787,
+      "name": "Foodin NUTI hunaja, pekaani & merisuola 35g luomu",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/valipalakeksit-ja--patukat",
+      "price": 165
+    },
+    {
+      "id": 1929710,
+      "name": "Fazer Leipurit Flatbread rosmariini-merisuola kpl",
+      "category": "CAAAWAMAIAIAA",
+      "price": 131
+    },
+    {
+      "id": 1809871,
+      "name": "Friggs Gluteeniton Maissikakku Voi-Merisuola 120g",
+      "category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "price": 245
+    },
+    {
+      "id": 1795477,
+      "name": "Ingmariini 250 g Merisuola vähälaktoosinen levite",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 269
+    },
+    {
+      "id": 1864103,
+      "name": "Vaasan Koulunäkki Ohut Herkku 265g chia-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 265
+    },
+    {
+      "id": 1790894,
+      "name": "Coop tumma suklaa 64 % kinuski ja merisuola 100 g",
+      "category": "CAABGAQAIAAAC",
+      "price": 205
+    },
+    {
+      "id": 1942393,
+      "name": "Vaasan Koulunäkki 265g kaura-unikonsiemen-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 299
+    },
+    {
+      "id": 2924,
+      "name": "Keiju 600g merisuola rypsiöljy-kasvirasvalevite 70%",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 389
+    },
+    {
+      "id": 1855215,
+      "name": "Coop Eko vegaaninen suklaa kinuski ja merisuola 85 g",
+      "category": "CAABGAQAIAAAG",
+      "price": 275
+    },
+    {
+      "id": 2843,
+      "name": "Keiju 400 g merisuola rypsiöljy-kasvirasvalevite 70 %",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 279
+    },
+    {
+      "id": 10312,
+      "name": "Vaasan Ohut Ruissipsi Merisuola & Lempeä pippuri 150g",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "price": 239
+    },
+    {
+      "id": 1855214,
+      "name": "Coop Eko tumma suklaa 55 % pistaasi ja merisuola 100 g",
+      "category": "CAABGAQAIAAAC",
+      "price": 275
+    },
+    {
+      "id": 9767,
+      "name": "Estrella Kypsytetty juusto & Merisuola sipsipussi 275g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 295
+    },
+    {
+      "id": 1822976,
+      "name": "Jozo Le Saunier de Camargue Fleur de Sel merisuola 125g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 324
+    },
+    {
+      "id": 1846355,
+      "name": "Jyväbroiler Broilerin iso paistisuikale merisuola 330 g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/suikaleet-ja-kuutiot",
+      "price": 429
+    },
+    {
+      "id": 1822949,
+      "name": "Jozo Le Saunier de Camargue Hieno merisuola sirotin 250g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 268
+    },
+    {
+      "id": 13527,
+      "name": "Foodin manteli-merisuola kollageeniproteiinipatukka 50 g",
+      "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+      "price": 198
+    },
+    {
+      "id": 2625,
+      "name": "Valio Oivariini 400 g oliiviöljy ja hieno merisuola HYLA",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 349
+    },
+    {
+      "id": 1868417,
+      "name": "Eleplant Merisuola Kasvivoimaa kasvirasvalevite 75 % 400g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 285
+    },
+    {
+      "id": 10203,
+      "name": "Lindt Excellence Karamelli-merisuola tumma suklaalevy 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    },
+    {
+      "id": 1352,
+      "name": "Friggs maissikakku 130g seesamisiemen merisuola gluteeniton",
+      "category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "price": 218
+    },
+    {
+      "id": 1341,
+      "name": "Wasa näkkileipä 240g seesami merisuola gluteeniton laktoositon",
+      "category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-nakkileivat",
+      "price": 315
+    },
+    {
+      "id": 1864143,
+      "name": "3 Kaveria Laktoositon Kinuski & Merisuola jäätelötuutti 150ml/95g",
+      "category": "pakasteet/jaatelot/jaatelotuutit-ja--pikarit",
+      "price": 315
+    },
+    {
+      "id": 1834388,
+      "name": "Rosten siemenrapeat viljaton siemennäkkileipä chia-merisuola 170g",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 377
+    },
+    {
+      "id": 1120,
+      "name": "Rosten Siemen Rapeat siemennäkkileipä 250g kaura, speltti & merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 298
+    },
+    {
+      "id": 1805955,
+      "name": "Rosten Siemenrapeat viljaton siemennäkkileipä rosmariini & merisuola 170g",
+      "category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-nakkileivat",
+      "price": 377
+    },
+    {
+      "id": 1837636,
+      "name": "Iron Maiden Grillimauste 112g merisuola, mustapippuri ja etikka mausteseos.",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "price": 592
+    },
+    {
+      "id": 5054,
+      "name": "Maldon merisuola250g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 592
+    },
+    {
+      "id": 34501,
+      "name": "Maldon Merisuolamylly 55g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 579
+    },
+    {
+      "id": 1823678,
+      "name": "Coop merisuolahiutaleet 170g",
+      "category": "CAABGBAAIAEAA",
+      "price": 298
+    },
+    {
+      "id": 1853190,
+      "name": "Coop Merisuolamylly 230g Sea Salt",
+      "category": "CAABGBAAIAIAA",
+      "price": 284
+    },
+    {
+      "id": 2804,
+      "name": "President Gourmet merisuolavoi 250g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "price": 439
+    },
+    {
+      "id": 1845381,
+      "name": "Kantolan Valitut merisuolakeksi 150g",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/suola--ja-valipalakeksit",
+      "price": 248
+    },
+    {
+      "id": 11334,
+      "name": "Revuele Tuuheuttava Merisuolasuihke 200ml",
+      "category": "CAABSAAACAEAA",
+      "price": 295
+    },
+    {
+      "id": 1794178,
+      "name": "Ziaja Antioksidanttinen merisuolasuihke 90 ml",
+      "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet",
+      "price": 385
+    },
+    {
+      "id": 21029,
+      "name": "Änglamark riisikakku merisuolalla luomu 100 g",
+      "category": "CAABGAKAMAAAA",
+      "price": 79
+    },
+    {
+      "id": 982,
+      "name": "Änglamark maissikakku merisuolalla luomu 100 g",
+      "category": "CAABGAKAMAAAA",
+      "price": 79
+    },
+    {
+      "id": 5230,
+      "name": "Nordur Salt Arctic Sea Salt merisuolahiutaleet 250 g",
+      "category": "CAABGBAAIAEAA",
+      "price": 559
+    },
+    {
+      "id": 1837561,
+      "name": "Dave&Jons paahdettuja härkäpapuja merisuolan kanssa 100 g",
+      "category": "CAABGAWAAAAAK",
+      "price": 189
+    },
+    {
+      "id": 19873,
+      "name": "Coop oliiviöljyä ja merisuolaa sisältävät krutongit 100 g",
+      "category": "CAABGAKAGAAAA",
+      "price": 194
+    },
+    {
+      "id": 34474,
+      "name": "Nordur Salt Lava Sea Salt hiilivärjätyt merisuolahiutaleet 100 g",
+      "category": "CAABGBAAIAEAA",
+      "price": 709
+    },
+    {
+      "id": 13061,
+      "name": "Otrivin Natural Aloe Vera nenäsuihke 50 ml isotoninen merisuolaliuos",
+      "category": "kosmetiikka-terveys-ja-hygienia/intiimituotteet-ja-intiimihygienia/muut-kosmetiikka--ja-terveystarvikkeet",
+      "price": 829
+    },
+    {
+      "id": 1845485,
+      "name": "Lindt Excellence Fusion tumma suklaa merisuolalla ja maitosuklaa 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    },
+    {
+      "id": 1837560,
+      "name": "Dave&Jons paahdettuja edamame papuja oliiviöljyllä ja merisuolalla 100 g",
+      "category": "CAABGAWAAAAAK",
+      "price": 189
+    },
+    {
+      "id": 1806153,
+      "name": "Oikia Aurinkoinen Alicia Ranskankerman & Merisuolan makuinen perunasipsi 350g",
+      "category": "CAABGAUAAAAAA",
+      "price": 349
+    },
+    {
+      "id": 1838695,
+      "name": "Lindt Excellence Pistaasi tummasuklaata pistaasipähkinällä ja ripaus merisuolaa 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    }
+  ],
+  "tilli": [
+    {
+      "id": 10044,
+      "name": "Estrella Maalaissipsi 180g tilli-ruohosipuli",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 279
+    },
+    {
+      "id": 6706,
+      "name": "VegOnTable vihreät oliivit tilli-valkosipuli 360 g / 190 g",
+      "category": "CAABGBCAEAKAA",
+      "price": 248
+    },
+    {
+      "id": 2426,
+      "name": "Suomen Sillikonttori tilli-sipuli silakkarulla 280g/140g MSC",
+      "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+      "price": 596
+    },
+    {
+      "id": 616,
+      "name": "Tilli 50g",
+      "category": "CAAAAAEAYACAA",
+      "price": 188
+    },
+    {
+      "id": 39919,
+      "name": "Varpion Tilli",
+      "category": "hedelmat-ja-vihannekset/yrtit/tillit-ja-persiljat",
+      "price": 214
+    },
+    {
+      "id": 4607,
+      "name": "Xtra tilli 35 g",
+      "category": "CAABGBAAKAOAE",
+      "price": 174
+    },
+    {
+      "id": 441,
+      "name": "Kotimaista tilli",
+      "category": "CAAAAAEAYAAAA",
+      "price": 128
+    },
+    {
+      "id": 534,
+      "name": "Kotimaista tilli 30g",
+      "category": "CAAAAAEAYACAA",
+      "price": 118
+    },
+    {
+      "id": 47257,
+      "name": "Golden Star Tilli 170g",
+      "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+      "price": 736
+    },
+    {
+      "id": 4470,
+      "name": "Meira tilli 8g pussi mauste",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "price": 65
+    },
+    {
+      "id": 499,
+      "name": "Järvikylä tilli ruukku Suomi",
+      "category": "hedelmat-ja-vihannekset/yrtit/tillit-ja-persiljat",
+      "price": 173
+    },
+    {
+      "id": 4677,
+      "name": "Santa Maria Tilli, purkki 13g",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "price": 124
+    },
+    {
+      "id": 1806692,
+      "name": "Atria grilliperunat voi-tilli 500g",
+      "category": "valmisruoka/laatikot-pastat-ja-lasagnet/peruna--ja-kasvilisakkeet",
+      "price": 409
+    },
+    {
+      "id": 642,
+      "name": "Ikaalisten Luomu tilli rkk Suomi 1lk",
+      "category": "hedelmat-ja-vihannekset/yrtit/tillit-ja-persiljat",
+      "price": 248
+    },
+    {
+      "id": 1848146,
+      "name": "Herbafrost Luomu tilli 75 g hienonnettu pakaste",
+      "category": "CAABQAGACAIAA",
+      "price": 149
+    },
+    {
+      "id": 3067,
+      "name": "Arla Lempi creme fraiche 200g sitruuna-tilli laktoositon",
+      "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/ranskankermat",
+      "price": 178
+    },
+    {
+      "id": 1841841,
+      "name": "FjordChips Dill Pickle perunalastut tilli ja suolakurkku 150g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 274
+    },
+    {
+      "id": 9818,
+      "name": "Taffel Kartanon sipsi 180g tilli&kermaviili maustettu perunalastu",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 199
+    },
+    {
+      "id": 1868323,
+      "name": "Valio Keittiön jogurttikastike suolakurkku-tilli 180g laktoositon",
+      "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/ruoanvalmistusjogurtit",
+      "price": 165
+    },
+    {
+      "id": 1943434,
+      "name": "Coop tillinippu 50 g",
+      "category": "CAAAAAEAYACAA",
+      "price": 199
+    },
+    {
+      "id": 2398,
+      "name": "Boy tillisilli 575/250g",
+      "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+      "price": 489
+    },
+    {
+      "id": 2415,
+      "name": "Ahti tillisilli 240/150g",
+      "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+      "price": 457
+    },
+    {
+      "id": 1867652,
+      "name": "Herkku tillisilli 150g/100g",
+      "category": "CAAAKAAAWAIAA",
+      "price": 429
+    },
+    {
+      "id": 52082,
+      "name": "Kotimaista tillinippu 100 g",
+      "category": "hedelmat-ja-vihannekset/yrtit",
+      "price": 289
+    },
+    {
+      "id": 2403,
+      "name": "Abba ruohosipuli- ja tillisilli 210g",
+      "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+      "price": 369
+    },
+    {
+      "id": 2391,
+      "name": "Vesta silliä tillikastikkeessa 150/100g",
+      "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+      "price": 449
+    },
+    {
+      "id": 1867658,
+      "name": "Kotimaista sipuli-tillisilakka 280g/156g MSC",
+      "category": "CAAAKAAAUACAA",
+      "price": 590
+    },
+    {
+      "id": 1818089,
+      "name": "Atria kirjolohipihvit tillikastikkeella 350g",
+      "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "price": 409
+    },
+    {
+      "id": 9626,
+      "name": "Alfocan rapuja tilliliemessä 24-30kpl pakaste",
+      "category": "CAABQAIAGAAAA",
+      "price": 1849
+    },
+    {
+      "id": 1858704,
+      "name": "Keiju laktoositon margariini 60 tillillä 250 g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 185
+    },
+    {
+      "id": 1930611,
+      "name": "Abba Brantevikin sipuli-tillisilli 245/105g MSC",
+      "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+      "price": 369
+    },
+    {
+      "id": 1834885,
+      "name": "Coop tonnikala paloina tillikastikkeessa MSC 185 g",
+      "category": "CAABGBCAMAAAE",
+      "price": 199
+    },
+    {
+      "id": 52432,
+      "name": "Abba Brantevikin sipuli-tillisilli 245/105g kausimaku",
+      "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+      "price": 369
+    },
+    {
+      "id": 1931805,
+      "name": "Alfocan espanjalaiset ravut tillikastikkeessa L-koko n.15 kpl /700g",
+      "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/ravut",
+      "price": 1630
+    },
+    {
+      "id": 1932045,
+      "name": "Alfocan espanjalaiset ravut tillikastikkeessa, S-koko, noin 25 kpl, 700 g",
+      "category": "CAABQAIAGAAAA",
+      "price": 1035
+    },
+    {
+      "id": 1932046,
+      "name": "Alfocan espanjalaiset ravut tillikastikkeessa, M-koko, noin 20 kpl, 700 g",
+      "category": "CAABQAIAGAAAA",
+      "price": 1290
+    },
+    {
+      "id": 1932048,
+      "name": "Alfocan espanjalaiset ravut tillikastikkeessa, XL-koko, noin 10 kpl, 700 g",
+      "category": "CAABQAIAGAAAA",
+      "price": 1845
+    }
+  ],
+  "maustepippuri": [
+    {
+      "id": 4620,
+      "name": "Meira Maustepippuri 25g jauh ps",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "price": 134
+    },
+    {
+      "id": 4572,
+      "name": "Meira maustepippuri kokonainen 20g",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "price": 124
+    },
+    {
+      "id": 725855,
+      "name": "Xtra maustepippuri kokonainen 55 g",
+      "category": "CAABGBAAKAIAA",
+      "price": 135
+    },
+    {
+      "id": 4703,
+      "name": "Meira Maustepippuri 50g kokonainen pussi",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "price": 248
+    }
+  ],
+  "valkopippuri": [
+    {
+      "id": 4528,
+      "name": "Meira Valkopippuri 31g jauh pss",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "price": 174
+    },
+    {
+      "id": 4736,
+      "name": "Meira Valkopippuri 38g jauh tlk",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "price": 325
+    },
+    {
+      "id": 4718,
+      "name": "Meira Valkopippuri 34g kok pussi",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "price": 214
+    },
+    {
+      "id": 22350,
+      "name": "Santa Maria Valkopippuri jauhettu Luomu, purkki 35g",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "price": 335
+    }
+  ]
+}

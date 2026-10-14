@@ -197,3 +197,18 @@ Muut tarkistukset: TypeScript, tuotanto-build, normaalihakujen fallback-testit j
 - `600 g silakoita tai 300 g silakkafileitä` säilyttää fileevaihtoehdon 300 g tarpeen. Se tarkoittaa kahta 250 g pakkausta.
 
 Toistaminen: `node scripts/test-recipe-fish-debug.cjs`.
+
+
+## Tuoteryhmät, mausteiden muodot ja kala-/lihatuotteen tila
+
+Uuden 14.10.2026 DEBUG-aineiston perusteella:
+
+- Yleinen sokerihaku käyttää `sokeri`-hakusanaa. Siro-hienosokeri, talous-, ruoko- ja fariinisokeri säilyvät vaihtoehtoina. Erikseen pyydetyt vanilja-, tomu- ja hillosokerit säilyvät erillisinä aineslajeina.
+- Ruokasuolat tunnistetaan suolatuotteiksi ennen hintajärjestystä. Suolalla maustetut snacksit, leivät, suklaat, lihatuotteet, levitteet ja kosmetiikka rajataan pois. Karkeus toimii järjestysetuna, ei ehdottomana lukituksena.
+- Hienonnetulle tillille ei hyväksytä kuivattua maustetta. Tavallisella tillillä tuore yrtti näkyy ennen raakaa pakastetta ja kuivattua maustetta. Tunnetun lähteen maustekoodi `CAABGBAAK...` auttaa erottamaan DEBUGissa palautuneen Xtra-tillin tuoreista yrttikoodeista; muita tuntemattomia koodeja ei arvata.
+- Lukumääränä annetut pippurit edellyttävät kokonaisia pippureita; myös lyhenteet `jauh` huomioidaan tuotteen nimessä.
+- Kala- ja lihatuotteen lajia, käsittelyä ja säilytystapaa tulkitaan erikseen. Nimetyt kala- ja lihalajit kattavat muun muassa lohen, kirjolohen, silakan, seitin, turskan, kuhan, ahvenen, siian, tonnikalan, broilerin, kalkkunan, sian, naudan, lampaan, hirven, poron ja jauhelihan.
+- Ainesrivin selvä pakaste-, kypsä-, savu-, graavi-, säilyke- tai marinadimerkintä säilyy. Valmistusohjeen tulkinta koskee vain saman kalan/lihan mainitsevia virkkeitä: esimerkiksi `Sulata voi. Paista lohi.` ei muuta lohta pakastevaatimukseksi.
+- Raaka on oletus ilman muuta tietoa. Vähittäismyyntipakkaus ei tarkoita kypsää tuotetta. Epäselviä pakkauskokoja, kaikkia mahdollisia kirjoitusasuja tai täydellistä luonnollisen kielen ymmärtämistä ei tällä säännöstöllä luvata.
+
+Uusi tarkistus: `node scripts/test-recipe-product-state.cjs`. Se kattaa aidot DEBUG-mausterivit, sokerivaihtoehdot ja 15 kala-/lihatilan tapausta. Aiemmat 10 reseptiä, 40 kirjoitusasuvarianttia, 87 valintaa ja silakan DEBUG-regressio läpäisevät edelleen.
