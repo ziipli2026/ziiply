@@ -334,8 +334,9 @@ async function tryInternalSProductsExact(args: {
   }, 2500);
 
   const payload = await response.json().catch(() => null);
-  const products = flattenProducts(payload);
-  const exact = findExact(products, args.ean);
+  // An upstream 500 or malformed payload is not a successful product lookup.
+  const products = response.ok ? flattenProducts(payload) : [];
+  const exact = response.ok ? findExact(products, args.ean) : null;
 
   return {
     ok: response.ok,
@@ -428,8 +429,8 @@ async function tryFilteredExact(args: {
     FILTERED_HASH,
   );
 
-  const products = getFilteredProducts(result.payload);
-  const exact = findExact(products, args.ean);
+  const products = result.ok ? getFilteredProducts(result.payload) : [];
+  const exact = result.ok ? findExact(products, args.ean) : null;
 
   return { ...result, products, exact };
 }
@@ -480,8 +481,9 @@ export async function GET(request: NextRequest) {
           },
           COMPLEMENTARY_HASH,
         );
-        const directProducts = directComplementary.payload?.data?.complementaryProducts || [];
-        const directExact = findExact(directProducts, ean);
+        const directProducts = directComplementary.ok && Array.isArray(directComplementary.payload?.data?.complementaryProducts)
+          ? directComplementary.payload.data.complementaryProducts : [];
+        const directExact = directComplementary.ok ? findExact(directProducts, ean) : null;
 
         if (debugEnabled) {
           debug.push({
@@ -619,7 +621,13 @@ export async function GET(request: NextRequest) {
           break;
         }
 
-        const filtered = await tryFilteredExact({ ean, storeId: graphqlStoreId, slug, queryString });
+        let filtered: Awaited<ReturnType<typeof tryFilteredExact>>;
+        try {
+          filtered = await tryFilteredExact({ ean, storeId: graphqlStoreId, slug, queryString });
+        } catch (error: any) {
+          console.warn("S_EAN_FILTERED_LOOKUP_FAILED", { ean, storeId: graphqlStoreId, slug, error: String(error?.message || error).slice(0, 180) });
+          continue;
+        }
 
         if (debugEnabled) {
           debug.push({
@@ -684,9 +692,9 @@ export async function GET(request: NextRequest) {
       COMPLEMENTARY_HASH,
     );
 
-    const complementaryProducts =
-      complementary.payload?.data?.complementaryProducts || [];
-    const exactComplementary = findExact(complementaryProducts, ean);
+    const complementaryProducts = complementary.ok && Array.isArray(complementary.payload?.data?.complementaryProducts)
+      ? complementary.payload.data.complementaryProducts : [];
+    const exactComplementary = complementary.ok ? findExact(complementaryProducts, ean) : null;
 
     if (debugEnabled) {
       debug.push({
