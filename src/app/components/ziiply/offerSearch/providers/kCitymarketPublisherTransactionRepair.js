@@ -5,6 +5,12 @@ export function repairPublisherTransaction(row) {
   const context = nearby.join(' ').replace(/\s+/g, ' ');
   const current = Number(row.spatialResolved?.value);
   if (!(current > 0)) return row;
+  // Reject a percentage mistaken for a euro price BEFORE any nearby pack repair.
+  // A publisher discount percentage is not a transaction price.
+  const pct = [...context.matchAll(/(?:^|\s)[−–-]\s*(\d{1,2})(?!\d)\s*%/g)].map(m=>Number(m[1]));
+  if (pct.includes(current) && !/printed|verified-transaction|publisher-owned-pack-total/i.test(String(row.spatialResolved?.source||''))) {
+    return {...row,spatialResolved:null,debugRejectedPercentageAsPrice:{value:current,reason:'publisher-discount-percentage-not-transaction'}};
+  }
   // "24-PACK 1099" is EUR 10.99 for the whole pack, not EUR 0.36 per bottle.
   const packs = [...context.matchAll(/\b(\d{1,2})\s*[- ]?PACK\s+(\d{3,4})(?!\d)/gi)]
     .map(m => ({count:Number(m[1]), value:Number(m[2])/100}));
@@ -19,11 +25,6 @@ export function repairPublisherTransaction(row) {
   const ambiguousPackEvidence=matching.length!==1;
   if (ownCount>=2 && !authoritativeTotal && !ambiguousPackEvidence && distinct.length===1 && Math.abs(current-matching[0].value)>.011) {
     return {...row, spatialResolved:{value:matching[0].value,quantity:1,unit:'pack',source:'publisher-owned-pack-total',sanity:'pass',confidence:'high'},debugReplacedConflictingPrice:row.spatialResolved};
-  }
-  // A publisher discount percentage is not a transaction price.
-  const pct = [...context.matchAll(/(?:^|\s)[−–-]\s*(\d{1,2})(?!\d)\s*%/g)].map(m=>Number(m[1]));
-  if (pct.includes(current) && !/printed|verified-transaction|publisher-owned-pack-total/i.test(String(row.spatialResolved?.source||''))) {
-    return {...row,spatialResolved:null,debugRejectedPercentageAsPrice:{value:current,reason:'publisher-discount-percentage-not-transaction'}};
   }
   return row;
 }
