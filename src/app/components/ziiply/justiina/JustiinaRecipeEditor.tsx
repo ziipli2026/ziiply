@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { parseRecipeText, scaleIngredients, classifyRecipeIngredient, recipeProductSearchTerm, type RecipeDraft } from "./recipeCore";
-import { correctSearchQuery } from "../search/searchIntentAI";
+import { parseRecipeText, scaleIngredients, prepareRecipeSearch, type RecipeDraft } from "./recipeCore";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
@@ -52,7 +51,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const load=(source:string)=>{
     const next=parseRecipeText(source);const people=next.servings?String(next.servings):"";
     setSavedRecipeId(null);setText(source);setDraft(next);setOriginal(people);setTarget(people);setEditing(false);setImporting(false);
-    setNotice(next.ingredients.length?"":"Ainesrivejä ei löytynyt. Lisää Ainekset:-otsikko tai muokkaa aineksia.");
+    setNotice(next.ingredients.length?"":"Ainesrivejä ei löytynyt. Tarkista teksti tai lisää ainekset muokkaamalla.");
     persist(next,source,people,people);return next;
   };
   const startSearch=(recipe:RecipeDraft|null=draft,base=original,people=target)=>{
@@ -60,22 +59,11 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     const originalServings=Number(base)>0?Number(base):1;const targetServings=Number(people)>0?Number(people):originalServings;
     const items=scaleIngredients(recipe.ingredients,originalServings,targetServings).filter(item=>!item.atHome&&item.name.trim());
     if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
-    // Missing or ambiguous quantities do not block product discovery.
-    // Keep original recipe quantities available for later confirmation.
-    const searchable=items.map(item=>({item,term:recipeProductSearchTerm(item.name)})).filter((entry):entry is {item:typeof items[number];term:string}=>Boolean(entry.term));
-    if(!searchable.length){setNotice("Reseptissä ei ole ostettavia aineksia.");return;}
-    // Combine repeated ingredients of the same kind before retail search.
-    const merged:typeof searchable=[];
-    for(const entry of searchable){
-      const existing=merged.find(other=>other.term===entry.term && other.item.unit===entry.item.unit);
-      if(existing){
-        if(existing.item.amount!==null && entry.item.amount!==null)existing.item={...existing.item,amount:existing.item.amount+entry.item.amount};
-      }else merged.push({...entry,item:{...entry.item}});
-    }
-    const classified=merged.map(({term})=>classifyRecipeIngredient(term));
+    const search=prepareRecipeSearch(items);
+    if(!search.terms.length){setNotice("Reseptissä ei ole ostettavia aineksia.");return;}
     persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
-    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:merged.map(entry=>entry.item)}))}catch{}
-    onSearchIngredients(classified.map((group,index)=>correctSearchQuery(group?.searchTerm||merged[index].term)),merged.map(entry=>entry.item));
+    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:search.items}))}catch{}
+    onSearchIngredients(search.terms,search.items);
   };
   const hasRecipe=Boolean(draft?.title.trim()||draft?.ingredients.length);
   const ingredients=draft?.ingredients||[];

@@ -8,7 +8,7 @@ import { getKSearchTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
-import { packageCount, type RecipeIngredient } from "../components/ziiply/justiina/recipeCore";
+import { recipeProductSearchTerm, recipeProductCompatible, recipeRetailPackageCount, type RecipeIngredient } from "../components/ziiply/justiina/recipeCore";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
 import dynamic from "next/dynamic";
@@ -998,18 +998,7 @@ export default function DesktopPreviewPage() {
   function selectedRecipePackageCount(product:any):number|null {
     const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
     if(!ingredient)return null;
-    const name=String(product.name||product.title||product.productName||"");
-    // Prefer the total package amount: "300 g (2 x 150 g)" is ONE 300 g package.
-    // If only a multipack expression is given, calculate its total.
-    const normalizeAmount=(value:string)=>Number(value.replace(",","."));
-    const multipack=[...name.matchAll(/(\d+)\s*[x×]\s*(\d+(?:[,.]\d+)?)\s*(kg|g|l|dl|cl|ml|kpl)\b/gi)];
-    const multi=multipack.length?multipack[multipack.length-1]:null;
-    const withoutMultipacks=name.replace(/\d+\s*[x×]\s*\d+(?:[,.]\d+)?\s*(?:kg|g|l|dl|cl|ml|kpl)\b/gi," ");
-    const totals=[...withoutMultipacks.matchAll(/(\d+(?:[,.]\d+)?)\s*(kg|g|l|dl|cl|ml|kpl)\b/gi)];
-    const total=totals.length?totals[totals.length-1]:null;
-    const size=total?normalizeAmount(total[1]):multi?Number(multi[1])*normalizeAmount(multi[2]):Number(product.packageSize||0);
-    const unit=total?.[2]?.toLowerCase()||multi?.[3]?.toLowerCase()||String(product.packageUnit||"").toLowerCase();
-    return packageCount(ingredient.amount,ingredient.unit,size||null,unit||null);
+    return recipeRetailPackageCount(ingredient,{...product,name:String(product.name||product.title||product.productName||"")});
   }
   function addRecipeSelectionToCart(product:any) {
     const count=selectedRecipePackageCount(product);
@@ -1039,18 +1028,20 @@ export default function DesktopPreviewPage() {
   async function runDesktopVoiceList(transcript: string, recipeItems?:RecipeIngredient[]) {
     cancelDesktopVoiceList();
     const runId = desktopVoiceRunRef.current;
-    const terms = parseMobileVoiceList(transcript);
+    const terms = recipeItems?.length ? recipeItems.map(item=>recipeProductSearchTerm(item.name)||item.name) : parseMobileVoiceList(transcript);
     recipeSearchStepRef.current=-1;
     recipeSearchItemsRef.current=Array.isArray(recipeItems)&&recipeItems.length===terms.length?recipeItems:[];
     recipeTermsRef.current=recipeSearchItemsRef.current.length?terms:[];
     justiinaUserEditedRef.current = false;
     setDesktopListPending(terms.length > 1);
+    const missingRecipeTerms:string[]=[];
     for (let index = 0; index < terms.length; index++) {
       if (runId !== desktopVoiceRunRef.current) return;
       recipeSearchStepRef.current=index;
       setJustiinaActiveTerm(terms[index]);
       const found = await runDesktopJustiinaSearch(terms[index], runId);
       if (runId !== desktopVoiceRunRef.current) return;
+      if(recipeItems?.length&&!found)missingRecipeTerms.push(terms[index]);
       // Mobile V509: keep this product's choices open until selection or return.
       if (found) {
         // Wait for an explicit selection or dismissal, including the last item.
@@ -1062,6 +1053,7 @@ export default function DesktopPreviewPage() {
       setJustiinaResultsOpen(false);
       setWorkspace(null);
       setCartOpen(true);
+      if(missingRecipeTerms.length)setCartNotice("Reseptistä jäi löytymättä: "+missingRecipeTerms.join(", ")+". Tarkista nämä ainekset.");
     }
   }
   function requestDesktopListExit() {
@@ -1541,6 +1533,8 @@ export default function DesktopPreviewPage() {
 
   async function runDesktopJustiinaSearch(raw=justiinaQuery, voiceRunId?:number) {
     const query=String(raw||"").trim(); if(!query)return;
+    const recipeIngredient=voiceRunId!==undefined?recipeSearchItemsRef.current[recipeSearchStepRef.current]:undefined;
+    const recipeAllows=(product:any)=>!recipeIngredient||recipeProductCompatible(recipeIngredient.name,product);
     const selected=Object.values(selectedStores) as any[];
     const s=selected.find(x=>{const k=storeKind(x);return k==="sHyper"||k==="sLocal"});
     const k=selected.find(x=>{const t=storeKind(x);return t==="kHyper"||t==="kLocal"});
@@ -1562,7 +1556,7 @@ export default function DesktopPreviewPage() {
           const data = await response.json();
           lastData = data;
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
-          if (rankNormalSearchResults(query, items).length > 0) return data;
+          if (rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(!isBadNormalResult(product,query)||Boolean(recipeIngredient)))) return data;
         }
         return lastData;
       }
@@ -1580,7 +1574,7 @@ export default function DesktopPreviewPage() {
           const priceIsEuros=batch.chain==="S"&&batch.data?.source==="s-kaupat-normal-v220";
           const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
           const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:batch.data?.source||""};
-          if(!isBadNormalResult(product,query))rows.push(product);
+          if(recipeAllows(product)&&(recipeIngredient||!isBadNormalResult(product,query)))rows.push(product);
         }
       }
       const sortedRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY).slice(0,120);
