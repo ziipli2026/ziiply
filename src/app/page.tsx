@@ -694,6 +694,7 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import DesktopFuelPhotoReport from "./components/ziiply/desktop/DesktopFuelPhotoReport";
 
 // PAGE_V442_MOBILE_LANDSCAPE_BLOCK_IGNORE_KEYBOARD_VISUAL_VIEWPORT
 // Korjaus: iPhone/mobile landscape ei saa avata vanhaa sm/desktop-page-näkymää.
@@ -2163,6 +2164,7 @@ function KauppiasMobileTopBar({
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
+  const [mobileFuelReportOpen, setMobileFuelReportOpen] = useState(false);
   const [fuelValueV744, setFuelValueV744] = useState("—");
   const [fuelTextV744, setFuelTextV744] = useState("Ei hintaa");
 
@@ -2823,6 +2825,7 @@ function KauppiasMobileTopBar({
       unit: fuelValueV744 === "—" ? "" : "€/l",
       detail: fuelTextV744,
       graphic: <KauppiasFuelGraphic />,
+      onClick: () => setMobileFuelReportOpen(true),
     },
     {
       id: "calendar" as const,
@@ -2918,6 +2921,7 @@ function KauppiasMobileTopBar({
         </div>
       </div>
     </div>
+      {mobileFuelReportOpen && <DesktopFuelPhotoReport onClose={() => setMobileFuelReportOpen(false)} />}
       {electricityChartOpen && (
         <div className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+96px)] z-[250] flex items-start justify-center overflow-y-auto bg-[#092e25]/60 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
