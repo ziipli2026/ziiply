@@ -13926,18 +13926,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Muuten hidas edellinen lookup voi valmistua uuden skannauksen jälkeen ja
     // kirjoittaa uuden tuotteen päälle vanhan "ei löytynyt" / tuntematon-statuksen.
     if (eanSearchInFlightRef.current || eanLookupPendingRefV120.current.size > 0) {
-      // V837: a fast second HID/camera scan must not disappear while A is still resolving.
-      // One waiting slot is enough for the scanner UI: a newer waiting scan replaces an
-      // older not-yet-started one, while the active scan always completes first.
-      // The camera sees the same barcode in consecutive frames. Never queue it
-      // as a second purchase while its first lookup is still running.
-      if (eanSearchInFlightRef.current === normalizedCode ||
-          eanLookupPendingRefV120.current.has(normalizedCode) ||
-          queuedPhysicalScanRefV837.current === normalizedCode) {
-        return;
-      }
-      queuedPhysicalScanRefV837.current = normalizedCode;
-      pushScannerDebugV493(`QUEUE different physical scan ean=${normalizedCode}`);
+      // One physical camera presentation must never enqueue another product.
+      // Different decoded EANs during an active scan can be camera misreads.
+      pushScannerDebugV493(`IGNORE concurrent camera decode ean=${normalizedCode}`);
       return;
     }
 
@@ -13960,7 +13951,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // useasta peräkkäisestä framesta.
     if (
       previous?.code === normalizedCode &&
-      now - previous.at < 1200
+      now - previous.at < 5000
     ) {
       return;
     }
@@ -15983,19 +15974,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } finally {
       eanLookupPromiseRefV121.current.delete(ean);
 
-      // V837: release one physical scan that arrived while this lookup was active.
-      // Defer one task so every pending/in-flight lock from A is visibly clear first.
-      const queuedPhysicalScanV837 = queuedPhysicalScanRefV837.current;
-      if (
-        queuedPhysicalScanV837 &&
-        !eanSearchInFlightRef.current &&
-        eanLookupPendingRefV120.current.size === 0
-      ) {
-        queuedPhysicalScanRefV837.current = null;
-        window.setTimeout(() => {
-          void finishScannedEan(queuedPhysicalScanV837);
-        }, 0);
-      }
+      // Never replay a queued camera decode after the first lookup completes.
+      // A new scan must be a fresh physical scanner event.
+      queuedPhysicalScanRefV837.current = null;
     }
   }
 
