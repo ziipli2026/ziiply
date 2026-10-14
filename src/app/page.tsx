@@ -4927,6 +4927,44 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
 
   const [scannerDebugOpenV851, setScannerDebugOpenV851] = useState(false);
+  const [scannerDebugExportStatusV852, setScannerDebugExportStatusV852] = useState("");
+  function scannerDebugReportV852() {
+    return [
+      "Ziiply mobile EAN scanner debug",
+      `Aika: ${new Date().toISOString()}`,
+      `EAN: ${eanInput || "-"}`,
+      `Kaupassa: ${scannerInStoreRefV828.current}`,
+      `S-kauppa: ${activeStores.sStoreName || "-"} (${activeStores.sStoreId || "-"})`,
+      `K-kauppa: ${activeStores.kStoreName || "-"} (${activeStores.kStoreId || "-"})`,
+      `Tila: ${eanScannerMessage || eanMessage || "-"}`,
+      "--- Tapahtumaloki ---",
+      ...scannerDebugLinesV493,
+    ].join("\\n");
+  }
+  async function copyScannerDebugV852() {
+    const report = scannerDebugReportV852();
+    try {
+      await navigator.clipboard.writeText(report);
+      setScannerDebugExportStatusV852("Kopioitu!");
+    } catch {
+      // iOS/Safari fallback: allow selecting and copying from a visible text field.
+      setScannerDebugOpenV851(true);
+      setScannerDebugExportStatusV852("Valitse lokiteksti alta ja kopioi.");
+    }
+  }
+  function downloadScannerDebugV852() {
+    const blob = new Blob([scannerDebugReportV852()], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ziiply-ean-debug-${new Date().toISOString().replace(/[:.]/g, "-")}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setScannerDebugExportStatusV852("TXT-tiedosto muodostettu.");
+  }
+
   function pushScannerDebugV493(message: string) {
     const line = `${new Date().toLocaleTimeString("fi-FI")} ${message}`;
     setScannerDebugLinesV493((previous) => [...previous, line].slice(-100));
@@ -23479,13 +23517,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           EAN DEBUG {scannerDebugOpenV851 ? "▼" : "▲"} ({scannerDebugLinesV493.length})
                         </button>
                         <div className="flex gap-2">
-                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => {
-                            const report = [`EAN: ${eanInput}`, `Kaupassa: ${scannerInStoreRefV828.current}`, `S: ${activeStores.sStoreName || "-"} (${activeStores.sStoreId || "-"})`, `K: ${activeStores.kStoreName || "-"} (${activeStores.kStoreId || "-"})`, `Tila: ${eanScannerMessage || eanMessage || "-"}`, ...scannerDebugLinesV493].join("\\n");
-                            void navigator.clipboard?.writeText(report);
-                          }}>Kopioi</button>
+                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => void copyScannerDebugV852()}>Kopioi teksti</button>
+                          <button type="button" className="rounded bg-emerald-700 px-2 py-1 text-[11px] font-bold" onClick={downloadScannerDebugV852}>Lataa TXT</button>
                           <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => setScannerDebugLinesV493([])}>Tyhjennä</button>
                         </div>
                       </div>
+                      {scannerDebugExportStatusV852 && <div role="status" className="px-3 pb-1 text-[11px] text-amber-200">{scannerDebugExportStatusV852}</div>}
+                      {scannerDebugOpenV851 && <textarea readOnly aria-label="Kopioitava skannerin debug-teksti" value={scannerDebugReportV852()} onFocus={(event) => event.currentTarget.select()} className="mx-2 mb-2 block h-20 w-[calc(100%-1rem)] resize-y rounded bg-white p-2 font-mono text-[11px] text-slate-900" />}
                       {scannerDebugOpenV851 && <div className="max-h-[35dvh] overflow-y-auto border-t border-slate-700 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all">
                         <div>EAN: {eanInput || "-"} | Kaupassa: {String(scannerInStoreRefV828.current)}</div>
                         <div>S: {activeStores.sStoreName || "-"} ({activeStores.sStoreId || "-"})</div>
