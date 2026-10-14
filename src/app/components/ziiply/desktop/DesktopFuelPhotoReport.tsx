@@ -52,12 +52,12 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
   const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
-  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
+  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
   const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;closeRef.current?.focus();return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
   useEffect(()=>{const timer=setInterval(()=>{if(autoTime.current)setObserved(localDateTime());},1000);return()=>clearInterval(timer);},[]);
-  function stopCamera(){streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraOpen(false);setCameraReady(false);}
+  function stopCamera(){if(countdownTimer.current){clearInterval(countdownTimer.current);countdownTimer.current=null;}setCaptureCountdown(null);streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraOpen(false);setCameraReady(false);}
   useEffect(()=>{
     if(!cameraOpen)return;
     let cancelled=false;let stream:MediaStream|null=null;
@@ -92,6 +92,16 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   }
   function startOnline(){
     autoTime.current=false;setError("");setMode("online");setEditing(false);setSent(false);setStatus("");setCameraReady(false);setCameraOpen(true);
+  }
+  function startTimedCapture(){
+    if(!cameraReady||captureCountdown!==null)return;
+    let remaining=3;
+    setCaptureCountdown(remaining);
+    countdownTimer.current=setInterval(()=>{
+      remaining-=1;
+      if(remaining<=0){if(countdownTimer.current)clearInterval(countdownTimer.current);countdownTimer.current=null;setCaptureCountdown(null);void capturePhoto();}
+      else setCaptureCountdown(remaining);
+    },1000);
   }
   async function capturePhoto(){
     const video=videoRef.current;
@@ -223,7 +233,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
         </div>
       </div>
       <footer className={`flex h-[76px] shrink-0 flex-col justify-center border-t border-[#baa46a]/50 text-[#174c35] ${cameraOpen||(!sent&&(Boolean(photo)||mode==="manual"))?"":"invisible"}`}>
-        {cameraOpen?<><div className="flex justify-center gap-3"><button type="button" disabled={!cameraReady} onClick={()=>void capturePhoto()} className="rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35] disabled:opacity-40">Ota kuva</button><button type="button" onClick={stopCamera} className="rounded-xl border border-[#baa46a] px-4 py-2 font-bold">Peruuta</button></div><p className="text-center text-[11px] text-[#6d604c]">{cameraReady?"Kohdista kamera hintatauluun ja ota kuva.":"Avataan kameraa…"}</p></>:<>
+        {cameraOpen?<><div className="flex justify-center gap-3"><button type="button" disabled={!cameraReady||captureCountdown!==null} onClick={startTimedCapture} className="rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35] disabled:opacity-40">{captureCountdown===null?"Ota kuva (3 s)":`Kuva ${captureCountdown}…`}</button><button type="button" onClick={stopCamera} className="rounded-xl border border-[#baa46a] px-4 py-2 font-bold">Peruuta</button></div><p className="text-center text-[11px] text-[#6d604c]">{cameraReady?"Kohdista kamera hintatauluun ja ota kuva.":"Avataan kameraa…"}</p></>:<>
                 <div className="flex items-center justify-center gap-3"><button type="button" onClick={()=>void submit()} disabled={busy||locating||(conflict.reasons.length>0&&!conflictConfirmed)||!validObserved||!stationId||!validateFuelPrices(prices)} className="min-w-[120px] rounded-xl border-2 border-[#8bb56d] bg-[#e3edc9] px-8 py-2 text-lg font-black text-[#174c35] disabled:opacity-40">OK</button>{mode==="online"&&<button type="button" disabled={busy||locating} onClick={startOnline} className="rounded-xl border border-[#17573c] px-4 py-2 text-sm font-bold disabled:opacity-40">Ota uusi kuva</button>}</div>
                 <p className="text-center text-[11px] text-[#6d604c]">OK lähettää hintailmoituksen tarkistettavaksi.</p>
         </>}
