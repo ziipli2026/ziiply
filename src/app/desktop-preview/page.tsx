@@ -10,7 +10,7 @@ import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziip
 import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
 import { recipeProductSearchTerm, recipeProductCompatible, recipeRetailPackageCount, type RecipeIngredient } from "../components/ziiply/justiina/recipeCore";
 import DesktopRecipeSearchDebug, { appendDesktopRecipeDebug, startDesktopRecipeDebug } from "../components/ziiply/desktop/justiina/DesktopRecipeSearchDebug";
-import { recipeProductRejectionReason } from "../components/ziiply/justiina/recipeSearch";
+import { recipeProductRejectionReason, recipeFishFreshnessTier, prioritizeRecipeFishProducts } from "../components/ziiply/justiina/recipeSearch";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
 import dynamic from "next/dynamic";
@@ -1556,6 +1556,7 @@ export default function DesktopPreviewPage() {
       async function fetchSearchData(url: string) {
         const queries = [...new Set(getNormalSearchQueries(query))].slice(0, 6);
         let lastData: any = null;
+        let frozenFishFallback:any=null;
         for (const searchQuery of queries.length ? queries : [query]) {
           if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return null;
           const params = new URLSearchParams(url.split("?")[1]);
@@ -1570,10 +1571,12 @@ export default function DesktopPreviewPage() {
           lastData = data;
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
           const usable=rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(!isBadNormalResult(product,query)||Boolean(recipeIngredient)));
-          appendDesktopRecipeDebug("api_qualification",{query,searchQuery,requestUrl,usable,willTryNextQuery:!usable,decisions:items.map((product:any)=>({name:product.name||product.title||product.productName,recipeRejection:recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product):null,normalRejected:isBadNormalResult(product,query)}))});
-          if (usable) return data;
+          const hasFreshCandidate=!recipeIngredient||items.some((product:any)=>recipeAllows(product)&&recipeFishFreshnessTier(recipeIngredient.name,product)===0);
+          appendDesktopRecipeDebug("api_qualification",{query,searchQuery,requestUrl,usable,hasFreshCandidate,willTryNextQuery:!usable||!hasFreshCandidate,decisions:items.map((product:any)=>({name:product.name||product.title||product.productName,recipeRejection:recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product):null,normalRejected:isBadNormalResult(product,query)}))});
+          if(usable&&hasFreshCandidate)return data;
+          if(usable&&!frozenFishFallback)frozenFishFallback=data;
         }
-        return lastData;
+        return frozenFishFallback||lastData;
       }
       const calls:any[]=[];
       if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.id))}&storeName=${encodeURIComponent(String(s.name||""))}&storeType=${storeKind(s)==="sLocal"?"local":"hyper"}`).then(d=>({chain:"S",store:s,data:d})));
@@ -1593,12 +1596,13 @@ export default function DesktopPreviewPage() {
           const recipeRejection=recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product):null;
           const normalRejected=isBadNormalResult(product,query);
           const included=recipeAllows(product)&&Boolean(recipeIngredient||!normalRejected);
-          productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,recipeRejection,normalRejected,normalGateApplied:!recipeIngredient});
+          productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,recipeRejection,normalRejected,normalGateApplied:!recipeIngredient,freshnessTier:recipeIngredient?recipeFishFreshnessTier(recipeIngredient.name,product):null});
           if(included)rows.push(product);
         }
       }
       appendDesktopRecipeDebug("product_decisions",{query,ingredient:recipeIngredient||null,decisions:productDecisions});
-      const sortedRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY).slice(0,120);
+      const relevanceAndPriceRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
+      const sortedRows=(recipeIngredient?prioritizeRecipeFishProducts(recipeIngredient.name,relevanceAndPriceRows):relevanceAndPriceRows).slice(0,120);
       if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
       appendDesktopRecipeDebug("ranked_results",{query,voiceRunId,failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,displayedProducts:sortedRows});
       setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:sortedRows.length});

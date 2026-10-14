@@ -21,7 +21,7 @@ const kinds: Kind[] = [
  {term:"kirjolohifilee",pattern:/kirjoloh/,product:/kirjoloh.*file/,exclude:/savu|graavi|suolattu|keitto|pyörykk|kalapuikko/,group:"Tuore kala"},
  {term:"lohifilee",pattern:/\bloh(?:i|ta|en|ifilee|ifilettä|ifileetä|ifileitä)\b/,product:/\blohi.*file/,exclude:/kirjoloh|savu|graavi|suolattu|keitto|pyörykk|kalapuikko/,group:"Tuore kala"},
  {term:"silakkafilee",pattern:/silakk.*file/,product:/silakk.*file/,exclude:/marinoitu|etikka|sinappi/,group:"Tuore kala"},
- {term:"silakka",pattern:/^silak(?:ka|kaa|oita)$/,product:/silakka/,exclude:/file|marinoitu|etikka|sinappi/,group:"Tuore kala"},
+ {term:"silakka",pattern:/^silak(?:ka|kaa|oita)$/,product:/silak(?:ka|oita)/,exclude:/marinoitu|etikka|sinappi/,group:"Tuore kala"},
  {term:"tonnikala",pattern:/tonnikala/,product:/tonnikala/,exclude:/pasta|salaatti|pizza|ateria|kastike/,group:"Kalasäilykkeet"},
  {term:"kanan fileesuikale maustamaton",pattern:/(?:kanan|broilerin).*fileesuikale.*maustamaton/,product:/(?:kanan|broilerin|broileri).*fileesuikale/,exclude:/marinoitu|hunaja|curry|teriyaki|grilli/,group:"Siipikarja"},
  {term:"kananfilee",pattern:/kananfile|kanan file|kananrinta|broilerin.*file/,product:/(?:kana|broiler).*file|kananrinta/,exclude:/ateria|kastike|pasta/,group:"Siipikarja"},
@@ -117,7 +117,10 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const term=recipeProductSearchTerm(input);if(!term)return "not_purchasable_ingredient";
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
- if(/kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito/.test(name+" "+category))return "non_food_product";
+ if(/kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
+ if(isRawRecipeFish(term)){
+   if(/valmisruoka|kalajaloste|sillit-ja-anjovikset|säilyke/.test(category)||/laatikko|keitto|pihvi|pyörykk|pullat|rulla|salaatti|paistett|kypsennet|savust|savu|graav|marino|suutarinlohi|säilyke|kastik|loimut|palv|sushi|suolattu|etikka|sinappi/.test(name))return "raw_fish_required";
+ }
  const kind=kinds.find(x=>x.term===term);
  if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
  if(!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
@@ -136,4 +139,16 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
 
 export function recipeProductCompatible(input:string,product:{name?:string;category?:string}):boolean {
  return recipeProductRejectionReason(input,product)===null;
+}
+
+function isRawRecipeFish(term:string|null):boolean {
+ return term!==null&&["silakka","silakkafilee","lohifilee","kirjolohifilee"].includes(term);
+}
+/** Freshness tier precedes price; an uncooked frozen fish remains a fallback. */
+export function recipeFishFreshnessTier(input:string,product:{name?:string;category?:string}):number {
+ if(!isRawRecipeFish(recipeProductSearchTerm(input)))return 0;
+ return /pakast|frozen/i.test((product.name||"")+" "+(product.category||""))?1:0;
+}
+export function prioritizeRecipeFishProducts<T extends {name?:string;category?:string}>(input:string,products:T[]):T[] {
+ return products.map((product,index)=>({product,index,tier:recipeFishFreshnessTier(input,product)})).sort((a,b)=>a.tier-b.tier||a.index-b.index).map(x=>x.product);
 }

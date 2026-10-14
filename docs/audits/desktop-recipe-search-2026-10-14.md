@@ -4,7 +4,7 @@ Lähtöhaara: `preview/legacy-desktop-ui`, lähtöcommit `d1b0d249`.
 
 ## Testin rajaus
 
-Kymmenen verkosta valittua reseptiä ja kustakin neljä kirjoitusasuvarianttia. Aineslistat on siirretty testifixtureihin; otsikoita, rivijakoa ja yksiköiden kirjoitusasuja on tarkoituksella vaihdeltu. Valion sivuilla näkyneet 0 kg:n koristeluainesmäärät käsitellään määrättöminä. Vaihtoehdoista käytetään ensimmäistä ja epävarmuus säilytetään.
+Kymmenen verkosta valittua reseptiä ja kustakin neljä kirjoitusasuvarianttia. Aineslistat on siirretty testifixtureihin; otsikoita, rivijakoa ja yksiköiden kirjoitusasuja on tarkoituksella vaihdeltu. Valion sivuilla näkyneet 0 kg:n koristeluainesmäärät käsitellään määrättöminä. Vaihtoehdoista käytetään ensimmäistä ja epävarmuus säilytetään. Jos kalaresepti tarjoaa erikseen fileevaihtoehdon, käytetään sitä omalla ilmoitetulla määrällään.
 
 Tuotevalinta simuloidaan desktopin samalla järjestysfunktiolla ja korin määrälaskennalla. Simuloitu API palauttaa tunnetut tuotenimet sekä erittäin halpoja vääriä ehdokkaita. Testi valitsee ensimmäisen järjestetyn kelvollisen tuotteen; käyttöliittymässä käyttäjä tekee valinnan. Hinnat ja saatavuus ovat testiarvoja. Live-kauppatuloksia tai käyttöliittymää ei ole vahvistettu: suojattu Vercel-preview palautti 403, ja paikallisen selaimen lataus epäonnistui.
 
@@ -184,3 +184,16 @@ node scripts/test-recipe-search.cjs
 ```
 
 Muut tarkistukset: TypeScript, tuotanto-build, normaalihakujen fallback-testit ja hakusivutuksen 10 regressiotapausta.
+
+
+## Oikean DEBUG-aineiston silakkakorjaus
+
+14.10.2026 käyttäjän toimittamassa desktop-lokissa `silakka`-sääntö hylkäsi silakkafileet ja hyväksyi laatikon, paistetut pihvit, marinoidut rullat ja kissanruoan. Korjaus testattiin lokin yhdeksällä aidolla API-tuotteella (`scripts/fixtures/recipe-fish-debug-products.json`).
+
+- Hyväksytyt: Kotimaista Silakkafilee MSC 250 g, Hätälä Silakkafilee MSC n5kg, Merihyvä silakkafile 300g irtopakaste.
+- Tuoreet fileet ovat järjestyksessä ennen pakastetta riippumatta pakasteen halvemmasta hinnasta.
+- Kaikki kuusi jalostetta tai lemmikkiruokaa hylätään.
+- Jos ensimmäinen hakusana löytää vain raakaa pakastekalaa, muut hakusanat kokeillaan tuorekalan löytämiseksi ennen pakastevaravaihtoehtoa.
+- `600 g silakoita tai 300 g silakkafileitä` säilyttää fileevaihtoehdon 300 g tarpeen. Se tarkoittaa kahta 250 g pakkausta.
+
+Toistaminen: `node scripts/test-recipe-fish-debug.cjs`.

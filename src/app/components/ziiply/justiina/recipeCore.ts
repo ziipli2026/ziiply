@@ -20,8 +20,10 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   // Keep mixed unicode fractions distinct: 5½ means 5 + 1/2, never 51/2.
   clean=line.replace(/(\d)([½¼¾⅓⅔⅛])/g,"$1 $2").replace(/[½¼¾⅓⅔⅛]/g,x=>fractions[x]).replace(/[\u00a0\u202f]/g," ").replace(/^[#*•–-]+\s*/,"").trim();
   clean=clean.replace(/^(?:n\.|noin|vajaa|reilu)\s*/i,"");
-  // Use the first alternative, retaining the fact that the recipe is ambiguous.
-  const alternative=clean.split(/\s+tai\s+/i); clean=alternative[0];
+  // When a fish recipe explicitly offers fillets, retain that alternative's own amount.
+  const alternative=clean.split(/\s+tai\s+/i);
+  const filletAlternative=alternative.length>1&&alternative.every(x=>/silak|kirjoloh|loh(?:i|ta)/i.test(x))?alternative.find(x=>/file/i.test(x)):undefined;
+  clean=filletAlternative||alternative[0];
   const trailing=clean.match(/^(.+?)\s+(\d+(?:[,.]\d+)?(?:\s*\/\s*\d+)?)\s*(kg|g|l|dl|cl|ml|rkl|tl|kpl)\s*$/i);
   if(!measurement.test(clean)&&trailing)clean=trailing[2]+" "+trailing[3]+" "+trailing[1];
   const match=clean.match(measurement);

@@ -1,0 +1,56 @@
+[
+  {
+    "id": 48,
+    "name": "Hätälä Silakkafilee MSC n5kg",
+    "category": "CAAAIACAAAOAA",
+    "price": 1390
+  },
+  {
+    "id": 3919,
+    "name": "Saarioinen silakkalaatikko 350g",
+    "category": "valmisruoka/laatikot-pastat-ja-lasagnet/laatikot-ja-kiusaukset",
+    "price": 335
+  },
+  {
+    "id": 19449,
+    "name": "Kotimaista Silakkafilee MSC 250 g",
+    "category": "kala-ja-merenelavat/kala/tuore-kala",
+    "price": 498
+  },
+  {
+    "id": 2374,
+    "name": "Hätälä Paistettu silakkapihvi 200g",
+    "category": "kala-ja-merenelavat/muut-kalatuotteet/kalajalosteet",
+    "price": 347
+  },
+  {
+    "id": 23,
+    "name": "Paistettu silakkapihvi 1 kg Hätälä",
+    "category": "CAAAKACAGAAAA",
+    "price": 1590
+  },
+  {
+    "id": 20655,
+    "name": "Merihyvä silakkafile 300g irtopakaste",
+    "category": "kala-ja-merenelavat/muut-kalatuotteet/kalapakasteet",
+    "price": 413
+  },
+  {
+    "id": 2424,
+    "name": "Suomen Sillikonttori suutarinlohi silakkarulla 280g/140g MSC",
+    "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+    "price": 596
+  },
+  {
+    "id": 2426,
+    "name": "Suomen Sillikonttori tilli-sipuli silakkarulla 280g/140g MSC",
+    "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+    "price": 596
+  },
+  {
+    "id": 1859892,
+    "name": "DIBO kissan kana-silakkapullat raakapakastettu täysravinto kissoille 1kg pakaste",
+    "category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+    "price": 699
+  }
+]
