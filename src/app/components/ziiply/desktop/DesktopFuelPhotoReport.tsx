@@ -26,7 +26,7 @@ let metaPromise:Promise<{parse:(file:File,options:Record<string,unknown>)=>Promi
 function loadMetadata(){
   if(metaPromise)return metaPromise;
   metaPromise=new Promise<{parse:(file:File,options:Record<string,unknown>)=>Promise<PhotoMeta|undefined>}>((resolve,reject)=>{
-    const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/lite.umd.js";script.async=true;
+    const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js";script.async=true;
     const timer=setTimeout(()=>{script.remove();reject(new Error("Kuvan metatietolukija ei latautunut."));},30000);
     script.onload=()=>{clearTimeout(timer);const reader=(window as unknown as {exifr?:{parse:(file:File,options:Record<string,unknown>)=>Promise<PhotoMeta|undefined>}}).exifr;reader?resolve(reader):reject(new Error("Kuvan metatietolukija ei latautunut."));};
     script.onerror=()=>{clearTimeout(timer);script.remove();reject(new Error("Kuvan metatietolukija ei latautunut."));};document.head.appendChild(script);
@@ -92,6 +92,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     stopCamera();autoTime.current=true;setMode("manual");setPhoto("");setPrices({diesel:"",price95:"",price98:""});setObserved(localDateTime());setGps(null);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setConflictConfirmed(false);setTimeSource("manual");setLocationSource("manual");setPriceReview(false);setEditing(true);setSent(false);setError("");setStatus("");setRawText("");exifInstant.current=null;onlineCapture.current=null;requestId.current=crypto.randomUUID();void findStations(null);
   }
   function startOnline(){
+    onlineCapture.current={time:"",gps:requestCaptureLocation()};
     autoTime.current=false;setError("");setMode("online");setEditing(false);setSent(false);setStatus("");setCameraReady(false);setCameraOpen(true);
   }
   function startTimedCapture(){
@@ -104,16 +105,22 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       else setCaptureCountdown(remaining);
     },1000);
   }
+  function requestCaptureLocation(){
+    return new Promise<{lat:number;lon:number;accuracy:number}|null>(resolve=>{
+      if(!navigator.geolocation){resolve(null);return;}
+      navigator.geolocation.getCurrentPosition(position=>{
+        // Reject stale fixes even if the browser ignores maximumAge.
+        resolve(Date.now()-position.timestamp<=15000?{lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy}:null);
+      },()=>resolve(null),{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+    });
+  }
   async function capturePhoto(){
     const video=videoRef.current;
     if(!cameraReady||!video?.videoWidth||!video.videoHeight)return;
     const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;
     const context=canvas.getContext("2d");if(!context){setError("Kuvan ottaminen epäonnistui.");return;}
     context.drawImage(video,0,0);
-    const location=new Promise<{lat:number;lon:number;accuracy:number}|null>(resolve=>{
-      if(!navigator.geolocation){resolve(null);return;}
-      navigator.geolocation.getCurrentPosition(position=>resolve({lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy}),()=>resolve(null),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
-    });
+    const location=requestCaptureLocation();
     onlineCapture.current={time:localDateTime(),gps:location};
     stopCamera();setBusy(true);
     canvas.toBlob(blob=>{
@@ -127,7 +134,8 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
-      try{const reader=await loadMetadata();meta=await reader.parse(file,{reviveValues:false});}catch{setMetadataInfo("Kuvan metatietoja ei saatu luettua. Täydennä kuvausaika ja asema itse.");}
+      let metadataFailed=false;
+      if(source==="offline")try{const reader=await loadMetadata();meta=await reader.parse(file,{reviveValues:false});}catch{metadataFailed=true;}
       if(!alive.current)return;
       const exifDate=typeof meta?.DateTimeOriginal==="string"?meta.DateTimeOriginal.replace(/^(\d{4}):(\d{2}):(\d{2})[ T]/,"$1-$2-$3T").slice(0,16):"";
       exifInstant.current=null;
@@ -145,7 +153,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       const location=photoGps||deviceGps;
       setLocationSource(photoGps?"photo_exif":deviceGps?"capture_session":"manual");
       setGps(location);const stationSearch=findStations(location);
-      setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":"Kuvasta puuttuu sijainti: valitse asema itse."}`:"Tarkista kuvausaika ja asema. Selaimen kameravalinta voi sallia myös vanhan kuvan valinnan.");
+      setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
       const data=await preparePhoto(file);if(!alive.current)return;setPhoto(data);
       const ocr=await loadOcr();if(!alive.current)return;
       const worker=await ocr.createWorker("eng",1,{});
@@ -205,9 +213,9 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
           </div>}
           <div className="relative flex min-h-0 flex-1 w-full items-center justify-center overflow-hidden rounded-xl bg-[#080e0b]">
             {cameraOpen?<div className="relative h-full min-h-[140px] w-full overflow-hidden text-[#f5e5c1]">
-              <video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className="absolute inset-0 h-full w-full object-cover" aria-label="Kameran esikatselu"/>
+              <video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className="absolute inset-0 h-full w-full object-contain" aria-label="Kameran esikatselu"/>
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                <div className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,1)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[83%] aspect-[4/3] max-h-[83%]"}`}>
+                <div className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.15)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[83%] aspect-[4/3] max-h-[83%]"}`}>
                   <span className="absolute -left-[3px] -top-[3px] h-6 w-6 rounded-tl-xl border-l-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -right-[3px] -top-[3px] h-6 w-6 rounded-tr-xl border-r-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -bottom-[3px] -left-[3px] h-6 w-6 rounded-bl-xl border-b-[5px] border-l-[5px] border-white"/>
@@ -216,6 +224,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
               </div>
             </div>:!photo&&mode!=="manual"?<div className="max-w-[320px] px-4 py-5 text-center text-[#f5e5c1]"><svg viewBox="0 0 64 64" aria-hidden="true" className="mx-auto mb-2 h-12 w-12 text-[#e3edc9]"><rect x="13" y="12" width="27" height="42" rx="5" fill="none" stroke="currentColor" strokeWidth="4"/><rect x="19" y="18" width="15" height="14" rx="2" fill="currentColor"/><path d="M40 21h5l7 8v17c0 8-12 8-12 0V35" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/><path d="M19 54h25" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg><p className="text-lg font-black">Lisää hintataulun kuva</p><p className="mt-2 text-sm leading-relaxed text-[#e5ddc6]">Ota uusi kuva tai valitse aiempi kuva yllä olevista napeista.</p></div>:busy&&photo?<img src={photo} alt="Ilmoituksen hintataulu" className="h-[clamp(100px,24dvh,220px)] w-full object-contain"/>:<div className="w-full space-y-2 p-2 text-[#f5e5c1]">
               <div role="status" aria-live="polite" className="flex min-h-[36px] items-center justify-center px-2 text-center text-xs font-bold text-[#ff9b83]">{!sent&&missingReasons.join(" ")}</div>
+              {metadataInfo&&<p className="text-xs text-[#e5ddc6]">{metadataInfo}</p>}
               {photo&&<img src={photo} alt="Ilmoituksen hintataulu" className="mx-auto h-[clamp(40px,9dvh,72px)] w-full rounded-lg object-contain"/>}
               {sent?<div role="status" className="py-6 text-center"><p className="text-xl font-black">Kiitos! Ilmoitus vastaanotettu.</p><button type="button" onClick={onClose} className="mt-4 rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35]">OK</button></div>:<>
                 {selectedStation&&!editing&&<p className="text-center text-sm font-bold">{selectedStation.chain} · {selectedStation.name}</p>}

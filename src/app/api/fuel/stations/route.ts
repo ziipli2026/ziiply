@@ -27,7 +27,14 @@ export async function GET(req: NextRequest) {
     if (testConnection && identity[0]?.branch_id !== "br-weathered-meadow-b1bwpzst") {
       return NextResponse.json({ ok: false, error: "Fuel preview database does not identify the approved test branch" }, { status: 503 });
     }
-    const rows = await sql`
+    // Production may not have the optional raw provider feed used by preview.
+    const feed = await sql`SELECT to_regclass('public.ziiply_tankkaus_feed_observations') IS NOT NULL AS available`;
+    const fallbackFeed = feed[0]?.available ? "" : `WITH ziiply_tankkaus_feed_observations AS (
+      SELECT NULL::bigint AS source_station_id, NULL::jsonb AS payload,
+        NULL::timestamptz AS observed_at, NULL::numeric AS price_eur_per_litre,
+        NULL::integer AS fuel_type_id WHERE FALSE
+    ) `;
+    const rows = await sql.query(fallbackFeed + `
       SELECT s.source_station_id, s.name, s.chain, s.address, s.latitude, s.longitude, s.is_traffic_station, s.traffic_station_verified,
         country.payload->'station'->>'country_id' AS country_id,
         country.payload->'station'->'country'->>'name_short' AS country_code,
@@ -64,7 +71,7 @@ export async function GET(req: NextRequest) {
       WHERE lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
         AND lower(coalesce(s.name, '')) NOT LIKE '%teboil%'
         AND s.source_station_id NOT IN (12564,12577,12683,554,3028,398,11828,11829,12579)
-    `;
+    `);
     const stations = rows.filter((r) => {
       // Geographic validity, independent of the user's location: never a search radius.
       if (r.latitude == null || r.longitude == null) return false;
