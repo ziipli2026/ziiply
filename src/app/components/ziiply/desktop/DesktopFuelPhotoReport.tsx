@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
+import {createPortal} from "react-dom";
 import {readFuelPhoto} from "../../../../lib/fuelPhotoOcr";
 import {comparePhotoEvidence,identifyFuelPhotoStation,fuelDistanceKm,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 
@@ -183,7 +184,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     ...(!invalidPrices.length&&!validateFuelPrices(prices)?["Anna vähintään yksi polttoainehinta."]:[]),
     ...(conflict.reasons.length>0&&!conflictConfirmed?["Vahvista kuvan sijainti- tai aikapoikkeama."]:[])
   ];
-  return <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#173b2e]/65 p-1.5 sm:p-2" onKeyDown={e=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const items=dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),summary');if(!items?.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}>
+  return createPortal(<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#173b2e]/65 p-1.5 sm:p-2" onKeyDown={e=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const items=dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),summary');if(!items?.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}>
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="fuel-report-title" className="flex h-[calc(100dvh-12px)] max-h-[760px] w-full max-w-[720px] flex-col rounded-[20px] border-[3px] border-[#17573c] bg-[#fff4cf] p-2 shadow-2xl sm:h-[min(680px,calc(100dvh-16px))] sm:rounded-[28px] sm:p-3">
       <header className="mb-2 flex shrink-0 items-center justify-between gap-3"><div><h2 id="fuel-report-title" className="text-lg font-black text-[#174c35] sm:text-xl">Ilmoita polttoainehintoja</h2><p className="text-xs text-[#6d604c] sm:text-sm">Lisää hintataulun kuva tai syötä hinnat käsin.</p></div><button ref={closeRef} type="button" onClick={onClose} aria-label="Sulje hintailmoitus" className="h-10 w-10 shrink-0 rounded-full border-2 border-[#17573c] text-xl">×</button></header>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -239,5 +240,5 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
         </>}
       </footer>
     </div>
-  </div>;
+  </div>,document.body);
 }
