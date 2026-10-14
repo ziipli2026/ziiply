@@ -30,4 +30,8 @@ assert.equal(repair(row('JUOMAT 8-pack ja 24-pack',.85,['24-PACK 1099'])).spatia
 assert.equal(repair(row('TUOTE',20,['-20 %'],'printed-transaction')).spatialResolved.value,20);
 assert.equal(repair(row('TUOTE',20,['-20 %'],'verified-transaction')).spatialResolved.value,20);
 assert.equal(repair(row('TUOTE',20,['-20 %'],'spatial-price')).spatialResolved,null);
+// Publisher PDFs may use Unicode minus or en dash rather than ASCII hyphen.
+assert.equal(repair(row('TUOTE',53,['−53 %'])).spatialResolved,null);
+assert.equal(repair(row('TUOTE',53,['–53 %'])).spatialResolved,null);
+assert.equal(repair(row('TUOTE',5.99,['−53 %'])).spatialResolved.value,5.99);
 console.log('KCM publisher transaction repair tests passed');
