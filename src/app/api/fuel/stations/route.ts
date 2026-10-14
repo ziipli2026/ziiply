@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
       !Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
     return NextResponse.json({ ok: false, error: "GPS coordinates required" }, { status: 400 });
   }
-  const testConnection = process.env.VERCEL_ENV === "preview" ? process.env.TANKKAUS_TEST_DATABASE_URL : undefined;
+  // Station lookup and photo report submission must use the same fuel registry.
+  const testConnection = process.env.TANKKAUS_TEST_DATABASE_URL;
   const connection = testConnection || process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!connection) return NextResponse.json({ ok: false, error: "Fuel database not configured" }, { status: 503 });
   try {
