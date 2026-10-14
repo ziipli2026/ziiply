@@ -693,8 +693,8 @@
 // koordinaatteja topbarille ajoissa, sääkortti tekee oman kevyen getCurrentPosition-varahaun ja käyttää
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
-import DesktopFuelPhotoReport from "./components/ziiply/desktop/DesktopFuelPhotoReport";
 "use client";
+import DesktopFuelPhotoReport from "./components/ziiply/desktop/DesktopFuelPhotoReport";
 
 // PAGE_V442_MOBILE_LANDSCAPE_BLOCK_IGNORE_KEYBOARD_VISUAL_VIEWPORT
 // Korjaus: iPhone/mobile landscape ei saa avata vanhaa sm/desktop-page-näkymää.
