@@ -11,7 +11,12 @@ export function repairPublisherTransaction(row) {
   const ownCount = Number(String(row.title||'').match(/\b(\d{1,2})\s*[- ]?pack\b/i)?.[1]);
   const matching = packs.filter(p=>p.count===ownCount && p.value>0);
   const distinct = [...new Set(matching.map(p=>p.value.toFixed(2)))];
-  if (ownCount>=2 && distinct.length===1 && Math.abs(current-matching[0].value)>.011) {
+  // A neighbouring promotion may advertise the same pack size. Never override
+  // a valid publisher-owned transaction total solely on nearby text.
+  const currentSource=String(row.spatialResolved?.source||'');
+  const authoritativeTotal=/publisher-owned-pack-total|printed-transaction|verified-transaction/i.test(currentSource);
+  const ambiguousPackEvidence=matching.length!==1;
+  if (ownCount>=2 && !authoritativeTotal && !ambiguousPackEvidence && distinct.length===1 && Math.abs(current-matching[0].value)>.011) {
     return {...row, spatialResolved:{value:matching[0].value,quantity:1,unit:'pack',source:'publisher-owned-pack-total',sanity:'pass',confidence:'high'},debugReplacedConflictingPrice:row.spatialResolved};
   }
   // A publisher discount percentage is not a transaction price.
