@@ -1,0 +1,16 @@
+name: K-Citymarket advance raw archive
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20,50 12,13 * * 0,3'
+permissions:
+  contents: write
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/citymarket/export-leaflet.mjs https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/ /tmp/citymarket-next
