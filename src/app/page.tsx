@@ -4926,14 +4926,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerEquivalentNoticeV813, setScannerEquivalentNoticeV813] = useState("");
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
 
-  function pushScannerDebugV493(_message: string) {
-    // V499: käyttäjälle näkyvä skanneri-debug poistettu.
-    return;
+  const [scannerDebugOpenV851, setScannerDebugOpenV851] = useState(false);
+  function pushScannerDebugV493(message: string) {
+    const line = `${new Date().toLocaleTimeString("fi-FI")} ${message}`;
+    setScannerDebugLinesV493((previous) => [...previous, line].slice(-100));
   }
 
-  function resetScannerDebugV493(_message: string) {
-    // V499: käyttäjälle näkyvä skanneri-debug poistettu.
-    setScannerDebugLinesV493([]);
+  function resetScannerDebugV493(message: string) {
+    pushScannerDebugV493(message);
   }
 
   const [scannerTorchOn, setScannerTorchOn] = useState(false);
@@ -23471,6 +23471,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       }
                     }}
                   />
+
+                  <div className="fixed bottom-3 left-3 right-3 z-[220] sm:hidden pointer-events-none">
+                    <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
+                      <div className="flex items-center justify-between gap-2 px-3 py-2">
+                        <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
+                          EAN DEBUG {scannerDebugOpenV851 ? "▼" : "▲"} ({scannerDebugLinesV493.length})
+                        </button>
+                        <div className="flex gap-2">
+                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => {
+                            const report = [`EAN: ${eanInput}`, `Kaupassa: ${scannerInStoreRefV828.current}`, `S: ${activeStores.sStoreName || "-"} (${activeStores.sStoreId || "-"})`, `K: ${activeStores.kStoreName || "-"} (${activeStores.kStoreId || "-"})`, `Tila: ${eanScannerMessage || eanMessage || "-"}`, ...scannerDebugLinesV493].join("\\n");
+                            void navigator.clipboard?.writeText(report);
+                          }}>Kopioi</button>
+                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => setScannerDebugLinesV493([])}>Tyhjennä</button>
+                        </div>
+                      </div>
+                      {scannerDebugOpenV851 && <div className="max-h-[35dvh] overflow-y-auto border-t border-slate-700 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all">
+                        <div>EAN: {eanInput || "-"} | Kaupassa: {String(scannerInStoreRefV828.current)}</div>
+                        <div>S: {activeStores.sStoreName || "-"} ({activeStores.sStoreId || "-"})</div>
+                        <div>K: {activeStores.kStoreName || "-"} ({activeStores.kStoreId || "-"})</div>
+                        <div>Tila: {eanScannerMessage || eanMessage || "-"}</div>
+                        {scannerDebugLinesV493.map((line, index) => <div key={index}>{line}</div>)}
+                      </div>}
+                    </div>
+                  </div>
 
                   <ZiiplyMobileScannerCard
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
