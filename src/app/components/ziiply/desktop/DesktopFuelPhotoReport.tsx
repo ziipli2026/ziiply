@@ -264,7 +264,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
               <button type="button" aria-pressed={guideOrientation==="landscape"} onClick={()=>setGuideOrientation("landscape")} className={`rounded-md px-3 py-1 text-xs font-bold ${guideOrientation==="landscape"?"bg-[#e3edc9] text-[#174c35]":"text-[#f5e5c1]"}`}>Vaaka</button>
             </div>
           </div>}
-          <div className="relative flex min-h-0 flex-1 w-full items-center justify-center overflow-hidden rounded-xl bg-[#080e0b]">
+          <div className={`relative flex min-h-0 flex-1 w-full justify-center rounded-xl bg-[#080e0b] ${cameraOpen?"items-center overflow-hidden":"items-start overflow-y-auto"}`}>
             {cameraOpen?<div className="relative h-full min-h-[140px] w-full overflow-hidden text-[#f5e5c1]">
               <video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className="absolute inset-0 h-full w-full object-contain" aria-label="Kameran esikatselu"/>
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">

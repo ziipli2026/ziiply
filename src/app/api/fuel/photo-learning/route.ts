@@ -13,8 +13,8 @@ export async function POST(req:NextRequest){
   if(!uuid(body.id)||!uuid(body.token)||typeof body.photo!=='string'||body.photo.length>3800000||!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(body.photo))return NextResponse.json({error:'Invalid photo'},{status:400});
   const bytes=Buffer.from(body.photo.split(',')[1],'base64');const metadata=await sharp(bytes,{limitInputPixels:20000000}).metadata();if(metadata.format!=='jpeg')return NextResponse.json({error:'Invalid image'},{status:400});
   const sql=await checkedLearningDatabase();const tokenHash=learningHash(body.token),photoHash=learningHash(body.photo),prices=validateFuelPrices(body.prices)||{};
-  const [quota]=await sql`SELECT count(*)::int AS count FROM ziiply_fuel_photo_learning WHERE created_at>now()-interval '1 hour'`;
-  if(quota.count>=200)return NextResponse.json({error:'Image recovery busy'},{status:429});
+  const [quota]=await sql`SELECT count(*) FILTER (WHERE created_at>now()-interval '1 hour')::int AS count,count(*) FILTER (WHERE photo_data_url IS NOT NULL)::int AS pending,coalesce(sum(octet_length(photo_data_url)),0) AS bytes FROM ziiply_fuel_photo_learning`;
+  if(quota.count>=200||quota.pending>=100||Number(quota.bytes)+body.photo.length>200000000)return NextResponse.json({error:'Image recovery busy'},{status:429});
   await sql`INSERT INTO ziiply_fuel_photo_learning(id,token_hash,photo_hash,photo_data_url,initial_prices,metadata) VALUES(${body.id}::uuid,${tokenHash},${photoHash},${body.photo},${JSON.stringify(prices)}::jsonb,${JSON.stringify({mode:body.mode,readerVersion:'fuel-led-segments-1',ocrPrices:prices})}::jsonb) ON CONFLICT(id) DO NOTHING`;
   const [saved]=await sql`SELECT status FROM ziiply_fuel_photo_learning WHERE id=${body.id}::uuid AND token_hash=${tokenHash} AND photo_hash=${photoHash}`;
   if(!saved)return NextResponse.json({error:'Photo identifier conflict'},{status:409});
