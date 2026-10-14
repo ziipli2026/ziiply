@@ -23,4 +23,7 @@ assert.equal(repair(row('VICHY 24-pack',12.99,['24-PACK 1099'],'publisher-owned-
 assert.equal(repair(row('VICHY 24-pack',.36,['24-PACK 1099','24-PACK 1099'])).spatialResolved.value,.36);
 // Unique pack evidence can still repair an unverified spatial price.
 assert.equal(repair(row('VICHY 24-pack',.36,['24-PACK 1099'])).spatialResolved.value,10.99);
+// A combined card naming two different pack sizes does not own either nearby price unambiguously.
+assert.equal(repair(row('JUOMAT 8-pack tai 24-pack',.85,['8-PACK 799'])).spatialResolved.value,.85);
+assert.equal(repair(row('JUOMAT 8-pack ja 24-pack',.85,['24-PACK 1099'])).spatialResolved.value,.85);
 console.log('KCM publisher transaction repair tests passed');
