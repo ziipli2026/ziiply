@@ -113,23 +113,27 @@ export function classifyRecipeIngredient(input: string): RecipeFoodGroup | null 
  return kind?{ingredient:kind.term,searchTerm:kind.term,mainGroup:kind.group,subGroup:kind.group}:null;
 }
 /** Unknown ingredients require a literal match, never an arbitrary cheapest item. */
-export function recipeProductCompatible(input: string, product: { name?: string; category?: string }): boolean {
- const term=recipeProductSearchTerm(input);if(!term)return false;
+export function recipeProductRejectionReason(input: string, product: { name?: string; category?: string }): string | null {
+ const term=recipeProductSearchTerm(input);if(!term)return "not_purchasable_ingredient";
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
- if(/kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito/.test(name+" "+category))return false;
+ if(/kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito/.test(name+" "+category))return "non_food_product";
  const kind=kinds.find(x=>x.term===term);
- if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return false;
- if(!kind&&!term.split(" ").every(word=>name.includes(word)))return false;
- if(/laktoosito/.test(requirement)&&! /laktoositon|laktoositonta/.test(name))return false;
- if(/gluteenito/.test(requirement)&&! /gluteeniton|gluteenitonta/.test(name))return false;
- if(/maustamaton/.test(requirement)&&! /maustamaton|maustamattom/.test(name))return false;
- if(/esikeitet/.test(requirement)&&! /esikeitet|kypsä|kypsennet|säilyke|tetra/.test(name+" "+category))return false;
- if(/tuoretta inkivääriä/.test(requirement)&&/jauhe|mauste/.test(name))return false;
- if(/kokonaista maustepippuria/.test(requirement)&&/jauhett/.test(name))return false;
+ if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
+ if(!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
+ if(/laktoosito/.test(requirement)&&! /laktoositon|laktoositonta/.test(name))return "lactose_free_requirement_missing";
+ if(/gluteenito/.test(requirement)&&! /gluteeniton|gluteenitonta/.test(name))return "gluten_free_requirement_missing";
+ if(/maustamaton/.test(requirement)&&! /maustamaton|maustamattom/.test(name))return "unseasoned_requirement_missing";
+ if(/esikeitet/.test(requirement)&&! /esikeitet|kypsä|kypsennet|säilyke|tetra/.test(name+" "+category))return "precooked_requirement_missing";
+ if(/tuoretta inkivääriä/.test(requirement)&&/jauhe|mauste/.test(name))return "fresh_ginger_required";
+ if(/kokonaista maustepippuria/.test(requirement)&&/jauhett/.test(name))return "whole_allspice_required";
  if(/pippur|juustokumin|kardemumm|kanel/.test(term)){
-   if(/kokonai/.test(requirement)&&/jauhett|rouhittu/.test(name))return false;
-   if(/jauhett/.test(requirement)&&/kokonai/.test(name))return false;
+   if(/kokonai/.test(requirement)&&/jauhett|rouhittu/.test(name))return "whole_spice_required";
+   if(/jauhett/.test(requirement)&&/kokonai/.test(name))return "ground_spice_required";
  }
- return true;
+ return null;
+}
+
+export function recipeProductCompatible(input:string,product:{name?:string;category?:string}):boolean {
+ return recipeProductRejectionReason(input,product)===null;
 }

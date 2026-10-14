@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { parseRecipeText, scaleIngredients, prepareRecipeSearch, type RecipeDraft } from "./recipeCore";
 
+import { startDesktopRecipeDebug, appendDesktopRecipeDebug } from "../desktop/justiina/DesktopRecipeSearchDebug";
+
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
 export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngredients?:(terms:string[],items:RecipeDraft["ingredients"])=>void}){
@@ -55,11 +57,13 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     persist(next,source,people,people);return next;
   };
   const startSearch=(recipe:RecipeDraft|null=draft,base=original,people=target)=>{
+    startDesktopRecipeDebug({title:recipe?.title||null,sourceText:text,draft:recipe,originalServings:base,targetServings:people});
     if(!recipe||!recipe.ingredients.length||!onSearchIngredients)return;
     const originalServings=Number(base)>0?Number(base):1;const targetServings=Number(people)>0?Number(people):originalServings;
     const items=scaleIngredients(recipe.ingredients,originalServings,targetServings).filter(item=>!item.atHome&&item.name.trim());
     if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
     const search=prepareRecipeSearch(items);
+    appendDesktopRecipeDebug("recipe_search_plan",{originalServings,targetServings,scaledIngredients:items,searchTerms:search.terms,searchItems:search.items});
     if(!search.terms.length){setNotice("Reseptissä ei ole ostettavia aineksia.");return;}
     persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:search.items}))}catch{}

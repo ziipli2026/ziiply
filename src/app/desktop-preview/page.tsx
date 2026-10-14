@@ -9,6 +9,8 @@ import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice }
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList } from "../components/ziiply/desktop/justiina/mobileVoiceList";
 import { recipeProductSearchTerm, recipeProductCompatible, recipeRetailPackageCount, type RecipeIngredient } from "../components/ziiply/justiina/recipeCore";
+import DesktopRecipeSearchDebug, { appendDesktopRecipeDebug, startDesktopRecipeDebug } from "../components/ziiply/desktop/justiina/DesktopRecipeSearchDebug";
+import { recipeProductRejectionReason } from "../components/ziiply/justiina/recipeSearch";
 import DesktopJustiinaSearchCard from "../components/ziiply/desktop/justiina/DesktopJustiinaSearchCard";
 import ZiiplyDesktopScannerCard from "../components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard";
 import dynamic from "next/dynamic";
@@ -1002,6 +1004,7 @@ export default function DesktopPreviewPage() {
   }
   function addRecipeSelectionToCart(product:any) {
     const count=selectedRecipePackageCount(product);
+    appendDesktopRecipeDebug("cart_selection",{step:recipeSearchStepRef.current,ingredient:recipeSearchItemsRef.current[recipeSearchStepRef.current]||null,product,packageCount:count,cartQuantity:count??1,usedDefaultQuantity:count===null});
     // Unknown package sizes (e.g. salt measured in teaspoons) default to one
     // retail package. The shopper can change the quantity in the cart.
     addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1});
@@ -1032,12 +1035,15 @@ export default function DesktopPreviewPage() {
     recipeSearchStepRef.current=-1;
     recipeSearchItemsRef.current=Array.isArray(recipeItems)&&recipeItems.length===terms.length?recipeItems:[];
     recipeTermsRef.current=recipeSearchItemsRef.current.length?terms:[];
+    if(!recipeItems?.length)startDesktopRecipeDebug({mode:"normal_or_voice",transcript});
+    appendDesktopRecipeDebug("search_start",{runId,transcript,terms,recipeItems:recipeItems||null});
     justiinaUserEditedRef.current = false;
     setDesktopListPending(terms.length > 1);
     const missingRecipeTerms:string[]=[];
     for (let index = 0; index < terms.length; index++) {
       if (runId !== desktopVoiceRunRef.current) return;
       recipeSearchStepRef.current=index;
+      appendDesktopRecipeDebug("ingredient_step",{runId,index,term:terms[index],ingredient:recipeItems?.[index]||null});
       setJustiinaActiveTerm(terms[index]);
       const found = await runDesktopJustiinaSearch(terms[index], runId);
       if (runId !== desktopVoiceRunRef.current) return;
@@ -1049,6 +1055,7 @@ export default function DesktopPreviewPage() {
       }
     }
     if (runId === desktopVoiceRunRef.current) {
+      appendDesktopRecipeDebug("search_complete",{runId,missingRecipeTerms});
       setDesktopListPending(false);
       setJustiinaResultsOpen(false);
       setWorkspace(null);
@@ -1067,6 +1074,7 @@ export default function DesktopPreviewPage() {
     setWorkspace(null);
   }
   function confirmDesktopListSkip() {
+    appendDesktopRecipeDebug("ingredient_skipped",{step:recipeSearchStepRef.current,ingredient:recipeSearchItemsRef.current[recipeSearchStepRef.current]||null});
     setDesktopListPrompt(false);
     setJustiinaResultsOpen(false);
     resumeDesktopVoiceList();
@@ -1539,7 +1547,8 @@ export default function DesktopPreviewPage() {
     const s=selected.find(x=>{const k=storeKind(x);return k==="sHyper"||k==="sLocal"});
     const k=selected.find(x=>{const t=storeKind(x);return t==="kHyper"||t==="kLocal"});
     setJustiinaDebug({query,selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),sStore:s?.name||null,kStore:k?.name||null,status:"Haku käynnissä"});
-    if(!s&&!k){setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
+    appendDesktopRecipeDebug("selected_stores",{query,step:recipeSearchStepRef.current,ingredient:recipeIngredient||null,stores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)}))});
+    if(!s&&!k){appendDesktopRecipeDebug("search_error",{query,error:"No S or K store selected"});setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return}
     setJustiinaResults([]);setJustiinaResultsOpen(true);
     setJustiinaLoading(true);setJustiinaMessage("");
     // The typing debounce is applied in the effect below; never delay a started search again.
@@ -1551,12 +1560,18 @@ export default function DesktopPreviewPage() {
           if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return null;
           const params = new URLSearchParams(url.split("?")[1]);
           params.set("search", searchQuery);
-          const response = await fetch(url.split("?")[0] + "?" + params.toString(), { cache: "no-store" });
+          const requestUrl=url.split("?")[0]+"?"+params.toString();
+          appendDesktopRecipeDebug("api_request",{query,searchQuery,requestUrl,voiceRunId});
+          const response = await fetch(requestUrl, { cache: "no-store" });
+          appendDesktopRecipeDebug("api_status",{query,searchQuery,requestUrl,status:response.status});
           if (!response.ok) throw new Error(`Kauppahaku epäonnistui (HTTP ${response.status}).`);
           const data = await response.json();
+          appendDesktopRecipeDebug("api_response",{query,searchQuery,requestUrl,data});
           lastData = data;
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
-          if (rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(!isBadNormalResult(product,query)||Boolean(recipeIngredient)))) return data;
+          const usable=rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(!isBadNormalResult(product,query)||Boolean(recipeIngredient)));
+          appendDesktopRecipeDebug("api_qualification",{query,searchQuery,requestUrl,usable,willTryNextQuery:!usable,decisions:items.map((product:any)=>({name:product.name||product.title||product.productName,recipeRejection:recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product):null,normalRejected:isBadNormalResult(product,query)}))});
+          if (usable) return data;
         }
         return lastData;
       }
@@ -1567,6 +1582,7 @@ export default function DesktopPreviewPage() {
       const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
       const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
       const rows:any[]=[];
+      const productDecisions:any[]=[];
       for(const batch of batches){
         const items=Array.isArray(batch.data?.products)?batch.data.products:Array.isArray(batch.data?.items)?batch.data.items:Array.isArray(batch.data)?batch.data:[];
         for(const x of items){
@@ -1574,15 +1590,21 @@ export default function DesktopPreviewPage() {
           const priceIsEuros=batch.chain==="S"&&batch.data?.source==="s-kaupat-normal-v220";
           const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
           const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:batch.data?.source||""};
-          if(recipeAllows(product)&&(recipeIngredient||!isBadNormalResult(product,query)))rows.push(product);
+          const recipeRejection=recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product):null;
+          const normalRejected=isBadNormalResult(product,query);
+          const included=recipeAllows(product)&&Boolean(recipeIngredient||!normalRejected);
+          productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,recipeRejection,normalRejected,normalGateApplied:!recipeIngredient});
+          if(included)rows.push(product);
         }
       }
+      appendDesktopRecipeDebug("product_decisions",{query,ingredient:recipeIngredient||null,decisions:productDecisions});
       const sortedRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY).slice(0,120);
       if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
+      appendDesktopRecipeDebug("ranked_results",{query,voiceRunId,failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,displayedProducts:sortedRows});
       setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:sortedRows.length});
       setJustiinaResults(sortedRows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
       return sortedRows.length > 0;
-    }catch(error){setJustiinaDebug({query,status:"Poikkeus",error:String(error)});if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");return false}finally{setJustiinaLoading(false)}
+    }catch(error){appendDesktopRecipeDebug("search_error",{query,voiceRunId,error:String(error)});setJustiinaDebug({query,status:"Poikkeus",error:String(error)});if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");return false}finally{setJustiinaLoading(false)}
   }
 
   useEffect(()=>{
@@ -2144,6 +2166,7 @@ export default function DesktopPreviewPage() {
           <span>One search. All prices.</span>
         </footer>
       </div>
+      <DesktopRecipeSearchDebug active={workspace==="justiina"}/>
     </main>
   );
 }
