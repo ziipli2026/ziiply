@@ -48,6 +48,10 @@
     {
       "path": "/api/cron/chain-parser-health",
       "schedule": "50 3,9,15,21 * * *"
+    },
+    {
+      "path": "/api/cron/fuel-photo-learning",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

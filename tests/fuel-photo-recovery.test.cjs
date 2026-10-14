@@ -1,0 +1,12 @@
+const assert=require('assert/strict'),fs=require('fs'),vm=require('vm'),ts=require('typescript');
+const load=path=>{const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports,require:()=>load('src/lib/fuelPhoto.ts')});return exports;};
+const {parseRecoveryReading:parse,recoveryConsensus:consensus}=load('src/lib/fuelPhotoRecovery.ts');
+const a=parse({prices:{price95:2.178,price98:2.275,diesel:2.421},visibleFuels:['price95','price98','diesel']},'original');
+const b={...a,method:'contrast-sharpen'};
+assert.equal(consensus([a]),null);assert.equal(consensus([a,a]),null,'Same treatment cannot vote twice');
+assert.equal(consensus([a,b]).price95,2.178);
+assert.equal(consensus([a,{...b,prices:{...b.prices,price95:2.118}}]),null,'Conflicting digits remain unresolved');
+assert.equal(consensus([a,{...b,prices:{price95:2.178}}]),null,'All visible fuel prices must agree');
+assert.equal(consensus([parse({prices:{price95:2.178},visibleFuels:['price95'],uncertain:['price95']},'original'),b]),null);
+assert.equal(consensus([parse({},'original'),parse({},'contrast')]),null,'Blank photo is not a price');
+console.log('Recovery consensus checks passed');
