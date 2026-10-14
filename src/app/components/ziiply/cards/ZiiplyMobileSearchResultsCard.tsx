@@ -319,7 +319,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : ""}</span>
               </div>
 
-              <div className="mt-1 flex min-h-11 items-center gap-2">
+              <div className="mt-1 flex min-h-11 items-end gap-2">
                 <div
                   className="min-w-0 flex-1 truncate text-[1.08rem] font-black italic text-[#123d32]"
                   style={{ fontFamily: cooper }}
@@ -327,7 +327,9 @@ export default function ZiiplyMobileSearchResultsCard({
                 >
                   {title || "Tuotteet"}
                 </div>
-                {onSkip && <button type="button" disabled={loading} onClick={onSkip} className="min-h-11 shrink-0 bg-transparent px-1 text-xs font-bold text-[#123d32] underline underline-offset-4 disabled:opacity-45">Ohita tuote →</button>}
+                {onSkip && <div className="min-h-11 w-28 shrink-0 self-start">
+                  {(loading || products.length > 0) && <button type="button" disabled={loading} onClick={onSkip} className="min-h-11 -translate-y-2 whitespace-nowrap bg-transparent px-1 text-sm font-bold text-[#123d32] underline underline-offset-4 disabled:opacity-45">Ohita tuote →</button>}
+                </div>}
               </div>
             </div>
 
@@ -353,7 +355,10 @@ export default function ZiiplyMobileSearchResultsCard({
 
             {!loading && products.length === 0 && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
-                {emptyText}
+                {onSkip ? <>
+                  <p><strong className="text-[#123d32]">{title || "Aines"}</strong>: sopivaa tuotetta ei löytynyt valitun kaupan hakutiedoista.</p>
+                  <button type="button" onClick={onSkip} className="mx-auto mt-4 block min-h-11 bg-transparent px-3 text-lg font-bold text-[#123d32] underline underline-offset-4">Ohita tuote →</button>
+                </> : emptyText}
               </div>
             )}
 

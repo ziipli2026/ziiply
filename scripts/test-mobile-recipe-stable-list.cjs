@@ -15,9 +15,12 @@ assert.ok(/role="status"[^>]*class="absolute inset-0/.test(loading),'loading sta
 assert.ok(/<header[\s\S]*>Ohita tuote →<\/button>[\s\S]*<\/header>/.test(ready),'skip stays in fixed header outside product scroller');
 assert.ok(!ready.includes('top-[55%]'),'skip never floats over products');
 const initial=renderToStaticMarkup(React.createElement(Card,{open:true,products:[],loading:true}));
-const empty=renderToStaticMarkup(React.createElement(Card,{open:true,products:[],loading:false,onSkip:()=>{},emptyText:'Tuotetta ei löytynyt hakutiedoista'}));
+const empty=renderToStaticMarkup(React.createElement(Card,{open:true,products:[],loading:false,onSkip:()=>{},title:'silakkafilee',emptyText:'Tälle ainekselle ei löytynyt tuotetta'}));
 for(const html of [ready,loading,initial,empty])assert.ok(html.includes('LÖYTÖLUETTELO')&&html.includes('<section'),'one stable list frame for every phase');
-assert.ok(empty.includes('Tuotetta ei löytynyt hakutiedoista')&&empty.includes('Ohita tuote →'));
+assert.ok(empty.includes('silakkafilee</strong>: sopivaa tuotetta') && !empty.includes('Tälle ainekselle'),'missing notice names ingredient');
+assert.equal((empty.match(/Ohita tuote →/g)||[]).length,1,'empty state only has one skip action');
+assert.ok(!/<header[\s\S]*Ohita tuote[\s\S]*<\/header>/.test(empty),'missing-product skip is inside notice only');
+assert.ok(empty.includes('mx-auto mt-4 block min-h-11') && empty.includes('text-lg'),'notice action is centered and larger');
 const page=fs.readFileSync('src/app/page.tsx','utf8'),ast=ts.createSourceFile('page.tsx',page,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 let wait,open;
 function visit(n){
