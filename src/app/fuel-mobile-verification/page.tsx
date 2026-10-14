@@ -1,1 +1,0 @@
-export default function MobileVerification(){return <main style={{padding:16,background:"#ddd",minHeight:"100vh"}}><h1>Mobile layout verification — 393 × 852</h1><iframe title="Ziiply mobile verification" src="/" width={393} height={852} style={{border:0,display:"block"}} /></main>;}
