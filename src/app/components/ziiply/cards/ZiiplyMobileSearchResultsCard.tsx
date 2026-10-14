@@ -319,17 +319,17 @@ export default function ZiiplyMobileSearchResultsCard({
                 <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : ""}</span>
               </div>
 
-              <div className="mt-1 flex min-h-11 items-end gap-2">
+              <div className="mt-1">
+                {onSkip && <div className="min-h-11 pl-6">
+                  {(loading || products.length > 0) && <button type="button" disabled={loading} onClick={onSkip} className="min-h-11 whitespace-nowrap bg-transparent px-1 text-sm font-bold text-[#123d32] underline underline-offset-4 disabled:opacity-45">Ohita tuote →</button>}
+                </div>}
                 <div
-                  className="min-w-0 flex-1 truncate text-[1.08rem] font-black italic text-[#123d32]"
+                  className="min-w-0 truncate text-[1.08rem] font-black italic text-[#123d32]"
                   style={{ fontFamily: cooper }}
                   title={title || "Tuotteet"}
                 >
                   {title || "Tuotteet"}
                 </div>
-                {onSkip && <div className="min-h-11 w-28 shrink-0 self-start">
-                  {(loading || products.length > 0) && <button type="button" disabled={loading} onClick={onSkip} className="min-h-11 -translate-y-2 whitespace-nowrap bg-transparent px-1 text-sm font-bold text-[#123d32] underline underline-offset-4 disabled:opacity-45">Ohita tuote →</button>}
-                </div>}
               </div>
             </div>
 
