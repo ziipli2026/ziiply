@@ -4510,7 +4510,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function waitForVoiceSearchResultChoiceV509(term: string, recipe = false) {
     // Anna searchNormalPricesin setState-kutsuille hetki renderöityä.
-    const opened = await new Promise<boolean>((resolve) => {
+    const opened = recipe || await new Promise<boolean>((resolve) => {
       const start = Date.now();
       const timer = window.setInterval(() => {
         const hasOpenResult =
@@ -4538,7 +4538,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     pushVoiceDebugV507(`VOICE WAIT USER INPUT ${term}`);
 
     await new Promise<void>((resolve) => {
-      if (!mobileResultsReadyQueryRefV509.current) {
+      if (!recipe && !mobileResultsReadyQueryRefV509.current) {
         resolve();
         return;
       }
@@ -6826,9 +6826,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     search: string,
     storeId: string | number,
     recipeStoreName?:string,
+    recipeIngredient?:RecipeIngredient,
   ): Promise<Product[]> {
     const response = await fetch(
-      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}&storeName=${encodeURIComponent(String(recipeStoreName ?? activeStores?.sStoreName ?? ""))}`,
+      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}&storeName=${encodeURIComponent(String(recipeStoreName ?? activeStores?.sStoreName ?? ""))}${recipeIngredient?`&recipeIngredient=${encodeURIComponent(recipeIngredient.name)}`:""}`,
       { cache: "no-store" },
     );
 
@@ -6847,7 +6848,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ? data
           : [];
 
-    if(recipeStoreName!==undefined)appendRecipeDebug("recipe-api-response",{query:search,storeId,source:data?.source,status:response.status,products:rawItems});
+    if(recipeStoreName!==undefined)appendRecipeDebug("recipe-api-response",{query:search,storeId,source:data?.source,status:response.status,recipeFallback:data?.recipeFallback,products:rawItems});
     return rawItems
       .map((item: any) => {
         if(recipeStoreName===undefined)return normalizeSProduct(item);
@@ -7131,6 +7132,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function showCartToast(message: string) {
+    if(mobileRecipeContextRef.current&&/lisätty|määrä \+1/i.test(message)){setLastCartToast(null);return;}
     // The camera owns scan feedback. Never show a second global success pill
     // over its built-in message, including from fallback/duplicate scan paths.
     if ((eanScannerOpen || eanHtml5ScannerRef.current) &&
@@ -7957,6 +7959,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       try { recipeItems=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"null")?.items||[]; } catch {}
       if(recipeItems.length!==recipeTerms.length){appendRecipeDebug("recipe-handoff-error",{terms:recipeTerms,items:recipeItems});return;}
     }
+    if(recipeItems.length){setNormalResultsStableV441([]);setActiveNormalSearchTerm("");setLastCartToast(null);}
     setMobileRecipeSearchActive(recipeItems.length>0);
     resolveVoiceResultWaitV509("new search");
     mobileRecipeContextRef.current=null;
@@ -8038,6 +8041,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if(runId!==mobileRecipeRunRef.current)return;
       mobileRecipeContextRef.current=null;
       setMobileRecipeSearchActive(false);
+      if(recipeItems.length){setMobileResultsReadyQueryV537("");setNormalResultsStableV441([]);setActiveNormalSearchTerm("");}
       if (recipeDebugActive) appendRecipeDebug("search-finished", { terms: voiceTerms });
       try { sessionStorage.removeItem("ziiply-justiina-recipe-step-v1"); } catch {}
       pushVoiceDebugV507("runVoice FINALLY cleanup");
@@ -12207,7 +12211,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setVoiceProcessing(false);
     }
     const recipeAllows=(product:Product)=>!recipeIngredient||recipeProductCompatible(recipeIngredient.name,product,recipeIngredient);
-    if(recipeIngredient){setNormalResultsStableV441([]);setMobileResultsReadyQueryV537("");}
+    // Keep the current list mounted while the next ingredient loads. Its buttons are disabled until the response is ready.
     const forceVoiceJustiinaCartSearch = voiceForceJustiinaCartSearchRefV461.current;
     const effectiveSearchCompareMode = forceVoiceJustiinaCartSearch ? "cart" : searchCompareMode;
 
@@ -12358,7 +12362,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         searchNotFoundNoticeTimerRefV471.current = null;
       }
     }
-    setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
+    if(!recipeIngredient)setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
     // Normaali haku avaa hakutulosten valintanäkymän, ei korivertailua.
     // Korivertailu avataan vain Vertailu-tabista tai ostoslistatoiminnoista.
     setActiveResult("none");
@@ -12450,7 +12454,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const kName=withinChainK?activeArea.kStoreName:activeStores.kStoreName;
             const useS=withinChainS||(!withinChainK&&!betweenSingleK&&selectedChains.s);
             const useK=withinChainK||betweenSingleK||(storeCompareScope==="between_chains"&&betweenChainSelectionModeV749==="many"&&selectedChains.k);
-            if(useS&&sId)requests.push(fetchSProducts(searchQuery,sId,sName||"").then(items=>items.map(product=>({...product,__recipeChain:"S",__recipeStoreName:sName}))));
+            if(useS&&sId)requests.push(fetchSProducts(searchQuery,sId,sName||"",recipeIngredient).then(items=>items.map(product=>({...product,__recipeChain:"S",__recipeStoreName:sName}))));
             if(useK&&kId)requests.push(fetchKProducts(searchQuery,kId).then(items=>items.map(item=>({...convertKProductToProduct(item),category:(item as KProduct & {category?:string}).category,__recipeChain:"K",__recipeStoreName:kName}))));
             const responses=await Promise.allSettled(requests);
             rawItems=responses.flatMap(response=>response.status==="fulfilled"?response.value:[]);
@@ -12704,6 +12708,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const readyQueryV441 = unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "";
       setSearchDebug(debugEntries);
+      if(recipeIngredient)setActiveNormalSearchTerm(focusedSearchTerms[0]||"");
       setNormalResultsStableV441(unique);
       setMobileResultsReadyQueryV537(readyQueryV441);
 
@@ -23378,32 +23383,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </div>
             )}
 
-            {mobileRecipeSearchActive && <div className="fixed inset-x-4 top-[calc(env(safe-area-inset-top)+11rem)] z-[72] mx-auto max-w-sm text-center text-[#174c2c]">
-              {loadingNormal && <p role="status" className="mb-4 font-bold">Haetaan reseptin tuotteita…</p>}
-              <button type="button" className="rounded-xl border-2 border-[#9c793e] bg-[#fff7df] px-4 py-2 font-bold" onClick={()=>{
-                mobileRecipeRunRef.current++;activeNormalSearchRequestRefV441.current++;
-                mobileRecipeContextRef.current=null;setMobileRecipeSearchActive(false);
-                resolveVoiceResultWaitV509("recipe cancelled");
-                try{sessionStorage.removeItem("ziiply-justiina-recipe-step-v1");}catch{}
-                voiceSearchRunningRefV453.current=false;voiceForceJustiinaCartSearchRefV461.current=false;
-                setVoiceProcessing(false);setLoadingNormal(false);setInput("");
-                setNormalResultsStableV441([]);setMobileResultsReadyQueryV537("");
-              }}>Keskeytä reseptihaku</button>
-            </div>}
-
             {/* V512: voice debug panel removed from visible UI. */}
 
             <ZiiplyMobileSearchResultsCard
               open={
-                searchPanelOpen &&
-                !loadingNormal &&
-                normalResults.length > 0 &&
-                mobileResultsReadyQueryV537.length > 0
+                searchPanelOpen && (mobileRecipeSearchActive || (
+                !loadingNormal && normalResults.length > 0 && mobileResultsReadyQueryV537.length > 0))
               }
-              loading={false}
-              title={activeNormalSearchTerm || "Tuotteet"}
+              emptyText={mobileRecipeSearchActive?"Tälle ainekselle ei löytynyt sopivaa tuotetta valitun kaupan hakutiedoista. Voit ohittaa aineksen.":undefined}
+              loading={mobileRecipeSearchActive && loadingNormal}
+              title={mobileRecipeSearchActive ? activeNormalSearchTerm || "Reseptin tuotteet" : activeNormalSearchTerm || "Tuotteet"}
               products={normalResults}
+              onSkip={mobileRecipeSearchActive?()=>{
+                resolveVoiceResultWaitV509("recipe ingredient skipped");
+              }:undefined}
               onClose={() => {
+                if(mobileRecipeSearchActive){
+                  mobileRecipeRunRef.current++;activeNormalSearchRequestRefV441.current++;
+                  mobileRecipeContextRef.current=null;setMobileRecipeSearchActive(false);
+                  resolveVoiceResultWaitV509("recipe cancelled");
+                  try{sessionStorage.removeItem("ziiply-justiina-recipe-step-v1");}catch{}
+                  voiceSearchRunningRefV453.current=false;voiceForceJustiinaCartSearchRefV461.current=false;
+                  setVoiceProcessing(false);setLoadingNormal(false);setInput("");
+                  setNormalResultsStableV441([]);
+                }
                 resolveVoiceResultWaitV509("results-close");
                 // Sulje vain valintaikkuna. Säilytä valmis lista ja sen hakutermi,
                 // jotta Löytöluettelo voidaan avata uudelleen ilman uutta hakua.
@@ -23418,7 +23421,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 // normaali haku korvaa sen searchNormalPrices-polussa.
                 if(!addProductToCart(product as Product))return;
                 resolveVoiceResultWaitV509("results-add");
-                setMobileResultsReadyQueryV537("");
+                if(!mobileRecipeSearchActive)setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
               }}

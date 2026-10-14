@@ -1,3 +1,4 @@
+import { recipeProductCompatible } from "@/app/components/ziiply/justiina/recipeSearch";
 import { NextResponse } from "next/server";
 import { fetchSKaupatNormalProductsV220 } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
@@ -60,9 +61,10 @@ export async function GET(request: Request) {
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "292";
   const storeName = (searchParams.get("storeName") || "").trim();
+  const recipeIngredient=(searchParams.get("recipeIngredient")||"").trim();
   const storeId = resolveSStoreId(store);
 
-  if (search.length > 120 || store.length > 32 || storeName.length > 120) {
+  if (search.length > 120 || store.length > 32 || storeName.length > 120 || recipeIngredient.length > 200) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
   }
 
@@ -117,16 +119,21 @@ export async function GET(request: Request) {
     // V220: Ruoanhinta has no rows for some selectable S stores (e.g. Tuusula).
     // Try the selected store's own S-kaupat normal-product feed, not another
     // Prisma's prices. Preserve the existing path for working stores (Kommila).
-    if (items.length === 0 && storeName && /^(prisma|s[ -]?market)/i.test(storeName)) {
+    let recipeFallback: {attempted:boolean;matchedCount:number;error?:string}|undefined;
+    const noRecipeMatches=Boolean(recipeIngredient)&&!items.some(item=>recipeProductCompatible(recipeIngredient,item));
+    if ((items.length === 0 || noRecipeMatches) && storeName && /^(prisma|s[ -]?market)/i.test(storeName)) {
       try {
         const fallbackItems = await fetchSKaupatNormalProductsV220(search, storeName);
-        if (fallbackItems.length > 0) {
+        const matched=recipeIngredient?fallbackItems.filter(item=>recipeProductCompatible(recipeIngredient,item)):fallbackItems;
+        if(recipeIngredient)recipeFallback={attempted:true,matchedCount:matched.length};
+        if (matched.length > 0) {
           return NextResponse.json({
             store, storeId, storeName, source: "s-kaupat-normal-v220",
-            status: 200, items: fallbackItems,
+            status: 200, items: matched, recipeFallback,
           });
         }
       } catch (fallbackError) {
+        if(recipeIngredient)recipeFallback={attempted:true,matchedCount:0,error:String(fallbackError)};
         console.warn("[S PRODUCTS V220] selected store fallback failed", {
           storeName, error: String(fallbackError),
         });
@@ -149,6 +156,7 @@ export async function GET(request: Request) {
       storeId,
       source: "ruoanhinta-s",
       endpoint,
+      recipeFallback,
       status: response.status,
       items,
     });

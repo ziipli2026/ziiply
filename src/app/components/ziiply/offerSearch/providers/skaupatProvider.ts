@@ -2617,6 +2617,7 @@ export async function fetchSKaupatNormalProductsV220(query: string, storeName: s
   );
   if (!response.ok) throw new Error(`S-kaupat normal search HTTP ${response.status}`);
   const data = await response.json();
+  if(Array.isArray(data?.errors)&&data.errors.length)throw new Error(`S-kaupat normal search GraphQL: ${data.errors.map((error:{message?:string})=>error.message||"Unknown error").join("; ")}`);
   return getSProductListItems(data).flatMap((item) => {
     const product = getProductFromListItem(item);
     if (!product || isSponsoredSProductListItem(item, product)) return [];

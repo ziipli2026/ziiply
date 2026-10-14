@@ -164,7 +164,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const term=recipeProductSearchTerm(input);if(!term)return "not_purchasable_ingredient";
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
- if(/kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
+ if(/nelson garden|kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
  const protein=context?.proteinRequirement||inferRecipeProtein(input);
  if(protein)return proteinProductRejection(protein,product);
  const kind=kinds.find(x=>x.term===term);

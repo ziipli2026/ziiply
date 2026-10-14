@@ -8,7 +8,7 @@
 // - Hinta ja Lisää-nappi oikeaan alakulmaan samalle linjalle.
 // - Lista on oma scrollialue.
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export type ZiiplyMobileSearchResultProduct = {
   id?: string | number;
@@ -40,8 +40,10 @@ export type ZiiplyMobileSearchResultsCardProps = {
   open?: boolean;
   loading?: boolean;
   title?: string;
+  emptyText?:string;
   products?: ZiiplyMobileSearchResultProduct[];
   onClose?: () => void;
+  onSkip?: () => void;
   onAddProduct?: (product: ZiiplyMobileSearchResultProduct) => void;
 };
 
@@ -283,11 +285,14 @@ export default function ZiiplyMobileSearchResultsCard({
   open = false,
   loading = false,
   title = "Löydökset",
+  emptyText="Ei löydöksiä luettelossa vielä.",
   products = [],
   onClose,
+  onSkip,
   onAddProduct,
 }: ZiiplyMobileSearchResultsCardProps) {
   const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
+  useEffect(()=>{if(loading)setExpandedProduct(null);},[loading]);
   if (!open) return null;
 
   return (
@@ -333,9 +338,10 @@ export default function ZiiplyMobileSearchResultsCard({
           </div>
         </header>
 
+        {loading && <div role="status" aria-live="polite" className="relative z-20 shrink-0 border-y border-[#d4ba73] bg-[#fff4d6] px-4 py-2 text-center text-sm font-bold text-[#78633a]">{products.length?"Haetaan seuraavan aineksen tuotteita…":"Haetaan reseptin tuotteita…"}</div>}
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2">
-            {loading && (
+            {loading && products.length === 0 && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
                 Haetaan löytöluetteloa…
               </div>
@@ -343,12 +349,11 @@ export default function ZiiplyMobileSearchResultsCard({
 
             {!loading && products.length === 0 && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
-                Ei löydöksiä luettelossa vielä.
+                {emptyText}
               </div>
             )}
 
-            {!loading &&
-              products.map((product, index) => {
+            {products.map((product, index) => {
                 const image = getImage(product);
                 const name = getName(product);
                 const rawPrice = pickRawPrice(product);
@@ -364,10 +369,10 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="relative flex items-start gap-3 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2.5 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
+                    aria-busy={loading} className={`relative flex items-start gap-3 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2.5 shadow-[0_3px_0_rgba(91,72,44,0.12)] ${loading?"opacity-55":""}`}
                   >
                     <div className="flex w-[5.8rem] shrink-0 flex-col items-center gap-1.5">
-                      <button type="button" onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className="flex h-[5.15rem] w-[5.15rem] items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]">
+                      <button type="button" disabled={loading} onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className="flex h-[5.15rem] w-[5.15rem] items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]">
                         {image ? (
                           <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
                         ) : (
@@ -377,7 +382,7 @@ export default function ZiiplyMobileSearchResultsCard({
                       <button
                         type="button"
                         onClick={() => onAddProduct?.(product)}
-                        disabled={!onAddProduct}
+                        disabled={loading || !onAddProduct}
                         aria-label={`Lisää koriin: ${name}, ${price || "hinta puuttuu"}`}
                         className="flex min-h-[3.1rem] w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-45"
                       >
@@ -406,7 +411,8 @@ export default function ZiiplyMobileSearchResultsCard({
               })}
           </div>
         </div>
-        {expandedProduct && (
+        {onSkip && !loading && <button type="button" onClick={onSkip} className="relative z-20 mx-3 mb-3 shrink-0 rounded-xl border-2 border-[#9c793e] bg-[#fff7df] px-4 py-2 text-sm font-bold text-[#513d1f]">Ohita tämä aines</button>}
+        {expandedProduct && !loading && (
           <div className="pointer-events-auto absolute inset-0 z-[80] flex items-center justify-center bg-[#1c251c]/60 p-3" role="dialog" aria-modal="true" aria-label="Suurennettu tuotenäkymä">
             <div className="max-h-full w-full max-w-[26rem] overflow-y-auto rounded-[1.2rem] border-[3px] border-[#8c6934] bg-[#fffdf8] p-3 shadow-xl">
               <div className="mb-3 flex items-center justify-between gap-2">
@@ -418,7 +424,7 @@ export default function ZiiplyMobileSearchResultsCard({
                   <div className="flex h-[7.5rem] items-center justify-center rounded-lg border border-[#e6dcc3] bg-[#faf5e9]">
                     {getImage(expandedProduct) ? <img src={getImage(expandedProduct)} alt="" className="h-full w-full object-contain" /> : <span className="text-xs text-[#78633a]">Ei kuvaa</span>}
                   </div>
-                  <button type="button" disabled={!onAddProduct} onClick={() => onAddProduct?.(expandedProduct)} className="flex min-h-[3.4rem] flex-col items-center justify-center rounded-lg border-2 border-[#496443] bg-[#dce8c3] px-1 text-[#087237] disabled:opacity-45">
+                  <button type="button" disabled={loading || !onAddProduct} onClick={() => onAddProduct?.(expandedProduct)} className="flex min-h-[3.4rem] flex-col items-center justify-center rounded-lg border-2 border-[#496443] bg-[#dce8c3] px-1 text-[#087237] disabled:opacity-45">
                     <strong className="text-lg">{expandedProduct.priceVerified === false || expandedProduct.product?.priceVerified === false ? "—" : formatMainPrice(pickRawPrice(expandedProduct), expandedProduct) || "—"}</strong>
                     <span className="text-xs font-black text-[#244525]">🛒 Lisää koriin</span>
                   </button>

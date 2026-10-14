@@ -14,7 +14,7 @@ async function run(debug){
  if(debug)storage.set('ziiply-mobile-recipe-search-debug-v1','[]');
  const deps={};
  const noop=()=>{};
- for(const name of ['setMobileRecipeSearchActive','setIsListening','setVoiceProcessing','setSearchPanelOpen','setActiveResult','setSearchCompareMode','setInput','setVoicePromptText','scrollToNormalResults','appendRecipeDebug','pushVoiceDebugV507'])deps[name]=noop;
+ for(const name of ['setMobileResultsReadyQueryV537','setNormalResultsStableV441','setActiveNormalSearchTerm','setLastCartToast','setMobileRecipeSearchActive','setIsListening','setVoiceProcessing','setSearchPanelOpen','setActiveResult','setSearchCompareMode','setInput','setVoicePromptText','scrollToNormalResults','appendRecipeDebug','pushVoiceDebugV507'])deps[name]=noop;
  for(const name of ['voiceAutoSearchAfterStopRef','voiceInputFallbackArmedRefV454','voiceFallingEdgeSearchArmedRefV455','voiceHeardSpeechRef','voiceSearchRunningRefV453','voiceForceJustiinaCartSearchRefV461','gostaPanelStickyOpenRefV158'])deps[name]={current:false};
  deps.voiceSilenceTimeoutRef={current:null};deps.mobileRecipeRunRef={current:0};deps.mobileRecipeContextRef={current:null};
  deps.sessionStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
