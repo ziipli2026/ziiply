@@ -29,3 +29,18 @@ jobs:
       - name: Replay approved 41AV
         run: |
           node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-frozen/publications/41AV tests/fixtures/citymarket/41AV.approved.json
+
+  frozen-42lv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch frozen 42LV publication
+        run: |
+          git fetch origin archive/citymarket-publications
+          git worktree add --detach /tmp/kcm-frozen origin/archive/citymarket-publications
+      - name: Check archived publication metadata
+        run: |
+          node -e "const f=require('/tmp/kcm-frozen/publications/42LV/leaflet.json'); if(f.rows.length!==89) process.exit(1); console.log('Frozen 42LV rows:',f.rows.length)"
