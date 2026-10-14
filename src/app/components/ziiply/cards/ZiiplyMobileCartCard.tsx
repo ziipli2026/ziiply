@@ -463,7 +463,7 @@ export default function ZiiplyMobileCartCard({
   };
 
   React.useEffect(() => {
-    if (isCartCompleteV58 && !previousCompleteRefV58.current) {
+    if (purchaseModeDefault !== "instore" && isCartCompleteV58 && !previousCompleteRefV58.current) {
       setShowCompletionCardV58(true);
     }
 
@@ -472,7 +472,7 @@ export default function ZiiplyMobileCartCard({
     }
 
     previousCompleteRefV58.current = isCartCompleteV58;
-  }, [isCartCompleteV58, remoteCompletionV850]);
+  }, [isCartCompleteV58, remoteCompletionV850, purchaseModeDefault]);
 
   return (
     <div
@@ -941,6 +941,25 @@ export default function ZiiplyMobileCartCard({
         </footer>
         ) : null}
 
+        {hasItems && purchaseModeDefault === "instore" && !showCompletionCardV58 ? (
+          <button
+            type="button"
+            onClick={() => {
+              setRemoteCompletionV850(false);
+              setShowCompletionCardV58(true);
+              setShowCheckoutFutureNoticeV62(false);
+            }}
+            className={cx(
+              "absolute bottom-[2.94rem] left-[5.8rem] z-[35] rounded-[0.55rem] border-2 border-[#496443] bg-[#dfcfaa] px-3 py-2 text-[0.86rem] font-black italic text-[#244525] shadow-lg",
+              isCartCompleteV58 && "animate-[ziiplyCheckoutPulse_1.35s_ease-in-out_infinite] motion-reduce:animate-none",
+            )}
+            style={{ fontFamily: cooperFont }}
+            aria-label="Kassalle"
+          >
+            Kassalle
+          </button>
+        ) : null}
+
         {hasItems && !showCompletionCardV58 && purchaseModeDefault !== "instore" ? (
           <button
             type="button"
@@ -1162,7 +1181,7 @@ export default function ZiiplyMobileCartCard({
             animation: ziiplyCartPaperPop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2);
           }
 
-          @keyframes ziiplyCartCompleteCardV61 {
+          @keyframes ziiplyCheckoutPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.075); } }\n          @keyframes ziiplyCartCompleteCardV61 {
             0% {
               opacity: 0;
               transform: translateY(12px) scale(0.975) rotate(-0.25deg);
