@@ -48,3 +48,49 @@ export function fuelOcrConsensus(readings:{price:string;view:string}[]):string{
   const ranked=[...votes].map(([price,views])=>[price,views.size] as const).sort((a,b)=>b[1]-a[1]);
   return ranked[0]?.[1]>=2&&ranked[0][1]>=(ranked[1]?.[1]||0)*2?ranked[0][0]:'';
 }
+
+// LED digits need a shape check: ordinary OCR commonly reads the top bar of 7 as 1.
+// Read only four separate digits plus the decimal point, with two agreeing red masks.
+export function fuelLedSegments(pixels:ArrayLike<number>,width:number,height:number,row:{left:number;right:number;top:number;bottom:number}):string {
+  const readings:string[]=[];
+  for(const brightness of [150,170,190]){
+    const w=row.right-row.left,h=row.bottom-row.top,mask=new Uint8Array(w*h),columns=new Uint16Array(w);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const i=((row.top+y)*width+row.left+x)*4,r=pixels[i],g=pixels[i+1],b=pixels[i+2];
+      // Pink/red lit dots, excluding the orange board and dark display surround.
+      if(r>brightness&&r>g*1.35&&r>b*1.15&&b>g*.8){mask[y*w+x]=1;columns[x]++;}
+    }
+    const groups:{left:number;right:number;top:number;bottom:number}[]=[];
+    const gap=Math.max(2,Math.round(h*.055));
+    for(let x=0;x<w;x++)if(columns[x]>1){
+      const previous=groups[groups.length-1];
+      if(previous&&x-previous.right<=gap)previous.right=x;
+      else groups.push({left:x,right:x,top:h,bottom:0});
+    }
+    for(const group of groups)for(let y=0;y<h;y++)for(let x=group.left;x<=group.right;x++)if(mask[y*w+x]){group.top=Math.min(group.top,y);group.bottom=Math.max(group.bottom,y);}
+    const digits=groups.filter(g=>g.bottom-g.top>h*.45);
+    if(digits.length!==4)continue;
+    const digitHeight=Math.max(...digits.map(g=>g.bottom-g.top+1));
+    const dot=groups.find(g=>g.left>digits[0].right&&g.right<digits[1].left&&g.bottom-g.top<digitHeight*.25&&g.top>digits[0].top+digitHeight*.7);
+    if(!dot||digits.some(g=>(g.bottom-g.top+1)<digitHeight*.8))continue;
+    let value='';
+    for(const digit of digits){
+      const dw=digit.right-digit.left+1,dh=digit.bottom-digit.top+1;
+      if(dw/dh<.25){value+='1';continue;}
+      if(dw/dh<.3||dw/dh>.85){value='';break;}
+      // Segment order: top, upper-right, lower-right, bottom, lower-left, upper-left, middle.
+      const regions=[[.15,.85,0,.2],[.72,1,.2,.44],[.72,1,.56,.8],[.15,.85,.8,1],[0,.28,.56,.8],[0,.28,.2,.44],[.15,.85,.4,.6]];
+      const counts=regions.map(([left,right,top,bottom])=>{
+        let count=0;
+        for(let y=Math.floor(top*dh);y<Math.floor(bottom*dh);y++)for(let x=Math.floor(left*dw);x<Math.floor(right*dw);x++)count+=mask[(digit.top+y)*w+digit.left+x];
+        return count;
+      });
+      const peak=Math.max(...counts),shape=counts.map(n=>n>peak*.35?'1':'0').join('');
+      const decoded:Record<string,string>={'1111110':'0','1101101':'2','1111001':'3','0110011':'4','1011011':'5','1011111':'6','1110000':'7','1111111':'8','1111011':'9'};
+      if(peak<5||!decoded[shape]){value='';break;}
+      value+=decoded[shape];
+    }
+    const price=fuelLedPrice(value);if(price)readings.push(price);
+  }
+  return readings.length>=2&&new Set(readings).size===1?readings[0]:'';
+}

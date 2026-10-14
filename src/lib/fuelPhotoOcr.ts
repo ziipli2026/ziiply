@@ -1,4 +1,4 @@
-import {findFuelLedRows,fuelLedPrice,fuelRowLabel,fuelOcrConsensus} from './fuelPhotoLed';
+import {findFuelLedRows,fuelLedPrice,fuelRowLabel,fuelOcrConsensus,fuelLedSegments} from './fuelPhotoLed';
 import {parseFuelPhotoText,type FuelPrices} from './fuelPhoto';
 type Worker={recognize:(image:string)=>Promise<{data:{text:string}}>;setParameters:(parameters:Record<string,string>)=>Promise<unknown>};
 export async function readFuelPhoto(worker:Worker,data:string){
@@ -39,9 +39,11 @@ export async function readFuelPhoto(worker:Worker,data:string){
     }
     review=true;
     if(seen.has(label)){prices[label]='';continue;}seen.add(label);
-    const candidate=fuelOcrConsensus(candidates);
-    // A disagreement with the original pass is also a conflict.
-    prices[label]=prices[label]&&candidate&&prices[label]!==candidate?'':candidate;
+    const segments=fuelLedSegments(pixels.data,canvas.width,canvas.height,row);
+    const candidate=segments||fuelOcrConsensus(candidates);
+    // Two agreeing LED shape masks can resolve a systematic OCR error.
+    // Without that evidence, disagreement with the original pass remains a conflict.
+    prices[label]=segments?segments:prices[label]&&candidate&&prices[label]!==candidate?'':candidate;
   }
   return {prices,text:original.data.text,review};
 }
