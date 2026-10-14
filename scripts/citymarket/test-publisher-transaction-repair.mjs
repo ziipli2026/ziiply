@@ -16,4 +16,11 @@ assert.equal(repair(row('KASSLER',53,['-53 %','6 99'])).spatialResolved,null);
 assert.equal(repair(row('VICHY 8-pack',.85,['24-PACK 1099'])).spatialResolved.value,.85);
 // Multiple conflicting pack prices must remain unresolved rather than arbitrarily chosen.
 assert.equal(repair(row('VICHY 24-pack',.36,['24-PACK 1099','24-PACK 1299'])).spatialResolved.value,.36);
+// Never override a previously verified printed transaction price.
+assert.equal(repair(row('VICHY 24-pack',12.99,['24-PACK 1099'],'printed-transaction')).spatialResolved.value,12.99);
+assert.equal(repair(row('VICHY 24-pack',12.99,['24-PACK 1099'],'publisher-owned-pack-total')).spatialResolved.value,12.99);
+// Repeated identical nearby pack-size evidence is ambiguous ownership, not confirmation.
+assert.equal(repair(row('VICHY 24-pack',.36,['24-PACK 1099','24-PACK 1099'])).spatialResolved.value,.36);
+// Unique pack evidence can still repair an unverified spatial price.
+assert.equal(repair(row('VICHY 24-pack',.36,['24-PACK 1099'])).spatialResolved.value,10.99);
 console.log('KCM publisher transaction repair tests passed');
