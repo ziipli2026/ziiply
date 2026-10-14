@@ -24342,7 +24342,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           />
         )}
 
-        {comparisonLoading && storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && (
+        {!eanModalOpen && comparisonLoading && storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && (
           <div className="pointer-events-none fixed left-3 right-3 top-[16.81rem] z-[10020] mx-auto max-w-md sm:hidden">
             <div className="rounded-2xl bg-emerald-600 px-3 py-2.5 text-center text-[0.78rem] leading-[1.35] font-bold text-white shadow-2xl">
               {(() => {
@@ -24361,7 +24361,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {lastCartToast && !(
+        {!eanModalOpen && lastCartToast && !(
           comparisonLoading &&
           storeCompareScope === "between_chains" &&
           betweenChainSelectionModeV749 === "one"
