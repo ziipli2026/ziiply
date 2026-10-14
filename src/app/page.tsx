@@ -23568,7 +23568,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     }}
                   />
 
-                  <div className="fixed left-2 right-2 top-[max(4rem,env(safe-area-inset-top))] z-[9999] sm:hidden pointer-events-none">
+                  <div className="hidden">
                     <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
                       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
                         <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
