@@ -310,12 +310,13 @@ export default function ZiiplyMobileSearchResultsCard({
 
         <header className="relative z-20 shrink-0 px-4 pb-3 pt-4">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 pt-[0.05rem]">
+            <div className="min-w-0 flex-1 pt-[0.05rem]">
               <div
-                className="text-[0.78rem] font-black uppercase tracking-[0.42em] text-[#7d6b45]"
+                className="relative h-5 text-[0.78rem] font-black uppercase tracking-[0.42em] text-[#7d6b45]"
                 style={{ fontFamily: copper }}
               >
-                LÖYTÖLUETTELO
+                <span className={loading ? "invisible" : ""}>LÖYTÖLUETTELO</span>
+                <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : ""}</span>
               </div>
 
               <div
@@ -338,7 +339,6 @@ export default function ZiiplyMobileSearchResultsCard({
           </div>
         </header>
 
-        {loading && <div role="status" aria-live="polite" className="relative z-20 shrink-0 border-y border-[#d4ba73] bg-[#fff4d6] px-4 py-2 text-center text-sm font-bold text-[#78633a]">{products.length?"Haetaan seuraavan aineksen tuotteita…":"Haetaan reseptin tuotteita…"}</div>}
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2">
             {loading && products.length === 0 && (
@@ -411,7 +411,7 @@ export default function ZiiplyMobileSearchResultsCard({
               })}
           </div>
         </div>
-        {onSkip && !loading && <button type="button" onClick={onSkip} className="relative z-20 mx-3 mb-3 shrink-0 rounded-xl border-2 border-[#9c793e] bg-[#fff7df] px-4 py-2 text-sm font-bold text-[#513d1f]">Ohita tämä aines</button>}
+        {onSkip && <button type="button" disabled={loading} onClick={onSkip} className="relative z-20 mx-3 mb-3 shrink-0 rounded-xl border-2 border-[#9c793e] bg-[#fff7df] px-4 py-2 text-sm font-bold text-[#513d1f] disabled:opacity-45">Ohita tämä aines</button>}
         {expandedProduct && !loading && (
           <div className="pointer-events-auto absolute inset-0 z-[80] flex items-center justify-center bg-[#1c251c]/60 p-3" role="dialog" aria-modal="true" aria-label="Suurennettu tuotenäkymä">
             <div className="max-h-full w-full max-w-[26rem] overflow-y-auto rounded-[1.2rem] border-[3px] border-[#8c6934] bg-[#fffdf8] p-3 shadow-xl">

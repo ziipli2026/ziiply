@@ -10,7 +10,8 @@ const ready=renderToStaticMarkup(React.createElement(Card,{open:true,products:[i
 const loading=renderToStaticMarkup(React.createElement(Card,{open:true,products:[item],loading:true,onAddProduct:()=>{},onSkip:()=>{}}));
 assert.ok(ready.includes(item.name)&&loading.includes(item.name),'old product list stays mounted while next query loads');
 assert.ok(loading.includes('aria-busy="true"'));assert.ok(/<button[^>]*disabled/.test(loading),'stale product choices disabled');
-assert.ok(ready.includes('Ohita tämä aines'));assert.ok(!loading.includes('Ohita tämä aines'));
+assert.ok(ready.includes('Ohita tämä aines'));assert.ok(/<button[^>]*disabled[^>]*>Ohita tämä aines<\/button>/.test(loading),'skip footer retains its space while loading');
+assert.ok(/role="status"[^>]*class="absolute inset-0/.test(loading),'loading status uses existing header space');
 const initial=renderToStaticMarkup(React.createElement(Card,{open:true,products:[],loading:true}));
 const empty=renderToStaticMarkup(React.createElement(Card,{open:true,products:[],loading:false,onSkip:()=>{},emptyText:'Tuotetta ei löytynyt hakutiedoista'}));
 for(const html of [ready,loading,initial,empty])assert.ok(html.includes('LÖYTÖLUETTELO')&&html.includes('<section'),'one stable list frame for every phase');
