@@ -374,7 +374,20 @@ async function fetchSGraphql(operationName: string, variables: any, hash: string
     payload = { rawText: text.slice(0, 2500) };
   }
 
-  return { ok: response.ok, status: response.status, payload, url: url.toString() };
+  // GraphQL can return HTTP 200 with errors and no usable product data.
+  // Capture a bounded diagnostic on the server without exposing raw payloads.
+  const graphqlErrors = Array.isArray(payload?.errors)
+    ? payload.errors.map((entry: any) => String(entry?.message || entry).slice(0, 180)).slice(0, 3)
+    : [];
+  if (!response.ok || graphqlErrors.length) {
+    console.warn("S_EAN_GRAPHQL_RESPONSE", {
+      operationName,
+      storeId: String(variables?.storeId || ""),
+      status: response.status,
+      graphqlErrors,
+    });
+  }
+  return { ok: response.ok && graphqlErrors.length === 0, status: response.status, payload, graphqlErrors, url: url.toString() };
 }
 
 function getFilteredProducts(payload: any): any[] {
