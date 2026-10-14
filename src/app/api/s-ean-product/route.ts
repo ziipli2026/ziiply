@@ -435,6 +435,9 @@ export async function GET(request: NextRequest) {
 
     const ean = normalizeEan(searchParams.get("ean"));
     const storeId = String(searchParams.get("storeId") || "708276035").trim();
+    // Ruoanhinta uses its own store number (721 for S-market Jokela).
+    // S-kaupat GraphQL uses the official S-group unit ID instead.
+    const graphqlStoreId = storeId === "721" ? "685839110" : storeId;
     const nameHint = fixText(searchParams.get("name") || "");
     const origin = new URL(request.url).origin;
 
@@ -467,7 +470,7 @@ export async function GET(request: NextRequest) {
         const directComplementary = await fetchSGraphql(
           "RemoteComplementaryProducts",
           {
-            storeId,
+            storeId: graphqlStoreId,
             eans: [],
             limit: 12,
             focusOnEan: ean,
@@ -613,7 +616,7 @@ export async function GET(request: NextRequest) {
           break;
         }
 
-        const filtered = await tryFilteredExact({ ean, storeId, slug, queryString });
+        const filtered = await tryFilteredExact({ ean, storeId: graphqlStoreId, slug, queryString });
 
         if (debugEnabled) {
           debug.push({
@@ -670,7 +673,7 @@ export async function GET(request: NextRequest) {
     const complementary = await fetchSGraphql(
       "RemoteComplementaryProducts",
       {
-        storeId,
+        storeId: graphqlStoreId,
         eans: [],
         limit: 12,
         focusOnEan: ean,
