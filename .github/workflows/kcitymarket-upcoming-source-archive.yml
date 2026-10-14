@@ -5,12 +5,66 @@ on:
     - cron: '20,50 12,13 * * 0,3'
 permissions:
   contents: write
+concurrency:
+  group: kcitymarket-advance-archive
+  cancel-in-progress: false
 jobs:
   archive:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node scripts/citymarket/export-leaflet.mjs https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/ /tmp/citymarket-next
+      - name: Fetch and validate upcoming publication
+        id: capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          DAY=$(TZ=Europe/Helsinki date +%u)
+          HOUR=$(TZ=Europe/Helsinki date +%H)
+          if [ "$DAY" = 3 ] && [ "$HOUR" -ge 15 ]; then
+            KIND=LV
+            ENTRY=https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/
+          elif [ "$DAY" = 7 ] && [ "$HOUR" -ge 15 ]; then
+            KIND=AV
+            ENTRY=https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/
+          else
+            echo "Outside advance publication window"
+            exit 0
+          fi
+          WEEK=$(TZ=Europe/Helsinki date +%V)
+          ID="${WEEK}${KIND}"
+          node scripts/citymarket/export-leaflet.mjs "$ENTRY" "/tmp/kcm-archive/$ID"
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const [id,folder]=process.argv.slice(1);
+            const m=JSON.parse(fs.readFileSync(folder+"/archive-manifest.json","utf8"));
+            if(!m.publisherUrl.toUpperCase().includes("_"+id+"_KCM"))throw Error("Wrong leaflet: "+m.publisherUrl);
+            if(!m.pageCount||!m.offerCount||!m.pdfSha256)throw Error("Incomplete archive");
+            console.log("Archive validated:",id,m.pageCount,m.offerCount);
+          ' "$ID" "/tmp/kcm-archive/$ID"
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Save immutable source to archive branch
+        if: steps.capture.outputs.ready == 'true'
+        env:
+          LEAFLET_ID: ${{ steps.capture.outputs.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin archive/citymarket-publications
+          git worktree add --detach /tmp/kcm-archive-branch origin/archive/citymarket-publications
+          cd /tmp/kcm-archive-branch
+          if [ -e "publications/$LEAFLET_ID/archive-manifest.json" ]; then
+            echo "Already archived; original retained"
+            exit 0
+          fi
+          mkdir -p "publications/$LEAFLET_ID"
+          cp -a "/tmp/kcm-archive/$LEAFLET_ID/." "publications/$LEAFLET_ID/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "publications/$LEAFLET_ID"
+          git commit -m "Archive original K-Citymarket $LEAFLET_ID publication"
+          git push origin HEAD:archive/citymarket-publications
