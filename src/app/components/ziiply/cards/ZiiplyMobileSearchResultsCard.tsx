@@ -411,7 +411,9 @@ export default function ZiiplyMobileSearchResultsCard({
               })}
           </div>
         </div>
-        {onSkip && <button type="button" disabled={loading} onClick={onSkip} className="relative z-20 mx-3 mb-3 shrink-0 rounded-xl border-2 border-[#9c793e] bg-[#fff7df] px-4 py-2 text-sm font-bold text-[#513d1f] disabled:opacity-45">Ohita tämä aines</button>}
+        {onSkip && <div className="pointer-events-none absolute inset-x-0 top-[55%] z-30 flex justify-center">
+          <button type="button" aria-label="Ohita tämä aines" disabled={loading} onClick={onSkip} className="pointer-events-auto min-h-11 rounded-xl border-2 border-[#9c793e] bg-[#fff7df] px-4 py-2 text-xs font-bold text-[#513d1f] shadow-sm disabled:opacity-45">Ohita</button>
+        </div>}
         {expandedProduct && !loading && (
           <div className="pointer-events-auto absolute inset-0 z-[80] flex items-center justify-center bg-[#1c251c]/60 p-3" role="dialog" aria-modal="true" aria-label="Suurennettu tuotenäkymä">
             <div className="max-h-full w-full max-w-[26rem] overflow-y-auto rounded-[1.2rem] border-[3px] border-[#8c6934] bg-[#fffdf8] p-3 shadow-xl">
