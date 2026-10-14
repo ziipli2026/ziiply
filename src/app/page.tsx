@@ -13876,41 +13876,63 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       normalize(String(store.name || "")) === normalize(intendedName),
     ) || null;
 
-    // Missing GPS must always be confirmed manually, with the suspected store named.
-    if (!usingOwnLocation || !gpsCoordsV320 || !intendedStore) {
+    // V854: the page may have stayed open while the user travelled to the store.
+    // Never use its cached coordinates (or a cached distance) to silently reject
+    // collection. Request a fresh fix for this scanner session instead.
+    if (!usingOwnLocation || !intendedStore || typeof navigator === "undefined" || !navigator.geolocation) {
       return askScannerStoreV828(intendedName);
     }
-
-    const intendedDistance = getGpsDistanceKmForStoreV93(intendedStore);
-    const nearby50 = allStores
-      .map((store) => ({ store, distance: getGpsDistanceKmForStoreV93(store) }))
-      .filter((row) => row.distance != null && Number(row.distance) <= 0.05)
-      .sort((a, b) => Number(a.distance) - Number(b.distance));
-    const intendedIsNear = intendedDistance != null && intendedDistance <= 0.05;
-    const competingNearby = nearby50.find(({ store }) =>
+    const freshScannerPositionV854 = await new Promise<GeolocationPosition | null>((resolve) => {
+      let settled = false;
+      const finish = (position: GeolocationPosition | null) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(deadline);
+        resolve(position);
+      };
+      const deadline = window.setTimeout(() => finish(null), 4500);
+      navigator.geolocation.getCurrentPosition(
+        (position) => finish(position),
+        () => finish(null),
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 4000 },
+      );
+    });
+    if (!freshScannerPositionV854 ||
+        Date.now() - freshScannerPositionV854.timestamp > 10000 ||
+        !Number.isFinite(freshScannerPositionV854.coords.accuracy) ||
+        freshScannerPositionV854.coords.accuracy > 80) {
+      return askScannerStoreV828(intendedName);
+    }
+    const freshCoordsV854 = {
+      latitude: freshScannerPositionV854.coords.latitude,
+      longitude: freshScannerPositionV854.coords.longitude,
+    };
+    const freshStoreDistanceV854 = (store: StoreSearchItem) => {
+      const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+      const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+      if (latitude == null || longitude == null) return null;
+      return calculateDistanceKmV320(freshCoordsV854, { latitude, longitude });
+    };
+    const freshIntendedDistanceV854 = freshStoreDistanceV854(intendedStore);
+    const freshNearbyStoresV854 = allStores.filter((store) => {
+      const distance = freshStoreDistanceV854(store);
+      return distance != null && distance <= 0.05;
+    });
+    const freshCompetitorV854 = freshNearbyStoresV854.some((store) =>
       normalize(String(store.name || "")) !== normalize(intendedName),
     );
-
-    // GPS may auto-confirm only when it identifies the intended store without a nearby ambiguity.
-    if (intendedIsNear && !competingNearby) {
+    if (freshIntendedDistanceV854 != null &&
+        freshIntendedDistanceV854 <= 0.05 &&
+        !freshCompetitorV854 &&
+        freshScannerPositionV854.coords.accuracy <= 35) {
       scannerStoreCheckDoneRefV791.current = true;
       scannerInStoreRefV828.current = true;
       scannerConfirmedStoreNameRefV828.current = intendedName;
       return true;
     }
-
-    // If usable GPS clearly places the user away from the intended store, this is a
-    // remote scanner session. Do not ask a default-Yes question that could falsely collect.
-    if (intendedDistance != null && intendedDistance > 0.3) {
-      scannerStoreCheckDoneRefV791.current = true;
-      scannerInStoreRefV828.current = false;
-      scannerConfirmedStoreNameRefV828.current = intendedName;
-      return false;
-    }
-
-    // Adjacent stores or weak/ambiguous GPS: name the suspected store and let the user
-    // override the default Yes during the five-second window.
+    // A distant or ambiguous fresh fix must NOT suppress the question.
     return askScannerStoreV828(intendedName);
+
   }
 
   async function searchScannerEnteredEanV830(codeInput?: string) {
