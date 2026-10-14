@@ -1,12 +1,11 @@
 // Evidence-only transaction-price repair. Never guess from a unit price or discount.
-// The caller enables this on the candidate publication until historical replays pass.
+// Enabled for the candidate publication until historical replays pass.
 export function repairPublisherTransaction(row) {
   const nearby = Array.isArray(row.nearby) ? row.nearby.map(String) : [];
   const context = nearby.join(' ').replace(/\s+/g, ' ');
   const current = Number(row.spatialResolved?.value);
   if (!(current > 0)) return row;
-  // Publisher packs sometimes print the pack count and the price as a fused
-  // integer: "24-PACK 1099" means EUR 10.99 for the whole pack.
+  // "24-PACK 1099" is EUR 10.99 for the whole pack, not EUR 0.36 per bottle.
   const packs = [...context.matchAll(/\b(\d{1,2})\s*[- ]?PACK\s+(\d{3,4})(?!\d)/gi)]
     .map(m => ({count:Number(m[1]), value:Number(m[2])/100}));
   const ownCount = Number(String(row.title||'').match(/\b(\d{1,2})\s*[- ]?pack\b/i)?.[1]);
@@ -15,10 +14,9 @@ export function repairPublisherTransaction(row) {
   if (ownCount>=2 && distinct.length===1 && Math.abs(current-matching[0].value)>.011) {
     return {...row, spatialResolved:{value:matching[0].value,quantity:1,unit:'pack',source:'publisher-owned-pack-total',sanity:'pass',confidence:'high'},debugReplacedConflictingPrice:row.spatialResolved};
   }
-  // A percentage is not a transaction price. Only suppress the conflicting
-  // value when the publisher explicitly prints that same percentage nearby.
+  // A publisher discount percentage is not a transaction price.
   const pct = [...context.matchAll(/(?:^|\s)-\s*(\d{1,2})\s*%/g)].map(m=>Number(m[1]));
-  if (pct.includes(current) && !row.spatialResolved?.source?.includes('printed')) {
+  if (pct.includes(current) && !String(row.spatialResolved?.source||'').includes('printed')) {
     return {...row,spatialResolved:null,debugRejectedPercentageAsPrice:{value:current,reason:'publisher-discount-percentage-not-transaction'}};
   }
   return row;
