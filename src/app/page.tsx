@@ -16504,7 +16504,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ? "Tuotteen tiedot lisätään kassalla"
       : "Tuote lisätty – tuotteen tiedot haetaan kaupassa";
 
-    if (inStore) {
+    {
       setCart((currentCart) => {
         const baseCart = mergeCartPoolsByIdV129(currentCart);
         const existing = baseCart.find((item) => cartItemMatchesEanLooseV129(item, normalizedEan));
@@ -16527,15 +16527,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ean: normalizedEan,
         };
         const next = [...baseCart, newItem];
-        setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
+        if (inStore) setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
         cartRefV124.current = next;
         persistCartImmediately(next);
         void updateChainComparison(next, { openCompare: false });
         return next;
       });
       showScanSuccessFlash();
-    } else {
-      showScanMissFlash();
     }
 
     setEanInput("");
