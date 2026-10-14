@@ -112,7 +112,8 @@ export default function ZiiplyMobileScannerCard({
     }
 
     if (flashState === "error") {
-      return "bg-[#ff3e32]/30 shadow-[inset_0_0_90px_rgba(255,40,30,0.72)]";
+      // A lookup miss is not a failed scan: do not flash red behind the camera.
+      return "bg-transparent";
     }
 
     return "bg-transparent";
