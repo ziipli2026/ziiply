@@ -1,0 +1,60 @@
+require('./recipe-audit-runtime.cjs');
+const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
+const {prepareRecipeSearch,parseRecipeText}=require('../src/app/components/ziiply/justiina/recipeCore.ts');
+const {mobileRecipeSelectionAllowed,mobileRecipePackageQuantity,mobileRecipePriceInCents}=require('../src/app/components/ziiply/justiina/mobileRecipeSearch.ts');
+const page=fs.readFileSync('src/app/page.tsx','utf8');
+const ast=ts.createSourceFile('page.tsx',page,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+let node;
+function walk(n){if(ts.isFunctionDeclaration(n)&&n.name?.text==='runVoiceSearchFromSpeechV453')node=n;ts.forEachChild(n,walk)}walk(ast);
+assert.ok(node);
+const javascript=ts.transpileModule(node.getText(ast),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
+async function run(debug){
+ const plan=prepareRecipeSearch(parseRecipeText('Ainekset:\n300 g silakkafileitä\n12 kananmunaa').ingredients);
+ const storage=new Map([['ziiply-justiina-active-ingredients-v1',JSON.stringify({items:plan.items})]]);
+ if(debug)storage.set('ziiply-mobile-recipe-search-debug-v1','[]');
+ const deps={};
+ const noop=()=>{};
+ for(const name of ['setMobileRecipeSearchActive','setIsListening','setVoiceProcessing','setSearchPanelOpen','setActiveResult','setSearchCompareMode','setInput','setVoicePromptText','scrollToNormalResults','appendRecipeDebug','pushVoiceDebugV507'])deps[name]=noop;
+ for(const name of ['voiceAutoSearchAfterStopRef','voiceInputFallbackArmedRefV454','voiceFallingEdgeSearchArmedRefV455','voiceHeardSpeechRef','voiceSearchRunningRefV453','voiceForceJustiinaCartSearchRefV461','gostaPanelStickyOpenRefV158'])deps[name]={current:false};
+ deps.voiceSilenceTimeoutRef={current:null};deps.mobileRecipeRunRef={current:0};deps.mobileRecipeContextRef={current:null};
+ deps.sessionStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
+ deps.window={clearTimeout};deps.getVoiceSearchCandidateV456=x=>x;deps.fixText=x=>x;deps.parseTerms=x=>x.split(',');deps.getSingleSearchTerm=x=>x;
+ let choice=null;const searched=[];
+ deps.resolveVoiceResultWaitV509=()=>{if(choice){const resolve=choice;choice=null;resolve()}};
+ deps.searchNormalPrices=async(term,force,context)=>{searched.push({term,context});assert.equal(deps.mobileRecipeContextRef.current,context)};
+ deps.waitForVoiceSearchResultChoiceV509=async(term,recipe)=>{assert.equal(recipe,true);await new Promise(resolve=>{choice=resolve})};
+ const recipeVisibility=[];deps.setMobileRecipeSearchActive=value=>recipeVisibility.push(value);
+ const fn=new Function(...Object.keys(deps),javascript+';return runVoiceSearchFromSpeechV453;')(...Object.values(deps));
+ let finished=false;const task=fn(plan.terms.join(', '),true,plan.terms).then(()=>{finished=true});
+ await new Promise(setImmediate);
+ assert.equal(searched.length,1);assert.equal(finished,false);
+ const fish={name:'Kotimaista Silakkafilee MSC 250 g',__recipeRunId:1,__recipeStep:0};
+ assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,fish),true);
+ assert.equal(mobileRecipePackageQuantity(deps.mobileRecipeContextRef.current,fish),2);
+ assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,{...fish,name:'Lohikeitto 300g'}),false);
+ deps.resolveVoiceResultWaitV509();await new Promise(setImmediate);
+ assert.equal(searched.length,2);assert.equal(finished,false,'last ingredient must still await selection');
+ assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,fish),false,'previous ingredient card rejected');
+ const egg={name:'Farmimuna M6 348g Vapaa kananmuna',__recipeRunId:1,__recipeStep:1};
+ assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,egg),true);
+ assert.equal(mobileRecipePackageQuantity(deps.mobileRecipeContextRef.current,egg),2);
+ assert.equal(storage.get('ziiply-justiina-recipe-step-v1'),'1');
+ deps.resolveVoiceResultWaitV509();await task;
+ assert.deepEqual(recipeVisibility,[true,false],'ordinary Hae card hidden throughout the recipe queue');
+ assert.equal(deps.mobileRecipeContextRef.current,null);assert.equal(storage.has('ziiply-justiina-recipe-step-v1'),false);
+ assert.equal(mobileRecipeSelectionAllowed(null,egg),false,'expired recipe card rejected');
+ assert.equal(mobileRecipeSelectionAllowed(null,{name:'Maito 1l'}),true,'ordinary product selection unchanged');
+}
+(async()=>{await run(false);await run(true);assert.equal(mobileRecipePriceInCents(1.69,'s-kaupat-normal-v220'),169);assert.equal(mobileRecipePriceInCents(169,'ruoanhinta-s'),169);console.log('PASS: actual mobile queue with debug on/off, last-step wait, stale selections, fish/egg quantities, source price units and normal selection')})().catch(error=>{console.error(error);process.exitCode=1});
+// Render the actual page's conditional card JSX: recipe text must not exist in the DOM.
+const React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
+let cardGuard;
+function findCard(n){if(ts.isBinaryExpression(n)&&n.operatorToken.kind===ts.SyntaxKind.AmpersandAmpersandToken&&ts.isJsxSelfClosingElement(n.right)&&n.right.tagName.getText(ast)==='ZiiplyMobileSearchCard')cardGuard=n;ts.forEachChild(n,findCard)}findCard(ast);
+assert.ok(cardGuard,'search card must have its own render guard');
+const cardScript=ts.transpileModule('const card='+cardGuard.getText(ast)+';', {compilerOptions:{target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React}}).outputText;
+for(const active of [true,false]){
+ const scope=new Proxy({React,mobileRecipeSearchActive:active,input:'silakkafilee',ZiiplyMobileSearchCard:props=>React.createElement('input',{value:props.input,readOnly:true})},{has:()=>true,get:(target,key)=>key===Symbol.unscopables?undefined:key in target?target[key]:()=>{}});
+ const card=new Function('scope','with(scope){'+cardScript+';return card;}')(scope);
+ const html=renderToStaticMarkup(card);
+ assert.equal(html.includes('silakkafilee'),!active,'changing ingredient query must never appear in a hidden Hae field');
+}

@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { parseRecipeText, scaleIngredients, classifyRecipeIngredient, type RecipeDraft } from "./recipeCore";
-import { correctSearchQuery } from "../search/searchIntentAI";
+import { parseRecipeText, scaleIngredients, prepareRecipeSearch, type RecipeDraft } from "./recipeCore";
+import { appendRecipeDebug, RECIPE_DEBUG_KEY } from "../mobile/ZiiplyRecipeSearchDebug";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
@@ -191,22 +191,16 @@ export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenCh
   };
   const startSearch=(recipe:RecipeDraft|null=draft,base=original,people=target)=>{
     if(!recipe||!onSearchIngredients)return;
-    if(!(Number(base)>0&&Number(people)>0)){setNotice("Anna alkuperäinen annosmäärä ja henkilömäärä ennen hakua.");setEditing(true);return}
-    const items=scaleIngredients(recipe.ingredients,Number(base),Number(people)).filter(item=>!item.atHome&&item.name.trim());
-    if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
-    if(items.some(item=>item.uncertain||item.amount===null||!Number.isFinite(item.amount)||item.amount<=0||!item.unit)){
-      setNotice("Tarkista epäselvät ainesmäärät ennen hakua.");setEditing(true);return;
-    }
-    const classified = items.map(item => classifyRecipeIngredient(item.name));
-    const unknown = items.filter((_, index) => !classified[index]);
-    if (unknown.length) {
-      setNotice("Tarkista ruoka-aineen ryhmä ennen hakua: " + unknown.map(item => item.name).join(", "));
-      setEditing(true);
-      return;
-    }
-    persist(recipe,recipe===draft?text:EXAMPLE,base,people);
-    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:Number(people),items}))}catch{}
-    onSearchIngredients(classified.map(group=>correctSearchQuery(group!.searchTerm)));
+    const originalServings=Number(base)>0?Number(base):recipe.servings||1;
+    const targetServings=Number(people)>0?Number(people):originalServings;
+    const items=scaleIngredients(recipe.ingredients,originalServings,targetServings).filter(item=>!item.atHome&&item.name.trim());
+    const search=prepareRecipeSearch(items,recipe.instructions,recipe.title);
+    if(!search.terms.length){setNotice("Reseptissä ei ole haettavia aineksia.");return;}
+    try{sessionStorage.removeItem(RECIPE_DEBUG_KEY);}catch{}
+    appendRecipeDebug("recipe-search-plan",{title:recipe.title,sourceText:text,originalServings,targetServings,items:search.items,terms:search.terms});
+    persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
+    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:search.items}))}catch{}
+    onSearchIngredients(search.terms);
   };
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;

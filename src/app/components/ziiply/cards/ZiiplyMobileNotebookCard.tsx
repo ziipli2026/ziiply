@@ -11,10 +11,10 @@
 // - Riviltä voi avata listan koriin. Pieni poistomerkki poistaa tallennetun listan.
 
 import React, { useEffect, useMemo, useState } from "react";
-import { parseRecipeText, classifyRecipeIngredient } from "../justiina/recipeCore";
+import { parseRecipeText, prepareRecipeSearch } from "../justiina/recipeCore";
 import { readArvoPreferences } from "../ArvoSettingsPanel";
 import { appendRecipeDebug, RECIPE_DEBUG_KEY } from "../mobile/ZiiplyRecipeSearchDebug";
-import { correctSearchQuery } from "../search/searchIntentAI";
+
 
 export type ZiiplyNotebookItem = {
   id?: string | number;
@@ -214,25 +214,13 @@ export default function ZiiplyMobileNotebookCard({
       setRecipeError("Reseptistä ei löytynyt aineksia. Avaa resepti muokattavaksi ja tarkista Ainekset-kohta.");
       return;
     }
-    // Recipe search identifies the actual grocery item before running the common product search.
-    // Tap water is a preparation ingredient, not a supermarket product.
-    const searchableIngredients = ingredients.filter(item => !/^(?:vettä|vesi|hanavettä|hanavesi)$/i.test(item.name.trim()));
-    const terms = searchableIngredients.map(item => {
-      const name = item.name.replace(/\s+tai\s+\d+(?:[,.]\d+)?\s*(?:kg|g|l|dl|cl|ml)\s+.+$/i, "").trim();
-      const classified = classifyRecipeIngredient(name);
-      const simplified = name.replace(/^(?:hienonnettua|karkeaa|tuoretta|tuoreita)\s+/i, "").trim();
-      return correctSearchQuery(classified?.searchTerm || simplified);
-    }).filter(Boolean);
-    appendRecipeDebug("ingredients-to-search", { servings, householdSize: preferences.householdSize, ingredients, terms });
-    if (!terms.length) { setRecipeError("Reseptin aineksia ei voitu hakea."); appendRecipeDebug("blocked", "No search terms"); return; }
+    const search=prepareRecipeSearch(ingredients,draft.instructions,draft.title);
+    appendRecipeDebug("ingredients-to-search", { servings, ingredients, terms:search.terms, items:search.items });
+    if(!search.terms.length){setRecipeError("Reseptissä ei ole haettavia aineksia.");return;}
     setRecipeError("");
-    try {
-      sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({
-        title: draft.title, servings, items: searchableIngredients,
-      }));
-    } catch {}
-    appendRecipeDebug("handoff-to-search", { terms, count: terms.length });
-    onSearchIngredients?.(terms);
+    try { sessionStorage.setItem("ziiply-justiina-active-ingredients-v1", JSON.stringify({ title:draft.title, servings, items:search.items })); } catch {}
+    appendRecipeDebug("handoff-to-search",{terms:search.terms,count:search.terms.length});
+    onSearchIngredients?.(search.terms);
   };
   const openRecipe = (recipe: SavedRecipe, edit = false) => {
     setSelectedRecipe(recipe); setRecipeDraft(recipeText(recipe)); setEditingRecipe(edit); setRecipeError("");

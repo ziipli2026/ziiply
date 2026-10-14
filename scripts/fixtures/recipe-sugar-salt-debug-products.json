@@ -1,0 +1,1950 @@
+{
+  "merisuola": [
+    {
+      "id": 1803499,
+      "name": "Estrella Maalaissipsi 180g merisuola-etikka",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 279
+    },
+    {
+      "id": 1924781,
+      "name": "Elephant kierrepretzelit 80g merisuola-hunaja",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "price": 165
+    },
+    {
+      "id": 4831,
+      "name": "Jozo hieno merisuola 500g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 179
+    },
+    {
+      "id": 1938804,
+      "name": "Gårdschips Merisuola 240g",
+      "category": "snacksit/sipsit/perunalastut",
+      "price": 199
+    },
+    {
+      "id": 1838894,
+      "name": "Flora & voi Merisuola 500g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 299
+    },
+    {
+      "id": 4877,
+      "name": "Jozo karkea merisuola 500g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 179
+    },
+    {
+      "id": 4394,
+      "name": "Meira Merisuola 800g karkea",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 105
+    },
+    {
+      "id": 5919,
+      "name": "Taffel Manteli 90g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/snacks-pahkinat",
+      "price": 255
+    },
+    {
+      "id": 1806125,
+      "name": "Maldon merisuola chilillä 100g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 497
+    },
+    {
+      "id": 1815797,
+      "name": "Elephant pretzel 80g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/juusto--ja-muotosnacksit",
+      "price": 159
+    },
+    {
+      "id": 1851661,
+      "name": "Oikia kaurasipsi 150g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/muut-snacksit",
+      "price": 219
+    },
+    {
+      "id": 1798378,
+      "name": "Coop riisikakut merisuola 100 g",
+      "category": "CAABGAKAMAAAA",
+      "price": 59
+    },
+    {
+      "id": 5206,
+      "name": "Guéranden harmaa merisuola 1 kg",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 495
+    },
+    {
+      "id": 79065,
+      "name": "Flora Plant B+tter Merisuola 600g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 369
+    },
+    {
+      "id": 9915,
+      "name": "Estrella Merisuola sipsipussi 275g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 295
+    },
+    {
+      "id": 1113,
+      "name": "Kantolan Pikkukeksi Merisuola 120g",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/suola--ja-valipalakeksit",
+      "price": 198
+    },
+    {
+      "id": 2755,
+      "name": "Valio Oivariini 350g merisuola HYLA",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 349
+    },
+    {
+      "id": 1806146,
+      "name": "Maldon merisuola valkosipulilla 100g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 497
+    },
+    {
+      "id": 4481,
+      "name": "Meira merisuola 450g hieno, jodioitu",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 164
+    },
+    {
+      "id": 22324,
+      "name": "Foodin Guerande Merisuola hieno 400g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 269
+    },
+    {
+      "id": 9903,
+      "name": "Estrella Maalaissipsi 180g Merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 279
+    },
+    {
+      "id": 22325,
+      "name": "Foodin Guerande Merisuola karkea 300g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 208
+    },
+    {
+      "id": 1864115,
+      "name": "Coop leipätikku twist merisuola 125 g",
+      "category": "CAABGAIAAAEAA",
+      "price": 189
+    },
+    {
+      "id": 1833683,
+      "name": "Vaasan hapankorppu 195g chia merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/hapankorput",
+      "price": 184
+    },
+    {
+      "id": 1818693,
+      "name": "Atria Kanan Minuuttifilee Merisuola 650g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "price": 849
+    },
+    {
+      "id": 1818658,
+      "name": "Atria Kanan Minuuttifilee Merisuola 220g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "price": 325
+    },
+    {
+      "id": 76251,
+      "name": "Coop maalaisperunalastut merisuola 175 g",
+      "category": "CAABGAUAAAAAA",
+      "price": 157
+    },
+    {
+      "id": 1943245,
+      "name": "URTEKRAM Merisuola muotoilusuihke 100 ml",
+      "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet",
+      "price": 795
+    },
+    {
+      "id": 78449,
+      "name": "Jyväbroiler 350g Broilerin Filee Merisuola",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat",
+      "price": 549
+    },
+    {
+      "id": 1865140,
+      "name": "Estrella Maalaissipsi voi & merisuola 180g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 279
+    },
+    {
+      "id": 1837553,
+      "name": "Kotimaista Ruissipsi Merisuola&Pippuri 150g",
+      "category": "CAABGAUAKAAAA",
+      "price": 219
+    },
+    {
+      "id": 1161,
+      "name": "Leksands näkkileipä 200g siemenet merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 239
+    },
+    {
+      "id": 1845499,
+      "name": "Ryvita ohut keksi 125g rosmariini-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 328
+    },
+    {
+      "id": 9981,
+      "name": "Estrella Paprika & Merisuola sipsipussi 275g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 295
+    },
+    {
+      "id": 1947171,
+      "name": "Atria kanan iso fileesuikale merisuola 350 g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/suikaleet-ja-kuutiot",
+      "price": 399
+    },
+    {
+      "id": 921,
+      "name": "Friggs maissikakku 130g chiasiemen & merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "price": 219
+    },
+    {
+      "id": 13771,
+      "name": "Foodin NUTI tumma suklaa & merisuola 35g luomu",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/valipalakeksit-ja--patukat",
+      "price": 165
+    },
+    {
+      "id": 1945471,
+      "name": "LEKSANDS PAIMENTUVAN SIEMENET & MERISUOLA 365G",
+      "category": "CAABGAKAAAAAA",
+      "price": 459
+    },
+    {
+      "id": 78090,
+      "name": "Wasa 100 vuotta näkkäri 245g merisuola siemenet",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 249
+    },
+    {
+      "id": 1865940,
+      "name": "Vaasan Ruissipsi 150g ruskistettu voi-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "price": 239
+    },
+    {
+      "id": 4419,
+      "name": "Meira Merisuola 800g hieno Voimakas ja aromikas",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 125
+    },
+    {
+      "id": 10218,
+      "name": "Lindt Excellence Merisuola tumma suklaalevy 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    },
+    {
+      "id": 1929710,
+      "name": "Fazer Leipurit Flatbread rosmariini-merisuola kpl",
+      "category": "CAAAWAMAIAIAA",
+      "price": 131
+    },
+    {
+      "id": 1809871,
+      "name": "Friggs Gluteeniton Maissikakku Voi-Merisuola 120g",
+      "category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "price": 245
+    },
+    {
+      "id": 1795477,
+      "name": "Ingmariini 250 g Merisuola vähälaktoosinen levite",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 269
+    },
+    {
+      "id": 1790894,
+      "name": "Coop tumma suklaa 64 % kinuski ja merisuola 100 g",
+      "category": "CAABGAQAIAAAC",
+      "price": 205
+    },
+    {
+      "id": 13787,
+      "name": "Foodin NUTI hunaja, pekaani & merisuola 35g luomu",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/valipalakeksit-ja--patukat",
+      "price": 165
+    },
+    {
+      "id": 1864103,
+      "name": "Vaasan Koulunäkki Ohut Herkku 265g chia-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 265
+    },
+    {
+      "id": 1942393,
+      "name": "Vaasan Koulunäkki 265g kaura-unikonsiemen-merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 299
+    },
+    {
+      "id": 2924,
+      "name": "Keiju 600g merisuola rypsiöljy-kasvirasvalevite 70%",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 389
+    },
+    {
+      "id": 1855215,
+      "name": "Coop Eko vegaaninen suklaa kinuski ja merisuola 85 g",
+      "category": "CAABGAQAIAAAG",
+      "price": 275
+    },
+    {
+      "id": 2843,
+      "name": "Keiju 400 g merisuola rypsiöljy-kasvirasvalevite 70 %",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 279
+    },
+    {
+      "id": 10312,
+      "name": "Vaasan Ohut Ruissipsi Merisuola & Lempeä pippuri 150g",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+      "price": 239
+    },
+    {
+      "id": 1855214,
+      "name": "Coop Eko tumma suklaa 55 % pistaasi ja merisuola 100 g",
+      "category": "CAABGAQAIAAAC",
+      "price": 275
+    },
+    {
+      "id": 9767,
+      "name": "Estrella Kypsytetty juusto & Merisuola sipsipussi 275g",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "price": 295
+    },
+    {
+      "id": 1822976,
+      "name": "Jozo Le Saunier de Camargue Fleur de Sel merisuola 125g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 324
+    },
+    {
+      "id": 1846355,
+      "name": "Jyväbroiler Broilerin iso paistisuikale merisuola 330 g",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/suikaleet-ja-kuutiot",
+      "price": 429
+    },
+    {
+      "id": 2625,
+      "name": "Valio Oivariini 400 g oliiviöljy ja hieno merisuola HYLA",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 349
+    },
+    {
+      "id": 13527,
+      "name": "Foodin manteli-merisuola kollageeniproteiinipatukka 50 g",
+      "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+      "price": 198
+    },
+    {
+      "id": 1822949,
+      "name": "Jozo Le Saunier de Camargue Hieno merisuola sirotin 250g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "price": 268
+    },
+    {
+      "id": 1868417,
+      "name": "Eleplant Merisuola Kasvivoimaa kasvirasvalevite 75 % 400g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "price": 285
+    },
+    {
+      "id": 10203,
+      "name": "Lindt Excellence Karamelli-merisuola tumma suklaalevy 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    },
+    {
+      "id": 1352,
+      "name": "Friggs maissikakku 130g seesamisiemen merisuola gluteeniton",
+      "category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+      "price": 218
+    },
+    {
+      "id": 1341,
+      "name": "Wasa näkkileipä 240g seesami merisuola gluteeniton laktoositon",
+      "category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-nakkileivat",
+      "price": 315
+    },
+    {
+      "id": 1864143,
+      "name": "3 Kaveria Laktoositon Kinuski & Merisuola jäätelötuutti 150ml/95g",
+      "category": "pakasteet/jaatelot/jaatelotuutit-ja--pikarit",
+      "price": 315
+    },
+    {
+      "id": 1834388,
+      "name": "Rosten siemenrapeat viljaton siemennäkkileipä chia-merisuola 170g",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 377
+    },
+    {
+      "id": 1120,
+      "name": "Rosten Siemen Rapeat siemennäkkileipä 250g kaura, speltti & merisuola",
+      "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/nakkileivat",
+      "price": 298
+    },
+    {
+      "id": 1805955,
+      "name": "Rosten Siemenrapeat viljaton siemennäkkileipä rosmariini & merisuola 170g",
+      "category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-nakkileivat",
+      "price": 377
+    },
+    {
+      "id": 1837636,
+      "name": "Iron Maiden Grillimauste 112g merisuola, mustapippuri ja etikka mausteseos.",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "price": 592
+    },
+    {
+      "id": 5054,
+      "name": "Maldon merisuola250g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 592
+    },
+    {
+      "id": 34501,
+      "name": "Maldon Merisuolamylly 55g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "price": 579
+    },
+    {
+      "id": 1823678,
+      "name": "Coop merisuolahiutaleet 170g",
+      "category": "CAABGBAAIAEAA",
+      "price": 298
+    },
+    {
+      "id": 1853190,
+      "name": "Coop Merisuolamylly 230g Sea Salt",
+      "category": "CAABGBAAIAIAA",
+      "price": 284
+    },
+    {
+      "id": 2804,
+      "name": "President Gourmet merisuolavoi 250g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "price": 439
+    },
+    {
+      "id": 1845381,
+      "name": "Kantolan Valitut merisuolakeksi 150g",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/suola--ja-valipalakeksit",
+      "price": 248
+    },
+    {
+      "id": 11334,
+      "name": "Revuele Tuuheuttava Merisuolasuihke 200ml",
+      "category": "CAABSAAACAEAA",
+      "price": 295
+    },
+    {
+      "id": 21029,
+      "name": "Änglamark riisikakku merisuolalla luomu 100 g",
+      "category": "CAABGAKAMAAAA",
+      "price": 79
+    },
+    {
+      "id": 1794178,
+      "name": "Ziaja Antioksidanttinen merisuolasuihke 90 ml",
+      "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet",
+      "price": 385
+    },
+    {
+      "id": 982,
+      "name": "Änglamark maissikakku merisuolalla luomu 100 g",
+      "category": "CAABGAKAMAAAA",
+      "price": 79
+    },
+    {
+      "id": 5230,
+      "name": "Nordur Salt Arctic Sea Salt merisuolahiutaleet 250 g",
+      "category": "CAABGBAAIAEAA",
+      "price": 559
+    },
+    {
+      "id": 1837561,
+      "name": "Dave&Jons paahdettuja härkäpapuja merisuolan kanssa 100 g",
+      "category": "CAABGAWAAAAAK",
+      "price": 189
+    },
+    {
+      "id": 19873,
+      "name": "Coop oliiviöljyä ja merisuolaa sisältävät krutongit 100 g",
+      "category": "CAABGAKAGAAAA",
+      "price": 194
+    },
+    {
+      "id": 34474,
+      "name": "Nordur Salt Lava Sea Salt hiilivärjätyt merisuolahiutaleet 100 g",
+      "category": "CAABGBAAIAEAA",
+      "price": 709
+    },
+    {
+      "id": 13061,
+      "name": "Otrivin Natural Aloe Vera nenäsuihke 50 ml isotoninen merisuolaliuos",
+      "category": "kosmetiikka-terveys-ja-hygienia/intiimituotteet-ja-intiimihygienia/muut-kosmetiikka--ja-terveystarvikkeet",
+      "price": 829
+    },
+    {
+      "id": 1845485,
+      "name": "Lindt Excellence Fusion tumma suklaa merisuolalla ja maitosuklaa 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    },
+    {
+      "id": 1837560,
+      "name": "Dave&Jons paahdettuja edamame papuja oliiviöljyllä ja merisuolalla 100 g",
+      "category": "CAABGAWAAAAAK",
+      "price": 189
+    },
+    {
+      "id": 1806153,
+      "name": "Oikia Aurinkoinen Alicia Ranskankerman & Merisuolan makuinen perunasipsi 350g",
+      "category": "CAABGAUAAAAAA",
+      "price": 349
+    },
+    {
+      "id": 1838695,
+      "name": "Lindt Excellence Pistaasi tummasuklaata pistaasipähkinällä ja ripaus merisuolaa 100g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 399
+    }
+  ],
+  "sokeri": [
+    {
+      "id": 5486,
+      "name": "Dansukker Siro erikoishieno sokeri 1 kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/sokerit",
+      "price": 169
+    },
+    {
+      "id": 1817391,
+      "name": "Tutti Frutti kiinteyttävä sokeri vartalokuorinta päärynä ja inkivääri 300 g",
+      "category": "kosmetiikka-ja-hygienia/vartalonhoito/vartalonkuorinta",
+      "price": 199
+    },
+    {
+      "id": 1816954,
+      "name": "Tutti Frutti Ravitseva sokeri vartalonkuorinta Mango ja sitruunaruoho 300 g",
+      "category": "CAABSACAKACAA",
+      "price": 565
+    },
+    {
+      "id": 1848026,
+      "name": "Apetit Wok Sokeriherne-paprika pakaste 400g",
+      "category": "pakasteet/vihannes--ja-juurespakasteet/wokit-ja-muut",
+      "price": 245
+    },
+    {
+      "id": 1854651,
+      "name": "Dr. Oetker Sokerikuorrute (4x17g) 68g  Sokerikuorrutteet: punainen, keltainen, vihreä, valkoinen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 375
+    },
+    {
+      "id": 648,
+      "name": "Sokeriherne 150g",
+      "category": "CAAAAAEBEAAAA",
+      "price": 199
+    },
+    {
+      "id": 76233,
+      "name": "Sprite sokeriton 1,5l",
+      "category": "juomat/virvoitusjuomat/sitrusjuomat",
+      "price": 315
+    },
+    {
+      "id": 1788164,
+      "name": "Coop sokerikakku 350 g",
+      "category": "CAAAWAGAGAAAA",
+      "price": 189
+    },
+    {
+      "id": 28118,
+      "name": "Leivon Sokerikorppu 400g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 235
+    },
+    {
+      "id": 1518,
+      "name": "Leivon Sokerikorppu 400g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 229
+    },
+    {
+      "id": 1861179,
+      "name": "Coop sokeriton sima 1,5l",
+      "category": "alkoholi-ja-virvoitusjuomat/glogit-simat-ja-muut-kausijuomat",
+      "price": 209
+    },
+    {
+      "id": 6701,
+      "name": "Günthart sokerisilmät 12g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 407
+    },
+    {
+      "id": 8538,
+      "name": "MySoda Cola sokeriton 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 529
+    },
+    {
+      "id": 1516,
+      "name": "Vanajan Sokerikorppu 340 g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 219
+    },
+    {
+      "id": 1530,
+      "name": "Vanajan Sokerikorppu 800 g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 467
+    },
+    {
+      "id": 1806017,
+      "name": "Coop sekajuoma sokeriton 1l",
+      "category": "CAABAAABKAAAA",
+      "price": 99
+    },
+    {
+      "id": 1270,
+      "name": "Kotimaista sokerikorppu 400g",
+      "category": "CAABGAMAAACAA",
+      "price": 159
+    },
+    {
+      "id": 1842484,
+      "name": "Töysäläinen sokerikorppu 800g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 419
+    },
+    {
+      "id": 1841303,
+      "name": "Töysäläinen sokerikorppu 200g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 155
+    },
+    {
+      "id": 6858,
+      "name": "Salliselta Sokerisydämet 100g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 178
+    },
+    {
+      "id": 20733,
+      "name": "Halva Sokeriton salmiakki 90g",
+      "category": "makeiset-ja-naposteltavat/karkkipussit/karkkipussit",
+      "price": 275
+    },
+    {
+      "id": 8815,
+      "name": "MySoda Vadelma sokeriton 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 529
+    },
+    {
+      "id": 1806009,
+      "name": "Coop sokeriton päärynäjuoma 1l",
+      "category": "CAABAAAAEAAAA",
+      "price": 99
+    },
+    {
+      "id": 1960902,
+      "name": "Sugar snaps - sokeriherne 200g",
+      "category": "CAAAAAEBEAAAA",
+      "price": 249
+    },
+    {
+      "id": 18079,
+      "name": "Natria sokeritoukkapyydys 2kpl",
+      "category": "kodinhoito-ja-taloustarvikkeet/tuholaisten-torjunta/tuholaisten-torjunta",
+      "price": 595
+    },
+    {
+      "id": 1507,
+      "name": "Töysäläinen sokerikorppu 600 g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 315
+    },
+    {
+      "id": 7185,
+      "name": "Günthart sokerikukat 15kpl/20g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 535
+    },
+    {
+      "id": 7566,
+      "name": "Xtra vadelmakeitto sokeriton 1 l",
+      "category": "kahvit-teet-ja-mehut/marjakeitot",
+      "price": 164
+    },
+    {
+      "id": 1505,
+      "name": "Vanajan Kaura-Sokerikorppu 340 g",
+      "category": "leivat-keksit-ja-leivonnaiset/korput-ja-rinkelit/makeat-korput",
+      "price": 235
+    },
+    {
+      "id": 7489,
+      "name": "Xtra mansikkakeitto sokeriton 1l",
+      "category": "CAABAAIAAAAAA",
+      "price": 169
+    },
+    {
+      "id": 957,
+      "name": "Fazer Sokerileipurin pitko 435 g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/pullat-ja-kakut",
+      "price": 575
+    },
+    {
+      "id": 1834439,
+      "name": "Xtra mustikkakeitto sokeriton 1l",
+      "category": "CAABAAIAAAAAA",
+      "price": 169
+    },
+    {
+      "id": 8756,
+      "name": "MySoda Appelsiini sokeriton 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 529
+    },
+    {
+      "id": 77157,
+      "name": "Coop sokerimassa valkoinen 250 g",
+      "category": "CAABGBAAOAGAE",
+      "price": 238
+    },
+    {
+      "id": 7006,
+      "name": "Salliselta Sokerimassa 250g musta",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 289
+    },
+    {
+      "id": 7532,
+      "name": "Xtra sokeriton metsämarjajuoma 1l",
+      "category": "CAABAAABEAAAA",
+      "price": 99
+    },
+    {
+      "id": 22664,
+      "name": "Njie mehujuoma 1l sokeriton mango",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 185
+    },
+    {
+      "id": 1834724,
+      "name": "Zhytomyr Sakura sokerikeksi 185 g",
+      "category": "CAABGAIAEAOAA",
+      "price": 89
+    },
+    {
+      "id": 8855,
+      "name": "Coop sokeriton metsämarjajuoma 2dl",
+      "category": "CAABAACBEAAAA",
+      "price": 43
+    },
+    {
+      "id": 10130,
+      "name": "Sisu raikas pastilli 36g sokeriton",
+      "category": "makeiset-ja-naposteltavat/pastillit/karkkipastillit",
+      "price": 125
+    },
+    {
+      "id": 7126,
+      "name": "Salliselta  Sokerimassa 250g roosa",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 289
+    },
+    {
+      "id": 1834469,
+      "name": "Mehukatti Trip sokeriton sirkus 2dl",
+      "category": "juomat/mehut/kerta-annosmehut",
+      "price": 47
+    },
+    {
+      "id": 1867714,
+      "name": "Xtra sokeriton kola-päärynäjuoma 1l",
+      "category": "CAABAAABKAAAA",
+      "price": 99
+    },
+    {
+      "id": 8710,
+      "name": "MySoda Sitruuna-Lime sokeriton 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 529
+    },
+    {
+      "id": 1837595,
+      "name": "Coop jäätee vadelma sokeriton 1,5 l",
+      "category": "CAABAAABQAAAA",
+      "price": 165
+    },
+    {
+      "id": 7071,
+      "name": "Salliselta Sokerimassa 250g oranssi",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 289
+    },
+    {
+      "id": 1806028,
+      "name": "Coop jäätee persikka sokeriton 1,5 l",
+      "category": "CAABAAABQAAAA",
+      "price": 165
+    },
+    {
+      "id": 7803,
+      "name": "Hartwall Jaffa ananas sokeriton 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 245
+    },
+    {
+      "id": 7647,
+      "name": "Hartwall Jaffa ananas sokeriton 1,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 335
+    },
+    {
+      "id": 8510,
+      "name": "Brewers Indian Tonic sokeriton 0,33l",
+      "category": "juomat/virvoitusjuomat/mixerit",
+      "price": 155
+    },
+    {
+      "id": 7187,
+      "name": "Günthart sokeriyksisarviset 8kpl/17g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 535
+    },
+    {
+      "id": 121571,
+      "name": "Njie mehujuoma 1l sokeriton mansikka",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 185
+    },
+    {
+      "id": 1806037,
+      "name": "Coop jäätee sitruuna sokeriton 1,5 l",
+      "category": "CAABAAABQAAAA",
+      "price": 165
+    },
+    {
+      "id": 7254,
+      "name": "Megaforce sokeriton energiajuoma 0,5l",
+      "category": "CAAAYAOAAACAA",
+      "price": 139
+    },
+    {
+      "id": 7177,
+      "name": "Salliselta Sokerimassa 250g keltainen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 289
+    },
+    {
+      "id": 7659,
+      "name": "Hartwall Jaffa Greippi sokeriton 1,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 335
+    },
+    {
+      "id": 6960,
+      "name": "Salliselta Sokerimassa 250g valkoinen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 289
+    },
+    {
+      "id": 81169,
+      "name": "Mad-Croc energiajuoma sokeriton 0,25l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 125
+    },
+    {
+      "id": 7269,
+      "name": "Red Bull energiajuoma sokeriton 0,25l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 185
+    },
+    {
+      "id": 5753,
+      "name": "Dr Oetker Sokerikuorrute 125g Violetti",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 228
+    },
+    {
+      "id": 2873,
+      "name": "Oatly kaurajuoma sokeriton 1,5% 1l UHT",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/kasvipohjaiset-juomat",
+      "price": 179
+    },
+    {
+      "id": 7385,
+      "name": "Red Bull energiajuoma sokeriton 0,355l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 265
+    },
+    {
+      "id": 5771,
+      "name": "Dr.Oetker sokerikuorrute 125g punainen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 228
+    },
+    {
+      "id": 1866418,
+      "name": "Valio Grandi 1l vihreä omppu sokeriton",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 149
+    },
+    {
+      "id": 1855833,
+      "name": "Moomin sokeriton metsämansikkajuoma 1l",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 169
+    },
+    {
+      "id": 1152,
+      "name": "Gullon Choc Chip Cookies 150g sokeriton",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+      "price": 188
+    },
+    {
+      "id": 7253,
+      "name": "Xtra sokeriton cola virvoitusjuoma 1,5l",
+      "category": "CAAAYAKACACAA",
+      "price": 129
+    },
+    {
+      "id": 6894,
+      "name": "Salliselta Sokeriströsseli 100g kirjava",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 144
+    },
+    {
+      "id": 1236,
+      "name": "Coppenrath vaniljacookie 200g sokeriton",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+      "price": 319
+    },
+    {
+      "id": 5750,
+      "name": "Golden Star Sokerikuorrute 125g sininen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 198
+    },
+    {
+      "id": 1863929,
+      "name": "Juju Cola sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/cola-juomat",
+      "price": 199
+    },
+    {
+      "id": 1850793,
+      "name": "Reformi Fibrex sokerijuurikaskuitu 200g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/gluteenittomat-jauhot",
+      "price": 599
+    },
+    {
+      "id": 7919,
+      "name": "Marli Juissi 1l sokeriton sekamehujuoma",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 145
+    },
+    {
+      "id": 80769,
+      "name": "Vicks blue kurkkupastilli 40g sokeriton",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 105
+    },
+    {
+      "id": 5653,
+      "name": "Dr. Oetker Sokerikuorrute Valkoinen 125g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 228
+    },
+    {
+      "id": 1945449,
+      "name": "Vicks kurkkupastilli 72g lemon sokeriton",
+      "category": "makeiset-ja-naposteltavat/karkkipussit/kurkkupastillipussit",
+      "price": 219
+    },
+    {
+      "id": 6957,
+      "name": "Modo makusiirappi 30cl vanilja sokeriton",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/siirapit",
+      "price": 722
+    },
+    {
+      "id": 9937,
+      "name": "Brunberg Tauko sokeriton riisisuklaa 28g",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+      "price": 99
+    },
+    {
+      "id": 8565,
+      "name": "Coop Tonic sokeriton virvoitusjuoma 1,5l",
+      "category": "CAAAYAKAMACAA",
+      "price": 265
+    },
+    {
+      "id": 936484,
+      "name": "Kylä-Köönikän sokeriherne 150g 1lk Suomi",
+      "category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+      "price": 369
+    },
+    {
+      "id": 1865475,
+      "name": "Mehukatti TRIP Sokeriton Ananasjuoma 2dl",
+      "category": "juomat/mehut/kerta-annosmehut",
+      "price": 47
+    },
+    {
+      "id": 7175,
+      "name": "Günthart sokerikirjaimet ja -numerot 27g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 535
+    },
+    {
+      "id": 996,
+      "name": "Fazer Sokerileipurin pulla 6 kpl / 240 g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/pullat-ja-kakut",
+      "price": 335
+    },
+    {
+      "id": 6748,
+      "name": "Golden Star Sokerikuorrute 125g valkoinen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 198
+    },
+    {
+      "id": 7378,
+      "name": "Coop ananas virvoitusjuoma sokeriton 0,5l",
+      "category": "CAAAYAKAOACAA",
+      "price": 125
+    },
+    {
+      "id": 4409,
+      "name": "Felix Ketchup ilman lisättyä sokeria 970g",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 479
+    },
+    {
+      "id": 7323,
+      "name": "Coop sitrus sokeriton virvoitusjuoma 1,5l",
+      "category": "CAAAYAKAEACAA",
+      "price": 195
+    },
+    {
+      "id": 4430,
+      "name": "Felix ketchup 480g llman lisättyä sokeria",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 347
+    },
+    {
+      "id": 5774,
+      "name": "Golden Star Sokerikuorrute 125g keltainen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 198
+    },
+    {
+      "id": 1867845,
+      "name": "Moomin vesimeloni-omenajuoma sokeriton 1L",
+      "category": "CAABAAAAKAAAA",
+      "price": 169
+    },
+    {
+      "id": 79399,
+      "name": "Vitalis Crunchy 425g vadelma -30% sokeria",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/murot-ja-myslit/myslit",
+      "price": 459
+    },
+    {
+      "id": 7432,
+      "name": "Coop ananas virvoitusjuoma sokeriton 1,5l",
+      "category": "CAAAYAKAOACAA",
+      "price": 195
+    },
+    {
+      "id": 20423,
+      "name": "Coop sekajuomatiiviste sokeriton 1+3 1,5l",
+      "category": "CAABAAKAEAKAA",
+      "price": 369
+    },
+    {
+      "id": 1863933,
+      "name": "Juju Ananas sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 130
+    },
+    {
+      "id": 1864054,
+      "name": "Läkerol More Peach sokeriton pastilli 30g",
+      "category": "makeiset-ja-naposteltavat/pastillit/karkkipastillit",
+      "price": 135
+    },
+    {
+      "id": 7305,
+      "name": "Coop sitrus sokeriton virvoitusjuoma 0,5l",
+      "category": "CAAAYAKAEACAA",
+      "price": 125
+    },
+    {
+      "id": 1867723,
+      "name": "Moomin vesimeloni-omenajuoma sokeriton 2dl",
+      "category": "CAABAACAKAAAA",
+      "price": 65
+    },
+    {
+      "id": 1864985,
+      "name": "Coop vadelma virvoitusjuoma sokeriton 0,5l",
+      "category": "CAAAYAKAOACAA",
+      "price": 125
+    },
+    {
+      "id": 1868447,
+      "name": "Coop sokeriton mansikka-raparperikeitto 1l",
+      "category": "CAABAAIAAAAAA",
+      "price": 209
+    },
+    {
+      "id": 1841385,
+      "name": "Hommanäs Mansikka 200g 0% lisättyä sokeria",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot",
+      "price": 506
+    },
+    {
+      "id": 7154,
+      "name": "Salliselta Sokerimassa 250g vaaleansininen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 289
+    },
+    {
+      "id": 1834862,
+      "name": "Coop papaijapalat sokeriliemessä 425/260 g",
+      "category": "CAABGBCAAAKAA",
+      "price": 224
+    },
+    {
+      "id": 1863936,
+      "name": "Juju Päärynä sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 199
+    },
+    {
+      "id": 1863939,
+      "name": "Juju Vadelma sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 199
+    },
+    {
+      "id": 7845,
+      "name": "Marli Juissi 1l sokeriton päärynämehujuoma",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 145
+    },
+    {
+      "id": 1838697,
+      "name": "Fisherman´s Friend Salmiakki sokeriton 25g",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 135
+    },
+    {
+      "id": 1864976,
+      "name": "Coop vadelma sokeriton virvoitusjuoma 1,5l",
+      "category": "CAAAYAKAOACAA",
+      "price": 219
+    },
+    {
+      "id": 1841386,
+      "name": "Hommanäs Puolukka 200g 0% lisättyä sokeria",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot",
+      "price": 620
+    },
+    {
+      "id": 7934,
+      "name": "Marli Juissi 1l sokeriton appelsiini-mango",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 145
+    },
+    {
+      "id": 32145,
+      "name": "Airwaves Cool Cassis sokeriton purukumi 29g",
+      "category": "makeiset-ja-naposteltavat/purukumit/ksylitoli-pienet",
+      "price": 135
+    },
+    {
+      "id": 5695,
+      "name": "Dr. Oetker Sokerikuorrute Vaaleanvhreä 125g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 228
+    },
+    {
+      "id": 7640,
+      "name": "Coop Festival virvoitusjuoma sokeriton 1,5l",
+      "category": "CAAAYAKAOACAA",
+      "price": 219
+    },
+    {
+      "id": 1864055,
+      "name": "Läkerol More Salmiak sokeriton pastilli 30g",
+      "category": "makeiset-ja-naposteltavat/pastillit/karkkipastillit",
+      "price": 135
+    },
+    {
+      "id": 6872,
+      "name": "Salliselta Sokeriströsseli 100g pinkki-lila",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 144
+    },
+    {
+      "id": 7410,
+      "name": "Red Bull energiajuoma sokeriton 0,25l 4-pack",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 689
+    },
+    {
+      "id": 7268,
+      "name": "Coop Cola Sokeriton virvoitusjuoma 0,5 l kmp",
+      "category": "CAAAYAKACACAA",
+      "price": 115
+    },
+    {
+      "id": 1837550,
+      "name": "Coop päärynäjuomatiiviste sokeriton 1+3 1,5l",
+      "category": "CAABAAKAEAGAA",
+      "price": 369
+    },
+    {
+      "id": 1834787,
+      "name": "Coop mangoviipaleet sokeriliemessä 425/225 g",
+      "category": "CAABGBCAAAKAA",
+      "price": 139
+    },
+    {
+      "id": 7328,
+      "name": "Coop Cola Sokeriton virvoitusjuoma 1,5 l kmp",
+      "category": "CAAAYAKACACAA",
+      "price": 195
+    },
+    {
+      "id": 1947258,
+      "name": "Juju Vesimeloni sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 199
+    },
+    {
+      "id": 95621,
+      "name": "FUN Light juomatiiviste 1l mansikka sokeriton",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 525
+    },
+    {
+      "id": 1866451,
+      "name": "Marli Vital sokeriton Vesimeloni mehujuoma 1l",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 199
+    },
+    {
+      "id": 1868445,
+      "name": "Megaforce Banaani sokeriton energiajuoma 0,5l",
+      "category": "CAAAYAOAAACAA",
+      "price": 139
+    },
+    {
+      "id": 6712,
+      "name": "Saarioinen Vadelmahillo vähemmän sokeria 320g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot",
+      "price": 352
+    },
+    {
+      "id": 1865026,
+      "name": "12 x Coop cola sokeriton virvoitusjuoma 0,33l",
+      "category": "CAAAYAKACACAA",
+      "price": 699
+    },
+    {
+      "id": 4651,
+      "name": "Meira Sinappi 250g vähemmän sokeria ja suolaa",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/sinapit",
+      "price": 204
+    },
+    {
+      "id": 7140,
+      "name": "Kinuskikissa sokerimassa 250g vaaleanpunainen",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 335
+    },
+    {
+      "id": 10002,
+      "name": "Brunberg suklaalevy 50g sokeriton laktoositon",
+      "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+      "price": 195
+    },
+    {
+      "id": 1804150,
+      "name": "Coop hedelmäcocktail sokeriliemessä 420/250 g",
+      "category": "CAABGBCAAAIAC",
+      "price": 174
+    },
+    {
+      "id": 1806985,
+      "name": "Coop hedelmäcocktail sokeriliemessä 825/500 g",
+      "category": "CAABGBCAAAIAC",
+      "price": 249
+    },
+    {
+      "id": 1863940,
+      "name": "Juju Appelsiini sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/appelsiinijuomat",
+      "price": 199
+    },
+    {
+      "id": 7176,
+      "name": "Kinuskikissan sokerimassa 250g vaalea turkoosi",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 335
+    },
+    {
+      "id": 1947275,
+      "name": "Juju Vesimeloni sokeriton virvoitusjuoma 0,33l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 129
+    },
+    {
+      "id": 4395,
+      "name": "Felix ketchup, vähemmän suolaa ja sokeria 980g",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 459
+    },
+    {
+      "id": 7663,
+      "name": "Mehukatti sokeriton sekajuomatiiviste 1+3 1,5l",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 389
+    },
+    {
+      "id": 1837331,
+      "name": "Marli Juissi Ice Tea mango-meloni sokeriton 1l",
+      "category": "juomat/mehut/jaateet",
+      "price": 175
+    },
+    {
+      "id": 7398,
+      "name": "Xtra sokeriton appelsiini  virvoitusjuoma 1,5l",
+      "category": "CAAAYAKAAACAA",
+      "price": 175
+    },
+    {
+      "id": 4411,
+      "name": "Meira ketsuppi 900g vähemmän sokeria ja suolaa",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 409
+    },
+    {
+      "id": 7867,
+      "name": "Mehukatti juomatiiviste 0,5l päärynä sokeriton",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 170
+    },
+    {
+      "id": 1945152,
+      "name": "Nocco Focus Guavo sokeriton energiajuoma 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 269
+    },
+    {
+      "id": 6009,
+      "name": "Saarioinen Puolukkahillo vähemmän sokeria 320g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot",
+      "price": 359
+    },
+    {
+      "id": 1834818,
+      "name": "Coop mandariinilohkot sokeriliemessä 312/175 g",
+      "category": "CAABGBCAAAKAA",
+      "price": 109
+    },
+    {
+      "id": 5731,
+      "name": "Dr. Oetker Sokerikuorrute Vaaleanpunainen 125g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontakoristeet",
+      "price": 228
+    },
+    {
+      "id": 7730,
+      "name": "FUN Light juomatiiviste 1l metsämarja sokeriton",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 525
+    },
+    {
+      "id": 7455,
+      "name": "Battery Sugar free sokeriton energiajuoma 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 255
+    },
+    {
+      "id": 7701,
+      "name": "Coop omena-kaneli virvoitusjuoma sokeriton 1,5l",
+      "category": "CAAAYAKASAAAA",
+      "price": 219
+    },
+    {
+      "id": 8029,
+      "name": "FUN Light juomatiiviste 1l appelsiini sokeriton",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 525
+    },
+    {
+      "id": 1947276,
+      "name": "TEHO Elektrolyyttijuoma Persikka sokeriton 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/urheilu--ja-hyvinvointijuomat",
+      "price": 185
+    },
+    {
+      "id": 20430,
+      "name": "Marli Juissi sokeriton granaattiomena-vadelma 1l",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 145
+    },
+    {
+      "id": 9862,
+      "name": "Vicks menthol fresh kurkkupastilli 40g sokeriton",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 105
+    },
+    {
+      "id": 1831068,
+      "name": "Spen Lautanen 17,6cm 10kpl sokeriruoko valk. Bio",
+      "category": "CAABYACAAAEAA",
+      "price": 104
+    },
+    {
+      "id": 6282,
+      "name": "Xtra persikanpuolikkaita sokeriliemessä 820/470g",
+      "category": "CAABGBCAAACAC",
+      "price": 155
+    },
+    {
+      "id": 31010,
+      "name": "Ziaja Jeju hiili-sokerikuorinta vartalolle 200ml",
+      "category": "CAABSACAKACAA",
+      "price": 699
+    },
+    {
+      "id": 1858330,
+      "name": "Pepsi Max Tropical sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/cola-juomat",
+      "price": 229
+    },
+    {
+      "id": 1831067,
+      "name": "Spen Lautanen 26,2cm 10kpl sokeriruoko valk. Bio",
+      "category": "CAABYACAAAEAA",
+      "price": 194
+    },
+    {
+      "id": 20602,
+      "name": "The Good Guys Kombucha Inkivääri sokeriton 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/urheilu--ja-hyvinvointijuomat",
+      "price": 290
+    },
+    {
+      "id": 6924,
+      "name": "Opie's cocktailkirsikoita sokeriliemessä 130/70g",
+      "category": "CAABGBCAAAKAA",
+      "price": 334
+    },
+    {
+      "id": 1838998,
+      "name": "Coop päärynänpuolikkaat sokeriliemessä 410/230 g",
+      "category": "hillot-ja-sailykkeet/hedelma-ja-marjasailykkeet/muut-hedelmasailykkeet",
+      "price": 194
+    },
+    {
+      "id": 1831077,
+      "name": "Spen Lautanen 22,5cm 10kpl sokeriruoko valk. Bio",
+      "category": "CAABYACAAAEAA",
+      "price": 189
+    },
+    {
+      "id": 1834329,
+      "name": "Lowcaly White Peach hedelmämehujuoma 1l sokeriton",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 185
+    },
+    {
+      "id": 1951383,
+      "name": "Nocco BCAA Blue Lion sokeriton energiajuoma 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 269
+    },
+    {
+      "id": 7751,
+      "name": "Muumi Metsämansikka sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 245
+    },
+    {
+      "id": 1863900,
+      "name": "Juju Ananas sokeriton virvoitusjuoma 0,33l 6-pack",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 459
+    },
+    {
+      "id": 8761,
+      "name": "Marli perinteinen mustaherukkamehu 0,5l sokeriton",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 555
+    },
+    {
+      "id": 9699,
+      "name": "Mynthon Extra väkevä kurkkupastilli 85g sokeriton",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 195
+    },
+    {
+      "id": 1803297,
+      "name": "Coop persikat viipaleina sokeriliemessä 410/240 g",
+      "category": "CAABGBCAAACAC",
+      "price": 126
+    },
+    {
+      "id": 7399,
+      "name": "Coop Appelsiini Sokeriton virvoitusjuoma 0,5 l kmp",
+      "category": "CAAAYAKAAACAA",
+      "price": 125
+    },
+    {
+      "id": 22590,
+      "name": "Fynbo Delight vadelmahillo - vähemmän sokeria 260g",
+      "category": "hillot-ja-sailykkeet/hillot/vadelmahillot",
+      "price": 312
+    },
+    {
+      "id": 7335,
+      "name": "Coop Appelsiini Sokeriton virvoitusjuoma 1,5 l kmp",
+      "category": "CAAAYAKAAACAA",
+      "price": 195
+    },
+    {
+      "id": 1868462,
+      "name": "Fisherman's Friend Strawberry & Lime sokeriton 25g",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 135
+    },
+    {
+      "id": 1868501,
+      "name": "Red Bull Sudachi Lime energiajuoma sokeriton 0,25l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 115
+    },
+    {
+      "id": 1834804,
+      "name": "Coop mansikkahillo pullossa vähemmän sokeria 380 g",
+      "category": "hillot-ja-sailykkeet/hillot/mansikkahillot",
+      "price": 235
+    },
+    {
+      "id": 1840047,
+      "name": "Megaforce Cosmic Berry sokeriton energiajuoma 0,5l",
+      "category": "CAAAYAOAAACAA",
+      "price": 79
+    },
+    {
+      "id": 9087,
+      "name": "Apetit sugar snaps pullea sokeriherne 300g pakaste",
+      "category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "price": 265
+    },
+    {
+      "id": 8083,
+      "name": "Pipsa Possu Tropical fruit pillimehu 2dl sokeriton",
+      "category": "juomat/mehut/kerta-annosmehut",
+      "price": 85
+    },
+    {
+      "id": 9705,
+      "name": "Mynthon Viileä Minttu kurkkupastilli 85g sokeriton",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 195
+    },
+    {
+      "id": 1863902,
+      "name": "Juju Vadelma sokeriton virvoitusjuoma 0,33l 6-pack",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 459
+    },
+    {
+      "id": 1790750,
+      "name": "Coop persikat puolikkaina sokeriliemessä 410/240 g",
+      "category": "CAABGBCAAACAC",
+      "price": 126
+    },
+    {
+      "id": 7164,
+      "name": "Salliselta Sokerimassa suklaanmakuinen 250g ruskea",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/marsipaani--ja-sokerimassat",
+      "price": 289
+    },
+    {
+      "id": 1863901,
+      "name": "Juju Päärynä sokeriton virvoitusjuoma 0,33l 6-pack",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 459
+    },
+    {
+      "id": 1838467,
+      "name": "Fisherman´s Friend Salmiakki-Vadelma sokeriton 25g",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 135
+    },
+    {
+      "id": 1945213,
+      "name": "Hartwall Jaffa Italia sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 245
+    },
+    {
+      "id": 33814,
+      "name": "Kymppi luomu mämmi 550g ei lisättyä sokeria pakaste",
+      "category": "valmisruoka/puurot-ja-kiisselit/mammit",
+      "price": 358
+    },
+    {
+      "id": 1802806,
+      "name": "Diablo suklaahippukeksi ilman lisättyä sokeria 130g",
+      "category": "CAABGAIASAEAA",
+      "price": 264
+    },
+    {
+      "id": 22546,
+      "name": "Fynbo Delight mansikkahillo - vähemmän sokeria 260g",
+      "category": "hillot-ja-sailykkeet/hillot/mansikkahillot",
+      "price": 312
+    },
+    {
+      "id": 1831188,
+      "name": "Spen Kulho 480ml 17,5cm 10kpl sokeriruoko valk. Bio",
+      "category": "CAABYACAAAEAA",
+      "price": 179
+    },
+    {
+      "id": 1864979,
+      "name": "12 x Coop sokeriton appelsiini virvoitusjuoma 0,33l",
+      "category": "CAAAYAKAAACAA",
+      "price": 699
+    },
+    {
+      "id": 4413,
+      "name": "Felix ketchup 485g vähemmän suolaa ja sokeria luomu",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 328
+    },
+    {
+      "id": 1929413,
+      "name": "Coop mansikkahillo pullossa, vähemmän sokeria 380 g",
+      "category": "CAABGBCAQAAAA",
+      "price": 235
+    },
+    {
+      "id": 1823692,
+      "name": "Coop sokerimassa 225 g punainen, sininen, keltainen",
+      "category": "CAABGBAAOAGAE",
+      "price": 298
+    },
+    {
+      "id": 7943,
+      "name": "Coop sokeriton mansikan makuinen juomatiiviste 0,5l",
+      "category": "CAABAAKAEAEAA",
+      "price": 172
+    },
+    {
+      "id": 7964,
+      "name": "Mehukatti sokeriton appelsiinijuomatiiviste 1+3 1,5l",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 389
+    },
+    {
+      "id": 4455,
+      "name": "Meira Luomu ketsuppi 250g vähemmän sokeria ja suolaa",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 248
+    },
+    {
+      "id": 22316,
+      "name": "Meira luomu ketsuppi vähemmän sokeria ja suolaa 900g",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 547
+    },
+    {
+      "id": 22675,
+      "name": "Marli Juissi sokeriton lohikäärmehedelmämehujuoma 1l",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 145
+    },
+    {
+      "id": 1837551,
+      "name": "Coop jääteejuomatiiviste persikka sokeriton 1+3 0,9l",
+      "category": "CAABAAKAEAKAA",
+      "price": 255
+    },
+    {
+      "id": 1843913,
+      "name": "Coop aprikoosit puolikkaina sokeriliemessä 410/226 g",
+      "category": "CAABGBCAAAEAA",
+      "price": 174
+    },
+    {
+      "id": 1789463,
+      "name": "Airwaves Menthol & Eucalyptus sokeriton purukumi 29g",
+      "category": "makeiset-ja-naposteltavat/purukumit/ksylitoli-pienet",
+      "price": 135
+    },
+    {
+      "id": 22727,
+      "name": "Mehukatti juomatiiviste 0,5l metsämansikka sokeriton",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 170
+    },
+    {
+      "id": 1945171,
+      "name": "Hartwall Jaffa Italia sokeriton virvoitusjuoma 0,33l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 139
+    },
+    {
+      "id": 1812394,
+      "name": "Saarioinen Mansikkahillo sileä vähemmän sokeria 320g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot",
+      "price": 328
+    },
+    {
+      "id": 1835563,
+      "name": "Mehukatti Sokeriton Vadelmamehujuomatiiviste 1+3 1,5l",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 389
+    },
+    {
+      "id": 1947259,
+      "name": "Juju Vesimeloni sokeriton virvoitusjuoma 0,33l 6-pack",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 459
+    },
+    {
+      "id": 1803072,
+      "name": "Hartwall Jaffa Lemonade sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/sitrusjuomat",
+      "price": 245
+    },
+    {
+      "id": 1831226,
+      "name": "Jaffa Booster Appelsiini energiajuoma sokeriton 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 189
+    },
+    {
+      "id": 20705,
+      "name": "Vicks fruity fresh lemon kurkkupastilli 40g sokeriton",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 105
+    },
+    {
+      "id": 1834424,
+      "name": "Coop mansikka-raparperi sokeriton virvoitusjuoma 1,5l",
+      "category": "CAAAYAKAOACAA",
+      "price": 219
+    },
+    {
+      "id": 1833191,
+      "name": "Fisherman´s Friend Cola sokeriton 25g Limited Edition",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 135
+    },
+    {
+      "id": 1834423,
+      "name": "Coop vesimeloni-sitruuna sokeriton virvoitusjuoma 1,5l",
+      "category": "CAAAYAKAOACAA",
+      "price": 219
+    },
+    {
+      "id": 1838647,
+      "name": "Mynthon Original Omena sokeriton +C kurkkupastilli 39g",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 115
+    },
+    {
+      "id": 9846,
+      "name": "Mynthon pastillirasia 85g salmiakki-lakritsi sokeriton",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 195
+    },
+    {
+      "id": 6043,
+      "name": "Elovena annospikapuuro vadelma vähemmän sokeria 12x35g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/hiutaleet-ja-suurimot/muut-hiutaleet",
+      "price": 449
+    },
+    {
+      "id": 6807,
+      "name": "Saarioinen Lettuhillo vähemmän sokeria, sekahillo 320g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot",
+      "price": 335
+    },
+    {
+      "id": 1835343,
+      "name": "Coop tomaattiketsuppi vähemmän sokeria ja suolaa 750 g",
+      "category": "CAABGBAAAAGAA",
+      "price": 258
+    },
+    {
+      "id": 1834472,
+      "name": "Mehukatti Trip Sokeriton Mansikka-vadelmamehujuoma 2dl",
+      "category": "juomat/mehut/kerta-annosmehut",
+      "price": 47
+    },
+    {
+      "id": 7709,
+      "name": "Coop sokeriton metsämarjan makuinen juomatiiviste 0,5l",
+      "category": "CAABAAKAEAKAA",
+      "price": 255
+    },
+    {
+      "id": 1803813,
+      "name": "Marli Juissi Lemonade Sokeriton Sitrus mix mehujuoma 1",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 182
+    },
+    {
+      "id": 1803130,
+      "name": "Hartwall Jaffa  Lemonade sokeriton virvoitusjuoma 1,5l",
+      "category": "juomat/virvoitusjuomat/sitrusjuomat",
+      "price": 335
+    },
+    {
+      "id": 1928835,
+      "name": "Coop sokeriton Pina Coladan makuinen juomatiiviste 0,5l",
+      "category": "CAABAAKAEAKAA",
+      "price": 255
+    },
+    {
+      "id": 7565,
+      "name": "Hartwall Jaffa Appelsiini sokeriton virvoitusjuoma 1,5l",
+      "category": "juomat/virvoitusjuomat/appelsiinijuomat",
+      "price": 325
+    },
+    {
+      "id": 1955273,
+      "name": "Marli Vital sokeriton Omena-lime juomatiiviste 1+5 0,5l",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 299
+    },
+    {
+      "id": 7593,
+      "name": "Hartwall Jaffa Appelsiini sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/appelsiinijuomat",
+      "price": 245
+    },
+    {
+      "id": 1843169,
+      "name": "IDC Institute Papaya & Mango sokerivartalokuorinta 470g",
+      "category": "CAABSACAKACAA",
+      "price": 475
+    },
+    {
+      "id": 7898,
+      "name": "Mehukatti sokeriton metsämansikkajuomatiiviste 1+3 1,5l",
+      "category": "juomat/mehut/mehutiivisteet",
+      "price": 389
+    },
+    {
+      "id": 1863961,
+      "name": "Jaffa Booster Pirteä Omena energiajuoma sokeriton 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 189
+    },
+    {
+      "id": 9859,
+      "name": "Mynthon kurkkupastilli 85g appelsiini-inkivääri sokerit",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 195
+    },
+    {
+      "id": 20154,
+      "name": "Heinz Tomato Ketchup 425g ei lisättyä sokeria ja suolaa",
+      "category": "mausteet-ja-maustaminen/ketsupit-ja-sinapit/ketsupit",
+      "price": 369
+    },
+    {
+      "id": 1856091,
+      "name": "Le Sirop de Monin karamelli makusiirappi 25cl sokeriton",
+      "category": "juomat/virvoitusjuomat/mixerit",
+      "price": 789
+    },
+    {
+      "id": 6468,
+      "name": "Vitalis Crunchy mysli Täysjyvä 420g ei lisättyä sokeria",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/murot-ja-myslit/myslit",
+      "price": 459
+    },
+    {
+      "id": 1858328,
+      "name": "Pepsi Max Tropical sokeriton virvoitusjuoma 0,33l 6-pack",
+      "category": "juomat/virvoitusjuomat/cola-juomat",
+      "price": 499
+    },
+    {
+      "id": 1803812,
+      "name": "Marli Juissi Lemonade Sokeriton Päärynä mix mehujuoma 1l",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "price": 182
+    },
+    {
+      "id": 1805938,
+      "name": "Diablo suklaa-karpalo cookie ilman lisättyä sokeria 135g",
+      "category": "CAABGAIASAEAA",
+      "price": 264
+    },
+    {
+      "id": 1838646,
+      "name": "Mynthon Original Eucalyptus sokeriton kurkkupastilli 39g",
+      "category": "makeiset-ja-naposteltavat/pastillit/kurkkupastillit",
+      "price": 115
+    },
+    {
+      "id": 1790922,
+      "name": "Extra White sokeriton purukumi vadelma-granaattiomena 29g",
+      "category": "makeiset-ja-naposteltavat/purukumit/ksylitoli-pienet",
+      "price": 125
+    },
+    {
+      "id": 1938809,
+      "name": "Jaffa Booster Mango-Sitruuna energiajuoma sokeriton 0,33l",
+      "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+      "price": 189
+    },
+    {
+      "id": 1833846,
+      "name": "Hartwall Jaffa Hedelmäpommi sokeriton virvoitusjuoma 0,5l",
+      "category": "juomat/virvoitusjuomat/muut-virvoitusjuomat",
+      "price": 239
+    }
+  ]
+}
