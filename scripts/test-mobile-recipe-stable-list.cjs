@@ -10,13 +10,14 @@ const ready=renderToStaticMarkup(React.createElement(Card,{open:true,products:[i
 const loading=renderToStaticMarkup(React.createElement(Card,{open:true,products:[item],loading:true,onAddProduct:()=>{},onSkip:()=>{}}));
 assert.ok(ready.includes(item.name)&&loading.includes(item.name),'old product list stays mounted while next query loads');
 assert.ok(loading.includes('aria-busy="true"'));assert.ok(/<button[^>]*disabled/.test(loading),'stale product choices disabled');
-assert.ok(ready.includes('Ohita tämä aines'));assert.ok(/<button[^>]*disabled[^>]*>Ohita<\/button>/.test(loading),'compact skip stays mounted while loading');
+assert.ok(ready.includes('Ohita tuote →'));assert.ok(/<button[^>]*disabled[^>]*>Ohita tuote →<\/button>/.test(loading),'compact skip stays mounted while loading');
 assert.ok(/role="status"[^>]*class="absolute inset-0/.test(loading),'loading status uses existing header space');
-assert.ok(ready.includes('pointer-events-none absolute inset-x-0 top-[55%]') && ready.includes('pointer-events-auto min-h-11'),'floating skip only captures touches on the compact button');
+assert.ok(/<header[\s\S]*>Ohita tuote →<\/button>[\s\S]*<\/header>/.test(ready),'skip stays in fixed header outside product scroller');
+assert.ok(!ready.includes('top-[55%]'),'skip never floats over products');
 const initial=renderToStaticMarkup(React.createElement(Card,{open:true,products:[],loading:true}));
 const empty=renderToStaticMarkup(React.createElement(Card,{open:true,products:[],loading:false,onSkip:()=>{},emptyText:'Tuotetta ei löytynyt hakutiedoista'}));
 for(const html of [ready,loading,initial,empty])assert.ok(html.includes('LÖYTÖLUETTELO')&&html.includes('<section'),'one stable list frame for every phase');
-assert.ok(empty.includes('Tuotetta ei löytynyt hakutiedoista')&&empty.includes('Ohita tämä aines'));
+assert.ok(empty.includes('Tuotetta ei löytynyt hakutiedoista')&&empty.includes('Ohita tuote →'));
 const page=fs.readFileSync('src/app/page.tsx','utf8'),ast=ts.createSourceFile('page.tsx',page,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 let wait,open;
 function visit(n){

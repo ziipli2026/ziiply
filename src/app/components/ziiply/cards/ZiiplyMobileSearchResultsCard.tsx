@@ -319,11 +319,15 @@ export default function ZiiplyMobileSearchResultsCard({
                 <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : ""}</span>
               </div>
 
-              <div
-                className="mt-1 truncate text-[1.08rem] font-black italic text-[#123d32]"
-                style={{ fontFamily: cooper }}
-              >
-                {title || "Tuotteet"}
+              <div className="mt-1 flex min-h-11 items-center gap-2">
+                <div
+                  className="min-w-0 flex-1 truncate text-[1.08rem] font-black italic text-[#123d32]"
+                  style={{ fontFamily: cooper }}
+                  title={title || "Tuotteet"}
+                >
+                  {title || "Tuotteet"}
+                </div>
+                {onSkip && <button type="button" disabled={loading} onClick={onSkip} className="min-h-11 shrink-0 bg-transparent px-1 text-xs font-bold text-[#123d32] underline underline-offset-4 disabled:opacity-45">Ohita tuote →</button>}
               </div>
             </div>
 
@@ -411,9 +415,6 @@ export default function ZiiplyMobileSearchResultsCard({
               })}
           </div>
         </div>
-        {onSkip && <div className="pointer-events-none absolute inset-x-0 top-[55%] z-30 flex justify-center">
-          <button type="button" aria-label="Ohita tämä aines" disabled={loading} onClick={onSkip} className="pointer-events-auto min-h-11 rounded-xl border-2 border-[#9c793e] bg-[#fff7df] px-4 py-2 text-xs font-bold text-[#513d1f] shadow-sm disabled:opacity-45">Ohita</button>
-        </div>}
         {expandedProduct && !loading && (
           <div className="pointer-events-auto absolute inset-0 z-[80] flex items-center justify-center bg-[#1c251c]/60 p-3" role="dialog" aria-modal="true" aria-label="Suurennettu tuotenäkymä">
             <div className="max-h-full w-full max-w-[26rem] overflow-y-auto rounded-[1.2rem] border-[3px] border-[#8c6934] bg-[#fffdf8] p-3 shadow-xl">
