@@ -140,7 +140,7 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("hyper")}
-          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] -translate-x-2.5`}
+          className={`${buttonClass(hyperActive, modeButtonsDisabled)} ${fuelMode ? "!h-[38px] !min-h-[38px] !px-1 !py-1 !text-[11px]" : ""} w-[calc(50%-0.5rem)] -translate-x-2.5`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Liikenneasemat" : "🏬 Tavaratalot"}</span>
         </button>
@@ -155,7 +155,7 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("local")}
-          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] translate-x-2.5`}
+          className={`${buttonClass(localActive, modeButtonsDisabled)} ${fuelMode ? "!h-[38px] !min-h-[38px] !px-1 !py-1 !text-[11px]" : ""} w-[calc(50%-0.5rem)] translate-x-2.5`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Kylmäasemat / muut" : "🏪 Lähikaupat"}</span>
         </button>

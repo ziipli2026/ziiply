@@ -42,9 +42,9 @@ export default function ZiiplyMobileFuelView({coords,onBack}:{coords:{lat:number
           <button disabled={!station} onClick={()=>station&&select(station.id)} aria-pressed={chosen} aria-label={`${g.key}: ${station?.name??"Ei asemaa"}`} className="relative block w-full text-center">
             <span className="absolute left-0 top-0 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[#fffef9] p-px">{g.logo?<img src={`/storelogos/${g.logo}`} alt={g.key} className="h-full w-full object-contain"/>:<span className="text-[8px] font-black">Gulf / Ritoil</span>}</span>
             <span className={`absolute right-0 top-0 flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[11px] ${chosen?"border-[#536d4f] bg-[#648060] text-white":"border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}>✓</span>
-            <span className="block h-7"/>
-            <span className="block h-[25px] overflow-hidden text-[11px] font-black leading-tight text-[#050505]">{station?.name??(loading?"Haetaan…":"Ei asemaa")}</span>
-            <span className="block text-[10px] font-black text-black">{station?(coords?`${station.distanceKm.toLocaleString("fi-FI",{maximumFractionDigits:1})} km`:"Sijainti puuttuu"):"–"}</span>
+            <span className="block h-[35px]"/>
+            <span className="block h-[20px] overflow-hidden text-[11.5px] font-black leading-tight text-[#050505]">{station?.name??(loading?"Haetaan…":"Ei asemaa")}</span>
+            <span className="block text-[12px] font-black leading-none text-black">{station?(coords?`${station.distanceKm.toLocaleString("fi-FI",{maximumFractionDigits:1})} km`:"Sijainti puuttuu"):"–"}</span>
           </button>
           <p className="relative z-10 whitespace-nowrap text-[8px] font-black leading-tight text-[#213224]">D {price(station?.diesel??null)} · 95 {price(station?.price95??null)} · 98 {price(station?.price98??null)}</p>
           <button disabled={!station} aria-label={`Vaihda ${g.key} asemaa`} onClick={()=>setPicker(g.slot)} className="absolute bottom-[4px] left-1/2 z-10 -translate-x-1/2 rounded-full border border-[#c7a763] bg-[#fff8df] px-3 py-px text-[9px] font-black text-[#213224]">Vaihda</button>
