@@ -1,4 +1,5 @@
 "use client";
+import { recipeCoverageQueries, mergeRecipeSearchResponses } from "../components/ziiply/justiina/recipeSearchCoverage";
 
 import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferences } from "../components/ziiply/ArvoSettingsPanel";
@@ -1554,7 +1555,10 @@ export default function DesktopPreviewPage() {
     // The typing debounce is applied in the effect below; never delay a started search again.
     try{
       async function fetchSearchData(url: string) {
-        const queries = [...new Set(getNormalSearchQueries(query))].slice(0, 6);
+        const coverageQueries = recipeCoverageQueries(query, recipeIngredient);
+        const queries = coverageQueries.length ? coverageQueries : [...new Set(getNormalSearchQueries(query))].slice(0, 6);
+        const coverageResponses: any[] = [];
+        let coverageError: unknown;
         let lastData: any = null;
         let frozenFishFallback:any=null;
         for (const searchQuery of queries.length ? queries : [query]) {
@@ -1563,18 +1567,29 @@ export default function DesktopPreviewPage() {
           params.set("search", searchQuery);
           const requestUrl=url.split("?")[0]+"?"+params.toString();
           appendDesktopRecipeDebug("api_request",{query,searchQuery,requestUrl,voiceRunId});
+          try {
           const response = await fetch(requestUrl, { cache: "no-store" });
           appendDesktopRecipeDebug("api_status",{query,searchQuery,requestUrl,status:response.status});
           if (!response.ok) throw new Error(`Kauppahaku epäonnistui (HTTP ${response.status}).`);
           const data = await response.json();
           appendDesktopRecipeDebug("api_response",{query,searchQuery,requestUrl,data});
           lastData = data;
+          if (coverageQueries.length) coverageResponses.push(data);
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
           const usable=rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(!isBadNormalResult(product,query)||Boolean(recipeIngredient)));
           const hasFreshCandidate=!recipeIngredient||items.some((product:any)=>recipeAllows(product)&&recipeFishFreshnessTier(recipeIngredient.name,product,recipeIngredient)===0);
-          appendDesktopRecipeDebug("api_qualification",{query,searchQuery,requestUrl,usable,hasFreshCandidate,willTryNextQuery:!usable||!hasFreshCandidate,decisions:items.map((product:any)=>({name:product.name||product.title||product.productName,recipeRejection:recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient):null,normalRejected:isBadNormalResult(product,query)}))});
-          if(usable&&hasFreshCandidate)return data;
+          appendDesktopRecipeDebug("api_qualification",{query,searchQuery,requestUrl,usable,hasFreshCandidate,willTryNextQuery:coverageQueries.length ? searchQuery !== queries[queries.length - 1] : !usable||!hasFreshCandidate,decisions:items.map((product:any)=>({name:product.name||product.title||product.productName,recipeRejection:recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient):null,normalRejected:isBadNormalResult(product,query)}))});
+          if(usable&&hasFreshCandidate&&!coverageQueries.length)return data;
           if(usable&&!frozenFishFallback)frozenFishFallback=data;
+          } catch (error) {
+            if (!coverageQueries.length) throw error;
+            coverageError = error;
+            appendDesktopRecipeDebug("api_query_error", { query, searchQuery, requestUrl, error: String(error) });
+          }
+        }
+        if (coverageQueries.length) {
+          if (!coverageResponses.length && coverageError) throw coverageError;
+          return mergeRecipeSearchResponses(coverageResponses);
         }
         return frozenFishFallback||lastData;
       }
@@ -1590,9 +1605,10 @@ export default function DesktopPreviewPage() {
         const items=Array.isArray(batch.data?.products)?batch.data.products:Array.isArray(batch.data?.items)?batch.data.items:Array.isArray(batch.data)?batch.data:[];
         for(const x of items){
           const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);
-          const priceIsEuros=batch.chain==="S"&&batch.data?.source==="s-kaupat-normal-v220";
+          const responseSource=x.__recipeResponseSource ?? batch.data?.source;
+          const priceIsEuros=batch.chain==="S"&&responseSource==="s-kaupat-normal-v220";
           const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
-          const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:batch.data?.source||""};
+          const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:responseSource||""};
           const recipeRejection=recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient):null;
           const normalRejected=isBadNormalResult(product,query);
           const included=recipeAllows(product)&&Boolean(recipeIngredient||!normalRejected);
