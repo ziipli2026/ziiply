@@ -4,6 +4,7 @@ import archived42AV from './data/kCitymarket42AVPublisherArchive.json' with {typ
 // publication identity must be resolved from the parsed leaflet, not the input URL.
 import {parseKCitymarketSpatialLeaflet as parseApproved41LV} from './kCitymarketSpatialParserApproved41LV.js';
 import {parseKCitymarketSpatialLeaflet as parseCurrent} from './kCitymarketSpatialParserCurrent.js';
+import {repairPublisherTransaction} from './kCitymarketPublisherTransactionRepair.js';
 const APPROVED_41LV_PUBLICATION_ID='82qjhs6_tarjouslehti_41lv_kcm';
 export async function parseKCitymarketSpatialLeaflet(entry){
  const url=String(entry||'');
@@ -18,6 +19,9 @@ export async function parseKCitymarketSpatialLeaflet(entry){
  const current=await parseCurrent(entry);
  const resolvedUrl=String(current?.leaflet||current?.leafletUrl||current?.sourceUrl||current?.url||'').toLowerCase();
  if(resolvedUrl.includes(APPROVED_41LV_PUBLICATION_ID))return parseApproved41LV(entry);
+ // Candidate 42LV only: protect approved historical paths until all frozen
+ // publications have been replayed and compared with approved fixtures.
+ if(resolvedUrl.includes('_42lv_kcm'))return {...current,rows:current.rows.map(repairPublisherTransaction)};
  return current;
 }
 export default parseKCitymarketSpatialLeaflet;
