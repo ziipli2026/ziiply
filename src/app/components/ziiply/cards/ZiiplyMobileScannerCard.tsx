@@ -50,7 +50,7 @@
  *   jotta tuntematon EAN voidaan kuitata käyttäjälle ilman että se näyttää vain virheeltä.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export type ZiiplyMobileScannerFlashState = "idle" | "success" | "error";
 
@@ -118,24 +118,36 @@ export default function ZiiplyMobileScannerCard({
     return "bg-transparent";
   }, [flashState]);
 
-  // Single transient notice surface. Do not let flash success overwrite a
-  // more informative scan result, or leave a stale message on the camera.
+  // A single visible scanner notice; loading and status must not compete.
+  // Remember dismissed status text so a parent that keeps the same string
+  // cannot revive it on every unrelated render.
   const [notice, setNotice] = useState("");
-  const rawNotice = loading ? "Haetaan tuotetta" : scannerMessage.trim()
+  const dismissedNoticeRef = useRef("");
+  const rawNotice = scannerMessage.trim()
     ? scannerMessage.trim()
     : flashState === "success" ? successMessage
     : flashState === "error" ? "Ei löytynyt" : "";
   useEffect(() => {
-    if (!rawNotice) {
+    if (loading) {
       setNotice("");
       return;
     }
+    if (!rawNotice) {
+      dismissedNoticeRef.current = "";
+      setNotice("");
+      return;
+    }
+    if (rawNotice === dismissedNoticeRef.current) return;
     setNotice(rawNotice);
-    if (loading) return;
-    const timeout = window.setTimeout(() => setNotice(""), 2600);
+    const timeout = window.setTimeout(() => {
+      dismissedNoticeRef.current = rawNotice;
+      setNotice("");
+    }, 2600);
     return () => window.clearTimeout(timeout);
   }, [rawNotice, loading]);
   const visibleMessage = loading ? "Haetaan tuotetta" : notice;
+  const noticeIsError = /ei löytynyt|ei tunnistettu|virhe|epäonnistui/i.test(visibleMessage);
+  const noticeIsSuccess = !noticeIsError && /lisätty|kerätty|✓/i.test(visibleMessage);
 
   const hasSelectionResults = selectionResults.length > 1;
 
@@ -395,9 +407,9 @@ export default function ZiiplyMobileScannerCard({
             <div
               className={[
                 "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] px-4 py-3 text-center text-[15px] font-black uppercase tracking-[0.05em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
-                flashState === "success"
+                noticeIsSuccess
                   ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
-                  : flashState === "error"
+                  : noticeIsError
                     ? "border-[2px] border-[#7a1b15] bg-[#ffd6cf]/95 text-[#61130e]"
                     : visibleMessage === "Tuote lisätty"
                       ? "border-[2px] border-[#245c28]/70 bg-[#d7ffd2]/52 text-[#123d18] backdrop-blur-[1px]"
