@@ -50,7 +50,7 @@
  *   jotta tuntematon EAN voidaan kuitata käyttäjälle ilman että se näyttää vain virheeltä.
  */
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 export type ZiiplyMobileScannerFlashState = "idle" | "success" | "error";
 
@@ -118,16 +118,24 @@ export default function ZiiplyMobileScannerCard({
     return "bg-transparent";
   }, [flashState]);
 
-  const visibleMessage =
-    loading
-      ? "Haetaan tuotetta"
-      : flashState === "success"
-        ? successMessage
-        : scannerMessage
-          ? scannerMessage
-          : flashState === "error"
-            ? "Ei löytynyt"
-            : "";
+  // Single transient notice surface. Do not let flash success overwrite a
+  // more informative scan result, or leave a stale message on the camera.
+  const [notice, setNotice] = useState("");
+  const rawNotice = loading ? "Haetaan tuotetta" : scannerMessage.trim()
+    ? scannerMessage.trim()
+    : flashState === "success" ? successMessage
+    : flashState === "error" ? "Ei löytynyt" : "";
+  useEffect(() => {
+    if (!rawNotice) {
+      setNotice("");
+      return;
+    }
+    setNotice(rawNotice);
+    if (loading) return;
+    const timeout = window.setTimeout(() => setNotice(""), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [rawNotice, loading]);
+  const visibleMessage = loading ? "Haetaan tuotetta" : notice;
 
   const hasSelectionResults = selectionResults.length > 1;
 
