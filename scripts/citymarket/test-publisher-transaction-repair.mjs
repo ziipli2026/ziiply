@@ -26,4 +26,8 @@ assert.equal(repair(row('VICHY 24-pack',.36,['24-PACK 1099'])).spatialResolved.v
 // A combined card naming two different pack sizes does not own either nearby price unambiguously.
 assert.equal(repair(row('JUOMAT 8-pack tai 24-pack',.85,['8-PACK 799'])).spatialResolved.value,.85);
 assert.equal(repair(row('JUOMAT 8-pack ja 24-pack',.85,['24-PACK 1099'])).spatialResolved.value,.85);
+// Coincidental numerical equality of a percentage and a verified euro amount is not proof of a bad price.
+assert.equal(repair(row('TUOTE',20,['-20 %'],'printed-transaction')).spatialResolved.value,20);
+assert.equal(repair(row('TUOTE',20,['-20 %'],'verified-transaction')).spatialResolved.value,20);
+assert.equal(repair(row('TUOTE',20,['-20 %'],'spatial-price')).spatialResolved,null);
 console.log('KCM publisher transaction repair tests passed');
