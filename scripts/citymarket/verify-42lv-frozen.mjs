@@ -10,5 +10,11 @@ globalThis.fetch=async input=>{
  return {ok:true,status:200,url:r.url,text:async()=>r.body};
 };
 const parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);
-console.log('42LV replay',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,archivedRows:baseline.rows.length}));
+const key=r=>String(r.page)+'|'+String(r.title||'').trim().toLowerCase();
+const old=new Map(baseline.rows.map(r=>[key(r),r]));
+const now=new Map(parsed.rows.map(r=>[key(r),r]));
+const added=[...now].filter(([k])=>!old.has(k)).map(([,r])=>({page:r.page,title:r.title,price:r.spatialResolved?.value||null}));
+const missing=[...old].filter(([k])=>!now.has(k)).map(([,r])=>({page:r.page,title:r.title}));
+const changed=[...now].filter(([k])=>old.has(k)).flatMap(([k,r])=>{const prev=Number(old.get(k).id.split(':').at(-1));const next=Number(r.spatialResolved?.value);return Math.abs(prev-next)>.011?[{page:r.page,title:r.title,previous:prev,next:Number.isFinite(next)?next:null}]:[]});
+console.log('42LV replay',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,archivedRows:baseline.rows.length,added,missing,changed}));
 if(parsed.pageCount!==20||parsed.rows.length!==baseline.rows.length)process.exitCode=1;
