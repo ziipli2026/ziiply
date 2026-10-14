@@ -1,5 +1,6 @@
 "use client";
 
+import { productMoneyEuros, type PriceAmountUnit } from "./productMoney";
 import type React from "react";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
@@ -33,6 +34,8 @@ export type ZiiplyOffer = {
 };
 
 export type Product = {
+  priceAmountUnit?: PriceAmountUnit;
+  comparisonPriceAmountUnit?: PriceAmountUnit;
   id: number;
   name: string;
   ean?: string;
@@ -46,6 +49,8 @@ export type Product = {
 };
 
 export type KProduct = {
+  priceAmountUnit?: PriceAmountUnit;
+  comparisonPriceAmountUnit?: PriceAmountUnit;
   id: string;
   name: string;
   ean?: string;
@@ -910,7 +915,8 @@ export function formatComparisonPrice(product: any) {
 
   if (!value || !unit) return null;
 
-  return `${(value / 100).toFixed(2).replace(".", ",")} €/${unit}`;
+  const euros = productMoneyEuros(value, product.comparisonPriceAmountUnit ?? product.priceAmountUnit ?? "cent");
+  return euros == null ? null : `${euros.toFixed(2).replace(".", ",")} €/${unit}`;
 }
 
 
@@ -1068,14 +1074,9 @@ export function formatDate(value?: string | null) {
 }
 
 export function getProductPrice(product: Product) {
-  // S-products route normalisoi hinnan Product.price / storeItems[0].price -muotoon.
-  // Tämä fallback pitää haun toimivana myös, jos raakadataan jää vanha storeItem.price.
-  return (
-    product.storeItems?.[0]?.price ||
-    product.price ||
-    (product as any)?.storeItem?.price ||
-    0
-  );
+  const value = product.storeItems?.[0]?.price ?? product.price ?? (product as any)?.storeItem?.price;
+  const euros = productMoneyEuros(value, product.priceAmountUnit ?? "cent");
+  return euros == null ? 0 : Math.round(euros * 100);
 }
 
 export function isManualShoppingItem(item: CartItem) {
@@ -3067,6 +3068,8 @@ export function convertKProductToProduct(product: KProduct): Product {
     brandName: product.brandName,
     pictureUrl: product.pictureUrl,
     price: product.price,
+    priceAmountUnit: product.priceAmountUnit ?? "cent",
+    comparisonPriceAmountUnit: product.comparisonPriceAmountUnit ?? product.priceAmountUnit ?? "cent",
     storeItems: [{ price: product.price }],
   };
 }

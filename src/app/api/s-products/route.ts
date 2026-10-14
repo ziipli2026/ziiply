@@ -105,6 +105,8 @@ export async function GET(request: Request) {
         pictureUrl: product.pictureUrl,
         category: product.category,
         price: getPrice(product),
+        priceAmountUnit: "cent",
+        comparisonPriceAmountUnit: "cent",
         comparisonPrice: product.storeItems?.[0]?.comparisonPrice ?? undefined,
         comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
         storeItems: [
@@ -129,7 +131,7 @@ export async function GET(request: Request) {
         if (matched.length > 0) {
           return NextResponse.json({
             store, storeId, storeName, source: "s-kaupat-normal-v220",
-            status: 200, items: matched, recipeFallback,
+            status: 200, items: matched.map(item=>({...item,priceAmountUnit:"eur",comparisonPriceAmountUnit:"eur"})), recipeFallback,
           });
         }
       } catch (fallbackError) {

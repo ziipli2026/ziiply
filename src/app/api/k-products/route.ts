@@ -107,6 +107,8 @@ export async function GET(request: Request) {
             : product.pictureUrl || undefined;
         })(),
         price: getPrice(product),
+        priceAmountUnit: "cent",
+        comparisonPriceAmountUnit: "cent",
         comparisonPrice: product.storeItems?.[0]?.comparisonPrice ?? undefined,
         comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
         unitPrice: undefined,

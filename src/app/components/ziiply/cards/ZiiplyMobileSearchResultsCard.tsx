@@ -8,6 +8,7 @@
 // - Hinta ja Lisää-nappi oikeaan alakulmaan samalle linjalle.
 // - Lista on oma scrollialue.
 
+import { productMoneyEuros } from "../productMoney";
 import React, { useState, useEffect } from "react";
 
 export type ZiiplyMobileSearchResultProduct = {
@@ -114,37 +115,8 @@ function numericValue(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function usesEuroPrices(product: ZiiplyMobileSearchResultProduct) {
-  const source = [product.chain, product.store, product.storeName, product.source, product.product?.chain, product.product?.source].join(" ").toLowerCase();
-  return /tokmanni|eurospar|\bspar\b/.test(source);
-}
-
-function hasMatchingLegacyCentUnitPrice(value: number, product: ZiiplyMobileSearchResultProduct) {
-  if (usesEuroPrices(product) || !Number.isInteger(value) || value < 0 || value >= 100) return false;
-  // Only disambiguate sub-euro integer cents when the independently supplied
-  // numeric comparison price corroborates the same cent amount (e.g. 85 c/l).
-  // A genuine 25-euro item must not become 0.25 euro merely due to magnitude.
-  const unitCandidates = [
-    product.comparisonPrice, product.unitPrice, product.pricePerUnit,
-    product.product?.comparisonPrice, product.product?.unitPrice, product.product?.pricePerUnit,
-  ];
-  return unitCandidates.some((candidate) => {
-    if (typeof candidate === "number") return Number.isInteger(candidate) && candidate === value;
-    const raw = String(candidate ?? "").trim();
-    return /^\\d+$/.test(raw) && Number(raw) === value;
-  }) && parsePackageAmount(product)?.amount === 1;
-}
-
 function priceToEuros(value: unknown, product: ZiiplyMobileSearchResultProduct) {
-  const n = numericValue(value);
-  if (n == null) return null;
-  // Recipe S/K responses use cents, including values below one euro.
-  // The matching store item also identifies cents in ordinary K search results.
-  const recipeCents = product.__recipeChain === "K" || product.__recipeChain === "S";
-  const storeItemCents = Array.isArray(product.storeItems) && product.storeItems.some(
-    (item: any) => typeof item?.price === "number" && Number.isInteger(item.price) && item.price === n,
-  );
-  return usesEuroPrices(product) ? n : recipeCents || storeItemCents || Math.abs(n) >= 100 || hasMatchingLegacyCentUnitPrice(n, product) ? n / 100 : n;
+  return productMoneyEuros(value, product.priceAmountUnit ?? product.product?.priceAmountUnit ?? "cent");
 }
 
 function pickRawPrice(product: ZiiplyMobileSearchResultProduct) {
@@ -176,18 +148,10 @@ function formatMainPrice(value: unknown, product: ZiiplyMobileSearchResultProduc
 }
 
 function normalizeComparisonValue(value: unknown, product: ZiiplyMobileSearchResultProduct) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return usesEuroPrices(product) ? value : Math.abs(value) >= 100 || hasMatchingLegacyCentUnitPrice(value, product) ? value / 100 : value;
-  }
-
   const raw = String(value ?? "").trim();
   if (!raw) return null;
   if (raw.includes("€") || raw.includes("/")) return raw;
-
-  const parsed = numericValue(raw);
-  if (parsed == null) return null;
-
-  return usesEuroPrices(product) ? parsed : Math.abs(parsed) >= 100 || hasMatchingLegacyCentUnitPrice(parsed, product) ? parsed / 100 : parsed;
+  return productMoneyEuros(value, product.comparisonPriceAmountUnit ?? product.priceAmountUnit ?? product.product?.comparisonPriceAmountUnit ?? product.product?.priceAmountUnit ?? "cent");
 }
 
 function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {

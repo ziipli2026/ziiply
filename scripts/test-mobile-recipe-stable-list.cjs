@@ -5,14 +5,16 @@ const componentPath=require.resolve('../src/app/components/ziiply/cards/ZiiplyMo
 const componentModule=new Module(componentPath,module);componentModule.filename=componentPath;componentModule.paths=module.paths;
 componentModule._compile(ts.transpileModule(fs.readFileSync(componentPath,'utf8'),{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,componentPath);
 const Card=componentModule.exports.default;
+const {productMoneyEuros}=require('../src/app/components/ziiply/productMoney.ts');
+for(const [value,unit,expected] of [[85,'cent',0.85],[0.85,'eur',0.85],[2500,'cent',25],[25,'eur',25],['18,42 €','cent',18.42],[null,'eur',null],['bad','cent',null],[-1,'eur',null]])assert.equal(productMoneyEuros(value,unit),expected);
 // Render real K/S result cards: sub-euro cents and genuine larger packages.
 for (const [price, expected] of [[85,'0,85'],[89,'0,89'],[99,'0,99'],[119,'1,19'],[1849,'18,49']]) {
-  for (const provenance of [{__recipeChain:'K'},{__recipeChain:'S'},{storeItems:[{price}]}]) {
+  for (const provenance of [{brandName:'Lada'},{priceAmountUnit:'cent'},{storeItems:[{price}]}]) {
     const html=renderToStaticMarkup(React.createElement(Card,{open:true,products:[{name:'Pirkka maustepippuri 13g',price,...provenance}]}));
     assert.ok(html.includes(expected+' €'),'source cents render correctly: '+JSON.stringify({price,provenance}));
   }
 }
-const euroHtml=renderToStaticMarkup(React.createElement(Card,{open:true,products:[{name:'Tuote',price:25,chain:'Tokmanni'}]}));
+const euroHtml=renderToStaticMarkup(React.createElement(Card,{open:true,products:[{name:'Tuote',price:25,priceAmountUnit:'eur',chain:'Any manufacturer'}]}));
 assert.ok(euroHtml.includes('25,00 €'),'euro source stays in euros');
 const item={id:1,name:'Meira maustepippuri kokonainen 20g',price:135};
 const ready=renderToStaticMarkup(React.createElement(Card,{open:true,products:[item],loading:false,onAddProduct:()=>{},onSkip:()=>{}}));
