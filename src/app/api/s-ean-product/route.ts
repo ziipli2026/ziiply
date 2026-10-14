@@ -440,9 +440,6 @@ export async function GET(request: NextRequest) {
 
     const ean = normalizeEan(searchParams.get("ean"));
     const storeId = String(searchParams.get("storeId") || "708276035").trim();
-    // Ruoanhinta uses its own store number (721 for S-market Jokela).
-    // S-kaupat GraphQL uses the official S-group unit ID instead.
-    const graphqlStoreId = storeId === "721" ? "685839110" : storeId;
     const nameHint = fixText(searchParams.get("name") || "");
     const graphqlStoreId = sGraphqlStoreId(storeId);
     const origin = new URL(request.url).origin;
