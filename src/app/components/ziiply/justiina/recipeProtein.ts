@@ -1,6 +1,7 @@
 /** Preparation and storage are separate: a retail tray may contain fresh raw meat. */
-export type RecipeProteinRequirement={family:"fish"|"meat";species:string;processing:"raw"|"cooked"|"smoked"|"cured"|"canned";storage:"fresh"|"frozen"|"prefer_fresh";marinated:boolean;unseasoned:boolean;cut:string|null;searchTerm:string;basis:string};
+export type RecipeProteinRequirement={family:"fish"|"meat";species:string;processing:"raw"|"cooked"|"smoked"|"cured"|"canned";storage:"fresh"|"frozen"|"prefer_fresh";marinated:boolean;unseasoned:boolean;marinade?:string|null;cut:string|null;searchTerm:string;basis:string};
 const species:Array<{id:string;family:"fish"|"meat";pattern:RegExp;query:string}>=[
+ {id:"nauta-sika",family:"meat",pattern:/nauta-sika|sika-nauta|naudan.*sian|sian.*naudan/,query:"nauta-sikajauheliha"},
  {id:"kirjolohi",family:"fish",pattern:/kirjoloh/,query:"kirjolohifilee"},
  {id:"lohi",family:"fish",pattern:/lohi|lohta|lohen/,query:"lohifilee"},
  {id:"silakka",family:"fish",pattern:/silak/,query:"silakka"},
@@ -19,7 +20,7 @@ const species:Array<{id:string;family:"fish"|"meat";pattern:RegExp;query:string}
  {id:"poro",family:"meat",pattern:/poron|poroa|\bporo\b/,query:"poronliha"},
  {id:"jauheliha",family:"meat",pattern:/jauhelih/,query:"jauheliha"},
 ];
-const meal=/keitto|laatikko|lasagne|pizza|salaatti|ateria|kastik|kalapuikko|nugget|pyörykk|silakkapihvi|kalapihvi|kalapulla|kalajaloste|suutarinlohi|silakkarulla/;
+const meal=/keitto|laatikko|lasagne|pizza|salaatti|ateria|kastik|kalapuikko|nugget|pyörykk|silakkapihvi|kalapihvi|kalapulla|kalajaloste|kalakukko|lohikukko|patonki|leipä|sushi|levite|suutarinlohi|silakkarulla/;
 function identity(name:string){
  if(/mauste|liemi|liemikuutio|kananmuna|kananmunia|sikuri/.test(name))return undefined;
  return species.find(x=>x.pattern.test(name));
@@ -31,9 +32,9 @@ export function inferRecipeProtein(name:string,instructions="",sourceLine=name):
  const processing=/säilyke/.test(input)||(/tonnikala/.test(input)&&/\b(?:prk|tlk|tölkki|purkki)\b/.test(sourceLine))?"canned":/savu|savust/.test(input)?"smoked":/graav/.test(input)?"cured":/kypsä|kypsää|kypsennetty|paistettu|keitetty|grillattu/.test(input)?"cooked":/kypsää|valmiiksi kyps|valmiiksi paistett/.test(context)?"cooked":"raw";
  const storage=/pakast/.test(input)?"frozen":/tuore|jäähdytetty/.test(input)?"fresh":/sulata|sulatettu|pakast/.test(context)?"frozen":"prefer_fresh";
  const cut=/jauhelih/.test(input)?"jauheliha":/fileesuikale/.test(input)?"fileesuikale":/suikale/.test(input)?"suikale":/file|filee/.test(input)?"file":/rinta/.test(input)?"rinta":/pihvi/.test(input)?"pihvi":null;
- const base=food.id==="silakka"&&cut==="file"?"silakkafilee":food.query;
+ const base=cut==="jauheliha"&&food.id==="kana"?"kananjauheliha":food.id==="silakka"&&cut==="file"?"silakkafilee":food.query;
  const searchTerm=(storage==="frozen"?"pakaste ":"")+(processing==="smoked"?"savulohi".replace("lohi",food.id):processing==="cured"?"graavi"+food.id:processing==="cooked"?"kypsä "+(food.id==="kana"?"kana":base):base);
- return {family:food.family,species:food.id,processing,storage,marinated:/marinoit/.test(input),unseasoned:/maustamaton|maustamatonta|maustamattom/.test(input),cut,searchTerm,basis:processing!=="raw"?"ingredient_or_matching_instruction":storage==="frozen"?"ingredient_or_thaw_instruction":"raw_default"};
+ return {family:food.family,species:food.id,processing,storage,marinated:/marinoit/.test(input),marinade:/hunajamarinoit/.test(input)?"hunaja":null,unseasoned:/maustamaton|maustamatonta|maustamattom/.test(input),cut,searchTerm,basis:processing!=="raw"?"ingredient_or_matching_instruction":storage==="frozen"?"ingredient_or_thaw_instruction":"raw_default"};
 }
 export function proteinProductRejection(required:RecipeProteinRequirement,product:{name?:string;category?:string}):string|null{
  const name=(product.name||"").toLocaleLowerCase("fi"),category=(product.category||"").toLocaleLowerCase("fi"),text=name+" "+category;
@@ -52,9 +53,11 @@ export function proteinProductRejection(required:RecipeProteinRequirement,produc
  const frozen=/pakast|frozen/.test(text);
  if(required.storage==="frozen"&&!frozen)return "frozen_protein_required";
  if(required.storage==="fresh"&&frozen)return "fresh_protein_required";
- if(required.cut&&!new RegExp(required.cut).test(name))return "protein_cut_mismatch";
+ if(required.species==="kana"&&/nauta|porsaa|sika|kalkkuna/.test(name))return "protein_species_mismatch";
+ if(required.cut&&!(required.cut==="fileesuikale"?/file.*suikale|suikale.*file/.test(name):new RegExp(required.cut).test(name)))return "protein_cut_mismatch";
  if(!required.marinated&&required.processing==="raw"&&/marinoitu|teriyaki|hunaja/.test(name))return "unmarinated_protein_required";
  if(required.marinated&&!/marinoit/.test(name))return "marinated_protein_required";
+ if(required.marinade&&!name.includes(required.marinade))return "requested_marinade_required";
  if(required.unseasoned&&!/maustamaton|maustamattom/.test(name))return "unseasoned_requirement_missing";
  return null;
 }

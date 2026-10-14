@@ -25,7 +25,7 @@ for(const c of cases){
   assert.ok(!allowed.some(p=>String(p.id).startsWith('bad')),c.title+' wrong type '+term);
   const ranked=rankProductResultsByRelevanceAndPrice(term,allowed,p=>p.__price);
   const selected=ranked[0];
-  const equivalents={jauheliha:['naudan jauheliha'],pasta:['pennepasta','tumma makaroni','makaroni'],ruokaöljy:['rypsiöljy','oliiviöljy'],tomaatti:['kirsikkatomaatti'],tomaattisose:['tomaattipyree'],tomaattipyree:['tomaattisose']};
+  const equivalents={inkivääri:["inkivääri jauhettu"],jauheliha:['naudan jauheliha'],pasta:['pennepasta','tumma makaroni','makaroni'],ruokaöljy:['rypsiöljy','oliiviöljy'],tomaatti:['kirsikkatomaatti'],tomaattisose:['tomaattipyree'],tomaattipyree:['tomaattisose']};
   assert.ok(selected&&[term,...(equivalents[term]||[])].some(key=>catalog[key]===selected.name),c.title+' wrong first ranked product for '+term+': '+selected?.name);
   cart.push({ingredient:item.name,term,product:selected.name,quantity:core.recipeRetailPackageCount(item,selected)??1,quantityExact:core.recipeRetailPackageCount(item,selected)!==null});
  }

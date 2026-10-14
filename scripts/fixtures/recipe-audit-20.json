@@ -1,0 +1,619 @@
+[
+  {
+    "title": "Lohikeitto",
+    "url": "https://www.valio.fi/reseptit/lohikeitto/",
+    "ingredients": [
+      "2-3  (250 g) perunaa",
+      "1 pussi (250 g) kasvissuikaleita",
+      "6 dl vettä",
+      "1-2  laakerinlehteä",
+      "4 kokonaista maustepippuria",
+      "500 g kirjolohifileetä",
+      "1 prk (2,5 dl) Valio ruokakermaa Kolme juustoa",
+      "½ tl suolaa",
+      "½ dl tilliä"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "peruna",
+      "kasvissuikale",
+      "laakerinlehti",
+      "maustepippuri",
+      "kirjolohifilee",
+      "ruokakerma kolme juustoa",
+      "suola",
+      "tilli"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Pannukakku",
+    "url": "https://www.valio.fi/reseptit/pannukakku/",
+    "ingredients": [
+      "4 kananmunaa",
+      "1 l Valio maitoa",
+      "5½ dl vehnäjauhoja",
+      "1 tl suolaa",
+      "1 rkl sokeria",
+      "1 dl Valio Oivariini® juoksevaa"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "kananmuna",
+      "maito",
+      "vehnäjauho",
+      "suola",
+      "sokeri",
+      "oivariini juokseva"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Linssicurry",
+    "url": "https://www.valio.fi/reseptit/linssicurry/",
+    "ingredients": [
+      "1 sipuli",
+      "2-3  valkosipulinkynttä",
+      "2 cm pala tuoretta inkivääriä",
+      "1 rkl currytahnaa",
+      "1 rkl Valio Oivariini® juoksevaa",
+      "1 tlk (400 g) tomaattimurskaa",
+      "2 tl sokeria",
+      "½ tl suolaa",
+      "500 g esikeitettyjä punaisia linssejä",
+      "2 dl kookoskermaa",
+      "0 kg basmatiriisiä keitettynä"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "sipuli",
+      "valkosipuli",
+      "inkivääri",
+      "currytahna",
+      "oivariini juokseva",
+      "tomaattimurska",
+      "sokeri",
+      "suola",
+      "punainen linssi esikeitetty",
+      "kookoskerma",
+      "basmatiriisi"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Tonnikalapasta",
+    "url": "https://www.valio.fi/reseptit/tonnikalapasta/",
+    "ingredients": [
+      "180 g pastaa, esim. fusilli tai simpukka",
+      "1 rkl Valio Oivariini® juoksevaa",
+      "1 sipuli",
+      "1 rkl tomaattipyreetä",
+      "1 tomaatti",
+      "1 prk (185/140 g) tonnikalaa, MSC-sertifioitu",
+      "1 dl pastan keitinvettä tai vettä",
+      "½ rkl sitruunamehua",
+      "½ pkt (à 250 g) Valio Koskenlaskija® viherpippuri sulatejuusto",
+      "2 rkl hienonnettua tilliä"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "pasta",
+      "oivariini juokseva",
+      "sipuli",
+      "tomaattipyree",
+      "tomaatti",
+      "tonnikala",
+      "sitruunamehu",
+      "koskenlaskija viherpippuri sulatejuusto",
+      "tilli"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Helppo uunilohi",
+    "url": "https://www.valio.fi/reseptit/helppo-uunilohi/",
+    "ingredients": [
+      "600 g kirjolohifileetä",
+      "½ tl suolaa",
+      "¼ tl mustapippuria",
+      "1 prk (3,3 dl) Valio Keittiön kermaista vaaleaa kastiketta",
+      "½ purjo, valkoinen osa",
+      "½ sitruuna (luomu)",
+      "0 kg tuoretta tilliä"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "kirjolohifilee",
+      "suola",
+      "mustapippuri",
+      "vaalea kastike",
+      "purjo",
+      "sitruuna",
+      "tilli"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Savulohisalaatti",
+    "url": "https://www.valio.fi/reseptit/savulohisalaatti/",
+    "ingredients": [
+      "600 g keitettyjä varhaisperunoita",
+      "300 g lämminsavulohta",
+      "1 pieni punasipuli",
+      "1 dl herneitä, tuore tai pakaste",
+      "½ prk (à 50 g/35 g) kapriksia",
+      "½ ruukku tuoretta tilliä",
+      "0 kg sormisuolaa",
+      "0 kg mustapippuria myllystä",
+      "1 prk (200 g) Valio Keittiön kermaviiliä laktoositon",
+      "1 rkl sitruunamehua",
+      "1 tl dijonsinappia",
+      "½ tl suolaa",
+      "½ tl mustapippuria"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "varhaisperuna",
+      "savulohi",
+      "punasipuli",
+      "herne",
+      "kapris",
+      "tilli",
+      "sormisuola",
+      "mustapippuri",
+      "kermaviili",
+      "sitruunamehu",
+      "dijonsinappi",
+      "suola",
+      "mustapippuri"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Juustoinen savukalakeitto",
+    "url": "https://www.valio.fi/reseptit/juustoinen-savukalakeitto/",
+    "ingredients": [
+      "100 g tuoretta fenkolia",
+      "2 kevätsipulivartta tai pala purjoa",
+      "2 rkl Valio Oivariini® juoksevaa",
+      "8 dl vettä",
+      "1 pkt (250 g) Valio Koskenlaskija® voimakas sulatejuustoa",
+      "½ kalaliemikuutio",
+      "5 keitettyä perunaa kuutioituna",
+      "200 g savukalaa esim. lohta tai siikaa"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "fenkoli",
+      "kevätsipuli",
+      "oivariini juokseva",
+      "sulatejuusto",
+      "kalaliemikuutio",
+      "peruna",
+      "savulohi"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Tomaatti-linssikeitto",
+    "url": "https://www.valio.fi/reseptit/tomaatti-linssikeitto/",
+    "ingredients": [
+      "1 sipuli",
+      "2 valkosipulinkynttä",
+      "1 rkl rypsiöljyä",
+      "2 tlk (à 400 g) tomaattimurskaa",
+      "5 dl vettä",
+      "1 kasvisliemikuutio",
+      "1 tl sokeria",
+      "½ tl chilihiutaleita",
+      "2 dl kuivattuja punaisia linssejä",
+      "1 prk (2 dl) Valio Keittiön ruokakermaa 15%",
+      "½ tl suolaa",
+      "1 prk (200 g) Valio raejuustoa"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "sipuli",
+      "valkosipuli",
+      "rypsiöljy",
+      "tomaattimurska",
+      "kasvisliemikuutio",
+      "sokeri",
+      "chilihiutale",
+      "punainen linssi",
+      "ruokakerma",
+      "suola",
+      "raejuusto"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Bataattisosekeitto",
+    "url": "https://www.valio.fi/reseptit/bataattisosekeitto/",
+    "ingredients": [
+      "2 sipulia",
+      "1½ kg bataattia",
+      "25 g Valio voita",
+      "1-2 tl ancho chilimaustetta",
+      "1 l kasvislientä",
+      "0 kg suolaa",
+      "1 pussi (150 g) Valio AURA® murua"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "sipuli",
+      "bataatti",
+      "voi",
+      "ancho chili",
+      "kasvisliemi",
+      "suola",
+      "aura muru"
+    ],
+    "unavailableTerms": [
+      "ancho chili"
+    ]
+  },
+  {
+    "title": "Pinaattikeitto tuorepinaatista",
+    "url": "https://www.valio.fi/reseptit/pinaattikeitto-tuorepinaatista/",
+    "ingredients": [
+      "150 g pinaattia",
+      "8½ dl Valio Kiehu® maitojuomaa",
+      "½ kasvisliemikuutio",
+      "½ tl suolaa",
+      "1 tl sokeria",
+      "¾ dl vehnäjauhoja",
+      "2-4  keitettyä (8 min) kananmunaa"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "pinaatti",
+      "kiehu maitojuoma",
+      "kasvisliemikuutio",
+      "suola",
+      "sokeri",
+      "vehnäjauho",
+      "kananmuna"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Liha-makaronilaatikko",
+    "url": "https://www.k-ruoka.fi/reseptit/liha-makaronilaatikko",
+    "ingredients": [
+      "1 ps (400 g) makaroneja",
+      "1 rs (400 g) Pirkka naudan jauhelihaa",
+      "1 sipuli",
+      "3/4 tl suolaa",
+      "3/4 tl mustapippuria",
+      "1/4 tl maustepippuria",
+      "2 tl basilikaa",
+      "2 tl timjamia",
+      "2–3 kananmunaa",
+      "7 dl Pirkka kevytmaitoa",
+      "1 tl suolaa",
+      "2 dl Pirkka emmental-mozzarellajuustoraastetta"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "makaroni",
+      "naudan jauheliha",
+      "sipuli",
+      "suola",
+      "mustapippuri",
+      "maustepippuri",
+      "basilika",
+      "timjami",
+      "kananmuna",
+      "maito",
+      "juustoraaste"
+    ],
+    "unavailableTerms": [
+      "juustoraaste"
+    ]
+  },
+  {
+    "title": "Kanapasta",
+    "url": "https://www.k-ruoka.fi/reseptit/kanapasta",
+    "ingredients": [
+      "1 rs (400 g) Pirkka Vikkelät kanan fileesuikaleita, maustamaton",
+      "300 g Pirkka pennepastaa  ",
+      "1 iso (125 g) sipuli",
+      "2 valkosipulinkynttä",
+      "1–2 rkl rypsiöljyä",
+      "1–2 rkl Pirkka juoksevaa margariinia ",
+      "1 tl Pirkka currya",
+      "n. 1/2 tl suolaa",
+      "1/2 tl mustapippuria",
+      "1 tlk (2 dl) Pirkka laktoositonta juustokermaa (15 %)",
+      "n. 1 dl pastan keitinvettä",
+      "korianteria tai persiljaa hienonnettuna"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "kanan fileesuikale maustamaton",
+      "pennepasta",
+      "sipuli",
+      "valkosipuli",
+      "rypsiöljy",
+      "juokseva margariini",
+      "curry",
+      "suola",
+      "mustapippuri",
+      "laktoositon juustokerma",
+      "korianteri"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Linssikeitto",
+    "url": "https://www.k-ruoka.fi/reseptit/linssikeitto",
+    "ingredients": [
+      "1 (100 g) sipuli",
+      "2 valkosipulinkynttä",
+      "1 1/2 rkl öljyä",
+      "2 tl Pirkka currya",
+      "2 tl juustokuminaa",
+      "1 tl Pirkka inkivääriä",
+      "2 dl punaisia linssejä (kuivattu)",
+      "1 tlk (400 ml) Pirkka kookosmaitoa",
+      "2 tlk (à 400 g/240 g) K-Menu kuorittuja tomaatteja tomaattimehussa",
+      "2 dl vettä",
+      "2 rkl Pirkka tomaattisosetta",
+      "1 tl suolaa",
+      "ripaus mustapippuria",
+      "1 rkl sitruunanmehua tai valkoviinietikkaa",
+      "1–2 tl sokeria"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "sipuli",
+      "valkosipuli",
+      "ruokaöljy",
+      "curry",
+      "juustokumina",
+      "inkivääri",
+      "punainen linssi",
+      "kookosmaito",
+      "kuorittu tomaatti",
+      "tomaattisose",
+      "suola",
+      "mustapippuri",
+      "sitruunamehu",
+      "sokeri"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Kreikkalainen salaatti",
+    "url": "https://www.k-ruoka.fi/reseptit/kreikkalainen-salaatti",
+    "ingredients": [
+      "1 rs (250 g) Pirkka kirsikkatomaatteja",
+      "1/2 (150 g) kurkkua",
+      "1 (60 g) punasipuli",
+      "1 (160 g) vihreä paprika",
+      "20 Pirkka Parhaat kreikkalaista kalamataoliivia",
+      "1 pkt (150 g) Pirkka Parhaat fetajuustoa",
+      "1–2 tl kuivattua oreganoa",
+      "1/2 dl Pirkka ekstra-neitsytoliiviöljyä",
+      "1/4 dl viinietikkaa",
+      "1/2 tl mustapippuria",
+      "ripaus suolaa",
+      "1 ps (150 g) Pirkka Provence -salaattisekoitusta"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "kirsikkatomaatti",
+      "kurkku",
+      "punasipuli",
+      "vihreä paprika",
+      "kalamataoliivi",
+      "fetajuusto",
+      "oregano",
+      "oliiviöljy",
+      "viinietikka",
+      "mustapippuri",
+      "suola",
+      "salaattisekoitus"
+    ],
+    "unavailableTerms": [
+      "vihreä paprika"
+    ]
+  },
+  {
+    "title": "Korvapuustit",
+    "url": "https://www.valio.fi/reseptit/korvapuustit/",
+    "ingredients": [
+      "50 g hiivaa",
+      "5 dl Valio maitoa",
+      "2 kananmunaa",
+      "2 dl sokeria",
+      "2 tl suolaa",
+      "1 rkl kardemummaa",
+      "16 dl vehnäjauhoja",
+      "150-200 g (2 dl) Valio Oivariini® rasvaa",
+      "100 g (1 dl) Valio Oivariini® rasvaa",
+      "1 dl sokeria",
+      "2 rkl kanelia",
+      "0 kg kananmunaa",
+      "0 kg mantelirouhetta"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "hiiva",
+      "maito",
+      "kananmuna",
+      "sokeri",
+      "suola",
+      "kardemumma",
+      "vehnäjauho",
+      "oivariini",
+      "kaneli",
+      "kananmuna",
+      "mantelirouhe"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Mustikkapiirakka",
+    "url": "https://www.valio.fi/reseptit/mustikkapiirakka/",
+    "ingredients": [
+      "2 kananmunaa",
+      "1½ dl sokeria",
+      "2 tl vaniljasokeria",
+      "3 dl vehnäjauhoja",
+      "1½ tl leivinjauhetta",
+      "1½ dl Valio Oivariini® juoksevaa",
+      "1 dl Valio Eila® kevytmaitojuomaa",
+      "200 g mustikoita",
+      "0 kg Valio Vanilla™ vaniljakastiketta"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "kananmuna",
+      "sokeri",
+      "vaniljasokeri",
+      "vehnäjauho",
+      "leivinjauhe",
+      "oivariini juokseva",
+      "kevytmaitojuoma",
+      "mustikka",
+      "vaniljakastike"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Kanamakaronilaatikko",
+    "url": "https://www.k-ruoka.fi/reseptit/kanamakaronilaatikko",
+    "ingredients": [
+      "1 (100 g) sipuli",
+      "1 pkt (400 g) Pirkka Vikkelät kananjauhelihaa",
+      "1 tl suolaa",
+      "1/2 tl mustapippuria",
+      "1 rkl Pirkka välimeren yrttiseosta",
+      "1 rkl Pirkka pizzamaustetta",
+      "1 rs (180 g) Pirkka Italian yrtit tuorejuustoa",
+      "1 ps (400 g) Pirkka tummia makaroneja",
+      "2 kananmunaa",
+      "1 l maitoa",
+      "1/2 tl suolaa",
+      "2 dl Pirkka emmental-mozzarellajuustoraastetta"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "sipuli",
+      "kananjauheliha",
+      "suola",
+      "mustapippuri",
+      "välimeren yrttiseos",
+      "pizzamauste",
+      "tuorejuusto",
+      "tumma makaroni",
+      "kananmuna",
+      "maito",
+      "juustoraaste"
+    ],
+    "unavailableTerms": [
+      "tuorejuusto",
+      "juustoraaste"
+    ]
+  },
+  {
+    "title": "Perunamuusi",
+    "url": "https://www.valio.fi/reseptit/perunamuusi/",
+    "ingredients": [
+      "700 g jauhoisia perunoita, esim. Rosamunda tai Van Gogh",
+      "4-5 dl vettä",
+      "1 tl suolaa",
+      "25 g Valio Eila® voita",
+      "2½ dl Valio Eila® kevytmaitojuomaa"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "jauhoinen peruna",
+      "suola",
+      "voi",
+      "kevytmaitojuoma"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Broileri-makaronilaatikko, kananmunaton",
+    "url": "https://www.k-ruoka.fi/reseptit/broileri-makaronilaatikko-kananmunaton",
+    "ingredients": [
+      "1 ps (400 g) Pirkka tummia makaroneja",
+      "2 l vettä",
+      "2 tl suolaa",
+      "1 rs (450 g) Pirkka hunajamarinoituja kanan fileesuikaleita",
+      "1–2 rkl öljyä",
+      "1 (100 g) sipuli",
+      "1 (150 g) paprika",
+      "6 dl vettä",
+      "3 dl maitojauhetta",
+      "1 tl suolaa",
+      "2 tl Pirkka pizzamaustetta",
+      "1/2 tl mustapippuria",
+      "(juustoraastetta)"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "tumma makaroni",
+      "suola",
+      "kananfilee",
+      "ruokaöljy",
+      "sipuli",
+      "paprika",
+      "maitojauhe",
+      "pizzamauste",
+      "mustapippuri",
+      "juustoraaste"
+    ],
+    "unavailableTerms": []
+  },
+  {
+    "title": "Kanakeitto",
+    "url": "https://www.valio.fi/reseptit/kanakeitto/",
+    "ingredients": [
+      "1½ dl villiriisisekoitusta",
+      "5 dl vettä",
+      "½-1 tl suolaa",
+      "1 sipuli",
+      "2-3  valkosipulinkynttä",
+      "2 rkl Valio Oivariini® rasvaa",
+      "2 (n. 300 g) maustamattomia broilerin rintafileitä",
+      "1½ l vettä",
+      "3 kanaliemikuutiota",
+      "3 (200 g) perunaa",
+      "2-3  (250 g) porkkanaa",
+      "½ tl timjamia",
+      "1 pussi (200 g) pakastemaissia",
+      "1 prk (2 dl) Valio ruokakermaa",
+      "0 kg mustapippuria maustemitallinen",
+      "2 rkl sweet chilikastiketta",
+      "1½ rkl vaaleaa suurustejauhetta, esim. Maizena",
+      "0 kg tuoretta persiljaa"
+    ],
+    "instructions": "",
+    "expectedTerms": [
+      "villiriisisekoitus",
+      "suola",
+      "sipuli",
+      "valkosipuli",
+      "oivariini",
+      "kananfilee",
+      "kanaliemikuutio",
+      "peruna",
+      "porkkana",
+      "timjami",
+      "maissi pakaste",
+      "ruokakerma",
+      "mustapippuri",
+      "sweet chili kastike",
+      "vaalea suuruste",
+      "persilja"
+    ],
+    "unavailableTerms": [
+      "villiriisisekoitus"
+    ]
+  }
+]

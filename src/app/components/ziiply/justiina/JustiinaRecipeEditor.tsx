@@ -62,7 +62,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     const originalServings=Number(base)>0?Number(base):1;const targetServings=Number(people)>0?Number(people):originalServings;
     const items=scaleIngredients(recipe.ingredients,originalServings,targetServings).filter(item=>!item.atHome&&item.name.trim());
     if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
-    const search=prepareRecipeSearch(items,recipe.instructions);
+    const search=prepareRecipeSearch(items,recipe.instructions,recipe.title);
     appendDesktopRecipeDebug("recipe_search_plan",{originalServings,targetServings,scaledIngredients:items,searchTerms:search.terms,searchItems:search.items});
     if(!search.terms.length){setNotice("Reseptissä ei ole ostettavia aineksia.");return;}
     persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));

@@ -8,7 +8,7 @@ const ingredientHeading = /^(?:ainekset|ainesosat|raaka[- ]aineet|tarvikkeet|tar
 const methodHeading = /^(?:valmistus(?:ohje)?|ohje(?:et)?|työvaiheet|instructions|method)\s*:?\s*/i;
 const sectionHeading = /^(?:munamaito|mausteliemi|pullataikina|taikina|pohja|täyte|kastike|lihapullat|lisäksi(?: tarvitaan)?|päälle|pinnalle|voiteluun|paistamiseen|tarjoiluun)\s*:?$/i;
 const quantity = "(?:\\d+\\s+(?:ja\\s+)?\\d+\\s*[/]\\s*\\d+|\\d+\\s*[/]\\s*\\d+|\\d+(?:[,.]\\d+)?)";
-const measurement = new RegExp(`^(${quantity})(?:\\s*[-–—]\\s*(${quantity}))?\\s*(?:(kg|dl|cl|ml|rkl|tlk|tl|kpl|pkt|prk|pss|rs|pussi|pussia|ruukku|ruukkua|nippu|nippua|g|l)\\b\\.?\\s*)?`, "i");
+const measurement = new RegExp(`^(${quantity})(?:\\s*[-–—]\\s*(${quantity}))?\\s*(?:(kg|dl|cl|ml|rkl|tlk|tl|kpl|pkt|prk|pss|ps|rs|pussi|pussia|ruukku|ruukkua|nippu|nippua|g|l)\\b\\.?\\s*)?`, "i");
 function numberAmount(value: string): number {
   const mixed=value.match(/^(\d+)\s+(?:ja\s+)?(\d+)\s*\/\s*(\d+)$/);
   if(mixed)return Number(mixed[1])+Number(mixed[2])/Number(mixed[3]);
@@ -29,9 +29,13 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   if(!measurement.test(clean)&&trailing)clean=trailing[2]+" "+trailing[3]+" "+trailing[1];
   const match=clean.match(measurement);
   let amount=match?Math.max(numberAmount(match[1]),match[2]?numberAmount(match[2]):0):null;
-  let unit=match?.[3]?.toLowerCase().replace(/^pussia$/,"pussi").replace(/^ruukkua$/,"ruukku").replace(/^nippua$/,"nippu")||null;
+  let unit=match?.[3]?.toLowerCase().replace(/^ps$/,"pussi").replace(/^pussia$/,"pussi").replace(/^ruukkua$/,"ruukku").replace(/^nippua$/,"nippu")||null;
   let name=match?clean.slice(match[0].length).trim():clean;
+  if (!match && /^\([^()]+\)$/.test(name)) name=name.slice(1,-1);
+  name=name.replace(/^iso\s+/i, "");
+  if (/^cm\s+/i.test(name)) { amount=null; unit=null; name=name.replace(/^cm\s+/i, ""); }
   // A package's metric contents are the requirement, not the number of cans.
+  name=name.replace(/^\(n\.\s*/i, "(");
   const contents=name.match(/^\((à\s*)?(\d+(?:[,.]\d+)?)(?:\s*(?:kg|g|l|dl|cl|ml)?\s*\/\s*(\d+(?:[,.]\d+)?))?\s*(kg|g|l|dl|cl|ml)\)\s*/i);
   if(contents){
     const size=numberAmount(contents[3]||contents[2]);
@@ -42,7 +46,7 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
     name=name.slice(contents[0].length);
   }
   name=name.replace(/^(?:ripaus|tilkka|loraus|hyppysellinen|maun mukaan|iso|pieni|keskikokoinen)\s+/i,"").replace(/^\(\d+(?:[,.]\d+)?\s*(?:kg|g|dl|ml)\)\s*/,"");
-  if(amount!==null&&!unit&&/^(?:kananmun|mun[ai]|sipul|punasipul|valkosipulinkyn|laakerinleh|kokonaista maustepippur)/i.test(name))unit="kpl";
+  if(amount!==null&&!unit&&/^(?:keitettyä.*kananmun|kananmun|mun[ai]|sipul|punasipul|valkosipulinkyn|laakerinleh|kokonaista maustepippur)/i.test(name))unit="kpl";
   if(!Number.isFinite(amount)||amount===0)amount=null;
   return {id,name:name.trim(),amount,unit,uncertain:amount===null||!unit||alternative.length>1||/[?]/.test(line),atHome:false,sourceLine:clean};
 }
@@ -60,7 +64,7 @@ export function parseRecipeText(text: string): RecipeDraft {
     const parts:string[]=[];let depth=0,start=0;
     for(let i=0;i<line.length;i++){
       if(line[i]==="(")depth++;if(line[i]===")")depth=Math.max(0,depth-1);
-      if(depth===0&&(line[i]===";"||(line[i]===","&&!(/\d/.test(line[i-1]||"")&&/\d/.test(line[i+1]||""))))){
+      if(depth===0&&(line[i]===";"||(line[i]===","&&!/\besim\./i.test(line.slice(i+1))&&!(/\d/.test(line[i-1]||"")&&/\d/.test(line[i+1]||""))))){
         const tail=line.slice(i+1).trim();
         if(line[i]===";"||/^(?:n\.\s*)?[\d½¼¾]/.test(tail)||classifyRecipeIngredient(tail.split(/[;,]/)[0])){
           parts.push(line.slice(start,i));start=i+1;
@@ -125,13 +129,22 @@ export { recipeProductSearchTerm, classifyRecipeIngredient, recipeProductCompati
 export type { RecipeFoodGroup } from "./recipeSearch";
 
 /** The editor and desktop simulation use exactly the same search requirements. */
-export function prepareRecipeSearch(items: RecipeIngredient[], instructions=""): {terms:string[];items:RecipeIngredient[]} {
+export function prepareRecipeSearch(items: RecipeIngredient[], instructions="", recipeTitle=""): {terms:string[];items:RecipeIngredient[]} {
   const entries:Array<{term:string;item:RecipeIngredient}>=[];
   for(const item of items){
     if(item.atHome)continue;
-    const proteinRequirement=inferRecipeProtein(item.name,instructions,item.sourceLine||item.name);
+    let proteinRequirement=inferRecipeProtein(item.name,instructions,item.sourceLine||item.name);
+    // A title can disambiguate an existing generic ingredient; never create one from it.
+    if (proteinRequirement?.species === "jauheliha" && !/kanaton|lihaton|kasvis|vegaan/i.test(recipeTitle)) {
+      const titleSpecies=recipeTitle.toLowerCase().match(/^(kana|broileri|kalkkuna|nauta|porsas|sika)/)?.[1];
+      const labels:Record<string,string>={kana:"kanan",broileri:"broilerin",kalkkuna:"kalkkunan",nauta:"naudan",porsas:"porsaan",sika:"sian"};
+      if(titleSpecies){
+        const hinted=inferRecipeProtein(labels[titleSpecies]+" jauheliha",instructions,item.sourceLine||item.name);
+        if(hinted)proteinRequirement={...hinted,searchTerm:recipeProductSearchTerm(labels[titleSpecies]+" jauheliha")||hinted.searchTerm,basis:"recipe_title_hint_for_existing_generic_ingredient"};
+      }
+    }
     const baseTerm=recipeProductSearchTerm(item.name);
-    const term=proteinRequirement&&(proteinRequirement.processing!=="raw"||proteinRequirement.storage==="frozen"||!classifyRecipeIngredient(item.name))?proteinRequirement.searchTerm:baseTerm;if(!term)continue;
+    const term=proteinRequirement?.basis==="recipe_title_hint_for_existing_generic_ingredient"?proteinRequirement.searchTerm:proteinRequirement&&(proteinRequirement.processing!=="raw"||proteinRequirement.storage==="frozen"||!classifyRecipeIngredient(item.name))?proteinRequirement.searchTerm:baseTerm;if(!term)continue;
     const wholeSpice=/pippur/.test(item.name)&&item.amount!==null&&(!item.unit||item.unit==="kpl")&&!/jauhe|rouh/.test(item.name);
     const normalized={...item,proteinRequirement,wholeSpice,searchTerm:term};
     if(normalized.amount!==null&&normalized.unit){
@@ -155,6 +168,11 @@ export function recipeRetailPackage(product:{name?:string;packageSize?:number;pa
 }
 export function recipeRetailPackageCount(ingredient:RecipeIngredient,product:{name?:string;packageSize?:number;packageUnit?:string}):number|null {
   const pack=recipeRetailPackage(product);
+  if (ingredient.unit === "kpl" && recipeProductSearchTerm(ingredient.name) === "kananmuna") {
+    const name=product.name||"";
+    const count=name.match(/(\d+)\s*kpl\b/i)?.[1]||name.match(/\b(?:s\/m|xl|[sml])[- ]?(\d{1,2})\b/i)?.[1];
+    if (count && ingredient.amount !== null) return Math.ceil(ingredient.amount / Number(count));
+  }
   if(ingredient.amount!==null&&ingredient.unit&&["pkt","prk","tlk","pss","rs","pussi"].includes(ingredient.unit))return Math.ceil(ingredient.amount);
   return packageCount(ingredient.amount,ingredient.unit,pack.size,pack.unit);
 }

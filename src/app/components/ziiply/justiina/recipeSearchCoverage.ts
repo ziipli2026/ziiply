@@ -5,7 +5,28 @@ export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredie
   if (!ingredient) return [];
   const term = (ingredient.searchTerm || query).toLowerCase().trim();
   if (term === 'sokeri') return [...new Set([query, 'taloussokeri', 'hienosokeri', 'ruokosokeri', 'fariinisokeri'])];
+  const aliases: Record<string, string[]> = {
+    'punainen linssi esikeitetty': ['linssi'],
+    'koskenlaskija viherpippuri sulatejuusto': ['koskenlaskija'],
+    'tomaattisose': ['tomaattipyree'],
+    'kuorittu tomaatti': ['kuoritut tomaatit', 'tomaatti'],
+    'juokseva margariini': ['juokseva', 'margariini'],
+    'ancho chili': ['ancho'],
+    'sipulikeittoaines': ['sipulikeitto'],
+    'vihreä paprika': ['paprika'],
+    'sitruuna': ['sitruuna luomu', 'sitruunat'],
+    'ruokaöljy': ['rypsiöljy', 'oliiviöljy', 'rapsiöljy'],
+    'kananjauheliha': ['jauheliha'],
+    'maissi pakaste': ['maissi'],
+    'sweet chili kastike': ['sweet chili'],
+    'vaalea suuruste': ['suuruste'],
+    'villiriisisekoitus': ['villiriisi', 'riisisekoitus', 'riisi'],
+    'jauhoinen peruna': ['peruna', 'rosamunda'],
+    'aura muru': ['aura'],
+  };
+  if (aliases[term]) return [...new Set([query, ...aliases[term]])];
   const protein = ingredient.proteinRequirement;
+  if (protein?.family === "meat" && protein.processing === "raw" && protein.marinated) return [...new Set([query, protein.marinade ? protein.marinade + "marinoitu" : "marinoitu", "fileesuikale"])];
   if (protein?.family === 'fish' && protein.processing === 'raw') {
     return [...new Set([query, protein.species])];
   }
