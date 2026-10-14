@@ -19,10 +19,9 @@ export async function parseKCitymarketSpatialLeaflet(entry){
  const current=await parseCurrent(entry);
  const resolvedUrl=String(current?.leaflet||current?.leafletUrl||current?.sourceUrl||current?.url||'').toLowerCase();
  if(resolvedUrl.includes(APPROVED_41LV_PUBLICATION_ID))return parseApproved41LV(entry);
- // Candidate 42LV only: protect approved historical paths until all frozen
- // publications have been replayed and compared with approved fixtures.
- if(resolvedUrl.includes('_42lv_kcm'))return {...current,rows:current.rows.map(repairPublisherTransaction)};
- return current;
+ // Preserve explicitly approved historical parsers above. Apply evidence-only
+ // transaction correction to other publications without relying on issue number.
+ return {...current,rows:current.rows.map(repairPublisherTransaction)};
 }
 export default parseKCitymarketSpatialLeaflet;
 
