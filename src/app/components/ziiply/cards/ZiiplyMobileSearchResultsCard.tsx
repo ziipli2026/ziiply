@@ -138,9 +138,13 @@ function hasMatchingLegacyCentUnitPrice(value: number, product: ZiiplyMobileSear
 function priceToEuros(value: unknown, product: ZiiplyMobileSearchResultProduct) {
   const n = numericValue(value);
   if (n == null) return null;
-  // Legacy S/K integer cents: retain the existing >=100 rule and verify
-  // ambiguous 0–99 values against a matching one-unit comparison price.
-  return usesEuroPrices(product) ? n : Math.abs(n) >= 100 || hasMatchingLegacyCentUnitPrice(n, product) ? n / 100 : n;
+  // Recipe S/K responses use cents, including values below one euro.
+  // The matching store item also identifies cents in ordinary K search results.
+  const recipeCents = product.__recipeChain === "K" || product.__recipeChain === "S";
+  const storeItemCents = Array.isArray(product.storeItems) && product.storeItems.some(
+    (item: any) => typeof item?.price === "number" && Number.isInteger(item.price) && item.price === n,
+  );
+  return usesEuroPrices(product) ? n : recipeCents || storeItemCents || Math.abs(n) >= 100 || hasMatchingLegacyCentUnitPrice(n, product) ? n / 100 : n;
 }
 
 function pickRawPrice(product: ZiiplyMobileSearchResultProduct) {
