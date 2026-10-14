@@ -4976,6 +4976,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setScannerDebugLinesV493((previous) => [...previous, line].slice(-100));
   }
 
+  // Record notification transitions even when the banner is hidden by scanner UI.
+  const scannerNoticeSnapshotRefV853 = useRef("");
+  useEffect(() => {
+    if (!eanModalOpen) {
+      scannerNoticeSnapshotRefV853.current = "";
+      return;
+    }
+    const notices = [
+      ["scanner", eanScannerMessage],
+      ["ean", eanMessage],
+      ["cart", lastCartToast || ""],
+      ["comparison", comparisonLoading ? "Hintojen haku käynnissä" : ""],
+      ["store-mismatch", scannerStoreMismatchV801?.reason || ""],
+      ["equivalent", scannerEquivalentNoticeV813],
+      ["flash", scanMissFlash ? "red/error" : scanSuccessFlash ? "green/success" : ""],
+    ].filter(([, value]) => Boolean(value));
+    const snapshot = JSON.stringify(notices);
+    if (snapshot === scannerNoticeSnapshotRefV853.current) return;
+    scannerNoticeSnapshotRefV853.current = snapshot;
+    pushScannerDebugV493(`NOTICES ${notices.length ? notices.map(([source, value]) => `${source}=${JSON.stringify(value)}`).join(" | ") : "cleared"}`);
+  }, [eanModalOpen, eanScannerMessage, eanMessage, lastCartToast, comparisonLoading, scannerStoreMismatchV801, scannerEquivalentNoticeV813, scanMissFlash, scanSuccessFlash]);
+
   function resetScannerDebugV493(message: string) {
     pushScannerDebugV493(message);
   }
