@@ -34,4 +34,7 @@ assert.equal(repair(row('TUOTE',20,['-20 %'],'spatial-price')).spatialResolved,n
 assert.equal(repair(row('TUOTE',53,['−53 %'])).spatialResolved,null);
 assert.equal(repair(row('TUOTE',53,['–53 %'])).spatialResolved,null);
 assert.equal(repair(row('TUOTE',5.99,['−53 %'])).spatialResolved.value,5.99);
+// A discount mistaken for a price must not be laundered into a nearby pack price.
+assert.equal(repair(row('VICHY 24-pack',53,['−53 %','24-PACK 1099'])).spatialResolved,null);
+assert.equal(repair(row('VICHY 24-pack',53,['-53 %','24-PACK 1099'],'printed-transaction')).spatialResolved.value,53);
 console.log('KCM publisher transaction repair tests passed');
