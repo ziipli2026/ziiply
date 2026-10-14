@@ -1,0 +1,31 @@
+name: Citymarket parser candidate safety
+on:
+  push:
+    branches:
+      - fix/citymarket-42lv-regression-safe
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/citymarket/test-publisher-transaction-repair.mjs
+  historical-41av:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch immutable historical sources
+        run: |
+          git fetch origin archive/citymarket-publications
+          git worktree add --detach /tmp/kcm-frozen origin/archive/citymarket-publications
+      - name: Replay approved 41AV
+        run: |
+          node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-frozen/publications/41AV tests/fixtures/citymarket/41AV.approved.json
