@@ -23510,13 +23510,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     }}
                   />
 
-                  <div className="fixed bottom-3 left-3 right-3 z-[220] sm:hidden pointer-events-none">
+                  <div className="fixed left-2 right-2 top-[max(4rem,env(safe-area-inset-top))] z-[9999] sm:hidden pointer-events-none">
                     <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
-                      <div className="flex items-center justify-between gap-2 px-3 py-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
                         <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
                           EAN DEBUG {scannerDebugOpenV851 ? "▼" : "▲"} ({scannerDebugLinesV493.length})
                         </button>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => void copyScannerDebugV852()}>Kopioi teksti</button>
                           <button type="button" className="rounded bg-emerald-700 px-2 py-1 text-[11px] font-bold" onClick={downloadScannerDebugV852}>Lataa TXT</button>
                           <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => setScannerDebugLinesV493([])}>Tyhjennä</button>
