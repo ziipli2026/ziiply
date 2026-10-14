@@ -16878,6 +16878,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  // Ordinary shelf EAN for confidently identified loose produce is NOT a weighed price label.
+  // Never treat a kg comparison price as the purchase total.
+  function isLooseProduceShelfEanV853(product: Product, ean: string): boolean {
+    if (resolvePriceWeightLabel(ean) || resolveKWeightLabel(ean)) return false;
+    const p = product as any;
+    const name = String(product.name || "").toLocaleLowerCase("fi");
+    const category = String(p.category || "").toLocaleLowerCase("fi");
+    const unit = String(p.salesUnit || p.unit || p.priceUnit || p.unitOfMeasure || "").toLocaleLowerCase("fi");
+    const comparisonUnit = String(p.comparisonPriceUnit || p.storeItems?.[0]?.comparisonPriceUnit || "").toLocaleLowerCase("fi");
+    const explicitLoose = /irtomyynti|irtotuote|irtopaino|punnittava|myydään painon mukaan|myydaan painon mukaan|myyntiyksikkö\\s*kg|myyntiyksikko\\s*kg/.test(name + " " + category);
+    const produceCategory = /hedelm|vihann|kasvis|juure|hevi/.test(category);
+    const produceName = /(?:^|\\s)(?:banaani|tomaatti|kurkku|omena|päärynä|paaryna|appelsiini|mandariini|sitruuna|lime|avokado|paprika|sipuli|peruna|porkkana|kesäkurpitsa|kesakurpitsa|munakoiso|kiivi|nektariini|persikka|luumu|viinirypäle|inkivääri|inkivaari)(?:\\s|$)/.test(name);
+    const packaged = /\\b\\d+(?:[,.]\\d+)?\\s*(?:g|kg|ml|l|kpl|pkt|pss|rasia|pussi|pakkaus)\\b|\\b(?:rasia|pussi|pakattu|pakkaus|verkko|pikari|kpl|nippu)\\b/.test(name);
+    const byKg = /^(?:kg|kilogram|kilogramma)$/.test(unit) || /(?:^|\\W)kg(?:$|\\W)/.test(comparisonUnit);
+    return !packaged && (explicitLoose || (byKg && (produceCategory || produceName)));
+  }
+
   function addEanResultToCart(
     result: EanSearchResult,
     options: { showFlash?: boolean; showScannerMessage?: boolean } = {},
@@ -16892,6 +16909,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const productName = fixText(result.product.name);
+    const looseShelfEanV853 = isLooseProduceShelfEanV853(result.product, ean);
     const isScannerAddV787 = Boolean(
       eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically,
     );
@@ -16935,7 +16953,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ean: ean || result.product.ean,
       chain: result.chain,
       storeName: result.storeName,
-      price: getProductPrice(result.product),
+      price: looseShelfEanV853 ? 0 : getProductPrice(result.product),
     });
 
     const scannerExistingItemV798 = isScannerAddV787
@@ -16947,7 +16965,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V814: etänä koriin lisätyn EAN-tuotteen ensimmäinen fyysinen skannaus
     // kuittaa tuotteen kerätyksi muuttamatta määrää. Vasta seuraava skannaus +1.
-    if (isPhysicalBarcodeScanV815 && scannerExistingItemV798) {
+    if (isPhysicalBarcodeScanV815 && scannerExistingItemV798 && !looseShelfEanV853) {
       const collectionKeyV814 = String(scannerExistingItemV798.id ?? "");
       if (collectionKeyV814 && !checkedCartItems[collectionKeyV814]) {
         setCheckedCartItems((current) => ({ ...current, [collectionKeyV814]: true }));
@@ -17043,13 +17061,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const newItem: CartItem = {
         id: `ean-${result.chain}-${result.product.id}-${Date.now()}`,
         name: productName,
-        price: getProductPrice(result.product),
+        price: looseShelfEanV853 ? 0 : getProductPrice(result.product),
         image: result.product.pictureUrl,
         chain: result.chain,
         storeName: result.storeName,
         quantity: 1,
         source: "search",
-        product: result.product,
+        product: looseShelfEanV853 ? { ...result.product, price: 0, ziiplyWeightLabel: true } : result.product,
         ean: ean || result.product.ean,
       };
       const exactEanPriceV794 = getProductPrice(result.product);
@@ -17067,7 +17085,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const nextCart = [...baseCart, newItem];
-      if (isPhysicalBarcodeScanV815) {
+      if (isPhysicalBarcodeScanV815 && !looseShelfEanV853) {
         setCheckedCartItems((current) => ({ ...current, [String(newItem.id)]: true }));
       }
       cartRefV124.current = nextCart;
@@ -17103,7 +17121,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanLoading(false);
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
-    setEanMessage("");
+    setEanMessage(looseShelfEanV853 ? "Vaakatuote lisätty" : "");
+    if (looseShelfEanV853) setEanScannerMessage("Vaakatuote lisätty");
     // V797: automaattinen skannaus kuittaa onnistumisen vain kerran.
     // Kun success-flash on käytössä, ScannerCard näyttää jo "Lisätty koriin".
     // Erillinen scannerMessage tarvitaan vain valintakortin lisäyksessä,
