@@ -12,10 +12,12 @@ globalThis.fetch=async input=>{
 const parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);
 const key=r=>String(r.page)+'|'+String(r.title||'').trim().toLowerCase().replace(/\s+/g,' ');
 const old=new Map(baseline.rows.map(r=>[key(r),r]));
+if(old.size!==baseline.rows.length)throw Error('Duplicate offer identity in archived snapshot');
 // Baseline lists priced offers, whereas the parser also returns diagnostic
 // rows with no resolved price. Compare like with like.
 const priced=parsed.rows.filter(r=>Number(r.spatialResolved?.value)>0&&!r.spatialResolved?.displayOnlyUnitPrice);
 const now=new Map(priced.map(r=>[key(r),r]));
+if(now.size!==priced.length)throw Error('Duplicate priced offer identity in replay');
 const added=[...now].filter(([k])=>!old.has(k)).map(([,r])=>({page:r.page,title:r.title,price:r.spatialResolved?.value||null}));
 const percentageOnly=parsed.rows.filter(r=>!(Number(r.spatialResolved?.value)>0)&&Number(r.percentageOffer?.percent)>0).map(r=>({page:r.page,title:r.title,percent:r.percentageOffer.percent}));
 const missing=[...old].filter(([k])=>!now.has(k)).map(([,r])=>({page:r.page,title:r.title}));
@@ -23,4 +25,4 @@ const unresolved=parsed.rows.filter(r=>missing.some(m=>m.page===r.page&&key(m)==
 const percentAsPrice=parsed.rows.filter(r=>Number(r.spatialResolved?.value)>0&&r.percentageOffer&&Math.abs(Number(r.spatialResolved.value)-Number(r.percentageOffer.percent))<0.001).map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,percent:r.percentageOffer.percent}));
 const changed=[...now].filter(([k])=>old.has(k)).flatMap(([k,r])=>{const prev=Number(old.get(k).id.split(':').at(-1));const next=Number(r.spatialResolved?.value);return Math.abs(prev-next)>.011?[{page:r.page,title:r.title,previous:prev,next:Number.isFinite(next)?next:null}]:[]});
 console.log('42LV replay',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,percentAsPrice}));
-if(parsed.pageCount!==20||added.length>0||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0)process.exitCode=1;
+if(parsed.pageCount!==20||added.length>0||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||changed.length>0)process.exitCode=1;
