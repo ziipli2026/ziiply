@@ -43,4 +43,4 @@ jobs:
           git worktree add --detach /tmp/kcm-frozen origin/archive/citymarket-publications
       - name: Check archived publication metadata
         run: |
-          node -e "const f=require('/tmp/kcm-frozen/publications/42LV/leaflet.json'); if(f.rows.length!==89) process.exit(1); console.log('Frozen 42LV rows:',f.rows.length)"
+          node scripts/citymarket/verify-42lv-frozen.mjs /tmp/kcm-frozen/publications/42LV
