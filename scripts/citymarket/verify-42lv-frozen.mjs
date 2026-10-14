@@ -12,7 +12,10 @@ globalThis.fetch=async input=>{
 const parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);
 const key=r=>String(r.page)+'|'+String(r.title||'').trim().toLowerCase().replace(/\s+/g,' ');
 const old=new Map(baseline.rows.map(r=>[key(r),r]));
-// Baseline lists priced offers, whereas the parser also returns diagnostic\n// rows with no resolved price. Compare like with like.\nconst priced=parsed.rows.filter(r=>Number(r.spatialResolved?.value)>0&&!r.spatialResolved?.displayOnlyUnitPrice);\nconst now=new Map(priced.map(r=>[key(r),r]));
+// Baseline lists priced offers, whereas the parser also returns diagnostic
+// rows with no resolved price. Compare like with like.
+const priced=parsed.rows.filter(r=>Number(r.spatialResolved?.value)>0&&!r.spatialResolved?.displayOnlyUnitPrice);
+const now=new Map(priced.map(r=>[key(r),r]));
 const added=[...now].filter(([k])=>!old.has(k)).map(([,r])=>({page:r.page,title:r.title,price:r.spatialResolved?.value||null}));
 const missing=[...old].filter(([k])=>!now.has(k)).map(([,r])=>({page:r.page,title:r.title}));
 const changed=[...now].filter(([k])=>old.has(k)).flatMap(([k,r])=>{const prev=Number(old.get(k).id.split(':').at(-1));const next=Number(r.spatialResolved?.value);return Math.abs(prev-next)>.011?[{page:r.page,title:r.title,previous:prev,next:Number.isFinite(next)?next:null}]:[]});
