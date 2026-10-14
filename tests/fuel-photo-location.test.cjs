@@ -7,7 +7,7 @@ const source=fs.readFileSync('src/app/components/ziiply/desktop/DesktopFuelPhoto
 const start=source.indexOf('  function requestCaptureLocation()');
 const end=source.indexOf('  async function capturePhoto()',start);
 const code=ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2020}}).outputText;
-function request(navigator){return vm.runInNewContext(code+'requestCaptureLocation()', {navigator,Date,Promise});}
+function request(navigator){return vm.runInNewContext(code+'requestCaptureLocation()', {navigator,Date,Promise,logDebug:()=>{}});}
 test('capture requests fresh accurate GPS and accepts a current fix',async()=>{
   const result=await request({geolocation:{getCurrentPosition(success,error,options){
     assert.equal(options.maximumAge,0);assert.equal(options.enableHighAccuracy,true);

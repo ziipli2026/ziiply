@@ -49,6 +49,21 @@ async function preparePhoto(file:File):Promise<string>{
   } finally {URL.revokeObjectURL(url);}
 }
 export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
+  const [debugOpen,setDebugOpen]=useState(false);
+  const [debugNotice,setDebugNotice]=useState("");
+  const debugEvents=useRef<{time:string;event:string;details:unknown}[]>([]);
+  function logDebug(event:string,details:unknown){
+    debugEvents.current=[...debugEvents.current.slice(-199),{time:new Date().toISOString(),event,details}];
+  }
+  function debugText(){return JSON.stringify({version:"fuel-photo-debug-1",exportedAt:new Date().toISOString(),browser:navigator.userAgent,mode,fileEvents:debugEvents.current,gps,evidence,locationSource,timeSource,metadataInfo,stationId,stationCount:stations.length,prices,ocrText:rawText,status,error},null,2);}
+  function downloadDebug(){
+    const url=URL.createObjectURL(new Blob([debugText()],{type:"application/json"}));
+    const link=document.createElement("a");link.href=url;link.download=`ziiply-fuel-debug-${Date.now()}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  async function copyDebug(){
+    try{await navigator.clipboard.writeText(debugText());setDebugNotice("Kopioitu.");}
+    catch{setDebugNotice("Kopiointi ei onnistunut. Valitse teksti alta tai lataa tiedosto.");}
+  }
   const [priceReview,setPriceReview]=useState(false);
   const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
@@ -67,6 +82,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
         if(!navigator.mediaDevices?.getUserMedia)throw new Error("Kamera ei ole käytettävissä tässä selaimessa. Lisää kuva offline-valinnalla.");
         stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
         if(cancelled){stream.getTracks().forEach(track=>track.stop());return;}
+        logDebug("camera-ready",stream.getVideoTracks()[0]?.getSettings());
         streamRef.current=stream;
         if(videoRef.current){videoRef.current.srcObject=stream;await videoRef.current.play();}
       }catch(e){
@@ -82,6 +98,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     const id=++gpsRequest.current;setLocating(true);setStations([]);setStationId("");
     try{
       const response=await fetch(`/api/fuel/stations?lat=${location?.lat??64}&lon=${location?.lon??26}`,{cache:"no-store"});const data=await response.json();
+      logDebug("stations-response",{httpStatus:response.status,ok:data.ok,error:data.error,total:data.total,count:data.stations?.length,location});
       if(!response.ok || !data.ok)throw new Error("Asemien haku epäonnistui.");
       if(!alive.current || id!==gpsRequest.current)return [];
       const list=(data.stations as Station[]).filter(s=>!/teboil/i.test(`${s.chain} ${s.name}`)).sort((a,b)=>location?fuelDistanceKm(location.lat,location.lon,a.latitude,a.longitude)-fuelDistanceKm(location.lat,location.lon,b.latitude,b.longitude):`${a.chain} ${a.name}`.localeCompare(`${b.chain} ${b.name}`,"fi"));
@@ -92,6 +109,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     stopCamera();autoTime.current=true;setMode("manual");setPhoto("");setPrices({diesel:"",price95:"",price98:""});setObserved(localDateTime());setGps(null);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setConflictConfirmed(false);setTimeSource("manual");setLocationSource("manual");setPriceReview(false);setEditing(true);setSent(false);setError("");setStatus("");setRawText("");exifInstant.current=null;onlineCapture.current=null;requestId.current=crypto.randomUUID();void findStations(null);
   }
   function startOnline(){
+    logDebug("camera-open",{time:new Date().toISOString()});
     onlineCapture.current={time:"",gps:requestCaptureLocation()};
     autoTime.current=false;setError("");setMode("online");setEditing(false);setSent(false);setStatus("");setCameraReady(false);setCameraOpen(true);
   }
@@ -107,11 +125,13 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   }
   function requestCaptureLocation(){
     return new Promise<{lat:number;lon:number;accuracy:number}|null>(resolve=>{
-      if(!navigator.geolocation){resolve(null);return;}
+      if(!navigator.geolocation){logDebug("gps-unavailable",{});resolve(null);return;}
+      logDebug("gps-request",{enableHighAccuracy:true,timeout:20000,maximumAge:0});
       navigator.geolocation.getCurrentPosition(position=>{
+        logDebug("gps-result",{timestamp:position.timestamp,ageMs:Date.now()-position.timestamp,latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy});
         // Reject stale fixes even if the browser ignores maximumAge.
         resolve(Date.now()-position.timestamp<=15000?{lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy}:null);
-      },()=>resolve(null),{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+      },failure=>{logDebug("gps-error",{code:failure.code,message:failure.message});resolve(null);},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
     });
   }
   async function capturePhoto(){
@@ -130,12 +150,14 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     },"image/jpeg",0.95);
   }
   async function readPhoto(file:File,source:"online"|"offline"){
+    logDebug("photo-file",{source,name:file.name,type:file.type,size:file.size,lastModified:file.lastModified});
     autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(true);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
       let metadataFailed=false;
-      if(source==="offline")try{const reader=await loadMetadata();meta=await reader.parse(file,{reviveValues:false});}catch{metadataFailed=true;}
+      if(source==="offline")try{const reader=await loadMetadata();meta=await reader.parse(file,{reviveValues:false});}catch(failure){metadataFailed=true;logDebug("metadata-error",{message:failure instanceof Error?failure.message:String(failure)});}
+      logDebug("metadata-result",{source,metadataFailed,metadata:meta??null});
       if(!alive.current)return;
       const exifDate=typeof meta?.DateTimeOriginal==="string"?meta.DateTimeOriginal.replace(/^(\d{4}):(\d{2}):(\d{2})[ T]/,"$1-$2-$3T").slice(0,16):"";
       exifInstant.current=null;
@@ -148,7 +170,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       if(!alive.current)return;
       const photoTime=validDate?(exifInstant.current||new Date(exifDate).toISOString()):null;
       const captureTime=source==="online"&&onlineCapture.current?new Date(onlineCapture.current.time).toISOString():null;
-      const checkedEvidence={photoGps,deviceGps,photoTime,captureTime};setEvidence(checkedEvidence);
+      const checkedEvidence={photoGps,deviceGps,photoTime,captureTime};logDebug("photo-evidence",checkedEvidence);setEvidence(checkedEvidence);
       const checked=comparePhotoEvidence(source,checkedEvidence);
       const location=photoGps||deviceGps;
       setLocationSource(photoGps?"photo_exif":deviceGps?"capture_session":"manual");
@@ -160,7 +182,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
       const result=await readFuelPhoto(worker,data);if(!alive.current)return;
       const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
-      const candidates=await stationSearch;if(!alive.current)return;setStationId(identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0));
+      const candidates=await stationSearch;if(!alive.current)return;const identified=identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0);setStationId(identified);logDebug("station-identification",{identified,location,conflict:checked,candidates:(candidates||[]).slice(0,10).map(s=>({id:s.id,name:s.name,chain:s.chain,distanceM:location?Math.round(fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000):null}))});
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
     finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);}
@@ -194,7 +216,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   ];
   return createPortal(<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#173b2e]/65 p-1.5 sm:p-2" onKeyDown={e=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const items=dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),summary');if(!items?.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}>
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="fuel-report-title" className="flex h-[calc(100dvh-12px)] max-h-[760px] w-full max-w-[720px] flex-col rounded-[20px] border-[3px] border-[#17573c] bg-[#fff4cf] p-2 shadow-2xl sm:h-[min(680px,calc(100dvh-16px))] sm:rounded-[28px] sm:p-3">
-      <header className="mb-2 flex shrink-0 items-center justify-between gap-3"><div><h2 id="fuel-report-title" className="text-lg font-black text-[#174c35] sm:text-xl">Ilmoita polttoainehintoja</h2><p className="text-xs text-[#6d604c] sm:text-sm">Lisää hintataulun kuva tai syötä hinnat käsin.</p></div><button ref={closeRef} type="button" onClick={onClose} aria-label="Sulje hintailmoitus" className="h-10 w-10 shrink-0 rounded-full border-2 border-[#17573c] text-xl">×</button></header>
+      <header className="mb-2 flex shrink-0 items-center justify-between gap-3"><div><button type="button" onClick={()=>{setDebugNotice("");setDebugOpen(true);}} className="float-right ml-2 rounded border border-[#baa46a] px-2 py-0.5 text-[10px] text-[#6d604c]">Debug</button><h2 id="fuel-report-title" className="text-lg font-black text-[#174c35] sm:text-xl">Ilmoita polttoainehintoja</h2><p className="text-xs text-[#6d604c] sm:text-sm">Lisää hintataulun kuva tai syötä hinnat käsin.</p></div><button ref={closeRef} type="button" onClick={onClose} aria-label="Sulje hintailmoitus" className="h-10 w-10 shrink-0 rounded-full border-2 border-[#17573c] text-xl">×</button></header>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="mb-2 grid shrink-0 grid-cols-3 gap-1 sm:gap-2">
           <button type="button" disabled={busy||sent||locating||cameraOpen} onClick={startOnline} className="min-h-[48px] rounded-xl sm:rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] px-1 py-2 text-[11px] font-black leading-tight sm:px-3 sm:text-base text-[#174c35] disabled:opacity-40">Ota kuva online<span className="mt-1 block text-xs font-medium">Uusi kuva</span></button>
@@ -249,5 +271,12 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
         </>}
       </footer>
     </div>
+    {debugOpen&&<div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 p-3"><section role="dialog" aria-modal="true" aria-label="Kuvanoton debug" className="flex max-h-[85dvh] w-full max-w-[620px] flex-col gap-3 rounded-2xl border-2 border-[#17573c] bg-[#fff4cf] p-4 text-[#174c35]">
+      <div className="flex items-center justify-between"><h3 className="font-black">Kuvanoton debug</h3><button type="button" onClick={()=>setDebugOpen(false)} className="rounded border px-3 py-1">Sulje</button></div>
+      <p className="text-xs">Tiedot sisältävät kuvan metatiedot, GPS-tulokset ja asemahaun. Kuvaa ei sisällytetä tiedostoon.</p>
+      <div className="flex gap-2"><button type="button" onClick={()=>void copyDebug()} className="rounded-lg bg-[#e3edc9] px-4 py-2 font-bold">Kopioi</button><button type="button" onClick={downloadDebug} className="rounded-lg border border-[#17573c] px-4 py-2 font-bold">Lataa tiedosto</button></div>
+      {debugNotice&&<p role="status" className="text-sm">{debugNotice}</p>}
+      <textarea aria-label="Debug-tiedot" readOnly value={debugText()} className="min-h-[160px] flex-1 resize-none overflow-auto rounded-lg bg-white p-2 font-mono text-[11px]" rows={16}/>
+    </section></div>}
   </div>,document.body);
 }
