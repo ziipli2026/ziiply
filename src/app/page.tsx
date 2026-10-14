@@ -13433,7 +13433,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           Boolean((item as any).ziiplyOriginalCartItemV793) !== Boolean((nextCart[index] as any)?.ziiplyOriginalCartItemV793),
       );
       if (!changed) {
-        showCartToast("Valitusta ketjusta ei löytynyt turvallista vastaavaa tuotetta.");
+        // No safe match is an expected outcome for an unknown EAN, not a cart error.
         return;
       }
 
