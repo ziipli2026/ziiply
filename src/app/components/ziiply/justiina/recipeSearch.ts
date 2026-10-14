@@ -127,11 +127,18 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const kind=kinds.find(x=>x.term===term);
  if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
  if(!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
+ if(term==="sokeri"){
+   const sugarName=/(?:^|[\s-])(?:sokeri|taloussokeri|hienosokeri|kidesokeri|ruokosokeri|fariinisokeri|palasokeri|raesokeri|siro)(?=$|[\s\d-])/i.test(name);
+   if(!sugarName)return "actual_sugar_product_required";
+   if(category.includes("/")&&!/(?:^|\/)(?:sokerit|sokeri|sugars)(?:\/|$)/.test(category))return "sugar_category_required";
+   if(/(?:sokeriton|sokerittom|sokerimassa|sokerikuorr|sokeriströss|sokerikorist|sokeriherne|sokeriliem|sokeriruoko|sokeritouk|vähemmän soker|lisättyä soker|purukumi|salmiakki|lautanen|\bkulho\b|pyydys)/.test(name))return "actual_sugar_product_required";
+ }
  const spiceTerms=["suola","merisuola","maustepippuri","mustapippuri","valkopippuri","laakerinlehti","curry","juustokumina","kardemumma","kaneli","oregano","paprikajauhe"];
  if(spiceTerms.includes(term)&&(/liha|broileri|snack|sips|leip|keksi|riisikak|maissikak|suklaa|jaatel|jäätel|rasvalev|ranskanker|valmisruoka|juoma/.test(category)||/riisikak|maissikak|keksi|sips|chips|suklaa|pretzel|korppu|näkk|leipä|flatbread|levite|broiler|kanan|pähkin|oliivi|jäätel|ateria|keitto/.test(name)))return "spice_category_required";
  if(["sokeri","fariinisokeri","ruokosokeri","vaniljasokeri","tomusokeri"].includes(term)&&/liha|broileri|snack|sips|leip|keksi|riisikak|maissikak|suklaa|jaatel|jäätel|rasvalev|ranskanker|valmisruoka|juoma|jogur/.test(category))return "sugar_category_required";
  if(["suola","merisuola"].includes(term)){
-   if(category.includes("/")&&!/suola/.test(category))return "salt_category_required";
+   if(category.includes("/")&&!/(?:^|\/)(?:suola|suolat|merisuola|muu-suola)(?:\/|$)/.test(category))return "salt_category_required";
+   if(/chilillä|valkosipulilla|yrtti|maustettu|savustettu/.test(name)&&!/chili|valkosipuli|yrtti|maustettu|savu/.test(requirement))return "plain_salt_required";
    if(/riisikak|maissikak|keksi|sips|chips|lastu|snack|suklaa|pretzel|korppu|näkk|leip|flatbread|levite|oivariini|ingmariini|broiler|kanan|manteli|pähkin|oliivi|kinuski|jäätel|siemen|härkäpapu|mausteseos|grillimauste|merisuolavoi|b\+tter/.test(name))return "salt_product_required";
  }
  if(term==="tilli"){
