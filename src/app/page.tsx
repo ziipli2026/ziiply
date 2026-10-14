@@ -694,6 +694,8 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
+import ZiiplyMobileFuelView from "./components/ziiply/mobile/ZiiplyMobileFuelView";
 import DesktopFuelPhotoReport from "./components/ziiply/desktop/DesktopFuelPhotoReport";
 
 // PAGE_V442_MOBILE_LANDSCAPE_BLOCK_IGNORE_KEYBOARD_VISUAL_VIEWPORT
@@ -2139,6 +2141,7 @@ function KauppiasMobileTopBar({
   onWeatherBootGpsResolved,
   onWeatherBootGpsFailed,
   onOpenCalendar,
+  onShowFuel,
 }: {
   hidden?: boolean;
   areaLabel?: string;
@@ -2147,6 +2150,7 @@ function KauppiasMobileTopBar({
   onWeatherBootGpsResolved?: (coords: { latitude: number; longitude: number }) => void;
   onWeatherBootGpsFailed?: () => void;
   onOpenCalendar?: () => void;
+  onShowFuel?: () => void;
 }) {
   // V481_WEATHER_BOOT_GPS_SOURCE:
   // Sääkenttä saa tehdä avauksessa yhden GPS-haun. Onnistunut koordinaatti
@@ -2164,6 +2168,7 @@ function KauppiasMobileTopBar({
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
+  const [mobileFuelMenuOpen, setMobileFuelMenuOpen] = useState(false);
   const [mobileFuelReportOpen, setMobileFuelReportOpen] = useState(false);
   const [fuelValueV744, setFuelValueV744] = useState("—");
   const [fuelTextV744, setFuelTextV744] = useState("Ei hintaa");
@@ -2825,7 +2830,7 @@ function KauppiasMobileTopBar({
       unit: fuelValueV744 === "—" ? "" : "€/l",
       detail: fuelTextV744,
       graphic: <KauppiasFuelGraphic />,
-      onClick: () => setMobileFuelReportOpen(true),
+      onClick: () => setMobileFuelMenuOpen(true),
     },
     {
       id: "calendar" as const,
@@ -2921,6 +2926,13 @@ function KauppiasMobileTopBar({
         </div>
       </div>
     </div>
+      {mobileFuelMenuOpen && (
+        <ZiiplyMobileFuelMenu
+          onClose={() => setMobileFuelMenuOpen(false)}
+          onReport={() => {setMobileFuelMenuOpen(false); setMobileFuelReportOpen(true);}}
+          onShowPrices={() => {setMobileFuelMenuOpen(false); onShowFuel?.();}}
+        />
+      )}
       {mobileFuelReportOpen && <DesktopFuelPhotoReport onClose={() => setMobileFuelReportOpen(false)} />}
       {electricityChartOpen && (
         <div className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+96px)] z-[250] flex items-start justify-center overflow-y-auto bg-[#092e25]/60 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
@@ -3826,6 +3838,7 @@ export default function Page() {
       image.src = src;
     });
   }, []);
+  const [mobileFuelMode, setMobileFuelMode] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [inlineHakutapaNoticeVisibleV452, setInlineHakutapaNoticeVisibleV452] = useState(false);
   const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
@@ -22704,6 +22717,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             hidden={searchFullscreenOpenV621}
             areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
+            onShowFuel={() => { openShopsPanel(); setMobileFuelMode(true); setActiveAssistant(null); setNotebookOpen(false); }}
             weatherEnabled={true}
             onOpenCalendar={() => {
               try {
@@ -22875,6 +22889,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
           >
             <div className="relative z-10">
+              {mobileFuelMode ? <ZiiplyMobileFuelView coords={usingOwnLocation && gpsCoordsV320 ? {lat:gpsCoordsV320.latitude,lon:gpsCoordsV320.longitude} : getAreaCoordinateForGpsStorePoolV40(activeArea) ? {lat:getAreaCoordinateForGpsStorePoolV40(activeArea)!.latitude,lon:getAreaCoordinateForGpsStorePoolV40(activeArea)!.longitude} : null} onBack={() => setMobileFuelMode(false)} /> : <>
               <ZiiplyMobileStoreModeSelector
                 storeMode={storeMode}
                 storeModeChosen={storeModeChosenV299}
@@ -22890,10 +22905,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 onBetweenChainSelectionModeChange={handleBetweenChainSelectionModeChangeV749}
                 onWithinChainChange={handleWithinChainChange}
               />
-            </div>
-
             <div className="mt-[-6px]">
               {renderComparedStoreCards(true)}
+            </div>
+              </>}
             </div>
 
             {false && foundStores.length > 0 && (
@@ -24496,6 +24511,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           compareSelectionEnabled={compareSelectionEnabledV767}
           activeResult={activeResult}
           onShopsClick={() => {
+            if (mobileFuelMode) {setMobileFuelMode(false); setShopsPanelOpen(true); return;}
             gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
