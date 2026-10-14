@@ -14994,7 +14994,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ) &&
       Date.now() - physicalExistingScanV824.at < 10000
     );
-    if (isPhysicalExistingScanV824 && existingCartItemForEanV122) {
+    if (isPhysicalExistingScanV824 && existingCartItemForEanV122 && !(existingCartItemForEanV122.product as any)?.ziiplyWeightLabel) {
       const collectionKeyV816 = String(existingCartItemForEanV122.id ?? "");
       if (collectionKeyV816 && !checkedCartItems[collectionKeyV816]) {
         setCheckedCartItems((current) => ({ ...current, [collectionKeyV816]: true }));
@@ -15016,7 +15016,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V491: jos sama EAN on korissa vain OFF/unknown-fallbackina, älä lisää sitä heti +1.
     // Tee ensin uusi S-kaupat.fi exact EAN -tarkistus, jotta fallback-luuppi ei jää päälle.
-    if (existingCartItemForEanV122 && !existingIsFallbackOnlyV491) {
+    if (existingCartItemForEanV122 && !existingIsFallbackOnlyV491 && !(existingCartItemForEanV122.product as any)?.ziiplyWeightLabel) {
       const existingProductAnyV122 = existingCartItemForEanV122.product as any;
       const existingNameV122 = fixText(
         String(
@@ -16887,11 +16887,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const category = String(p.category || "").toLocaleLowerCase("fi");
     const unit = String(p.salesUnit || p.unit || p.priceUnit || p.unitOfMeasure || "").toLocaleLowerCase("fi");
     const comparisonUnit = String(p.comparisonPriceUnit || p.storeItems?.[0]?.comparisonPriceUnit || "").toLocaleLowerCase("fi");
-    const explicitLoose = /irtomyynti|irtotuote|irtopaino|punnittava|myydään painon mukaan|myydaan painon mukaan|myyntiyksikkö\\s*kg|myyntiyksikko\\s*kg/.test(name + " " + category);
+    const explicitLoose = /irtomyynti|irtotuote|irtopaino|punnittava|myydään painon mukaan|myydaan painon mukaan|myyntiyksikkö\s*kg|myyntiyksikko\s*kg/.test(name + " " + category);
     const produceCategory = /hedelm|vihann|kasvis|juure|hevi/.test(category);
-    const produceName = /(?:^|\\s)(?:banaani|tomaatti|kurkku|omena|päärynä|paaryna|appelsiini|mandariini|sitruuna|lime|avokado|paprika|sipuli|peruna|porkkana|kesäkurpitsa|kesakurpitsa|munakoiso|kiivi|nektariini|persikka|luumu|viinirypäle|inkivääri|inkivaari)(?:\\s|$)/.test(name);
-    const packaged = /\\b\\d+(?:[,.]\\d+)?\\s*(?:g|kg|ml|l|kpl|pkt|pss|rasia|pussi|pakkaus)\\b|\\b(?:rasia|pussi|pakattu|pakkaus|verkko|pikari|kpl|nippu)\\b/.test(name);
-    const byKg = /^(?:kg|kilogram|kilogramma)$/.test(unit) || /(?:^|\\W)kg(?:$|\\W)/.test(comparisonUnit);
+    const produceName = /(?:^|\s)(?:banaani|tomaatti|kurkku|omena|päärynä|paaryna|appelsiini|mandariini|sitruuna|lime|avokado|paprika|sipuli|peruna|porkkana|kesäkurpitsa|kesakurpitsa|munakoiso|kiivi|nektariini|persikka|luumu|viinirypäle|inkivääri|inkivaari)(?:\s|$)/.test(name);
+    const packaged = /\b\d+(?:[,.]\d+)?\s*(?:g|kg|ml|l|kpl|pkt|pss|rasia|pussi|pakkaus)\b|\b(?:rasia|pussi|pakattu|pakkaus|verkko|pikari|kpl|nippu)\b/.test(name);
+    const byKg = /^(?:kg|kilogram|kilogramma)$/.test(unit) || /(?:^|\W)kg(?:$|\W)/.test(comparisonUnit);
     return !packaged && (explicitLoose || (byKg && (produceCategory || produceName)));
   }
 
