@@ -56,6 +56,10 @@
     {
       "path": "/api/cron/offer-image-enrichment",
       "schedule": "25 */4 * * *"
+    },
+    {
+      "path": "/api/cron/kcitymarket-campaign-refresh",
+      "schedule": "35 4 * * *"
     }
   ]
 }
