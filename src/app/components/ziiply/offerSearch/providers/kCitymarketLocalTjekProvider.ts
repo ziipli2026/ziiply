@@ -78,10 +78,12 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   entry.progress.publicationIds = publications.map(p => String(p.id ?? "")).filter(Boolean);
   entry.progress.stage = publications.length ? "reading-pages" : "no-active-publications";
   const seen=new Set<string>();
-  for(const publication of publications.slice(0,5)){
+  const failedOfferIds=new Set<string>();
+  let completedPublications=0;
+  for(const publication of publications){
     const publicationId=String(publication.id??"");
     if(!publicationId)continue;
-    for(let page=1;page<=20;page++){
+    for(let page=1;page<=100;page++){
       const response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(publicationId)+"/"+page,{cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(12000)});
       if(!response.ok){if(page>1&&(response.status===400||response.status===404))break;throw new Error("Tjek publication HTTP "+response.status);}
       const payload=await response.json() as Row;
@@ -93,7 +95,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       freshIds.forEach(id=>seen.add(id));
       for(let offset=0;offset<freshIds.length;offset+=8){
       const fetched=await Promise.all(freshIds.slice(offset,offset+8).map(async id=>{
-        try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{return null;}
+        try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{failedOfferIds.add(id);return null;}
       }));
       for(const fetchedEntry of fetched){
         if(!fetchedEntry)continue;
@@ -126,7 +128,13 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();
       if(hotspots.length===0)break;
     }
+    completedPublications++;
   }
+  if(failedOfferIds.size){
+    entry.progress.error=`${failedOfferIds.size} Tjek offer detail requests failed`;
+    throw new Error(entry.progress.error);
+  }
+  if(completedPublications!==publications.length)throw new Error(`Only ${completedPublications}/${publications.length} Tjek publications read`);
   entry.progress.accepted = entry.rows.length;
 }
 
