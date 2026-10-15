@@ -95,6 +95,18 @@ export async function GET(req: Request) {
   } catch (error) {
     console.warn("[offer-image-enrichment] staged backfill skipped",error instanceof Error ? error.message : "unknown");
   }
+  // Existing embedded leaflet images take precedence over queue candidates.
+  // Clean up stale queue rows from older runs that only checked imageUrl.
+  await db`DELETE FROM ziiply_offer_image_queue q
+    USING ziiply_offer_publications p
+    WHERE q.chain=p.chain AND q.publication=p.publication_id
+      AND q.status='pending'
+      AND EXISTS (
+        SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
+        WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=q.product_id
+          AND (length(COALESCE(o.value->>'imageData',''))>100
+            OR length(COALESCE(o.value->>'imageUrl',''))>0)
+      )`;
   // Only exact EAN joins are permitted: fuzzy title searches must never auto-publish an image.
   const matches = await db`
     SELECT q.chain,q.publication,q.product_id AS "productId",q.ean,
