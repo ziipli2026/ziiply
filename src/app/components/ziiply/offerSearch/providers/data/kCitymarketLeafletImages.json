@@ -167,6 +167,46 @@
         "kcm:spatial:20:ketsuppi 1350 g:3.99": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#2b9225b4f3845e661429",
         "kcm:spatial:20:aakkoset 280–340 g (6,62–8,04/kg):4.5": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#d6ade151218056400e35"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html": {
+      "pdfSha256": "d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd",
+      "pageCount": 20,
+      "offerCount": 89,
+      "images": {
+        "kcm:spatial:1:nauta-viljapossu jauheliha 1000 g (7,99/kg):7.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#3c46fd9005f92c43cafa",
+        "kcm:spatial:1:arvid nordquist suodatin- kahvit 500 g:3.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#ac05a675bf4a8132660c",
+        "kcm:spatial:1:vihreä tai - tumma 2 rs rypäle 500 g italia/espanja/kreikka/brasilia:3": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#cdde3a0b5de4bbd893ff",
+        "kcm:spatial:1:wc-paperi:3.9": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#8eeeb37a249882d20ee2",
+        "kcm:spatial:2:50 ml tuotteet tasarahalla:7.5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#b37459df4ec719a2b385",
+        "kcm:spatial:2:pesujauheet 890 g ja -pyykinpesunesteet 750 ml ja pyykinpesunesteet 720 ml 4,71–5,56/l, 4,00–4,49/kg:8": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#908fb6a3f57bcd716888",
+        "kcm:spatial:2:wc-spray 435 ml ja:5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#376c2c361e49069711e0",
+        "kcm:spatial:2:villalanka 50 g:2.5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#87a2742a105373d1f1d8",
+        "kcm:spatial:4:l’oréal paris & men expert 15 ml silmänympärysvoiteet sekä 20 ja 30 ml seerumit:15.15": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#54539231ff66c5d878e1",
+        "kcm:spatial:4:cc-meikkivoide jättikoko 50 ml:12.9": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#a895991f4ee4ab56145a",
+        "kcm:spatial:5:suihkusaippuat 250 ml:2": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#0a31751b33ccf25969c2",
+        "kcm:spatial:5:nestesaippuat 750 ml t ä y t t ö:5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#eb9b941289f8b0a7068b",
+        "kcm:spatial:5:50–150 ml ja suihku- saippuat 400 ml 8,33–66,67/l:10": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#92b38cd86330052914a7",
+        "kcm:spatial:5:shampoot 300 ml:4": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#90f4b4b3168ee45263d7",
+        "kcm:spatial:5:vichy ja triple dry deodorantit ja anti- perspirantit 45–150 ml:percent:20": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#bdbc1860703f8037e418",
+        "kcm:spatial:6:wc-paperi 40 rl ja:40.2": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#a0aaf7854c9dae2153be",
+        "kcm:spatial:6:wc-geelit 750 ml:3.5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#e1245d67836fdaec4754",
+        "kcm:spatial:6:käsitiski3in1500ml tai max power 660 ml 6,80–8,98/l handdiskmedel 3in1 eller max power:4.49": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#7071029f4c40311a754b",
+        "kcm:spatial:13:pikkuavokado 500 g peru/kolumbia/marokko/espanja (7,98/kg):3.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#aeba96cfa5fefdf863fa",
+        "kcm:spatial:13:rouskuva ja tulinen 110–170 g:1.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#94f96d99b88917fa4a58",
+        "kcm:spatial:13:maustetut jogurtit 200 g:3": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#a2f4e5500d21942ed821",
+        "kcm:spatial:13:wienerleikkeet, lihapyörykät ja jauhelihapihvit 250–330 g (10,09–13,32/kg):10": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#670eb2fa94ce5117d679",
+        "kcm:spatial:13:kassler n. 2,3 kg:percent:53": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#8301c2214247c02c3305",
+        "kcm:spatial:13:maustetut tofut 230 g:5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#da5488289cf8cd5eeaf2",
+        "kcm:spatial:13:porsaan marinoitu rs fileesuikale 700 g:4.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#2aa57a25e5275f2aa94c",
+        "kcm:spatial:13:p o r o n paistikäristys 400 g pakaste:14.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#d37c891e8de98eadea33",
+        "kcm:spatial:14:isot kuorelliset katkaravut 70/90 500 g msc-sertifioitu, pakaste (13,90/kg):6.95": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#f15707c623d3327df6d3",
+        "kcm:spatial:14:maalaisnakit tai savusauna- palvirouhe 250–400 g (7,48–11,96/kg):2.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#c8839e34e27580f2c641",
+        "kcm:spatial:14:ohuen ohuet kokoliha- leikkeleet 120–150 g:5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#b64709fb2c43567d0b9a",
+        "kcm:spatial:14:paistetut lohi- pyörykät 900 g (7,77/kg):6.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#ed940813411db8a94030",
+        "kcm:spatial:14:kebab 250–280 g:3.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#8751a3ec3c21914d2787",
+        "kcm:spatial:14:kasvipohjainen savulauantai tai savukalgguna 120 g:1.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#879740fd56fcd9db779c",
+        "kcm:spatial:14:arkimeetvursti 400 g:4.99": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#ec222faca721554ee83b"
+      }
     }
   }
 }
