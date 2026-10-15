@@ -24639,7 +24639,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {!eanModalOpen && comparisonLoading && storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && (
-          <div className="pointer-events-none fixed left-3 right-3 top-[16.81rem] z-[10020] mx-auto max-w-md sm:hidden">
+          <div className="pointer-events-none fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 sm:hidden">
             <div className="rounded-2xl bg-emerald-600 px-3 py-2.5 text-center text-[0.78rem] leading-[1.35] font-bold text-white shadow-2xl">
               {(() => {
                 const selectedKey = (["s", "k", "lidl", "tokmanni"] as const).find(
@@ -24662,7 +24662,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeCompareScope === "between_chains" &&
           betweenChainSelectionModeV749 === "one"
         ) && (
-          <div className={`fixed left-3 right-3 top-[16.81rem] z-[10020] mx-auto max-w-md sm:hidden ${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "pointer-events-auto" : "pointer-events-none"}`}>
+          <div className={`fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 sm:hidden ${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "pointer-events-auto" : "pointer-events-none"}`}>
             <div className={`${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "" : "animate-[ziiplyFade_2.6s_ease-in-out]"} rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl`}>
               <div>{lastCartToast}</div>
               {lastCartToast.startsWith("Useamman tuotteen vertailu:") && (
