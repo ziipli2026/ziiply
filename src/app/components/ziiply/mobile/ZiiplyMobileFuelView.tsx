@@ -217,7 +217,10 @@ export default function ZiiplyMobileFuelView({
                       className="h-full w-full object-contain"
                     />
                   ) : (
-                    <span className="text-[8px] font-black">Gulf / Ritoil</span>
+                    <span className="flex h-full w-full items-center justify-center gap-px" aria-label="Gulf / Ritoil">
+                      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg" alt="Gulf" className="h-full w-1/2 object-contain" />
+                      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg" alt="Ritoil" className="h-full w-1/2 object-contain" />
+                    </span>
                   )}
                 </span>
                 <span
