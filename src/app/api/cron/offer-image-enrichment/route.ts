@@ -107,6 +107,15 @@ export async function GET(req: Request) {
           AND (length(COALESCE(o.value->>'imageData',''))>100
             OR length(COALESCE(o.value->>'imageUrl',''))>0)
       )`;
+  // Do not process orphan queue entries: without the corresponding staged
+  // publication there is nowhere to attach a verified image. Keep them pending
+  // until the publication is restored rather than falsely marking them ready.
+  const orphaned = await db`SELECT COUNT(*)::int AS count FROM ziiply_offer_image_queue q
+    WHERE q.status='pending' AND NOT EXISTS (
+      SELECT 1 FROM ziiply_offer_publications p
+      WHERE p.chain=q.chain AND p.publication_id=q.publication)`;
+  const orphanedCount = Number(orphaned[0]?.count ?? 0);
+  if (orphanedCount) console.warn("[offer-image-enrichment] orphan queue items awaiting publication",orphanedCount);
   // Only exact EAN joins are permitted: fuzzy title searches must never auto-publish an image.
   const matches = await db`
     SELECT q.chain,q.publication,q.product_id AS "productId",q.ean,
@@ -114,6 +123,7 @@ export async function GET(req: Request) {
     FROM ziiply_offer_image_queue q
     JOIN ziiply_ean_products p ON p.ean=q.ean
     WHERE q.status='pending' AND q.next_attempt_at<=now()
+      AND EXISTS (SELECT 1 FROM ziiply_offer_publications pub WHERE pub.chain=q.chain AND pub.publication_id=q.publication)
       AND length(q.ean) BETWEEN 8 AND 14 AND p.image_url LIKE 'https://%'
     ORDER BY q.next_attempt_at ASC LIMIT 100`;
   let enriched = 0;
@@ -140,7 +150,8 @@ export async function GET(req: Request) {
   // No-EAN offers: exact normalized title + a single image candidate only.
   // Do not guess from broad leaflet descriptions or multi-product offers.
   const noEan = await db`SELECT chain,publication,product_id,title
-    FROM ziiply_offer_image_queue WHERE status='pending'
+    FROM ziiply_offer_image_queue q WHERE status='pending'
+    AND EXISTS (SELECT 1 FROM ziiply_offer_publications pub WHERE pub.chain=q.chain AND pub.publication_id=q.publication)
     AND (ean IS NULL OR ean='') AND next_attempt_at<=now()
     ORDER BY next_attempt_at LIMIT 100`;
   let titleEnriched = 0, ambiguous = 0;
@@ -237,5 +248,5 @@ export async function GET(req: Request) {
   const ready = Number(stats.find(row => row.status === "ready")?.count ?? 0);
   await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready)
     VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready})`;
-  return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,stats});
+  return NextResponse.json({ok:true,runAt,discovered,orphanedCount,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,stats});
 }
