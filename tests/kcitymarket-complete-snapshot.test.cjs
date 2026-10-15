@@ -33,7 +33,9 @@ function load(base, options={}) {
   vm.runInNewContext(code,{exports,require:name=>name==='@neondatabase/serverless'?{neon:()=>sql}:{category:()=> 'Kuivatuotteet'},fetch,Buffer,AbortSignal,Date,console,process:{env:{DATABASE_URL:'postgresql://test'}}},{filename});
   return {api:exports,stats:()=>({saved,writes,requests}),date};
 }
-for(const base of [path.resolve(__dirname,'..'),path.resolve(__dirname,'../../ziiply')]) {
+const roots = [...new Set([path.resolve(__dirname,'..'),path.resolve(__dirname,'../../ziiply'),path.resolve(__dirname,'../../desktop')])]
+  .filter(base => fs.existsSync(path.join(base,'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts')));
+for(const base of roots) {
   test(path.basename(base)+': read missing snapshot fails without upstream collection',async()=>{
     const {api,stats}=load(base);await assert.rejects(api.fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää'));assert.equal(stats().requests,0);assert.equal(stats().writes,0);
   });
@@ -57,7 +59,7 @@ for(const base of [path.resolve(__dirname,'..'),path.resolve(__dirname,'../../zi
   });
 }
 
-test("desktop: failed offer detail cannot publish a partial scan",async()=>{
+test("ziiply: failed offer detail cannot publish a partial scan",async()=>{
   const {api,stats}=load(require('node:path').resolve(__dirname,'..'),{failDetail:true});
   await assert.rejects(api.refreshKCitymarketSelectedStoreSnapshot('K-Citymarket Hyvinkää'),/detail requests failed/);
   assert.equal(stats().writes,0);
