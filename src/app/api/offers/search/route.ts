@@ -62,6 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
+import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
 import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
@@ -938,12 +939,13 @@ export async function GET(request: Request) {
       return chain === "k" || chain.startsWith("k ");
     });
 
+    const neonEnrichedResults = await enrichOfferCategoriesFromNeon(results);
     return NextResponse.json(
       {
         ok: true,
         query: q,
         context,
-        results,
+        results: neonEnrichedResults,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
