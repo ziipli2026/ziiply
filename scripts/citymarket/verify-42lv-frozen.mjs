@@ -50,16 +50,16 @@ const quantityUnverified=[...now].filter(([k])=>old.has(k)&&old.get(k).quantity=
 const changed=[...now].filter(([k])=>old.has(k)).flatMap(([k,r])=>{const prev=Number(old.get(k).id.split(':').at(-1));const next=Number(r.spatialResolved?.value);return Math.abs(prev-next)>.011?[{page:r.page,title:r.title,previous:prev,next:Number.isFinite(next)?next:null}]:[]});
 // Publisher PDF cross-check: these are independent printed prices, NOT archive snapshot values.
 const printedChecks=[
-  {page:18,match:/^Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g$/i,price:5,quantity:4},
-  {page:18,match:/^PrimaCat KISSAN KUIVARUOAT 400 g$/i,price:10,quantity:3},
-  {page:6,match:/WC-PAPERI 40 rl ja/i,price:24.90,quantity:1},
+  {page:18,match:/^Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g$/i,price:5,quantity:4,unit:'kpl'},
+  {page:18,match:/^PrimaCat KISSAN KUIVARUOAT 400 g$/i,price:10,quantity:3,unit:'ps'},
+  {page:6,match:/WC-PAPERI 40 rl ja/i,price:24.90,quantity:1,unit:'setti'},
   {page:20,match:/8-pack/i,price:7.99},
   {page:20,match:/VICHY 0,33 l\/pl 24-pack/i,price:10.99},
   {page:20,match:/WOK-KASTIKKEET 120 g/i,price:1.00},
   {page:18,match:/VITAL HYVINVOINTIMEHUT 1 l/i,price:4.50,quantity:2},
   {page:15,match:/iKAFFE MAUSTAMATON KAURAJUOMA 1 l/i,price:9,quantity:6},
   {page:15,match:/LEMPI RUOKAKERMAT 3 dl/i,price:3,quantity:2},
-  {page:17,match:/VIHANNESSEKOITUKSET 300 g/i,price:5,quantity:3},
+  {page:17,match:/VIHANNESSEKOITUKSET 300 g/i,price:5,quantity:3,unit:'ps'},
   {page:17,match:/JÄÄTELÖPUIKOT 64–85 g/i,price:5,quantity:3},
   {page:19,match:/Pringles PERUNA LASTUT/i,price:5,quantity:3},
   {page:18,match:/^SMOOTHIET 120 g$/i,price:5.50,quantity:4},
@@ -68,22 +68,22 @@ const printedChecks=[
   {page:13,match:/^KASSLER n\. 2,3 kg$/i,price:6.99,quantity:1},
   {page:18,match:/^MÄRKÄRUOAT 70 g 420/i,price:4.20,quantity:4},
   {page:19,match:/^AAKKOSET 280–340 g$/i,price:4.50,quantity:2},
-  {page:15,match:/RASVATON MAITORAHKA ja/i,price:4,quantity:6},
-  {page:15,match:/PIRTELÖT 200 ml/i,price:2.50,quantity:2},
+  {page:15,match:/RASVATON MAITORAHKA ja/i,price:4,quantity:6,unit:'prk'},
+  {page:15,match:/PIRTELÖT 200 ml/i,price:2.50,quantity:2,unit:'kpl'},
   {page:19,match:/MAISSIKAKUT 130 g/i,price:4,quantity:2},
-  {page:19,match:/PASTA-\s*KASTIKKEET/i,price:5,quantity:2},
+  {page:19,match:/PASTA-\s*KASTIKKEET/i,price:5,quantity:2,unit:'prk'},
   {page:19,match:/TANGLE PASTA/i,price:5,quantity:3},
   {page:3,match:/TYÖKÄSINEET 235/i,price:6,quantity:1},
   {page:7,match:/NAHKAKÄSINEET/i,price:9,quantity:1},
   {page:15,match:/TÄYSMEHUT 900 ml/i,price:3.79,quantity:1},
-  {page:18,match:/TRIP MEHUT 2 dl 24-pack/i,price:10,quantity:1},
-  {page:19,match:/^VIRVOITUSJUOMA 0,33 l\/pl 24-pack$/i,price:13.99,quantity:1},
+  {page:18,match:/TRIP MEHUT 2 dl 24-pack/i,price:10,quantity:1,unit:'24-pack'},
+  {page:19,match:/^VIRVOITUSJUOMA 0,33 l\/pl 24-pack$/i,price:13.99,quantity:1,unit:'24-pack'},
   {page:19,match:/MAKU- ja TUMMASUKLAALEVYT 160–200 g/i,price:10,quantity:4},
 ];
 const printedMismatches=printedChecks.map(check=>{
  const matches=parsed.rows.filter(r=>r.page===check.page&&check.match.test(String(r.title||'')));
- return {page:check.page,pattern:String(check.match),expected:check.price,expectedQuantity:check.quantity||null,actual:matches.map(r=>({title:r.title,value:r.spatialResolved?.value,quantity:r.spatialResolved?.quantity,source:r.spatialResolved?.source}))};
-}).filter(r=>r.actual.length!==1||Math.abs(Number(r.actual[0].value)-r.expected)>.011||(r.expectedQuantity&&Number(r.actual[0].quantity)!==r.expectedQuantity));
+ return {page:check.page,pattern:String(check.match),expected:check.price,expectedQuantity:check.quantity||null,expectedUnit:check.unit||null,actual:matches.map(r=>({title:r.title,value:r.spatialResolved?.value,quantity:r.spatialResolved?.quantity,unit:r.spatialResolved?.unit,source:r.spatialResolved?.source}))};
+}).filter(r=>r.actual.length!==1||Math.abs(Number(r.actual[0].value)-r.expected)>.011||(r.expectedQuantity&&Number(r.actual[0].quantity)!==r.expectedQuantity)||(r.expectedUnit&&String(r.actual[0].unit||'').toLowerCase()!==r.expectedUnit));
 console.log('42LV independently printed PDF checks',JSON.stringify({checks:printedChecks.length,mismatches:printedMismatches}));
 if(printedMismatches.length)process.exitCode=1;
 const approvedPrintedCorrections=printedChecks.map(x=>x.page+'|'+String(x.match));
