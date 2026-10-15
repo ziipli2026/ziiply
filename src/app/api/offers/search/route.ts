@@ -62,8 +62,10 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
-import { enrichOfferImage, type OfferImageCandidate } from "../../../../lib/offerImageEnrichment";
-import { lookupKnownEanImages, lookupKnownNameImages } from "../../../../lib/offerImageEanLookup";
+import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
+import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
+import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
+import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
@@ -71,6 +73,7 @@ import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../componen
 import { fetchLidlPublicCampaignOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
 import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
 import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
+import { LIDL_NATIONAL_PUBLICATION_CHAIN } from "../../../components/ziiply/offerSearch/lidlPublicationConfig";
 import { fetchTokmanniOffers } from "../../../components/ziiply/offerSearch/providers/tokmanniProvider";
 import {
   searchZiiplyOffers,
@@ -490,11 +493,9 @@ function dedupe(items: UnknownRecord[]) {
     const publicationId = String((item.debug as UnknownRecord | undefined)?.publicationId ?? "").trim();
     const sourceOfferId = String(item.offerId ?? "").trim();
     const nationalLeafletId = String(item.source ?? "") === "K-Citymarket tarjouslehti" && String(item.id ?? "").startsWith("kcm:spatial:") ? String(item.id) : "";
-    const localPublicationKey = item.provider === "kcitymarket-local" && publicationId && sourceOfferId
-      ? ["kcm-local", item.storeId, publicationId, sourceOfferId].join("|") : "";
-    const key = localPublicationKey || (nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
+    const key = nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
       ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
-      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|"));
+      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
     // The provider has already deduplicated Tjek rows by their source identity.
     // Never collapse its regional and local leaflet rows in this cross-provider pass.
     if (String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId) {
@@ -591,7 +592,7 @@ export async function GET(request: Request) {
         day: "2-digit",
       }).format(new Date());
       const fetched = storeName ? await fetchEurosparOffers(storeName, now) : [];
-      const results = (fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer));
+      const results = await enrichOfferCategoriesFromNeon((fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer)));
       return NextResponse.json(
         { ok: true, query: q, provider: "eurospar", storeName, results },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
@@ -601,16 +602,40 @@ export async function GET(request: Request) {
     if (provider === "lidl") {
       const storeKey = getParam(searchParams, "lidlStoreKey") || "";
       const storeName = getParam(searchParams, "lidlStoreName") || "Lidl";
-      const fetched = storeKey ? await fetchLidlOffers(storeKey, storeName) : [];
+      let fetched: UnknownRecord[] = [];
+      let structuredFeedError = "";
+      if (storeKey) {
+        try {
+          fetched = await fetchLidlOffers(storeKey, storeName) as UnknownRecord[];
+        } catch (error) {
+          // Lidl may reject Next/Vercel server fetches even while the same official
+          // endpoint is healthy from an ordinary client. Never turn a known national
+          // verified leaflet into an empty/500 Gösta view because of that transport failure.
+          structuredFeedError = error instanceof Error ? error.message : String(error);
+          console.warn("[Ziiply offers] Lidl structured feed unavailable; using verified national/public fallback", structuredFeedError);
+        }
+      }
       const todayFi = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
       const enriched = addVerifiedLidlWeek40Leaflet(fetched as Record<string, any>[], storeKey, storeName, todayFi);
       // FI0218 is the first deep-tested publication-staging store. Stored rows combine
       // the Lidl Plus feed with the official Lidl.fi public leaflet/category source.
       // If staging is unavailable, foreground structured + verified manual fallback still works.
+      // The staged publication is parsed from Lidl's national leaflet.
+      // FI0218 is only the publication-storage/pilot identity (Hyvinkää), not
+      // an availability restriction. Every selected Finnish Lidl must consume
+      // the same active national publication; store identity is rebound below.
       let staged: UnknownRecord[] = [];
-      if (storeKey === "FI0218") {
-        try { staged = await readActivePublicationOffers<UnknownRecord>("LIDL:FI0218"); }
-        catch (error) { console.warn("[Ziiply offers] Lidl staged publication unavailable", error); }
+      try {
+        const nationalStaged = await readActivePublicationOffers<UnknownRecord>(LIDL_NATIONAL_PUBLICATION_CHAIN);
+        staged = nationalStaged.map((offer) => ({
+          ...offer,
+          storeKey,
+          storeName,
+          storeLabel: storeName,
+          shopName: storeName,
+        }));
+      } catch (error) {
+        console.warn("[Ziiply offers] Lidl staged national publication unavailable", error);
       }
       // Fill manual verified-leaflet rows from the staged official Lidl.fi image when
       // product identity is strong: same normalized product key + same price + overlapping validity.
@@ -784,12 +809,13 @@ export async function GET(request: Request) {
       // while real groceries must be classified into a concrete grocery category.
       const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
         .filter((offer) => normalizeText(offer.category) !== "muut");
-      const results = lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer));
+      const results = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
           lidlSourceAudit: {
             structuredAndManual: enriched.length,
+            structuredFeedError: structuredFeedError || null,
             staged: staged.length,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
@@ -809,8 +835,9 @@ export async function GET(request: Request) {
       const results = (fetched as unknown as UnknownRecord[])
         .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName, availabilityScope: "chain-wide-online-offer", storeAvailabilityVerified: false }))
         .filter((offer) => offerMatchesQuery(q, offer));
+      const enrichedResults = await enrichOfferCategoriesFromNeon(results);
       return NextResponse.json(
-        { ok: true, query: q, provider: "tokmanni", storeName, results },
+        { ok: true, query: q, provider: "tokmanni", storeName, results: enrichedResults },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
@@ -873,11 +900,20 @@ export async function GET(request: Request) {
       try {
         const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
         if (selectedCitymarket) {
-          const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
+          // Keep the national leaflet responsive even if the optional Tjek store feed stalls.
+          // The store-specific campaigns may be omitted for this request after 8s;
+          // they are never allowed to block the entire mobile offer search.
+          const localOffers = await Promise.race([
+            fetchKCitymarketSelectedStoreOffers(selectedCitymarket),
+            new Promise<Awaited<ReturnType<typeof fetchKCitymarketSelectedStoreOffers>>>((resolve) =>
+              setTimeout(() => resolve([]), 1200)),
+          ]);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
-          // Store publications are independent sources. Equal names, EANs or
-          // prices in the national leaflet must not suppress their offers.
-          const uniqueLocalCampaigns = matchingLocalOffers;
+          // The reviewed national leaflet is the Tarjoukset master. Local/store
+          // publications are Kampanjat, but an exact product+price copy must not
+          // appear in both tabs.
+          const nationalLeafletOffers = citymarketResults.filter(offer => offer.campaignType !== "campaign");
+          const uniqueLocalCampaigns = removeCampaignCopiesOfLeaflet(nationalLeafletOffers, matchingLocalOffers);
           citymarketLocalCount = uniqueLocalCampaigns.length;
           citymarketLocalStoreId = uniqueLocalCampaigns.length ? String(uniqueLocalCampaigns[0].storeId ?? "") || null : null;
           citymarketResults.push(...uniqueLocalCampaigns);
@@ -889,7 +925,10 @@ export async function GET(request: Request) {
 
     let sMarketResults: UnknownRecord[] = [];
     try {
-      sMarketResults = await fetchSelectedSMarketETarjousOffers(q, rawSStoreName);
+      // Never fetch S-market publications for a Citymarket-only selection.
+      if (splitMultiValue(rawSStoreName).length > 0) {
+        sMarketResults = await fetchSelectedSMarketETarjousOffers(q, rawSStoreName);
+      }
     } catch (error) {
       console.warn("[Ziiply offers V14] eTarjouslehdet S-market fetch failed", error);
       sMarketResults = [];
@@ -913,109 +952,23 @@ export async function GET(request: Request) {
       return chain === "k" || chain.startsWith("k ");
     });
 
-    // Preview-only image enrichment experiment. Source parser and prices stay untouched.
-    // Reuse only independently verified matching images already in this response.
-    const imageBank: OfferImageCandidate[] = results.filter(row => row.imageUrl).map(row => ({
-      ean: typeof row.ean === "string" ? row.ean : null,
-      productCode: typeof row.productCode === "string" ? row.productCode : null,
-      name: String(row.title || row.name || ""),
-      brand: typeof row.brand === "string" ? row.brand : null,
-      packageSize: typeof row.packageSize === "string" ? row.packageSize : null,
-      imageUrl: String(row.imageUrl),
-      source: String(row.source || ""),
-    }));
-    let imageEnrichedCount = 0;
-    let eanLookupCount = 0;
-    let eanLookupMatches = 0;
-    let eanLookupErrors = 0;
-    let noEanCount = 0;
-    let localImageMatches = 0;
-    let nameLookupCount = 0;
-    let nameLookupMatches = 0;
-    let nameLookupErrors = 0;
-    const unresolvedImageSamples: Array<{ title: string; reason: string }> = [];
-    const previewResults = [...results];
-    const missingBeforeEnrichment = results.filter(row => !row.imageUrl).length;
-    const imageLookupLimit = 50;
-    const imageLookupAttempted = process.env.VERCEL_ENV === "preview" ? Math.min(missingBeforeEnrichment, imageLookupLimit) : 0;
-    const imageLookupSkipped = missingBeforeEnrichment - imageLookupAttempted;
-    if (process.env.VERCEL_ENV === "preview") {
-      // Bounded read-only lookups; never block or change the source parser.
-      // Unknown/ambiguous offers remain without an image.
-      const pending = results.map((row, index) => ({ row, index })).filter(({ row }) => !row.imageUrl);
-      const matched = await Promise.all(pending.slice(0, imageLookupLimit).map(async ({ row, index }) => {
-        const original = row.__sourceOfferSearchResult as UnknownRecord | undefined;
-        const offer: OfferImageCandidate = {
-          ean: String(row.ean || original?.ean || ""),
-          productCode: String(row.productCode || original?.productCode || ""),
-          name: String(row.title || row.name || ""),
-          brand: String(row.brand || original?.brand || ""),
-          packageSize: String(row.packageSize || original?.packageSize || ""),
-          source: String(row.source || original?.source || ""),
-          imageUrl: "",
-        };
-        let enriched = enrichOfferImage(offer, imageBank);
-        if (enriched.imageUrl) localImageMatches++;
-        if (!/^\\d{8,14}$/.test(String(offer.ean))) noEanCount++;
-        if (!enriched.imageUrl && /^\\d{8,14}$/.test(String(offer.ean))) {
-          eanLookupCount++;
-          try {
-            const candidates = await lookupKnownEanImages({ chain: "citymarket", offerId: String(row.id || index), offer });
-            enriched = enrichOfferImage(offer, candidates);
-            if (enriched.imageUrl) eanLookupMatches++;
-          } catch {
-            eanLookupErrors++;
-          }
-        }
-        if (!enriched.imageUrl && !/^\\d{8,14}$/.test(String(offer.ean))) {
-          nameLookupCount++;
-          try {
-            const candidates = await lookupKnownNameImages(offer);
-            enriched = enrichOfferImage(offer, candidates);
-            if (enriched.imageUrl) nameLookupMatches++;
-          } catch {
-            nameLookupErrors++;
-          }
-        }
-        if (!enriched.imageUrl && unresolvedImageSamples.length < 30) {
-          unresolvedImageSamples.push({ title: String(offer.name || "").slice(0, 120), reason: offer.ean ? "no-verified-image" : "missing-ean-and-no-verified-local-match" });
-        }
-        return { index, imageUrl: enriched.imageUrl };
-      }));
-      for (const { index, imageUrl } of matched) {
-        if (!imageUrl) continue;
-        imageEnrichedCount++;
-        previewResults[index] = { ...results[index], imageUrl, image: imageUrl, pictureUrl: imageUrl };
-      }
+    // The approved Citymarket snapshot already contains display-ready offers.
+    // Never delay the user response for optional category/image services or queues.
+    const imageEnrichedResults = isKCitymarketV19 && !baseResults.length && !sMarketResults.length
+      ? results
+      : await enrichOfferImagesBestEffort(
+          await enrichOfferCategoriesFromNeon(results) as unknown as Record<string, unknown>[]
+        );
+    if (!isKCitymarketV19) {
+      void queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
+        console.warn("[Ziiply offers] optional image queue failed", error));
     }
-    const imageEnrichmentAudit = {
-      beforeMissing: missingBeforeEnrichment,
-      imageLookupLimit,
-      imageLookupAttempted,
-      imageLookupSkipped,
-      auditComplete: imageLookupSkipped === 0 && process.env.VERCEL_ENV === "preview",
-      afterMissing: previewResults.filter(row => !row.imageUrl).length,
-      enriched: imageEnrichedCount,
-      candidateImages: imageBank.length,
-      eanLookupCount,
-      eanLookupMatches,
-      eanLookupErrors,
-      noEanCount,
-      localImageMatches,
-      nameLookupCount,
-      nameLookupMatches,
-      nameLookupErrors,
-      unresolvedImageSamples,
-      mode: "preview-readonly-ean-exact-name-and-verified-local-matches",
-    };
-
     return NextResponse.json(
       {
         ok: true,
         query: q,
         context,
-        imageEnrichmentAudit,
-        results: previewResults,
+        results: imageEnrichedResults,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
