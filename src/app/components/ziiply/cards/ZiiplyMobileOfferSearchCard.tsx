@@ -1282,6 +1282,14 @@ export default function ZiiplyMobileOfferSearchCard({
 
           </div>
 
+          {selectedOfferChainV39 && (loading || (selectedOfferChainV39 === "K" && kruokaDebug?.localTjekDebug?.running)) ? (
+            <div role="status" aria-live="polite" className="mx-auto mt-1 px-2 text-center text-[0.7rem] font-bold text-[#66512d]">
+              <span className="inline-block animate-pulse" aria-hidden="true">◌ </span>
+              {loading ? "Haetaan tarjouksia ja kampanjoita…" : "Haetaan lisää kampanjoita…"}
+              <span className="block text-[0.61rem] font-medium">Jo löytyneitä tuotteita voi selata samalla.</span>
+            </div>
+          ) : null}
+
           {selectedOfferChainV39 && selectedStoreNameV41 ? (
             <div className="relative z-10 -mt-[0.02rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
               <div className="whitespace-nowrap text-[clamp(0.84rem,4vw,1.02rem)] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
