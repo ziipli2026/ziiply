@@ -3,7 +3,7 @@ import { clean42AVPrintedTitle } from "./kCitymarket42AVTitleCleanup.js";
 import { unstable_cache } from "next/cache";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
-import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
+import { getKCitymarketPublisherImage, auditKCitymarketPublisherImages } from "./kCitymarketPublisherImages";
 
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V14
@@ -768,6 +768,21 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
 
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
+  // Track exact publication-image coverage before optional catalogue/Tjek
+  // enrichment. This exposes extraction gaps on each fresh leaflet.
+  const publicationAudit=auditKCitymarketPublisherImages(
+    dated[0]?.sourceUrl??"",
+    dated.filter(offer=>offer.sourceUrl===(dated[0]?.sourceUrl??""))
+      .map(offer=>offer.id),
+  );
+  console.info("[K-Citymarket] publisher image coverage",{
+    publication:active.key,
+    known:publicationAudit.publicationKnown,
+    total:publicationAudit.total,
+    matched:publicationAudit.matched,
+    missing:publicationAudit.missing.length,
+    missingExamples:publicationAudit.missing.slice(0,8),
+  });
   const publisherImages=dated.map(offer=>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id) ||
       (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null);
