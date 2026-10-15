@@ -96,6 +96,13 @@ const unitRateCoverage=priced.reduce((acc,row)=>{
  else acc.notComparable.push({page:row.page,title:row.title});
  return acc;
 },{comparable:0,notComparable:[]});
+// Flag rows that still carry a product-like title but have no euro price.
+// These require original-page review; a percent badge is not a price.
+const unpricedReview=parsed.rows.filter(row=>!(Number(row.spatialResolved?.value)>0)).map(row=>({
+ page:row.page,title:row.title,percent:row.percentageOffer?.percent??null,
+ candidatePrices:(row.spatialCandidates||[]).slice(0,4).map(x=>({value:x.value,quantity:x.quantity??null,kind:x.kind??null}))
+}));
+console.log('42LV unpriced review queue',JSON.stringify({count:unpricedReview.length,rows:unpricedReview}));
 console.log('42LV unit-rate audit coverage',JSON.stringify({pricedOffers:priced.length,comparable:unitRateCoverage.comparable,notComparableCount:unitRateCoverage.notComparable.length,notComparable:unitRateCoverage.notComparable}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
 if(parsed.rows.length!==96||priced.length!==88||baseline.rows.length!==89||percentageOnly.length!==1||parsed.pageCount!==20||added.some(r=>!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title)))||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||unexpectedChanged.length>0)process.exitCode=1;
