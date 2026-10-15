@@ -9114,8 +9114,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
 
     // Tjek leaflet rows are separate offers even when regional and local titles/prices match.
-    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
-      return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || item?.campaignType || "offer")}`;
+    if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
+      return `tjek:${String(source.storeId || source.debug?.tjekStoreId || "")}:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || item?.campaignType || "offer")}`;
     }
 
     if (ean) return `ean:${ean}`;
@@ -9149,7 +9149,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const key = getGostaPageDedupeKeyV544(item);
 
       // Preserve publication-specific Tjek offers before EAN/root fallback dedupe.
-      if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+      if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
         if (seen.has(key)) continue;
         seen.add(key);
         unique.push(item);
