@@ -472,12 +472,10 @@ export default function ZiiplyMobileScannerCard({
           )}
 
           {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
-            <div role="status" className="pointer-events-none absolute left-1/2 top-[18%] z-[45] w-[min(88%,320px)] -translate-x-1/2 rounded-xl bg-[#fff5d9]/95 px-3 py-2 text-center text-sm font-black text-[#163d32] shadow-lg">
-              mahdollinen alennustarra-ota kuva
-              <div aria-hidden="true" className="absolute left-1/2 top-full flex -translate-x-1/2 flex-col items-center text-[#fff5d9] [text-shadow:0_2px_3px_rgba(0,0,0,0.9)]">
-                <span className="text-[32px] leading-none">↓</span>
-                <span className="text-[32px] leading-none">↓</span>
-              </div>
+            <div role="status" className="pointer-events-none absolute inset-x-2 bottom-2 z-[45] flex flex-col items-center justify-end text-center">
+              <span className="text-[15px] font-black leading-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,1),0_0_8px_rgba(0,0,0,0.95)]">
+                mahdollinen alennustarra-ota kuva
+              </span>
             </div>
           )}
 
@@ -552,6 +550,17 @@ export default function ZiiplyMobileScannerCard({
           )}
         </div>
       </main>
+
+      {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
+        <div aria-hidden="true" className="pointer-events-none absolute bottom-[calc(env(safe-area-inset-bottom)+91px)] left-1/2 z-[55] -translate-x-1/2">
+          <svg width="54" height="70" viewBox="0 0 54 70" fill="none" className="drop-shadow-[0_3px_3px_rgba(0,0,0,0.85)]">
+            <path d="M27 4 C27 23 27 34 27 53" stroke="#113c30" strokeWidth="10" strokeLinecap="round"/>
+            <path d="M27 4 C27 23 27 34 27 53" stroke="#ffe29b" strokeWidth="6" strokeLinecap="round"/>
+            <path d="M9 40 L27 60 L45 40" stroke="#113c30" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 40 L27 60 L45 40" stroke="#ffe29b" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      )}
 
       {/* Alatoiminnot */}
       <footer className="relative z-10 grid shrink-0 grid-cols-[1fr_82px_1fr] items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2">
