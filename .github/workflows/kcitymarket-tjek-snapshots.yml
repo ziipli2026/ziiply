@@ -2,7 +2,7 @@ name: Complete Citymarket Tjek snapshots
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, fix/citymarket-complete-snapshots]
     paths:
       - '.github/workflows/kcitymarket-tjek-snapshots.yml'
       - 'scripts/refresh-citymarket-tjek.cjs'
@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: 22
       - run: npm install --ignore-scripts --package-lock=false --no-audit --no-fund
+      - run: node --test tests/kcitymarket-complete-snapshot.test.cjs
       - run: node scripts/refresh-citymarket-tjek.cjs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
