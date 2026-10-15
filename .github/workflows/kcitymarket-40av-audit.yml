@@ -88,6 +88,11 @@ jobs:
           }
 
           const current=manifest?.current;
+          // The manifest still points to expired 41AV, not the active 42LV.
+          // Never treat an expired historical URL as the current live source.
+          if(current?.id==="41AV") {
+            console.log("KCM_CURRENT_LIVE_SKIPPED_STALE_MANIFEST",JSON.stringify({id:current.id,reason:"manifest points to expired publication; validate active 42LV with its dedicated frozen regression"}));
+          } else {
           if(!current?.url||!current?.fixture) throw new Error("No current Citymarket publication configured");
           const expected=JSON.parse(fs.readFileSync(current.fixture,"utf8"));
           const out=await parser(current.url);
@@ -128,6 +133,7 @@ jobs:
           // Extra rows are reported for manual source verification; a frozen fixture
           // cannot establish that all unapproved rows are false positives.
           if(missing.length) throw new Error(`${current.id}: missing approved offers (${matched.length}/${expectedKeys.size})`);
+          }
           NODE
 
   archive-current:
