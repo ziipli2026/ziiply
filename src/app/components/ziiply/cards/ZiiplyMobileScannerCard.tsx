@@ -473,7 +473,11 @@ export default function ZiiplyMobileScannerCard({
 
           {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
             <div role="status" className="pointer-events-none absolute left-1/2 top-[18%] z-[45] w-[min(88%,320px)] -translate-x-1/2 rounded-xl bg-[#fff5d9]/95 px-3 py-2 text-center text-sm font-black text-[#163d32] shadow-lg">
-              Alennustarra mahdollinen – ota kuva painamalla kameran kuvaa 📷
+              mahdollinen alennustarra-ota kuva
+              <div aria-hidden="true" className="absolute left-1/2 top-full flex -translate-x-1/2 flex-col items-center text-[#fff5d9] [text-shadow:0_2px_3px_rgba(0,0,0,0.9)]">
+                <span className="text-[32px] leading-none">↓</span>
+                <span className="text-[32px] leading-none">↓</span>
+              </div>
             </div>
           )}
 
