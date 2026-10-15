@@ -55,14 +55,7 @@ export default function ZiiplyMobileFuelView({
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
   const [stationSide, setStationSide] = useState<"traffic" | "both" | "cold">("both");
-  const [mode, setMode] = useState<"hyper" | "local">("hyper"),
-    [scope, setScope] = useState<"between_chains" | "within_chain">(
-      "between_chains",
-    ),
-    [many, setMany] = useState<"one" | "many">("one");
-  const [selected, setSelected] = useState<string[]>([]),
-    [overrides, setOverrides] = useState<Record<string, string>>({}),
-    [picker, setPicker] = useState<string | null>(null);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -88,117 +81,49 @@ export default function ZiiplyMobileFuelView({
       });
     return () => controller.abort();
   }, [coords?.lat, coords?.lon]);
+  // Match desktop: select chain groups and show the nearest eligible station.
   const filtered = useMemo(
-    () => stations.filter((s) => stationSide === "both" || s.isTrafficStation === (stationSide === "traffic")),
+    () => stations
+      .filter((s) => stationSide === "both"
+        ? [s.diesel, s.price95, s.price98].some((value) => value != null && Number.isFinite(Number(value)) && Number(value) > 0)
+        : s.isTrafficStation === (stationSide === "traffic"))
+      .sort((a, b) => a.distanceKm - b.distanceKm),
     [stations, stationSide],
   );
-  function select(id: string) {
-    setSelected((old) => {
-      if (scope === "within_chain") {
-        const previous = stations.find((s) => s.id === old[0]);
-        const next = stations.find((s) => s.id === id);
-        if (previous && next && group(previous) !== group(next)) return [id];
-        return old.includes(id) ? old.filter((x) => x !== id) : [...old, id];
-      }
-      return many === "one"
-        ? [id]
-        : old.includes(id)
-          ? old.filter((x) => x !== id)
-          : [...old, id];
-    });
+  function toggleGroup(key: string) {
+    setSelectedGroups((previous) => previous.includes(key)
+      ? previous.filter((item) => item !== key)
+      : [...previous, key]);
   }
-  const activeGroup = selected.length
-    ? group(
-        stations.find((s) => s.id === selected[0]) ??
-          filtered[0] ??
-          ({ chain: "", name: "" } as Station),
-      )
-    : null;
-  useEffect(() => {
-    if (!picker) return;
-    const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        setPicker(null);
-      }
-    };
-    window.addEventListener("keydown", close, true);
-    return () => window.removeEventListener("keydown", close, true);
-  }, [picker]);
-  const cards =
-    scope === "within_chain" && activeGroup
-      ? filtered
-          .filter((s) => group(s) === activeGroup)
-          .slice(0, 6)
-          .map((s, index) => ({
-            ...groups.find((g) => g.key === activeGroup)!,
-            slot: `${activeGroup}:${index}`,
-            fallback: s,
-          }))
-      : groups.map((g) => ({
-          ...g,
-          slot: g.key,
-          fallback: undefined as Station | undefined,
-        }));
-  const pickerGroup = cards.find((g) => g.slot === picker)?.key;
-  const candidates = pickerGroup
-    ? filtered.filter((s) => group(s) === pickerGroup)
-    : [];
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 pb-2">
       <ZiiplyMobileStoreModeSelector
         fuelMode
         fuelStationSide={stationSide}
-        onFuelStationSideChange={(side) => { setStationSide(side); setSelected([]); setPicker(null); }}
-        storeMode={mode}
+        onFuelStationSideChange={setStationSide}
+        storeMode={stationSide === "cold" ? "local" : "hyper"}
         storeModeChosen
-        storeCompareScope={scope}
+        storeCompareScope="between_chains"
         withinChain={null}
-        selectedRealChainCount={selected.length}
-        betweenChainSelectionMode={many}
-        onStoreModeChange={(m) => {
-          setMode(m);
-          setStationSide(m === "hyper" ? "traffic" : "cold");
-          setSelected([]);
-          setPicker(null);
-        }}
-        onStoreCompareScopeChange={(s) => {
-          if (s !== "none") {
-            setScope(s);
-            setSelected([]);
-          }
-        }}
-        onBetweenChainSelectionModeChange={(m) => {
-          setMany(m);
-          if (m === "one") setSelected((old) => old.slice(0, 1));
-        }}
+        selectedRealChainCount={selectedGroups.length}
+        betweenChainSelectionMode="many"
+        onStoreModeChange={(mode) => setStationSide(mode === "hyper" ? "traffic" : "cold")}
+        onStoreCompareScopeChange={() => {}}
       />
       <div
         className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-3 px-1"
         aria-label="Polttoaineasemat"
       >
-        {cards.map((g) => {
-          const list = filtered.filter((s) => group(s) === g.key);
-          const station =
-            list.find((s) => s.id === overrides[g.slot]) ??
-            g.fallback ??
-            list[0];
-          const chosen = !!station && selected.includes(station.id);
-          const muted =
-            scope === "within_chain" &&
-            activeGroup !== null &&
-            activeGroup !== g.key;
+        {groups.map((g) => {
+          const station = filtered.find((s) => group(s) === g.key);
+          const chosen = selectedGroups.includes(g.key);
           return (
             <article
-              key={g.slot}
-              className={`relative h-full min-h-0 min-w-0 overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pt-1 text-center shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] ${g.key === "Gulf / Ritoil / Muu" ? "col-span-2 w-[calc(50%-6px)] justify-self-center" : ""} ${chosen ? "border-[#5c7858] bg-gradient-to-b from-[#fffbe7] to-[#d8dfb5]" : "border-[#d9c18e] bg-gradient-to-b from-[#fffaf0] to-[#f4e9c7]"} ${muted ? "opacity-60" : ""}`}
+              key={g.key}
+              className={`relative h-full min-h-0 min-w-0 overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pt-1 text-center shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] ${g.key === "Gulf / Ritoil / Muu" ? "col-span-2 w-[calc(50%-6px)] justify-self-center" : ""} ${chosen ? "border-[#5c7858] bg-gradient-to-b from-[#fffbe7] to-[#d8dfb5]" : "border-[#d9c18e] bg-gradient-to-b from-[#fffaf0] to-[#f4e9c7]"}`}
             >
               <FuelStationBackdrop chain={g.key === "Gulf / Ritoil / Muu" ? "Muut" : g.key as "Neste" | "ABC" | "St1" | "SEO"} />
-              <button
-                onClick={() => setPicker(g.slot)}
-                
-                aria-label={`${g.key}: ${station?.name ?? "Valitse asema"}`}
+              <div
                 className="relative grid h-full w-full grid-rows-[minmax(0,1fr)_14px_24px] gap-y-0.5 pb-1 text-center"
               >
                 <span className="absolute left-0 top-0 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[#fffef9] p-px">
@@ -215,12 +140,16 @@ export default function ZiiplyMobileFuelView({
                     </span>
                   )}
                 </span>
-                <span
-                  className={`absolute right-0 top-0 flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[11px] ${chosen ? "border-[#536d4f] bg-[#648060] text-white" : "border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(g.key)}
+                  aria-label={`Valitse ${g.key}`}
+                  aria-pressed={chosen}
+                  className={`absolute -right-1 -top-1 z-20 flex h-[28px] w-[28px] items-center justify-center rounded-full border text-[13px] font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${chosen ? "border-[#536d4f] bg-[#648060] text-white" : "border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
                 >
                   ✓
-                </span>
-                <span className="col-start-1 row-start-1 flex min-h-0 items-center justify-center overflow-hidden pl-[32px] pr-[19px] text-[clamp(10px,2.8vw,13px)] font-black leading-[1.1] text-[#050505]">
+                </button>
+                <span className="col-start-1 row-start-1 flex min-h-0 items-center justify-center overflow-hidden pl-[32px] pr-[26px] text-[clamp(10px,2.8vw,13px)] font-black leading-[1.1] text-[#050505]">
                   <span className="line-clamp-2 break-words">
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                   </span>
@@ -232,7 +161,7 @@ export default function ZiiplyMobileFuelView({
                       : "Sijainti puuttuu"
                     : "–"}
                 </span>
-              </button>
+              </div>
               <div className="pointer-events-none absolute inset-x-1 bottom-1 z-10 grid grid-cols-3 items-end gap-0.5 rounded bg-[#fff9e6]/85 text-center font-black leading-[1.05] text-[#213224]">
                 <span className="min-w-0"><span className="block text-[10px]">D</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.diesel ?? null)}</span></span>
                 <span className="min-w-0"><span className="block text-[10px]">95 E</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.price95 ?? null)}</span></span>
@@ -252,73 +181,6 @@ export default function ZiiplyMobileFuelView({
         <p role="alert" className="mt-2 text-xs text-red-800">
           {error}
         </p>
-      )}
-      {scope === "within_chain" && activeGroup && (
-        <button
-          onClick={() => {
-            setSelected([]);
-            setPicker(null);
-          }}
-          className="mr-2 mt-2 rounded-full border border-[#c7a763] bg-[#fff8df] px-3 py-1 text-xs font-bold text-[#17573c]"
-        >
-          Vaihda ketjua
-        </button>
-      )}
-      {picker && (
-        <div
-          className="fixed inset-0 z-[260] flex items-center justify-center bg-[#092e25]/60 p-4"
-          onClick={() => setPicker(null)}
-        >
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${pickerGroup} asemat`}
-            className="max-h-[75dvh] w-full max-w-[420px] overflow-y-auto rounded-3xl border-[3px] border-[#17573c] bg-[#fff4cf] p-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <header className="sticky top-0 flex items-center justify-between bg-[#fff4cf] pb-2">
-              <h2 className="font-black">{pickerGroup} — vaihda asemaa</h2>
-              <button
-                aria-label="Sulje asemavalinta"
-                onClick={() => setPicker(null)}
-                className="h-10 w-10 text-xl"
-              >
-                ×
-              </button>
-            </header>
-            {candidates.map((s) => (
-              <button
-                key={s.id}
-                className="mb-2 block w-full rounded-xl border border-[#c7a763] bg-[#fff8df] p-3 text-left text-sm"
-                onClick={() => {
-                  setOverrides((old) => ({ ...old, [picker]: s.id }));
-                  select(s.id);
-                  setPicker(null);
-                }}
-              >
-                <strong>{s.name}</strong>
-                <span className="block text-xs">
-                  {s.address}
-                  {coords
-                    ? ` · ${s.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
-                    : ""}
-                </span>
-                <span className="block text-xs">
-                  Diesel {price(s.diesel)} · 95 {price(s.price95)} · 98{" "}
-                  {price(s.price98)} €/l
-                </span>
-                <span className="block text-[10px]">
-                  {[s.observedDiesel, s.observed95, s.observed98]
-                    .filter(Boolean)
-                    .sort()
-                    .at(-1)
-                    ? `Havainto ${new Date([s.observedDiesel, s.observed95, s.observed98].filter(Boolean).sort().at(-1)!).toLocaleString("fi-FI")}`
-                    : "Havaintoaikaa ei saatavilla"}
-                </span>
-              </button>
-            ))}
-          </section>
-        </div>
       )}
     </div>
   );
