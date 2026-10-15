@@ -87,6 +87,19 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   // A missing durable snapshot must not be substituted with unfinished data.
   return saved ?? (entry && !entry.running && entry.progress.stage === "complete" ? [...entry.rows] : []);
 }
+export async function refreshKCitymarketCampaignCache(storeName: string) {
+  const key = normalize(storeName);
+  const entry = {rows: [] as Row[], progress: {stage: "starting", storeName,
+    storeId: null as string | null, publicationIds: [] as string[], pages: 0,
+    offerIds: 0, accepted: 0, error: null as string | null,
+    updatedAt: new Date().toISOString()}};
+  await readKCitymarketSelectedStoreOffers(storeName, entry);
+  if (entry.progress.stage !== "reading-pages" && entry.progress.stage !== "no-active-publications") {
+    throw new Error("Tjek scan incomplete: " + entry.progress.stage);
+  }
+  await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
+  return {count: entry.rows.length, pages: entry.progress.pages};
+}
 async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; progress: LocalProgress }): Promise<void> {
   const wanted=normalize(selectedStoreName);
   if (!wanted.includes("citymarket") || wanted.length < 13) { entry.progress.stage = "invalid-store-name"; return; }
