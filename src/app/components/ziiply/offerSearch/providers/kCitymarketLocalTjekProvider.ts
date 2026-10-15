@@ -29,6 +29,7 @@ async function tjek(name: string, params: Row): Promise<unknown> {
 type LocalProgress = { stage: string; storeName: string; storeId: string | null; publicationIds: string[]; pages: number; offerIds: number; accepted: number; error: string | null; updatedAt: string };
 const localCache = new Map<string, { rows: Row[]; startedAt: number; finishedAt: number; running: boolean; progress: LocalProgress; promise?: Promise<void> }>();
 const LOCAL_TTL = 15 * 60_000;
+const FAILED_RETRY_TTL = 60 * 60_000;
 export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalProgress & { running: boolean; cachedRows: number } {
   const entry = localCache.get(normalize(selectedStoreName));
   return entry ? { ...entry.progress, publicationIds: [...entry.progress.publicationIds], running: entry.running, cachedRows: entry.rows.length } :
@@ -62,7 +63,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   const saved = await readPublishedSnapshot(key);
   // A complete published weekly snapshot is the mobile/desktop read path.
   if (saved) return saved;
-  if (!entry || (!entry.running && now - entry.finishedAt > LOCAL_TTL)) {
+  if (!entry || (!entry.running && now - entry.finishedAt > (entry.progress.stage === "failed" ? FAILED_RETRY_TTL : LOCAL_TTL))) {
     entry = { rows: [], startedAt: now, finishedAt: 0, running: true,
       progress: { stage: "starting", storeName: selectedStoreName, storeId: null, publicationIds: [], pages: 0, offerIds: 0, accepted: 0, error: null, updatedAt: new Date().toISOString() } };
     localCache.set(key, entry);
