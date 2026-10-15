@@ -113,6 +113,32 @@ export default function ZiiplyMobileStoreModeSelector({
     setHakutapaNoticeVisible(shouldShowHakutapaNotice);
   }, [shouldShowHakutapaNotice]);
 
+  if (fuelMode) {
+    return (
+      <section aria-label="Asematyypin valinta" className="relative mx-auto w-full max-w-[390px] shrink-0 rounded-[1.5rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-2 py-1.5 text-[#213224]">
+        <div className="grid grid-cols-[minmax(0,1fr)_48px_minmax(0,1fr)] items-center gap-2">
+          <button type="button" aria-pressed={hyperActive} onClick={() => onFuelStationSideChange?.("traffic")} className={`${buttonClass(hyperActive)} !min-h-[38px] !px-1 !py-1 !text-[11px]`}>
+            Liikenneasemat
+          </button>
+          <div className="flex flex-col items-center gap-0.5">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[14px] w-[16px]" fill="none" stroke="#a32c28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 21V4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v17M2 21h15M15 10h2a2 2 0 0 1 2 2v5a2 2 0 0 0 4 0V8l-4-4" />
+              <path d="M7 5h5v5H7zM20 5v4h3" />
+            </svg>
+            <button type="button" aria-label={`Asematyyppi: ${fuelStationSide === "traffic" ? "Liikenneasemat" : fuelStationSide === "cold" ? "Kylmäasemat ja muut" : "Kaikki asemat"}. Vaihda asematyyppiä.`} onClick={() => onFuelStationSideChange?.(fuelStationSide === "traffic" ? "cold" : fuelStationSide === "cold" ? "both" : "traffic")} className="relative h-[20px] w-[44px] rounded-full border border-[#b99b62] bg-[#d8c69d]">
+              <span aria-hidden="true" className={`absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow-sm transition-[left] ${fuelStationSide === "traffic" ? "left-[2px]" : fuelStationSide === "both" ? "left-[14px]" : "left-[26px]"}`} />
+            </button>
+            <span aria-hidden="true" className="text-[14px] font-black leading-[12px] text-[#1a2740]">{fuelStationSide === "traffic" ? "←" : fuelStationSide === "cold" ? "→" : "↔"}</span>
+          </div>
+          <button type="button" aria-pressed={localActive} onClick={() => onFuelStationSideChange?.("cold")} className={`${buttonClass(localActive)} !min-h-[38px] !px-1 !py-1 !text-[11px]`}>
+            Kylmäasemat / muut
+          </button>
+        </div>
+        <div className="mt-1 text-center text-[10px] font-black uppercase leading-[12px] tracking-[0.12em] text-[#66543a]">Hakutapa</div>
+      </section>
+    );
+  }
+
   return (
     <section className={`relative mx-auto w-full max-w-[390px] overflow-hidden ${fuelMode ? "shrink-0 !px-2 !pt-2 !pb-2" : ""} rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2 pt-1.5 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]`}>
       <style>{`
