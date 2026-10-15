@@ -128,7 +128,7 @@ export async function GET(req: Request) {
     const words = normalize(v).split(" ");
     const hasMultipleOfferOptions = ["tai","ja","sekä","eri","valikoima","lajitelma"].some(word => words.includes(word));
     // A slash in package notation such as "2 kpl/140 g" is not a multi-product offer.
-    const packageSlash = /\\b\\d+\\s*kpl\\s*\\/\\s*\\d+\\s*(?:g|kg|ml|l)\\b/i.test(v);
+    const packageSlash = /\b\d+\s*kpl\s*\/\s*\d+\s*(?:g|kg|ml|l)\b/i.test(v);
     const otherSlash = v.includes("/") && !packageSlash;
     return hasMultipleOfferOptions || otherSlash;
   };
