@@ -632,40 +632,41 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (kStoreNamesV162.length > 0) params.set("kStoreName", kStoreNamesV162.join("||"));
   params.set("_", `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-  // A stalled upstream leaflet parser must never leave the mobile spinner running
-  // indefinitely. Abort the entire request, not just the optional local feed.
-  const response = await fetch(`/api/offers/search?${params.toString()}`, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(20000),
-  });
-
-  const clonedForDebugV174 = response.clone();
-  try {
-    const payloadV174 = await clonedForDebugV174.json();
-    const deployV184 =
-      payloadV174 && typeof payloadV174 === "object" && payloadV174.deploy
-        ? { ...payloadV174.deploy }
-        : undefined;
-    lastZiiplyKruokaDebugV174 =
-      payloadV174 && typeof payloadV174 === "object"
-        ? {
-            ...(payloadV174.kruokaDebug ? { ...payloadV174.kruokaDebug } : {}),
-            ...(deployV184 ? { deploy: deployV184 } : {}),
-            ...(payloadV174.sEvidenceRouteV228 ? { sEvidenceRouteV228: payloadV174.sEvidenceRouteV228 } : {}),
-            ...(payloadV174.kOfferStageAuditV1 ? { kOfferStageAuditV1: payloadV174.kOfferStageAuditV1 } : {}),
-          }
-        : null;
-    if (contextKey) {
-      ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
+  // Do not release partial Tjek campaign results to either UI. Keep the
+  // existing loading view until the selected-store publication scan completes.
+  const isCitymarket = kStoreNamesV162.some(name => /citymarket/i.test(name));
+  const deadline = Date.now() + 180_000;
+  while (true) {
+    const response = await fetch(`/api/offers/search?${params.toString()}`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(20000),
+    });
+    const clonedForDebugV174 = response.clone();
+    let payloadV174: any = null;
+    try { payloadV174 = await clonedForDebugV174.json(); } catch {}
+    const deployV184 = payloadV174?.deploy ? { ...payloadV174.deploy } : undefined;
+    lastZiiplyKruokaDebugV174 = payloadV174 && typeof payloadV174 === "object"
+      ? {
+          ...(payloadV174.kruokaDebug ? { ...payloadV174.kruokaDebug } : {}),
+          ...(deployV184 ? { deploy: deployV184 } : {}),
+          ...(payloadV174.sEvidenceRouteV228 ? { sEvidenceRouteV228: payloadV174.sEvidenceRouteV228 } : {}),
+          ...(payloadV174.kOfferStageAuditV1 ? { kOfferStageAuditV1: payloadV174.kOfferStageAuditV1 } : {}),
+        }
+      : null;
+    if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
+    if (!response.ok || payloadV174?.ok === false) return parseOfferSearchResponse(response);
+    const tjek = payloadV174?.kruokaDebug?.localTjekDebug;
+    if (!isCitymarket || !tjek || tjek.stage === "complete" && !tjek.running) {
+      return parseOfferSearchResponse(response);
     }
-  } catch {
-    lastZiiplyKruokaDebugV174 = null;
-    if (contextKey) {
-      ziiplyKruokaDebugByContextV183.set(contextKey, null);
+    if (tjek.stage === "failed" || tjek.error && !tjek.running) {
+      throw new Error("K-Citymarketin kampanjahaku epäonnistui: " + String(tjek.error ?? tjek.stage));
     }
+    if (Date.now() >= deadline) {
+      throw new Error("K-Citymarketin kampanjahaku ei valmistunut määräajassa.");
+    }
+    await new Promise<void>(resolve => setTimeout(resolve, 1500));
   }
-
-  return parseOfferSearchResponse(response);
 }
 
 async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152) {
