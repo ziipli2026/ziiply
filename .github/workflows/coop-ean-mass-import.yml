@@ -16,7 +16,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
+      - name: Install standalone Neon dependency
+        run: npm install --no-save --package-lock=false --ignore-scripts --prefix /tmp/coop-import @neondatabase/serverless@1.2.0
       - name: Import missing Coop EANs
         run: node scripts/import-coop-eans.mjs
         env:
