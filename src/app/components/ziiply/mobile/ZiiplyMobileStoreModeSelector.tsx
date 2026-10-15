@@ -114,7 +114,7 @@ export default function ZiiplyMobileStoreModeSelector({
   }, [shouldShowHakutapaNotice]);
 
   return (
-    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2 pt-1.5 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
+    <section className={`relative mx-auto w-full max-w-[390px] overflow-hidden ${fuelMode ? "shrink-0" : ""} rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2 pt-1.5 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
       <style>{`
         @keyframes ziiplyNoticePop {
           0% {
@@ -170,11 +170,11 @@ export default function ZiiplyMobileStoreModeSelector({
       {fuelMode && (
         <div className="relative z-20 mt-1 flex items-center justify-center gap-3">
           <span className="text-[12px] font-black uppercase tracking-[0.12em] text-[#66543a]">Hakutapa</span>
-          <div className="relative flex h-[32px] w-[78px] items-center rounded-full border-2 border-[#b99b62] bg-[#d8c69d] shadow-sm" role="group" aria-label="Asematyyppi">
+          <div className="relative flex h-[30px] w-[72px] touch-none items-center rounded-full border-2 border-[#b99b62] bg-[#d8c69d] shadow-sm" role="group" aria-label="Asematyyppi" onPointerUp={(event) => { const rect = event.currentTarget.getBoundingClientRect(); const fraction = (event.clientX - rect.left) / rect.width; onFuelStationSideChange?.(fraction < 1 / 3 ? "traffic" : fraction < 2 / 3 ? "both" : "cold"); }}>
             {(["traffic", "both", "cold"] as const).map((side, index) => (
               <button key={side} type="button" aria-label={side === "traffic" ? "Liikenneasemat" : side === "both" ? "Kaikki asemat" : "Kylmäasemat ja muut"} aria-pressed={fuelStationSide === side} onClick={() => onFuelStationSideChange?.(side)} className="relative z-10 h-full flex-1" />
             ))}
-            <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[22px] w-[22px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[26px]" : "left-[49px]"}`} />
+            <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[20px] w-[20px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[24px]" : "left-[45px]"}`} />
           </div>
         </div>
       )}
