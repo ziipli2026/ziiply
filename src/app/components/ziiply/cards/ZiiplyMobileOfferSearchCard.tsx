@@ -890,7 +890,7 @@ export default function ZiiplyMobileOfferSearchCard({
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
   const showLandingView = !shownQuery && !shownFilter;
-  const waitingForCompleteResults = loading || Boolean(kruokaDebug?.localTjekDebug?.running);
+  const waitingForCompleteResults = loading;
   const visibleItems = waitingForCompleteResults || showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
