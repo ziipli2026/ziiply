@@ -187,7 +187,7 @@ console.log("V836 confirmed scanner-session delayed result regression: PASS");
 
 // V837: while a physical camera lookup owns the scanner, later frame decodes
 // are ignored as potential camera misreads rather than queued as a second product.
-const finishScanV837 = source.split("async function finishScannedEan")[1]?.split("function focusBluetoothBarcodeInputKeyDownV202")[0];
+const finishScanV837 = source.split("async function finishScannedEan")[1]?.split("function focusBluetoothBarcodeInputV202")[0];
 assert.ok(finishScanV837, "physical scanner finish handler exists");
 assert.match(finishScanV837, /eanSearchInFlightRef\.current \|\| eanLookupPendingRefV120\.current\.size > 0/);
 assert.match(finishScanV837, /IGNORE concurrent camera decode/);
