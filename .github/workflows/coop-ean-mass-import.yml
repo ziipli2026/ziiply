@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - '.github/workflows/coop-ean-mass-import.yml'
+      - 'scripts/import-coop-eans.mjs'
   workflow_dispatch:
     inputs:
       store_ids:
