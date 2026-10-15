@@ -718,10 +718,10 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       const offerSize=size(offer.packageSize)||size(offer.title);
       const candidates=direct.length?direct:(byProductName.get(nameOnly(imageIdentity(offer.title)))||[]).filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
       const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()];
-      // Different EANs may point to the same verified product photo.
-      // Reject conflicting photos, not duplicate catalogue identifiers.
-      const uniqueImages=[...new Set(matches.map(row=>String(row.image_url??"")).filter(url=>/^https:\/\//i.test(url)))];
-      if(!matches.length || uniqueImages.length!==1){
+      // A shared image is safe to reuse, but multiple EANs must not be
+      // presented as a verified product barcode.
+      const uniqueImages=[...new Set(matches.map(row=>String(row.image_url??"")))];
+      if(!matches.length || uniqueImages.length!==1 || !/^https:\/\//i.test(uniqueImages[0])){
         if(matches.length>1)stats.ambiguous++;else stats.missing++;
         return offer;
       }
@@ -732,7 +732,7 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       const imageUrl=String(row.image_url??"");
       if(!/^\d{8,14}$/.test(ean)||!/^https:\/\//i.test(imageUrl)){stats.invalidImage++;return offer;}
       stats.matched++;
-      return {...offer,ean,imageUrl};
+      return {...offer,...(matches.length===1?{ean}:{}),imageUrl};
     });
     console.info("[K-Citymarket] national image enrichment",stats);
     return enriched;
