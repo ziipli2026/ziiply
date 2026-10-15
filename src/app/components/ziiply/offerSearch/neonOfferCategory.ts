@@ -90,6 +90,12 @@ function inferExistingCategoryFromName(name: string): string | null {
     { terms: ["mehujuoma", "kerta-annosmehu"], category: "juomat/mehut/kerta-annosmehut" },
     { terms: ["mausteseos", "spice mix"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
     { terms: ["käsiastianpesuaine", "kasiastianpesuaine", "astianpesuaine"], category: "kodinhoito-ja-taloustarvikkeet/astianpesu/kasiastianpesuaineet" },
+    { terms: ["makeissekoitus", "makesissekoitus"], category: "karkit-suklaat-ja-keksit/karkkipussit/hedelma-ja-makeissekoituspussit" },
+    { terms: ["taco sauce", "tacokastike"], category: "mausteet-ja-maustaminen/majoneesit-maustekastikkeet-ja-tahnat/majoneesit-maustekastikkeet-ja-tahnat" },
+    { terms: ["spice mix"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
+    { terms: ["nacho chips"], category: "texmex-ja-maailman-makuja/maissilastut-ja-nachot/maustamattomat-lastut" },
+    { terms: ["granola"], category: "kuivat-elintarvikkeet-ja-leivonta/murot-ja-myslit/myslit" },
+    { terms: ["minuuttipihvi maustamaton"], category: "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat" },
     { terms: ["talouspaperi"], category: "kodinhoito-ja-taloustarvikkeet/kodin-paperit/talouspaperit" },
   ];
   for (const rule of rules) {
