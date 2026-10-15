@@ -1,5 +1,8 @@
 name: Coop EAN mass import
 on:
+  push:
+    paths:
+      - '.github/workflows/coop-ean-mass-import.yml'
   workflow_dispatch:
     inputs:
       store_ids:
