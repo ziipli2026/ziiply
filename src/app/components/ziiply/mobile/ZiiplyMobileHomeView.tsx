@@ -14,7 +14,7 @@ export default function ZiiplyMobileHomeView({
   onSelectAssistant,
 }: Props) {
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
-  const [contentScale, setContentScale] = useState(1);
+  const [availableHeight, setAvailableHeight] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,43 +58,37 @@ export default function ZiiplyMobileHomeView({
   useEffect(() => {
     const content = contentRef.current;
     if (!content) return;
-
     let frame = 0;
-    const fitContent = () => {
+    const measure = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const nav = document.querySelector<HTMLElement>('nav[aria-label="Ziiply päävalikko"]');
-        if (!nav) return;
-        // Measure the real gap above the fixed bottom navigation. A CSS transform
-        // scales the landing content without enabling scrolling or changing nav.
-        const available = nav.getBoundingClientRect().top - content.getBoundingClientRect().top - 12;
-        const naturalHeight = content.scrollHeight;
-        if (available <= 0 || naturalHeight <= 0) return;
-        const nextScale = Math.min(1, Math.max(0.5, available / naturalHeight));
-        setContentScale((previous) => Math.abs(previous - nextScale) > 0.005 ? nextScale : previous);
+        const top = content.getBoundingClientRect().top;
+        const bottom = nav?.getBoundingClientRect().top ?? (window.visualViewport?.height ?? window.innerHeight);
+        const next = Math.max(180, Math.floor(bottom - top - 10));
+        setAvailableHeight((old) => old === next ? old : next);
       });
     };
-
-    const observer = new ResizeObserver(fitContent);
-    observer.observe(content);
-    window.addEventListener("resize", fitContent);
-    window.addEventListener("pageshow", fitContent);
-    window.visualViewport?.addEventListener("resize", fitContent);
-    fitContent();
+    const observer = new ResizeObserver(measure);
+    observer.observe(document.body);
+    window.addEventListener("resize", measure);
+    window.addEventListener("pageshow", measure);
+    window.visualViewport?.addEventListener("resize", measure);
+    measure();
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
-      window.removeEventListener("resize", fitContent);
-      window.removeEventListener("pageshow", fitContent);
-      window.visualViewport?.removeEventListener("resize", fitContent);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("pageshow", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
     };
   }, [viewportHeight]);
 
   return (
     <div
-      className="relative isolate sm:hidden -mx-4 px-4 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+104px)] overflow-hidden"
+      className="relative isolate sm:hidden -mx-4 px-4 pt-2 overflow-hidden"
       style={{
-        minHeight: viewportHeight ? `${viewportHeight}px` : "100dvh",
+        height: viewportHeight ? `${viewportHeight}px` : "100dvh",
         boxSizing: "border-box",
         // V3: 70 % rauhallinen salvianvihreä, 20 % lämmin paperi, 10 % vanha kauppakirja.
         // Sävy pidetty lämpimänä, mutta ei liian antiikkisena eikä startup-turkoosina.
@@ -121,40 +115,40 @@ export default function ZiiplyMobileHomeView({
         }}
       />
 
-      <div ref={contentRef} style={{ transform: `scale(${contentScale})`, transformOrigin: "top center" }}>
+      <div ref={contentRef} className="flex min-h-0 flex-col justify-between gap-2" style={{ height: availableHeight ? `${availableHeight}px` : "min(58dvh, 480px)" }}>
       <section
         className="flex flex-col items-center text-center"
         style={{
-          minHeight: "min(18dvh, 150px)",
+          minHeight: 0,
           justifyContent: "flex-start",
-          paddingTop: "0.25vh",
+          paddingTop: 0,
         }}
       >
-        <div className="mb-2 flex h-[94px] w-[94px] shrink-0 items-center justify-center">
+        <div className="mb-1 flex h-[clamp(42px,10dvh,94px)] w-[clamp(42px,10dvh,94px)] shrink-0 items-center justify-center">
           <img
             src="/ziiplylogo_mobile.png"
             alt="Ziiply"
             width={94}
             height={94}
             draggable={false}
-            className="block h-[94px] w-[94px] select-none object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]"
+            className="block h-full w-full select-none object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]"
             onError={(event) => {
               event.currentTarget.style.visibility = "hidden";
             }}
           />
         </div>
 
-        <h1 className="max-w-[318px] text-[30px] font-black leading-[1.02] tracking-[-0.045em] text-[#050b2b] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
+        <h1 className="max-w-[318px] text-[clamp(19px,3.7dvh,30px)] font-black leading-[1.02] tracking-[-0.045em] text-[#050b2b] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
           Viilaa ruokakorisi huokeammaks
         </h1>
 
-        <p className="mt-2 mb-2 max-w-[330px] text-[16px] font-black leading-[1.18] tracking-[-0.02em] text-[#686d5c] drop-shadow-[0_1px_0_rgba(255,255,255,0.48)]">
+        <p className="mt-1 mb-1 max-w-[330px] text-[clamp(11px,2dvh,16px)] font-black leading-[1.18] tracking-[-0.02em] text-[#686d5c] drop-shadow-[0_1px_0_rgba(255,255,255,0.48)]">
           Gösta, Justiina ja Arvo auttavat arjen valinnoissa
         </p>
       </section>
 
-      <section className="mt-0 rounded-[2rem] bg-[#f8f5ed]/94 px-4 pb-4 pt-3 shadow-[0_24px_54px_rgba(34,54,43,0.16)] ring-1 ring-[#fffaf0]/95 backdrop-blur-[2px]">
-        <div className="grid grid-cols-3 gap-3">
+      <section className="mt-0 shrink-0 rounded-[2rem] bg-[#f8f5ed]/94 px-2 pb-2 pt-2 shadow-[0_24px_54px_rgba(34,54,43,0.16)] ring-1 ring-[#fffaf0]/95 backdrop-blur-[2px]">
+        <div className="grid grid-cols-3 gap-2">
           <ZiiplyMobileAssistantButton
             assistant="gosta"
             name="Gösta"
