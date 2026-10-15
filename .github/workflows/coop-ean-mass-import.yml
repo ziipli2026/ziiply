@@ -1,0 +1,24 @@
+name: Coop EAN mass import
+on:
+  workflow_dispatch:
+    inputs:
+      store_ids:
+        description: 'S-kaupat store IDs, comma separated'
+        required: false
+        default: '603217266,634976534,685839110'
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Import missing Coop EANs
+        run: node scripts/import-coop-eans.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          COOP_STORE_IDS: ${{ inputs.store_ids }}
