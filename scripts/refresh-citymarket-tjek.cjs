@@ -12,8 +12,22 @@ function compile(module, filename) {
 require.extensions['.ts'] = compile;
 const project = path.resolve(__dirname, '..');
 require.extensions['.js'] = (module, filename) => filename.startsWith(project + '/src/') ? compile(module, filename) : originalJs(module, filename);
+// The repository's shared Actions secret selects aseappi_registry. The existing
+// Coop importer uses the Ziiply neondb database on this same endpoint as well.
+if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL missing');
+const targetUrl = new URL(process.env.DATABASE_URL);
+targetUrl.pathname = '/neondb';
+process.env.DATABASE_URL = targetUrl.toString();
 const provider = require('../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts');
 (async () => {
+  const sql = require('@neondatabase/serverless').neon(process.env.DATABASE_URL);
+  const checks = await sql`SELECT current_database() AS database_name,
+    to_regclass('public.ziiply_ean_products') AS ean_table,
+    to_regclass('public.ziiply_kcitymarket_tjek_snapshots') AS snapshot_table`;
+  console.log(JSON.stringify({databaseHost:targetUrl.hostname,...checks[0]}));
+  if (!checks[0]?.ean_table || !checks[0]?.snapshot_table) {
+    throw new Error('Ziiply database preflight failed; no collection or writes attempted');
+  }
   for (const store of process.argv.slice(2).length ? process.argv.slice(2) : ['K-Citymarket Hyvinkää']) {
     console.log(JSON.stringify({store,stage:'starting'}));
     const timer = setInterval(() => console.log(JSON.stringify(provider.getKCitymarketLocalTjekDebug(store))), 15000);
