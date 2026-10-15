@@ -1246,14 +1246,6 @@ export default function ZiiplyMobileOfferSearchCard({
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
-        {selectedOfferChainV39 && waitingForCompleteResults ? (
-          <div role="status" aria-live="polite" className="absolute inset-0 z-[90] flex flex-col items-center justify-center gap-3 bg-[#fff4d4] px-6 text-center text-[#66512d]">
-            <span className="animate-pulse text-3xl" aria-hidden="true">◌</span>
-            <span className="text-lg font-black">Haetaan tarjouksia ja kampanjoita…</span>
-            <span className="text-sm font-semibold">Tulokset avautuvat vasta, kun koko haku on valmis.</span>
-          </div>
-        ) : null}
-
         {debugOpenV52 ? (
           <div className="absolute inset-2 z-[9999] flex flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-[#2b1a0e] bg-[#fff8dc] shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-[#9a7a3d] bg-[#f1d99a] px-3 py-2">
@@ -1382,7 +1374,15 @@ export default function ZiiplyMobileOfferSearchCard({
         </header>
 
         <main className="relative z-10 min-h-0 flex flex-1 flex-col overflow-hidden px-5 pb-[0.75rem] pt-[0.18rem]">
-          {!selectedOfferChainV39 ? (
+          {selectedOfferChainV39 && waitingForCompleteResults ? (
+            <div role="status" aria-live="polite" className="mt-1 flex min-h-0 flex-1 flex-col items-center justify-center gap-5 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+              <div className="relative flex h-16 w-16 items-center justify-center" aria-hidden="true">
+                <span className="absolute inset-0 animate-spin rounded-full border-[5px] border-[#d9c69a] border-t-[#17572f]" />
+                <span className="text-3xl">🛒</span>
+              </div>
+              <span className="text-xl font-black text-[#28402a]" style={{ fontFamily: cooperFont }}>Haetaan tarjouksia…</span>
+            </div>
+          ) : !selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 Valitse kaupparyhmä
