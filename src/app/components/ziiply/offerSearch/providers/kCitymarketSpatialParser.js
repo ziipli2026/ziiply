@@ -36,6 +36,9 @@ export async function parseKCitymarketSpatialLeaflet(entry){
   {page:18,title:/^SMOOTHIET 120 g$/i,value:5.50,quantity:4,unit:'kpl'},
   {page:18,title:/VIHREÄT TEET 20–25 ps/i,value:3.99,quantity:1,unit:'pkt'},
   {page:18,title:/PURULUUT 160–180 g/i,value:7.00,quantity:2,unit:'ps'},
+  {page:13,title:/^KASSLER n\. 2,3 kg$/i,value:6.99,quantity:1,unit:'kg'},
+  {page:18,title:/^MÄRKÄRUOAT 70 g 420/i,value:4.20,quantity:4,unit:'kpl'},
+  {page:19,title:/^AAKKOSET 280–340 g$/i,value:4.50,quantity:2,unit:'ps'},
   {page:19,title:/MAKU- ja TUMMASUKLAALEVYT 160–200 g/i,value:10.00,quantity:4,unit:'kpl'},
  ];
  // Preserve explicitly approved historical parsers above. Apply evidence-only
@@ -43,7 +46,7 @@ export async function parseKCitymarketSpatialLeaflet(entry){
  return {...current,rows:current.rows.map(row=>{
   const repaired=repairPublisherTransaction(row);
   const printed=verified42LV&&printed42LV.find(x=>x.page===row.page&&x.title.test(String(row.title||'')));
-  return printed?{...repaired,spatialResolved:{value:printed.value,quantity:printed.quantity,unit:printed.unit,source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},debugReplacedConflictingPrice:repaired.spatialResolved}:repaired;
+  return printed?{...repaired,percentageOffer:null,spatialResolved:{value:printed.value,quantity:printed.quantity,unit:printed.unit,source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},debugReplacedConflictingPrice:repaired.spatialResolved}:repaired;
  })};
 }
 export default parseKCitymarketSpatialLeaflet;
