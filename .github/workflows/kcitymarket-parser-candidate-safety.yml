@@ -91,6 +91,10 @@ jobs:
           node scripts/citymarket/verify-42lv-frozen.mjs /tmp/kcm-frozen/publications/42LV
       - name: Prepare read-only image discovery tasks
         run: node scripts/citymarket/prepare-image-lookups.mjs artifacts/citymarket-images/42lv-missing-images-lookup-only.json artifacts/citymarket-images/42lv-image-discovery-plan.json
+      - name: Validate empty image candidate review
+        run: |
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('artifacts/citymarket-images/42lv-image-discovery-plan.json'));fs.writeFileSync('/tmp/kcm-empty-candidates.json',JSON.stringify({schemaVersion:1,pdfSha256:p.pdfSha256,publication:p.publication,items:[]}))"
+          node scripts/citymarket/review-image-candidates.mjs artifacts/citymarket-images/42lv-image-discovery-plan.json /tmp/kcm-empty-candidates.json artifacts/citymarket-images/42lv-image-candidate-review.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -99,4 +103,5 @@ jobs:
             artifacts/citymarket-images/42lv-missing-images.json
             artifacts/citymarket-images/42lv-missing-images-lookup-only.json
             artifacts/citymarket-images/42lv-image-discovery-plan.json
+            artifacts/citymarket-images/42lv-image-candidate-review.json
           retention-days: 30
