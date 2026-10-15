@@ -97,8 +97,8 @@ export default function ZiiplyMobileStoreModeSelector({
 }: Props) {
   const [hakutapaNoticeVisible, setHakutapaNoticeVisible] = useState(false);
 
-  const hyperActive = storeModeChosen && storeMode === "hyper";
-  const localActive = storeModeChosen && storeMode === "local";
+  const hyperActive = fuelMode ? fuelStationSide !== "cold" : storeModeChosen && storeMode === "hyper";
+  const localActive = fuelMode ? fuelStationSide !== "traffic" : storeModeChosen && storeMode === "local";
   const modeButtonsDisabled = !fuelMode && storeCompareScope === "within_chain";
 
   // V763: "Vertailuparia ei löytynyt" kuuluu vain Monta-tilaan.
@@ -143,7 +143,7 @@ export default function ZiiplyMobileStoreModeSelector({
 <button
           type="button"
           disabled={modeButtonsDisabled}
-          onClick={() => onStoreModeChange("hyper")}
+          onClick={() => fuelMode ? onFuelStationSideChange?.("traffic") : onStoreModeChange("hyper")}
           className={`${buttonClass(hyperActive, modeButtonsDisabled)} ${fuelMode ? "!h-[38px] !min-h-[38px] !px-1 !py-1 !text-[11px]" : ""} w-[calc(50%-0.5rem)] -translate-x-2.5`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Liikenneasemat" : "🏬 Tavaratalot"}</span>
@@ -160,7 +160,7 @@ export default function ZiiplyMobileStoreModeSelector({
 <button
           type="button"
           disabled={modeButtonsDisabled}
-          onClick={() => onStoreModeChange("local")}
+          onClick={() => fuelMode ? onFuelStationSideChange?.("cold") : onStoreModeChange("local")}
           className={`${buttonClass(localActive, modeButtonsDisabled)} ${fuelMode ? "!h-[38px] !min-h-[38px] !px-1 !py-1 !text-[11px]" : ""} w-[calc(50%-0.5rem)] translate-x-2.5`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Kylmäasemat / muut" : "🏪 Lähikaupat"}</span>
@@ -170,7 +170,7 @@ export default function ZiiplyMobileStoreModeSelector({
       {fuelMode && (
         <div className="relative z-20 mt-1 flex items-center justify-center gap-2">
           <span className="text-[12px] font-black uppercase tracking-[0.12em] text-[#66543a]">Hakutapa</span>
-          <button type="button" aria-label="Asematyypin valinta" aria-valuetext={fuelStationSide === "traffic" ? "Liikenneasemat" : fuelStationSide === "cold" ? "Kylmäasemat ja muut" : "Kaikki asemat"} onClick={() => onFuelStationSideChange?.(fuelStationSide === "traffic" ? "cold" : fuelStationSide === "cold" ? "both" : "traffic")} className="relative h-[24px] w-[50px] shrink-0 rounded-full border border-[#b99b62] bg-[#d8c69d] shadow-sm">
+          <button type="button" aria-label="Asematyypin valinta" title={fuelStationSide === "traffic" ? "Liikenneasemat" : fuelStationSide === "cold" ? "Kylmäasemat ja muut" : "Kaikki asemat"} onClick={() => onFuelStationSideChange?.(fuelStationSide === "traffic" ? "cold" : fuelStationSide === "cold" ? "both" : "traffic")} className="relative h-[24px] w-[50px] shrink-0 rounded-full border border-[#b99b62] bg-[#d8c69d] shadow-sm">
             <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[16px]" : "left-[29px]"}`} />
           </button>
           <span aria-hidden="true" className="text-[17px] font-black text-[#1a2740]">{fuelStationSide === "traffic" ? "←" : fuelStationSide === "cold" ? "→" : "↔"}</span>
