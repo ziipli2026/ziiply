@@ -1270,11 +1270,11 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{try{const saved=JSON.parse(window.sessionStorage.getItem("ziiply-desktop-offers-cache-v9")||"[]");if(Array.isArray(saved))for(const [key,value] of saved){if(typeof key==="string"&&Array.isArray(value?.results)){offerWarmCache.current.set(key,value);if(value.diagnostic)offerDiagnostics.current.set(key,value.diagnostic)}}}catch{}},[]);
   function offerContext(chain:string,store:any){const ctx:any={};if(chain==="S"){ctx.sStoreId=store?.externalId||store?.id;ctx.sStoreName=store?.name}if(chain==="K"){ctx.kStoreId=store?.externalId||store?.id;ctx.kStoreName=store?.name}if(chain==="LIDL"){ctx.lidlStoreKey=store?.storeKey||store?.externalId||store?.id;ctx.lidlStoreName=store?.name||"Lidl"}if(chain==="TOKMANNI"){ctx.tokmanniStoreId=store?.externalId||store?.id;ctx.tokmanniStoreName=store?.name||"Tokmanni"}if(chain==="EUROSPAR"){ctx.eurosparStoreId=store?.externalId||store?.id;ctx.eurosparStoreName=store?.name||"Eurospar";ctx.eurosparStoreChain=store?.chain}return ctx}
   function offerKey(chain:string,store:any){const ctx=offerContext(chain,store);return JSON.stringify([chain,ctx.sStoreId||ctx.kStoreId||ctx.lidlStoreKey||ctx.tokmanniStoreId||ctx.eurosparStoreId||store?.id||store?.name])}
-  function warmOffers(chain:string,store:any) {
+  function warmOffers(chain:string,store:any, forceRefresh=false) {
     const ctx=offerContext(chain,store), key=offerKey(chain,store);
     const hit=offerWarmCache.current.get(key);
     // Cached offers are a quick first paint, but refresh them after 15 minutes.
-    if(hit && Date.now()-hit.time<gostaHomeCacheTtl)return Promise.resolve(hit.results);
+    if(!forceRefresh && hit && Date.now()-hit.time<gostaHomeCacheTtl)return Promise.resolve(hit.results);
     const pending=offerWarmPending.current.get(key);
     if(pending)return pending;
     const promise=searchZiiplyGostaOffersV146({query:"",terms:[],context:ctx,captureDiagnostics:true})
@@ -1298,7 +1298,7 @@ export default function DesktopPreviewPage() {
     return promise;
   }
 
-  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store).catch(()=>{})}},[selectedStores]);
+  useEffect(()=>{for(const store of Object.values(selectedStores) as any[]){const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";void warmOffers(chain,store,true).catch(()=>{})}},[selectedStores]);
   // Match Justiina: search only after the user has entered at least 2 characters
   // and stopped typing for the configured delay (default 2 seconds).
   useEffect(()=>{
@@ -1339,7 +1339,7 @@ export default function DesktopPreviewPage() {
     const nearby=gostaNearbyOfferStores();
     let cancelled=false;
     const timer=window.setTimeout(async()=>{
-      const jobs=nearby.map(store=>async()=>{if(cancelled)return;const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";try{await warmOffers(chain,store);}catch{}});
+      const jobs=nearby.map(store=>async()=>{if(cancelled)return;const kind=storeKind(store);const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";try{await warmOffers(chain,store,true);}catch{}});
       let cursor=0;
       await Promise.all(Array.from({length:Math.min(3,jobs.length)},async()=>{while(!cancelled&&cursor<jobs.length){const job=jobs[cursor++];await job();}}));
     },1200);
