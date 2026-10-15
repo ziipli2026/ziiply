@@ -80,6 +80,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const seen=new Set<string>();
   const failedOfferIds=new Set<string>();
   let completedPublications=0;
+  let pageLimitReached=false;
   for(const publication of publications){
     const publicationId=String(publication.id??"");
     if(!publicationId)continue;
@@ -127,9 +128,11 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       }
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();
       if(hotspots.length===0)break;
+      if(page===100)pageLimitReached=true;
     }
     completedPublications++;
   }
+  if(pageLimitReached)throw new Error("Tjek publication exceeded the 100-page safety limit; results may be incomplete");
   if(failedOfferIds.size){
     entry.progress.error=`${failedOfferIds.size} Tjek offer detail requests failed`;
     throw new Error(entry.progress.error);
