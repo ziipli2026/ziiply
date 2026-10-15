@@ -770,19 +770,25 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
   // Track exact publication-image coverage before optional catalogue/Tjek
   // enrichment. This exposes extraction gaps on each fresh leaflet.
-  const publicationAudit=auditKCitymarketPublisherImages(
-    dated[0]?.sourceUrl??"",
-    dated.filter(offer=>offer.sourceUrl===(dated[0]?.sourceUrl??""))
-      .map(offer=>offer.id),
-  );
-  console.info("[K-Citymarket] publisher image coverage",{
-    publication:active.key,
-    known:publicationAudit.publicationKnown,
-    total:publicationAudit.total,
-    matched:publicationAudit.matched,
-    missing:publicationAudit.missing.length,
-    missingExamples:publicationAudit.missing.slice(0,8),
-  });
+  const publicationAudits=[...new Set(dated.map(offer=>offer.sourceUrl).filter(Boolean))]
+    .map(sourceUrl=>({
+      sourceUrl,
+      audit:auditKCitymarketPublisherImages(
+        sourceUrl,
+        dated.filter(offer=>offer.sourceUrl===sourceUrl).map(offer=>offer.id),
+      ),
+    }));
+  for(const {sourceUrl,audit} of publicationAudits){
+    console.info("[K-Citymarket] publisher image coverage",{
+      publication:active.key,
+      sourceUrl,
+      known:audit.publicationKnown,
+      total:audit.total,
+      matched:audit.matched,
+      missing:audit.missing.length,
+      missingExamples:audit.missing.slice(0,8),
+    });
+  }
   const publisherImages=dated.map(offer=>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id) ||
       (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null);
