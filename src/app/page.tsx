@@ -14290,6 +14290,54 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  // V863: manual high-resolution still capture for difficult GS1 labels.
+  // Keeps the normal live EAN scanner untouched and avoids concurrent polling.
+  async function scanRedStickerStillV863() {
+    const scanner = eanHtml5ScannerRef.current;
+    const canvas = ziiplyCaptureScannerStillPageFallback(MOBILE_EAN_SCANNER_REGION_ID, 1);
+    if (!canvas) {
+      pushScannerDebugV493("GS1 STILL: no active video frame");
+      setEanScannerMessage("Kamerakuvaa ei saatu. Yritä uudelleen.");
+      return;
+    }
+    pushScannerDebugV493(`GS1 STILL start ${canvas.width}x${canvas.height}`);
+    setEanScannerMessage("Luetaan alennustarraa kuvasta...");
+    const attempts = [
+      canvas,
+      ziiplyEnhanceScannerCanvasPageFallback(canvas),
+      ziiplyRotateCanvasPageFallback(canvas, 90),
+      ziiplyRotateCanvasPageFallback(canvas, 270),
+    ];
+    for (let i = 0; i < attempts.length; i++) {
+      const frame = attempts[i];
+      try {
+        // Separate still-image decode path through ZXing (html5-qrcode).
+        if (scanner?.scanFile) {
+          const blob = await new Promise<Blob | null>((resolve) => frame.toBlob(resolve, "image/png"));
+          if (blob) {
+            const file = new File([blob], "ziiply-gs1-still.png", {type:"image/png"});
+            const raw = await scanner.scanFile(file, false);
+            if (raw) {
+              pushScannerDebugV493(`GS1 STILL ZXING OK attempt=${i} raw=${JSON.stringify(raw)}`);
+              void finishScannedEan(raw);
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        pushScannerDebugV493(`GS1 STILL ZXING attempt=${i} failed: ${String(error).slice(0,100)}`);
+      }
+      const nativeResult = await ziiplyDecodeBarcodeCanvasPageFallback(frame, "still");
+      if (nativeResult?.text) {
+        pushScannerDebugV493(`GS1 STILL NATIVE OK attempt=${i} format=${nativeResult.format} raw=${JSON.stringify(nativeResult.text)}`);
+        void finishScannedEan(nativeResult.text);
+        return;
+      }
+    }
+    pushScannerDebugV493("GS1 STILL: all attempts failed");
+    setEanScannerMessage("Alennustarra ei tunnistunut kuvasta. Lataa debug-TXT.");
+  }
+
   async function startEanCameraScanner() {
     if (typeof window === "undefined" || typeof navigator === "undefined")
       return;
@@ -23776,6 +23824,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         {scannerDebugLinesV493.map((line, index) => <div key={index}>{line}</div>)}
                       </div>}
                     </div>
+                  </div>
+
+                  <div className="relative z-[100] mx-auto mb-2 flex w-full max-w-lg justify-center px-2">
+                    <button type="button" onClick={() => void scanRedStickerStillV863()} className="rounded-xl border border-rose-300 bg-rose-700 px-4 py-2 text-sm font-bold text-white shadow-lg">
+                      Lue punainen alennustarra kuvasta
+                    </button>
                   </div>
 
                   <ZiiplyMobileScannerCard
