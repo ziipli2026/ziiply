@@ -12,6 +12,7 @@ assert.ok(start >= 0 && end > start, "Shared Gösta price sorter must exist");
 // Execute the actual production implementation, removing only TypeScript type annotations.
 const implementation = source.slice(start, end)
   .replace("item: ZiiplyGostaOfferLike", "item")
+  .replace("): number {", ") {")
   .replaceAll("(item as any)", "item");
 const priceOf = vm.runInNewContext(implementation + "\ngostaOfferSortPrice");
 
