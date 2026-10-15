@@ -223,6 +223,7 @@ jobs:
             echo "Permanent archive already contains identical $PUB_ID source"
           fi
       - name: Upload source archive for future regression recovery
+        if: steps.active-publication.outputs.id != '41AV'
         uses: actions/upload-artifact@v4
         with:
           name: kcitymarket-source-archive
