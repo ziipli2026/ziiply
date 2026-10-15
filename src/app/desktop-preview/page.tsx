@@ -1696,6 +1696,17 @@ export default function DesktopPreviewPage() {
       const detail=error.code===1?"Sijaintilupa estetty tai selaimen asetuksissa kielletty.":error.code===3?"Sijainnin haku aikakatkaistiin.":"Sijaintia ei saatu laitteelta.";
       setLocationStatus(detail+" Voit yrittää GPS-painikkeesta uudelleen.");
       setGpsToast(`GPS-virhe ${error.code}: ${detail}`);
+      // GPS failure must not block manual store selection. Resolve using the
+      // entered or previously applied municipality/postcode, not an empty query.
+      const fallbackLocation = location.trim() || appliedLocation.trim();
+      if (fallbackLocation && !/^-?\\d+(?:\\.\\d+)?,\\s*-?\\d+(?:\\.\\d+)?$/.test(fallbackLocation)) {
+        loadIndependentStores(fallbackLocation);
+        fetch(`/api/store-search?search=${encodeURIComponent(fallbackLocation)}`, {cache:"no-store"})
+          .then(r=>r.json()).then(d=>{
+            const items=Array.isArray(d?.items)?d.items:[];
+            if(items.length)setStores(items);
+          }).catch(()=>undefined);
+      }
     };
     // Desktop browsers often fail a high-accuracy GPS request even when location is permitted.
     // Start with network/Wi-Fi positioning, and keep the button available for retries.
