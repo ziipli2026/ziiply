@@ -492,15 +492,11 @@ function dedupe(items: UnknownRecord[]) {
     const publicationId = String((item.debug as UnknownRecord | undefined)?.publicationId ?? "").trim();
     const sourceOfferId = String(item.offerId ?? "").trim();
     const nationalLeafletId = String(item.source ?? "") === "K-Citymarket tarjouslehti" && String(item.id ?? "").startsWith("kcm:spatial:") ? String(item.id) : "";
-    const key = nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId
-      ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
-      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
-    // The provider has already deduplicated Tjek rows by their source identity.
-    // Never collapse its regional and local leaflet rows in this cross-provider pass.
-    if (String(item.source ?? "") === "etarjouslehdet" && publicationId && sourceOfferId) {
-      out.push(item);
-      continue;
-    }
+    const isTjekPublication = (String(item.source ?? "") === "etarjouslehdet" || String(item.source ?? "") === "K-Citymarket kauppakohtainen julkaisu" || String(item.provider ?? "") === "kcitymarket-local") && !!publicationId && !!sourceOfferId;
+    const key = nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : isTjekPublication
+      ? ["tjek", String(item.source ?? ""), publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
+      : [item.campaignType === "campaign" ? "campaign" : "offer", String(item.source ?? ""), item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
+    // Deduplicate only within the same source identity, never across independent sources.
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(item);
