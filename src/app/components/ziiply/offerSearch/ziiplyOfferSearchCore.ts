@@ -632,17 +632,16 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (kStoreNamesV162.length > 0) params.set("kStoreName", kStoreNamesV162.join("||"));
   params.set("_", `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-  // Shared completion gate for every offer search provider and both UIs.
-  // Any provider reporting unfinished work keeps the entire result hidden.
-  const deadline = Date.now() + 180_000;
-  while (true) {
-    const response = await fetch(`/api/offers/search?${params.toString()}`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(20000),
-    });
-    const clonedForDebugV174 = response.clone();
-    let payloadV174: any = null;
-    try { payloadV174 = await clonedForDebugV174.json(); } catch {}
+  // A single request must read the existing server-side weekly leaflet cache.
+  // Repeating the request while Tjek is running can restart work on another
+  // serverless instance and prevent the mobile offer list from ever opening.
+  const response = await fetch(`/api/offers/search?${params.toString()}`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(20000),
+  });
+  const clonedForDebugV174 = response.clone();
+  try {
+    const payloadV174 = await clonedForDebugV174.json();
     const deployV184 = payloadV174?.deploy ? { ...payloadV174.deploy } : undefined;
     lastZiiplyKruokaDebugV174 = payloadV174 && typeof payloadV174 === "object"
       ? {
@@ -653,21 +652,11 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
         }
       : null;
     if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
-    if (!response.ok || payloadV174?.ok === false) return parseOfferSearchResponse(response);
-    const tjek = payloadV174?.kruokaDebug?.localTjekDebug;
-    const incomplete = [payloadV174?.searchProgress, payloadV174?.offerProgress, payloadV174?.campaignProgress, tjek]
-      .filter(Boolean).some((progress: any) => progress.running === true || progress.complete === false || progress.status === "loading" || progress.stage === "starting" || progress.stage === "reading-pages" || progress.stage === "discovering-publications");
-    if (!incomplete) {
-      return parseOfferSearchResponse(response);
-    }
-    if (tjek?.stage === "failed" || (tjek?.error && !tjek.running)) {
-      throw new Error("Tarjoushaku epäonnistui: " + String(tjek.error ?? tjek.stage));
-    }
-    if (Date.now() >= deadline) {
-      throw new Error("Tarjoushaku ei valmistunut määräajassa.");
-    }
-    await new Promise<void>(resolve => setTimeout(resolve, 1500));
+  } catch {
+    lastZiiplyKruokaDebugV174 = null;
+    if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, null);
   }
+  return parseOfferSearchResponse(response);
 }
 
 async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152) {
