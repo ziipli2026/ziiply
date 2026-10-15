@@ -656,7 +656,25 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
     lastZiiplyKruokaDebugV174 = null;
     if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, null);
   }
-  return parseOfferSearchResponse(response);
+    const parsedResults = await parseOfferSearchResponse(response);
+  // Citymarket has two independent publication sources. The tab is defined by
+  // the publication origin, never by a percentage-discount/price heuristic.
+  // Keep this scoped to Citymarket so other chains retain their existing rules.
+  if (isKCitymarketContextV179(context)) {
+    for (const item of parsedResults) {
+      const row = item as any;
+      const source = row.__sourceOfferSearchResult ?? row;
+      if (source?.provider === "kcitymarket-local" ||
+          source?.source === "K-Citymarket kauppakohtainen julkaisu") {
+        row.campaignType = "campaign";
+        source.campaignType = "campaign";
+      } else if (source?.source === "K-Citymarket tarjouslehti") {
+        row.campaignType = "offer";
+        source.campaignType = "offer";
+      }
+    }
+  }
+  return parsedResults;
 }
 
 async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152) {
