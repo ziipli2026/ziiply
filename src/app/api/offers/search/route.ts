@@ -67,7 +67,7 @@ import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSea
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
 import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
-import { fetchKCitymarketSelectedStoreOffers, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
+import { fetchKCitymarketSelectedStoreOffers, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
 import { fetchLidlPublicCampaignOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
@@ -903,12 +903,7 @@ export async function GET(request: Request) {
           // Keep the national leaflet responsive even if the optional Tjek store feed stalls.
           // The store-specific campaigns may be omitted for this request after 6.5s;
           // they are never allowed to block the entire mobile offer search.
-          const localOffers = await Promise.race([
-            fetchKCitymarketSelectedStoreOffers(selectedCitymarket),
-            new Promise<Awaited<ReturnType<typeof fetchKCitymarketSelectedStoreOffers>>>((resolve) =>
-              setTimeout(() => resolve([]), 6500)),
-          ]);
-          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
+          const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);\n          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
           // The reviewed national leaflet is the Tarjoukset master. Local/store
           // publications are Kampanjat, but an exact product+price copy must not
           // appear in both tabs.
@@ -1049,7 +1044,7 @@ export async function GET(request: Request) {
             brochureOffers: isKCitymarketV19 ? citymarketNationalCount : debug?.brochureOffers ?? null,
             activeOffers: isKCitymarketV19 ? citymarketResults.length : debug?.activeOffers ?? null,
             ...(isKCitymarketV19 ? {
-              localOffers: citymarketLocalCount,
+              localOffers: citymarketLocalCount,\n              localTjekDebug: getKCitymarketLocalTjekDebug(splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name)) ?? ""),
               nationalOffers: citymarketNationalCount,
               nationalTjekImageDebug: getKCitymarketNationalTjekImageDebug(),
               nationalImageCoverage: {
