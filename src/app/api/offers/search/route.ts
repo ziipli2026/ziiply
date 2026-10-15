@@ -1045,7 +1045,8 @@ export async function GET(request: Request) {
             brochureOffers: isKCitymarketV19 ? citymarketNationalCount : debug?.brochureOffers ?? null,
             activeOffers: isKCitymarketV19 ? citymarketResults.length : debug?.activeOffers ?? null,
             ...(isKCitymarketV19 ? {
-              localOffers: citymarketLocalCount,\n              localTjekDebug: getKCitymarketLocalTjekDebug(splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name)) ?? ""),
+              localOffers: citymarketLocalCount,
+              localTjekDebug: getKCitymarketLocalTjekDebug(splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name)) ?? ""),
               nationalOffers: citymarketNationalCount,
               nationalTjekImageDebug: getKCitymarketNationalTjekImageDebug(),
               nationalImageCoverage: {
