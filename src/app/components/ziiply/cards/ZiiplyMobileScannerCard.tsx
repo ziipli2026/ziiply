@@ -423,10 +423,18 @@ export default function ZiiplyMobileScannerCard({
             <div
               role="status"
               aria-live="polite"
-              className="pointer-events-none absolute left-1/2 top-[4%] z-[36] flex w-[90%] -translate-x-1/2 items-center justify-center gap-2 px-1 text-center text-[13px] font-extrabold leading-snug text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.98),0_0_9px_rgba(0,0,0,0.98)]"
+              className="pointer-events-none absolute left-1/2 top-[4%] z-[36] flex w-[88%] -translate-x-1/2 items-center justify-center px-1 text-center text-[13px] font-extrabold leading-snug text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.98),0_0_9px_rgba(0,0,0,0.98)]"
             >
-              <span aria-hidden="true" className={["h-2.5 w-2.5 shrink-0 rounded-full",storeLocation.verified?"bg-emerald-400":storeLocation.checking?"animate-pulse bg-amber-300":"bg-stone-300"].join(" ")} />
-              <span className="min-w-0 break-words">{`Valittu: ${storeLocation.name}`}</span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2" aria-label={storeLocation.verified ? "GPS online" : storeLocation.checking ? "GPS tarkistaa" : "GPS offline"}>
+                <svg aria-hidden="true" viewBox="0 0 24 24" className={["h-[18px] w-[18px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]",storeLocation.verified?"text-emerald-300":storeLocation.checking?"animate-pulse text-amber-300":"text-stone-200"].join(" ")} fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2.5 8.8a15 15 0 0 1 19 0" />
+                  <path d="M6.2 12.5a9.2 9.2 0 0 1 11.6 0" />
+                  <path d="M9.8 16.1a4.1 4.1 0 0 1 4.4 0" />
+                  <circle cx="12" cy="20" r="1" fill="currentColor" stroke="none" />
+                  {!storeLocation.verified && !storeLocation.checking && <path d="M4 3.5 20.5 21" strokeWidth="3.2" />}
+                </svg>
+              </span>
+              <span className="min-w-0 break-words">{storeLocation.name}</span>
             </div>
           )}
 
