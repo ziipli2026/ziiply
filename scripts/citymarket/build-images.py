@@ -85,31 +85,30 @@ def build(folder,manifest_path,public_folder,review_path):
  for number in range(len(doc)):
   page=doc[number];rows=[r for r in meta['rows'] if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
   if not rows:continue
-  if not reviewed:
-   # Independent package-label text proof must accompany spatial ownership.
-   # A distinctive word must occur in only one offer context on this page.
-   context={r['id']:words(r['title']+' '+' '.join(r['nearby'])) for r in rows}
-   cells_by_id={r['id']:enclosed_cell(page,r,rows) for r in rows}
-   freq={w:sum(w in v for v in context.values()) for v in context.values() for w in v}
-   for b in blocks:
-    x0,y0,x1,y1=b['bbox'];w=(x1-x0)/page.rect.width;h=(y1-y0)/page.rect.height
-    if w<.05 or h<.05 or w*h<.005 or w*h>.25 or y0<0 or y1>page.rect.height*.95:continue
-    ix=(x0+x1)/2/page.rect.width;iy=(y0+y1)/2/page.rect.height
-    own_cells=[r['id'] for r in rows if cells_by_id[r['id']] and cells_by_id[r['id']][0]<ix<cells_by_id[r['id']][2] and cells_by_id[r['id']][1]<=iy<=cells_by_id[r['id']][3]]
-    if len(own_cells)==1:
-     accepted[own_cells[0]].append(b);continue
-    text=ocr(b);options=[]
-    for r in rows:
-     a=r.get('anchor')
-     if not a or blocked(page,a,b['bbox']):continue
-     proof={word for word in context[r['id']] if freq[word]==1 and any(t==word or len(t)>=6 and len(word)>=6 and t[:6]==word[:6] for t in text)}
-     if not proof:continue
-     dx=(x0+x1)/2/page.rect.width-(a['left']+a['width']/2);dy=(y0+y1)/2/page.rect.height-a['top']
-     distance=math.hypot(dx*1.4,dy*1.3)
-     if distance<.6:options.append((distance,r['id'],sorted(proof)))
-    options.sort()
-    if len(options)==1 or len(options)>1 and options[1][0]-options[0][0]>.08:
-     accepted[options[0][1]].append(b)
+  # Independent package-label text proof must accompany spatial ownership.
+  # A distinctive word must occur in only one offer context on this page.
+  context={r['id']:words(r['title']+' '+' '.join(r['nearby'])) for r in rows}
+  cells_by_id={r['id']:enclosed_cell(page,r,rows) for r in rows}
+  freq={w:sum(w in v for v in context.values()) for v in context.values() for w in v}
+  for b in blocks:
+   x0,y0,x1,y1=b['bbox'];w=(x1-x0)/page.rect.width;h=(y1-y0)/page.rect.height
+   if w<.05 or h<.05 or w*h<.005 or w*h>.25 or y0<0 or y1>page.rect.height*.95:continue
+   ix=(x0+x1)/2/page.rect.width;iy=(y0+y1)/2/page.rect.height
+   own_cells=[r['id'] for r in rows if cells_by_id[r['id']] and cells_by_id[r['id']][0]<ix<cells_by_id[r['id']][2] and cells_by_id[r['id']][1]<=iy<=cells_by_id[r['id']][3]]
+   if len(own_cells)==1:
+    accepted[own_cells[0]].append(b);continue
+   text=ocr(b);options=[]
+   for r in rows:
+    a=r.get('anchor')
+    if not a or blocked(page,a,b['bbox']):continue
+    proof={word for word in context[r['id']] if freq[word]==1 and any(t==word or len(t)>=6 and len(word)>=6 and t[:6]==word[:6] for t in text)}
+    if not proof:continue
+    dx=(x0+x1)/2/page.rect.width-(a['left']+a['width']/2);dy=(y0+y1)/2/page.rect.height-a['top']
+    distance=math.hypot(dx*1.4,dy*1.3)
+    if distance<.6:options.append((distance,r['id'],sorted(proof)))
+   options.sort()
+   if len(options)==1 or len(options)>1 and options[1][0]-options[0][0]>.08:
+    accepted[options[0][1]].append(b)
   # Keep review evidence for unmatched cards, including publisher image bounds.
   # A reviewer can then identify missing package photos without guessing
   # which neighboring product image belongs to the offer.
