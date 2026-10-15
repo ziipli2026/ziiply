@@ -22,6 +22,6 @@ try{
  assert.match(data.items[0].images[0].source,/6412345678901/);
  assert.equal(data.items[0].images[0].url,'https://images.openfoodfacts.org/test.jpg');
  assert.notEqual(run({...plan,tasks:[{...task,autoApply:true}]}).status,0);
- assert.notEqual(run(plan,'21').status,0);
+ assert.notEqual(run(plan,'95').status,0);
  console.log('KCM_OPENFOODFACTS_MOCK_DISCOVERY_OK');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
