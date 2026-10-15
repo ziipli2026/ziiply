@@ -20,8 +20,7 @@ async function tjek(name: string, params: Row): Promise<unknown> {
     headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"K-Citymarket"},
     body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(12000) });
   if (!response.ok) throw new Error("Tjek "+name+" HTTP "+response.status);
-  for (const line of (await response.text()).split(/\r?
-/).filter(Boolean)) {
+  for (const line of (await response.text()).split(/\r?\n/).filter(Boolean)) {
     try { const parsed=JSON.parse(line); if(parsed.key===key)return parsed.value; } catch {}
   }
   throw new Error("Tjek "+name+" response missing");
@@ -128,7 +127,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       if(hotspots.length===0)break;
     }
   }
-  return output;
+  entry.progress.accepted = entry.rows.length;
 }
 
 
