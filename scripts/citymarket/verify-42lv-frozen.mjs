@@ -82,8 +82,8 @@ console.log('42LV unit-rate discrepancy triage (review required, no automatic co
 // Make audit coverage explicit: zero discrepancies does not mean all offers were checked.
 const unitRateCoverage=priced.reduce((acc,row)=>{
  const title=String(row.title||'');
- const hasMass=/(?:^|\\s)\\d{2,4}\\s*g\\b/i.test(title)&&/\\(\\d+[,.]\\d+\\s*\\/\\s*kg\\)/i.test(title);
- const hasVolume=/(?:^|\\s)\\d+[,.]\\d+\\s*l\\b/i.test(title)&&/\\(\\d+[,.]\\d+\\s*\\/\\s*l\\)/i.test(title);
+ const hasMass=/(?:^|\s)\d{2,4}\s*g\b/i.test(title)&&/\(\d+[,.]\d+\s*\/\s*kg\)/i.test(title);
+ const hasVolume=/(?:^|\s)\d+[,.]\d+\s*l\b/i.test(title)&&/\(\d+[,.]\d+\s*\/\s*l\)/i.test(title);
  if(hasMass||hasVolume)acc.comparable++;
  else acc.notComparable.push({page:row.page,title:row.title});
  return acc;
