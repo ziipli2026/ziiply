@@ -767,6 +767,13 @@ function preparedGostaAllV803(context: ZiiplyGostaOfferSearchContextV152 | undef
   const existing = gostaPreparedAllV803.get(key);
   if (existing?.source === source) return existing.results;
   const results = dedupeZiiplyGostaOfferResultsV146(source);
+  if (isKCitymarketContextV179(context)) {
+    const audit = lastZiiplyKruokaDebugV174 as any;
+    if (audit) audit.kOfferPreparedTabAuditV1 = {
+      before: { total: source.length, campaigns: source.filter(item => (item as any).campaignType === "campaign").length },
+      after: { total: results.length, campaigns: results.filter(item => (item as any).campaignType === "campaign").length },
+    };
+  }
   gostaPreparedAllV803.set(key, { source, results });
   return results;
 }
