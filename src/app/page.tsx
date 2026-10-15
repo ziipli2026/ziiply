@@ -23838,13 +23838,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     </div>
                   </div>
 
-                  <div className="relative z-[100] mx-auto mb-2 flex w-full max-w-lg justify-center px-2">
-                    <button type="button" onClick={() => void scanRedStickerStillV863()} className="rounded-xl border border-rose-300 bg-rose-700 px-4 py-2 text-sm font-bold text-white shadow-lg">
-                      Lue punainen alennustarra kuvasta
-                    </button>
-                  </div>
-
                   <ZiiplyMobileScannerCard
+                  onCaptureDiscountSticker={() => void scanRedStickerStillV863()}
                   storeLocation={scannerLocationStatusV855}
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
                   fullscreen
