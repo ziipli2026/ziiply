@@ -55,6 +55,11 @@ if(coverageReportPath){
  if(mappedIds.some(id=>!id.startsWith('kcm:spatial:')))throw Error('Invalid 42LV image mapping ID');
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
+ const queueFile=coverageReportPath.replace(/\\.json$/,'-lookup-only.json');
+ if(queueFile===coverageReportPath)throw Error('Image report filename must end with .json');
+ const lookupExport={schemaVersion:1,publication:publicationUrl,pdfSha256:expectedHash,readOnly:true,items:stableLookupQueue.map(item=>({offerId:item.offerId,page:item.page,title:item.title,price:item.price,publicationSha256:expectedHash,status:'lookup-needed'}))};
+ fs.writeFileSync(queueFile,JSON.stringify(lookupExport,null,2)+'\n');
+ console.log('KCM_42LV_LOOKUP_EXPORT',JSON.stringify({file:queueFile,count:lookupExport.items.length}));
  console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount,unmatchedMappings:report.orphanImageMappingCount,lookupNeeded:lookupQueue.length,identityReview:identityReviewQueue.length}));
 }
 
