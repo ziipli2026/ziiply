@@ -119,6 +119,14 @@ function inferExistingCategoryFromName(name: string): string | null {
     { terms: ["off! pehmeä tehosuihke"], category: "koti-ja-vapaa-aika/piha-ja-puutarha/hyonteiskarkotteet" },
     { terms: ["dentastix"], category: "lemmikit/koirat/koiranherkut" },
     { terms: ["oneblade 360"], category: "kosmetiikka-terveys-ja-hygienia/ihokarvojen-poisto/partakoneiden-vaihtoterat" },
+    { terms: ["actimel jogurttijuoma"], category: "maito-juusto-munat-ja-rasvat/jogurtit/terveysvaikutteiset-jogurtit" },
+    { terms: ["fazer aito kasvipohjainen gurtti"], category: "maito-juusto-munat-ja-rasvat/jogurtit/maidottomat-jogurtit" },
+    { terms: ["naudan jauheliha"], category: "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha" },
+    { terms: ["mehu-kivennäisvesijuoma", "mehuvichy"], category: "juomat/kivennais--ja-lahdevedet/maustetut-kivennaisvedet" },
+    { terms: ["poppamies rub one for all"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
+    { terms: ["primacat classic lohta kastikkeessa"], category: "lemmikit/kissat/kissan-markaruoka" },
+    { terms: ["pirkka puolukkahillo", "maribel hillo"], category: "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot" },
+    { terms: ["snellman maatiaispossun nopea ja murea fileepihvi"], category: "liha-ja-kasviproteiinit/porsas/fileet-kyljykset-ja-pihvit" },
     { terms: ["talouspaperi"], category: "kodinhoito-ja-taloustarvikkeet/kodin-paperit/talouspaperit" },
   ];
   for (const rule of rules) {
