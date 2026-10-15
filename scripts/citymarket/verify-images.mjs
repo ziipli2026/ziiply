@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+const reportPath=process.env.KCM_IMAGE_COVERAGE_REPORT;
+const coverageReport=[];
 const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json','utf8'));
 for(const [leaflet,publication] of Object.entries(manifest.publications)){
  assert.equal(new URL(leaflet).hostname,'kcm-tarjouslehdet.k-ruoka.fi');
@@ -17,6 +19,7 @@ for(const [leaflet,publication] of Object.entries(manifest.publications)){
  // Missing images are review candidates, not automatically verified failures.
  const imageIds=Object.keys(publication.images);
  const imageCoverage={leaflet,pdfSha256:publication.pdfSha256,offerCount:publication.offerCount,imageCount:imageIds.length,missingImageCount:publication.offerCount-imageIds.length};
+ coverageReport.push(imageCoverage);
  if(leaflet.includes('42LV_KCM')) {
   assert.equal(publication.pageCount,20,'42LV archived page count changed');
   assert.equal(publication.pdfSha256,'d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd','42LV archive identity changed');
@@ -26,3 +29,10 @@ for(const [leaflet,publication] of Object.entries(manifest.publications)){
  if(missingWC.length)console.warn('KCM_IMAGE_REVIEW_REQUIRED',JSON.stringify({leaflet,missingWC}));
  console.log(leaflet,Object.keys(publication.images).length+'/'+publication.offerCount,'verified image links');
 }
+
+if(reportPath){
+ fs.mkdirSync(requireDirectory(reportPath),{recursive:true});
+ fs.writeFileSync(reportPath,JSON.stringify({schemaVersion:1,generatedAt:new Date().toISOString(),publications:coverageReport},null,2)+'\n');
+ console.log('KCM_IMAGE_COVERAGE_REPORT',reportPath);
+}
+function requireDirectory(file){return file.slice(0,file.lastIndexOf('/'))||'.';}
