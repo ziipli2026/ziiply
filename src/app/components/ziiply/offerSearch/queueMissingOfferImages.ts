@@ -6,7 +6,7 @@ const ean = (v: unknown) => { const s = str(v,32).replace(/\D/g,""); return /^\d
 
 export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promise<void> {
   if (!process.env.DATABASE_URL) return;
-  const rows = offers.filter(o => !str(o.imageUrl) && str(o.title || o.name) && str(o.id || o.offerId)).slice(0,60).map(o => ({
+  const rows = offers.filter(o => !str(o.imageUrl) && str(o.title || o.name) && str(o.id || o.offerId)).map(o => ({
     chain: str(o.chain || o.storeType || o.source,60),
     publication: str(o.publicationId || o.publication || o.sourceUrl || o.source,160),
     product_id: str(o.id || o.offerId,160),
@@ -25,13 +25,16 @@ export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promis
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY(chain, publication, product_id)
     )`;
+    for (let offset = 0; offset < uniqueRows.length; offset += 100) {
+    const batch = uniqueRows.slice(offset,offset+100);
     await sql`INSERT INTO ziiply_offer_image_queue(chain,publication,product_id,ean,title)
       SELECT chain,publication,product_id,ean,title
-      FROM jsonb_to_recordset(${JSON.stringify(uniqueRows)}::jsonb)
+      FROM jsonb_to_recordset(${JSON.stringify(batch)}::jsonb)
       AS r(chain text,publication text,product_id text,ean text,title text)
       ON CONFLICT (chain,publication,product_id) DO UPDATE SET
         ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
         title=EXCLUDED.title,updated_at=now()`;
+    }
   } catch (error) {
     console.warn("[offer-image-enrichment] queue:", error instanceof Error ? error.message : "unknown");
   }
