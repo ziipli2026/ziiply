@@ -22,7 +22,8 @@ const canonicalFailures=canonicalChecks.filter(check=>{
  const matches=canonicalRows.filter(row=>row.page===18&&check.match.test(String(row.title||'')));
  return matches.length!==1||Number(matches[0].spatialResolved?.value)!==check.price||
  Number(matches[0].spatialResolved?.quantity)!==check.quantity||
- String(matches[0].spatialResolved?.unit||'').toLowerCase()!==check.unit;
+ String(matches[0].spatialResolved?.unit||'').toLowerCase()!==check.unit||
+ matches[0].normal!=null||matches[0].unitPrice!=null||matches[0].package!=null;
 });
 console.log('42LV provider canonicalization boundary',JSON.stringify({rows:canonicalRows.length,checks:canonicalChecks.length,failures:canonicalFailures.map(x=>String(x.match))}));
 if(canonicalFailures.length)process.exitCode=1;
