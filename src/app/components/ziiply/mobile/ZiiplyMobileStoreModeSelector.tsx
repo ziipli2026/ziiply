@@ -144,13 +144,23 @@ export default function ZiiplyMobileStoreModeSelector({
         >
           <span className="relative z-10">{fuelMode ? "⛽ Liikenneasemat" : "🏬 Tavaratalot"}</span>
         </button>
-        <div className={`absolute left-1/2 top-1/2 z-30 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${fuelMode || (storeCompareScope === "between_chains" && storeModeChosen) ? "" : "invisible pointer-events-none"}`} aria-hidden={!(fuelMode || (storeCompareScope === "between_chains" && storeModeChosen))}>
-          <span className="mb-0 text-[9px] font-black leading-none text-[#6a5330]">Yksi</span>
-          <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label={fuelMode ? "Valitse yksi tai monta asemaa" : "Valitse yksi tai monta kauppaa"} onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative ${fuelMode ? "h-[19px] w-[38px]" : "h-[34px] w-[18px]"} shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
-            <span className={`absolute h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-all ${fuelMode ? (betweenChainSelectionMode === "many" ? "left-[21px] top-[2px]" : "left-[2px] top-[2px]") : (betweenChainSelectionMode === "many" ? "left-[2px] top-[18px]" : "left-[2px] top-[2px]")}`} />
-          </button>
-          <span className="mt-0 text-[9px] font-black leading-none -translate-y-[2px] text-[#6a5330]">Monta</span>
-        </div>
+        {fuelMode ? (
+          <div className="absolute left-1/2 top-1/2 z-30 flex w-[54px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5">
+            <span aria-hidden="true" className="text-[19px] leading-none">⛽</span>
+            <button type="button" role="switch" aria-checked={storeMode === "local"} aria-label="Vaihda liikenneasemien ja kylmäasemien välillä" onClick={() => onStoreModeChange(storeMode === "hyper" ? "local" : "hyper")} className="relative h-[21px] w-[42px] rounded-full border border-[#b99b62] bg-[#d8c69d]">
+              <span className={`absolute top-[2px] h-[15px] w-[15px] rounded-full bg-white shadow-sm transition-[left] ${storeMode === "local" ? "left-[23px]" : "left-[2px]"}`} />
+            </button>
+            <span aria-hidden="true" className="text-[16px] leading-none text-[#1a2740]">↔</span>
+          </div>
+        ) : (
+          <div className={`absolute left-1/2 top-1/2 z-30 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${fuelMode || (storeCompareScope === "between_chains" && storeModeChosen) ? "" : "invisible pointer-events-none"}`} aria-hidden={!(fuelMode || (storeCompareScope === "between_chains" && storeModeChosen))}>
+            <span className="mb-0 text-[9px] font-black leading-none text-[#6a5330]">Yksi</span>
+            <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label={fuelMode ? "Valitse yksi tai monta asemaa" : "Valitse yksi tai monta kauppaa"} onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative ${fuelMode ? "h-[19px] w-[38px]" : "h-[34px] w-[18px]"} shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
+              <span className={`absolute h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-all ${fuelMode ? (betweenChainSelectionMode === "many" ? "left-[21px] top-[2px]" : "left-[2px] top-[2px]") : (betweenChainSelectionMode === "many" ? "left-[2px] top-[18px]" : "left-[2px] top-[2px]")}`} />
+            </button>
+            <span className="mt-0 text-[9px] font-black leading-none -translate-y-[2px] text-[#6a5330]">Monta</span>
+          </div>
+        )}
 <button
           type="button"
           disabled={modeButtonsDisabled}
@@ -180,7 +190,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </p>
       </div>
 
-      <div className={`relative z-10 mt-[-2px] grid grid-cols-2 gap-4 ${fuelMode ? "invisible pointer-events-none" : ""}`}>
+      <div className={`relative z-10 mt-[-2px] grid grid-cols-2 gap-4 ${fuelMode ? "hidden" : ""}`}>
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
