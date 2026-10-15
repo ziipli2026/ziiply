@@ -23,8 +23,9 @@ const percentageOnly=parsed.rows.filter(r=>!(Number(r.spatialResolved?.value)>0)
 const unjustifiedPercentageOnly=percentageOnly.filter(r=>{const prior=old.get(key(r));return !prior||!String(prior.id||'').endsWith(':percent:'+r.percent);});
 const missing=[...old].filter(([k])=>!now.has(k)).map(([,r])=>({page:r.page,title:r.title}));
 const baselinePercent=baseline.rows.filter(r=>/:percent:\d+(?:\.\d+)?$/.test(String(r.id||'')));
-const missingPercentage=baselinePercent.filter(r=>!percentageOnly.some(p=>key(p)===key(r)&&String(r.id).endsWith(':percent:'+p.percent))).map(r=>({page:r.page,title:r.title,id:r.id}));
-const pricedPercentage=baselinePercent.filter(r=>now.has(key(r))).map(r=>({page:r.page,title:r.title,price:now.get(key(r)).spatialResolved.value}));
+const printedChecksAllowlist=[{page:13,match:/^KASSLER n\. 2,3 kg$/i},{page:18,match:/^MÄRKÄRUOAT 70 g 420/i},{page:19,match:/^AAKKOSET 280–340 g$/i}];
+const missingPercentage=baselinePercent.filter(r=>!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title))&&!percentageOnly.some(p=>key(p)===key(r)&&String(r.id).endsWith(':percent:'+p.percent))).map(r=>({page:r.page,title:r.title,id:r.id}));
+const pricedPercentage=baselinePercent.filter(r=>now.has(key(r))&&!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title))).map(r=>({page:r.page,title:r.title,price:now.get(key(r)).spatialResolved.value}));
 const unresolved=parsed.rows.filter(r=>missing.some(m=>m.page===r.page&&key(m)===key(r))).map(r=>({page:r.page,title:r.title,nearby:r.nearby,spatialResolved:r.spatialResolved,percentageOffer:r.percentageOffer,spatialCandidates:r.spatialCandidates?.slice(0,8),debugRejectedCardPrice:r.debugRejectedCardPrice}));
 const percentAsPrice=parsed.rows.filter(r=>Number(r.spatialResolved?.value)>0&&r.percentageOffer&&Math.abs(Number(r.spatialResolved.value)-Number(r.percentageOffer.percent))<0.001).map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,percent:r.percentageOffer.percent}));
 const invalidPrices=priced.filter(r=>!Number.isFinite(Number(r.spatialResolved?.value))||Number(r.spatialResolved.value)<=0||Number(r.spatialResolved.value)>1000||!Number.isInteger(Number(r.spatialResolved.quantity||1))||Number(r.spatialResolved.quantity||1)<1).map(r=>({page:r.page,title:r.title,price:r.spatialResolved.value,quantity:r.spatialResolved.quantity}));
@@ -46,6 +47,9 @@ const printedChecks=[
   {page:18,match:/^SMOOTHIET 120 g$/i,price:5.50,quantity:4},
   {page:18,match:/VIHREÄT TEET 20–25 ps/i,price:3.99,quantity:1},
   {page:18,match:/PURULUUT 160–180 g/i,price:7,quantity:2},
+  {page:13,match:/^KASSLER n\. 2,3 kg$/i,price:6.99,quantity:1},
+  {page:18,match:/^MÄRKÄRUOAT 70 g 420/i,price:4.20,quantity:4},
+  {page:19,match:/^AAKKOSET 280–340 g$/i,price:4.50,quantity:2},
   {page:19,match:/MAKU- ja TUMMASUKLAALEVYT 160–200 g/i,price:10,quantity:4},
 ];
 const printedMismatches=printedChecks.map(check=>{
@@ -94,4 +98,4 @@ const unitRateCoverage=priced.reduce((acc,row)=>{
 },{comparable:0,notComparable:[]});
 console.log('42LV unit-rate audit coverage',JSON.stringify({pricedOffers:priced.length,comparable:unitRateCoverage.comparable,notComparableCount:unitRateCoverage.notComparable.length,notComparable:unitRateCoverage.notComparable}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
-if(parsed.rows.length!==96||priced.length!==85||baseline.rows.length!==89||percentageOnly.length!==4||parsed.pageCount!==20||added.length>0||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||unexpectedChanged.length>0)process.exitCode=1;
+if(parsed.rows.length!==96||priced.length!==88||baseline.rows.length!==89||percentageOnly.length!==1||parsed.pageCount!==20||added.some(r=>!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title)))||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||unexpectedChanged.length>0)process.exitCode=1;
