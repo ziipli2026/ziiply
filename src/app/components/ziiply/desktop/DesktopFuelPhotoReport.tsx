@@ -101,6 +101,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;closeRef.current?.focus();return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
   useEffect(()=>{const timer=setInterval(()=>{if(autoTime.current)setObserved(localDateTime());},1000);return()=>clearInterval(timer);},[]);
+  useEffect(()=>{let cancelled=false;void requestCaptureLocation().then(location=>{if(cancelled||!alive.current)return;setGps(location);logDebug("report-open-location",{location});});return()=>{cancelled=true;};},[]);
   function stopCamera(){if(countdownTimer.current){clearInterval(countdownTimer.current);countdownTimer.current=null;}setCaptureCountdown(null);streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraOpen(false);setCameraReady(false);}
   useEffect(()=>{
     if(!cameraOpen)return;
