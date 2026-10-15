@@ -59,10 +59,10 @@ const unitRateAudit=parsed.rows.flatMap(row=>{
  const price=Number(row.spatialResolved?.value);
  if(!(price>0))return [];
  const title=String(row.title||'');
- const gram=title.match(/(?:^|\\s)(\\d{2,4})\\s*g\\b/i);
- const kg=title.match(/\\((\\d+[,.]\\d+)\\s*\\/\\s*kg\\)/i);
- const liter=title.match(/(?:^|\\s)(\\d+[,.]\\d+)\\s*l\\b/i);
- const perLiter=title.match(/\\((\\d+[,.]\\d+)\\s*\\/\\s*l\\)/i);
+ const gram=title.match(/(?:^|\s)(\d{2,4})\s*g\b/i);
+ const kg=title.match(/\((\d+[,.]\d+)\s*\/\s*kg\)/i);
+ const liter=title.match(/(?:^|\s)(\d+[,.]\d+)\s*l\b/i);
+ const perLiter=title.match(/\((\d+[,.]\d+)\s*\/\s*l\)/i);
  const decimal=s=>Number(s.replace(',','.'));
  let expected=null,kind=null;
  if(gram&&kg){expected=decimal(gram[1])*decimal(kg[1])/1000;kind='kg';}
