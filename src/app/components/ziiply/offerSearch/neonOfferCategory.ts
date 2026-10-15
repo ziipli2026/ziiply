@@ -84,7 +84,6 @@ function inferExistingCategoryFromName(name: string): string | null {
     [/\\b(suihkusaippua|suihkugeeli|shower gel|shower cream)\\b/, "kosmetiikka-terveys-ja-hygienia/vartalonhoito/suihkusaippuat"],
     [/\\b(eyeliner|maskara|meikkipuikko|meikkivoide|huulipuna)\\b/, "kosmetiikka-terveys-ja-hygienia/meikit/kasvomeikit"],
     [/\\b(hiuskiinne|hairspray|rakennesuihke|dry texture spray|lämpösuoja|heat protection|volyymivaahto|root boost mousse)\\b/, "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet"],
-    [/\\b(inkontinenssiside|inkontinenssisuoja)\\b/, "kosmetiikka-terveys-ja-hygienia/intiimihygienia/inkontinenssisuojat"],
     [/\\b(aitokanerva|ruukkukanerva|ruukkukasvi)\\b/, "koti-ja-vapaa-aika/kukat-ja-kasvit/ruukkukasvit"],
     [/\\b(leikkokukka|kukkakimppu|kimppu)\\b/, "koti-ja-vapaa-aika/kukat-ja-kasvit/leikkokukat-ja-kimput"],
     [/\\b(muikku|kirjolohifilee|savusiika|tuore kala|lohifile(e|e)|kalafile(e|e))\\b/, "kala-ja-merenelavat/kala/tuore-kala"],
