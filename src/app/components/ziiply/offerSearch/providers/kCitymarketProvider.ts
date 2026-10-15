@@ -96,6 +96,9 @@ export function category(t:string){
   if(/(?:märkäruoat|kissan kuivaruoka|kissan annospuss|puruluut)/.test(s)) return "Lemmikit";
   if(/(?:8-pack|24-pack|0,33 l\/tlk)/.test(s)) return "Juomat";
   if(/(?:valio oivariinit|oivariini)/.test(s)) return "Maitotuotteet";
+  // Normalize spaced OCR letters in household nouns and explicit sports games.
+  if(/(?:s\s*ä\s*i\s*l\s*y\s*t\s*y\s*s?\s*laatikk|förvaringslådor|säilytyslaatikko)/.test(s)) return "Koti & vapaa-aika";
+  if(/(?:powershots|jääkiekko.*jalkapallo.*koripallo|jalkapallo.*koripallo.*peli)/.test(s)) return "Koti & vapaa-aika";
   // Use the existing offer category for supplements; do not catch vitamin drinks.
   if(/(?:monivitamiin|vitamiini(?:t|valmiste|tabletti|kapseli)?\b|ravintolis|magnesium|sinkki\b|omega[- ]?3|kollageeni|biotiini|melatoniini)/.test(s) && !/(?:vitamiinijuoma|juotava\s+vitamiini|virvoitusjuoma)/.test(s)) return "Vitamiinit & ravinteet";
   if(/(?:luku\s*[-–]?\s*ja\s*käsityövalo|lukuja\s*käsityövalo|askartelu\s*[-–]?\s*ja\s*korjausvalo|askarteluja\s*korjausvalo|\b(?:luku|käsityö|askartelu|korjaus)valo\b)/.test(s)) return "Koti & vapaa-aika";
