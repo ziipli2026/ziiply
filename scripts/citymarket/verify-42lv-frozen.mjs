@@ -26,7 +26,15 @@ if(coverageReportPath){
  const pricedRows=canonicalRows.filter(row=>Number(row.spatialResolved?.value)>0&&!row.spatialResolved?.displayOnlyUnitPrice);
  const missingImages=pricedRows.filter(row=>!pub?.images?.[offerId(row)]).map(row=>({page:row.page,title:row.title,offerId:offerId(row),price:row.spatialResolved.value}));
  const pricedIds=new Set(pricedRows.map(offerId));
- const orphanImageMappings=Object.keys(pub?.images||{}).filter(id=>!pricedIds.has(id)).map(id=>({offerId:id,image:pub.images[id],reason:'No exact match among canonical priced 42LV offers; requires identity review'}));
+ const orphanImageMappings=Object.keys(pub?.images||{}).filter(id=>!pricedIds.has(id)).map(id=>{
+  const parts=id.match(/^kcm:spatial:(\\d+):(.+):([^:]+)$/);
+  const page=parts?Number(parts[1]):null;
+  const title=parts?.[2]||'';
+  const samePage=pricedRows.filter(row=>row.page===page);
+  const normalized=s=>String(s).toLocaleLowerCase('fi').replace(/[^a-z0-9åäö]+/g,' ').trim();
+  const exactTitleCandidates=samePage.filter(row=>normalized(row.title)===normalized(title)).map(row=>({offerId:offerId(row),title:row.title,price:row.spatialResolved.value}));
+  return {offerId:id,image:pub.images[id],page,title,priceToken:parts?.[3]||null,exactTitleCandidates,reason:parts?.[3]?.startsWith('percent')?'Percentage-only image mapping; never infer a euro price from the percentage':'No exact canonical priced offer identity; manual review required'};
+ });
  const report={schemaVersion:2,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,manifestImageCount:Object.keys(pub?.images||{}).length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,orphanImageMappingCount:orphanImageMappings.length,orphanImageMappings,missingImages};
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
