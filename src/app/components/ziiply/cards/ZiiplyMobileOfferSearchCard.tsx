@@ -278,6 +278,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   selectedStoreName?: string;
   storeTraceV787?: unknown;
   kruokaDebug?: {
+    localTjekDebug?: { running?: boolean | null; stage?: string | null } | null;
     deploy?: {
       gitCommitSha?: string | null;
       gitCommitRef?: string | null;
