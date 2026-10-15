@@ -118,7 +118,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     // Conservative enrichment: infer a detailed Neon path only from unambiguous
     // normalized product names already categorized in the live EAN registry.
     // Never replace a populated category or invent a new taxonomy path.
-    const normalizeName = (name: string) => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\\s+/g, " ").trim();
+    const normalizeName = (name: string) => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\s+/g, " ").trim();
     const unresolvedNames = [...new Set(offers.filter(offer => {
       const ean = getEan(offer);
       return ean && !eanRows.some(row => String(row.ean) === ean);
