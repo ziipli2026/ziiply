@@ -70,6 +70,7 @@ export type ZiiplyMobileScannerCardProps = {
   flashState?: ZiiplyMobileScannerFlashState;
   loading?: boolean;
   scannerMessage?: string;
+  storeLocation?: {name:string;verified:boolean;checking?:boolean} | null;
   successMessage?: string;
   cameraOverlay?: React.ReactNode;
   torchOn?: boolean;
@@ -91,6 +92,7 @@ export default function ZiiplyMobileScannerCard({
   flashState = "idle",
   loading = false,
   scannerMessage = "",
+  storeLocation = null,
   successMessage = "Lisätty ostoskoriin",
   cameraOverlay,
   torchOn = false,
@@ -357,6 +359,12 @@ export default function ZiiplyMobileScannerCard({
         </button>
       </header>
 
+      {storeLocation?.name && (
+        <div role="status" aria-live="polite" className={["relative z-10 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold",storeLocation.verified?"border-emerald-700 bg-emerald-100 text-emerald-950":"border-[#b9975c] bg-[#f7e6bd] text-[#3d3525]"].join(" ")}>
+          <span aria-hidden="true" className={["h-2.5 w-2.5 shrink-0 rounded-full",storeLocation.verified?"bg-emerald-600":storeLocation.checking?"animate-pulse bg-amber-500":"bg-stone-500"].join(" ")}/>
+          <span className="min-w-0 truncate">{storeLocation.verified?"GPS · Kauppa tunnistettu":storeLocation.checking?"GPS · Tarkistetaan sijaintia":"Valittu kauppa"}: {storeLocation.name}</span>
+        </div>
+      )}
       {/* Kamera-alue */}
       <main className="relative z-10 min-h-0 flex-1 px-3 pb-2">
         <div
