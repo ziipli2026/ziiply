@@ -178,6 +178,26 @@ function normalizeGostaCoreText(value: unknown) {
     .trim();
 }
 
+// Convert legacy category chips to the same canonical display labels used by
+// verified Neon taxonomy and the shared category resolver.
+function canonicalGostaFilterCategory(value: string) {
+  const normalized = normalizeGostaCoreText(value).replace(/\\bja\\b/g, " ").replace(/\\s+/g, " ").trim();
+  const aliases: Record<string, string> = {
+    kahvi: "Kahvi & tee",
+    "kahvi tee": "Kahvi & tee",
+    liha: "Liha & makkarat",
+    "liha makkarat": "Liha & makkarat",
+    koti: "Koti & vapaa-aika",
+    "koti vapaa aika": "Koti & vapaa-aika",
+    makeiset: "Makeiset & keksit",
+    "makeiset keksit": "Makeiset & keksit",
+  };
+  const candidate = aliases[normalized] || getGostaCategoryLabelFromFilterV136(value);
+  return GOSTA_CATEGORY_LABELS_V136.find(
+    (label) => normalizeGostaCoreText(label) === normalizeGostaCoreText(candidate),
+  ) || candidate;
+}
+
 function isCurrentGostaCategorySelectionV167(value: string) {
   const normalized = normalizeGostaCoreText(value).trim();
   if (!normalized) return false;
@@ -836,6 +856,7 @@ export function filterZiiplyGostaOfferResultsV146(
 ) {
   const filter = normalizeGostaCoreText(filterValue).trim();
   if (!filter || filter === "kaikki" || filter === "all") return results;
+  const canonicalCategoryFilter = normalizeGostaCoreText(canonicalGostaFilterCategory(filterValue));
 
   return results.filter((item) => {
     const category = normalizeGostaCoreText(getResolvedGostaCategoryV166(item));
@@ -849,7 +870,7 @@ export function filterZiiplyGostaOfferResultsV146(
     //
     // Tunnettu tuoteryhmächip ei ole vapaatekstihaku koko tarjousriviin.
     if (isCurrentGostaCategorySelectionV167(filterValue)) {
-      return category === filter;
+      return category === canonicalCategoryFilter;
     }
 
     const title = normalizeGostaCoreText(getOfferProductTitleV113(item));
@@ -954,7 +975,7 @@ export async function searchZiiplyGostaOffersV146(options: {
   const offerQuerySnapshot = termSnapshot || cleanedQuery;
 
   const categorySearchLabel = isCurrentGostaCategorySelectionV167(offerQuerySnapshot)
-    ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
+    ? canonicalGostaFilterCategory(offerQuerySnapshot)
     : "";
 
   const normalizedCategorySearch = normalizeGostaCoreText(categorySearchLabel).trim();
