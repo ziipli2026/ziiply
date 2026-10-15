@@ -4733,6 +4733,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const scannerStorePromptTimerRefV828 = useRef<number | null>(null);
   const [scannerStorePromptV828, setScannerStorePromptV828] = useState<{ storeName: string; seconds: number } | null>(null);
   const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
+  const scannerLocationSessionV856 = useRef(0);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
   // V837: keep the newest physical scan that arrives while the previous EAN lookup is busy.
@@ -14502,6 +14503,40 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalClosing(false);
   }
 
+  // V856: independent, non-blocking GPS status check when scanner opens.
+  // This does not grant collection permission or trigger the store confirmation prompt.
+  function checkScannerLocationOnOpenV856() {
+    const session = ++scannerLocationSessionV856.current;
+    const names = [
+      selectedChains.s ? String(activeStores.sStoreName || "").trim() : "",
+      selectedChains.k ? String(activeStores.kStoreName || "").trim() : "",
+      selectedChains.lidl ? String(selectedLidlStoreV750?.name || "").trim() : "",
+      selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
+    ].filter(name => name && !name.startsWith("Valitse ensin"));
+    const name = names.length === 1 ? names[0] : "";
+    setScannerLocationStatusV855(name ? {name,verified:false,checking:true} : null);
+    if (!name || !usingOwnLocation || typeof navigator === "undefined" || !navigator.geolocation) {
+      setScannerLocationStatusV855(name ? {name,verified:false,checking:false} : null);
+      return;
+    }
+    const stores = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+    const selected = stores.find(store => normalize(String(store.name || "")) === normalize(name));
+    if (!selected) {setScannerLocationStatusV855({name,verified:false,checking:false});return;}
+    navigator.geolocation.getCurrentPosition(position => {
+      if (scannerLocationSessionV856.current !== session) return;
+      const fresh = Date.now() - position.timestamp <= 10000 && position.coords.accuracy <= 35;
+      const point = {latitude:position.coords.latitude,longitude:position.coords.longitude};
+      const distance = (store:StoreSearchItem) => {
+        const latitude=getStoreCoordinateV320(store,["latitude","lat","y"]);
+        const longitude=getStoreCoordinateV320(store,["longitude","lng","lon","x"]);
+        return latitude==null||longitude==null?null:calculateDistanceKmV320(point,{latitude,longitude});
+      };
+      const ownDistance=distance(selected);
+      const competitor=stores.some(store => normalize(String(store.name || ""))!==normalize(name) && (distance(store)??Infinity)<=0.05);
+      setScannerLocationStatusV855({name,verified:Boolean(fresh && ownDistance!=null && ownDistance<=0.05 && !competitor),checking:false});
+    },()=>{if(scannerLocationSessionV856.current===session)setScannerLocationStatusV855({name,verified:false,checking:false});},{enableHighAccuracy:true,maximumAge:0,timeout:4000});
+  }
+
   function openEanModal() {
     trackZiiplyEvent("barcode_scanner_opened", {
       cartItemsCount: cart.length,
@@ -14517,7 +14552,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
-    setScannerLocationStatusV855(null);
+    checkScannerLocationOnOpenV856();
     scannerStoreCheckDoneRefV791.current = false;
     scannerInStoreRefV828.current = false;
     scannerConfirmedStoreNameRefV828.current = "";
