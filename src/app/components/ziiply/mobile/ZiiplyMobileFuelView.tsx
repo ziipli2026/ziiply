@@ -170,7 +170,7 @@ export default function ZiiplyMobileFuelView({
         }}
       />
       <div
-        className="mt-[-6px] pt-2 grid grid-cols-2 gap-x-3 gap-y-1.5"
+        className="mt-[-6px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(340px,46dvh,510px)]"
         aria-label="Polttoaineasemat"
       >
         {cards.map((g) => {
@@ -187,7 +187,7 @@ export default function ZiiplyMobileFuelView({
           return (
             <article
               key={g.slot}
-              className={`relative h-[104px] min-w-0 overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pt-1 text-center shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] ${scope === "between_chains" && g.key === "Gulf / Ritoil / Muu" ? "col-span-2 w-[calc(50%-6px)] justify-self-center" : ""} ${chosen ? "border-[#5c7858] bg-gradient-to-b from-[#fffbe7] to-[#d8dfb5]" : "border-[#d9c18e] bg-gradient-to-b from-[#fffaf0] to-[#f4e9c7]"} ${muted ? "opacity-60" : ""}`}
+              className={`relative h-full min-h-0 min-w-0 overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pt-1 text-center shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] ${g.key === "Gulf / Ritoil / Muu" ? "col-span-2 w-[calc(50%-6px)] justify-self-center" : ""} ${chosen ? "border-[#5c7858] bg-gradient-to-b from-[#fffbe7] to-[#d8dfb5]" : "border-[#d9c18e] bg-gradient-to-b from-[#fffaf0] to-[#f4e9c7]"} ${muted ? "opacity-60" : ""}`}
             >
               <svg
                 aria-hidden="true"
@@ -207,7 +207,7 @@ export default function ZiiplyMobileFuelView({
                 onClick={() => station && select(station.id)}
                 aria-pressed={chosen}
                 aria-label={`${g.key}: ${station?.name ?? "Ei asemaa"}`}
-                className="relative block h-[68px] w-full text-center"
+                className="relative block h-full w-full text-center"
               >
                 <span className="absolute left-0 top-0 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[#fffef9] p-px">
                   {g.logo ? (
@@ -225,10 +225,10 @@ export default function ZiiplyMobileFuelView({
                 >
                   ✓
                 </span>
-                <span className="absolute inset-x-0 top-[30px] block h-[23px] overflow-hidden text-[11.5px] font-black leading-[11.5px] text-[#050505]">
+                <span className="absolute inset-x-0 top-[28%] block max-h-[36px] overflow-hidden text-[clamp(10px,2.8vw,13px)] font-black leading-tight text-[#050505]">
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                 </span>
-                <span className="absolute inset-x-0 top-[54px] block text-[12px] font-black leading-none text-black">
+                <span className="absolute inset-x-0 top-[64%] block text-[11px] font-black leading-none text-black">
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
@@ -236,19 +236,12 @@ export default function ZiiplyMobileFuelView({
                     : "–"}
                 </span>
               </button>
-              <p className="relative z-10 whitespace-nowrap text-[8px] font-black leading-tight text-[#213224]">
+              <p className="absolute inset-x-0 bottom-1 z-10 whitespace-nowrap text-[clamp(7px,2vw,10px)] font-black leading-tight text-[#213224]">
                 D {price(station?.diesel ?? null)} · 95{" "}
                 {price(station?.price95 ?? null)} · 98{" "}
                 {price(station?.price98 ?? null)}
               </p>
-              <button
-                disabled={!station}
-                aria-label={`Vaihda ${g.key} asemaa`}
-                onClick={() => setPicker(g.slot)}
-                className="absolute bottom-[4px] left-1/2 z-10 -translate-x-1/2 rounded-full border border-[#c7a763] bg-[#fff8df] px-3 py-px text-[9px] font-black text-[#213224]"
-              >
-                Vaihda
-              </button>
+
             </article>
           );
         })}
