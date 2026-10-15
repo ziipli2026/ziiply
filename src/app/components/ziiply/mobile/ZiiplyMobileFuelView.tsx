@@ -1,3 +1,4 @@
+import FuelStationBackdrop from "./FuelStationBackdrop";
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -193,19 +194,7 @@ export default function ZiiplyMobileFuelView({
               key={g.slot}
               className={`relative h-full min-h-0 min-w-0 overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pt-1 text-center shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] ${g.key === "Gulf / Ritoil / Muu" ? "col-span-2 w-[calc(50%-6px)] justify-self-center" : ""} ${chosen ? "border-[#5c7858] bg-gradient-to-b from-[#fffbe7] to-[#d8dfb5]" : "border-[#d9c18e] bg-gradient-to-b from-[#fffaf0] to-[#f4e9c7]"} ${muted ? "opacity-60" : ""}`}
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 220 100"
-                className="pointer-events-none absolute inset-x-0 bottom-0 w-full opacity-25"
-              >
-                <path d="M0 47L33 17H177L220 47Z" fill="#508d72" />
-                <path d="M15 47H210V98H15Z" fill="#d0d6c9" />
-                <path
-                  d="M29 56H66V90H29ZM84 56H125V90H84ZM142 56H184V90H142Z"
-                  fill="#4c7b70"
-                />
-                <path d="M3 44H219V52H3Z" fill="#518e79" />
-              </svg>
+              <FuelStationBackdrop chain={g.key === "Gulf / Ritoil / Muu" ? "Muut" : g.key as "Neste" | "ABC" | "St1" | "SEO"} />
               <button
                 onClick={() => setPicker(g.slot)}
                 
@@ -231,10 +220,10 @@ export default function ZiiplyMobileFuelView({
                 >
                   ✓
                 </span>
-                <span className="absolute inset-x-0 top-[24%] block max-h-[36px] overflow-hidden text-[clamp(13px,3.8vw,18px)] font-black leading-tight text-[#050505]">
+                <span className="absolute inset-x-0 top-[24%] block max-h-[2.4em] overflow-hidden text-[clamp(12px,3.2vw,15px)] font-black leading-tight text-[#050505]">
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                 </span>
-                <span className="absolute inset-x-0 top-[52%] block text-[clamp(12px,3.4vw,16px)] font-black leading-none text-black">
+                <span className="absolute inset-x-0 top-[54%] block text-[clamp(11px,3vw,14px)] font-black leading-none text-black">
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
