@@ -30,6 +30,16 @@ jobs:
         run: |
           node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-frozen/publications/41AV tests/fixtures/citymarket/41AV.approved.json
 
+  image-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate publisher image fragments and 42LV coverage
+        run: node scripts/citymarket/verify-images.mjs
+
   frozen-42lv:
     runs-on: ubuntu-latest
     steps:
