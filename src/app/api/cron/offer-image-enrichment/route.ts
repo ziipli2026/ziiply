@@ -143,7 +143,16 @@ export async function GET(req: Request) {
       AND (lower(name) LIKE ${firstWord + '%'} OR lower(name) LIKE ${'% ' + firstWord + ' %'})
       AND (${amount ?? ''} = '' OR regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') LIKE ${'%' + (amount ?? '') + '%'})
       LIMIT 1500`;
-    const exact = matches.filter(row => normalize(row.name) === normalize(title) && validUrl(row.image_url));
+    const normalizedTitle = normalize(title);
+    const brandTokens = new Set(["arla","fazer","hk","atria","valio","vaasan","kalaneuvos","kariniemen","pingo"]);
+    const titleTokens = normalizedTitle.split(" ");
+    const variants = [normalizedTitle];
+    if (brandTokens.has(titleTokens[0]) && titleTokens.length > 1) variants.push(titleTokens.slice(1).join(" "));
+    const exact = matches.filter(row => {
+      const candidate = normalize(row.name);
+      const sizeMatches = !amount || candidate.split(" ").includes(amount);
+      return variants.includes(candidate) && sizeMatches && validUrl(row.image_url);
+    });
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
     if (images.length !== 1 || exact.length !== 1) { ambiguous++; continue; }
     await db`UPDATE ziiply_offer_image_queue SET image_url=${images[0]},
