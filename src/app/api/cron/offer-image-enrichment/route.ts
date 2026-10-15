@@ -126,8 +126,11 @@ export async function GET(req: Request) {
     .replace(/[^a-z0-9åäö]+/gi," ").split(" ").filter(Boolean).join(" ").trim();
   const uncertain = (v: string) => {
     const words = normalize(v).split(" ");
-    return ["tai","ja","sekä","eri","valikoima","lajitelma"].some(word => words.includes(word))
-      || v.includes("/");
+    const hasMultipleOfferOptions = ["tai","ja","sekä","eri","valikoima","lajitelma"].some(word => words.includes(word));
+    // A slash in package notation such as "2 kpl/140 g" is not a multi-product offer.
+    const packageSlash = /\\b\\d+\\s*kpl\\s*\\/\\s*\\d+\\s*(?:g|kg|ml|l)\\b/i.test(v);
+    const otherSlash = v.includes("/") && !packageSlash;
+    return hasMultipleOfferOptions || otherSlash;
   };
   for (const item of noEan) {
     const title = String(item.title || "");
