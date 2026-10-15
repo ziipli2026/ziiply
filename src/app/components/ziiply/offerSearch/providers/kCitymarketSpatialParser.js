@@ -53,10 +53,17 @@ export async function parseKCitymarketSpatialLeaflet(entry){
  ];
  // Preserve explicitly approved historical parsers above. Apply evidence-only
  // transaction correction to other publications without relying on issue number.
- return {...current,rows:current.rows.map(row=>{
+ // The original 42LV PDF prints two separate offers in the same region.
+ // Split only this verified publication/page/title; do not infer a second
+ // price from neighboring cards or apply the split to other leaflets.
+ const split42LVRow=row=>verified42LV&&row.page===18&&/ATERIAT 8 kk 190 g.*KISSAN KUIVARUOAT 400 g/i.test(String(row.title||''))?[
+  {...row,title:'Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g',spatialResolved:{value:5,quantity:4,unit:'kpl',source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},percentageOffer:null},
+  {...row,title:'PrimaCat KISSAN KUIVARUOAT 400 g',spatialResolved:{value:10,quantity:3,unit:'ps',source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},percentageOffer:null}
+ ]:[row];
+ return {...current,rows:current.rows.flatMap(row=>{
   const repaired=repairPublisherTransaction(row);
   const printed=verified42LV&&printed42LV.find(x=>x.page===row.page&&x.title.test(String(row.title||'')));
-  return printed?{...repaired,percentageOffer:null,spatialResolved:{value:printed.value,quantity:printed.quantity,unit:printed.unit,source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},debugReplacedConflictingPrice:repaired.spatialResolved}:repaired;
+  return split42LVRow(printed?{...repaired,percentageOffer:null,spatialResolved:{value:printed.value,quantity:printed.quantity,unit:printed.unit,source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},debugReplacedConflictingPrice:repaired.spatialResolved}:repaired);
  })};
 }
 export default parseKCitymarketSpatialLeaflet;
