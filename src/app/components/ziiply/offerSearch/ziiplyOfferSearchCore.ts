@@ -656,10 +656,10 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
     if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
     if (!response.ok || payloadV174?.ok === false) return parseOfferSearchResponse(response);
     const tjek = payloadV174?.kruokaDebug?.localTjekDebug;
-    if (!isCitymarket || !tjek || tjek.stage === "complete" && !tjek.running) {
+    if (!isCitymarket || (tjek?.stage === "complete" && !tjek.running)) {
       return parseOfferSearchResponse(response);
     }
-    if (tjek.stage === "failed" || tjek.error && !tjek.running) {
+    if (tjek?.stage === "failed" || (tjek?.error && !tjek.running)) {
       throw new Error("K-Citymarketin kampanjahaku epäonnistui: " + String(tjek.error ?? tjek.stage));
     }
     if (Date.now() >= deadline) {
