@@ -109,6 +109,16 @@ function inferExistingCategoryFromName(name: string): string | null {
     { terms: ["mentos discovery"], category: "karkit-suklaat-ja-keksit/karkkipussit/pastillit-ja-purukumit" },
     { terms: ["shield & shape", "rakennesuihke", "hiuskiinne", "hairspray", "dry texture spray"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet" },
     { terms: ["antiseptinen suihke", "q10 ubikinoni", "dekspantenoli nenäsuihke"], category: "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/muut-terveysvalmisteet" },
+    { terms: ["pyykinpesuneste"], category: "kodinhoito-ja-taloustarvikkeet/pyykinpesu/pyykinpesunesteet" },
+    { terms: ["inkontinenssiside", "inkontinenssisuoja"], category: "kosmetiikka-terveys-ja-hygienia/intiimihygienia/inkontinenssisuojat" },
+    { terms: ["vartaloseerumi"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/vartaloseerumit" },
+    { terms: ["deodorantti"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/deodorantit" },
+    { terms: ["hammastikku"], category: "kosmetiikka-terveys-ja-hygienia/suunhoito/hammastikut" },
+    { terms: ["shampoo", "kuivashampoo"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/shampoot" },
+    { terms: ["body lotion mousse", "vartalovoide"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/vartalovoiteet" },
+    { terms: ["off! pehmeä tehosuihke"], category: "koti-ja-vapaa-aika/piha-ja-puutarha/hyonteiskarkotteet" },
+    { terms: ["dentastix"], category: "lemmikit/koirat/koiranherkut" },
+    { terms: ["oneblade 360"], category: "kosmetiikka-terveys-ja-hygienia/ihokarvojen-poisto/partakoneiden-vaihtoterat" },
     { terms: ["talouspaperi"], category: "kodinhoito-ja-taloustarvikkeet/kodin-paperit/talouspaperit" },
   ];
   for (const rule of rules) {
