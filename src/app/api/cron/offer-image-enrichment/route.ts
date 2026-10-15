@@ -136,8 +136,8 @@ export async function GET(req: Request) {
     if (firstWord.length < 4) { ambiguous++; continue; }
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url LIKE 'https://%'
-      AND lower(name) LIKE ${firstWord + '%'}
-      LIMIT 200`;
+      AND (lower(name) LIKE ${firstWord + '%'} OR lower(name) LIKE ${'% ' + firstWord + ' %'})
+      LIMIT 1500`;
     const exact = matches.filter(row => normalize(row.name) === normalize(title) && validUrl(row.image_url));
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
     if (images.length !== 1 || exact.length !== 1) { ambiguous++; continue; }
