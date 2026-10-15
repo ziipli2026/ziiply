@@ -17,7 +17,8 @@ const canonicalRows=canonicalCitymarketProductRows(parsed.rows);
 const coverageReportPath=process.env.KCM_42LV_MISSING_IMAGES_REPORT;
 if(coverageReportPath){
  const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json','utf8'));
- const pub=manifest.publications[frozen.entry];
+ const publicationUrl='https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html';
+ const pub=manifest.publications[publicationUrl];
  if(!pub)throw Error('Missing 42LV image publication entry: '+frozen.entry);
  const expectedHash='d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd';
  if(pub.pdfSha256!==expectedHash)throw Error('42LV image publication hash mismatch');
