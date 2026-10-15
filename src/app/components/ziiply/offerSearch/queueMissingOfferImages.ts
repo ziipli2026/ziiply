@@ -14,6 +14,7 @@ export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promis
     title: str(o.title || o.name,300),
   })).filter(o => o.chain && o.publication && o.product_id);
   if (!rows.length) return;
+  const uniqueRows = [...new Map(rows.map(row => [[row.chain,row.publication,row.product_id].join('|'),row])).values()];
   try {
     const sql = neon(process.env.DATABASE_URL);
     await sql`CREATE TABLE IF NOT EXISTS ziiply_offer_image_queue (
@@ -26,7 +27,7 @@ export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promis
     )`;
     await sql`INSERT INTO ziiply_offer_image_queue(chain,publication,product_id,ean,title)
       SELECT chain,publication,product_id,ean,title
-      FROM jsonb_to_recordset(${JSON.stringify(rows)}::jsonb)
+      FROM jsonb_to_recordset(${JSON.stringify(uniqueRows)}::jsonb)
       AS r(chain text,publication text,product_id text,ean text,title text)
       ON CONFLICT (chain,publication,product_id) DO UPDATE SET
         ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
