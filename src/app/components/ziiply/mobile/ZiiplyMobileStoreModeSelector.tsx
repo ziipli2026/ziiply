@@ -148,11 +148,19 @@ export default function ZiiplyMobileStoreModeSelector({
         >
           <span className="relative z-10">{fuelMode ? "⛽ Liikenneasemat" : "🏬 Tavaratalot"}</span>
         </button>
-        {fuelMode ? null : (
-          <div className={`absolute left-1/2 top-1/2 z-30 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${fuelMode || (storeCompareScope === "between_chains" && storeModeChosen) ? "" : "invisible pointer-events-none"}`} aria-hidden={!(fuelMode || (storeCompareScope === "between_chains" && storeModeChosen))}>
+        {fuelMode ? (
+          <div className="absolute left-1/2 top-1/2 z-30 flex w-[56px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5">
+            <img src="/fuel-icons/fuel-pump.png" alt="" className="h-[25px] w-[27px] object-contain" />
+            <button type="button" aria-label="Asematyypin valinta" title={fuelStationSide === "traffic" ? "Liikenneasemat" : fuelStationSide === "cold" ? "Kylmäasemat ja muut" : "Kaikki asemat"} onClick={() => onFuelStationSideChange?.(fuelStationSide === "traffic" ? "cold" : fuelStationSide === "cold" ? "both" : "traffic")} className="relative h-[24px] w-[50px] shrink-0 rounded-full border border-[#b99b62] bg-[#d8c69d] shadow-sm">
+              <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[16px]" : "left-[29px]"}`} />
+            </button>
+            <span aria-hidden="true" className="text-[17px] font-black leading-none text-[#1a2740]">{fuelStationSide === "traffic" ? "←" : fuelStationSide === "cold" ? "→" : "↔"}</span>
+          </div>
+        ) : (
+          <div className={`absolute left-1/2 top-1/2 z-30 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`}>
             <span className="mb-0 text-[9px] font-black leading-none text-[#6a5330]">Yksi</span>
-            <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label={fuelMode ? "Valitse yksi tai monta asemaa" : "Valitse yksi tai monta kauppaa"} onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative ${fuelMode ? "h-[19px] w-[38px]" : "h-[34px] w-[18px]"} shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
-              <span className={`absolute h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-all ${fuelMode ? (betweenChainSelectionMode === "many" ? "left-[21px] top-[2px]" : "left-[2px] top-[2px]") : (betweenChainSelectionMode === "many" ? "left-[2px] top-[18px]" : "left-[2px] top-[2px]")}`} />
+            <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label="Valitse yksi tai monta kauppaa" onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative h-[34px] w-[18px] shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
+              <span className={`absolute left-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-all ${betweenChainSelectionMode === "many" ? "top-[18px]" : "top-[2px]"}`} />
             </button>
             <span className="mt-0 text-[9px] font-black leading-none -translate-y-[2px] text-[#6a5330]">Monta</span>
           </div>
@@ -167,15 +175,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </button>
       </div>
 
-      {fuelMode && (
-        <div className="relative z-20 mt-1 flex items-center justify-center gap-2">
-          <span className="text-[12px] font-black uppercase tracking-[0.12em] text-[#66543a]">Hakutapa</span>
-          <button type="button" aria-label="Asematyypin valinta" title={fuelStationSide === "traffic" ? "Liikenneasemat" : fuelStationSide === "cold" ? "Kylmäasemat ja muut" : "Kaikki asemat"} onClick={() => onFuelStationSideChange?.(fuelStationSide === "traffic" ? "cold" : fuelStationSide === "cold" ? "both" : "traffic")} className="relative h-[24px] w-[50px] shrink-0 rounded-full border border-[#b99b62] bg-[#d8c69d] shadow-sm">
-            <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[16px]" : "left-[29px]"}`} />
-          </button>
-          <span aria-hidden="true" className="text-[17px] font-black text-[#1a2740]">{fuelStationSide === "traffic" ? "←" : fuelStationSide === "cold" ? "→" : "↔"}</span>
-        </div>
-      )}
+      {fuelMode && <div className="relative z-10 mt-2 text-center text-[12px] font-black uppercase tracking-[0.12em] text-[#66543a]">Hakutapa</div>}
       {!fuelMode && (
       <div className="relative z-0 my-1 flex h-7 items-center justify-center overflow-visible">
         <p
