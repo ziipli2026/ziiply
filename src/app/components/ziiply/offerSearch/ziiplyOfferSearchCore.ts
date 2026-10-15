@@ -862,8 +862,9 @@ function gostaOfferSortPrice(item: ZiiplyGostaOfferLike): number {
       continue;
     }
     const value = String(candidate).trim();
-    if (/\\/\\s*(kg|l|kpl|100\\s*g|100\\s*ml)\\b/i.test(value)) continue;
-    const match = value.match(/(?:^|\\s)(\\d{1,5}(?:[,.]\\d{1,2})?)\\s*(?:€|eur)?(?:\\s|$)/i);
+    // Comparison prices are not the total product price.
+    if (/\/\s*(kg|l|kpl|100\s*g|100\s*ml)\b/i.test(value)) continue;
+    const match = value.match(/(?:^|\s)(\d{1,5}(?:[,.]\d{1,2})?)\s*(?:€|eur)?(?:\s|$)/i);
     if (!match) continue;
     const price = Number(match[1].replace(",", "."));
     if (Number.isFinite(price) && price > 0) return price;
@@ -872,7 +873,14 @@ function gostaOfferSortPrice(item: ZiiplyGostaOfferLike): number {
 }
 
 export function sortZiiplyGostaOffersByPrice(results: ZiiplyGostaOfferLike[]) {
-  return [...results].sort((a, b) => gostaOfferSortPrice(a) - gostaOfferSortPrice(b));
+  return [...results].sort((a, b) => {
+    const left = gostaOfferSortPrice(a);
+    const right = gostaOfferSortPrice(b);
+    if (left === right) return 0;
+    if (!Number.isFinite(left)) return 1;
+    if (!Number.isFinite(right)) return -1;
+    return left - right;
+  });
 }
 
 export function filterZiiplyGostaOfferResultsV146(
@@ -880,7 +888,7 @@ export function filterZiiplyGostaOfferResultsV146(
   filterValue: string,
 ) {
   const filter = normalizeGostaCoreText(filterValue).trim();
-  if (!filter || filter === "kaikki" || filter === "all") return results;
+  if (!filter || filter === "kaikki" || filter === "all") return sortZiiplyGostaOffersByPrice(results);
   const canonicalCategoryFilter = normalizeGostaCoreText(canonicalGostaFilterCategory(filterValue));
 
   return sortZiiplyGostaOffersByPrice(results.filter((item) => {
