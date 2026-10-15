@@ -185,35 +185,31 @@ assert.match(resultAddV836, /scannerStoreStillMatchesResultV836/);
 console.log("V836 confirmed scanner-session delayed result regression: PASS");
 
 
-// V837: a fast second physical scan is queued instead of being dropped while A is in flight.
-const finishScanV837 = source.split("async function finishScannedEan")[1]?.split("function focusBluetoothBarcodeInputV202")[0];
+// V837: while a physical camera lookup owns the scanner, later frame decodes
+// are ignored as potential camera misreads rather than queued as a second product.
+const finishScanV837 = source.split("async function finishScannedEan")[1]?.split("function focusBluetoothBarcodeInputKeyDownV202")[0];
 assert.ok(finishScanV837, "physical scanner finish handler exists");
-assert.match(finishScanV837, /queuedPhysicalScanRefV837\.current = normalizedCode/);
-assert.match(finishScanV837, /QUEUE physical scan/);
-const searchTailV837 = source.split("await runLookupPromiseV121")[1]?.split("useEffect\(\(\) =>")[0];
-assert.ok(searchTailV837, "EAN lookup final cleanup exists");
-assert.match(searchTailV837, /const queuedPhysicalScanV837 = queuedPhysicalScanRefV837\.current/);
-assert.match(searchTailV837, /queuedPhysicalScanRefV837\.current = null/);
-assert.match(searchTailV837, /finishScannedEan\(queuedPhysicalScanV837\)/);
+assert.match(finishScanV837, /eanSearchInFlightRef\.current \|\| eanLookupPendingRefV120\.current\.size > 0/);
+assert.match(finishScanV837, /IGNORE concurrent camera decode/);
+assert.match(finishScanV837, /return;/);
+assert.doesNotMatch(finishScanV837, /queuedPhysicalScanRefV837/);
 
-// Deterministic A -> B simulation: B waits, A completes, then B becomes the next scan.
+// Deterministic A -> B simulation: only A owns the in-flight lookup; B is ignored.
 {
   let active = "A";
-  let queued = null;
   const accepted = ["A"];
   const scan = (code) => {
-    if (active) { queued = code; return; }
-    active = code; accepted.push(code);
+    if (active) return;
+    active = code;
+    accepted.push(code);
   };
   scan("B");
-  assert.deepEqual(accepted, ["A"], "B does not race A");
+  assert.deepEqual(accepted, ["A"], "concurrent frame decode cannot race or replace A");
   active = null;
-  const next = queued; queued = null;
-  if (next) scan(next);
-  assert.deepEqual(accepted, ["A", "B"], "B is processed after A");
-  assert.equal(queued, null, "queue is empty after drain");
+  scan("C");
+  assert.deepEqual(accepted, ["A", "C"], "a fresh scan is accepted after A completes");
 }
-console.log("V837 fast consecutive physical scan queue regression: PASS");
+console.log("V837 concurrent camera decode isolation regression: PASS");
 
 
 // V838: collection semantics for an item already in the basket.
@@ -247,23 +243,24 @@ assert.match(addResultV838, /setEanScannerMessage\("✓ Kerätty"\)/);
 console.log("V838 existing basket collection semantics regression: PASS");
 
 
-// V839: closing/navigating away from the scanner invalidates the V837 waiting scan too.
+// V839: closing/navigating away invalidates scanner session and pending store confirmation.
 const closeEanV839 = source.split("async function closeEanModal")[1]?.split("function openEanModal")[0];
 assert.ok(closeEanV839, "EAN modal close handler exists");
-assert.match(closeEanV839, /queuedPhysicalScanRefV837\.current = null/);
+assert.match(closeEanV839, /clearInterval\(scannerStorePromptTimerRefV828\.current\)/);
+assert.match(closeEanV839, /resolvePendingStorePromptV831\(false\)/);
 const modalBackstopV839 = source.split("// V835: closing the EAN modal by any navigation path")[1]?.split("function resolveVoiceResultWaitV509")[0];
 assert.ok(modalBackstopV839, "EAN modal close backstop exists");
-assert.match(modalBackstopV839, /queuedPhysicalScanRefV837\.current = null/);
+assert.match(modalBackstopV839, /scannerInStoreRefV828\.current = false/);
+assert.match(modalBackstopV839, /scannerConfirmedStoreNameRefV828\.current = ""/);
 {
-  let queued = "B";
   let scannerOpen = true;
-  const close = () => { scannerOpen = false; queued = null; };
+  let confirmedStore = "Prisma Hyvinkää";
+  const close = () => { scannerOpen = false; confirmedStore = ""; };
   close();
-  const releasedAfterOldA = queued;
   assert.equal(scannerOpen, false);
-  assert.equal(releasedAfterOldA, null, "old A cannot release queued B after scanner close");
+  assert.equal(confirmedStore, "", "closing scanner invalidates the old store session");
 }
-console.log("V839 scanner close invalidates queued physical scan regression: PASS");
+console.log("V839 scanner close invalidates scanner session regression: PASS");
 
 
 // V840: foreign private-label scanner mismatch must never enter the selected chain cart.
