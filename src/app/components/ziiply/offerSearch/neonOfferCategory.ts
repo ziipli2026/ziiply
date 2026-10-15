@@ -212,7 +212,9 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
           await sql`UPDATE ziiply_ean_products AS p SET category = u.category, updated_at = now()
             FROM jsonb_to_recordset(${payload}::jsonb) AS u(ean text, category text)
             WHERE p.ean = u.ean AND (p.category IS NULL OR trim(p.category) = '')`;
-          for (const item of updates) eanRows.push({ean:item.ean,category:item.category});
+          // Read back persisted rows: a concurrent update may have skipped a proposed category.
+          const confirmed = await sql`SELECT ean, category FROM ziiply_ean_products WHERE ean = ANY(${updates.map(item => item.ean)}::text[]) AND category IS NOT NULL AND category <> ''`;
+          for (const row of confirmed) eanRows.push({ean:String(row.ean),category:String(row.category)});
         }
       } catch (error) {
         console.error("[offers] Conservative Neon category enrichment failed", error);
