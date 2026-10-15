@@ -6,10 +6,10 @@ export const maxDuration = 60;
 
 type Candidate = { chain: string; publication: string; productId: string; ean?: string; title: string; imageUrl?: string };
 const sql = () => neon(process.env.DATABASE_URL!);
-const eanOf = (v: unknown) => { const s = String(v ?? "").replace(/\\D/g, ""); return /^\\d{8,14}$/.test(s) ? s : ""; };
+const eanOf = (v: unknown) => { const s = String(v ?? "").replace(/\D/g, ""); return /^\d{8,14}$/.test(s) ? s : ""; };
 const text = (v: unknown, n = 180) => String(v ?? "").trim().slice(0, n);
 const validUrl = (v: unknown) => {
-  try { const u = new URL(String(v)); return u.protocol === "https:" && !/^(localhost|127\\.|10\\.|192\\.168\\.|169\\.254\\.)/.test(u.hostname) && !u.hostname.endsWith(".local") ? u.href.slice(0, 1000) : ""; }
+  try { const u = new URL(String(v)); return u.protocol === "https:" && !/^(localhost|127\.|10\.|192\.168\.|169\.254\.)/.test(u.hostname) && !u.hostname.endsWith(".local") ? u.href.slice(0, 1000) : ""; }
   catch { return ""; }
 };
 async function schema(db: ReturnType<typeof sql>) {
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
     FROM ziiply_offer_image_queue q
     JOIN ziiply_ean_products p ON p.ean=q.ean
     WHERE q.status='pending' AND q.next_attempt_at<=now()
-      AND q.ean ~ '^\\d{8,14}$' AND p.image_url LIKE 'https://%'
+      AND q.ean ~ '^\d{8,14}$' AND p.image_url LIKE 'https://%'
     ORDER BY q.next_attempt_at ASC LIMIT 100`;
   let enriched = 0;
   for (const row of matches) {
