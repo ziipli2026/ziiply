@@ -170,7 +170,7 @@ export default function ZiiplyMobileFuelView({
         }}
       />
       <div
-        className="mt-[-6px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(340px,46dvh,510px)]"
+        className="mt-[-6px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(238px,33dvh,350px)]"
         aria-label="Polttoaineasemat"
       >
         {cards.map((g) => {
@@ -228,7 +228,7 @@ export default function ZiiplyMobileFuelView({
                 <span className="absolute inset-x-0 top-[28%] block max-h-[36px] overflow-hidden text-[clamp(10px,2.8vw,13px)] font-black leading-tight text-[#050505]">
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                 </span>
-                <span className="absolute inset-x-0 top-[64%] block text-[11px] font-black leading-none text-black">
+                <span className="absolute inset-x-0 top-[59%] block text-[11px] font-black leading-none text-black">
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
@@ -236,7 +236,7 @@ export default function ZiiplyMobileFuelView({
                     : "–"}
                 </span>
               </button>
-              <p className="absolute inset-x-0 bottom-1 z-10 whitespace-nowrap text-[clamp(7px,2vw,10px)] font-black leading-tight text-[#213224]">
+              <p className="absolute inset-x-0 bottom-0.5 z-10 whitespace-nowrap text-[clamp(7px,2vw,10px)] font-black leading-tight text-[#213224]">
                 D {price(station?.diesel ?? null)} · 95{" "}
                 {price(station?.price95 ?? null)} · 98{" "}
                 {price(station?.price98 ?? null)}
