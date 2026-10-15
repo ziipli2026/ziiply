@@ -147,6 +147,12 @@ export async function GET(req: Request) {
   const normalize = (v: unknown) => String(v ?? "").toLocaleLowerCase("fi")
     .replace(/(\d)\s+(g|kg|ml|l)\b/g, "$1$2")
     .replace(/[^a-z0-9åäö]+/gi," ").split(" ").filter(Boolean).join(" ").trim();
+  // A leaflet price annotation is not part of the SKU name. Strip it only
+  // for matching; never change the displayed title or original offer data.
+  const cleanIdentity = (v: string) => String(v)
+    .replace(/\([^)]*\b(?:kg|l|kpl)\b[^)]*\)/gi, " ")
+    .replace(/\b(?:ei\s+luomu|msc-sertifioitu|uht)\b/gi, " ")
+    .replace(/\s+/g, " ").trim();
   const uncertain = (v: string) => {
     const words = normalize(v).split(" ");
     const hasMultipleOfferOptions = ["tai","ja","sekä","eri","valikoima","lajitelma"].some(word => words.includes(word));
@@ -161,13 +167,13 @@ export async function GET(req: Request) {
   for (const item of noEan) {
     const title = String(item.title || "");
     if (!title || uncertain(title)) { ambiguous++; continue; }
-    const words = normalize(title).split(" ");
+    const words = normalize(cleanIdentity(title)).split(" ");
     const firstWord = words[0];
     if (firstWord.length < 4) { ambiguous++; continue; }
     // Search by both the brand/name token and package amount. Exact full-name
     // verification below still decides whether an image can be published.
     const amount = words.find(word => /^[0-9]+(?:kg|ml|g|l)$/.test(word));
-    const normalizedTitle = normalize(title);
+    const normalizedTitle = normalize(cleanIdentity(title));
     const brandTokens = new Set(["arla","fazer","hk","atria","valio","vaasan","kalaneuvos","kariniemen","pingo"]);
     const titleTokens = normalizedTitle.split(" ");
     const variants = [normalizedTitle];
