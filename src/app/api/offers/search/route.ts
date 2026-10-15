@@ -592,7 +592,7 @@ export async function GET(request: Request) {
         day: "2-digit",
       }).format(new Date());
       const fetched = storeName ? await fetchEurosparOffers(storeName, now) : [];
-      const results = (fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer));
+      const results = await enrichOfferCategoriesFromNeon((fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer)));
       return NextResponse.json(
         { ok: true, query: q, provider: "eurospar", storeName, results },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
@@ -809,7 +809,7 @@ export async function GET(request: Request) {
       // while real groceries must be classified into a concrete grocery category.
       const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
         .filter((offer) => normalizeText(offer.category) !== "muut");
-      const results = lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer));
+      const results = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
@@ -835,8 +835,9 @@ export async function GET(request: Request) {
       const results = (fetched as unknown as UnknownRecord[])
         .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName, availabilityScope: "chain-wide-online-offer", storeAvailabilityVerified: false }))
         .filter((offer) => offerMatchesQuery(q, offer));
+      const enrichedResults = await enrichOfferCategoriesFromNeon(results);
       return NextResponse.json(
-        { ok: true, query: q, provider: "tokmanni", storeName, results },
+        { ok: true, query: q, provider: "tokmanni", storeName, results: enrichedResults },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
