@@ -48,6 +48,8 @@ type StoreCompareScope = "none" | "between_chains" | "within_chain";
 
 type Props = {
   fuelMode?: boolean;
+  fuelStationSide?: "traffic" | "both" | "cold";
+  onFuelStationSideChange?: (side: "traffic" | "both" | "cold") => void;
   storeMode: StoreMode;
   storeModeChosen: boolean;
   storeCompareScope: StoreCompareScope;
@@ -77,6 +79,8 @@ function buttonClass(active: boolean, disabled = false) {
 
 export default function ZiiplyMobileStoreModeSelector({
   fuelMode = false,
+  fuelStationSide = "traffic",
+  onFuelStationSideChange,
   storeMode,
   storeModeChosen,
   storeCompareScope,
@@ -164,12 +168,17 @@ export default function ZiiplyMobileStoreModeSelector({
       </div>
 
       {fuelMode && (
-        <div className="relative z-20 mt-2 flex justify-center">
-          <button type="button" role="switch" aria-checked={storeMode === "local"} aria-label="Vaihda liikenneasemien ja kylmäasemien välillä" onClick={() => onStoreModeChange(storeMode === "hyper" ? "local" : "hyper")} className="relative h-[34px] w-[76px] rounded-full border-2 border-[#b99b62] bg-[#d8c69d] shadow-sm">
-            <span className={`absolute top-[3px] h-[24px] w-[24px] rounded-full bg-white shadow transition-[left] ${storeMode === "local" ? "left-[44px]" : "left-[4px]"}`} />
-          </button>
+        <div className="relative z-20 mt-1 flex items-center justify-center gap-3">
+          <span className="text-[12px] font-black uppercase tracking-[0.12em] text-[#66543a]">Hakutapa</span>
+          <div className="relative flex h-[32px] w-[78px] items-center rounded-full border-2 border-[#b99b62] bg-[#d8c69d] shadow-sm" role="group" aria-label="Asematyyppi">
+            {(["traffic", "both", "cold"] as const).map((side, index) => (
+              <button key={side} type="button" aria-label={side === "traffic" ? "Liikenneasemat" : side === "both" ? "Kaikki asemat" : "Kylmäasemat ja muut"} aria-pressed={fuelStationSide === side} onClick={() => onFuelStationSideChange?.(side)} className="relative z-10 h-full flex-1" />
+            ))}
+            <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[22px] w-[22px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[26px]" : "left-[49px]"}`} />
+          </div>
         </div>
       )}
+      {!fuelMode && (
       <div className="relative z-0 my-1 flex h-7 items-center justify-center overflow-visible">
         <p
           className={[
@@ -188,6 +197,7 @@ export default function ZiiplyMobileStoreModeSelector({
               : "Hakutapa"}
         </p>
       </div>
+      )}
 
       <div className={`relative z-10 mt-[-2px] grid grid-cols-2 gap-4 ${fuelMode ? "hidden" : ""}`}>
         <button
