@@ -63,6 +63,7 @@
 
 import { NextResponse } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
+import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
 import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
@@ -941,13 +942,14 @@ export async function GET(request: Request) {
     });
 
     const neonEnrichedResults = await enrichOfferCategoriesFromNeon(results);
-    await queueMissingOfferImagesBestEffort(neonEnrichedResults as unknown as Record<string, unknown>[]);
+    const imageEnrichedResults = await enrichOfferImagesBestEffort(neonEnrichedResults as unknown as Record<string, unknown>[]);
+    await queueMissingOfferImagesBestEffort(imageEnrichedResults);
     return NextResponse.json(
       {
         ok: true,
         query: q,
         context,
-        results: neonEnrichedResults,
+        results: imageEnrichedResults,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
