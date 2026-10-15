@@ -34,6 +34,8 @@ export async function parseKCitymarketSpatialLeaflet(entry){
   {page:17,title:/JÄÄTELÖPUIKOT 64–85 g/i,value:5.00,quantity:3,unit:'kpl'},
   {page:19,title:/Pringles PERUNA LASTUT/i,value:5.00,quantity:3,unit:'kpl'},
   {page:18,title:/^SMOOTHIET 120 g$/i,value:5.50,quantity:4,unit:'kpl'},
+  {page:18,title:/VIHREÄT TEET 20–25 ps/i,value:3.99,quantity:1,unit:'pkt'},
+  {page:18,title:/PURULUUT 160–180 g/i,value:7.00,quantity:2,unit:'ps'},
   {page:19,title:/MAKU- ja TUMMASUKLAALEVYT 160–200 g/i,value:10.00,quantity:4,unit:'kpl'},
  ];
  // Preserve explicitly approved historical parsers above. Apply evidence-only
