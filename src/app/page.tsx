@@ -4732,6 +4732,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const scannerStorePromptResolverRefV828 = useRef<null | ((inStore: boolean) => void)>(null);
   const scannerStorePromptTimerRefV828 = useRef<number | null>(null);
   const [scannerStorePromptV828, setScannerStorePromptV828] = useState<{ storeName: string; seconds: number } | null>(null);
+  const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
   // V837: keep the newest physical scan that arrives while the previous EAN lookup is busy.
@@ -13801,6 +13802,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setScannerStorePromptV828(null);
     scannerStoreCheckDoneRefV791.current = true;
     scannerInStoreRefV828.current = inStore;
+    setScannerLocationStatusV855(current=>current?{...current,verified:false,checking:false}:null);
     const resolve = scannerStorePromptResolverRefV828.current;
     scannerStorePromptResolverRefV828.current = null;
     resolve?.(inStore);
@@ -13875,6 +13877,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ].filter((name) => name && !name.startsWith("Valitse ensin"));
     const selectedName = selectedNames.length === 1 ? selectedNames[0] : "";
     const intendedName = cartTarget?.name || selectedName || selectedNames[0] || "";
+    setScannerLocationStatusV855(intendedName?{name:intendedName,verified:false,checking:true}:null);
 
     if (!intendedName) {
       // No store can be named reliably. Scanner remains useful, but not as collection.
@@ -13941,6 +13944,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       scannerStoreCheckDoneRefV791.current = true;
       scannerInStoreRefV828.current = true;
       scannerConfirmedStoreNameRefV828.current = intendedName;
+      setScannerLocationStatusV855({name:intendedName,verified:true,checking:false});
       return true;
     }
     // A distant or ambiguous fresh fix must NOT suppress the question.
@@ -14513,6 +14517,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
+    setScannerLocationStatusV855(null);
     scannerStoreCheckDoneRefV791.current = false;
     scannerInStoreRefV828.current = false;
     scannerConfirmedStoreNameRefV828.current = "";
@@ -23655,6 +23660,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   </div>
 
                   <ZiiplyMobileScannerCard
+                  storeLocation={scannerLocationStatusV855}
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
                   fullscreen
                   className={eanModalClosing ? "[&_.ziiply-scanner-corner]:hidden" : ""}
