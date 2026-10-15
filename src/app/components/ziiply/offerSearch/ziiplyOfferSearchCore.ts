@@ -294,6 +294,8 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
   // Neon EAN match takes precedence over legacy category rules and provider labels.
   const neonCategory = String(sourceItem?.neonDisplayCategory || anyItem?.neonDisplayCategory || "").trim();
+  // Preserve the canonical display group supplied by the verified Neon taxonomy.
+  // A detailed Neon category path is not itself a top-level UI chip label.
   if (neonCategory && GOSTA_CATEGORY_LABELS_V136.includes(neonCategory)) return neonCategory;
   const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
