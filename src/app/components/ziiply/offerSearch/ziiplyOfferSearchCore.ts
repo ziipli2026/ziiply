@@ -796,7 +796,7 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   // Tjek rows already carry a stable, publication-specific offer identity. Do not
   // collapse different leaflet offers just because their shortened names/prices match.
   const sourceOffer = anyItem?.__sourceOfferSearchResult ?? anyItem;
-  if (sourceOffer?.source === "etarjouslehdet" && sourceOffer?.offerId) {
+  if ((sourceOffer?.provider === "kcitymarket-local" || sourceOffer?.source === "K-Citymarket kauppakohtainen julkaisu" || sourceOffer?.source === "etarjouslehdet") && sourceOffer?.offerId) {
     return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug?.publicationId || "")}:${String(sourceOffer.offerId)}`;
   }
   // National leaflet cards have distinct prices, packs and page identities.
