@@ -184,13 +184,18 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
             AND category LIKE '%/%'
           GROUP BY 1 HAVING count(DISTINCT category) = 1`;
         const safe = new Map(candidates.map(row => [String(row.normalized_name), String(row.category)]));
+        // Guard every inferred path against the live Neon taxonomy before writing.
+        // Name heuristics may suggest a path, but only paths already present in the
+        // registry are eligible for persistence.
+        const categoryRows = await sql`SELECT DISTINCT category FROM ziiply_ean_products WHERE category LIKE '%/%'`;
+        const existingCategoryPaths = new Set(categoryRows.map(row => String(row.category)));
         const updates: Array<{ean: string; category: string}> = [];
         const seen = new Set<string>();
         for (const offer of offers) {
           const ean = getEan(offer);
           const name = getName(offer);
           const category = safe.get(normalizeName(name)) || inferExistingCategoryFromName(name);
-          if (!ean || !category || seen.has(ean) || eanRows.some(row => String(row.ean) === ean)) continue;
+          if (!ean || !category || !existingCategoryPaths.has(category) || seen.has(ean) || eanRows.some(row => String(row.ean) === ean)) continue;
           updates.push({ean, category});
           seen.add(ean);
         }
