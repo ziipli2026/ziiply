@@ -952,9 +952,17 @@ export async function GET(request: Request) {
       return chain === "k" || chain.startsWith("k ");
     });
 
-    const neonEnrichedResults = await enrichOfferCategoriesFromNeon(results);
-    const imageEnrichedResults = await enrichOfferImagesBestEffort(neonEnrichedResults as unknown as Record<string, unknown>[]);
-    await queueMissingOfferImagesBestEffort(imageEnrichedResults);
+    // The approved Citymarket snapshot already contains display-ready offers.
+    // Never delay the user response for optional category/image services or queues.
+    const imageEnrichedResults = isKCitymarketV19 && !baseResults.length && !sMarketResults.length
+      ? results
+      : await enrichOfferImagesBestEffort(
+          await enrichOfferCategoriesFromNeon(results) as unknown as Record<string, unknown>[]
+        );
+    if (!isKCitymarketV19) {
+      void queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
+        console.warn("[Ziiply offers] optional image queue failed", error));
+    }
     return NextResponse.json(
       {
         ok: true,
