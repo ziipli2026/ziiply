@@ -28,6 +28,11 @@ export async function parseKCitymarketSpatialLeaflet(entry){
   {page:20,title:/^VICHY 0,33 l\/pl 24-pack$/i,value:10.99,quantity:1,unit:'pack'},
   {page:20,title:/WOK-KASTIKKEET 120 g/i,value:1.00,quantity:1,unit:'ps'},
   {page:18,title:/VITAL HYVINVOINTIMEHUT 1 l/i,value:4.50,quantity:2,unit:'tlk'},
+  {page:15,title:/iKAFFE MAUSTAMATON KAURAJUOMA 1 l/i,value:9.00,quantity:6,unit:'tlk'},
+  {page:15,title:/LEMPI RUOKAKERMAT 3 dl/i,value:3.00,quantity:2,unit:'tlk'},
+  {page:17,title:/VIHANNESSEKOITUKSET 300 g/i,value:5.00,quantity:3,unit:'ps'},
+  {page:17,title:/JÄÄTELÖPUIKOT 64–85 g/i,value:5.00,quantity:3,unit:'kpl'},
+  {page:19,title:/Pringles PERUNA LASTUT/i,value:5.00,quantity:3,unit:'kpl'},
  ];
  // Preserve explicitly approved historical parsers above. Apply evidence-only
  // transaction correction to other publications without relying on issue number.
