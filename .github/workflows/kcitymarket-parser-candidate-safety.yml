@@ -84,6 +84,14 @@ jobs:
           name: kcitymarket-42lv-original-pdf-text
           path: /tmp/kcm-42lv-pdf-text/
           retention-days: 30
-      - name: Check archived publication metadata
+      - name: Check archived publication metadata and missing image queue
+        env:
+          KCM_42LV_MISSING_IMAGES_REPORT: artifacts/citymarket-images/42lv-missing-images.json
         run: |
           node scripts/citymarket/verify-42lv-frozen.mjs /tmp/kcm-frozen/publications/42LV
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kcitymarket-42lv-missing-images
+          path: artifacts/citymarket-images/42lv-missing-images.json
+          retention-days: 30
