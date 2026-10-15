@@ -308,7 +308,7 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // Prisma CMS and cached campaign rows use the same taxonomy rules as offers.
   // The broad "Kahvit, teet ja mehut" parent cannot decide the product bucket.
   if (sourceItem?.campaignType === "campaign" && /^prisma/i.test(String(sourceItem?.storeLabel || ""))) {
-    const path = String(sourceItem?.categoryPath || "").split(/\\s*[>/]\\s*/).filter(Boolean);
+    const path = String(sourceItem?.categoryPath || "").split(/\s*[>/]\s*/).filter(Boolean);
     return getOfferCategoryV106({
       ...sourceItem,
       sourceUrl: "https://www.s-kaupat.fi/tuotteet/kampanjat",
