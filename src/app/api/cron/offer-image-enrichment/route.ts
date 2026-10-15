@@ -13,6 +13,7 @@ const validUrl = (v: unknown) => {
   catch { return ""; }
 };
 async function schema(db: ReturnType<typeof sql>) {
+  await db`CREATE TABLE IF NOT EXISTS ziiply_ean_products (ean TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', image_url TEXT)`;
   await db`CREATE TABLE IF NOT EXISTS ziiply_offer_image_queue (
     chain TEXT NOT NULL, publication TEXT NOT NULL, product_id TEXT NOT NULL,
     ean TEXT, title TEXT NOT NULL, image_url TEXT, image_source TEXT,
@@ -78,8 +79,11 @@ export async function GET(req: Request) {
   }
   const retry = await db`UPDATE ziiply_offer_image_queue SET
     attempts=attempts+1, next_attempt_at=now()+make_interval(hours => LEAST(168, POWER(2, LEAST(attempts,7))::int)),
-    updated_at=now() WHERE status='pending' AND next_attempt_at<=now()
-    RETURNING product_id`;
+    updated_at=now() WHERE (chain,publication,product_id) IN (
+      SELECT chain,publication,product_id FROM ziiply_offer_image_queue
+      WHERE status='pending' AND next_attempt_at<=now()
+      ORDER BY next_attempt_at LIMIT 100
+    ) RETURNING product_id`;
   const stats = await db`SELECT status,COUNT(*)::int AS count FROM ziiply_offer_image_queue GROUP BY status`;
   return NextResponse.json({ok:true,enriched,retried:retry.length,stats});
 }
