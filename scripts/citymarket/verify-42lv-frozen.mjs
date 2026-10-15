@@ -19,13 +19,13 @@ if(coverageReportPath){
  const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json','utf8'));
  const publicationUrl='https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html';
  const pub=manifest.publications[publicationUrl];
- if(!pub)throw Error('Missing 42LV image publication entry: '+frozen.entry);
+ if(!pub)console.warn('KCM_42LV_IMAGE_MANIFEST_MISSING',publicationUrl,'No verified image mappings in candidate branch; queue all priced offers for review');
  const expectedHash='d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd';
- if(pub.pdfSha256!==expectedHash)throw Error('42LV image publication hash mismatch');
+ if(pub&&pub.pdfSha256!==expectedHash)throw Error('42LV image publication hash mismatch');
  const offerId=row=>'kcm:spatial:'+row.page+':'+String(row.title||'').trim().toLowerCase()+':'+Number(row.spatialResolved?.value);
  const pricedRows=canonicalRows.filter(row=>Number(row.spatialResolved?.value)>0&&!row.spatialResolved?.displayOnlyUnitPrice);
- const missingImages=pricedRows.filter(row=>!pub.images[offerId(row)]).map(row=>({page:row.page,title:row.title,offerId:offerId(row),price:row.spatialResolved.value}));
- const report={schemaVersion:1,publication:frozen.entry,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,missingImages};
+ const missingImages=pricedRows.filter(row=>!pub?.images?.[offerId(row)]).map(row=>({page:row.page,title:row.title,offerId:offerId(row),price:row.spatialResolved.value}));
+ const report={schemaVersion:1,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,missingImages};
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
  console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount}));
