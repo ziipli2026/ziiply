@@ -62,6 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
+import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
 import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
@@ -940,6 +941,7 @@ export async function GET(request: Request) {
     });
 
     const neonEnrichedResults = await enrichOfferCategoriesFromNeon(results);
+    await queueMissingOfferImagesBestEffort(neonEnrichedResults as unknown as Record<string, unknown>[]);
     return NextResponse.json(
       {
         ok: true,
