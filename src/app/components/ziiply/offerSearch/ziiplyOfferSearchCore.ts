@@ -657,22 +657,6 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
     if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, null);
   }
     const parsedResults = await parseOfferSearchResponse(response);
-  // Count actual source identities before the UI tab split. This audit does not
-  // change the offers and distinguishes missing rows from a tab-filter problem.
-  if (isKCitymarketContextV179(context)) {
-    const bySource: Record<string, { total: number; campaign: number; offer: number }> = {};
-    for (const item of parsedResults) {
-      const row = item as any;
-      const source = row.__sourceOfferSearchResult ?? row;
-      const name = String(source?.source ?? source?.provider ?? "unknown");
-      const bucket = bySource[name] ?? (bySource[name] = { total: 0, campaign: 0, offer: 0 });
-      bucket.total++;
-      if (row.campaignType === "campaign") bucket.campaign++;
-      else bucket.offer++;
-    }
-    const audit = lastZiiplyKruokaDebugV174 as any;
-    if (audit) audit.kOfferSourceSplitAuditV1 = { received: parsedResults.length, bySource };
-  }
   // Citymarket has two independent publication sources. The tab is defined by
   // the publication origin, never by a percentage-discount/price heuristic.
   // Keep this scoped to Citymarket so other chains retain their existing rules.
@@ -689,6 +673,21 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
         source.campaignType = "offer";
       }
     }
+  }
+  // Audit after source-authoritative tab classification, not before it.
+  if (isKCitymarketContextV179(context)) {
+    const bySource: Record<string, { total: number; campaign: number; offer: number }> = {};
+    for (const item of parsedResults) {
+      const row = item as any;
+      const source = row.__sourceOfferSearchResult ?? row;
+      const name = String(source?.source ?? source?.provider ?? "unknown");
+      const bucket = bySource[name] ?? (bySource[name] = { total: 0, campaign: 0, offer: 0 });
+      bucket.total++;
+      if (row.campaignType === "campaign") bucket.campaign++;
+      else bucket.offer++;
+    }
+    const audit = lastZiiplyKruokaDebugV174 as any;
+    if (audit) audit.kOfferSourceSplitAuditV1 = { received: parsedResults.length, bySource };
   }
   return parsedResults;
 }
@@ -722,6 +721,20 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
             badTitle: isBadOfferSearchResultV106(item),
             dedupeKey: getGostaOfferDedupeKeyV148(item),
           })),
+        };
+      }
+      if (stageAudit && isKCitymarketContextV179(context)) {
+        stageAudit.kOfferMasterTabAuditV1 = {
+          beforeClean: {
+            total: results.length,
+            campaigns: results.filter(item => (item as any).campaignType === "campaign").length,
+            offers: results.filter(item => (item as any).campaignType !== "campaign").length,
+          },
+          afterClean: {
+            total: cleaned.length,
+            campaigns: cleaned.filter(item => (item as any).campaignType === "campaign").length,
+            offers: cleaned.filter(item => (item as any).campaignType !== "campaign").length,
+          },
         };
       }
       return cleaned;
