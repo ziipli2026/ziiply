@@ -4995,6 +4995,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setScannerDebugExportStatusV852("TXT-tiedosto muodostettu.");
   }
 
+  const scannerDecodeFailureAtV861 = useRef(0);
   function pushScannerDebugV493(message: string) {
     const line = `${new Date().toLocaleTimeString("fi-FI")} ${message}`;
     setScannerDebugLinesV493((previous) => [...previous, line].slice(-100));
@@ -14378,6 +14379,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         formatsToSupport ? { formatsToSupport } : undefined,
       );
       eanHtml5ScannerRef.current = scanner;
+      pushScannerDebugV493(`CAMERA formats=${JSON.stringify(formatsToSupport || "default")} GS1_EXPANDED=${String(supportedFormats?.RSS_EXPANDED)}`);
 
       setEanScannerMessage("");
 
@@ -14421,11 +14423,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ],
           },
         },
-        (decodedText: string) => {
-          const code = normalizeEan(decodedText);
-          if (isUsableEan(code)) finishScannedEan(code);
+        (decodedText: string, decodedResult: any) => {
+          const format = String(decodedResult?.result?.format?.formatName || decodedResult?.result?.format || decodedResult?.format || "unknown");
+          pushScannerDebugV493(`DECODE OK format=${format} raw=${JSON.stringify(decodedText)}`);
+          const discount = decodeRedDiscountLabelV859(decodedText);
+          const code = discount?.ean || normalizeEan(decodedText);
+          pushScannerDebugV493(`PARSE ${discount ? `discount=${discount.discountPercent}% ean=${code}` : `ean=${code} valid=${isUsableEan(code)}`}`);
+          if (isUsableEan(code)) void finishScannedEan(decodedText);
         },
-        () => undefined,
+        (errorMessage: string) => {
+          const now = Date.now();
+          if (now - scannerDecodeFailureAtV861.current > 5000) {
+            scannerDecodeFailureAtV861.current = now;
+            pushScannerDebugV493(`NO DECODE (5s sample): ${String(errorMessage).slice(0,180)}`);
+          }
+        },
       );
 
       window.requestAnimationFrame(() => {
@@ -23747,7 +23759,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     }}
                   />
 
-                  <div className="hidden">
+                  <div className="relative z-[100] mx-auto w-full max-w-lg px-2 pb-2">
                     <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
                       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
                         <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
