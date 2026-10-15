@@ -45,12 +45,12 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
   const getName = (o: T) => String(o.title || o.name || "").trim();
   const eans = [...new Set(offers.map(getEan).filter(e => /^\d{8,14}$/.test(e)))];
   // Exact names only: no fuzzy matches that might confuse package sizes.
-  const names = [...new Set(offers.filter(o => !/^\d{8,14}$/.test(getEan(o))).map(getName).filter(n => n.length >= 6 && n.length <= 300))];
+  const names = [...new Set(offers.map(getName).filter(n => n.length >= 6 && n.length <= 300))];
   if (!eans.length && !names.length) return offers;
   try {
     const sql = neon(url);
     const eanRows = eans.length ? await sql`SELECT ean, category FROM ziiply_ean_products WHERE ean = ANY(${eans}::text[]) AND category IS NOT NULL AND category <> ''` : [];
-    const nameRows = names.length ? await sql`SELECT name, category FROM ziiply_ean_products WHERE name = ANY(${names}::text[]) AND category IS NOT NULL AND category <> ''` : [];
+    const nameRows = names.length ? await sql`SELECT name, category FROM ziiply_ean_products WHERE lower(name) = ANY(${names.map(n => n.toLocaleLowerCase("fi"))}::text[]) AND category IS NOT NULL AND category <> ''` : [];
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
     const byName = new Map<string, string | null>();
     for (const row of nameRows) {
@@ -62,7 +62,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     }
     return offers.map(offer => {
       const ean = getEan(offer);
-      const exactPath = byEan.get(ean) || (!ean ? byName.get(getName(offer).toLocaleLowerCase("fi")) : null);
+      const exactPath = byEan.get(ean) || byName.get(getName(offer).toLocaleLowerCase("fi"));
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
       return display ? {...offer, neonCategoryPath: exactPath, neonDisplayCategory: display} : offer;
     });
