@@ -1,5 +1,6 @@
-import FuelStationBackdrop from "./FuelStationBackdrop";
 "use client";
+
+import FuelStationBackdrop from "./FuelStationBackdrop";
 
 import { useEffect, useMemo, useState } from "react";
 import ZiiplyMobileStoreModeSelector from "./ZiiplyMobileStoreModeSelector";
