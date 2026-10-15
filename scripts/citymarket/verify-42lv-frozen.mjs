@@ -25,10 +25,12 @@ if(coverageReportPath){
  const offerId=row=>'kcm:spatial:'+row.page+':'+String(row.title||'').trim().toLowerCase()+':'+Number(row.spatialResolved?.value);
  const pricedRows=canonicalRows.filter(row=>Number(row.spatialResolved?.value)>0&&!row.spatialResolved?.displayOnlyUnitPrice);
  const missingImages=pricedRows.filter(row=>!pub?.images?.[offerId(row)]).map(row=>({page:row.page,title:row.title,offerId:offerId(row),price:row.spatialResolved.value}));
- const report={schemaVersion:1,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,missingImages};
+ const pricedIds=new Set(pricedRows.map(offerId));
+ const orphanImageMappings=Object.keys(pub?.images||{}).filter(id=>!pricedIds.has(id)).map(id=>({offerId:id,image:pub.images[id],reason:'No exact match among canonical priced 42LV offers; requires identity review'}));
+ const report={schemaVersion:2,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,manifestImageCount:Object.keys(pub?.images||{}).length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,orphanImageMappingCount:orphanImageMappings.length,orphanImageMappings,missingImages};
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
- console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount}));
+ console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount,unmatchedMappings:report.orphanImageMappingCount}));
 }
 
 const canonicalChecks=[
