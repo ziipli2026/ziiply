@@ -176,11 +176,6 @@ export default function ZiiplyMobileFuelView({
           );
         })}
       </div>
-      {loading && (
-        <p role="status" className="mt-2 text-center text-xs">
-          Haetaan asemia…
-        </p>
-      )}
       {error && (
         <p role="alert" className="mt-2 text-xs text-red-800">
           {error}
