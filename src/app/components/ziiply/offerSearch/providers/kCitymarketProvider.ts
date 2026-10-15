@@ -763,6 +763,31 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   }
 }
 
+// Apply only verified image URLs for the exact publication and offer ID.
+// The cached leaflet parse remains authoritative for prices and offer text.
+async function applyStagedKCitymarketImages(offers:CitymarketOffer[]):Promise<CitymarketOffer[]>{
+  if(!process.env.DATABASE_URL || !offers.length)return offers;
+  const publicationId=offers[0]?.sourceUrl;
+  if(!publicationId || offers.some(offer=>offer.sourceUrl!==publicationId))return offers;
+  try{
+    const sql=neon(process.env.DATABASE_URL);
+    const rows=await sql`SELECT offers FROM ziiply_offer_publications
+      WHERE chain='K' AND publication_id=${publicationId} LIMIT 1`;
+    const staged=rows[0]?.offers;
+    if(!Array.isArray(staged))return offers;
+    const images=new Map<string,string>();
+    for(const raw of staged){
+      if(!raw || typeof raw!=="object")continue;
+      const id=String(raw.id??"");
+      const url=String(raw.imageUrl??"");
+      if(id && /^https:\/\//i.test(url))images.set(id,url);
+    }
+    return offers.map(offer=>offer.imageUrl?offer:(images.has(offer.id)?{...offer,imageUrl:images.get(offer.id)}:offer));
+  }catch(error){
+    console.warn("[K-Citymarket] staged image overlay unavailable",error instanceof Error?error.message:String(error));
+    return offers;
+  }
+}
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const active=getActiveKCitymarketPeriod();
 
@@ -795,7 +820,8 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null);
     return imageUrl?{...offer,imageUrl}:offer;
   });
-  const enriched=await enrichCitymarketFromEanBank(publisherImages);
+  const stagedImages=await applyStagedKCitymarketImages(publisherImages);
+  const enriched=await enrichCitymarketFromEanBank(stagedImages);
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
