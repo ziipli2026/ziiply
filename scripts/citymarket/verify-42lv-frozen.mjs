@@ -52,5 +52,27 @@ console.log('42LV independently printed PDF checks',JSON.stringify({checks:print
 if(printedMismatches.length)process.exitCode=1;
 const approvedPrintedCorrections=printedChecks.map(x=>x.page+'|'+String(x.match));
 const unexpectedChanged=changed.filter(r=>!printedChecks.some(x=>x.page===r.page&&x.match.test(r.title)&&Math.abs(r.next-x.price)<.011));
+// Triage all priced rows for independently verifiable unit-rate mismatches.
+// This is an audit report, not a price rewrite: mixed offers and pack totals
+// require printed-page review before any correction.
+const unitRateAudit=parsed.rows.flatMap(row=>{
+ const price=Number(row.spatialResolved?.value);
+ if(!(price>0))return [];
+ const title=String(row.title||'');
+ const gram=title.match(/(?:^|\\s)(\\d{2,4})\\s*g\\b/i);
+ const kg=title.match(/\\((\\d+[,.]\\d+)\\s*\\/\\s*kg\\)/i);
+ const liter=title.match(/(?:^|\\s)(\\d+[,.]\\d+)\\s*l\\b/i);
+ const perLiter=title.match(/\\((\\d+[,.]\\d+)\\s*\\/\\s*l\\)/i);
+ const decimal=s=>Number(s.replace(',','.'));
+ let expected=null,kind=null;
+ if(gram&&kg){expected=decimal(gram[1])*decimal(kg[1])/1000;kind='kg';}
+ else if(liter&&perLiter){expected=decimal(liter[1])*decimal(perLiter[1]);kind='l';}
+ if(expected==null)return [];
+ const quantity=Number(row.spatialResolved?.quantity||1);
+ const delta=Math.abs(price-expected);
+ // Different printed price formats and multi-buys need review, not silent adjustment.
+ return delta>Math.max(.10,expected*.08)?[{page:row.page,title,price,quantity,expectedUnitPrice:Number(expected.toFixed(2)),unit:kind,source:row.spatialResolved?.source}]:[];
+});
+console.log('42LV unit-rate discrepancy triage (review required, no automatic corrections)',JSON.stringify({count:unitRateAudit.length,rows:unitRateAudit}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
 if(parsed.rows.length!==96||priced.length!==85||baseline.rows.length!==89||percentageOnly.length!==4||parsed.pageCount!==20||added.length>0||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||unexpectedChanged.length>0)process.exitCode=1;
