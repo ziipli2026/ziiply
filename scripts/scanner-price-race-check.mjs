@@ -217,7 +217,7 @@ console.log("V837 concurrent camera decode isolation regression: PASS");
 // only the next physical scan of the already-checked row may increment quantity.
 const addResultV838 = source.split("function addEanResultToCart")[1]?.split("function addProductToCart")[0];
 assert.ok(addResultV838, "EAN result cart handler exists");
-assert.match(addResultV838, /if \(isPhysicalBarcodeScanV815 && scannerExistingItemV798\)/);
+assert.match(addResultV838, /if \(isPhysicalBarcodeScanV815 && scannerExistingItemV798 && !looseShelfEanV853\)/);
 assert.match(addResultV838, /!checkedCartItems\[collectionKeyV814\]/);
 assert.match(addResultV838, /setCheckedCartItems/);
 assert.match(addResultV838, /setEanMessage\("Tuote kerätty\."\)/);
