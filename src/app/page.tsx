@@ -14306,72 +14306,67 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // Keeps the normal live EAN scanner untouched and avoids concurrent polling.
   const gs1StillBusyV865 = useRef(false);
   async function scanRedStickerStillV863() {
-    if (gs1StillBusyV865.current) {
-      pushScannerDebugV493("GS1 STILL: already decoding; ignored duplicate tap");
-      return;
-    }
+    if (gs1StillBusyV865.current) return;
     gs1StillBusyV865.current = true;
     try {
-      const canvas = ziiplyCaptureScannerStillPageFallback(MOBILE_EAN_SCANNER_REGION_ID, 1);
-      if (!canvas) {
-        pushScannerDebugV493("GS1 STILL: no active video frame");
-        setEanScannerMessage("Kamerakuvaa ei saatu. Yritä uudelleen.");
-        return;
-      }
-      pushScannerDebugV493(`GS1 STILL start ${canvas.width}x${canvas.height}`);
+      const frame = ziiplyCaptureScannerStillPageFallback(MOBILE_EAN_SCANNER_REGION_ID, 1);
+      if (!frame) { setEanScannerMessage("Kamerakuvaa ei saatu."); return; }
+      pushScannerDebugV493(`GS1 WASM photo ${frame.width}x${frame.height}`);
       setEanScannerMessage("Luetaan alennustarraa kuvasta...");
-      const Html5Qrcode = await loadHtml5QrCodeScript();
-      // Separate decoder instance: the live camera instance cannot scanFile.
-      // Detached DOM host is attached temporarily because html5-qrcode requires an element.
-      const host = document.createElement("div");
-      host.id = "ziiply-gs1-still-decoder-v865";
-      host.style.cssText = "position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none";
-      document.body.appendChild(host);
-      const supported = (window as any).Html5QrcodeSupportedFormats;
-      const formats = supported ? [supported.RSS_EXPANDED, supported.RSS_14, supported.EAN_13, supported.EAN_8, supported.CODE_128].filter((x: unknown) => x != null) : undefined;
-      const decoder = new Html5Qrcode(host.id, formats ? {formatsToSupport: formats} : undefined);
-      try {
-        const attempts = [
-          canvas,
-          ziiplyEnhanceScannerCanvasPageFallback(canvas),
-          ziiplyRotateCanvasPageFallback(canvas, 90),
-          ziiplyRotateCanvasPageFallback(canvas, 270),
-        ];
-        for (let i = 0; i < attempts.length; i++) {
-          const frame = attempts[i];
-          try {
-            const blob = await new Promise<Blob | null>((resolve) => frame.toBlob(resolve, "image/png"));
-            if (blob) {
-              const file = new File([blob], "ziiply-gs1-still.png", {type:"image/png"});
-              const raw = await decoder.scanFile(file, false);
-              if (raw) {
-                pushScannerDebugV493(`GS1 STILL ZXING OK attempt=${i} raw=${JSON.stringify(raw)}`);
-                void finishScannedEan(raw);
-                return;
-              }
-            }
-          } catch (error) {
-            pushScannerDebugV493(`GS1 STILL ZXING attempt=${i} failed: ${String(error).slice(0,160)}`);
-          }
-          const nativeResult = await ziiplyDecodeBarcodeCanvasPageFallback(frame, "still");
-          if (nativeResult?.text) {
-            pushScannerDebugV493(`GS1 STILL NATIVE OK attempt=${i} format=${nativeResult.format} raw=${JSON.stringify(nativeResult.text)}`);
-            void finishScannedEan(nativeResult.text);
-            return;
+      if (!(window as any).ZXingWASM?.readBarcodes) {
+        await new Promise<void>((resolve,reject)=>{
+          const script=document.createElement("script");
+          script.src="https://cdn.jsdelivr.net/npm/zxing-wasm@3.1.5/dist/iife/reader/index.js";
+          script.onload=()=>resolve();
+          script.onerror=()=>reject(new Error("WASM-lukijaa ei voitu ladata"));
+          document.head.appendChild(script);
+        });
+      }
+      const reader=(window as any).ZXingWASM?.readBarcodes;
+      if(typeof reader!=="function") throw new Error("WASM reader missing");
+      const attempts: Array<[HTMLCanvasElement,string]> = [[frame,"full"]];
+      const small=document.createElement("canvas");small.width=180;small.height=320;
+      const sc=small.getContext("2d",{willReadFrequently:true});
+      if(sc) {
+        sc.drawImage(frame,0,0,180,320);
+        const pix=sc.getImageData(0,0,180,320).data;
+        let x0=180,y0=320,x1=-1,y1=-1,n=0;
+        for(let y=0;y<320;y++) for(let x=0;x<180;x++){
+          const k=(y*180+x)*4,rr=pix[k],gg=pix[k+1],bb=pix[k+2];
+          if(rr>110&&rr>gg*1.3&&gg>bb*1.15&&bb<150){
+            x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);n++;
           }
         }
-        pushScannerDebugV493("GS1 STILL: all attempts failed");
-        setEanScannerMessage("Alennustarra ei tunnistunut kuvasta. Lataa debug-TXT.");
-      } finally {
-        try { await decoder.clear(); } catch {}
-        host.remove();
+        if(n>250&&x1-x0>15&&y1-y0>15){
+          const sx=Math.max(0,x0-12),sy=Math.max(0,y0-12),ex=Math.min(180,x1+12),ey=Math.min(320,y1+12);
+          const crop=document.createElement("canvas");
+          const fx=frame.width/180,fy=frame.height/320;
+          crop.width=Math.round((ex-sx)*fx);crop.height=Math.round((ey-sy)*fy);
+          crop.getContext("2d")?.drawImage(frame,sx*fx,sy*fy,crop.width,crop.height,0,0,crop.width,crop.height);
+          attempts.unshift([crop,"orange-crop"]);
+          pushScannerDebugV493(`GS1 WASM crop ${crop.width}x${crop.height}`);
+        }
       }
-    } catch (error) {
-      pushScannerDebugV493(`GS1 STILL ERROR ${String(error).slice(0,200)}`);
+      attempts.push([ziiplyEnhanceScannerCanvasPageFallback(attempts[0][0]),"enhanced"]);
+      attempts.push([ziiplyRotateCanvasPageFallback(attempts[0][0],90),"rotated"]);
+      for(const [canvas,label] of attempts){
+        try {
+          const image=canvas.getContext("2d",{willReadFrequently:true})?.getImageData(0,0,canvas.width,canvas.height);
+          if(!image)continue;
+          const results=await reader(image,{formats:["DataBarExp","DataBarExpStk","DataBar","EAN13","Code128"],tryHarder:true,tryRotate:true,tryInvert:true,tryDownscale:false});
+          pushScannerDebugV493(`GS1 WASM ${label}: ${results?.length||0} hits`);
+          for(const result of results||[]){
+            const raw=String(result.text||"");
+            pushScannerDebugV493(`GS1 WASM format=${result.format} raw=${JSON.stringify(raw)}`);
+            if(raw){void finishScannedEan(raw);return;}
+          }
+        }catch(err){pushScannerDebugV493(`GS1 WASM ${label} ERROR ${String(err).slice(0,160)}`);}
+      }
+      setEanScannerMessage("Alennustarra ei tunnistunut. Lataa debug-TXT.");
+    }catch(err){
+      pushScannerDebugV493(`GS1 WASM LOAD ERROR ${String(err).slice(0,180)}`);
       setEanScannerMessage("Kuvatunnistus epäonnistui. Lataa debug-TXT.");
-    } finally {
-      gs1StillBusyV865.current = false;
-    }
+    }finally{gs1StillBusyV865.current=false;}
   }
 
   async function startEanCameraScanner() {
