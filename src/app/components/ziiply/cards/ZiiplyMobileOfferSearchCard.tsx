@@ -890,7 +890,8 @@ export default function ZiiplyMobileOfferSearchCard({
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
   const showLandingView = !shownQuery && !shownFilter;
-  const visibleItems = showLandingView ? [] : items;
+  const waitingForCompleteResults = loading || Boolean(kruokaDebug?.localTjekDebug?.running);
+  const visibleItems = waitingForCompleteResults || showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
   const normalizeCategoryKey = (value: string) =>
@@ -1245,6 +1246,14 @@ export default function ZiiplyMobileOfferSearchCard({
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+        {selectedOfferChainV39 && waitingForCompleteResults ? (
+          <div role="status" aria-live="polite" className="absolute inset-0 z-[90] flex flex-col items-center justify-center gap-3 bg-[#fff4d4] px-6 text-center text-[#66512d]">
+            <span className="animate-pulse text-3xl" aria-hidden="true">◌</span>
+            <span className="text-lg font-black">Haetaan tarjouksia ja kampanjoita…</span>
+            <span className="text-sm font-semibold">Tulokset avautuvat vasta, kun koko haku on valmis.</span>
+          </div>
+        ) : null}
+
         {debugOpenV52 ? (
           <div className="absolute inset-2 z-[9999] flex flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-[#2b1a0e] bg-[#fff8dc] shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-[#9a7a3d] bg-[#f1d99a] px-3 py-2">
@@ -1306,14 +1315,6 @@ export default function ZiiplyMobileOfferSearchCard({
             ) : null}
 
           </div>
-
-          {selectedOfferChainV39 && (loading || (selectedOfferChainV39 === "K" && kruokaDebug?.localTjekDebug?.running)) ? (
-            <div role="status" aria-live="polite" className="mx-auto mt-1 px-2 text-center text-[0.7rem] font-bold text-[#66512d]">
-              <span className="inline-block animate-pulse" aria-hidden="true">◌ </span>
-              {loading ? "Haetaan tarjouksia ja kampanjoita…" : "Haetaan lisää kampanjoita…"}
-              <span className="block text-[0.61rem] font-medium">Jo löytyneitä tuotteita voi selata samalla.</span>
-            </div>
-          ) : null}
 
           {selectedOfferChainV39 && selectedStoreNameV41 ? (
             <div className="relative z-10 -mt-[0.02rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
