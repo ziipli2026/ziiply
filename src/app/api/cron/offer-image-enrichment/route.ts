@@ -157,7 +157,7 @@ export async function GET(req: Request) {
       WHERE image_url LIKE 'https://%'
       AND (
         lower(name) LIKE ${searchTokens[0] + '%'} OR lower(name) LIKE ${'% ' + searchTokens[0] + ' %'}
-        OR lower(name) LIKE ${searchTokens[1] ?? '__NO_MATCH__' + '%'}
+        OR lower(name) LIKE ${(searchTokens[1] ?? '__NO_MATCH__') + '%'}
         OR lower(name) LIKE ${'% ' + (searchTokens[1] ?? '__NO_MATCH__') + ' %'}
       )
       AND (${amount ?? ''} = '' OR regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') LIKE ${'%' + (amount ?? '') + '%'})
