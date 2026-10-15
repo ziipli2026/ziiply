@@ -41,15 +41,28 @@ export function neonOfferDisplayCategory(category: string): string | null {
 export async function enrichOfferCategoriesFromNeon<T extends Record<string, any>>(offers: T[]): Promise<T[]> {
   const url = process.env.DATABASE_URL;
   if (!url || !offers.length) return offers;
-  const eans = [...new Set(offers.map(o => String(o.ean || o.eanCode || o.barcode || "").replace(/\D/g,"")).filter(e => /^\d{8,14}$/.test(e)))];
-  if (!eans.length) return offers;
+  const getEan = (o: T) => String(o.ean || o.eanCode || o.barcode || "").replace(/\D/g, "");
+  const getName = (o: T) => String(o.title || o.name || "").trim();
+  const eans = [...new Set(offers.map(getEan).filter(e => /^\d{8,14}$/.test(e)))];
+  // Exact names only: no fuzzy matches that might confuse package sizes.
+  const names = [...new Set(offers.filter(o => !/^\d{8,14}$/.test(getEan(o))).map(getName).filter(n => n.length >= 6 && n.length <= 300))];
+  if (!eans.length && !names.length) return offers;
   try {
     const sql = neon(url);
-    const rows = await sql`SELECT ean, category FROM ziiply_ean_products WHERE ean = ANY(${eans}::text[]) AND category IS NOT NULL AND category <> ''`;
-    const byEan = new Map(rows.map(row => [String(row.ean), String(row.category)]));
+    const eanRows = eans.length ? await sql`SELECT ean, category FROM ziiply_ean_products WHERE ean = ANY(${eans}::text[]) AND category IS NOT NULL AND category <> ''` : [];
+    const nameRows = names.length ? await sql`SELECT name, category FROM ziiply_ean_products WHERE name = ANY(${names}::text[]) AND category IS NOT NULL AND category <> ''` : [];
+    const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
+    const byName = new Map<string, string | null>();
+    for (const row of nameRows) {
+      const key = String(row.name).trim().toLocaleLowerCase("fi");
+      const category = String(row.category);
+      const previous = byName.get(key);
+      if (previous !== undefined && previous !== category) byName.set(key, null);
+      else if (previous === undefined) byName.set(key, category);
+    }
     return offers.map(offer => {
-      const ean = String(offer.ean || offer.eanCode || offer.barcode || "").replace(/\D/g,"");
-      const exactPath = byEan.get(ean);
+      const ean = getEan(offer);
+      const exactPath = byEan.get(ean) || (!ean ? byName.get(getName(offer).toLocaleLowerCase("fi")) : null);
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
       return display ? {...offer, neonCategoryPath: exactPath, neonDisplayCategory: display} : offer;
     });
