@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { queueMissingOfferImagesBestEffort } from "./queueMissingOfferImages";
 import {
   publicationState, type StagedPublication,
 } from "./publicationLifecycle";
@@ -39,7 +40,15 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
       ${JSON.stringify(candidate.offers)}::jsonb, ${approvalState})
     ON CONFLICT (chain, publication_id) DO NOTHING
     RETURNING publication_id`;
-  return result.length ? "stored" : "unchanged";
+  const outcome = result.length ? "stored" : "unchanged";
+  if (outcome === "stored") {
+    await queueMissingOfferImagesBestEffort(candidate.offers.map((offer, index) => {
+      const row = offer && typeof offer === "object" ? offer as Record<string, unknown> : {};
+      return { ...row, chain: candidate.chain, publicationId: candidate.id,
+        id: row.id || row.offerId || row.productId || `${candidate.id}:row:${index}` };
+    }));
+  }
+  return outcome;
 }
 
 export async function readActivePublicationOffers<T>(chain: string, at: Date = new Date()): Promise<T[]> {
