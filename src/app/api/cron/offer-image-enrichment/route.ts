@@ -196,8 +196,10 @@ export async function GET(req: Request) {
       const sizeMatches = !amount || candidate.split(" ").includes(amount);
       return variants.includes(candidate) && sizeMatches && validUrl(row.image_url);
     });
+    // Multiple EAN rows may describe the same product and share one identical
+    // image. A single verified image is safe; conflicting images are not.
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
-    if (images.length !== 1 || exact.length !== 1) { ambiguous++; continue; }
+    if (images.length !== 1 || exact.length === 0) { ambiguous++; continue; }
     await db`UPDATE ziiply_offer_image_queue SET image_url=${images[0]},
       image_source='ean-bank-exact-title',status='ready',updated_at=now()
       WHERE chain=${item.chain} AND publication=${item.publication}
