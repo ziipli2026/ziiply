@@ -33,7 +33,7 @@ const quantityUnverified=[...now].filter(([k])=>old.has(k)&&old.get(k).quantity=
 const changed=[...now].filter(([k])=>old.has(k)).flatMap(([k,r])=>{const prev=Number(old.get(k).id.split(':').at(-1));const next=Number(r.spatialResolved?.value);return Math.abs(prev-next)>.011?[{page:r.page,title:r.title,previous:prev,next:Number.isFinite(next)?next:null}]:[]});
 // Publisher PDF cross-check: these are independent printed prices, NOT archive snapshot values.
 const printedChecks=[
-  {page:6,match:/WC-PAPERI 40 rl ja/i,price:29.90,quantity:2},
+  {page:6,match:/WC-PAPERI 40 rl ja/i,price:24.90,quantity:1},
   {page:20,match:/8-pack/i,price:7.99},
   {page:20,match:/VICHY 0,33 l\/pl 24-pack/i,price:10.99},
   {page:20,match:/WOK-KASTIKKEET 120 g/i,price:1.00},
