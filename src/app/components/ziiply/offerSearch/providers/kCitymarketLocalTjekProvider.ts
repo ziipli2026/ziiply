@@ -49,7 +49,7 @@ async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
   }
 }
 async function publishSnapshot(key: string, offers: Row[], publicationIds: string[]): Promise<void> {
-  if (!process.env.DATABASE_URL) return;
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing: cannot persist Tjek snapshot");
   const sql = neon(process.env.DATABASE_URL);
   await sql`INSERT INTO public.ziiply_kcitymarket_tjek_snapshots (store_key, offers, publication_ids, valid_until, updated_at)
     VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '7 days', NOW())
@@ -57,7 +57,13 @@ async function publishSnapshot(key: string, offers: Row[], publicationIds: strin
       valid_until = EXCLUDED.valid_until, updated_at = NOW()`;
 }
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
-  return (await readPublishedSnapshot(normalize(selectedStoreName))) ?? [];
+  const rows = (await readPublishedSnapshot(normalize(selectedStoreName))) ?? [];
+  const now = Date.now();
+  return rows.filter(row => {
+    const start = Date.parse(String(row.validFrom ?? ""));
+    const end = Date.parse(String(row.validUntil ?? ""));
+    return Number.isFinite(start) && Number.isFinite(end) && start <= now && now <= end;
+  });
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
