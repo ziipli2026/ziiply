@@ -174,7 +174,7 @@ export default function ZiiplyMobileFuelView({
         }}
       />
       <div
-        className="mt-[-6px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(335px,46dvh,460px)]"
+        className="mt-[-3px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(280px,39dvh,395px)]"
         aria-label="Polttoaineasemat"
       >
         {cards.map((g) => {
@@ -207,8 +207,8 @@ export default function ZiiplyMobileFuelView({
                 <path d="M3 44H219V52H3Z" fill="#518e79" />
               </svg>
               <button
-                onClick={() => { if (!station) { setPicker(g.slot); return; } select(station.id); }}
-                aria-pressed={chosen}
+                onClick={() => setPicker(g.slot)}
+                
                 aria-label={`${g.key}: ${station?.name ?? "Valitse asema"}`}
                 className="relative block h-full w-full text-center"
               >
