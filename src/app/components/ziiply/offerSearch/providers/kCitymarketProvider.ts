@@ -769,7 +769,11 @@ export async function persistKCitymarketOfferPublication(now=new Date()){
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   // User-facing searches are read-only: never fetch or parse publisher pages.
   // The cron job populates this durable Neon snapshot ahead of publication.
-  const stored=await readActivePublicationOffers<CitymarketOffer>("K-Citymarket");
+  // Offline CI simulations have no Neon credentials; exercise the real leaflet
+  // fallback without attempting to open the production database.
+  const stored=process.env.DATABASE_URL
+    ? await readActivePublicationOffers<CitymarketOffer>("K-Citymarket")
+    : [];
   if(stored.length)return stored;
   // Migration safety: do not break desktop or mobile when the first snapshot
   // has not been seeded yet. Recover from the immutable publisher URL once,
