@@ -1,9 +1,11 @@
 import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
 import { clean42AVPrintedTitle } from "./kCitymarket42AVTitleCleanup.js";
 import { unstable_cache } from "next/cache";
+import { readActivePublicationOffers, storeParsedPublication } from "../publicationStore";
+import citymarketPublisherImageRegistry from "./data/kCitymarketLeafletImages.json";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
-import { getKCitymarketPublisherImage } from "./kCitymarketPublisherImages";
+import { getKCitymarketPublisherImage, auditKCitymarketPublisherImages } from "./kCitymarketPublisherImages";
 
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V14
@@ -57,7 +59,7 @@ const money=(s:string)=>Number(String(s).replace(",","."));
 const abs=(href:string,base:string)=>{try{return new URL(href,base).href}catch{return null}};
 
 async function html(url:string){
-  const r=await fetch(url,{redirect:"follow",headers:{"accept":"text/html,application/xhtml+xml","user-agent":"Ziiply/1.0"}});
+  const r=await fetch(url,{redirect:"follow",headers:{"accept":"text/html,application/xhtml+xml","user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(12000)});
   if(!r.ok) throw new Error(`K-Citymarket HTTP ${r.status}: ${url}`);
   return {url:r.url,text:await r.text()};
 }
@@ -629,9 +631,14 @@ function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
 const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-01-W40-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/80s40wg_tarjouslehti_40LV_KCM/index.html",
   "2026-10-12-W42-AV":"https://kcm-tarjouslehdet.k-ruoka.fi/83z6h5o_tarjouslehti_42AV_KCM/index.html",
+  "2026-10-15-W42-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html",
 };
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
-  return PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
+  // Prefer immutable publisher URLs already verified by the automated image pipeline.
+  // This avoids a rolling landing page silently switching to another publication.
+  const knownPublications=Object.keys(citymarketPublisherImageRegistry.publications);
+  const verified=knownPublications.find(url=>leafletMatchesPeriod(url,period));
+  return verified??PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
 }
 const getCachedKCitymarketPeriod=unstable_cache(
   async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
@@ -643,7 +650,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-approved-42av-v159-independent-sources-20261012"],
+  ["ziiply-kcitymarket-approved-42av-v159-owned-cards-20261012"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -677,7 +684,7 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   if(!process.env.DATABASE_URL || !offers.length) return offers;
   try{
     const sql=neon(process.env.DATABASE_URL);
-    const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC LIMIT 25000`;
+    const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC`;
     if(!rows.length)console.warn("[K-Citymarket] EAN bank contains no usable image rows");
     const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
     // Do not silently exclude older catalogue images merely because the EAN bank has grown.
@@ -687,6 +694,12 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     // Keep both indexes and require a unique EAN and matching package when available.
     const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
     const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," "));
+    // Unit prices and explanatory leaflet footnotes are not part of a product
+    // identity. Remove them for image matching only, never from offer display.
+    const imageIdentity=(value:unknown)=>String(value??"")
+      .replace(/\([^)]*\d+[,.]\d+\s*\/\s*(?:kg|l)\b[^)]*\)/gi," ")
+      .replace(/\b(?:ei\s+luomu|msc-sertifioitu|uht)\b/gi," ")
+      .replace(/\s+/g," ").trim();
     for(const row of rows){
       const keys=new Set([norm(row.name),norm([row.name,row.quantity].filter(Boolean).join(" "))]);
       for(const key of keys){
@@ -708,19 +721,24 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
       if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title)){stats.groupOffer++;return offer;}
-      const direct=index.get(norm(offer.title))||[];
+      const direct=index.get(norm(imageIdentity(offer.title)))||[];
       const offerSize=size(offer.packageSize)||size(offer.title);
-      const candidates=direct.length?direct:(byProductName.get(nameOnly(offer.title))||[]).filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
-      const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()];
-      if(matches.length!==1){if(matches.length>1)stats.ambiguous++;else stats.missing++;return offer;}
+      const candidates=direct.length?direct:(byProductName.get(nameOnly(imageIdentity(offer.title)))||[]).filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
+      const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()]
+        .filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
+      // All accepted catalogue rows must match the leaflet package size.
+      // Multiple EANs can share one image, but never assign an arbitrary EAN.
+      const uniqueImages=[...new Set(matches.map(row=>String(row.image_url??"")))];
+      if(!matches.length || uniqueImages.length!==1 || !/^https:\/\//i.test(uniqueImages[0])){
+        if(matches.length>1)stats.ambiguous++;else stats.missing++;
+        return offer;
+      }
       const row=matches[0];
-      const bankSize=size(row.quantity)||size(row.name);
-      if(offerSize && bankSize!==offerSize)return offer;
       const ean=String(row.ean??"");
       const imageUrl=String(row.image_url??"");
       if(!/^\d{8,14}$/.test(ean)||!/^https:\/\//i.test(imageUrl)){stats.invalidImage++;return offer;}
       stats.matched++;
-      return {...offer,ean,imageUrl};
+      return {...offer,...(matches.length===1?{ean}:{}),imageUrl};
     });
     console.info("[K-Citymarket] national image enrichment",stats);
     return enriched;
@@ -730,7 +748,34 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   }
 }
 
-async function fetchKCitymarketOffersWithImages():Promise<CitymarketOffer[]>{
+// The scheduled warmer is the only path that may parse a publisher leaflet.
+// Persist the complete, validated offers before they become visible to shoppers.
+export async function persistKCitymarketOfferPublication(now=new Date()){
+  const active=getActiveKCitymarketPeriod(now);
+  const payload=await readCachedPeriod(active);
+  if(!payload.offers.length)throw new Error("Empty Citymarket publication must not be stored");
+  const fallback=kCitymarketDefaultValidityV15(active);
+  const offers=payload.offers.map(offer=>({...offer,
+    validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to,
+    imageUrl:offer.imageUrl||getKCitymarketPublisherImage(offer.sourceUrl,offer.id)||
+      (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null)||undefined,
+  }));
+  const start=active.startDate;
+  const until=shiftIsoDate(start,active.kind==="AV"?2:3);
+  return storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:start,
+    validUntil:until,parsedAt:new Date().toISOString(),offers});
+}
+
+export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+  // User-facing searches are read-only: never fetch or parse publisher pages.
+  // The cron job populates this durable Neon snapshot ahead of publication.
+  const stored=await readActivePublicationOffers<CitymarketOffer>("K-Citymarket");
+  if(stored.length)return stored;
+  // Migration safety: do not break desktop or mobile when the first snapshot
+  // has not been seeded yet. Recover from the immutable publisher URL once,
+  // persist the result, and let all subsequent requests use Neon.
+  console.warn("[K-Citymarket] approved snapshot missing; seeding current leaflet");
+
   const active=getActiveKCitymarketPeriod();
 
   // The Wednesday/Sunday background warm-up parses the next leaflet after
@@ -757,24 +802,47 @@ async function fetchKCitymarketOffersWithImages():Promise<CitymarketOffer[]>{
 
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
+  // Persist the complete parsed leaflet independently of optional image enrichment.
+  // The durable record is used by both desktop and mobile on the next request.
+  try {
+    const start=active.startDate;
+    await storeParsedPublication({chain:"K-Citymarket",id:active.key,
+      validFrom:start,validUntil:shiftIsoDate(start,active.kind==="AV"?2:3),
+      parsedAt:new Date().toISOString(),offers:dated});
+  } catch(error) {
+    console.warn("[K-Citymarket] snapshot seed failed",error);
+  }
+  // Track exact publication-image coverage before optional catalogue/Tjek
+  // enrichment. This exposes extraction gaps on each fresh leaflet.
+  const publicationAudits=[...new Set(dated.map(offer=>offer.sourceUrl).filter(Boolean))]
+    .map(sourceUrl=>({
+      sourceUrl,
+      audit:auditKCitymarketPublisherImages(
+        sourceUrl,
+        dated.filter(offer=>offer.sourceUrl===sourceUrl)
+          .map(offer=>getKCitymarketPublisherImage(sourceUrl,offer.id)
+            ? offer.id
+            : (offer.publisherOfferId && getKCitymarketPublisherImage(sourceUrl,offer.publisherOfferId)
+              ? offer.publisherOfferId : offer.id)),
+      ),
+    }));
+  for(const {sourceUrl,audit} of publicationAudits){
+    console.info("[K-Citymarket] publisher image coverage",{
+      publication:active.key,
+      sourceUrl,
+      known:audit.publicationKnown,
+      total:audit.total,
+      matched:audit.matched,
+      missing:audit.missing.length,
+      missingExamples:audit.missing.slice(0,8),
+    });
+  }
   const publisherImages=dated.map(offer=>{
     const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id) ||
       (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null);
     return imageUrl?{...offer,imageUrl}:offer;
   });
-  // Use only explicit price + quantity printed in the offer's own title.
-  // This corrects an inferred spatial price without guessing from another card.
-  // Preserve the approved parser and never infer totals from €/kg or €/l.
-  const normalizedOffers=publisherImages.map(offer=>{
-    const printed=[...offer.title.matchAll(/(\d{1,3}[,.]\d{2})\s*€?\s*\/\s*(\d{1,2})\s*(kpl|pkt|ps|prk|plo)\b/gi)];
-    if(printed.length!==1)return offer;
-    const amount=Number(printed[0][1].replace(",","."));
-    const quantity=Number(printed[0][2]);
-    if(!Number.isFinite(amount)||amount<=0||!Number.isInteger(quantity)||quantity<2||quantity>24)return offer;
-    if(offer.price===amount&&offer.offerQuantity===quantity)return offer;
-    return {...offer,price:amount,offerQuantity:quantity,offerUnit:printed[0][3].toUpperCase(),resolutionSource:"explicit-leaflet-title-multibuy"};
-  });
-  const enriched=await enrichCitymarketFromEanBank(normalizedOffers);
+  const enriched=await enrichCitymarketFromEanBank(publisherImages);
   // The authoritative K-Ruoka parser retains all prices and offer metadata.
   // Tjek is an optional image-only fallback, with unique exact-name matches.
   if(enriched.every(offer=>!!offer.imageUrl))return enriched;
@@ -893,14 +961,6 @@ async function fetchKCitymarketOffersWithImages():Promise<CitymarketOffer[]>{
     console.warn("[K-Citymarket] optional national Tjek image enrichment unavailable",error);
     return enriched;
   }
-}
-// Presentation-only daily goods scope: never discard unknown-category items.
-// The leaflet parser, period cache and image enrichment remain unfiltered.
-export function filterKCitymarketDailyGoods(offers:CitymarketOffer[]):CitymarketOffer[]{
-  return offers.filter(offer=>offer.category!=="Koti & vapaa-aika");
-}
-export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
-  return filterKCitymarketDailyGoods(await fetchKCitymarketOffersWithImages());
 }
 export default fetchKCitymarketOffers;
 
