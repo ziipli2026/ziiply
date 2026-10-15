@@ -60,6 +60,8 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   const now = Date.now();
   let entry = localCache.get(key);
   const saved = await readPublishedSnapshot(key);
+  // A complete published weekly snapshot is the mobile/desktop read path.
+  if (saved) return saved;
   if (!entry || (!entry.running && now - entry.finishedAt > LOCAL_TTL)) {
     entry = { rows: [], startedAt: now, finishedAt: 0, running: true,
       progress: { stage: "starting", storeName: selectedStoreName, storeId: null, publicationIds: [], pages: 0, offerIds: 0, accepted: 0, error: null, updatedAt: new Date().toISOString() } };
