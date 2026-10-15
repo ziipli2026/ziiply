@@ -134,9 +134,13 @@ export default function ZiiplyMobileFuelView({
                       className="h-full w-full object-contain"
                     />
                   ) : (
-                    <span className="flex h-full w-full items-center justify-center gap-px" aria-label="Gulf / Ritoil">
-                      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg" alt="Gulf" className="h-full w-1/2 object-contain" />
-                      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg" alt="Ritoil" className="h-full w-1/2 object-contain" />
+                    <span className="relative flex h-full w-full overflow-hidden" aria-label="Gulf / Ritoil">
+                      <span className="relative h-full w-1/2 overflow-hidden">
+                        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg" alt="Gulf" className="absolute left-0 top-0 h-full w-[200%] max-w-none object-contain" />
+                      </span>
+                      <span className="relative h-full w-1/2 overflow-hidden">
+                        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg" alt="Ritoil" className="absolute right-0 top-0 h-full w-[200%] max-w-none object-contain" />
+                      </span>
                     </span>
                   )}
                 </span>
@@ -154,7 +158,7 @@ export default function ZiiplyMobileFuelView({
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                   </span>
                 </span>
-                <span className="col-start-1 row-start-2 block text-[11px] font-black leading-[14px] text-black">
+                <span className={`col-start-1 row-start-2 text-[11px] font-black leading-[14px] text-black ${g.logo ? "flex w-[30px] justify-self-start justify-center whitespace-nowrap" : "block"}`}>
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
