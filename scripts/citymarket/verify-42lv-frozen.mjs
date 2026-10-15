@@ -107,6 +107,18 @@ const unpricedReview=parsed.rows.filter(row=>!(Number(row.spatialResolved?.value
  page:row.page,title:row.title,percent:row.percentageOffer?.percent??null,
  candidatePrices:(row.spatialCandidates||[]).slice(0,4).map(x=>({value:x.value,quantity:x.quantity??null,kind:x.kind??null}))
 }));
+// Original 42LV PDF review: p.2 detergent title is split across two
+// parser rows; p.4 Biozell and p.5 Vichy are percentage-only promotions.
+// Never invent euro prices from adjacent offers for these entries.
+const reviewedUnpriced=[
+ {page:2,match:/^PYYKINPESUNESTEET 850 ml$/i,classification:'continuation-of-detergent-multibuy'},
+ {page:4,match:/^BIOZELL HIUSTEN MUOTOILUTUOTTEET/i,classification:'printed-percentage-only-25'},
+ {page:5,match:/^VICHY ja TRIPLE DRY DEODORANTIT/i,classification:'printed-percentage-only-20'}
+];
+const unpricedUnexpected=unpricedReview.filter(r=>!reviewedUnpriced.some(x=>x.page===r.page&&x.match.test(r.title)));
+const unpricedMissing=reviewedUnpriced.filter(x=>!unpricedReview.some(r=>r.page===x.page&&x.match.test(r.title)));
+console.log('42LV original PDF unpriced classification',JSON.stringify({reviewed:reviewedUnpriced.map(x=>({page:x.page,classification:x.classification})),unexpected:unpricedUnexpected,missing:unpricedMissing}));
+if(unpricedUnexpected.length||unpricedMissing.length)process.exitCode=1;
 console.log('42LV unpriced review queue',JSON.stringify({count:unpricedReview.length,rows:unpricedReview}));
 console.log('42LV unit-rate audit coverage',JSON.stringify({pricedOffers:priced.length,comparable:unitRateCoverage.comparable,notComparableCount:unitRateCoverage.notComparable.length,notComparable:unitRateCoverage.notComparable}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
