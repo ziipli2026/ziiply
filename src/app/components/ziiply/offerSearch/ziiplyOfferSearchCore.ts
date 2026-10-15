@@ -850,6 +850,31 @@ export function cleanZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]
   });
 }
 
+// Gösta: sort every category and text search by the actual offer total price.
+// Missing/ambiguous prices go last; unit prices (€/kg, €/l) are not the item price.
+function gostaOfferSortPrice(item: ZiiplyGostaOfferLike): number {
+  const raw = (item as any)?.__sourceOfferSearchResult ?? item;
+  const candidates = [raw?.offerPrice, raw?.price, (item as any)?.offerPrice, (item as any)?.price, raw?.priceText, item?.priceText];
+  for (const candidate of candidates) {
+    if (candidate == null || candidate === "") continue;
+    if (typeof candidate === "number") {
+      if (Number.isFinite(candidate) && candidate > 0) return candidate;
+      continue;
+    }
+    const value = String(candidate).trim();
+    if (/\\/\\s*(kg|l|kpl|100\\s*g|100\\s*ml)\\b/i.test(value)) continue;
+    const match = value.match(/(?:^|\\s)(\\d{1,5}(?:[,.]\\d{1,2})?)\\s*(?:€|eur)?(?:\\s|$)/i);
+    if (!match) continue;
+    const price = Number(match[1].replace(",", "."));
+    if (Number.isFinite(price) && price > 0) return price;
+  }
+  return Number.POSITIVE_INFINITY;
+}
+
+export function sortZiiplyGostaOffersByPrice(results: ZiiplyGostaOfferLike[]) {
+  return [...results].sort((a, b) => gostaOfferSortPrice(a) - gostaOfferSortPrice(b));
+}
+
 export function filterZiiplyGostaOfferResultsV146(
   results: ZiiplyGostaOfferLike[],
   filterValue: string,
@@ -858,7 +883,7 @@ export function filterZiiplyGostaOfferResultsV146(
   if (!filter || filter === "kaikki" || filter === "all") return results;
   const canonicalCategoryFilter = normalizeGostaCoreText(canonicalGostaFilterCategory(filterValue));
 
-  return results.filter((item) => {
+  return sortZiiplyGostaOffersByPrice(results.filter((item) => {
     const category = normalizeGostaCoreText(getResolvedGostaCategoryV166(item));
 
     // V172:
@@ -879,7 +904,7 @@ export function filterZiiplyGostaOfferResultsV146(
     );
 
     return title.includes(filter) || categoryMeta.includes(filter);
-  });
+  }));
 }
 
 export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
@@ -1032,7 +1057,7 @@ export async function searchZiiplyGostaOffersV146(options: {
     : results;
 
   return {
-    results: finalResultsV805,
+    results: sortZiiplyGostaOffersByPrice(finalResultsV805),
     querySnapshot: searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     cardFilter: searchAllAreaOffers ? "" : searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     showingAllAreaOffers: searchAllAreaOffers,
