@@ -13,6 +13,15 @@ for(const [leaflet,publication] of Object.entries(manifest.publications)){
   assert.ok(svg.includes('<view id="'+fragment+'" viewBox="0 '));
   assert.ok(!/<script|onload=|onclick=|https?:\/\//i.test(svg.replace('http://www.w3.org/2000/svg','')));
  }
+ // Publication-scoped coverage audit: metadata offerCount is not an image count.
+ // Missing images are review candidates, not automatically verified failures.
+ const imageIds=Object.keys(publication.images);
+ const imageCoverage={leaflet,pdfSha256:publication.pdfSha256,offerCount:publication.offerCount,imageCount:imageIds.length,missingImageCount:publication.offerCount-imageIds.length};
+ if(leaflet.includes('42LV_KCM')) {
+  assert.equal(publication.pageCount,20,'42LV archived page count changed');
+  assert.equal(publication.pdfSha256,'d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd','42LV archive identity changed');
+  console.log('KCM_42LV_IMAGE_COVERAGE',JSON.stringify(imageCoverage));
+ }
  const missingWC=['kcm:spatial:5:wc-paperi 6 rl:6.1','kcm:spatial:5:wc-paperi 40 rl:6.1'].filter(id=>leaflet.includes('41LV_KCM')&&!publication.images[id]);
  if(missingWC.length)console.warn('KCM_IMAGE_REVIEW_REQUIRED',JSON.stringify({leaflet,missingWC}));
  console.log(leaflet,Object.keys(publication.images).length+'/'+publication.offerCount,'verified image links');
