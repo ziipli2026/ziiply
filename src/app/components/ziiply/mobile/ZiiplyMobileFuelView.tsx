@@ -47,7 +47,6 @@ const price = (n: number | null) =>
       });
 export default function ZiiplyMobileFuelView({
   coords,
-  onBack,
 }: {
   coords: { lat: number; lon: number } | null;
   onBack: () => void;
@@ -176,7 +175,7 @@ export default function ZiiplyMobileFuelView({
         }}
       />
       <div
-        className="mt-[-3px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(280px,39dvh,395px)]"
+        className="mt-4 mb-3 shrink-0 grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-3 px-1 [height:clamp(280px,39dvh,395px)]"
         aria-label="Polttoaineasemat"
       >
         {cards.map((g) => {
@@ -263,12 +262,6 @@ export default function ZiiplyMobileFuelView({
           Vaihda ketjua
         </button>
       )}
-      <button
-        onClick={onBack}
-        className="mt-2 rounded-full border border-[#c7a763] bg-[#fff8df] px-3 py-1 text-xs font-bold text-[#17573c]"
-      >
-        ← Kaupat
-      </button>
       {picker && (
         <div
           className="fixed inset-0 z-[260] flex items-center justify-center bg-[#092e25]/60 p-4"
