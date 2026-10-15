@@ -37,6 +37,7 @@ const printedChecks=[
   {page:20,match:/8-pack/i,price:7.99},
   {page:20,match:/VICHY 0,33 l\/pl 24-pack/i,price:10.99},
   {page:20,match:/WOK-KASTIKKEET 120 g/i,price:1.00},
+  {page:18,match:/VITAL HYVINVOINTIMEHUT 1 l/i,price:4.50,quantity:2},
 ];
 const printedMismatches=printedChecks.map(check=>{
  const matches=parsed.rows.filter(r=>r.page===check.page&&check.match.test(String(r.title||'')));
