@@ -9,7 +9,7 @@ on:
       store_ids:
         description: 'S-kaupat store IDs, comma separated'
         required: false
-        default: '634976534'
+        default: '603217266'
 jobs:
   import:
     runs-on: ubuntu-latest
