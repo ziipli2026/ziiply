@@ -55,7 +55,7 @@ if(coverageReportPath){
  if(mappedIds.some(id=>!id.startsWith('kcm:spatial:')))throw Error('Invalid 42LV image mapping ID');
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
- const queueFile=coverageReportPath.replace(/\\.json$/,'-lookup-only.json');
+ const queueFile=coverageReportPath.replace(/\.json$/,'-lookup-only.json');
  if(queueFile===coverageReportPath)throw Error('Image report filename must end with .json');
  const lookupExport={schemaVersion:1,publication:publicationUrl,pdfSha256:expectedHash,readOnly:true,items:stableLookupQueue.map(item=>({offerId:item.offerId,page:item.page,title:item.title,price:item.price,publicationSha256:expectedHash,status:'lookup-needed'}))};
  fs.writeFileSync(queueFile,JSON.stringify(lookupExport,null,2)+'\n');
