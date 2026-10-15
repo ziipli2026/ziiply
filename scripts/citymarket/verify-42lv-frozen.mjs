@@ -35,10 +35,15 @@ if(coverageReportPath){
   const exactTitleCandidates=samePage.filter(row=>normalized(row.title)===normalized(title)).map(row=>({offerId:offerId(row),title:row.title,price:row.spatialResolved.value}));
   return {offerId:id,image:pub.images[id],page,title,priceToken:parts?.[3]||null,exactTitleCandidates,reason:parts?.[3]?.startsWith('percent')?'Percentage-only image mapping; never infer a euro price from the percentage':'No exact canonical priced offer identity; manual review required'};
  });
- const report={schemaVersion:2,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,manifestImageCount:Object.keys(pub?.images||{}).length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,orphanImageMappingCount:orphanImageMappings.length,orphanImageMappings,missingImages};
+ const ambiguousKeys=new Set(orphanImageMappings.flatMap(item=>item.exactTitleCandidates.map(candidate=>candidate.offerId)));
+ const enrichmentQueue=missingImages.map(item=>({...item,status:ambiguousKeys.has(item.offerId)?'review-identity':'lookup-needed',source:'frozen-42lv-canonical-parser',publicationSha256:expectedHash}));
+ const lookupQueue=enrichmentQueue.filter(item=>item.status==='lookup-needed');
+ const identityReviewQueue=enrichmentQueue.filter(item=>item.status==='review-identity');
+ const report={schemaVersion:3,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,manifestImageCount:Object.keys(pub?.images||{}).length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,orphanImageMappingCount:orphanImageMappings.length,orphanImageMappings,missingImages,enrichmentQueue,lookupQueue,identityReviewQueue};
+ if(lookupQueue.length+identityReviewQueue.length!==missingImages.length)throw Error('42LV image queue partition mismatch');
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
- console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount,unmatchedMappings:report.orphanImageMappingCount}));
+ console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount,unmatchedMappings:report.orphanImageMappingCount,lookupNeeded:lookupQueue.length,identityReview:identityReviewQueue.length}));
 }
 
 const canonicalChecks=[
