@@ -3949,6 +3949,91 @@
           902.3445
         ]
       ]
+    },
+    "kcm:spatial:2:ja -jauheet 1 kg, pyykin- jopa:8": {
+      "page": 2,
+      "rectangles": [
+        [
+          381.6859,
+          378.0379,
+          411.8112,
+          461.9478
+        ],
+        [
+          411.0948,
+          377.2229,
+          488.5599,
+          440.2758
+        ],
+        [
+          400.777,
+          417.9005,
+          432.3375,
+          501.8104
+        ],
+        [
+          434.2065,
+          417.7645,
+          462.6089,
+          501.6744
+        ]
+      ]
+    },
+    "kcm:spatial:7:stretch-käsineet 2 pr/pkt:5": {
+      "page": 7,
+      "rectangles": [
+        [
+          367.9582,
+          628.7958,
+          432.9631,
+          714.933
+        ],
+        [
+          315.9458,
+          646.9219,
+          389.2266,
+          742.965
+        ]
+      ]
+    },
+    "kcm:spatial:9:classic s ä i l y t y s laatikko 31 l 3 kpl/setti förvaringslådor:29.5": {
+      "page": 9,
+      "rectangles": [
+        [
+          69.6037,
+          638.5245,
+          158.7372,
+          774.8927
+        ]
+      ]
+    },
+    "kcm:spatial:12:kahvinkeittimen puhdistusaine 250 ml rengöringsmedel till kaffebryggare:11.99": {
+      "page": 12,
+      "rectangles": [
+        [
+          513.3137,
+          164.9068,
+          551.8663,
+          260.7917
+        ]
+      ]
+    },
+    "kcm:spatial:14:suosikkisalaatit 220–280 g (11,89–15,14/kg):10": {
+      "page": 14,
+      "rectangles": [
+        [
+          480.8634,
+          458.3965,
+          591.8812,
+          569.4142
+        ],
+        [
+          555.522,
+          494.6375,
+          644.2316,
+          575.7913
+        ]
+      ]
     }
   }
 }
