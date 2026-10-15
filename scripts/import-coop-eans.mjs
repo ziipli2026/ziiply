@@ -2,6 +2,16 @@ import { neon } from "@neondatabase/serverless";
 const url=process.env.DATABASE_URL;
 if(!url) throw new Error("DATABASE_URL missing");
 const sql=neon(url);
+// Fail fast if GitHub DATABASE_URL points at the wrong Neon database.
+// Never scrape 1,800+ products only to discover the destination table is absent.
+const preflight=await sql`
+ SELECT
+   to_regclass('public.ziiply_ean_products') AS ean_table,
+   to_regclass('public.ziiply_skaupat_protocol') AS protocol_table
+`;
+if(!preflight[0]?.ean_table) {
+ throw new Error("Wrong DATABASE_URL target: public.ziiply_ean_products is missing. Point GitHub Actions secret DATABASE_URL to the Ziiply production Neon main branch (the database containing the existing EAN bank). Import stopped before fetching products; no data was written.");
+}
 const fallbackProtocol={persisted_query_hash:"85a4eed2f0a1e3269ac49b94276ca952922568369d85ddd5dcee34481e4c0f91",client_version:"production-add4ac0e6ec7f03f2c5373a6ebfab2b63df73f68",apollo_version:"4.3.1"};
 let protocol=fallbackProtocol;
 try {
