@@ -512,7 +512,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       : rawTitle;
     if(!title || isNoiseLine(title)) continue;
 
-    const normalMin=Number(row?.normal?.min);
+    const normalMin=row?.normal?.min==null?NaN:Number(row.normal.min);
     const offerQuantity=resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
@@ -526,8 +526,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const normalPrice=normalPriceCandidate!=null && normalPriceCandidate>price
       ? normalPriceCandidate
       : null;
-    const unitMin=Number(row?.unitPrice?.min);
-    const unitMax=Number(row?.unitPrice?.max);
+    const unitMin=row?.unitPrice?.min==null?NaN:Number(row.unitPrice.min);
+    const unitMax=row?.unitPrice?.max==null?NaN:Number(row.unitPrice.max);
     const unitPrice=
       Number.isFinite(unitMin) && Number.isFinite(unitMax) && Math.abs(unitMin-unitMax)<0.001
         ? unitMin
