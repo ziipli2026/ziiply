@@ -1753,7 +1753,7 @@ async function ziiplyDecodeBarcodeCanvasPageFallback(
     if (!BarcodeDetectorCtor) return null;
 
     const detector = new BarcodeDetectorCtor({
-      formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code"],
+      formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code", "data_bar", "data_bar_expanded"],
     });
     const results = await detector.detect(canvas);
     const first = results?.[0];
@@ -14364,7 +14364,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             supportedFormats.EAN_8,
             supportedFormats.UPC_A,
             supportedFormats.UPC_E,
-          ].filter(Boolean)
+            supportedFormats.RSS_EXPANDED,
+            supportedFormats.RSS_14,
+          ].filter((format) => format !== undefined && format !== null)
         : undefined;
 
       const scanner = new Html5Qrcode(
