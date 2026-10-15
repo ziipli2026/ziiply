@@ -58,6 +58,37 @@ export async function GET(req: Request) {
   if (!authorized(req)) return NextResponse.json({ ok: false }, { status: 401 });
   if (!process.env.DATABASE_URL) return NextResponse.json({ ok: false, error: "Database unavailable" }, { status: 503 });
   const db = sql(); await schema(db);
+  // Backfill staged publications independently of user searches. A bounded
+  // sample is scanned each run; existing ready images remain untouched.
+  let discovered = 0;
+  try {
+    const publications = await db`SELECT chain,publication_id,offers
+      FROM ziiply_offer_publications
+      WHERE valid_until >= CURRENT_DATE - INTERVAL '2 days'
+      ORDER BY parsed_at DESC LIMIT 12`;
+    for (const publication of publications) {
+      const offers = Array.isArray(publication.offers) ? publication.offers : [];
+      const candidates = offers.map((raw: unknown,index: number) => {
+        const row = raw && typeof raw === "object" ? raw as Record<string,unknown> : {};
+        return {
+          chain: text(publication.chain,60),
+          publication: text(publication.publication_id,160),
+          productId: text(row.id || row.offerId || row.productId || `row:${index}`,160),
+          title: text(row.title || row.name,300),
+          ean: eanOf(row.ean || row.gtin || row.barcode),
+          image: validUrl(row.imageUrl),
+        };
+      }).filter(row => row.title && !row.image);
+      for (const row of candidates.slice(0,300)) {
+        await db`INSERT INTO ziiply_offer_image_queue(chain,publication,product_id,title,ean)
+          VALUES (${row.chain},${row.publication},${row.productId},${row.title},${row.ean})
+          ON CONFLICT(chain,publication,product_id) DO NOTHING`;
+        discovered++;
+      }
+    }
+  } catch (error) {
+    console.warn("[offer-image-enrichment] staged backfill skipped",error instanceof Error ? error.message : "unknown");
+  }
   // Only exact EAN joins are permitted: fuzzy title searches must never auto-publish an image.
   const matches = await db`
     SELECT q.chain,q.publication,q.product_id AS "productId",q.ean,
@@ -65,7 +96,7 @@ export async function GET(req: Request) {
     FROM ziiply_offer_image_queue q
     JOIN ziiply_ean_products p ON p.ean=q.ean
     WHERE q.status='pending' AND q.next_attempt_at<=now()
-      AND q.ean ~ '^\d{8,14}$' AND p.image_url LIKE 'https://%'
+      AND length(q.ean) BETWEEN 8 AND 14 AND p.image_url LIKE 'https://%'
     ORDER BY q.next_attempt_at ASC LIMIT 100`;
   let enriched = 0;
   for (const row of matches) {
@@ -85,5 +116,5 @@ export async function GET(req: Request) {
       ORDER BY next_attempt_at LIMIT 100
     ) RETURNING product_id`;
   const stats = await db`SELECT status,COUNT(*)::int AS count FROM ziiply_offer_image_queue GROUP BY status`;
-  return NextResponse.json({ok:true,enriched,retried:retry.length,stats});
+  return NextResponse.json({ok:true,discovered,enriched,retried:retry.length,stats});
 }
