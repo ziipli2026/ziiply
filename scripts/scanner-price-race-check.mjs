@@ -176,9 +176,13 @@ const resultAddV836 = source.split("function addEanResultToCart")[1]?.split("fun
 assert.ok(resultAddV836, "EAN result add function exists");
 assert.match(resultAddV836, /confirmedScannerStoreV836/);
 assert.match(resultAddV836, /resultScannerStoreV836/);
-assert.match(resultAddV836, /confirmedScannerStoreV836 === resultScannerStoreV836/);
+// Collection permission follows the explicitly confirmed physical scanner session.
+// Price lookup result.storeName can be absent or refer to a fallback result, so it
+// must not be used to revoke/establish the user's confirmed store session.
+assert.match(resultAddV836, /const scannerStoreStillMatchesResultV836 = Boolean\(confirmedScannerStoreV836\)/);
+assert.doesNotMatch(resultAddV836, /confirmedScannerStoreV836 === resultScannerStoreV836/);
 assert.match(resultAddV836, /scannerStoreStillMatchesResultV836/);
-console.log("V836 exact-store delayed scanner result regression: PASS");
+console.log("V836 confirmed scanner-session delayed result regression: PASS");
 
 
 // V837: a fast second physical scan is queued instead of being dropped while A is in flight.
