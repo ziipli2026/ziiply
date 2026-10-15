@@ -167,6 +167,21 @@
         "kcm:spatial:20:ketsuppi 1350 g:3.99": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#2b9225b4f3845e661429",
         "kcm:spatial:20:aakkoset 280–340 g (6,62–8,04/kg):4.5": "/citymarket-leaflets/505d253c63c495c310764ddfd9b402224e8a3bcf842e440cf7787ec9ab9cf797/images.svg#d6ade151218056400e35"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html": {
+      "pdfSha256": "d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd",
+      "pageCount": 20,
+      "offerCount": 89,
+      "images": {
+        "kcm:spatial:4:l’oréal paris & men expert 15 ml silmänympärysvoiteet sekä 20 ja 30 ml seerumit:15.15": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#54539231ff66c5d878e1",
+        "kcm:spatial:15:puikula täysjyväruis 9 kpl/500 g 179 (3,58/kg):1.79": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#a4ad3955f1bf5c2f4196",
+        "kcm:spatial:15:rasvaton maitorahka ja rahkajogurtti 250 g:0.67": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#9b39d41bcf1d93c44a66",
+        "kcm:spatial:16:actimel jogurttijuomat 8 x 100 g:3.69": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#becc7cb70efd2ae811a9",
+        "kcm:spatial:17:apetit 3 ps vihannessekoitukset 300 g 5.:5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#3ae5f883997e44c75c14",
+        "kcm:spatial:18:-21 % vital hyvinvointimehut 1 l 2 tlk:2.25": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#92d3ceb118ec4a1de03c",
+        "kcm:spatial:19:pringles peruna lastut 160–165 g (10,10–10,42/kg):5": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#11c52e8565b085310b39",
+        "kcm:spatial:19:aakkoset 280–340 g:percent:8": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#f483c90ee2af65652c23"
+      }
     }
   }
 }
