@@ -53,6 +53,7 @@ export default function ZiiplyMobileFuelView({
   const [stations, setStations] = useState<Station[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
+  const [stationSide, setStationSide] = useState<"traffic" | "both" | "cold">("traffic");
   const [mode, setMode] = useState<"hyper" | "local">("hyper"),
     [scope, setScope] = useState<"between_chains" | "within_chain">(
       "between_chains",
@@ -87,8 +88,8 @@ export default function ZiiplyMobileFuelView({
     return () => controller.abort();
   }, [coords?.lat, coords?.lon]);
   const filtered = useMemo(
-    () => stations.filter((s) => s.isTrafficStation === (mode === "hyper")),
-    [stations, mode],
+    () => stations.filter((s) => stationSide === "both" || s.isTrafficStation === (stationSide === "traffic")),
+    [stations, stationSide],
   );
   function select(id: string) {
     setSelected((old) => {
@@ -147,6 +148,8 @@ export default function ZiiplyMobileFuelView({
     <>
       <ZiiplyMobileStoreModeSelector
         fuelMode
+        fuelStationSide={stationSide}
+        onFuelStationSideChange={(side) => { setStationSide(side); setSelected([]); setPicker(null); }}
         storeMode={mode}
         storeModeChosen
         storeCompareScope={scope}
@@ -155,6 +158,7 @@ export default function ZiiplyMobileFuelView({
         betweenChainSelectionMode={many}
         onStoreModeChange={(m) => {
           setMode(m);
+          setStationSide(m === "hyper" ? "traffic" : "cold");
           setSelected([]);
           setPicker(null);
         }}
@@ -170,7 +174,7 @@ export default function ZiiplyMobileFuelView({
         }}
       />
       <div
-        className="mt-[-6px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(238px,33dvh,350px)]"
+        className="mt-[-6px] grid grid-cols-2 grid-rows-[repeat(3,minmax(0,1fr))] gap-x-2 gap-y-2 px-1 [height:clamp(335px,46dvh,460px)]"
         aria-label="Polttoaineasemat"
       >
         {cards.map((g) => {
@@ -203,10 +207,9 @@ export default function ZiiplyMobileFuelView({
                 <path d="M3 44H219V52H3Z" fill="#518e79" />
               </svg>
               <button
-                disabled={!station}
-                onClick={() => station && select(station.id)}
+                onClick={() => { if (!station) { setPicker(g.slot); return; } select(station.id); }}
                 aria-pressed={chosen}
-                aria-label={`${g.key}: ${station?.name ?? "Ei asemaa"}`}
+                aria-label={`${g.key}: ${station?.name ?? "Valitse asema"}`}
                 className="relative block h-full w-full text-center"
               >
                 <span className="absolute left-0 top-0 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[#fffef9] p-px">
@@ -228,10 +231,10 @@ export default function ZiiplyMobileFuelView({
                 >
                   ✓
                 </span>
-                <span className="absolute inset-x-0 top-[28%] block max-h-[36px] overflow-hidden text-[clamp(10px,2.8vw,13px)] font-black leading-tight text-[#050505]">
+                <span className="absolute inset-x-0 top-[28%] block max-h-[36px] overflow-hidden text-[clamp(12px,3.4vw,16px)] font-black leading-tight text-[#050505]">
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                 </span>
-                <span className="absolute inset-x-0 top-[59%] block text-[11px] font-black leading-none text-black">
+                <span className="absolute inset-x-0 top-[59%] block text-[clamp(12px,3.1vw,15px)] font-black leading-none text-black">
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
@@ -239,7 +242,7 @@ export default function ZiiplyMobileFuelView({
                     : "–"}
                 </span>
               </button>
-              <p className="absolute inset-x-0 bottom-0.5 z-10 whitespace-nowrap text-[clamp(7px,2vw,10px)] font-black leading-tight text-[#213224]">
+              <p className="absolute inset-x-0 bottom-0.5 z-10 whitespace-nowrap text-[clamp(9px,2.5vw,12px)] font-black leading-tight text-[#213224]">
                 D {price(station?.diesel ?? null)} · 95{" "}
                 {price(station?.price95 ?? null)} · 98{" "}
                 {price(station?.price98 ?? null)}
