@@ -148,7 +148,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Detect active publication
+        id: active-publication
+        shell: bash
+        run: |
+          ID=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.id")
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
       - name: Preserve original publisher PDF and parser evidence
+        if: steps.active-publication.outputs.id != '41AV'
         shell: bash
         run: |
           ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-archive-parser.mjs
@@ -168,12 +175,14 @@ jobs:
           console.log('KCM_ARCHIVE_VERIFIED',JSON.stringify({pdfSha256:digest,pages:manifest.pageCount,offers:manifest.offerCount}));
           NODE
       - name: Replay newly captured publication without network
+        if: steps.active-publication.outputs.id != '41AV'
         shell: bash
         run: |
           ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-replay-parser.mjs
           FIXTURE=$(node -p "require('./scripts/citymarket/leaflet-regression-publications.json').current.fixture")
           node scripts/citymarket/replay-frozen-parser.mjs /tmp/kcm-leaflet-archive "$FIXTURE" /tmp/kcm-replay-parser.mjs
       - name: Commit verified source to permanent archive branch
+        if: steps.active-publication.outputs.id != '41AV'
         shell: bash
         run: |
           set -euo pipefail
