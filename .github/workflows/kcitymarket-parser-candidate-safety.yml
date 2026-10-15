@@ -47,6 +47,13 @@ jobs:
         run: |
           echo 'd4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd  /tmp/kcm-frozen/publications/42LV/leaflet.pdf' | sha256sum --check
           test "$(pdfinfo /tmp/kcm-frozen/publications/42LV/leaflet.pdf | awk '/^Pages:/ {print $2}')" = '20'
+      - name: Extract original PDF text for suspicious offer pages
+        run: |
+          for page in 6 20; do
+            echo "===== ORIGINAL 42LV PDF PAGE $page ====="
+            pdftotext -f "$page" -l "$page" -layout /tmp/kcm-frozen/publications/42LV/leaflet.pdf - | head -c 14000
+            echo
+          done
       - name: Check archived publication metadata
         run: |
           node scripts/citymarket/verify-42lv-frozen.mjs /tmp/kcm-frozen/publications/42LV
