@@ -1,6 +1,7 @@
 import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
 import { clean42AVPrintedTitle } from "./kCitymarket42AVTitleCleanup.js";
 import { unstable_cache } from "next/cache";
+import { readActivePublicationOffers, storeParsedPublication } from "../publicationStore";
 import citymarketPublisherImageRegistry from "./data/kCitymarketLeafletImages.json";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
@@ -747,7 +748,31 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
   }
 }
 
+// The scheduled warmer is the only path that may parse a publisher leaflet.
+// Persist the complete, validated offers before they become visible to shoppers.
+export async function persistKCitymarketOfferPublication(now=new Date()){
+  const active=getActiveKCitymarketPeriod(now);
+  const payload=await readCachedPeriod(active);
+  if(!payload.offers.length)throw new Error("Empty Citymarket publication must not be stored");
+  const fallback=kCitymarketDefaultValidityV15(active);
+  const offers=payload.offers.map(offer=>({...offer,
+    validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to,
+    imageUrl:offer.imageUrl||getKCitymarketPublisherImage(offer.sourceUrl,offer.id)||
+      (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null)||undefined,
+  }));
+  const start=active.startDate;
+  const until=shiftIsoDate(start,active.kind==="AV"?2:3);
+  return storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:start,
+    validUntil:until,parsedAt:new Date().toISOString(),offers});
+}
+
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+  // User-facing searches are read-only: never fetch or parse publisher pages.
+  // The cron job populates this durable Neon snapshot ahead of publication.
+  const stored=await readActivePublicationOffers<CitymarketOffer>("K-Citymarket");
+  if(stored.length)return stored;
+  throw new Error("K-Citymarket active publication is not yet available in the approved snapshot store");
+
   const active=getActiveKCitymarketPeriod();
 
   // The Wednesday/Sunday background warm-up parses the next leaflet after
