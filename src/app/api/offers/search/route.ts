@@ -781,7 +781,11 @@ export async function GET(request: Request) {
           correctedCategory = "Leipomo";
         }
 
-        if (correctedCategory) {
+        // The morning Neon taxonomy takes precedence over legacy Lidl title regexes.
+        // Only use the old display-category fallback when Neon has no verified match.
+        const hasVerifiedNeonCategory = Boolean(String(next.neonCategoryMatch ?? "").trim()) &&
+          Boolean(String(next.neonCategoryPath ?? "").trim());
+        if (correctedCategory && !hasVerifiedNeonCategory) {
           next.category = correctedCategory;
           next.categoryPath = correctedCategory;
           next.mainCategory = correctedCategory;
