@@ -14,7 +14,14 @@ export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promis
     title: str(o.title || o.name,300),
   })).filter(o => o.chain && o.publication && o.product_id);
   if (!rows.length) return;
-  const uniqueRows = [...new Map(rows.map(row => [[row.chain,row.publication,row.product_id].join('|'),row])).values()];
+  // Skip obvious multi-product leaflet headings and OCR-merged descriptions.
+  // These do not identify a unique SKU and must not acquire a guessed image.
+  const ambiguous = (title: string) => {
+    const words = title.toLocaleLowerCase("fi").split(/[^a-z0-9åäö]+/).filter(Boolean);
+    return ["tai","ja","sekä","valikoima","lajitelma"].some(token => words.includes(token))
+      || /(?:\b\d+[,.]?\d*\s*%|\b\d+[,.]\d{2}\s*\/\s*(?:kg|l)\b|tuotteet tasarahalla)/i.test(title);
+  };
+  const uniqueRows = [...new Map(rows.filter(row => !ambiguous(row.title)).map(row => [[row.chain,row.publication,row.product_id].join('|'),row])).values()];
   try {
     const sql = neon(process.env.DATABASE_URL);
     await sql`CREATE TABLE IF NOT EXISTS ziiply_offer_image_queue (
