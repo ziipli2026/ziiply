@@ -95,7 +95,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     for (const offer of offers) {
       const ean = getEan(offer);
       const name = getName(offer);
-      if (!ean || knownEans.has(ean) || missing.has(ean) || name.length < 3 || name.length > 300) continue;
+      if (!ean || /^(20|21|22|23|24|25|26|27|28|29)/.test(ean) || knownEans.has(ean) || missing.has(ean) || name.length < 3 || name.length > 300) continue;
       if (/^(tuntematon|unknown|tuote|product)$/i.test(name)) continue;
       const clean = (value: unknown, max: number) => {
         const valueText = typeof value === "string" ? value.trim() : "";
