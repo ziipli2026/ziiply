@@ -14379,7 +14379,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         formatsToSupport ? { formatsToSupport } : undefined,
       );
       eanHtml5ScannerRef.current = scanner;
-      pushScannerDebugV493(`CAMERA formats=${JSON.stringify(formatsToSupport || "default")} GS1_EXPANDED=${String(supportedFormats?.RSS_EXPANDED)}`);
+      pushScannerDebugV493(`CAMERA formats=${JSON.stringify(formatsToSupport || "default")} GS1_EXPANDED=${String(supportedFormats?.RSS_EXPANDED)} fullFrame=true zoom=auto`);
 
       setEanScannerMessage("");
 
@@ -14397,14 +14397,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           fps: 10,
           aspectRatio: 16 / 9,
           disableFlip: true,
-          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-            const width = Math.floor(viewfinderWidth * 0.88);
-            const height = Math.floor(Math.min(viewfinderHeight * 0.52, width * 0.58));
-            return {
-              width: Math.max(260, width),
-              height: Math.max(130, height),
-            };
-          },
+          // V862: do not crop the scan region. Long GS1 DataBar Expanded labels
+          // can be wider than the EAN viewfinder; ZXing needs the entire symbol.
+
           videoConstraints: {
             facingMode: { ideal: "environment" },
             width: { ideal: 2560, min: 1280 },
@@ -14419,7 +14414,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               { whiteBalanceMode: "continuous" },
               // Varsinainen zoomin rajaaminen tehdään scannerCore:ssa capabilityjen mukaan.
               // Tämä on vain kevyt fallback selaimille, jotka hyväksyvät suoran constraintin.
-              { zoom: 1.6 },
+              // Avoid forced digital zoom: it can cut off wide GS1 labels.
             ],
           },
         },
