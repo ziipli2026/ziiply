@@ -2,8 +2,15 @@ import { neon } from "@neondatabase/serverless";
 const url=process.env.DATABASE_URL;
 if(!url) throw new Error("DATABASE_URL missing");
 const sql=neon(url);
-const cfg=await sql`SELECT persisted_query_hash,client_version,apollo_version FROM ziiply_skaupat_protocol WHERE config_key='remote-filtered-products' LIMIT 1`;
-const protocol=cfg[0]??{persisted_query_hash:"85a4eed2f0a1e3269ac49b94276ca952922568369d85ddd5dcee34481e4c0f91",client_version:"production-add4ac0e6ec7f03f2c5373a6ebfab2b63df73f68",apollo_version:"4.3.1"};
+const fallbackProtocol={persisted_query_hash:"85a4eed2f0a1e3269ac49b94276ca952922568369d85ddd5dcee34481e4c0f91",client_version:"production-add4ac0e6ec7f03f2c5373a6ebfab2b63df73f68",apollo_version:"4.3.1"};
+let protocol=fallbackProtocol;
+try {
+ const cfg=await sql`SELECT persisted_query_hash,client_version,apollo_version FROM ziiply_skaupat_protocol WHERE config_key='remote-filtered-products' LIMIT 1`;
+ protocol=cfg[0]??fallbackProtocol;
+} catch (error) {
+ if (error?.code !== "42P01") throw error;
+ console.warn("ziiply_skaupat_protocol is missing in DATABASE_URL target; using built-in protocol defaults.");
+}
 const stores=(process.env.COOP_STORE_IDS||"603217266,634976534,685839110").split(",").map(s=>s.trim()).filter(Boolean);
 const limit=48, maxPages=Number(process.env.COOP_MAX_PAGES||500);
 const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
