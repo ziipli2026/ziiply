@@ -122,5 +122,15 @@ export async function GET(req: Request) {
       ORDER BY next_attempt_at LIMIT 100
     ) RETURNING product_id`;
   const stats = await db`SELECT status,COUNT(*)::int AS count FROM ziiply_offer_image_queue GROUP BY status`;
-  return NextResponse.json({ok:true,discovered,enriched,retried:retry.length,stats});
+  const runAt = new Date().toISOString();
+  await db`CREATE TABLE IF NOT EXISTS ziiply_offer_image_runs (
+    run_at TIMESTAMPTZ PRIMARY KEY, discovered INTEGER NOT NULL,
+    enriched INTEGER NOT NULL, retried INTEGER NOT NULL,
+    pending INTEGER NOT NULL, ready INTEGER NOT NULL
+  )`;
+  const pending = Number(stats.find(row => row.status === "pending")?.count ?? 0);
+  const ready = Number(stats.find(row => row.status === "ready")?.count ?? 0);
+  await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready)
+    VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready})`;
+  return NextResponse.json({ok:true,runAt,discovered,enriched,retried:retry.length,pending,ready,stats});
 }
