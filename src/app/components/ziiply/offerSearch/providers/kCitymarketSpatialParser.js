@@ -42,7 +42,7 @@ export async function parseKCitymarketSpatialLeaflet(entry){
   {page:15,title:/RASVATON MAITORAHKA ja/i,value:4.00,quantity:6,unit:'prk'},
   {page:15,title:/PIRTELÖT 200 ml/i,value:2.50,quantity:2,unit:'kpl'},
   {page:19,title:/MAISSIKAKUT 130 g/i,value:4.00,quantity:2,unit:'kpl'},
-  {page:19,title:/PASTA.?KASTIKKEET/i,value:5.00,quantity:2,unit:'prk'},
+  {page:19,title:/PASTA-\s*KASTIKKEET/i,value:5.00,quantity:2,unit:'prk'},
   {page:19,title:/TANGLE PASTA/i,value:5.00,quantity:3,unit:'ps'},
   {page:3,title:/TYÖKÄSINEET 235/i,value:6.00,quantity:1,unit:'pari'},
   {page:7,title:/NAHKAKÄSINEET/i,value:9.00,quantity:1,unit:'pari'},
