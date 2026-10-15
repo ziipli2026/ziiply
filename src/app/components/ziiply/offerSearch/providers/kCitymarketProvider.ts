@@ -771,7 +771,10 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   // The cron job populates this durable Neon snapshot ahead of publication.
   const stored=await readActivePublicationOffers<CitymarketOffer>("K-Citymarket");
   if(stored.length)return stored;
-  throw new Error("K-Citymarket active publication is not yet available in the approved snapshot store");
+  // Migration safety: do not break desktop or mobile when the first snapshot
+  // has not been seeded yet. Recover from the immutable publisher URL once,
+  // persist the result, and let all subsequent requests use Neon.
+  console.warn("[K-Citymarket] approved snapshot missing; seeding current leaflet");
 
   const active=getActiveKCitymarketPeriod();
 
@@ -799,6 +802,16 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
 
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
+  // Persist the complete parsed leaflet independently of optional image enrichment.
+  // The durable record is used by both desktop and mobile on the next request.
+  try {
+    const start=active.startDate;
+    await storeParsedPublication({chain:"K-Citymarket",id:active.key,
+      validFrom:start,validUntil:shiftIsoDate(start,active.kind==="AV"?2:3),
+      parsedAt:new Date().toISOString(),offers:dated});
+  } catch(error) {
+    console.warn("[K-Citymarket] snapshot seed failed",error);
+  }
   // Track exact publication-image coverage before optional catalogue/Tjek
   // enrichment. This exposes extraction gaps on each fresh leaflet.
   const publicationAudits=[...new Set(dated.map(offer=>offer.sourceUrl).filter(Boolean))]
