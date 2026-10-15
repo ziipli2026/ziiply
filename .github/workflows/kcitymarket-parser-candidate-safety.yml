@@ -38,7 +38,15 @@ jobs:
         with:
           node-version: '22'
       - name: Validate publisher image fragments and 42LV coverage
+        env:
+          KCM_IMAGE_COVERAGE_REPORT: artifacts/citymarket-images/coverage.json
         run: node scripts/citymarket/verify-images.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kcitymarket-image-coverage
+          path: artifacts/citymarket-images/coverage.json
+          retention-days: 30
 
   frozen-42lv:
     runs-on: ubuntu-latest
