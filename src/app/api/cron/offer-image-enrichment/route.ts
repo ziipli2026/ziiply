@@ -159,7 +159,8 @@ export async function GET(req: Request) {
     // A slash in package notation such as "2 kpl/140 g" is not a multi-product offer.
     const packageSlash = /\b\d+\s*kpl\s*\/\s*\d+\s*(?:g|kg|ml|l)\b/i.test(v);
     const unitPriceSlash = /\([^)]*\d+[,.]\d+\s*\/\s*(?:kg|l)\b[^)]*\)/i.test(v);
-    const otherSlash = v.includes("/") && !packageSlash && !unitPriceSlash;
+    const withoutUnitPrices = v.replace(/\([^)]*\d+[,.]\d+\s*\/\s*(?:kg|l)\b[^)]*\)/gi, " ");
+    const otherSlash = withoutUnitPrices.includes("/") && !packageSlash;
     // Leaflet OCR sometimes merges adjacent cards, prices and category headings.
     // Keep these out of automatic matching instead of risking an unrelated image.
     const noisyOfferText = /(?:\b\d+[,.]?\d*\s*%|\b\d+[,.]\d{2}\s*\/\s*(?:kg|l)\b|tuotteet tasarahalla|\bkuivaruoat\b|\bmärkäruoat\b|\bvirvoitusjuomat\b|\bvalikoima\b|\bateriat\s+\d+\s*kk\b)/i.test(v);
