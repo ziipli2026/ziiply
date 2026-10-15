@@ -854,20 +854,32 @@ export function cleanZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]
 // Missing/ambiguous prices go last; unit prices (€/kg, €/l) are not the item price.
 function gostaOfferSortPrice(item: ZiiplyGostaOfferLike): number {
   const raw = (item as any)?.__sourceOfferSearchResult ?? item;
-  const candidates = [raw?.offerPrice, raw?.price, (item as any)?.offerPrice, (item as any)?.price, raw?.priceText, item?.priceText];
-  for (const candidate of candidates) {
+  // The structured offer price is the transaction total, including multi-buy
+  // deals. Never use €/kg or a "2 kpl" quantity as the sorting price.
+  const numericCandidates = [
+    raw?.offerPrice, (item as any)?.offerPrice, raw?.price, (item as any)?.price,
+  ];
+  for (const candidate of numericCandidates) {
     if (candidate == null || candidate === "") continue;
-    if (typeof candidate === "number") {
-      if (Number.isFinite(candidate) && candidate > 0) return candidate;
-      continue;
-    }
-    const value = String(candidate).trim();
-    // Comparison prices are not the total product price.
-    if (/\/\s*(kg|l|kpl|100\s*g|100\s*ml)\b/i.test(value)) continue;
-    const match = value.match(/(?:^|\s)(\d{1,5}(?:[,.]\d{1,2})?)\s*(?:€|eur)?(?:\s|$)/i);
-    if (!match) continue;
-    const price = Number(match[1].replace(",", "."));
+    const normalized = String(candidate).trim().replace(/\s*€$/, "").replace(",", ".");
+    if (!/^\d+(?:\.\d+)?$/.test(normalized)) continue;
+    const price = Number(normalized);
     if (Number.isFinite(price) && price > 0) return price;
+  }
+  for (const candidate of [raw?.priceText, item?.priceText]) {
+    const value = String(candidate ?? "").trim();
+    if (!value) continue;
+    // Match an amount tied to €, regardless of whether quantity precedes it.
+    const euro = value.match(/(\d{1,5}(?:[,.]\d{1,2})?)\s*(?:€|eur)(?!\w)/i);
+    if (euro) {
+      const price = Number(euro[1].replace(",", "."));
+      if (Number.isFinite(price) && price > 0) return price;
+    }
+    // No currency marker: only accept a standalone numeric price, not unit rates.
+    if (/^\d{1,5}(?:[,.]\d{1,2})?$/.test(value)) {
+      const price = Number(value.replace(",", "."));
+      if (Number.isFinite(price) && price > 0) return price;
+    }
   }
   return Number.POSITIVE_INFINITY;
 }
