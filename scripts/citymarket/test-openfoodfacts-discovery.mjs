@@ -21,7 +21,23 @@ try{
  assert.equal(data.items[0].images.length,1);
  assert.match(data.items[0].images[0].source,/6412345678901/);
  assert.equal(data.items[0].images[0].url,'https://images.openfoodfacts.org/test.jpg');
+ assert.equal(data.items[0].images[0].ean,'6412345678901');
+ assert.equal(data.items[0].images[0].productName,'Test product');
+ assert.equal(data.items[0].images[0].brand,'Test');
+ assert.equal(data.items[0].images[0].identityVerified,false);
+ assert.deepEqual(data.deferredTasks,[]);
+ assert.equal(data.discoveryStatus,'completed');
+ assert.equal(data.autoApply,false);
  assert.notEqual(run({...plan,tasks:[{...task,autoApply:true}]}).status,0);
  assert.notEqual(run(plan,'95').status,0);
+ fs.writeFileSync(mockFile,`global.fetch=async()=>({ok:false,status:503});`);
+ const many={...plan,taskCount:5,tasks:Array.from({length:5},(_,i)=>({...task,offerId:'kcm:spatial:1:test'+i+':1.99'}))};
+ result=run(many,'5');
+ assert.equal(result.status,0,result.stderr);
+ const unavailable=JSON.parse(fs.readFileSync(outFile,'utf8'));
+ assert.equal(unavailable.discoveryStatus,'provider-unavailable');
+ assert.equal(unavailable.items.length,3);
+ assert.equal(unavailable.deferredTasks.length,2);
+ assert.deepEqual(unavailable.deferredTasks.map(x=>x.offerId),many.tasks.slice(3).map(x=>x.offerId));
  console.log('KCM_OPENFOODFACTS_MOCK_DISCOVERY_OK');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
