@@ -23,7 +23,7 @@ const percentageOnly=parsed.rows.filter(r=>!(Number(r.spatialResolved?.value)>0)
 const unjustifiedPercentageOnly=percentageOnly.filter(r=>{const prior=old.get(key(r));return !prior||!String(prior.id||'').endsWith(':percent:'+r.percent);});
 const missing=[...old].filter(([k])=>!now.has(k)).map(([,r])=>({page:r.page,title:r.title}));
 const baselinePercent=baseline.rows.filter(r=>/:percent:\d+(?:\.\d+)?$/.test(String(r.id||'')));
-const printedChecksAllowlist=[{page:3,match:/TYÖKÄSINEET 235/i},{page:7,match:/NAHKAKÄSINEET/i},{page:15,match:/TÄYSMEHUT 900 ml/i},{page:18,match:/TRIP MEHUT 2 dl 24-pack/i},{page:19,match:/^VIRVOITUSJUOMA 0,33 l\/pl 24-pack$/i},{page:13,match:/^KASSLER n\. 2,3 kg$/i},{page:18,match:/^MÄRKÄRUOAT 70 g 420/i},{page:19,match:/^AAKKOSET 280–340 g$/i}];
+const printedChecksAllowlist=[{page:18,match:/^Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g$/i},{page:18,match:/^PrimaCat KISSAN KUIVARUOAT 400 g$/i},{page:3,match:/TYÖKÄSINEET 235/i},{page:7,match:/NAHKAKÄSINEET/i},{page:15,match:/TÄYSMEHUT 900 ml/i},{page:18,match:/TRIP MEHUT 2 dl 24-pack/i},{page:19,match:/^VIRVOITUSJUOMA 0,33 l\/pl 24-pack$/i},{page:13,match:/^KASSLER n\. 2,3 kg$/i},{page:18,match:/^MÄRKÄRUOAT 70 g 420/i},{page:19,match:/^AAKKOSET 280–340 g$/i}];
 const missingPercentage=baselinePercent.filter(r=>!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title))&&!percentageOnly.some(p=>key(p)===key(r)&&String(r.id).endsWith(':percent:'+p.percent))).map(r=>({page:r.page,title:r.title,id:r.id}));
 const pricedPercentage=baselinePercent.filter(r=>now.has(key(r))&&!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title))).map(r=>({page:r.page,title:r.title,price:now.get(key(r)).spatialResolved.value}));
 const unresolved=parsed.rows.filter(r=>missing.some(m=>m.page===r.page&&key(m)===key(r))).map(r=>({page:r.page,title:r.title,nearby:r.nearby,spatialResolved:r.spatialResolved,percentageOffer:r.percentageOffer,spatialCandidates:r.spatialCandidates?.slice(0,8),debugRejectedCardPrice:r.debugRejectedCardPrice}));
@@ -34,6 +34,8 @@ const quantityUnverified=[...now].filter(([k])=>old.has(k)&&old.get(k).quantity=
 const changed=[...now].filter(([k])=>old.has(k)).flatMap(([k,r])=>{const prev=Number(old.get(k).id.split(':').at(-1));const next=Number(r.spatialResolved?.value);return Math.abs(prev-next)>.011?[{page:r.page,title:r.title,previous:prev,next:Number.isFinite(next)?next:null}]:[]});
 // Publisher PDF cross-check: these are independent printed prices, NOT archive snapshot values.
 const printedChecks=[
+  {page:18,match:/^Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g$/i,price:5,quantity:4},
+  {page:18,match:/^PrimaCat KISSAN KUIVARUOAT 400 g$/i,price:10,quantity:3},
   {page:6,match:/WC-PAPERI 40 rl ja/i,price:24.90,quantity:1},
   {page:20,match:/8-pack/i,price:7.99},
   {page:20,match:/VICHY 0,33 l\/pl 24-pack/i,price:10.99},
@@ -136,8 +138,8 @@ const mergedOfferReview=parsed.rows.filter(row=>/ATERIAT 8 kk 190 g.*KISSAN KUIV
  ]
 }));
 console.log('42LV merged offer manual review',JSON.stringify({count:mergedOfferReview.length,rows:mergedOfferReview}));
-if(mergedOfferReview.length!==1)process.exitCode=1;
+if(mergedOfferReview.length!==0)process.exitCode=1;
 console.log('42LV unpriced review queue',JSON.stringify({count:unpricedReview.length,rows:unpricedReview}));
 console.log('42LV unit-rate audit coverage',JSON.stringify({pricedOffers:priced.length,comparable:unitRateCoverage.comparable,notComparableCount:unitRateCoverage.notComparable.length,notComparable:unitRateCoverage.notComparable}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
-if(parsed.rows.length!==96||priced.length!==93||baseline.rows.length!==89||percentageOnly.length!==1||parsed.pageCount!==20||added.some(r=>!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title)))||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||unexpectedChanged.length>0)process.exitCode=1;
+if(parsed.rows.length!==97||priced.length!==94||baseline.rows.length!==89||percentageOnly.length!==1||parsed.pageCount!==20||added.some(r=>!printedChecksAllowlist.some(x=>x.page===r.page&&x.match.test(r.title)))||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r))&&!(r.page===18&&/ATERIAT 8 kk 190 g.*KISSAN KUIVARUOAT 400 g/i.test(r.title)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||unexpectedChanged.length>0)process.exitCode=1;
