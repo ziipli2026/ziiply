@@ -233,8 +233,9 @@ export async function GET(req: Request) {
   const retry = await db`UPDATE ziiply_offer_image_queue SET
     attempts=attempts+1, next_attempt_at=now()+make_interval(hours => LEAST(168, POWER(2, LEAST(attempts,7))::int)),
     updated_at=now() WHERE (chain,publication,product_id) IN (
-      SELECT chain,publication,product_id FROM ziiply_offer_image_queue
+      SELECT chain,publication,product_id FROM ziiply_offer_image_queue q
       WHERE status='pending' AND next_attempt_at<=now()
+        AND EXISTS (SELECT 1 FROM ziiply_offer_publications p WHERE p.chain=q.chain AND p.publication_id=q.publication)
       ORDER BY next_attempt_at LIMIT 100
     ) RETURNING product_id`;
   const stats = await db`SELECT status,COUNT(*)::int AS count FROM ziiply_offer_image_queue GROUP BY status`;
