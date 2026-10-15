@@ -39,7 +39,12 @@ if(coverageReportPath){
  const enrichmentQueue=missingImages.map(item=>({...item,status:ambiguousKeys.has(item.offerId)?'review-identity':'lookup-needed',source:'frozen-42lv-canonical-parser',publicationSha256:expectedHash}));
  const lookupQueue=enrichmentQueue.filter(item=>item.status==='lookup-needed');
  const identityReviewQueue=enrichmentQueue.filter(item=>item.status==='review-identity');
- const report={schemaVersion:3,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,manifestImageCount:Object.keys(pub?.images||{}).length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,orphanImageMappingCount:orphanImageMappings.length,orphanImageMappings,missingImages,enrichmentQueue,lookupQueue,identityReviewQueue};
+ const allIds=enrichmentQueue.map(item=>item.offerId);
+ if(new Set(allIds).size!==allIds.length)throw Error('Duplicate 42LV enrichment queue offer ID');
+ if(enrichmentQueue.some(item=>item.publicationSha256!==expectedHash||!item.offerId.startsWith('kcm:spatial:')||!(item.price>0)))throw Error('Invalid 42LV enrichment queue item');
+ const stableLookupQueue=[...lookupQueue].sort((a,b)=>a.page-b.page||a.offerId.localeCompare(b.offerId,'fi'));
+ const stableIdentityReviewQueue=[...identityReviewQueue].sort((a,b)=>a.page-b.page||a.offerId.localeCompare(b.offerId,'fi'));
+ const report={schemaVersion:3,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,manifestImageCount:Object.keys(pub?.images||{}).length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,orphanImageMappingCount:orphanImageMappings.length,orphanImageMappings,missingImages,enrichmentQueue,lookupQueue:stableLookupQueue,identityReviewQueue:stableIdentityReviewQueue};
  if(lookupQueue.length+identityReviewQueue.length!==missingImages.length)throw Error('42LV image queue partition mismatch');
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
