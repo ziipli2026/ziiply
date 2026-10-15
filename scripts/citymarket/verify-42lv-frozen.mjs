@@ -46,6 +46,10 @@ if(coverageReportPath){
  const stableIdentityReviewQueue=[...identityReviewQueue].sort((a,b)=>a.page-b.page||a.offerId.localeCompare(b.offerId,'fi'));
  const report={schemaVersion:3,publication:publicationUrl,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,manifestImageCount:Object.keys(pub?.images||{}).length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,orphanImageMappingCount:orphanImageMappings.length,orphanImageMappings,missingImages,enrichmentQueue,lookupQueue:stableLookupQueue,identityReviewQueue:stableIdentityReviewQueue};
  if(lookupQueue.length+identityReviewQueue.length!==missingImages.length)throw Error('42LV image queue partition mismatch');
+ if(pricedRows.length!==94||Object.keys(pub?.images||{}).length!==33||missingImages.length!==65||orphanImageMappings.length!==4||lookupQueue.length+identityReviewQueue.length!==65)throw Error('42LV image enrichment baseline changed: review parser and image identity changes before updating expectations');
+ const mappedIds=Object.keys(pub?.images||{});
+ if(new Set(mappedIds).size!==mappedIds.length)throw Error('Duplicate 42LV image mapping IDs');
+ if(mappedIds.some(id=>!id.startsWith('kcm:spatial:')))throw Error('Invalid 42LV image mapping ID');
  fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
  fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
  console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount,unmatchedMappings:report.orphanImageMappingCount,lookupNeeded:lookupQueue.length,identityReview:identityReviewQueue.length}));
