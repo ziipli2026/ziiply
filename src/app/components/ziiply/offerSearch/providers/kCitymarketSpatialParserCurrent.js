@@ -352,7 +352,7 @@ function resolveCards(rows,rawBoxes){
 // Revision: V97-KCITYMARKET-SPATIAL-UNIT-FRAGS
 // Reconstructs visually split prices while keeping explicit multi-buy transaction price.
 const H={"user-agent":"Mozilla/5.0 Chrome/140 Safari/537.36","accept":"text/html,application/xhtml+xml"};
-async function fetchText(u,fetchImpl){const r=await fetchImpl(u,{redirect:"follow",headers:H});if(!r.ok)throw new Error("K-Citymarket HTTP "+r.status+": "+u);return {url:r.url,text:await r.text()}}
+async function fetchText(u,fetchImpl){const r=await fetchImpl(u,{redirect:"follow",headers:H,signal:AbortSignal.timeout(8000)});if(!r.ok)throw new Error("K-Citymarket HTTP "+r.status+": "+u);return {url:r.url,text:await r.text()}}
 function codeLines(h){const m=h.match(/<pre[^>]*><code>([\s\S]*?)<\/code><\/pre>/i);if(!m)return[];return m[1].replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").split(/\r?\n/).map((raw,i)=>({i,raw,text:raw.trim(),x:raw.length-raw.trimStart().length})).filter(x=>x.text)}
 function num(s){return Number(String(s).replace(",","."))}
 function pkg(s){const src=String(s).replace(/\b\d(?:\s+\d){1,4}(?=\s*(?:g|kg|ml|cl|dl|l)\b)/gi,digits=>digits.replace(/\s+/g,""));const multi=src.match(/\b(\d{1,2})\s*[x×]\s*(\d+(?:[,.]\d+)?)(?:\s*[–-]\s*(\d+(?:[,.]\d+)?))?\s*(kg|g|ml|cl|dl|l)\b/i);if(multi){const n=num(multi[1]),a=num(multi[2]),z=multi[3]?num(multi[3]):a,u=multi[4].toLowerCase(),k=(u==="g"||u==="ml")?.001:u==="cl"?.01:u==="dl"?.1:1;return {min:n*a*k,max:n*z*k,raw:multi[0],multiplier:n,unitAmount:a*k}}let m=src.match(/(\d+(?:[,.]\d+)?)(?:[–-](\d+(?:[,.]\d+)?))?\s*(kg|g|ml|cl|dl|l)\b/i);if(!m)return null;let a=num(m[1]),b=m[2]?num(m[2]):a,u=m[3].toLowerCase(),k=(u==="g"||u==="ml")?.001:u==="cl"?.01:u==="dl"?.1:1;return {min:a*k,max:b*k,raw:m[0]}}
@@ -390,7 +390,8 @@ function boxDistance(a,b){const ax=a.left+(a.width||0)/2,ay=a.top+(a.height||0)/
 function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){const p=e+suffix/100,d=Math.abs(p-expected);if(!best||d<best.d)best={price:p,d}}return best}
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
-const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
+const directPublisher=/^https:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^/]+\/index\.html(?:\?.*)?$/i.test(String(ENTRY));
+const e=directPublisher?{url:ENTRY,text:""}:await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
 const out={revision:"V159-KCITYMARKET-OWNED-CARD-TRANSACTIONS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
