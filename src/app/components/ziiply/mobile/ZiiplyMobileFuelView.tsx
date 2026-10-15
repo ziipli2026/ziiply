@@ -53,7 +53,7 @@ export default function ZiiplyMobileFuelView({
   const [stations, setStations] = useState<Station[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
-  const [stationSide, setStationSide] = useState<"traffic" | "both" | "cold">("traffic");
+  const [stationSide, setStationSide] = useState<"traffic" | "both" | "cold">("both");
   const [mode, setMode] = useState<"hyper" | "local">("hyper"),
     [scope, setScope] = useState<"between_chains" | "within_chain">(
       "between_chains",
@@ -231,10 +231,10 @@ export default function ZiiplyMobileFuelView({
                 >
                   ✓
                 </span>
-                <span className="absolute inset-x-0 top-[28%] block max-h-[36px] overflow-hidden text-[clamp(12px,3.4vw,16px)] font-black leading-tight text-[#050505]">
+                <span className="absolute inset-x-0 top-[27%] block max-h-[36px] overflow-hidden text-[clamp(12px,3.4vw,16px)] font-black leading-tight text-[#050505]">
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                 </span>
-                <span className="absolute inset-x-0 top-[59%] block text-[clamp(12px,3.1vw,15px)] font-black leading-none text-black">
+                <span className="absolute inset-x-0 top-[54%] block text-[clamp(12px,3.1vw,15px)] font-black leading-none text-black">
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
@@ -242,10 +242,10 @@ export default function ZiiplyMobileFuelView({
                     : "–"}
                 </span>
               </button>
-              <p className="absolute inset-x-0 bottom-0.5 z-10 whitespace-nowrap text-[clamp(9px,2.5vw,12px)] font-black leading-tight text-[#213224]">
-                D {price(station?.diesel ?? null)} · 95{" "}
-                {price(station?.price95 ?? null)} · 98{" "}
-                {price(station?.price98 ?? null)}
+              <p className="pointer-events-none absolute inset-x-0 bottom-1 z-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-0 text-[clamp(11px,3vw,14px)] font-black leading-tight text-[#213224]">
+                <span>D {price(station?.diesel ?? null)}</span>
+                <span>95 {price(station?.price95 ?? null)}</span>
+                <span>98 {price(station?.price98 ?? null)}</span>
               </p>
 
             </article>
