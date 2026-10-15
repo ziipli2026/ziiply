@@ -65,7 +65,6 @@ import { NextResponse } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
-import { removeCampaignCopiesOfLeaflet } from "../../../components/ziiply/offerSearch/kOfferTabPolicy";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
@@ -909,11 +908,9 @@ export async function GET(request: Request) {
           // they are never allowed to block the entire mobile offer search.
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
-          // The reviewed national leaflet is the Tarjoukset master. Local/store
-          // publications are Kampanjat, but an exact product+price copy must not
-          // appear in both tabs.
-          const nationalLeafletOffers = citymarketResults.filter(offer => offer.campaignType !== "campaign");
-          const uniqueLocalCampaigns = removeCampaignCopiesOfLeaflet(nationalLeafletOffers, matchingLocalOffers);
+          // The two sources are independent: preserve every selected-store campaign
+          // even when its name and price match a national leaflet offer.
+          const uniqueLocalCampaigns = matchingLocalOffers;
           citymarketLocalCount = uniqueLocalCampaigns.length;
           citymarketLocalStoreId = uniqueLocalCampaigns.length ? String(uniqueLocalCampaigns[0].storeId ?? "") || null : null;
           citymarketResults.push(...uniqueLocalCampaigns);
