@@ -41,6 +41,10 @@ jobs:
         run: |
           git fetch origin archive/citymarket-publications
           git worktree add --detach /tmp/kcm-frozen origin/archive/citymarket-publications
+      - name: Verify original 42LV PDF integrity and page count
+        run: |
+          echo 'd4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd  /tmp/kcm-frozen/publications/42LV/leaflet.pdf' | sha256sum --check
+          test "$(pdfinfo /tmp/kcm-frozen/publications/42LV/leaflet.pdf | awk '/^Pages:/ {print $2}')" = '20'
       - name: Check archived publication metadata
         run: |
           node scripts/citymarket/verify-42lv-frozen.mjs /tmp/kcm-frozen/publications/42LV
