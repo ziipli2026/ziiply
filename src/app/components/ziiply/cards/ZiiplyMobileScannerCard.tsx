@@ -171,6 +171,37 @@ export default function ZiiplyMobileScannerCard({
   }, [storeLocation?.verified, storeLocation?.name]);
 
 
+  // V864: lightweight local color cue only. A red region suggests a discount
+  // sticker; it does not claim the barcode has been decoded.
+  const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
+  useEffect(() => {
+    if (!onCaptureDiscountSticker) return;
+    let consecutive = 0;
+    const timer = window.setInterval(() => {
+      const video = document.getElementById(regionId)?.querySelector("video");
+      if (!video || video.readyState < 2 || !video.videoWidth) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 48;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+      try {
+        ctx.drawImage(video, 0, 0, 64, 48);
+        const pixels = ctx.getImageData(0, 0, 64, 48).data;
+        let red = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          const [r,g,b] = [pixels[i],pixels[i+1],pixels[i+2]];
+          if (r > 95 && r > g * 1.65 && r > b * 1.5 && g < 155) red++;
+        }
+        consecutive = red > 95 ? Math.min(3,consecutive+1) : Math.max(0,consecutive-1);
+        setRedStickerCandidateV864(consecutive >= 2);
+      } catch {
+        setRedStickerCandidateV864(false);
+      }
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [regionId, onCaptureDiscountSticker]);
+
   const hasSelectionResults = selectionResults.length > 1;
 
   function getSelectionName(result: ZiiplyMobileScannerSelectionResult) {
@@ -437,6 +468,12 @@ export default function ZiiplyMobileScannerCard({
                 </svg>
               </span>
               <span className="min-w-0 break-words">{storeLocation.name}</span>
+            </div>
+          )}
+
+          {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
+            <div role="status" className="pointer-events-none absolute left-1/2 top-[18%] z-[45] w-[min(88%,320px)] -translate-x-1/2 rounded-xl bg-[#fff5d9]/95 px-3 py-2 text-center text-sm font-black text-[#163d32] shadow-lg">
+              Alennustarra mahdollinen – ota kuva painamalla kameran kuvaa 📷
             </div>
           )}
 
