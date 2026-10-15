@@ -687,6 +687,12 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     // Keep both indexes and require a unique EAN and matching package when available.
     const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
     const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," "));
+    // Unit prices and explanatory leaflet footnotes are not part of a product
+    // identity. Remove them for image matching only, never from offer display.
+    const imageIdentity=(value:unknown)=>String(value??"")
+      .replace(/\([^)]*\d+[,.]\d+\s*\/\s*(?:kg|l)\b[^)]*\)/gi," ")
+      .replace(/\b(?:ei\s+luomu|msc-sertifioitu|uht)\b/gi," ")
+      .replace(/\s+/g," ").trim();
     for(const row of rows){
       const keys=new Set([norm(row.name),norm([row.name,row.quantity].filter(Boolean).join(" "))]);
       for(const key of keys){
@@ -708,9 +714,9 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       // Require a single exact title match and matching package size when
       // the leaflet provides one. Never guess EAN for a group/range offer.
       if(/\b(?:valikoima|lajitelma|eri makuja|kaikki|tai|\d+\s*[–-]\s*\d+\s*(?:g|ml))\b/i.test(offer.title)){stats.groupOffer++;return offer;}
-      const direct=index.get(norm(offer.title))||[];
+      const direct=index.get(norm(imageIdentity(offer.title)))||[];
       const offerSize=size(offer.packageSize)||size(offer.title);
-      const candidates=direct.length?direct:(byProductName.get(nameOnly(offer.title))||[]).filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
+      const candidates=direct.length?direct:(byProductName.get(nameOnly(imageIdentity(offer.title)))||[]).filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
       const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()];
       if(matches.length!==1){if(matches.length>1)stats.ambiguous++;else stats.missing++;return offer;}
       const row=matches[0];
