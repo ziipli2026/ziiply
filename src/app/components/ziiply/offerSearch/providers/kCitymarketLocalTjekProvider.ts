@@ -1,4 +1,5 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
+import { neon } from "@neondatabase/serverless";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -33,16 +34,39 @@ export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalPr
   return entry ? { ...entry.progress, publicationIds: [...entry.progress.publicationIds], running: entry.running, cachedRows: entry.rows.length } :
     { stage: "not-started", storeName: selectedStoreName, storeId: null, publicationIds: [], pages: 0, offerIds: 0, accepted: 0, error: null, updatedAt: "", running: false, cachedRows: 0 };
 }
+// Shared durable snapshot: only publish fully completed Tjek scans.
+// Keep the previous successful snapshot if the upstream scan times out.
+async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    const rows = await sql`SELECT offers FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = ${key} AND valid_until > NOW() LIMIT 1`;
+    return Array.isArray(rows[0]?.offers) ? rows[0].offers as Row[] : null;
+  } catch (error) {
+    console.warn("[K-Citymarket] snapshot read unavailable", error);
+    return null;
+  }
+}
+async function publishSnapshot(key: string, offers: Row[], publicationIds: string[]): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  const sql = neon(process.env.DATABASE_URL);
+  await sql`INSERT INTO public.ziiply_kcitymarket_tjek_snapshots (store_key, offers, publication_ids, valid_until, updated_at)
+    VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '7 days', NOW())
+    ON CONFLICT (store_key) DO UPDATE SET offers = EXCLUDED.offers, publication_ids = EXCLUDED.publication_ids,
+      valid_until = EXCLUDED.valid_until, updated_at = NOW()`;
+}
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const key = normalize(selectedStoreName);
   const now = Date.now();
   let entry = localCache.get(key);
+  const saved = await readPublishedSnapshot(key);
   if (!entry || (!entry.running && now - entry.finishedAt > LOCAL_TTL)) {
     entry = { rows: [], startedAt: now, finishedAt: 0, running: true,
       progress: { stage: "starting", storeName: selectedStoreName, storeId: null, publicationIds: [], pages: 0, offerIds: 0, accepted: 0, error: null, updatedAt: new Date().toISOString() } };
     localCache.set(key, entry);
     const current = entry;
-    current.promise = readKCitymarketSelectedStoreOffers(selectedStoreName, current).then(() => {
+    current.promise = readKCitymarketSelectedStoreOffers(selectedStoreName, current).then(async () => {
+      await publishSnapshot(key, current.rows, current.progress.publicationIds);
       current.progress.stage = "complete";
     }).catch(error => {
       current.progress.stage = "failed";
@@ -54,12 +78,9 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       current.progress.updatedAt = new Date().toISOString();
     });
   }
-  // Wait briefly for the first results. The reader continues independently and
-  // progressively fills the per-instance cache for subsequent requests.
-  if (entry.running && entry.rows.length === 0) {
-    await Promise.race([entry.promise, new Promise<void>(resolve => setTimeout(resolve, 4000))]);
-  }
-  return [...entry.rows];
+  // Never serve partially read campaign rows as a complete publication.
+  // A missing durable snapshot must not be substituted with unfinished data.
+  return saved ?? (entry && !entry.running && entry.progress.stage === "complete" ? [...entry.rows] : []);
 }
 async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; progress: LocalProgress }): Promise<void> {
   const wanted=normalize(selectedStoreName);
