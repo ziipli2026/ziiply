@@ -114,6 +114,32 @@ export async function GET(req: Request) {
       AND status='pending'`;
     enriched++;
   }
+  // No-EAN offers: exact normalized title + a single image candidate only.
+  // Do not guess from broad leaflet descriptions or multi-product offers.
+  const noEan = await db`SELECT chain,publication,product_id,title
+    FROM ziiply_offer_image_queue WHERE status='pending'
+    AND (ean IS NULL OR ean='') AND next_attempt_at<=now()
+    ORDER BY next_attempt_at LIMIT 100`;
+  let titleEnriched = 0, ambiguous = 0;
+  const normalize = (v: unknown) => String(v ?? "").toLocaleLowerCase("fi")
+    .replace(/[^a-z0-9åäö]+/gi," ").replace(/\\s+/g," ").trim();
+  const uncertain = /\\b(tai|ja|sekä|eri|valikoima|lajitelma)\\b|\\//i;
+  for (const item of noEan) {
+    const title = String(item.title || "");
+    if (!title || uncertain.test(title)) { ambiguous++; continue; }
+    const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
+      WHERE image_url LIKE 'https://%'
+      AND lower(name) LIKE ${'%' + title.slice(0,45).toLowerCase().replace(/[%_]/g,'') + '%'}
+      LIMIT 10`;
+    const exact = matches.filter(row => normalize(row.name) === normalize(title) && validUrl(row.image_url));
+    const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
+    if (images.length !== 1 || exact.length !== 1) { ambiguous++; continue; }
+    await db`UPDATE ziiply_offer_image_queue SET image_url=${images[0]},
+      image_source='ean-bank-exact-title',status='ready',updated_at=now()
+      WHERE chain=${item.chain} AND publication=${item.publication}
+      AND product_id=${item.product_id} AND status='pending'`;
+    titleEnriched++;
+  }
   const retry = await db`UPDATE ziiply_offer_image_queue SET
     attempts=attempts+1, next_attempt_at=now()+make_interval(hours => LEAST(168, POWER(2, LEAST(attempts,7))::int)),
     updated_at=now() WHERE (chain,publication,product_id) IN (
@@ -132,5 +158,5 @@ export async function GET(req: Request) {
   const ready = Number(stats.find(row => row.status === "ready")?.count ?? 0);
   await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready)
     VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready})`;
-  return NextResponse.json({ok:true,runAt,discovered,enriched,retried:retry.length,pending,ready,stats});
+  return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,stats});
 }
