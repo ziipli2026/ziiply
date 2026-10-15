@@ -11,7 +11,7 @@ try {
  if (error?.code !== "42P01") throw error;
  console.warn("ziiply_skaupat_protocol is missing in DATABASE_URL target; using built-in protocol defaults.");
 }
-const stores=[...new Set((process.env.COOP_STORE_IDS||"634976534").split(",").map(s=>s.trim()).filter(Boolean))];
+const stores=[...new Set((process.env.COOP_STORE_IDS||"603217266").split(",").map(s=>s.trim()).filter(Boolean))];
 const limit=48, maxPages=Number(process.env.COOP_MAX_PAGES||500);
 const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const seen=new Map();
