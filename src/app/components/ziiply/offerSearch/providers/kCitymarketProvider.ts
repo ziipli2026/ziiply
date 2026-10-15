@@ -775,7 +775,11 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       sourceUrl,
       audit:auditKCitymarketPublisherImages(
         sourceUrl,
-        dated.filter(offer=>offer.sourceUrl===sourceUrl).map(offer=>offer.id),
+        dated.filter(offer=>offer.sourceUrl===sourceUrl)
+          .map(offer=>getKCitymarketPublisherImage(sourceUrl,offer.id)
+            ? offer.id
+            : (offer.publisherOfferId && getKCitymarketPublisherImage(sourceUrl,offer.publisherOfferId)
+              ? offer.publisherOfferId : offer.id)),
       ),
     }));
   for(const {sourceUrl,audit} of publicationAudits){
