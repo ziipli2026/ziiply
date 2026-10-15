@@ -867,10 +867,17 @@ export default function ZiiplyMobileOfferSearchCard({
       const source = offer.__sourceOfferSearchResult || offer;
       const candidate = offer.offerPrice ?? offer.price ?? source.offerPrice ?? source.price;
       if (candidate == null || String(candidate).trim() === "") return Infinity;
-      const value = typeof candidate === "number" ? candidate : Number(String(candidate).trim().replace(/\\s*€$/, "").replace(",", "."));
+      const value = typeof candidate === "number"
+        ? candidate
+        : Number(String(candidate).trim().replace(/\s*€$/, "").replace(",", "."));
       return Number.isFinite(value) && value > 0 ? value : Infinity;
     };
-    return priceOf(a) - priceOf(b);
+    const left = priceOf(a);
+    const right = priceOf(b);
+    if (left === right) return 0;
+    if (!Number.isFinite(left)) return 1;
+    if (!Number.isFinite(right)) return -1;
+    return left - right;
   });
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
