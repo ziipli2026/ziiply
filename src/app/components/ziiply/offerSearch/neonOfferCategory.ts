@@ -75,6 +75,28 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (/mausteet-ja-maustaminen|kastikkeet/.test(parent)) return "Kuivatuotteet";
   return null; // Unknown detailed categories must not be guessed.
 }
+// Only return detailed paths that are already present in the Neon product registry.
+// Ambiguous products intentionally remain uncategorized for review.
+function inferExistingCategoryFromName(name: string): string | null {
+  const text = name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\\s+/g, " ").trim();
+  const rules: Array<[RegExp, string]> = [
+    [/\\b(hammastahna|toothpaste)\\b/, "kosmetiikka-terveys-ja-hygienia/suunhoito/hammastahnat"],
+    [/\\b(suihkusaippua|suihkugeeli|shower gel|shower cream)\\b/, "kosmetiikka-terveys-ja-hygienia/vartalonhoito/suihkusaippuat"],
+    [/\\b(eyeliner|maskara|meikkipuikko|meikkivoide|huulipuna)\\b/, "kosmetiikka-terveys-ja-hygienia/meikit/kasvomeikit"],
+    [/\\b(hiuskiinne|hairspray|rakennesuihke|dry texture spray|lämpösuoja|heat protection|volyymivaahto|root boost mousse)\\b/, "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet"],
+    [/\\b(inkontinenssiside|inkontinenssisuoja)\\b/, "kosmetiikka-terveys-ja-hygienia/intiimihygienia/inkontinenssisuojat"],
+    [/\\b(aitokanerva|ruukkukanerva|ruukkukasvi)\\b/, "koti-ja-vapaa-aika/kukat-ja-kasvit/ruukkukasvit"],
+    [/\\b(leikkokukka|kukkakimppu|kimppu)\\b/, "koti-ja-vapaa-aika/kukat-ja-kasvit/leikkokukat-ja-kimput"],
+    [/\\b(muikku|kirjolohifilee|savusiika|tuore kala|lohifile(e|e)|kalafile(e|e))\\b/, "kala-ja-merenelavat/kala/tuore-kala"],
+    [/\\b(mehujuoma|kerta-annosmehu)\\b/, "juomat/mehut/kerta-annosmehut"],
+    [/\\b(mausteseos|spice mix)\\b/, "mausteet-ja-maustaminen/mausteet/pussit"],
+    [/\\b(käsiastianpesuaine|kasiastianpesuaine|astianpesuaine)\\b/, "kodinhoito-ja-taloustarvikkeet/astianpesu/kasiastianpesuaineet"],
+    [/\\b(talouspaperi)\\b/, "kodinhoito-ja-taloustarvikkeet/kodin-paperit/talouspaperit"],
+  ];
+  for (const [pattern, category] of rules) if (pattern.test(text)) return category;
+  return null;
+}
+
 export async function enrichOfferCategoriesFromNeon<T extends Record<string, any>>(offers: T[]): Promise<T[]> {
   const url = process.env.DATABASE_URL;
   if (!url || !offers.length) return offers;
@@ -136,7 +158,8 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         const seen = new Set<string>();
         for (const offer of offers) {
           const ean = getEan(offer);
-          const category = safe.get(normalizeName(getName(offer)));
+          const name = getName(offer);
+          const category = safe.get(normalizeName(name)) || inferExistingCategoryFromName(name);
           if (!ean || !category || seen.has(ean) || eanRows.some(row => String(row.ean) === ean)) continue;
           updates.push({ean, category});
           seen.add(ean);
