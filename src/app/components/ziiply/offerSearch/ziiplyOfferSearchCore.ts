@@ -292,6 +292,9 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  // Neon EAN match takes precedence over legacy category rules and provider labels.
+  const neonCategory = String(sourceItem?.neonDisplayCategory || anyItem?.neonDisplayCategory || "").trim();
+  if (neonCategory && GOSTA_CATEGORY_LABELS_V136.includes(neonCategory)) return neonCategory;
   const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
   // Prisma CMS and cached campaign rows use the same taxonomy rules as offers.
