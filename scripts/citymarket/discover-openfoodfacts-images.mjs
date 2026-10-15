@@ -11,6 +11,8 @@ if(!Number.isInteger(maxTasks)||maxTasks<1||maxTasks>94)throw Error('maxTasks mu
 if(plan.schemaVersion!==1||plan.mode!=='offline-image-discovery'||plan.readOnly!==true||plan.autoApply!==false||!Array.isArray(plan.tasks)||plan.taskCount!==plan.tasks.length)throw Error('Invalid read-only discovery plan');
 const items=[];
 let failures=0;
+let unavailable=0;
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 for(const task of plan.tasks.slice(0,maxTasks)){
  if(task.pdfSha256!==plan.pdfSha256||task.publication!==plan.publication||task.autoApply!==false||task.requiresManualVerification!==true||!task.offerId?.startsWith('kcm:spatial:'))throw Error('Unsafe discovery task');
  const query=task.query.trim();
@@ -20,14 +22,17 @@ for(const task of plan.tasks.slice(0,maxTasks)){
  let images=[];
  try{
   const response=await fetch(endpoint,{headers:{'User-Agent':'Ziiply-ImageDiscovery/0.1 (manual review only)','Accept':'application/json'},signal:AbortSignal.timeout(7000)});
+  if(response.status===429||response.status===503){unavailable++;throw Error('Service unavailable HTTP '+response.status)}
   if(!response.ok)throw Error('HTTP '+response.status);
   const payload=await response.json();
   images=(Array.isArray(payload.products)?payload.products:[]).filter(p=>typeof p.image_front_url==='string'&&p.image_front_url.startsWith('https://')).slice(0,5).map(p=>({url:p.image_front_url,source:'Open Food Facts; EAN '+String(p.code||'unknown')+'; '+String(p.product_name||'unnamed').slice(0,120)+'; '+String(p.brands||'').slice(0,80),ean:/^\d{8,14}$/.test(String(p.code||''))?String(p.code):null,productName:String(p.product_name||'').slice(0,160),brand:String(p.brands||'').slice(0,100),identityVerified:false}));
  }catch(error){failures++;console.warn('KCM_IMAGE_DISCOVERY_LOOKUP_FAILED',JSON.stringify({offerId:task.offerId,error:String(error.message||error)}));}
  items.push({offerId:task.offerId,images});
+ if(unavailable>=3){console.warn('KCM_IMAGE_DISCOVERY_CIRCUIT_OPEN','Too many rate limits or 503 responses; stop requests for this run');break;}
+ await delay(400);
  console.log('KCM_IMAGE_DISCOVERY_PROGRESS',JSON.stringify({done:items.length,total:Math.min(plan.tasks.length,maxTasks),candidates:images.length}));
 }
 const result={schemaVersion:1,publication:plan.publication,pdfSha256:plan.pdfSha256,items};
 fs.mkdirSync(path.dirname(output),{recursive:true});
 fs.writeFileSync(output,JSON.stringify(result,null,2)+'\n');
-console.log('KCM_IMAGE_DISCOVERY_FINISHED',JSON.stringify({output,lookups:items.length,withCandidates:items.filter(i=>i.images.length).length,failures}));
+console.log('KCM_IMAGE_DISCOVERY_FINISHED',JSON.stringify({output,lookups:items.length,withCandidates:items.filter(i=>i.images.length).length,failures,unavailable,abortedEarly:items.length<Math.min(plan.tasks.length,maxTasks)}));
