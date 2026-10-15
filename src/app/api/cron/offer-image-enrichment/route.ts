@@ -79,11 +79,17 @@ export async function GET(req: Request) {
           image: validUrl(row.imageUrl),
         };
       }).filter(row => row.title && !row.image);
-      for (const row of candidates.slice(0,300)) {
+      const unique = [...new Map(candidates.map(row => [row.productId,row])).values()].slice(0,300);
+      for (let offset=0; offset<unique.length; offset+=100) {
+        const batch = unique.slice(offset,offset+100).map(row => ({
+          chain:row.chain,publication:row.publication,product_id:row.productId,title:row.title,ean:row.ean
+        }));
         await db`INSERT INTO ziiply_offer_image_queue(chain,publication,product_id,title,ean)
-          VALUES (${row.chain},${row.publication},${row.productId},${row.title},${row.ean})
+          SELECT chain,publication,product_id,title,ean
+          FROM jsonb_to_recordset(${JSON.stringify(batch)}::jsonb)
+          AS r(chain text,publication text,product_id text,title text,ean text)
           ON CONFLICT(chain,publication,product_id) DO NOTHING`;
-        discovered++;
+        discovered += batch.length;
       }
     }
   } catch (error) {
