@@ -22,7 +22,7 @@ const review=candidates.items.map(item=>{
  if(!Array.isArray(item.images)||item.images.length>20)throw Error('Invalid image candidates');
  const images=item.images.map(candidate=>{
   if(typeof candidate.url!=='string'||!/^https:\/\/[^\s]+$/i.test(candidate.url)||typeof candidate.source!=='string'||!candidate.source.trim()||candidate.url.length>2048||candidate.source.length>512)throw Error('Invalid candidate image URL or source');
-  return {url:candidate.url,source:candidate.source,verified:false,autoApply:false};
+  return {url:candidate.url,source:candidate.source,ean:typeof candidate.ean==='string'&&/^\d{8,14}$/.test(candidate.ean)?candidate.ean:null,productName:typeof candidate.productName==='string'?candidate.productName.slice(0,160):null,brand:typeof candidate.brand==='string'?candidate.brand.slice(0,100):null,identityVerified:false,verified:false,autoApply:false};
  });
  return {offerId:item.offerId,title:task.query,page:task.page,status:images.length?'manual-review':'no-candidate',images};
 }).sort((a,b)=>a.page-b.page||a.offerId.localeCompare(b.offerId,'fi'));
