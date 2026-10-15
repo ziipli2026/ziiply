@@ -131,10 +131,12 @@ export async function GET(req: Request) {
   for (const item of noEan) {
     const title = String(item.title || "");
     if (!title || uncertain(title)) { ambiguous++; continue; }
+    const firstWord = normalize(title).split(' ')[0];
+    if (firstWord.length < 4) { ambiguous++; continue; }
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url LIKE 'https://%'
-      AND lower(name) LIKE ${'%' + title.slice(0,45).toLowerCase().replace(/[%_]/g,'') + '%'}
-      LIMIT 10`;
+      AND lower(name) LIKE ${firstWord + '%'}
+      LIMIT 200`;
     const exact = matches.filter(row => normalize(row.name) === normalize(title) && validUrl(row.image_url));
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
     if (images.length !== 1 || exact.length !== 1) { ambiguous++; continue; }
