@@ -78,7 +78,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
 // Only return detailed paths that are already present in the Neon product registry.
 // Ambiguous products intentionally remain uncategorized for review.
 function inferExistingCategoryFromName(name: string): string | null {
-  const text = name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\s+/g, " ").trim();
+  const text = name.toLocaleLowerCase("fi").normalize("NFKC").split(" ").filter(Boolean).join(" ").trim();
   const rules: Array<{ terms: string[]; category: string }> = [
     { terms: ["hammastahna", "toothpaste"], category: "kosmetiikka-terveys-ja-hygienia/suunhoito/hammastahnat" },
     { terms: ["suihkusaippua", "suihkugeeli", "shower gel", "shower cream"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/suihkusaippuat" },
