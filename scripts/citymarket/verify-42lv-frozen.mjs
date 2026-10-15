@@ -69,9 +69,14 @@ const unitRateAudit=parsed.rows.flatMap(row=>{
  else if(liter&&perLiter){expected=decimal(liter[1])*decimal(perLiter[1]);kind='l';}
  if(expected==null)return [];
  const quantity=Number(row.spatialResolved?.quantity||1);
- const delta=Math.abs(price-expected);
- // Different printed price formats and multi-buys need review, not silent adjustment.
- return delta>Math.max(.10,expected*.08)?[{page:row.page,title,price,quantity,expectedUnitPrice:Number(expected.toFixed(2)),unit:kind,source:row.spatialResolved?.source}]:[];
+ const packageMatch=title.match(/\b(\d+)\s*[x×]\s*\d{2,4}\s*g\b/i);
+ const packageCount=packageMatch?Number(packageMatch[1]):1;
+ const totalUnits=packageCount*Math.max(1,quantity);
+ const expectedTotal=expected*totalUnits;
+ const delta=Math.abs(price-expectedTotal);
+ // Compare the full transaction price, not the single-container price.
+ // Keep multi-buy discrepancies for manual review when the total still disagrees.
+ return delta>Math.max(.10,expectedTotal*.08)?[{page:row.page,title,price,quantity,expectedUnitPrice:Number(expected.toFixed(2)),expectedTotal:Number(expectedTotal.toFixed(2)),unit:kind,source:row.spatialResolved?.source}]:[];
 });
 console.log('42LV unit-rate discrepancy triage (review required, no automatic corrections)',JSON.stringify({count:unitRateAudit.length,rows:unitRateAudit}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
