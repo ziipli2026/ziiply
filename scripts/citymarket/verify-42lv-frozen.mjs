@@ -124,6 +124,19 @@ const unpricedUnexpected=unpricedReview.filter(r=>!reviewedUnpriced.some(x=>x.pa
 const unpricedMissing=reviewedUnpriced.filter(x=>!unpricedReview.some(r=>r.page===x.page&&x.match.test(r.title)));
 console.log('42LV original PDF unpriced classification',JSON.stringify({reviewed:reviewedUnpriced.map(x=>({page:x.page,classification:x.classification})),unexpected:unpricedUnexpected,missing:unpricedMissing}));
 if(unpricedUnexpected.length||unpricedMissing.length)process.exitCode=1;
+// Detect parser rows that concatenate separate printed offers. These are
+// review findings, not safe targets for a price-only override.
+const mergedOfferReview=parsed.rows.filter(row=>/ATERIAT 8 kk 190 g.*KISSAN KUIVARUOAT 400 g/i.test(String(row.title||''))).map(row=>({
+ page:row.page,title:row.title,price:row.spatialResolved?.value??null,
+ quantity:row.spatialResolved?.quantity??null,
+ issue:'two separately priced products merged into one row',
+ printedOffers:[
+  {product:'Piltti Pohjoisen maut ateriat 190 g',quantity:4,unit:'kpl',price:5},
+  {product:'PrimaCat kissan kuivaruoka 400 g',quantity:3,unit:'ps',price:10}
+ ]
+}));
+console.log('42LV merged offer manual review',JSON.stringify({count:mergedOfferReview.length,rows:mergedOfferReview}));
+if(mergedOfferReview.length!==1)process.exitCode=1;
 console.log('42LV unpriced review queue',JSON.stringify({count:unpricedReview.length,rows:unpricedReview}));
 console.log('42LV unit-rate audit coverage',JSON.stringify({pricedOffers:priced.length,comparable:unitRateCoverage.comparable,notComparableCount:unitRateCoverage.notComparable.length,notComparable:unitRateCoverage.notComparable}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
