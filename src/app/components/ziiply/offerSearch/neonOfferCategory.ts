@@ -98,8 +98,9 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     return offers.map(offer => {
       const ean = getEan(offer);
       const exactPath = byEan.get(ean) || byName.get(getName(offer).toLocaleLowerCase("fi"));
+      const matchType = byEan.has(ean) ? "ean" : exactPath ? "exact-name" : null;
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
-      return display ? {...offer, neonCategoryPath: exactPath, neonDisplayCategory: display} : offer;
+      return display ? {...offer, neonCategoryPath: exactPath, neonDisplayCategory: display, neonCategoryMatch: matchType} : offer;
     });
   } catch (error) {
     console.error("[offers] Neon category lookup failed; preserving provider categories", error);
