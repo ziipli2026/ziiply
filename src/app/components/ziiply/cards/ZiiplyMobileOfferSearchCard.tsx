@@ -859,7 +859,19 @@ export default function ZiiplyMobileOfferSearchCard({
   if (!open) return null;
 
   const rawItems = Array.isArray(offers) ? offers : Array.isArray(results) ? results : [];
-  const items = dedupeOfferCardsV13(rawItems);
+  // Keep the lowest actual offer price first even when the parent passes
+  // locally filtered results or a provider refresh in a different order.
+  // Preserve the original order for equal prices.
+  const items = dedupeOfferCardsV13(rawItems).sort((a, b) => {
+    const priceOf = (offer: ZiiplyMobileOfferSearchItem) => {
+      const source = offer.__sourceOfferSearchResult || offer;
+      const candidate = offer.offerPrice ?? offer.price ?? source.offerPrice ?? source.price;
+      if (candidate == null || String(candidate).trim() === "") return Infinity;
+      const value = typeof candidate === "number" ? candidate : Number(String(candidate).trim().replace(/\\s*€$/, "").replace(",", "."));
+      return Number.isFinite(value) && value > 0 ? value : Infinity;
+    };
+    return priceOf(a) - priceOf(b);
+  });
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
   const showLandingView = !shownQuery && !shownFilter;
