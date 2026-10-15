@@ -138,19 +138,12 @@ export async function GET(req: Request) {
     const words = normalize(title).split(" ");
     const firstWord = words[0];
     if (firstWord.length < 4) { ambiguous++; continue; }
-    // If the first token is a known brand, search both with and without it.
-    // The later exact normalized-name and package-size checks remain mandatory.
-    const brandTokens = new Set(["arla","fazer","hk","atria","valio","vaasan","kalaneuvos","kariniemen","pingo"]);
-    const searchTokens = [firstWord];
-    if (brandTokens.has(firstWord) && words[1] && words[1].length >= 4) searchTokens.push(words[1]);
+    // Search by both the brand/name token and package amount. Exact full-name
+    // verification below still decides whether an image can be published.
     const amount = words.find(word => /^[0-9]+(?:kg|ml|g|l)$/.test(word));
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url LIKE 'https://%'
-      AND (
-        lower(name) LIKE ${searchTokens[0] + '%'} OR lower(name) LIKE ${'% ' + searchTokens[0] + ' %'}
-        OR lower(name) LIKE ${(searchTokens[1] ?? '__NO_MATCH__') + '%'}
-        OR lower(name) LIKE ${'% ' + (searchTokens[1] ?? '__NO_MATCH__') + ' %'}
-      )
+      AND (lower(name) LIKE ${firstWord + '%'} OR lower(name) LIKE ${'% ' + firstWord + ' %'})
       AND (${amount ?? ''} = '' OR regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') LIKE ${'%' + (amount ?? '') + '%'})
       LIMIT 1500`;
     const normalizedTitle = normalize(title);
