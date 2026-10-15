@@ -112,6 +112,17 @@ export async function GET(req: Request) {
       status='ready',attempts=attempts+1,updated_at=now()
       WHERE chain=${row.chain} AND publication=${row.publication} AND product_id=${row.productId}
       AND status='pending'`;
+    await db`UPDATE ziiply_offer_publications p SET offers=(
+      SELECT COALESCE(jsonb_agg(CASE
+        WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
+          AND COALESCE(o.value->>'imageUrl','')=''
+        THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${image}::text),true)
+        ELSE o.value END ORDER BY o.ordinality)
+      FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality))
+      WHERE p.chain=${row.chain} AND p.publication_id=${row.publication}
+      AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
+        WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
+        AND COALESCE(o.value->>'imageUrl','')='')`;
     enriched++;
   }
   // No-EAN offers: exact normalized title + a single image candidate only.
@@ -173,6 +184,17 @@ export async function GET(req: Request) {
       image_source='ean-bank-exact-title',status='ready',updated_at=now()
       WHERE chain=${item.chain} AND publication=${item.publication}
       AND product_id=${item.product_id} AND status='pending'`;
+    await db`UPDATE ziiply_offer_publications p SET offers=(
+      SELECT COALESCE(jsonb_agg(CASE
+        WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
+          AND COALESCE(o.value->>'imageUrl','')=''
+        THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${images[0]}::text),true)
+        ELSE o.value END ORDER BY o.ordinality)
+      FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality))
+      WHERE p.chain=${item.chain} AND p.publication_id=${item.publication}
+      AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
+        WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
+        AND COALESCE(o.value->>'imageUrl','')='')`;
     titleEnriched++;
   }
   const retry = await db`UPDATE ziiply_offer_image_queue SET
