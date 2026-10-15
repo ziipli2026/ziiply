@@ -784,6 +784,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     ? await readActivePublicationOffers<CitymarketOffer>("K-Citymarket")
     : [];
   if(stored.length)return stored;
+  if(process.env.DATABASE_URL)throw new Error("Valmis viikkolehtiaineisto puuttuu");
   // Migration safety: do not break desktop or mobile when the first snapshot
   // has not been seeded yet. Recover from the immutable publisher URL once,
   // persist the result, and let all subsequent requests use Neon.

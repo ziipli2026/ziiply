@@ -15,7 +15,7 @@ function stable(value: unknown): string {
   return JSON.stringify(value, (_key, v) => v && Object.prototype.toString.call(v) === "[object Object]"
     ? Object.keys(v).sort().reduce<Record<string,unknown>>((out,key) => { out[key]=v[key]; return out; }, {}) : v);
 }
-async function tjek(name: string, params: Row): Promise<unknown> {
+async function tjekOnce(name: string, params: Row): Promise<unknown> {
   const key = Buffer.from(stable([name,params]),"utf8").toString("base64");
   const response = await fetch(ORIGIN, { method:"POST", cache:"no-store",
     headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"K-Citymarket"},
@@ -26,10 +26,16 @@ async function tjek(name: string, params: Row): Promise<unknown> {
   }
   throw new Error("Tjek "+name+" response missing");
 }
+// Retry transient upstream timeouts in the collector, never on the user read path.
+async function tjek(name: string, params: Row): Promise<unknown> {
+  let failure: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { return await tjekOnce(name, params); } catch (error) { failure = error; }
+  }
+  throw failure;
+}
 type LocalProgress = { stage: string; storeName: string; storeId: string | null; publicationIds: string[]; pages: number; offerIds: number; accepted: number; error: string | null; updatedAt: string };
 const localCache = new Map<string, { rows: Row[]; startedAt: number; finishedAt: number; running: boolean; progress: LocalProgress; promise?: Promise<void> }>();
-const LOCAL_TTL = 15 * 60_000;
-const FAILED_RETRY_TTL = 60 * 60_000;
 export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalProgress & { running: boolean; cachedRows: number } {
   const entry = localCache.get(normalize(selectedStoreName));
   return entry ? { ...entry.progress, publicationIds: [...entry.progress.publicationIds], running: entry.running, cachedRows: entry.rows.length } :
@@ -41,8 +47,14 @@ async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
   if (!process.env.DATABASE_URL) return null;
   try {
     const sql = neon(process.env.DATABASE_URL);
-    const rows = await sql`SELECT offers FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = ${key} AND valid_until > NOW() LIMIT 1`;
-    return Array.isArray(rows[0]?.offers) ? rows[0].offers as Row[] : null;
+    const rows = await sql`SELECT offers, publication_ids, updated_at FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = ${key} AND valid_until > NOW() LIMIT 1`;
+    if (!Array.isArray(rows[0]?.offers)) return null;
+    const offers = rows[0].offers as Row[];
+    localCache.set(key, { rows: offers, startedAt: 0, finishedAt: Date.now(), running: false,
+      progress: { stage: "snapshot-ready", storeName: key, storeId: offers[0]?.storeId ? String(offers[0].storeId) : null,
+        publicationIds: Array.isArray(rows[0].publication_ids) ? rows[0].publication_ids as string[] : [],
+        pages: 0, offerIds: offers.length, accepted: offers.length, error: null, updatedAt: String(rows[0].updated_at || "") } });
+    return offers;
   } catch (error) {
     console.warn("[K-Citymarket] snapshot read unavailable", error);
     return null;
@@ -52,65 +64,95 @@ async function publishSnapshot(key: string, offers: Row[], publicationIds: strin
   if (!process.env.DATABASE_URL) return;
   const sql = neon(process.env.DATABASE_URL);
   await sql`INSERT INTO public.ziiply_kcitymarket_tjek_snapshots (store_key, offers, publication_ids, valid_until, updated_at)
-    VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '7 days', NOW())
+    VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '6 hours', NOW())
     ON CONFLICT (store_key) DO UPDATE SET offers = EXCLUDED.offers, publication_ids = EXCLUDED.publication_ids,
       valid_until = EXCLUDED.valid_until, updated_at = NOW()`;
 }
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
-  return (await readPublishedSnapshot(normalize(selectedStoreName))) ?? [];
+  const saved = await readPublishedSnapshot(normalize(selectedStoreName));
+  if (!saved) throw new Error("Kampanja-aineisto ei ole valmis. Yritä myöhemmin uudelleen.");
+  const now = Date.now();
+  return saved.filter(row => Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now);
 }
+
+/** Explicit background-job entry point. The interactive request never starts this. */
+export async function refreshKCitymarketSelectedStoreSnapshot(selectedStoreName: string): Promise<Row[]> {
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing; cannot publish campaign snapshot");
+  const key = normalize(selectedStoreName);
+  const entry = { rows: [] as Row[], startedAt: Date.now(), finishedAt: 0, running: true,
+    progress: { stage: "starting", storeName: selectedStoreName, storeId: null, publicationIds: [] as string[], pages: 0, offerIds: 0, accepted: 0, error: null as string | null, updatedAt: new Date().toISOString() } };
+  localCache.set(key, entry);
+  try {
+    await readKCitymarketSelectedStoreOffers(selectedStoreName, entry);
+    if (!entry.progress.publicationIds.length || !entry.rows.length) {
+      throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
+    }
+    await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
+    entry.progress.stage = "complete";
+    return entry.rows;
+  } catch (error) {
+    entry.progress.stage = "failed";
+    entry.progress.error = error instanceof Error ? error.message : String(error);
+    throw error;
+  } finally {
+    entry.running = false;
+    entry.finishedAt = Date.now();
+    entry.progress.updatedAt = new Date().toISOString();
+  }
+}
+// Keep the already-deployed cron entry point compatible with the explicit collector.
 export async function refreshKCitymarketCampaignCache(storeName: string) {
-  const key = normalize(storeName);
-  const entry = {rows: [] as Row[], progress: {stage: "starting", storeName,
-    storeId: null as string | null, publicationIds: [] as string[], pages: 0,
-    offerIds: 0, accepted: 0, error: null as string | null,
-    updatedAt: new Date().toISOString()}};
-  await readKCitymarketSelectedStoreOffers(storeName, entry);
-  if (entry.progress.stage !== "reading-pages" && entry.progress.stage !== "no-active-publications") {
-    throw new Error("Tjek scan incomplete: " + entry.progress.stage);
-  }
-  if (entry.progress.publicationIds.length === 0 || entry.rows.length === 0) {
-    throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
-  }
-  await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
-  return {count: entry.rows.length, pages: entry.progress.pages};
+  const rows = await refreshKCitymarketSelectedStoreSnapshot(storeName);
+  return { count: rows.length, pages: getKCitymarketLocalTjekDebug(storeName).pages };
 }
 async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; progress: LocalProgress }): Promise<void> {
   const wanted=normalize(selectedStoreName);
-  if (!wanted.includes("citymarket") || wanted.length < 13) { entry.progress.stage = "invalid-store-name"; return; }
+  if (!wanted.includes("citymarket") || wanted.length < 13) { throw new Error("Invalid Citymarket store name"); }
   const stores=asRows(await tjek("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
   const matching=stores.filter(s => normalize(s.name)===wanted);
   // No substring fallback: never silently import another store's publication.
-  if (matching.length!==1) { entry.progress.stage = "store-match-failed"; entry.progress.error = "Tjek stores matching count: " + matching.length; return; }
+  if (matching.length!==1) { throw new Error("Tjek stores matching count: " + matching.length); }
   const store=matching[0], storeId=String(store.id??"");
-  if (!storeId || !store.coordinates) { entry.progress.stage = "store-location-missing"; return; }
+  if (!storeId || !store.coordinates) { throw new Error("Tjek store location missing"); }
   entry.progress.storeId = storeId; entry.progress.stage = "discovering-publications";
   const fronts=await tjek("fronts",{businessIds:[BUSINESS],localBusinessIds:[storeId],coordinates:store.coordinates});
+  if (!Array.isArray(fronts)) throw new Error("Invalid Tjek publication discovery response");
   const now=Date.now();
   const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front => front && typeof front==="object" && Array.isArray((front as Row).publications) ? (front as Row).publications as Row[] : [])
+    .filter((p, index, all) => all.findIndex(other => other.id === p.id) === index)
     .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
   entry.progress.publicationIds = publications.map(p => String(p.id ?? "")).filter(Boolean);
   entry.progress.stage = publications.length ? "reading-pages" : "no-active-publications";
-  const seen=new Set<string>();
   const failedOfferIds=new Set<string>();
   let completedPublications=0;
   let pageLimitReached=false;
   for(const publication of publications){
     const publicationId=String(publication.id??"");
-    if(!publicationId)continue;
+    if(!publicationId)throw new Error("Tjek publication ID missing");
+    const seen=new Set<string>();
     for(let page=1;page<=100;page++){
-      const response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(publicationId)+"/"+page,{cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(12000)});
+      let response: Response | undefined;
+      let pageError: unknown;
+      for (let attempt=0;attempt<3;attempt++) {
+        try {
+          response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(publicationId)+"/"+page,{cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(12000)});
+          if (response.status>=500 || response.status===429) throw new Error("Tjek page HTTP "+response.status);
+          break;
+        } catch (error) { pageError=error; response=undefined; }
+      }
+      if (!response) throw new Error(`Tjek publication ${publicationId} page ${page}: ${pageError instanceof Error ? pageError.message : String(pageError)}`, { cause: pageError });
       if(!response.ok){if(page>1&&(response.status===400||response.status===404))break;throw new Error("Tjek publication HTTP "+response.status);}
       const payload=await response.json() as Row;
       entry.progress.pages++;
-      const hotspots=Array.isArray(payload.hotspots)?payload.hotspots:[];
+      if (!Array.isArray(payload.hotspots)) throw new Error("Invalid Tjek page: hotspots missing");
+      const hotspots=payload.hotspots;
       const ids=[...new Set(hotspots.map(h=>h && typeof h==="object" ? String((h as Row).offer && typeof (h as Row).offer==="object" ? ((h as Row).offer as Row).id??"" : "") : "").filter(Boolean))];
       const freshIds=ids.filter(id=>!seen.has(id));
       entry.progress.offerIds += freshIds.length;
       freshIds.forEach(id=>seen.add(id));
       for(let offset=0;offset<freshIds.length;offset+=8){
       const fetched=await Promise.all(freshIds.slice(offset,offset+8).map(async id=>{
-        try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{failedOfferIds.add(id);return null;}
+        try {const result=await tjek("offer",{publicId:id});if(!result||typeof result!=="object"||Array.isArray(result))throw new Error("Invalid Tjek offer detail");return {id,offer:result as Row};}catch{failedOfferIds.add(id);return null;}
       }));
       for(const fetchedEntry of fetched){
         if(!fetchedEntry)continue;
@@ -126,7 +168,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
-        entry.rows.push({id:"citymarket-local-"+storeId+"-"+id,title,name:title,productName:title,price,
+        entry.rows.push({id:"citymarket-local-"+storeId+"-"+publicationId+"-"+id,title,name:title,productName:title,price,
           priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
           previousPrice:regular!=null&&regular!==price?regular:null,
           unitPrice:unitValue==null?"":unitValue.toFixed(2).replace(".",",")+(unit?"/"+unit:""),

@@ -12019,8 +12019,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
-      // V529: älä tyhjennä onnistuneita vanhoja tuloksia virheessäkään, jotta Gösta ei välähdä tyhjäksi.
-      showCartToast("Tarjoushaku ei onnistunut");
+      if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
+        setOfferSearchResults([]);
+        setGostaMasterOfferResultsV528([]);
+        showCartToast("Tarjoushaku ei onnistunut");
+      }
     } finally {
       if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
         setLoadingOffers(false);
