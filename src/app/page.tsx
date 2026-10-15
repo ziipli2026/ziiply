@@ -14424,6 +14424,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function closeEanModal() {
+    // V857: invalidate pending GPS callbacks as soon as this scanner session closes.
+    scannerLocationSessionV856.current += 1;
+    setScannerLocationStatusV855(current=>current?{...current,verified:false,checking:false}:null);
     // V831: cancel a pending store-presence question before closing the scanner.
     // A five-second default-Yes must never fire after the scanner has already closed.
     if (scannerStorePromptTimerRefV828.current) {
@@ -14503,8 +14506,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalClosing(false);
   }
 
-  // V856: independent, non-blocking GPS status check when scanner opens.
-  // This does not grant collection permission or trigger the store confirmation prompt.
+  // V857: resolve the visible scanner store against a fresh GPS fix, including multi-chain selections.
+  // The status indicator is informational only and never grants permission to collect/add products.
   function checkScannerLocationOnOpenV856() {
     const session = ++scannerLocationSessionV856.current;
     const names = [
@@ -14513,15 +14516,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       selectedChains.lidl ? String(selectedLidlStoreV750?.name || "").trim() : "",
       selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
     ].filter(name => name && !name.startsWith("Valitse ensin"));
-    const name = names.length === 1 ? names[0] : "";
-    setScannerLocationStatusV855(name ? {name,verified:false,checking:true} : null);
-    if (!name || !usingOwnLocation || typeof navigator === "undefined" || !navigator.geolocation) {
-      setScannerLocationStatusV855(name ? {name,verified:false,checking:false} : null);
+    const fallbackName = names[0] || "";
+    const stores = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+    const selectedCandidates = stores.filter(store =>
+      names.some(name => normalize(String(store.name || "")) === normalize(name))
+    );
+    setScannerLocationStatusV855(fallbackName ? {name:fallbackName,verified:false,checking:true} : null);
+    if (!fallbackName || !usingOwnLocation || typeof navigator === "undefined" || !navigator.geolocation) {
+      setScannerLocationStatusV855(fallbackName ? {name:fallbackName,verified:false,checking:false} : null);
       return;
     }
-    const stores = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
-    const selected = stores.find(store => normalize(String(store.name || "")) === normalize(name));
-    if (!selected) {setScannerLocationStatusV855({name,verified:false,checking:false});return;}
+    if (!selectedCandidates.length) {
+      setScannerLocationStatusV855({name:fallbackName,verified:false,checking:false});
+      return;
+    }
     navigator.geolocation.getCurrentPosition(position => {
       if (scannerLocationSessionV856.current !== session) return;
       const fresh = Date.now() - position.timestamp <= 10000 && position.coords.accuracy <= 35;
@@ -14531,10 +14539,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const longitude=getStoreCoordinateV320(store,["longitude","lng","lon","x"]);
         return latitude==null||longitude==null?null:calculateDistanceKmV320(point,{latitude,longitude});
       };
-      const ownDistance=distance(selected);
-      const competitor=stores.some(store => normalize(String(store.name || ""))!==normalize(name) && (distance(store)??Infinity)<=0.05);
-      setScannerLocationStatusV855({name,verified:Boolean(fresh && ownDistance!=null && ownDistance<=0.05 && !competitor),checking:false});
-    },()=>{if(scannerLocationSessionV856.current===session)setScannerLocationStatusV855({name,verified:false,checking:false});},{enableHighAccuracy:true,maximumAge:0,timeout:4000});
+      const ranked = selectedCandidates
+        .map(store => ({store,km:distance(store)}))
+        .filter((item): item is {store:StoreSearchItem;km:number} => item.km != null)
+        .sort((a,b) => a.km-b.km);
+      const nearest = ranked[0];
+      if (!nearest) {
+        setScannerLocationStatusV855({name:fallbackName,verified:false,checking:false});
+        return;
+      }
+      const nearestName = String(nearest.store.name || fallbackName);
+      const competitor = stores.some(store =>
+        normalize(String(store.name || "")) !== normalize(nearestName) &&
+        (distance(store) ?? Infinity) <= 0.05
+      );
+      const verified = Boolean(fresh && nearest.km <= 0.05 && !competitor);
+      setScannerLocationStatusV855({
+        name: verified ? nearestName : fallbackName,
+        verified,
+        checking:false
+      });
+    },()=>{
+      if(scannerLocationSessionV856.current===session)
+        setScannerLocationStatusV855({name:fallbackName,verified:false,checking:false});
+    },{enableHighAccuracy:true,maximumAge:0,timeout:4000});
   }
 
   function openEanModal() {
