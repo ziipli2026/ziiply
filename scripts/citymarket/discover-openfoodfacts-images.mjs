@@ -21,7 +21,7 @@ for(const task of plan.tasks.slice(0,maxTasks)){
   const response=await fetch(endpoint,{headers:{'User-Agent':'Ziiply-ImageDiscovery/0.1 (manual review only)','Accept':'application/json'},signal:AbortSignal.timeout(12000)});
   if(!response.ok)throw Error('HTTP '+response.status);
   const payload=await response.json();
-  images=(Array.isArray(payload.products)?payload.products:[]).filter(p=>typeof p.image_front_url==='string'&&p.image_front_url.startsWith('https://')).slice(0,5).map(p=>({url:p.image_front_url,source:'Open Food Facts; EAN '+String(p.code||'unknown')+'; '+String(p.product_name||'unnamed').slice(0,120)+'; '+String(p.brands||'').slice(0,80)}));
+  images=(Array.isArray(payload.products)?payload.products:[]).filter(p=>typeof p.image_front_url==='string'&&p.image_front_url.startsWith('https://')).slice(0,5).map(p=>({url:p.image_front_url,source:'Open Food Facts; EAN '+String(p.code||'unknown')+'; '+String(p.product_name||'unnamed').slice(0,120)+'; '+String(p.brands||'').slice(0,80),ean:/^\d{8,14}$/.test(String(p.code||''))?String(p.code):null,productName:String(p.product_name||'').slice(0,160),brand:String(p.brands||'').slice(0,100),identityVerified:false}));
  }catch(error){console.warn('KCM_IMAGE_DISCOVERY_LOOKUP_FAILED',JSON.stringify({offerId:task.offerId,error:String(error.message||error)}));}
  items.push({offerId:task.offerId,images});
  console.log('KCM_IMAGE_DISCOVERY_PROGRESS',JSON.stringify({done:items.length,total:Math.min(plan.tasks.length,maxTasks),candidates:images.length}));
