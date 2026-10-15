@@ -1038,14 +1038,11 @@ export default function ZiiplyMobileOfferSearchCard({
     // josta käyttäjälle näytettävät tuotteet muodostuvat. Parentilta tuleva
     // categoryOfferCounts perustuu raakempaan listaan ja voi sisältää vielä
     // myöhemmin poistuvia duplikaatteja (erityisesti ensimmäinen Kahvi-kategoria).
-    if (showLandingView && items.length > 0 && wanted) {
-      return items.filter((item) =>
-        normalizeCategoryKey(String(item.category || "")) === wanted
-      ).length;
-    }
-
-    // Kategorian sisällä items voi sisältää vain aktiivisen kategorian.
-    // Silloin muiden nappien määrät pidetään parentin master-count-mapista.
+    // Use the parent master counts for the landing category chips as well.
+    // These counts are resolved by the shared offer-category core (including
+    // verified Neon categories); raw card.category can still carry a legacy
+    // provider label and would incorrectly show zero for a populated chip.
+    // The parent also keeps counts for categories not present in a filtered tab.
     const mappedCount = getCategoryCountWithAliases(category);
     if (typeof mappedCount === "number") return mappedCount;
 
