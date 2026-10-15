@@ -152,6 +152,21 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         console.error("[offers] Conservative Neon category enrichment failed", error);
       }
     }
+    // Resolve verified opaque provider codes through the Neon mapping table.
+    // Preserve original registry values; only the offer response uses the readable path.
+    const codes = [...new Set([...eanRows, ...nameRows].map(row => String(row.category)).filter(category => /^CA[A-Z]{8,}$/.test(category)))];
+    if (codes.length) {
+      try {
+        const mappings = await sql`SELECT code, category_path FROM ziiply_category_code_mappings WHERE code = ANY(${codes}::text[])`;
+        const resolved = new Map(mappings.map(row => [String(row.code), String(row.category_path)]));
+        for (const row of [...eanRows, ...nameRows]) {
+          const path = resolved.get(String(row.category));
+          if (path) row.category = path;
+        }
+      } catch (error) {
+        console.error("[offers] Neon category code mapping unavailable", error);
+      }
+    }
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
     const byName = new Map<string, string | null>();
     for (const row of nameRows) {
