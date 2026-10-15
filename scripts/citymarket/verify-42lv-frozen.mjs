@@ -31,5 +31,18 @@ const invalidPrices=priced.filter(r=>!Number.isFinite(Number(r.spatialResolved?.
 const changedQuantity=[...now].filter(([k])=>old.has(k)&&!/:percent:/.test(String(old.get(k).id||''))).flatMap(([k,r])=>{const raw=old.get(k).quantity;const prev=raw==null?null:Number(raw);const next=Number(r.spatialResolved?.quantity||1);return prev!==null&&Number.isFinite(prev)&&prev!==next?[{page:r.page,title:r.title,previous:prev,next}]:[]});
 const quantityUnverified=[...now].filter(([k])=>old.has(k)&&old.get(k).quantity==null&&Number(now.get(k).spatialResolved?.quantity||1)>1).map(([,r])=>({page:r.page,title:r.title,quantity:r.spatialResolved.quantity}));
 const changed=[...now].filter(([k])=>old.has(k)).flatMap(([k,r])=>{const prev=Number(old.get(k).id.split(':').at(-1));const next=Number(r.spatialResolved?.value);return Math.abs(prev-next)>.011?[{page:r.page,title:r.title,previous:prev,next:Number.isFinite(next)?next:null}]:[]});
+// Publisher PDF cross-check: these are independent printed prices, NOT archive snapshot values.
+const printedChecks=[
+  {page:6,match:/WC-PAPERI 40 rl ja/i,price:24.90,quantity:2},
+  {page:20,match:/8-pack/i,price:7.99},
+  {page:20,match:/VICHY 0,33 l\/pl 24-pack/i,price:10.99},
+  {page:20,match:/WOK-KASTIKKEET 120 g/i,price:1.00},
+];
+const printedMismatches=printedChecks.map(check=>{
+ const matches=parsed.rows.filter(r=>r.page===check.page&&check.match.test(String(r.title||'')));
+ return {page:check.page,pattern:String(check.match),expected:check.price,expectedQuantity:check.quantity||null,actual:matches.map(r=>({title:r.title,value:r.spatialResolved?.value,quantity:r.spatialResolved?.quantity,source:r.spatialResolved?.source}))};
+}).filter(r=>r.actual.length!==1||Math.abs(Number(r.actual[0].value)-r.expected)>.011||(r.expectedQuantity&&Number(r.actual[0].quantity)!==r.expectedQuantity));
+console.log('42LV independently printed PDF checks',JSON.stringify({checks:printedChecks.length,mismatches:printedMismatches}));
+if(printedMismatches.length)process.exitCode=1;
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
 if(parsed.rows.length!==96||priced.length!==85||baseline.rows.length!==89||percentageOnly.length!==4||parsed.pageCount!==20||added.length>0||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||changed.length>0)process.exitCode=1;
