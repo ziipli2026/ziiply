@@ -1,4 +1,5 @@
 name: Citymarket publisher images
+# Recheck publisher images for week 42 LV
 on:
   workflow_dispatch:
     inputs:
