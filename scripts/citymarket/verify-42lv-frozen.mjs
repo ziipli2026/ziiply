@@ -25,6 +25,14 @@ const canonicalFailures=canonicalChecks.filter(check=>{
  String(matches[0].spatialResolved?.unit||'').toLowerCase()!==check.unit||
  matches[0].normal!=null||matches[0].unitPrice!=null||matches[0].package!=null;
 });
+// The final provider offer identity includes page, cleaned title and total
+// transaction price. Assert distinct card identities and no stale inherited
+// reference-price or package metadata after canonicalization.
+const splitCards=canonicalRows.filter(row=>row.page===18&&canonicalChecks.some(check=>check.match.test(String(row.title||''))));
+const splitCardIds=splitCards.map(row=>'kcm:spatial:'+row.page+':'+String(row.title||'').trim().toLowerCase()+':'+Number(row.spatialResolved?.value));
+const splitMetadataFailures=splitCards.filter(row=>row.normal!=null||row.unitPrice!=null||row.package!=null);
+console.log('42LV provider offer identity and metadata',JSON.stringify({ids:splitCardIds,uniqueIds:new Set(splitCardIds).size,staleMetadata:splitMetadataFailures.map(row=>row.title)}));
+if(splitCards.length!==2||new Set(splitCardIds).size!==2||splitMetadataFailures.length)process.exitCode=1;
 console.log('42LV provider canonicalization boundary',JSON.stringify({rows:canonicalRows.length,checks:canonicalChecks.length,failures:canonicalFailures.map(x=>String(x.match))}));
 if(canonicalFailures.length)process.exitCode=1;
 const key=r=>String(r.page)+'|'+String(r.title||'').trim().toLowerCase().replace(/\s+/g,' ');
