@@ -43,6 +43,8 @@ const printedChecks=[
   {page:17,match:/VIHANNESSEKOITUKSET 300 g/i,price:5,quantity:3},
   {page:17,match:/JÄÄTELÖPUIKOT 64–85 g/i,price:5,quantity:3},
   {page:19,match:/Pringles PERUNA LASTUT/i,price:5,quantity:3},
+  {page:18,match:/^SMOOTHIET 120 g$/i,price:5.50,quantity:4},
+  {page:19,match:/MAKU- ja TUMMASUKLAALEVYT 160–200 g/i,price:10,quantity:4},
 ];
 const printedMismatches=printedChecks.map(check=>{
  const matches=parsed.rows.filter(r=>r.page===check.page&&check.match.test(String(r.title||'')));
