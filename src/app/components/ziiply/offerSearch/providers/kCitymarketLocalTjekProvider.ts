@@ -69,6 +69,9 @@ export async function refreshKCitymarketCampaignCache(storeName: string) {
   if (entry.progress.stage !== "reading-pages" && entry.progress.stage !== "no-active-publications") {
     throw new Error("Tjek scan incomplete: " + entry.progress.stage);
   }
+  if (entry.progress.publicationIds.length === 0 || entry.rows.length === 0) {
+    throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
+  }
   await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
   return {count: entry.rows.length, pages: entry.progress.pages};
 }
