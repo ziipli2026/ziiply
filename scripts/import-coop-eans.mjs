@@ -21,7 +21,7 @@ for(const storeId of stores){
  let total=Infinity;
  let storeFetched=0,storeUniqueBefore=seen.size;
  for(let from=0;from<total&&pages<maxPages;from+=limit){
-  const variables={facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[],generatedSessionId:"ziiply-coop-import",fetchSponsoredContent:false,from,offset:from,skip:from,page:Math.floor(from/limit)+1,limit,queryString:"",storeId,useRandomId:false,marketingId:"ziiply-coop-import"};
+  const variables={facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:false,from,offset:from,skip:from,page:Math.floor(from/limit)+1,limit,queryString:"Coop",storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf"};
   const extensions={clientLibrary:{name:"@apollo/client",version:protocol.apollo_version},persistedQuery:{version:1,sha256Hash:protocol.persisted_query_hash}};
   const endpoint=new URL("https://api.s-kaupat.fi/");
   endpoint.searchParams.set("operationName","RemoteFilteredProducts");
@@ -30,7 +30,7 @@ for(const storeId of stores){
   let body;
   for(let attempt=0;attempt<4;attempt++){
    try{
-    const response=await fetch(endpoint,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":protocol.client_version,"user-agent":"Mozilla/5.0"},signal:AbortSignal.timeout(25000)});
+    const response=await fetch(endpoint,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":protocol.client_version,"user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15"},signal:AbortSignal.timeout(25000)});
     if(!response.ok)throw new Error("HTTP "+response.status);
     body=await response.json();
     if(body.errors?.length)throw new Error(JSON.stringify(body.errors));
