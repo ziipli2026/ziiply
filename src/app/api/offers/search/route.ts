@@ -900,7 +900,14 @@ export async function GET(request: Request) {
       try {
         const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
         if (selectedCitymarket) {
-          const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
+          // Keep the national leaflet responsive even if the optional Tjek store feed stalls.
+          // The store-specific campaigns may be omitted for this request after 8s;
+          // they are never allowed to block the entire mobile offer search.
+          const localOffers = await Promise.race([
+            fetchKCitymarketSelectedStoreOffers(selectedCitymarket),
+            new Promise<Awaited<ReturnType<typeof fetchKCitymarketSelectedStoreOffers>>>((resolve) =>
+              setTimeout(() => resolve([]), 8000)),
+          ]);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
           // The reviewed national leaflet is the Tarjoukset master. Local/store
           // publications are Kampanjat, but an exact product+price copy must not
