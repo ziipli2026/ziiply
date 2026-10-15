@@ -53,7 +53,7 @@ const printedChecks=[
   {page:15,match:/RASVATON MAITORAHKA ja/i,price:4,quantity:6},
   {page:15,match:/PIRTELÖT 200 ml/i,price:2.50,quantity:2},
   {page:19,match:/MAISSIKAKUT 130 g/i,price:4,quantity:2},
-  {page:19,match:/PASTA-KASTIKKEET/i,price:5,quantity:2},
+  {page:19,match:/PASTA.?KASTIKKEET/i,price:5,quantity:2},
   {page:19,match:/TANGLE PASTA/i,price:5,quantity:3},
   {page:3,match:/TYÖKÄSINEET 235/i,price:6,quantity:1},
   {page:7,match:/NAHKAKÄSINEET/i,price:9,quantity:1},
