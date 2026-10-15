@@ -4734,6 +4734,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerStorePromptV828, setScannerStorePromptV828] = useState<{ storeName: string; seconds: number } | null>(null);
   const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
   const scannerLocationSessionV856 = useRef(0);
+  const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
   // V837: keep the newest physical scan that arrives while the previous EAN lookup is busy.
@@ -14015,6 +14016,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const redDiscountV859 = decodeRedDiscountLabelV859(code);
     const normalizedCode = redDiscountV859?.ean || normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
+    scannerDiscountRefV860.current = redDiscountV859
+      ? {ean:normalizedCode,percent:redDiscountV859.discountPercent,at:Date.now()}
+      : null;
     if (redDiscountV859) {
       setEanScannerMessage(`Alennustarra −${redDiscountV859.discountPercent} % · EAN ${normalizedCode}`);
     }
@@ -17041,6 +17045,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const productName = fixText(result.product.name);
+    const discountV860 = scannerDiscountRefV860.current;
+    const appliedDiscountV860 = discountV860 && discountV860.ean === ean && Date.now()-discountV860.at < 20000 ? discountV860.percent : 0;
+    const regularPriceV860 = getProductPrice(result.product);
+    const discountedPriceV860 = appliedDiscountV860 && regularPriceV860 > 0
+      ? Math.round(regularPriceV860 * (100-appliedDiscountV860))/100 : regularPriceV860;
     const looseShelfEanV853 = isLooseProduceShelfEanV853(result.product, ean);
     const isScannerAddV787 = Boolean(
       eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically,
@@ -17085,7 +17094,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ean: ean || result.product.ean,
       chain: result.chain,
       storeName: result.storeName,
-      price: looseShelfEanV853 ? 0 : getProductPrice(result.product),
+      price: looseShelfEanV853 ? 0 : discountedPriceV860,
     });
 
     const scannerExistingItemV798 = isScannerAddV787
@@ -17162,7 +17171,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ...(sameExactEan
                   ? {
                       name: productName || item.name,
-                      price: getProductPrice(result.product) || item.price,
+                      price: discountedPriceV860 || item.price,
+                      ...(appliedDiscountV860 ? {ziiplyDiscountPercent:appliedDiscountV860,ziiplyRegularPrice:regularPriceV860} : {}),
                       image: result.product.pictureUrl || item.image,
                       chain: result.chain,
                       storeName: result.storeName,
@@ -17193,7 +17203,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const newItem: CartItem = {
         id: `ean-${result.chain}-${result.product.id}-${Date.now()}`,
         name: productName,
-        price: looseShelfEanV853 ? 0 : getProductPrice(result.product),
+        price: looseShelfEanV853 ? 0 : discountedPriceV860,
         image: result.product.pictureUrl,
         chain: result.chain,
         storeName: result.storeName,
@@ -17202,6 +17212,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         product: looseShelfEanV853 ? ({ ...result.product, price: 0, ziiplyWeightLabel: true } as Product & { ziiplyWeightLabel: true }) : result.product,
         ean: ean || result.product.ean,
       };
+      if (appliedDiscountV860) {
+        (newItem as any).ziiplyDiscountPercent = appliedDiscountV860;
+        (newItem as any).ziiplyRegularPrice = regularPriceV860;
+      }
       const exactEanPriceV794 = getProductPrice(result.product);
       if (exactEanPriceV794 > 0) {
         (newItem as any).ziiplyPriceFetchedAt = Date.now();
