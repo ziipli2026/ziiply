@@ -632,9 +632,8 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (kStoreNamesV162.length > 0) params.set("kStoreName", kStoreNamesV162.join("||"));
   params.set("_", `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-  // Do not release partial Tjek campaign results to either UI. Keep the
-  // existing loading view until the selected-store publication scan completes.
-  const isCitymarket = kStoreNamesV162.some(name => /citymarket/i.test(name));
+  // Shared completion gate for every offer search provider and both UIs.
+  // Any provider reporting unfinished work keeps the entire result hidden.
   const deadline = Date.now() + 180_000;
   while (true) {
     const response = await fetch(`/api/offers/search?${params.toString()}`, {
@@ -656,14 +655,16 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
     if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
     if (!response.ok || payloadV174?.ok === false) return parseOfferSearchResponse(response);
     const tjek = payloadV174?.kruokaDebug?.localTjekDebug;
-    if (!isCitymarket || (tjek?.stage === "complete" && !tjek.running)) {
+    const incomplete = [payloadV174?.searchProgress, payloadV174?.offerProgress, payloadV174?.campaignProgress, tjek]
+      .filter(Boolean).some((progress: any) => progress.running === true || progress.complete === false || progress.status === "loading" || progress.stage === "starting" || progress.stage === "reading-pages" || progress.stage === "discovering-publications");
+    if (!incomplete) {
       return parseOfferSearchResponse(response);
     }
     if (tjek?.stage === "failed" || (tjek?.error && !tjek.running)) {
-      throw new Error("K-Citymarketin kampanjahaku epäonnistui: " + String(tjek.error ?? tjek.stage));
+      throw new Error("Tarjoushaku epäonnistui: " + String(tjek.error ?? tjek.stage));
     }
     if (Date.now() >= deadline) {
-      throw new Error("K-Citymarketin kampanjahaku ei valmistunut määräajassa.");
+      throw new Error("Tarjoushaku ei valmistunut määräajassa.");
     }
     await new Promise<void>(resolve => setTimeout(resolve, 1500));
   }
