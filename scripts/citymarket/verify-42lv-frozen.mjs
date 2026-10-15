@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {parseKCitymarketSpatialLeaflet} from '../../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js';
+import {canonicalCitymarketProductRows} from '../../src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js';
 const folder=process.argv[2];
 const frozen=JSON.parse(fs.readFileSync(folder+'/publisher-responses.json','utf8'));
 const baseline=JSON.parse(fs.readFileSync(folder+'/leaflet.json','utf8'));
@@ -10,6 +11,21 @@ globalThis.fetch=async input=>{
  return {ok:true,status:200,url:r.url,text:async()=>r.body};
 };
 const parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);
+// The provider calls this canonicalization before converting rows to UI offers.
+// Check that the two PDF-verified cards remain separate across that boundary.
+const canonicalRows=canonicalCitymarketProductRows(parsed.rows);
+const canonicalChecks=[
+ {match:/^Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g$/i,price:5,quantity:4,unit:'kpl'},
+ {match:/^PrimaCat KISSAN KUIVARUOAT 400 g$/i,price:10,quantity:3,unit:'ps'}
+];
+const canonicalFailures=canonicalChecks.filter(check=>{
+ const matches=canonicalRows.filter(row=>row.page===18&&check.match.test(String(row.title||'')));
+ return matches.length!==1||Number(matches[0].spatialResolved?.value)!==check.price||
+ Number(matches[0].spatialResolved?.quantity)!==check.quantity||
+ String(matches[0].spatialResolved?.unit||'').toLowerCase()!==check.unit;
+});
+console.log('42LV provider canonicalization boundary',JSON.stringify({rows:canonicalRows.length,checks:canonicalChecks.length,failures:canonicalFailures.map(x=>String(x.match))}));
+if(canonicalFailures.length)process.exitCode=1;
 const key=r=>String(r.page)+'|'+String(r.title||'').trim().toLowerCase().replace(/\s+/g,' ');
 const old=new Map(baseline.rows.map(r=>[key(r),r]));
 if(old.size!==baseline.rows.length)throw Error('Duplicate offer identity in archived snapshot');
