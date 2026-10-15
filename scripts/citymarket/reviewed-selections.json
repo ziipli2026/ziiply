@@ -2686,6 +2686,57 @@
           938.5956
         ]
       ]
+    },
+    "kcm:spatial:6:wc-paperi 40 rl ja:40.2": {
+      "page": 6,
+      "rectangles": [
+        [
+          485.6,
+          157.5,
+          613.4,
+          266
+        ],
+        [
+          415.8,
+          208.4,
+          543.6,
+          296.9
+        ]
+      ]
+    },
+    "kcm:spatial:6:wc-geelit 750 ml:3.5": {
+      "page": 6,
+      "rectangles": [
+        [
+          139.5,
+          439.9,
+          197.8,
+          574
+        ],
+        [
+          94,
+          458.9,
+          152.3,
+          593
+        ]
+      ]
+    },
+    "kcm:spatial:6:käsitiski3in1500ml tai max power 660 ml 6,80–8,98/l handdiskmedel 3in1 eller max power:4.49": {
+      "page": 6,
+      "rectangles": [
+        [
+          310.4,
+          446.5,
+          360.4,
+          547.1
+        ],
+        [
+          361.1,
+          446.5,
+          399.2,
+          547.1
+        ]
+      ]
     }
   }
 }
