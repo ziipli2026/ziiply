@@ -13896,8 +13896,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V854: the page may have stayed open while the user travelled to the store.
     // Never use its cached coordinates (or a cached distance) to silently reject
     // collection. Request a fresh fix for this scanner session instead.
+    const scannerNotInStoreV858 = () => {
+      scannerStoreCheckDoneRefV791.current = true;
+      scannerInStoreRefV828.current = false;
+      scannerConfirmedStoreNameRefV828.current = intendedName;
+      setScannerLocationStatusV855({name:intendedName,verified:false,checking:false});
+      return false;
+    };
     if (!usingOwnLocation || !intendedStore || typeof navigator === "undefined" || !navigator.geolocation) {
-      return askScannerStoreV828(intendedName);
+      return scannerNotInStoreV858();
     }
     const freshScannerPositionV854 = await new Promise<GeolocationPosition | null>((resolve) => {
       let settled = false;
@@ -13918,7 +13925,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         Date.now() - freshScannerPositionV854.timestamp > 10000 ||
         !Number.isFinite(freshScannerPositionV854.coords.accuracy) ||
         freshScannerPositionV854.coords.accuracy > 80) {
-      return askScannerStoreV828(intendedName);
+      return scannerNotInStoreV858();
     }
     const freshCoordsV854 = {
       latitude: freshScannerPositionV854.coords.latitude,
@@ -13948,8 +13955,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setScannerLocationStatusV855({name:intendedName,verified:true,checking:false});
       return true;
     }
-    // A distant or ambiguous fresh fix must NOT suppress the question.
-    return askScannerStoreV828(intendedName);
+    // V858: outside any recognized shop, never prompt. Only a GPS-recognized
+    // different nearby store may trigger a store mismatch confirmation.
+    if (freshCompetitorV854 && freshNearbyStoresV854.length > 0) {
+      return askScannerStoreV828(intendedName);
+    }
+    return scannerNotInStoreV858();
 
   }
 
