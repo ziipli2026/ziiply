@@ -87,6 +87,15 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
+  // General product-form classification, independent of leaflet issue or chain.
+  if(/(?:rypäle(?:et|itä)?|viinirypäle)/.test(s)) return "Hevi";
+  if(/(?:kasvovoide|kasvoseerumi|collagen lifter|hyaluron expert|triple active|\bexpert\b.*\blifter\b)/.test(s)) return "Hygienia & kosmetiikka";
+  if(/(?:wc[- ]?spray|wc[- ]?suihke)/.test(s)) return "Kodinhoito";
+  if(/(?:säilytys\s*laatikko|säilytyslaatikko|förvaringslådor|otsalamppu)/.test(s)) return "Koti & vapaa-aika";
+  if(/(?:rouskuva|tulinen).*(?:110[–-]170\s*g)/.test(s)) return "Makeiset & keksit";
+  if(/(?:puruluu|puruluut)/.test(s)) return "Lemmikit";
+  if(/(?:0[,.]33\s*l\/tlk\s*8[- ]?pack|8[- ]?pack\s*8[- ]?pack)/.test(s)) return "Juomat";
+  if(/(?:oivariini)/.test(s)) return "Maitotuotteet";
   // Use the existing offer category for supplements; do not catch vitamin drinks.
   if(/(?:monivitamiin|vitamiini(?:t|valmiste|tabletti|kapseli)?\b|ravintolis|magnesium|sinkki\b|omega[- ]?3|kollageeni|biotiini|melatoniini)/.test(s) && !/(?:vitamiinijuoma|juotava\s+vitamiini|virvoitusjuoma)/.test(s)) return "Vitamiinit & ravinteet";
   if(/(?:luku\s*[-–]?\s*ja\s*käsityövalo|lukuja\s*käsityövalo|askartelu\s*[-–]?\s*ja\s*korjausvalo|askarteluja\s*korjausvalo|\b(?:luku|käsityö|askartelu|korjaus)valo\b)/.test(s)) return "Koti & vapaa-aika";
