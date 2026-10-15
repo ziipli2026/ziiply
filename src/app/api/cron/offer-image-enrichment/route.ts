@@ -137,7 +137,7 @@ export async function GET(req: Request) {
     if (firstWord.length < 4) { ambiguous++; continue; }
     // Search by both the brand/name token and package amount. Exact full-name
     // verification below still decides whether an image can be published.
-    const amount = words.find(word => /^[0-9]+(?:g|kg|ml|l)$/.test(word));
+    const amount = words.find(word => /^[0-9]+(?:kg|ml|g|l)$/.test(word));
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url LIKE 'https://%'
       AND (lower(name) LIKE ${firstWord + '%'} OR lower(name) LIKE ${'% ' + firstWord + ' %'})
