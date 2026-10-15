@@ -1,0 +1,26 @@
+name: Gosta price sorting regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - 'tests/gosta-price-sort.test.cjs'
+      - '.github/workflows/gosta-price-sort-regression.yml'
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - 'tests/gosta-price-sort.test.cjs'
+      - '.github/workflows/gosta-price-sort-regression.yml'
+  workflow_dispatch:
+
+jobs:
+  price-sort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Gösta offer price ordering
+        run: node --test tests/gosta-price-sort.test.cjs
