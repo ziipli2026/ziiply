@@ -91,6 +91,8 @@ jobs:
           node scripts/citymarket/verify-42lv-frozen.mjs /tmp/kcm-frozen/publications/42LV
       - name: Prepare read-only image discovery tasks
         run: node scripts/citymarket/prepare-image-lookups.mjs artifacts/citymarket-images/42lv-missing-images-lookup-only.json artifacts/citymarket-images/42lv-image-discovery-plan.json
+      - name: Syntax-check opt-in Open Food Facts image discovery
+        run: node --check scripts/citymarket/discover-openfoodfacts-images.mjs
       - name: Reject unsafe image candidates in negative tests
         run: node scripts/citymarket/test-image-candidate-review.mjs
       - name: Validate empty image candidate review
