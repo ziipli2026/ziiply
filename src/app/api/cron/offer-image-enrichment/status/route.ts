@@ -18,7 +18,13 @@ export async function GET(request: Request) {
       FROM ziiply_offer_image_queue GROUP BY chain,status ORDER BY chain,status`;
     const pendingWithoutEan = await sql`SELECT COUNT(*)::int AS count
       FROM ziiply_offer_image_queue WHERE status='pending' AND (ean IS NULL OR ean='')`;
-    return NextResponse.json({ok:true,lastRun:runs[0] ?? null,runs,byChain,pendingWithoutEan:Number(pendingWithoutEan[0]?.count ?? 0)},
+    const orphaned = await sql`SELECT q.chain,q.publication,COUNT(*)::int AS count
+      FROM ziiply_offer_image_queue q
+      WHERE q.status='pending' AND NOT EXISTS (
+        SELECT 1 FROM ziiply_offer_publications p
+        WHERE p.chain=q.chain AND p.publication_id=q.publication)
+      GROUP BY q.chain,q.publication ORDER BY count DESC LIMIT 30`;
+    return NextResponse.json({ok:true,lastRun:runs[0] ?? null,runs,byChain,pendingWithoutEan:Number(pendingWithoutEan[0]?.count ?? 0),orphaned},
       {headers:{"Cache-Control":"no-store"}});
   } catch {
     return NextResponse.json({ok:false,error:"No enrichment run data yet or database unavailable"},{status:503});
