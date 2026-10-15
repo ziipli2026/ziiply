@@ -97,6 +97,12 @@ jobs:
         run: node --check scripts/citymarket/discover-openfoodfacts-images.mjs
       - name: Reject unsafe image candidates in negative tests
         run: node scripts/citymarket/test-image-candidate-review.mjs
+      - name: Search real Open Food Facts image candidates for full 42LV queue
+        continue-on-error: true
+        timeout-minutes: 18
+        run: |
+          node scripts/citymarket/discover-openfoodfacts-images.mjs artifacts/citymarket-images/42lv-image-discovery-plan.json artifacts/citymarket-images/42lv-real-image-candidates.json 94
+          node scripts/citymarket/review-image-candidates.mjs artifacts/citymarket-images/42lv-image-discovery-plan.json artifacts/citymarket-images/42lv-real-image-candidates.json artifacts/citymarket-images/42lv-real-image-review.json
       - name: Validate empty image candidate review
         run: |
           node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('artifacts/citymarket-images/42lv-image-discovery-plan.json'));fs.writeFileSync('/tmp/kcm-empty-candidates.json',JSON.stringify({schemaVersion:1,pdfSha256:p.pdfSha256,publication:p.publication,items:[]}))"
@@ -110,4 +116,6 @@ jobs:
             artifacts/citymarket-images/42lv-missing-images-lookup-only.json
             artifacts/citymarket-images/42lv-image-discovery-plan.json
             artifacts/citymarket-images/42lv-image-candidate-review.json
+            artifacts/citymarket-images/42lv-real-image-candidates.json
+            artifacts/citymarket-images/42lv-real-image-review.json
           retention-days: 30
