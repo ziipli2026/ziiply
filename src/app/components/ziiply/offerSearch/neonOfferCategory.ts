@@ -132,11 +132,15 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
             AND category LIKE '%/%'
           GROUP BY 1 HAVING count(DISTINCT category) = 1`;
         const safe = new Map(candidates.map(row => [String(row.normalized_name), String(row.category)]));
-        const updates = [...new Map(offers.map(offer => {
+        const updates: Array<{ean: string; category: string}> = [];
+        const seen = new Set<string>();
+        for (const offer of offers) {
           const ean = getEan(offer);
-          return [ean, {ean, category: safe.get(normalizeName(getName(offer)))}] as const;
-        }).filter((entry): entry is readonly [string, {ean:string;category:string}] =>
-          Boolean(entry[0] && entry[1].category && !eanRows.some(row => String(row.ean) === entry[0])))).values()];
+          const category = safe.get(normalizeName(getName(offer)));
+          if (!ean || !category || seen.has(ean) || eanRows.some(row => String(row.ean) === ean)) continue;
+          updates.push({ean, category});
+          seen.add(ean);
+        }
         if (updates.length) {
           const payload = JSON.stringify(updates);
           await sql`UPDATE ziiply_ean_products AS p SET category = u.category, updated_at = now()
