@@ -27,6 +27,7 @@ export async function parseKCitymarketSpatialLeaflet(entry){
   {page:20,title:/^0,33 l\/tlk 8-pack 8-PACK$/i,value:7.99,quantity:1,unit:'pack'},
   {page:20,title:/^VICHY 0,33 l\/pl 24-pack$/i,value:10.99,quantity:1,unit:'pack'},
   {page:20,title:/WOK-KASTIKKEET 120 g/i,value:1.00,quantity:1,unit:'ps'},
+  {page:18,title:/VITAL HYVINVOINTIMEHUT 1 l/i,value:4.50,quantity:2,unit:'tlk'},
  ];
  // Preserve explicitly approved historical parsers above. Apply evidence-only
  // transaction correction to other publications without relying on issue number.
