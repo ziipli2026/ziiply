@@ -196,9 +196,11 @@ function isCurrentGostaCategorySelectionV167(value: string) {
 }
 
 const TRUSTED_GOSTA_CATEGORY_LABELS_V166 = new Map<string, string>([
-  ["kahvi", "Kahvi"],
+  ["kahvi", "Kahvi & tee"],
+  ["kahvi tee", "Kahvi & tee"],
   ["maitotuotteet", "Maitotuotteet"],
-  ["liha", "Liha"],
+  ["liha", "Liha & makkarat"],
+  ["liha makkarat", "Liha & makkarat"],
   ["kala", "Kala"],
   ["leipomo", "Leipomo"],
   ["hevi", "Hevi"],
@@ -207,10 +209,14 @@ const TRUSTED_GOSTA_CATEGORY_LABELS_V166 = new Map<string, string>([
   ["valmisruoka", "Valmisruoka"],
   ["kuivatuotteet", "Kuivatuotteet"],
   ["makeiset keksit", "Makeiset & keksit"],
-  ["makeiset ja keksit", "Makeiset & keksit"],
-  ["makeisetkeksit", "Makeiset & keksit"],
   ["lemmikit", "Lemmikit"],
-  ["koti", "Koti"],
+  ["lastenruoat", "Lastenruoat"],
+  ["lastenhoito", "Lastenhoito"],
+  ["vitamiinit ravinteet", "Vitamiinit & ravinteet"],
+  ["hygienia kosmetiikka", "Hygienia & kosmetiikka"],
+  ["kodinhoito", "Kodinhoito"],
+  ["koti", "Koti & vapaa-aika"],
+  ["koti vapaa aika", "Koti & vapaa-aika"],
   ["muut", "Muut"],
 ]);
 
