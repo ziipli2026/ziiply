@@ -122,6 +122,7 @@ export async function GET(req: Request) {
     ORDER BY next_attempt_at LIMIT 100`;
   let titleEnriched = 0, ambiguous = 0;
   const normalize = (v: unknown) => String(v ?? "").toLocaleLowerCase("fi")
+    .replace(/(\\d)\\s+(g|kg|ml|l)\\b/g, "$1$2")
     .replace(/[^a-z0-9åäö]+/gi," ").split(" ").filter(Boolean).join(" ").trim();
   const uncertain = (v: string) => {
     const words = normalize(v).split(" ");
