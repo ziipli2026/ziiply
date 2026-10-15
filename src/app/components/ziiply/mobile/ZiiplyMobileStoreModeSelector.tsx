@@ -168,14 +168,12 @@ export default function ZiiplyMobileStoreModeSelector({
       </div>
 
       {fuelMode && (
-        <div className="relative z-20 mt-1 flex items-center justify-center gap-3">
+        <div className="relative z-20 mt-1 flex items-center justify-center gap-2">
           <span className="text-[12px] font-black uppercase tracking-[0.12em] text-[#66543a]">Hakutapa</span>
-          <div className="relative flex h-[30px] w-[72px] touch-none items-center rounded-full border-2 border-[#b99b62] bg-[#d8c69d] shadow-sm" role="group" aria-label="Asematyyppi" onPointerUp={(event) => { const rect = event.currentTarget.getBoundingClientRect(); const fraction = (event.clientX - rect.left) / rect.width; onFuelStationSideChange?.(fraction < 1 / 3 ? "traffic" : fraction < 2 / 3 ? "both" : "cold"); }}>
-            {(["traffic", "both", "cold"] as const).map((side, index) => (
-              <button key={side} type="button" aria-label={side === "traffic" ? "Liikenneasemat" : side === "both" ? "Kaikki asemat" : "Kylmäasemat ja muut"} aria-pressed={fuelStationSide === side} onClick={() => onFuelStationSideChange?.(side)} className="relative z-10 h-full flex-1" />
-            ))}
-            <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[20px] w-[20px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[24px]" : "left-[45px]"}`} />
-          </div>
+          <button type="button" aria-label="Asematyypin valinta" aria-valuetext={fuelStationSide === "traffic" ? "Liikenneasemat" : fuelStationSide === "cold" ? "Kylmäasemat ja muut" : "Kaikki asemat"} onClick={() => onFuelStationSideChange?.(fuelStationSide === "traffic" ? "cold" : fuelStationSide === "cold" ? "both" : "traffic")} className="relative h-[24px] w-[50px] shrink-0 rounded-full border border-[#b99b62] bg-[#d8c69d] shadow-sm">
+            <span aria-hidden="true" className={`pointer-events-none absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white shadow transition-[left] ${fuelStationSide === "traffic" ? "left-[3px]" : fuelStationSide === "both" ? "left-[16px]" : "left-[29px]"}`} />
+          </button>
+          <span aria-hidden="true" className="text-[17px] font-black text-[#1a2740]">{fuelStationSide === "traffic" ? "←" : fuelStationSide === "cold" ? "→" : "↔"}</span>
         </div>
       )}
       {!fuelMode && (
