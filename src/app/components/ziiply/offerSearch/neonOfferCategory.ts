@@ -76,7 +76,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
 export async function enrichOfferCategoriesFromNeon<T extends Record<string, any>>(offers: T[]): Promise<T[]> {
   const url = process.env.DATABASE_URL;
   if (!url || !offers.length) return offers;
-  const getEan = (o: T) => String(o.ean || o.eanCode || o.barcode || "").replace(/\D/g, "");
+  const getEan = (o: T) => String(o.ean || o.gtin || o.eanCode || o.barcode || "").replace(/\D/g, "");
   const getName = (o: T) => String(o.title || o.name || "").trim();
   const eans = [...new Set(offers.map(getEan).filter(e => /^\d{8,14}$/.test(e)))];
   // Exact names only: no fuzzy matches that might confuse package sizes.
