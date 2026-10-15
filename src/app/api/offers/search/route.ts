@@ -903,7 +903,8 @@ export async function GET(request: Request) {
           // Keep the national leaflet responsive even if the optional Tjek store feed stalls.
           // The store-specific campaigns may be omitted for this request after 6.5s;
           // they are never allowed to block the entire mobile offer search.
-          const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);\n          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
+          const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
+          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
           // The reviewed national leaflet is the Tarjoukset master. Local/store
           // publications are Kampanjat, but an exact product+price copy must not
           // appear in both tabs.
