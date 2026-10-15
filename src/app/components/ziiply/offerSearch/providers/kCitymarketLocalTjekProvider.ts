@@ -95,9 +95,9 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       const fetched=await Promise.all(freshIds.slice(offset,offset+8).map(async id=>{
         try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{return null;}
       }));
-      for(const entry of fetched){
-        if(!entry)continue;
-        const {id,offer}=entry;
+      for(const fetchedEntry of fetched){
+        if(!fetchedEntry)continue;
+        const {id,offer}=fetchedEntry;
         if(String(offer.publicationPublicId??publicationId)!==publicationId)continue;
         const title=String(offer.name??"").trim();
         const regular=numeric(offer.price),member=numeric(offer.membershipPrice),app=numeric(offer.appPrice);
