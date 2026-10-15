@@ -432,14 +432,13 @@ export default function ZiiplyMobileScannerCard({
           {!cameraOverlay && visibleMessage && (
             <div
               className={[
-                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] px-4 py-3 text-center text-[15px] font-black uppercase tracking-[0.05em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
-                noticeIsSuccess
-                  ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
-                  : noticeIsError
-                    ? "border-[2px] border-[#7a1b15] bg-[#ffd6cf]/95 text-[#61130e]"
-                    : visibleMessage === "Tuote lisätty"
-                      ? "border-[2px] border-[#245c28]/70 bg-[#d7ffd2]/52 text-[#123d18] backdrop-blur-[1px]"
-                      : "border-[2px] border-[#245c28] bg-[#d7ffd2]/88 text-[#123d18] backdrop-blur-[2px]",
+                // Keep scanner feedback inside the white aiming corners, without a backing panel.
+                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 px-2 py-1 text-center text-[15px] font-black uppercase tracking-[0.04em] leading-snug",
+                noticeIsError
+                  ? "text-[#fff0e8] [text-shadow:0_2px_4px_rgba(80,0,0,0.95),0_0_10px_rgba(0,0,0,0.95)]"
+                  : noticeIsSuccess
+                    ? "text-[#eaffdf] [text-shadow:0_2px_4px_rgba(0,35,0,0.95),0_0_10px_rgba(0,0,0,0.95)]"
+                    : "text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.98),0_0_10px_rgba(0,0,0,0.98)]",
               ].join(" ")}
             >
               {visibleMessage}
