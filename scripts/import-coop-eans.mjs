@@ -11,7 +11,7 @@ try {
  if (error?.code !== "42P01") throw error;
  console.warn("ziiply_skaupat_protocol is missing in DATABASE_URL target; using built-in protocol defaults.");
 }
-const stores=[...new Set((process.env.COOP_STORE_IDS||"603217266,634976534,685839110,725796790,725856933,726425715,590777876").split(",").map(s=>s.trim()).filter(Boolean))];
+const stores=[...new Set((process.env.COOP_STORE_IDS||"634976534").split(",").map(s=>s.trim()).filter(Boolean))];
 const limit=48, maxPages=Number(process.env.COOP_MAX_PAGES||500);
 const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const seen=new Map();
@@ -21,7 +21,7 @@ for(const storeId of stores){
  let total=Infinity;
  let storeFetched=0,storeUniqueBefore=seen.size;
  for(let from=0;from<total&&pages<maxPages;from+=limit){
-  const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"brandName",value:["Coop"]}],generatedSessionId:"ziiply-coop-import",fetchSponsoredContent:false,from,offset:from,skip:from,page:Math.floor(from/limit)+1,limit,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"ziiply-coop-import"};
+  const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[],generatedSessionId:"ziiply-coop-import",fetchSponsoredContent:false,from,offset:from,skip:from,page:Math.floor(from/limit)+1,limit,queryString:"Coop",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"ziiply-coop-import"};
   const extensions={clientLibrary:{name:"@apollo/client",version:protocol.apollo_version},persistedQuery:{version:1,sha256Hash:protocol.persisted_query_hash}};
   const endpoint=new URL("https://api.s-kaupat.fi/");
   endpoint.searchParams.set("operationName","RemoteFilteredProducts");
