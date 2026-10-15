@@ -109,12 +109,12 @@ def build(folder,manifest_path,public_folder,review_path):
    options.sort()
    if len(options)==1 or len(options)>1 and options[1][0]-options[0][0]>.08:
     accepted[options[0][1]].append(b)
-  # Keep review evidence for unmatched cards, including publisher image bounds.
-  # A reviewer can then identify missing package photos without guessing
-  # which neighboring product image belongs to the offer.
+  # Audit every unresolved offer in one batch, not only WC-paper examples.
+  # Candidate rectangles are evidence, never automatically approved matches.
+  unresolved=[]
   for row in rows:
-   if row['id'] not in accepted or accepted[row['id']]:continue
-   if not re.search(r'\\bWC[ -]?PAPERI\\b',row['title'],re.I):continue
+   if accepted[row['id']] or row['id'] in reviewed:continue
+   unresolved.append(row)
    anchor=row.get('anchor')
    candidates=[]
    for block in blocks:
@@ -128,11 +128,9 @@ def build(folder,manifest_path,public_folder,review_path):
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
                   'status':'manual-review-needed'})
-  # Render a source-faithful review sheet for unresolved WC paper offers.
-  # This is diagnostic evidence only: it never approves a product image.
-  if any(re.search(r'\\bWC[ -]?PAPERI\\b',r['title'],re.I) and not accepted[r['id']] for r in rows):
+  if unresolved:
    sheet=page.get_pixmap(matrix=fitz.Matrix(1.4,1.4),alpha=False)
-   sheet.save(str(folder/f'wc-paper-review-page-{number+1}.png'))
+   sheet.save(str(folder/f'unresolved-review-page-{number+1}.png'))
   for row in rows:
    selection=reviewed.get(row['id'])
    if selection:
