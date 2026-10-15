@@ -1777,8 +1777,20 @@ async function ziiplyDecodeBarcodeCanvasPageFallback(
 }
 
 function ziiplyCaptureScannerStillPageFallback(regionId: string, cropRatio = 0.96) {
-  const video = getScannerVideoElement();
-  if (!video || !video.videoWidth || !video.videoHeight) return null;
+  // The generic scannerCore selector may point to a hidden desktop scanner.
+  // Capture from the live html5-qrcode video inside the active mobile region.
+  const region = document.getElementById(regionId);
+  const candidates = [
+    ...(region ? Array.from(region.querySelectorAll("video")) : []),
+    ...Array.from(document.querySelectorAll("video")),
+  ] as HTMLVideoElement[];
+  const video = candidates.find((candidate) =>
+    candidate.videoWidth > 0 && candidate.videoHeight > 0 &&
+    candidate.readyState >= 2 &&
+    !!candidate.srcObject &&
+    candidate.getClientRects().length > 0
+  ) || candidates.find((candidate) => candidate.videoWidth > 0 && candidate.videoHeight > 0 && candidate.readyState >= 2);
+  if (!video) return null;
 
   const sourceWidth = video.videoWidth;
   const sourceHeight = video.videoHeight;
