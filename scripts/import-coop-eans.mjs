@@ -9,6 +9,8 @@ const preflight=await sql`
    to_regclass('public.ziiply_ean_products') AS ean_table,
    to_regclass('public.ziiply_skaupat_protocol') AS protocol_table
 `;
+const connectionInfo=await sql`SELECT current_database() AS database_name, current_schema() AS schema_name, current_user AS role_name, current_setting('search_path') AS search_path`;
+console.log("Database connection identity (no credentials):", JSON.stringify(connectionInfo[0]));
 if(!preflight[0]?.ean_table) {
  throw new Error("Wrong DATABASE_URL target: public.ziiply_ean_products is missing. Point GitHub Actions secret DATABASE_URL to the Ziiply production Neon main branch (the database containing the existing EAN bank). Import stopped before fetching products; no data was written.");
 }
