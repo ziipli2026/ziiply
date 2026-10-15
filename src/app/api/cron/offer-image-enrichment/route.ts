@@ -132,11 +132,16 @@ export async function GET(req: Request) {
   for (const item of noEan) {
     const title = String(item.title || "");
     if (!title || uncertain(title)) { ambiguous++; continue; }
-    const firstWord = normalize(title).split(' ')[0];
+    const words = normalize(title).split(" ");
+    const firstWord = words[0];
     if (firstWord.length < 4) { ambiguous++; continue; }
+    // Search by both the brand/name token and package amount. Exact full-name
+    // verification below still decides whether an image can be published.
+    const amount = words.find(word => /^[0-9]+(?:g|kg|ml|l)$/.test(word));
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url LIKE 'https://%'
       AND (lower(name) LIKE ${firstWord + '%'} OR lower(name) LIKE ${'% ' + firstWord + ' %'})
+      AND (${amount ?? ''} = '' OR regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') LIKE ${'%' + (amount ?? '') + '%'})
       LIMIT 1500`;
     const exact = matches.filter(row => normalize(row.name) === normalize(title) && validUrl(row.image_url));
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
