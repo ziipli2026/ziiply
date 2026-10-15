@@ -906,7 +906,7 @@ export async function GET(request: Request) {
           const localOffers = await Promise.race([
             fetchKCitymarketSelectedStoreOffers(selectedCitymarket),
             new Promise<Awaited<ReturnType<typeof fetchKCitymarketSelectedStoreOffers>>>((resolve) =>
-              setTimeout(() => resolve([]), 8000)),
+              setTimeout(() => resolve([]), 1200)),
           ]);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
           // The reviewed national leaflet is the Tarjoukset master. Local/store
@@ -925,7 +925,10 @@ export async function GET(request: Request) {
 
     let sMarketResults: UnknownRecord[] = [];
     try {
-      sMarketResults = await fetchSelectedSMarketETarjousOffers(q, rawSStoreName);
+      // Never fetch S-market publications for a Citymarket-only selection.
+      if (splitMultiValue(rawSStoreName).length > 0) {
+        sMarketResults = await fetchSelectedSMarketETarjousOffers(q, rawSStoreName);
+      }
     } catch (error) {
       console.warn("[Ziiply offers V14] eTarjouslehdet S-market fetch failed", error);
       sMarketResults = [];
