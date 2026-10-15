@@ -76,7 +76,7 @@ export async function GET(req: Request) {
           productId: text(row.id || row.offerId || row.productId || `row:${index}`,160),
           title: text(row.title || row.name,300),
           ean: eanOf(row.ean || row.gtin || row.barcode),
-          image: validUrl(row.imageUrl),
+          image: validUrl(row.imageUrl) || (typeof row.imageData === 'string' && row.imageData.length > 100 ? 'embedded-image' : ''),
         };
       }).filter(row => row.title && !row.image);
       const unique = [...new Map(candidates.map(row => [row.productId,row])).values()].slice(0,300);
@@ -115,7 +115,7 @@ export async function GET(req: Request) {
     await db`UPDATE ziiply_offer_publications p SET offers=(
       SELECT COALESCE(jsonb_agg(CASE
         WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
-          AND COALESCE(o.value->>'imageUrl','')=''
+          AND COALESCE(o.value->>'imageUrl','')='' AND length(COALESCE(o.value->>'imageData',''))<=100
         THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${image}::text),true)
         ELSE o.value END ORDER BY o.ordinality)
       FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality))
