@@ -472,7 +472,7 @@ export default function ZiiplyMobileScannerCard({
           )}
 
           {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
-            <div role="status" className="pointer-events-none absolute inset-x-2 bottom-2 z-[45] flex flex-col items-center justify-end text-center">
+            <div role="status" className="pointer-events-none absolute inset-x-2 bottom-[24%] z-[45] flex flex-col items-center justify-end text-center">
               <span className="text-[15px] font-black leading-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,1),0_0_8px_rgba(0,0,0,0.95)]">
                 mahdollinen alennustarra-ota kuva
               </span>
@@ -552,7 +552,7 @@ export default function ZiiplyMobileScannerCard({
       </main>
 
       {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
-        <div aria-hidden="true" className="pointer-events-none absolute bottom-[calc(env(safe-area-inset-bottom)+91px)] left-1/2 z-[55] -translate-x-1/2">
+        <div aria-hidden="true" className="pointer-events-none absolute bottom-[calc(env(safe-area-inset-bottom)+92px)] left-1/2 z-[55] -translate-x-1/2 animate-bounce">
           <svg width="54" height="70" viewBox="0 0 54 70" fill="none" className="drop-shadow-[0_3px_3px_rgba(0,0,0,0.85)]">
             <path d="M27 4 C27 23 27 34 27 53" stroke="#113c30" strokeWidth="10" strokeLinecap="round"/>
             <path d="M27 4 C27 23 27 34 27 53" stroke="#ffe29b" strokeWidth="6" strokeLinecap="round"/>
