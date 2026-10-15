@@ -78,7 +78,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
 export async function enrichOfferCategoriesFromNeon<T extends Record<string, any>>(offers: T[]): Promise<T[]> {
   const url = process.env.DATABASE_URL;
   if (!url || !offers.length) return offers;
-  const getEan = (o: T) => String(o.ean || o.gtin || o.eanCode || o.barcode || "").replace(/\D/g, "");
+  const getEan = (o: T) => [o.ean, o.gtin, o.eanCode, o.barcode].map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)) || "";
   const getName = (o: T) => String(o.title || o.name || "").trim();
   const eans = [...new Set(offers.map(getEan).filter(e => /^\d{8,14}$/.test(e)))];
   // Exact names only: no fuzzy matches that might confuse package sizes.
@@ -88,6 +88,33 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     const sql = neon(url);
     const eanRows = eans.length ? await sql`SELECT ean, category FROM ziiply_ean_products WHERE ean = ANY(${eans}::text[]) AND category IS NOT NULL AND category <> ''` : [];
     const nameRows = names.length ? await sql`SELECT name, category FROM ziiply_ean_products WHERE lower(name) = ANY(${names.map(n => n.toLocaleLowerCase("fi"))}::text[]) AND category IS NOT NULL AND category <> ''` : [];
+    // Register reliable offer EANs without overwriting existing product records.
+    const knownRows = eans.length ? await sql`SELECT ean FROM ziiply_ean_products WHERE ean = ANY(${eans}::text[])` : [];
+    const knownEans = new Set(knownRows.map(row => String(row.ean)));
+    const missing = new Map<string, {name:string; brand:string|null; quantity:string|null; image:string|null}>();
+    for (const offer of offers) {
+      const ean = getEan(offer);
+      const name = getName(offer);
+      if (!ean || knownEans.has(ean) || missing.has(ean) || name.length < 3 || name.length > 300) continue;
+      if (/^(tuntematon|unknown|tuote|product)$/i.test(name)) continue;
+      const clean = (value: unknown, max: number) => {
+        const valueText = typeof value === "string" ? value.trim() : "";
+        return valueText && valueText.length <= max ? valueText : null;
+      };
+      const image = clean(offer.imageUrl || offer.image_url, 2000);
+      missing.set(ean, {name, brand:clean(offer.brand,150), quantity:clean(offer.quantity || offer.packageSize,100), image:image && /^https:\/\//i.test(image) ? image : null});
+    }
+    if (missing.size) {
+      try {
+        const payload = JSON.stringify([...missing].map(([ean, item]) => ({ean, ...item})));
+        await sql`INSERT INTO ziiply_ean_products (ean, name, brand, quantity, image_url, source)
+          SELECT p.ean, p.name, p.brand, p.quantity, p.image, 'offer-search'
+          FROM jsonb_to_recordset(${payload}::jsonb) AS p(ean text, name text, brand text, quantity text, image text)
+          ON CONFLICT (ean) DO NOTHING`;
+      } catch (error) {
+        console.error("[offers] EAN registration failed; continuing offer search", error);
+      }
+    }
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
     const byName = new Map<string, string | null>();
     for (const row of nameRows) {
