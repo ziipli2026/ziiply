@@ -79,6 +79,7 @@ export type ZiiplyMobileScannerCardProps = {
   onSelectResult?: (result: ZiiplyMobileScannerSelectionResult) => void;
   formatPrice?: (value: number) => string;
   getProductPrice?: (result: ZiiplyMobileScannerSelectionResult) => number | null | undefined;
+  onCaptureDiscountSticker?: () => void;
   onToggleTorch?: () => void;
   onToggleManualInput?: () => void;
   onCameraTap?: React.PointerEventHandler<HTMLDivElement>;
@@ -102,6 +103,7 @@ export default function ZiiplyMobileScannerCard({
   formatPrice,
   getProductPrice,
   onToggleTorch,
+  onCaptureDiscountSticker,
   onToggleManualInput,
   onCameraTap,
   onClose,
@@ -527,13 +529,9 @@ export default function ZiiplyMobileScannerCard({
 
         <button
           type="button"
-          onClick={() => {
-            // Pääkameranappi ei käynnistä erillistä logiikkaa.
-            // Kamera käynnistetään page.tsx:n eanModalOpen/eanScannerOpen-polussa.
-            // Napin tarkoitus on antaa käyttäjälle iso, selkeä "skannaa/katso tähän" -ankkuri.
-          }}
+          onClick={() => onCaptureDiscountSticker?.()}
           className="flex h-[78px] w-[78px] items-center justify-center rounded-full border-[5px] border-[#7b6034] bg-[#d8c08c] shadow-[0_6px_16px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.55)] active:scale-[0.98]"
-          aria-label="Kamera"
+          aria-label="Ota kuva alennustarrasta"
         >
           <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border-[3px] border-[#efe2b8] bg-[linear-gradient(180deg,#24572b_0%,#113116_100%)] text-[29px] leading-none text-[#fff6d9]">
             📷
