@@ -14304,50 +14304,74 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   // V863: manual high-resolution still capture for difficult GS1 labels.
   // Keeps the normal live EAN scanner untouched and avoids concurrent polling.
+  const gs1StillBusyV865 = useRef(false);
   async function scanRedStickerStillV863() {
-    const scanner = eanHtml5ScannerRef.current;
-    const canvas = ziiplyCaptureScannerStillPageFallback(MOBILE_EAN_SCANNER_REGION_ID, 1);
-    if (!canvas) {
-      pushScannerDebugV493("GS1 STILL: no active video frame");
-      setEanScannerMessage("Kamerakuvaa ei saatu. Yritä uudelleen.");
+    if (gs1StillBusyV865.current) {
+      pushScannerDebugV493("GS1 STILL: already decoding; ignored duplicate tap");
       return;
     }
-    pushScannerDebugV493(`GS1 STILL start ${canvas.width}x${canvas.height}`);
-    setEanScannerMessage("Luetaan alennustarraa kuvasta...");
-    const attempts = [
-      canvas,
-      ziiplyEnhanceScannerCanvasPageFallback(canvas),
-      ziiplyRotateCanvasPageFallback(canvas, 90),
-      ziiplyRotateCanvasPageFallback(canvas, 270),
-    ];
-    for (let i = 0; i < attempts.length; i++) {
-      const frame = attempts[i];
-      try {
-        // Separate still-image decode path through ZXing (html5-qrcode).
-        if (scanner?.scanFile) {
-          const blob = await new Promise<Blob | null>((resolve) => frame.toBlob(resolve, "image/png"));
-          if (blob) {
-            const file = new File([blob], "ziiply-gs1-still.png", {type:"image/png"});
-            const raw = await scanner.scanFile(file, false);
-            if (raw) {
-              pushScannerDebugV493(`GS1 STILL ZXING OK attempt=${i} raw=${JSON.stringify(raw)}`);
-              void finishScannedEan(raw);
-              return;
-            }
-          }
-        }
-      } catch (error) {
-        pushScannerDebugV493(`GS1 STILL ZXING attempt=${i} failed: ${String(error).slice(0,100)}`);
-      }
-      const nativeResult = await ziiplyDecodeBarcodeCanvasPageFallback(frame, "still");
-      if (nativeResult?.text) {
-        pushScannerDebugV493(`GS1 STILL NATIVE OK attempt=${i} format=${nativeResult.format} raw=${JSON.stringify(nativeResult.text)}`);
-        void finishScannedEan(nativeResult.text);
+    gs1StillBusyV865.current = true;
+    try {
+      const canvas = ziiplyCaptureScannerStillPageFallback(MOBILE_EAN_SCANNER_REGION_ID, 1);
+      if (!canvas) {
+        pushScannerDebugV493("GS1 STILL: no active video frame");
+        setEanScannerMessage("Kamerakuvaa ei saatu. Yritä uudelleen.");
         return;
       }
+      pushScannerDebugV493(`GS1 STILL start ${canvas.width}x${canvas.height}`);
+      setEanScannerMessage("Luetaan alennustarraa kuvasta...");
+      const Html5Qrcode = await loadHtml5QrCodeScript();
+      // Separate decoder instance: the live camera instance cannot scanFile.
+      // Detached DOM host is attached temporarily because html5-qrcode requires an element.
+      const host = document.createElement("div");
+      host.id = "ziiply-gs1-still-decoder-v865";
+      host.style.cssText = "position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none";
+      document.body.appendChild(host);
+      const supported = (window as any).Html5QrcodeSupportedFormats;
+      const formats = supported ? [supported.RSS_EXPANDED, supported.RSS_14, supported.EAN_13, supported.EAN_8, supported.CODE_128].filter((x: unknown) => x != null) : undefined;
+      const decoder = new Html5Qrcode(host.id, formats ? {formatsToSupport: formats} : undefined);
+      try {
+        const attempts = [
+          canvas,
+          ziiplyEnhanceScannerCanvasPageFallback(canvas),
+          ziiplyRotateCanvasPageFallback(canvas, 90),
+          ziiplyRotateCanvasPageFallback(canvas, 270),
+        ];
+        for (let i = 0; i < attempts.length; i++) {
+          const frame = attempts[i];
+          try {
+            const blob = await new Promise<Blob | null>((resolve) => frame.toBlob(resolve, "image/png"));
+            if (blob) {
+              const file = new File([blob], "ziiply-gs1-still.png", {type:"image/png"});
+              const raw = await decoder.scanFile(file, false);
+              if (raw) {
+                pushScannerDebugV493(`GS1 STILL ZXING OK attempt=${i} raw=${JSON.stringify(raw)}`);
+                void finishScannedEan(raw);
+                return;
+              }
+            }
+          } catch (error) {
+            pushScannerDebugV493(`GS1 STILL ZXING attempt=${i} failed: ${String(error).slice(0,160)}`);
+          }
+          const nativeResult = await ziiplyDecodeBarcodeCanvasPageFallback(frame, "still");
+          if (nativeResult?.text) {
+            pushScannerDebugV493(`GS1 STILL NATIVE OK attempt=${i} format=${nativeResult.format} raw=${JSON.stringify(nativeResult.text)}`);
+            void finishScannedEan(nativeResult.text);
+            return;
+          }
+        }
+        pushScannerDebugV493("GS1 STILL: all attempts failed");
+        setEanScannerMessage("Alennustarra ei tunnistunut kuvasta. Lataa debug-TXT.");
+      } finally {
+        try { await decoder.clear(); } catch {}
+        host.remove();
+      }
+    } catch (error) {
+      pushScannerDebugV493(`GS1 STILL ERROR ${String(error).slice(0,200)}`);
+      setEanScannerMessage("Kuvatunnistus epäonnistui. Lataa debug-TXT.");
+    } finally {
+      gs1StillBusyV865.current = false;
     }
-    pushScannerDebugV493("GS1 STILL: all attempts failed");
-    setEanScannerMessage("Alennustarra ei tunnistunut kuvasta. Lataa debug-TXT.");
   }
 
   async function startEanCameraScanner() {
