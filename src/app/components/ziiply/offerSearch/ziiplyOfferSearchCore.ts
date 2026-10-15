@@ -454,7 +454,7 @@ function normalizeGostaContextListV164(values: unknown, fallback?: unknown): str
 
 async function parseOfferSearchResponse(response: Response) {
   const data = await response.json();
-  if (!response.ok || data?.ok === false) {
+  if (!response.ok || data?.ok === false || data?.complete === false) {
     throw new Error(String(data?.error || `Tarjoushaku epäonnistui: ${response.status}`));
   }
   return Array.isArray(data?.results) ? (data.results as ZiiplyGostaOfferLike[]) : [];
