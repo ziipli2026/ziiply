@@ -1,7 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 const url=process.env.DATABASE_URL;
 if(!url) throw new Error("DATABASE_URL missing");
-const sql=neon(url);
+// The shared GitHub secret currently selects aseappi_registry. This importer must
+// use Ziiply's existing neondb database on the same Neon endpoint instead.
+const targetUrl=new URL(url);
+targetUrl.pathname="/neondb";
+const sql=neon(targetUrl.toString());
 // Fail fast if GitHub DATABASE_URL points at the wrong Neon database.
 // Never scrape 1,800+ products only to discover the destination table is absent.
 const preflight=await sql`
