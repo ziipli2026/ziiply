@@ -115,6 +115,39 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         console.error("[offers] EAN registration failed; continuing offer search", error);
       }
     }
+    // Conservative enrichment: infer a detailed Neon path only from unambiguous
+    // normalized product names already categorized in the live EAN registry.
+    // Never replace a populated category or invent a new taxonomy path.
+    const normalizeName = (name: string) => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\\s+/g, " ").trim();
+    const unresolvedNames = [...new Set(offers.filter(offer => {
+      const ean = getEan(offer);
+      return ean && !eanRows.some(row => String(row.ean) === ean);
+    }).map(offer => normalizeName(getName(offer))).filter(name => name.length >= 6 && name.length <= 300))];
+    if (unresolvedNames.length) {
+      try {
+        const candidates = await sql`SELECT lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) AS normalized_name,
+          min(category) AS category, count(DISTINCT category) AS category_count
+          FROM ziiply_ean_products
+          WHERE lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) = ANY(${unresolvedNames}::text[])
+            AND category LIKE '%/%'
+          GROUP BY 1 HAVING count(DISTINCT category) = 1`;
+        const safe = new Map(candidates.map(row => [String(row.normalized_name), String(row.category)]));
+        const updates = [...new Map(offers.map(offer => {
+          const ean = getEan(offer);
+          return [ean, {ean, category: safe.get(normalizeName(getName(offer)))}] as const;
+        }).filter((entry): entry is readonly [string, {ean:string;category:string}] =>
+          Boolean(entry[0] && entry[1].category && !eanRows.some(row => String(row.ean) === entry[0])))).values()];
+        if (updates.length) {
+          const payload = JSON.stringify(updates);
+          await sql`UPDATE ziiply_ean_products AS p SET category = u.category, updated_at = now()
+            FROM jsonb_to_recordset(${payload}::jsonb) AS u(ean text, category text)
+            WHERE p.ean = u.ean AND (p.category IS NULL OR trim(p.category) = '')`;
+          for (const item of updates) eanRows.push({ean:item.ean,category:item.category});
+        }
+      } catch (error) {
+        console.error("[offers] Conservative Neon category enrichment failed", error);
+      }
+    }
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
     const byName = new Map<string, string | null>();
     for (const row of nameRows) {
