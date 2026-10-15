@@ -14322,6 +14322,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           document.head.appendChild(script);
         });
       }
+      // Force the WASM fetch through Ziiply's own origin before the first decode.
+      // The default CDN URL fails on some mobile networks / Safari configurations.
+      const wasmModule=(window as any).ZXingWASM;
+      if(typeof wasmModule?.prepareZXingModule==="function") {
+        wasmModule.prepareZXingModule({
+          overrides: {
+            locateFile: (path: string, prefix: string) =>
+              path.endsWith(".wasm") ? "/api/scanner/gs1-wasm" : prefix + path,
+          },
+        });
+        pushScannerDebugV493("GS1 WASM source=/api/scanner/gs1-wasm");
+      }
       const reader=(window as any).ZXingWASM?.readBarcodes;
       if(typeof reader!=="function") throw new Error("WASM reader missing");
       const attempts: Array<[HTMLCanvasElement,string]> = [[frame,"full"]];
