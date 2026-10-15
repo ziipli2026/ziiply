@@ -41,6 +41,8 @@ jobs:
         run: |
           git fetch origin archive/citymarket-publications
           git worktree add --detach /tmp/kcm-frozen origin/archive/citymarket-publications
+      - name: Install PDF inspection utilities
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
       - name: Verify original 42LV PDF integrity and page count
         run: |
           echo 'd4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd  /tmp/kcm-frozen/publications/42LV/leaflet.pdf' | sha256sum --check
