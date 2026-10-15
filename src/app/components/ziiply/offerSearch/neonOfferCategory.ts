@@ -5,6 +5,41 @@ const labels = new Set(["Kahvi & tee","Maitotuotteet","Liha & makkarat","Kala","
 export function neonOfferDisplayCategory(category: string): string | null {
   const raw = category.trim();
   if (labels.has(raw)) return raw;
+  // Neon also stores newer provider-specific display labels and opaque category IDs.
+  // Map known labels explicitly; opaque IDs need a taxonomy lookup, not a guess.
+  const aliases: Record<string, string> = {
+    "Käyttötavarat": "Koti & vapaa-aika",
+    "Liha": "Liha & makkarat",
+    "Kauneus ja hygienia": "Hygienia & kosmetiikka",
+    "Leipä ja leivonnaiset": "Leipomo",
+    "Makeiset": "Makeiset & keksit",
+    "Valmisruoat": "Valmisruoka",
+    "Hyvinvointi ja ravintolisät": "Vitamiinit & ravinteet",
+    "Ravintolisät": "Vitamiinit & ravinteet",
+    "Hedelmät ja vihannekset": "Hevi",
+    "Kala ja äyriäiset": "Kala",
+    "Juustot": "Maitotuotteet",
+    "Mausteet ja kastikkeet": "Kuivatuotteet",
+    "Hygienia": "Hygienia & kosmetiikka",
+    "Leivonnaiset": "Leipomo",
+    "Snacksit": "Kuivatuotteet",
+    "Kastikkeet ja levitteet": "Kuivatuotteet",
+    "Leivonta": "Kuivatuotteet",
+    "Kahvi": "Kahvi & tee",
+    "Keksit": "Makeiset & keksit",
+    "Levitteet": "Maitotuotteet",
+    "Aamiaistuotteet": "Kuivatuotteet",
+    "Juustot ja maitotuotteet": "Maitotuotteet",
+    "Makkarat ja leikkeleet": "Liha & makkarat",
+    "Säilykkeet": "Kuivatuotteet",
+    "Leikkeleet": "Liha & makkarat",
+    "Pähkinät": "Kuivatuotteet",
+    "Kananmunat": "Maitotuotteet",
+    "Välipalapatukat": "Makeiset & keksit",
+    "sokeroimattomat mehujuomat": "Juomat",
+  };
+  if (aliases[raw]) return aliases[raw];
+  if (/^CA[A-Z]{8,}$/.test(raw)) return null;
   const path = raw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const parts = path.split("/").filter(Boolean);
   if (!parts.length) return null;
