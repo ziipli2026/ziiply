@@ -65,7 +65,14 @@ export async function GET(req: Request) {
     const publications = await db`SELECT chain,publication_id,offers
       FROM ziiply_offer_publications
       WHERE valid_until >= CURRENT_DATE - INTERVAL '2 days'
-      ORDER BY parsed_at DESC LIMIT 12`;
+      ORDER BY
+        CASE WHEN EXISTS (
+          SELECT 1 FROM ziiply_offer_image_queue q
+          WHERE q.chain=ziiply_offer_publications.chain
+            AND q.publication=ziiply_offer_publications.publication_id
+            AND q.status='pending'
+        ) THEN 0 ELSE 1 END,
+        parsed_at DESC LIMIT 12`;
     for (const publication of publications) {
       const offers = Array.isArray(publication.offers) ? publication.offers : [];
       const candidates = offers.map((raw: unknown,index: number) => {
