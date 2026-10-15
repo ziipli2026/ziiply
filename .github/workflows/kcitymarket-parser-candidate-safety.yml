@@ -54,6 +54,18 @@ jobs:
             pdftotext -f "$page" -l "$page" -layout /tmp/kcm-frozen/publications/42LV/leaflet.pdf - | head -c 14000
             echo
           done
+      - name: Extract complete original 42LV PDF for page-by-page audit
+        run: |
+          mkdir -p /tmp/kcm-42lv-pdf-text
+          for page in $(seq 1 20); do
+            pdftotext -f "$page" -l "$page" -layout /tmp/kcm-frozen/publications/42LV/leaflet.pdf "/tmp/kcm-42lv-pdf-text/page-$(printf '%02d' "$page").txt"
+            test -s "/tmp/kcm-42lv-pdf-text/page-$(printf '%02d' "$page").txt"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kcitymarket-42lv-original-pdf-text
+          path: /tmp/kcm-42lv-pdf-text/
+          retention-days: 30
       - name: Check archived publication metadata
         run: |
           node scripts/citymarket/verify-42lv-frozen.mjs /tmp/kcm-frozen/publications/42LV
