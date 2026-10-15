@@ -123,10 +123,10 @@ export async function GET(req: Request) {
   let titleEnriched = 0, ambiguous = 0;
   const normalize = (v: unknown) => String(v ?? "").toLocaleLowerCase("fi")
     .replace(/[^a-z0-9åäö]+/gi," ").replace(/\\s+/g," ").trim();
-  const uncertain = /\\b(tai|ja|sekä|eri|valikoima|lajitelma)\\b|\\//i;
+  const uncertain = (v: string) => [" tai "," ja "," sekä "," eri "," valikoima "," lajitelma ","/"].some(word => (" "+v.toLowerCase()+" ").includes(word));
   for (const item of noEan) {
     const title = String(item.title || "");
-    if (!title || uncertain.test(title)) { ambiguous++; continue; }
+    if (!title || uncertain(title)) { ambiguous++; continue; }
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url LIKE 'https://%'
       AND lower(name) LIKE ${'%' + title.slice(0,45).toLowerCase().replace(/[%_]/g,'') + '%'}
