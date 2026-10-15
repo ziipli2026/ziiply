@@ -85,6 +85,17 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
+  // Explicit Citymarket campaign product forms from the live integration audit.
+  // These rules only classify the offer; they never infer or change its price.
+  if(/(?:vihreä tai tumma.*rypäle|rypäle\s+500\s*g)/.test(s)) return "Hevi";
+  if(/(?:expert.*collagen lifter|triple active.*hyaluron expert|garnier nutrisse kestovärit|age perfect rosy glow|kangasnaamio)/.test(s)) return "Hygienia & kosmetiikka";
+  if(/(?:wc-spray|siivoustuotteita|wc-suihke|puhdistussuihke)/.test(s)) return "Kodinhoito";
+  if(/(?:säilytyslaatikko|säilytyslaatikot|otsalamppu|öl j ykynttilä|öljykynttilä|havulyhty|metallilyhty|matkustamoreppu|irtopohjavuoka|silmä hieroja|silmähieroja|kirkasvalolamppu|tärinälevy|kävelymatto|monitoimitulostin|varavirtalähde|digitaalinen maalitaulu|serpentiini|palvisiivut)/.test(s)) return /palvisiivut/.test(s) ? "Liha & makkarat" : "Koti & vapaa-aika";
+  if(/(?:rouskuva ja tulinen|maustetut sipsit|snacks?)/.test(s)) return "Kuivatuotteet";
+  if(/(?:kassler|palvisiivut)/.test(s)) return "Liha & makkarat";
+  if(/(?:märkäruoat|kissan kuivaruoka|kissan annospuss|puruluut)/.test(s)) return "Lemmikit";
+  if(/(?:8-pack|24-pack|0,33 l\/tlk)/.test(s)) return "Juomat";
+  if(/(?:valio oivariinit|oivariini)/.test(s)) return "Maitotuotteet";
   // Use the existing offer category for supplements; do not catch vitamin drinks.
   if(/(?:monivitamiin|vitamiini(?:t|valmiste|tabletti|kapseli)?\b|ravintolis|magnesium|sinkki\b|omega[- ]?3|kollageeni|biotiini|melatoniini)/.test(s) && !/(?:vitamiinijuoma|juotava\s+vitamiini|virvoitusjuoma)/.test(s)) return "Vitamiinit & ravinteet";
   if(/(?:luku\s*[-–]?\s*ja\s*käsityövalo|lukuja\s*käsityövalo|askartelu\s*[-–]?\s*ja\s*korjausvalo|askarteluja\s*korjausvalo|\b(?:luku|käsityö|askartelu|korjaus)valo\b)/.test(s)) return "Koti & vapaa-aika";
