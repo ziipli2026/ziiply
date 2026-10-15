@@ -231,10 +231,10 @@ export default function ZiiplyMobileFuelView({
                 >
                   ✓
                 </span>
-                <span className="absolute inset-x-0 top-[27%] block max-h-[36px] overflow-hidden text-[clamp(12px,3.4vw,16px)] font-black leading-tight text-[#050505]">
+                <span className="absolute inset-x-0 top-[24%] block max-h-[36px] overflow-hidden text-[clamp(13px,3.8vw,18px)] font-black leading-tight text-[#050505]">
                   {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
                 </span>
-                <span className="absolute inset-x-0 top-[54%] block text-[clamp(12px,3.1vw,15px)] font-black leading-none text-black">
+                <span className="absolute inset-x-0 top-[52%] block text-[clamp(12px,3.4vw,16px)] font-black leading-none text-black">
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
@@ -242,11 +242,11 @@ export default function ZiiplyMobileFuelView({
                     : "–"}
                 </span>
               </button>
-              <p className="pointer-events-none absolute inset-x-0 bottom-1 z-10 flex flex-wrap items-center justify-center gap-x-2 gap-y-0 text-[clamp(11px,3vw,14px)] font-black leading-tight text-[#213224]">
-                <span>D {price(station?.diesel ?? null)}</span>
-                <span>95 {price(station?.price95 ?? null)}</span>
-                <span>98 {price(station?.price98 ?? null)}</span>
-              </p>
+              <div className="pointer-events-none absolute inset-x-1 bottom-1 z-10 grid grid-cols-3 items-end gap-0.5 text-center font-black leading-[1.05] text-[#213224]">
+                <span className="min-w-0"><span className="block text-[10px]">D</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.diesel ?? null)}</span></span>
+                <span className="min-w-0"><span className="block text-[10px]">95 E</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.price95 ?? null)}</span></span>
+                <span className="min-w-0"><span className="block text-[10px]">98 E</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.price98 ?? null)}</span></span>
+              </div>
 
             </article>
           );
