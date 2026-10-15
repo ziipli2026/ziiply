@@ -13997,9 +13997,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  // V859: GS1 DataBar expanded discount label, observed AI 01 + GTIN + AI 91.
+  // Only the verified retailer payload 4574 + percent is decoded; an ordinary
+  // EAN-13 must never be interpreted as a discount just from its final digits.
+  function decodeRedDiscountLabelV859(raw: string): {ean:string;discountPercent:number}|null {
+    const digits = String(raw || "").replace(/\\D/g, "");
+    const match = /^01(0\\d{13})91(4574)(\\d{2})$/.exec(digits);
+    if (!match) return null;
+    const percent = Number(match[3]);
+    if (percent <= 0 || percent > 90) return null;
+    const ean = match[1].slice(1);
+    if (!isUsableEan(ean)) return null;
+    return {ean,discountPercent:percent};
+  }
+
   async function finishScannedEan(code: string) {
-    const normalizedCode = normalizeEan(code);
+    const redDiscountV859 = decodeRedDiscountLabelV859(code);
+    const normalizedCode = redDiscountV859?.ean || normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
+    if (redDiscountV859) {
+      setEanScannerMessage(`Alennustarra −${redDiscountV859.discountPercent} % · EAN ${normalizedCode}`);
+    }
 
     const now = Date.now();
 
