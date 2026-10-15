@@ -57,35 +57,7 @@ async function publishSnapshot(key: string, offers: Row[], publicationIds: strin
       valid_until = EXCLUDED.valid_until, updated_at = NOW()`;
 }
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
-  const key = normalize(selectedStoreName);
-  const now = Date.now();
-  let entry = localCache.get(key);
-  const saved = await readPublishedSnapshot(key);
-  // A complete published weekly snapshot is the mobile/desktop read path.
-  if (saved) return saved;
-  // No cached data: return promptly instead of starting a slow scan from the UI.
-  return [];
-  if (!entry || (!entry.running && now - entry.finishedAt > (entry.progress.stage === "failed" ? FAILED_RETRY_TTL : LOCAL_TTL))) {
-    entry = { rows: [], startedAt: now, finishedAt: 0, running: true,
-      progress: { stage: "starting", storeName: selectedStoreName, storeId: null, publicationIds: [], pages: 0, offerIds: 0, accepted: 0, error: null, updatedAt: new Date().toISOString() } };
-    localCache.set(key, entry);
-    const current = entry;
-    current.promise = readKCitymarketSelectedStoreOffers(selectedStoreName, current).then(async () => {
-      await publishSnapshot(key, current.rows, current.progress.publicationIds);
-      current.progress.stage = "complete";
-    }).catch(error => {
-      current.progress.stage = "failed";
-      current.progress.error = error instanceof Error ? error.message : String(error);
-      console.warn("[K-Citymarket] local Tjek fetch failed", { storeName: selectedStoreName, progress: current.progress });
-    }).finally(() => {
-      current.running = false;
-      current.finishedAt = Date.now();
-      current.progress.updatedAt = new Date().toISOString();
-    });
-  }
-  // Never serve partially read campaign rows as a complete publication.
-  // A missing durable snapshot must not be substituted with unfinished data.
-  return saved ?? (entry && !entry.running && entry.progress.stage === "complete" ? [...entry.rows] : []);
+  return (await readPublishedSnapshot(normalize(selectedStoreName))) ?? [];
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
