@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kcm-off-discovery-'));
+try{
+ const planFile=path.join(dir,'plan.json'),outFile=path.join(dir,'candidates.json'),mockFile=path.join(dir,'mock-fetch.cjs');
+ const publication='https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html';
+ const pdfSha256='d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd';
+ const task={offerId:'kcm:spatial:1:test:1.99',page:1,query:'Test product',publication,pdfSha256,requiresManualVerification:true,autoApply:false};
+ const plan={schemaVersion:1,mode:'offline-image-discovery',readOnly:true,autoApply:false,publication,pdfSha256,taskCount:1,tasks:[task]};
+ fs.writeFileSync(planFile,JSON.stringify(plan));
+ fs.writeFileSync(mockFile,`global.fetch=async(url)=>{if(!String(url).startsWith('https://world.openfoodfacts.org/cgi/search.pl?'))throw Error('Unexpected endpoint');return {ok:true,json:async()=>({products:[{code:'6412345678901',product_name:'Test product',brands:'Test',image_front_url:'https://images.openfoodfacts.org/test.jpg'},{code:'2',image_front_url:'http://unsafe.invalid/image.jpg'}]})}};`);
+ const run=(p,max='1')=>{fs.writeFileSync(planFile,JSON.stringify(p));return spawnSync(process.execPath,['--require',mockFile,'scripts/citymarket/discover-openfoodfacts-images.mjs',planFile,outFile,max],{encoding:'utf8'});};
+ let result=run(plan);
+ assert.equal(result.status,0,result.stderr);
+ const data=JSON.parse(fs.readFileSync(outFile,'utf8'));
+ assert.equal(data.items.length,1);
+ assert.equal(data.items[0].images.length,1);
+ assert.match(data.items[0].images[0].source,/6412345678901/);
+ assert.equal(data.items[0].images[0].url,'https://images.openfoodfacts.org/test.jpg');
+ assert.notEqual(run({...plan,tasks:[{...task,autoApply:true}]}).status,0);
+ assert.notEqual(run(plan,'21').status,0);
+ console.log('KCM_OPENFOODFACTS_MOCK_DISCOVERY_OK');
+}finally{fs.rmSync(dir,{recursive:true,force:true});}
