@@ -39,6 +39,11 @@ export async function parseKCitymarketSpatialLeaflet(entry){
   {page:13,title:/^KASSLER n\. 2,3 kg$/i,value:6.99,quantity:1,unit:'kg'},
   {page:18,title:/^MÄRKÄRUOAT 70 g 420/i,value:4.20,quantity:4,unit:'kpl'},
   {page:19,title:/^AAKKOSET 280–340 g$/i,value:4.50,quantity:2,unit:'ps'},
+  {page:3,title:/TYÖKÄSINEET 235/i,value:6.00,quantity:1,unit:'pari'},
+  {page:7,title:/NAHKAKÄSINEET/i,value:9.00,quantity:1,unit:'pari'},
+  {page:15,title:/TÄYSMEHUT 900 ml/i,value:3.79,quantity:1,unit:'pl'},
+  {page:18,title:/TRIP MEHUT 2 dl 24-pack/i,value:10.00,quantity:1,unit:'24-pack'},
+  {page:19,title:/^VIRVOITUSJUOMA 0,33 l\/pl 24-pack$/i,value:13.99,quantity:1,unit:'24-pack'},
   {page:19,title:/MAKU- ja TUMMASUKLAALEVYT 160–200 g/i,value:10.00,quantity:4,unit:'kpl'},
  ];
  // Preserve explicitly approved historical parsers above. Apply evidence-only
