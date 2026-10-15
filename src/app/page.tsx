@@ -1752,9 +1752,13 @@ async function ziiplyDecodeBarcodeCanvasPageFallback(
     const BarcodeDetectorCtor = (window as any).BarcodeDetector;
     if (!BarcodeDetectorCtor) return null;
 
-    const detector = new BarcodeDetectorCtor({
-      formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code", "data_bar", "data_bar_expanded"],
-    });
+    const requestedFormats = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code", "data_bar", "data_bar_expanded"];
+    const supported = typeof BarcodeDetectorCtor.getSupportedFormats === "function"
+      ? await BarcodeDetectorCtor.getSupportedFormats()
+      : requestedFormats;
+    const formats = requestedFormats.filter((format) => supported.includes(format));
+    if (!formats.length) return null;
+    const detector = new BarcodeDetectorCtor({ formats });
     const results = await detector.detect(canvas);
     const first = results?.[0];
 
@@ -14002,8 +14006,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // Only the verified retailer payload 4574 + percent is decoded; an ordinary
   // EAN-13 must never be interpreted as a discount just from its final digits.
   function decodeRedDiscountLabelV859(raw: string): {ean:string;discountPercent:number}|null {
-    const digits = String(raw || "").replace(/\\D/g, "");
-    const match = /^01(0\\d{13})91(4574)(\\d{2})$/.exec(digits);
+    const digits = String(raw || "").replace(/\D/g, "");
+    const match = /^01(0\d{13})91(4574)(\d{2})$/.exec(digits);
     if (!match) return null;
     const percent = Number(match[3]);
     if (percent <= 0 || percent > 90) return null;
