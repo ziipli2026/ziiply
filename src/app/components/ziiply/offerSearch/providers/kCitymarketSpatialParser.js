@@ -57,8 +57,8 @@ export async function parseKCitymarketSpatialLeaflet(entry){
  // Split only this verified publication/page/title; do not infer a second
  // price from neighboring cards or apply the split to other leaflets.
  const split42LVRow=row=>verified42LV&&row.page===18&&/ATERIAT 8 kk 190 g.*KISSAN KUIVARUOAT 400 g/i.test(String(row.title||''))?[
-  {...row,title:'Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g',spatialResolved:{value:5,quantity:4,unit:'kpl',source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},percentageOffer:null},
-  {...row,title:'PrimaCat KISSAN KUIVARUOAT 400 g',spatialResolved:{value:10,quantity:3,unit:'ps',source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},percentageOffer:null}
+  {...row,title:'Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g',normal:null,unitPrice:null,package:null,spatialResolved:{value:5,quantity:4,unit:'kpl',source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},percentageOffer:null},
+  {...row,title:'PrimaCat KISSAN KUIVARUOAT 400 g',normal:null,unitPrice:null,package:null,spatialResolved:{value:10,quantity:3,unit:'ps',source:'verified-original-42lv-pdf',sanity:'pass',confidence:'high'},percentageOffer:null}
  ]:[row];
  return {...current,rows:current.rows.flatMap(row=>{
   const repaired=repairPublisherTransaction(row);
