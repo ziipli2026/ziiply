@@ -665,12 +665,30 @@ async function readCachedPeriod(period:KCitymarketPeriod){
   citymarketHtmlDebugV8=payload.debug;
   return payload;
 }
+// Stage a verified-period parse for background image enrichment without
+// overwriting reviewed publications or images previously attached by the worker.
+async function stageKCitymarketImages(payload:KCitymarketCachedPayload){
+  if(!process.env.DATABASE_URL || !payload.offers.length)return;
+  const publicationId=String(payload.offers[0]?.sourceUrl||"");
+  if(!publicationId || !leafletMatchesPeriod(publicationId,payload.period))throw new Error("Image staging publication mismatch");
+  const validFrom=payload.period.startDate;
+  const validUntil=shiftIsoDate(validFrom,payload.period.kind==="AV"?2:3);
+  const offers=payload.offers.filter(offer=>offer.id && offer.title && offer.sourceUrl===publicationId);
+  if(offers.length!==payload.offers.length)throw new Error("Image staging contains mixed or unidentified offers");
+  const sql=neon(process.env.DATABASE_URL);
+  // DO NOTHING is intentional: a re-warm must not discard worker-enriched photos.
+  await sql`INSERT INTO ziiply_offer_publications
+    (chain,publication_id,valid_from,valid_until,offers,approval_state)
+    VALUES ('K',${publicationId},${validFrom}::date,${validUntil}::date,${JSON.stringify(offers)}::jsonb,'candidate')
+    ON CONFLICT(chain,publication_id) DO NOTHING`;
+}
 export async function warmKCitymarketOfferCache(now=new Date()){
   const active=getActiveKCitymarketPeriod(now);
   const next=getNextKCitymarketPeriod(now);
   const result:{active:{period:string;offers:number;cachedAt:string}|null;next:{period:string;offers:number;cachedAt:string}|null;errors:string[]}={active:null,next:null,errors:[]};
   try{
     const payload=await readCachedPeriod(active);
+    await stageKCitymarketImages(payload);
     result.active={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
   }catch(error){
     result.errors.push("active "+active.key+": "+(error instanceof Error?error.message:String(error)));
@@ -678,6 +696,7 @@ export async function warmKCitymarketOfferCache(now=new Date()){
   if(next){
     try{
       const payload=await readCachedPeriod(next);
+      await stageKCitymarketImages(payload);
       result.next={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
     }catch(error){
       result.errors.push("next "+next.key+": "+(error instanceof Error?error.message:String(error)));
