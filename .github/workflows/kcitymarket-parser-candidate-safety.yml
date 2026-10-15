@@ -93,5 +93,7 @@ jobs:
         if: always()
         with:
           name: kcitymarket-42lv-missing-images
-          path: artifacts/citymarket-images/42lv-missing-images.json
+          path: |
+            artifacts/citymarket-images/42lv-missing-images.json
+            artifacts/citymarket-images/42lv-missing-images-lookup-only.json
           retention-days: 30
