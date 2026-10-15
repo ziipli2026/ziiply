@@ -1,6 +1,7 @@
 import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
 import { clean42AVPrintedTitle } from "./kCitymarket42AVTitleCleanup.js";
 import { unstable_cache } from "next/cache";
+import citymarketPublisherImageRegistry from "./data/kCitymarketLeafletImages.json";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 import { getKCitymarketPublisherImage, auditKCitymarketPublisherImages } from "./kCitymarketPublisherImages";
@@ -57,7 +58,7 @@ const money=(s:string)=>Number(String(s).replace(",","."));
 const abs=(href:string,base:string)=>{try{return new URL(href,base).href}catch{return null}};
 
 async function html(url:string){
-  const r=await fetch(url,{redirect:"follow",headers:{"accept":"text/html,application/xhtml+xml","user-agent":"Ziiply/1.0"}});
+  const r=await fetch(url,{redirect:"follow",headers:{"accept":"text/html,application/xhtml+xml","user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(12000)});
   if(!r.ok) throw new Error(`K-Citymarket HTTP ${r.status}: ${url}`);
   return {url:r.url,text:await r.text()};
 }
@@ -632,7 +633,11 @@ const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-15-W42-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html",
 };
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
-  return PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
+  // Prefer immutable publisher URLs already verified by the automated image pipeline.
+  // This avoids a rolling landing page silently switching to another publication.
+  const knownPublications=Object.keys(citymarketPublisherImageRegistry.publications);
+  const verified=knownPublications.find(url=>leafletMatchesPeriod(url,period));
+  return verified??PINNED_KCITYMARKET_LEAFLETS[period.key]??(period.kind==="AV"?AV_ENTRY:LV_ENTRY);
 }
 const getCachedKCitymarketPeriod=unstable_cache(
   async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
