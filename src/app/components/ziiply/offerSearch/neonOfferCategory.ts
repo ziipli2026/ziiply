@@ -157,7 +157,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     const codes = [...new Set([...eanRows, ...nameRows].map(row => String(row.category)).filter(category => /^CA[A-Z]{8,}$/.test(category)))];
     if (codes.length) {
       try {
-        const mappings = await sql`SELECT code, category_path FROM ziiply_category_code_mappings WHERE code = ANY(${codes}::text[])`;
+        const mappings = await sql`SELECT code, category_path FROM ziiply_category_code_mappings WHERE code = ANY(${codes}::text[]) AND evidence_count >= 2`;
         const resolved = new Map(mappings.map(row => [String(row.code), String(row.category_path)]));
         for (const row of [...eanRows, ...nameRows]) {
           const path = resolved.get(String(row.category));
