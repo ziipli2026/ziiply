@@ -33,6 +33,8 @@ export async function parseKCitymarketSpatialLeaflet(entry){
   {page:17,title:/VIHANNESSEKOITUKSET 300 g/i,value:5.00,quantity:3,unit:'ps'},
   {page:17,title:/JÄÄTELÖPUIKOT 64–85 g/i,value:5.00,quantity:3,unit:'kpl'},
   {page:19,title:/Pringles PERUNA LASTUT/i,value:5.00,quantity:3,unit:'kpl'},
+  {page:18,title:/^SMOOTHIET 120 g$/i,value:5.50,quantity:4,unit:'kpl'},
+  {page:19,title:/MAKU- ja TUMMASUKLAALEVYT 160–200 g/i,value:10.00,quantity:4,unit:'kpl'},
  ];
  // Preserve explicitly approved historical parsers above. Apply evidence-only
  // transaction correction to other publications without relying on issue number.
