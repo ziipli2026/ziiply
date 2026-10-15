@@ -717,17 +717,16 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
       const direct=index.get(norm(imageIdentity(offer.title)))||[];
       const offerSize=size(offer.packageSize)||size(offer.title);
       const candidates=direct.length?direct:(byProductName.get(nameOnly(imageIdentity(offer.title)))||[]).filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
-      const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()];
-      // A shared image is safe to reuse, but multiple EANs must not be
-      // presented as a verified product barcode.
+      const matches=[...new Map(candidates.map(row=>[String(row.ean),row])).values()]
+        .filter(row=>!offerSize || (size(row.quantity)||size(row.name))===offerSize);
+      // All accepted catalogue rows must match the leaflet package size.
+      // Multiple EANs can share one image, but never assign an arbitrary EAN.
       const uniqueImages=[...new Set(matches.map(row=>String(row.image_url??"")))];
       if(!matches.length || uniqueImages.length!==1 || !/^https:\/\//i.test(uniqueImages[0])){
         if(matches.length>1)stats.ambiguous++;else stats.missing++;
         return offer;
       }
       const row=matches[0];
-      const bankSize=size(row.quantity)||size(row.name);
-      if(offerSize && bankSize!==offerSize)return offer;
       const ean=String(row.ean??"");
       const imageUrl=String(row.image_url??"");
       if(!/^\d{8,14}$/.test(ean)||!/^https:\/\//i.test(imageUrl)){stats.invalidImage++;return offer;}
