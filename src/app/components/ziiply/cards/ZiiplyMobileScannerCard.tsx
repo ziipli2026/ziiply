@@ -152,6 +152,23 @@ export default function ZiiplyMobileScannerCard({
   const noticeIsError = /ei löytynyt|ei tunnistettu|virhe|epäonnistui/i.test(visibleMessage);
   const noticeIsSuccess = !noticeIsError && /lisätty|kerätty|✓/i.test(visibleMessage);
 
+  const [gpsAcknowledgement, setGpsAcknowledgement] = useState("");
+  const gpsAcknowledgedKeyRef = useRef("");
+  useEffect(() => {
+    if (!storeLocation?.verified || !storeLocation.name) {
+      gpsAcknowledgedKeyRef.current = "";
+      setGpsAcknowledgement("");
+      return;
+    }
+    const key = storeLocation.name;
+    if (gpsAcknowledgedKeyRef.current === key) return;
+    gpsAcknowledgedKeyRef.current = key;
+    setGpsAcknowledgement(key);
+    const timeout = window.setTimeout(() => setGpsAcknowledgement(""), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [storeLocation?.verified, storeLocation?.name]);
+
+
   const hasSelectionResults = selectionResults.length > 1;
 
   function getSelectionName(result: ZiiplyMobileScannerSelectionResult) {
@@ -362,7 +379,7 @@ export default function ZiiplyMobileScannerCard({
       {storeLocation?.name && (
         <div role="status" aria-live="polite" className={["relative z-10 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold",storeLocation.verified?"border-emerald-700 bg-emerald-100 text-emerald-950":"border-[#b9975c] bg-[#f7e6bd] text-[#3d3525]"].join(" ")}>
           <span aria-hidden="true" className={["h-2.5 w-2.5 shrink-0 rounded-full",storeLocation.verified?"bg-emerald-600":storeLocation.checking?"animate-pulse bg-amber-500":"bg-stone-500"].join(" ")}/>
-          <span className="min-w-0 truncate">{storeLocation.verified?"GPS · Kauppa tunnistettu":storeLocation.checking?"GPS · Tarkistetaan sijaintia":"Valittu kauppa"}: {storeLocation.name}</span>
+          <span className="min-w-0 truncate">{storeLocation.verified && gpsAcknowledgement ? `✓ GPS vahvisti: ${gpsAcknowledgement}` : storeLocation.verified ? "GPS · Kauppa tunnistettu" : storeLocation.checking ? "GPS · Tarkistetaan sijaintia" : "Valittu kauppa"}{!(storeLocation.verified && gpsAcknowledgement) && `: ${storeLocation.name}`}</span>
         </div>
       )}
       {/* Kamera-alue */}
