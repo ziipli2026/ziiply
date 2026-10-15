@@ -14,6 +14,22 @@ const parsed=await parseKCitymarketSpatialLeaflet(frozen.entry);
 // The provider calls this canonicalization before converting rows to UI offers.
 // Check that the two PDF-verified cards remain separate across that boundary.
 const canonicalRows=canonicalCitymarketProductRows(parsed.rows);
+const coverageReportPath=process.env.KCM_42LV_MISSING_IMAGES_REPORT;
+if(coverageReportPath){
+ const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json','utf8'));
+ const pub=manifest.publications[frozen.entry];
+ if(!pub)throw Error('Missing 42LV image publication entry: '+frozen.entry);
+ const expectedHash='d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd';
+ if(pub.pdfSha256!==expectedHash)throw Error('42LV image publication hash mismatch');
+ const offerId=row=>'kcm:spatial:'+row.page+':'+String(row.title||'').trim().toLowerCase()+':'+Number(row.spatialResolved?.value);
+ const pricedRows=canonicalRows.filter(row=>Number(row.spatialResolved?.value)>0&&!row.spatialResolved?.displayOnlyUnitPrice);
+ const missingImages=pricedRows.filter(row=>!pub.images[offerId(row)]).map(row=>({page:row.page,title:row.title,offerId:offerId(row),price:row.spatialResolved.value}));
+ const report={schemaVersion:1,publication:frozen.entry,pdfSha256:expectedHash,pricedOfferCount:pricedRows.length,matchedImageCount:pricedRows.length-missingImages.length,missingImageCount:missingImages.length,missingImages};
+ fs.mkdirSync(coverageReportPath.slice(0,coverageReportPath.lastIndexOf('/'))||'.',{recursive:true});
+ fs.writeFileSync(coverageReportPath,JSON.stringify(report,null,2)+'\n');
+ console.log('KCM_42LV_MISSING_IMAGE_QUEUE',JSON.stringify({pricedOffers:report.pricedOfferCount,matched:report.matchedImageCount,missing:report.missingImageCount}));
+}
+
 const canonicalChecks=[
  {match:/^Piltti POHJOISEN MAUT ATERIAT 8 kk 190 g$/i,price:5,quantity:4,unit:'kpl'},
  {match:/^PrimaCat KISSAN KUIVARUOAT 400 g$/i,price:10,quantity:3,unit:'ps'}
