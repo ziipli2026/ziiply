@@ -604,8 +604,11 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (kStoreNamesV162.length > 0) params.set("kStoreName", kStoreNamesV162.join("||"));
   params.set("_", `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
+  // A stalled upstream leaflet parser must never leave the mobile spinner running
+  // indefinitely. Abort the entire request, not just the optional local feed.
   const response = await fetch(`/api/offers/search?${params.toString()}`, {
     cache: "no-store",
+    signal: AbortSignal.timeout(20000),
   });
 
   const clonedForDebugV174 = response.clone();
