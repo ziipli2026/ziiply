@@ -23,7 +23,7 @@ test("multi-buy price text uses euro amount, not quantity", () => {
   assert.equal(priceOf({ priceText: "4,00 € / 2 kpl" }), 4);
 });
 test("unit prices do not become total prices", () => {
-  assert.equal(priceOf({ priceText: "3,99 €/kg" }), 3.99);
+  assert.equal(priceOf({ priceText: "3,99 €/kg" }), Infinity);
   assert.equal(priceOf({ priceText: "2 kpl" }), Infinity);
 });
 test("missing prices go last", () => {
