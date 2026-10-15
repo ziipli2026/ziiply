@@ -12,6 +12,7 @@ if(plan.schemaVersion!==1||plan.mode!=='offline-image-discovery'||plan.readOnly!
 const items=[];
 let failures=0;
 let unavailable=0;
+let circuitOpen=false;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 for(const task of plan.tasks.slice(0,maxTasks)){
  if(task.pdfSha256!==plan.pdfSha256||task.publication!==plan.publication||task.autoApply!==false||task.requiresManualVerification!==true||!task.offerId?.startsWith('kcm:spatial:'))throw Error('Unsafe discovery task');
@@ -28,11 +29,13 @@ for(const task of plan.tasks.slice(0,maxTasks)){
   images=(Array.isArray(payload.products)?payload.products:[]).filter(p=>typeof p.image_front_url==='string'&&p.image_front_url.startsWith('https://')).slice(0,5).map(p=>({url:p.image_front_url,source:'Open Food Facts; EAN '+String(p.code||'unknown')+'; '+String(p.product_name||'unnamed').slice(0,120)+'; '+String(p.brands||'').slice(0,80),ean:/^\d{8,14}$/.test(String(p.code||''))?String(p.code):null,productName:String(p.product_name||'').slice(0,160),brand:String(p.brands||'').slice(0,100),identityVerified:false}));
  }catch(error){failures++;console.warn('KCM_IMAGE_DISCOVERY_LOOKUP_FAILED',JSON.stringify({offerId:task.offerId,error:String(error.message||error)}));}
  items.push({offerId:task.offerId,images});
- if(unavailable>=3){console.warn('KCM_IMAGE_DISCOVERY_CIRCUIT_OPEN','Too many rate limits or 503 responses; stop requests for this run');break;}
+ if(unavailable>=3){circuitOpen=true;console.warn('KCM_IMAGE_DISCOVERY_CIRCUIT_OPEN','Too many rate limits or 503 responses; remaining lookups are deferred');break;}
  await delay(400);
  console.log('KCM_IMAGE_DISCOVERY_PROGRESS',JSON.stringify({done:items.length,total:Math.min(plan.tasks.length,maxTasks),candidates:images.length}));
 }
-const result={schemaVersion:1,publication:plan.publication,pdfSha256:plan.pdfSha256,items};
+const attemptedIds=new Set(items.map(item=>item.offerId));
+const deferredTasks=plan.tasks.slice(0,maxTasks).filter(task=>!attemptedIds.has(task.offerId));
+const result={schemaVersion:1,publication:plan.publication,pdfSha256:plan.pdfSha256,items,deferredTasks,discoveryStatus:circuitOpen?'provider-unavailable':failures?'partial-failures':'completed',autoApply:false};
 fs.mkdirSync(path.dirname(output),{recursive:true});
 fs.writeFileSync(output,JSON.stringify(result,null,2)+'\n');
-console.log('KCM_IMAGE_DISCOVERY_FINISHED',JSON.stringify({output,lookups:items.length,withCandidates:items.filter(i=>i.images.length).length,failures,unavailable,abortedEarly:items.length<Math.min(plan.tasks.length,maxTasks)}));
+console.log('KCM_IMAGE_DISCOVERY_FINISHED',JSON.stringify({output,lookups:items.length,withCandidates:items.filter(i=>i.images.length).length,failures,unavailable,abortedEarly:circuitOpen,deferred:deferredTasks.length}));
