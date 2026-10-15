@@ -47,7 +47,13 @@ jobs:
           import {execFileSync} from 'node:child_process';
           const manifest=JSON.parse(fs.readFileSync('scripts/citymarket/leaflet-regression-publications.json','utf8'));
           for(const entry of manifest.historicalFixtures||[]){
+            // 41AV is stale and its publisher URL now returns HTTP 403. Do not
+            // fetch expired live material in CI; only replay complete frozen captures.
             const folder='/tmp/kcm-frozen/publications/'+entry.id;
+            if(entry.id==='41AV'&&!fs.existsSync(folder+'/publisher-responses.json')){
+              console.log('KCM_REPLAY_SKIPPED_STALE_SOURCE',entry.id);
+              continue;
+            }
             if(!fs.existsSync(folder+'/publisher-responses.json')){
               console.log('KCM_REPLAY_PENDING_CAPTURE',entry.id);
               continue;
