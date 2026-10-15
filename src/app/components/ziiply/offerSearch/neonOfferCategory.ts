@@ -4,6 +4,8 @@ import { neon } from "@neondatabase/serverless";
 const labels = new Set(["Kahvi & tee","Maitotuotteet","Liha & makkarat","Kala","Leipomo","Hevi","Juomat","Pakasteet","Valmisruoka","Kuivatuotteet","Makeiset & keksit","Lastenruoat","Lastenhoito","Vitamiinit & ravinteet","Lemmikit","Hygienia & kosmetiikka","Kodinhoito","Koti & vapaa-aika","Muut"]);
 export function neonOfferDisplayCategory(category: string): string | null {
   const raw = category.trim();
+  // Generic "Muut" is not reliable enough to override a specific provider classification.
+  if (raw === "Muut") return null;
   if (labels.has(raw)) return raw;
   // Neon also stores newer provider-specific display labels and opaque category IDs.
   // Map known labels explicitly; opaque IDs need a taxonomy lookup, not a guess.
