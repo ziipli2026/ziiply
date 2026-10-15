@@ -38,6 +38,11 @@ const printedChecks=[
   {page:20,match:/VICHY 0,33 l\/pl 24-pack/i,price:10.99},
   {page:20,match:/WOK-KASTIKKEET 120 g/i,price:1.00},
   {page:18,match:/VITAL HYVINVOINTIMEHUT 1 l/i,price:4.50,quantity:2},
+  {page:15,match:/iKAFFE MAUSTAMATON KAURAJUOMA 1 l/i,price:9,quantity:6},
+  {page:15,match:/LEMPI RUOKAKERMAT 3 dl/i,price:3,quantity:2},
+  {page:17,match:/VIHANNESSEKOITUKSET 300 g/i,price:5,quantity:3},
+  {page:17,match:/JÄÄTELÖPUIKOT 64–85 g/i,price:5,quantity:3},
+  {page:19,match:/Pringles PERUNA LASTUT/i,price:5,quantity:3},
 ];
 const printedMismatches=printedChecks.map(check=>{
  const matches=parsed.rows.filter(r=>r.page===check.page&&check.match.test(String(r.title||'')));
