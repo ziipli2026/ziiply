@@ -2158,6 +2158,7 @@ function KauppiasMobileTopBar({
   onWeatherBootGpsFailed,
   onOpenCalendar,
   onShowFuel,
+  fuelModeActive = false,
 }: {
   hidden?: boolean;
   areaLabel?: string;
@@ -2167,6 +2168,7 @@ function KauppiasMobileTopBar({
   onWeatherBootGpsFailed?: () => void;
   onOpenCalendar?: () => void;
   onShowFuel?: () => void;
+  fuelModeActive?: boolean;
 }) {
   // V481_WEATHER_BOOT_GPS_SOURCE:
   // Sääkenttä saa tehdä avauksessa yhden GPS-haun. Onnistunut koordinaatti
@@ -2846,7 +2848,14 @@ function KauppiasMobileTopBar({
       unit: fuelValueV744 === "—" ? "" : "€/l",
       detail: fuelTextV744,
       graphic: <KauppiasFuelGraphic />,
-      onClick: () => setMobileFuelMenuOpen(true),
+      onClick: () => {
+        if (fuelModeActive) {
+          setMobileFuelMenuOpen(false);
+          onShowFuel?.();
+        } else {
+          setMobileFuelMenuOpen(open => !open);
+        }
+      },
     },
     {
       id: "calendar" as const,
@@ -2927,6 +2936,7 @@ function KauppiasMobileTopBar({
                   onClick={panel.onClick}
                   className={className}
                   aria-label={panel.title}
+                  aria-pressed={panel.id === "fuel" ? fuelModeActive : undefined}
                 >
                   {inner}
                 </button>
@@ -22932,7 +22942,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             hidden={searchFullscreenOpenV621}
             areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
-            onShowFuel={() => { openShopsPanel(); setMobileFuelMode(true); setActiveAssistant(null); setNotebookOpen(false); }}
+            fuelModeActive={mobileFuelMode}
+            onShowFuel={() => { openShopsPanel(); setMobileFuelMode(active => !active); setActiveAssistant(null); setNotebookOpen(false); }}
             weatherEnabled={true}
             onOpenCalendar={() => {
               try {
