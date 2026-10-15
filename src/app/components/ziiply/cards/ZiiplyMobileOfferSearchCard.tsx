@@ -863,7 +863,15 @@ export default function ZiiplyMobileOfferSearchCard({
   // locally filtered results or a provider refresh in a different order.
   // Preserve the original order for equal prices.
   const items = dedupeOfferCardsV13(rawItems).sort((a, b) => {
+    // Sort by the same displayed total offer price as the card. For example,
+    // "2 kpl / 4,00 €" is a 4 € offer, not a 2 € offer.
     const priceOf = (offer: ZiiplyMobileOfferSearchItem) => {
+      const displayed = getOfferPrice(offer).trim();
+      const euroPrice = displayed.match(/(\d+(?:[,.]\d{1,2})?)\s*€/);
+      if (euroPrice) {
+        const value = Number(euroPrice[1].replace(",", "."));
+        if (Number.isFinite(value) && value > 0) return value;
+      }
       const source = offer.__sourceOfferSearchResult || offer;
       const candidate = offer.offerPrice ?? offer.price ?? source.offerPrice ?? source.price;
       if (candidate == null || String(candidate).trim() === "") return Infinity;
