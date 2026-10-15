@@ -79,5 +79,15 @@ const unitRateAudit=parsed.rows.flatMap(row=>{
  return delta>Math.max(.10,expectedTotal*.08)?[{page:row.page,title,price,quantity,expectedUnitPrice:Number(expected.toFixed(2)),expectedTotal:Number(expectedTotal.toFixed(2)),unit:kind,source:row.spatialResolved?.source}]:[];
 });
 console.log('42LV unit-rate discrepancy triage (review required, no automatic corrections)',JSON.stringify({count:unitRateAudit.length,rows:unitRateAudit}));
+// Make audit coverage explicit: zero discrepancies does not mean all offers were checked.
+const unitRateCoverage=priced.reduce((acc,row)=>{
+ const title=String(row.title||'');
+ const hasMass=/(?:^|\\s)\\d{2,4}\\s*g\\b/i.test(title)&&/\\(\\d+[,.]\\d+\\s*\\/\\s*kg\\)/i.test(title);
+ const hasVolume=/(?:^|\\s)\\d+[,.]\\d+\\s*l\\b/i.test(title)&&/\\(\\d+[,.]\\d+\\s*\\/\\s*l\\)/i.test(title);
+ if(hasMass||hasVolume)acc.comparable++;
+ else acc.notComparable.push({page:row.page,title:row.title});
+ return acc;
+},{comparable:0,notComparable:[]});
+console.log('42LV unit-rate audit coverage',JSON.stringify({pricedOffers:priced.length,comparable:unitRateCoverage.comparable,notComparableCount:unitRateCoverage.notComparable.length,notComparable:unitRateCoverage.notComparable}));
 console.log('42LV replay (snapshot parity only; NOT printed-price approval)',JSON.stringify({pages:parsed.pageCount,rows:parsed.rows.length,pricedOffers:priced.length,archivedRows:baseline.rows.length,added,missing,changed,unresolved,percentageOnly,unjustifiedPercentageOnly,missingPercentage,pricedPercentage,invalidPrices,changedQuantity,quantityUnverified,percentAsPrice}));
 if(parsed.rows.length!==96||priced.length!==85||baseline.rows.length!==89||percentageOnly.length!==4||parsed.pageCount!==20||added.length>0||missing.some(r=>!percentageOnly.some(p=>key(p)===key(r)))||percentAsPrice.length>0||unjustifiedPercentageOnly.length>0||missingPercentage.length>0||pricedPercentage.length>0||invalidPrices.length>0||changedQuantity.length>0||unexpectedChanged.length>0)process.exitCode=1;
