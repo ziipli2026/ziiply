@@ -11,14 +11,14 @@ try {
  if (error?.code !== "42P01") throw error;
  console.warn("ziiply_skaupat_protocol is missing in DATABASE_URL target; using built-in protocol defaults.");
 }
-const stores=(process.env.COOP_STORE_IDS||"603217266,634976534,685839110").split(",").map(s=>s.trim()).filter(Boolean);
+const stores=[...new Set((process.env.COOP_STORE_IDS||"603217266,634976534,685839110,725796790,725856933,726425715,590777876").split(",").map(s=>s.trim()).filter(Boolean))];
 const limit=48, maxPages=Number(process.env.COOP_MAX_PAGES||500);
 const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const seen=new Map();
-let fetched=0,invalid=0,pages=0,inserted=0;
+let fetched=0,invalid=0,pages=0,inserted=0;\nconst storeSummaries=[];
 for(const storeId of stores){
  let total=Infinity;
- for(let from=0;from<total&&pages<maxPages;from+=limit){
+ let storeFetched=0,storeUniqueBefore=seen.size;\n for(let from=0;from<total&&pages<maxPages;from+=limit){
   const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"brandName",value:["Coop"]}],generatedSessionId:"ziiply-coop-import",fetchSponsoredContent:false,from,offset:from,skip:from,page:Math.floor(from/limit)+1,limit,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"ziiply-coop-import"};
   const extensions={clientLibrary:{name:"@apollo/client",version:protocol.apollo_version},persistedQuery:{version:1,sha256Hash:protocol.persisted_query_hash}};
   const endpoint=new URL("https://api.s-kaupat.fi/");
@@ -39,7 +39,7 @@ for(const storeId of stores){
   if(!root||!Array.isArray(root.productListItems))throw new Error("Unexpected S-kaupat response");
   const items=root.productListItems;
   total=Number(root.total??0);
-  pages++;fetched+=items.length;
+  pages++;fetched+=items.length;storeFetched+=items.length;
   for(const entry of items){
    const p=entry.product??entry;
    const ean=String(p.ean??"").trim();
@@ -53,7 +53,7 @@ for(const storeId of stores){
   await new Promise(r=>setTimeout(r,250));
  }
 }
-const products=[...seen.values()];
+if(fetched===0||seen.size===0) throw new Error(`Coop import returned zero usable products. Check S-kaupat protocol, filters, and store IDs. pages=${pages}, fetched=${fetched}, invalid=${invalid}`);\nif(pages>=maxPages) console.warn(JSON.stringify({warning:"COOP_MAX_PAGES limit reached",maxPages,pages}));\nconst products=[...seen.values()];
 for(let i=0;i<products.length;i+=100){
  const batch=products.slice(i,i+100);
  const rows=await sql`INSERT INTO ziiply_ean_products(ean,name,brand,source)
@@ -61,4 +61,4 @@ for(let i=0;i<products.length;i+=100){
  ON CONFLICT(ean) DO NOTHING RETURNING ean`;
  inserted+=rows.length;
 }
-console.log(JSON.stringify({complete:true,stores,pages,fetched,unique:seen.size,invalid,inserted,alreadyPresent:seen.size-inserted}));
+console.log(JSON.stringify({complete:true,stores,storeSummaries,pages,fetched,unique:seen.size,invalid,inserted,alreadyPresent:seen.size-inserted}));
