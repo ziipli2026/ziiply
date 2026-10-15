@@ -871,6 +871,8 @@ function gostaOfferSortPrice(item: ZiiplyGostaOfferLike): number {
   for (const candidate of [raw?.priceText, item?.priceText]) {
     const value = String(candidate ?? "").trim();
     if (!value) continue;
+    // A unit comparison price is not the payable transaction price.
+    if (/€\s*\/\s*(?:kg|l|kpl|100\s*g|100\s*ml)\b/i.test(value)) continue;
     // Match an amount tied to €, regardless of whether quantity precedes it.
     const euro = value.match(/(\d{1,5}(?:[,.]\d{1,2})?)\s*(?:€|eur)(?!\w)/i);
     if (euro) {
