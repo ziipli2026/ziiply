@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ZiiplyMobileAssistantButton from "./ZiiplyMobileAssistantButton";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 
@@ -14,6 +14,8 @@ export default function ZiiplyMobileHomeView({
   onSelectAssistant,
 }: Props) {
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [contentScale, setContentScale] = useState(1);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let delayedMeasure: ReturnType<typeof setTimeout> | null = null;
@@ -53,6 +55,41 @@ export default function ZiiplyMobileHomeView({
     };
   }, []);
 
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+
+    let frame = 0;
+    const fitContent = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const nav = document.querySelector<HTMLElement>('nav[aria-label="Ziiply päävalikko"]');
+        if (!nav) return;
+        // Measure the real gap above the fixed bottom navigation. A CSS transform
+        // scales the landing content without enabling scrolling or changing nav.
+        const available = nav.getBoundingClientRect().top - content.getBoundingClientRect().top - 12;
+        const naturalHeight = content.scrollHeight;
+        if (available <= 0 || naturalHeight <= 0) return;
+        const nextScale = Math.min(1, Math.max(0.5, available / naturalHeight));
+        setContentScale((previous) => Math.abs(previous - nextScale) > 0.005 ? nextScale : previous);
+      });
+    };
+
+    const observer = new ResizeObserver(fitContent);
+    observer.observe(content);
+    window.addEventListener("resize", fitContent);
+    window.addEventListener("pageshow", fitContent);
+    window.visualViewport?.addEventListener("resize", fitContent);
+    fitContent();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", fitContent);
+      window.removeEventListener("pageshow", fitContent);
+      window.visualViewport?.removeEventListener("resize", fitContent);
+    };
+  }, [viewportHeight]);
+
   return (
     <div
       className="relative isolate sm:hidden -mx-4 px-4 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+104px)] overflow-hidden"
@@ -84,6 +121,7 @@ export default function ZiiplyMobileHomeView({
         }}
       />
 
+      <div ref={contentRef} style={{ transform: `scale(${contentScale})`, transformOrigin: "top center" }}>
       <section
         className="flex flex-col items-center text-center"
         style={{
@@ -149,6 +187,7 @@ export default function ZiiplyMobileHomeView({
           />
         </div>
       </section>
+      </div>
     </div>
   );
 }
