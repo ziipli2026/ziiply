@@ -108,8 +108,8 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       const freshIds=ids.filter(id=>!seen.has(id));
       entry.progress.offerIds += freshIds.length;
       freshIds.forEach(id=>seen.add(id));
-      for(let offset=0;offset<freshIds.length;offset+=8){
-      const fetched=await Promise.all(freshIds.slice(offset,offset+8).map(async id=>{
+      for(let offset=0;offset<freshIds.length;offset+=24){
+      const fetched=await Promise.all(freshIds.slice(offset,offset+24).map(async id=>{
         try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{failedOfferIds.add(id);return null;}
       }));
       for(const fetchedEntry of fetched){
