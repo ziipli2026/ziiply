@@ -549,6 +549,10 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       unitPrice,
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       ...citymarketTransactionMetadata(row),
+      ...(resolved?.source?.startsWith("owned-printed") && (resolved?.unit === "setti" || resolved?.packageCount > 1) ? {
+        priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
+        priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
+      } : {}),
       packageSize:row?.package?.raw??null,
       offerQuantity,
       offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
@@ -770,7 +774,10 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   // User-facing searches are read-only: never fetch or parse publisher pages.
   // The cron job populates this durable Neon snapshot ahead of publication.
   const stored=await readActivePublicationOffers<CitymarketOffer>("K-Citymarket");
-  if(stored.length)return stored;
+  if(stored.length){
+    const { correctPreparedCitymarketPrices }=await import("./kCitymarketPreparedPriceCorrections");
+    return correctPreparedCitymarketPrices(stored);
+  }
   throw new Error("Valmis viikkolehtiaineisto puuttuu");
   // Migration safety: do not break desktop or mobile when the first snapshot
   // has not been seeded yet. Recover from the immutable publisher URL once,

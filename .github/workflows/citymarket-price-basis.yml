@@ -1,0 +1,30 @@
+name: Citymarket price basis regression
+on:
+  push:
+    branches: [fix/citymarket-price-basis, fix/citymarket-price-basis-main]
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarket*'
+      - 'tests/kcitymarket-price-basis.test.cjs'
+      - 'tests/fixtures/citymarket/42LV-*'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install --package-lock=false --ignore-scripts --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - name: Printed prices and all 544 prepared rows
+        run: node --test tests/kcitymarket-price-basis.test.cjs
+      - name: Preserve approved historical publications
+        run: node --test tests/kcitymarket-42av-printed-transactions.test.mjs
+      - name: Complete campaign snapshots
+        run: node --test tests/kcitymarket-complete-snapshot.test.cjs
