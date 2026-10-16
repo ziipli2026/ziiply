@@ -1271,7 +1271,7 @@ function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
-  const bundle = String(item.priceText ?? "").match(/(\\d+(?:[,.]\\d+)?)\\s*€\\s*\\/\\s*(\\d+)\\s*(?:kpl|pkt|ps|plo|prk)/i);
+  const bundle = String(item.priceText ?? "").match(/(\d+(?:[,.]\d+)?)\s*€\s*\/\s*(\d+)\s*(?:kpl|pkt|ps|plo|prk)/i);
   const bundleTotal = bundle ? Number(bundle[1].replace(",", ".")) : null;
   const bundleQuantity = bundle ? Number(bundle[2]) : null;
   return {
