@@ -320,7 +320,11 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
     sourceItem?.department, sourceItem?.productGroup, sourceItem?.subCategory]
     .filter(Boolean).map((v: unknown) => normalizeGostaCoreText(v));
   const hierarchy = fields.join(" ");
-  const detailed = fields.slice(1).join(" ");
+  // The categoryPath repeats the broad parent. Read only the actual nested
+  // product groups here; otherwise "Kahvit, teet ja mehut" and similar
+  // departments can override the precise product classification.
+  const detailed = [sourceItem?.productGroup, sourceItem?.subCategory]
+    .filter(Boolean).map((v: unknown) => normalizeGostaCoreText(v)).join(" ");
   const parent = normalizeGostaCoreText(sourceItem?.mainCategory ||
     String(sourceItem?.categoryPath || "").split(">")[0] || "");
   if (!hierarchy || !parent) return "";
