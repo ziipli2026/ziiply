@@ -8,6 +8,8 @@ on:
       - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
       - 'tests/k-offer-tab-policy.test.cjs'
       - 'src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx'
+      - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - 'scripts/audit-gosta-cart-multibuy-20261001.cjs'
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
       - '.github/workflows/kcitymarket-local-integration-simulation.yml'
   workflow_dispatch:
@@ -63,6 +65,8 @@ jobs:
           }
           NODE
           npx --yes tsx offer-price-test.mts
+      - name: Prisma and Cittari cart multi-buy regression
+        run: node scripts/audit-gosta-cart-multibuy-20261001.cjs
       - name: Simulate two selected stores and failure isolation
         shell: bash
         run: |
