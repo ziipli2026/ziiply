@@ -3001,9 +3001,17 @@ function KauppiasMobileTopBar({
 
 // V758: Gosta cart prices must come from numeric provider data, not display text
 // such as "7,00 € / 2 kpl". A multi-buy card represents one cart unit.
+function getGostaCartBundleTextV870(offer: any): string {
+  const source = offer?.__sourceOfferSearchResult || {};
+  const candidates = [offer?.offerPrice, offer?.priceText, source?.priceText, source?.benefitText, offer?.discountText];
+  return candidates.map((value) => String(value ?? "")).find((value) =>
+    /\d+(?:[,.]\d+)?\s*€\s*\/\s*\d+\s*(?:kpl|pkt|ps|plo|prk)|\d+\s*(?:kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*\d+(?:[,.]\d+)?\s*€/i.test(value)
+  ) ?? "";
+}
+
 function getGostaCartBundleQuantityV869(offer: any): number {
   const source = offer?.__sourceOfferSearchResult || {};
-  const text = String(source.priceText ?? offer?.offerPrice ?? offer?.priceText ?? "");
+  const text = getGostaCartBundleTextV870(offer);
   const forward = text.match(/\d+(?:[,.]\d+)?\s*€\s*\/\s*(\d+)\s*(?:kpl|pkt|ps|plo|prk)/i);
   const reverse = text.match(/(\d+)\s*(?:kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*\d+(?:[,.]\d+)?\s*€/i);
   const value = Number(forward?.[1] ?? reverse?.[1] ?? source?.debug?.offerQuantity ?? source?.offerQuantity ?? offer?.bundleQuantity);
@@ -3021,7 +3029,7 @@ function getGostaCartPriceV758(offer: any): { total: number; unit: number } {
     const n = Number(plain.replace(",", "."));
     return Number.isFinite(n) && n >= 0 ? n : null;
   };
-  const bundleText = String(source.priceText ?? offer?.offerPrice ?? offer?.priceText ?? "").trim();
+  const bundleText = getGostaCartBundleTextV870(offer);
   const forwardBundle = bundleText.match(/(\d+(?:[,.]\d+)?)\s*€\s*\/\s*(\d+)\s*(?:kpl|pkt|ps|plo|prk)/i);
   const reverseBundle = bundleText.match(/(\d+)\s*(?:kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*(\d+(?:[,.]\d+)?)\s*€/i);
   const bundleTotal = forwardBundle ? numeric(forwardBundle[1]) : reverseBundle ? numeric(reverseBundle[2]) : null;
