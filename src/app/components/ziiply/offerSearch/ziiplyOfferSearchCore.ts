@@ -312,12 +312,54 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
   return kTrustedCategories.get(normalized) || "";
 }
 
+// S-kaupat provides a structured product hierarchy. Prefer its product form
+// over title keyword guesses (e.g. chocolate-flavoured protein is not candy).
+// Only classify recognized provider departments; unknown paths fall back.
+function getStructuredSKaupatCategoryV232(sourceItem: any): string {
+  const fields = [sourceItem?.categoryPath, sourceItem?.mainCategory,
+    sourceItem?.department, sourceItem?.productGroup, sourceItem?.subCategory]
+    .filter(Boolean).map((v: unknown) => normalizeGostaCoreText(v));
+  const hierarchy = fields.join(" ");
+  const parent = normalizeGostaCoreText(sourceItem?.mainCategory ||
+    String(sourceItem?.categoryPath || "").split(">")[0] || "");
+  if (!hierarchy || !parent) return "";
+  if (/lastenruo|vauvanruo|lasten valipala|lasten sose/.test(hierarchy)) return "Lastenruoat";
+  if (/vaipat|lastenhoito|vauvan hoito/.test(hierarchy)) return "Lastenhoito";
+  if (/vitamiini|ravintolisa|kivennaisaine|proteiinijauhe|urheiluravinne|elektrolyyt/.test(hierarchy)) return "Vitamiinit & ravinteet";
+  if (/kodinhoito|siivous|astianpesu|pyykinpesu|konetiski|pesuaine/.test(hierarchy)) return "Kodinhoito";
+  if (/kosmetiikka|hygienia|kauneus|hiustenhoito|vartalonhoito|ihonhoito/.test(hierarchy)) return "Hygienia & kosmetiikka";
+  if (/lemmik|koiran|kissan/.test(hierarchy)) return "Lemmikit";
+  if (/kukat|koti|kayttotavarat|vapaa aika|puutarha/.test(parent)) return "Koti & vapaa-aika";
+  if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
+  if (/mausteet|kastikkeet|texmex|kuivat elintarvikkeet|pastat|riisit|sailykkeet|leivonta/.test(parent)) return "Kuivatuotteet";
+  if (/kahvit|teet/.test(hierarchy) && /kahvi|tee/.test(normalizeGostaCoreText(sourceItem?.productGroup || sourceItem?.subCategory || ""))) return "Kahvi & tee";
+  if (/maito|juusto|jogurt|kananmun|rasvat/.test(parent)) return "Maitotuotteet";
+  if (/kala|merenelav/.test(parent)) return "Kala";
+  if (/liha|makkara|leikkele|kasviproteiin/.test(parent)) return "Liha & makkarat";
+  if (/leipa|leivonnais|paistopiste/.test(parent)) return "Leipomo";
+  if (/pakaste|jaatelo/.test(parent)) return "Pakasteet";
+  if (/valmisruo/.test(parent)) return "Valmisruoka";
+  if (/makeiset|karkit|suklaat|keksit/.test(parent)) return "Makeiset & keksit";
+  if (/juomat|mehut|virvoitus/.test(parent)) return "Juomat";
+  return "";
+}
+
 function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   // V181: K-Citymarket must be resolved before the generic trusted-category
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  // Apply source taxonomy for Prisma offers AND campaigns. A source-provided
+  // hierarchy is more specific than the legacy title-based classifier.
+  const sStore = normalizeGostaCoreText(sourceItem?.storeLabel || anyItem?.storeLabel || "");
+  const isPrismaSKaupat = sStore.startsWith("prisma") &&
+    (normalizeGostaCoreText(sourceItem?.source || "") === "skaupat" ||
+     String(sourceItem?.sourceUrl || "").includes("s-kaupat.fi"));
+  if (isPrismaSKaupat) {
+    const structured = getStructuredSKaupatCategoryV232(sourceItem);
+    if (structured) return structured;
+  }
   // Neon EAN match takes precedence over legacy category rules and provider labels.
   const neonCategory = String(sourceItem?.neonDisplayCategory || anyItem?.neonDisplayCategory || "").trim();
   // Preserve the canonical display group supplied by the verified Neon taxonomy.
