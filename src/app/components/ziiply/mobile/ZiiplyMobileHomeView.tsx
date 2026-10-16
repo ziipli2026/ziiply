@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import ZiiplyMobileAssistantButton from "./ZiiplyMobileAssistantButton";
+import React from "react";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 
 type Props = {
@@ -9,147 +8,59 @@ type Props = {
   onSelectAssistant: (assistant: ZiiplyAssistantKey) => void;
 };
 
-export default function ZiiplyMobileHomeView({
-  activeAssistant,
-  onSelectAssistant,
-}: Props) {
-  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+const assistants = [
+  { key: "gosta", name: "Gösta", title: "Tarjoukset", image: "/assistants/gosta.png", color: "#dcefc5", border: "#8bb56d" },
+  { key: "justiina", name: "Justiina", title: "Reseptit", image: "/assistants/justiina.png", color: "#ffe7aa", border: "#c69655" },
+  { key: "arvo", name: "Arvo", title: "Asetukset", image: "/assistants/arvo.png", color: "#e8d5a9", border: "#b99d62" },
+] as const;
 
-  useEffect(() => {
-    let delayedMeasure: ReturnType<typeof setTimeout> | null = null;
-
-    const measureViewport = () => {
-      const nextHeight = Math.round(window.visualViewport?.height ?? window.innerHeight);
-      if (nextHeight > 0) setViewportHeight((current) => current === nextHeight ? current : nextHeight);
-    };
-
-    const resumeMeasure = () => {
-      measureViewport();
-      requestAnimationFrame(measureViewport);
-      if (delayedMeasure) clearTimeout(delayedMeasure);
-      delayedMeasure = setTimeout(measureViewport, 320);
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") resumeMeasure();
-    };
-
-    resumeMeasure();
-    window.addEventListener("pageshow", resumeMeasure);
-    window.addEventListener("focus", resumeMeasure);
-    window.addEventListener("resize", measureViewport);
-    window.addEventListener("orientationchange", resumeMeasure);
-    window.visualViewport?.addEventListener("resize", measureViewport);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    return () => {
-      if (delayedMeasure) clearTimeout(delayedMeasure);
-      window.removeEventListener("pageshow", resumeMeasure);
-      window.removeEventListener("focus", resumeMeasure);
-      window.removeEventListener("resize", measureViewport);
-      window.removeEventListener("orientationchange", resumeMeasure);
-      window.visualViewport?.removeEventListener("resize", measureViewport);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, []);
-
+export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant }: Props) {
   return (
-    <div
-      className="relative isolate sm:hidden -mx-4 px-4 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+104px)] overflow-hidden"
+    <main
+      className="relative isolate -mx-4 flex min-h-0 flex-col items-center overflow-hidden px-3 pt-3 sm:hidden"
       style={{
-        minHeight: viewportHeight ? `${viewportHeight}px` : "100dvh",
-        boxSizing: "border-box",
-        // V3: 70 % rauhallinen salvianvihreä, 20 % lämmin paperi, 10 % vanha kauppakirja.
-        // Sävy pidetty lämpimänä, mutta ei liian antiikkisena eikä startup-turkoosina.
-        background:
-          "radial-gradient(circle at 50% 3%, rgba(255,249,232,0.95) 0%, rgba(240,237,220,0.9) 24%, rgba(225,232,220,0.96) 50%, rgba(209,221,211,1) 100%)",
+        background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, #d5e2d7 100%)",
       }}
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.105]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 18% 16%, rgba(255,255,255,0.56) 0 1px, transparent 1.8px), radial-gradient(circle at 72% 42%, rgba(122,97,49,0.10) 0 1px, transparent 2px), linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0))",
-          backgroundSize: "34px 34px, 48px 48px, 100% 100%",
-        }}
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[210px]"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(210,222,211,0) 0%, rgba(226,232,219,0.38) 48%, rgba(233,241,237,0.9) 100%)",
-        }}
-      />
-
-      <section
-        className="flex flex-col items-center text-center"
-        style={{
-          minHeight: "min(18dvh, 150px)",
-          justifyContent: "flex-start",
-          paddingTop: "0.25vh",
-        }}
-      >
-        <div className="mb-2 flex h-[94px] w-[94px] shrink-0 items-center justify-center">
-          <img
-            src="/ziiplylogo_mobile.png"
-            alt="Ziiply"
-            width={94}
-            height={94}
-            draggable={false}
-            className="block h-[94px] w-[94px] select-none object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]"
-            onError={(event) => {
-              event.currentTarget.style.visibility = "hidden";
-            }}
-          />
-        </div>
-
-        <h1 className="max-w-[318px] text-[30px] font-black leading-[1.02] tracking-[-0.045em] text-[#050b2b] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
+      <header className="flex w-full max-w-[440px] shrink-0 flex-col items-center text-center">
+        <img
+          src="/ziiplylogo_mobile.png"
+          alt="Ziiply"
+          width={76}
+          height={76}
+          draggable={false}
+          className="h-[clamp(48px,9dvh,76px)] w-[clamp(48px,9dvh,76px)] object-contain"
+        />
+        <h1 className="mt-1 text-[clamp(21px,5.5vw,28px)] font-black leading-[1.05] tracking-tight text-[#07122d]">
           Viilaa ruokakorisi huokeammaks
         </h1>
-
-        <p className="mt-2 mb-2 max-w-[330px] text-[16px] font-black leading-[1.18] tracking-[-0.02em] text-[#686d5c] drop-shadow-[0_1px_0_rgba(255,255,255,0.48)]">
+        <p className="mt-1 text-[clamp(12px,3.4vw,15px)] font-semibold leading-tight text-[#59665c]">
           Gösta, Justiina ja Arvo auttavat arjen valinnoissa
         </p>
+      </header>
+
+      <section aria-label="Ziiplyn avustajat" className="mt-4 grid w-full max-w-[440px] grid-cols-3 gap-2 rounded-[22px] bg-white/65 p-2 shadow-lg">
+        {assistants.map((assistant) => (
+          <button
+            key={assistant.key}
+            type="button"
+            aria-pressed={activeAssistant === assistant.key}
+            onClick={() => onSelectAssistant(assistant.key)}
+            className="flex min-w-0 flex-col items-center justify-center rounded-[18px] border-2 px-1 py-3 text-center shadow-sm transition-transform active:scale-95"
+            style={{ backgroundColor: assistant.color, borderColor: assistant.border }}
+          >
+            <img
+              src={assistant.image}
+              alt=""
+              draggable={false}
+              className="h-[clamp(46px,11vw,72px)] w-[clamp(46px,11vw,72px)] rounded-full border-[3px] border-white/80 object-cover"
+            />
+            <span className="mt-2 text-[clamp(14px,4vw,19px)] font-black leading-none text-[#263b2d]">{assistant.name}</span>
+            <span className="mt-1 text-[clamp(10px,2.8vw,12px)] font-bold leading-tight text-[#405248]">{assistant.title}</span>
+          </button>
+        ))}
       </section>
-
-      <section className="mt-0 rounded-[2rem] bg-[#f8f5ed]/94 px-4 pb-4 pt-3 shadow-[0_24px_54px_rgba(34,54,43,0.16)] ring-1 ring-[#fffaf0]/95 backdrop-blur-[2px]">
-        <div className="grid grid-cols-3 gap-3">
-          <ZiiplyMobileAssistantButton
-            assistant="gosta"
-            name="Gösta"
-            title="Tarjoukset"
-            subtitle="Hinnat ja tarjoukset"
-            imageSrc="/assistants/gosta.png"
-            active={activeAssistant === "gosta"}
-            onClick={() => onSelectAssistant("gosta")}
-          />
-
-          <ZiiplyMobileAssistantButton
-            assistant="justiina"
-            name="Justiina"
-            title="Reseptit"
-            subtitle="Ruokaideat ja haku"
-            imageSrc="/assistants/justiina.png"
-            featured
-            active={activeAssistant === "justiina"}
-            onClick={() => onSelectAssistant("justiina")}
-          />
-
-          <ZiiplyMobileAssistantButton
-            assistant="arvo"
-            name="Arvo"
-            title="Asetukset"
-            subtitle="Omat valinnat"
-            imageSrc="/assistants/arvo.png"
-            active={activeAssistant === "arvo"}
-            onClick={() => onSelectAssistant("arvo")}
-          />
-        </div>
-      </section>
-    </div>
+    </main>
   );
 }
 
