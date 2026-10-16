@@ -1577,7 +1577,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 const comparisonPrice = getOfferComparisonPrice(offer);
                 const category = String(offer.category || "");
                 const sourceOffer = offer.__sourceOfferSearchResult || {};
-                const isWeightedProduct = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct);
+                const isWeightedProduct = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct || (offer as any).isApproximatePrice || sourceOffer.isApproximatePrice || /^(kg|kilogram|kilogramma)$/i.test(String((offer as any).salesUnit ?? sourceOffer.salesUnit ?? "").trim()));
                 const weightedUnitPrice = isWeightedProduct ? (comparisonPrice.match(/\d+[,.]\d{1,2}\s*€\s*\/\s*kg/i)?.[0] || (offerPrice.match(/\d+[,.]\d{1,2}\s*€\s*\/\s*kg/i)?.[0] || "")) : "";
 
                 return (
