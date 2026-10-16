@@ -19116,12 +19116,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const currentItem = cart.find((item) => item.id === id);
     if (!currentItem) return;
 
-    const nextQuantity = currentItem.quantity + delta;
+    // A multi-buy total is valid for complete bundles only. Keep +/- changes
+    // in whole bundle increments instead of silently pricing 1 item at 3-for-X.
+    const bundleStep = Math.max(1, Number((currentItem as any).ziiplyOfferBundleQuantity) || 1);
+    const quantityDelta = delta * bundleStep;
+    const nextQuantity = currentItem.quantity + quantityDelta;
     const removedItem = nextQuantity <= 0 ? currentItem : null;
     const nextCart = cart
       .map((item) =>
         item.id === id
-          ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+          ? { ...item, quantity: Math.max(0, item.quantity + quantityDelta) }
           : item,
       )
       .filter((item) => item.quantity > 0);
@@ -24491,6 +24495,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                 storeName: String(offer.storeName || offer.shopName || ""),
                 quantity: isWeightedOffer ? 1 : offerBundleQuantityV869,
+                ziiplyOfferBundleQuantity: isWeightedOffer ? 1 : offerBundleQuantityV869,
                 source: "offer",
                 ean: String(offer.ean || sourceOffer.ean || ""),
                 ...(storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" ? { ziiplySingleChainAtAdd: offer.chain === "S" ? "s" : offer.chain === "K" ? "k" : offer.chain === "LIDL" ? "lidl" : offer.chain === "TOKMANNI" || offer.chain === "EUROSPAR" ? "tokmanni" : "" } : {}),
@@ -24546,6 +24551,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                     storeName: String(offer.storeName || offer.shopName || ""),
                     quantity: offerBundleQuantityV869,
+                    ziiplyOfferBundleQuantity: offerBundleQuantityV869,
                     source: "offer",
                     product: {
                       id: String(offer.id || `offer-product-${Date.now()}-${added}`),
