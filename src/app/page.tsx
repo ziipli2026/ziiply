@@ -14245,7 +14245,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     scannerDiscountRefV860.current = redDiscountV859
       ? {ean:normalizedCode,percent:redDiscountV859.discountPercent,at:Date.now()}
       : null;
-    void searchByEan(normalizedCode, { fromScanner: true, collectionEligible: scannerInStoreV828 });
+    void searchByEan(normalizedCode, { fromScanner: true, collectionEligible: scannerInStoreV828, stickerPercent: redDiscountV859?.discountPercent });
   }
 
   function focusBluetoothBarcodeInputV202() {
@@ -15115,7 +15115,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function searchByEan(
     eanOverride?: string,
-    options: { fromScanner?: boolean; collectionEligible?: boolean } = {},
+    options: { fromScanner?: boolean; collectionEligible?: boolean; stickerPercent?: number } = {},
   ) {
     const ean = normalizeEan(eanOverride ?? eanInput);
 
@@ -15133,7 +15133,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       Date.now() - physicalSearchScanV825.at < 10000
     );
 
-    resetScannerDebugV493(`START ean=${ean || "(empty)"} fromScanner=${Boolean(options.fromScanner)} scannerOpen=${Boolean(eanScannerOpen || eanHtml5ScannerRef.current)}`);
+    resetScannerDebugV493(`START sticker-flow=v2 ean=${ean || "(empty)"} fromScanner=${Boolean(options.fromScanner)} scannerOpen=${Boolean(eanScannerOpen || eanHtml5ScannerRef.current)} sticker=${options.stickerPercent ?? "-"}`);
 
     if (!isUsableEan(ean)) {
       pushScannerDebugV493("STOP invalid EAN");
@@ -15376,7 +15376,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     pushScannerDebugV493(`EXISTING cart=${Boolean(existingCartItemForEanV122)} fallbackOnly=${existingIsFallbackOnlyV491}`);
 
     // Apply a sticker before either collection acknowledgement or the existing-row shortcut.
-    const existingSticker = scannerDiscountRefV860.current;
+    const existingSticker = options.stickerPercent ? {ean,percent:options.stickerPercent,at:Date.now()} : null;
     if (existingCartItemForEanV122 && existingSticker?.ean === ean && Date.now() - existingSticker.at < 20000) {
       setCart(current => {
         const next = current.map(item => {
@@ -15668,7 +15668,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           name: bankIdentityNameV789,
           brandName: bankIdentityBrandV789 || undefined,
           imageUrl: bankIdentityImageV789 || undefined,
-        });
+        }, options.stickerPercent);
 
         // Käynnistä hinnan rikastus taustalle. Tämä ei pidätä skannerin kuittausta.
         if (scannerAllowSV785 && ownBrandV801 !== "k" && Number(activeStores.sStoreId || 0) > 0) {
@@ -15693,6 +15693,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 if ((Number(scannerActiveStoresRefV805.current.sStoreId || 0) !== requestedSStoreIdV805 || scannerStoreEpochRefV806.current.s !== requestedSEpochV806)) return currentCart;
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  pushScannerDebugV493(`STICKER store-quote regular=${price} percent=${(item as any).ziiplyDiscountPercent ?? "-"} final=${scannerStickerPrice(item, price).price}`);
                   return {
                     ...item,
                     name: fixText(product.name || item.name),
@@ -15740,6 +15741,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setCart((currentCart) => {
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  pushScannerDebugV493(`STICKER store-quote regular=${price} percent=${(item as any).ziiplyDiscountPercent ?? "-"} final=${scannerStickerPrice(item, price).price}`);
                   return {
                     ...item,
                     ...scannerStickerPrice(item, price),
@@ -15792,6 +15794,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 if ((Number(scannerActiveStoresRefV805.current.kStoreId || 0) !== storeId || scannerStoreEpochRefV806.current.k !== requestedKEpochV806)) return currentCart;
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  pushScannerDebugV493(`STICKER store-quote regular=${price} percent=${(item as any).ziiplyDiscountPercent ?? "-"} final=${scannerStickerPrice(item, price).price}`);
                   // The basket displays the S price when both chains are selected;
                   // K pricing belongs to the independent comparison matcher.
                   // Preserve a real S ...scannerStickerPrice(item, price), but do not suppress the K price
@@ -15837,6 +15840,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setCart((currentCart) => {
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  pushScannerDebugV493(`STICKER store-quote regular=${price} percent=${(item as any).ziiplyDiscountPercent ?? "-"} final=${scannerStickerPrice(item, price).price}`);
                   return {
                     ...item,
                     ...scannerStickerPrice(item, price),
@@ -17105,12 +17109,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function addOpenFoodFactsScannedEanToCartV729(
     fallbackProduct: OpenFoodFactsFallbackProductV729,
+    stickerPercent?: number,
   ) {
     const normalizedEan = normalizeEan(fallbackProduct.ean);
     if (!isUsableEan(normalizedEan)) return;
-    const acceptedSticker = scannerDiscountRefV860.current;
-    const stickerFields = acceptedSticker?.ean === normalizedEan
-      ? {ziiplyDiscountPercent: acceptedSticker.percent} : {};
+    const effectiveStickerPercent = stickerPercent ?? (scannerDiscountRefV860.current?.ean === normalizedEan ? scannerDiscountRefV860.current.percent : undefined);
+    const stickerFields = Number.isInteger(effectiveStickerPercent) && Number(effectiveStickerPercent) > 0 && Number(effectiveStickerPercent) <= 90
+      ? {ziiplyDiscountPercent: Number(effectiveStickerPercent)} : {};
 
 
     cacheOpenFoodFactsProductForAllVariantsV126(fallbackProduct);
@@ -17243,6 +17248,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : {}),
       } as CartItem;
 
+      pushScannerDebugV493(`STICKER bank-add percent=${(newItem as any).ziiplyDiscountPercent ?? "-"} price=${newItem.price}`);
       const nextCart = [...baseCart, newItem];
       const physicalOffNewV816 = physicalBarcodeScanRefV815.current;
       const isPhysicalOffNewV816 = Boolean(
