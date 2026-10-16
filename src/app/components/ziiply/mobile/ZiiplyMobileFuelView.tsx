@@ -115,7 +115,7 @@ export default function ZiiplyMobileFuelView({
     ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
     : "Sijainti puuttuu";
   const observationText = (value: string | null) => value && Number.isFinite(Date.parse(value))
-    ? new Date(value).toLocaleString("fi-FI", { timeZone: "Europe/Helsinki", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" })
+    ? new Date(value).toLocaleString("fi-FI", { timeZone: "Europe/Helsinki", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }).replace(/\s*klo\s*/u, " ")
     : "Aika puuttuu";
 
   if (comparisonOpen) {
@@ -126,7 +126,7 @@ export default function ZiiplyMobileFuelView({
           <img src="/assistants/gosta.png" alt="" className="h-10 w-10 shrink-0 object-contain" />
           <div className="min-w-0">
             <h2 className="text-[13px] font-black leading-tight">Göstan polttoainevertailu</h2>
-            <p className="text-[10px] leading-tight">{stationSide === "traffic" ? "Liikenneasemat" : stationSide === "cold" ? "Kylmäasemat / muut" : "Kaikki asematyypit"} · €/l</p>
+            <p className="text-[13px] font-bold leading-tight">{stationSide === "traffic" ? "Liikenneasemat" : stationSide === "cold" ? "Kylmäasemat / muut" : "Kaikki asemat"} · €/l</p>
           </div>
         </header>
         <div role="group" aria-label="Polttoainevertailun järjestys" className="grid shrink-0 grid-cols-3 gap-1">
@@ -144,25 +144,29 @@ export default function ZiiplyMobileFuelView({
         <div aria-label="Vertailun asemat" className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-1">
           {!loading && !error && comparisonStations.length === 0 && <p className="rounded-xl bg-[#fff8df] p-3 text-center text-xs">Valituista ketjuista ei löytynyt asemia.</p>}
           {comparisonStations.map(station => (
-            <article key={station.id} className="rounded-2xl border-2 border-[#d9c18e] bg-[#fffaf0] p-2">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-[#6a5330]">{group(station)}</p>
-                  <h3 className="break-words text-[12px] font-black leading-tight">{station.name}</h3>
-                  {station.address && <p className="break-words text-[10px] leading-tight">{station.address}</p>}
-                </div>
-                <span className="shrink-0 text-[11px] font-black">{distanceText(station)}</span>
-              </div>
-              <div className="mt-2 grid grid-cols-3 gap-1 text-center">
+            <article key={station.id} className="rounded-xl border-2 border-[#d9c18e] bg-[#fffaf0] px-1.5 py-1">
+              <details className="group">
+                <summary className="flex cursor-pointer list-none items-baseline justify-between gap-1 [&::-webkit-details-marker]:hidden" aria-label={`Aseman tiedot: ${station.name}`}>
+                  <div className="flex min-w-0 items-baseline gap-1">
+                    <span className="shrink-0 text-[11px] font-bold leading-tight text-[#6a5330]">{station.chain || group(station)}</span>
+                    <h3 className="min-w-0 truncate text-[12px] font-black leading-tight" title={station.name}>{station.name}</h3>
+                  </div>
+                  <span className="shrink-0 whitespace-nowrap text-[11px] font-black leading-tight">{distanceText(station)}</span>
+                </summary>
+                <p className="mt-0.5 break-words text-[10px] leading-tight">{station.name}{station.address ? ` · ${station.address}` : ""}</p>
+              </details>
+              <div className="mt-1 grid grid-cols-3 justify-items-center gap-1 text-center">
                 {([
                   ["Diesel", station.diesel, station.observedDiesel],
                   ["95 E", station.price95, station.observed95],
                   ["98 E", station.price98, station.observed98],
                 ] as const).map(([label, value, observed]) => (
-                  <div key={label} className="rounded-lg bg-[#f4e9c7] p-1">
-                    <p className="text-[9px] font-bold">{label}</p>
-                    <p className="text-[15px] font-black tabular-nums">{price(value)}</p>
-                    <p className="text-[8px] leading-tight">{isValidFuelPrice(value) ? observationText(observed) : "Ei hintaa"}</p>
+                  <div key={label} className="w-full max-w-[96px] rounded-md bg-[#f4e9c7] px-0.5 py-0.5">
+                    <div className="flex flex-col items-center justify-center whitespace-nowrap leading-[16px]">
+                      <p className="text-[12px] font-bold">{label}</p>
+                      <p className="text-[15px] font-black tabular-nums">{price(value)}</p>
+                    </div>
+                    <p className="whitespace-nowrap text-[8px] leading-[10px]">{isValidFuelPrice(value) ? observationText(observed) : "Ei hintaa"}</p>
                   </div>
                 ))}
               </div>
