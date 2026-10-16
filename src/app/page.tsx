@@ -24549,10 +24549,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                 const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
                 const sourceOffer = offer.__sourceOfferSearchResult || {};
-                const offerUnitTextV794 = String(offer.priceUnit || sourceOffer.priceUnit || offer.offerPrice || sourceOffer.priceText || "");
-                const isWeightedOffer = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct) ||
-                  (/€\s*\/\s*kg/i.test(offerUnitTextV794) &&
-                   !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || "")));
+                const offerUnitTextV794 = [offer.priceUnit, sourceOffer.priceUnit, offer.offerPrice, sourceOffer.priceText, offer.unit, sourceOffer.unit, offer.priceBasis, sourceOffer.priceBasis].filter(Boolean).join(" ");
+                const approximateWeightV871 = /\b(?:n\s*\d+(?:[,.]\d+)?|noin\s+\d+(?:[,.]\d+)?)\s*kg\b/i.test([name, offer.packageSize, sourceOffer.packageSize].filter(Boolean).join(" "));
+                const explicitKgRateV871 = /(?:€\s*\/\s*kg|\/\s*kg\b|\b(?:kg|kilo)(?:hinta|price)?\b|per[- ]?kg)/i.test(offerUnitTextV794);
+                const isWeightedOffer = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct) ||
+                  (explicitKgRateV871 && (approximateWeightV871 || !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || ""))));
                 if (isWeightedOffer) continue;
                 if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
 
