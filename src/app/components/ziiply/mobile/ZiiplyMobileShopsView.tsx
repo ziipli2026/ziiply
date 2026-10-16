@@ -49,10 +49,10 @@ export default function ZiiplyMobileShopsView({
   onStoreCompareScopeChange,
 }: ZiiplyMobileShopsViewProps) {
   return (
-    <div className="h-[100svh] overflow-hidden bg-[#efe2bc] sm:hidden">
-      <div className="h-[86px]" aria-hidden="true" />
+    <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-[#efe2bc] sm:hidden">
+      <div className="h-[86px] shrink-0" aria-hidden="true" />
 
-      <div className="sticky top-[86px] z-[75] bg-[#efe2bc]/95 px-2 pb-1 pt-1 backdrop-blur">
+      <div className="relative z-[75] shrink-0 bg-[#efe2bc]/95 px-2 pb-1 pt-1 backdrop-blur">
         <ZiiplyMobileLocationBar
           locationInput={locationInput}
           usingOwnLocation={usingOwnLocation}
@@ -64,7 +64,7 @@ export default function ZiiplyMobileShopsView({
         />
       </div>
 
-      <div className="space-y-2 overflow-hidden px-2 pb-0 pt-1">
+      <div className="min-h-0 flex-1 space-y-2 overflow-x-hidden overflow-y-auto overscroll-contain px-2 pb-[calc(env(safe-area-inset-bottom)+112px)] pt-1 [-webkit-overflow-scrolling:touch]">
         <ZiiplyMobileStoreModeSelector
           storeMode={storeMode}
           storeModeChosen={storeModeChosen}
