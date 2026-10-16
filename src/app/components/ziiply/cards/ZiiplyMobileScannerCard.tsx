@@ -494,7 +494,14 @@ export default function ZiiplyMobileScannerCard({
                     : "text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.98),0_0_10px_rgba(0,0,0,0.98)]",
               ].join(" ")}
             >
-              {visibleMessage}
+              {noticeIsSuccess && visibleMessage.includes("✓") ? (
+                <span className="flex flex-wrap items-center justify-center gap-3">
+                  {visibleMessage.replace(/\s*·?\s*✓\s*$/, "").trim() && (
+                    <span>{visibleMessage.replace(/\s*·?\s*✓\s*$/, "").trim()}</span>
+                  )}
+                  <span className="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-green-200/60 text-[45px] leading-none text-[#eaffdf]" aria-label="Lisätty">✓</span>
+                </span>
+              ) : visibleMessage}
             </div>
           )}
 
