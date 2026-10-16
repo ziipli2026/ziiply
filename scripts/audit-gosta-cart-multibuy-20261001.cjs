@@ -3,10 +3,12 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 const page = fs.readFileSync("src/app/page.tsx", "utf8");
+const helperStart = page.indexOf("function getGostaCartBundleTextV870(");
 const start = page.indexOf("function getGostaCartPriceV758(");
 const end = page.indexOf("\nexport default function Page()", start);
 assert(start >= 0 && end > start, "cart price helper must be present");
-const code = page.slice(start, end)
+assert(helperStart >= 0 && helperStart < start, "bundle text helper must be present");
+const code = page.slice(helperStart, end)
   .replace("offer: any): { total: number; unit: number }", "offer)")
   .replace("value: unknown): number | null", "value)");
 const price = vm.runInNewContext(code + "\ngetGostaCartPriceV758;", {});
@@ -20,6 +22,7 @@ const cases = [
   ["Prisma reverse four-pack", {chain:"S",offerPrice:"4 kpl = 2 €",__sourceOfferSearchResult:{priceText:"4 kpl = 2 €",price:0.69}}, 2, 0.5],
   ["Cittari reverse three-pack", {chain:"K",offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"3 kpl = 12 €",price:12}}, 12, 4],
   ["Cittari comparison price must not override bundle", {chain:"K",offerPrice:"8,00 € / 3 kpl",__sourceOfferSearchResult:{priceText:"8,00 € / 3 kpl",price:2.67}}, 8, 8/3],
+  ["display bundle wins over source plain price", {chain:"K",offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"4,00 €",price:4}}, 12, 4],
   ["K single", { chain:"K", offerPrice:"2,99 €", __sourceOfferSearchResult:{price:2.99} }, 2.99, 2.99],
   ["S single", { chain:"S", offerPrice:"1,79 €" }, 1.79, 1.79],
   ["EUROSPAR explicit single equivalent", {chain:"EUROSPAR",priceBasis:"multi-buy-total",singleEquivalentPrice:1.25,offerPrice:"5,00 € / 4 kpl"}, 5, 1.25],
@@ -35,12 +38,13 @@ assert.equal((page.match(/getGostaCartPriceV758\(offer\);/g)||[]).length,2,"sing
 console.log("PASS single and bulk add share the same price helper");
 const bundleStart = page.indexOf("function getGostaCartBundleQuantityV869(");
 assert(bundleStart >= 0 && bundleStart < start, "bundle quantity helper must be present");
-const bundleCode = page.slice(bundleStart, start).replace("offer: any): number", "offer)");
+const bundleCode = page.slice(helperStart, start).replaceAll("offer: any): string", "offer)").replace("offer: any): number", "offer)");
 const bundleQuantity = vm.runInNewContext(bundleCode + "\ngetGostaCartBundleQuantityV869;", {});
 for (const [name, offer, expected] of [
   ["Prisma four-pack", {offerPrice:"4 kpl = 2 €"}, 4],
   ["Cittari three-pack", {offerPrice:"8,00 € / 3 kpl"}, 3],
   ["ordinary single", {offerPrice:"2,99 €"}, 1],
+  ["source plain price but display bundle", {offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"4,00 €",price:4}}, 3],
 ]) assert.equal(bundleQuantity(offer), expected, name + " cart quantity");
 assert.equal((page.match(/quantity: isWeightedOffer \? 1 : offerBundleQuantityV869/g)||[]).length,1,"single add must use bundle quantity");
 assert.equal((page.match(/quantity: offerBundleQuantityV869/g)||[]).length,1,"bulk add must use bundle quantity");
