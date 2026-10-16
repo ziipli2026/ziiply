@@ -67,3 +67,13 @@ for (const [page, title, total, quantity, unit] of cases)
     const anonymous = { ...original, title: 'Other product', category: 'Other category' };
     strict_1.default.deepEqual((0, kCitymarketPrintedPriceBasis_js_1.resolvePrintedPriceBasis)(anonymous, evidence.pages[15]), (0, kCitymarketPrintedPriceBasis_js_1.resolvePrintedPriceBasis)(original, evidence.pages[15]));
 });
+
+(0, node_test_1.default)('All printed quantity units and package contents stay below the euro amount',()=>{
+ for(const [value,amount,basis] of [
+ ['3,00 € / 2 RS','3,00 €','/ 2 RS'],['9,00 € / 6 TLK','9,00 €','/ 6 TLK'],
+ ['24,90 € / setti','24,90 €','/ setti'],['3,69 € / pkt (8 kpl)','3,69 €','/ pkt (8 kpl)'],
+ ['4,49 € / kpl','4,49 €','/ kpl'],['29,90 € / 2 säkkiä','29,90 €','/ 2 säkkiä'],
+ ['2 kpl / 4,00 €','4,00 €','/ 2 kpl'],['−20 %','−20 %','']]){
+  strict_1.default.deepEqual(ZiiplyMobileOfferSearchCard_tsx_1.splitOfferDisplayPrice(value),{amount,basis});
+ }
+});
