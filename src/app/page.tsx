@@ -14172,9 +14172,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const redDiscountV859 = decodeRedDiscountLabelV859(code);
     const normalizedCode = redDiscountV859?.ean || normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
-    scannerDiscountRefV860.current = redDiscountV859
-      ? {ean:normalizedCode,percent:redDiscountV859.discountPercent,at:Date.now()}
-      : null;
+
     if (redDiscountV859) {
       setEanScannerMessage(`Alennustarra −${redDiscountV859.discountPercent} % · EAN ${normalizedCode}`);
     }
@@ -14243,6 +14241,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerMessage("");
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
     void logEanScanEventV845(normalizedCode, "scan_started", "Fyysinen EAN-skannaus aloitettu", { collectionEligible: scannerInStoreV828 });
+    scannerDiscountRefV860.current = redDiscountV859
+      ? {ean:normalizedCode,percent:redDiscountV859.discountPercent,at:Date.now()}
+      : null;
     void searchByEan(normalizedCode, { fromScanner: true, collectionEligible: scannerInStoreV828 });
   }
 
@@ -14509,7 +14510,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           for(const result of results||[]){
             const raw=String(result.text||"");
             pushScannerDebugV493(`GS1 WASM format=${result.format} raw=${JSON.stringify(raw)}`);
-            if(raw){void finishScannedEan(raw);return;}
+            if(raw){
+              if(label === "orange-crop" && !decodeRedDiscountLabelV859(raw)){
+                setEanScannerMessage("Alennustarra havaittu. Alennus ei vielä tunnistunut — pidä tarra kuvassa.");
+                pushScannerDebugV493("BLOCK orange sticker without discount");
+                continue;
+              }
+              void finishScannedEan(raw);return;
+            }
           }
         }catch(err){pushScannerDebugV493(`GS1 WASM ${label} ERROR ${String(err).slice(0,160)}`);}
       }
