@@ -1,0 +1,27 @@
+name: Offer category checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx"
+      - "scripts/tests/offer-category-checks.mjs"
+      - ".github/workflows/offer-category-checks.yml"
+  pull_request:
+    paths:
+      - "src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx"
+      - "scripts/tests/offer-category-checks.mjs"
+      - ".github/workflows/offer-category-checks.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offer-category-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test category filtering and diagnostic safeguards
+        run: node --test scripts/tests/offer-category-checks.mjs
