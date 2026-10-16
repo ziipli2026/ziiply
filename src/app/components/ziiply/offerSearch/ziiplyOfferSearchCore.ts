@@ -1246,6 +1246,16 @@ export function isZiiplyGostaCategorySelectionV147(value: string) {
 
 function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
   const benefit = String(item.benefitText ?? "").trim();
+  // K-Citymarket publisher uses the price field for bundle totals; preserve the
+  // bundle condition separately so it is not mistaken for a single-item price.
+  const bundlePrice = String(item.priceText ?? "").replace(/\\u00a0/g, " ").match(/(\\d+(?:[,.]\\d+)?\\s*€)\\s*\\/\\s*(\\d+)\\s*(kpl|pkt|ps|plo|prk)/i);
+  if (bundlePrice) {
+    const condition = `${bundlePrice[2]} ${bundlePrice[3]} = ${bundlePrice[1]}`;
+    return benefit && !benefit.includes(condition) ? `${benefit} · ${condition}` : condition;
+  }
+  // Percentage-only offers have no reliable absolute euro price.
+  const percent = String(item.priceText ?? "").match(/^\\s*[−-]\\s*\\d+(?:[,.]\\d+)?\\s*%\\s*$/);
+  if (percent) return benefit ? `${benefit} · ${percent[0].trim()}` : percent[0].trim();
   const evidence = (item as any).debugOfferEvidenceV226;
   const sourceLabels = String(evidence?.rawLabels ?? "").replace(/\u00a0/g, " ");
   const explicitMultiBuy = sourceLabels.match(/\b(\d+\s*(?:kpl|pkt|ps|plo|prk)\s*=\s*\d+(?:[,.]\d+)?\s*€)/i)?.[1] ?? "";
