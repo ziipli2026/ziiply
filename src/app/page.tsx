@@ -17286,16 +17286,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
+    const stickerAddedMessage = Number(effectiveStickerPercent) > 0
+      ? `−${effectiveStickerPercent} % · ${mergedExistingV129 ? "Määrä +1" : scannerAddedMessageV846()}`
+      : null;
     setEanMessage(
-      mergedExistingV129
+      stickerAddedMessage ?? (mergedExistingV129
         ? "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."
-        : "Tuote tunnistettiin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
+        : "Tuote tunnistettiin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."),
     );
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
-      const scannerMessage = Number(effectiveStickerPercent) > 0
-        ? `−${effectiveStickerPercent} % · ${mergedExistingV129 ? "Määrä +1" : "Lisätty ostoslistalle"} — haetaan alehintaa`
-        : mergedExistingV129 ? "Määrä +1 — hinta ei saatavilla" : scannerAddedMessageV846();
+      const scannerMessage = stickerAddedMessage
+        ?? (mergedExistingV129 ? "Määrä +1 — hinta ei saatavilla" : scannerAddedMessageV846());
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
