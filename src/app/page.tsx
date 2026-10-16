@@ -3012,14 +3012,18 @@ function getGostaCartPriceV758(offer: any): { total: number; unit: number } {
     const n = Number(plain.replace(",", "."));
     return Number.isFinite(n) && n >= 0 ? n : null;
   };
-  const total = numeric(source.price) ?? numeric(offer?.offerPrice) ?? numeric(offer?.price) ?? 0;
-  const quantity = Number(source?.debug?.offerQuantity ?? source?.offerQuantity);
+  const bundleText = String(source.priceText ?? offer?.offerPrice ?? offer?.priceText ?? "").trim();
+  const forwardBundle = bundleText.match(/(\d+(?:[,.]\d+)?)\s*€\s*\/\s*(\d+)\s*(?:kpl|pkt|ps|plo|prk)/i);
+  const reverseBundle = bundleText.match(/(\d+)\s*(?:kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*(\d+(?:[,.]\d+)?)\s*€/i);
+  const bundleTotal = forwardBundle ? numeric(forwardBundle[1]) : reverseBundle ? numeric(reverseBundle[2]) : null;
+  const total = bundleTotal ?? numeric(source.price) ?? numeric(offer?.offerPrice) ?? numeric(offer?.price) ?? 0;
+  const quantity = Number(forwardBundle?.[2] ?? reverseBundle?.[1] ?? source?.debug?.offerQuantity ?? source?.offerQuantity ?? offer?.bundleQuantity);
   const chain = String(offer?.chain || source?.chain || "").toUpperCase();
   const eurosparEquivalent = numeric(offer?.singleEquivalentPrice ?? source?.singleEquivalentPrice);
   const unit = chain === "EUROSPAR" && offer?.priceBasis === "multi-buy-total" && eurosparEquivalent != null
     ? eurosparEquivalent
-    : chain === "K" && Number.isInteger(quantity) && quantity > 1
-      ? Math.round((total / quantity) * 100) / 100
+    : Number.isInteger(quantity) && quantity > 1 && (chain === "K" || bundleTotal != null)
+      ? total / quantity
       : total;
   return { total, unit };
 }
