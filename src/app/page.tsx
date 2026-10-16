@@ -24495,7 +24495,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                 storeName: String(offer.storeName || offer.shopName || ""),
                 quantity: isWeightedOffer ? 1 : offerBundleQuantityV869,
-                ziiplyOfferBundleQuantity: isWeightedOffer ? 1 : offerBundleQuantityV869,
+                ...(offerBundleQuantityV869 > 1 && !isWeightedOffer ? { ziiplyOfferBundleQuantity: offerBundleQuantityV869 } : {}),
                 source: "offer",
                 ean: String(offer.ean || sourceOffer.ean || ""),
                 ...(storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" ? { ziiplySingleChainAtAdd: offer.chain === "S" ? "s" : offer.chain === "K" ? "k" : offer.chain === "LIDL" ? "lidl" : offer.chain === "TOKMANNI" || offer.chain === "EUROSPAR" ? "tokmanni" : "" } : {}),
@@ -24551,7 +24551,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                     storeName: String(offer.storeName || offer.shopName || ""),
                     quantity: offerBundleQuantityV869,
-                    ziiplyOfferBundleQuantity: offerBundleQuantityV869,
+                    ...(offerBundleQuantityV869 > 1 ? { ziiplyOfferBundleQuantity: offerBundleQuantityV869 } : {}),
                     source: "offer",
                     product: {
                       id: String(offer.id || `offer-product-${Date.now()}-${added}`),
