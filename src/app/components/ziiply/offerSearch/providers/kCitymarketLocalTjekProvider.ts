@@ -64,7 +64,7 @@ async function publishSnapshot(key: string, offers: Row[], publicationIds: strin
   if (!process.env.DATABASE_URL) return;
   const sql = neon(process.env.DATABASE_URL);
   await sql`INSERT INTO public.ziiply_kcitymarket_tjek_snapshots (store_key, offers, publication_ids, valid_until, updated_at)
-    VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '6 hours', NOW())
+    VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '7 days', NOW())
     ON CONFLICT (store_key) DO UPDATE SET offers = EXCLUDED.offers, publication_ids = EXCLUDED.publication_ids,
       valid_until = EXCLUDED.valid_until, updated_at = NOW()`;
 }
@@ -150,8 +150,8 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       const freshIds=ids.filter(id=>!seen.has(id));
       entry.progress.offerIds += freshIds.length;
       freshIds.forEach(id=>seen.add(id));
-      for(let offset=0;offset<freshIds.length;offset+=8){
-      const fetched=await Promise.all(freshIds.slice(offset,offset+8).map(async id=>{
+      for(let offset=0;offset<freshIds.length;offset+=24){
+      const fetched=await Promise.all(freshIds.slice(offset,offset+24).map(async id=>{
         try {const result=await tjek("offer",{publicId:id});if(!result||typeof result!=="object"||Array.isArray(result))throw new Error("Invalid Tjek offer detail");return {id,offer:result as Row};}catch{failedOfferIds.add(id);return null;}
       }));
       for(const fetchedEntry of fetched){
