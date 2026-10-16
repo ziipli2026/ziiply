@@ -48,7 +48,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
   const leaf = parts[parts.length - 1];
   const parent = parts[0];
   // Specific child group wins over a broad parent (coffee/juice, fish/ready meals).
-  if (/kahvi|suodatinpuss|teejuom|teet$|tee$/.test(parts.slice(1).join("/"))) return "Kahvi & tee";
+  if (/kahvi|suodatinpuss|teejuom|(?:^|\/)(?:teet|tee)(?:\/|$)/.test(parts.slice(1).join("/"))) return "Kahvi & tee";
   if (/mehu|smoothie|virvoitus|cola|limonadi|energiajuom|kivennaisves|vesipull|oluet|siider/.test(leaf)) return "Juomat";
   if (/kala|lohi|silak|muik|katkarap|merenelav|kalatiski/.test(leaf)) return "Kala";
   if (/lastenruo|vauvanruo|lastenvalipal|vellit|lastensose/.test(path)) return "Lastenruoat";
