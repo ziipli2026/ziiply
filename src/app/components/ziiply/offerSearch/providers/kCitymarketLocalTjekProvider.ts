@@ -56,6 +56,21 @@ async function publishSnapshot(key: string, offers: Row[], publicationIds: strin
     ON CONFLICT (store_key) DO UPDATE SET offers = EXCLUDED.offers, publication_ids = EXCLUDED.publication_ids,
       valid_until = EXCLUDED.valid_until, updated_at = NOW()`;
 }
+/** A pack's contents are not a minimum purchase quantity. Applies on read to old snapshots too. */
+export function normalizeTjekPackagePrice(row: Row): Row {
+  const quantity = Number(row.offerQuantity);
+  if (!(quantity > 1)) return row;
+  const text = String(row.title ?? row.name ?? "") + " " + String(row.additionalInfo ?? "");
+  const counts = [...text.matchAll(/\b(\d+)\s*[x×]\s*\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b|\b(\d+)\s*[- ]pack\b/gi)]
+    .map(match => Number(match[1] || match[2]));
+  if (!counts.includes(quantity)) return row;
+  // Explicit purchase labels take precedence over package contents.
+  if (new RegExp("\\b" + quantity + "\\s*(?:PKT|PAKKAUSTA|PACKIA)\\b", "i").test(text)) return row;
+  const price = Number(row.price);
+  if (!(price > 0)) return row;
+  return {...row, offerQuantity: null, offerUnit: "pkt", packageCount: quantity,
+    priceBasis: "package-total", priceText: price.toFixed(2).replace(".", ",") + " € / pkt (" + quantity + " kpl)"};
+}
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const rows = (await readPublishedSnapshot(normalize(selectedStoreName))) ?? [];
   const now = Date.now();
@@ -63,7 +78,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
     const start = Date.parse(String(row.validFrom ?? ""));
     const end = Date.parse(String(row.validUntil ?? ""));
     return Number.isFinite(start) && Number.isFinite(end) && start <= now && now <= end;
-  });
+  }).map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
@@ -78,6 +93,7 @@ export async function refreshKCitymarketCampaignCache(storeName: string) {
   if (entry.progress.publicationIds.length === 0 || entry.rows.length === 0) {
     throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
   }
+  entry.rows = entry.rows.map(normalizeTjekPackagePrice);
   await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
   return {count: entry.rows.length, pages: entry.progress.pages};
 }

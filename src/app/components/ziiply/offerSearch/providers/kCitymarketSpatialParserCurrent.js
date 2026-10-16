@@ -1,3 +1,4 @@
+import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
 import {reattachDetachedPackage,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
@@ -1576,6 +1577,11 @@ for(const row of out.rows.filter(r=>r.page===p)){
    row.debugPublisherBundle={type:'mixed-set',evidence:'YHTEISHINTAAN + SETTI',totalPrice:Number(row.debugPublisherBundlePrice?.value||row.debugRejectedCardPrice?.value||row.spatialResolved?.value||0),requiresBundlePresentation:true};
  }
 }
+// Price proofs are evaluated from the complete original page before leaving it.
+if(!/_41LV_KCM|_42AV_KCM/i.test(out.leaflet))for(const row of out.rows.filter(r=>r.page===p)){
+ const proof=resolvePrintedPriceBasis(row,wordBoxes);
+ if(proof)row.debugPrintedPriceBasis=proof;
+}
 }
 for(const row of out.rows){
  const proof=verifiedPrintedBundle(row)||verifiedMissingCents(row)||verifiedDepositPack(row)||verifiedMergedEuroCents(row)||verifiedCompoundOfferCount(row)||verifiedDecimalBundle(row)||verifiedLargeHeadlineBundle(row)||verifiedSplitAcrossCardsSingle(row);
@@ -1621,6 +1627,7 @@ out.rows=out.rows.map(row=>{
 });
 out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
 if(/_42AV_KCM/i.test(out.leaflet))out.rows=out.rows.map(repairPrintedCard);
+out.rows=out.rows.map(row=>row.debugPrintedPriceBasis?{...row,spatialResolved:row.debugPrintedPriceBasis,percentageOffer:null}:row);
 return out;
 }
 
