@@ -3865,6 +3865,14 @@ export default function Page() {
     });
   }, []);
   const [mobileFuelMode, setMobileFuelMode] = useState(false);
+  const [mobileFuelCompareOpen, setMobileFuelCompareOpen] = useState(false);
+  const [mobileFuelCompareReady, setMobileFuelCompareReady] = useState(false);
+  useEffect(() => {
+    if (!mobileFuelMode) {
+      setMobileFuelCompareOpen(false);
+      setMobileFuelCompareReady(false);
+    }
+  }, [mobileFuelMode]);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [inlineHakutapaNoticeVisibleV452, setInlineHakutapaNoticeVisibleV452] = useState(false);
   const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
@@ -23115,7 +23123,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
           >
             <div className={`relative z-10 ${mobileFuelMode ? "h-full min-h-0" : ""}`}>
-              {mobileFuelMode ? <ZiiplyMobileFuelView coords={usingOwnLocation && gpsCoordsV320 ? {lat:gpsCoordsV320.latitude,lon:gpsCoordsV320.longitude} : getAreaCoordinateForGpsStorePoolV40(activeArea) ? {lat:getAreaCoordinateForGpsStorePoolV40(activeArea)!.latitude,lon:getAreaCoordinateForGpsStorePoolV40(activeArea)!.longitude} : null} onBack={() => setMobileFuelMode(false)} /> : <>
+              {mobileFuelMode ? <ZiiplyMobileFuelView comparisonOpen={mobileFuelCompareOpen} onCloseComparison={() => setMobileFuelCompareOpen(false)} onComparisonReadyChange={setMobileFuelCompareReady} coords={usingOwnLocation && gpsCoordsV320 ? {lat:gpsCoordsV320.latitude,lon:gpsCoordsV320.longitude} : getAreaCoordinateForGpsStorePoolV40(activeArea) ? {lat:getAreaCoordinateForGpsStorePoolV40(activeArea)!.latitude,lon:getAreaCoordinateForGpsStorePoolV40(activeArea)!.longitude} : null} onBack={() => setMobileFuelMode(false)} /> : <>
               <ZiiplyMobileStoreModeSelector
                 storeMode={storeMode}
                 storeModeChosen={storeModeChosenV299}
@@ -24726,6 +24734,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         */}
 
         <ZiiplyBottomNav
+          fuelMode={mobileFuelMode}
+          fuelCompareReady={mobileFuelCompareReady}
+          fuelCompareOpen={mobileFuelCompareOpen}
           shopsPanelOpen={shopsPanelOpen}
           initialStoreNavPrompt={initialStoreNavPrompt}
           searchBottomNavDisabled={searchBottomNavDisabled}
@@ -24762,6 +24773,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleShopsPanel();
           }}
           onSearchClick={() => {
+            if (mobileFuelMode) {
+              if (mobileFuelCompareReady) setMobileFuelCompareOpen(true);
+              return;
+            }
             preloadSearchUiAssetsV774();
             gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();

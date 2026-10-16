@@ -4,6 +4,7 @@ import FuelStationBackdrop from "./FuelStationBackdrop";
 
 import { useEffect, useMemo, useState } from "react";
 import ZiiplyMobileStoreModeSelector from "./ZiiplyMobileStoreModeSelector";
+import { isValidFuelPrice, sortFuelStations, type FuelComparisonSort } from "./fuelComparison";
 
 type Station = {
   id: string;
@@ -39,7 +40,7 @@ function group(s: Station) {
           : "Gulf / Ritoil / Muu";
 }
 const price = (n: number | null) =>
-  n == null
+  !isValidFuelPrice(n)
     ? "–"
     : n.toLocaleString("fi-FI", {
         minimumFractionDigits: 3,
@@ -47,15 +48,22 @@ const price = (n: number | null) =>
       });
 export default function ZiiplyMobileFuelView({
   coords,
+  comparisonOpen = false,
+  onCloseComparison,
+  onComparisonReadyChange,
 }: {
   coords: { lat: number; lon: number } | null;
   onBack: () => void;
+  comparisonOpen?: boolean;
+  onCloseComparison?: () => void;
+  onComparisonReadyChange?: (ready: boolean) => void;
 }) {
   const [stations, setStations] = useState<Station[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
   const [stationSide, setStationSide] = useState<"traffic" | "both" | "cold">("both");
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [comparisonSort, setComparisonSort] = useState<FuelComparisonSort>("distance");
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -94,6 +102,75 @@ export default function ZiiplyMobileFuelView({
     setSelectedGroups((previous) => previous.includes(key)
       ? previous.filter((item) => item !== key)
       : [...previous, key]);
+  }
+  const comparisonReady = selectedGroups.length > 0 && !loading && !error;
+  useEffect(() => {
+    onComparisonReadyChange?.(comparisonReady);
+  }, [comparisonReady, onComparisonReadyChange]);
+  const comparisonStations = useMemo(
+    () => sortFuelStations(filtered.filter((station) => selectedGroups.includes(group(station))), comparisonSort),
+    [filtered, selectedGroups, comparisonSort],
+  );
+  const distanceText = (station: Station) => coords && Number.isFinite(station.distanceKm)
+    ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
+    : "Sijainti puuttuu";
+  const observationText = (value: string | null) => value && Number.isFinite(Date.parse(value))
+    ? new Date(value).toLocaleString("fi-FI", { timeZone: "Europe/Helsinki", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" })
+    : "Aika puuttuu";
+
+  if (comparisonOpen) {
+    return (
+      <section aria-label="Göstan polttoainevertailu" className="flex h-full min-h-0 flex-col gap-2 pb-2 text-[#213224]">
+        <header className="flex shrink-0 items-center gap-2 rounded-2xl border-2 border-[#b38a4a] bg-[#fcf5de] p-2">
+          <button type="button" onClick={onCloseComparison} aria-label="Takaisin asemavalintaan" className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-[#17573c] bg-[#fff9dd] text-xl font-black">←</button>
+          <img src="/assistants/gosta.png" alt="" className="h-10 w-10 shrink-0 object-contain" />
+          <div className="min-w-0">
+            <h2 className="text-[13px] font-black leading-tight">Göstan polttoainevertailu</h2>
+            <p className="text-[10px] leading-tight">{stationSide === "traffic" ? "Liikenneasemat" : stationSide === "cold" ? "Kylmäasemat / muut" : "Kaikki asematyypit"} · €/l</p>
+          </div>
+        </header>
+        <div role="group" aria-label="Polttoainevertailun järjestys" className="grid shrink-0 grid-cols-3 gap-1">
+          {([
+            ["distance", "Lähimmät"],
+            ["diesel", "Halvin diesel"],
+            ["price95", "Halvin bensa 95"],
+          ] as const).map(([sort, label]) => (
+            <button key={sort} type="button" aria-pressed={comparisonSort === sort} onClick={() => setComparisonSort(current => current === sort ? "distance" : sort)} className={`min-h-[40px] rounded-xl border-2 px-1 py-1 text-[10px] font-black leading-tight ${comparisonSort === sort ? "border-[#07502c] bg-[#0a6d39] text-white" : "border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}>{label}</button>
+          ))}
+        </div>
+        <p role="status" className="shrink-0 text-center text-[10px] font-bold leading-tight">
+          {loading ? "Päivitetään…" : error ? "Asematietojen päivitys epäonnistui" : `${comparisonStations.length} asemaa · ${comparisonSort === "distance" ? "lähin ensin" : "halvin ensin, tasahinnalla lähin"}`}
+        </p>
+        <div aria-label="Vertailun asemat" className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-1">
+          {!loading && !error && comparisonStations.length === 0 && <p className="rounded-xl bg-[#fff8df] p-3 text-center text-xs">Valituista ketjuista ei löytynyt asemia.</p>}
+          {comparisonStations.map(station => (
+            <article key={station.id} className="rounded-2xl border-2 border-[#d9c18e] bg-[#fffaf0] p-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-[#6a5330]">{group(station)}</p>
+                  <h3 className="break-words text-[12px] font-black leading-tight">{station.name}</h3>
+                  {station.address && <p className="break-words text-[10px] leading-tight">{station.address}</p>}
+                </div>
+                <span className="shrink-0 text-[11px] font-black">{distanceText(station)}</span>
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-1 text-center">
+                {([
+                  ["Diesel", station.diesel, station.observedDiesel],
+                  ["95 E", station.price95, station.observed95],
+                  ["98 E", station.price98, station.observed98],
+                ] as const).map(([label, value, observed]) => (
+                  <div key={label} className="rounded-lg bg-[#f4e9c7] p-1">
+                    <p className="text-[9px] font-bold">{label}</p>
+                    <p className="text-[15px] font-black tabular-nums">{price(value)}</p>
+                    <p className="text-[8px] leading-tight">{isValidFuelPrice(value) ? observationText(observed) : "Ei hintaa"}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    );
   }
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 pb-2">

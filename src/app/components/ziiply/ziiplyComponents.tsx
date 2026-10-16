@@ -193,6 +193,9 @@ type ZiiplyBottomNavProps = {
   cartModalOpen: boolean;
   cartSelectionEnabled?: boolean;
   compareSelectionEnabled?: boolean;
+  fuelMode?: boolean;
+  fuelCompareReady?: boolean;
+  fuelCompareOpen?: boolean;
   activeResult: "none" | "compare" | string;
   onShopsClick: () => void;
   onSearchClick: () => void;
@@ -212,6 +215,9 @@ export function ZiiplyBottomNav({
   cartModalOpen,
   cartSelectionEnabled = true,
   compareSelectionEnabled = true,
+  fuelMode = false,
+  fuelCompareReady = false,
+  fuelCompareOpen = false,
   activeResult,
   onShopsClick,
   onSearchClick,
@@ -243,16 +249,16 @@ export function ZiiplyBottomNav({
     ? "bg-[#fff8ea] text-[#2f7041] ring-1 ring-[#2f7041]/25 shadow-[0_2px_5px_rgba(39,58,36,0.14)]"
     : "bg-[#2f7041] text-[#fff6e8] ring-1 ring-[#214f30]/30 shadow-[0_2px_5px_rgba(29,62,36,0.28)]";
 
-  const shopsActive = shopsPanelOpen;
-  const searchActive = searchPanelOpen;
+  const shopsActive = fuelMode ? !fuelCompareOpen : shopsPanelOpen;
+  const searchActive = fuelMode ? fuelCompareOpen : searchPanelOpen;
   const cartActive = cartModalOpen && cartLength > 0;
   const compareActive = activeResult === "compare" && !searchPanelOpen && !cartModalOpen && cartLength > 0;
-  const searchDisabled = searchBottomNavDisabled && !searchPanelOpen;
+  const searchDisabled = fuelMode ? !fuelCompareReady : searchBottomNavDisabled && !searchPanelOpen;
   // V767: Kori ja Vertailu vapautuvat vasta kelvollisen ketjuvalinnan jälkeen.
   // Yksi + 1 ketju sallii Korin, mutta ei Halpuusvertailua.
   // Monta + vähintään 2 ketjua sallii molemmat.
-  const cartDisabled = cartLength === 0 || !cartSelectionEnabled;
-  const compareDisabled = cartLength === 0 || !compareSelectionEnabled;
+  const cartDisabled = fuelMode || cartLength === 0 || !cartSelectionEnabled;
+  const compareDisabled = fuelMode || cartLength === 0 || !compareSelectionEnabled;
   const iconClass = "h-[30px] w-[30px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
   const labelClass = "mt-0.5 block leading-none";
 
@@ -276,13 +282,15 @@ export function ZiiplyBottomNav({
           onClick={onSearchClick}
           disabled={searchDisabled}
           aria-disabled={searchDisabled}
+          aria-label={fuelMode ? "Gösta vertailee polttoainehinnat" : "Hae"}
+          title={fuelMode && !fuelCompareReady ? "Valitse ensin vähintään yksi ketju" : undefined}
           className={buttonShellClass}
         >
           <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
             <span>
-              <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />
+              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />}
             </span>
-            <span className={labelClass}>Hae</span>
+            <span className={labelClass}>{fuelMode ? "Vertaa" : "Hae"}</span>
           </span>
         </button>
 
