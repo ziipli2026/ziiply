@@ -51,7 +51,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (/kahvi|suodatinpuss|teejuom|(?:^|\/)(?:teet|tee)(?:\/|$)/.test(parts.slice(1).join("/"))) return "Kahvi & tee";
   if (/mehu|smoothie|virvoitus|cola|limonadi|energiajuom|kivennaisves|vesipull|oluet|siider/.test(leaf)) return "Juomat";
   if (/kala|lohi|silak|muik|katkarap|merenelav|kalatiski/.test(leaf)) return "Kala";
-  if (/lastenruo|vauvanruo|lastenvalipal|vellit|lastensose/.test(path)) return "Lastenruoat";
+  if (/lasten-?ruo|vauvan-?ruo|lasten-?valipal|valipalasose|lasten-?sose|vellit/.test(path)) return "Lastenruoat";
   if (/vaip|lastenhoito/.test(path)) return "Lastenhoito";
   if (/vitamiin|ravintolis|kivennaisain|omega|proteiinivalmiste|proteiinijauhe|urheiluravinte|urheiluvalmiste|elektrolyyt|terveysvalmiste/.test(path)) return "Vitamiinit & ravinteet";
   if (/valipalakeks|valipalapatuk|keks|pikkuleiv/.test(leaf)) return "Makeiset & keksit";
