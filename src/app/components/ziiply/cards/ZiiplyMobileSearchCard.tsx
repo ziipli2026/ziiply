@@ -289,7 +289,7 @@ function ModeToggle({
   onModeChange?: (mode: "cart" | "single") => void;
 }) {
   return (
-    <div className="mx-auto grid h-[2.28rem] w-[13.1rem] grid-cols-2 overflow-hidden rounded-[1.0rem] border-[2px] border-[#a88442] bg-[#ead7a5] p-1 shadow-[0_0_0_2px_#fff4cc_inset,0_3px_0_rgba(91,72,44,0.16)]">
+    <div className="mx-auto grid h-[2.28rem] w-full max-w-[13.1rem] grid-cols-2 overflow-hidden rounded-[1.0rem] border-[2px] border-[#a88442] bg-[#ead7a5] p-1 shadow-[0_0_0_2px_#fff4cc_inset,0_3px_0_rgba(91,72,44,0.16)]">
       <button
         type="button"
         onClick={() => onModeChange?.("cart")}
@@ -957,7 +957,7 @@ export default function ZiiplyMobileSearchCard({
   return (
     <div
       data-ziiply-mobile-search-card-version="UUSI_V685_VOICE_SCALE_100"
-      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
+      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] min-h-0 items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
         <div className="pointer-events-none absolute inset-[0.42rem] z-0 overflow-hidden rounded-[1.45rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.30)]">
@@ -965,7 +965,7 @@ export default function ZiiplyMobileSearchCard({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.48),transparent_54%)]" />
         </div>
 
-        <div className="relative z-10 flex h-full min-h-0 flex-col px-1.5 pb-1.5 pt-1.5">
+        <div className="relative z-10 flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain px-1.5 pb-1.5 pt-1.5 [-webkit-overflow-scrolling:touch]">
           {tempoToast && (
             <div
               className="absolute left-1/2 top-[7.0rem] z-[135] -translate-x-1/2 rounded-full border-[2px] border-[#d8bd75] bg-[#fff1bf] px-4 py-2 text-center text-[0.78rem] font-black text-[#174c2c] shadow-[0_5px_0_rgba(91,72,44,0.16),0_10px_18px_rgba(0,0,0,0.12)] animate-[ziiplyTempoToast_1.6s_ease-out_both]"
@@ -1043,7 +1043,7 @@ export default function ZiiplyMobileSearchCard({
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
           <div className="relative z-10 mt-1 rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
-            <div className="grid grid-cols-[1.12fr_0.74fr_1.12fr] items-center gap-2.5">
+            <div className="grid grid-cols-[minmax(0,1.12fr)_minmax(0,0.74fr)_minmax(0,1.12fr)] items-center gap-[clamp(4px,2vw,10px)]">
               <AssistantButton
                 kind="gosta"
                 onClick={() => handleManualSearch("gosta", onOfferSearch)}
@@ -1153,7 +1153,7 @@ export default function ZiiplyMobileSearchCard({
             <div className="relative z-10 mx-auto mt-2 w-full max-w-[23.6rem] overflow-visible px-2 py-1">
               {/* V679: puinen yhteinen taustapaneeli poistettu. Nappien kontit ovat samankokoiset.
                   Äänitä-asset skaalataan erikseen, koska sen näkyvä grafiikka on Filmaa-assetia pienempi. */}
-              <div className="grid h-[7.15rem] grid-cols-2 items-center gap-4">
+              <div className="grid min-h-[5.5rem] grid-cols-2 items-center gap-[clamp(8px,3vw,16px)]">
                 <RetroAssetButton
                   kind="voice"
                   label="Äänitä"
