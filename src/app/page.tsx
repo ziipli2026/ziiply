@@ -15495,9 +15495,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       showCartToast(`Määrä +1: ${existingNameV122}`);
       setEanMessage("Tuote on jo korissa. Määrä lisättiin +1.");
       if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Määrä +1");
+        setEanScannerMessage(existingSticker?.ean === ean ? `−${existingSticker.percent} % · Määrä +1` : "Määrä +1");
         window.setTimeout(() => {
-          setEanScannerMessage((current) => (current === "Määrä +1" ? "" : current));
+          setEanScannerMessage((current) => (current === "Määrä +1" || /^−\d+ % · Määrä \+1$/.test(current) ? "" : current));
         }, 2200);
       }
       return;
