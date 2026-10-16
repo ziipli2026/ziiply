@@ -893,7 +893,7 @@ export async function GET(request: Request) {
         citymarketResults = (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer));
         citymarketNationalCount = citymarketResults.length;
       } catch (error) {
-        console.warn("[Ziiply offers V19] K-Citymarket national fetch failed", error);
+        throw error;
       }
       // Local and national sources must be independently fault-tolerant.
       try {
@@ -913,6 +913,8 @@ export async function GET(request: Request) {
         }
       } catch (localError) {
         console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
+        return NextResponse.json({ ok: false, complete: false, results: [], error: "Kampanja-aineisto ei ole valmis. Yritä myöhemmin uudelleen." },
+          { status: 503, headers: { "Cache-Control": "no-store", "Retry-After": "60" } });
       }
     }
 
