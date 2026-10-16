@@ -617,6 +617,10 @@ function mapProductV1(
   const categoryMeta = getCategoryMetaV1(product, sectionTitle);
   const priceText = formatPriceV1(currentPrice);
   const unitPriceText = formatComparisonPriceV1(comparisonPrice, comparisonUnit);
+  // Preserve the source pricing flag: a comparison price alone does not imply a weighed product.
+  const isApproximatePrice = pricing?.isApproximatePrice === true;
+  const salesUnit = firstStringV1(pricing?.salesUnit, product?.salesUnit);
+  const isWeightedProduct = isApproximatePrice || /^(kg|kilogram|kilogramma)$/i.test(salesUnit);
   const campaignUntil = firstStringV1(pricing?.campaignPriceValidUntil);
   const imageUrl = productImageUrlV1(product);
   const ean = firstStringV1(product?.ean);
@@ -661,6 +665,9 @@ function mapProductV1(
     title,
     priceText,
     unitPriceText,
+    isApproximatePrice,
+    isWeightedProduct,
+    salesUnit,
     benefitText,
     // V231: read-only per-product evidence from the actual S-local page section.
     // No change to eligibility, filtering, price selection, or displayed offer count.
@@ -680,6 +687,8 @@ function mapProductV1(
         storeIds: section?.storeIds ?? null,
       },
       productPricingKeys: Object.keys(pricing || {}),
+      isApproximatePrice,
+      salesUnit,
       campaignPrice: pricing?.campaignPrice ?? null,
       currentPrice: pricing?.currentPrice ?? null,
       regularPrice: pricing?.regularPrice ?? null,
