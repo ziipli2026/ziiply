@@ -3001,6 +3001,15 @@ function KauppiasMobileTopBar({
 
 // V758: Gosta cart prices must come from numeric provider data, not display text
 // such as "7,00 € / 2 kpl". A multi-buy card represents one cart unit.
+function getGostaCartBundleQuantityV869(offer: any): number {
+  const source = offer?.__sourceOfferSearchResult || {};
+  const text = String(source.priceText ?? offer?.offerPrice ?? offer?.priceText ?? "");
+  const forward = text.match(/\d+(?:[,.]\d+)?\s*€\s*\/\s*(\d+)\s*(?:kpl|pkt|ps|plo|prk)/i);
+  const reverse = text.match(/(\d+)\s*(?:kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*\d+(?:[,.]\d+)?\s*€/i);
+  const value = Number(forward?.[1] ?? reverse?.[1] ?? source?.debug?.offerQuantity ?? source?.offerQuantity ?? offer?.bundleQuantity);
+  return Number.isInteger(value) && value > 1 && value <= 100 ? value : 1;
+}
+
 function getGostaCartPriceV758(offer: any): { total: number; unit: number } {
   const source = offer?.__sourceOfferSearchResult || {};
   const numeric = (value: unknown): number | null => {
@@ -24472,6 +24481,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }
 
               const { total: numericPrice, unit: eurosparUnitPrice } = getGostaCartPriceV758(offer);
+              const offerBundleQuantityV869 = getGostaCartBundleQuantityV869(offer);
 
               const newItem: CartItem = {
                 id: String(offer.id || `offer-${Date.now()}`),
@@ -24480,7 +24490,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 image: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
                 chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                 storeName: String(offer.storeName || offer.shopName || ""),
-                quantity: 1,
+                quantity: isWeightedOffer ? 1 : offerBundleQuantityV869,
                 source: "offer",
                 ean: String(offer.ean || sourceOffer.ean || ""),
                 ...(storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" ? { ziiplySingleChainAtAdd: offer.chain === "S" ? "s" : offer.chain === "K" ? "k" : offer.chain === "LIDL" ? "lidl" : offer.chain === "TOKMANNI" || offer.chain === "EUROSPAR" ? "tokmanni" : "" } : {}),
@@ -24524,6 +24534,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
 
                 const { total: numericPrice, unit: eurosparUnitPrice } = getGostaCartPriceV758(offer);
+                const offerBundleQuantityV869 = getGostaCartBundleQuantityV869(offer);
 
                 nextCart = [
                   ...nextCart,
@@ -24534,7 +24545,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     image: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
                     chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                     storeName: String(offer.storeName || offer.shopName || ""),
-                    quantity: 1,
+                    quantity: offerBundleQuantityV869,
                     source: "offer",
                     product: {
                       id: String(offer.id || `offer-product-${Date.now()}-${added}`),
