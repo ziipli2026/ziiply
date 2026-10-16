@@ -24232,11 +24232,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ...item,
                 id: key,
                 name: item.name ?? item.product?.name ?? item.title ?? item.productName,
-                price: (item.product?.ziiplyPricePendingWeight &&
-                  (((item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice) == null ||
-                    ((item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice) === ""))
-                    ? 0
-                    : item.price ?? item.product?.price ?? item.product?.unitPrice ?? item.product?.comparisonPrice,
+                // A weighed item with a confirmed final price must use that price,
+                // never the earlier €/kg comparison rate or an estimated package total.
+                price: ((item as any).ziiplyPricePendingWeight || (item.product as any)?.ziiplyPricePendingWeight)
+                  ? (() => {
+                      const finalValue = (item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice;
+                      if (finalValue == null || finalValue === "") return 0;
+                      const amount = Number(String(finalValue).trim().replace(",", "."));
+                      return Number.isFinite(amount) && amount >= 0 ? amount : 0;
+                    })()
+                  : item.price ?? item.product?.price ?? item.product?.unitPrice ?? item.product?.comparisonPrice,
                 ziiplyPricePendingWeight: Boolean((item.product as any)?.ziiplyPricePendingWeight),
                 ziiplyWeightOffer: Boolean(
                   (item as any).ziiplyWeightOffer ||
