@@ -12,6 +12,7 @@
 // - paneelit ovat tasaisemmat, tekstit eivät leikkaannu yhtä helposti
 
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import DesktopFuelPhotoReport from "../desktop/DesktopFuelPhotoReport";
 
 type InfoKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -588,7 +589,7 @@ export default function ZiiplyMobileTopBar({
         </div>
       </div>
     </div>
-      {chartOpen && (
+      {chartOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#777777]/35 px-3 sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä">
           <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
@@ -620,7 +621,8 @@ export default function ZiiplyMobileTopBar({
               </>
             )}
           </section>
-        </div>
+        </div>,
+        document.body
       )}
       {fuelReportOpen && <DesktopFuelPhotoReport onClose={() => setFuelReportOpen(false)} />}
     </>
