@@ -1578,6 +1578,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 const category = String(offer.category || "");
                 const sourceOffer = offer.__sourceOfferSearchResult || {};
                 const isWeightedProduct = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct);
+                const weightedUnitPrice = isWeightedProduct ? (comparisonPrice.match(/\d+[,.]\d{1,2}\s*€\s*\/\s*kg/i)?.[0] || (offerPrice.match(/\d+[,.]\d{1,2}\s*€\s*\/\s*kg/i)?.[0] || "")) : "";
 
                 return (
                   <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
@@ -1588,10 +1589,11 @@ export default function ZiiplyMobileOfferSearchCard({
                             <OfferImageBox src={image} category={category} />
                           </button>
                           <button type="button" onClick={() => onAddOffer?.(offer)} disabled={!onAddOffer}
-                            aria-label={`Lisää koriin: ${productName}, ${offerPrice || "hinta puuttuu"}`}
+                            aria-label={`Lisää koriin: ${productName}, ${isWeightedProduct ? (weightedUnitPrice || "punnitushinta selviää kassalla") : (offerPrice || "hinta puuttuu")}`}
                             className={cx("flex min-h-[3.8rem] min-w-0 w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")}>
-                            <span className="block w-full max-w-full break-words text-center text-[clamp(0.85rem,3.7vw,1.12rem)] font-black leading-tight tabular-nums" style={{ fontFamily: cooperFont }}>{splitOfferDisplayPrice(offerPrice).amount}</span>
-                            {splitOfferDisplayPrice(offerPrice).basis && <span className="block w-full text-center text-[0.76rem] font-black leading-tight">{splitOfferDisplayPrice(offerPrice).basis}</span>}
+                            <span className="block w-full max-w-full break-words text-center text-[clamp(0.85rem,3.7vw,1.12rem)] font-black leading-tight tabular-nums" style={{ fontFamily: cooperFont }}>{isWeightedProduct ? (weightedUnitPrice || "Punnitaan") : splitOfferDisplayPrice(offerPrice).amount}</span>
+                            {!isWeightedProduct && splitOfferDisplayPrice(offerPrice).basis && <span className="block w-full text-center text-[0.76rem] font-black leading-tight">{splitOfferDisplayPrice(offerPrice).basis}</span>}
+                            {isWeightedProduct && <span className="text-center text-[0.56rem] font-bold leading-tight">Lopullinen hinta punnittaessa</span>}
                             <span className="whitespace-nowrap text-[0.57rem] font-black leading-tight text-[#244525]">🛒 Lisää koriin</span>
                           </button>
                         </div>
