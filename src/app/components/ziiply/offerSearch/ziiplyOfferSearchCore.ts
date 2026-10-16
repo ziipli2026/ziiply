@@ -331,6 +331,9 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   const parent = normalizeGostaCoreText(sourceItem?.mainCategory ||
     pathParts[0] || "");
   if (!hierarchy || !parent) return "";
+  // Mixed S-kaupat departments must use their precise child group.
+  if (/\btofu(?:t|jen)?\b/.test(detailed)) return "Liha & makkarat";
+  if (/pastakastikkeet|pastakastike/.test(detailed)) return "Kuivatuotteet";
   if (/lastenruo|vauvanruo|lasten valipala|lasten sose/.test(detailed)) return "Lastenruoat";
   if (/vaipat|lastenhoito|vauvan hoito/.test(detailed)) return "Lastenhoito";
   if (/vitamiini|ravintolisa|kivennaisaine|proteiinijauhe|urheiluravinne|elektrolyyt/.test(detailed)) return "Vitamiinit & ravinteet";
