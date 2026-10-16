@@ -11,7 +11,7 @@
 // - ulkoasu: sama retro/emaltti-perhe kuin location barissa
 // - paneelit ovat tasaisemmat, tekstit eivät leikkaannu yhtä helposti
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DesktopFuelPhotoReport from "../desktop/DesktopFuelPhotoReport";
 
 type InfoKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -200,14 +200,6 @@ export default function ZiiplyMobileTopBar({
 }: ZiiplyMobileTopBarProps) {
   const [fuelReportOpen, setFuelReportOpen] = useState(false);
   const [chartOpen, setChartOpen] = useState(false);
-  const chartDialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = chartDialogRef.current;
-    if (!dialog) return;
-    if (chartOpen && !dialog.open) dialog.showModal();
-    else if (!chartOpen && dialog.open) dialog.close();
-  }, [chartOpen]);
   const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
   const [chartError, setChartError] = useState("");
   const [chartLoading, setChartLoading] = useState(false);
@@ -596,7 +588,9 @@ export default function ZiiplyMobileTopBar({
         </div>
       </div>
     </div>
-      <dialog ref={chartDialogRef} onClose={() => setChartOpen(false)} onCancel={() => setChartOpen(false)} className="m-auto w-[calc(100vw-24px)] max-w-[520px] max-h-[calc(100dvh-24px)] overflow-y-auto border-0 bg-transparent p-0 backdrop:bg-black/40 sm:hidden" aria-label="Pörssisähkön 24 tunnin hintakäyrä">
+      {chartOpen && (
+        <div className="fixed inset-0 z-[260] flex items-center justify-center bg-black/40 p-4 sm:hidden" onClick={() => setChartOpen(false)}>
+          <div className="w-full max-w-[520px] max-h-[calc(100dvh-32px)] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä" onClick={(event) => event.stopPropagation()}>
           <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
@@ -627,7 +621,9 @@ export default function ZiiplyMobileTopBar({
               </>
             )}
           </section>
-      </dialog>
+          </div>
+        </div>
+      )}
       {fuelReportOpen && <DesktopFuelPhotoReport onClose={() => setFuelReportOpen(false)} />}
     </>
   );
