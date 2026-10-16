@@ -165,12 +165,12 @@ export default function ZiiplyMobileStoreModeSelector({
       <div className="pointer-events-none absolute inset-0 opacity-24 [background-image:radial-gradient(#c9ad6b_0.9px,transparent_0.9px)] [background-size:17px_17px]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.64),transparent_60%)]" />
 
-      <div className={`relative z-10 ${fuelMode ? "grid grid-cols-[minmax(0,1fr)_52px_minmax(0,1fr)] items-center gap-x-2" : "flex items-center gap-3"}`}>
+      <div className={`relative z-10 ${fuelMode ? "grid grid-cols-[minmax(0,1fr)_52px_minmax(0,1fr)] items-center gap-x-2"  : "grid grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-center gap-x-1"}`}>
 <button
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => fuelMode ? onFuelStationSideChange?.("traffic") : onStoreModeChange("hyper")}
-          className={`${buttonClass(hyperActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]" : "min-w-0 flex-1"}`}
+          className={`${buttonClass(hyperActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]"  : "min-w-0 w-full !px-1"}`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Liikenneasemat" : "🏬 Tavaratalot"}</span>
         </button>
@@ -183,7 +183,7 @@ export default function ZiiplyMobileStoreModeSelector({
             <span aria-hidden="true" className="text-[17px] font-black leading-none text-[#1a2740]">{fuelStationSide === "traffic" ? "←" : fuelStationSide === "cold" ? "→" : "↔"}</span>
           </div>
         ) : (
-          <div className={`absolute left-1/2 top-1/2 z-30 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`}>
+          <div className={`relative z-30 flex w-full flex-col items-center justify-center ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`}>
             <span className="mb-0 text-[9px] font-black leading-none text-[#6a5330]">Yksi</span>
             <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label="Valitse yksi tai monta kauppaa" onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative h-[34px] w-[18px] shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
               <span className={`absolute left-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-all ${betweenChainSelectionMode === "many" ? "top-[18px]" : "top-[2px]"}`} />
@@ -195,7 +195,7 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => fuelMode ? onFuelStationSideChange?.("cold") : onStoreModeChange("local")}
-          className={`${buttonClass(localActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]" : "min-w-0 flex-1"}`}
+          className={`${buttonClass(localActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]"  : "min-w-0 w-full !px-1"}`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Kylmäasemat / muut" : "🏪 Lähikaupat"}</span>
         </button>
