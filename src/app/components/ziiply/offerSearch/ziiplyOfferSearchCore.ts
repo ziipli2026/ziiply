@@ -383,7 +383,7 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // hierarchy is more specific than the legacy title-based classifier.
   const isStructuredSKaupat =
     normalizeGostaCoreText(sourceItem?.source || "") === "skaupat" &&
-    Boolean(sourceItem?.categoryPath && sourceItem?.mainCategory);
+    Boolean(sourceItem?.categoryPath || sourceItem?.mainCategory);
   if (isStructuredSKaupat) {
     const structured = getStructuredSKaupatCategoryV232(sourceItem);
     if (structured) return structured;
