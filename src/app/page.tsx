@@ -4788,9 +4788,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V828: scanner session knows separately whether scans are collection scans.
   // "En" never blocks product lookup; it only disables automatic collected-state.
   const scannerInStoreRefV828 = useRef(false);
-  const scannerAddedDestinationV846 = () => scannerInStoreRefV828.current ? "ostoskoriin" : "ostoslistalle";
-  const scannerAddedMessageV846 = () => `✓ Lisätty ${scannerAddedDestinationV846()}`;
-  const scannerWeightAddedMessageV847 = () => `Vaakatuote lisätty ${scannerAddedDestinationV846()}`;
+  const scannerAddedMessageV846 = () => "✓";
+  const scannerWeightAddedMessageV847 = () => "Vaakatuote · ✓";
   const scannerConfirmedStoreNameRefV828 = useRef("");
   const scannerStorePromptResolverRefV828 = useRef<null | ((inStore: boolean) => void)>(null);
   const scannerStorePromptTimerRefV828 = useRef<number | null>(null);
@@ -15419,9 +15418,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
         setEanMessage("Tuote kerätty.");
-        setEanScannerMessage("✓ Kerätty");
+        setEanScannerMessage("✓");
         window.setTimeout(() => {
-          setEanScannerMessage((current) => current === "✓ Kerätty" ? "" : current);
+          setEanScannerMessage((current) => current === "✓" ? "" : current);
         }, 2200);
         return;
       }
@@ -15477,15 +15476,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (existingProductAnyV122?.ziiplyOpenFoodFactsFallback) {
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
-        showCartToast(`Määrä +1: ${existingNameV122}`);
+        if (!(eanScannerOpen || eanHtml5ScannerRef.current)) showCartToast(`Määrä +1: ${existingNameV122}`);
         setEanMessage(
-          "Tuote tunnistettu. Määrä lisättiin koriin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
+          (eanScannerOpen || eanHtml5ScannerRef.current) ? "Hinta ei saatavilla · ✓" : "Tuote tunnistettu. Määrä lisättiin koriin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
         );
         if (eanScannerOpen || eanHtml5ScannerRef.current) {
-          setEanScannerMessage("Määrä +1 — hinta ei saatavilla");
+          setEanScannerMessage("Hinta ei saatavilla · ✓");
           window.setTimeout(() => {
             setEanScannerMessage((current) =>
-              current === "Määrä +1 — hinta ei saatavilla" ? "" : current,
+              current === "Hinta ei saatavilla · ✓" ? "" : current,
             );
           }, 2600);
         }
@@ -15494,25 +15493,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (existingProductAnyV122?.ziiplyUnknownEan) {
         setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-        showCartToast(`Määrä +1: ${existingNameV122}`);
-        setEanMessage("Sama viivakoodi on jo korissa. Määrä lisättiin +1.");
+        if (!(eanScannerOpen || eanHtml5ScannerRef.current)) showCartToast(`Määrä +1: ${existingNameV122}`);
+        setEanMessage((eanScannerOpen || eanHtml5ScannerRef.current) ? "Odottaa tunnistusta · ✓" : "Sama viivakoodi on jo korissa. Määrä lisättiin +1.");
         if (eanScannerOpen || eanHtml5ScannerRef.current) {
-          setEanScannerMessage("Määrä +1 — odottaa tunnistusta");
+          setEanScannerMessage("Odottaa tunnistusta · ✓");
           window.setTimeout(() => {
             setEanScannerMessage((current) =>
-              current === "Määrä +1 — odottaa tunnistusta" ? "" : current,
+              current === "Odottaa tunnistusta · ✓" ? "" : current,
             );
           }, 2600);
         }
         return;
       }
 
-      showCartToast(`Määrä +1: ${existingNameV122}`);
-      setEanMessage("Tuote on jo korissa. Määrä lisättiin +1.");
+      if (!(eanScannerOpen || eanHtml5ScannerRef.current)) showCartToast(`Määrä +1: ${existingNameV122}`);
+      setEanMessage((eanScannerOpen || eanHtml5ScannerRef.current) ? (existingSticker?.ean === ean ? `−${existingSticker.percent} % · ✓` : "✓") : "Tuote on jo korissa. Määrä lisättiin +1.");
       if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage(existingSticker?.ean === ean ? `−${existingSticker.percent} % · Määrä +1` : "Määrä +1");
+        setEanScannerMessage(existingSticker?.ean === ean ? `−${existingSticker.percent} % · ✓` : "✓");
         window.setTimeout(() => {
-          setEanScannerMessage((current) => (current === "Määrä +1" || /^−\d+ % · Määrä \+1$/.test(current) ? "" : current));
+          setEanScannerMessage((current) => (current === "✓" || /^−\d+ % · ✓$/.test(current) ? "" : current));
         }, 2200);
       }
       return;
@@ -16950,8 +16949,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
     const inStore = scannerInStoreRefV828.current;
     const message = inStore
-      ? "Tuotteen tiedot lisätään kassalla"
-      : "Tuote lisätty – tuotteen tiedot haetaan kaupassa";
+      ? "Tiedot lisätään kassalla · ✓"
+      : "Tiedot haetaan kaupassa · ✓";
 
     {
       setCart((currentCart) => {
@@ -17287,17 +17286,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
     const stickerAddedMessage = Number(effectiveStickerPercent) > 0
-      ? `−${effectiveStickerPercent} % · ${mergedExistingV129 ? "Määrä +1" : scannerAddedMessageV846()}`
+      ? `−${effectiveStickerPercent} % · ✓`
       : null;
     setEanMessage(
-      stickerAddedMessage ?? (mergedExistingV129
+      stickerAddedMessage ?? ((eanScannerOpen || eanHtml5ScannerRef.current) ? scannerAddedMessageV846() : mergedExistingV129
         ? "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."
         : "Tuote tunnistettiin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."),
     );
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       const scannerMessage = stickerAddedMessage
-        ?? (mergedExistingV129 ? "Määrä +1 — hinta ei saatavilla" : scannerAddedMessageV846());
+        ?? scannerAddedMessageV846();
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
@@ -17412,9 +17411,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
         setEanMessage("Tuote kerätty.");
-        setEanScannerMessage("✓ Kerätty");
+        setEanScannerMessage("✓");
         window.setTimeout(() => {
-          setEanScannerMessage((current) => current === "✓ Kerätty" ? "" : current);
+          setEanScannerMessage((current) => current === "✓" ? "" : current);
         }, 2200);
         return;
       }
@@ -17562,7 +17561,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setEanMessage(looseShelfEanV853 ? "Vaakatuote lisätty" : "");
-    if (looseShelfEanV853) setEanScannerMessage("Vaakatuote lisätty");
+    if (looseShelfEanV853) setEanScannerMessage(scannerWeightAddedMessageV847());
     // V797: automaattinen skannaus kuittaa onnistumisen vain kerran.
     // Kun success-flash on käytössä, ScannerCard näyttää jo "Lisätty koriin".
     // Erillinen scannerMessage tarvitaan vain valintakortin lisäyksessä,
@@ -17570,12 +17569,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (
       isScannerAddV787 &&
       options.showScannerMessage !== false &&
-      options.showFlash === false
+      (options.showFlash === false || appliedDiscountV860 > 0)
     ) {
       setEanScannerOpen(true);
       // V594: valintaikkunan kautta lisättäessä annetaan vain hiljainen, läpikuultava kuittaus.
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
-      const scannerAddMessageV794 = scannerAddedMessageV846();
+      const scannerAddMessageV794 = looseShelfEanV853 ? scannerWeightAddedMessageV847()
+        : appliedDiscountV860 > 0 ? `−${appliedDiscountV860} % · ✓` : scannerAddedMessageV846();
       setEanScannerMessage(scannerAddMessageV794);
       window.setTimeout(() => {
         setEanScannerMessage((current) =>

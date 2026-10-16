@@ -94,7 +94,7 @@ export default function ZiiplyMobileScannerCard({
   loading = false,
   scannerMessage = "",
   storeLocation = null,
-  successMessage = "Lisätty ostoskoriin",
+  successMessage = "✓",
   cameraOverlay,
   torchOn = false,
   manualInputOpen = false,
