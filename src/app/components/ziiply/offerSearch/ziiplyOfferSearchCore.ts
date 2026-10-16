@@ -1218,6 +1218,22 @@ export function isZiiplyGostaCategorySelectionV147(value: string) {
   return isCurrentGostaCategorySelectionV167(value);
 }
 
+function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
+  const benefit = String(item.benefitText ?? "").trim();
+  const evidence = (item as any).debugOfferEvidenceV226;
+  const sourceLabels = String(evidence?.rawLabels ?? "").replace(/\\u00a0/g, " ");
+  const explicitMultiBuy = sourceLabels.match(/\\b(\\d+\\s*(?:kpl|pkt|ps|plo|prk)\\s*=\\s*\\d+(?:[,.]\\d+)?\\s*€)/i)?.[1] ?? "";
+  const categoryLabels = [item.category, (item as any).categoryPath, (item as any).productGroup,
+    (item as any).mainCategory, (item as any).subCategory, (item as any).department]
+    .map((value) => String(value ?? "").trim().toLocaleLowerCase("fi-FI"));
+  const isCategory = Boolean(benefit) && categoryLabels.includes(benefit.toLocaleLowerCase("fi-FI"));
+  if (isCategory && explicitMultiBuy) return explicitMultiBuy;
+  if (benefit && !isCategory) return benefit;
+  if (explicitMultiBuy) return explicitMultiBuy;
+  return String(item.validityText ||
+    (item.validFrom && item.validTo ? `Voimassa ${String(item.validFrom)}–${String(item.validTo)}` : "")).trim();
+}
+
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
   return {
     id: item.id,
@@ -1235,10 +1251,10 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     comparisonPriceText: item.unitPriceText,
     unitPrice: item.unitPriceText,
     comparisonUnit: item.comparisonUnit,
-    discountText:
-      item.benefitText ||
-      item.validityText ||
-      (item.validFrom && item.validTo ? `Voimassa ${String(item.validFrom)}–${String(item.validTo)}` : ""),
+    // Never render a category label as a price promotion. For S-group rows,
+    // recover explicit multi-buy wording from the publisher evidence when the
+    // mapped benefitText was overwritten by a category in a parallel feed.
+    discountText: resolveOfferCardDiscountTextV232(item),
     image: item.imageUrl,
     imageUrl: item.imageUrl,
     pictureUrl: item.imageUrl,
