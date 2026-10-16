@@ -34,6 +34,9 @@ export type ZiiplyOffer = {
 };
 
 export type Product = {
+  storeName?: string;
+  ziiplyRegularPrice?: number;
+  ziiplyDiscountPercent?: number;
   priceAmountUnit?: PriceAmountUnit;
   comparisonPriceAmountUnit?: PriceAmountUnit;
   id: number;
@@ -68,6 +71,11 @@ export type EanSearchResult = {
 };
 
 export type CartItem = {
+  ziiplyRegularPrice?: number;
+  ziiplyDiscountPercent?: number;
+  ziiplyPriceFetchedAt?: number;
+  ziiplyPriceStoreName?: string;
+  ziiplyPriceRefreshPending?: boolean;
   id: string;
   name: string;
   price?: number;
