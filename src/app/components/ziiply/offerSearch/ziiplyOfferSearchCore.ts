@@ -1258,6 +1258,11 @@ function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
     return benefit && !isCategory && !benefit.includes(condition) ? `${benefit} · ${condition}` : condition;
   }
   // Percentage-only offers have no reliable absolute euro price.
+  const reverseBundlePrice = String(item.priceText ?? "").replace(/\u00a0/g, " ").match(/(\d+)\s*(kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*(\d+(?:[,.]\d+)?\s*€)/i);
+  if (reverseBundlePrice) {
+    const condition = `${reverseBundlePrice[1]} ${reverseBundlePrice[2]} = ${reverseBundlePrice[3]}`;
+    return benefit && !isCategory && !benefit.includes(condition) ? `${benefit} · ${condition}` : condition;
+  }
   const percent = String(item.priceText ?? "").match(/^\s*[−-]\s*\d+(?:[,.]\d+)?\s*%\s*$/);
   if (percent) return benefit && !isCategory && !benefit.includes(percent[0].trim()) ? `${benefit} · ${percent[0].trim()}` : percent[0].trim();
   const evidence = (item as any).debugOfferEvidenceV226;
