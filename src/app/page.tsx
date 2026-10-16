@@ -7332,6 +7332,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       source: item.source,
       product: item.product,
       ean: item.ean,
+      ...(((item as any).ziiplyPricePendingWeight || (item.product as any)?.ziiplyPricePendingWeight)
+        ? { ziiplyPricePendingWeight: true, ziiplyWeightOffer: true }
+        : {}),
+      ...(((item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice) != null
+        ? { ziiplyWeightFinalPrice: (item as any).ziiplyWeightFinalPrice ?? (item.product as any)?.ziiplyWeightFinalPrice }
+        : {}),
       ...((Number((item as any).ziiplyOfferBundleQuantity) > 1)
         ? { ziiplyOfferBundleQuantity: Number((item as any).ziiplyOfferBundleQuantity) }
         : {}),
