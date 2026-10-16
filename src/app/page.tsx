@@ -15709,7 +15709,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
-                persistCartImmediately(nextCart);
                 // Do not auto-start Halpuuta before the user's first comparison.
                 if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
@@ -15755,7 +15754,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
-                persistCartImmediately(nextCart);
                 if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
               });
@@ -15810,7 +15808,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
-                persistCartImmediately(nextCart);
                 // Do not auto-start Halpuuta before the user's first comparison.
                 if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
