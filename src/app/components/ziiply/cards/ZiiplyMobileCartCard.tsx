@@ -953,41 +953,23 @@ export default function ZiiplyMobileCartCard({
         </footer>
         ) : null}
 
-        {hasItems && purchaseModeDefault === "instore" && !showCompletionCardV58 ? (
+        {hasItems && !showCompletionCardV58 ? (
           <button
             type="button"
             onClick={() => {
-              setRemoteCompletionV850(false);
+              setRemoteCompletionV850(purchaseModeDefault !== "instore");
               setShowCompletionCardV58(true);
               setShowCheckoutFutureNoticeV62(false);
             }}
-            className={cx(
-              "absolute bottom-[2.94rem] left-[5.8rem] z-[35] rounded-[0.55rem] border-2 border-[#496443] bg-[#dfcfaa] px-3 py-2 text-[0.86rem] font-black italic text-[#244525] shadow-lg",
-              isCartCompleteV58 && "animate-[ziiplyCheckoutPulse_1.35s_ease-in-out_infinite] motion-reduce:animate-none",
-            )}
-            style={{ fontFamily: cooperFont }}
+            className="absolute bottom-[2.94rem] left-[6.70rem] z-[35] flex h-[2.22rem] items-center gap-1.5 rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] px-1.5 text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
             aria-label="Kassalle"
+            title="Kassalle"
           >
-            Kassalle
-          </button>
-        ) : null}
-
-        {hasItems && !showCompletionCardV58 && purchaseModeDefault !== "instore" ? (
-          <button
-            type="button"
-            onClick={() => {
-              setRemoteCompletionV850(true);
-              setShowCompletionCardV58(true);
-              setShowCheckoutFutureNoticeV62(false);
-            }}
-            className="absolute bottom-[2.94rem] left-[6.70rem] z-[35] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
-            aria-label="Kassalle etäostoksilla"
-            title="Kassalle etäostoksilla"
-          >
-            <svg aria-hidden="true" viewBox="0 0 32 32" className="h-[1.45rem] w-[1.45rem]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" viewBox="0 0 32 32" className={cx("h-[1.45rem] w-[1.45rem] shrink-0", purchaseModeDefault === "instore" && "animate-[ziiplyCashRegisterHop_4s_ease-in-out_infinite] motion-reduce:animate-none")} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 12h20v15H6zM4 8h24v4H4zM9 5h14v3M10 17h5v5h-5zM19 17h4M19 21h4M9 25h14" />
               <path d="M23 3v5M20.5 5.5H25.5" strokeWidth="1.3" />
             </svg>
+            {purchaseModeDefault === "instore" ? <span className="whitespace-nowrap text-[0.70rem] font-extrabold italic" style={{ fontFamily: cooperFont }}>Kassalle?</span> : null}
           </button>
         ) : null}
 
@@ -1193,7 +1175,7 @@ export default function ZiiplyMobileCartCard({
             animation: ziiplyCartPaperPop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2);
           }
 
-          @keyframes ziiplyCheckoutPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.075); } }\n          @keyframes ziiplyCartCompleteCardV61 {
+          @keyframes ziiplyCashRegisterHop { 0%, 7%, 15%, 100% { transform: translateY(0) rotate(0deg); } 3% { transform: translateY(-4px) rotate(-5deg); } 11% { transform: translateY(-3px) rotate(4deg); } }\n          @keyframes ziiplyCheckoutPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.075); } }\n          @keyframes ziiplyCartCompleteCardV61 {
             0% {
               opacity: 0;
               transform: translateY(12px) scale(0.975) rotate(-0.25deg);
