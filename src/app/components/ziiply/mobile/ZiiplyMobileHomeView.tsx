@@ -19,7 +19,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     <main
       className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 sm:hidden"
       style={{
-        background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, #e9efe4 100%)",
+        background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, #e9f3f0 100%)",
       }}
     >
       <div className="flex min-h-0 flex-1 flex-col justify-end"
