@@ -1271,9 +1271,17 @@ function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
-  const bundle = String(item.priceText ?? "").match(/(\d+(?:[,.]\d+)?)\s*€\s*\/\s*(\d+)\s*(?:kpl|pkt|ps|plo|prk)/i);
-  const bundleTotal = bundle ? Number(bundle[1].replace(",", ".")) : null;
-  const bundleQuantity = bundle ? Number(bundle[2]) : null;
+  const source = item as any;
+  const textPrice = String(item.priceText ?? "");
+  const bundle = textPrice.match(/(\\d+(?:[,.]\\d+)?)\\s*€\\s*\\/\\s*(\\d+)\\s*(?:kpl|pkt|ps|plo|prk)/i);
+  const reverseBundle = textPrice.match(/(\\d+)\\s*(?:kpl|pkt|ps|plo|prk)\\s*(?:=|\\/)\\s*(\\d+(?:[,.]\\d+)?)\\s*€/i);
+  const structuredQuantity = Number(source.offerQuantity ?? source.multiBuyQuantity);
+  const bundleQuantity = bundle ? Number(bundle[2]) : reverseBundle ? Number(reverseBundle[1]) :
+    Number.isInteger(structuredQuantity) && structuredQuantity > 1 ? structuredQuantity : null;
+  const rawTotal = bundle?.[1] ?? reverseBundle?.[2];
+  const structuredTotal = typeof item.price === "number" ? item.price : Number.NaN;
+  const bundleTotal = rawTotal ? Number(rawTotal.replace(",", ".")) :
+    bundleQuantity && Number.isFinite(structuredTotal) ? structuredTotal : null;
   return {
     id: item.id,
     name: item.title,
