@@ -326,9 +326,8 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   // Cached rows can contain the full hierarchy only in categoryPath.
   // Extract child segments without treating the broad parent as a child.
   const pathParts = String(sourceItem?.categoryPath || "").split(/\s*[>/]\s*/).filter(Boolean);
-  const detailed = [sourceItem?.productGroup, sourceItem?.subCategory]
-    .filter(Boolean).map((v: unknown) => normalizeGostaCoreText(v)).join(" ") ||
-    pathParts.slice(1).map((v: string) => normalizeGostaCoreText(v)).join(" ");
+  const detailed = [...pathParts.slice(1), sourceItem?.productGroup, sourceItem?.subCategory]
+    .filter(Boolean).map((v: unknown) => normalizeGostaCoreText(v)).join(" ");
   const parent = normalizeGostaCoreText(sourceItem?.mainCategory ||
     String(sourceItem?.categoryPath || "").split(">")[0] || "");
   if (!hierarchy || !parent) return "";
