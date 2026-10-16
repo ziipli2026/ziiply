@@ -45,4 +45,7 @@ for (const [name, offer, expected] of [
 assert.equal((page.match(/quantity: isWeightedOffer \? 1 : offerBundleQuantityV869/g)||[]).length,1,"single add must use bundle quantity");
 assert.equal((page.match(/quantity: offerBundleQuantityV869/g)||[]).length,1,"bulk add must use bundle quantity");
 console.log("PASS bundle quantity is used for single and bulk cart adds");
+assert(page.includes("ziiplyOfferBundleQuantity: Number((item as any).ziiplyOfferBundleQuantity)"),"saved cart sanitizer must preserve bundle quantity");
+assert(page.includes("const quantityDelta = delta * bundleStep;"),"quantity controls must change whole bundles");
+console.log("PASS saved cart metadata and quantity-step guards");
 
