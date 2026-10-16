@@ -140,7 +140,7 @@ export default function ZiiplyMobileStoreModeSelector({
   }
 
   return (
-    <section className={`relative mx-auto w-full max-w-[390px] overflow-hidden ${fuelMode ? "shrink-0 !px-2 !pt-2 !pb-2" : ""} rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2 pt-1.5 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]`}>
+    <section className={`relative mx-auto w-full min-w-0 max-w-[390px] overflow-hidden ${fuelMode ? "shrink-0 !px-2 !pt-2 !pb-2" : ""} rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2 pt-1.5 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]`}>
       <style>{`
         @keyframes ziiplyNoticePop {
           0% {
@@ -165,12 +165,12 @@ export default function ZiiplyMobileStoreModeSelector({
       <div className="pointer-events-none absolute inset-0 opacity-24 [background-image:radial-gradient(#c9ad6b_0.9px,transparent_0.9px)] [background-size:17px_17px]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.64),transparent_60%)]" />
 
-      <div className={`relative z-10 ${fuelMode ? "grid grid-cols-[minmax(0,1fr)_52px_minmax(0,1fr)] items-center gap-x-2" : "flex items-center justify-between"}`}>
+      <div className={`relative z-10 ${fuelMode ? "grid grid-cols-[minmax(0,1fr)_52px_minmax(0,1fr)] items-center gap-x-2" : "flex items-center gap-3"}`}>
 <button
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => fuelMode ? onFuelStationSideChange?.("traffic") : onStoreModeChange("hyper")}
-          className={`${buttonClass(hyperActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]" : "w-[calc(50%-0.5rem)] -translate-x-2.5"}`}
+          className={`${buttonClass(hyperActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]" : "min-w-0 flex-1"}`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Liikenneasemat" : "🏬 Tavaratalot"}</span>
         </button>
@@ -195,7 +195,7 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => fuelMode ? onFuelStationSideChange?.("cold") : onStoreModeChange("local")}
-          className={`${buttonClass(localActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]" : "w-[calc(50%-0.5rem)] translate-x-2.5"}`}
+          className={`${buttonClass(localActive, modeButtonsDisabled)} ${fuelMode ? "!min-h-[44px] w-full !px-1 !py-1 !text-[11px]" : "min-w-0 flex-1"}`}
         >
           <span className="relative z-10">{fuelMode ? "⛽ Kylmäasemat / muut" : "🏪 Lähikaupat"}</span>
         </button>
@@ -223,11 +223,11 @@ export default function ZiiplyMobileStoreModeSelector({
       </div>
       )}
 
-      <div className={`relative z-10 mt-[-2px] grid grid-cols-2 gap-4 ${fuelMode ? "hidden" : ""}`}>
+      <div className={`relative z-10 mt-[-2px] grid grid-cols-2 gap-3 ${fuelMode ? "hidden" : ""}`}>
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
-          className={`${buttonClass(storeCompareScope === "between_chains")} -translate-x-2.5`}
+          className={`${buttonClass(storeCompareScope === "between_chains")} min-w-0`}
         >
           <span className="relative z-10">Ketjujen väliltä</span>
         </button>
@@ -235,7 +235,7 @@ export default function ZiiplyMobileStoreModeSelector({
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("within_chain")}
-          className={`${buttonClass(storeCompareScope === "within_chain")} translate-x-2.5`}
+          className={`${buttonClass(storeCompareScope === "within_chain")} min-w-0`}
         >
           <span className="relative z-10">Ketjun sisältä</span>
         </button>
