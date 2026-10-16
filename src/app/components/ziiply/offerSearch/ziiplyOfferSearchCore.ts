@@ -329,7 +329,7 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   const detailed = [...pathParts.slice(1), sourceItem?.productGroup, sourceItem?.subCategory]
     .filter(Boolean).map((v: unknown) => normalizeGostaCoreText(v)).join(" ");
   const parent = normalizeGostaCoreText(sourceItem?.mainCategory ||
-    String(sourceItem?.categoryPath || "").split(">")[0] || "");
+    pathParts[0] || "");
   if (!hierarchy || !parent) return "";
   if (/lastenruo|vauvanruo|lasten valipala|lasten sose/.test(detailed)) return "Lastenruoat";
   if (/vaipat|lastenhoito|vauvan hoito/.test(detailed)) return "Lastenhoito";
