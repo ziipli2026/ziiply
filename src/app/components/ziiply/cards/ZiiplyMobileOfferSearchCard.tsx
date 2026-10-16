@@ -586,6 +586,10 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
     return rawPriceText.replace(/\s+/g, " ").trim();
   }
 
+  // Publisher may express a bundle as "3 kpl = 12 €" rather than "12 € / 3 kpl".
+  // Normalize for the price layout without treating 12 € as a single-unit price.
+  const reversed = rawPriceText.match(/^(\d+)\s*(kpl|pkt|ps|prk|plo)\s*(?:=|\/)\s*(\d+(?:[,.]\d+)?)\s*€$/i);
+  if (reversed) return `${reversed[3]} € / ${reversed[1]} ${reversed[2]}`;
   const price = normalizePrice(numericPrice);
   if (Number.isFinite(quantity) && quantity > 1 && price) {
     return `${price} / ${quantity} ${unit}`;
