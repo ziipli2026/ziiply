@@ -254,6 +254,25 @@ export default function ZiiplyMobileScannerCard({
       aria-label="Viivakoodin skanneri"
     >
       <style jsx global>{`
+        .ziiply-scanner-success-check {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 200px !important;
+          height: 200px !important;
+          min-width: 200px !important;
+          min-height: 200px !important;
+          flex-shrink: 0 !important;
+          border-radius: 50% !important;
+          background: rgba(187, 247, 208, 0.78) !important;
+          color: #14532d !important;
+          font-size: 135px !important;
+          font-weight: 900 !important;
+          line-height: 1 !important;
+          text-shadow: none !important;
+          box-shadow: 0 0 28px rgba(187, 247, 208, 0.45) !important;
+        }
+
         #${regionId} {
           width: 100% !important;
           height: 100% !important;
@@ -499,7 +518,7 @@ export default function ZiiplyMobileScannerCard({
                   {visibleMessage.replace(/\s*·?\s*✓\s*$/, "").trim() && (
                     <span>{visibleMessage.replace(/\s*·?\s*✓\s*$/, "").trim()}</span>
                   )}
-                  <span className="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-green-200/60 text-[45px] leading-none text-[#eaffdf]" aria-label="Lisätty">✓</span>
+                  <span className="ziiply-scanner-success-check" aria-label="Lisätty">✓</span>
                 </span>
               ) : visibleMessage}
             </div>
