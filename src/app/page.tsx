@@ -24487,9 +24487,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || ""));
               const fixedHeviPackV796 = /\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test([offer.packageSize, sourceOffer.packageSize, name].filter(Boolean).join(" ")) || /\b(?:rasia|pussi|pakkaus|pkt|pss|verkko|purkki)\b/i.test(name);
               const looseHeviV796 = !fixedHeviPackV796 && /(?:banaani|granaattiomena|myskikurpitsa|kurpitsa|omena|päärynä|appelsiini|mandariini|sitruuna|lime|avokado|tomaatti|kurkku|paprika|peruna|sipuli|porkkana|kaali|kesäkurpitsa|munakoiso|nektariini|persikka|luumu|kiivi|mango|bataatti|punajuuri|lanttu)/i.test(name) && !/(?:mehu|sose|hillo|lastu|sipsi|kuivattu|säilyke|pakaste|jogurtti|jäätelö|keksi|makeinen|smoothie|juoma|kastike)/i.test(name);
+              // Approximate weights (n10 kg / noin 1,5 kg) are not fixed-size packs.
+              // An explicit €/kg rate must never become the checkout price.
+              const approximateWeightV871 = /\b(?:n\s*\d+(?:[,.]\d+)?|noin\s+\d+(?:[,.]\d+)?)\s*kg\b/i.test([name, offer.packageSize, sourceOffer.packageSize].filter(Boolean).join(" "));
+              const explicitKgRateV871 = /(?:€\s*\/\s*kg|\/\s*kg\b|\b(?:kg|kilo)(?:hinta|price)?\b|per[- ]?kg)/i.test(offerUnitTextV794);
               const isWeightedOffer = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct) || isFreshCounterFishV795 || looseHeviV796 ||
-                (/(?:€\s*\/\s*kg|\/\s*kg\b|\b(?:kg|kilo)(?:hinta|price)?\b|per[- ]?kg)/i.test(offerUnitTextV794) &&
-                 !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || "")));
+                (explicitKgRateV871 && (approximateWeightV871 || !/\b\d+(?:[,.]\d+)?\s*(?:g|kg)\b/i.test(String(offer.packageSize || sourceOffer.packageSize || ""))));
               if (cart.length >= MAX_ITEMS) {
                 alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
                 return;
