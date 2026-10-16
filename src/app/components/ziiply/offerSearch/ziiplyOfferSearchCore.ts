@@ -1049,6 +1049,32 @@ export function filterZiiplyGostaOfferResultsV146(
   }));
 }
 
+// Preserve publisher multi-buy terms when the parallel campaign feed contains only a section label.
+export function enrichPrismaCampaignMultiBuyV233(
+  visible: ZiiplyGostaOfferLike[], master: ZiiplyGostaOfferLike[], selectedStoreName?: string,
+): ZiiplyGostaOfferLike[] {
+  if (!/^prisma(?:\\s|$)/i.test(String(selectedStoreName ?? "").trim())) return visible;
+  const normalize = (v: unknown) => String(v ?? "").trim().toLocaleLowerCase("fi-FI");
+  const multiBuy = (v: unknown) => String(v ?? "").replace(/\\u00a0/g, " ").match(/\\b\\d+\\s*(?:kpl|pkt|ps|plo|prk)\\s*=\\s*\\d+(?:[,.]\\d+)?\\s*€/i)?.[0] ?? "";
+  const terms = new Map<string, string>();
+  for (const item of master) {
+    const raw = (item as any).__sourceOfferSearchResult ?? item;
+    if (raw.campaignType === "campaign" || !raw.ean) continue;
+    if (normalize(raw.storeLabel ?? raw.storeName) !== normalize(selectedStoreName)) continue;
+    const term = multiBuy(raw.benefitText) || multiBuy(raw.debugOfferEvidenceV226?.rawLabels);
+    if (term) terms.set(String(raw.ean), term);
+  }
+  if (!terms.size) return visible;
+  return visible.map((item) => {
+    const raw = (item as any).__sourceOfferSearchResult ?? item;
+    if (raw.campaignType !== "campaign" || !raw.ean) return item;
+    if (normalize(raw.storeLabel ?? raw.storeName) !== normalize(selectedStoreName)) return item;
+    const term = terms.get(String(raw.ean));
+    if (!term || multiBuy(raw.benefitText)) return item;
+    return { ...item, benefitText: term };
+  });
+}
+
 export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
   visibleResults: ZiiplyGostaOfferLike[],
   masterResults: ZiiplyGostaOfferLike[],
@@ -1199,7 +1225,7 @@ export async function searchZiiplyGostaOffersV146(options: {
     : results;
 
   return {
-    results: sortZiiplyGostaOffersByPrice(finalResultsV805),
+    results: sortZiiplyGostaOffersByPrice(enrichPrismaCampaignMultiBuyV233(finalResultsV805, prismaDedupeMasterV805, selectedStoreNameV805)),
     querySnapshot: searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     cardFilter: searchAllAreaOffers ? "" : searchByCategory ? categorySearchLabel : offerQuerySnapshot,
     showingAllAreaOffers: searchAllAreaOffers,
@@ -1226,7 +1252,7 @@ function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
   const categoryLabels = [item.category, (item as any).categoryPath, (item as any).productGroup,
     (item as any).mainCategory, (item as any).subCategory, (item as any).department]
     .map((value) => String(value ?? "").trim().toLocaleLowerCase("fi-FI"));
-  const isCategory = Boolean(benefit) && categoryLabels.includes(benefit.toLocaleLowerCase("fi-FI"));
+  const isCategory = Boolean(benefit) && (categoryLabels.includes(benefit.toLocaleLowerCase("fi-FI")) || benefit === String((item as any).campaignSection ?? "").trim());
   if (isCategory && explicitMultiBuy) return explicitMultiBuy;
   if (benefit && !isCategory) return benefit;
   if (explicitMultiBuy) return explicitMultiBuy;
