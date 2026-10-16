@@ -453,7 +453,7 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
   );
 
   // Distinct regional/local Tjek publication rows must survive final mobile-card dedupe.
-  if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+  if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
     return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || (offer as any)?.campaignType || "offer")}`;
   }
 
@@ -488,7 +488,7 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
     );
     const key = getOfferCardDedupeKeyV13(item);
 
-    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+    if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
       if (seen.has(key)) continue;
       seen.add(key);
       unique.push(item);

@@ -656,7 +656,40 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
     lastZiiplyKruokaDebugV174 = null;
     if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, null);
   }
-  return parseOfferSearchResponse(response);
+    const parsedResults = await parseOfferSearchResponse(response);
+  // Citymarket has two independent publication sources. The tab is defined by
+  // the publication origin, never by a percentage-discount/price heuristic.
+  // Keep this scoped to Citymarket so other chains retain their existing rules.
+  if (isKCitymarketContextV179(context)) {
+    for (const item of parsedResults) {
+      const row = item as any;
+      const source = row.__sourceOfferSearchResult ?? row;
+      if (source?.provider === "kcitymarket-local" ||
+          source?.source === "K-Citymarket kauppakohtainen julkaisu") {
+        row.campaignType = "campaign";
+        source.campaignType = "campaign";
+      } else if (source?.source === "K-Citymarket tarjouslehti") {
+        row.campaignType = "offer";
+        source.campaignType = "offer";
+      }
+    }
+  }
+  // Audit after source-authoritative tab classification, not before it.
+  if (isKCitymarketContextV179(context)) {
+    const bySource: Record<string, { total: number; campaign: number; offer: number }> = {};
+    for (const item of parsedResults) {
+      const row = item as any;
+      const source = row.__sourceOfferSearchResult ?? row;
+      const name = String(source?.source ?? source?.provider ?? "unknown");
+      const bucket = bySource[name] ?? (bySource[name] = { total: 0, campaign: 0, offer: 0 });
+      bucket.total++;
+      if (row.campaignType === "campaign") bucket.campaign++;
+      else bucket.offer++;
+    }
+    const audit = lastZiiplyKruokaDebugV174 as any;
+    if (audit) audit.kOfferSourceSplitAuditV1 = { received: parsedResults.length, bySource };
+  }
+  return parsedResults;
 }
 
 async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152) {
@@ -690,6 +723,20 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
           })),
         };
       }
+      if (stageAudit && isKCitymarketContextV179(context)) {
+        stageAudit.kOfferMasterTabAuditV1 = {
+          beforeClean: {
+            total: results.length,
+            campaigns: results.filter(item => (item as any).campaignType === "campaign").length,
+            offers: results.filter(item => (item as any).campaignType !== "campaign").length,
+          },
+          afterClean: {
+            total: cleaned.length,
+            campaigns: cleaned.filter(item => (item as any).campaignType === "campaign").length,
+            offers: cleaned.filter(item => (item as any).campaignType !== "campaign").length,
+          },
+        };
+      }
       return cleaned;
     })
     .catch((error) => {
@@ -720,6 +767,13 @@ function preparedGostaAllV803(context: ZiiplyGostaOfferSearchContextV152 | undef
   const existing = gostaPreparedAllV803.get(key);
   if (existing?.source === source) return existing.results;
   const results = dedupeZiiplyGostaOfferResultsV146(source);
+  if (isKCitymarketContextV179(context)) {
+    const audit = lastZiiplyKruokaDebugV174 as any;
+    if (audit) audit.kOfferPreparedTabAuditV1 = {
+      before: { total: source.length, campaigns: source.filter(item => (item as any).campaignType === "campaign").length },
+      after: { total: results.length, campaigns: results.filter(item => (item as any).campaignType === "campaign").length },
+    };
+  }
   gostaPreparedAllV803.set(key, { source, results });
   return results;
 }
@@ -796,12 +850,8 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   // Tjek rows already carry a stable, publication-specific offer identity. Do not
   // collapse different leaflet offers just because their shortened names/prices match.
   const sourceOffer = anyItem?.__sourceOfferSearchResult ?? anyItem;
-  if (sourceOffer?.source === "etarjouslehdet" && sourceOffer?.offerId) {
+  if ((sourceOffer?.provider === "kcitymarket-local" || sourceOffer?.source === "K-Citymarket kauppakohtainen julkaisu" || sourceOffer?.source === "etarjouslehdet") && sourceOffer?.offerId) {
     return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug?.publicationId || "")}:${String(sourceOffer.offerId)}`;
-  }
-  // Preserve independent Citymarket publication records through every UI cleanup pass.
-  if (sourceOffer?.provider === "kcitymarket-local" && sourceOffer?.offerId && sourceOffer?.debug?.publicationId) {
-    return `${sourceTab}:kcm-local:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug.publicationId)}:${String(sourceOffer.offerId)}`;
   }
   // National leaflet cards have distinct prices, packs and page identities.
   // Preserve them through API and UI deduplication using the parser identity.

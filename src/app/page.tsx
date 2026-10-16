@@ -2158,6 +2158,7 @@ function KauppiasMobileTopBar({
   onWeatherBootGpsFailed,
   onOpenCalendar,
   onShowFuel,
+  fuelModeActive = false,
 }: {
   hidden?: boolean;
   areaLabel?: string;
@@ -2167,6 +2168,7 @@ function KauppiasMobileTopBar({
   onWeatherBootGpsFailed?: () => void;
   onOpenCalendar?: () => void;
   onShowFuel?: () => void;
+  fuelModeActive?: boolean;
 }) {
   // V481_WEATHER_BOOT_GPS_SOURCE:
   // Sääkenttä saa tehdä avauksessa yhden GPS-haun. Onnistunut koordinaatti
@@ -2846,7 +2848,14 @@ function KauppiasMobileTopBar({
       unit: fuelValueV744 === "—" ? "" : "€/l",
       detail: fuelTextV744,
       graphic: <KauppiasFuelGraphic />,
-      onClick: () => setMobileFuelMenuOpen(true),
+      onClick: () => {
+        if (fuelModeActive) {
+          setMobileFuelMenuOpen(false);
+          onShowFuel?.();
+        } else {
+          setMobileFuelMenuOpen(open => !open);
+        }
+      },
     },
     {
       id: "calendar" as const,
@@ -2927,6 +2936,7 @@ function KauppiasMobileTopBar({
                   onClick={panel.onClick}
                   className={className}
                   aria-label={panel.title}
+                  aria-pressed={panel.id === "fuel" ? fuelModeActive : undefined}
                 >
                   {inner}
                 </button>
@@ -9104,8 +9114,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
 
     // Tjek leaflet rows are separate offers even when regional and local titles/prices match.
-    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
-      return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || item?.campaignType || "offer")}`;
+    if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
+      return `tjek:${String(source.storeId || source.debug?.tjekStoreId || "")}:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || item?.campaignType || "offer")}`;
     }
 
     if (ean) return `ean:${ean}`;
@@ -9139,7 +9149,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const key = getGostaPageDedupeKeyV544(item);
 
       // Preserve publication-specific Tjek offers before EAN/root fallback dedupe.
-      if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+      if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
         if (seen.has(key)) continue;
         seen.add(key);
         unique.push(item);
@@ -12019,11 +12029,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
-      if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
-        setOfferSearchResults([]);
-        setGostaMasterOfferResultsV528([]);
-        showCartToast("Tarjoushaku ei onnistunut");
-      }
+      // V529: älä tyhjennä onnistuneita vanhoja tuloksia virheessäkään, jotta Gösta ei välähdä tyhjäksi.
+      showCartToast("Tarjoushaku ei onnistunut");
     } finally {
       if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
         setLoadingOffers(false);
@@ -22935,7 +22942,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             hidden={searchFullscreenOpenV621}
             areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
-            onShowFuel={() => { openShopsPanel(); setMobileFuelMode(true); setActiveAssistant(null); setNotebookOpen(false); }}
+            fuelModeActive={mobileFuelMode}
+            onShowFuel={() => { openShopsPanel(); setMobileFuelMode(active => !active); setActiveAssistant(null); setNotebookOpen(false); }}
             weatherEnabled={true}
             onOpenCalendar={() => {
               try {

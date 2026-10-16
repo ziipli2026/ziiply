@@ -492,15 +492,11 @@ function dedupe(items: UnknownRecord[]) {
     const publicationId = String((item.debug as UnknownRecord | undefined)?.publicationId ?? "").trim();
     const sourceOfferId = String(item.offerId ?? "").trim();
     const nationalLeafletId = String(item.source ?? "") === "K-Citymarket tarjouslehti" && String(item.id ?? "").startsWith("kcm:spatial:") ? String(item.id) : "";
-    const key = nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : (String(item.source ?? "") === "etarjouslehdet" || item.provider === "kcitymarket-local") && publicationId && sourceOfferId
-      ? ["tjek", publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
-      : [item.campaignType === "campaign" ? "campaign" : "offer", item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
-    // The provider has already deduplicated Tjek rows by their source identity.
-    // Never collapse its regional and local leaflet rows in this cross-provider pass.
-    if ((String(item.source ?? "") === "etarjouslehdet" || item.provider === "kcitymarket-local") && publicationId && sourceOfferId) {
-      out.push(item);
-      continue;
-    }
+    const isTjekPublication = (String(item.source ?? "") === "etarjouslehdet" || String(item.source ?? "") === "K-Citymarket kauppakohtainen julkaisu" || String(item.provider ?? "") === "kcitymarket-local") && !!publicationId && !!sourceOfferId;
+    const key = nationalLeafletId ? ["kcm-national", nationalLeafletId].join("|") : isTjekPublication
+      ? ["tjek", String(item.source ?? ""), publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
+      : [item.campaignType === "campaign" ? "campaign" : "offer", String(item.source ?? ""), item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
+    // Deduplicate only within the same source identity, never across independent sources.
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(item);
@@ -903,8 +899,13 @@ export async function GET(request: Request) {
       try {
         const selectedCitymarket = splitMultiValue(rawKStoreName).find(name => isKCitymarketSelectionV19(name));
         if (selectedCitymarket) {
+          // Keep the national leaflet responsive even if the optional Tjek store feed stalls.
+          // The store-specific campaigns may be omitted for this request after 6.5s;
+          // they are never allowed to block the entire mobile offer search.
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
           const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
+          // The two sources are independent: preserve every selected-store campaign
+          // even when its name and price match a national leaflet offer.
           const uniqueLocalCampaigns = matchingLocalOffers;
           citymarketLocalCount = uniqueLocalCampaigns.length;
           citymarketLocalStoreId = uniqueLocalCampaigns.length ? String(uniqueLocalCampaigns[0].storeId ?? "") || null : null;
