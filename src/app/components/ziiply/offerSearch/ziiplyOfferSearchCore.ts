@@ -352,11 +352,10 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
   // Apply source taxonomy for Prisma offers AND campaigns. A source-provided
   // hierarchy is more specific than the legacy title-based classifier.
-  const sStore = normalizeGostaCoreText(sourceItem?.storeLabel || anyItem?.storeLabel || "");
-  const isPrismaSKaupat = sStore.startsWith("prisma") &&
-    (normalizeGostaCoreText(sourceItem?.source || "") === "skaupat" ||
-     String(sourceItem?.sourceUrl || "").includes("s-kaupat.fi"));
-  if (isPrismaSKaupat) {
+  const isStructuredSKaupat =
+    normalizeGostaCoreText(sourceItem?.source || "") === "skaupat" &&
+    Boolean(sourceItem?.categoryPath && sourceItem?.mainCategory);
+  if (isStructuredSKaupat) {
     const structured = getStructuredSKaupatCategoryV232(sourceItem);
     if (structured) return structured;
   }
