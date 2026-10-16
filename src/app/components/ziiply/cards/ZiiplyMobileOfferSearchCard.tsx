@@ -1235,7 +1235,11 @@ export default function ZiiplyMobileOfferSearchCard({
         if (ean) seenEans.add(ean);
       }
       const expected = categoryOfferCounts || {};
+      // Counts describe all loaded categories, but items may contain only the
+      // selected category. Never compare other categories against a filtered set.
+      const isCategoryFiltered = Boolean(shownFilter);
       const categoryCountMismatches = Object.entries(expected).flatMap(([category, count]) => {
+        if (isCategoryFiltered && normalizeCategoryKey(category) !== normalizeCategoryKey(shownFilter)) return [];
         const actual = Object.entries(counts).filter(([key]) => normalizeCategoryKey(key) === normalizeCategoryKey(category)).reduce((sum, [, n]) => sum + n, 0);
         return typeof count === "number" && actual !== count ? [{ category, expected: count, actual }] : [];
       });
