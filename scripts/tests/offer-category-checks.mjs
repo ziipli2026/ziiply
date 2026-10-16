@@ -34,3 +34,8 @@ test("weighted pricing evidence remains propagated", () => {
   assert.match(source,/isWeightedProduct/);
   assert.match(source,/isApproximatePrice/);
 });
+
+test("filtered category audit does not compare unrelated category totals", () => {
+  assert.match(source, /const isCategoryFiltered = Boolean\(shownFilter\)/);
+  assert.match(source, /isCategoryFiltered && normalizeCategoryKey\(category\) !== normalizeCategoryKey\(shownFilter\)/);
+});
