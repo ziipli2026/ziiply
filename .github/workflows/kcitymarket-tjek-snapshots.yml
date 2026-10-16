@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/kcitymarket-tjek-snapshots.yml'
       - 'scripts/refresh-citymarket-tjek.cjs'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
   schedule:
     - cron: '17 * * * *'
 permissions:
