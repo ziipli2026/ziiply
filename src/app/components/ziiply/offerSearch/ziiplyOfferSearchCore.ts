@@ -1053,9 +1053,9 @@ export function filterZiiplyGostaOfferResultsV146(
 export function enrichPrismaCampaignMultiBuyV233(
   visible: ZiiplyGostaOfferLike[], master: ZiiplyGostaOfferLike[], selectedStoreName?: string,
 ): ZiiplyGostaOfferLike[] {
-  if (!/^prisma(?:\\s|$)/i.test(String(selectedStoreName ?? "").trim())) return visible;
+  if (!/^prisma(?:\s|$)/i.test(String(selectedStoreName ?? "").trim())) return visible;
   const normalize = (v: unknown) => String(v ?? "").trim().toLocaleLowerCase("fi-FI");
-  const multiBuy = (v: unknown) => String(v ?? "").replace(/\\u00a0/g, " ").match(/\\b\\d+\\s*(?:kpl|pkt|ps|plo|prk)\\s*=\\s*\\d+(?:[,.]\\d+)?\\s*€/i)?.[0] ?? "";
+  const multiBuy = (v: unknown) => String(v ?? "").replace(/\u00a0/g, " ").match(/\b\d+\s*(?:kpl|pkt|ps|plo|prk)\s*=\s*\d+(?:[,.]\d+)?\s*€/i)?.[0] ?? "";
   const terms = new Map<string, string>();
   for (const item of master) {
     const raw = (item as any).__sourceOfferSearchResult ?? item;
