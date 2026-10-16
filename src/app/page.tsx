@@ -4115,13 +4115,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     reloadPanelReadyRefV812.current = true;
   }, []);
   useEffect(() => {
-    if (!reloadPanelReadyRefV812.current || restoredCartPromptV320.open) return;
+    if (!reloadPanelReadyRefV812.current || !reloadViewHydratedV820 || restoredCartPromptV320.open) return;
     const panel = shopsPanelOpen ? "shops" : searchPanelOpen ? "search" :
       cartModalOpen ? "cart" : activeResult === "compare" ? "compare" : "home";
     // Initial default render must not overwrite the previously saved panel.
     if (!storeSelectionHydratedRefV343.current) return;
     try { window.sessionStorage.setItem("ziiply-active-panel-v812", panel); } catch {}
-  }, [shopsPanelOpen, searchPanelOpen, cartModalOpen, activeResult, restoredCartPromptV320.open]);
+  }, [shopsPanelOpen, searchPanelOpen, cartModalOpen, activeResult, restoredCartPromptV320.open, reloadViewHydratedV820]);
   function restoreReloadPanelV812() {
     const panel = reloadPanelRefV812.current;
     setShopsPanelOpen(panel === "shops");
@@ -7505,6 +7505,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } catch {
       // Ignore broken saved cart data.
     } finally {
+      // Restore the saved mobile tab even when there is no saved basket.
+      // Previously this was only done in the non-empty-cart branch, causing
+      // Kaupat/Hae/Kori/Vertailu to fall back to home on an ordinary reload.
+      restoreReloadPanelV812();
       cartHasLoadedRef.current = true;
       storeSelectionHydratedRefV343.current = true;
       // Never paint the default home cards before the saved panel/cart are restored.
