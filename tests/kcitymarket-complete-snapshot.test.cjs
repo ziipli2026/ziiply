@@ -65,3 +65,20 @@ test("ziiply: failed offer detail cannot publish a partial scan",async()=>{
   assert.equal(stats().writes,0);
   await assert.rejects(api.fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää'));
 });
+
+test('Package contents are distinct from multi-buy purchase counts, including existing snapshots',async()=>{
+ const {api}=load(roots[0]);
+ const normalize=api.normalizeTjekPackagePrice;
+ for(const [title,info,q,total] of [
+  ['Actimel 8 x 100 g','',8,3.69],['Mutti','3 x 400 g',3,2.69],
+  ['Trip 2 dl 24-pack','',24,10],['Karhu 0,33 l 8-pack','Sis. pantit 1,20',8,7.99]]){
+  const row={title,additionalInfo:info,offerQuantity:q,price:total,id:'same',category:'same'};
+  const out=normalize(row);
+  assert.equal(out.offerQuantity,null);assert.equal(out.packageCount,q);assert.equal(out.price,total);
+  assert.equal(out.id,row.id);assert.equal(out.category,row.category);assert.match(out.priceText,/€ \/ pkt/);
+  assert.deepEqual(normalize(out),out);
+ }
+ for(const row of [{title:'Rahka 250 g',offerQuantity:6,price:4},
+  {title:'DUOPACK PYYHKEET 128 kpl/pkt',additionalInfo:'2 PKT',offerQuantity:2,price:6.5},
+  {title:'Tuote 3 x 400 g',additionalInfo:'3 PKT',offerQuantity:3,price:10}])assert.equal(normalize(row),row);
+});

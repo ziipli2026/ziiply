@@ -1,0 +1,18 @@
+name: Citymarket price basis evidence
+on:
+  push:
+    branches: [fix/citymarket-price-basis]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read original current publisher price evidence
+        run: node scripts/citymarket/audit-current-price-evidence.mjs
