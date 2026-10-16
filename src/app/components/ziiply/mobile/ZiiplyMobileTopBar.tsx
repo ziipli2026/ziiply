@@ -589,7 +589,7 @@ export default function ZiiplyMobileTopBar({
       </div>
     </div>
       {chartOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-3 sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#777777]/35 px-3 sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä">
           <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
