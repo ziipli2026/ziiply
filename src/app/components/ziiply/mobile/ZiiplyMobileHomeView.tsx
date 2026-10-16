@@ -22,7 +22,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
         background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, #d5e2d7 100%)",
       }}
     >
-      <div className="flex min-h-0 flex-1 flex-col justify-end">
+      <div className="flex min-h-0 flex-1 flex-col justify-end"\n        style={{ paddingTop: "clamp(12px, 10dvh, 130px)" }}>
         <header className="flex shrink-0 flex-col items-center text-center">
           <img
             src="/ziiplylogo_mobile.png"
