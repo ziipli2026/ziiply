@@ -254,7 +254,8 @@ export default function ZiiplyMobileScannerCard({
       aria-label="Viivakoodin skanneri"
     >
       <style jsx global>{`
-        .ziiply-scanner-success-check {
+        .ziiply-scanner-success-check,
+        .ziiply-scanner-error-mark {
           display: inline-flex !important;
           align-items: center !important;
           justify-content: center !important;
@@ -272,6 +273,12 @@ export default function ZiiplyMobileScannerCard({
           text-shadow: none !important;
           box-shadow: 0 0 12px rgba(187, 247, 208, 0.45) !important;
         }
+        .ziiply-scanner-error-mark {
+          background: rgba(254, 202, 202, 0.78) !important;
+          color: #991b1b !important;
+          box-shadow: 0 0 12px rgba(254, 202, 202, 0.45) !important;
+        }
+
 
         #${regionId} {
           width: 100% !important;
@@ -519,6 +526,11 @@ export default function ZiiplyMobileScannerCard({
                     <span>{visibleMessage.replace(/\s*·?\s*✓\s*$/, "").trim()}</span>
                   )}
                   <span className="ziiply-scanner-success-check" aria-label="Lisätty">✓</span>
+                </span>
+              ) : noticeIsError ? (
+                <span className="flex flex-col items-center justify-center gap-3">
+                  <span>{visibleMessage}</span>
+                  <span className="ziiply-scanner-error-mark" aria-label="Lisäys epäonnistui">✕</span>
                 </span>
               ) : visibleMessage}
             </div>
