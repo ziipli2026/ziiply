@@ -9,6 +9,8 @@ const end = page.indexOf("\nexport default function Page()", start);
 assert(start >= 0 && end > start, "cart price helper must be present");
 assert(helperStart >= 0 && helperStart < start, "bundle text helper must be present");
 const code = page.slice(helperStart, end)
+  .replace("offer: any): string", "offer)")
+  .replace("offer: any): number", "offer)")
   .replace("offer: any): { total: number; unit: number }", "offer)")
   .replace("value: unknown): number | null", "value)");
 const price = vm.runInNewContext(code + "\ngetGostaCartPriceV758;", {});
