@@ -258,19 +258,19 @@ export default function ZiiplyMobileScannerCard({
           display: inline-flex !important;
           align-items: center !important;
           justify-content: center !important;
-          width: 200px !important;
-          height: 200px !important;
-          min-width: 200px !important;
-          min-height: 200px !important;
+          width: 80px !important;
+          height: 80px !important;
+          min-width: 80px !important;
+          min-height: 80px !important;
           flex-shrink: 0 !important;
           border-radius: 50% !important;
           background: rgba(187, 247, 208, 0.78) !important;
           color: #14532d !important;
-          font-size: 135px !important;
+          font-size: 45px !important;
           font-weight: 900 !important;
           line-height: 1 !important;
           text-shadow: none !important;
-          box-shadow: 0 0 28px rgba(187, 247, 208, 0.45) !important;
+          box-shadow: 0 0 12px rgba(187, 247, 208, 0.45) !important;
         }
 
         #${regionId} {
