@@ -23,7 +23,7 @@ jobs:
       - run: npm install --package-lock=false --ignore-scripts --no-audit --no-fund
       - run: npx tsc --noEmit
       - name: Printed prices and all 544 prepared rows
-        run: node --test tests/kcitymarket-price-basis.test.cjs
+        run: node --test tests/kcitymarket-price-basis.test.cjs tests/kcitymarket-price-pipeline.test.cjs
       - name: Preserve approved historical publications
         run: node --test tests/kcitymarket-42av-printed-transactions.test.mjs
       - name: Complete campaign snapshots
