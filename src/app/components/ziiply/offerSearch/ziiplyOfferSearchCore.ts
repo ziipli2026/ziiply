@@ -339,6 +339,16 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   if (/kodinhoito|taloustarvikkeet|siivous/.test(parent)) return "Kodinhoito";
   if (/urheiluravinteet|ravintolisat|terveys ja itsehoito/.test(parent)) return "Vitamiinit & ravinteet";
   if (/^lapset$/.test(parent) && /sose|vauvanruo|lasten valipala|lastenruo/.test(detailed)) return "Lastenruoat";
+  // Ruokatori is a mixed service-counter department. Only its precise child
+  // group can determine the display category; never classify all of it alike.
+  if (/^ruokatori$/.test(parent)) {
+    if (/valmisruo|valmisater|salaatit|hummus/.test(detailed)) return "Valmisruoka";
+    if (/kala|kalatiski|merenelav/.test(detailed)) return "Kala";
+    if (/liha|makkara|leikkele|broileri/.test(detailed)) return "Liha & makkarat";
+    if (/leipa|leivonnais|paistopiste/.test(detailed)) return "Leipomo";
+    return "";
+  }
+
   if (/kukat|koti|kayttotavarat|vapaa aika|puutarha|keittio ja kattaus/.test(parent)) return "Koti & vapaa-aika";
   if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
   if (/mausteet|maustaminen|kastikkeet|texmex|kuivat elintarvikkeet|kuivatuotteet|pastat|riisit|sailykkeet|hillot|leivonta|maailman makuja|snacksit|oljy(t|t,)/.test(parent)) return "Kuivatuotteet";
