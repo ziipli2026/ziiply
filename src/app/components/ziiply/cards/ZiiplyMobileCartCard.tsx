@@ -331,7 +331,7 @@ function QuantityCell({
         <button
           type="button"
           onClick={onConfirmRemove}
-          className="absolute left-[13.20rem] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] text-[1.05rem] leading-none text-[#b51a12] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+          className="absolute left-[min(13.20rem,calc(100%-6.8rem))] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] text-[1.05rem] leading-none text-[#b51a12] active:translate-y-[1px] active:bg-[#fff1c6]/34"
           aria-label="Poista tuote"
           title="Poista tuote"
         >
@@ -340,7 +340,7 @@ function QuantityCell({
         <button
           type="button"
           onClick={onCancelRemove}
-          className="absolute left-[17.52rem] top-[1.82rem] grid h-[1.30rem] w-[1.30rem] place-items-center rounded-[0.24rem] text-[1.08rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/38"
+          className="absolute left-[min(17.52rem,calc(100%-2.5rem))] top-[1.82rem] grid h-[1.30rem] w-[1.30rem] place-items-center rounded-[0.24rem] text-[1.08rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/38"
           aria-label="Peruuta poisto"
           title="Peruuta poisto"
         >
@@ -354,9 +354,9 @@ function QuantityCell({
     return (
       <>
         <button type="button" onClick={() => onRequestRemove?.(item)}
-          className="absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12]"
+          className="absolute left-[min(17.52rem,calc(100%-2.5rem))] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12]"
           aria-label="Poista punnittava tuote" title="Poista punnittava tuote">−</button>
-        <span className="absolute left-[13.20rem] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center text-[0.70rem] font-extrabold text-[#3d301a]" title="Punnitusrivi, ei kappalemäärää">kg</span>
+        <span className="absolute left-[min(13.20rem,calc(100%-6.8rem))] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center text-[0.70rem] font-extrabold text-[#3d301a]" title="Punnitusrivi, ei kappalemäärää">kg</span>
       </>
     );
   }
@@ -369,7 +369,7 @@ function QuantityCell({
           if (quantity > 1) onDecrease?.(item);
           else onRequestRemove?.(item);
         }}
-        className="absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38"
+        className="absolute left-[min(17.52rem,calc(100%-2.5rem))] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38"
         aria-label={quantity > 1 ? "Vähennä määrää" : "Poista tuote"}
         title={quantity > 1 ? "Vähennä määrää" : "Poista tuote"}
       >
@@ -379,7 +379,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="absolute left-[13.20rem] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="absolute left-[min(13.20rem,calc(100%-6.8rem))] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -494,7 +494,7 @@ export default function ZiiplyMobileCartCard({
       }}
       className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -820,7 +820,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={itemKeyV65}
                     className={cx(
-                      "relative block min-h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 pt-[0.22rem] pb-[0.42rem]", 
+                      "relative block min-h-[3.18rem] w-full min-w-0 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 pt-[0.22rem] pb-[0.42rem]", 
                       checked && "opacity-55",
                     )}
                   >
@@ -836,7 +836,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "relative ml-[3.62rem] mt-[0.45rem] mb-[0.30rem] w-[8.25rem] min-h-[1.9rem] whitespace-normal break-words text-[0.80rem] font-extrabold leading-[1.12] text-[#2f2a1c]", 
+                        "relative ml-[3.62rem] mt-[0.45rem] mb-[0.30rem] w-[min(8.25rem,calc(100%-12.6rem))] min-w-0 min-h-[1.9rem] whitespace-normal break-words text-[0.80rem] font-extrabold leading-[1.12] text-[#2f2a1c]", 
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -860,7 +860,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "pointer-events-none absolute left-[16.35rem] top-[0.78rem] grid h-[1.62rem] w-[3.45rem] place-items-center text-center font-extrabold leading-none",
+                        "pointer-events-none absolute left-[min(16.35rem,calc(100%-4.0rem))] top-[0.78rem] grid h-[1.62rem] w-[3.45rem] place-items-center text-center font-extrabold leading-none",
                         isAlcoholCartItemV8(item)
                           ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
@@ -912,14 +912,14 @@ export default function ZiiplyMobileCartCard({
               className="pointer-events-none absolute left-[0.12rem] right-[0.12rem] top-0 block h-[2px] bg-[#9b7b3d]/62"
             />
             <span
-              className="absolute left-[12.20rem] top-[0.12rem] grid h-[1.4rem] w-[3.95rem] place-items-center whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              className="absolute left-[min(12.20rem,calc(100%-8.0rem))] top-[0.12rem] grid h-[1.4rem] w-[3.95rem] place-items-center whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
             </span>
 
             <span
-              className="absolute left-[16.35rem] top-[0.10rem] grid h-[1.45rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[1.02rem] font-black italic"
+              className="absolute left-[min(16.35rem,calc(100%-4.0rem))] top-[0.10rem] grid h-[1.45rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[1.02rem] font-black italic"
               style={{ fontFamily: serifFont }}
             >
               {totalPrice.toLocaleString("fi-FI", {
