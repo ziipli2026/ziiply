@@ -7390,7 +7390,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const nextCart = [...baseCart];
 
     for (const sourceItem of itemsToAdd) {
-      const item = sanitizeCartItemForStorage(sourceItem);
+      const storedItem = sanitizeCartItemForStorage(sourceItem);
+      const pendingWeight = Boolean((storedItem as any).ziiplyPricePendingWeight || (storedItem.product as any)?.ziiplyPricePendingWeight);
+      const finalValue = (storedItem as any).ziiplyWeightFinalPrice ?? (storedItem.product as any)?.ziiplyWeightFinalPrice;
+      const finalPrice = finalValue == null || finalValue === "" ? NaN : Number(String(finalValue).trim().replace(",", "."));
+      const item = pendingWeight
+        ? { ...storedItem, price: Number.isFinite(finalPrice) && finalPrice >= 0 ? finalPrice : 0 } as CartItem
+        : storedItem;
       const key = getCartItemMemoryKey(item);
       const existingIndex = nextCart.findIndex(
         (cartItem) => getCartItemMemoryKey(cartItem) === key,
