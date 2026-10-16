@@ -53,7 +53,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (/kala|lohi|silak|muik|katkarap|merenelav|kalatiski/.test(leaf)) return "Kala";
   if (/lastenruo|vauvanruo|lastenvalipal|vellit|lastensose/.test(path)) return "Lastenruoat";
   if (/vaip|lastenhoito/.test(path)) return "Lastenhoito";
-  if (/vitamiin|ravintolis|kivennaisain|omega|proteiinivalmiste|urheiluvalmiste|terveysvalmiste/.test(path)) return "Vitamiinit & ravinteet";
+  if (/vitamiin|ravintolis|kivennaisain|omega|proteiinivalmiste|proteiinijauhe|urheiluravinte|urheiluvalmiste|elektrolyyt|terveysvalmiste/.test(path)) return "Vitamiinit & ravinteet";
   if (/valipalakeks|valipalapatuk|keks|pikkuleiv/.test(leaf)) return "Makeiset & keksit";
   if (/lastenruoat/.test(path)) return "Lastenruoat";
   if (/sips|snacks|naposteltav|popcorn|nacho/.test(path)) return "Kuivatuotteet";
@@ -66,7 +66,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
   if (/maito|juusto|munat|rasvat/.test(parent)) return "Maitotuotteet";
   if (/valmisruo/.test(parent)) return "Valmisruoka";
-  if (/pastat|riisit|nuudelit|mausteet|sailykkeet|kuivatuotteet|kuivat-elintarvikkeet|leivonta/.test(parent)) return "Kuivatuotteet";
+  if (/pastat|riisit|nuudelit|mausteet|sailykkeet|kuivatuotteet|kuivat-elintarvikkeet|leivonta|texmex|maailman-mau/.test(parent)) return "Kuivatuotteet";
   if (/makeiset|karkit|suklaat/.test(parent)) return "Makeiset & keksit";
   if (/lemmik/.test(parent)) return "Lemmikit";
   if (/hygienia|kosmetiikka|kauneus/.test(parent)) return "Hygienia & kosmetiikka";
