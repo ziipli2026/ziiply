@@ -63,25 +63,30 @@ jobs:
           }
           NODE
           npx --yes tsx offer-price-test.mts
-      - name: Simulate two selected stores and failure isolation
-        shell: bash
+      - name: Complete snapshot and failure-isolation regression
+        run: node --test tests/kcitymarket-complete-snapshot.test.cjs
+
+      - name: Desktop prepared dataset tab completion regression
         run: |
-          cat > citymarket-test-1.mts <<'NODE'
-          import { fetchKCitymarketSelectedStoreOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts';
-          const a=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää');
-          const b=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo');
-          const unknown=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Ei Ole Olemassa');
-          const check=(rows,store)=>rows.every(row=>row.storeName.replace(/[‑–]/g,'-')===store&&row.campaignType==='campaign'&&typeof row.category==='string'&&Number.isFinite(row.price)&&row.price>0&&row.validFrom&&row.validUntil&&row.source==='K-Citymarket kauppakohtainen julkaisu');
-          console.log('VALIDATION_DIAGNOSTIC '+JSON.stringify({a:a.slice(0,2).map(x=>({storeName:x.storeName,price:x.price,validFrom:x.validFrom,validUntil:x.validUntil,source:x.source})),b:b.slice(0,2).map(x=>({storeName:x.storeName,price:x.price,validFrom:x.validFrom,validUntil:x.validUntil,source:x.source}))}));
-          const idsA=new Set(a.map(x=>x.id));
-          const overlap=b.filter(x=>idsA.has(x.id)).length;
-          const publicationA=new Set(a.map(x=>x.debug?.publicationId).filter(Boolean));
-          const publicationB=new Set(b.map(x=>x.debug?.publicationId).filter(Boolean));
-          const categoriesValid=[...a,...b].every(x=>typeof x.category==='string'&&x.category.length>0);
-          console.log(JSON.stringify({hyvinkaa:{count:a.length,publications:[...publicationA],sample:a.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},jumbo:{count:b.length,publications:[...publicationB],sample:b.slice(0,3).map(x=>({title:x.title,price:x.price,publication:x.debug?.publicationId}))},unknownCount:unknown.length,overlap,categoriesValid,hyvinkaaValid:check(a,'K-Citymarket Hyvinkää'),jumboValid:check(b,'K-Citymarket Vantaa Jumbo')},null,2));
-          if(!a.length||!b.length||unknown.length||overlap||!publicationA.size||!publicationB.size||!categoriesValid||!check(a,'K-Citymarket Hyvinkää')||!check(b,'K-Citymarket Vantaa Jumbo'))process.exitCode=1;
+          cat > desktop-prepared-tabs.mts <<'NODE'
+          import assert from 'node:assert/strict';
+          import {warmZiiplyGostaOfferCacheV182 as warm,invalidateZiiplyGostaOfferCacheV804 as invalidate,mapZiiplyGostaOfferToCardOfferV147 as card} from './src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts';
+          const context={kStoreName:'K-Citymarket Hyvinkää',kStoreId:'N183'};
+          const common={title:'Kanan fileesuikaleet 300 g',price:3.99,priceText:'3,99 €',storeName:'K-Citymarket Hyvinkää',category:'Liha & makkarat'};
+          const campaigns=Array.from({length:455},(_,i)=>({...common,id:'local-'+i,provider:'kcitymarket-local',source:'K-Citymarket kauppakohtainen julkaisu',offerId:'offer-'+i,debug:{publicationId:'publication-'+(i%3)},campaignType:'offer'}));
+          const offers=Array.from({length:89},(_,i)=>({...common,id:'kcm:spatial:'+i,source:'K-Citymarket tarjouslehti',campaignType:'campaign'}));
+          let calls=0;
+          globalThis.fetch=async()=>{calls++;return new Response(JSON.stringify({ok:true,complete:true,results:[...campaigns,...offers]}),{status:200});};
+          const result=await warm(context);
+          assert.equal(result.campaigns.length,455);assert.equal(result.offers.length,89);
+          assert.equal(result.campaigns.map(card).length,455);
+          await warm(context);assert.equal(calls,1);
+          invalidate(context);
+          globalThis.fetch=async()=>new Response(JSON.stringify({ok:true,complete:false,results:campaigns.slice(0,3)}),{status:200});
+          await assert.rejects(()=>warm(context));
+          console.log('DESKTOP_PREPARED_TABS_OK campaigns=455 offers=89 cards=455 cached_requests=1 incomplete=rejected');
           NODE
-          npx --yes tsx citymarket-test-1.mts
+          npx --yes tsx desktop-prepared-tabs.mts
 
       - name: Citymarket daily goods presentation filter regression
         run: |
@@ -125,37 +130,17 @@ jobs:
           NODE
           npx --yes tsx citymarket-test-2.mts
 
-      - name: Simulate Gosta Citymarket tabs and category navigation
+      - name: Preserve source publications through Gosta cleanup and card mapping
         shell: bash
         run: |
-          cat > citymarket-test-3.mts <<'NODE'
-          import { fetchKCitymarketSelectedStoreOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts';
-          import { fetchKCitymarketOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts';
-          import { removeCampaignCopiesOfLeaflet } from './src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts';
-          const [national, local, jumbo] = await Promise.all([
-            fetchKCitymarketOffers(),
-            fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää'),
-            fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo')
-          ]);
-          const offers=national.filter(x=>x.campaignType!=='campaign');
-          const campaigns=removeCampaignCopiesOfLeaflet(offers, local.filter(x=>x.campaignType==='campaign'));
-          const master=[...offers,...campaigns];
-          const categories=[...new Set(campaigns.map(x=>x.category))];
-          const visible=categories.flatMap(category=>campaigns.filter(x=>x.category===category));
-          const localIds=new Set(local.map(x=>x.id));
-          const jumboIds=new Set(jumbo.map(x=>x.id));
-          const foreign=campaigns.filter(x=>jumboIds.has(x.id));
-          const missing=local.filter(x=>!visible.some(y=>y.id===x.id));
-          const wrongTab=offers.filter(x=>localIds.has(x.id));
-          const badCampaignCategories=campaigns.filter(x=>!x.category||x.category==='Muut');
-          const badOfferCategories=offers.filter(x=>!x.category||x.category==='Muut');
-          const badCategories=[...badOfferCategories,...badCampaignCategories];
-          // A generic 'Muut' category is not by itself a failure for non-grocery goods.
-          // Still fail for recognizable daily essentials; keep every fallback visible in diagnostics.
-          const groceryNouns=/(?:salaat|punajuuri|pähkin|cashew|pirtel|proteiinivaahto|palvirouhe|munkki|korvapuust|kanatuot|tee(?:t|\\b)|kastik|salsa|vaip|pyykk|pesuaine|huuhteluaine|kebab|meetvursti|filee|vihann|hedelm|suihke|leipä|juusto|jogur|maito|keksi|makeis|bonbon|fasupala)/i;
-          const unexpectedFallbacks=badCategories.filter(x=>groceryNouns.test(x.title)).map(x=>x.title);
-          const otherFallbacks=badCategories.filter(x=>!groceryNouns.test(x.title)).map(x=>x.title);
-          console.log('GOSTA_UI_SIMULATION '+JSON.stringify({national:national.length,local:local.length,jumbo:jumbo.length,offersTab:offers.length,campaignTab:campaigns.length,categories:categories.map(category=>({category,count:campaigns.filter(x=>x.category===category).length})),foreign:foreign.length,missing:missing.length,wrongTab:wrongTab.length,uncategorized:badCategories.map(x=>x.title),offerFallbacks:badOfferCategories.map(x=>x.title),campaignFallbacks:badCampaignCategories.map(x=>x.title),unexpectedFallbacks,otherFallbacks},null,2));
-          if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length)process.exitCode=1;
+          cat > citymarket-source-identity.mts <<'NODE'
+          import { cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147 } from './src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts';
+          const common = {title:'Kanan fileesuikaleet 300 g',name:'Kanan fileesuikaleet 300 g',price:3.99,priceText:'3,99 €',storeId:'fe95rtb',storeName:'K-Citymarket Hyvinkää',chain:'K',storeType:'K-Citymarket',provider:'kcitymarket-local',source:'K-Citymarket kauppakohtainen julkaisu',offerId:'same-offer',category:'Liha & makkarat',campaignType:'campaign'};
+          const rows = ['first-publication','second-publication'].map(publicationId=>({...common,id:'citymarket-local-'+publicationId,debug:{publicationId}}));
+          const cleaned = cleanZiiplyGostaOfferResultsV146(rows as any);
+          const cards = cleaned.map(mapZiiplyGostaOfferToCardOfferV147);
+          console.log(JSON.stringify({input:rows.length,cleaned:cleaned.length,cards:cards.length}));
+          if(cleaned.length!==2 || cards.length!==2)throw new Error('Distinct source offers disappeared from Gosta');
           NODE
-          npx --yes tsx citymarket-test-3.mts
+          npx --yes tsx citymarket-source-identity.mts
+

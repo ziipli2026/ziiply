@@ -771,6 +771,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   // The cron job populates this durable Neon snapshot ahead of publication.
   const stored=await readActivePublicationOffers<CitymarketOffer>("K-Citymarket");
   if(stored.length)return stored;
+  throw new Error("Valmis viikkolehtiaineisto puuttuu");
   // Migration safety: do not break desktop or mobile when the first snapshot
   // has not been seeded yet. Recover from the immutable publisher URL once,
   // persist the result, and let all subsequent requests use Neon.
