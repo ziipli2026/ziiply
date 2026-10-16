@@ -65,6 +65,22 @@ jobs:
           }
           NODE
           npx --yes tsx offer-price-test.mts
+      - name: Prisma and Cittari offer-card regression
+        run: |
+          cat > offer-card-regression.mts <<'NODE'
+          import { enrichPrismaCampaignMultiBuyV233, mapZiiplyGostaOfferToCardOfferV147 } from './src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts';
+          const source={ean:'6408659993003',storeLabel:'Prisma Hyvinkää',campaignType:'offer',benefitText:'4 kpl = 2 €'};
+          const campaign={ean:'6408659993003',storeLabel:'Prisma Hyvinkää',campaignType:'campaign',benefitText:'Mehut'};
+          const result=enrichPrismaCampaignMultiBuyV233([campaign] as any,[source,campaign] as any,'Prisma Hyvinkää');
+          if(result[0].benefitText!=='4 kpl = 2 €') throw Error('Prisma multi-buy condition lost');
+          for(const [priceText,quantity,total] of [['8,00 € / 3 kpl',3,8],['3 kpl = 12 €',3,12],['4,00 € / 2 kpl',2,4]] as const){
+            const card=mapZiiplyGostaOfferToCardOfferV147({id:'test',title:'Test',priceText,benefitText:'Ruokatuotteet',category:'Ruokatuotteet'} as any);
+            if(card.bundleQuantity!==quantity||card.bundleTotalPrice!==total) throw Error('Wrong bundle metadata '+priceText);
+            if(card.discountText.includes('Ruokatuotteet')) throw Error('Category leaked into discount '+priceText);
+          }
+          console.log('PRISMA_CITTARI_OFFER_CARD_REGRESSION_OK');
+          NODE
+          npx --yes tsx offer-card-regression.mts
       - name: Prisma and Cittari cart multi-buy regression
         run: node scripts/audit-gosta-cart-multibuy-20261001.cjs
       - name: Simulate two selected stores and failure isolation
