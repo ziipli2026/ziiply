@@ -22,7 +22,8 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
         background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, #d5e2d7 100%)",
       }}
     >
-      <div className="flex min-h-0 flex-1 flex-col justify-end"\n        style={{ paddingTop: "clamp(12px, 10dvh, 130px)" }}>
+      <div className="flex min-h-0 flex-1 flex-col justify-end"
+        style={{ paddingTop: "clamp(12px, 10dvh, 130px)" }}>
         <header className="flex shrink-0 flex-col items-center text-center">
           <img
             src="/ziiplylogo_mobile.png"
@@ -33,10 +34,11 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
             className="h-[clamp(54px,10dvh,94px)] w-[clamp(54px,10dvh,94px)] object-contain"
           />
           <h1 className="mt-1 max-w-[390px] text-[clamp(24px,6.5vw,36px)] font-black leading-[1.04] tracking-[-0.045em] text-[#050b2b]">
-            Viilaa ruokakorisi huokeammaks
+            <span className="block">Viilaa ruokakorisi</span>
+            <span className="block">huokeammaks</span>
           </h1>
           <p className="mt-2 max-w-[390px] text-[clamp(13px,3.6vw,17px)] font-bold leading-[1.17] text-[#686d5c]">
-            Gösta, Justiina ja Arvo auttavat arjen valinnoissa
+            Gösta, Justiina ja Arvo auttavat arjen<br className="hidden min-[370px]:block" /> valinnoissa
           </p>
         </header>
 
