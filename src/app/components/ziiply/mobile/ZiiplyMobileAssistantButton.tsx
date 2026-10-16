@@ -25,17 +25,17 @@ const themeByAssistant: Record<
 > = {
   justiina: {
     frame: "border-[#c69655] bg-gradient-to-b from-[#fff6da] via-[#ffe9a2] to-[#edc66c]",
-    glow: "shadow-[0_16px_34px_rgba(147,88,18,0.20),inset_0_0_0_2px_rgba(255,255,255,0.55)]",
+    glow: "shadow-[inset_0_0_0_2px_rgba(255,255,255,0.55)]",
     label: "text-[#6b331e]",
   },
   gosta: {
     frame: "border-[#8bb56d] bg-gradient-to-b from-[#f4ffe3] via-[#e0f0bd] to-[#c6dc91]",
-    glow: "shadow-[0_16px_34px_rgba(35,94,42,0.18),inset_0_0_0_2px_rgba(255,255,255,0.55)]",
+    glow: "shadow-[inset_0_0_0_2px_rgba(255,255,255,0.55)]",
     label: "text-[#244a28]",
   },
   arvo: {
     frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]",
-    glow: "shadow-[0_16px_34px_rgba(69,52,25,0.18),inset_0_0_0_2px_rgba(255,255,255,0.55)]",
+    glow: "shadow-[inset_0_0_0_2px_rgba(255,255,255,0.55)]",
     label: "text-[#314633]",
   },
 };
