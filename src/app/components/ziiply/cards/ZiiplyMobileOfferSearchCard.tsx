@@ -452,8 +452,13 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
   );
 
   // Distinct regional/local Tjek publication rows must survive final mobile-card dedupe.
-  if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+  if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
     return `tjek:${String(source.debug.publicationId)}:${String(source.offerId)}:${String(source.campaignType || (offer as any)?.campaignType || "offer")}`;
+  }
+
+  // Printed leaflet cards have publication identities, even when titles/prices match.
+  if (source?.source === "K-Citymarket tarjouslehti" && String(source?.id || "").startsWith("kcm:spatial:")) {
+    return `kcm-national:${String(source.sourceUrl || "")}:${String(source.id)}:${String(source.campaignType || (offer as any)?.campaignType || "offer")}`;
   }
 
   if (ean) return `ean:${ean}`;
@@ -487,7 +492,15 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
     );
     const key = getOfferCardDedupeKeyV13(item);
 
-    if (source?.source === "etarjouslehdet" && source?.offerId && source?.debug?.publicationId) {
+    if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(item);
+      continue;
+    }
+
+    // Do not apply abbreviated-name/price fallback to a source-owned leaflet card.
+    if (key.startsWith("kcm-national:")) {
       if (seen.has(key)) continue;
       seen.add(key);
       unique.push(item);
@@ -592,9 +605,11 @@ export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
 // Shared display-only price layout for both Gösta offers and campaigns.
 export function splitOfferDisplayPrice(value: string) {
   const clean = String(value || "").trim();
-  const after = clean.match(/^(.+?€)\s*\/\s*(\d+(?:[,.]\d+)?\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml))$/i);
+  // Preserve the complete provider basis, including units such as RS/TLK,
+  // a mixed set, and the inner contents of a multipack. The basis is not money.
+  const after = clean.match(/^(.+?€)\s*\/\s*(.+)$/);
   if (after) return { amount: after[1].trim(), basis: `/ ${after[2].trim()}` };
-  const before = clean.match(/^(\d+(?:[,.]\d+)?\s*(?:kpl|pkt|ps|prk|plo|kg|g|l|ml))\s*\/\s*(.+?€)$/i);
+  const before = clean.match(/^(.+?)\s*\/\s*(\d+(?:[,.]\d+)?\s*€)$/);
   if (before) return { amount: before[2].trim(), basis: `/ ${before[1].trim()}` };
   return { amount: clean || "—", basis: "" };
 }
