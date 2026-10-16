@@ -883,7 +883,7 @@ export default function ZiiplyMobileCartCard({
                           )
                           : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                             ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
-                            : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.65rem] font-normal opacity-70" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : price || "—"}
+                            : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.72rem] font-bold text-[#3f321f] decoration-[1.5px]" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : price || "—"}
                     </div>
                     {item.ziiplyIsSubstituteV793 && onRestoreOriginalItem && (
                       <button type="button" onClick={() => onRestoreOriginalItem(item)}
