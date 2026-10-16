@@ -33,3 +33,16 @@ for (const [name, offer, total, unit] of cases) {
 }
 assert.equal((page.match(/getGostaCartPriceV758\(offer\);/g)||[]).length,2,"single and bulk add must both use helper");
 console.log("PASS single and bulk add share the same price helper");
+const bundleStart = page.indexOf("function getGostaCartBundleQuantityV869(");
+assert(bundleStart >= 0 && bundleStart < start, "bundle quantity helper must be present");
+const bundleCode = page.slice(bundleStart, start).replace("offer: any): number", "offer)");
+const bundleQuantity = vm.runInNewContext(bundleCode + "\ngetGostaCartBundleQuantityV869;", {});
+for (const [name, offer, expected] of [
+  ["Prisma four-pack", {offerPrice:"4 kpl = 2 €"}, 4],
+  ["Cittari three-pack", {offerPrice:"8,00 € / 3 kpl"}, 3],
+  ["ordinary single", {offerPrice:"2,99 €"}, 1],
+]) assert.equal(bundleQuantity(offer), expected, name + " cart quantity");
+assert.equal((page.match(/quantity: isWeightedOffer \? 1 : offerBundleQuantityV869/g)||[]).length,1,"single add must use bundle quantity");
+assert.equal((page.match(/quantity: offerBundleQuantityV869/g)||[]).length,1,"bulk add must use bundle quantity");
+console.log("PASS bundle quantity is used for single and bulk cart adds");
+
