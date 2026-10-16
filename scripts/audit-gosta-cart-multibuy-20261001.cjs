@@ -27,6 +27,7 @@ const cases = [
   ["Cittari comparison price must not override bundle", {chain:"K",offerPrice:"8,00 € / 3 kpl",__sourceOfferSearchResult:{priceText:"8,00 € / 3 kpl",price:2.67}}, 8, 8/3],
   ["display bundle wins over source plain price", {chain:"K",offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"4,00 €",price:4}}, 12, 4],
   ["K single", { chain:"K", offerPrice:"2,99 €", __sourceOfferSearchResult:{price:2.99} }, 2.99, 2.99],
+  ["K ordinary price with stale offerQuantity", {chain:"K",offerPrice:"2,99 €",__sourceOfferSearchResult:{price:2.99,debug:{offerQuantity:2}}}, 2.99, 2.99],
   ["S single", { chain:"S", offerPrice:"1,79 €" }, 1.79, 1.79],
   ["EUROSPAR explicit single equivalent", {chain:"EUROSPAR",priceBasis:"multi-buy-total",singleEquivalentPrice:1.25,offerPrice:"5,00 € / 4 kpl"}, 5, 1.25],
   ["malformed text fails closed", {chain:"K",offerPrice:"ei hintaa"}, 0, 0],
@@ -48,6 +49,7 @@ for (const [name, offer, expected] of [
   ["Prisma debug: discountText four-pack", {offerPrice:"0,69 €",discountText:"4 kpl = 2 €"}, 4],
   ["Cittari three-pack", {offerPrice:"8,00 € / 3 kpl"}, 3],
   ["ordinary single", {offerPrice:"2,99 €"}, 1],
+  ["stale quantity must not create bundle", {chain:"K",offerPrice:"2,99 €",__sourceOfferSearchResult:{price:2.99,debug:{offerQuantity:2}}}, 1],
   ["source plain price but display bundle", {offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"4,00 €",price:4}}, 3],
 ]) assert.equal(bundleQuantity(offer), expected, name + " cart quantity");
 assert.equal((page.match(/quantity: isWeightedOffer \? 1 : offerBundleQuantityV869/g)||[]).length,1,"single add must use bundle quantity");
