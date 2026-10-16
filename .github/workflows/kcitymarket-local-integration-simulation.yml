@@ -54,6 +54,7 @@ jobs:
             ['citymarket leaflet', {offerPrice:4,__sourceOfferSearchResult:{offerQuantity:4,offerUnit:'PRK'}}, '4,00 € / 4 PRK'],
             ['citymarket campaign', {offerPrice:4,__sourceOfferSearchResult:{priceText:'4,00 € / 4 kpl',offerQuantity:4}}, '4,00 € / 4 kpl'],
             ['k-super', {offerPrice:'5,00 € / 2 kpl',__sourceOfferSearchResult:{priceText:'5,00 € / 2 kpl',offerQuantity:2}}, '5,00 € / 2 kpl'],
+            ['prisma reverse bundle', {offerPrice:'3 kpl = 12 €',__sourceOfferSearchResult:{priceText:'3 kpl = 12 €'}}, '12 € / 3 kpl'],
             ['lidl', {offerPrice:5,__sourceOfferSearchResult:{multiBuyQuantity:2,priceBasis:'multi-buy-total'}}, '5,00 € / 2 kpl'],
             ['eurospar', {offerPrice:6,__sourceOfferSearchResult:{offerQuantity:3,offerUnit:'kpl',priceBasis:'multi-buy-total'}}, '6,00 € / 3 kpl'],
             ['tokmanni', {offerPrice:10,__sourceOfferSearchResult:{offerQuantity:3,offerUnit:'kpl',multiBuyTotalPrice:10}}, '10,00 € / 3 kpl'],
