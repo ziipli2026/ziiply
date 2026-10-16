@@ -334,6 +334,11 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   if (/kodinhoito|siivous|astianpesu|pyykinpesu|konetiski|pesuaine/.test(detailed)) return "Kodinhoito";
   if (/kosmetiikka|hygienia|kauneus|hiustenhoito|vartalonhoito|ihonhoito/.test(parent) || /hiustenhoito|vartalonhoito|ihonhoito|kasvovoiteet|meikit/.test(detailed)) return "Hygienia & kosmetiikka";
   if (/lemmik|koiran|kissan/.test(parent) || /koiranruo|kissanruo|lemmikkitarvik/.test(detailed)) return "Lemmikit";
+  // Department-level fallbacks must precede generic "koti": kodinhoito
+  // contains that word but belongs to cleaning and household supplies.
+  if (/kodinhoito|taloustarvikkeet|siivous/.test(parent)) return "Kodinhoito";
+  if (/urheiluravinteet|ravintolisat|terveys ja itsehoito/.test(parent)) return "Vitamiinit & ravinteet";
+  if (/^lapset$/.test(parent) && /sose|vauvanruo|lasten valipala|lastenruo/.test(detailed)) return "Lastenruoat";
   if (/kukat|koti|kayttotavarat|vapaa aika|puutarha/.test(parent)) return "Koti & vapaa-aika";
   if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
   if (/mausteet|kastikkeet|texmex|kuivat elintarvikkeet|pastat|riisit|sailykkeet|leivonta/.test(parent)) return "Kuivatuotteet";
