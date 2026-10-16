@@ -30,6 +30,7 @@ const cases = [
   ["K ordinary price with stale offerQuantity", {chain:"K",offerPrice:"2,99 €",__sourceOfferSearchResult:{price:2.99,debug:{offerQuantity:2}}}, 2.99, 2.99],
   ["S single", { chain:"S", offerPrice:"1,79 €" }, 1.79, 1.79],
   ["EUROSPAR explicit single equivalent", {chain:"EUROSPAR",priceBasis:"multi-buy-total",singleEquivalentPrice:1.25,offerPrice:"5,00 € / 4 kpl"}, 5, 1.25],
+  ["structured K bundle without formatted text", {chain:"K",priceBasis:"multi-buy-total",offerPrice:"6,00 €",bundleQuantity:3,__sourceOfferSearchResult:{price:6}}, 6, 2],
   ["malformed text fails closed", {chain:"K",offerPrice:"ei hintaa"}, 0, 0],
 ];
 for (const [name, offer, total, unit] of cases) {
@@ -50,6 +51,7 @@ for (const [name, offer, expected] of [
   ["Cittari three-pack", {offerPrice:"8,00 € / 3 kpl"}, 3],
   ["ordinary single", {offerPrice:"2,99 €"}, 1],
   ["stale quantity must not create bundle", {chain:"K",offerPrice:"2,99 €",__sourceOfferSearchResult:{price:2.99,debug:{offerQuantity:2}}}, 1],
+  ["structured bundle quantity is valid", {chain:"K",priceBasis:"multi-buy-total",offerPrice:"6,00 €",bundleQuantity:3}, 3],
   ["source plain price but display bundle", {offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"4,00 €",price:4}}, 3],
 ]) assert.equal(bundleQuantity(offer), expected, name + " cart quantity");
 assert.equal((page.match(/quantity: isWeightedOffer \? 1 : offerBundleQuantityV869/g)||[]).length,1,"single add must use bundle quantity");
