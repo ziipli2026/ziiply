@@ -121,3 +121,25 @@ jobs:
           if(cleaned.length!==2 || cards.length!==2)throw new Error('Distinct source offers disappeared from Gosta');
           NODE
           npx --yes tsx citymarket-source-identity.mts
+
+      - name: Desktop prepared dataset tab completion regression
+        run: |
+          cat > desktop-prepared-tabs.mts <<'NODE'
+          import assert from 'node:assert/strict';
+          import {warmZiiplyGostaOfferCacheV182 as warm,invalidateZiiplyGostaOfferCacheV804 as invalidate,mapZiiplyGostaOfferToCardOfferV147 as card} from './src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts';
+          const context={kStoreName:'K-Citymarket Hyvinkää',kStoreId:'N183'};
+          const common={title:'Kanan fileesuikaleet 300 g',price:3.99,priceText:'3,99 €',storeName:'K-Citymarket Hyvinkää',category:'Liha & makkarat'};
+          const campaigns=Array.from({length:455},(_,i)=>({...common,id:'local-'+i,provider:'kcitymarket-local',source:'K-Citymarket kauppakohtainen julkaisu',offerId:'offer-'+i,debug:{publicationId:'publication-'+(i%3)},campaignType:'offer'}));
+          const offers=Array.from({length:89},(_,i)=>({...common,id:'kcm:spatial:'+i,source:'K-Citymarket tarjouslehti',campaignType:'campaign'}));
+          let calls=0;
+          globalThis.fetch=async()=>{calls++;return new Response(JSON.stringify({ok:true,complete:true,results:[...campaigns,...offers]}),{status:200});};
+          const result=await warm(context);
+          assert.equal(result.campaigns.length,455);assert.equal(result.offers.length,89);
+          assert.equal(result.campaigns.map(card).length,455);
+          await warm(context);assert.equal(calls,1);
+          invalidate(context);
+          globalThis.fetch=async()=>new Response(JSON.stringify({ok:true,complete:false,results:campaigns.slice(0,3)}),{status:200});
+          await assert.rejects(()=>warm(context));
+          console.log('DESKTOP_PREPARED_TABS_OK campaigns=455 offers=89 cards=455 cached_requests=1 incomplete=rejected');
+          NODE
+          npx --yes tsx desktop-prepared-tabs.mts
