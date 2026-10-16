@@ -23,6 +23,7 @@ const cases = [
   ["Cittari three-pack 12 euro", { chain:"K", offerPrice:"12,00 € / 3 kpl", __sourceOfferSearchResult:{price:12,offerQuantity:3} }, 12, 4],
   ["Prisma reverse four-pack", {chain:"S",offerPrice:"4 kpl = 2 €",__sourceOfferSearchResult:{priceText:"4 kpl = 2 €",price:0.69}}, 2, 0.5],
   ["Prisma debug: unit price with bundle only in discountText", {chain:"S",price:"0,69 €",offerPrice:"0,69 €",discountText:"4 kpl = 2 €",__sourceOfferSearchResult:{price:0.69}}, 2, 0.5],
+  ["Prisma source discountText bundle", {chain:"S",offerPrice:"0,69 €",__sourceOfferSearchResult:{price:0.69,discountText:"4 kpl = 2 €"}}, 2, 0.5],
   ["Cittari reverse three-pack", {chain:"K",offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"3 kpl = 12 €",price:12}}, 12, 4],
   ["Cittari comparison price must not override bundle", {chain:"K",offerPrice:"8,00 € / 3 kpl",__sourceOfferSearchResult:{priceText:"8,00 € / 3 kpl",price:2.67}}, 8, 8/3],
   ["display bundle wins over source plain price", {chain:"K",offerPrice:"3 kpl = 12 €",__sourceOfferSearchResult:{priceText:"4,00 €",price:4}}, 12, 4],
@@ -48,6 +49,7 @@ const bundleQuantity = vm.runInNewContext(bundleCode + "\ngetGostaCartBundleQuan
 for (const [name, offer, expected] of [
   ["Prisma four-pack", {offerPrice:"4 kpl = 2 €"}, 4],
   ["Prisma debug: discountText four-pack", {offerPrice:"0,69 €",discountText:"4 kpl = 2 €"}, 4],
+  ["Prisma source discountText four-pack", {offerPrice:"0,69 €",__sourceOfferSearchResult:{discountText:"4 kpl = 2 €"}}, 4],
   ["Cittari three-pack", {offerPrice:"8,00 € / 3 kpl"}, 3],
   ["ordinary single", {offerPrice:"2,99 €"}, 1],
   ["stale quantity must not create bundle", {chain:"K",offerPrice:"2,99 €",__sourceOfferSearchResult:{price:2.99,debug:{offerQuantity:2}}}, 1],
