@@ -333,7 +333,10 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   if (/kukat|koti|kayttotavarat|vapaa aika|puutarha/.test(parent)) return "Koti & vapaa-aika";
   if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
   if (/mausteet|kastikkeet|texmex|kuivat elintarvikkeet|pastat|riisit|sailykkeet|leivonta/.test(parent)) return "Kuivatuotteet";
-  if (/kahvit|teet/.test(hierarchy) && /kahvi|tee/.test(normalizeGostaCoreText(sourceItem?.productGroup || sourceItem?.subCategory || ""))) return "Kahvi & tee";
+  // Coffee and tea must be the actual product group, not just words in a broad
+  // department such as "Kahvit, teet ja mehut" or a flavoured product name.
+  if (/kahvi|tee/.test(normalizeGostaCoreText(sourceItem?.productGroup || sourceItem?.subCategory || "")) &&
+      /kahvi|tee/.test(parent)) return "Kahvi & tee";
   if (/maito|juusto|jogurt|kananmun|rasvat/.test(parent)) return "Maitotuotteet";
   if (/kala|merenelav/.test(parent)) return "Kala";
   if (/liha|makkara|leikkele|kasviproteiin/.test(parent)) return "Liha & makkarat";
