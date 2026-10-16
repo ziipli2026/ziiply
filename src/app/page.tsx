@@ -17296,9 +17296,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
-      const scannerMessage = mergedExistingV129
-        ? "Määrä +1 — hinta ei saatavilla"
-        : scannerAddedMessageV846();
+      const scannerMessage = Number(effectiveStickerPercent) > 0
+        ? `−${effectiveStickerPercent} % · ${mergedExistingV129 ? "Määrä +1" : "Lisätty ostoslistalle"} — haetaan alehintaa`
+        : mergedExistingV129 ? "Määrä +1 — hinta ei saatavilla" : scannerAddedMessageV846();
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
