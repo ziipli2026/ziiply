@@ -410,7 +410,7 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
       sourceUrl: "https://www.s-kaupat.fi/tuotteet/kampanjat",
       mainCategory: sourceItem?.mainCategory || path[0] || sourceItem?.category,
       productGroup: sourceItem?.productGroup || path[1] || "",
-      subCategory: sourceItem?.subCategory || path[path.length - 1] || "",
+      subCategory: sourceItem?.subCategory || (path.length > 1 ? path[path.length - 1] : "") || "",
     });
   }
   // S-local CMS: source taxonomy wins over fruit-related words in processed
