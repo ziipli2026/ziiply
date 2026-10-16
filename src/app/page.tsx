@@ -694,6 +694,7 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
 import ZiiplyMobileFuelView from "./components/ziiply/mobile/ZiiplyMobileFuelView";
 import DesktopFuelPhotoReport from "./components/ziiply/desktop/DesktopFuelPhotoReport";
@@ -15695,15 +15696,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   return {
                     ...item,
                     name: fixText(product.name || item.name),
-                    price,
+                    ...scannerStickerPrice(item, price),
                     image: product.pictureUrl || item.image,
                     chain: "S" as const,
                     storeName: activeStores.sStoreName || item.storeName,
-                    product: { ...product, ean, price } as Product,
+                    product: { ...product, ean, ...scannerStickerPrice(item, price) } as Product,
                     ean,
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
+                persistCartImmediately(nextCart);
                 // Do not auto-start Halpuuta before the user's first comparison.
                 if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
@@ -15740,14 +15742,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   return {
                     ...item,
-                    price,
+                    ...scannerStickerPrice(item, price),
                     chain: "Lidl" as const,
                     storeName: selectedLidlStoreV750?.name || item.storeName,
-                    product: { ...(item.product || {}), ean, price } as Product,
+                    product: { ...(item.product || {}), ean, ...scannerStickerPrice(item, price) } as Product,
                     ean,
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
+                persistCartImmediately(nextCart);
                 if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
               });
@@ -15791,16 +15794,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   // The basket displays the S price when both chains are selected;
                   // K pricing belongs to the independent comparison matcher.
-                  // Preserve a real S price, but do not suppress the K price
+                  // Preserve a real S ...scannerStickerPrice(item, price), but do not suppress the K price
                   // when the S-side has no priced match (e.g. Pirkka own brand).
                   if (scannerAllowSV785 && selectedChains.s && item.chain === "S" && Number(item.price || 0) > 0) return item;
                   return {
-                    ...item, price, image: product.pictureUrl || item.image,
+                    ...item, ...scannerStickerPrice(item, price), image: product.pictureUrl || item.image,
                     chain: "K" as const, storeName: activeStores.kStoreName || item.storeName,
-                    product: { ...product, ean, price } as Product, ean,
+                    product: { ...product, ean, ...scannerStickerPrice(item, price) } as Product, ean,
                   } as CartItem;
                 });
                 cartRefV124.current = nextCart;
+                persistCartImmediately(nextCart);
                 // Do not auto-start Halpuuta before the user's first comparison.
                 if (comparisonUserStartedRefV768.current) scheduleComparisonUpdate(nextCart);
                 return nextCart;
@@ -15835,7 +15839,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
                   return {
                     ...item,
-                    price,
+                    ...scannerStickerPrice(item, price),
                     image: product.pictureUrl || item.image,
                     storeName: tokmanniStoreNameV790,
                     product: {
@@ -15843,7 +15847,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       ...product,
                       name: item.product?.name || item.name || product.name,
                       ean,
-                      price,
+                      ...scannerStickerPrice(item, price),
                     } as Product,
                     ean,
                   } as CartItem;
@@ -17104,6 +17108,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     const normalizedEan = normalizeEan(fallbackProduct.ean);
     if (!isUsableEan(normalizedEan)) return;
+    const acceptedSticker = scannerDiscountRefV860.current;
+    const stickerFields = acceptedSticker?.ean === normalizedEan
+      ? {ziiplyDiscountPercent: acceptedSticker.percent} : {};
+
 
     cacheOpenFoodFactsProductForAllVariantsV126(fallbackProduct);
     // V131: kun EAN tunnistui OFF:stä, estä saman fyysisen skannauksen
@@ -17186,6 +17194,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         const keptItem = {
           ...baseCart[keepIndex],
+          ...stickerFields,
           name: fallbackCartName,
           // A repeated bank-recognized scan must never erase a price already
           // resolved for this basket item by the selected store.
@@ -17219,6 +17228,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const newItem: CartItem = {
         id: `off-ean-${normalizedEan}-${Date.now()}`,
+        ...stickerFields,
         name: fallbackCartName,
         price: 0,
         image: fallbackProduct.imageUrl || "",
