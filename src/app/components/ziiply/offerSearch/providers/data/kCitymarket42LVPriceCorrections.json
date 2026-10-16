@@ -1,0 +1,360 @@
+{
+  "sourceUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html",
+  "patches": [
+    {
+      "id": "kcm:spatial:1:vihreä tai - tumma 2 rs rypäle 500 g italia/espanja/kreikka/brasilia:3",
+      "oldPrice": 3,
+      "price": 3,
+      "offerQuantity": 2,
+      "offerUnit": "RS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 1,
+        "title": "VIHREÄ tai - TUMMA 2 RS RYPÄLE 500 g Italia/Espanja/Kreikka/Brasilia"
+      }
+    },
+    {
+      "id": "kcm:spatial:1:wc-paperi:3.9",
+      "oldPrice": 3.9,
+      "price": 24.9,
+      "offerQuantity": 1,
+      "offerUnit": "setti",
+      "priceBasis": "set-total",
+      "resolutionSource": "owned-printed-mixed-set-total",
+      "evidence": {
+        "page": 1,
+        "title": "WC-PAPERI"
+      }
+    },
+    {
+      "id": "kcm:spatial:6:wc-paperi 40 rl ja:40.2",
+      "oldPrice": 40.2,
+      "price": 24.9,
+      "offerQuantity": 1,
+      "offerUnit": "setti",
+      "priceBasis": "set-total",
+      "resolutionSource": "owned-printed-mixed-set-total",
+      "evidence": {
+        "page": 6,
+        "title": "WC-PAPERI 40 rl ja"
+      }
+    },
+    {
+      "id": "kcm:spatial:6:käsitiski3in1500ml tai max power 660 ml 6,80–8,98/l handdiskmedel 3in1 eller max power:4.49",
+      "oldPrice": 4.49,
+      "price": 4.49,
+      "offerQuantity": 1,
+      "offerUnit": "kpl",
+      "priceBasis": "single",
+      "resolutionSource": "owned-printed-single-cents-without-purchase-count",
+      "evidence": {
+        "page": 6,
+        "title": "KÄSITISKI3IN1500ml tai MAX POWER 660 ml 6,80–8,98/l Handdiskmedel 3in1 eller Max Power"
+      }
+    },
+    {
+      "id": "kcm:spatial:14:ohuen ohuet kokoliha- leikkeleet 120–150 g:5",
+      "oldPrice": 5,
+      "price": 5,
+      "offerQuantity": 2,
+      "offerUnit": "PKT",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 14,
+        "title": "OHUEN OHUET KOKOLIHA- LEIKKELEET 120–150 g"
+      }
+    },
+    {
+      "id": "kcm:spatial:15:rasvaton maitorahka ja rahkajogurtti 250 g:0.67",
+      "oldPrice": 0.67,
+      "price": 4,
+      "offerQuantity": 6,
+      "offerUnit": "PRK",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 15,
+        "title": "RASVATON MAITORAHKA ja RAHKAJOGURTTI 250 g"
+      }
+    },
+    {
+      "id": "kcm:spatial:15:proteiini- pirtelöt 200 ml (6,25/l):2.5",
+      "oldPrice": 2.5,
+      "price": 2.5,
+      "offerQuantity": 2,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 15,
+        "title": "PROTEIINI- PIRTELÖT 200 ml (6,25/l)"
+      }
+    },
+    {
+      "id": "kcm:spatial:16:juustoraasteet 130–150 g (15–17,31/kg):2.25",
+      "oldPrice": 2.25,
+      "price": 4.5,
+      "offerQuantity": 2,
+      "offerUnit": "PS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 16,
+        "title": "JUUSTORAASTEET 130–150 g (15–17,31/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:16:ja -keitot 200–350 g (9,51–16,65/kg):3.1",
+      "oldPrice": 3.1,
+      "price": 10,
+      "offerQuantity": 3,
+      "offerUnit": "PKT",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-compact-purchase-count-and-total",
+      "evidence": {
+        "page": 16,
+        "title": "ja -KEITOT 200–350 g (9,51–16,65/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:16:muusiperuna 400 g 3. ei luomu (3,75/kg):3",
+      "oldPrice": 3,
+      "price": 3,
+      "offerQuantity": 2,
+      "offerUnit": "PS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 16,
+        "title": "MUUSIPERUNA 400 g 3. Ei luomu (3,75/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:17:apetit 3 ps vihannessekoitukset 300 g 5.:5",
+      "oldPrice": 5,
+      "price": 5,
+      "offerQuantity": 3,
+      "offerUnit": "PS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 17,
+        "title": "Apetit 3 PS VIHANNESSEKOITUKSET 300 g 5."
+      }
+    },
+    {
+      "id": "kcm:spatial:17:jäätelöpuikot 64–85 g:1.67",
+      "oldPrice": 1.67,
+      "price": 5,
+      "offerQuantity": 3,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 17,
+        "title": "JÄÄTELÖPUIKOT 64–85 g"
+      }
+    },
+    {
+      "id": "kcm:spatial:17:tonnikalapaloja auringonkukkaöljyssä ja vedessä 145/95–102 g (19,61–21,05/kg):4",
+      "oldPrice": 4,
+      "price": 4,
+      "offerQuantity": 2,
+      "offerUnit": "PRK",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 17,
+        "title": "TONNIKALAPALOJA AURINGONKUKKAÖLJYSSÄ ja VEDESSÄ 145/95–102 g (19,61–21,05/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:17:fasupalat 175–199 g (15,08–17,14/kg):6",
+      "oldPrice": 6,
+      "price": 6,
+      "offerQuantity": 2,
+      "offerUnit": "PS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 17,
+        "title": "FASUPALAT 175–199 g (15,08–17,14/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:17:pastat 500 g:3.5",
+      "oldPrice": 3.5,
+      "price": 3.5,
+      "offerQuantity": 2,
+      "offerUnit": "PS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 17,
+        "title": "PASTAT 500 g"
+      }
+    },
+    {
+      "id": "kcm:spatial:18:-21 % vital hyvinvointimehut 1 l 2 tlk:2.25",
+      "oldPrice": 2.25,
+      "price": 4.5,
+      "offerQuantity": 2,
+      "offerUnit": "TLK",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 18,
+        "title": "-21 % VITAL HYVINVOINTIMEHUT 1 l 2 TLK"
+      }
+    },
+    {
+      "id": "kcm:spatial:18:smoothiet 120 g:1.38",
+      "oldPrice": 1.38,
+      "price": 5.5,
+      "offerQuantity": 4,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 18,
+        "title": "SMOOTHIET 120 g"
+      }
+    },
+    {
+      "id": "kcm:spatial:18:märkäruoat 70 g:percent:27",
+      "oldPrice": null,
+      "price": 4.2,
+      "offerQuantity": 4,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 18,
+        "title": "MÄRKÄRUOAT 70 g 420 (15,00/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:18:puruluut 160–180 g (19,44–21,88/kg):7",
+      "oldPrice": 7,
+      "price": 7,
+      "offerQuantity": 2,
+      "offerUnit": "PS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 18,
+        "title": "PURULUUT 160–180 g (19,44–21,88/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:19:pringles peruna lastut 160–165 g (10,10–10,42/kg):5",
+      "oldPrice": 5,
+      "price": 5,
+      "offerQuantity": 3,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 19,
+        "title": "Pringles PERUNA LASTUT 160–165 g (10,10–10,42/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:19:aakkoset 280–340 g:percent:8",
+      "oldPrice": null,
+      "price": 4.5,
+      "offerQuantity": 2,
+      "offerUnit": "PS",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-overprinted-euro-and-purchase-count",
+      "evidence": {
+        "page": 19,
+        "title": "AAKKOSET 280–340 g"
+      }
+    },
+    {
+      "id": "kcm:spatial:19:pasta- kastikkeet 390–450 g (5,56–6,41/kg):5",
+      "oldPrice": 5,
+      "price": 5,
+      "offerQuantity": 2,
+      "offerUnit": "PRK",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 19,
+        "title": "PASTA- KASTIKKEET 390–450 g (5,56–6,41/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:19:sininen suklaalevy 180 g:2.1",
+      "oldPrice": 2.1,
+      "price": 10,
+      "offerQuantity": 4,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 19,
+        "title": "SININEN SUKLAALEVY 180 g"
+      }
+    },
+    {
+      "id": "kcm:spatial:19:sininen suklaalevy 180 g g ja maku- ja tummasuklaalevyt 160–200 g (12,50–15,63/kg):2.5",
+      "oldPrice": 2.5,
+      "price": 10,
+      "offerQuantity": 4,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 19,
+        "title": "ja MAKU- ja TUMMASUKLAALEVYT 160–200 g (12,50–15,63/kg)"
+      }
+    },
+    {
+      "id": "kcm:spatial:20:0,33 l/tlk 8-pack 8-pack:0.85",
+      "oldPrice": 0.85,
+      "price": 7.99,
+      "offerQuantity": 1,
+      "offerUnit": "pkt",
+      "priceBasis": "package-total",
+      "packageCount": 8,
+      "depositTotal": 1.2,
+      "resolutionSource": "owned-printed-pack-total-including-deposit",
+      "evidence": {
+        "page": 20,
+        "title": "0,33 l/tlk 8-pack 8-PACK"
+      }
+    },
+    {
+      "id": "kcm:spatial:20:vichy 0,33 l/pl 24-pack:0.36",
+      "oldPrice": 0.36,
+      "price": 10.99,
+      "offerQuantity": 1,
+      "offerUnit": "pkt",
+      "priceBasis": "package-total",
+      "packageCount": 24,
+      "depositTotal": 2.4,
+      "resolutionSource": "owned-printed-pack-total-including-deposit",
+      "evidence": {
+        "page": 20,
+        "title": "VICHY 0,33 l/pl 24-pack"
+      }
+    },
+    {
+      "id": "kcm:spatial:20:proteiinipatukat 45–55 g:5",
+      "oldPrice": 5,
+      "price": 5,
+      "offerQuantity": 2,
+      "offerUnit": "KPL",
+      "priceBasis": "multi-buy-total",
+      "resolutionSource": "owned-printed-purchase-count-and-total",
+      "evidence": {
+        "page": 20,
+        "title": "PROTEIINIPATUKAT 45–55 g"
+      }
+    }
+  ]
+}
