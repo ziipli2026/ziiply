@@ -1229,6 +1229,22 @@ export default function ZiiplyMobileOfferSearchCard({
     }
   };
 
+  const saveDebugV233 = () => {
+    const safeStore = String(selectedStoreNameV41 || "kauppa")
+      .normalize("NFKD").replace(/[^a-zA-Z0-9-]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "kauppa";
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `ziiply-tarjousdebug-${safeStore}-${timestamp}.json`;
+    const blob = new Blob([debugTextV52], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   const goToLandingView = () => {
     // V27: paluu tuoteryhmälistaan ei saa käynnistää uutta master-hakua eikä tyhjentää
     // jo ladattuja tarjousmääriä. Page säilyttää offerSearchResults-välimuistin.
@@ -1269,6 +1285,7 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
             <div className="flex shrink-0 gap-2 border-b border-[#c6a96b] px-3 py-2">
               <button type="button" onClick={() => void copyDebugV52()} className="rounded-lg border-2 border-[#174c2c] bg-[#eaf4d3] px-3 py-1.5 text-[0.72rem] font-black text-[#174c2c]">KOPIOI DEBUG</button>
+              <button type="button" onClick={saveDebugV233} className="rounded-lg border-2 border-[#174c2c] bg-[#fff8dc] px-3 py-1.5 text-[0.72rem] font-black text-[#174c2c]">TALLENNA</button>
               <div className="self-center text-[0.62rem] font-bold text-[#6d5d3f]">raw {rawItems.length} · dedupe {items.length} · näkyvät {visibleItems.length}</div>
             </div>
             <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-3 text-left font-mono text-[0.60rem] leading-[1.28] text-[#1f1a12]">{debugTextV52}</pre>
