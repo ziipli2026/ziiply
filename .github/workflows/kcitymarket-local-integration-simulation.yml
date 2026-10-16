@@ -78,6 +78,8 @@ jobs:
             if(card.bundleQuantity!==quantity||card.bundleTotalPrice!==total) throw Error('Wrong bundle metadata '+priceText);
             if(card.discountText.includes('Ruokatuotteet')) throw Error('Category leaked into discount '+priceText);
           }
+          const reversed=mapZiiplyGostaOfferToCardOfferV147({id:'reverse',title:'Test',priceText:'3 kpl = 12 €',benefitText:'Ruokatuotteet',category:'Ruokatuotteet'} as any);
+          if(reversed.discountText!=='3 kpl = 12 €') throw Error('Reverse bundle condition not displayed');
           console.log('PRISMA_CITTARI_OFFER_CARD_REGRESSION_OK');
           NODE
           npx --yes tsx offer-card-regression.mts
