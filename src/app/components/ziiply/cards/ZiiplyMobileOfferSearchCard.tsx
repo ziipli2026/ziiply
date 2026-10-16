@@ -1213,6 +1213,42 @@ export default function ZiiplyMobileOfferSearchCard({
     visibleItemsReasonV234: loading ? "loading" : showLandingView ? "category_landing" : visibleItems.length === 0 ? "empty_results" : "results_visible",
     hiddenByLandingV234: showLandingView ? items.length : 0,
     categoryOfferCounts: categoryOfferCounts || {},
+    // Audit every category in the current result set without manual category clicks.
+    automaticCategoryAuditV235: (() => {
+      const counts: Record<string, number> = {};
+      const missingFields: Array<{ ean: string; missing: string[] }> = [];
+      const seenEans = new Set<string>();
+      const duplicateEans: string[] = [];
+      for (const offer of items) {
+        const category = String(offer.category || "").trim() || "(puuttuu)";
+        counts[category] = (counts[category] || 0) + 1;
+        const ean = String((offer as any).ean || "").trim();
+        const missing = [
+          ...(!ean ? ["ean"] : []),
+          ...(!(offer as any).title && !(offer as any).name ? ["name"] : []),
+          ...(!(offer as any).price && !(offer as any).priceText ? ["price"] : []),
+          ...(!(offer as any).imageUrl && !(offer as any).image ? ["image"] : []),
+          ...(category === "(puuttuu)" ? ["category"] : []),
+        ];
+        if (missing.length) missingFields.push({ ean, missing });
+        if (ean && seenEans.has(ean)) duplicateEans.push(ean);
+        if (ean) seenEans.add(ean);
+      }
+      const expected = categoryOfferCounts || {};
+      const categoryCountMismatches = Object.entries(expected).flatMap(([category, count]) => {
+        const actual = Object.entries(counts).filter(([key]) => normalizeCategoryKey(key) === normalizeCategoryKey(category)).reduce((sum, [, n]) => sum + n, 0);
+        return typeof count === "number" && actual !== count ? [{ category, expected: count, actual }] : [];
+      });
+      return {
+        status: loading ? "loading" : showLandingView ? "landing_data_audit" : "filtered_data_audit",
+        checkedRows: items.length,
+        categoryCounts: counts,
+        missingFields,
+        duplicateEans,
+        categoryCountMismatches,
+        passed: !loading && missingFields.length === 0 && duplicateEans.length === 0 && categoryCountMismatches.length === 0,
+      };
+    })(),
     testedEmptyCategories: testedEmptyCategories || {},
     kruokaDebug: selectedOfferChainV39 === "K" ? kruokaDebug : null,
     rawItems,
