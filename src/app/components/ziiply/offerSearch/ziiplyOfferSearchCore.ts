@@ -653,7 +653,22 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
     }
   }
 
-  return parseOfferSearchResponse(response);
+  const parsedResults = await parseOfferSearchResponse(response);
+  // Select the tab by publication origin, preserving each source's full dataset.
+  if (isKCitymarketContextV179(context)) {
+    for (const item of parsedResults) {
+      const row = item as any;
+      const source = row.__sourceOfferSearchResult ?? row;
+      if (source?.provider === "kcitymarket-local" || source?.source === "K-Citymarket kauppakohtainen julkaisu") {
+        row.campaignType = "campaign";
+        source.campaignType = "campaign";
+      } else if (source?.source === "K-Citymarket tarjouslehti") {
+        row.campaignType = "offer";
+        source.campaignType = "offer";
+      }
+    }
+  }
+  return parsedResults;
 }
 
 async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152) {

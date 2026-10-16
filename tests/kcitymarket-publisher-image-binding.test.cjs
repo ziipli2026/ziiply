@@ -11,6 +11,8 @@ test('Actual provider preserves original PDF card identities through title clean
   './kCitymarketProductRows.js':await import(path.join(base,'kCitymarketProductRows.js')),
   './kCitymarket42AVTitleCleanup.js':await import(path.join(base,'kCitymarket42AVTitleCleanup.js')),
   'next/cache':{unstable_cache:fn=>fn},
+  '../publicationStore':{readActivePublicationOffers:async()=>{throw Error('No database reads allowed in frozen replay');},storeParsedPublication:async()=>{throw Error('No database writes allowed in frozen replay');}},
+  './data/kCitymarketLeafletImages.json':JSON.parse(fs.readFileSync(path.join(base,'data/kCitymarketLeafletImages.json'),'utf8')),
   '@neondatabase/serverless':{neon:()=>{throw Error('No database allowed in frozen replay');}},
   './kCitymarketPublisherImages':{}
  };
