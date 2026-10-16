@@ -341,7 +341,13 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   if (/^lapset$/.test(parent) && /sose|vauvanruo|lasten valipala|lastenruo/.test(detailed)) return "Lastenruoat";
   if (/kukat|koti|kayttotavarat|vapaa aika|puutarha/.test(parent)) return "Koti & vapaa-aika";
   if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
-  if (/mausteet|kastikkeet|texmex|kuivat elintarvikkeet|pastat|riisit|sailykkeet|leivonta/.test(parent)) return "Kuivatuotteet";
+  if (/mausteet|kastikkeet|texmex|kuivat elintarvikkeet|pastat|riisit|sailykkeet|leivonta|maailman makuja/.test(parent)) return "Kuivatuotteet";
+  // The S-kaupat department "Kahvit, teet ja mehut" mixes distinct products.
+  // Use the child group, not the shared parent, to separate drinks from coffee.
+  if (/kahvit.*teet.*mehut/.test(parent)) {
+    if (/mehu|smoothie|nektari|mehujuoma/.test(detailed)) return "Juomat";
+    if (/kahvi|tee|suodatinpuss/.test(detailed)) return "Kahvi & tee";
+  }
   // Coffee and tea must be the actual product group, not just words in a broad
   // department such as "Kahvit, teet ja mehut" or a flavoured product name.
   if (/kahvi|tee/.test(normalizeGostaCoreText(sourceItem?.productGroup || sourceItem?.subCategory || "")) &&
