@@ -1719,8 +1719,11 @@ const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 // valitut kaupat vaihtuvat vasta aivan uuden alueen lähellä.
 const ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92 = 15000;
 const ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92 = 5000;
-const ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 = 1000;
-const ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92 = 45000;
+const ZIIPLY_GPS_REFRESH_STATIONARY_METERS_V92 = 100;
+const ZIIPLY_GPS_REFRESH_STATIONARY_INTERVAL_MS_V92 = 120000;
+const ZIIPLY_GPS_REFRESH_MOVING_SPEED_MPS_V92 = 10 / 3.6;
+const ZIIPLY_GPS_REFRESH_MOVING_INTERVAL_MS_V92 = 15000;
+const ZIIPLY_GPS_REFRESH_SLOW_INTERVAL_MS_V92 = 60000;
 
 
 type ZiiplyPageScannerFallbackDecodeResult = {
@@ -11497,6 +11500,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  // V830: Nopea, kevyt lähikaupan GPS-tarkistus. Ei käynnistä kauppahakua.
+  // Skanneri tekee edelleen oman tuoreen sijaintitarkistuksensa ennen kerätyksi merkintää.
+  useEffect(() => {
+    if (!usingOwnLocation || gpsUserDisabledRefV306.current) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    const nearbyStoresV830 = foundStores.flatMap((store) => {
+      const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+      const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+      return latitude == null || longitude == null ? [] : [{ latitude, longitude }];
+    });
+    if (nearbyStoresV830.length === 0) return;
+    let cancelled = false;
+    let inFlight = false;
+    const checkNearStoreV830 = () => {
+      if (cancelled || inFlight || document.visibilityState !== "visible") return;
+      if (gpsUserDisabledRefV306.current || !gpsCoordsLatestRefV137.current) return;
+      const nearKnownStoreV830 = nearbyStoresV830.some((coords) =>
+        getDistanceMetersV391(gpsCoordsLatestRefV137.current!, coords) <= 250,
+      );
+      if (!nearKnownStoreV830) return;
+      inFlight = true;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          inFlight = false;
+          if (cancelled || gpsUserDisabledRefV306.current) return;
+          const speed = position.coords.speed;
+          // Yli 10 km/h ei käytetä pysähtyneen asiakkaan nopeaa tarkistusta.
+          if (typeof speed === "number" && speed > 10 / 3.6) return;
+          if (!Number.isFinite(position.coords.accuracy) || position.coords.accuracy > 80) return;
+          const coords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+          gpsCoordsLatestRefV137.current = coords;
+          setGpsCoordsV320(coords);
+        },
+        () => { inFlight = false; },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 4500 },
+      );
+    };
+    const interval = window.setInterval(checkNearStoreV830, 5000);
+    checkNearStoreV830();
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [usingOwnLocation, foundStores]);
+
   // V137_GPS_BACKGROUND_WATCHDOG_SILENT_REFRESH:
   // Kun GPS on päällä, paikkatieto tarkistetaan taustalla. Kaupat haetaan uudelleen vain,
   // jos liike edellisestä kauppahakuun käytetystä sijainnista ylittää rajan tai
@@ -11535,11 +11580,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const movedMeters = previousAppliedCoords
               ? getDistanceMetersV391(previousAppliedCoords, nextCoords)
               : Number.POSITIVE_INFINITY;
-            // All four visible store distances share the same 1 km movement gate.
-            // Do not refresh display coordinates for sub-threshold GPS samples.
-            if (previousAppliedCoords && movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92) {
-              return;
-            }
+            // V829: Paikallaan GPS-kohina ei käynnistä kauppahakua 15 sekunnin välein.
+            // Yli 10 km/h liikkeessä päivitys sallitaan 15 sekunnin välein;
+            // hitaammassa liikkeessä 60 s ja alle 100 m siirtymällä 120 s.
+            const nowGpsPollV829 = Date.now();
+            const sinceLastAppliedMsV829 = Math.max(0, nowGpsPollV829 - gpsPollLastAppliedAtRefV90.current);
+            const reportedSpeedMpsV829 = position.coords.speed;
+            const reliableSpeedMpsV829 =
+              typeof reportedSpeedMpsV829 === "number" &&
+              Number.isFinite(reportedSpeedMpsV829) && reportedSpeedMpsV829 >= 0
+                ? reportedSpeedMpsV829
+                : null;
+            const estimatedSpeedMpsV829 =
+              previousAppliedCoords && sinceLastAppliedMsV829 > 0
+                ? movedMeters / (sinceLastAppliedMsV829 / 1000)
+                : 0;
+            const movingFastV829 =
+              movedMeters >= ZIIPLY_GPS_REFRESH_STATIONARY_METERS_V92 &&
+              (reliableSpeedMpsV829 ?? estimatedSpeedMpsV829) > ZIIPLY_GPS_REFRESH_MOVING_SPEED_MPS_V92;
+            const minIntervalMsV829 =
+              movedMeters < ZIIPLY_GPS_REFRESH_STATIONARY_METERS_V92
+                ? ZIIPLY_GPS_REFRESH_STATIONARY_INTERVAL_MS_V92
+                : movingFastV829
+                  ? ZIIPLY_GPS_REFRESH_MOVING_INTERVAL_MS_V92
+                  : ZIIPLY_GPS_REFRESH_SLOW_INTERVAL_MS_V92;
+            if (previousAppliedCoords && sinceLastAppliedMsV829 < minIntervalMsV829) return;
 
             const city = await reverseGeocodeCity(
               nextCoords.latitude,
@@ -11548,8 +11613,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             if (!city || cancelled) return;
 
-            gpsPollLastAppliedCoordsRefV137.current = nextCoords;
-            gpsPollLastAppliedAtRefV90.current = Date.now();
             gpsCoordsLatestRefV137.current = nextCoords;
             setGpsCoordsV320(nextCoords);
 
@@ -11560,6 +11623,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             if (storeModeChosenV299) {
               // V745: watchdog on taustapäivitys kuten boot_refresh: pidä snapshot/UI käytettävänä.
               await applyLocation(city, "gps", nextCoords, true, true);
+              if (!cancelled) {
+                gpsPollLastAppliedCoordsRefV137.current = nextCoords;
+                gpsPollLastAppliedAtRefV90.current = Date.now();
+              }
             } else {
               setGpsCoordsV320(nextCoords);
             }
