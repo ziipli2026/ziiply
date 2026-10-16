@@ -15360,6 +15360,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     pushScannerDebugV493(`EXISTING cart=${Boolean(existingCartItemForEanV122)} fallbackOnly=${existingIsFallbackOnlyV491}`);
 
+    // Apply a sticker before either collection acknowledgement or the existing-row shortcut.
+    const existingSticker = scannerDiscountRefV860.current;
+    if (existingCartItemForEanV122 && existingSticker?.ean === ean && Date.now() - existingSticker.at < 20000) {
+      setCart(current => {
+        const next = current.map(item => {
+          if (!cartItemMatchesEanV118(item, ean)) return item;
+          const savedRegular = Number((item as any).ziiplyRegularPrice);
+          const regular = savedRegular > 0 ? savedRegular : Number(item.price);
+          if (!(regular > 0) || (item as any).ziiplyPricePendingWeight || (item.product as any)?.ziiplyPricePendingWeight) return item;
+          return {...item, price: Math.round(regular * (100 - existingSticker.percent)) / 100,
+            ziiplyRegularPrice: regular, ziiplyDiscountPercent: existingSticker.percent};
+        });
+        cartRefV124.current = next;
+        persistCartImmediately(next);
+        return next;
+      });
+    }
+
+
     // V816: fyysisen skannauksen ensimmäinen osuma etänä tehtyyn EAN-riviin
     // on keräilykuittaus, ei määrän kasvatus. Tämä tehdään ennen vanhaa +1-oikopolkua.
     const physicalExistingScanV824 = physicalBarcodeScanRefV815.current;

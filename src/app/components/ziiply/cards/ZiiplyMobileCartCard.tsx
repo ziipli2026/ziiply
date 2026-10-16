@@ -791,6 +791,8 @@ export default function ZiiplyMobileCartCard({
                   Number.isFinite(Number(confirmedWeightFinalV802)) && Number(confirmedWeightFinalV802) >= 0
                     ? Number(confirmedWeightFinalV802)
                     : pendingWeightV794 ? 0 : item.price;
+                const stickerRegularPrice = Number((item as any).ziiplyRegularPrice);
+                const hasStickerDiscount = Number((item as any).ziiplyDiscountPercent) > 0 && stickerRegularPrice > getNumericPrice(rowPriceInputV802) && !pendingWeightV794;
                 const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(rowPriceInputV802);
                 const price = numericRowPriceV792 > 0
                   ? ((item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) && !pendingWeightV794
@@ -881,7 +883,7 @@ export default function ZiiplyMobileCartCard({
                           )
                           : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                             ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
-                            : price || "—"}
+                            : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.65rem] font-normal opacity-70" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : price || "—"}
                     </div>
                     {item.ziiplyIsSubstituteV793 && onRestoreOriginalItem && (
                       <button type="button" onClick={() => onRestoreOriginalItem(item)}
