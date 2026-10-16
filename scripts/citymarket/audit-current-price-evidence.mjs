@@ -7,7 +7,4 @@ const parsed=await parseKCitymarketSpatialLeaflet(entry,async url=>{
  if(String(url).includes('text_position[')){const context={positionForPages:{}};vm.runInNewContext(body,context);for(const [page,data] of Object.entries(context.positionForPages))pageBoxes[page]=data.positions.map(b=>({...b,text:b.word}));}
  return {ok:r.ok,status:r.status,url:r.url,text:async()=>body};
 });
-for(const row of parsed.rows){
- if(!/RAHKA|RAASTE|KEITOT|JÄÄTELÖPUI|VITAL|SMOOTHI|SININEN SUKLAA|8.PACK|VICHY|WC-PAPERI|KÄSITISKI/i.test(row.title))continue;
- console.log('PRICE_EVIDENCE '+JSON.stringify({...row,debugPageBoxes:pageBoxes[row.page]}));
-}
+console.log('PRICE_ARCHIVE '+JSON.stringify({sourceUrl:parsed.leaflet,rows:parsed.rows.map(row=>({page:row.page,title:row.title,package:row.package,unitPrice:row.unitPrice,debugAnchor:row.debugAnchor,debugCardAnchor:row.debugCardAnchor,spatialResolved:row.spatialResolved,percentageOffer:row.percentageOffer})),pages:pageBoxes}));
