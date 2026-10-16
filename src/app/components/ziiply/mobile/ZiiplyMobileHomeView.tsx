@@ -17,8 +17,9 @@ const assistants = [
 export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant }: Props) {
   return (
     <main
-      className="relative isolate -mx-4 flex min-h-0 flex-col items-center overflow-hidden px-3 pt-3 sm:hidden"
+      className="relative isolate -mx-4 flex min-h-0 flex-col items-center justify-between overflow-hidden px-3 pt-3 pb-5 sm:hidden"
       style={{
+        minHeight: "max(390px, calc(100dvh - 360px))",
         background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, #d5e2d7 100%)",
       }}
     >
@@ -39,7 +40,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
         </p>
       </header>
 
-      <section aria-label="Ziiplyn avustajat" className="mt-4 grid w-full max-w-[440px] grid-cols-3 gap-2 rounded-[22px] bg-white/65 p-2 shadow-lg">
+      <section aria-label="Ziiplyn avustajat" className="mt-auto grid w-full max-w-[440px] grid-cols-3 gap-2 rounded-[22px] bg-white/65 p-2 shadow-lg">
         {assistants.map((assistant) => (
           <button
             key={assistant.key}
