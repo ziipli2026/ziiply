@@ -211,10 +211,19 @@ function getCartItemQuantityForTotalV8(item: ZiiplyMobileCartItem) {
   return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
 }
 
+function parseConfirmedWeightPriceV794(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  const normalized = typeof value === "string" ? value.trim().replace(",", ".") : value;
+  if (normalized === "") return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
 function isPendingWeightPriceV794(item: ZiiplyMobileCartItem) {
   const pending = Boolean(item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight);
   const final = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
-  return pending && (final == null || final === "" || !Number.isFinite(Number(final)) || Number(final) < 0);
+  return pending && parseConfirmedWeightPriceV794(final) === null;
 }
 
 function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
@@ -228,10 +237,11 @@ function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
   // A confirmed scale row price must override the original €/kg quote.
   if (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) {
     const final = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
-    if (final == null || final === "" || !Number.isFinite(Number(final)) || Number(final) < 0) return 0;
+    const parsedFinal = parseConfirmedWeightPriceV794(final);
+    if (parsedFinal === null) return 0;
     // Scale-label final price is stored in euros, not cents. Do not apply the
     // generic >20 cent-normalization to this confirmed weight row.
-    return Number(final);
+    return parsedFinal;
   }
 
   const candidates = [
