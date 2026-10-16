@@ -358,7 +358,7 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
     if (/mehu|smoothie|nektari|mehujuoma/.test(detailed)) return "Juomat";
     // Match tea as a word or category prefix, never as the ending of
     // "tuotteet", "mausteet" or "voiteet".
-    if (/kahvi|suodatinpuss|(?:^|\\s)tee(?:\\s|$)|(?:^|\\s)teet(?:\\s|$)|teejuom/.test(detailed)) return "Kahvi & tee";
+    if (/kahvi|suodatinpuss|(?:^|\s)tee(?:\s|$)|(?:^|\s)teet(?:\s|$)|teejuom/.test(detailed)) return "Kahvi & tee";
   }
   // A mixed coffee/juice department is not enough to classify an unknown
   // child group; leave it for the existing Neon/provider fallback.
