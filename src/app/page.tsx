@@ -14511,7 +14511,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const raw=String(result.text||"");
             pushScannerDebugV493(`GS1 WASM format=${result.format} raw=${JSON.stringify(raw)}`);
             if(raw){
-              if(label === "orange-crop" && !decodeRedDiscountLabelV859(raw)){
+              if(!decodeRedDiscountLabelV859(raw)){
                 setEanScannerMessage("Alennustarra havaittu. Alennus ei vielä tunnistunut — pidä tarra kuvassa.");
                 pushScannerDebugV493("BLOCK orange sticker without discount");
                 continue;
@@ -14659,7 +14659,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         (decodedText: string, decodedResult: any) => {
           const format = String(decodedResult?.result?.format?.formatName || decodedResult?.result?.format || decodedResult?.format || "unknown");
           pushScannerDebugV493(`DECODE OK format=${format} raw=${JSON.stringify(decodedText)}`);
+          if(gs1StillBusyV865.current){pushScannerDebugV493("BLOCK live decode during sticker read");return;}
           const discount = decodeRedDiscountLabelV859(decodedText);
+          if(/databar|rss|expanded/i.test(format) && !discount){
+            setEanScannerMessage("Alennuskoodi ei tunnistunut kokonaan. Lue tarra uudelleen.");
+            pushScannerDebugV493("BLOCK DataBar without discount");
+            return;
+          }
           const code = discount?.ean || normalizeEan(decodedText);
           pushScannerDebugV493(`PARSE ${discount ? `discount=${discount.discountPercent}% ean=${code}` : `ean=${code} valid=${isUsableEan(code)}`}`);
           if (isUsableEan(code)) void finishScannedEan(decodedText);
@@ -17316,7 +17322,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const productName = fixText(result.product.name);
     const discountV860 = scannerDiscountRefV860.current;
-    const appliedDiscountV860 = discountV860 && discountV860.ean === ean && Date.now()-discountV860.at < 20000 ? discountV860.percent : 0;
+    const appliedDiscountV860 = discountV860 && discountV860.ean === ean ? discountV860.percent : 0;
     const regularPriceV860 = getProductPrice(result.product);
     const discountedPriceV860 = appliedDiscountV860 && regularPriceV860 > 0
       ? Math.round(regularPriceV860 * (100-appliedDiscountV860))/100 : regularPriceV860;
