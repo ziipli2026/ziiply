@@ -46,7 +46,7 @@ export default function ZiiplyMobileFuelMenu({
     "rounded-2xl border-2 border-[#17573c] bg-[#fff8df] px-4 py-4 text-lg font-black text-[#17573c]";
   return (
     <div
-      className="fixed inset-0 z-[260] flex items-center justify-center bg-[#092e25]/60 p-4 sm:hidden"
+      className="fixed inset-0 z-[260] flex items-center justify-center bg-black/40 p-4 sm:hidden"
       onClick={onClose}
     >
       <section
