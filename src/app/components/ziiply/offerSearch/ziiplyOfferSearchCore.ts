@@ -339,9 +339,9 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   if (/kodinhoito|taloustarvikkeet|siivous/.test(parent)) return "Kodinhoito";
   if (/urheiluravinteet|ravintolisat|terveys ja itsehoito/.test(parent)) return "Vitamiinit & ravinteet";
   if (/^lapset$/.test(parent) && /sose|vauvanruo|lasten valipala|lastenruo/.test(detailed)) return "Lastenruoat";
-  if (/kukat|koti|kayttotavarat|vapaa aika|puutarha/.test(parent)) return "Koti & vapaa-aika";
+  if (/kukat|koti|kayttotavarat|vapaa aika|puutarha|keittio ja kattaus/.test(parent)) return "Koti & vapaa-aika";
   if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
-  if (/mausteet|kastikkeet|texmex|kuivat elintarvikkeet|pastat|riisit|sailykkeet|leivonta|maailman makuja/.test(parent)) return "Kuivatuotteet";
+  if (/mausteet|maustaminen|kastikkeet|texmex|kuivat elintarvikkeet|kuivatuotteet|pastat|riisit|sailykkeet|hillot|leivonta|maailman makuja|snacksit|oljy(t|t,)/.test(parent)) return "Kuivatuotteet";
   // The S-kaupat department "Kahvit, teet ja mehut" mixes distinct products.
   // Use the child group, not the shared parent, to separate drinks from coffee.
   if (/kahvit.*teet.*mehut/.test(parent)) {
