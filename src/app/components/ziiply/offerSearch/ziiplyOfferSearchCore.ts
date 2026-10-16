@@ -320,15 +320,16 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
     sourceItem?.department, sourceItem?.productGroup, sourceItem?.subCategory]
     .filter(Boolean).map((v: unknown) => normalizeGostaCoreText(v));
   const hierarchy = fields.join(" ");
+  const detailed = fields.slice(1).join(" ");
   const parent = normalizeGostaCoreText(sourceItem?.mainCategory ||
     String(sourceItem?.categoryPath || "").split(">")[0] || "");
   if (!hierarchy || !parent) return "";
-  if (/lastenruo|vauvanruo|lasten valipala|lasten sose/.test(hierarchy)) return "Lastenruoat";
-  if (/vaipat|lastenhoito|vauvan hoito/.test(hierarchy)) return "Lastenhoito";
-  if (/vitamiini|ravintolisa|kivennaisaine|proteiinijauhe|urheiluravinne|elektrolyyt/.test(hierarchy)) return "Vitamiinit & ravinteet";
-  if (/kodinhoito|siivous|astianpesu|pyykinpesu|konetiski|pesuaine/.test(hierarchy)) return "Kodinhoito";
-  if (/kosmetiikka|hygienia|kauneus|hiustenhoito|vartalonhoito|ihonhoito/.test(hierarchy)) return "Hygienia & kosmetiikka";
-  if (/lemmik|koiran|kissan/.test(hierarchy)) return "Lemmikit";
+  if (/lastenruo|vauvanruo|lasten valipala|lasten sose/.test(detailed)) return "Lastenruoat";
+  if (/vaipat|lastenhoito|vauvan hoito/.test(detailed)) return "Lastenhoito";
+  if (/vitamiini|ravintolisa|kivennaisaine|proteiinijauhe|urheiluravinne|elektrolyyt/.test(detailed)) return "Vitamiinit & ravinteet";
+  if (/kodinhoito|siivous|astianpesu|pyykinpesu|konetiski|pesuaine/.test(detailed)) return "Kodinhoito";
+  if (/kosmetiikka|hygienia|kauneus|hiustenhoito|vartalonhoito|ihonhoito/.test(parent) || /hiustenhoito|vartalonhoito|ihonhoito|kasvovoiteet|meikit/.test(detailed)) return "Hygienia & kosmetiikka";
+  if (/lemmik|koiran|kissan/.test(parent) || /koiranruo|kissanruo|lemmikkitarvik/.test(detailed)) return "Lemmikit";
   if (/kukat|koti|kayttotavarat|vapaa aika|puutarha/.test(parent)) return "Koti & vapaa-aika";
   if (/hedelmat|vihannekset|hevi/.test(parent)) return "Hevi";
   if (/mausteet|kastikkeet|texmex|kuivat elintarvikkeet|pastat|riisit|sailykkeet|leivonta/.test(parent)) return "Kuivatuotteet";
