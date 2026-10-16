@@ -7431,8 +7431,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             : [];
 
         if (restoredItems.length > 0) {
-          setCart(restoredItems);
-          reloadComparisonCartSignatureV817.current = comparisonCartSignatureV817(restoredItems);
+          // Older saved baskets may carry an estimated or €/kg price for an
+          // unweighed item. Restore those items as pending, never payable.
+          const safeRestoredItems = restoredItems.map((item: any) => {
+            const pending = Boolean(item?.ziiplyPricePendingWeight || item?.product?.ziiplyPricePendingWeight);
+            if (!pending) return item;
+            const finalValue = item?.ziiplyWeightFinalPrice ?? item?.product?.ziiplyWeightFinalPrice;
+            const finalPrice = finalValue == null || finalValue === "" ? NaN : Number(String(finalValue).trim().replace(",", "."));
+            return { ...item, price: Number.isFinite(finalPrice) && finalPrice >= 0 ? finalPrice : 0,
+              ziiplyPricePendingWeight: true, ziiplyWeightOffer: true };
+          });
+          setCart(safeRestoredItems);
+          reloadComparisonCartSignatureV817.current = comparisonCartSignatureV817(safeRestoredItems);
           // Hydrate the previously priced comparison in the same initial render
           // as the restored basket. Store discovery may still be running; it must
           // not make the Compare card appear empty until another tab is visited.
