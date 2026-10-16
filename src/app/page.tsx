@@ -3003,7 +3003,7 @@ function KauppiasMobileTopBar({
 // such as "7,00 € / 2 kpl". A multi-buy card represents one cart unit.
 function getGostaCartBundleTextV870(offer: any): string {
   const source = offer?.__sourceOfferSearchResult || {};
-  const candidates = [offer?.offerPrice, offer?.priceText, source?.priceText, source?.benefitText, offer?.discountText];
+  const candidates = [offer?.offerPrice, offer?.priceText, source?.priceText, source?.benefitText, offer?.discountText, source?.discountText];
   return candidates.map((value) => String(value ?? "")).find((value) =>
     /\d+(?:[,.]\d+)?\s*€\s*\/\s*\d+\s*(?:kpl|pkt|ps|plo|prk)|\d+\s*(?:kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*\d+(?:[,.]\d+)?\s*€/i.test(value)
   ) ?? "";
