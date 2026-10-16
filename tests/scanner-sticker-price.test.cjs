@@ -8,11 +8,14 @@ const source=fs.readFileSync(path.join(__dirname,'../src/lib/scannerStickerPrice
 const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}});
 const context={exports:{}};vm.runInNewContext(output.outputText,context);
 const apply=context.exports.scannerStickerPrice;
-test('bank identity retains discount before a price exists',()=>{const row={price:0,ziiplyDiscountPercent:30};const priced={...row,...apply(row,4.09)};assert.equal(priced.price,2.86);assert.equal(priced.ziiplyRegularPrice,4.09)});
-test('late store quote cannot restore ordinary price',()=>{const row={...apply({ziiplyDiscountPercent:30},4.09)};assert.equal(apply(row,4.09).price,2.86)});
-test('fresh changed regular quote recalculates from quote',()=>{const row=apply({ziiplyDiscountPercent:30},4.09);assert.equal(apply(row,5).price,3.5);assert.equal(apply(row,5).ziiplyRegularPrice,5)});
-test('normal products retain normal store quote',()=>{assert.equal(apply({},4.09).price,4.09)});
+test('bank identity retains discount before a price exists',()=>{const row={price:0,ziiplyDiscountPercent:30};const priced={...row,...apply(row,409)};assert.equal(priced.price,286);assert.equal(priced.ziiplyRegularPrice,409)});
+test('late store quote cannot restore ordinary price',()=>{const row={...apply({ziiplyDiscountPercent:30},409)};assert.equal(apply(row,409).price,286)});
+test('fresh changed regular quote recalculates from quote',()=>{const row=apply({ziiplyDiscountPercent:30},409);assert.equal(apply(row,500).price,350);assert.equal(apply(row,500).ziiplyRegularPrice,500)});
+test('normal products retain normal store quote',()=>{assert.equal(apply({},409).price,409)});
 test('missing price never becomes a fabricated sale price',()=>{assert.equal(apply({ziiplyDiscountPercent:30},0).price,0)});
-test('unrelated mutable scanner state is not consulted',()=>{let scanner=null;const row={ziiplyDiscountPercent:30};assert.equal(apply(row,4.09).price,2.86);scanner={percent:60};assert.equal(apply(row,4.09).price,2.86)});
-test('reloaded cart row keeps discount when quote arrives',()=>{const row=JSON.parse(JSON.stringify({price:0,ziiplyDiscountPercent:30}));assert.equal(apply(row,4.09).price,2.86)});
-test('invalid percentages do not change quotes',()=>{for(const p of [-1,0,91,100,NaN])assert.equal(apply({ziiplyDiscountPercent:p},4.09).price,4.09)});
+test('unrelated mutable scanner state is not consulted',()=>{let scanner=null;const row={ziiplyDiscountPercent:30};assert.equal(apply(row,409).price,286);scanner={percent:60};assert.equal(apply(row,409).price,286)});
+test('reloaded cart row keeps discount when quote arrives',()=>{const row=JSON.parse(JSON.stringify({price:0,ziiplyDiscountPercent:30}));assert.equal(apply(row,409).price,286)});
+test('invalid percentages do not change quotes',()=>{for(const p of [-1,0,91,100,NaN])assert.equal(apply({ziiplyDiscountPercent:p},409).price,409)});
+
+test('euro-denominated quotes are rounded once to cents',()=>{const result=apply({ziiplyDiscountPercent:30},4.09,"eur");assert.equal(result.price,2.86);assert.equal(result.ziiplyRegularPrice,4.09)});
+test('409 cent quote produces integer 286 cents',()=>{const result=apply({ziiplyDiscountPercent:30},409);assert.equal(result.price,286);assert.ok(Number.isInteger(result.price))});

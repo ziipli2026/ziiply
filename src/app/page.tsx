@@ -15384,7 +15384,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const savedRegular = Number((item as any).ziiplyRegularPrice);
           const regular = savedRegular > 0 ? savedRegular : Number(item.price);
           if (!(regular > 0) || (item as any).ziiplyPricePendingWeight || (item.product as any)?.ziiplyPricePendingWeight) return item;
-          return {...item, price: Math.round(regular * (100 - existingSticker.percent)) / 100,
+          return {...item, price: Math.round(regular * (100 - existingSticker.percent) / 100),
             ziiplyRegularPrice: regular, ziiplyDiscountPercent: existingSticker.percent};
         });
         cartRefV124.current = next;
@@ -15698,6 +15698,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     ...item,
                     name: fixText(product.name || item.name),
                     ...scannerStickerPrice(item, price),
+                    ziiplyPriceFetchedAt: Date.now(),
+                    ziiplyPriceStoreName: activeStores.sStoreName || item.storeName,
+                    ziiplyPriceRefreshPending: false,
                     image: product.pictureUrl || item.image,
                     chain: "S" as const,
                     storeName: activeStores.sStoreName || item.storeName,
@@ -15741,13 +15744,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setCart((currentCart) => {
                 const nextCart = currentCart.map((item) => {
                   if (!cartItemMatchesEanLooseV129(item, ean)) return item;
-                  pushScannerDebugV493(`STICKER store-quote regular=${price} percent=${(item as any).ziiplyDiscountPercent ?? "-"} final=${scannerStickerPrice(item, price).price}`);
+                  pushScannerDebugV493(`STICKER store-quote regular=${price} percent=${(item as any).ziiplyDiscountPercent ?? "-"} final=${scannerStickerPrice(item, price, "eur").price}`);
                   return {
                     ...item,
-                    ...scannerStickerPrice(item, price),
+                    ...scannerStickerPrice(item, price, "eur"),
                     chain: "Lidl" as const,
                     storeName: selectedLidlStoreV750?.name || item.storeName,
-                    product: { ...(item.product || {}), ean, ...scannerStickerPrice(item, price) } as Product,
+                    product: { ...(item.product || {}), ean, ...scannerStickerPrice(item, price, "eur") } as Product,
                     ean,
                   } as CartItem;
                 });
@@ -17341,7 +17344,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const appliedDiscountV860 = discountV860 && discountV860.ean === ean ? discountV860.percent : 0;
     const regularPriceV860 = getProductPrice(result.product);
     const discountedPriceV860 = appliedDiscountV860 && regularPriceV860 > 0
-      ? Math.round(regularPriceV860 * (100-appliedDiscountV860))/100 : regularPriceV860;
+      ? Math.round(regularPriceV860 * (100-appliedDiscountV860)/100) : regularPriceV860;
     const looseShelfEanV853 = isLooseProduceShelfEanV853(result.product, ean);
     const isScannerAddV787 = Boolean(
       eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically,
@@ -18236,12 +18239,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const price = match ? getProductPrice(match) : 0;
     if (!match || price <= 0) return null;
 
+    pushScannerDebugV493(`STICKER cart-refresh regular=${price} percent=${(item as any).ziiplyDiscountPercent ?? "-"} final=${scannerStickerPrice(item, price).price}`);
     return {
       ...item,
       name: match.name || item.name,
-      price,
+      ...scannerStickerPrice(item, price),
       storeName: target.storeName || item.storeName,
-      product: { ...match, price, storeName: target.storeName || item.storeName } as Product,
+      product: { ...match, ...scannerStickerPrice(item, price), storeName: target.storeName || item.storeName } as Product,
       ean: match.ean || item.ean,
       ...((target.key === "s" || target.key === "k") ? { chain: target.key.toUpperCase() as "S" | "K" } : {}),
       ziiplyPriceFetchedAt: Date.now(),

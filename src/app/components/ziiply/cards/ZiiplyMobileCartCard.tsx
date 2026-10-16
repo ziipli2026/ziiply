@@ -792,7 +792,7 @@ export default function ZiiplyMobileCartCard({
                     ? Number(confirmedWeightFinalV802)
                     : pendingWeightV794 ? 0 : item.price;
                 const stickerRegularPrice = Number((item as any).ziiplyRegularPrice);
-                const hasStickerDiscount = Number((item as any).ziiplyDiscountPercent) > 0 && stickerRegularPrice > getNumericPrice(rowPriceInputV802) && !pendingWeightV794;
+                const hasStickerDiscount = Number((item as any).ziiplyDiscountPercent) > 0 && getNumericPrice(stickerRegularPrice) > getNumericPrice(rowPriceInputV802) && !pendingWeightV794;
                 const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(rowPriceInputV802);
                 const price = numericRowPriceV792 > 0
                   ? ((item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) && !pendingWeightV794
