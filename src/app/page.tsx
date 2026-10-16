@@ -7320,6 +7320,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       source: item.source,
       product: item.product,
       ean: item.ean,
+      ...((Number((item as any).ziiplyOfferBundleQuantity) > 1)
+        ? { ziiplyOfferBundleQuantity: Number((item as any).ziiplyOfferBundleQuantity) }
+        : {}),
       ...((item as any).ziiplySingleChainAtAdd
         ? { ziiplySingleChainAtAdd: (item as any).ziiplySingleChainAtAdd }
         : {}),
