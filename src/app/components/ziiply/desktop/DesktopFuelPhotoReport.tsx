@@ -58,23 +58,25 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const priceEdits=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
   useEffect(()=>()=>{if(learningTimer.current)clearTimeout(learningTimer.current);},[]);
   async function pollLearning(id:string,token:string,round=0){
-    if(!alive.current||requestId.current!==id||round>40)return;
+    if(!alive.current||requestId.current!==id)return;
+    if(round>40){setLearningInfo("Taustaluvun odotus päättyi. Kaikkia hintoja ei saatu täydennettyä. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
     try{const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();
       if(!alive.current||requestId.current!==id)return;
       if(result.status==="recovered"){
         setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]&&!previous[key]&&typeof result.prices?.[key]==="number")next[key]=result.prices[key].toFixed(3).replace(".",",");return next;});
-        setPriceReview(true);setLearningInfo("Taustalukijan ehdotus: "+([ ["diesel","Diesel"],["price95","95 E10"],["price98","98 E5"] ] as const).filter(([key])=>typeof result.prices?.[key]==="number").map(([key,label])=>label+" "+result.prices[key].toFixed(3).replace(".",",")).join(" · ")+" €/l. Tarkista hinnat ennen lähettämistä.");return;
+        setPriceReview(true);setLearningInfo("Taustaluku valmis. Kuvasta luetut hintaehdotukset: "+([ ["diesel","Diesel"],["price95","95 E10"],["price98","98 E5"] ] as const).filter(([key])=>typeof result.prices?.[key]==="number").map(([key,label])=>label+" "+result.prices[key].toFixed(3).replace(".",",")).join(" · ")+" €/l. Tarkista hinnat ennen lähettämistä.");return;
       }
-      if(result.status==="discarded"){setLearningInfo("Kuvasta ei saatu riittävän varmaa tulosta. Taustakopio poistettiin.");return;}
+      if(result.status==="discarded"){setLearningInfo("Taustaluku päättyi. Kuvasta ei saatu riittävän varmaa tulosta. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
       if(result.status==="corrected")return;
     }catch{}
     learningTimer.current=setTimeout(()=>void pollLearning(id,token,round+1),20000);
   }
   async function saveLearningPhoto(file:File,data:string,initial:FuelPrices,text:string){
     const id=requestId.current,token=crypto.randomUUID();learningToken.current=token;
+    setLearningInfo("Kaikkia hintoja ei saatu varmasti luettua. Valmistellaan kuvan tarkempaa taustalukua…");
     try{const photo=await prepareLearningPhoto(file,data);const response=await fetch("/api/fuel/photo-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,token,photo,prices:initial,ocrText:text,mode})});
       if(!response.ok)throw Error("Photo recovery save failed");logDebug("photo-recovery-saved",{id});
-      if(alive.current&&requestId.current===id){setLearningInfo("Kuva tallennettu taustalukua varten. Voit jatkaa tai sulkea ikkunan.");void pollLearning(id,token);}
+      if(alive.current&&requestId.current===id){setLearningInfo("Kuvan lukeminen jatkuu taustalla. Puuttuvat hinnat voivat täydentyä muutaman minuutin kuluessa. Voit odottaa tässä tai syöttää hinnat käsin. Tarkista hinnat ennen lähettämistä.");void pollLearning(id,token);}
     }catch{if(alive.current&&requestId.current===id)setLearningInfo("Kuvan tallennus taustalukua varten epäonnistui. Yritä lisätä kuva uudelleen.");}
   }
   const [debugOpen,setDebugOpen]=useState(false);
@@ -278,7 +280,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
               </div>
             </div>:!photo&&mode!=="manual"?<div className="max-w-[320px] px-4 py-5 text-center text-[#f5e5c1]"><svg viewBox="0 0 64 64" aria-hidden="true" className="mx-auto mb-2 h-12 w-12 text-[#e3edc9]"><rect x="13" y="12" width="27" height="42" rx="5" fill="none" stroke="currentColor" strokeWidth="4"/><rect x="19" y="18" width="15" height="14" rx="2" fill="currentColor"/><path d="M40 21h5l7 8v17c0 8-12 8-12 0V35" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/><path d="M19 54h25" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg><p className="text-lg font-black">Lisää hintataulun kuva</p><p className="mt-2 text-sm leading-relaxed text-[#e5ddc6]">Ota uusi kuva tai valitse aiempi kuva yllä olevista napeista.</p></div>:busy&&photo?<img src={photo} alt="Ilmoituksen hintataulu" className="h-[clamp(100px,24dvh,220px)] w-full object-contain"/>:<div className="w-full space-y-2 p-2 text-[#f5e5c1]">
               <div role="status" aria-live="polite" className="flex min-h-[36px] items-center justify-center px-2 text-center text-xs font-bold text-[#ff9b83]">{!sent&&missingReasons.join(" ")}</div>
-              {metadataInfo&&<p className="text-xs text-[#e5ddc6]">{metadataInfo}</p>}{learningInfo&&<p role="status" className="text-xs text-[#e3edc9]">{learningInfo}</p>}
+              {metadataInfo&&<p className="text-xs text-[#e5ddc6]">{metadataInfo}</p>}{learningInfo&&<p role="status" aria-live="polite" className="text-xs text-[#e3edc9]">{learningInfo}</p>}
               {photo&&<img src={photo} alt="Ilmoituksen hintataulu" className="mx-auto h-[clamp(40px,9dvh,72px)] w-full rounded-lg object-contain"/>}
               {sent?<div role="status" className="py-6 text-center"><p className="text-xl font-black">Kiitos! Ilmoitus vastaanotettu.</p><button type="button" onClick={onClose} className="mt-4 rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35]">OK</button></div>:<>
                 {selectedStation&&!editing&&<p className="text-center text-sm font-bold">{selectedStation.chain} · {selectedStation.name}</p>}
