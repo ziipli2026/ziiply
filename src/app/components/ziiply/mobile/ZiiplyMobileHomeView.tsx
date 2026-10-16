@@ -44,7 +44,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
 
         <section
           aria-label="Ziiplyn avustajat"
-          className="mt-[clamp(10px,2dvh,24px)] grid shrink-0 grid-cols-3 gap-2 rounded-[2rem] bg-[#f8f5ed]/95 p-2 pb-3 shadow-[0_16px_38px_rgba(34,54,43,0.14)] ring-1 ring-[#fffaf0]/95"
+          className="mt-[clamp(10px,2dvh,24px)] grid shrink-0 grid-cols-3 gap-2 bg-transparent p-2 pb-3"
         >
           <ZiiplyMobileAssistantButton
             assistant="gosta"
