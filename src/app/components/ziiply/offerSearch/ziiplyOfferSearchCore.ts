@@ -1271,6 +1271,9 @@ function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
+  const bundle = String(item.priceText ?? "").match(/(\\d+(?:[,.]\\d+)?)\\s*€\\s*\\/\\s*(\\d+)\\s*(?:kpl|pkt|ps|plo|prk)/i);
+  const bundleTotal = bundle ? Number(bundle[1].replace(",", ".")) : null;
+  const bundleQuantity = bundle ? Number(bundle[2]) : null;
   return {
     id: item.id,
     name: item.title,
@@ -1280,6 +1283,9 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     chain: item.chain,
     price: item.priceText ?? item.price,
     offerPrice: item.priceText ?? item.price,
+    // Explicit metadata: bundle total is not the price of one item.
+    bundleTotalPrice: bundleTotal,
+    bundleQuantity,
     normalPrice: item.normalPrice,
     originalPrice: item.normalPrice,
     ean: item.ean,
