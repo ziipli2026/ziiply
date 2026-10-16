@@ -1209,6 +1209,9 @@ export default function ZiiplyMobileOfferSearchCard({
     rawItemsCount: rawItems.length,
     dedupedItemsCount: items.length,
     visibleItemsCount: visibleItems.length,
+    // Distinguish the category landing page from an empty result or a loading state.
+    visibleItemsReasonV234: loading ? "loading" : showLandingView ? "category_landing" : visibleItems.length === 0 ? "empty_results" : "results_visible",
+    hiddenByLandingV234: showLandingView ? items.length : 0,
     categoryOfferCounts: categoryOfferCounts || {},
     testedEmptyCategories: testedEmptyCategories || {},
     kruokaDebug: selectedOfferChainV39 === "K" ? kruokaDebug : null,
