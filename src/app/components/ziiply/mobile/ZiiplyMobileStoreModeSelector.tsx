@@ -223,19 +223,20 @@ export default function ZiiplyMobileStoreModeSelector({
       </div>
       )}
 
-      <div className={`relative z-10 mt-[-2px] grid grid-cols-2 gap-3 ${fuelMode ? "hidden" : ""}`}>
+      <div className={`relative z-10 mt-[-2px] grid grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-stretch gap-x-1 ${fuelMode ? "hidden" : ""}`}>
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
-          className={`${buttonClass(storeCompareScope === "between_chains")} min-w-0`}
+          className={`${buttonClass(storeCompareScope === "between_chains")} min-w-0 w-full !px-1 !text-[clamp(11px,3.3vw,14px)]`}
         >
           <span className="relative z-10">Ketjujen väliltä</span>
         </button>
 
+        <div aria-hidden="true" />
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("within_chain")}
-          className={`${buttonClass(storeCompareScope === "within_chain")} min-w-0`}
+          className={`${buttonClass(storeCompareScope === "within_chain")} min-w-0 w-full !px-1 !text-[clamp(11px,3.3vw,14px)]`}
         >
           <span className="relative z-10">Ketjun sisältä</span>
         </button>
