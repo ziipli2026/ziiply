@@ -356,12 +356,12 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   // Use the child group, not the shared parent, to separate drinks from coffee.
   if (/kahvit.*teet.*mehut/.test(parent)) {
     if (/mehu|smoothie|nektari|mehujuoma/.test(detailed)) return "Juomat";
-    if (/kahvi|tee|suodatinpuss/.test(detailed)) return "Kahvi & tee";
+    // Match tea as a word or category prefix, never as the ending of
+    // "tuotteet", "mausteet" or "voiteet".
+    if (/kahvi|suodatinpuss|(?:^|\\s)tee(?:\\s|$)|(?:^|\\s)teet(?:\\s|$)|teejuom/.test(detailed)) return "Kahvi & tee";
   }
-  // Coffee and tea must be the actual product group, not just words in a broad
-  // department such as "Kahvit, teet ja mehut" or a flavoured product name.
-  if (/kahvi|tee/.test(normalizeGostaCoreText(sourceItem?.productGroup || sourceItem?.subCategory || "")) &&
-      /kahvi|tee/.test(parent)) return "Kahvi & tee";
+  // A mixed coffee/juice department is not enough to classify an unknown
+  // child group; leave it for the existing Neon/provider fallback.
   if (/maito|juusto|jogurt|kananmun|rasvat/.test(parent)) return "Maitotuotteet";
   if (/kala|merenelav/.test(parent)) return "Kala";
   if (/liha|makkara|leikkele|kasviproteiin/.test(parent)) return "Liha & makkarat";
