@@ -1221,8 +1221,8 @@ export function isZiiplyGostaCategorySelectionV147(value: string) {
 function resolveOfferCardDiscountTextV232(item: ZiiplyGostaOfferLike): string {
   const benefit = String(item.benefitText ?? "").trim();
   const evidence = (item as any).debugOfferEvidenceV226;
-  const sourceLabels = String(evidence?.rawLabels ?? "").replace(/\\u00a0/g, " ");
-  const explicitMultiBuy = sourceLabels.match(/\\b(\\d+\\s*(?:kpl|pkt|ps|plo|prk)\\s*=\\s*\\d+(?:[,.]\\d+)?\\s*€)/i)?.[1] ?? "";
+  const sourceLabels = String(evidence?.rawLabels ?? "").replace(/\u00a0/g, " ");
+  const explicitMultiBuy = sourceLabels.match(/\b(\d+\s*(?:kpl|pkt|ps|plo|prk)\s*=\s*\d+(?:[,.]\d+)?\s*€)/i)?.[1] ?? "";
   const categoryLabels = [item.category, (item as any).categoryPath, (item as any).productGroup,
     (item as any).mainCategory, (item as any).subCategory, (item as any).department]
     .map((value) => String(value ?? "").trim().toLocaleLowerCase("fi-FI"));
