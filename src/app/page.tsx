@@ -3014,6 +3014,9 @@ function getGostaCartBundleQuantityV869(offer: any): number {
   const text = getGostaCartBundleTextV870(offer);
   const forward = text.match(/\d+(?:[,.]\d+)?\s*€\s*\/\s*(\d+)\s*(?:kpl|pkt|ps|plo|prk)/i);
   const reverse = text.match(/(\d+)\s*(?:kpl|pkt|ps|plo|prk)\s*(?:=|\/)\s*\d+(?:[,.]\d+)?\s*€/i);
+  const explicitBundle = Boolean(forward || reverse);
+  const structuredBundle = offer?.priceBasis === "multi-buy-total" || source?.priceBasis === "multi-buy-total";
+  if (!explicitBundle && !structuredBundle) return 1;
   const value = Number(forward?.[1] ?? reverse?.[1] ?? source?.debug?.offerQuantity ?? source?.offerQuantity ?? offer?.bundleQuantity);
   return Number.isInteger(value) && value > 1 && value <= 100 ? value : 1;
 }
@@ -3037,9 +3040,10 @@ function getGostaCartPriceV758(offer: any): { total: number; unit: number } {
   const quantity = Number(forwardBundle?.[2] ?? reverseBundle?.[1] ?? source?.debug?.offerQuantity ?? source?.offerQuantity ?? offer?.bundleQuantity);
   const chain = String(offer?.chain || source?.chain || "").toUpperCase();
   const eurosparEquivalent = numeric(offer?.singleEquivalentPrice ?? source?.singleEquivalentPrice);
+  const confirmedBundle = bundleTotal != null || offer?.priceBasis === "multi-buy-total" || source?.priceBasis === "multi-buy-total";
   const unit = chain === "EUROSPAR" && offer?.priceBasis === "multi-buy-total" && eurosparEquivalent != null
     ? eurosparEquivalent
-    : Number.isInteger(quantity) && quantity > 1 && (chain === "K" || bundleTotal != null)
+    : Number.isInteger(quantity) && quantity > 1 && confirmedBundle
       ? total / quantity
       : total;
   return { total, unit };
