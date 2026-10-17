@@ -494,7 +494,7 @@ export default function ZiiplyMobileCartCard({
       }}
       className={`fixed inset-0 z-[92] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md max-[600px]:max-h-[100dvh] sm:hidden ${className}`}
     >
-      <section className="ziiply-cart-paper-pop relative flex h-full max-h-[46rem] min-h-0 min-w-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-cart-paper-pop relative flex h-full max-h-full min-h-0 min-w-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -584,9 +584,9 @@ export default function ZiiplyMobileCartCard({
         </div>
 
         <div className={cx(
-          "relative z-10 -mt-[0.36rem] min-h-0 flex-1 px-5 pt-0",
+          "relative z-10 -mt-[0.36rem] min-h-0 min-w-0 flex-1 overscroll-contain px-5 pt-0 [touch-action:pan-y]",
           showCompletionCardV58
-            ? "overflow-hidden pb-[3.35rem]"
+            ? "overflow-y-auto pb-[3.35rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             : "overflow-y-auto pb-[6.0rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         )}>
           {!hasItems ? (
@@ -599,7 +599,7 @@ export default function ZiiplyMobileCartCard({
               </div>
             </div>
           ) : showCompletionCardV58 ? (
-            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[0.12rem] flex h-[347px] w-[20.3rem] max-w-[calc(100%-0.5rem)] flex-col justify-start rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-3 pt-[1.65rem] text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
+            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[0.12rem] flex min-h-0 max-h-full h-auto min-h-[min(347px,100%)] w-[20.3rem] max-w-[calc(100%-0.5rem)] flex-col justify-start rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-3 pt-[1.65rem] text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
               <div
                 className="mx-auto mb-2 w-fit rounded-[0.52rem] border border-[#8a6b32]/64 bg-[#f5dfac]/70 px-3 py-[0.18rem] text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]"
                 style={{ fontFamily: copperplateFont }}
