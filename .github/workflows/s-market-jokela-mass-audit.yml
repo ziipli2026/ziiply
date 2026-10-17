@@ -83,6 +83,52 @@ jobs:
           }catch(e){console.error('S-kaupat direct fetch failed:',String(e));fs.writeFileSync('audit/jokela-source-diagnostics.json',JSON.stringify({error:String(e)},null,2));}
           NODE
 
+      - name: Vertaa yhdeksän kaksoistuotteen osiot ja hinnat
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const file = 'audit/jokela-s-kaupat-source.json';
+          if (!fs.existsSync(file)) throw new Error('Alkuperäinen S-kaupat-lähde puuttuu');
+          const data = JSON.parse(fs.readFileSync(file,'utf8'));
+          const sections = data?.data?.pageContent?.sections;
+          if (!Array.isArray(sections)) throw new Error('Lähteessä ei ole sections-taulukkoa');
+          const target = new Set(['6409100026684','6438574457175','2001360900007','6409620000324','6405506177159','2000141500009','6408430024858','8445290398178','8700216236874']);
+          const found = {};
+          for (const [sectionIndex,section] of sections.entries()) {
+            for (const p of Array.isArray(section.products)?section.products:[]) {
+              const ean = String(p.ean||p.eanCode||p.gtin||'');
+              if (!target.has(ean)) continue;
+              const pricing = p.pricing||p.store?.pricing||{};
+              (found[ean]??=[]).push({
+                sectionIndex:sectionIndex+1,
+                sectionTitle:section.title||section.name||'',
+                sectionDescription:section.description||'',
+                name:p.name,
+                campaignPrice:pricing.campaignPrice??null,
+                currentPrice:pricing.currentPrice??null,
+                regularPrice:pricing.regularPrice??null,
+                comparisonPrice:pricing.comparisonPrice??null,
+                comparisonUnit:pricing.comparisonUnit??null,
+                salesUnit:pricing.salesUnit??null,
+                campaignPriceValidUntil:pricing.campaignPriceValidUntil??null
+              });
+            }
+          }
+          const report = [...target].map(ean=>{
+            const occurrences=found[ean]||[];
+            const prices=occurrences.map(x=>JSON.stringify([x.campaignPrice,x.currentPrice,x.regularPrice,x.comparisonPrice,x.comparisonUnit]));
+            return {ean,occurrences,differentSections:new Set(occurrences.map(x=>x.sectionIndex)).size>1,priceDifferences:new Set(prices).size>1};
+          });
+          fs.writeFileSync('audit/jokela-duplicate-source-comparison.json',JSON.stringify(report,null,2));
+          console.log('KAKSOISTUOTTEIDEN OSIO- JA HINTAVERTAILU');
+          for(const r of report){
+            console.log('\n'+r.ean+' | esiintymiä '+r.occurrences.length+' | eri osiot '+r.differentSections+' | hintaero '+r.priceDifferences);
+            for(const x of r.occurrences) console.log('  Osio '+x.sectionIndex+' '+x.sectionTitle+' | '+x.name+' | campaign='+x.campaignPrice+' current='+x.currentPrice+' regular='+x.regularPrice+' comparison='+x.comparisonPrice+'/'+x.comparisonUnit);
+          }
+          if(report.some(x=>x.occurrences.length!==2)) throw new Error('Yhdeksän kaksoistuotteen esiintymämäärä ei vastaa odotettua');
+          NODE
+
       - name: Tarkista kaikki tuotekohtaisesti
         if: always()
         run: |
