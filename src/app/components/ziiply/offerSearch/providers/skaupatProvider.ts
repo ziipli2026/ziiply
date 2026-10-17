@@ -942,7 +942,8 @@ async function resolveEffectiveSKaupatStoreIdV174(
       console.warn("[GOSTA] official S-kaupat directory access restricted; skipping further directory lookups", {
         storeName, status: lastOfficialResolverDiagnosticV214?.httpStatus,
       });
-      return null;
+      // Keep already verified ID mappings available even while the directory is blocked.
+      return S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw] ?? null;
     }
 
     const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
