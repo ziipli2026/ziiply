@@ -777,8 +777,15 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     const officialSelectedStoreId = /^[0-9]{5,}$/.test(selectedStoreId)
       ? selectedStoreId
       : null;
+    // Verified against RemoteGetPageContent for S-market Jokela (153 rows).
+    // The UI also sends Ruoanhinta's short internal ID 721; if the external
+    // resolver is unavailable, retain this confirmed store-specific fallback.
+    const verifiedJokelaExternalId =
+      normalizeV1(storeName) === "s market jokela" ? "685839110" : null;
     const resolvedStoreId =
-      officialSelectedStoreId ?? await resolveLocalSStoreIdV1(storeName);
+      officialSelectedStoreId ??
+      verifiedJokelaExternalId ??
+      await resolveLocalSStoreIdV1(storeName);
 
     if (!resolvedStoreId) {
       return [];
