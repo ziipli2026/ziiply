@@ -213,7 +213,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       const ocr=await loadOcr();if(!alive.current)return;
       const worker=await ocr.createWorker("eng",1,{});
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
-      const result=await readFuelPhoto(worker,data);if(!alive.current)return;
+      const result=await readFuelPhoto(worker,data,partial=>{if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([,value])=>Boolean(value)))}));setPriceReview(true);}});if(!alive.current)return;
       const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
       const candidates=await stationSearch;if(!alive.current)return;const identified=identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0);setStationId(identified);logDebug("station-identification",{identified,location,conflict:checked,candidates:(candidates||[]).slice(0,10).map(s=>({id:s.id,name:s.name,chain:s.chain,distanceM:location?Math.round(fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000):null}))});
       if(result.review||Object.values(parsed).some(value=>!value)){await saveLearningPhoto(file,data,parsed,result.text);recoverySaved=true;}
