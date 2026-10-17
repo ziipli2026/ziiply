@@ -233,3 +233,18 @@ Viralliset lähteet:
 - https://sso.fi/artikkeli/sale-vaskion-vuokrasopimus-paattyy
 
 **Tilanne:** 12 historialliseksi suljetuksi tunnistettua, 2 vanhaa/muuttunutta kirjausta ja 13 muuta selvittämätöntä = 27 alkuperäistä virhettä. Suljettujen lähimyymälöiden tunnuksia ei korvata niiden seuraajilla tai lähikaupoilla. Ei massahakuja eikä tuotantokoodin muutoksia.
+
+
+## Tarkennus: Alepa Jamppa ja Sale Lapua (17.10.2026)
+
+**Alepa Jamppa**, lähde-ID `726425715`: S-kaupat-verkkosivun myymäläosoite on `https://www.s-kaupat.fi/myymala/alepa-jamppa/726425715`, osoite Pihkakatu 4, 04440 Järvenpää. Sivun polussa on **täsmälleen sama numerotunnus** kuin auditoinnin `Store not found` -lähde-ID. Tämä todistaa, että tunnus on virallisen julkisen myymäläsivun tunniste; se **ei todista**, että sama tunnus kelpaa käytettyyn GraphQL-tuotehakukyselyyn. Älä korvaa ID:tä äläkä merkitse myymälää suljetuksi. Luokitus `official_page_id_matches_source_but_graphql_not_found`.
+
+**Sale Lapua**, lähde-ID `501521892`: S-kaupat listaa Sale Lapuan Kauppakatu 5:ssä, 62100 Lapua, mutta hakemiston hakutuloksessa näkyy `Suljettu`. Sana voi viitata hetkelliseen aukiolotilaan eikä yksin osoita pysyvää sulkemista. Samalla paikkakunnalla on myös erillinen S-market Lapua (Latojantie 9). Kumpaakaan myymälää ei saa käyttää toisen tunnuksen korvikkeena. Luokitus `official_store_listing_found_identity_unresolved`.
+
+Lähteet:
+- https://www.s-kaupat.fi/myymala/alepa-jamppa/726425715
+- https://www.s-kaupat.fi/myymalat/alepa
+- https://www.s-kaupat.fi/myymalat/sale
+- https://www.s-kaupat.fi/myymalat/s-market
+
+**Tilanne:** aiemmin luokitellut 12 historiallista suljettua ja 2 vanhaa/muuttunutta kirjausta pysyvät ennallaan. Kahdesta jäljellä olevasta 13 tapauksesta löytyi nyt virallinen sivu tai hakemistomerkintä, mutta **GraphQL-tunnusongelmaa ei ole ratkaistu**. Muita täysin lähdetasolla selvittämättömiä on 11. Ei tuotantokoodin muutoksia, tunnuskorvauksia tai uusia massahakuja.
