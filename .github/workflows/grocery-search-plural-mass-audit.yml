@@ -30,7 +30,7 @@ jobs:
             ['voi','voit'],['broileri','broilerit'],['lohi','lohet']
           ];
           const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-          const pet=x=>/koira|lemmik|purunak|primadog|pedigree|dog\b|best.in|dibo/.test(norm(x));
+          const pet=x=>/koira|lemmik|purunak|primadog|pedigree|dog\\b|best.in|dibo/.test(norm(x));
           const results=[];
           let requestErrors=0, critical=0;
           for(const store of stores){
@@ -59,7 +59,7 @@ jobs:
           }
           const summary={pairs:pairs.length,stores:stores.length,checks:results.length,critical,requestErrors,review:results.filter(x=>x.status==='REVIEW').length};
           console.log('SUMMARY',JSON.stringify(summary));
-          const fs=require('fs');fs.writeFileSync('grocery-search-mass-audit.json',JSON.stringify({summary,results},null,2));
+          const fs=await import('node:fs');fs.writeFileSync('grocery-search-mass-audit.json',JSON.stringify({summary,results},null,2));
           if(critical||requestErrors)process.exitCode=1;
           NODE
       - name: Upload full audit report
