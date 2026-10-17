@@ -58,10 +58,12 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const priceEdits=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
   // Warm up the OCR runtime while the user is choosing a photo, not after selection.
   const warmWorker=useRef<Promise<Worker>|null>(null);
+  const debugStarted=useRef(0);
   useEffect(()=>{
     let cancelled=false;
     const pending=loadOcr().then(ocr=>ocr.createWorker("eng",1,{}));
     warmWorker.current=pending;
+    void pending.then(()=>logDebug("ocr-prewarm-ready",{})).catch(e=>logDebug("ocr-prewarm-error",{message:String(e)}));
     void pending.then(worker=>{if(cancelled)void worker.terminate().catch(()=>{});}).catch(()=>{if(warmWorker.current===pending)warmWorker.current=null;});
     return ()=>{cancelled=true;};
   },[]);
@@ -69,8 +71,8 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   useEffect(()=>()=>{if(learningTimer.current)clearTimeout(learningTimer.current);},[]);
   async function pollLearning(id:string,token:string,round=0){
     if(!alive.current||requestId.current!==id)return;
-    if(round>=20){setLearningInfo("60 sekunnin aikaraja täyttyi. Puuttuvia hintoja ei tunnistettu; voit syöttää ne käsin.");return;}
-    try{const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();
+    if(round>=20){logDebug("recovery-timeout",{round});setLearningInfo("60 sekunnin aikaraja täyttyi. Puuttuvia hintoja ei tunnistettu; voit syöttää ne käsin.");return;}
+    try{const pollStarted=performance.now();const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();logDebug("recovery-poll",{round,httpStatus:response.status,durationMs:Math.round(performance.now()-pollStarted),status:result.status,attempts:result.attempts,prices:result.prices,error:result.error});
       if(!alive.current||requestId.current!==id)return;
       if(result.prices && Object.keys(result.prices).length){
         setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]&&!previous[key]&&typeof result.prices?.[key]==="number")next[key]=result.prices[key].toFixed(3).replace(".",",");return next;});
@@ -78,24 +80,24 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       }
       if(result.status==="discarded"){setLearningInfo("Taustaluku päättyi. Kuvasta ei saatu riittävän varmaa tulosta. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
       if(result.status==="corrected")return;
-    }catch{}
-    learningTimer.current=setTimeout(()=>void pollLearning(id,token,round+1),20000);
+    }catch(e){logDebug("recovery-poll-error",{round,message:String(e)});}
+    learningTimer.current=setTimeout(()=>void pollLearning(id,token,round+1),3000);
   }
   async function saveLearningPhoto(file:File,data:string,initial:FuelPrices,text:string){
     const id=requestId.current,token=crypto.randomUUID();learningToken.current=token;
     setLearningInfo("Kaikkia hintoja ei saatu varmasti luettua. Valmistellaan kuvan tarkempaa taustalukua…");
-    try{const photo=await prepareLearningPhoto(file,data);const response=await fetch("/api/fuel/photo-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,token,photo,prices:initial,ocrText:text,mode})});
-      if(!response.ok)throw Error("Photo recovery save failed");logDebug("photo-recovery-saved",{id});
+    try{const prepareStarted=performance.now();logDebug("recovery-prepare-start",{});const photo=await prepareLearningPhoto(file,data);logDebug("recovery-prepare-complete",{durationMs:Math.round(performance.now()-prepareStarted),photoBytes:photo.length});const postStarted=performance.now();logDebug("recovery-post-start",{});const response=await fetch("/api/fuel/photo-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,token,photo,prices:initial,ocrText:text,mode})});
+      logDebug("recovery-post-response",{httpStatus:response.status,durationMs:Math.round(performance.now()-postStarted)});if(!response.ok)throw Error("Photo recovery save failed");logDebug("photo-recovery-saved",{id});
       if(alive.current&&requestId.current===id){setLearningInfo("Kuvan lukeminen jatkuu taustalla. Puuttuvat hinnat lisätään heti, kun ne tunnistuvat. Voit odottaa tässä tai syöttää hinnat käsin. Tarkista hinnat ennen lähettämistä.");void pollLearning(id,token);}
-    }catch{if(alive.current&&requestId.current===id)setLearningInfo("Kuvan tallennus taustalukua varten epäonnistui. Yritä lisätä kuva uudelleen.");}
+    }catch(e){logDebug("recovery-save-error",{message:String(e)});if(alive.current&&requestId.current===id)setLearningInfo("Kuvan tallennus taustalukua varten epäonnistui. Yritä lisätä kuva uudelleen.");}
   }
   const [debugOpen,setDebugOpen]=useState(false);
   const [debugNotice,setDebugNotice]=useState("");
   const debugEvents=useRef<{time:string;event:string;details:unknown}[]>([]);
   function logDebug(event:string,details:unknown){
-    debugEvents.current=[...debugEvents.current.slice(-199),{time:new Date().toISOString(),event,details}];
+    debugEvents.current=[...debugEvents.current.slice(-499),{time:new Date().toISOString(),elapsedMs:debugStarted.current?Math.round(performance.now()-debugStarted.current):null,event,details}];
   }
-  function debugText(){return JSON.stringify({version:"fuel-photo-debug-1",exportedAt:new Date().toISOString(),browser:navigator.userAgent,mode,fileEvents:debugEvents.current,gps,evidence,locationSource,timeSource,metadataInfo,stationId,stationCount:stations.length,prices,ocrText:rawText,status,error},null,2);}
+  function debugText(){return JSON.stringify({version:"fuel-photo-debug-2",exportedAt:new Date().toISOString(),browser:navigator.userAgent,mode,fileEvents:debugEvents.current,gps,evidence,locationSource,timeSource,metadataInfo,stationId,stationCount:stations.length,prices,ocrText:rawText,status,error},null,2);}
   function downloadDebug(){
     const url=URL.createObjectURL(new Blob([debugText()],{type:"application/json"}));
     const link=document.createElement("a");link.href=url;link.download=`ziiply-fuel-debug-${Date.now()}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -193,6 +195,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   async function readPhoto(file:File,source:"online"|"offline"){
     if(learningTimer.current)clearTimeout(learningTimer.current);learningToken.current="";priceEdits.current={};setLearningInfo("");
     let recoveryData="",recoverySaved=false;
+    debugStarted.current=performance.now();debugEvents.current=[];
     logDebug("photo-file",{source,name:file.name,type:file.type,size:file.size,lastModified:file.lastModified});
     autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(true);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
     try{
@@ -219,20 +222,20 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       setLocationSource(photoGps?"photo_exif":deviceGps?"capture_session":"manual");
       setGps(location);const stationSearch=findStations(location);
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
-      const data=await preparePhoto(file);recoveryData=data;if(!alive.current)return;setPhoto(data);
+      logDebug("photo-prepare-start",{});const data=await preparePhoto(file);logDebug("photo-prepare-complete",{dataLength:data.length});recoveryData=data;if(!alive.current)return;setPhoto(data);
       // Start independent server-side vision immediately, in parallel with local OCR.
       // Do not wait for the 15–20-second Tesseract pass before queuing recovery.
       recoverySaved=true;
       void saveLearningPhoto(file,data,{diesel:"",price95:"",price98:""},"");
-      const worker=await (warmWorker.current??loadOcr().then(ocr=>ocr.createWorker("eng",1,{})));
+      logDebug("ocr-worker-await-start",{prewarmed:!!warmWorker.current});const worker=await (warmWorker.current??loadOcr().then(ocr=>ocr.createWorker("eng",1,{})));logDebug("ocr-worker-ready",{});
       warmWorker.current=null;
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
-      const result=await readFuelPhoto(worker,data,partial=>{if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([,value])=>Boolean(value)))}));setPriceReview(true);}});if(!alive.current)return;
+      logDebug("local-ocr-start",{});const result=await readFuelPhoto(worker,data,partial=>{logDebug("local-price-progress",{partial});if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([,value])=>Boolean(value)))}));setPriceReview(true);}},(stage,details)=>logDebug("ocr-"+stage,details));logDebug("local-ocr-complete",{prices:result.prices,review:result.review});if(!alive.current)return;
       const parsed=result.prices;setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(parsed).filter(([,value])=>Boolean(value)))}));setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
       const candidates=await stationSearch;if(!alive.current)return;const identified=identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0);setStationId(identified);logDebug("station-identification",{identified,location,conflict:checked,candidates:(candidates||[]).slice(0,10).map(s=>({id:s.id,name:s.name,chain:s.chain,distanceM:location?Math.round(fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000):null}))});
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
-    }catch(e){if(recoveryData&&!recoverySaved)await saveLearningPhoto(file,recoveryData,{diesel:"",price95:"",price98:""},"");if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
-    finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);}
+    }catch(e){logDebug("read-photo-error",{message:String(e)});if(recoveryData&&!recoverySaved)await saveLearningPhoto(file,recoveryData,{diesel:"",price95:"",price98:""},"");if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
+    finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);logDebug("read-photo-finished",{});}
   }
   async function submit(){
     if((conflict.reasons.length>0&&!conflictConfirmed) || (mode!=="manual"&&!photo) || !stationId || !validateFuelPrices(prices)){setError("Tarkista kuva, asema, havaintoaika ja vähintään yksi hinta.");return;}
