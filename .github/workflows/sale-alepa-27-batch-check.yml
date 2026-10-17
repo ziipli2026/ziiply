@@ -1,0 +1,49 @@
+name: Sale Alepa 27 tunnuksen massatarkistus
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Tarkista kaikki 27 tunnusta rinnakkain
+        env:
+          STORES: '[["Alepa Hämeenkatu","726435584"],["Alepa Jamppa","726425715"],["Alepa Keilaniemi","726171742"],["Alepa Kilo","660931411"],["Alepa Pasilanraitio","531632420"],["Alepa Pukinmäki","552108425"],["Alepa Rajatorppa","512415167"],["Alepa Sitratori","584813356"],["Alepa Tapulikaupunki","726256638"],["Alepa Viherniemenkatu","538460205"],["Sale Automaatti Tampere","697945889"],["Sale Hanko","500608831"],["Sale Haukiluoma Tampere","725884549"],["Sale Intiö Oulu","697947828"],["Sale Kaijonharju Oulu","519814305"],["Sale Kolinportti","501903587"],["Sale Kortepohja VANHA","653574384"],["Sale Kotkansaari","509165767"],["Sale Kyröskoski","677311136"],["Sale Lapua","501521892"],["Sale Loue","502111040"],["Sale Mouhijärvi","500854872"],["Sale Multia vanha","512045139"],["Sale Piippola","502133952"],["Sale Raksila","516522828"],["Sale Uurainen","501589857"],["Sale Vaskio","500978176"]]'
+        run: |
+          mkdir -p audit
+          node <<'NODE'
+          const fs=require('node:fs');
+          const stores=JSON.parse(process.env.STORES);
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+          const results=new Array(stores.length);
+          let next=0;
+          async function worker(){
+            while(next<stores.length){
+              const i=next++, [name,id]=stores[i],url='https://www.s-kaupat.fi/myymala/'+slug(name.replace(/ VANHA$| vanha$/i,''))+'/'+id;
+              let status=null,finalUrl=null,error=null,matchingId=false,blocked=false;
+              try {
+                const r=await fetch(url,{signal:AbortSignal.timeout(15000),headers:{'User-Agent':'Mozilla/5.0 (compatible; ZiiplyReadOnlyAudit/1.0)','Accept':'text/html'}});
+                status=r.status;finalUrl=r.url;
+                const html=(await r.text()).slice(0,500000);
+                matchingId=r.ok&&new RegExp('(?:/|\\\\/)'+id+'(?:["\\\\/?<]|$)').test(html+' '+r.url);
+                blocked=[403,429].includes(status);
+              }catch(e){error=String(e.message||e);}
+              results[i]={name,id,status,finalUrl,matchingId,blocked,error,classification:blocked?'rate_limited_or_blocked':error?'network_error':status===404?'page_not_found':matchingId?'official_page_id_present':'inconclusive'};
+              console.log(JSON.stringify(results[i]));
+              await sleep(500);
+            }
+          }
+          await Promise.all(Array.from({length:3},worker));
+          fs.writeFileSync('audit/results.json',JSON.stringify({checkedAt:new Date().toISOString(),method:'public S-kaupat store page, read only, not GraphQL verification',results},null,2));
+          const rows=['# Sale/Alepa 27 massatarkistus','','Julkisen myymäläsivun tarkistus ei todista GraphQL-tuotehaun toimivuutta. HTTP 403/429 ei tarkoita suljettua myymälää.','','| Myymälä | ID | HTTP | Tulos |','|---|---|---|---|',...results.map(x=>`| ${x.name} | ${x.id} | ${x.status??'-'} | ${x.classification} |`)];
+          fs.writeFileSync('audit/summary.md',rows.join('\n')+'\n');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sale-alepa-27-batch-check
+          path: audit/
+          retention-days: 14
