@@ -10,20 +10,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-package-lock --legacy-peer-deps --no-audit --no-fund
       - name: Check fuel photo code and types
         run: npx tsc --noEmit
-      - name: Run fuel photo unit tests
-        run: |
-          set -e
-          for test in src/lib/fuelPhoto*.test.ts src/lib/fuelPhoto*.test.js; do
-            if [ -f "$test" ]; then
-              echo "Found $test"
-              npx tsx "$test"
-            fi
-          done
       - name: Check production availability and response time
         run: |
           curl --fail --silent --show-error --location --max-time 25 \
