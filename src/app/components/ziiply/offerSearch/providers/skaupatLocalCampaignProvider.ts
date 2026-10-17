@@ -807,10 +807,15 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     const httpStatus = response.status;
 
     if (!response.ok) {
-      return [];
+      const reason = httpStatus === 403 ? "ACCESS_DENIED" : httpStatus === 429
+        ? "RATE_LIMITED" : httpStatus >= 500 ? "UPSTREAM_ERROR" : "HTTP_ERROR";
+      throw new Error(`S_LOCAL_${reason}: HTTP ${httpStatus}`);
     }
 
     const data = await response.json();
+    if (Array.isArray(data?.errors) && data.errors.length > 0) {
+      throw new Error(`S_LOCAL_GRAPHQL_ERROR: ${String(data.errors[0]?.message || "unknown")}`);
+    }
     const dataKeys =
       data?.data && typeof data.data === "object"
         ? Object.keys(data.data).join(",")
@@ -823,7 +828,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     const sections = pageContent?.sections;
 
     if (!Array.isArray(sections)) {
-      return [];
+      throw new Error("S_LOCAL_PAGE_CONTENT_MISSING: expected sections array");
     }
 
     const mapped: ZiiplyOfferSearchResult[] = [];
@@ -917,7 +922,8 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     }
     return [...offers, ...campaigns];
   } catch (error) {
-    return [];
+    console.warn("[Ziiply S-local campaigns] Source unavailable", error);
+    throw error;
   }
 }
 
