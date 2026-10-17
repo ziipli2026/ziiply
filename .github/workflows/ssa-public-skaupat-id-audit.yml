@@ -1,5 +1,6 @@
 name: SSA public S-kaupat ID audit
 on:
+  workflow_dispatch:
   push:
     paths: ['.github/workflows/ssa-public-skaupat-id-audit.yml']
 permissions: {contents: read}
@@ -10,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        chain: [S-market, Sale, Alepa]
+        chain: [Sale, Alepa]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +33,8 @@ jobs:
           });
           const slug=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/å/g,"a").replace(/ä/g,"a").replace(/ö/g,"o").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
           let exact=0, mismatch=0, missing=0, blocked=0; const bad=[];
+          const directoryUrls=["https://www.s-kaupat.fi/myymalat/"+chain.toLowerCase()+"?query="+encodeURIComponent(rows[0]?.name||chain),"https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(rows[0]?.name||chain)];
+          for(const url of directoryUrls){try{const r=await fetch(url,{redirect:"follow",signal:AbortSignal.timeout(12000),headers:{"User-Agent":"Mozilla/5.0","Accept":"text/html"}});const html=await r.text();console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,status:r.status,finalUrl:r.url,length:html.length,storeLinks:[...html.matchAll(/\\/myymala\\/([a-z0-9%._~-]+)\\/(\\d{5,})/gi)].slice(0,8).map(m=>m[0])}));}catch(e){console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,error:String(e)}));}}
           for(let i=0;i<rows.length;i+=8){
             await Promise.all(rows.slice(i,i+8).map(async x=>{
               const name=String(x.name),id=String(x.externalId||x.storeId||x.id);
