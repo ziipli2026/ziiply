@@ -16,9 +16,9 @@ export function recoveryConsensus(readings:RecoveryReading[]):Record<string,numb
  for(const key of visible){
   const votes=new Map<number,Set<string>>();
   for(const r of readings){const price=r.prices[key];if(price==null)continue;const methods=votes.get(price)||new Set<string>();methods.add(r.method);votes.set(price,methods);}
-  // Two independent image treatments must agree; any high-confidence conflict blocks recovery.
-  if(votes.size!==1)return null;
-  const [price,methods]=[...votes][0];if(methods.size<2)return null;result[key]=price;
+  // Recover each fuel independently; a disputed diesel reading must not block 95 or 98.
+  if(votes.size!==1)continue;
+  const [price,methods]=[...votes][0];if(methods.size<2)continue;result[key]=price;
  }
- return result;
+ return Object.keys(result).length?result:null;
 }
