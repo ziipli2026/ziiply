@@ -319,3 +319,15 @@ Julkisia verkkolähteitä tarkistettiin useasta Alepa-nimestä ilman uusia S-kau
 | Alepa Pasilanraitio | `531632420` | Wikimedia Commonsin Helsingin kaupunginmuseon kokoelmaan liittyvän, 5.9.2024 otetun valokuvan kuvaustekstissä todetaan eksplisiittisesti, että Alepa Pasilanraitio suljettiin 2.5.2025. https://commons.wikimedia.org/wiki/File:Alepa_Pasilanraitio_in_L%C3%A4nsi-Pasila%2C_Helsinki%2C_Finland%3B_2024_September.jpg | **Sulkeminen ilmoitettu valokuvan metatiedoissa**, mutta päivämäärälle suositellaan vielä riippumatonta ensisijaista vahvistusta. |
 
 Muiden kahdeksan Alepa-tapauksen osalta tämän erän verkkohaku ei antanut riittävää suoraa näyttöä pysyvästä sulkemisesta. Historiallisen alkoholin myyntiluvan päättymispäivä tai vanhentuneen kolmannen osapuolen myymälähakemiston aukiolotieto ei yksinään riitä. **Ei uusia tuotanto-ID-muutoksia.**
+
+
+## Alepa kahdeksan tapauksen rinnakkainen julkislähdetarkistus (18.10.2026)
+
+Käytiin yhdessä erässä läpi **Alepa Hämeenkatu, Jamppa, Keilaniemi, Kilo, Pukinmäki, Rajatorppa, Sitratori ja Viherniemenkatu** hakukoneen julkisilla lähteillä, ilman S-kaupat-sivuston automaattista massapyyntöä. Yhdellekään kahdeksasta ei löytynyt tässä erässä riippumatonta, myymälän nimeen täsmäävää pysyvän sulkemisen vahvistusta. Luokitus jää **selvitettäväksi**; lupatietojen päättymispäivä ei yksin todista sulkemista.
+
+- **Alepa Jamppa**: virallinen myymäläsivu https://www.s-kaupat.fi/myymala/alepa-jamppa/726425715 näyttää suljettua 5.–25.10.2026, mutta ei ilmoita pysyvää sulkemista eikä syytä. Tämä vahvistaa alkuperäisen ID:n esiintymisen virallisessa URL:ssa, **ei GraphQL-tuotehaun toimivuutta**.
+- **Alepa Rajatorppa**: kolmannen osapuolen https://www.cylex.fi/yritys/alepa-rajatorppa-13981732.html luettelee osoitteen Nuijatie 12, Vantaa ja vanhan S-kanava-linkin ID:llä `512415167`, mutta ilmoitettu aukiolo voi olla vanhentunutta. Ei kelpaa nykyisen aukiolon tai GraphQL-tunnuksen vahvistukseksi.
+- **Alepa Hämeenkatu**: ei saa sekoittaa **Alepa Hämeentiehen** (Hämeentie 25, Helsinki), jonka HOK-Elanto vahvisti sulkeutuneen **vain remontin ajaksi** 15.3.–24.4.2025: https://hok-elanto.fi/artikkeli/alepa-hameentie-remonttiin-uudistunut-myymala-avataan-paasiaisen-jalkeen . Nimet ovat eri myymälöitä.
+- **Yleinen lähde**: HOK-Elannon puolivuosikatsaus https://www.sttinfo.fi/tiedote/70426137/hok-elannon-puolivuosikatsaus-2024-paivittaistavarakaupan-myynti-jatkoi-markkinaa-vahvempaa-kasvuaan-asiakasomistajien-maara-ennatyslukemissa?lang=fi kertoo neljän Alepan sulkeutuneen alkuvuonna 2024, mutta **ei nimeä niitä**. Sitä ei voi käyttää näiden kahdeksan yksilöimiseen.
+
+**Massatarkistuksen johtopäätös:** 8/8 edelleen ratkaisematta, 0 uutta varmennettua sulkemista, 0 uutta GraphQL-ID:tä. Älä arvaa korvaavia tunnuksia äläkä aja HTTP 429 -estoa vasten uudestaan. Aiemmin selvitetyt Tapulikaupunki ja Pasilanraitio pidetään erillään näistä kahdeksasta.
