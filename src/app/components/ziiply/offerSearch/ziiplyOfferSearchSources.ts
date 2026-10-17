@@ -457,6 +457,14 @@ function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
   return unique;
 }
 
+// Per-request diagnostic: an empty array is not proof that the source returned
+// zero products. Keep the failure separately for the UI/API to consume later.
+export type OfferSourceFailureV37 = { source: string; code: string; message: string };
+let lastOfferSourceFailuresV37: OfferSourceFailureV37[] = [];
+export function getLastOfferSourceFailuresV37(): OfferSourceFailureV37[] {
+  return [...lastOfferSourceFailuresV37];
+}
+
 async function safelySearchSource(
   label: string,
   task: () => Promise<ZiiplyOfferSearchResult[]>,
@@ -464,6 +472,9 @@ async function safelySearchSource(
   try {
     return await task();
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const code = /(?:S_LOCAL|S_KAUPAT)_[A-Z_]+/.exec(message)?.[0] || "SOURCE_ERROR";
+    lastOfferSourceFailuresV37.push({ source: label, code, message: message.slice(0, 240) });
     console.warn(`[Ziiply offers] ${label} epäonnistui`, error);
     return [];
   }
@@ -815,6 +826,7 @@ export async function searchZiiplyOffers(
   options?: ZiiplyOfferSearchSourceContextV8,
 ) {
   const cleanQuery = query.trim();
+  lastOfferSourceFailuresV37 = [];
 
   if (!cleanQuery) return [];
 
