@@ -49,3 +49,40 @@ Tuotantokoodia ei muutettu tätä raporttia varten.
 **Koodimuutokset:** `5f322d8` käyttää virallisen hakemiston ketjukohtaisia polkuja. `5c618f5` estää hakemistohakujen jatkumisen HTTP 403/429 -tilanteessa. Molempien Vercel-tuotantobuild on ollut READY; tuotetietojen kattavuutta ei ole vahvistettu näiden korjausten jälkeen. `723d6a9` vaatii erillisen KYLLA-vahvistuksen koko 434 myymälän auditointiin.
 
 **Jatko ilman massapyyntöjä:** 1) Käsittele 27 `Store not found` -tapausta omana tunnusluokkanaan; tarkista ensin vanhalta näyttävät nimet. 2) Käsittele 177 HTTP 200 -nollatulosta erillisenä luokkana; varmista tunnus ennen tuoteryhmien korjaamista. 3) Tee myöhemmin rajattu testi vasta pääsynrajoituksen hellitettyä. Älä tee automaattista ID-korvausta tämän raportin perusteella.
+
+
+## Täsmällinen tarkistuslista: 27 Store not found -tapausta
+
+Lähde: kattavan ajon 39055107119 kuuden osan `FAST_SUMMARY.bad`-tiedot. Alla olevat tunnukset ovat **alkuperäisiä lähde-ID:itä**, eivät vahvistettuja korvaavia S-kaupat-tuotetietotunnuksia. Älä korvaa tuotannon ID:tä näillä ilman vahvistusta.
+
+| Ketju | Myymälä | Lähde-ID | Virhe |
+|---|---|---|---|
+| Alepa | Alepa Hämeenkatu | `726435584` | Store not found |
+| Alepa | Alepa Jamppa | `726425715` | Store not found |
+| Alepa | Alepa Keilaniemi | `726171742` | Store not found |
+| Alepa | Alepa Kilo | `660931411` | Store not found |
+| Alepa | Alepa Pasilanraitio | `531632420` | Store not found |
+| Alepa | Alepa Pukinmäki | `552108425` | Store not found |
+| Alepa | Alepa Rajatorppa | `512415167` | Store not found |
+| Alepa | Alepa Sitratori | `584813356` | Store not found |
+| Alepa | Alepa Tapulikaupunki | `726256638` | Store not found |
+| Alepa | Alepa Viherniemenkatu | `538460205` | Store not found |
+| Sale | Sale Automaatti Tampere | `697945889` | Store not found |
+| Sale | Sale Hanko | `500608831` | Store not found |
+| Sale | Sale Haukiluoma Tampere | `725884549` | Store not found |
+| Sale | Sale Intiö Oulu | `697947828` | Store not found |
+| Sale | Sale Kaijonharju Oulu | `519814305` | Store not found |
+| Sale | Sale Kolinportti | `501903587` | Store not found |
+| Sale | Sale Kortepohja VANHA | `653574384` | Store not found |
+| Sale | Sale Kotkansaari | `509165767` | Store not found |
+| Sale | Sale Kyröskoski Hämeenkyrö | `677311136` | Store not found |
+| Sale | Sale Lapua | `501521892` | Store not found |
+| Sale | Sale Loue | `502111040` | Store not found |
+| Sale | Sale Mouhijärvi Sastamala | `500854872` | Store not found |
+| Sale | Sale Multia vanha | `512045139` | Store not found |
+| Sale | Sale Piippola | `502133952` | Store not found |
+| Sale | Sale Raksila | `516522828` | Store not found |
+| Sale | Sale Uurainen | `501589857` | Store not found |
+| Sale | Sale Vaskio | `500978176` | Store not found |
+
+Nimissä `VANHA` ja `vanha` on mahdollinen vanhentuneen lähdetiedon merkki, **ei vahvistus myymälän sulkemisesta**. Tunnuksen korjaaminen vaatii ajantasaisen virallisen lähteen tai onnistuneen tuotehaun.
