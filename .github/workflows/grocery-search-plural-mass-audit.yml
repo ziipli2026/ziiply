@@ -1,0 +1,71 @@
+name: Grocery search plural and category mass audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Compare singular and plural grocery searches across S and K
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base='https://ziiply.vercel.app';
+          const stores=[{chain:'S',id:292,api:'s-products'},{chain:'K',id:3221,api:'k-products'}];
+          const pairs=[
+            ['nakki','nakit'],['makkara','makkarat'],['jogurtti','jogurtit'],
+            ['kananmuna','kananmunat'],['peruna','perunat'],['porkkana','porkkanat'],
+            ['tomaatti','tomaatit'],['kurkku','kurkut'],['omena','omenat'],
+            ['banaani','banaanit'],['sipuli','sipulit'],['paprika','paprikat'],
+            ['leipä','leivät'],['sämpylä','sämpylät'],['juusto','juustot'],
+            ['keksi','keksit'],['suklaa','suklaat'],['jäätelö','jäätelöt'],
+            ['kalapuikko','kalapuikot'],['lihapulla','lihapullat'],
+            ['nuudeli','nuudelit'],['tortilla','tortillat'],['pasta','pastat'],
+            ['riisi','riisit'],['muro','murot'],['margariini','margariinit'],
+            ['leikkele','leikkeleet'],['kinkku','kinkut'],['herne','herneet'],
+            ['papu','pavut'],['maito','maidot'],['mehu','mehut'],
+            ['kahvi','kahvit'],['tee','teet'],['rahka','rahkat'],
+            ['voi','voit'],['broileri','broilerit'],['lohi','lohet']
+          ];
+          const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+          const pet=x=>/koira|lemmik|purunak|primadog|pedigree|dog\b|best.in|dibo/.test(norm(x));
+          const results=[];
+          let requestErrors=0, critical=0;
+          for(const store of stores){
+            for(const [singular,plural] of pairs){
+              const entries=[];
+              for(const query of [singular,plural]){
+                try{
+                  const url=base+'/api/'+store.api+'?search='+encodeURIComponent(query)+'&store='+store.id;
+                  const response=await fetch(url,{signal:AbortSignal.timeout(25000)});
+                  if(!response.ok)throw new Error('HTTP '+response.status);
+                  const json=await response.json();
+                  const items=Array.isArray(json.items)?json.items:[];
+                  entries.push({query,count:items.length,petTop5:items.slice(0,5).filter(x=>pet([x.name,x.category].join(' '))).length,top:items.slice(0,3).map(x=>x.name)});
+                }catch(e){entries.push({query,error:String(e)});requestErrors++;}
+              }
+              const [a,b]=entries;
+              const zeroMismatch=!a.error&&!b.error&&a.count>=5&&b.count===0;
+              const severeMismatch=!a.error&&!b.error&&a.count>=10&&b.count<=1;
+              const petMismatch=!b.error&&b.petTop5>0&&b.query==='nakit';
+              const status=zeroMismatch||severeMismatch||petMismatch?'FAIL':a.error||b.error?'ERROR':a.count>0&&b.count>0&&b.count<a.count*0.15?'REVIEW':'PASS';
+              if(status==='FAIL')critical++;
+              const record={chain:store.chain,singular,plural,status,singularCount:a.count,pluralCount:b.count,petTop5:b.petTop5,singularTop:a.top,pluralTop:b.top,errors:[a.error,b.error].filter(Boolean)};
+              results.push(record);
+              console.log(JSON.stringify(record));
+            }
+          }
+          const summary={pairs:pairs.length,stores:stores.length,checks:results.length,critical,requestErrors,review:results.filter(x=>x.status==='REVIEW').length};
+          console.log('SUMMARY',JSON.stringify(summary));
+          const fs=require('fs');fs.writeFileSync('grocery-search-mass-audit.json',JSON.stringify({summary,results},null,2));
+          if(critical||requestErrors)process.exitCode=1;
+          NODE
+      - name: Upload full audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grocery-search-mass-audit
+          path: grocery-search-mass-audit.json
+          if-no-files-found: warn
