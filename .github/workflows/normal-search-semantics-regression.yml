@@ -161,6 +161,27 @@ jobs:
           console.log('SAFE_SUMMARY normal-search semantics regression passed');
           NODE
 
+      - name: HK Sininen and nakit synonym regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { getSynonymGroupForQuery } = require('./.tmp-search-regression/search/searchSynonyms.js');
+          const cases = [
+            ['hk sininen lenkki', 'hk sininen'],
+            ['sininen lenkki', 'hk sininen'],
+            ['nakit', 'nakit'],
+            ['nakki', 'nakit'],
+            ['koiranmakkara', 'koiranmakkara'],
+          ];
+          for (const [query, expected] of cases) {
+            const actual = getSynonymGroupForQuery(query)?.canonical;
+            if (actual !== expected) {
+              console.error('FAIL', query, actual, 'expected', expected);
+              process.exitCode = 1;
+            } else console.log('PASS', query, '=>', actual);
+          }
+          NODE
+
       - name: Functional grocery typo autocorrect regression
         shell: bash
         run: |
