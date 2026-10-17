@@ -103,3 +103,23 @@ Lähteet:
 - https://assets.ctfassets.net/8122zj5k3sy9/2sj8MRHT6lp4azDoTbSwCZ/2b1b922c769f2362c2f25b521aebebe3/Invoicing_addresses_for_suppliers.pdf
 
 **Päätös:** merkitse nämä kaksi vanhoiksi epäillyiksi lähdekirjauksiksi (ei poistetuksi myymäläksi); jätä 25 muuta `Store not found` -tapausta avoimiksi. Päivitä koodin myymälä-ID vain, kun nykyinen S-kaupat-tuotetietotunnus on luotettavasti varmennettu. Erilliset yritys-/toimipaikkanumerot eivät kelpaa GraphQL-tuotetieto-ID:ksi.
+
+
+## Jatkotyö: 25 avoimen tunnusvirheen käsittelyjono (17.10.2026)
+
+Alla on **selvitysjärjestys, ei uusi tunnusvahvistus**. Nimet ja lähde-ID:t perustuvat yllä olevaan 434 myymälän auditointiin. Ulkoinen haku ei tuottanut vahvistettuja korvaavia S-kaupat-tuotetietotunnuksia. Kaikki 25 jäävät avoimiksi; Kortepohja ja Multia käsiteltiin erikseen edellä.
+
+**Ensimmäinen ryhmä — mahdollisesti erityinen toimipaikka tai nimimuutos (tarkistettava):**
+- Sale Automaatti Tampere — `697945889` (automaattimyymälän identiteetti ja tuotevalikoiman rajapintatuki)
+- Sale Raksila — `516522828` (nykyinen nimi ja toimipaikka)
+- Sale Intiö Oulu — `697947828` (nykyinen nimi ja toimipaikka)
+- Sale Kaijonharju Oulu — `519814305` (nykyinen nimi ja toimipaikka)
+- Sale Haukiluoma Tampere — `725884549` (nykyinen nimi ja toimipaikka)
+
+**Toinen ryhmä — muut Sale-tunnukset (vertaa ajantasaiseen viralliseen myymäläkirjaukseen):**
+- Sale Hanko `500608831`; Sale Kolinportti `501903587`; Sale Kotkansaari `509165767`; Sale Kyröskoski Hämeenkyrö `677311136`; Sale Lapua `501521892`; Sale Loue `502111040`; Sale Mouhijärvi Sastamala `500854872`; Sale Piippola `502133952`; Sale Uurainen `501589857`; Sale Vaskio `500978176`.
+
+**Kolmas ryhmä — Alepa-tunnukset:**
+- Alepa Hämeenkatu `726435584`; Alepa Jamppa `726425715`; Alepa Keilaniemi `726171742`; Alepa Kilo `660931411`; Alepa Pasilanraitio `531632420`; Alepa Pukinmäki `552108425`; Alepa Rajatorppa `512415167`; Alepa Sitratori `584813356`; Alepa Tapulikaupunki `726256638`; Alepa Viherniemenkatu `538460205`.
+
+**Todentamiskriteeri:** jokaisesta myymälästä kirjataan erikseen (1) nykyinen virallinen myymälänimi ja osoite, (2) virallinen S-kaupat-tuotetietotunnus lähdeviitteineen, (3) myöhemmin onnistunut rajattu tuotehaku. Pelkkä saman niminen myymälä, ulkoinen toimipaikka-ID tai HTTP 200/0 tuotetta ei riitä vahvistukseksi. HTTP 403/429 estää testauksen eikä oikeuta toistuviin pyyntöihin. Ei automaattisia tuotantokorvauksia.
