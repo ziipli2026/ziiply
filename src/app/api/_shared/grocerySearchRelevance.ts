@@ -31,6 +31,33 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
     if(rule.weak.test(name))value-=28;
     if(pet)value-=90;
     if(/\b(salaatti|wrap|pizza|pasta-ateria|kakku|patukka|makeinen)\b/.test(name))value-=8;
+    // Exact grocery produce and staple goods must outrank flavour mentions.
+    // Only broad one-word searches use this boost, never brand/model searches.
+    const produce: Record<string,RegExp> = {
+      banaani:/^(?:[\w-]+ )?(?:luomu )?banaani(?:\s|$)/,
+      peruna:/^(?:[\w-]+ )?(?:luomu |kotimainen )?peruna(?:\s|$)/,
+      porkkana:/^(?:[\w-]+ )?(?:luomu |kotimainen )?porkkana(?:\s|$)/,
+      tomaatti:/^(?:[\w-]+ )?(?:luomu |kotimainen )?tomaatti(?:\s|$)/,
+    };
+    const canonical=ALIASES[q]||q;
+    if(produce[canonical]){
+      const prepared=/smoothie|patukka|puuro|pihvi|leipä|sämpylä|tikku|keitto|kastike|pesto|seos|salaatti|pakaste|mehu|pizza|pasta|mauste|jogurtti|rahka|pyree|sose|lastenruoka|välipala|wok|gratiini|kuivattu|aurinkokuivattu|paseerattu|murska|tölkki|säilyke|hilloke|levite|gnocchi|ranskanperuna/.test(name);
+      if(produce[canonical].test(name)&&!prepared)value+=120;
+      if(prepared)value-=75;
+      if(name===canonical)value+=160;
+    }
+    if(canonical==="jogurtti"){
+      if(/\bjogurtti\b/.test(name)&&!/patukka|mysli|kastike|salaatti|jogurttirusina|keksi|muro/.test(name))value+=90;
+      if(/patukka|mysli|kastike|salaatti|jogurttirusina/.test(name))value-=100;
+    }
+    if(canonical==="leipä"){
+      if(/\b(leipä|ruisleipä|paahtoleipä|limppu|rouhepalat|viipaleet)\b/.test(name)&&!/kakku|pulla|wiener|leivos/.test(name))value+=50;
+      if(/kakku|pulla|wiener|leivos/.test(name))value-=90;
+    }
+    if(canonical==="broileri"){
+      if(/broiler/.test(name)&&!/wrap|patonki|pizza|salaatti|voileipä|kolmari/.test(name))value+=60;
+      if(/wrap|patonki|pizza|salaatti|kolmari/.test(name))value-=75;
+    }
     return value;
   };
   return items.map((item,index)=>({item,index,score:score(item)})).sort((a,b)=>b.score-a.score||a.index-b.index).map(x=>x.item);
