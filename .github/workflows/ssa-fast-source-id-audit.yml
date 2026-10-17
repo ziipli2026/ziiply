@@ -69,6 +69,7 @@ jobs:
           console.log("FAST_SUMMARY",JSON.stringify({chain,inventory:arr.length,filtered:rows.length,checked:working+zero+error,blocked,resolved,changed,working,zero,error,byStatus,samples,bad}));
           if(blocked||working+zero+error<rows.length)process.exitCode=1;
           TS
+          set -o pipefail
           npx tsx scripts/.tmp-ssa-fast.mts | tee ssa-fast-${CHAIN// /_}.txt
       - uses: actions/upload-artifact@v4
         if: always()
