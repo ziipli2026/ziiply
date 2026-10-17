@@ -75,7 +75,8 @@ jobs:
             const products=sections.flatMap(s=>Array.isArray(s.products)?s.products:[]);
             console.log('S-kaupat direct status:',response.status,'sections:',sections.length,'products:',products.length,'errors:',JSON.stringify(body.errors||[]).slice(0,400));
             fs.writeFileSync('audit/jokela-source-diagnostics.json',JSON.stringify({status:response.status,sections:sections.length,products:products.length,errors:body.errors||[]},null,2));
-            if(products.length && !fs.existsSync('audit/jokela-all.json')){
+            const existing = fs.existsSync('audit/jokela-all.json') ? JSON.parse(fs.readFileSync('audit/jokela-all.json','utf8')) : null;
+            if(products.length && (!existing || !Array.isArray(existing.results) || existing.results.length===0)){
               const rows=products.map((p,i)=>({id:String(p.id||i),title:p.name,ean:p.ean||p.eanCode||p.gtin||'',storeName:'S-market Jokela',chain:'S-market',priceText:String(p.pricing?.campaignPrice??p.pricing?.currentPrice??p.price??''),unitPriceText:String(p.pricing?.comparisonPrice??''),category:(p.hierarchyPath||[]).at(-1)?.name||'',salesUnit:p.pricing?.salesUnit||'',isWeightedProduct:p.pricing?.isApproximatePrice===true,debugLocalCampaignEvidenceV231:p.pricing||{},imageUrl:p.productDetails?.productImages?.mainImage?.urlTemplate||''}));
               fs.writeFileSync('audit/jokela-all.json',JSON.stringify({ok:true,results:rows,source:'s-kaupat-direct-raw'},null,2));
             }
