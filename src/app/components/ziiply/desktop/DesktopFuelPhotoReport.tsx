@@ -302,7 +302,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     ...(conflict.reasons.length>0&&!conflictConfirmed?["Vahvista kuvan sijainti- tai aikapoikkeama."]:[])
   ];
   return createPortal(<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 p-1.5 sm:p-2" onKeyDown={e=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const items=dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),summary');if(!items?.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}>
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="fuel-report-title" className="flex h-[calc(100dvh-12px)] max-h-[760px] w-full max-w-[720px] flex-col rounded-[20px] border-[3px] border-[#17573c] bg-[#fff4cf] p-2 shadow-2xl sm:h-[min(680px,calc(100dvh-16px))] sm:rounded-[28px] sm:p-3">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="fuel-report-title" className="flex h-[calc(100dvh-12px)] max-h-[760px] min-h-0 w-full max-w-[720px] flex-col rounded-[20px] border-[3px] border-[#17573c] bg-[#fff4cf] p-2 shadow-2xl sm:h-[min(680px,calc(100dvh-16px))] sm:rounded-[28px] sm:p-3">
       <header className="mb-2 flex shrink-0 items-center justify-between gap-3"><div><button type="button" onClick={()=>{setDebugNotice("");setDebugOpen(true);}} className="float-right ml-2 rounded border border-[#baa46a] px-2 py-0.5 text-[10px] text-[#6d604c]">Debug</button><h2 id="fuel-report-title" className="text-lg font-black text-[#174c35] sm:text-xl">Ilmoita polttoainehintoja</h2><p className="text-xs text-[#6d604c] sm:text-sm">Lisää hintataulun kuva tai syötä hinnat käsin.</p></div><button ref={closeRef} type="button" onClick={onClose} aria-label="Sulje hintailmoitus" className="h-10 w-10 shrink-0 rounded-full border-2 border-[#17573c] text-xl">×</button></header>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="mb-2 grid shrink-0 grid-cols-3 gap-1 sm:gap-2">
@@ -320,7 +320,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
               <button type="button" aria-pressed={guideOrientation==="landscape"} onClick={()=>setGuideOrientation("landscape")} className={`rounded-md px-3 py-1 text-xs font-bold ${guideOrientation==="landscape"?"bg-[#e3edc9] text-[#174c35]":"text-[#f5e5c1]"}`}>Vaaka</button>
             </div>
           </div>}
-          <div className={`relative flex min-h-0 flex-1 w-full justify-center rounded-xl bg-[#080e0b] ${cameraOpen?"items-center overflow-hidden":"items-start overflow-y-auto"}`}>
+          <div className={`relative flex min-h-0 flex-1 w-full justify-center rounded-xl bg-[#080e0b] ${cameraOpen?"items-center overflow-hidden":"items-start overflow-y-auto overscroll-contain"}`}>
             {cameraOpen?<div className="relative h-full min-h-[140px] w-full overflow-hidden text-[#f5e5c1]">
               <video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className="absolute inset-0 h-full w-full object-contain" aria-label="Kameran esikatselu"/>
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
@@ -332,7 +332,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
                 </div>
               </div>
             </div>:!photo&&mode!=="manual"?<div className="max-w-[320px] px-4 py-5 text-center text-[#f5e5c1]"><svg viewBox="0 0 64 64" aria-hidden="true" className="mx-auto mb-2 h-12 w-12 text-[#e3edc9]"><rect x="13" y="12" width="27" height="42" rx="5" fill="none" stroke="currentColor" strokeWidth="4"/><rect x="19" y="18" width="15" height="14" rx="2" fill="currentColor"/><path d="M40 21h5l7 8v17c0 8-12 8-12 0V35" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/><path d="M19 54h25" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg><p className="text-lg font-black">Lisää hintataulun kuva</p><p className="mt-2 text-sm leading-relaxed text-[#e5ddc6]">Ota uusi kuva tai valitse aiempi kuva yllä olevista napeista.</p></div>:<div className="w-full space-y-2 p-2 text-[#f5e5c1]">
-              <div role="status" aria-live="polite" className="flex min-h-[36px] items-center justify-center px-2 text-center text-xs font-bold text-[#ff9b83]">{!sent&&missingReasons.join(" ")}</div>
+              {!sent&&!busy&&missingReasons.length>0&&<div role="status" aria-live="polite" className="px-2 text-center text-xs font-bold text-[#ff9b83]">{missingReasons.join(" ")}</div>}
               {metadataInfo&&<p className="text-xs text-[#e5ddc6]">{metadataInfo}</p>}{learningInfo&&<p role="status" aria-live="polite" className="text-xs text-[#e3edc9]">{learningInfo}</p>}
               
               {sent?<div role="status" className="py-6 text-center"><p className="text-xl font-black">Kiitos! Ilmoitus vastaanotettu.</p><button type="button" onClick={onClose} className="mt-4 rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35]">OK</button></div>:<>
