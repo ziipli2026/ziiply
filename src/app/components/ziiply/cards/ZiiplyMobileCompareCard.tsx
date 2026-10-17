@@ -251,9 +251,9 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   return (
     <div
-      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+      className={`fixed inset-0 z-[92] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section className="ziiply-mobile-compare-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-mobile-compare-pop relative flex h-full max-h-full min-h-0 min-w-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -278,7 +278,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[14.85rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4 pt-[14.85rem] [touch-action:pan-y] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2.5">
 
             {showSkeleton ? (
