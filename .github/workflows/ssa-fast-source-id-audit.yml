@@ -1,9 +1,10 @@
 name: Sale Alepa production source-ID mass check
 on:
   workflow_dispatch:
-  push:
-    paths: ['.github/workflows/ssa-fast-source-id-audit.yml']
 permissions: {contents: read}
+concurrency:
+  group: sale-alepa-source-audit
+  cancel-in-progress: true
 jobs:
   audit:
     runs-on: ubuntu-latest
