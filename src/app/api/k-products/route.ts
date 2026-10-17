@@ -74,8 +74,13 @@ export async function GET(request: Request) {
     });
   }
 
+  const normalizedSearch = search.trim().toLocaleLowerCase("fi");
+  // Ruoanhinta matches "nakit" too literally: its singular "nakki" query
+  // returns the actual grocery products in both S and K chains.
+  const upstreamSearch = normalizedSearch === "nakit" ? "nakki" : search;
+
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
-    search
+    upstreamSearch
   )}&storeIds=${storeId}&skip=0&take=100`;
 
   try {
@@ -92,6 +97,7 @@ export async function GET(request: Request) {
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
+      .filter((product) => normalizedSearch !== "nakit" || !/koira|lemmik|dog\\b|purunak|primadog|pedigree/i.test(`${product.name} ${"category" in product ? product.category || "" : ""}`))
       .map((product) => ({
         id: String(product.id),
         name: fixEncoding(product.name),
