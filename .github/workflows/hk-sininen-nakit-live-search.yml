@@ -1,0 +1,45 @@
+name: HK Sininen and nakit live product search
+
+on:
+  workflow_dispatch:
+
+jobs:
+  live-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check live S and K product results
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base = 'https://ziiply.vercel.app';
+          const stores = [{chain:'S',id:'292',api:'s-products'},{chain:'K',id:'3221',api:'k-products'}];
+          const queries = ['hk sininen lenkki','sininen lenkki','nakit','nakki','koiranmakkara'];
+          const norm = x => String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+          const pet = x => /koira|dog\b|lemmik|purunak|primadog|pedigree|best.in|dibo/.test(norm(x));
+          let failures = 0;
+          for (const store of stores) {
+            for (const query of queries) {
+              const url = base+'/api/'+store.api+'?search='+encodeURIComponent(query)+'&store='+store.id;
+              try {
+                const response = await fetch(url,{signal:AbortSignal.timeout(30000),headers:{accept:'application/json'}});
+                if (!response.ok) throw new Error('HTTP '+response.status);
+                const data = await response.json();
+                const items = Array.isArray(data.items)?data.items:Array.isArray(data.products)?data.products:[];
+                const summary = items.slice(0,10).map(x=>({name:x.name||x.title,category:x.category||x.categoryName}));
+                console.log(JSON.stringify({chain:store.chain,query,count:items.length,top:summary}));
+                if (!items.length) {console.error('FAIL zero results:',store.chain,query);failures++;continue;}
+                if (query==='nakit'||query==='nakki') {
+                  const food = items.filter(x=>/nakki|nakkimakkara/.test(norm(x.name||x.title))&&!pet([x.name,x.category,x.categoryName].join(' ')));
+                  if (!food.length) {console.error('FAIL no human-food nakit:',store.chain,query);failures++;}
+                  if (items.slice(0,5).some(x=>pet([x.name,x.category,x.categoryName].join(' ')))) {console.error('FAIL pet snack in top five:',store.chain,query);failures++;}
+                }
+                if (query.includes('sininen')) {
+                  if (!items.some(x=>/sininen/.test(norm(x.name||x.title))&&/hk|lenkki/.test(norm(x.name||x.title)))) {console.error('FAIL HK Sininen missing:',store.chain,query);failures++;}
+                }
+              } catch(e) {console.error('FAIL request:',store.chain,query,e.message);failures++;}
+            }
+          }
+          if(failures){console.error('LIVE_SEARCH_FAILURES',failures);process.exit(1);}
+          console.log('PASS live product search checks');
+          NODE
