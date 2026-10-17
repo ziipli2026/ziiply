@@ -202,6 +202,14 @@ export default function ZiiplyMobileTopBar({
 }: ZiiplyMobileTopBarProps) {
   const [activeUtility, setActiveUtility] = useState<"electricity" | "fuel" | null>(null);
   const [fuelReportOpen, setFuelReportOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [debugSnapshot, setDebugSnapshot] = useState("");
+  const captureDebug = () => {
+    const nodes = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"],[aria-modal="true"]')).map(el => ({label: el.getAttribute("aria-label"), text: (el.innerText || "").slice(0,130), zIndex: getComputedStyle(el).zIndex, background: getComputedStyle(el).backgroundColor, rect: {x: Math.round(el.getBoundingClientRect().x), y: Math.round(el.getBoundingClientRect().y), width: Math.round(el.getBoundingClientRect().width), height: Math.round(el.getBoundingClientRect().height)}}));
+    const result = JSON.stringify({time: new Date().toISOString(), url: location.href, activeUtility, chartOpen: activeUtility === "electricity", fuelReportOpen, dialogs: nodes, viewport: {width: innerWidth, height: innerHeight}}, null, 2);
+    setDebugSnapshot(result);
+    setDebugOpen(true);
+  };
   const chartOpen = activeUtility === "electricity";
   const setChartOpen = (open: boolean) => setActiveUtility(open ? "electricity" : null);
   const toggleElectricity = () => {
@@ -637,6 +645,8 @@ export default function ZiiplyMobileTopBar({
         </div>,
         document.body
       )}
+      <button type="button" onClick={captureDebug} className="fixed bottom-[105px] right-3 z-[100000] rounded-lg bg-[#173d32] px-3 py-2 text-xs font-bold text-white shadow-lg sm:hidden">DEBUG</button>
+      {debugOpen && typeof document !== "undefined" && createPortal(<div className="fixed inset-0 z-[100001] flex items-center justify-center bg-black/75 p-3 sm:hidden"><section className="flex max-h-[85dvh] w-full max-w-lg flex-col rounded-xl bg-white p-3 text-black"><div className="mb-2 flex justify-between"><strong>Yläpalkin debug</strong><button type="button" onClick={() => setDebugOpen(false)}>Sulje ×</button></div><textarea readOnly value={debugSnapshot} className="min-h-0 flex-1 resize-none rounded border p-2 font-mono text-xs" rows={18}/><button type="button" className="mt-2 rounded bg-green-800 p-3 font-bold text-white" onClick={() => { const blob = new Blob([debugSnapshot], {type:"application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href=url; a.download="ziiply-topbar-debug.json"; a.click(); URL.revokeObjectURL(url); }}>Lataa debug JSON</button></section></div>, document.body)}
       {activeUtility === "fuel" && typeof document !== "undefined" && createPortal(
         <ZiiplyMobileFuelMenu onClose={() => setActiveUtility(null)} onReport={() => { setActiveUtility(null); setFuelReportOpen(true); }} onShowPrices={() => { setActiveUtility(null); onOpenFuel?.(); }} />, document.body
       )}
