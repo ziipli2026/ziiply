@@ -199,24 +199,18 @@ export default function ZiiplyMobileTopBar({
   onOpenFuel,
   onOpenCalendar,
 }: ZiiplyMobileTopBarProps) {
-  const [fuelReportOpen, setFuelReportOpen] = useState(false);
-  const [chartOpen, setChartOpen] = useState(false);
-  // Only one utility overlay may be open at a time.
-  useEffect(() => {
-    const closeChart = () => setChartOpen(false);
-    window.addEventListener("ziiply:open-fuel", closeChart);
-    return () => window.removeEventListener("ziiply:open-fuel", closeChart);
-  }, []);
+  const [activeUtility, setActiveUtility] = useState<"electricity" | "fuel" | null>(null);
+  const chartOpen = activeUtility === "electricity";
+  const fuelReportOpen = activeUtility === "fuel";
+  const setChartOpen = (open: boolean) => setActiveUtility(open ? "electricity" : null);
+  const setFuelReportOpen = (open: boolean) => setActiveUtility(open ? "fuel" : null);
   const toggleElectricity = () => {
     window.dispatchEvent(new Event("ziiply:open-electricity"));
-    setFuelReportOpen(false);
-    setChartOpen(previous => !previous);
+    setActiveUtility(previous => previous === "electricity" ? null : "electricity");
   };
   const toggleFuel = () => {
     window.dispatchEvent(new Event("ziiply:open-fuel"));
-    setChartOpen(false);
-    if (onOpenFuel) onOpenFuel();
-    else setFuelReportOpen(previous => !previous);
+    setActiveUtility(previous => previous === "fuel" ? null : "fuel");
   };
   const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
   const [chartError, setChartError] = useState("");
