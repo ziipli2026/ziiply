@@ -30,3 +30,22 @@ Sale-ajon 159 jäljelle jäänyttä myymälää **ei tarkistettu**, koska HTTP 4
 - Säilytä 126+ aiemmin vahvistetun myymälän toimivat haut. Tulokset vaihtelevat ajosta toiseen, joten älä yhdistä eri ajojen lukumääriä yksittäisen ajon kattavuusluvuksi.
 
 Tuotantokoodia ei muutettu tätä raporttia varten.
+
+
+## Päivitys: viimeisin kattava ajo 39055107119 (17.10.2026)
+
+[Lähdeajo ja kuusi rinnakkaista osaa](https://github.com/ziipli2026/ziiply/actions/runs/39055107119). Alla olevat luvut korvaavat yllä olevan **osittaisen ajon** luvut kattavuuden lähtötilanteena; vanha osittainen ajo on jätetty näkyviin vertailua varten.
+
+| Ketju | Tarkistettu | Tuotteita löytyi | HTTP 200, 0 tuotetta | GraphQL Store not found |
+|---|---:|---:|---:|---:|
+| Sale | 303 | 166 | 120 | 17 |
+| Alepa | 131 | 64 | 57 | 10 |
+| **Yhteensä** | **434** | **230** | **177** | **27** |
+
+**Tarkka tulkinta:** Nollatapauksissa sekä hakusana `maito` että tyhjä hakusana palauttivat `data.store.products.total = 0` (HTTP 200). Tämä ei todista, että myymälän koko tuoteryhmävalikoima olisi tyhjä. Kaikissa 27 GraphQL-tapauksessa virheilmoitus oli `Store not found`. Näiden 204 ongelmallisen myymälän virallisen tuotetietotunnuksen selvitys jäi ajossa ratkaisematta. Se ei todista, että kaikki lähde-ID:t olisivat vääriä.
+
+**Lisähuomio pääsynrajoituksesta:** [Virallisen hakemiston tarkistusajossa 39056971312](https://github.com/ziipli2026/ziiply/actions/runs/39056971312) kaikki 303 Sale- ja 132 Alepa-hakemistopyyntöä palauttivat HTTP 429. Näitä ei saa luokitella puuttuviksi myymälöiksi eikä tuotetietojen nollatuloksiksi. Myymälämäärien ero (131 vs. 132 Alepaa) johtuu eri tarkistuslähteistä eikä ole vahvistettu myymälämuutos.
+
+**Koodimuutokset:** `5f322d8` käyttää virallisen hakemiston ketjukohtaisia polkuja. `5c618f5` estää hakemistohakujen jatkumisen HTTP 403/429 -tilanteessa. Molempien Vercel-tuotantobuild on ollut READY; tuotetietojen kattavuutta ei ole vahvistettu näiden korjausten jälkeen. `723d6a9` vaatii erillisen KYLLA-vahvistuksen koko 434 myymälän auditointiin.
+
+**Jatko ilman massapyyntöjä:** 1) Käsittele 27 `Store not found` -tapausta omana tunnusluokkanaan; tarkista ensin vanhalta näyttävät nimet. 2) Käsittele 177 HTTP 200 -nollatulosta erillisenä luokkana; varmista tunnus ennen tuoteryhmien korjaamista. 3) Tee myöhemmin rajattu testi vasta pääsynrajoituksen hellitettyä. Älä tee automaattista ID-korvausta tämän raportin perusteella.
