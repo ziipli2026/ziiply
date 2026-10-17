@@ -248,3 +248,28 @@ Lähteet:
 - https://www.s-kaupat.fi/myymalat/s-market
 
 **Tilanne:** aiemmin luokitellut 12 historiallista suljettua ja 2 vanhaa/muuttunutta kirjausta pysyvät ennallaan. Kahdesta jäljellä olevasta 13 tapauksesta löytyi nyt virallinen sivu tai hakemistomerkintä, mutta **GraphQL-tunnusongelmaa ei ole ratkaistu**. Muita täysin lähdetasolla selvittämättömiä on 11. Ei tuotantokoodin muutoksia, tunnuskorvauksia tai uusia massahakuja.
+
+
+## Alepa-tapausten luparekisterin ja S-kaupat-sivun ristiintarkistus (17.10.2026)
+
+**Tärkeä lähderajaus:** alla olevat päättymispäivämäärät ovat vähittäismyyntiluvan päättymispäiviä, eivät itsenäisesti vahvistettuja myymälän viimeisiä aukiolopäiviä. Luvat koskevat HOK-Elanto Liiketoiminta Oy:n nimettyjä toimipaikkoja. Tietoa käytetään historiallisten toimipaikkojen tunnistamiseen; pysyvän sulkemisen täsmällinen päivämäärä edellyttää erillistä myymälälähdettä.
+
+| Auditoinnin myymälä | Lähde-ID | Vähittäismyyntiluvan päättyminen | Tulkinta |
+|---|---|---|---|
+| Alepa Hämeenkatu | `726435584` | 21.12.2024 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Keilaniemi | `726171742` | 17.12.2023 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Kilo | `660931411` | 28.6.2024 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Pasilanraitio | `531632420` | 2.5.2025 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Pukinmäki | `552108425` | 7.4.2025 | Historiallinen/lopettamiseen viittaava lupatieto; S-market Pukinmäki on erillinen myymälä |
+| Alepa Rajatorppa | `512415167` | 28.6.2024 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Sitratori | `584813356` | 30.1.2025 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Tapulikaupunki | `726256638` | 21.8.2025 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Viherniemenkatu | `538460205` | 1.7.2024 | Historiallinen/lopettamiseen viittaava lupatieto |
+| Alepa Jamppa | `726425715` | 1.10.2026 | S-kaupat-sivu näyttää 5.–25.10.2026 suljettua; vahva viite lopettamisesta, mutta ei vielä erillistä sulkemistiedotetta |
+
+Lähteet:
+- HOK-Elanto Liiketoiminta Oy:n toimipaikkakohtainen vähittäismyyntiluettelo: https://helppox.com/viina/uusi/companydata.php?asiakastunnus=1837957-3&asiakkaan_nimi=HOK-Elanto++Liiketoiminta++Oy
+- Alepa Jampan S-kaupat-sivu: https://www.s-kaupat.fi/myymala/alepa-jamppa/726425715
+- S-market Pukinmäki (eri toimipaikka): https://www.s-kaupat.fi/myymala/s-market-pukinmaki/726261341
+
+**Tarkistuksen vaikutus:** Aiemmin 12 suljetuksi tunnistetun lisäksi yhdeksästä muusta Alepasta löytyi päättynyt myyntilupa ja Jampasta sekä päättynyt lupa että usean viikon suljettu-merkintä. Näitä **ei lasketa automaattisesti 10 uudeksi vahvistetuksi myymäläsulkemiseksi**, koska luvan päättyminen ei yksin todista pysyvää sulkemista. Alepa Jampan aiempi 'virallinen tunnus löytyi, GraphQL ei toimi' -merkintä on täydennettävä tällä ajantasaisella sulkemisnäytöllä. Alkuperäisen auditoinnin 27 virhettä säilyvät; tuotantokoodia, myymälätunnuksia ja massahakuja ei muutettu.
