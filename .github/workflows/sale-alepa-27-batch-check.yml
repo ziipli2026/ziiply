@@ -14,7 +14,7 @@ jobs:
         run: |
           mkdir -p audit
           node <<'NODE'
-          const fs=require('node:fs');
+          const fs=await import('node:fs');
           const stores=JSON.parse(process.env.STORES);
           const sleep=ms=>new Promise(r=>setTimeout(r,ms));
           const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
