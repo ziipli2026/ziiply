@@ -60,8 +60,8 @@ jobs:
                 categoryProbe=await probe(sourceId,"");
                 if(categoryProbe.ok&&Number(categoryProbe.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:direct.status,count:categoryProbe.count,status:"working",recoveredByUnfilteredSearch:true,searchCount:0,unfilteredCount:categoryProbe.count};
               }
-              if(direct.status===403)return {name,sourceId,resolvedId:null,status:"http_error",httpStatus:403,count:0,detail:"Access denied; fallback resolver deliberately skipped"};
-              if(!direct.ok&&[429,500,502,503,504].includes(Number(direct.status))){await new Promise(r=>setTimeout(r,900));const retry=await probe(sourceId);if(retry.ok&&Number(retry.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:retry.status,count:retry.count,status:"working",recoveredByRetry:true};}
+              if(direct.status===403||direct.status===429)return {name,sourceId,resolvedId:null,status:"http_error",httpStatus:direct.status,count:0,detail:"Access restricted; fallback resolver deliberately skipped"};
+              if(!direct.ok&&[500,502,503,504].includes(Number(direct.status))){await new Promise(r=>setTimeout(r,900));const retry=await probe(sourceId);if(retry.ok&&Number(retry.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:retry.status,count:retry.count,status:"working",recoveredByRetry:true};}
               if(direct.ok&&Number(direct.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:direct.status,count:direct.count,rootKeys:direct.rootKeys,status:"working"};
               const resolved=await Promise.race([resolvePrismaCampaignStoreIdV1(name,sourceId),new Promise<null>(resolve=>setTimeout(()=>resolve(null),12000))]);
               const idResolution=resolved===sourceId?"same_as_source":resolved?"different_official_id":"unresolved";
@@ -70,9 +70,9 @@ jobs:
             }catch(e:any){return {name,sourceId,status:"exception",detail:String(e?.message||e)};}
           };
           for(let i=0;i<selected.length;i+=2){
-            if(blocked){console.log("FAST_STOP",JSON.stringify({chain,reason:"HTTP 403 access denied",checked:i,total:selected.length}));break;}
+            if(blocked){console.log("FAST_STOP",JSON.stringify({chain,reason:"HTTP 403/429 access restricted",checked:i,total:selected.length}));break;}
             const batch=await Promise.all(selected.slice(i,i+2).map(checkOne));
-            if(batch.some(x=>x.httpStatus===403)){blocked=true;console.log("FAST_BLOCKED",JSON.stringify({chain,at:i,blockedInBatch:batch.filter(x=>x.httpStatus===403).length}));}
+            if(batch.some(x=>[403,429].includes(x.httpStatus))){blocked=true;console.log("FAST_BLOCKED",JSON.stringify({chain,at:i,blockedInBatch:batch.filter(x=>[403,429].includes(x.httpStatus)).length}));}
             for(const x of batch){
               if(x.resolvedId){resolved++;if(x.resolvedId!==x.sourceId)changed++;}
               if(x.status==="working")working++;
