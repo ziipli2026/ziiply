@@ -56,6 +56,7 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   "kevyt mait": "kevytmaito",
   kevytmait: "kevytmaito",
   cocacola: "coca cola",
+  vola: "cola",
   kokis: "coca cola",
   cokis: "coca cola",
   kookis: "coca cola",
