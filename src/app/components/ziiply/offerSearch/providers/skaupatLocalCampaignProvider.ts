@@ -774,7 +774,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     // fragile extra Ruoanhinta/geocoding lookup in that case. Short numeric
     // IDs (e.g. 721) are Ruoanhinta IDs, never S-kaupat external IDs.
     const selectedStoreId = firstStringV1(options?.sStoreId, options?.storeId);
-    const officialSelectedStoreId = /^\\d{5,}$/.test(selectedStoreId)
+    const officialSelectedStoreId = /^[0-9]{5,}$/.test(selectedStoreId)
       ? selectedStoreId
       : null;
     const resolvedStoreId =
