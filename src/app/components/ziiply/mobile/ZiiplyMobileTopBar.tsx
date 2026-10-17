@@ -201,6 +201,23 @@ export default function ZiiplyMobileTopBar({
 }: ZiiplyMobileTopBarProps) {
   const [fuelReportOpen, setFuelReportOpen] = useState(false);
   const [chartOpen, setChartOpen] = useState(false);
+  // Only one utility overlay may be open at a time.
+  useEffect(() => {
+    const closeChart = () => setChartOpen(false);
+    window.addEventListener("ziiply:open-fuel", closeChart);
+    return () => window.removeEventListener("ziiply:open-fuel", closeChart);
+  }, []);
+  const toggleElectricity = () => {
+    window.dispatchEvent(new Event("ziiply:open-electricity"));
+    setFuelReportOpen(false);
+    setChartOpen(previous => !previous);
+  };
+  const toggleFuel = () => {
+    window.dispatchEvent(new Event("ziiply:open-fuel"));
+    setChartOpen(false);
+    if (onOpenFuel) onOpenFuel();
+    else setFuelReportOpen(previous => !previous);
+  };
   const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
   const [chartError, setChartError] = useState("");
   const [chartLoading, setChartLoading] = useState(false);
@@ -492,7 +509,7 @@ export default function ZiiplyMobileTopBar({
       unit: effectiveElectricityText === "c/kWh" ? "c/kWh" : undefined,
       detail: effectiveElectricityText,
       graphic: <ElectricityGraphic />,
-      onClick: onOpenElectricity || (() => setChartOpen(true)),
+      onClick: toggleElectricity,
       level: electricityPriceLevel,
     },
     {
@@ -502,7 +519,7 @@ export default function ZiiplyMobileTopBar({
       unit: fuelValue === "—" ? undefined : "€/l",
       detail: fuelText,
       graphic: <FuelGraphic />,
-      onClick: onOpenFuel ?? (() => setFuelReportOpen(true)),
+      onClick: toggleFuel,
     },
     {
       id: "calendar",
@@ -590,7 +607,7 @@ export default function ZiiplyMobileTopBar({
       </div>
     </div>
       {chartOpen && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#777777]/80 p-4 sm:hidden" style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", backgroundColor: "rgba(80,80,80,0.88)" }} onClick={() => setChartOpen(false)}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 sm:hidden" style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", backgroundColor: "rgba(0,0,0,0.40)" }} onClick={() => setChartOpen(false)}>
           <div className="w-full max-w-[520px] max-h-[calc(100dvh-32px)] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä" onClick={(event) => event.stopPropagation()}>
           <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
