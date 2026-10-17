@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Hae tuotannon kaikki tarjoukset ja kokeile oikeita hakukonteksteja
+      - name: Hae tuotannon kaikki tarjoukset master-hakusanalla
         env:
           API_URL: https://ziiply.vercel.app/api/offers/search
         run: |
@@ -20,10 +20,10 @@ jobs:
           const fs = await import('node:fs');
           const base = process.env.API_URL;
           const cases = [
-            {name:'official-store-id', params:{q:'',sStoreName:'S-market Jokela',sStoreId:'685839110'}},
-            {name:'ui-store-id', params:{q:'',sStoreName:'S-market Jokela',sStoreId:'721'}},
-            {name:'store-name-only', params:{q:'',sStoreName:'S-market Jokela'}},
-            {name:'all-within-chain', params:{q:'',sStoreName:'S-market Jokela',sStoreId:'685839110',withinChain:'S'}}
+            {name:'official-store-id', params:{q:'__ziiply_all_offers__',sStoreName:'S-market Jokela',sStoreId:'685839110'}},
+            {name:'ui-store-id', params:{q:'__ziiply_all_offers__',sStoreName:'S-market Jokela',sStoreId:'721'}},
+            {name:'store-name-only', params:{q:'__ziiply_all_offers__',sStoreName:'S-market Jokela'}},
+            {name:'all-within-chain', params:{q:'__ziiply_all_offers__',sStoreName:'S-market Jokela',sStoreId:'685839110',withinChain:'S'}}
           ];
           const attempts = [];
           let best = null;
