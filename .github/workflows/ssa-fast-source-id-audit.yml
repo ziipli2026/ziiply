@@ -1,12 +1,19 @@
 name: Sale Alepa production source-ID mass check
 on:
   workflow_dispatch:
+    inputs:
+      confirm_full_audit:
+        description: "Kirjoita KYLLA vain, jos haluat tarkistaa kaikki 434 myymälää verkosta"
+        required: true
+        default: "EI"
+        type: string
 permissions: {contents: read}
 concurrency:
   group: sale-alepa-source-audit
   cancel-in-progress: true
 jobs:
   audit:
+    if: ${{ inputs.confirm_full_audit == 'KYLLA' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
