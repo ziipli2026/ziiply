@@ -457,13 +457,22 @@ function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
   return unique;
 }
 
+// V38: Request-local diagnostics. Callers opting in receive their own failures
+// without module globals or cross-request data leakage.
+export type OfferSourceFailureV38 = { source: string; code: string; message: string };
+export type OfferSearchDiagnosticsV38 = { failures: OfferSourceFailureV38[] };
+
 async function safelySearchSource(
   label: string,
   task: () => Promise<ZiiplyOfferSearchResult[]>,
+  diagnostics?: OfferSearchDiagnosticsV38,
 ) {
   try {
     return await task();
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const code = /(?:S_LOCAL|S_KAUPAT)_[A-Z_]+/.exec(message)?.[0] || "SOURCE_ERROR";
+    diagnostics?.failures.push({ source: label, code, message: message.slice(0, 240) });
     console.warn(`[Ziiply offers] ${label} epäonnistui`, error);
     return [];
   }
@@ -813,8 +822,10 @@ export async function searchSelectedSKaupatOffersV11(
 export async function searchZiiplyOffers(
   query: string,
   options?: ZiiplyOfferSearchSourceContextV8,
+  diagnostics?: OfferSearchDiagnosticsV38,
 ) {
   const cleanQuery = query.trim();
+  if (diagnostics) diagnostics.failures.length = 0;
 
   if (!cleanQuery) return [];
 
@@ -897,6 +908,7 @@ export async function searchZiiplyOffers(
     ? safelySearchSource(
         isGostaMasterQuery ? "Prisma S-kaupat master V32" : "Prisma S-kaupat V32",
         () => searchSelectedSKaupatOffersV11(cleanQuery, providerOptions),
+        diagnostics,
       )
     : [],
   // Independent Prisma CMS campaign dataset, kept distinct from DISCOUNTED offers.
@@ -920,6 +932,7 @@ export async function searchZiiplyOffers(
     ? await safelySearchSource(
         isGostaMasterQuery ? "S-local S-kaupat campaigns master V32" : "S-local S-kaupat campaigns V32",
         () => searchSelectedSLocalCampaignOffersV31(cleanQuery, options),
+        diagnostics,
       )
     : [];
 
