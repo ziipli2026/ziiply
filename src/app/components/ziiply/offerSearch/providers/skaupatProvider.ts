@@ -2143,7 +2143,14 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   });
 
   if (!response.ok) {
-    throw new Error(`S-kaupat RemoteFilteredProducts failed: ${response.status}`);
+    const code = response.status === 403
+      ? "ACCESS_DENIED"
+      : response.status === 429
+        ? "RATE_LIMITED"
+        : response.status >= 500
+          ? "UPSTREAM_ERROR"
+          : "HTTP_ERROR";
+    throw new Error(`S_KAUPAT_${code}: HTTP ${response.status}`);
   }
 
   const data = await response.json();
