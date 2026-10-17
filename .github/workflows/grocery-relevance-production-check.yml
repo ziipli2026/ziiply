@@ -24,6 +24,19 @@ jobs:
                 if(!names.length){failures++;console.error("EMPTY",chain,term);}
                 if(term==="kahvi"&&names.every(n=>/skyr|jogurtti|patukka/i.test(n))){failures++;console.error("COFFEE_ORDER",chain);}
                 if(term==="lohi"&&names.every(n=>/koira|kissa|lemmik/i.test(n))){failures++;console.error("FISH_ORDER",chain);}
+                const prepared={
+                  jogurtti:/patukka|mysli|kastike|salaatti|muro/i,
+                  banaani:/smoothie|patukka|puuro|jogurtti|rahka|välipala/i,
+                  peruna:/salaatti|sekoitus|pakaste|pihvi|leipä|sämpylä/i,
+                  porkkana:/leipä|sämpylä|tikku|pihvi|patukka/i,
+                  tomaatti:/pesto|keitto|pasta|mauste|seos|paseerattu|kuivattu/i,
+                  leipä:/wiener|kakku|pulla|leivos/i,
+                  broileri:/kolmari|wrap|pizza|salaatti|patonki/i
+                };
+                const bad=prepared[term];
+                if(bad&&names.length>=3&&names.slice(0,3).every(n=>bad.test(n))){
+                  failures++;console.error("RELEVANCE_ORDER",chain,term,names.slice(0,3));
+                }
               }catch(e){failures++;console.error("ERROR",chain,term,String(e));}
             }
           }
