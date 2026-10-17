@@ -51,8 +51,8 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       if(/patukka|mysli|kastike|salaatti|jogurttirusina/.test(name))value-=100;
     }
     if(canonical==="leipä"){
-      if(/\b(leipä|ruisleipä|paahtoleipä|limppu|rouhepalat|viipaleet)\b/.test(name)&&!/kakku|pulla|wiener|leivos/.test(name))value+=50;
-      if(/kakku|pulla|wiener|leivos/.test(name))value-=90;
+      if(/\b(leipä|ruisleipä|paahtoleipä|limppu|rouhepalat|viipaleet|ruispalat|täysjyväleipä)\b/.test(name)&&!/kakku|pulla|wiener|leivos|leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipälastu/.test(name))value+=90;
+      if(/kakku|pulla|wiener|leivos|leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipälastu/.test(name))value-=160;
     }
     if(canonical==="broileri"){
       if(/broiler/.test(name)&&!/wrap|patonki|pizza|salaatti|voileipä|kolmari/.test(name))value+=60;
