@@ -1,0 +1,106 @@
+name: S-market Jokela massatarkistus
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Hae tuotannon kaikki tarjoukset
+        env:
+          API_URL: https://ziiply.vercel.app/api/offers/search
+        run: |
+          mkdir -p audit
+          curl --fail-with-body --location --silent --show-error --retry 3 --max-time 180 --get "$API_URL" \
+            --data-urlencode "q=" \
+            --data-urlencode "sStoreName=S-market Jokela" \
+            --data-urlencode "sStoreId=685839110" \
+            --data-urlencode "storeMode=single" \
+            --data-urlencode "scope=single" \
+            -H 'Accept: application/json' \
+            -o audit/jokela-all.json
+          test -s audit/jokela-all.json
+
+      - name: Tarkista kaikki tuotekohtaisesti
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const data = JSON.parse(fs.readFileSync('audit/jokela-all.json', 'utf8'));
+          if (!data.ok || !Array.isArray(data.results)) {
+            throw new Error('Tarjousrajapinta ei palauttanut odotettua results-taulukkoa: ' + JSON.stringify(data).slice(0, 500));
+          }
+          const rows = data.results.filter(x => /^(s|s-market)$/i.test(String(x.chain || '')) || /s-market jokela/i.test(String(x.storeName || x.storeLabel || '')));
+          const issues = [];
+          const seen = new Map();
+          const categoryCounts = {};
+          for (const [i, item] of rows.entries()) {
+            const e = item.debugLocalCampaignEvidenceV231 || {};
+            const title = String(item.title || item.name || '');
+            const ean = String(item.ean || '').trim();
+            const category = String(item.neonDisplayCategory || item.category || '').trim();
+            const money = v => {
+              if (typeof v === 'number') return v;
+              const t = String(v ?? '').replace(/\s/g, '').replace('€', '').replace(',', '.');
+              return t && Number.isFinite(Number(t)) ? Number(t) : null;
+            };
+            const price = money(item.priceText ?? item.price);
+            const comparison = String(item.unitPriceText || item.comparisonPriceText || item.unitPrice || '');
+            const salesUnit = String(item.salesUnit || '').toUpperCase();
+            categoryCounts[category || '(puuttuu)'] = (categoryCounts[category || '(puuttuu)'] || 0) + 1;
+            const add = (type, details = '') => issues.push({ row: i + 1, ean, title, category, type, details });
+            if (!title) add('missing_title');
+            if (!ean) add('missing_ean');
+            if (!category) add('missing_category');
+            if (price == null || price <= 0) add('invalid_price', String(item.priceText || item.price || ''));
+            if (!comparison) add('missing_unit_price');
+            if (!item.imageUrl && !item.image) add('missing_image');
+            if (ean) {
+              if (seen.has(ean)) add('duplicate_ean', 'First row: ' + seen.get(ean));
+              else seen.set(ean, i + 1);
+            }
+            if (e.campaignPrice != null && price != null && Math.abs(price - Number(e.campaignPrice)) > 0.011) add('campaign_price_mismatch', String(e.campaignPrice));
+            if (e.regularPrice != null && e.campaignPrice != null && Number(e.campaignPrice) > Number(e.regularPrice)) add('campaign_above_regular');
+            if (item.isWeightedProduct || item.isApproximatePrice || ['KG','KGM','L','LTR'].includes(salesUnit)) {
+              if (!comparison) add('weighted_missing_comparison');
+            }
+            if (item.neonDisplayCategory && item.category && item.neonDisplayCategory !== item.category) add('neon_display_mismatch', String(item.neonDisplayCategory));
+          }
+          const report = {
+            generatedAt: new Date().toISOString(),
+            source: 'https://ziiply.vercel.app/api/offers/search',
+            store: 'S-market Jokela',
+            rawResultCount: data.results.length,
+            checkedRows: rows.length,
+            categoryCounts,
+            issueCount: issues.length,
+            issues
+          };
+          fs.writeFileSync('audit/jokela-report.json', JSON.stringify(report, null, 2));
+          fs.writeFileSync('audit/jokela-report.txt', [
+            'S-market Jokela — massatarkistus',
+            'Tuotteita: ' + rows.length,
+            'Havaintoja: ' + issues.length,
+            '',
+            'Tuoteryhmät:',
+            ...Object.entries(categoryCounts).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>'  '+k+': '+v),
+            '',
+            'Havainnot:',
+            ...issues.map(x=>x.row+' | '+x.ean+' | '+x.title+' | '+x.type+' | '+x.details)
+          ].join('\n'));
+          console.log(fs.readFileSync('audit/jokela-report.txt', 'utf8').slice(0, 12000));
+          if (!rows.length) throw new Error('Yhtään Jokelan tuotetta ei saatu. Tarkista rajapinnan vastaus artefaktista.');
+          NODE
+
+      - name: Tallenna kaikki debugit ja raportti
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s-market-jokela-massatarkistus
+          path: audit/
+          if-no-files-found: warn
+          retention-days: 14
