@@ -56,6 +56,16 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const [learningInfo,setLearningInfo]=useState("");
   const learningToken=useRef("");const learningTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const priceEdits=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
+  // Warm up the OCR runtime while the user is choosing a photo, not after selection.
+  const warmWorker=useRef<Promise<Worker>|null>(null);
+  useEffect(()=>{
+    let cancelled=false;
+    const pending=loadOcr().then(ocr=>ocr.createWorker("eng",1,{}));
+    warmWorker.current=pending;
+    void pending.then(worker=>{if(cancelled)void worker.terminate().catch(()=>{});}).catch(()=>{if(warmWorker.current===pending)warmWorker.current=null;});
+    return ()=>{cancelled=true;};
+  },[]);
+
   useEffect(()=>()=>{if(learningTimer.current)clearTimeout(learningTimer.current);},[]);
   async function pollLearning(id:string,token:string,round=0){
     if(!alive.current||requestId.current!==id)return;
@@ -210,8 +220,8 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       setGps(location);const stationSearch=findStations(location);
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
       const data=await preparePhoto(file);recoveryData=data;if(!alive.current)return;setPhoto(data);
-      const ocr=await loadOcr();if(!alive.current)return;
-      const worker=await ocr.createWorker("eng",1,{});
+      const worker=await (warmWorker.current??loadOcr().then(ocr=>ocr.createWorker("eng",1,{})));
+      warmWorker.current=null;
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
       const result=await readFuelPhoto(worker,data,partial=>{if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([,value])=>Boolean(value)))}));setPriceReview(true);}});if(!alive.current)return;
       const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
