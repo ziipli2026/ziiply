@@ -134,3 +134,14 @@ Lähteet:
 - https://yle.fi/a/74-20111801
 
 **Ehdotettu käsittely:** merkitse `Sale Automaatti Tampere` tarkistusraportissa `historical_closed_store`-ehdokkaaksi (sulkemisesta vahva näyttö), älä tee automaattista tunnuskorvausta, äläkä laske tätä nykyisten aktiivisten myymälöiden tunnuskorjausjonoon ennen aktiivisen myymäläluettelon vertailua. Kattavan alkuperäisauditoinnin 27 virhettä säilyvät ennallaan historiatietona. Aktiivisen myymäläluettelon tuotantopäivitys vaatii erillisen vahvistuksen.
+
+
+## Lähdetarkistus: Sale Kaijonharju Oulu (17.10.2026)
+
+**Alkuperäinen lähde-ID:** `519814305` — kattavan auditoinnin `Store not found`.
+
+Osuuskauppa Arinan 31.8.2026 julkaistun tiedotteen mukaan **Sale Kaijonharju suljetaan 5.9.2026**, ja viereen rakennetaan uusi **S-market Kaijonharju**. Näin vanhan Sale-myymälän virheellä on uskottava historiallinen selitys. Älä korvaa vanhaa Sale-ID:tä uuden S-marketin ID:llä: kyseessä on eri myymäläkonsepti ja tuleva toimipaikka, eikä tuotetietotunnusta ole varmennettu.
+
+Virallinen lähde: https://api.sttinfo.fi/tiedote/72271453/kaijonharjun-palvelut-uudistuvat-nykyisen-salen-viereen-rakennetaan-uusi-s-market?lang=fi&publisherId=68574190
+
+**Luokitus:** `historical_closed_store` (sulkemisilmoitus vahvistettu). Auditoinnin 27 virhettä säilytetään ennallaan; tuotanto-ID:tä ei muuteta. Historiallisiksi suljetuiksi todettuja tapauksia on nyt kaksi: Sale Automaatti Tampere ja Sale Kaijonharju Oulu. Muut 25 alkuperäistä tapausta ovat edelleen vailla vahvistettua korvaavaa tuotetieto-ID:tä.
