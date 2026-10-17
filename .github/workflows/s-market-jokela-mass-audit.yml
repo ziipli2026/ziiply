@@ -278,6 +278,67 @@ jobs:
           for(const row of missing)console.log('MISSING EAN',row.ean,JSON.stringify(row.reasons),row.title);
           NODE
 
+      - name: Tuoteryhmien ja hintojen syvätarkistus massana
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const path='audit/response-official-store-id.json';
+          if(!fs.existsSync(path))throw Error('Tuotannon vastaus puuttuu');
+          const data=JSON.parse(fs.readFileSync(path,'utf8'));
+          const rows=Array.isArray(data.results)?data.results:[];
+          if(!rows.length)throw Error('Tuotannossa ei tuotteita: syvätarkistusta ei voi hyväksyä');
+          const num=x=>{if(x==null)return null;const v=Number(String(x).replace(/\s/g,'').replace('€','').replace(',','.'));return Number.isFinite(v)?v:null};
+          const findings=[],categories=[],prices=[];
+          const classify=(row,i)=>{
+            const title=String(row.title||row.name||'');
+            const source=String(row.category||'');
+            const display=String(row.neonDisplayCategory||'');
+            const t=(title+' '+String(row.brandName||'')).toLowerCase();
+            const checks=[
+              ['liha',/kana|broileri|nauta|possu|sika|jauheliha|filee|pihvi|makkara|leikkele/],
+              ['kala',/lohi|kirjolohi|tonnikala|silakka|kalapuikko|katkarapu/],
+              ['maito',/maito|jogurtti|rahka|juusto|kerma|voi\b/],
+              ['juoma',/limonadi|cola|mehu|energiajuoma|virvoitusjuoma|vesi\b/],
+              ['pesu',/pyykinpesu|astianpesu|pesuaine|huuhteluaine/],
+              ['paperi',/wc-paperi|talouspaperi|nenäliina/],
+              ['lemmikki',/kiss|koira|lemmikki/]
+            ];
+            for(const [family,re] of checks){
+              if(!re.test(t))continue;
+              const other=checks.filter(([f,rr])=>f!==family&&rr.test(t)).map(([f])=>f);
+              const label=(source+' '+display).toLowerCase();
+              const synonyms={liha:/liha|kana|broileri|leikkele|makkara/,kala:/kala|meren|äyriä/,maito:/maito|juusto|jogurtti|rahka|kerma|rasva/,juoma:/juoma|mehu|vesi/,pesu:/pesu|siivous|pyykki|kodinhoito/,paperi:/paperi|hygienia|wc/,lemmikki:/lemmikki|eläin|kissa|koira/};
+              if(!synonyms[family].test(label)&&!other.length)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,expectedFamily:family,reason:'category_semantic_review'});
+              break;
+            }
+            if(display&&source&&display!==source)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,reason:'taxonomy_label_difference_review'});
+          };
+          rows.forEach((row,i)=>{
+            classify(row,i);
+            const e=row.debugLocalCampaignEvidenceV231||{};
+            const price=num(row.priceText??row.price);
+            const regular=num(e.regularPrice),campaign=num(e.campaignPrice),current=num(e.currentPrice);
+            const unitText=String(row.unitPriceText||row.comparisonPriceText||row.unitPrice||'');
+            const salesUnit=String(row.salesUnit||'').toLowerCase();
+            const title=String(row.title||'');
+            const add=(reason,detail)=>prices.push({row:i+1,ean:row.ean,title,reason,detail});
+            if(price==null||price<=0)add('invalid_price',{price});
+            if(campaign!=null&&price!=null&&Math.abs(campaign-price)>.011)add('campaign_price_mismatch',{campaign,price});
+            if(campaign!=null&&regular!=null&&campaign>regular)add('campaign_above_regular',{campaign,regular});
+            if(!unitText)add('missing_unit_price',{salesUnit});
+            if((row.isWeightedProduct||row.isApproximatePrice||['kg','kgm'].includes(salesUnit))&&!/kg/i.test(unitText))add('weighted_unit_price_review',{salesUnit,unitText});
+            if(/\b\d+\s*(?:kpl|pkt|pack|rll|rl)\b/i.test(title)&&campaign!=null&&regular!=null&&campaign<regular&&price!=null&&Math.abs(price-campaign)>.011)add('multipack_price_review',{price,campaign,regular});
+            if(current!=null&&campaign!=null&&campaign>current)add('campaign_above_current',{campaign,current});
+          });
+          const summary={checked:rows.length,categoryReviewRows:categories.length,priceReviewRows:prices.length,categoryReasons:categories.reduce((o,x)=>(o[x.reason]=(o[x.reason]||0)+1,o),{}),priceReasons:prices.reduce((o,x)=>(o[x.reason]=(o[x.reason]||0)+1,o),{})};
+          fs.writeFileSync('audit/jokela-deep-category-review.json',JSON.stringify({summary,categories},null,2));
+          fs.writeFileSync('audit/jokela-deep-price-review.json',JSON.stringify({summary,prices},null,2));
+          fs.writeFileSync('audit/jokela-deep-summary.txt',JSON.stringify(summary,null,2));
+          console.log('JOKELA DEEP AUDIT',JSON.stringify(summary));
+          if(prices.some(x=>['invalid_price','campaign_price_mismatch','campaign_above_regular','campaign_above_current'].includes(x.reason)))process.exitCode=1;
+          NODE
+
       - name: Tallenna kaikki debugit ja raportti
         if: always()
         uses: actions/upload-artifact@v4
