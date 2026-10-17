@@ -2,22 +2,6 @@ name: Sale ja Alepa massatarkistus
 
 on:
   workflow_dispatch:
-    inputs:
-      chain:
-        description: 'Valitse ketju'
-        required: true
-        type: choice
-        options:
-          - Sale
-          - Alepa
-      store_name:
-        description: 'Kaupan tarkka nimi (esim. Sale <paikkakunta> tai Alepa <alue>)'
-        required: true
-        type: string
-      store_id:
-        description: 'S-kaupat virallinen pitkä storeId (ei Ziiplyn UI-id)'
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -29,23 +13,25 @@ jobs:
     steps:
       - name: Tarkista kauppavalinta ja hae tuotanto
         env:
-          CHAIN: ${{ inputs.chain }}
-          STORE_NAME: ${{ inputs.store_name }}
-          STORE_ID: ${{ inputs.store_id }}
         run: |
           mkdir -p audit
           node <<'NODE'
           const fs=require('node:fs');
-          const chain=process.env.CHAIN, name=process.env.STORE_NAME.trim(), id=process.env.STORE_ID.trim();
-          if(!new RegExp('^'+chain+'(?:\\s|$)','i').test(name))throw Error('Kaupan nimen tulee alkaa valitulla ketjulla: '+chain);
-          if(!/^\\d{5,}$/.test(id))throw Error('Anna virallinen S-kaupat storeId (vähintään 5 numeroa), ei UI-id');
-          const url=new URL('https://ziiply.vercel.app/api/offers/search');
-          for(const [key,value] of Object.entries({q:'__ziiply_all_offers__',sStoreName:name,sStoreId:id,withinChain:'S'}))url.searchParams.set(key,value);
+          const chains=['Sale','Alepa'];
+          const requests=chains.map(chain=>{
+            const url=new URL('https://ziiply.vercel.app/api/offers/search');
+            url.searchParams.set('q','__ziiply_all_offers__');
+            url.searchParams.set('sStoreName',chain);
+            url.searchParams.set('withinChain','S');
+            return {chain,url};
+          });
+          let failures=0;
+          for(const {chain,url} of requests){
           const response=await fetch(url,{signal:AbortSignal.timeout(90000),headers:{accept:'application/json','cache-control':'no-cache'}});
           const data=await response.json();
-          fs.writeFileSync('audit/production-response.json',JSON.stringify(data,null,2));
+          fs.writeFileSync('audit/production-response-'+chain+'.json',JSON.stringify(data,null,2));
           const rows=Array.isArray(data.results)?data.results:[];
-          const summary={chain,store:name,storeId:id,httpStatus:response.status,ok:data.ok===true,rows:rows.length,deploy:data.deploy||null,issues:[],categoryDifferences:[],displayFallbacks:[],categoryCounts:{}};
+          const summary={chain,store:'chain-only (unverified store selection)',storeId:null,httpStatus:response.status,ok:data.ok===true,rows:rows.length,deploy:data.deploy||null,issues:[],categoryDifferences:[],displayFallbacks:[],categoryCounts:{}};
           const seen=new Set();
           const money=v=>{if(v==null)return null;const n=Number(String(v).replace(/\\s/g,'').replace('€','').replace(',','.'));return Number.isFinite(n)?n:null};
           for(const [index,row] of rows.entries()){
@@ -73,10 +59,12 @@ jobs:
           summary.issueCount=summary.issues.length;
           summary.categoryDifferenceCount=summary.categoryDifferences.length;
           summary.displayFallbackCount=summary.displayFallbacks.length;
-          fs.writeFileSync('audit/summary.json',JSON.stringify(summary,null,2));
-          console.log('SALE ALEPA MASS AUDIT',JSON.stringify({chain,name,id,status:response.status,rows:rows.length,issues:summary.issueCount,categoryDifferences:summary.categoryDifferenceCount,displayFallbacks:summary.displayFallbackCount}));
+          fs.writeFileSync('audit/summary-'+chain+'.json',JSON.stringify(summary,null,2));
+          console.log('SALE ALEPA MASS AUDIT',JSON.stringify({chain,status:response.status,rows:rows.length,issues:summary.issueCount,categoryDifferences:summary.categoryDifferenceCount,displayFallbacks:summary.displayFallbackCount}));
           for(const issue of summary.issues)console.log('ISSUE',JSON.stringify(issue));
-          if(!response.ok||!data.ok||rows.length===0||summary.issueCount)process.exitCode=1;
+          if(!response.ok||!data.ok||rows.length===0||summary.issueCount)failures++;
+          }
+          if(failures)process.exitCode=1;
           NODE
       - name: Tallenna auditointiraportti
         if: always()
