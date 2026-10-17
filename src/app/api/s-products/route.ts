@@ -1,5 +1,6 @@
 import { recipeProductCompatible } from "@/app/components/ziiply/justiina/recipeSearch";
 import { NextResponse } from "next/server";
+import { rankGrocerySearchResults } from "../_shared/grocerySearchRelevance";
 import { fetchSKaupatNormalProductsV220 } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
@@ -177,7 +178,7 @@ export async function GET(request: Request) {
         if (matched.length > 0) {
           return NextResponse.json({
             store, storeId, storeName, source: "s-kaupat-normal-v220",
-            status: 200, items: matched.map(item=>({...item,priceAmountUnit:"eur",comparisonPriceAmountUnit:"eur"})), recipeFallback,
+            status: 200, items: rankGrocerySearchResults(matched, search).map(item=>({...item,priceAmountUnit:"eur",comparisonPriceAmountUnit:"eur"})), recipeFallback,
           });
         }
       } catch (fallbackError) {
@@ -206,7 +207,7 @@ export async function GET(request: Request) {
       endpoint,
       recipeFallback,
       status: response.status,
-      items,
+      items: rankGrocerySearchResults(items, search),
     });
   } catch (error) {
     return NextResponse.json(
