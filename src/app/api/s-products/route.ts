@@ -81,7 +81,47 @@ export async function GET(request: Request) {
   const normalizedSearch = search.trim().toLocaleLowerCase("fi");
   // Ruoanhinta matches "nakit" too literally: its singular "nakki" query
   // returns the actual grocery products in both S and K chains.
-  const upstreamSearch = normalizedSearch === "nakit" ? "nakki" : search;
+  // Normalize common Finnish grocery plurals before querying the literal upstream API.
+  // Keep the original query for user-facing results and category ranking.
+  const singularByPlural: Record<string, string> = {
+    "jogurtit": "jogurtti",
+    "kananmunat": "kananmuna",
+    "perunat": "peruna",
+    "porkkanat": "porkkana",
+    "tomaatit": "tomaatti",
+    "kurkut": "kurkku",
+    "omenat": "omena",
+    "banaanit": "banaani",
+    "sipulit": "sipuli",
+    "paprikat": "paprika",
+    "leivät": "leipä",
+    "sämpylät": "sämpylä",
+    "juustot": "juusto",
+    "keksit": "keksi",
+    "suklaat": "suklaa",
+    "jäätelöt": "jäätelö",
+    "kalapuikot": "kalapuikko",
+    "lihapullat": "lihapulla",
+    "nuudelit": "nuudeli",
+    "tortillat": "tortilla",
+    "pastat": "pasta",
+    "riisit": "riisi",
+    "murot": "muro",
+    "margariinit": "margariini",
+    "leikkeleet": "leikkele",
+    "kinkut": "kinkku",
+    "herneet": "herne",
+    "pavut": "papu",
+    "maidot": "maito",
+    "mehut": "mehu",
+    "kahvit": "kahvi",
+    "rahkat": "rahka",
+    "broilerit": "broileri",
+    "lohet": "lohi",
+    "makkarat": "makkara",
+    "nakit": "nakki",
+  };
+  const upstreamSearch = singularByPlural[normalizedSearch] || search;
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
     upstreamSearch
