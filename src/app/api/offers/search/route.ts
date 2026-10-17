@@ -78,6 +78,7 @@ import {
   searchZiiplyOffers,
   getKruokaOfferPipelineDebugV34,
   type ZiiplyOfferSearchSourceContextV8,
+  type OfferSearchDiagnosticsV38,
 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchSources";
 
 export const dynamic = "force-dynamic";
@@ -881,7 +882,8 @@ export async function GET(request: Request) {
 
     // V19: älä aja Citymarketia vanhan K-Ruoka-gaten läpi.
     // Muut K-kaupat jatkavat täysin nykyisellä searchZiiplyOffers-polulla.
-    const baseResults = isKCitymarketV19 ? [] : await searchZiiplyOffers(q, context);
+    const offerSourceDiagnostics: OfferSearchDiagnosticsV38 = { failures: [] };
+    const baseResults = isKCitymarketV19 ? [] : await searchZiiplyOffers(q, context, offerSourceDiagnostics);
 
     let citymarketResults: UnknownRecord[] = [];
     let citymarketNationalCount = 0;
@@ -962,6 +964,7 @@ export async function GET(request: Request) {
         query: q,
         context,
         results: imageEnrichedResults,
+        sourceFailures: offerSourceDiagnostics.failures,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
