@@ -56,14 +56,21 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     const label=labels[0]&&labels[0][1]>=(labels[1]?.[1]||0)*2?labels[0][0]:null;
     trace('led-row-label',{rowIndex,label,labels});
     if(!label)continue;
-    const candidates:{price:string;view:string}[]=[];
-    for(const psm of ['8']){
-      await worker.setParameters({tessedit_pageseg_mode:psm,tessedit_char_whitelist:'0123456789.,'});
-      for(const [red,invert,threshold] of [[false,false,0],[true,false,0],[false,true,0],[false,true,120]] as const){const p=fuelLedPrice((await worker.recognize(crop(row.left,row.right,red,invert,threshold))).data.text);if(p)candidates.push({price:p,view:`${red}:${invert}:${threshold}`});}
-    }
     review=true;
     if(seen.has(label)){prices[label]='';continue;}seen.add(label);
     const segments=fuelLedSegments(pixels.data,canvas.width,canvas.height,row);
+    const candidates:{price:string;view:string}[]=[];
+    // Tesseract can stall for tens of seconds on one LED crop in mobile Safari.
+    // Use the pixel-segment reading first, and stop when two OCR views agree.
+    if(!segments){
+      await worker.setParameters({tessedit_pageseg_mode:'8',tessedit_char_whitelist:'0123456789.,'});
+      for(const [red,invert,threshold] of [[false,false,0],[true,false,0],[false,true,0]] as const){
+        const view=`${red}:${invert}:${threshold}`;
+        const p=fuelLedPrice((await worker.recognize(crop(row.left,row.right,red,invert,threshold))).data.text);
+        if(p)candidates.push({price:p,view});
+        if(p&&candidates.filter(candidate=>candidate.price===p).length>=2)break;
+      }
+    }
     const candidate=segments||fuelOcrConsensus(candidates);
     trace('led-row-price',{rowIndex,label,segments,candidates,candidate});
     // Two agreeing LED shape masks can resolve a systematic OCR error.
