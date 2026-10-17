@@ -25,7 +25,7 @@ export async function processFuelPhotoLearning(id?:string,read:(photo:string,att
  const job=jobs[0];if(!job)return {processed:0};
  try{
   const reading=await read(job.photo_data_url,job.attempts);const readings=[...(job.readings as RecoveryReading[]),reading];const recovered=recoveryConsensus(readings);
-  const terminal=job.attempts>=3 || Boolean(recovered && ['diesel','price95','price98'].every(k=>recovered[k]!=null));
+  const terminal=job.attempts>=3 || Boolean(recovered && recovered.price95!=null && recovered.price98!=null);
   await sql`UPDATE ziiply_fuel_photo_learning SET readings=${JSON.stringify(readings)}::jsonb,recovered_prices=${JSON.stringify(recovered||{})}::jsonb,status=${terminal?(recovered?'recovered':'discarded'):'queued'},photo_data_url=CASE WHEN ${terminal} THEN NULL ELSE photo_data_url END,next_attempt_at=now(),lease_token=NULL,lease_until=NULL,last_error=NULL,updated_at=now() WHERE id=${job.id}::uuid AND lease_token=${lease}::uuid`;
   return {processed:1,status:terminal?(recovered?'recovered':'discarded'):'queued'};
  }catch(error){const terminal=job.attempts>=3;await sql`UPDATE ziiply_fuel_photo_learning SET status=${terminal?'discarded':'queued'},photo_data_url=CASE WHEN ${terminal} THEN NULL ELSE photo_data_url END,next_attempt_at=now()+interval '5 minutes',lease_token=NULL,lease_until=NULL,last_error=${error instanceof Error?error.message.slice(0,200):'Recovery failed'},updated_at=now() WHERE id=${job.id}::uuid AND lease_token=${lease}::uuid`;return {processed:1,status:terminal?'discarded':'queued'};}
