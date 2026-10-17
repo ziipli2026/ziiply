@@ -307,3 +307,15 @@ Tämä **korvaa raportin aiemman Sale Lapua -tulkinnan**, jossa pelkkä S-kaupat
 **Luokitus:** `all_requests_rate_limited`, `verified_identity_count=0`, `store_closed_evidence_count=0`. Tätä ajoa **ei** pidä yhdistää alkuperäisen 434 myymälän GraphQL-auditoinnin tuloksiin myymälöiden kattavuuslukuna. Aiemmat erillisistä virallisista tiedotteista saadut 15 sulkemisvahvistusta ja 2 vanhaa toimipaikkakirjausta säilyvät ennallaan. 10 muuta tapausta ei muutu ratkaistuiksi tämän ajon perusteella.
 
 Korjaus [commit 40c996f](https://github.com/ziipli2026/ziiply/commit/40c996f93ccc6083d5273f54da4b0d70e61e5771): jos kaikki 27 palauttavat 403/429, workflow ilmoittaa epäselvästä/estetystä tuloksesta virhekoodilla 2 eikä enää vihreää onnistumista. **Älä käynnistä tätä flow'ta uudelleen nykyisellä lähteellä**. Jatko: viralliset sulkemistiedotteet, historiatiedot ja nykyiset myymäläluettelot lähdekohtaisesti, ei automaattista S-kaupat-sivujen uudelleenkyselyä eikä GraphQL-tunnusten arvailua.
+
+
+## Alepa-eräselvitys: kaksi riippumatonta sulkemisnäyttöä (18.10.2026)
+
+Julkisia verkkolähteitä tarkistettiin useasta Alepa-nimestä ilman uusia S-kaupat-rajapintakyselyjä. Seuraavista löytyi uutta, aiempaa lupapäivämäärää vahvempaa näyttöä:
+
+| Alkuperäinen virhetapaus | Lähde-ID | Uusi lähdenäyttö | Päätelmä |
+|---|---|---|---|
+| Alepa Tapulikaupunki | `726256638` | Tapulikaupungin kaupunginosasivuston 21.8.2025 julkaisu kertoo suoraan, että Alepa Tapulikaupunki sulkee ovensa, kun S-market Suutarila avautuu 21.8.2025. https://kaupunginosat.fi/tapulikaupunki/kauppoja-tulee-ja-menee/ | **Sulkeminen vahvistettu riippumattomalla paikallisjulkaisulla**; ei nykyistä GraphQL-ID:tä. |
+| Alepa Pasilanraitio | `531632420` | Wikimedia Commonsin Helsingin kaupunginmuseon kokoelmaan liittyvän, 5.9.2024 otetun valokuvan kuvaustekstissä todetaan eksplisiittisesti, että Alepa Pasilanraitio suljettiin 2.5.2025. https://commons.wikimedia.org/wiki/File:Alepa_Pasilanraitio_in_L%C3%A4nsi-Pasila%2C_Helsinki%2C_Finland%3B_2024_September.jpg | **Sulkeminen ilmoitettu valokuvan metatiedoissa**, mutta päivämäärälle suositellaan vielä riippumatonta ensisijaista vahvistusta. |
+
+Muiden kahdeksan Alepa-tapauksen osalta tämän erän verkkohaku ei antanut riittävää suoraa näyttöä pysyvästä sulkemisesta. Historiallisen alkoholin myyntiluvan päättymispäivä tai vanhentuneen kolmannen osapuolen myymälähakemiston aukiolotieto ei yksinään riitä. **Ei uusia tuotanto-ID-muutoksia.**
