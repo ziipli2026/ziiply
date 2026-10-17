@@ -17,7 +17,7 @@ jobs:
         run: |
           mkdir -p audit
           node <<'NODE'
-          const fs = require('node:fs');
+          const fs = await import('node:fs');
           const base = process.env.API_URL;
           const cases = [
             {name:'official-store-id', params:{q:'',sStoreName:'S-market Jokela',sStoreId:'685839110'}},
