@@ -937,6 +937,14 @@ async function resolveEffectiveSKaupatStoreIdV174(
       return resolvedFromOfficialStoreSearchV198;
     }
 
+    // Avoid cascading directory requests when the official service rate-limits access.
+    if ([403, 429].includes(lastOfficialResolverDiagnosticV214?.httpStatus ?? 0)) {
+      console.warn("[GOSTA] official S-kaupat directory access restricted; skipping further directory lookups", {
+        storeName, status: lastOfficialResolverDiagnosticV214?.httpStatus,
+      });
+      return null;
+    }
+
     const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
 
     if (resolvedFromDirectory) {
