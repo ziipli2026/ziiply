@@ -183,3 +183,17 @@ Osuuskauppa Varuboden-Oslan 15.4.2024 julkaisema virallinen tiedote vahvistaa Sa
 Virallinen lähde: https://vbo.fi/news/sale-hanko-sulkee-ovensa-s-market-palvelee-normaalisti/
 
 Luokitus: `historical_closed_store`; ei ID-korvausta. Suljetuiksi vahvistettuja on nyt 5, vanhoja/muuttuneita kirjauksia 2, muita avoimia 20. Alkuperäisen auditoinnin 27 `Store not found` -havaintoa säilytetään ennallaan. Sale Haukiluoma Tampere jää avoimeksi: luotettavaa sulkemisvahvistusta ei tässä vaiheessa löytynyt. Ei tuotantokoodin muutosta eikä massahakua.
+
+
+## Lähdetarkistus: Sale Loue (17.10.2026)
+
+Alkuperäinen lähde-ID `502111040`, auditoinnissa `Store not found`.
+
+Ylen 2023 uutinen kertoo Osuuskauppa Arinan sulkevan Sale Louen vuodenvaihteessa 2023–2024. Tervolan kunnan 13.6.2025 artikkeli vahvistaa S-ryhmän Sale-myymälän sulkeutuneen ja tilalle perustetun yksityisen Louen kyläkaupan. Kunnan 2.9.2026 uutinen kertoo myös tämän myöhemmän kyläkaupan sulkeutumisesta. Nämä ovat eri kauppatoimijoita: myöhempää kyläkauppaa ei saa tulkita Sale Louen jatkavaksi S-kaupat-tuotetietotunnukseksi.
+
+Lähteet:
+- https://yle.fi/a/74-20054194
+- https://tervola.fi/ajankohtaista/lahiruokaan-erikoistunut-louen-kylakauppa-tayttaa-vuoden-yksikaan-paiva-ei-ole-sellainen-ettei-tekisi-mieli-lahtea-toihin/
+- https://tervola.fi/ajankohtaista/louen-kylakauppa-sulki-ovensa-kannattamattomana-paikalle-suunnitteilla-kauppatoimintaa-itsepalveluperiaatteella/
+
+Luokitus `historical_closed_store`, ei tunnuskorvausta. Nyt 6 vahvistettua suljettua, 2 vanhaa/muuttunutta kirjausta ja 19 muuta avoinna alkuperäisestä 27 virheestä. Alkuperäistä auditointia tai tuotantokoodia ei muutettu.
