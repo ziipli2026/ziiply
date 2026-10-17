@@ -36,8 +36,10 @@ export default function ZiiplyMobileFuelMenu({
       }
     };
     window.addEventListener("keydown", handleKey, true);
+    window.addEventListener("ziiply:open-electricity", onClose);
     return () => {
       window.removeEventListener("keydown", handleKey, true);
+      window.removeEventListener("ziiply:open-electricity", onClose);
       previous?.focus();
     };
   }, [onClose]);
