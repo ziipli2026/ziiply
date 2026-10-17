@@ -172,3 +172,14 @@ Lähteet:
 - https://arina.fi/artikkeli/oulun-intion-m-market-uudistuu-huhtikuussa-sale-lahimyymalaksi
 
 **Päätös:** `historical_closed_store`; ei ID-korvausta eikä tuotantokoodin muutosta. Alkuperäisen auditoinnin 27 virhettä säilytetään. Suljetuksi vahvistettuja on nyt neljä (Automaatti Tampere, Kaijonharju, Raksila, Intiö), kaksi vanhaa/muuttunutta toimipaikkakirjausta ja 21 muuta vielä selvittämätöntä.
+
+
+## Lähdetarkistus: Sale Hanko (17.10.2026)
+
+Alkuperäinen lähde-ID: `500608831`; auditoinnissa `Store not found`.
+
+Osuuskauppa Varuboden-Oslan 15.4.2024 julkaisema virallinen tiedote vahvistaa Sale Hangon sulkemisen viimeistään perjantaina 19.4.2024. S-market Hanko jatkoi toimintaansa, mutta on eri myymälä eikä sen tunnusta saa korvata Sale Hangon tunnuksen tilalle.
+
+Virallinen lähde: https://vbo.fi/news/sale-hanko-sulkee-ovensa-s-market-palvelee-normaalisti/
+
+Luokitus: `historical_closed_store`; ei ID-korvausta. Suljetuiksi vahvistettuja on nyt 5, vanhoja/muuttuneita kirjauksia 2, muita avoimia 20. Alkuperäisen auditoinnin 27 `Store not found` -havaintoa säilytetään ennallaan. Sale Haukiluoma Tampere jää avoimeksi: luotettavaa sulkemisvahvistusta ei tässä vaiheessa löytynyt. Ei tuotantokoodin muutosta eikä massahakua.
