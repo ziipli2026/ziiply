@@ -251,6 +251,13 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       const location=photoGps||deviceGps;
       setLocationSource(photoGps?"photo_exif":deviceGps?"capture_session":"manual");
       setGps(location);const stationSearch=findStations(location);
+      // Identify the station as soon as the GPS lookup finishes, independently of OCR.
+      void stationSearch.then(candidates=>{
+        if(!alive.current)return;
+        const identified=identifyFuelPhotoStation(candidates||[],location,"",checked.reasons.length>0);
+        setStationId(identified);
+        logDebug("station-identification-early",{identified,location});
+      });
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
       logDebug("photo-prepare-start",{});const data=await preparePhoto(file);logDebug("photo-prepare-complete",{dataLength:data.length});recoveryData=data;if(!alive.current)return;setPhoto(data);
       // Start independent server-side vision immediately, in parallel with local OCR.
