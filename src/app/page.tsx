@@ -2192,6 +2192,7 @@ function KauppiasMobileTopBar({
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
   const [mobileFuelMenuOpen, setMobileFuelMenuOpen] = useState(false);
   const [mobileFuelReportOpen, setMobileFuelReportOpen] = useState(false);
+  const [topbarDebugOpen, setTopbarDebugOpen] = useState(false);
   const [fuelValueV744, setFuelValueV744] = useState("—");
   const [fuelTextV744, setFuelTextV744] = useState("Ei hintaa");
 
@@ -2843,7 +2844,7 @@ function KauppiasMobileTopBar({
       unit: "c/kWh",
       detail: electricityText,
       graphic: <KauppiasElectricityTrendGraphicV717 trend={electricityTrend} />,
-      onClick: () => setElectricityChartOpen(true),
+      onClick: () => { setMobileFuelMenuOpen(false); setMobileFuelReportOpen(false); setElectricityChartOpen(open => !open); },
     },
     {
       id: "fuel" as const,
@@ -2853,6 +2854,7 @@ function KauppiasMobileTopBar({
       detail: fuelTextV744,
       graphic: <KauppiasFuelGraphic />,
       onClick: () => {
+        setElectricityChartOpen(false);
         if (fuelModeActive) {
           setMobileFuelMenuOpen(false);
           onShowFuel?.();
@@ -2956,6 +2958,8 @@ function KauppiasMobileTopBar({
         </div>
       </div>
     </div>
+      <button type="button" onClick={() => setTopbarDebugOpen(true)} className="fixed bottom-[100px] right-3 z-[100000] rounded-lg border-2 border-white bg-red-600 px-3 py-2 text-sm font-black text-white shadow-xl sm:hidden">DEBUG</button>
+      {topbarDebugOpen && <div className="fixed inset-0 z-[100001] flex items-center justify-center bg-black/80 p-4 sm:hidden"><div className="w-full max-w-md rounded-xl bg-white p-4 text-black"><div className="mb-3 flex justify-between"><strong>Yläpalkin DEBUG</strong><button type="button" onClick={() => setTopbarDebugOpen(false)}>Sulje ×</button></div><pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify({electricityChartOpen,mobileFuelMenuOpen,mobileFuelReportOpen,fuelModeActive,version:"PAGE_INTERNAL_TOPBAR_DEBUG_V1"},null,2)}</pre><button type="button" className="mt-3 rounded bg-green-800 px-4 py-2 font-bold text-white" onClick={() => { const a=document.createElement("a");const url=URL.createObjectURL(new Blob([JSON.stringify({electricityChartOpen,mobileFuelMenuOpen,mobileFuelReportOpen,fuelModeActive,version:"PAGE_INTERNAL_TOPBAR_DEBUG_V1",time:new Date().toISOString()},null,2)],{type:"application/json"}));a.href=url;a.download="ziiply-topbar-debug.json";a.click();URL.revokeObjectURL(url);}}>Lataa debug JSON</button></div></div>}
       {mobileFuelMenuOpen && (
         <ZiiplyMobileFuelMenu
           onClose={() => setMobileFuelMenuOpen(false)}
@@ -2965,7 +2969,7 @@ function KauppiasMobileTopBar({
       )}
       {mobileFuelReportOpen && <DesktopFuelPhotoReport onClose={() => setMobileFuelReportOpen(false)} />}
       {electricityChartOpen && (
-        <div className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+96px)] z-[250] flex items-start justify-center overflow-y-auto bg-[#092e25]/60 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
+        <div className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+96px)] z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-3">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
