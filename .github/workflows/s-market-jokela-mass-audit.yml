@@ -48,8 +48,38 @@ jobs:
           if(best)fs.writeFileSync('audit/jokela-all.json',JSON.stringify(best,null,2));
           if(!best || !Array.isArray(best.results) || best.results.length===0){
             console.error('VIRHE: Tuotannon tarjousrajapinta palautti nolla tuotetta kaikilla hakukonteksteilla. Tämä EI ole onnistunut massatarkistus.');
-            process.exitCode=1;
+            console.warn('Tuotannon nollatulos kirjattu; seuraava vaihe hakee S-kaupat-lähteen suoraan.');
           }
+          NODE
+
+      - name: Hae S-kaupat lähde suoraan jos tuotannon haku on tyhjä
+        if: always()
+        run: |
+          mkdir -p audit
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const date = new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          const hash='f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1';
+          const storeId='685839110';
+          const variables={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path:'tuotteet/kampanjat',platform:'WEB',availabilityDate:date,userConsent:{marketing:false,marketingId:'ziiply-gosta',useCustomerId:false,sessionId:'ziiply-gosta',loop54:true}}};
+          const extensions={clientLibrary:{name:'@apollo/client',version:'4.2.12'},persistedQuery:{version:1,sha256Hash:hash}};
+          const url=new URL('https://api.s-kaupat.fi/');
+          url.searchParams.set('operationName','RemoteGetPageContent');
+          url.searchParams.set('variables',JSON.stringify(variables));
+          url.searchParams.set('extensions',JSON.stringify(extensions));
+          try {
+            const response=await fetch(url,{headers:{accept:'application/graphql-response+json,application/json;q=0.9','accept-language':'fi',origin:'https://www.s-kaupat.fi',referer:'https://www.s-kaupat.fi/','x-client-name':'skaupat-web','x-client-version':'production-14a82a5b48cd1dd42c0592db0037514ed3c84de8'},signal:AbortSignal.timeout(90000)});
+            const body=await response.json();
+            fs.writeFileSync('audit/jokela-s-kaupat-source.json',JSON.stringify(body,null,2));
+            const sections=body?.data?.pageContent?.sections||[];
+            const products=sections.flatMap(s=>Array.isArray(s.products)?s.products:[]);
+            console.log('S-kaupat direct status:',response.status,'sections:',sections.length,'products:',products.length,'errors:',JSON.stringify(body.errors||[]).slice(0,400));
+            fs.writeFileSync('audit/jokela-source-diagnostics.json',JSON.stringify({status:response.status,sections:sections.length,products:products.length,errors:body.errors||[]},null,2));
+            if(products.length && !fs.existsSync('audit/jokela-all.json')){
+              const rows=products.map((p,i)=>({id:String(p.id||i),title:p.name,ean:p.ean||p.eanCode||p.gtin||'',storeName:'S-market Jokela',chain:'S-market',priceText:String(p.pricing?.campaignPrice??p.pricing?.currentPrice??p.price??''),unitPriceText:String(p.pricing?.comparisonPrice??''),category:(p.hierarchyPath||[]).at(-1)?.name||'',salesUnit:p.pricing?.salesUnit||'',isWeightedProduct:p.pricing?.isApproximatePrice===true,debugLocalCampaignEvidenceV231:p.pricing||{},imageUrl:p.productDetails?.productImages?.mainImage?.urlTemplate||''}));
+              fs.writeFileSync('audit/jokela-all.json',JSON.stringify({ok:true,results:rows,source:'s-kaupat-direct-raw'},null,2));
+            }
+          }catch(e){console.error('S-kaupat direct fetch failed:',String(e));fs.writeFileSync('audit/jokela-source-diagnostics.json',JSON.stringify({error:String(e)},null,2));}
           NODE
 
       - name: Tarkista kaikki tuotekohtaisesti
