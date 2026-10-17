@@ -44,8 +44,8 @@ export default function ZiiplyMobileCompareCheckoutCard({
   }, [showPaymentNotice, checkoutPhase, purchaseModeDefault, countdown]);
 
   return (
-    <div className="fixed inset-0 z-[96] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden">
-      <section className="relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col items-center justify-center overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[#f7edcf] px-5 shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+    <div className="fixed inset-0 z-[96] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden">
+      <section className="relative flex h-full max-h-full min-h-0 min-w-0 w-full max-w-[28rem] flex-col items-center justify-start overflow-y-auto overscroll-contain [touch-action:pan-y] rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[#f7edcf] px-5 shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div className="pointer-events-none absolute inset-0 bg-[url('/ui/cart/vihkonen.webp')] bg-center bg-no-repeat opacity-80 [background-size:142%_104%]" />
         <div className="relative z-10 w-full max-w-[20.3rem] rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/90 px-4 pb-5 pt-5 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
           <div className="mb-3 text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]">{storeName}</div>
