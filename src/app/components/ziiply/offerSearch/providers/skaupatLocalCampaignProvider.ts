@@ -840,15 +840,30 @@ export async function fetchSKaupatLocalCampaignOffersV1(
       }
     }
 
-    const seen = new Set<string>();
-    const deduped = mapped.filter((item: any) => {
+    // S-kaupat repeats products in category sections and the "all campaigns"
+    // section. Keep one row per EAN, preferring a genuine discounted row if
+    // conflicting source sections ever carry different prices.
+    const unique = new Map<string, ZiiplyOfferSearchResult>();
+    for (const item of mapped as any[]) {
       const key = item?.ean
         ? `ean:${String(item.ean).trim()}`
         : `id:${String(item?.id || "").trim()}`;
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+      if (!key || key === "id:") continue;
+      const previous = unique.get(key) as any;
+      if (!previous) {
+        unique.set(key, item);
+        continue;
+      }
+      const currentEvidence = item.debugLocalCampaignEvidenceV231;
+      const previousEvidence = previous.debugLocalCampaignEvidenceV231;
+      // Preserve the source's first occurrence unless the later occurrence
+      // contains a valid discount missing from the first.
+      if (currentEvidence?.priceBelowRegular === true &&
+          previousEvidence?.priceBelowRegular !== true) {
+        unique.set(key, item);
+      }
+    }
+    const deduped = [...unique.values()];
 
     if (!deduped.length) {
       return [];
