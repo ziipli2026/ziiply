@@ -69,12 +69,12 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   useEffect(()=>()=>{if(learningTimer.current)clearTimeout(learningTimer.current);},[]);
   async function pollLearning(id:string,token:string,round=0){
     if(!alive.current||requestId.current!==id)return;
-    if(round>100){setLearningInfo("Taustaluvun odotus päättyi. Kaikkia hintoja ei saatu täydennettyä. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
+    if(round>=20){setLearningInfo("60 sekunnin aikaraja täyttyi. Puuttuvia hintoja ei tunnistettu; voit syöttää ne käsin.");return;}
     try{const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();
       if(!alive.current||requestId.current!==id)return;
       if(result.prices && Object.keys(result.prices).length){
         setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]&&!previous[key]&&typeof result.prices?.[key]==="number")next[key]=result.prices[key].toFixed(3).replace(".",",");return next;});
-        setPriceReview(true);setLearningInfo("Kuvasta tunnistetut hintaehdotukset: "+([ ["diesel","Diesel"],["price95","95 E10"],["price98","98 E5"] ] as const).filter(([key])=>typeof result.prices?.[key]==="number").map(([key,label])=>label+" "+result.prices[key].toFixed(3).replace(".",",")).join(" · ")+" €/l. Tarkista hinnat ennen lähettämistä.");if(result.status==="recovered")return;
+        setPriceReview(true);setLearningInfo("Kuvasta tunnistetut hintaehdotukset: "+([ ["diesel","Diesel"],["price95","95 E10"],["price98","98 E5"] ] as const).filter(([key])=>typeof result.prices?.[key]==="number").map(([key,label])=>label+" "+result.prices[key].toFixed(3).replace(".",",")).join(" · ")+" €/l. Tarkista hinnat ennen lähettämistä.");if(result.status==="recovered"){if(!result.prices?.diesel)setLearningInfo("Bensiinihinnat löytyivät, mutta tavallisen dieselin hintaa ei tunnistettu. Voit syöttää sen käsin.");return;}
       }
       if(result.status==="discarded"){setLearningInfo("Taustaluku päättyi. Kuvasta ei saatu riittävän varmaa tulosta. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
       if(result.status==="corrected")return;
