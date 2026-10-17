@@ -273,3 +273,12 @@ Lähteet:
 - S-market Pukinmäki (eri toimipaikka): https://www.s-kaupat.fi/myymala/s-market-pukinmaki/726261341
 
 **Tarkistuksen vaikutus:** Aiemmin 12 suljetuksi tunnistetun lisäksi yhdeksästä muusta Alepasta löytyi päättynyt myyntilupa ja Jampasta sekä päättynyt lupa että usean viikon suljettu-merkintä. Näitä **ei lasketa automaattisesti 10 uudeksi vahvistetuksi myymäläsulkemiseksi**, koska luvan päättyminen ei yksin todista pysyvää sulkemista. Alepa Jampan aiempi 'virallinen tunnus löytyi, GraphQL ei toimi' -merkintä on täydennettävä tällä ajantasaisella sulkemisnäytöllä. Alkuperäisen auditoinnin 27 virhettä säilyvät; tuotantokoodia, myymälätunnuksia ja massahakuja ei muutettu.
+
+
+## Vahvistettu: Sale Kolinportti ja Sale Uurainen (17.10.2026)
+
+**Sale Kolinportti**, alkuperäinen ID `501903587`: Pohjois-Karjalan Osuuskauppa ilmoitti 22.11.2024, että Sale Kolinportti suljetaan marraskuun 2024 loppuun mennessä. Yle vahvisti myöhemmin sulkemisen toteutuneen marraskuun lopussa. Luokitus `historical_closed_store`. Lähteet: https://pko.fi/artikkeli/sale-kolinportti-sulkee-ovensa-marraskuun-loppuun-mennessa-ja-kolinportin-asema-oyn-toiminta-loppuu-joulukuun-lopussa ; https://yle.fi/a/74-20137639
+
+**Sale Uurainen**, alkuperäinen ID `501589857`: Uuraisten kunnan hankkeen loppuraportti kertoo suoraan Osuuskauppa Keskimaan sulkeneen Sale Uuraisten ja avanneen uudisrakennukseen S-marketin. Fimean myyntipaikkojen peruutusluettelossa Sale Uurainen, Virastotie 1, myyntiluvan päättymispäivä 23.2.2024; tämä on lupatieto, ei yksin tarkka sulkemispäivä. Luokitus `historical_closed_store`; S-market on eri toimipaikka, eikä sen ID ole automaattinen korvaaja. Lähteet: https://uurainen.tweb.fi/ktwebbin/ktproxy2.dll?docid=93581&doctype=3&version=1 ; https://fimea.fi/documents/147152901/159469975/Nikotiinivalmisteiden%2Bmyyntipaikkojen%2Bperuutukset.pdf/593484cc-aa8f-737b-7b30-84cccedf4444/Nikotiinivalmisteiden%2Bmyyntipaikkojen%2Bperuutukset.pdf?t=1756470653157
+
+**Laskenta:** 14 suljetuksi vahvistettua Sale/Alepa-toimipaikkaa (aiemmin 12), 2 vanhaa/muuttunutta kirjausta ja 11 muuta ilman yhtä vahvaa myymälän sulkemisvahvistusta. Näistä 11:stä kymmenellä Alepalla on erillinen päättynyt lupamerkintä / suljettu-tilatieto, mutta niitä ei nosteta automaattisesti vahvistettujen sulkemisten luokkaan. Alkuperäiset 27 `Store not found` -havaintoa säilytetään. Ei GraphQL-ID-korvauksia, tuotantomuutoksia tai massahakuja.
