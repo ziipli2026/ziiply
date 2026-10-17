@@ -58,14 +58,15 @@ jobs:
               let categoryProbe:any=null;
               if(direct.ok&&Number(direct.count)===0){
                 categoryProbe=await probe(sourceId,"");
-                if(categoryProbe.ok&&Number(categoryProbe.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:direct.status,count:categoryProbe.count,status:"working",recoveredByCategoryBrowse:true,searchCount:0,categoryCount:categoryProbe.count};
+                if(categoryProbe.ok&&Number(categoryProbe.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:direct.status,count:categoryProbe.count,status:"working",recoveredByUnfilteredSearch:true,searchCount:0,unfilteredCount:categoryProbe.count};
               }
               if(direct.status===403)return {name,sourceId,resolvedId:null,status:"http_error",httpStatus:403,count:0,detail:"Access denied; fallback resolver deliberately skipped"};
               if(!direct.ok&&[429,500,502,503,504].includes(Number(direct.status))){await new Promise(r=>setTimeout(r,900));const retry=await probe(sourceId);if(retry.ok&&Number(retry.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:retry.status,count:retry.count,status:"working",recoveredByRetry:true};}
               if(direct.ok&&Number(direct.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:direct.status,count:direct.count,rootKeys:direct.rootKeys,status:"working"};
               const resolved=await Promise.race([resolvePrismaCampaignStoreIdV1(name,sourceId),new Promise<null>(resolve=>setTimeout(()=>resolve(null),12000))]);
-              if(resolved&&resolved!==sourceId){const second=await probe(resolved);if(second.ok&&Number(second.count)>0)return {name,sourceId,resolvedId:resolved,httpStatus:second.status,count:second.count,rootKeys:second.rootKeys,status:"working"};return {name,sourceId,resolvedId:resolved,status:second.status===403?"http_error":second.status,httpStatus:typeof second.status==="number"?second.status:undefined,count:second.count??0};}
-              return {name,sourceId,resolvedId:resolved||null,status:direct.status==="graphql"?"graphql":direct.ok?(direct.storePresent===false?"store_missing":direct.productsPresent===false?"products_missing":"zero"):direct.status==="json"?"invalid_json":typeof direct.status==="number"?"http_error":"unresolved_or_timeout",detail:direct.detail,categoryProbe:categoryProbe?{ok:categoryProbe.ok,status:categoryProbe.status,count:categoryProbe.count,rootKeys:categoryProbe.rootKeys}:null,rootKeys:direct.rootKeys,rawTotal:direct.rawTotal,rawItems:direct.rawItems,storePresent:direct.storePresent,productsPresent:direct.productsPresent,httpStatus:typeof direct.status==="number"?direct.status:undefined,count:direct.count??0};
+              const idResolution=resolved===sourceId?"same_as_source":resolved?"different_official_id":"unresolved";
+              if(resolved&&resolved!==sourceId){const second=await probe(resolved);if(second.ok&&Number(second.count)>0)return {name,sourceId,resolvedId:resolved,httpStatus:second.status,count:second.count,rootKeys:second.rootKeys,status:"working",idResolution};return {name,sourceId,resolvedId:resolved,idResolution,status:second.status===403?"http_error":second.status,httpStatus:typeof second.status==="number"?second.status:undefined,count:second.count??0};}
+              return {name,sourceId,resolvedId:resolved||null,idResolution,status:direct.status==="graphql"?"graphql":direct.ok?(direct.storePresent===false?"store_missing":direct.productsPresent===false?"products_missing":"zero"):direct.status==="json"?"invalid_json":typeof direct.status==="number"?"http_error":"unresolved_or_timeout",detail:direct.detail,categoryProbe:categoryProbe?{ok:categoryProbe.ok,status:categoryProbe.status,count:categoryProbe.count,rootKeys:categoryProbe.rootKeys}:null,rootKeys:direct.rootKeys,rawTotal:direct.rawTotal,rawItems:direct.rawItems,storePresent:direct.storePresent,productsPresent:direct.productsPresent,httpStatus:typeof direct.status==="number"?direct.status:undefined,count:direct.count??0};
             }catch(e:any){return {name,sourceId,status:"exception",detail:String(e?.message||e)};}
           };
           for(let i=0;i<selected.length;i+=2){
@@ -83,8 +84,9 @@ jobs:
             console.log("FAST_PROGRESS",JSON.stringify({chain,checked:Math.min(i+2,selected.length),total:selected.length,resolved,working,zero,error}));
             if(i+2<selected.length&&!blocked)await new Promise(r=>setTimeout(r,2200));
           }
+          const byIdResolution=bad.reduce((a:any,x:any)=>(a[x.idResolution||"not_resolved"]=(a[x.idResolution||"not_resolved"]||0)+1,a),{});
           const byStatus=bad.reduce((a:any,x:any)=>(a[x.status]=(a[x.status]||0)+1,a),{});
-          console.log("FAST_SUMMARY",JSON.stringify({chain,inventory:arr.length,filtered:rows.length,shard,shards,selected:selected.length,checked:working+zero+error,blocked,resolved,changed,working,zero,error,byStatus,samples,bad}));
+          console.log("FAST_SUMMARY",JSON.stringify({chain,inventory:arr.length,filtered:rows.length,shard,shards,selected:selected.length,checked:working+zero+error,blocked,resolved,changed,working,zero,error,byStatus,byIdResolution,samples,bad}));
           if(blocked||working+zero+error<selected.length)process.exitCode=1;
           TS
           set -o pipefail
