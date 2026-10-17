@@ -145,3 +145,17 @@ Osuuskauppa Arinan 31.8.2026 julkaistun tiedotteen mukaan **Sale Kaijonharju sul
 Virallinen lähde: https://api.sttinfo.fi/tiedote/72271453/kaijonharjun-palvelut-uudistuvat-nykyisen-salen-viereen-rakennetaan-uusi-s-market?lang=fi&publisherId=68574190
 
 **Luokitus:** `historical_closed_store` (sulkemisilmoitus vahvistettu). Auditoinnin 27 virhettä säilytetään ennallaan; tuotanto-ID:tä ei muuteta. Historiallisiksi suljetuiksi todettuja tapauksia on nyt kaksi: Sale Automaatti Tampere ja Sale Kaijonharju Oulu. Muut 25 alkuperäistä tapausta ovat edelleen vailla vahvistettua korvaavaa tuotetieto-ID:tä.
+
+
+## Lähdetarkistus: Sale Raksila Oulu (17.10.2026)
+
+Alkuperäinen lähde-ID: `516522828`; auditoinnin tulos `Store not found`.
+
+Osuuskauppa Arina ilmoitti 13.9.2024 sulkevansa Sale Raksilan syyskuun 2024 loppuun mennessä. Huhtikuussa 2026 entinen Sale-liiketila kuvattiin jo tyhjentyneeksi. Kyseessä on vahvasti vahvistettu **historiallinen suljettu toimipaikka**, ei korvaavan tuotetietotunnuksen hakukohde. Viereinen Prisma Raksila on eri myymälä, eikä sen tunnusta saa käyttää Salen tilalla.
+
+Lähteet:
+- https://yle.fi/a/74-20111366
+- https://www.kaleva.fi/tyhja-liiketila-varjaytyi-vihreaksi-raksilan-marke/13453894
+- https://www.s-kaupat.fi/myymala/prisma-raksila-oulu/516528759
+
+**Raportin tilanne:** 3 suljetuksi tunnistettua (Sale Automaatti Tampere, Sale Kaijonharju Oulu, Sale Raksila), 2 historiallista tai muuttunutta kirjausta (Sale Kortepohja VANHA, Sale Multia vanha), 22 muuta selvittämätöntä. Alkuperäisen 434 myymälän auditoinnin 27 `Store not found` -tulosta pidetään ennallaan. Ei ID-korvauksia eikä tuotantopäivitystä.
