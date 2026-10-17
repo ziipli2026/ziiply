@@ -1,0 +1,32 @@
+name: Grocery relevance production check
+on:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check live search ordering
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const stores = [["S","s-products","292"],["K","k-products","3221"]];
+          const terms = ["kahvi","jogurtti","lohi","banaani","maito","peruna","porkkana","tomaatti","leipä","broileri"];
+          let failures=0;
+          for(const [chain,route,store] of stores){
+            for(const term of terms){
+              try{
+                const url = "https://ziiply.vercel.app/api/"+route+"?store="+store+"&search="+encodeURIComponent(term);
+                const response=await fetch(url,{signal:AbortSignal.timeout(25000)});
+                if(!response.ok)throw new Error("HTTP "+response.status);
+                const body=await response.json();
+                const names=(body.items||[]).slice(0,5).map(x=>x.name);
+                console.log(JSON.stringify({chain,term,count:(body.items||[]).length,top:names}));
+                if(!names.length){failures++;console.error("EMPTY",chain,term);}
+                if(term==="kahvi"&&names.every(n=>/skyr|jogurtti|patukka/i.test(n))){failures++;console.error("COFFEE_ORDER",chain);}
+                if(term==="lohi"&&names.every(n=>/koira|kissa|lemmik/i.test(n))){failures++;console.error("FISH_ORDER",chain);}
+              }catch(e){failures++;console.error("ERROR",chain,term,String(e));}
+            }
+          }
+          console.log("SUMMARY",JSON.stringify({checks:stores.length*terms.length,failures}));
+          if(failures)process.exitCode=1;
+          NODE
