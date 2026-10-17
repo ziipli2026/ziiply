@@ -163,7 +163,7 @@ export function getSynonymGroupForQuery(query: string): ZiiplySynonymGroup | nul
       const canonical = normalizeSearchText(group.canonical);
       const terms = group.terms.map(normalizeSearchText);
 
-      return canonical === q || terms.includes(q) || terms.some((term) => q.length >= 4 && (term.includes(q) || q.includes(term)));
+      return canonical === q || terms.includes(q) || terms.some((term) => q.length >= 4 && !q.includes("koiran") && !q.includes("lemmik") && (term.includes(q) || q.includes(term)));
     }) || null
   );
 }
