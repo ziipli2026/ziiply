@@ -289,7 +289,7 @@ jobs:
           const rows=Array.isArray(data.results)?data.results:[];
           if(!rows.length)throw Error('Tuotannossa ei tuotteita: syvätarkistusta ei voi hyväksyä');
           const num=x=>{if(x==null)return null;const v=Number(String(x).replace(/\s/g,'').replace('€','').replace(',','.'));return Number.isFinite(v)?v:null};
-          const findings=[],categories=[],prices=[];
+          const findings=[],categories=[],prices=[],displayFallbacks=[];
           const classify=(row,i)=>{
             const title=String(row.title||row.name||'');
             const source=String(row.category||'');
@@ -306,7 +306,7 @@ jobs:
             for(const check of checks){
               if(check.when&&check.wrong)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,expectedFamily:check.family,reason:'category_semantic_review'});
             }
-            if(!display&&source)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,reason:'missing_neon_display_category_review'});
+            if(!display&&source)displayFallbacks.push({row:i+1,ean:row.ean,title,fallbackCategory:source,categoryPath:row.categoryPath||null,reason:'neon_display_category_absent_source_fallback_available'});
             if(display&&source&&display!==source)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,reason:'taxonomy_label_difference_review'});
           };
           rows.forEach((row,i)=>{
@@ -326,8 +326,8 @@ jobs:
             if(/\b\d+\s*(?:kpl|pkt|pack|rll|rl)\b/i.test(title)&&campaign!=null&&regular!=null&&campaign<regular&&price!=null&&Math.abs(price-campaign)>.011)add('multipack_price_review',{price,campaign,regular});
             if(current!=null&&campaign!=null&&campaign>current)add('campaign_above_current',{campaign,current});
           });
-          const summary={checked:rows.length,categoryReviewRows:categories.length,priceReviewRows:prices.length,categoryReasons:categories.reduce((o,x)=>(o[x.reason]=(o[x.reason]||0)+1,o),{}),priceReasons:prices.reduce((o,x)=>(o[x.reason]=(o[x.reason]||0)+1,o),{})};
-          fs.writeFileSync('audit/jokela-deep-category-review.json',JSON.stringify({summary,categories},null,2));
+          const summary={checked:rows.length,categoryReviewRows:categories.length,displayFallbackRows:displayFallbacks.length,priceReviewRows:prices.length,categoryReasons:categories.reduce((o,x)=>(o[x.reason]=(o[x.reason]||0)+1,o),{}),priceReasons:prices.reduce((o,x)=>(o[x.reason]=(o[x.reason]||0)+1,o),{})};
+          fs.writeFileSync('audit/jokela-deep-category-review.json',JSON.stringify({summary,categories,displayFallbacks},null,2));
           fs.writeFileSync('audit/jokela-deep-price-review.json',JSON.stringify({summary,prices},null,2));
           fs.writeFileSync('audit/jokela-deep-summary.txt',JSON.stringify(summary,null,2));
           console.log('JOKELA DEEP AUDIT',JSON.stringify(summary));
