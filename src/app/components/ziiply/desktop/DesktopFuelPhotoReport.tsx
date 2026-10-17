@@ -93,7 +93,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   }
   const [debugOpen,setDebugOpen]=useState(false);
   const [debugNotice,setDebugNotice]=useState("");
-  const debugEvents=useRef<{time:string;event:string;details:unknown}[]>([]);
+  const debugEvents=useRef<{time:string;elapsedMs?:number|null;event:string;details:unknown}[]>([]);
   function logDebug(event:string,details:unknown){
     debugEvents.current=[...debugEvents.current.slice(-499),{time:new Date().toISOString(),elapsedMs:debugStarted.current?Math.round(performance.now()-debugStarted.current):null,event,details}];
   }
