@@ -298,3 +298,12 @@ Täydentävä toteutumislähde:
 Tämä **korvaa raportin aiemman Sale Lapua -tulkinnan**, jossa pelkkä S-kaupat-hakemiston 'Suljettu'-merkintä jätettiin aukiolo-/pysyvyystulkinnaltaan epävarmaksi. Nyt osuuskaupan oma tiedote ja sulkemispäivän paikallisuutinen vahvistavat pysyvän sulkemisen. S-market Lapua on eri myymälä; sen tunnusta ei saa käyttää korvaavana ID:nä.
 
 **Päivitetty yhteenveto:** 15 vahvistettua suljettua, 2 vanhaa/muuttunutta kirjausta, 10 muuta ilman yhtä vahvaa sulkemisvahvistusta = 27 alkuperäistä `Store not found` -havaintoa. Alepojen päättyneet lupamerkinnät ovat erillisiä lisähavaintoja, eivät vielä kaikki vahvistettuja sulkemisia. Ei tuotantokoodin muutoksia, ID-korvauksia tai massahakuja.
+
+
+## GitHub-massatarkistuksen toteutunut tulos (18.10.2026)
+
+[Workflow-ajo 39069402861](https://github.com/ziipli2026/ziiply/actions/runs/39069402861) suoritti kaikki 27 julkisen S-kaupat-myymäläsivun HTTP-tarkistusta. **Jokainen 27/27 palautti HTTP 429**. Ajon GitHub-tila oli `success`, koska alkuperäinen skripti ei tulkinnut kaikkien pyyntöjen rajoittamista epäonnistumiseksi. Lokit on tarkastettu yksittäisten myymälärivien osalta; yhtään sivua tai tunnusta ei voitu vahvistaa tässä ajossa.
+
+**Luokitus:** `all_requests_rate_limited`, `verified_identity_count=0`, `store_closed_evidence_count=0`. Tätä ajoa **ei** pidä yhdistää alkuperäisen 434 myymälän GraphQL-auditoinnin tuloksiin myymälöiden kattavuuslukuna. Aiemmat erillisistä virallisista tiedotteista saadut 15 sulkemisvahvistusta ja 2 vanhaa toimipaikkakirjausta säilyvät ennallaan. 10 muuta tapausta ei muutu ratkaistuiksi tämän ajon perusteella.
+
+Korjaus [commit 40c996f](https://github.com/ziipli2026/ziiply/commit/40c996f93ccc6083d5273f54da4b0d70e61e5771): jos kaikki 27 palauttavat 403/429, workflow ilmoittaa epäselvästä/estetystä tuloksesta virhekoodilla 2 eikä enää vihreää onnistumista. **Älä käynnistä tätä flow'ta uudelleen nykyisellä lähteellä**. Jatko: viralliset sulkemistiedotteet, historiatiedot ja nykyiset myymäläluettelot lähdekohtaisesti, ei automaattista S-kaupat-sivujen uudelleenkyselyä eikä GraphQL-tunnusten arvailua.
