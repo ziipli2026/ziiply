@@ -34,9 +34,10 @@ jobs:
           const slug=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/å/g,"a").replace(/ä/g,"a").replace(/ö/g,"o").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
           let exact=0, mismatch=0, missing=0, blocked=0; const bad=[];
           const directoryUrls=["https://www.s-kaupat.fi/myymalat/"+chain.toLowerCase()+"?query="+encodeURIComponent(rows[0]?.name||chain),"https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(rows[0]?.name||chain)];
-          for(const url of directoryUrls){try{const r=await fetch(url,{redirect:"follow",signal:AbortSignal.timeout(12000),headers:{"User-Agent":"Mozilla/5.0","Accept":"text/html"}});const html=await r.text();console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,status:r.status,finalUrl:r.url,length:html.length,storeLinks:[...html.matchAll(new RegExp("/myymala/([a-z0-9%._~-]+)/(\\d{5,})","gi"))].slice(0,8).map(m=>m[0])}));}catch(e){console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,error:String(e)}));}}
-          for(let i=0;i<rows.length;i+=8){
-            await Promise.all(rows.slice(i,i+8).map(async x=>{
+          for(const url of directoryUrls){try{const r=await fetch(url,{redirect:"follow",signal:AbortSignal.timeout(12000),headers:{"User-Agent":"Mozilla/5.0","Accept":"text/html"}});const html=await r.text();if(r.status===403||r.status===429)blocked++;console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,status:r.status,finalUrl:r.url,length:html.length,storeLinks:[...html.matchAll(new RegExp("/myymala/([a-z0-9%._~-]+)/(\\d{5,})","gi"))].slice(0,8).map(m=>m[0])}));}catch(e){console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,error:String(e)}));}}
+          if(blocked===0){
+          for(let i=0;i<rows.length;i+=2){
+            await Promise.all(rows.slice(i,i+2).map(async x=>{
               const name=String(x.name),id=String(x.externalId||x.storeId||x.id);
               const url="https://www.s-kaupat.fi/myymala/"+slug(name)+"/"+id;
               try{
@@ -52,9 +53,12 @@ jobs:
                 missing++;bad.push({name,id,status:r.status,title,url:final});
               }catch(e){missing++;bad.push({name,id,error:String(e)})}
             }));
-            await new Promise(r=>setTimeout(r,500));
+            if(blocked>0){console.log("PUBLIC_ID_STOP",JSON.stringify({chain,reason:"HTTP 403/429",checked:exact+mismatch+missing+blocked,total:rows.length}));break;}
+            await new Promise(r=>setTimeout(r,2200));
+          }
           }
           console.log("PUBLIC_ID_SUMMARY",JSON.stringify({chain,total:rows.length,exact,mismatch,missing,blocked,bad}));
+          if(blocked>0)process.exitCode=1;
           JS
           set -o pipefail
           node /tmp/audit.mjs | tee public-id-${CHAIN}.txt
