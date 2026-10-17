@@ -83,6 +83,7 @@ jobs:
           NODE
 
       - name: Tarkista kaikki tuotekohtaisesti
+        if: always()
         run: |
           node <<'NODE'
           const fs = require('node:fs');
@@ -160,7 +161,7 @@ jobs:
             ...issues.map(x=>x.row+' | '+x.ean+' | '+x.title+' | '+x.type+' | '+x.details)
           ].join('\n'));
           console.log(fs.readFileSync('audit/jokela-report.txt', 'utf8').slice(0, 12000));
-          if (!rows.length) throw new Error('Yhtään Jokelan tuotetta ei saatu. Katso attempts.json ja response-*.json artefaktista.');
+          if (!rows.length) throw new Error('Tuotannon ja S-kaupat-lähteen tulos on tyhjä. Katso jokela-source-diagnostics.json sekä response-*.json.');
           NODE
 
       - name: Tallenna kaikki debugit ja raportti
