@@ -34,7 +34,7 @@ jobs:
           const slug=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/å/g,"a").replace(/ä/g,"a").replace(/ö/g,"o").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
           let exact=0, mismatch=0, missing=0, blocked=0; const bad=[];
           const directoryUrls=["https://www.s-kaupat.fi/myymalat/"+chain.toLowerCase()+"?query="+encodeURIComponent(rows[0]?.name||chain),"https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(rows[0]?.name||chain)];
-          for(const url of directoryUrls){try{const r=await fetch(url,{redirect:"follow",signal:AbortSignal.timeout(12000),headers:{"User-Agent":"Mozilla/5.0","Accept":"text/html"}});const html=await r.text();console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,status:r.status,finalUrl:r.url,length:html.length,storeLinks:[...html.matchAll(/\\/myymala\\/([a-z0-9%._~-]+)\\/(\\d{5,})/gi)].slice(0,8).map(m=>m[0])}));}catch(e){console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,error:String(e)}));}}
+          for(const url of directoryUrls){try{const r=await fetch(url,{redirect:"follow",signal:AbortSignal.timeout(12000),headers:{"User-Agent":"Mozilla/5.0","Accept":"text/html"}});const html=await r.text();console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,status:r.status,finalUrl:r.url,length:html.length,storeLinks:[...html.matchAll(new RegExp("/myymala/([a-z0-9%._~-]+)/(\\d{5,})","gi"))].slice(0,8).map(m=>m[0])}));}catch(e){console.log("DIRECTORY_PROBE",JSON.stringify({chain,url,error:String(e)}));}}
           for(let i=0;i<rows.length;i+=8){
             await Promise.all(rows.slice(i,i+8).map(async x=>{
               const name=String(x.name),id=String(x.externalId||x.storeId||x.id);
@@ -56,6 +56,7 @@ jobs:
           }
           console.log("PUBLIC_ID_SUMMARY",JSON.stringify({chain,total:rows.length,exact,mismatch,missing,blocked,bad}));
           JS
+          set -o pipefail
           node /tmp/audit.mjs | tee public-id-${CHAIN}.txt
       - uses: actions/upload-artifact@v4
         if: always()
