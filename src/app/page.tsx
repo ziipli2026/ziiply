@@ -25079,8 +25079,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
 
         {mapStoresOverlayOpenV433 && (
-          <div className="fixed inset-0 z-[120] bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm sm:hidden">
-            <div className="mx-auto flex h-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border-[3px] border-[#c9a85c] bg-[#fff8dc] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+          <div className="fixed inset-0 z-[120] flex min-h-0 flex-col bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm sm:hidden">
+            <div className="mx-auto flex h-full min-h-0 w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border-[3px] border-[#c9a85c] bg-[#fff8dc] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
               <div className="flex items-center justify-between border-b border-[#d6bd76] bg-[#073d32] px-4 py-3 text-white">
                 <div className="flex items-center gap-3">
                   <div className="grid h-12 w-12 place-items-center rounded-full bg-[#9fd8d0] shadow-inner ring-1 ring-[#6dbbb2]">
@@ -25111,7 +25111,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </button>
               </div>
 
-              <div className="relative min-h-[220px] flex-[0_0_45%] bg-[#fff8df]">
+              <div className="relative min-h-[min(160px,27dvh)] flex-[0_1_45%] bg-[#fff8df]">
                 <iframe
                   title="Ziiply kauppakartta"
                   src={mapStoresIframeSrcV433}
@@ -25121,7 +25121,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 />
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#d6bd76] bg-[#fff8dc] p-3 pb-[8rem]">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-[#d6bd76] bg-[#fff8dc] p-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 {gpsCoordsV320 ? (
                   <div className="rounded-2xl bg-[#e7f6ee] px-3 py-2 text-sm font-black text-[#087a3a]">
                     Oma sijainti mukana reittilinkeissä.
