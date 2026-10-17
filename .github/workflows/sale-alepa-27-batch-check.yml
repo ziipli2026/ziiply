@@ -40,6 +40,7 @@ jobs:
           fs.writeFileSync('audit/results.json',JSON.stringify({checkedAt:new Date().toISOString(),method:'public S-kaupat store page, read only, not GraphQL verification',results},null,2));
           const rows=['# Sale/Alepa 27 massatarkistus','','Julkisen myymäläsivun tarkistus ei todista GraphQL-tuotehaun toimivuutta. HTTP 403/429 ei tarkoita suljettua myymälää.','','| Myymälä | ID | HTTP | Tulos |','|---|---|---|---|',...results.map(x=>`| ${x.name} | ${x.id} | ${x.status??'-'} | ${x.classification} |`)];
           fs.writeFileSync('audit/summary.md',rows.join('\n')+'\n');
+          if(results.every(x=>x.blocked)) { console.error('INCONCLUSIVE: all 27 requests were rate limited (HTTP 429). No identities verified.'); process.exitCode=2; }
           NODE
       - uses: actions/upload-artifact@v4
         if: always()
