@@ -151,6 +151,7 @@ jobs:
             error: data.error || null
           }, null, 2));
           const issues = [];
+          const categoryAliasDifferences = [];
           const seen = new Map();
           const categoryCounts = {};
           for (const [i, item] of rows.entries()) {
@@ -183,7 +184,11 @@ jobs:
             if (item.isWeightedProduct || item.isApproximatePrice || ['KG','KGM','L','LTR'].includes(salesUnit)) {
               if (!comparison) add('weighted_missing_comparison');
             }
-            if (item.neonDisplayCategory && item.category && item.neonDisplayCategory !== item.category) add('neon_display_mismatch', String(item.neonDisplayCategory));
+            // Different category taxonomies are expected: the Neon display category overrides the provider category.
+            // Report both labels for review, but do not count a mere label difference as a defect.
+            if (item.neonDisplayCategory && item.category && item.neonDisplayCategory !== item.category) {
+              categoryAliasDifferences.push({ean, sourceCategory: item.category, displayCategory: item.neonDisplayCategory});
+            }
           }
           const report = {
             generatedAt: new Date().toISOString(),
@@ -193,6 +198,8 @@ jobs:
             checkedRows: rows.length,
             categoryCounts,
             issueCount: issues.length,
+            categoryAliasDifferenceCount: categoryAliasDifferences.length,
+            categoryAliasDifferences,
             issues
           };
           fs.writeFileSync('audit/jokela-report.json', JSON.stringify(report, null, 2));
@@ -200,6 +207,7 @@ jobs:
             'S-market Jokela — massatarkistus',
             'Tuotteita: ' + rows.length,
             'Havaintoja: ' + issues.length,
+            'Luokittelun nimike-eroja (ei automaattisia virheitä): ' + categoryAliasDifferences.length,
             '',
             'Tuoteryhmät:',
             ...Object.entries(categoryCounts).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>'  '+k+': '+v),
