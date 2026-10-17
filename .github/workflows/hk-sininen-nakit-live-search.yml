@@ -16,7 +16,7 @@ jobs:
           const stores = [{chain:'S',id:'292',api:'s-products'},{chain:'K',id:'3221',api:'k-products'}];
           const queries = ['hk sininen lenkki','sininen lenkki','nakit','nakki','koiranmakkara'];
           const norm = x => String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-          const pet = x => /koira|dog\b|lemmik|purunak|primadog|pedigree|best.in|dibo/.test(norm(x));
+          const pet = x => /koira|dog\\b|lemmik|purunak|primadog|pedigree|best.in|dibo/.test(norm(x));
           let failures = 0;
           for (const store of stores) {
             for (const query of queries) {
