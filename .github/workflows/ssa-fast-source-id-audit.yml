@@ -28,7 +28,7 @@ jobs:
           const seen=new Set<string>();
           const rows=arr.filter((x:any)=>{
             const n=String(x.name||"").trim();
-            const brand=chain==="Sale"?/^sale\\b/i.test(n):/^alepa\\b/i.test(n);
+            const brand=chain==="Sale"?/^sale\b/i.test(n):/^alepa\b/i.test(n);
             const exclude=/verkkokauppa|keräilykeskus|henkilökuntamyymälä/i.test(n);
             const id=String(x.externalId||x.storeId||x.id||"");const key=n.toLowerCase()+"|"+id;
             if(!brand||exclude||!id||seen.has(key))return false;seen.add(key);return true;
