@@ -123,3 +123,14 @@ Alla on **selvitysjärjestys, ei uusi tunnusvahvistus**. Nimet ja lähde-ID:t pe
 - Alepa Hämeenkatu `726435584`; Alepa Jamppa `726425715`; Alepa Keilaniemi `726171742`; Alepa Kilo `660931411`; Alepa Pasilanraitio `531632420`; Alepa Pukinmäki `552108425`; Alepa Rajatorppa `512415167`; Alepa Sitratori `584813356`; Alepa Tapulikaupunki `726256638`; Alepa Viherniemenkatu `538460205`.
 
 **Todentamiskriteeri:** jokaisesta myymälästä kirjataan erikseen (1) nykyinen virallinen myymälänimi ja osoite, (2) virallinen S-kaupat-tuotetietotunnus lähdeviitteineen, (3) myöhemmin onnistunut rajattu tuotehaku. Pelkkä saman niminen myymälä, ulkoinen toimipaikka-ID tai HTTP 200/0 tuotetta ei riitä vahvistukseksi. HTTP 403/429 estää testauksen eikä oikeuta toistuviin pyyntöihin. Ei automaattisia tuotantokorvauksia.
+
+
+## Vahvistettu historiallinen tapaus: Sale Automaatti Tampere (17.10.2026)
+
+**Lähde-ID:** `697945889`. S-ryhmän oma tiedote vahvistaa, että Sale Automaatti avattiin Tampereen Puutarhakadulle 31.8.2023. Ylen 16.9.2024 julkaisema uutinen kertoo, että kokeilumyymälä suljettiin syyskuun 2024 lopussa. Tästä syystä vuoden 2026 `Store not found` -tulos on yhteensopiva **historiallisen, suljetun toimipaikan** kanssa. Se ei ole näyttö väärästä tunnuksesta eikä perustelu vaihtaa sitä toisen kaupan tunnukseen.
+
+Lähteet:
+- https://s-ryhma.fi/uutinen/tamperelaiset-paasevat-nyt-testaamaan-uniikkia-its/6QAZ0xZChvcsRA42sxDfgU
+- https://yle.fi/a/74-20111801
+
+**Ehdotettu käsittely:** merkitse `Sale Automaatti Tampere` tarkistusraportissa `historical_closed_store`-ehdokkaaksi (sulkemisesta vahva näyttö), älä tee automaattista tunnuskorvausta, äläkä laske tätä nykyisten aktiivisten myymälöiden tunnuskorjausjonoon ennen aktiivisen myymäläluettelon vertailua. Kattavan alkuperäisauditoinnin 27 virhettä säilyvät ennallaan historiatietona. Aktiivisen myymäläluettelon tuotantopäivitys vaatii erillisen vahvistuksen.
