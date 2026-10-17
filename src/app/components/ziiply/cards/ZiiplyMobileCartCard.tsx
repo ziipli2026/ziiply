@@ -523,7 +523,7 @@ export default function ZiiplyMobileCartCard({
             <span aria-hidden="true" className="block h-[2rem] w-[2rem] shrink-0" />
           </div>
 
-          {onOpenSavedLists ? <div className="absolute left-[2.05rem] top-[1.64rem] z-[22]">
+          {onOpenSavedLists ? <div className="absolute left-[2.05rem] top-[0.92rem] z-[22]">
             <button
               type="button"
               onClick={onOpenSavedLists}
