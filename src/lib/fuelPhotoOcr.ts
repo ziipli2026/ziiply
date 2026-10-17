@@ -1,17 +1,23 @@
 import {findFuelLedRows,fuelLedPrice,fuelRowLabel,fuelOcrConsensus,fuelLedSegments} from './fuelPhotoLed';
 import {parseFuelPhotoText,type FuelPrices} from './fuelPhoto';
 type Worker={recognize:(image:string)=>Promise<{data:{text:string}}>;setParameters:(parameters:Record<string,string>)=>Promise<unknown>};
-export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(prices:FuelPrices)=>void){
+export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(prices:FuelPrices)=>void,onDiagnostic?:(stage:string,details:Record<string,unknown>)=>void){
+  const started=performance.now();const trace=(stage:string,details:Record<string,unknown>={})=>onDiagnostic?.(stage,{elapsedMs:Math.round(performance.now()-started),...details});
+  trace('start',{imageBytes:data.length});
+  trace('full-image-ocr-start');
   const original=await worker.recognize(data),prices=parseFuelPhotoText(original.data.text);
+  trace('full-image-ocr-complete',{textLength:original.data.text.length,prices});
   if(Object.values(prices).some(Boolean))onProgress?.({...prices});
   const image=await new Promise<HTMLImageElement>((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Kuvan avaaminen epäonnistui.'));img.src=data;});
   const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
   const ctx=canvas.getContext('2d');if(!ctx)return {prices,text:original.data.text,review:false};
   ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
   const rows=findFuelLedRows(pixels.data,canvas.width,canvas.height);
+  trace('led-rows-detected',{count:rows.length,width:canvas.width,height:canvas.height});
   let review=false;
   const seen=new Set<keyof FuelPrices>();
-  for(const row of rows){
+  for(const [rowIndex,row] of rows.entries()){
+    trace('led-row-start',{rowIndex,bounds:row});
     const crop=(left:number,right:number,red:boolean,invert=false,threshold=0,lowerLabel=false)=>{
       const c=document.createElement('canvas'),scale=invert?3:Math.min(4,Math.max(1,200/(row.bottom-row.top)));
       c.width=Math.round((right-left)*scale)+40;c.height=Math.round((row.bottom-row.top)*scale)+40;
@@ -48,6 +54,7 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     if(fullLabel)labelVotes.set(fullLabel,(labelVotes.get(fullLabel)||0)+2);
     const labels=[...labelVotes].sort((a,b)=>b[1]-a[1]);
     const label=labels[0]&&labels[0][1]>=(labels[1]?.[1]||0)*2?labels[0][0]:null;
+    trace('led-row-label',{rowIndex,label,labels});
     if(!label)continue;
     const candidates:{price:string;view:string}[]=[];
     for(const psm of ['8']){
@@ -58,10 +65,12 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     if(seen.has(label)){prices[label]='';continue;}seen.add(label);
     const segments=fuelLedSegments(pixels.data,canvas.width,canvas.height,row);
     const candidate=segments||fuelOcrConsensus(candidates);
+    trace('led-row-price',{rowIndex,label,segments,candidates,candidate});
     // Two agreeing LED shape masks can resolve a systematic OCR error.
     // Without that evidence, disagreement with the original pass remains a conflict.
     prices[label]=segments?segments:prices[label]&&candidate&&prices[label]!==candidate?'':candidate;
     if(prices[label])onProgress?.({...prices});
   }
+  trace('complete',{prices,review});
   return {prices,text:original.data.text,review};
 }
