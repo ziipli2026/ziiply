@@ -210,7 +210,8 @@ export default function ZiiplyMobileTopBar({
   };
   const toggleFuel = () => {
     window.dispatchEvent(new Event("ziiply:open-fuel"));
-    setActiveUtility(previous => previous === "fuel" ? null : "fuel");
+    if (onOpenFuel) { setActiveUtility(null); onOpenFuel(); }
+    else setActiveUtility(previous => previous === "fuel" ? null : "fuel");
   };
   const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
   const [chartError, setChartError] = useState("");
