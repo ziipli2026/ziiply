@@ -2147,6 +2147,18 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   }
 
   const data = await response.json();
+  const graphQLErrors = Array.isArray(data?.errors) ? data.errors : [];
+  if (graphQLErrors.length > 0) {
+    const message = String(graphQLErrors[0]?.message || "unknown GraphQL error");
+    const reason = /store not found/i.test(message) ? "STORE_NOT_FOUND" : "GRAPHQL_ERROR";
+    throw new Error(`S_KAUPAT_${reason}: ${message}`);
+  }
+  if (data?.data?.store == null) {
+    throw new Error("S_KAUPAT_STORE_MISSING: GraphQL response has no store");
+  }
+  if (data?.data?.store?.products == null) {
+    throw new Error("S_KAUPAT_PRODUCTS_MISSING: GraphQL response has no products node");
+  }
   const root = getSProductsRoot(data);
   const pagingMeta = getSProductsPagingMetaV184(data);
   const fallbackFacetNames = getCategoryFacetNames(data);
