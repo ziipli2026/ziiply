@@ -220,13 +220,16 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       setGps(location);const stationSearch=findStations(location);
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
       const data=await preparePhoto(file);recoveryData=data;if(!alive.current)return;setPhoto(data);
+      // Start independent server-side vision immediately, in parallel with local OCR.
+      // Do not wait for the 15–20-second Tesseract pass before queuing recovery.
+      recoverySaved=true;
+      void saveLearningPhoto(file,data,{diesel:"",price95:"",price98:""},"");
       const worker=await (warmWorker.current??loadOcr().then(ocr=>ocr.createWorker("eng",1,{})));
       warmWorker.current=null;
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
       const result=await readFuelPhoto(worker,data,partial=>{if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([,value])=>Boolean(value)))}));setPriceReview(true);}});if(!alive.current)return;
-      const parsed=result.prices;setPrices(parsed);setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
+      const parsed=result.prices;setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(parsed).filter(([,value])=>Boolean(value)))}));setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
       const candidates=await stationSearch;if(!alive.current)return;const identified=identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0);setStationId(identified);logDebug("station-identification",{identified,location,conflict:checked,candidates:(candidates||[]).slice(0,10).map(s=>({id:s.id,name:s.name,chain:s.chain,distanceM:location?Math.round(fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000):null}))});
-      if(result.review||Object.values(parsed).some(value=>!value)){await saveLearningPhoto(file,data,parsed,result.text);recoverySaved=true;}
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
     }catch(e){if(recoveryData&&!recoverySaved)await saveLearningPhoto(file,recoveryData,{diesel:"",price95:"",price98:""},"");if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
     finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);}
