@@ -253,12 +253,24 @@ jobs:
             const current = pricing.currentPrice;
             const until = String(pricing.campaignPriceValidUntil||'').slice(0,10);
             const reasons=[];
+            // Mirror provider V6 section-chain exclusion to identify rows rejected before mapping.
+            const sectionExclusions = occurrences.map(({section,product})=>{
+              const sourceSection = sections.find(x=>(Array.isArray(x.products)?x.products:[]).includes(product));
+              const evidence = [sourceSection?.title,sourceSection?.description,sourceSection?.text,sourceSection?.tagTitle,sourceSection?.metadata?.entryName].filter(Boolean).join(' | ');
+              const chains = [];
+              if (/\\bprisma\\b/i.test(evidence)) chains.push('prisma');
+              if (/\\bs[ -]?market\\b/i.test(evidence)) chains.push('s-market');
+              if (/\\balepa\\b/i.test(evidence)) chains.push('alepa');
+              if (/\\bsale\\b/i.test(evidence)) chains.push('sale');
+              return {section,chains,excluded:chains.length>0&&!chains.includes('s-market'),evidence:evidence.slice(0,300)};
+            });
+            if(sectionExclusions.length && sectionExclusions.every(x=>x.excluded)) reasons.push('excluded_by_section_chain_filter');
             if (until && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(until)||until<today)) reasons.push('expired_or_invalid_date');
             if (campaign!=null && Number.isFinite(Number(campaign)) && ((regular!=null&&Number(campaign)>Number(regular))||(current!=null&&Number(campaign)>Number(current)))) reasons.push('campaign_above_regular_or_current');
             if (!(Number(current)>0) && !(campaign!=null && regular!=null && Number(campaign)>0 && Number(campaign)<Number(regular))) reasons.push('no_eligible_price');
             if (!reasons.length) reasons.push('unexplained_requires_pipeline_check');
             for(const reason of reasons) counts[reason]=(counts[reason]||0)+1;
-            missing.push({ean,title:p.name,sections:occurrences.map(x=>x.section),pricing:{campaignPrice:campaign??null,currentPrice:current??null,regularPrice:regular??null,validUntil:until||null},reasons});
+            missing.push({ean,title:p.name,sections:occurrences.map(x=>x.section),sectionExclusions,pricing:{campaignPrice:campaign??null,currentPrice:current??null,regularPrice:regular??null,validUntil:until||null},reasons});
           }
           const report={sourceRawRows:raw.length,sourceUniqueEans:sourceByEan.size,productionRows:results.length,productionUniqueEans:prodEans.size,duplicateSourceRows:raw.length-sourceByEan.size,missingUniqueEans:missing.length,missingReasons:counts,missing,productionOnlyEans:[...prodEans].filter(x=>!sourceByEan.has(x))};
           fs.writeFileSync('audit/jokela-source-production-reconciliation.json',JSON.stringify(report,null,2));
