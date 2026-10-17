@@ -53,7 +53,7 @@ jobs:
               const headers={"accept":"application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15"};
               const probe=async(id:string,query="maito")=>{const r=await fetch(endpoint(id,query),{signal:AbortSignal.timeout(10000),headers});const t=await r.text();if(!r.ok)return {ok:false,status:r.status};let j:any;try{j=JSON.parse(t)}catch{return {ok:false,status:"json"};}if(Array.isArray(j?.errors)&&j.errors.length)return {ok:false,status:"graphql",detail:String(j.errors[0]?.message||"unknown").slice(0,180)};const storePresent=j?.data?.store!=null;const productsPresent=j?.data?.store?.products!=null;const root=j?.data?.store?.products??j?.data?.remoteFilteredProducts??j?.data?.products??j?.data;const candidates=[root?.totalCount,root?.total,root?.count,root?.products?.totalCount,root?.products?.total,root?.products?.count,root?.productListItems?.length,root?.edges?.length,root?.nodes?.length,root?.products?.length,root?.items?.length,root?.results?.length];return {ok:true,status:r.status,storePresent,productsPresent,count:Number(candidates.find(v=>v!==undefined&&v!==null)??0),rootKeys:root&&typeof root==="object"?Object.keys(root).slice(0,25):[]};};
               const direct=await probe(sourceId);
-              if(direct.ok&&Number(direct.count)===0){
+              if(false&&direct.ok&&Number(direct.count)===0){
                 const alternate=await probe(sourceId,"kahvi");
                 if(alternate.ok&&Number(alternate.count)>0)return {name,sourceId,resolvedId:sourceId,httpStatus:alternate.status,count:alternate.count,status:"working",recoveredByQuery:"kahvi"};
                 const third=await probe(sourceId,"leipä");
@@ -80,7 +80,7 @@ jobs:
               if(samples.length<12)samples.push(x);
             }
             console.log("FAST_PROGRESS",JSON.stringify({chain,checked:Math.min(i+2,selected.length),total:selected.length,resolved,working,zero,error}));
-            if(i+2<selected.length&&!blocked)await new Promise(r=>setTimeout(r,1200));
+            if(i+2<selected.length&&!blocked)await new Promise(r=>setTimeout(r,2200));
           }
           const byStatus=bad.reduce((a:any,x:any)=>(a[x.status]=(a[x.status]||0)+1,a),{});
           console.log("FAST_SUMMARY",JSON.stringify({chain,inventory:arr.length,filtered:rows.length,shard,shards,selected:selected.length,checked:working+zero+error,blocked,resolved,changed,working,zero,error,byStatus,samples,bad}));
