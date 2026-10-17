@@ -1,8 +1,9 @@
 import {findFuelLedRows,fuelLedPrice,fuelRowLabel,fuelOcrConsensus,fuelLedSegments} from './fuelPhotoLed';
 import {parseFuelPhotoText,type FuelPrices} from './fuelPhoto';
 type Worker={recognize:(image:string)=>Promise<{data:{text:string}}>;setParameters:(parameters:Record<string,string>)=>Promise<unknown>};
-export async function readFuelPhoto(worker:Worker,data:string){
+export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(prices:FuelPrices)=>void){
   const original=await worker.recognize(data),prices=parseFuelPhotoText(original.data.text);
+  if(Object.values(prices).some(Boolean))onProgress?.({...prices});
   const image=await new Promise<HTMLImageElement>((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Kuvan avaaminen epäonnistui.'));img.src=data;});
   const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
   const ctx=canvas.getContext('2d');if(!ctx)return {prices,text:original.data.text,review:false};
@@ -22,7 +23,7 @@ export async function readFuelPhoto(worker:Worker,data:string){
     if(row.left<15)continue;
     await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
     const labelVotes=new Map<NonNullable<ReturnType<typeof fuelRowLabel>>,number>();
-    for(const threshold of [0,30,50,80,120]){
+    for(const threshold of [0,80]){
       const found=fuelRowLabel((await worker.recognize(crop(Math.max(0,row.left-(row.right-row.left)*.65),Math.max(1,row.left-8),false,true,threshold))).data.text);
       if(found)labelVotes.set(found,(labelVotes.get(found)||0)+1);
     }
@@ -49,7 +50,7 @@ export async function readFuelPhoto(worker:Worker,data:string){
     const label=labels[0]&&labels[0][1]>=(labels[1]?.[1]||0)*2?labels[0][0]:null;
     if(!label)continue;
     const candidates:{price:string;view:string}[]=[];
-    for(const psm of ['8','7']){
+    for(const psm of ['8']){
       await worker.setParameters({tessedit_pageseg_mode:psm,tessedit_char_whitelist:'0123456789.,'});
       for(const [red,invert,threshold] of [[false,false,0],[true,false,0],[false,true,0],[false,true,120]] as const){const p=fuelLedPrice((await worker.recognize(crop(row.left,row.right,red,invert,threshold))).data.text);if(p)candidates.push({price:p,view:`${red}:${invert}:${threshold}`});}
     }
@@ -60,6 +61,7 @@ export async function readFuelPhoto(worker:Worker,data:string){
     // Two agreeing LED shape masks can resolve a systematic OCR error.
     // Without that evidence, disagreement with the original pass remains a conflict.
     prices[label]=segments?segments:prices[label]&&candidate&&prices[label]!==candidate?'':candidate;
+    if(prices[label])onProgress?.({...prices});
   }
   return {prices,text:original.data.text,review};
 }
