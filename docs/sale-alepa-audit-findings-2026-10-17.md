@@ -215,3 +215,21 @@ Lähteet:
 - https://tampere.cloudnc.fi/fi-FI/Toimielimet/Yhdyskuntalautakunta/Kokous_332026/Asemakaavaehdotuksen_asettaminen_nahtavi%28492653%29
 
 **Yhteenveto:** 9 historialliseksi suljetuksi tunnistettua, 2 vanhaa/muuttunutta kirjausta, 16 muuta avoinna = alkuperäiset 27 virhettä. Ei ID-korvauksia, tuotantokoodin muutoksia tai massahakuja. Suljettuja ei tule automaattisesti yhdistää lähialueen nykyisiin S-marketeihin.
+
+
+## Virallisten sulkemistiedotteiden tarkistus: kolme Salea (17.10.2026)
+
+Seuraaville kolmelle alkuperäisen auditoinnin `Store not found` -myymälälle löytyi osuuskaupan oma sulkemistiedote. Tämä ei vahvista mitään korvaavaa tuotetietotunnusta.
+
+| Myymälä | Lähde-ID | Virallinen tieto | Luokitus |
+|---|---|---|---|
+| Sale Kyröskoski Hämeenkyrö | `677311136` | Pirkanmaan Osuuskauppa 22.10.2025: suljetaan viimeistään 31.10.2025 | `historical_closed_store` |
+| Sale Mouhijärvi Sastamala | `500854872` | Pirkanmaan Osuuskauppa 7.8.2025: viimeinen ilmoitettu palvelupäivä 29.8.2025, loppuunmyynti 27.8. alkaen | `historical_closed_store` |
+| Sale Vaskio | `500978176` | Suur-Seudun Osuuskauppa 5.8.2025: suljetaan lokakuun 2025 loppuun mennessä | `historical_closed_store` |
+
+Viralliset lähteet:
+- https://pirkanmaanosuuskauppa.fi/artikkeli/sale-kyroskoski-sulkee-ovensa-lokakuun-lopussa
+- https://pirkanmaanosuuskauppa.fi/artikkeli/sale-mouhijarven-toiminta-paattyy-elokuussa-palvelubussi-kuljettaa-jatkossakin-asiakkaita-s-market-haijaaseen
+- https://sso.fi/artikkeli/sale-vaskion-vuokrasopimus-paattyy
+
+**Tilanne:** 12 historialliseksi suljetuksi tunnistettua, 2 vanhaa/muuttunutta kirjausta ja 13 muuta selvittämätöntä = 27 alkuperäistä virhettä. Suljettujen lähimyymälöiden tunnuksia ei korvata niiden seuraajilla tai lähikaupoilla. Ei massahakuja eikä tuotantokoodin muutoksia.
