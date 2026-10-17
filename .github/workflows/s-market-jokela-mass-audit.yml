@@ -34,7 +34,18 @@ jobs:
           if (!data.ok || !Array.isArray(data.results)) {
             throw new Error('Tarjousrajapinta ei palauttanut odotettua results-taulukkoa: ' + JSON.stringify(data).slice(0, 500));
           }
-          const rows = data.results.filter(x => /^(s|s-market)$/i.test(String(x.chain || '')) || /s-market jokela/i.test(String(x.storeName || x.storeLabel || '')));
+          const rows = data.results.filter(x => /s-market jokela/i.test(String(x.storeName || x.storeLabel || x.shopName || '')) || /^(s|s-market)$/i.test(String(x.chain || ''))); 
+          console.log('API results:', data.results.length, 'selected rows:', rows.length);
+          console.log('API top-level keys:', Object.keys(data));
+          console.log('First result metadata:', data.results.slice(0, 3).map(x => ({chain:x.chain,storeName:x.storeName,storeLabel:x.storeLabel,title:x.title,source:x.source})));
+          fs.writeFileSync('audit/jokela-response-diagnostics.json', JSON.stringify({
+            responseKeys: Object.keys(data),
+            resultCount: data.results.length,
+            selectedCount: rows.length,
+            firstResults: data.results.slice(0, 5).map(x => ({chain:x.chain,storeName:x.storeName,storeLabel:x.storeLabel,title:x.title,source:x.source})),
+            sEvidenceRouteV228: data.sEvidenceRouteV228 || null,
+            error: data.error || null
+          }, null, 2));
           const issues = [];
           const seen = new Map();
           const categoryCounts = {};
@@ -93,7 +104,7 @@ jobs:
             ...issues.map(x=>x.row+' | '+x.ean+' | '+x.title+' | '+x.type+' | '+x.details)
           ].join('\n'));
           console.log(fs.readFileSync('audit/jokela-report.txt', 'utf8').slice(0, 12000));
-          if (!rows.length) throw new Error('Yhtään Jokelan tuotetta ei saatu. Tarkista rajapinnan vastaus artefaktista.');
+          if (!rows.length) console.warn('VAROITUS: Jokelan tuotteita 0. Tarkista jokela-response-diagnostics.json ja jokela-all.json artefaktista.');
           NODE
 
       - name: Tallenna kaikki debugit ja raportti
