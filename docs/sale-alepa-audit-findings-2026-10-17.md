@@ -159,3 +159,16 @@ Lähteet:
 - https://www.s-kaupat.fi/myymala/prisma-raksila-oulu/516528759
 
 **Raportin tilanne:** 3 suljetuksi tunnistettua (Sale Automaatti Tampere, Sale Kaijonharju Oulu, Sale Raksila), 2 historiallista tai muuttunutta kirjausta (Sale Kortepohja VANHA, Sale Multia vanha), 22 muuta selvittämätöntä. Alkuperäisen 434 myymälän auditoinnin 27 `Store not found` -tulosta pidetään ennallaan. Ei ID-korvauksia eikä tuotantopäivitystä.
+
+
+## Lähdetarkistus: Sale Intiö Oulu (17.10.2026)
+
+**Alkuperäinen lähde-ID:** `697947828` — `Store not found` kattavassa auditoinnissa.
+
+Osuuskauppa Arinan 16.12.2024 julkaisema tiedote vahvistaa, että **Sale Intiö suljettiin viimeistään 31.1.2025** vuokrasopimuksen päättyessä. Aiempi Arinan myymäläesittely kertoo Sale Intiön sijainneen Kenttätie 9:ssä, Oulussa. Näin kyseessä on historiallinen, suljettu Sale-toimipaikka. Tiedote kertoo viimeisen mahdollisen sulkemispäivän, ei täsmällistä toteutunutta päivää.
+
+Lähteet:
+- https://www.sttinfo.fi/tiedote/70759732/sale-intion-toiminta-loppuu-vuokrasopimus-paattyy?lang=fi&publisherId=68574190
+- https://arina.fi/artikkeli/oulun-intion-m-market-uudistuu-huhtikuussa-sale-lahimyymalaksi
+
+**Päätös:** `historical_closed_store`; ei ID-korvausta eikä tuotantokoodin muutosta. Alkuperäisen auditoinnin 27 virhettä säilytetään. Suljetuksi vahvistettuja on nyt neljä (Automaatti Tampere, Kaijonharju, Raksila, Intiö), kaksi vanhaa/muuttunutta toimipaikkakirjausta ja 21 muuta vielä selvittämätöntä.
