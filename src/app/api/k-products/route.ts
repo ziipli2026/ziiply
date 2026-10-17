@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { NextResponse } from "next/server";
+import { rankGrocerySearchResults } from "../_shared/grocerySearchRelevance";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
 type RuoanhintaProduct = {
@@ -168,7 +169,7 @@ export async function GET(request: Request) {
       source: "ruoanhinta-k",
       endpoint,
       status: response.status,
-      items,
+      items: rankGrocerySearchResults(items, search),
     });
   } catch (error) {
     return NextResponse.json(
