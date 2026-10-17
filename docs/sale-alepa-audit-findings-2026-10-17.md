@@ -86,3 +86,20 @@ Lähde: kattavan ajon 39055107119 kuuden osan `FAST_SUMMARY.bad`-tiedot. Alla ol
 | Sale | Sale Vaskio | `500978176` | Store not found |
 
 Nimissä `VANHA` ja `vanha` on mahdollinen vanhentuneen lähdetiedon merkki, **ei vahvistus myymälän sulkemisesta**. Tunnuksen korjaaminen vaatii ajantasaisen virallisen lähteen tai onnistuneen tuotehaun.
+
+
+## Lähdetarkistus ilman massahakuja — Kortepohja ja Multia (17.10.2026)
+
+Tämä on **nimien ja toimipaikkojen lähdetarkistus**, ei tuotetietotunnusten vahvistus. Mitään tuotannon ID:tä ei muutettu eikä S-kaupat-rajapinnan massahakua käynnistetty.
+
+| Virheluettelon nimi | Vanha lähde-ID | Ulkoisista lähteistä todettu | Tunnuksen tila |
+|---|---|---|---|
+| Sale Kortepohja VANHA | `653574384` | S-kaupat listaa nykyisen **Sale Kortepohjan**, Kartanonkuja 11, 40740 Jyväskylä. Osuuskauppa Keskimaa ilmoitti vuonna 2024 tulevasta muutosta uusiin tiloihin keväällä 2025. Vanhaa Isännäntie 1 -osoitetta esiintyy vanhemmissa lähteissä. | **Korvaava tuotetieto-ID vahvistamatta**; nimi viittaa vanhaan toimipaikkakirjaukseen. |
+| Sale Multia vanha | `512045139` | S-kaupat listaa **Sale Multian**, Keskustie 18, 42600 Multia. Keskimaa kertoi uuden Sale Multian avautuneen kesäkuussa 2024. Aiemmassa toimipaikkaluettelossa on erikseen Sale Multia ja Sale Multia Uusi samalla osoitteella. | **Korvaava tuotetieto-ID vahvistamatta**; vanha/uusi-toimipaikka pitää erottaa toisistaan. |
+
+Lähteet:
+- https://www.s-kaupat.fi/myymalat?query=Sale
+- https://www.sttinfo.fi/tiedote/70623571/keskimaan-paivittaistavarakaupan-vahva-kehitys-jatkuu-ravintolakauppa-haastaa?lang=fi&publisherId=68574138
+- https://assets.ctfassets.net/8122zj5k3sy9/2sj8MRHT6lp4azDoTbSwCZ/2b1b922c769f2362c2f25b521aebebe3/Invoicing_addresses_for_suppliers.pdf
+
+**Päätös:** merkitse nämä kaksi vanhoiksi epäillyiksi lähdekirjauksiksi (ei poistetuksi myymäläksi); jätä 25 muuta `Store not found` -tapausta avoimiksi. Päivitä koodin myymälä-ID vain, kun nykyinen S-kaupat-tuotetietotunnus on luotettavasti varmennettu. Erilliset yritys-/toimipaikkanumerot eivät kelpaa GraphQL-tuotetieto-ID:ksi.
