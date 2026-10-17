@@ -462,7 +462,7 @@ export default function ZiiplyMobileCompareSelectionCard({
           <button
             type="button"
             onClick={onBack}
-            className="absolute left-[0.78rem] top-[0.88rem] z-[35] grid h-[2.30rem] w-[2.58rem] place-items-center rounded-bl-[0.82rem] rounded-tl-none rounded-tr-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute left-[0.78rem] top-[0.88rem] z-[35] grid h-[2.30rem] w-[2.58rem] place-items-center rounded-tl-[0.82rem] rounded-tr-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Takaisin"
             title="Takaisin"
           >
@@ -478,7 +478,7 @@ export default function ZiiplyMobileCompareSelectionCard({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-[0.78rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-br-[0.8rem] rounded-tl-none rounded-tr-none rounded-bl-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute right-[0.78rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tr-[0.8rem] rounded-tl-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Sulje erittely"
             title="Sulje erittely"
           >
