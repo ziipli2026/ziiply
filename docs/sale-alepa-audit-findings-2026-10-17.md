@@ -197,3 +197,21 @@ Lähteet:
 - https://tervola.fi/ajankohtaista/louen-kylakauppa-sulki-ovensa-kannattamattomana-paikalle-suunnitteilla-kauppatoimintaa-itsepalveluperiaatteella/
 
 Luokitus `historical_closed_store`, ei tunnuskorvausta. Nyt 6 vahvistettua suljettua, 2 vanhaa/muuttunutta kirjausta ja 19 muuta avoinna alkuperäisestä 27 virheestä. Alkuperäistä auditointia tai tuotantokoodia ei muutettu.
+
+
+## Jatkoselvitys: Kotkansaari, Piippola ja Haukiluoma (17.10.2026)
+
+Kolme alkuperäisen `Store not found` -luettelon toimipaikkaa voidaan luokitella historiallisiksi. Nämä eivät ole uusia tuotetieto-ID-vahvistuksia.
+
+| Myymälä | Alkuperäinen ID | Sulkemisnäyttö | Luokitus |
+|---|---|---|---|
+| Sale Kotkansaari | `509165767` | Kymen Seudun Osuuskauppa: viimeinen aukiolopäivä 27.9.2025 | `historical_closed_store` |
+| Sale Piippola | `502133952` | Osuuskauppa Arina: sulkeminen päätetty viikolle 51/2025 | `historical_closed_store` (päätöksen mukainen) |
+| Sale Haukiluoma Tampere | `725884549` | Tampereen kaupungin 2026 asemakaava-aineiston mukaan Tyvikatu 13:n päivittäistavarakauppa on purettu kannattamattomana | `historical_closed_store` (tarkka sulkemispäivä avoin) |
+
+Lähteet:
+- https://kymenseudunosuuskauppa.fi/artikkeli/sale-kotkansaari-suljetaan-pysyvasti
+- https://arina.fi/artikkeli/arina-sulkee-sale-piippolan
+- https://tampere.cloudnc.fi/fi-FI/Toimielimet/Yhdyskuntalautakunta/Kokous_332026/Asemakaavaehdotuksen_asettaminen_nahtavi%28492653%29
+
+**Yhteenveto:** 9 historialliseksi suljetuksi tunnistettua, 2 vanhaa/muuttunutta kirjausta, 16 muuta avoinna = alkuperäiset 27 virhettä. Ei ID-korvauksia, tuotantokoodin muutoksia tai massahakuja. Suljettuja ei tule automaattisesti yhdistää lähialueen nykyisiin S-marketeihin.
