@@ -169,7 +169,7 @@ function LeatherBackButton({ onClick }: { onClick?: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="absolute left-[0.78rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+      className="absolute left-[1.18rem] top-[0.73rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tl-[0.8rem] rounded-tr-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
       aria-label="Takaisin"
       title="Takaisin"
     >
@@ -257,9 +257,9 @@ export default function ZiiplyMobileNotebookCard({
 
   return (
     <div
-      className={`fixed inset-0 z-[93] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+      className={`fixed inset-0 z-[93] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section className="ziiply-notebook-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-notebook-pop relative flex h-full max-h-full min-h-0 min-w-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -277,7 +277,7 @@ export default function ZiiplyMobileNotebookCard({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-[0.78rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute right-[1.18rem] top-[0.73rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tr-[0.8rem] rounded-tl-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Sulje ostelusvihko"
             title="Sulje ostelusvihko"
           >
@@ -304,7 +304,7 @@ export default function ZiiplyMobileNotebookCard({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[7.85rem] pt-[1.10rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain [touch-action:pan-y] px-5 pb-[7.85rem] pt-[1.10rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {page === "recipes" ? (
             <div className="space-y-2">
               <input value={recipeFilter} onChange={event => setRecipeFilter(event.target.value)} aria-label="Hae tallennettuja reseptejä" placeholder="Hae reseptiä..." className="w-full rounded-lg border border-[#9a7a3d] bg-[#fff9e9] px-3 py-2 text-sm" />
@@ -473,7 +473,7 @@ export default function ZiiplyMobileNotebookCard({
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
 
-        {deleteRecipe && <div className="absolute inset-0 z-[101] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true">
+        {deleteRecipe && <div className="absolute inset-0 z-[101] flex items-center justify-center overflow-y-auto bg-[#241b11]/65 px-4 py-4" role="dialog" aria-modal="true">
           <div className="w-full rounded-xl bg-[#fff4d8] p-5"><strong>Poistetaanko resepti {deleteRecipe.title}?</strong><div className="mt-4 flex gap-2">
             <button type="button" className="flex-1 rounded-lg border p-3" onClick={() => setDeleteRecipe(null)}>Peruuta</button>
             <button type="button" className="flex-1 rounded-lg bg-[#8b3c27] p-3 text-white" onClick={() => {
@@ -483,7 +483,7 @@ export default function ZiiplyMobileNotebookCard({
             }}>Poista</button>
           </div></div></div>}
         {pendingDeleteList && (
-          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#241b11]/65 px-4" role="dialog" aria-modal="true" aria-labelledby="delete-saved-list-title">
+          <div className="absolute inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-[#241b11]/65 px-4 py-4" role="dialog" aria-modal="true" aria-labelledby="delete-saved-list-title">
             <div className="w-full max-w-[23rem] rounded-[1.35rem] border-[3px] border-[#886635] bg-[#fff4d8] p-5 text-[#214b33] shadow-[0_12px_35px_rgba(28,19,8,0.35),inset_0_0_0_2px_#fff9e8]">
               <h2 id="delete-saved-list-title" className="text-center text-[1.3rem] font-black" style={{ fontFamily: cooperFont }}>Poistetaanko ostoslista?</h2>
               <p className="mt-3 text-center text-[0.92rem] font-bold text-[#655235]">{String(pendingDeleteList.name || pendingDeleteList.title || "Tallennettu lista")} ({getListItemCount(pendingDeleteList)} tuotetta). Tätä ei voi perua.</p>
