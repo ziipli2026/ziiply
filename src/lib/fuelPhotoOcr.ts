@@ -12,7 +12,22 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
   const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
   const ctx=canvas.getContext('2d');if(!ctx)return {prices,text:originalText,review:false};
   ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const rows=findFuelLedRows(pixels.data,canvas.width,canvas.height);
+  let rows=findFuelLedRows(pixels.data,canvas.width,canvas.height);
+  // Some iPhone Safari JPEG decodes yield a weaker red LED mask. Retry on
+  // a contrast-enhanced copy before falling back to expensive whole-image OCR.
+  if(!rows.length){
+    const enhanced=new Uint8ClampedArray(pixels.data);
+    for(let i=0;i<enhanced.length;i+=4){
+      const r=enhanced[i],g=enhanced[i+1],b=enhanced[i+2];
+      if(r>g*1.12&&r>b*1.08&&r>55){
+        enhanced[i]=Math.min(255,Math.round(r*1.45+20));
+        enhanced[i+1]=Math.max(0,Math.round(g*.65));
+        enhanced[i+2]=Math.max(0,Math.round(b*.7));
+      }
+    }
+    rows=findFuelLedRows(enhanced,canvas.width,canvas.height);
+    trace('led-rows-enhanced-retry',{count:rows.length});
+  }
   trace('led-rows-detected',{count:rows.length,width:canvas.width,height:canvas.height});
   // Preserve a general-purpose fallback for images where red LED rows cannot be located.
   if(!rows.length){
