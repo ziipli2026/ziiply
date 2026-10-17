@@ -36,7 +36,7 @@ export function fuelLedPrice(text:string):string|null{
 }
 export function fuelRowLabel(text:string):'diesel'|'price95'|'price98'|null{
   // MY renewable diesel is a separate grade: never overwrite ordinary diesel with its price.
-  if(/\\b(?:MY\\s*D|MY\\s*Diesel|Neste\\s*MY)\\b/i.test(text))return null;
+  if(/\b(?:MY\s*(?:D|Diesel)|Neste\s*MY)\b/i.test(text))return null;
   const labels=new Set<string>();
   if(/\b95(?:\s*E\s*10)?\b/i.test(text))labels.add('price95');
   if(/\b98(?:\s*E\s*5)?\b/i.test(text))labels.add('price98');
