@@ -1,5 +1,6 @@
-name: S-market Sale Alepa fast source-ID audit
+name: Sale Alepa production source-ID mass check
 on:
+  workflow_dispatch:
   push:
     paths: ['.github/workflows/ssa-fast-source-id-audit.yml']
 permissions: {contents: read}
@@ -10,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        chain: [S-market, Sale, Alepa]
+        chain: [Sale, Alepa]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,4 +54,4 @@ jobs:
           npx tsx scripts/.tmp-ssa-fast.mts | tee ssa-fast-${CHAIN// /_}.txt
       - uses: actions/upload-artifact@v4
         if: always()
-        with: {name: "ssa-fast-${{ matrix.chain }}", path: "ssa-fast-*.txt"}
+        with: {name: "sale-alepa-source-id-${{ matrix.chain }}", path: "ssa-fast-*.txt"}
