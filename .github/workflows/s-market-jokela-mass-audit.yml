@@ -294,24 +294,19 @@ jobs:
             const title=String(row.title||row.name||'');
             const source=String(row.category||'');
             const display=String(row.neonDisplayCategory||'');
-            const t=(title+' '+String(row.brandName||'')).toLowerCase();
+            const t=title.toLowerCase(),d=display.toLowerCase(),src=source.toLowerCase();
+            // High-confidence mismatches only. Avoid matching ingredients (porkkana, kana,
+            // suklaa, maito) or generic substrings inside unrelated product names.
             const checks=[
-              ['liha',/kana|broileri|nauta|possu|sika|jauheliha|filee|pihvi|makkara|leikkele/],
-              ['kala',/lohi|kirjolohi|tonnikala|silakka|kalapuikko|katkarapu/],
-              ['maito',/maito|jogurtti|rahka|juusto|kerma|voi\b/],
-              ['juoma',/limonadi|cola|mehu|energiajuoma|virvoitusjuoma|vesi\b/],
-              ['pesu',/pyykinpesu|astianpesu|pesuaine|huuhteluaine/],
-              ['paperi',/wc-paperi|talouspaperi|nenäliina/],
-              ['lemmikki',/kiss|koira|lemmikki/]
+              {when:/\\b(?:kitkat|vohvelikeksi|suklaakeksi|keksi|keksit)\\b/i.test(t)&&/karkit|suklaat|keksit/.test(src),wrong:/leipomo|hevi|liha|juoma/.test(d),family:'Makeiset & keksit'},
+              {when:/\\bpiltti\\b/i.test(t)&&/lapset/.test(src),wrong:/\\bhevi\\b/.test(d),family:'Lastenruoat'},
+              {when:/\\b(?:wc-paperi|talouspaperi)\\b/i.test(t),wrong:/\\bhevi|liha|juoma|pakaste|leipomo\\b/.test(d),family:'Kodinhoito'},
+              {when:/\\b(?:pyykinpesuneste|astianpesuaine)\\b/i.test(t),wrong:/\\bhevi|liha|juoma|pakaste|leipomo\\b/.test(d),family:'Kodinhoito'}
             ];
-            for(const [family,re] of checks){
-              if(!re.test(t))continue;
-              const other=checks.filter(([f,rr])=>f!==family&&rr.test(t)).map(([f])=>f);
-              const label=(source+' '+display).toLowerCase();
-              const synonyms={liha:/liha|kana|broileri|leikkele|makkara/,kala:/kala|meren|äyriä/,maito:/maito|juusto|jogurtti|rahka|kerma|rasva/,juoma:/juoma|mehu|vesi/,pesu:/pesu|siivous|pyykki|kodinhoito/,paperi:/paperi|hygienia|wc/,lemmikki:/lemmikki|eläin|kissa|koira/};
-              if(!synonyms[family].test(label)&&!other.length)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,expectedFamily:family,reason:'category_semantic_review'});
-              break;
+            for(const check of checks){
+              if(check.when&&check.wrong)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,expectedFamily:check.family,reason:'category_semantic_review'});
             }
+            if(!display&&source)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,reason:'missing_neon_display_category_review'});
             if(display&&source&&display!==source)categories.push({row:i+1,ean:row.ean,title,sourceCategory:source,displayCategory:display,reason:'taxonomy_label_difference_review'});
           };
           rows.forEach((row,i)=>{
