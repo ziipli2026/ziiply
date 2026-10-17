@@ -44,8 +44,8 @@ jobs:
               const t=await r.text();if(!r.ok)return {name,sourceId,resolvedId:id,status:r.status};
               let j:any;try{j=JSON.parse(t)}catch{return {name,sourceId,resolvedId:id,status:"json"};}
               if(Array.isArray(j?.errors)&&j.errors.length)return {name,sourceId,resolvedId:id,status:"graphql",detail:j.errors[0]?.message};
-              const root=j?.data?.remoteFilteredProducts??j?.data?.products??j?.data;
-              const candidates=[root?.totalCount,root?.total,root?.count,root?.products?.totalCount,root?.products?.total,root?.products?.count,root?.edges?.length,root?.nodes?.length,root?.products?.length,root?.items?.length,root?.results?.length,j?.data?.remoteFilteredProducts?.items?.length,j?.data?.remoteFilteredProducts?.products?.length];
+              const root=j?.data?.store?.products??j?.data?.remoteFilteredProducts??j?.data?.products??j?.data;
+              const candidates=[root?.totalCount,root?.total,root?.count,root?.products?.totalCount,root?.products?.total,root?.products?.count,root?.productListItems?.length,root?.edges?.length,root?.nodes?.length,root?.products?.length,root?.items?.length,root?.results?.length];
               const count=Number(candidates.find(v=>v!==undefined&&v!==null)??0);
               return {name,sourceId,resolvedId:id,httpStatus:r.status,count,rootKeys:root&&typeof root==="object"?Object.keys(root).slice(0,25):[],dataKeys:j?.data&&typeof j.data==="object"?Object.keys(j.data).slice(0,25):[],status:count>0?"working":"zero"};
             }catch(e:any){return {name,sourceId,status:"exception",detail:String(e?.message||e)};}
