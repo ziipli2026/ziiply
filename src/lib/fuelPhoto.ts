@@ -4,6 +4,8 @@ export function parseFuelPhotoText(text: string): FuelPrices {
   const lines=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
   for(let i=0;i<lines.length;i++) {
     const line=lines[i];
+    // MY Diesel has a different price; the three-field report must not treat it as regular diesel.
+    if(/\b(?:MY\s*D|MY\s*Diesel|Neste\s*MY)\b/i.test(line))continue;
     const fuel=/\b(?:diesel|di|dsl|d)\b/i.test(line)?"diesel":/\b95(?:\s*e\s*10)?\b/i.test(line)?"price95":/\b98(?:\s*e\s*5)?\b/i.test(line)?"price98":null;
     if(!fuel)continue;
     const match=(line.match(/\b[1-4][.,]\d{3}\b/) || lines[i+1]?.match(/^\s*([1-4][.,]\d{3})\s*$/));
