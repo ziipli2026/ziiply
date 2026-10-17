@@ -50,9 +50,9 @@ jobs:
               return {name,sourceId,resolvedId:resolved||null,status:direct.status==="graphql"?"graphql":direct.ok?(direct.storePresent===false?"store_missing":direct.productsPresent===false?"products_missing":"zero"):direct.status==="json"?"invalid_json":typeof direct.status==="number"?"http_error":"unresolved_or_timeout",detail:direct.detail,storePresent:direct.storePresent,productsPresent:direct.productsPresent,httpStatus:typeof direct.status==="number"?direct.status:undefined,count:direct.count??0};
             }catch(e:any){return {name,sourceId,status:"exception",detail:String(e?.message||e)};}
           };
-          for(let i=0;i<rows.length;i+=6){
+          for(let i=0;i<rows.length;i+=2){
             if(blocked){console.log("FAST_STOP",JSON.stringify({chain,reason:"HTTP 403 access denied",checked:i,total:rows.length}));break;}
-            const batch=await Promise.all(rows.slice(i,i+6).map(checkOne));
+            const batch=await Promise.all(rows.slice(i,i+2).map(checkOne));
             if(batch.some(x=>x.httpStatus===403)){blocked=true;console.log("FAST_BLOCKED",JSON.stringify({chain,at:i,blockedInBatch:batch.filter(x=>x.httpStatus===403).length}));}
             for(const x of batch){
               if(x.resolvedId){resolved++;if(x.resolvedId!==x.sourceId)changed++;}
@@ -62,10 +62,12 @@ jobs:
               if(x.status!=="working")bad.push(x);
               if(samples.length<12)samples.push(x);
             }
-            console.log("FAST_PROGRESS",JSON.stringify({chain,checked:Math.min(i+6,rows.length),total:rows.length,resolved,working,zero,error}));
+            console.log("FAST_PROGRESS",JSON.stringify({chain,checked:Math.min(i+2,rows.length),total:rows.length,resolved,working,zero,error}));
+            if(i+2<rows.length&&!blocked)await new Promise(r=>setTimeout(r,1200));
           }
           const byStatus=bad.reduce((a:any,x:any)=>(a[x.status]=(a[x.status]||0)+1,a),{});
           console.log("FAST_SUMMARY",JSON.stringify({chain,inventory:arr.length,filtered:rows.length,checked:working+zero+error,blocked,resolved,changed,working,zero,error,byStatus,samples,bad}));
+          if(blocked||working+zero+error<rows.length)process.exitCode=1;
           TS
           npx tsx scripts/.tmp-ssa-fast.mts | tee ssa-fast-${CHAIN// /_}.txt
       - uses: actions/upload-artifact@v4
