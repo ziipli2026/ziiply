@@ -2969,7 +2969,7 @@ function KauppiasMobileTopBar({
       )}
       {mobileFuelReportOpen && <DesktopFuelPhotoReport onClose={() => setMobileFuelReportOpen(false)} />}
       {electricityChartOpen && (
-        <div className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+96px)] z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
+        <div className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+96px)] z-[250] flex items-start justify-center overflow-y-auto bg-[#fff8e6] px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-3">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
