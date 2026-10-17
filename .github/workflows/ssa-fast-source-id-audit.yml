@@ -35,22 +35,31 @@ jobs:
           });
           const endpoint=(id:string)=>"https://api.s-kaupat.fi/?operationName=RemoteFilteredProducts&variables="+encodeURIComponent(JSON.stringify({storeId:id,queryString:"",limit:1,from:0,offset:0,skip:0,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[],useRandomId:false,fetchSponsoredContent:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf"}))+"&extensions="+encodeURIComponent(JSON.stringify({clientLibrary:{name:"@apollo/client",version:"4.3.1"},persistedQuery:{version:1,sha256Hash:"85a4eed2f0a1e3269ac49b94276ca952922568369d85ddd5dcee34481e4c0f91"}}));
           let resolved=0,working=0,zero=0,error=0,changed=0;const bad:any[]=[];const samples:any[]=[];
-          for(let i=0;i<rows.length;i++){
-            const st=rows[i],name=String(st.name),sourceId=String(st.externalId||st.storeId||st.id);
+          const checkOne=async(st:any)=>{
+            const name=String(st.name),sourceId=String(st.externalId||st.storeId||st.id);
             try{
-              const id=await resolvePrismaCampaignStoreIdV1(name,sourceId);
-              if(!id){zero++;bad.push({name,sourceId,status:"unresolved"});continue;}
-              resolved++;if(id!==sourceId)changed++;
-              const r=await fetch(endpoint(id),{headers:{"accept":"application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15"}});
-              const t=await r.text();if(!r.ok){error++;bad.push({name,sourceId,resolvedId:id,status:r.status});continue;}
-              let j:any;try{j=JSON.parse(t)}catch{error++;bad.push({name,sourceId,resolvedId:id,status:"json"});continue;}
-              if(Array.isArray(j?.errors)&&j.errors.length){error++;bad.push({name,sourceId,resolvedId:id,status:"graphql",detail:j.errors[0]?.message});continue;}
+              const id=await Promise.race([resolvePrismaCampaignStoreIdV1(name,sourceId),new Promise<null>(resolve=>setTimeout(()=>resolve(null),20000))]);
+              if(!id){return {name,sourceId,status:"unresolved_or_timeout"};}
+              const r=await fetch(endpoint(id),{signal:AbortSignal.timeout(12000),headers:{"accept":"application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15"}});
+              const t=await r.text();if(!r.ok)return {name,sourceId,resolvedId:id,status:r.status};
+              let j:any;try{j=JSON.parse(t)}catch{return {name,sourceId,resolvedId:id,status:"json"};}
+              if(Array.isArray(j?.errors)&&j.errors.length)return {name,sourceId,resolvedId:id,status:"graphql",detail:j.errors[0]?.message};
               const root=j?.data?.remoteFilteredProducts??j?.data?.products??j?.data;
               const count=Number(root?.totalCount??root?.total??root?.products?.totalCount??root?.edges?.length??root?.nodes?.length??root?.products?.length??0);
-              if(count>0)working++;else{zero++;bad.push({name,sourceId,resolvedId:id,status:"zero"});}
-              if(samples.length<12)samples.push({name,sourceId,resolvedId:id,httpStatus:r.status,count});
-            }catch(e:any){error++;bad.push({name,sourceId,status:"exception",detail:String(e?.message||e)});}
-            if(i%8===7)await new Promise(r=>setTimeout(r,250));
+              return {name,sourceId,resolvedId:id,httpStatus:r.status,count,status:count>0?"working":"zero"};
+            }catch(e:any){return {name,sourceId,status:"exception",detail:String(e?.message||e)};}
+          };
+          for(let i=0;i<rows.length;i+=6){
+            const batch=await Promise.all(rows.slice(i,i+6).map(checkOne));
+            for(const x of batch){
+              if(x.resolvedId){resolved++;if(x.resolvedId!==x.sourceId)changed++;}
+              if(x.status==="working")working++;
+              else if(x.status==="zero"||x.status==="unresolved_or_timeout")zero++;
+              else error++;
+              if(x.status!=="working")bad.push(x);
+              if(samples.length<12)samples.push(x);
+            }
+            console.log("FAST_PROGRESS",JSON.stringify({chain,checked:Math.min(i+6,rows.length),total:rows.length,resolved,working,zero,error}));
           }
           console.log("FAST_SUMMARY",JSON.stringify({chain,inventory:arr.length,filtered:rows.length,resolved,changed,working,zero,error,samples,bad}));
           TS
