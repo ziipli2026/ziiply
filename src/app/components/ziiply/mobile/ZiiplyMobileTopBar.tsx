@@ -14,6 +14,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import DesktopFuelPhotoReport from "../desktop/DesktopFuelPhotoReport";
+import ZiiplyMobileFuelMenu from "./ZiiplyMobileFuelMenu";
 
 type InfoKind = "weather" | "electricity" | "fuel" | "calendar";
 type PriceLevel = "low" | "normal" | "high" | "unknown";
@@ -200,18 +201,16 @@ export default function ZiiplyMobileTopBar({
   onOpenCalendar,
 }: ZiiplyMobileTopBarProps) {
   const [activeUtility, setActiveUtility] = useState<"electricity" | "fuel" | null>(null);
+  const [fuelReportOpen, setFuelReportOpen] = useState(false);
   const chartOpen = activeUtility === "electricity";
-  const fuelReportOpen = activeUtility === "fuel";
   const setChartOpen = (open: boolean) => setActiveUtility(open ? "electricity" : null);
-  const setFuelReportOpen = (open: boolean) => setActiveUtility(open ? "fuel" : null);
   const toggleElectricity = () => {
-    window.dispatchEvent(new Event("ziiply:open-electricity"));
+    setFuelReportOpen(false);
     setActiveUtility(previous => previous === "electricity" ? null : "electricity");
   };
   const toggleFuel = () => {
-    window.dispatchEvent(new Event("ziiply:open-fuel"));
-    if (onOpenFuel) { setActiveUtility(null); onOpenFuel(); }
-    else setActiveUtility(previous => previous === "fuel" ? null : "fuel");
+    setFuelReportOpen(false);
+    setActiveUtility(previous => previous === "fuel" ? null : "fuel");
   };
   const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
   const [chartError, setChartError] = useState("");
@@ -637,6 +636,9 @@ export default function ZiiplyMobileTopBar({
           </div>
         </div>,
         document.body
+      )}
+      {activeUtility === "fuel" && typeof document !== "undefined" && createPortal(
+        <ZiiplyMobileFuelMenu onClose={() => setActiveUtility(null)} onReport={() => { setActiveUtility(null); setFuelReportOpen(true); }} onShowPrices={() => { setActiveUtility(null); onOpenFuel?.(); }} />, document.body
       )}
       {fuelReportOpen && <DesktopFuelPhotoReport onClose={() => setFuelReportOpen(false)} />}
     </>
