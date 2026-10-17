@@ -106,7 +106,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
       if(!alive.current||requestId.current!==id)return;
       if(result.prices && Object.keys(result.prices).length){
         setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]&&!previous[key]&&typeof result.prices?.[key]==="number")next[key]=result.prices[key].toFixed(3).replace(".",",");return next;});
-        setPriceReview(true);setLearningInfo("Kuvasta tunnistetut hintaehdotukset: "+([ ["diesel","Diesel"],["price95","95 E10"],["price98","98 E5"] ] as const).filter(([key])=>typeof result.prices?.[key]==="number").map(([key,label])=>label+" "+result.prices[key].toFixed(3).replace(".",",")).join(" · ")+" €/l. Tarkista hinnat ennen lähettämistä.");if(result.status==="recovered")return;
+        setPriceReview(true);setLearningInfo("");if(result.status==="recovered")return;
       }
       if(result.status==="discarded"){setLearningInfo("Taustaluku päättyi. Kuvasta ei saatu riittävän varmaa tulosta. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
       if(result.status==="corrected")return;
@@ -115,10 +115,10 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   }
   async function saveLearningPhoto(file:File,data:string,initial:FuelPrices,text:string){
     const id=requestId.current,token=crypto.randomUUID();learningToken.current=token;
-    setLearningInfo("Kaikkia hintoja ei saatu varmasti luettua. Valmistellaan kuvan tarkempaa taustalukua…");
+    setLearningInfo("");
     try{const prepareStarted=performance.now();logDebug("recovery-prepare-start",{});const photo=await prepareLearningPhoto(file,data);logDebug("recovery-prepare-complete",{durationMs:Math.round(performance.now()-prepareStarted),photoBytes:photo.length});const postStarted=performance.now();logDebug("recovery-post-start",{});const response=await fetch("/api/fuel/photo-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,token,photo,prices:initial,ocrText:text,mode})});
       logDebug("recovery-post-response",{httpStatus:response.status,durationMs:Math.round(performance.now()-postStarted)});if(!response.ok)throw Error("Photo recovery save failed");logDebug("photo-recovery-saved",{id});
-      if(alive.current&&requestId.current===id){setLearningInfo("Tarkennetaan epäselviä hintoja taustalla. Tunnistetut hinnat näkyvät kentissä heti. Tarkista ne ennen lähettämistä.");void pollLearning(id,token);}
+      if(alive.current&&requestId.current===id){setLearningInfo("");void pollLearning(id,token);}
     }catch(e){logDebug("recovery-save-error",{message:String(e)});if(alive.current&&requestId.current===id)setLearningInfo("Kuvan tallennus taustalukua varten epäonnistui. Yritä lisätä kuva uudelleen.");}
   }
   const [debugOpen,setDebugOpen]=useState(false);
