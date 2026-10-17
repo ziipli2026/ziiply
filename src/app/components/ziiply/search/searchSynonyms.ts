@@ -63,6 +63,18 @@ export const ZIIPLY_SYNONYM_GROUPS: ZiiplySynonymGroup[] = [
     categories: ["lihat", "tuoretuotteet"],
   },
   {
+    canonical: "hk sininen",
+    terms: ["hk sininen", "hk sininen lenkki", "sininen lenkki", "hk sininen lenkkimakkara", "hk:n sininen", "hk:n sininen lenkki"],
+    categories: ["makkarat", "lenkkimakkarat", "lihat"],
+    notes: ["HK Sininen on ihmisravinnoksi tarkoitettu lenkkimakkara."],
+  },
+  {
+    canonical: "nakit",
+    terms: ["nakit", "nakki", "nakkimakkara", "nakkimakkarat", "ruokanakit", "prinssinakit", "kuoreton nakki", "kuorettomat nakit", "grillinakit"],
+    categories: ["nakit", "makkarat", "lihat"],
+    notes: ["Ihmisravinto; koiran purunakit ja lemmikkituotteet eivät kuulu hakutuloksiin."],
+  },
+  {
     canonical: "makkara",
     terms: [
       "makkara",
@@ -72,11 +84,6 @@ export const ZIIPLY_SYNONYM_GROUPS: ZiiplySynonymGroup[] = [
       "saunamakkara",
       "juustomakkara",
       "kabanossi",
-      "nakki",
-      "nakit",
-      "kuoreton nakki",
-      "grillinakki",
-      "hk sininen",
       "wilhelm",
       "atria",
       "camping",
@@ -156,7 +163,7 @@ export function getSynonymGroupForQuery(query: string): ZiiplySynonymGroup | nul
       const canonical = normalizeSearchText(group.canonical);
       const terms = group.terms.map(normalizeSearchText);
 
-      return canonical === q || terms.includes(q) || terms.some((term) => term.includes(q) || q.includes(term));
+      return canonical === q || terms.includes(q) || terms.some((term) => q.length >= 4 && (term.includes(q) || q.includes(term)));
     }) || null
   );
 }
