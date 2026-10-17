@@ -12,6 +12,7 @@
 // - paneelit ovat tasaisemmat, tekstit eivät leikkaannu yhtä helposti
 
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import DesktopFuelPhotoReport from "../desktop/DesktopFuelPhotoReport";
 
 type InfoKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -588,8 +589,8 @@ export default function ZiiplyMobileTopBar({
         </div>
       </div>
     </div>
-      {chartOpen && (
-        <div className="fixed inset-0 z-[260] flex items-center justify-center bg-black/40 p-4 sm:hidden" onClick={() => setChartOpen(false)}>
+      {chartOpen && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#777777]/80 p-4 sm:hidden" style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", backgroundColor: "rgba(80,80,80,0.88)" }} onClick={() => setChartOpen(false)}>
           <div className="w-full max-w-[520px] max-h-[calc(100dvh-32px)] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä" onClick={(event) => event.stopPropagation()}>
           <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
@@ -622,7 +623,8 @@ export default function ZiiplyMobileTopBar({
             )}
           </section>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {fuelReportOpen && <DesktopFuelPhotoReport onClose={() => setFuelReportOpen(false)} />}
     </>
