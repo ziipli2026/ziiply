@@ -225,7 +225,7 @@ export function ZiiplyBottomNav({
   onCompareClick,
 }: ZiiplyBottomNavProps) {
   const buttonShellClass =
-    "relative flex min-w-0 items-center justify-center rounded-[1.25rem] px-1 py-1 text-xs font-black tracking-[-0.01em] transition active:scale-[0.985]";
+    "relative flex min-w-0 items-center justify-center rounded-[1.25rem] px-[clamp(1px,0.6vw,4px)] py-1 text-xs font-black tracking-[-0.01em] transition active:scale-[0.985]";
 
   // V4: aktiivinen tila ei enää väritä koko tabia, vaan icon+teksti saavat oman
   // pienemmän emalttimerkin. Näin palkki pysyy paperipaneelina eikä muutu raskaaksi vihreäksi blokiksi.
@@ -263,8 +263,8 @@ export function ZiiplyBottomNav({
   const labelClass = "mt-0.5 block leading-none";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-2 sm:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[1.55rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_9px_24px_rgba(64,50,26,0.13)] ring-1 ring-[#d7ccb5]/55">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-[clamp(0.35rem,2vw,0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-2 sm:hidden">
+      <div className="mx-auto grid max-w-md grid-cols-4 gap-[clamp(2px,0.8vw,4px)] rounded-[1.55rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_9px_24px_rgba(64,50,26,0.13)] ring-1 ring-[#d7ccb5]/55">
         <button
           type="button"
           onClick={onShopsClick}
