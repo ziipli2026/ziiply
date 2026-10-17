@@ -84,6 +84,7 @@ async function prepareLearningPhoto(file:File,fallback:string){
 }
 export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const [learningInfo,setLearningInfo]=useState("");
+  const [recognitionActive,setRecognitionActive]=useState(false);
   const learningToken=useRef("");const learningTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const priceEdits=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
   // Warm up the OCR runtime while the user is choosing a photo, not after selection.
@@ -101,21 +102,22 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   useEffect(()=>()=>{if(learningTimer.current)clearTimeout(learningTimer.current);},[]);
   async function pollLearning(id:string,token:string,round=0){
     if(!alive.current||requestId.current!==id)return;
-    if(round>=20){logDebug("recovery-timeout",{round});setLearningInfo("60 sekunnin aikaraja täyttyi. Puuttuvia hintoja ei tunnistettu; voit syöttää ne käsin.");return;}
+    if(round>=20){setRecognitionActive(false);logDebug("recovery-timeout",{round});setLearningInfo("60 sekunnin aikaraja täyttyi. Puuttuvia hintoja ei tunnistettu; voit syöttää ne käsin.");return;}
     try{const pollStarted=performance.now();const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();logDebug("recovery-poll",{round,httpStatus:response.status,durationMs:Math.round(performance.now()-pollStarted),status:result.status,attempts:result.attempts,prices:result.prices,error:result.error});
       if(!alive.current||requestId.current!==id)return;
       if(result.prices && Object.keys(result.prices).length){
         setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]&&!previous[key]&&typeof result.prices?.[key]==="number")next[key]=result.prices[key].toFixed(3).replace(".",",");return next;});
-        setPriceReview(true);setLearningInfo("");if(result.status==="recovered")return;
+        setPriceReview(true);setLearningInfo("");if(result.status==="recovered"){setRecognitionActive(false);return;}
       }
-      if(result.status==="discarded"){setLearningInfo("Taustaluku päättyi. Kuvasta ei saatu riittävän varmaa tulosta. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
-      if(result.status==="corrected")return;
+      if(result.status==="discarded"){setRecognitionActive(false);setLearningInfo("Taustaluku päättyi. Kuvasta ei saatu riittävän varmaa tulosta. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
+      if(result.status==="corrected"){setRecognitionActive(false);return;}
     }catch(e){logDebug("recovery-poll-error",{round,message:String(e)});}
     learningTimer.current=setTimeout(()=>void pollLearning(id,token,round+1),3000);
   }
   async function saveLearningPhoto(file:File,data:string,initial:FuelPrices,text:string){
     const id=requestId.current,token=crypto.randomUUID();learningToken.current=token;
     setLearningInfo("");
+    setRecognitionActive(true);
     try{const prepareStarted=performance.now();logDebug("recovery-prepare-start",{});const photo=await prepareLearningPhoto(file,data);logDebug("recovery-prepare-complete",{durationMs:Math.round(performance.now()-prepareStarted),photoBytes:photo.length});const postStarted=performance.now();logDebug("recovery-post-start",{});const response=await fetch("/api/fuel/photo-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,token,photo,prices:initial,ocrText:text,mode})});
       logDebug("recovery-post-response",{httpStatus:response.status,durationMs:Math.round(performance.now()-postStarted)});if(!response.ok)throw Error("Photo recovery save failed");logDebug("photo-recovery-saved",{id});
       if(alive.current&&requestId.current===id){setLearningInfo("");void pollLearning(id,token);}
@@ -227,7 +229,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     let recoveryData="",recoverySaved=false;
     debugStarted.current=performance.now();debugEvents.current=[];
     logDebug("photo-file",{source,name:file.name,type:file.type,size:file.size,lastModified:file.lastModified});
-    autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(true);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
+    autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setRecognitionActive(true);setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(true);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
@@ -341,14 +343,14 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
                 {observed&&!editing&&<p className="text-center text-xs text-[#e5ddc6]">{new Date(exifInstant.current||observed).toLocaleString("fi-FI",{dateStyle:"short",timeStyle:"short"})}</p>}
                 {stationId&&selectedStation&&mode!=="manual"&&<div className="rounded-xl border border-[#8bb56d] bg-[#e3edc9] p-3 text-center text-sm font-bold text-[#174c35]">✓ Asema tunnistettu<div>{selectedStation.name}</div><div className="text-xs font-normal">{selectedStation.address}</div></div>}
                 {(mode==="manual"||!stationId)&&<label className="block text-sm font-bold">{mode==="manual"?"Valitse asema":"Kuvattua asemaa ei tunnistettu. Valitse asema."}<select value={stationId} disabled={!stations.length||locating} onChange={e=>{setStationId(e.target.value);setConflictConfirmed(false);}} className={input}><option value="">{mode==="manual"?"Valitse asema":"Valitse kuvassa oleva asema"}</option>{stations.map(s=><option key={s.id} value={s.id}>{s.chain} · {s.name} · {s.address}</option>)}</select></label>}
-                {(busy||editing||priceReview||!validateFuelPrices(prices))&&<div><p className="mb-1 text-xs">{mode==="manual"?"Syötä vähintään yksi hinta (€/l)":editing?"Korjaa hinnat tarvittaessa":priceReview?"Tarkista LED-näytöstä luetut hinnat ja täydennä tyhjät kohdat kuvasta.":"Hintoja ei saatu luettua. Lisää kuvassa näkyvät hinnat."}</p><div className="grid grid-cols-3 gap-2">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).map(([key,label])=><label key={key} className="text-xs font-bold">{label}<input aria-label={`${label} hinta euroa litralta`} inputMode="decimal" placeholder="–" value={prices[key]} onChange={e=>{priceEdits.current[key]=true;setPrices(p=>({...p,[key]:e.target.value}));}} className={`${input} ${invalidPrices.includes(key)?"border-2 border-red-600":""}`}/><span className="mt-1 block min-h-[14px] text-[11px] text-[#ffb8a4]">{invalidPrices.includes(key)?"Virheellinen hinta (0,50–5,00 €/l)":!busy&&mode!=="manual"&&key!=="diesel"&&!prices[key]?"Syötä käsin":""}</span></label>)}</div></div>}
+                {(busy||editing||priceReview||!validateFuelPrices(prices))&&<div><p className="mb-1 text-xs">{mode==="manual"?"Syötä vähintään yksi hinta (€/l)":editing?"Korjaa hinnat tarvittaessa":priceReview?"Tarkista LED-näytöstä luetut hinnat ja täydennä tyhjät kohdat kuvasta.":"Hintoja ei saatu luettua. Lisää kuvassa näkyvät hinnat."}</p><div className="grid grid-cols-3 gap-2">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).map(([key,label])=><label key={key} className="text-xs font-bold">{label}<input aria-label={`${label} hinta euroa litralta`} inputMode="decimal" placeholder="–" value={prices[key]} onChange={e=>{priceEdits.current[key]=true;setPrices(p=>({...p,[key]:e.target.value}));}} className={`${input} ${invalidPrices.includes(key)?"border-2 border-red-600":""}`}/><span className="mt-1 block min-h-[14px] text-[11px] text-[#ffb8a4]">{invalidPrices.includes(key)?"Virheellinen hinta (0,50–5,00 €/l)":mode!=="manual"&&!busy&&!prices[key]&&Object.values(prices).some(Boolean)?"Syötä käsin":""}</span></label>)}</div></div>}
                 {(editing||!validObserved)&&<label className="flex flex-col items-start gap-1 text-sm font-bold"><span>{mode==="manual"?"Milloin näit hinnat?":"Milloin kuva otettiin?"}</span><input type="datetime-local" value={observed} onChange={e=>{autoTime.current=false;exifInstant.current=null;setObserved(e.target.value);setTimeSource("manual");setConflictConfirmed(false);}} className={`${input} block !w-[40%] min-w-0 max-w-full box-border`}/></label>}
                 {conflict.reasons.length>0&&<div role="alert" className="rounded-xl border border-[#bd6b2a] bg-[#ffe6c8] p-3 text-sm text-[#713d1c]"><p className="font-bold">Kuvan ja kuvaushetken tiedot poikkeavat toisistaan.</p>{conflict.reasons.includes("location")&&<p>Sijaintien ero noin {Math.round(conflict.distanceM||0)} m.</p>}{conflict.reasons.includes("time")&&<p>Kuvausaikojen ero noin {Math.round(conflict.timeDifferenceMinutes||0)} min. Käytä aiemmalle kuvalle offline-valintaa.</p>}<label className="mt-2 flex gap-2"><input type="checkbox" checked={conflictConfirmed} disabled={!stationId} onChange={e=>setConflictConfirmed(e.target.checked)}/><span>Vahvistan kuvatun aseman ja kuvausajan.</span></label></div>}
 
               </>}
             </div>}
           </div>
-          <div className="flex h-[36px] shrink-0 items-center justify-center sm:h-[64px]">{busy&&<p role="status" aria-live="polite" className="text-center text-sm font-bold text-[#e3edc9]">{status||"Luetaan kuvaa…"}</p>}
+          <div className="flex h-[36px] shrink-0 items-center justify-center sm:h-[64px]">{(busy||recognitionActive)&&<p role="status" aria-live="polite" className="text-center text-sm font-bold text-[#e3edc9]">{busy?status||"Haetaan hintoja…":"Haetaan hintoja kuvasta…"}</p>}
           {!busy&&error&&<p role="alert" className="mt-2 rounded-xl bg-[#ffe1cf] p-3 text-sm font-bold text-[#8b331d]">{error}</p>}</div>
         </div>
       </div>
