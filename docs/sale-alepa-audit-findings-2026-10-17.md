@@ -282,3 +282,19 @@ Lähteet:
 **Sale Uurainen**, alkuperäinen ID `501589857`: Uuraisten kunnan hankkeen loppuraportti kertoo suoraan Osuuskauppa Keskimaan sulkeneen Sale Uuraisten ja avanneen uudisrakennukseen S-marketin. Fimean myyntipaikkojen peruutusluettelossa Sale Uurainen, Virastotie 1, myyntiluvan päättymispäivä 23.2.2024; tämä on lupatieto, ei yksin tarkka sulkemispäivä. Luokitus `historical_closed_store`; S-market on eri toimipaikka, eikä sen ID ole automaattinen korvaaja. Lähteet: https://uurainen.tweb.fi/ktwebbin/ktproxy2.dll?docid=93581&doctype=3&version=1 ; https://fimea.fi/documents/147152901/159469975/Nikotiinivalmisteiden%2Bmyyntipaikkojen%2Bperuutukset.pdf/593484cc-aa8f-737b-7b30-84cccedf4444/Nikotiinivalmisteiden%2Bmyyntipaikkojen%2Bperuutukset.pdf?t=1756470653157
 
 **Laskenta:** 14 suljetuksi vahvistettua Sale/Alepa-toimipaikkaa (aiemmin 12), 2 vanhaa/muuttunutta kirjausta ja 11 muuta ilman yhtä vahvaa myymälän sulkemisvahvistusta. Näistä 11:stä kymmenellä Alepalla on erillinen päättynyt lupamerkintä / suljettu-tilatieto, mutta niitä ei nosteta automaattisesti vahvistettujen sulkemisten luokkaan. Alkuperäiset 27 `Store not found` -havaintoa säilytetään. Ei GraphQL-ID-korvauksia, tuotantomuutoksia tai massahakuja.
+
+
+## Vahvistettu: Sale Lapua (17.10.2026)
+
+**Sale Lapua**, alkuperäinen ID `501521892`, Kauppakatu 5, 62100 Lapua. Etelä-Pohjanmaan Osuuskauppa Eepee ilmoitti 5.8.2025, että Sale Lapua on avoinna **perjantaihin 26.9.2025 saakka**. Lapuan Sanomat raportoi 26.9.2025 myymälän viimeisestä aukiolopäivästä ja sulkemisesta kello 12. Luokitus `historical_closed_store`.
+
+Viralliset lähteet:
+- https://eepee.fi/artikkeli/eepeen-lakkautettavien-abc-liikenneasemien-ja-salen-sulkupaivamaarat
+- https://eepee.fi/artikkeli/eepee-sopeuttaa-verkostoaan
+
+Täydentävä toteutumislähde:
+- https://www.lapuansanomat.fi/uutiset/lapuan-sale-sulki-ovensa-lopullisesti-6.1.73665.95564ca9d5
+
+Tämä **korvaa raportin aiemman Sale Lapua -tulkinnan**, jossa pelkkä S-kaupat-hakemiston 'Suljettu'-merkintä jätettiin aukiolo-/pysyvyystulkinnaltaan epävarmaksi. Nyt osuuskaupan oma tiedote ja sulkemispäivän paikallisuutinen vahvistavat pysyvän sulkemisen. S-market Lapua on eri myymälä; sen tunnusta ei saa käyttää korvaavana ID:nä.
+
+**Päivitetty yhteenveto:** 15 vahvistettua suljettua, 2 vanhaa/muuttunutta kirjausta, 10 muuta ilman yhtä vahvaa sulkemisvahvistusta = 27 alkuperäistä `Store not found` -havaintoa. Alepojen päättyneet lupamerkinnät ovat erillisiä lisähavaintoja, eivät vielä kaikki vahvistettuja sulkemisia. Ei tuotantokoodin muutoksia, ID-korvauksia tai massahakuja.
