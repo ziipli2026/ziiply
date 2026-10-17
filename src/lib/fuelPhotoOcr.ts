@@ -31,12 +31,9 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
   trace('led-rows-detected',{count:rows.length,width:canvas.width,height:canvas.height});
   // Preserve a general-purpose fallback for images where red LED rows cannot be located.
   if(!rows.length){
-    trace('fallback-full-image-ocr-start');
-    const original=await worker.recognize(data);
-    originalText=original.data.text;
-    Object.assign(prices,parseFuelPhotoText(originalText));
-    trace('fallback-full-image-ocr-complete',{textLength:originalText.length,prices});
-    if(Object.values(prices).some(Boolean))onProgress?.({...prices});
+    // Full-frame Tesseract consistently yields only scenery noise on iPhone photos
+    // and delays the higher-resolution server recovery by several seconds.
+    trace('fallback-full-image-ocr-skipped',{reason:'no-led-rows'});
     return {prices,text:originalText,review:true};
   }
   let review=false;
