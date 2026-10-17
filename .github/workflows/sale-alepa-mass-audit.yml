@@ -12,7 +12,6 @@ jobs:
     timeout-minutes: 12
     steps:
       - name: Tarkista kauppavalinta ja hae tuotanto
-        env:
         run: |
           mkdir -p audit
           node <<'NODE'
