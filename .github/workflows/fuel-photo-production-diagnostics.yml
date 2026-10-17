@@ -1,0 +1,35 @@
+name: Fuel photo production diagnostics
+on:
+  workflow_dispatch:
+jobs:
+  fuel-photo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check fuel photo code and types
+        run: npx tsc --noEmit
+      - name: Run fuel photo unit tests
+        run: |
+          set -e
+          for test in src/lib/fuelPhoto*.test.ts src/lib/fuelPhoto*.test.js; do
+            if [ -f "$test" ]; then
+              echo "Found $test"
+              npx tsx "$test"
+            fi
+          done
+      - name: Check production availability and response time
+        run: |
+          curl --fail --silent --show-error --location --max-time 25 \
+            --output /dev/null --write-out 'Production HTTP %{http_code}, response %{time_total}s\\n' \
+            https://ziiply.vercel.app/
+      - name: Explain test scope
+        run: |
+          echo 'This workflow tests source and production availability.'
+          echo 'Exact photo recognition requires the original photo fixture, not only debug JSON.'
