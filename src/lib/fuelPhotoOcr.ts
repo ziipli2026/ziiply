@@ -29,6 +29,22 @@ export async function readFuelPhoto(worker:Worker,data:string){
     if(labelVotes.size!==1){
       for(const threshold of [0,120]){const found=fuelRowLabel((await worker.recognize(crop(Math.max(0,row.left-(row.right-row.left)*.65),Math.max(1,row.left-8),false,true,threshold,true))).data.text);if(found)labelVotes.set(found,(labelVotes.get(found)||0)+1);}
     }
+    // A separate green MY Diesel label must never be mapped to ordinary diesel.
+    // Inspect the whole label band as well as the narrow OCR crops: green lettering
+    // may be missed by red-digit segmentation and by the small inverted crops.
+    const labelLeft=Math.max(0,Math.floor(row.left-(row.right-row.left)*1.4));
+    const labelRight=Math.max(labelLeft+1,Math.min(canvas.width,Math.floor(row.left)));
+    const labelTop=Math.max(0,Math.floor(row.top-(row.bottom-row.top)*.25));
+    const labelBottom=Math.min(canvas.height,Math.ceil(row.bottom+(row.bottom-row.top)*.25));
+    const labelCanvas=document.createElement('canvas');
+    labelCanvas.width=Math.max(1,(labelRight-labelLeft)*2);
+    labelCanvas.height=Math.max(1,(labelBottom-labelTop)*2);
+    labelCanvas.getContext('2d')?.drawImage(image,labelLeft,labelTop,labelRight-labelLeft,labelBottom-labelTop,0,0,labelCanvas.width,labelCanvas.height);
+    await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
+    const fullLabelText=(await worker.recognize(labelCanvas.toDataURL('image/png'))).data.text;
+    if(/\\b(?:MY\\s*(?:DIESEL|D)|NESTE\\s*MY)\\b/i.test(fullLabelText))continue;
+    const fullLabel=fuelRowLabel(fullLabelText);
+    if(fullLabel)labelVotes.set(fullLabel,(labelVotes.get(fullLabel)||0)+2);
     const labels=[...labelVotes].sort((a,b)=>b[1]-a[1]);
     const label=labels[0]&&labels[0][1]>=(labels[1]?.[1]||0)*2?labels[0][0]:null;
     if(!label)continue;
