@@ -2,7 +2,7 @@
  * Never discard valid products: direct grocery matches are sorted ahead of
  * incidental flavour, prepared-meal and pet-product mentions.
  */
-const fold = (value: unknown) => String(value ?? "").toLocaleLowerCase("fi").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const fold = (value: unknown) => String(value ?? "").toLocaleLowerCase("fi").normalize("NFC");
 const RULES: Record<string, {strong: RegExp; secondary?: RegExp; weak: RegExp}> = {
   kahvi: {strong:/\b(kahvi|kahvipavut|suodatinkahvi|juhla mokka|presidentti)\b/,secondary:/kahvi(papu|jauhe|kapseli|sekoitus|paketti)|suodatinjauhe/,weak:/kahvi[- ]?(suklaa|jogurtti|jäätelö|kakku|patukka|likööri|juoma)/},
   jogurtti: {strong:/\bjogurtti\b/,secondary:/jogurtti(juoma|purkki)|\bskyr\b/,weak:/jogurtti[- ]?(kastike|patukka|rusina|mysli)/},
