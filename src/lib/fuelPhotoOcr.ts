@@ -4,16 +4,26 @@ type Worker={recognize:(image:string)=>Promise<{data:{text:string}}>;setParamete
 export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(prices:FuelPrices)=>void,onDiagnostic?:(stage:string,details:Record<string,unknown>)=>void){
   const started=performance.now();const trace=(stage:string,details:Record<string,unknown>={})=>onDiagnostic?.(stage,{elapsedMs:Math.round(performance.now()-started),...details});
   trace('start',{imageBytes:data.length});
-  trace('full-image-ocr-start');
-  const original=await worker.recognize(data),prices=parseFuelPhotoText(original.data.text);
-  trace('full-image-ocr-complete',{textLength:original.data.text.length,prices});
-  if(Object.values(prices).some(Boolean))onProgress?.({...prices});
+  // Detect the LED board before invoking Tesseract. Full-image OCR is slow
+  // and mostly reads irrelevant scenery in fuel station photographs.
+  const prices:FuelPrices={diesel:'',price95:'',price98:''};
+  let originalText='';
   const image=await new Promise<HTMLImageElement>((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Kuvan avaaminen epäonnistui.'));img.src=data;});
   const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
-  const ctx=canvas.getContext('2d');if(!ctx)return {prices,text:original.data.text,review:false};
+  const ctx=canvas.getContext('2d');if(!ctx)return {prices,text:originalText,review:false};
   ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
   const rows=findFuelLedRows(pixels.data,canvas.width,canvas.height);
   trace('led-rows-detected',{count:rows.length,width:canvas.width,height:canvas.height});
+  // Preserve a general-purpose fallback for images where red LED rows cannot be located.
+  if(!rows.length){
+    trace('fallback-full-image-ocr-start');
+    const original=await worker.recognize(data);
+    originalText=original.data.text;
+    Object.assign(prices,parseFuelPhotoText(originalText));
+    trace('fallback-full-image-ocr-complete',{textLength:originalText.length,prices});
+    if(Object.values(prices).some(Boolean))onProgress?.({...prices});
+    return {prices,text:originalText,review:true};
+  }
   let review=false;
   const seen=new Set<keyof FuelPrices>();
   for(const [rowIndex,row] of rows.entries()){
@@ -79,5 +89,5 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     if(prices[label])onProgress?.({...prices});
   }
   trace('complete',{prices,review});
-  return {prices,text:original.data.text,review};
+  return {prices,text:originalText,review};
 }
