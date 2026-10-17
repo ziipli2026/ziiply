@@ -59,7 +59,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   useEffect(()=>()=>{if(learningTimer.current)clearTimeout(learningTimer.current);},[]);
   async function pollLearning(id:string,token:string,round=0){
     if(!alive.current||requestId.current!==id)return;
-    if(round>40){setLearningInfo("Taustaluvun odotus päättyi. Kaikkia hintoja ei saatu täydennettyä. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
+    if(round>100){setLearningInfo("Taustaluvun odotus päättyi. Kaikkia hintoja ei saatu täydennettyä. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
     try{const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();
       if(!alive.current||requestId.current!==id)return;
       if(result.prices && Object.keys(result.prices).length){
@@ -76,7 +76,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     setLearningInfo("Kaikkia hintoja ei saatu varmasti luettua. Valmistellaan kuvan tarkempaa taustalukua…");
     try{const photo=await prepareLearningPhoto(file,data);const response=await fetch("/api/fuel/photo-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,token,photo,prices:initial,ocrText:text,mode})});
       if(!response.ok)throw Error("Photo recovery save failed");logDebug("photo-recovery-saved",{id});
-      if(alive.current&&requestId.current===id){setLearningInfo("Kuvan lukeminen jatkuu taustalla. Puuttuvat hinnat voivat täydentyä muutaman minuutin kuluessa. Voit odottaa tässä tai syöttää hinnat käsin. Tarkista hinnat ennen lähettämistä.");void pollLearning(id,token);}
+      if(alive.current&&requestId.current===id){setLearningInfo("Kuvan lukeminen jatkuu taustalla. Puuttuvat hinnat lisätään heti, kun ne tunnistuvat. Voit odottaa tässä tai syöttää hinnat käsin. Tarkista hinnat ennen lähettämistä.");void pollLearning(id,token);}
     }catch{if(alive.current&&requestId.current===id)setLearningInfo("Kuvan tallennus taustalukua varten epäonnistui. Yritä lisätä kuva uudelleen.");}
   }
   const [debugOpen,setDebugOpen]=useState(false);
