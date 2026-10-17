@@ -437,7 +437,7 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
     // from every official /myymala/<slug>/<id> occurrence in the returned HTML
     // or embedded Next/JSON payload.
     const url =
-      `https://www.s-kaupat.fi/myymalat/prisma?query=${encodeURIComponent(cleanStoreName)}`;
+      `https://www.s-kaupat.fi/myymalat/${/^alepa\b/i.test(cleanStoreName) ? "alepa" : /^sale\b/i.test(cleanStoreName) ? "sale" : /^s-market\b/i.test(cleanStoreName) ? "s-market" : "prisma"}?query=${encodeURIComponent(cleanStoreName)}`;
 
     if (lastOfficialResolverDiagnosticV214) {
       lastOfficialResolverDiagnosticV214.requestedUrl = url;
