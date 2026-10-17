@@ -42,7 +42,7 @@ export async function readFuelPhoto(worker:Worker,data:string){
     labelCanvas.getContext('2d')?.drawImage(image,labelLeft,labelTop,labelRight-labelLeft,labelBottom-labelTop,0,0,labelCanvas.width,labelCanvas.height);
     await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
     const fullLabelText=(await worker.recognize(labelCanvas.toDataURL('image/png'))).data.text;
-    if(/\\b(?:MY\\s*(?:DIESEL|D)|NESTE\\s*MY)\\b/i.test(fullLabelText))continue;
+    if(/\b(?:MY\s*(?:DIESEL|D)|NESTE\s*MY)\b/i.test(fullLabelText))continue;
     const fullLabel=fuelRowLabel(fullLabelText);
     if(fullLabel)labelVotes.set(fullLabel,(labelVotes.get(fullLabel)||0)+2);
     const labels=[...labelVotes].sort((a,b)=>b[1]-a[1]);
