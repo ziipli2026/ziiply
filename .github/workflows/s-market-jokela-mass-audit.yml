@@ -219,6 +219,53 @@ jobs:
           if (!rows.length) throw new Error('Tuotannon ja S-kaupat-lähteen tulos on tyhjä. Katso jokela-source-diagnostics.json sekä response-*.json.');
           NODE
 
+      - name: Täsmäytä lähteen ja tuotannon EANit massana
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const sourcePath = 'audit/jokela-s-kaupat-source.json';
+          const productionPath = 'audit/response-official-store-id.json';
+          if (!fs.existsSync(sourcePath) || !fs.existsSync(productionPath)) throw new Error('Lähde- tai tuotantovastaus puuttuu');
+          const source = JSON.parse(fs.readFileSync(sourcePath,'utf8'));
+          const production = JSON.parse(fs.readFileSync(productionPath,'utf8'));
+          const sections = source?.data?.pageContent?.sections || [];
+          const raw = sections.flatMap(section => (Array.isArray(section.products)?section.products:[]).map(p=>({section:section.title||'',product:p})));
+          const normalize = p=>String(p?.ean||p?.eanCode||p?.gtin||'').trim();
+          const sourceByEan = new Map();
+          for (const row of raw) {
+            const ean = normalize(row.product);
+            if (!ean) continue;
+            if (!sourceByEan.has(ean)) sourceByEan.set(ean,[]);
+            sourceByEan.get(ean).push(row);
+          }
+          const results = Array.isArray(production.results)?production.results:[];
+          const prodEans = new Set(results.map(normalize).filter(Boolean));
+          const missing = [];
+          const counts = {};
+          const today = new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          for (const [ean,occurrences] of sourceByEan) {
+            if (prodEans.has(ean)) continue;
+            const p = occurrences[0].product;
+            const pricing = p.pricing||p.store?.pricing||{};
+            const campaign = pricing.campaignPrice;
+            const regular = pricing.regularPrice??p.price;
+            const current = pricing.currentPrice;
+            const until = String(pricing.campaignPriceValidUntil||'').slice(0,10);
+            const reasons=[];
+            if (until && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(until)||until<today)) reasons.push('expired_or_invalid_date');
+            if (campaign!=null && Number.isFinite(Number(campaign)) && ((regular!=null&&Number(campaign)>Number(regular))||(current!=null&&Number(campaign)>Number(current)))) reasons.push('campaign_above_regular_or_current');
+            if (!(Number(current)>0) && !(campaign!=null && regular!=null && Number(campaign)>0 && Number(campaign)<Number(regular))) reasons.push('no_eligible_price');
+            if (!reasons.length) reasons.push('unexplained_requires_pipeline_check');
+            for(const reason of reasons) counts[reason]=(counts[reason]||0)+1;
+            missing.push({ean,title:p.name,sections:occurrences.map(x=>x.section),pricing:{campaignPrice:campaign??null,currentPrice:current??null,regularPrice:regular??null,validUntil:until||null},reasons});
+          }
+          const report={sourceRawRows:raw.length,sourceUniqueEans:sourceByEan.size,productionRows:results.length,productionUniqueEans:prodEans.size,duplicateSourceRows:raw.length-sourceByEan.size,missingUniqueEans:missing.length,missingReasons:counts,missing,productionOnlyEans:[...prodEans].filter(x=>!sourceByEan.has(x))};
+          fs.writeFileSync('audit/jokela-source-production-reconciliation.json',JSON.stringify(report,null,2));
+          console.log('JOKELA EAN MASS RECONCILIATION',JSON.stringify({sourceRawRows:report.sourceRawRows,sourceUniqueEans:report.sourceUniqueEans,productionRows:report.productionRows,productionUniqueEans:report.productionUniqueEans,duplicateSourceRows:report.duplicateSourceRows,missingUniqueEans:report.missingUniqueEans,missingReasons:report.missingReasons,productionOnlyCount:report.productionOnlyEans.length}));
+          for(const row of missing)console.log('MISSING EAN',row.ean,JSON.stringify(row.reasons),row.title);
+          NODE
+
       - name: Tallenna kaikki debugit ja raportti
         if: always()
         uses: actions/upload-artifact@v4
