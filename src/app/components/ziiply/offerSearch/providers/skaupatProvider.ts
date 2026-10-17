@@ -2551,6 +2551,11 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         (error instanceof Error ? error.message : String(error)),
       );
       console.warn("[Ziiply offers] S-kaupat master pagination failed", error);
+      // A failed first page is not an empty product search. Keep partial results
+      // from other selected stores, but propagate failure if none are available.
+      if (pages.length === 0 && selectedStores.length === 1) {
+        throw error;
+      }
     }
     allStoreResults.push(...pages.flat());
   }
@@ -2600,7 +2605,7 @@ export async function fetchSKaupatOffers(
     return await fetchSKaupatRemoteFilteredProductsV170(cleanQuery, config, options);
   } catch (error) {
     console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
-    return [];
+    throw error;
   }
 }
 
