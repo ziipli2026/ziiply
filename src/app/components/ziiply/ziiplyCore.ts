@@ -3497,6 +3497,9 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
     if (new RegExp("\\b" + attribute + "\\b").test(source) !== new RegExp("\\b" + attribute + "\\b").test(candidate)) return false;
   }
   if (/\bab.piima\b/.test(source) !== /\bab.piima\b/.test(candidate)) return false;
+  // Identical normalized product names are exact counterparts after all attribute guards.
+  // Broad search-result exclusions must not reject the same SKU in another chain.
+  if (source === candidate) return true;
   return !isHardRejectedAlternative(sourceName, candidateName);
 }
 
