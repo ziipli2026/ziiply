@@ -37,6 +37,15 @@ assert.equal(core.estimateEquivalentQuantityCost('porsaan ulkofile 500g','Pirkka
 assert.equal(core.estimateEquivalentQuantityCost('roskapussi 30l','Sanka-Bioska biojätekassi 30l 15kpl',199),null);
 assert.equal(core.estimateEquivalentQuantityCost('kurkkusalaatti 400g','Felix kurkkusalaatti 380g',NaN),null);
 console.log('AUDIT_EQUIVALENT_QUANTITY_GUARDS',JSON.stringify({passed:4}));
+// A normalized quantity estimate must never replace the real package checkout total.
+const comparisonOnly=core.estimateEquivalentQuantityCost('kurkkusalaatti 400g','Felix kurkkusalaatti 380g',199);
+assert.ok(comparisonOnly);
+assert.equal(199*2,398,'Two packages cost the sum of their actual package prices');
+assert.equal(comparisonOnly.equivalentCostCents*2,418,'Equivalent quantity is a separate estimate');
+assert.notEqual(comparisonOnly.equivalentCostCents*2,199*2,
+ 'Comparison estimate must not be mistaken for checkout total');
+console.log('AUDIT_PACKAGE_VS_EQUIVALENT_GUARDS',JSON.stringify({passed:3}));
+
 console.log('AUDIT_REGRESSION_GUARDS',JSON.stringify({forbidden:forbiddenMatches.length,required:requiredMatches.length}));
 const terms=[
   "rasvaton maito 1l",
