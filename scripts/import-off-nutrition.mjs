@@ -4,12 +4,16 @@ import pg from 'pg';
 const {Pool}=pg;
 const limit=Math.min(21077,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||100)));
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL is required');
-const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:{rejectUnauthorized:false}});
+const pool=new Pool({connectionString:process.env.DATABASE_URL});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const num=x=>x==null||x===''||!Number.isFinite(Number(x))?null:Number(x);
 const tags=x=>Array.isArray(x)?x.filter(v=>typeof v==='string'): [];
 const has=(arr,word)=>arr.some(t=>t.toLowerCase().includes(word));
 try {
+ const check=await pool.query("SELECT current_database() AS database, current_schema() AS schema, to_regclass('public.ziiply_ean_products')::text AS products, to_regclass('public.ziiply_off_nutrition')::text AS nutrition");
+ const target=check.rows[0];
+ console.log('DATABASE_CHECK',JSON.stringify(target));
+ if(!target.products||!target.nutrition)throw Error('Wrong Neon database or missing schema: both public.ziiply_ean_products and public.ziiply_off_nutrition must exist. Check GitHub Actions DATABASE_URL secret.');
  const {rows}=await pool.query('SELECT ean FROM public.ziiply_ean_products WHERE ean ~ \'^[0-9]{8,14}$\' AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition n WHERE n.ean=ziiply_ean_products.ean) ORDER BY ean LIMIT $1',[limit]);
  let matched=0,notFound=0,failed=0;
  for(const [i,{ean}] of rows.entries()){
