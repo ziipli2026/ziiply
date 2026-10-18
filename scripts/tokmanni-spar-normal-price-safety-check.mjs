@@ -8,6 +8,7 @@ assert(source.includes('const ean = "";'));
 assert(!source.includes('const ean = clean(item?.sku)'));
 assert(!source.includes('const ean = eanFromProductUrl(productUrl)'));
 assert(source.includes('const discounted = salePrice > 0'));
+assert(source.includes('? Math.max(oldPrice, basePrice)'));
 assert(source.includes('if (salePrice > 0 && !oldPrice && !basePrice && !currentPrice) return null;'));
 assert(source.includes('filterSparHumanFoodIntent(items, intent)'));
 console.log("Tokmanni/SPAR normal price and unverified EAN safety: PASS");
