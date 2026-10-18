@@ -12,6 +12,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-      - run: npm ci
+      # The repository lockfile currently disagrees with package.json.
+      # Install only the compiler needed by this isolated regression test.
+      - run: npm install --no-save --no-package-lock --ignore-scripts --prefix /tmp/lidl-test typescript@5
+      - run: ln -s /tmp/lidl-test/node_modules node_modules
       - run: node scripts/test-lidl-product-normalization.cjs
