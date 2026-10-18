@@ -3460,7 +3460,8 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
     return match ? Number(match[1].replace(",", ".")) : null;
   };
   const sourceMilkFat = milkFat(sourceName);
-  if (sourceMilkFat !== null && milkFat(candidateName) !== sourceMilkFat) return false;
+  const candidateMilkFat = milkFat(candidateName);
+  if (sourceMilkFat !== candidateMilkFat && (sourceMilkFat !== null || candidateMilkFat !== null)) return false;
 
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
