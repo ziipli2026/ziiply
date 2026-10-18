@@ -176,6 +176,24 @@ export default function ZiiplyMobileScannerCard({
   // that same region. Packaging color alone is never sufficient.
   const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
   const [stickerBounds, setStickerBounds] = useState({ left: 30, top: 30, width: 40, height: 40 });
+  const [stickerLockExpanded, setStickerLockExpanded] = useState(true);
+  useEffect(() => {
+    if (!redStickerCandidateV864) {
+      setStickerLockExpanded(true);
+      return;
+    }
+    const timer = window.setTimeout(() => setStickerLockExpanded(false), 160);
+    return () => window.clearTimeout(timer);
+  }, [redStickerCandidateV864]);
+  const stickerTargetWidth = Math.min(stickerBounds.width, 55);
+  const stickerTargetHeight = Math.min(stickerBounds.height, 55);
+  const stickerTargetLeft = Math.max(4, Math.min(96 - stickerTargetWidth, stickerBounds.left));
+  const stickerTargetTop = Math.max(4, Math.min(96 - stickerTargetHeight, stickerBounds.top));
+  const stickerLockFactor = stickerLockExpanded ? 1.45 : 1;
+  const stickerLockWidth = Math.min(88, stickerTargetWidth * stickerLockFactor);
+  const stickerLockHeight = Math.min(88, stickerTargetHeight * stickerLockFactor);
+  const stickerLockLeft = Math.max(2, Math.min(98 - stickerLockWidth, stickerTargetLeft + stickerTargetWidth / 2 - stickerLockWidth / 2));
+  const stickerLockTop = Math.max(2, Math.min(98 - stickerLockHeight, stickerTargetTop + stickerTargetHeight / 2 - stickerLockHeight / 2));
   useEffect(() => {
     if (!onCaptureDiscountSticker) return;
     let hits = 0;
@@ -582,12 +600,12 @@ export default function ZiiplyMobileScannerCard({
           {onCaptureDiscountSticker && redStickerCandidateV864 && !cameraOverlay && !loading && (
             <div
               aria-hidden="true"
-              className="ziiply-sticker-lock pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.20),inset_0_0_12px_rgba(255,230,165,0.10)] transition-[left,top,width,height] duration-300 ease-out"
+              className="pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.20),inset_0_0_12px_rgba(255,230,165,0.10)] transition-[left,top,width,height] duration-700 ease-out"
               style={{
-                left: `${Math.max(4, Math.min(96 - Math.min(stickerBounds.width, 55), stickerBounds.left))}%`,
-                top: `${Math.max(4, Math.min(96 - Math.min(stickerBounds.height, 55), stickerBounds.top))}%`,
-                width: `${Math.min(stickerBounds.width, 55)}%`,
-                height: `${Math.min(stickerBounds.height, 55)}%`,
+                left: `${stickerLockLeft}%`,
+                top: `${stickerLockTop}%`,
+                width: `${stickerLockWidth}%`,
+                height: `${stickerLockHeight}%`,
               }}
             >
               <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/55 px-2 py-1 text-[11px] font-semibold text-amber-100">
@@ -595,21 +613,6 @@ export default function ZiiplyMobileScannerCard({
               </span>
             </div>
           )}
-
-          <style>{`
-            @keyframes ziiply-sticker-lock-on {
-              0% { transform: scale(1.24); opacity: 0.55; }
-              65% { transform: scale(0.97); opacity: 1; }
-              100% { transform: scale(1); opacity: 1; }
-            }
-            .ziiply-sticker-lock {
-              transform-origin: center;
-              animation: ziiply-sticker-lock-on 550ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-            }
-            @media (prefers-reduced-motion: reduce) {
-              .ziiply-sticker-lock { animation: none; }
-            }
-          `}</style>
 
           {/* V593: palauteväläys vain kameraruudun/skanneri-ikkunan sisällä */}
           <div
