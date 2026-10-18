@@ -175,6 +175,7 @@ export default function ZiiplyMobileScannerCard({
   // sticker-shaped region and barcode-like dark/light vertical transitions in
   // that same region. Packaging color alone is never sufficient.
   const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
+  const [stickerBounds, setStickerBounds] = useState({ left: 24, top: 22, width: 52, height: 56 });
   useEffect(() => {
     if (!onCaptureDiscountSticker) return;
     let hits = 0;
@@ -205,6 +206,7 @@ export default function ZiiplyMobileScannerCard({
         const roi = { left: 38, right: 90, top: 29, bottom: 67 };
         let bounded = false;
         let barcodeRows = 0;
+        let candidateCenter = { x: 64, y: 48 };
         for (let top = roi.top; top <= roi.bottom - 24 && !bounded; top += 3) {
           for (let left = roi.left; left <= roi.right - 32 && !bounded; left += 3) {
             let orangePixels = 0;
@@ -235,11 +237,41 @@ export default function ZiiplyMobileScannerCard({
             if (stripeRows >= 5) {
               bounded = true;
               barcodeRows = stripeRows;
+              candidateCenter = { x: left + 16, y: top + 12 };
             }
           }
         }
         // A visual stripe pattern is NOT proof of an actual GS1 barcode.
         hits = bounded && barcodeRows >= 5 ? Math.min(3, hits + 1) : 0;
+        if (hits >= 2) {
+          // Find the connected orange sticker surface around the verified
+          // barcode patch. Use its actual extent, not a fixed-size overlay.
+          const visited = new Uint8Array(128 * 96);
+          const queue: number[] = [];
+          const cx = candidateCenter.x, cy = candidateCenter.y;
+          for (let y = cy - 10; y <= cy + 10; y++) for (let x = cx - 14; x <= cx + 14; x++) {
+            if (orange(x, y)) { const k = y * 128 + x; visited[k] = 1; queue.push(k); }
+          }
+          let minX = 128, maxX = 0, minY = 96, maxY = 0, found = 0;
+          for (let head = 0; head < queue.length && head < 5000; head++) {
+            const k = queue[head], x = k % 128, y = Math.floor(k / 128);
+            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y); maxY = Math.max(maxY, y); found++;
+            for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+              const nx = x + dx, ny = y + dy, nk = ny * 128 + nx;
+              if (nx < 4 || nx >= 124 || ny < 4 || ny >= 92 || visited[nk]) continue;
+              visited[nk] = 1;
+              if (orange(nx, ny)) queue.push(nk);
+            }
+          }
+          if (found >= 100 && maxX - minX >= 20 && maxY - minY >= 14) {
+            const pad = 5;
+            const left = Math.max(4, minX - pad), top = Math.max(4, minY - pad);
+            const right = Math.min(124, maxX + pad), bottom = Math.min(92, maxY + pad);
+            setStickerBounds({ left: left / 128 * 100, top: top / 96 * 100,
+              width: (right - left) / 128 * 100, height: (bottom - top) / 96 * 100 });
+          }
+        }
         setRedStickerCandidateV864(hits >= 2);
       } catch {
         hits = 0;
@@ -507,7 +539,7 @@ export default function ZiiplyMobileScannerCard({
           {onCaptureDiscountSticker && redStickerCandidateV864 && !cameraOverlay && !loading && (
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute left-[30%] top-[30%] z-[12] h-[40%] w-[40%] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.28),inset_0_0_16px_rgba(255,230,165,0.13)]"
+              className="pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.28),inset_0_0_16px_rgba(255,230,165,0.13)] transition-all duration-200"\n              style={{ left: `${stickerBounds.left}%`, top: `${stickerBounds.top}%`, width: `${stickerBounds.width}%`, height: `${stickerBounds.height}%` }}
             >
               <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/55 px-2 py-1 text-[11px] font-semibold text-amber-100">
                 Alennustarra tähän
