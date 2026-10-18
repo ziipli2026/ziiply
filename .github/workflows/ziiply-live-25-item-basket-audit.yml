@@ -1,0 +1,72 @@
+name: Ziiply live 25-item basket audit
+on:
+  workflow_dispatch:
+jobs:
+  live-basket:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Compile comparison core
+        run: npx tsc src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-live-basket
+      - name: Test 25 real product families in S and K
+        shell: bash
+        run: |
+          node <<'NODE'
+          const core=require('./.tmp-live-basket/ziiplyCore.js');
+          const basket=[
+            ['maito',2],['kananmuna',1],['voi',2],['juusto',1],['jogurtti',3],
+            ['kahvi',2],['riisi',1],['pasta',3],['jauho',1],['sokeri',1],
+            ['suola',1],['öljy',1],['kaurahiutale',2],['leipä',2],['banaani',5],
+            ['omena',4],['appelsiini',3],['päärynä',2],['kurkku',2],['tomaatti',4],
+            ['porkkana',1],['peruna',2],['sipuli',1],['paprika',3],['jauheliha',2]
+          ];
+          const assert=require('node:assert/strict');
+          const errors=[],rows=[];
+          const cents=p=>Math.round(Number(p)*100);
+          const fetchProducts=async(chain,term)=>{
+            const url=new URL('/api/'+(chain==='S'?'s-products':'k-products'),'https://ziiply.vercel.app');
+            url.searchParams.set('store',chain==='S'?'292':'N183');
+            url.searchParams.set('search',term);
+            if(chain==='S')url.searchParams.set('storeName','Prisma Hyvinkää');
+            const res=await fetch(url,{signal:AbortSignal.timeout(25000)});
+            if(!res.ok)throw Error(chain+' '+term+' HTTP '+res.status);
+            const body=await res.json();
+            return (body.items||[]).filter(p=>p.name&&Number.isFinite(Number(p.price))&&Number(p.price)>0);
+          };
+          const valid=(term,name)=>name.toLocaleLowerCase('fi').includes(term==='viinirypäle'?'rypäle':term);
+          for(const [term,qty] of basket){
+            try{
+              const [s,k]=await Promise.all([fetchProducts('S',term),fetchProducts('K',term)]);
+              const source=s.find(p=>valid(term,p.name))||s[0];
+              const counterpart=source&&core.pickCheapestCompatibleComparisonProduct(source.name,k.map(p=>({name:p.name,price:Number(p.price)})));
+              const sUnit=source?cents(source.price):null;
+              const kUnit=counterpart?cents(counterpart.price):null;
+              const sTotal=sUnit===null?null:sUnit*qty;
+              const kTotal=kUnit===null?null:kUnit*qty;
+              const difference=sTotal!==null&&kTotal!==null?kTotal-sTotal:null;
+              if(sTotal!==null)assert.equal(sTotal,sUnit*qty);
+              if(kTotal!==null)assert.equal(kTotal,kUnit*qty);
+              if(counterpart&&!core.isComparisonAttributeCompatible(source.name,counterpart.name))throw Error('incompatible counterpart');
+              if(counterpart){
+                const compatible=k.filter(p=>core.isComparisonAttributeCompatible(source.name,p.name));
+                assert.equal(kUnit,Math.min(...compatible.map(p=>cents(p.price))),'not cheapest compatible');
+              }
+              if(!source)errors.push(term+' missing S source');
+              rows.push({term,qty,sName:source?.name||null,sUnit,kName:counterpart?.name||null,kUnit,sTotal,kTotal,difference,sCount:s.length,kCount:k.length});
+              console.log('BASKET_ROW',JSON.stringify(rows.at(-1)));
+            }catch(e){errors.push(term+': '+String(e));console.error('BASKET_ERROR',term,String(e));}
+          }
+          const matched=rows.filter(r=>r.sTotal!==null&&r.kTotal!==null);
+          const unmatched=rows.filter(r=>r.sTotal===null||r.kTotal===null);
+          const sum=key=>matched.reduce((a,r)=>a+r[key],0);
+          const totals={matched:matched.length,unmatched:unmatched.map(r=>r.term),sCents:sum('sTotal'),kCents:sum('kTotal'),differenceCents:sum('difference')};
+          assert.equal(totals.kCents-totals.sCents,totals.differenceCents);
+          if(rows.length!==basket.length)errors.push('Not all 25 product families processed');
+          if(matched.length<10)errors.push('Too few compatible matches: '+matched.length);
+          console.log('BASKET_SUMMARY',JSON.stringify({...totals,checks:basket.length,errors}));
+          if(errors.length)process.exitCode=1;
+          NODE
