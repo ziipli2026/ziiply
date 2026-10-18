@@ -1091,6 +1091,12 @@ if(spatialResolved&&Number(spatialResolved.quantity)>1){
 // A best-spatial candidate is proximity evidence only: reject it when independent normal-price
 // or package/unit-rate arithmetic says it belongs to another card. Strong same-card resolvers are unaffected.
 if(spatialResolved?.source==="best-spatial-candidate"&&spatialResolved.quantity==null){
+ // Never use the product's package count (e.g. 24 rolls) as price cents.
+ const countMatch=String(title).match(/\b(\d{1,3})\s*(?:rl|rullaa|kpl|pkt|pack)\b/i);
+ const splitParts=spatialResolved.parts;
+ if(countMatch&&Array.isArray(splitParts)&&splitParts.length===2&&String(splitParts[1])===countMatch[1])spatialResolved=null;
+}
+if(spatialResolved?.source==="best-spatial-candidate"&&spatialResolved.quantity==null){
  const v=Number(spatialResolved.value);
  const aboveNormal=nr&&Number(nr.min)>0&&v>Number(nr.min)*1.02;
  const arithmeticConflict=expected&&Number(expected)>0&&Math.abs(v-Number(expected))>Math.max(.25,Number(expected)*.20);
