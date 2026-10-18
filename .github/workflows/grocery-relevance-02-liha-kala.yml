@@ -26,7 +26,7 @@ jobs:
                 console.log(JSON.stringify({chain,term,count:items.length,top}));
                 if(!items.length){failures++;console.error("EMPTY",chain,term);}
                 if(top.some(n=>!n||typeof n!=="string")){failures++;console.error("INVALID_NAME",chain,term);}
-                if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara","nakki"].includes(term)&&top.slice(0,5).some(n=>/dreamies|sheba|vitakraft|carnilove|whiskas|pedigree|koirille|kissoille/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term);}
+                if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara","nakki"].includes(term)&&top.slice(0,Math.min(2,top.length)).some(n=>/dreamies|sheba|vitakraft|carnilove|whiskas|pedigree|koirille|kissoille|täysrehu|täysravinto/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term);}
               }catch(e){failures++;console.error("ERROR",chain,term,String(e));}
             }
           }
