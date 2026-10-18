@@ -3433,6 +3433,15 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   // This must precede the generic biscuit-family rule below.
   if (/\bkaurakeksi(?:t|a)?\b/.test(source) &&
       !/\b(?:kaurakeksi(?:t|a)?|kaurakeksit|kaurainen keksi|kaura keksi|oat biscuits?|oat cookies?)\b/.test(candidate)) return false;
+  // Keep snack categories distinct even when package weights match.
+  if (/\b(?:perunalastut|perunalastu|sipsit|sipsi)\b/.test(source) &&
+      !/\b(?:perunalastut|perunalastu|sipsit|sipsi|potato chips|crisps)\b/.test(candidate)) return false;
+  if (/\b(?:suklaalevy|suklaalevyt)\b/.test(source) &&
+      !/\b(?:suklaalevy|suklaalevyt|chocolate bar)\b/.test(candidate)) return false;
+  if (/\bpopcorn\b/.test(source) &&
+      (!/\bpopcorn\b/.test(candidate) || /\b(?:makuis|makuinen|makuisia|taateli|taateleita)\b/.test(candidate))) return false;
+  if (/\b(?:pähkinät|pähkinöitä|pähkinäsekoitus)\b/.test(source) &&
+      !/\b(?:pähkinä|pähkinät|pähkinäsekoitus|nut mix|nuts|cashew|maapähkinä|manteli|pistaasi)\b/.test(candidate)) return false;
   // Pasta shapes must not be substituted with unrelated 500 g staples.
   if (/\b(?:spagetti|spaghetti)\b/.test(source) &&
       !/\b(?:spagetti|spaghetti)\b/.test(candidate)) return false;
