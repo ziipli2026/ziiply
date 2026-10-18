@@ -349,8 +349,8 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[2.5rem] pt-[4.1rem]">
-          <div className="relative z-20 mb-1 ml-[0.5rem] max-w-[calc(100%-0.5rem)] shrink-0">
+        <main className="absolute inset-0 z-10 overflow-hidden">
+          <div className="absolute left-[8%] top-[13.4%] z-20 max-w-[48%]">
             <div className="flex h-[2.2rem] items-center">
               <div className="shrink-0 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
               {loading ? <RetroMopedOverlay /> : null}
@@ -422,7 +422,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               }, null, 2)}
             </div>
           </details>
-          <div className="flex min-h-0 flex-1 flex-col gap-1.5">
+          <div className="absolute left-[6%] right-[6%] top-[22%] bottom-[7%] flex min-h-0 flex-col gap-1.5">
 
             {showSkeleton ? (
               <>
