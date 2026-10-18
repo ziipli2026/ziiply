@@ -30,6 +30,13 @@ for(const [query,name] of requiredMatches){
  assert.equal(core.isComparisonAttributeCompatible(query,name),true,
    'Valid product rejected: '+query+' -> '+name);
 }
+// Equivalent quantity is informative only: 400g at a 380g package's price.
+assert.deepEqual(core.estimateEquivalentQuantityCost('kurkkusalaatti 400g','Felix kurkkusalaatti 380g',199),
+ {unitPriceCents:524,equivalentCostCents:209,unit:'kg'});
+assert.equal(core.estimateEquivalentQuantityCost('porsaan ulkofile 500g','Pirkka porsaan ulkofilee n.1,2kg',1249),null);
+assert.equal(core.estimateEquivalentQuantityCost('roskapussi 30l','Sanka-Bioska biojätekassi 30l 15kpl',199),null);
+assert.equal(core.estimateEquivalentQuantityCost('kurkkusalaatti 400g','Felix kurkkusalaatti 380g',NaN),null);
+console.log('AUDIT_EQUIVALENT_QUANTITY_GUARDS',JSON.stringify({passed:4}));
 console.log('AUDIT_REGRESSION_GUARDS',JSON.stringify({forbidden:forbiddenMatches.length,required:requiredMatches.length}));
 const terms=[
   "rasvaton maito 1l",
