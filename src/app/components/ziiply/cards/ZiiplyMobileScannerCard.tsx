@@ -180,7 +180,7 @@ export default function ZiiplyMobileScannerCard({
     const startedAt = Date.now();
     let consecutive = 0;
     const timer = window.setInterval(() => {
-      if (Date.now() - startedAt < 6500 || loading || flashState !== "idle" || cameraOverlay || manualInputOpen || selectionResults.length > 1) {
+      if (Date.now() - startedAt < 2000 || loading || flashState !== "idle" || cameraOverlay || manualInputOpen || selectionResults.length > 1) {
         consecutive = 0;
         setRedStickerCandidateV864(false);
         return;
