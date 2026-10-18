@@ -97,6 +97,43 @@ jobs:
           }
           console.log('SAFE_SUMMARY live S/K search smoke passed');
           NODE
+      - name: Live counterpart selection on S and K results
+        shell: bash
+        run: |
+          node <<'NODE'
+          const core = require('./.tmp-comparison-functional/ziiplyCore.js');
+          const terms=['maito','jauheliha','kananmuna'];
+          let total=0,errors=[];
+          async function load(chain,term){
+            const url=new URL('/api/'+(chain==='S'?'s-products':'k-products'),'https://ziiply.vercel.app');
+            url.searchParams.set('search',term);
+            url.searchParams.set('store',chain==='S'?'292':'N183');
+            if(chain==='S')url.searchParams.set('storeName','Prisma Hyvinkää');
+            const response=await fetch(url,{signal:AbortSignal.timeout(30000)});
+            if(!response.ok)throw Error(chain+' '+term+' HTTP '+response.status);
+            const body=await response.json();
+            return (body.items||[]).filter(p=>p.name&&Number(p.price)>0).map(p=>({name:p.name,price:Number(p.price)}));
+          }
+          for(const term of terms){
+            const [s,k]=await Promise.all([load('S',term),load('K',term)]);
+            for(const [direction,source,target] of [['S->K',s,k],['K->S',k,s]]){
+              let matched=0;
+              for(const product of source.slice(0,60)){
+                const compatible=target.filter(p=>core.isComparisonAttributeCompatible(product.name,p.name));
+                const picked=core.pickCheapestCompatibleComparisonProduct(product.name,target);
+                if(compatible.length){
+                  if(!picked||picked.price!==Math.min(...compatible.map(p=>p.price)))errors.push(term+' '+direction+' wrong cheapest '+product.name);
+                  else {matched++;if(matched<=2)console.log('EXAMPLE',JSON.stringify({direction,source:product.name,match:picked.name,price:picked.price}));}
+                }else if(picked)errors.push(term+' '+direction+' incompatible '+product.name);
+              }
+              total+=matched;
+              console.log('COVERAGE',JSON.stringify({term,direction,sourceCount:source.length,targetCount:target.length,matched}));
+            }
+          }
+          if(!total)errors.push('No compatible cross-chain matches in any tested family');
+          if(errors.length){console.error('LIVE_COUNTERPART_ISSUES',JSON.stringify(errors));process.exit(1);}
+          console.log('SAFE_SUMMARY verified live counterpart choices:',total);
+          NODE
       - name: Verify current comparison search contracts
         shell: bash
         run: |
