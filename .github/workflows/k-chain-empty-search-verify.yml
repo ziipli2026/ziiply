@@ -1,0 +1,27 @@
+name: K-chain two empty searches verify
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recheck Freda and RukaValley bread results
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.ruoanhinta.fi/api';
+          for(const store of [{name:'K-Market Freda',id:3772},{name:'K-Market RukaValley',id:4151}]){
+            for(const term of ['leipä','ruisleipä','paahtoleipä']){
+              const url=base+'/items?search='+encodeURIComponent(term)+'&storeIds='+store.id+'&skip=0&take=100';
+              const r=await fetch(url,{headers:{accept:'application/json'}});
+              if(!r.ok)throw Error(store.name+' '+term+' HTTP '+r.status);
+              const data=await r.json();
+              const rows=Array.isArray(data)?data:data.items||[];
+              const matching=rows.filter(x=>x.storeItems?.some(y=>String(y.storeId)===String(store.id)&&Number(y.price)>0));
+              const firstPriced=rows.filter(x=>Number(x.storeItems?.[0]?.price)>0);
+              console.log('BREAD CHECK '+JSON.stringify({store:store.name,id:store.id,term,returned:rows.length,firstPriced:firstPriced.length,matchingStorePriced:matching.length,examples:matching.slice(0,3).map(x=>({name:x.name,ean:x.ean}))}));
+            }
+          }
+          NODE
