@@ -3430,16 +3430,16 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\bsalaatti\b/.test(source) && /\b(?:niistaja|nenaimuri|nosefrida|salaatinkastike|salaattikulho|salaattiottimet)\b/.test(candidate)) return false;
   if (/\b(?:kananmuna|kananmunat)\b/.test(source) && !/\b(?:kananmuna|kananmunat|munia|munat)\b/.test(candidate)) return false;
   if (/\bbanaani\b/.test(source) && !/\b(?:banaani|banaanit)\b/.test(candidate)) return false;
-  // Match egg pack counts explicitly; M24 means 24 eggs, not size M.
-  const eggRequest = /\\b(?:kananmuna|kananmunat|munat)\\b/.test(source);
-  const eggCount = eggRequest ? sourceName.match(/\\b(\\d+)\\s*(?:kpl|pcs)\\b/i)?.[1] : undefined;
+  // Egg size codes (S/M10, M10, L15) encode number of eggs, not grams.
+  const eggRequest = /\b(?:kananmuna|kananmunat|munat)\b/.test(source);
+  const eggCount = eggRequest ? sourceName.match(/\b(\d+)\s*(?:kpl|pcs)\b/i)?.[1] : undefined;
   if (eggCount) {
-    const countMatch = candidateName.match(/\\b(?:[smlx]{1,3}\\s*)?(\\d{1,2})\\s*(?:kpl|pcs)?\\b/i);
-    if (!countMatch || Number(countMatch[1]) !== Number(eggCount)) return false;
+    const eggPack = candidateName.match(/\b(?:[smlx]{1,3}(?:\/[smlx]{1,3})?\s*)(\d{1,2})\b/i)
+      ?? candidateName.match(/\b(\d{1,2})\s*(?:kpl|pcs)\b/i);
+    if (!eggPack || Number(eggPack[1]) !== Number(eggCount)) return false;
   }
-  // Butter is not butter-flavoured pastry, potatoes, spread or dough.
-  if (/\\bvoi\\b/.test(source) && !/\\b(?:voi|voita)\\b/.test(candidate)) return false;
-  if (/\\bvoi\\b/.test(source) && /\\b(?:taikina|pakastetaikina|piparkakku|peruna|grilliperuna|kastike|leivonna|margariini|levite|flora)\\b/.test(candidate)) return false;
+  // Compare pure butter with pure butter, not prepared foods or blends.
+  if (/\bvoi\b/.test(source) && /(?:taikina|piparkakku|peruna|grilliperuna|kastike|leivonna|margariini|levite|flora|voi-tilli)/.test(candidate)) return false;
   const fresh = ["banaani","omena","appelsiini","paaryna","kurkku","tomaatti","porkkana","peruna","sipuli","paprika"];
   const isProcessedProduce = (name: string) =>
     /mehu|juoma|jogurtti|majo|majoneesi|mauste|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|saippua|kosmetiikka|paseerattu|murska|jauhettu|kuivattu|sailyke|salaatinkastike/.test(name);
@@ -3501,8 +3501,11 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
 
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
-  if (Boolean(sourceSize) !== Boolean(candidateSize)) return false;
-  if (sourceSize && candidateSize && (sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
+  // Loose produce is priced per kilogram even if its product name omits "1kg".
+  const looseBanana = /\bbanaani\b/.test(source) && /\b1\s*kg\b/.test(source)
+    && /^(?:(?:coop|pirkka|chiquita|luomu)\s+)?(?:punainen\s+)?banaani$/.test(candidate);
+  if (!looseBanana && Boolean(sourceSize) !== Boolean(candidateSize)) return false;
+  if (!looseBanana && sourceSize && candidateSize && (sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
   const group = (name: string) => {
     if (/\bpiima\b/.test(name)) return "piima";
     if (/\bmaito\b/.test(name)) return "maito";
