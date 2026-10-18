@@ -1,0 +1,37 @@
+name: Mobile comparison production check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Simulate 2, 3 and 4 comparison cards
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const file = fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx', 'utf8');
+          assert(!file.includes('tuotetta / ${visibleStores.length} kauppaa'), 'Basket count subtitle still visible');
+          assert(file.includes('"flex-1 basis-0"'), 'Cards must have equal flex basis');
+          assert(file.includes('absolute bottom-[1.8rem] left-5 right-5'), 'Debug must be at paper bottom');
+          assert(file.includes('pt-[4.1rem]'), 'Title is not aligned with paper header');
+          for (const count of [2,3,4]) {
+            const available = 600 - 45 - 67 - (count - 1) * 6;
+            const height = available / count;
+            assert(height >= 110, 'Card height too small');
+            assert(Math.abs(count * height + (count - 1) * 6 + 45 + 67 - 600) < 0.001);
+            console.log('PASS', count, 'stores; equal card height', height.toFixed(1), 'px');
+          }
+          NODE
+      - name: Install dependencies
+        run: npm ci
+      - name: TypeScript check
+        run: npx tsc --noEmit
