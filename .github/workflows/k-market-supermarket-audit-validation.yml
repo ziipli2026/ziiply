@@ -36,6 +36,41 @@ jobs:
             }finally{clearTimeout(t);}
           }
           NODE
+      - name: Test product and price searches in both K chains (read-only)
+        timeout-minutes: 4
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.ruoanhinta.fi/api';
+          const terms=['K-Market','K-Supermarket'];
+          const queries=['maito','kahvi'];
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          async function get(url){
+            const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);
+            try{
+              const r=await fetch(url,{headers:{accept:'application/json','user-agent':'Ziiply-Audit/1.0'},signal:c.signal});
+              if(!r.ok)throw Error('HTTP '+r.status+' '+url);
+              return await r.json();
+            }finally{clearTimeout(t);}
+          }
+          for(const chain of terms){
+            const raw=await get(base+'/stores?search='+encodeURIComponent(chain));
+            const stores=(Array.isArray(raw)?raw:raw.items||[]).filter(s=>new RegExp('^'+chain.replace('-','[- ]')+'\\b','i').test(String(s.name||''))&&!s.delistedAt&&s.id!=null);
+            if(!stores.length)throw Error(chain+': no stores found');
+            let tested=0,priced=0,nonempty=0;
+            for(const store of stores.slice(0,3)){
+              for(const term of queries){
+                const data=await get(base+'/items?search='+encodeURIComponent(term)+'&storeIds='+encodeURIComponent(store.id)+'&skip=0&take=100');
+                const rows=Array.isArray(data)?data:data.items||[];
+                const found=rows.filter(x=>Number(x.storeItems?.[0]?.price)>0).length;
+                console.log('PRODUCT_SEARCH',JSON.stringify({chain,store:store.name,term,returned:rows.length,priced:found}));
+                tested++;priced+=found;if(rows.length)nonempty++;
+                await sleep(150);
+              }
+            }
+            console.log('CHAIN_RESULT',JSON.stringify({chain,stores:stores.length,tested,nonempty,priced}));
+            if(!nonempty||!priced)throw Error(chain+': no usable priced product results');
+          }
+          NODE
       - name: Verify no duplicated YAML tail
         run: |
           python3 - <<'PY'
