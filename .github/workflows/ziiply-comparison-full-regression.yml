@@ -247,6 +247,21 @@ jobs:
           const coverage={opened,skipped,allViewsReached:skipped.length===0};
           writeFileSync('comparison-ui-artifacts/interaction-coverage.json',JSON.stringify(coverage,null,2));
           console.log('INTERACTION_COVERAGE',JSON.stringify(coverage));
+          const summary=[
+            '## Ziiply mobile interaction coverage',
+            '',
+            '| View | Result |',
+            '| --- | --- |',
+            ...stages.map(stage=>'| '+stage+' | '+(opened.includes(stage)?'Opened':'NOT TESTED (control not found)')+' |'),
+            '',
+            coverage.allViewsReached?'All discovery views were reached.':'WARNING: Navigation coverage is incomplete; a green workflow is NOT an end-to-end basket verification.',
+            '',
+            'See comparison-mobile-ui-screenshot artifact for screenshots and interaction-discovery.json.',
+          ].join('\\n');
+          if(process.env.GITHUB_STEP_SUMMARY){
+            const {appendFileSync}=await import('node:fs');
+            appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\\n');
+          }
           writeFileSync('comparison-ui-artifacts/interaction-discovery.json',JSON.stringify({snapshots,errors},null,2));
           console.log('INTERACTION_DISCOVERY',JSON.stringify(snapshots.map(s=>({stage:s.stage,skipped:s.skipped,controls:s.controls?.slice(0,18)}))));
           await browser.close();
