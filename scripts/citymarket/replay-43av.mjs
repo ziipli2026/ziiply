@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {parseKCitymarketSpatialLeaflet} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js';
+import {parseKCitymarketSpatialLeaflet} from '../../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js';
 const frozen=JSON.parse(fs.readFileSync('/tmp/43av-responses.json','utf8'));
 const get=async url=>{
  const key=String(url);
