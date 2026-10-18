@@ -27,7 +27,8 @@ jobs:
             tests/kcitymarket-category-regression.test.cjs \
             tests/kcitymarket-wrapped-percentage.test.mjs \
             tests/kcitymarket-multibuy-display.test.cjs \
-            tests/kcitymarket-leaflet-candidates.test.cjs
+            tests/kcitymarket-leaflet-candidates.test.cjs \
+            tests/kcitymarket-43av-category-regression.test.cjs
       - name: Existing leaflet images
         run: node scripts/citymarket/verify-images.mjs
   leaflet-43av:
