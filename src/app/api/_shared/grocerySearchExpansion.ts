@@ -3,4 +3,5 @@ export const MEAT_SEARCH_ALIASES: Record<string, string[]> = {
   naudanliha: ['naudan', 'nauta'],
   sianliha: ['porsaan', 'porsas'],
   limsa: ['limonadi', 'virvoitusjuoma'],
+  vesi: ['kivennäisvesi', 'lähdevesi', 'mineraalivesi'],
 };
