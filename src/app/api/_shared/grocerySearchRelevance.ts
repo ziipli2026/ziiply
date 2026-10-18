@@ -78,14 +78,14 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
     }
     if(canonical==="limsa"){
       if(/limonadi|virvoitusjuoma|cola|pepsi|sprite|fanta|jaffa/.test(name))value+=170;
-      if(/makeinen|karkki|esanssi|tiiviste/.test(name))value-=180;
+      if(/makeinen|karkki|esanssi|tiiviste|jäätelö|jäätelöpuikko|limonadijää|jääpuikko|mehujää/.test(name))value-=550;
     }
     if(canonical==="mehu"){
       if(/täysmehu|tuoremehu|hedelmämehu|mehu/.test(name)&&!/kivennäisvesi|virvoitusjuoma/.test(name))value+=130;
       if(/mehu-kivennäisvesi|mehuvirvoitus|mehujuoma/.test(name))value-=170;
     }
     if(canonical==="vesi"){
-      if(/vesikauha|vesiastia|vesipyssy|vesileikki|vesikrassi|vesiletku|vesipullo|vesikannu|vesipistooli|vesilelu/.test(name))value-=500;
+      if(/vesikauha|vesiastia|vesipyssy|vesileikki|vesikrassi|vesiletku|vesipullo|vesikannu|vesipistooli|vesilelu|vesipohjainen|vesihyasintti|vesililja|vesimelon|vesitiivis|vesisäiliö|vesiväri|vesi-ilmapallo/.test(name))value-=600;
       if(/kivennäisvesi|lähdevesi|mineraalivesi|juomavesi|hiilihapotettu vesi|maustettu vesi/.test(name))value+=280;
 
       if(/vesi-ilmapallo|vesi-maitotutti|vesi- ja maitotutti|vesipistooli|vesilelu|vesimeloni/.test(name))value-=300;
