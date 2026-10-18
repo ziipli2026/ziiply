@@ -216,7 +216,7 @@ export default function ZiiplyMobileScannerCard({
             }
             // 32x24 patch sampled at 2px = 192 pixels.
             // Exclude patches with barely any orange or almost solid packaging.
-            if (orangePixels < 38 || orangePixels > 145) continue;
+            if (orangePixels < 75 || orangePixels > 145) continue;
             let stripeRows = 0;
             for (let y = top + 3; y < top + 21; y += 3) {
               let transitions = 0;
@@ -229,13 +229,16 @@ export default function ZiiplyMobileScannerCard({
               }
               if (transitions >= 8) stripeRows++;
             }
-            if (stripeRows >= 3) {
+            if (stripeRows >= 4) {
               bounded = true;
               barcodeRows = stripeRows;
             }
           }
         }
-        hits = bounded && barcodeRows >= 3 ? Math.min(3, hits + 1) : 0;
+        // A tiny distant object cannot qualify: a nearby sticker must occupy
+        // a substantial portion of the central camera aim area.
+        // Stripe transitions are only a visual cue, NOT proof of GS1 decoding.
+        hits = bounded && barcodeRows >= 4 ? Math.min(3, hits + 1) : 0;
         setRedStickerCandidateV864(hits >= 2);
       } catch {
         hits = 0;
