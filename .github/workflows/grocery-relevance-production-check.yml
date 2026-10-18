@@ -30,10 +30,11 @@ jobs:
                   peruna:/salaatti|sekoitus|pakaste|pihvi|leipä|sämpylä/i,
                   porkkana:/leipä|sämpylä|tikku|pihvi|patukka/i,
                   tomaatti:/pesto|keitto|pasta|mauste|seos|paseerattu|kuivattu/i,
-                  leipä:/wiener|kakku|pulla|leivos|leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipälastu/i,
+                  leipä:/wiener|kakku|pulla|leivos|leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipälastu|leipätikku|leipäveitsi|leipämauste|leipäkassi/i,
                   broileri:/kolmari|wrap|pizza|salaatti|patonki/i
                 };
-                if(term==="leipä"&&names.slice(0,5).some(n=>/leipäjuusto|leipävuoka|leipäsiirappi|leipämallas/i.test(n))){failures++;console.error("BREAD_FALSE_POSITIVE",chain,names);}
+                if(term==="leipä"&&names.slice(0,5).some(n=>/leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipätikku|leipäveitsi|leipämauste|leipäkassi/i.test(n))){failures++;console.error("BREAD_FALSE_POSITIVE",chain,names);}
+                if(["lohi","broileri"].includes(term)&&names.slice(0,5).some(n=>/latz|polar pet|primadog|pedigree|whiskas|koiranruoka|kissanruoka/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term,names);}
                 const bad=prepared[term];
                 if(bad&&names.length>=3&&names.slice(0,3).every(n=>bad.test(n))){
                   failures++;console.error("RELEVANCE_ORDER",chain,term,names.slice(0,3));
