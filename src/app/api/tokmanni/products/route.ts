@@ -27,16 +27,6 @@ function absoluteUrl(href: string) {
   try { return new URL(href, TOKMANNI_SEARCH_URL).href; } catch { return ""; }
 }
 
-function eanFromProductUrl(productUrl: string) {
-  try {
-    const pathname = new URL(productUrl).pathname.replace(/\/+$/, "");
-    const match = pathname.match(/-(\d{8,14})$/);
-    return match?.[1] || "";
-  } catch {
-    return "";
-  }
-}
-
 function first(block: string, patterns: RegExp[]) {
   for (const re of patterns) {
     const match = block.match(re);
@@ -116,7 +106,7 @@ function mapKlevuProduct(item: any, index: number) {
   // Do not mistake a discounted sale price for the normal shelf price.
   const discounted = salePrice > 0 && ((oldPrice > salePrice) || (basePrice > salePrice));
   const price = discounted
-    ? (oldPrice > salePrice ? oldPrice : basePrice)
+    ? Math.max(oldPrice, basePrice)
     : (basePrice || currentPrice || salePrice);
   // A lone salePrice cannot establish a regular price when no base/current price exists.
   if (salePrice > 0 && !oldPrice && !basePrice && !currentPrice) return null;
