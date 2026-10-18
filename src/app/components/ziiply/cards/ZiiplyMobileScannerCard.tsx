@@ -238,7 +238,7 @@ export default function ZiiplyMobileScannerCard({
         // Only the CENTER 40% of the live camera image is eligible for a
         // discount-sticker hint. Distant shelf products at the edges are ignored.
         // The candidate itself must cover a meaningful part of this window.
-        const roi = { left: 38, right: 90, top: 29, bottom: 67 };
+        const roi = { left: 2, right: 126, top: 2, bottom: 94 };
         // Evaluate all candidate patches rather than accepting the first
         // top-left match. Track the closest verified candidate across frames.
         let bounded = false;
@@ -271,9 +271,22 @@ export default function ZiiplyMobileScannerCard({
               if (transitions >= 9) stripeRows++;
             }
             if (stripeRows < 5) continue;
+            // Reject colored packaging: the target must have a substantial
+            // orange sticker-like surface as well as barcode-like stripes.
             const x = left + 16, y = top + 12;
+            let surroundingOrange = 0, surroundingTotal = 0;
+            for (let yy = Math.max(0, top - 8); yy < Math.min(96, top + 32); yy += 2) {
+              for (let xx = Math.max(0, left - 8); xx < Math.min(128, left + 40); xx += 2) {
+                if (xx >= left && xx < left + 32 && yy >= top && yy < top + 24) continue;
+                surroundingTotal++;
+                if (orange(xx, yy)) surroundingOrange++;
+              }
+            }
+            // If the surrounding package is just as orange as the candidate,
+            // there is no distinct sticker to track.
+            if (surroundingTotal > 0 && surroundingOrange / surroundingTotal > 0.68) continue;
             const distance = last ? Math.hypot(x - last.x, y - last.y) : Math.hypot(x - 64, y - 48);
-            const score = stripeRows * 4 + orangePixels * 0.1 - distance * (last ? 1.5 : 0.15);
+            const score = stripeRows * 4 + orangePixels * 0.1 - distance * (last ? 2.8 : 0.15);
             if (score > bestScore) {
               bestScore = score;
               bounded = true;
