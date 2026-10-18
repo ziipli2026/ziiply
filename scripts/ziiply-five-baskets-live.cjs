@@ -8,6 +8,13 @@ if(!Number.isInteger(n)||n<1||n>5)throw Error('Basket must be 1-5');
 const [title,terms]=baskets[n-1];
 const base='https://ziiply.vercel.app';
 const report={basket:n,title,checkedAt:new Date().toISOString(),rows:[],warnings:[],errors:[]};
+const fallbackQueries={
+  "kananmuna 10kpl":["kananmuna","kananmunat","munat 10"],
+  "banaani 1kg":["banaani","banaanit"],
+  "naudan jauheliha 400g":["naudan jauheliha","nauta jauheliha","jauheliha 400g"],
+  "kurkku 1kpl":["kurkku"],
+  "salaatti 1kpl":["salaatti","keräsalaatti"]
+};
 async function search(chain,term){
   const url=new URL('/api/'+(chain==='S'?'s-products':'k-products'),base);
   url.searchParams.set('search',term);
@@ -33,8 +40,15 @@ for(let i=0;i<terms.length;i++){
   const row={index:i+1,query:term,stores:{}};
   for(const chain of ['S','K']){
     try{
-      const results=await search(chain,term);
-      const compatible=results.filter(p=>core.isComparisonAttributeCompatible(term,p.name));
+      let results=await search(chain,term);
+      let compatible=results.filter(p=>core.isComparisonAttributeCompatible(term,p.name));
+      for(const fallback of fallbackQueries[term]||[]){
+        if(compatible.length)break;
+        const extra=await search(chain,fallback);
+        const names=new Set(results.map(p=>p.name));
+        results=results.concat(extra.filter(p=>!names.has(p.name)));
+        compatible=results.filter(p=>core.isComparisonAttributeCompatible(term,p.name));
+      }
       const chosen=core.pickCheapestCompatibleComparisonProduct(term,results.map(p=>({...p,price:Number(p.price)})));
       const exact=chosen?results.find(p=>p.name===chosen.name):null;
       const raw=exact?Number(exact.price):null;
