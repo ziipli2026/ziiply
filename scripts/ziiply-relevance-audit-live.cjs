@@ -1,6 +1,31 @@
 // Live relevance coverage audit. This is not a price verification or a human-labelled accuracy benchmark.
 const fs=require('node:fs');
+const assert=require('node:assert/strict');
+
 const core=require('../.tmp-five-baskets/ziiplyCore.js');
+// Known false positives must never count as a successful live match.
+const forbiddenMatches=[
+  ['appelsiini 1kg','Siripiri rypälesokeripastilli appelsiini 17kpl'],
+  ['appelsiini 1kg','IDC Institute appelsiini silmänympäryslaput 1 kpl'],
+  ['päärynä 1kg','Havi päärynä pöytäkynttilä 1kpl/7x12cm'],
+  ['porsaan ulkofile 500g','Melissa Pipsa Possu kuviopasta 500g'],
+  ['ruisjauho 1kg','K-Menu tomaattiketsuppi 1kg'],
+];
+const requiredMatches=[
+  ['ruisjauho 1kg','Coop ruisjauho 1 kg'],
+  ['naudan jauheliha 400g','Snellman Kunnon naudan jauheliha 10% 400g'],
+  ['appelsiini 1kg','Coop Appelsiini Valencia Late'],
+  ['päärynä 1kg','Päärynä Conference'],
+];
+for(const [query,name] of forbiddenMatches){
+ assert.equal(core.isComparisonAttributeCompatible(query,name),false,
+   'False positive product match: '+query+' -> '+name);
+}
+for(const [query,name] of requiredMatches){
+ assert.equal(core.isComparisonAttributeCompatible(query,name),true,
+   'Valid product rejected: '+query+' -> '+name);
+}
+console.log('AUDIT_REGRESSION_GUARDS',JSON.stringify({forbidden:forbiddenMatches.length,required:requiredMatches.length}));
 const terms=[
   "rasvaton maito 1l",
   "kevytmaito 1l",
