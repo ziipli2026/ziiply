@@ -3615,9 +3615,11 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   };
   const sourceGroup = group(source);
   if (sourceGroup && group(candidate) !== sourceGroup) return false;
-  for (const attribute of ["laktoositon", "rasvaton", "kevyt", "tays", "luomu"]) {
+  for (const attribute of ["laktoositon", "rasvaton", "kevyt", "tays"]) {
     if (new RegExp("\\b" + attribute + "\\b").test(source) !== new RegExp("\\b" + attribute + "\\b").test(candidate)) return false;
   }
+  // Generic searches may return organic items; explicit organic requests must stay organic.
+  if (/\bluomu\b/.test(source) && !/\bluomu\b/.test(candidate)) return false;
   if (/\bab.piima\b/.test(source) !== /\bab.piima\b/.test(candidate)) return false;
   // Identical normalized product names are exact counterparts after all attribute guards.
   // Broad search-result exclusions must not reject the same SKU in another chain.
