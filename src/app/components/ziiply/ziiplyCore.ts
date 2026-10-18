@@ -3430,10 +3430,10 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
     if (token.test(source) && !isProcessedProduce(source) && (!token.test(candidate) || isProcessedProduce(candidate))) return false;
   }
   // Preserve fresh/UHT treatment: shelf-stable milk is not a substitute for fresh milk.
-  if (/\\bmaito\\b/.test(source) && /\\bmaito\\b/.test(candidate) &&
-      (/\\buht\\b/.test(source) !== /\\buht\\b/.test(candidate))) return false;
+  if (/\bmaito\b/.test(source) && /\bmaito\b/.test(candidate) &&
+      (/\buht\b/.test(source) !== /\buht\b/.test(candidate))) return false;
   // Never substitute another fresh produce type, even when a variable-weight EAN coincides.
-  const produceKind = (name: string) => fresh.find((item) => new RegExp("\\\\b" + item + "\\\\b").test(name)) ?? null;
+  const produceKind = (name: string) => fresh.find((item) => new RegExp("\\b" + item + "\\b").test(name)) ?? null;
   if (produceKind(source) && produceKind(candidate) && produceKind(source) !== produceKind(candidate)) return false;
   if (/\bvoi\b/.test(source) && !/\bvoi\b/.test(candidate)) return false;
   if (/\bpasta\b/.test(source) && /\b(karkki|makeinen|haribo)\b/.test(candidate)) return false;
