@@ -40,5 +40,8 @@ jobs:
           git fetch --depth=1 origin archive/citymarket-publications
           git show origin/archive/citymarket-publications:publications/43AV/leaflet.json > /tmp/43av-leaflet.json
           git show origin/archive/citymarket-publications:publications/43AV/parser-evidence.json > /tmp/43av-evidence.json
+          git show origin/archive/citymarket-publications:publications/43AV/publisher-responses.json > /tmp/43av-responses.json
+      - name: Replay current parser against frozen 43AV publisher source
+        run: node scripts/citymarket/replay-43av.mjs
       - name: Verify 43AV price ownership and multibuy
         run: node --test tests/kcitymarket-43av-archive-gate.test.cjs
