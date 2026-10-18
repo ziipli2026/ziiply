@@ -159,12 +159,12 @@ jobs:
           const classifyUnmatched = (row) => {
             const n=row.source.toLowerCase();
             if(row.term==='maito'){
-              if(/(?:suklaa|kerma|rahka|vanukas|leipä|leipa|bakteeri|kahvi|cappuccino|kondensoitu|pirtelö|pirtelo|milkshake|kaakao|juoma|jäätelö|jaatelo|patukka|levite|jogurtti|jogurti|juusto|voi\\b|maitojauhe)/i.test(n))return 'other_milk_related';
-              if(/\\bmaito\\b/i.test(n))return 'plain_milk';
+              if(/(?:suklaa|kerma|rahka|vanukas|leipä|leipa|bakteeri|kahvi|cappuccino|kondensoitu|pirtelö|pirtelo|milkshake|kaakao|juoma|jäätelö|jaatelo|patukka|levite|jogurtti|jogurti|juusto|voi\b|maitojauhe)/i.test(n))return 'other_milk_related';
+              if(/\bmaito\b/i.test(n))return 'plain_milk';
               return 'other_search_hit';
             }
-            if(row.term==='jauheliha')return /\\bjauheliha\\b/i.test(n)?'plain_ground_meat':'other_search_hit';
-            if(row.term==='kananmuna')return /\\bkananmuna\\b/i.test(n)?'plain_eggs':'other_search_hit';
+            if(row.term==='jauheliha')return /\bjauheliha\b/i.test(n)?'plain_ground_meat':'other_search_hit';
+            if(row.term==='kananmuna')return /\bkananmuna\b/i.test(n)?'plain_eggs':'other_search_hit';
             return 'other_search_hit';
           };
           const grouped={};
