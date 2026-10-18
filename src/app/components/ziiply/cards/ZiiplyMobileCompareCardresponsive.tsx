@@ -319,6 +319,46 @@ export default function ZiiplyMobileCompareCardresponsive({
             </div>
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
           </div>
+          {/* Diagnostic only: does not alter product matching, prices or category rules. */}
+          <details className="relative z-30 mb-2 shrink-0 rounded-lg border border-[#9d824c] bg-[#fff9e8] p-2 text-[11px] text-[#352b1b]">
+            <summary className="cursor-pointer font-bold">Vertailun debug (avaa)</summary>
+            <p className="my-1">Näyttää korin tuotteet ja kauppakohtaiset vastintuotteet, hinnat sekä mahdolliset kategoriat. Ei muuta vertailua.</p>
+            <button
+              type="button"
+              className="mb-2 rounded border border-[#7c663d] bg-[#f0e1b9] px-2 py-1 font-bold"
+              onClick={() => {
+                const report = {
+                  timestamp: new Date().toISOString(),
+                  loading,
+                  cartItems: items,
+                  stores: visibleStores.map((store) => ({
+                    id: store.id,
+                    name: store.name,
+                    chain: store.chain,
+                    totalPriceCents: store.totalPrice,
+                    itemCount: store.itemCount,
+                    missingItems: store.missingItems,
+                    matches: store.matches || [],
+                  })),
+                };
+                void navigator.clipboard.writeText(JSON.stringify(report, null, 2)).catch(() => undefined);
+              }}
+            >
+              Kopioi debug JSON
+            </button>
+            <div className="max-h-[35vh] overflow-auto whitespace-pre-wrap break-words font-mono">
+              {JSON.stringify({
+                cartItems: items,
+                stores: visibleStores.map((store) => ({
+                  store: store.name,
+                  totalPriceCents: store.totalPrice,
+                  itemCount: store.itemCount,
+                  missingItems: store.missingItems,
+                  matches: store.matches || [],
+                })),
+              }, null, 2)}
+            </div>
+          </details>
           <div className="flex min-h-0 flex-1 flex-col gap-2.5">
 
             {showSkeleton ? (
