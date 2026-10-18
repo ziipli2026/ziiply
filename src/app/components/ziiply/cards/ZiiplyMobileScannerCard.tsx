@@ -237,16 +237,17 @@ export default function ZiiplyMobileScannerCard({
         const orange = (x: number, y: number) => {
           const i = (y * 128 + x) * 4;
           const r = data[i], g = data[i + 1], b = data[i + 2];
-          // Reject brown bread, red packaging and dark orange shadows:
-          // the discount sticker is bright, saturated orange.
+          // Hue-based orange detection tolerates camera exposure changes on
+          // white backgrounds; do not use a fixed minimum RGB brightness.
           const max = Math.max(r, g, b), min = Math.min(r, g, b);
-          const saturation = max > 0 ? (max - min) / max : 0;
-          return r >= 175 && r <= 255 &&
-            g >= 72 && g <= 185 &&
-            b <= 100 && b < g * 0.72 &&
-            r > g * 1.30 && r < g * 2.8 &&
-            saturation >= 0.58 &&
-            r + g + b >= 290;
+          const chroma = max - min;
+          const hue = chroma === 0 ? -1 : max === r
+            ? ((g - b) / chroma + 6) % 6 * 60
+            : max === g ? ((b - r) / chroma + 2) * 60
+            : ((r - g) / chroma + 4) * 60;
+          const saturation = max ? chroma / max : 0;
+          return hue >= 12 && hue <= 37 && saturation >= 0.48 &&
+            r >= 100 && g >= 40 && b < g * 0.84;
         };
         // Only the CENTER 40% of the live camera image is eligible for a
         // discount-sticker hint. Distant shelf products at the edges are ignored.
@@ -284,6 +285,10 @@ export default function ZiiplyMobileScannerCard({
               if (transitions >= 9) stripeRows++;
             }
             if (stripeRows < 5) continue;
+            // A real sticker has a compact orange field around the stacked
+            // bars. Ignore broad food/package textures with similar colors.
+            const orangeCoverage = orangePixels / 96;
+            if (orangeCoverage < 0.75 || orangeCoverage > 1.57) continue;
             // Reject colored packaging: the target must have a substantial
             // orange sticker-like surface as well as barcode-like stripes.
             const x = left + 16, y = top + 12;
@@ -299,7 +304,7 @@ export default function ZiiplyMobileScannerCard({
             // there is no distinct sticker to track.
             if (surroundingTotal > 0 && surroundingOrange / surroundingTotal > 0.68) continue;
             const distance = last ? Math.hypot(x - last.x, y - last.y) : Math.hypot(x - 64, y - 48);
-            const score = stripeRows * 4 + orangePixels * 0.1 - distance * (last ? 2.8 : 0.15);
+            const score = stripeRows * 7 + orangePixels * 0.12 - distance * (last ? 1.3 : 0.12);
             if (score > bestScore) {
               bestScore = score;
               bounded = true;
