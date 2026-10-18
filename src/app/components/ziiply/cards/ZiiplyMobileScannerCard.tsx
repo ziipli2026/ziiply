@@ -175,7 +175,7 @@ export default function ZiiplyMobileScannerCard({
   // sticker-shaped region and barcode-like dark/light vertical transitions in
   // that same region. Packaging color alone is never sufficient.
   const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
-  const [stickerBounds, setStickerBounds] = useState({ left: 24, top: 22, width: 52, height: 56 });
+  const [stickerBounds, setStickerBounds] = useState({ left: 30, top: 30, width: 40, height: 40 });
   useEffect(() => {
     if (!onCaptureDiscountSticker) return;
     let hits = 0;
@@ -193,7 +193,20 @@ export default function ZiiplyMobileScannerCard({
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
       try {
-        ctx.drawImage(video, 0, 0, 128, 96);
+        // Match the camera's CSS object-fit: cover, so detected coordinates
+        // correspond to the visible camera frame rather than stretched video.
+        const viewport = video.getBoundingClientRect();
+        const targetAspect = viewport.width / Math.max(1, viewport.height);
+        const sourceAspect = video.videoWidth / video.videoHeight;
+        let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
+        if (sourceAspect > targetAspect) {
+          sw = video.videoHeight * targetAspect;
+          sx = (video.videoWidth - sw) / 2;
+        } else {
+          sh = video.videoWidth / targetAspect;
+          sy = (video.videoHeight - sh) / 2;
+        }
+        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, 128, 96);
         const data = ctx.getImageData(0, 0, 128, 96).data;
         const orange = (x: number, y: number) => {
           const i = (y * 128 + x) * 4;
@@ -288,10 +301,19 @@ export default function ZiiplyMobileScannerCard({
             const right = Math.min(126, maxX + pad), bottom = Math.min(94, maxY + pad);
             const next = { left: left / 128 * 100, top: top / 96 * 100,
               width: (right - left) / 128 * 100, height: (bottom - top) / 96 * 100 };
-            setStickerBounds(prev =>
-              Math.abs(prev.left - next.left) + Math.abs(prev.top - next.top) +
-              Math.abs(prev.width - next.width) + Math.abs(prev.height - next.height) < 2
-                ? prev : next);
+            setStickerBounds(prev => {
+              const distance = Math.abs(prev.left - next.left) + Math.abs(prev.top - next.top) +
+                Math.abs(prev.width - next.width) + Math.abs(prev.height - next.height);
+              if (distance < 3) return prev;
+              // Smooth normal movement and damp isolated detection jumps.
+              const alpha = distance > 55 ? 0.14 : 0.30;
+              return {
+                left: prev.left + (next.left - prev.left) * alpha,
+                top: prev.top + (next.top - prev.top) * alpha,
+                width: prev.width + (next.width - prev.width) * alpha,
+                height: prev.height + (next.height - prev.height) * alpha,
+              };
+            });
           }
         }
         setRedStickerCandidateV864(hits >= 2);
