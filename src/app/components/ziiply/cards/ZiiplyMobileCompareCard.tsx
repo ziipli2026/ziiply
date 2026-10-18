@@ -265,7 +265,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-                <header className="pointer-events-none absolute left-[5.75rem] top-[11.95rem] z-20 w-[13.75rem]">
+                <header className="pointer-events-none absolute left-[8.45rem] top-[11.95rem] z-20 w-[13.75rem]">
           <div
             className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
             style={{ fontFamily: cooperFont }}
