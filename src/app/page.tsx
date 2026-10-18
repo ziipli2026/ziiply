@@ -24772,7 +24772,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 }
 
                 if (safeMode !== "cheapest") {
-                  return alternatives;
+                  // Apply the same final product compatibility gate as cheapest mode.
+                  return alternatives.filter((candidate) =>
+                    getProductPrice(candidate) > 0 &&
+                    productGroupGate(safeMatch.product.name, candidate.name) &&
+                    isCheapestAttributeCompatible(safeMatch.product.name, candidate.name),
+                  );
                 }
               } catch (error) {
                 console.error(error);
