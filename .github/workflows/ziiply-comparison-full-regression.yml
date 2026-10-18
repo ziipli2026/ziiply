@@ -157,13 +157,16 @@ jobs:
           assert(diff.includes('formatEuroCents(diff)'),'difference must be cents, not euros');
           assert(selection.includes('return data.price;'),'extended line price must not multiply quantity twice');
           const tests=[
-            {s:[85,95],q:[1,1],expected:[85,95],diff:10},
-            {s:[85,95],q:[2,2],expected:[170,190],diff:20},
-            {s:[8500,9500],q:[1,1],expected:[85,95],diff:10},
-            {s:[8500,9500],q:[2,2],expected:[170,190],diff:20},
+            {raw:[85,95],q:[1,1],line:[85,95],expected:[85,95],diff:10},
+            {raw:[85,95],q:[2,2],line:[170,190],expected:[170,190],diff:20},
+            {raw:[85,95],q:[1,1],line:[8500,9500],expected:[85,95],diff:10},
+            {raw:[85,95],q:[2,2],line:[17000,19000],expected:[170,190],diff:20},
           ];
           for(const t of tests){
-            const corrected=t.s.map((value,i)=>value>=100* t.q[i] && value%100===0?value/100:value);
+            const corrected=t.line.map((actual,i)=>{
+              const raw=t.raw[i],quantity=t.q[i];
+              return Math.abs(actual-raw*quantity*100)<0.001 ? Math.round(raw*quantity) : actual;
+            });
             assert.deepEqual(corrected,t.expected);
             assert.equal(corrected[1]-corrected[0],t.diff);
             console.log('PASS basket arithmetic',JSON.stringify(t));
