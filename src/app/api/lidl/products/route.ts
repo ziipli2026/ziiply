@@ -26,7 +26,7 @@ function getPrice(product: RuoanhintaProduct) {
 
 function isValidGtin(value: unknown) {
   const digits = String(value ?? "").trim();
-  if (!/^(?:\\d{8}|\\d{12}|\\d{13}|\\d{14})$/.test(digits)) return false;
+  if (!/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits)) return false;
   const body = digits.slice(0, -1);
   const expected = Number(digits.at(-1));
   const sum = [...body].reverse().reduce((total, digit, index) =>
