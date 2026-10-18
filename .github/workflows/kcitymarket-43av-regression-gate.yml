@@ -46,6 +46,31 @@ jobs:
           git show FETCH_HEAD:publications/43AV/leaflet.json > /tmp/43av-leaflet.json
           git show FETCH_HEAD:publications/43AV/parser-evidence.json > /tmp/43av-evidence.json
           git show FETCH_HEAD:publications/43AV/publisher-responses.json > /tmp/43av-responses.json
+          git show FETCH_HEAD:publications/43AV/leaflet.pdf > /tmp/43av-leaflet.pdf
+      - name: Inspect original printed PDF page 7
+        run: |
+          pdfinfo /tmp/43av-leaflet.pdf | grep -E 'Pages:|Page size:'
+          echo '--- PAGE 7 PDF PRINTED TEXT ---'
+          pdftotext -f 7 -l 7 -layout /tmp/43av-leaflet.pdf - | tail -n 110
+          echo '--- PAGE 7 WORD COORDINATES ---'
+          pdftotext -f 7 -l 7 -bbox-layout /tmp/43av-leaflet.pdf /tmp/43av-p7.html
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          class Words(HTMLParser):
+              def __init__(self): super().__init__(); self.box=None; self.words=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='word': self.box=dict(attrs)
+              def handle_data(self,data):
+                  if self.box is not None and data.strip():
+                      b=self.box; self.words.append((float(b.get('ymin',0)),float(b.get('xmin',0)),data.strip()))
+              def handle_endtag(self,tag):
+                  if tag=='word': self.box=None
+          p=Words();p.feed(open('/tmp/43av-p7.html').read())
+          for y,x,t in sorted(p.words):
+              if any(w in t.lower() for w in ('vitamiini','urheilu','sport','vitamin','0,97','2,16','1,45','1,50','1,70','3,70')):
+                  near=[f'{v}@{xx:.0f}' for yy,xx,v in p.words if abs(yy-y)<35]
+                  print(f'y={y:.0f} x={x:.0f} {t}: '+ ' '.join(near[:35]))
+          PY
       - name: Replay current parser against frozen 43AV publisher source
         run: node scripts/citymarket/replay-43av.mjs
       - name: Inspect page 7 price ownership
