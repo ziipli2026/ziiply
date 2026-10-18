@@ -20,6 +20,22 @@ jobs:
           Path('/tmp/k-market-audit.mjs').write_text("\n".join(line[10:] for line in text[start:end].splitlines())+"\n")
           PY
           node --check /tmp/k-market-audit.mjs
+      - name: Smoke-test K-market and K-Supermarket discovery (read-only)
+        timeout-minutes: 2
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.ruoanhinta.fi/api/stores?search=';
+          for(const chain of ['K-Market','K-Supermarket']){
+            const c=new AbortController();const t=setTimeout(()=>c.abort(),15000);
+            try{
+              const r=await fetch(base+encodeURIComponent(chain),{signal:c.signal,headers:{accept:'application/json'}});
+              console.log(chain,'HTTP',r.status);
+              if(!r.ok)throw Error(chain+' discovery HTTP '+r.status);
+              const d=await r.json();
+              console.log(chain,'returned',Array.isArray(d)?d.length:(d.items||[]).length,'stores');
+            }finally{clearTimeout(t);}
+          }
+          NODE
       - name: Verify no duplicated YAML tail
         run: |
           python3 - <<'PY'
