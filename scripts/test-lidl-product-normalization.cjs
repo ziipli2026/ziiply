@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
+const ts = require("typescript");
 const source = fs.readFileSync("src/app/api/lidl/products/route.ts", "utf8");
 function helper(name, next) {
   const start = source.indexOf("function " + name + "(");
@@ -9,7 +10,9 @@ function helper(name, next) {
   return source.slice(start, end);
 }
 const ctx = vm.createContext({});
-vm.runInContext(helper("isValidGtin", "getEan") + "\n" + helper("getEan", "fixEncoding") + "\n" + helper("fixEncoding", "normalize").split("\ntype RuoanhintaStore")[0], ctx);
+const helpers = helper("isValidGtin", "getEan") + "\n" + helper("getEan", "fixEncoding") + "\n" + helper("fixEncoding", "normalize").split("\ntype RuoanhintaStore")[0];
+const compiled = ts.transpileModule(helpers, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText;
+vm.runInContext(compiled, ctx);
 assert.equal(ctx.isValidGtin("6410405082657"), true);
 assert.equal(ctx.isValidGtin("6410405082651"), false);
 assert.equal(ctx.isValidGtin("12345"), false);
