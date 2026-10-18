@@ -3477,7 +3477,8 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
 
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
-  if (sourceSize && (!candidateSize || sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
+  if (Boolean(sourceSize) !== Boolean(candidateSize)) return false;
+  if (sourceSize && candidateSize && (sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
   const group = (name: string) => {
     if (/\bpiima\b/.test(name)) return "piima";
     if (/\bmaito\b/.test(name)) return "maito";
