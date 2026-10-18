@@ -2902,7 +2902,8 @@ export function isBadNormalResult(product: Product, query: string) {
     ];
 
     if (!hasAnyToken(normalizedName, positiveMilkSignals)) return true;
-    if (hasAnyToken(productText, forbiddenMilkContext)) return true;
+    const plainLactoseFreeMilkDrink = /\blaktoositon\b/.test(normalizedQuery) && /\bmaitojuoma\b/.test(normalizedName) && !/(?:kahvi|kaakao|suklaa|makuinen|maustettu|proteiin|pirtelo|latte|cappuccino)/.test(normalizedName);
+    if (hasAnyToken(productText, forbiddenMilkContext) && !plainLactoseFreeMilkDrink) return true;
   }
 
   const queryIsCoffee = isCoffeeSearchTerm(normalizedQuery) || normalizedQuery.includes("juhla mokka");
@@ -3616,7 +3617,10 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   const sourceGroup = group(source);
   if (sourceGroup && group(candidate) !== sourceGroup) return false;
   for (const attribute of ["laktoositon", "rasvaton", "kevyt", "tays"]) {
-    if (new RegExp("\\b" + attribute + "\\b").test(source) !== new RegExp("\\b" + attribute + "\\b").test(candidate)) return false;
+    const requested = new RegExp("\\b" + attribute + "\\b").test(source);
+    const offered = new RegExp("\\b" + attribute + "\\b").test(candidate);
+    if (attribute !== "laktoositon" && /\blaktoositon maito\b/.test(source) && !requested) continue;
+    if (requested !== offered) return false;
   }
   // Generic searches may return organic items; explicit organic requests must stay organic.
   if (/\bluomu\b/.test(source) && !/\bluomu\b/.test(candidate)) return false;
