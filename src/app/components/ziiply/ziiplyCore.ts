@@ -3449,6 +3449,22 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/(?:pähkin|pahkin|nut mix|nuts)/.test(source) &&
       /(?:hedelm|karpalo|rusina|kuivattu marja|kuivatut marjat|cranberr|raisin|fruit mix|fruit and nut)/.test(candidate) &&
       !/(?:hedelm|fruit)/.test(source)) return false;
+  // Basket 5: package weight alone must never establish a food category.
+  if (/(?:pakastepizza|pakastepitsa)/.test(source) &&
+      !/(?:pizza|pitsa)/.test(candidate)) return false;
+  if (/(?:ranskalaiset perunat|ranskanperunat|ranskalaiset)/.test(source) &&
+      !/(?:ranskanperun|ranskalais|french fries)/.test(candidate)) return false;
+  if (/pakasteherne/.test(source) &&
+      (!/(?:herne|peas)/.test(candidate) || !/(?:pakaste|frozen)/.test(candidate))) return false;
+  if (/tonnikala/.test(source) && !/tonnikala/.test(candidate)) return false;
+  if (/(?:^|\s)maissi(?:\s|$)/.test(source) &&
+      (!/(?:maissinjyv|maissi|sweetcorn)/.test(candidate) ||
+       /(?:kana|salaatti|ateria|bistro|keitto|pizza|pitsa)/.test(candidate))) return false;
+  if (/papuja/.test(source) &&
+      (!/(?:pavu|papu|beans|kidney)/.test(candidate) || /(?:linssi|lentil)/.test(candidate))) return false;
+  if (/(?:^|\s)riisi(?:\s|$)/.test(source) &&
+      !/(?:riisi|rice)/.test(candidate)) return false;
+  if (/ketsuppi/.test(source) && !/ketsuppi/.test(candidate)) return false;
   // Pasta shapes must not be substituted with unrelated 500 g staples.
   if (/\b(?:spagetti|spaghetti)\b/.test(source) &&
       !/\b(?:spagetti|spaghetti)\b/.test(candidate)) return false;
