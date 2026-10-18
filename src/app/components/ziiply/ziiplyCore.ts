@@ -3455,6 +3455,8 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   // A matching pack size cannot substitute a different grocery category.
   // Keep these guards shared by live basket comparison and relevance auditing.
   const requiredFamilies: Array<[RegExp, RegExp]> = [
+    [/porsaan ulkofile/, /(?:porsaan?\\s+ulkofile|porsas\\s+ulkofile|pork\\s+loin)/],
+    [/naudan jauheliha/, /(?:naudan?\\s+jauheliha|nauta\\s+jauheliha|beef\\s+mince)/],
     [/ruokakerma/, /(?:ruokakerma|ruoanvalmistuskerma|kasviruoka|kaurakerma)/],
     [/(?:^|\s)juusto(?:\s|$)/, /(?:juusto|emmental|edam|gouda|cheddar)/],
     [/parsakaali/, /(?:parsakaali|broccoli)/],
