@@ -3533,7 +3533,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\bvoi\b/.test(source) && /(?:taikina|piparkakku|peruna|grilliperuna|kastike|leivonna|margariini|levite|flora|voi-tilli)/.test(candidate)) return false;
   const fresh = ["banaani","omena","appelsiini","paaryna","kurkku","tomaatti","porkkana","peruna","sipuli","paprika"];
   const isProcessedProduce = (name: string) =>
-    /mehu|juoma|jogurtti|majo|majoneesi|mauste|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|saippua|kosmetiikka|paseerattu|murska|jauhettu|kuivattu|sailyke|salaatinkastike/.test(name);
+    /mehu|juoma|jogurtti|majo|majoneesi|mauste|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|saippua|kosmetiikka|paseerattu|murska|jauhettu|kuivattu|sailyke|salaatinkastike|pastilli|rypalesokeri|tabletti|vitamiini|kynttila|tuoksu|koriste|saippua|shampoo|voide|siirappi|makeis|purukumi/.test(name);
   for (const item of fresh) {
     const token = new RegExp("\\b" + item + "\\b");
     if (token.test(source) && !isProcessedProduce(source) && (!token.test(candidate) || isProcessedProduce(candidate))) return false;
