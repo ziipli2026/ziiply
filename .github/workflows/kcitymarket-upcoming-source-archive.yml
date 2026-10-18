@@ -34,7 +34,13 @@ jobs:
             echo "Outside advance publication window"
             exit 0
           fi
-          WEEK=$(TZ=Europe/Helsinki date +%V)
+          if [ "$KIND" = AV ]; then
+            # Sunday previews belong to the following Monday ISO week (including year rollover).
+            WEEK=$(TZ=Europe/Helsinki date -d "next monday" +%V)
+          else
+            # Wednesday LV belongs to the current ISO week.
+            WEEK=$(TZ=Europe/Helsinki date +%V)
+          fi
           ID="${WEEK}${KIND}"
           node scripts/citymarket/export-leaflet.mjs "$ENTRY" "/tmp/kcm-archive/$ID"
           node --input-type=module -e '
