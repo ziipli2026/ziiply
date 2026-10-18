@@ -34,7 +34,7 @@ jobs:
                   broileri:/kolmari|wrap|pizza|salaatti|patonki/i
                 };
                 if(term==="leipä"&&names.slice(0,5).some(n=>/leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipätiku|leipätikku|leipäveitsi|leipämauste|leipäkassi|grissini|nutella|voirinkeli|voipehmopala/i.test(n))){failures++;console.error("BREAD_FALSE_POSITIVE",chain,names);}
-                if(["lohi","broileri"].includes(term)&&names.slice(0,5).some(n=>/latz|polar pet|primadog|pedigree|whiskas|carnilove|vitakraft|dreamies|koiranruoka|kissanruoka|koirille|kissoille/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term,names);}
+                if(["lohi","broileri"].includes(term)&&names.slice(0,5).some(n=>/latz|polar pet|primadog|pedigree|whiskas|carnilove|vitakraft|dreamies|sheba|koiranruoka|kissanruoka|koirille|kissoille/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term,names);}
                 if(term==="leipä"&&names.some(n=>/kulta-tosca|bebe victoria|kahvikruunu|rahkaunelma|rahkapiirakka|unelmatorttu|pikkumunkki|juustorinkeli|kanelikranssi|munkki|piirakka|torttu/i.test(n))){failures++;console.error("BAKERY_PASTRY_TOP5",chain,names);}
                 if(term==="lohi"&&names.some(n=>/eväsleipä|täytetty.*leipä|voileipä/i.test(n))){failures++;console.error("SALMON_SANDWICH_TOP5",chain,names);}
                 const bad=prepared[term];
