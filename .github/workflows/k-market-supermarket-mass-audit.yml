@@ -66,7 +66,7 @@ jobs:
                   const data=await json(base+'/items?search='+encodeURIComponent(term)+'&storeIds='+encodeURIComponent(store.id)+'&skip=0&take=100');
                   const rows=Array.isArray(data)?data:(data.items||[]);
                   const priced=rows.filter(x=>Number(x.storeItems?.[0]?.price)>0);
-                  const ean=priced.filter(x=>/^\\d{8,14}$/.test(String(x.ean||x.gtin||x.eanCode||x.barcode||x.externalId||'')));
+                  const ean=priced.filter(x=>/^\\d{8,14}$/.test(String(x.ean??'')));
                   report.totals.success++;
                   if(!priced.length)report.totals.empty++;
                   report.totals.priced+=priced.length;report.totals.ean+=ean.length;
