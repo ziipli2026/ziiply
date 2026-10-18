@@ -1,7 +1,7 @@
 import { recipeProductCompatible } from "@/app/components/ziiply/justiina/recipeSearch";
 import { NextResponse } from "next/server";
 import { rankGrocerySearchResults } from "../_shared/grocerySearchRelevance";
-import { MEAT_SEARCH_ALIASES } from "../_shared/grocerySearchExpansion";
+import { MEAT_SEARCH_ALIASES, BASKET_SEARCH_ALIASES } from "../_shared/grocerySearchExpansion";
 import { fetchSKaupatNormalProductsV220 } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
@@ -139,7 +139,7 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) throw new Error("Upstream HTTP " + response.status);
-    const additionalTerms = MEAT_SEARCH_ALIASES[normalizedSearch] || [];
+    const additionalTerms = [...new Set([...(MEAT_SEARCH_ALIASES[normalizedSearch] || []), ...(BASKET_SEARCH_ALIASES[normalizedSearch] || [])])];
     const extraResponses = await Promise.all(additionalTerms.map(async (term) => {
       try {
         const extraUrl = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${storeId}&skip=0&take=80`;
