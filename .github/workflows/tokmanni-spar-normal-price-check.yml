@@ -16,3 +16,5 @@ jobs:
         run: node scripts/tokmanni-spar-normal-price-safety-check.mjs
       - name: Check existing SPAR grocery routing
         run: node scripts/tokmanni-spar-route-wiring-check.mjs
+      - name: Audit live milk coffee and egg results
+        run: node scripts/tokmanni-spar-live-search-audit.mjs
