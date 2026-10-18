@@ -53,7 +53,7 @@ for(let i=0;i<terms.length;i++){
       const exact=chosen?results.find(p=>p.name===chosen.name):null;
       const raw=exact?Number(exact.price):null;
       const value=exact?cents(exact):null;
-      const store={resultCount:results.length,compatibleCount:compatible.length,chosen:chosen?.name||null,rawPrice:raw,unit:exact?.priceAmountUnit||null,priceCents:value,alternatives:compatible.slice(0,3).map(p=>p.name)};
+      const store={resultCount:results.length,compatibleCount:compatible.length,chosen:chosen?.name||null,rawPrice:raw,unit:exact?.priceAmountUnit||null,priceCents:value,alternatives:compatible.slice(0,3).map(p=>p.name),rejectedSamples:compatible.length?[]:results.slice(0,12).map(p=>({name:p.name,price:p.price,unit:p.priceAmountUnit||null}))};
       row.stores[chain]=store;
       if(chosen&&!core.isComparisonAttributeCompatible(term,chosen.name))report.errors.push(chain+' row '+(i+1)+' incompatible '+chosen.name);
       if(chosen&&!Number.isFinite(raw))report.errors.push(chain+' row '+(i+1)+' invalid price');
