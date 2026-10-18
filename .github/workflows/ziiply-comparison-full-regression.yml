@@ -156,7 +156,24 @@ jobs:
               console.log('COVERAGE',JSON.stringify({term,direction,sourceCount:source.length,targetCount:target.length,matched}));
             }
           }
-          console.log('UNMATCHED_AUDIT_SUMMARY',JSON.stringify({count:unmatchedAudit.length,missingSourceSize:unmatchedAudit.filter(x=>!x.sourceHasSize).length,byTerm:Object.fromEntries(terms.map(t=>[t,unmatchedAudit.filter(x=>x.term===t).length]))}));
+          const classifyUnmatched = (row) => {
+            const n=row.source.toLowerCase();
+            if(row.term==='maito'){
+              if(/(?:suklaa|kerma|rahka|vanukas|leipä|leipa|bakteeri|kahvi|cappuccino|kondensoitu|pirtelö|pirtelo|milkshake|kaakao|juoma|jäätelö|jaatelo|patukka|levite|jogurtti|jogurti|juusto|voi\\b|maitojauhe)/i.test(n))return 'other_milk_related';
+              if(/\\bmaito\\b/i.test(n))return 'plain_milk';
+              return 'other_search_hit';
+            }
+            if(row.term==='jauheliha')return /\\bjauheliha\\b/i.test(n)?'plain_ground_meat':'other_search_hit';
+            if(row.term==='kananmuna')return /\\bkananmuna\\b/i.test(n)?'plain_eggs':'other_search_hit';
+            return 'other_search_hit';
+          };
+          const grouped={};
+          for(const row of unmatchedAudit){
+            const key=row.term+':'+classifyUnmatched(row);
+            grouped[key]=(grouped[key]||0)+1;
+          }
+          console.log('UNMATCHED_AUDIT_SUMMARY',JSON.stringify({count:unmatchedAudit.length,missingSourceSize:unmatchedAudit.filter(x=>!x.sourceHasSize).length,byTerm:Object.fromEntries(terms.map(t=>[t,unmatchedAudit.filter(x=>x.term===t).length])),byProductKind:grouped}));
+          for(const row of unmatchedAudit.filter(x=>classifyUnmatched(x)==='plain_milk'||classifyUnmatched(x)==='plain_ground_meat'||classifyUnmatched(x)==='plain_eggs').slice(0,35))console.log('UNMATCHED_CORE_PRODUCT',JSON.stringify(row));
           for(const row of unmatchedAudit.slice(0,35))console.log('UNMATCHED_AUDIT_SAMPLE',JSON.stringify(row));
           if(!total)errors.push('No compatible cross-chain matches in any tested family');
           if(errors.length){console.error('LIVE_COUNTERPART_ISSUES',JSON.stringify(errors));process.exit(1);}
