@@ -199,28 +199,40 @@ export default function ZiiplyMobileScannerCard({
           const r = data[i], g = data[i + 1], b = data[i + 2];
           return r > 125 && g > 48 && g < r * 0.79 && b < g * 0.83;
         };
-        // Detect a bounded orange patch in the center, not a scene-wide
-        // orange/red package. Inspect its interior for barcode-like stripes.
-        let count = 0, minX = 128, maxX = 0, minY = 96, maxY = 0;
-        for (let y = 18; y < 78; y += 2) for (let x = 24; x < 104; x += 2) {
-          if (!orange(x, y)) continue;
-          count++;
-          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-        }
-        const bounded = count >= 90 && count <= 650 && maxX - minX >= 18 && maxY - minY >= 12 &&
-          minX > 26 && maxX < 102 && minY > 20 && maxY < 76;
+        // Inspect ONLY the central aiming window (x 25–75%, y 25–75%).
+        // Ignore the shelves and neighboring packages outside this area.
+        // Search local sticker-sized windows, not the bounding box of every
+        // orange object in view (which merges separate packages).
+        const roi = { left: 32, right: 96, top: 24, bottom: 72 };
+        let bounded = false;
         let barcodeRows = 0;
-        if (bounded) {
-          for (let y = minY + 2; y <= maxY - 2; y += 3) {
-            let transitions = 0, previous = false;
-            for (let x = minX + 2; x <= maxX - 2; x++) {
-              const i = (y * 128 + x) * 4;
-              const dark = data[i] + data[i + 1] + data[i + 2] < 230;
-              if (x > minX + 2 && dark !== previous) transitions++;
-              previous = dark;
+        for (let top = roi.top; top <= roi.bottom - 24 && !bounded; top += 6) {
+          for (let left = roi.left; left <= roi.right - 32 && !bounded; left += 6) {
+            let orangePixels = 0;
+            for (let y = top; y < top + 24; y += 2) {
+              for (let x = left; x < left + 32; x += 2) {
+                if (orange(x, y)) orangePixels++;
+              }
             }
-            if (transitions >= 10) barcodeRows++;
+            // 32x24 patch sampled at 2px = 192 pixels.
+            // Exclude patches with barely any orange or almost solid packaging.
+            if (orangePixels < 38 || orangePixels > 145) continue;
+            let stripeRows = 0;
+            for (let y = top + 3; y < top + 21; y += 3) {
+              let transitions = 0;
+              let previous = false;
+              for (let x = left + 2; x < left + 30; x++) {
+                const i = (y * 128 + x) * 4;
+                const dark = data[i] + data[i + 1] + data[i + 2] < 230;
+                if (x > left + 2 && dark !== previous) transitions++;
+                previous = dark;
+              }
+              if (transitions >= 8) stripeRows++;
+            }
+            if (stripeRows >= 3) {
+              bounded = true;
+              barcodeRows = stripeRows;
+            }
           }
         }
         hits = bounded && barcodeRows >= 3 ? Math.min(3, hits + 1) : 0;
