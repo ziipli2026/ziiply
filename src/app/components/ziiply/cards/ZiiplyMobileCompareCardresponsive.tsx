@@ -349,7 +349,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[3.6rem] pt-[8.8rem]">
+        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[4.2rem] pt-[4.1rem]">
           <div className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
             <div className="flex h-[2.2rem] items-center">
               <div className="shrink-0 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
@@ -358,7 +358,7 @@ export default function ZiiplyMobileCompareCardresponsive({
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
           </div>
           {/* Diagnostic only: does not alter product matching, prices or category rules. */}
-          <details className="relative z-30 mb-2 shrink-0 rounded-lg border border-[#9d824c] bg-[#fff9e8] p-2 text-[11px] text-[#352b1b]">
+          <details className="absolute bottom-[1.8rem] left-5 right-5 z-30 rounded-lg border border-[#9d824c] bg-[#fff9e8] p-2 text-[11px] text-[#352b1b]">
             <summary className="cursor-pointer font-bold">Vertailun debug (avaa)</summary>
             <p className="my-1">Näyttää korin tuotteet ja kauppakohtaiset vastintuotteet, hinnat sekä mahdolliset kategoriat. Ei muuta vertailua.</p>
             <button
