@@ -340,7 +340,6 @@ export default function ZiiplyMobileScannerCard({
           }
         }
         const partial = bestPartial as { x: number; y: number; left: number; top: number; right: number; bottom: number } | null;
-        const last = stickerTrackCenterRef.current;
         const nearbyPartial = partial && (!last || Math.hypot(partial.x - last.x, partial.y - last.y) < 35);
         const detected = bounded && barcodeRows >= 5;
         const target = detected
