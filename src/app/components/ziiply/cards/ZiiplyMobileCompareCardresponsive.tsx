@@ -349,16 +349,16 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[4.2rem] pt-[4.1rem]">
-          <div className="relative z-20 mb-1 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
+        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[2.5rem] pt-[4.1rem]">
+          <div className="relative z-20 mb-1 ml-[0.5rem] max-w-[calc(100%-0.5rem)] shrink-0">
             <div className="flex h-[2.2rem] items-center">
               <div className="shrink-0 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
               {loading ? <RetroMopedOverlay /> : null}
             </div>
           </div>
           {/* Diagnostic only: does not alter product matching, prices or category rules. */}
-          <details className="absolute bottom-[1.8rem] left-5 right-5 z-30 rounded-lg border border-[#9d824c] bg-[#fff9e8] p-2 text-[11px] text-[#352b1b]">
-            <summary className="cursor-pointer font-bold">Vertailun debug (avaa)</summary>
+          <details className="absolute bottom-[0.4rem] right-5 z-30 max-h-[70%] w-[5.8rem] overflow-y-auto rounded-lg border border-[#9d824c] bg-[#fff9e8] p-1 text-[10px] open:w-[calc(100%-2.5rem)] text-[#352b1b]">
+            <summary className="cursor-pointer font-bold">Debug (avaa)</summary>
             <p className="my-1">Näyttää korin tuotteet ja kauppakohtaiset vastintuotteet, hinnat sekä mahdolliset kategoriat. Ei muuta vertailua.</p>
             <button
               type="button"
