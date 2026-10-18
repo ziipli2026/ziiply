@@ -115,7 +115,11 @@ function mapKlevuProduct(item: any, index: number) {
   const currentPrice = numberPrice(item?.price);
   // Do not mistake a discounted sale price for the normal shelf price.
   const discounted = salePrice > 0 && ((oldPrice > salePrice) || (basePrice > salePrice));
-  const price = discounted ? (oldPrice > salePrice ? oldPrice : basePrice) : (basePrice || currentPrice || salePrice);
+  const price = discounted
+    ? (oldPrice > salePrice ? oldPrice : basePrice)
+    : (basePrice || currentPrice || (salePrice > 0 && oldPrice === 0 ? 0 : salePrice));
+  // A lone salePrice cannot establish a regular price when no base/current price exists.
+  if (salePrice > 0 && !oldPrice && !basePrice && !currentPrice) return null;
   if (!name || !(price > 0)) return null;
 
   return {
