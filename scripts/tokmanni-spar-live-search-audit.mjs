@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+// Live source audit only: never writes product data or publishes prices.
+const terms = ["maito", "kahvi", "kananmuna"];
+const ticket = "klevu-15488592134928913";
+let failures = 0;
+for (const term of terms) {
+  const url = new URL("https://eucs11.ksearchnet.com/cloud-search/n-search/search");
+  for (const [key, value] of Object.entries({
+    ticket, analyticsApiKey: ticket, term, paginationStartsFrom: "0",
+    noOfResults: "100", klevuSort: "rel", responseType: "json",
+    category: "KLEVU_PRODUCT", visibility: "search",
+    showOutOfStockProducts: "true", fetchMinMaxPrice: "true"
+  })) url.searchParams.set(key, value);
+  try {
+    const response = await fetch(url, { headers: { accept: "application/json", "user-agent": "Ziiply/1.0" }, signal: AbortSignal.timeout(20000) });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const data = await response.json();
+    const items = Array.isArray(data?.result) ? data.result : [];
+    const relevant = items.filter(item => String(item?.name || "").toLocaleLowerCase("fi").includes(term));
+    const rows = relevant.slice(0, 10).map(item => ({
+      name: item.name,
+      salePrice: item.salePrice ?? null,
+      oldPrice: item.oldPrice ?? null,
+      basePrice: item.basePrice ?? null,
+      price: item.price ?? null,
+      sku: item.sku ?? null
+    }));
+    console.log(JSON.stringify({ term, total: items.length, nameMatches: relevant.length, examples: rows }));
+    if (!items.length) { console.error("NO_SOURCE_RESULTS " + term); failures++; }
+  } catch (error) {
+    console.error("SOURCE_ERROR " + term + " " + String(error));
+    failures++;
+  }
+}
+if (failures) { console.error("Live source audit incomplete: " + failures + " failed queries"); process.exitCode = 1; }
