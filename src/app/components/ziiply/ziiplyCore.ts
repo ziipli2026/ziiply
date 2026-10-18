@@ -3430,6 +3430,19 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\bsalaatti\b/.test(source) && /\b(?:niistaja|nenaimuri|nosefrida|salaatinkastike|salaattikulho|salaattiottimet)\b/.test(candidate)) return false;
   if (/\b(?:kananmuna|kananmunat)\b/.test(source) && !/\b(?:kananmuna|kananmunat|munia|munat)\b/.test(candidate)) return false;
   if (/\bbanaani\b/.test(source) && !/\b(?:banaani|banaanit)\b/.test(candidate)) return false;
+  // Paper rolls: 8rll/8rl/8 rullaa denote the same number of rolls.
+  // Do not mistake sheets or wipes for full paper rolls.
+  const rollRequest = source.match(/\b(wc-paperi|talouspaperi)\s+(\d+)\s*(?:rll|rl|rullaa|rulla)\b/);
+  if (rollRequest) {
+    if (!candidate.includes(rollRequest[1]) || /\b(?:kostea|arkki|arkkia|pyyhe|pyyhkeet)\b/.test(candidate)) return false;
+    const rollPack = candidate.match(/\b(\d+)\s*(?:rll|rl|rullaa|rulla)\b/);
+    if (!rollPack || Number(rollPack[1]) !== Number(rollRequest[2])) return false;
+  }
+  // Bin bags must be bin bags; storage boxes and other 30-litre objects are not substitutes.
+  if (/\broskapussi\b/.test(source) && !/\b(?:roskapussi|roskapussit|jatepussi|jatepussit)\b/.test(candidate)) return false;
+  // A generic toothpaste comparison excludes children's toothpaste.
+  if (/\bhammastahna\b/.test(source) && !/\b(?:lapsi|lasten|kids|junior)\b/.test(source) &&
+      /\b(?:lapsi|lasten|kids|junior|baby)\b/.test(candidate)) return false;
   // Egg size codes (S/M10, M10, L15) encode number of eggs, not grams.
   const eggRequest = /\b(?:kananmuna|kananmunat|munat)\b/.test(source);
   const eggCount = eggRequest ? sourceName.match(/\b(\d+)\s*(?:kpl|pcs)\b/i)?.[1] : undefined;
