@@ -3433,6 +3433,9 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   // This must precede the generic biscuit-family rule below.
   if (/\bkaurakeksi(?:t|a)?\b/.test(source) &&
       !/\b(?:kaurakeksi(?:t|a)?|kaurakeksit|kaurainen keksi|kaura keksi|oat biscuits?|oat cookies?)\b/.test(candidate)) return false;
+  // Pasta shapes must not be substituted with unrelated 500 g staples.
+  if (/\b(?:spagetti|spaghetti)\b/.test(source) &&
+      !/\b(?:spagetti|spaghetti)\b/.test(candidate)) return false;
   // A weight match alone does not make an unrelated food a biscuit.
   if (/\b(?:kaurakeksi|keksi|keksit)\b/.test(source) &&
       !/\b(?:kaurakeksi|keksi|keksit|keksia|cookies|biscuit)\b/.test(candidate)) return false;
