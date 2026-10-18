@@ -3424,12 +3424,12 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   const candidate = normalize(candidateName);
   // Reject misleading cross-category substitutes in basket comparisons.
   // A named product category must remain the same, not merely share a word.
-  if (/\\b(?:voi|voita)\\b/.test(source) && !/\\b(?:voi|voita)\\b/.test(candidate)) return false;
-  if (/\\b(?:voi|voita)\\b/.test(source) && /\\b(?:flora|margariini|levite|kasvirasva|voi\\s*&\\s*voi)\\b/.test(candidate)) return false;
-  if (/\\bsalaatti\\b/.test(source) && !/\\b(?:salaatti|salaatin|lehtisalaatti|kerasalaatti|romaine|jaasalaatti)\\b/.test(candidate)) return false;
-  if (/\\bsalaatti\\b/.test(source) && /\\b(?:niistaja|nenaimuri|nosefrida|salaatinkastike|salaattikulho|salaattiottimet)\\b/.test(candidate)) return false;
-  if (/\\b(?:kananmuna|kananmunat)\\b/.test(source) && !/\\b(?:kananmuna|kananmunat|munia|munat)\\b/.test(candidate)) return false;
-  if (/\\bbanaani\\b/.test(source) && !/\\b(?:banaani|banaanit)\\b/.test(candidate)) return false;
+  if (/\b(?:voi|voita)\b/.test(source) && !/\b(?:voi|voita)\b/.test(candidate)) return false;
+  if (/\b(?:voi|voita)\b/.test(source) && /\b(?:flora|margariini|levite|kasvirasva|voi\s*&\s*voi)\b/.test(candidate)) return false;
+  if (/\bsalaatti\b/.test(source) && !/\b(?:salaatti|salaatin|lehtisalaatti|kerasalaatti|romaine|jaasalaatti)\b/.test(candidate)) return false;
+  if (/\bsalaatti\b/.test(source) && /\b(?:niistaja|nenaimuri|nosefrida|salaatinkastike|salaattikulho|salaattiottimet)\b/.test(candidate)) return false;
+  if (/\b(?:kananmuna|kananmunat)\b/.test(source) && !/\b(?:kananmuna|kananmunat|munia|munat)\b/.test(candidate)) return false;
+  if (/\bbanaani\b/.test(source) && !/\b(?:banaani|banaanit)\b/.test(candidate)) return false;
   // A requested egg pack count must not silently become a larger pack.
   const requestedEggCount = /\\b(?:kananmuna|kananmunat|munat)\\b/.test(source)
     ? sourceName.match(/\\b(\\d+)\\s*(?:kpl|kpl\\.|pcs)\\b/i)?.[1] : undefined;
