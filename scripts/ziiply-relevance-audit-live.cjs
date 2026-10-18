@@ -186,6 +186,22 @@ function priceCents(p){
  const n=Number(p.price),unit=String(p.priceAmountUnit||'').toLowerCase();
  return unit==='cent'||unit==='cents'?Math.round(n):unit==='eur'||unit==='euro'||unit==='euros'?Math.round(n*100):null;
 }
+// Diagnostic only: compare €/kg or €/l without changing actual basket totals.
+function alternativeUnitPrices(term,products){
+ const requested=core.parseMetricSize(term);
+ if(!requested)return [];
+ return products.flatMap(p=>{
+  const size=core.parseMetricSize(p.name),cents=priceCents(p);
+  if(!size||size.unitGroup!==requested.unitGroup||!size.amount||cents===null)return [];
+  // Normalize only the size token for category/attribute validation.
+  // Do not treat approximate-weight meat as a fixed-price basket substitute.
+  const normalizedName=p.name.replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b/i,requested.label);
+  if(!core.isComparisonAttributeCompatible(term,normalizedName))return [];
+  return [{name:p.name,packageCents:cents,unitPriceCents:Math.round(cents*1000/size.amount),
+   unit:size.unitGroup==='weight'?'kg':'l',size:size.label,
+   warning:'Diagnostic only; not a basket-price match'}];
+ }).sort((a,b)=>a.unitPriceCents-b.unitPriceCents).slice(0,5);
+}
 async function run(){
  const rows=[];
  for(const {term,i} of requests){
@@ -201,6 +217,7 @@ async function run(){
       priceCents:cents,sourceUnit:chosen?.priceAmountUnit||null,
       rejectedSamples:compatible.length?[]:products.slice(0,5).map(p=>p.name),
       // Diagnose unavailable package sizes without treating them as basket-price matches.
+      alternativeUnitPrices:compatible.length?[]:alternativeUnitPrices(term,products),
       requestedSize:core.parseMetricSize(term),
       availableSizes:compatible.length?[]:products
         .filter(p=>core.parseMetricSize(p.name)?.unitGroup===core.parseMetricSize(term)?.unitGroup)
