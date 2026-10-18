@@ -3422,11 +3422,12 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
-  const processed = /\b(mehu|juoma|jogurtti|majo|majoneesi|mauste|mausteseos|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|pasta.ateria)\b/;
   const fresh = ["banaani","omena","appelsiini","paaryna","kurkku","tomaatti","porkkana","peruna","sipuli","paprika"];
+  const isProcessedProduce = (name: string) =>
+    /mehu|juoma|jogurtti|majo|majoneesi|mauste|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|saippua|kosmetiikka|paseerattu|murska|jauhettu|kuivattu|sailyke|salaatinkastike/.test(name);
   for (const item of fresh) {
     const token = new RegExp("\\b" + item + "\\b");
-    if (token.test(source) && !processed.test(source) && (!token.test(candidate) || processed.test(candidate))) return false;
+    if (token.test(source) && !isProcessedProduce(source) && (!token.test(candidate) || isProcessedProduce(candidate))) return false;
   }
   if (/\bvoi\b/.test(source) && !/\bvoi\b/.test(candidate)) return false;
   if (/\bpasta\b/.test(source) && /\b(karkki|makeinen|haribo)\b/.test(candidate)) return false;
