@@ -15,7 +15,7 @@ try {
  console.log('DATABASE_CHECK',JSON.stringify(target));
  if(!target.products||!target.nutrition)throw Error('Wrong Neon database or missing schema: both public.ziiply_ean_products and public.ziiply_off_nutrition must exist. Check GitHub Actions DATABASE_URL secret.');
  await pool.query('CREATE TABLE IF NOT EXISTS public.ziiply_off_lookup_status (ean text PRIMARY KEY, status text NOT NULL, attempted_at timestamptz NOT NULL DEFAULT now(), error text)');
- const {rows}=await pool.query('SELECT ean FROM public.ziiply_ean_products WHERE ean ~ \'^[0-9]{8,14}$\' AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition n WHERE n.ean=ziiply_ean_products.ean) AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_lookup_status t WHERE t.ean=ziiply_ean_products.ean AND (t.status IN ('found','not_found') OR t.attempted_at > now() - interval '24 hours')) ORDER BY ean LIMIT $1',[limit]);
+ const {rows}=await pool.query('SELECT ean FROM public.ziiply_ean_products WHERE ean ~ \'^[0-9]{8,14}$\' AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition n WHERE n.ean=ziiply_ean_products.ean) AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_import_attempts a WHERE a.ean=ziiply_ean_products.ean AND (a.status IN ('found','not_found') OR (a.status='error' AND (a.attempts>=3 OR a.last_attempt_at > now()-interval '1 day')))) AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_lookup_status t WHERE t.ean=ziiply_ean_products.ean AND (t.status IN ('found','not_found') OR t.attempted_at > now() - interval '24 hours')) ORDER BY ean LIMIT $1',[limit]);
  let matched=0,notFound=0,failed=0;
  for(const [i,{ean}] of rows.entries()){
   try{
