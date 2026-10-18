@@ -180,7 +180,7 @@ function normalizeBrand(value: unknown) {
 }
 
 function getMatchBrand(item: ZiiplyCompareSelectionItem) {
-  return normalizeBrand(item?.product?.brandName || item?.brandName || "");
+  return normalizeBrand(item?.brandName || "");
 }
 
 function filterComparisonAlternatives(
