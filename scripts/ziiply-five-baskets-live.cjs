@@ -27,6 +27,7 @@ function cents(p){
   // Feed may omit units. Record rather than silently guess.
   return null;
 }
+async function main(){
 for(let i=0;i<terms.length;i++){
   const term=terms[i];
   const row={index:i+1,query:term,stores:{}};
@@ -63,3 +64,6 @@ const summary=['# Basket '+n+': '+title,'','| # | Search | Prisma Hyvinkää | K
 if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
 console.log('BASKET_SUMMARY',JSON.stringify({basket:n,title,S:report.S,K:report.K,cheapestComplete:report.cheapestComplete,warnings:report.warnings,errors:report.errors}));
 if(report.errors.length)process.exitCode=1;
+
+}
+main().catch(e=>{console.error(e);process.exitCode=1});
