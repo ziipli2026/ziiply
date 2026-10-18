@@ -423,7 +423,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               }, null, 2)}
             </div>
           </details>
-          <div className="flex min-h-0 flex-1 flex-col gap-2.5">
+          <div className="flex min-h-0 flex-1 flex-col gap-1.5">
 
             {showSkeleton ? (
               <>
@@ -484,7 +484,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     key={store.id}
                     className={cx(
                       "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 pt-2 pb-0.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
-                      detailsStoreId === store.id ? "flex-1" : "shrink-0",
+                      "flex-1",
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
