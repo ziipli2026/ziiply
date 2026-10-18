@@ -33,6 +33,21 @@ const RULES: Record<string, {strong: RegExp; secondary?: RegExp; weak: RegExp}> 
 const ALIASES: Record<string,string> = {kahvit:"kahvi",jogurtit:"jogurtti",maidot:"maito",lohet:"lohi",banaanit:"banaani",perunat:"peruna",porkkanat:"porkkana",tomaatit:"tomaatti",leivät:"leipä",broilerit:"broileri"};
 export function rankGrocerySearchResults<T extends {name?: string|null; category?: string|null}>(items:T[],query:string):T[]{
   const q=fold(query).trim();
+  const freshProduce=["omena","appelsiini","päärynä","viinirypäle","paprika","mansikka","sipuli","salaatti"].includes(q);
+  if(freshProduce){
+    const processed=/mehu|juoma|smoothie|hillo|sose|pyree|kiisseli|jogurtti|rahka|kakku|piirak|pitko|leipä|pesto|kastike|chips|sipsi|mauste|jäätelö|vanukas|karkki|makeinen|tee|muro|mysli|patukka|suklaa|puuro|ateria|leikkele|juusto|makkara|silli|silakka|majoneesi|lelu|nukke|saippua|öljy|limonadi|cola|täyte|brandy|kranssi|salaattikastike/;
+    const freshScore=(item:T)=>{
+      const name=fold(item.name);
+      const candidate=q==="viinirypäle"?/rypäle/.test(name):name.includes(q);
+      if(!candidate||processed.test(name))return -1000;
+      let points=200;
+      if(name===q||name.startsWith(q+" ")||name.startsWith("luomu "+q+" "))points+=250;
+      if(/tuore|luomu|suomi|kotimainen|irto|pakkaamaton|siemenetön|vihreä|punainen|keltainen|conference|navel|gala|pink lady/.test(name))points+=90;
+      if(/\d+(?:[,.]\d+)?\s?(?:g|kg|kpl)/.test(name))points+=30;
+      return points;
+    };
+    return [...items].sort((a,b)=>freshScore(b)-freshScore(a));
+  }
   const rule=RULES[ALIASES[q]||q];
   if(!rule)return items;
   const score=(item:T)=>{
