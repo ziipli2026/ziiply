@@ -1,0 +1,42 @@
+name: K-Citymarket 43AV and historical regression gate
+on:
+  workflow_dispatch:
+  push:
+    branches: [audit/citymarket-43av-regression-gate]
+permissions:
+  contents: read
+jobs:
+  historical-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Previously approved Citymarket regressions
+        run: |
+          node --test \
+            tests/kcitymarket-publisher-image-binding.test.cjs \
+            tests/kcitymarket-approved-publication.test.mjs \
+            tests/kcitymarket-owned-normal-price.test.mjs \
+            tests/kcitymarket-42av-printed-transactions.test.mjs \
+            tests/kcitymarket-category-regression.test.cjs \
+            tests/kcitymarket-wrapped-percentage.test.mjs \
+            tests/kcitymarket-multibuy-display.test.cjs \
+            tests/kcitymarket-leaflet-candidates.test.cjs
+      - name: Existing leaflet images
+        run: node scripts/citymarket/verify-images.mjs
+  leaflet-43av:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch immutable 43AV publisher archive
+        run: |
+          git fetch --depth=1 origin archive/citymarket-publications
+          git show origin/archive/citymarket-publications:publications/43AV/leaflet.json > /tmp/43av-leaflet.json
+          git show origin/archive/citymarket-publications:publications/43AV/parser-evidence.json > /tmp/43av-evidence.json
+      - name: Verify 43AV price ownership and multibuy
+        run: node --test tests/kcitymarket-43av-archive-gate.test.cjs
