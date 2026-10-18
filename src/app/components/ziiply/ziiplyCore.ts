@@ -3422,6 +3422,14 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
+  // Reject misleading cross-category substitutes in basket comparisons.
+  // A named product category must remain the same, not merely share a word.
+  if (/\\b(?:voi|voita)\\b/.test(source) && !/\\b(?:voi|voita)\\b/.test(candidate)) return false;
+  if (/\\b(?:voi|voita)\\b/.test(source) && /\\b(?:flora|margariini|levite|kasvirasva|voi\\s*&\\s*voi)\\b/.test(candidate)) return false;
+  if (/\\bsalaatti\\b/.test(source) && !/\\b(?:salaatti|salaatin|lehtisalaatti|kerasalaatti|romaine|jaasalaatti)\\b/.test(candidate)) return false;
+  if (/\\bsalaatti\\b/.test(source) && /\\b(?:niistaja|nenaimuri|nosefrida|salaatinkastike|salaattikulho|salaattiottimet)\\b/.test(candidate)) return false;
+  if (/\\b(?:kananmuna|kananmunat)\\b/.test(source) && !/\\b(?:kananmuna|kananmunat|munia|munat)\\b/.test(candidate)) return false;
+  if (/\\bbanaani\\b/.test(source) && !/\\b(?:banaani|banaanit)\\b/.test(candidate)) return false;
   const fresh = ["banaani","omena","appelsiini","paaryna","kurkku","tomaatti","porkkana","peruna","sipuli","paprika"];
   const isProcessedProduce = (name: string) =>
     /mehu|juoma|jogurtti|majo|majoneesi|mauste|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|saippua|kosmetiikka|paseerattu|murska|jauhettu|kuivattu|sailyke|salaatinkastike/.test(name);
