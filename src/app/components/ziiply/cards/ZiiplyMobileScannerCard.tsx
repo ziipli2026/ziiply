@@ -237,7 +237,16 @@ export default function ZiiplyMobileScannerCard({
         const orange = (x: number, y: number) => {
           const i = (y * 128 + x) * 4;
           const r = data[i], g = data[i + 1], b = data[i + 2];
-          return r > 125 && g > 48 && g < r * 0.79 && b < g * 0.83;
+          // Reject brown bread, red packaging and dark orange shadows:
+          // the discount sticker is bright, saturated orange.
+          const max = Math.max(r, g, b), min = Math.min(r, g, b);
+          const saturation = max > 0 ? (max - min) / max : 0;
+          return r >= 175 && r <= 255 &&
+            g >= 72 && g <= 185 &&
+            b <= 100 && b < g * 0.72 &&
+            r > g * 1.30 && r < g * 2.8 &&
+            saturation >= 0.58 &&
+            r + g + b >= 290;
         };
         // Only the CENTER 40% of the live camera image is eligible for a
         // discount-sticker hint. Distant shelf products at the edges are ignored.
@@ -364,7 +373,7 @@ export default function ZiiplyMobileScannerCard({
         if (detected) stickerBarcodeSeenRef.current = Date.now();
         const trackingBarcode = Date.now() - stickerBarcodeSeenRef.current < 1400;
         const nearbyPartial = partial && trackingBarcode && last &&
-          Math.hypot(partial.x - last.x, partial.y - last.y) < 35;
+          Math.hypot(partial.x - last.x, partial.y - last.y) < 24;
         const target = detected
           ? { x: candidateCenter.x, y: candidateCenter.y,
               left: Math.max(0, candidateCenter.x - 21), right: Math.min(128, candidateCenter.x + 21),
