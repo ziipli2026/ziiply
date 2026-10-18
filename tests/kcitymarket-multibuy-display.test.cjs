@@ -8,7 +8,7 @@ const src=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileOfferSear
 function extract(start,end){const a=src.indexOf(start),b=src.indexOf(end,a);assert.ok(a>=0&&b>a,start);return src.slice(a,b);}
 const normalize=extract("function normalizePrice(price: unknown) {","function getNumericPrice").replace("price: unknown","price");
 const display=extract("function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {","function splitOfferDisplayPrice(value: string) {").replace("offer: ZiiplyMobileOfferSearchItem","offer");
-const split=extract("function splitOfferDisplayPrice(value: string) {","function getNormalPrice").replace("value: string","value");
+const split=extract("function splitOfferDisplayPrice(value: string) {","function getNormalPrice").replace("value: string","value").replace(/^export\s+/m,"");
 const ctx={};vm.runInNewContext(normalize+display+split+"\nthis.getOfferPrice=getOfferPrice;this.splitOfferDisplayPrice=splitOfferDisplayPrice;",ctx);
 const cases=[
  [{price:10,offerQuantity:3,offerUnit:"KPL"},"10,00 € / 3 KPL"],
