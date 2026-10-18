@@ -279,6 +279,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   className = "",
 }: ZiiplyMobileCompareCardresponsiveProps) {
   const [detailsStoreId, setDetailsStoreId] = useState<string | null>(null);
+  const [debugAlternatives, setDebugAlternatives] = useState<unknown[]>([]);
 
   if (!open) return null;
 
@@ -325,12 +326,37 @@ export default function ZiiplyMobileCompareCardresponsive({
             <p className="my-1">Näyttää korin tuotteet ja kauppakohtaiset vastintuotteet, hinnat sekä mahdolliset kategoriat. Ei muuta vertailua.</p>
             <button
               type="button"
+              className="mb-2 mr-2 rounded border border-[#7c663d] bg-[#e2efcd] px-2 py-1 font-bold"
+              onClick={() => {
+                const report = {
+                  timestamp: new Date().toISOString(),
+                  loading,
+                  cartItems: items,
+                  stores: visibleStores,
+                  alternativeSearches: debugAlternatives,
+                };
+                const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `ziiply-vertailu-debug-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              Tallenna debug
+            </button>
+            <button
+              type="button"
               className="mb-2 rounded border border-[#7c663d] bg-[#f0e1b9] px-2 py-1 font-bold"
               onClick={() => {
                 const report = {
                   timestamp: new Date().toISOString(),
                   loading,
                   cartItems: items,
+                  alternativeSearches: debugAlternatives,
                   stores: visibleStores.map((store) => ({
                     id: store.id,
                     name: store.name,
@@ -349,6 +375,7 @@ export default function ZiiplyMobileCompareCardresponsive({
             <div className="max-h-[35vh] overflow-auto whitespace-pre-wrap break-words font-mono">
               {JSON.stringify({
                 cartItems: items,
+                alternativeSearches: debugAlternatives,
                 stores: visibleStores.map((store) => ({
                   store: store.name,
                   totalPriceCents: store.totalPrice,
@@ -556,6 +583,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         items={items}
                         onChangeMatchMode={onChangeMatchMode}
                         onSelectMatchAlternative={onSelectMatchAlternative}
+                        onDebugAlternatives={(event) => setDebugAlternatives((previous) => [...previous.slice(-19), { timestamp: new Date().toISOString(), ...event }])}
                       />
                     ) : null}
                   </article>
