@@ -1,0 +1,83 @@
+name: Validate K-market audit workflow syntax
+on:
+  push:
+    branches: [fix/k-market-supermarket-audit-workflow]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate embedded audit JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/k-market-supermarket-mass-audit.yml').read_text()
+          start=text.index("          node --input-type=module <<'NODE'")+len("          node --input-type=module <<'NODE'")
+          end=text.index("\n          NODE",start)
+          Path('/tmp/k-market-audit.mjs').write_text("\n".join(line[10:] for line in text[start:end].splitlines())+"\n")
+          PY
+          node --check /tmp/k-market-audit.mjs
+      - name: Smoke-test K-market and K-Supermarket discovery (read-only)
+        timeout-minutes: 2
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.ruoanhinta.fi/api/stores?search=';
+          for(const chain of ['K-Market','K-Supermarket']){
+            const c=new AbortController();const t=setTimeout(()=>c.abort(),15000);
+            try{
+              const r=await fetch(base+encodeURIComponent(chain),{signal:c.signal,headers:{accept:'application/json'}});
+              console.log(chain,'HTTP',r.status);
+              if(!r.ok)throw Error(chain+' discovery HTTP '+r.status);
+              const d=await r.json();
+              console.log(chain,'returned',Array.isArray(d)?d.length:(d.items||[]).length,'stores');
+            }finally{clearTimeout(t);}
+          }
+          NODE
+      - name: Test product and price searches in both K chains (read-only)
+        timeout-minutes: 4
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.ruoanhinta.fi/api';
+          const terms=['K-Market','K-Supermarket'];
+          const queries=['maito','kahvi'];
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          async function get(url){
+            const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);
+            try{
+              const r=await fetch(url,{headers:{accept:'application/json','user-agent':'Ziiply-Audit/1.0'},signal:c.signal});
+              if(!r.ok)throw Error('HTTP '+r.status+' '+url);
+              return await r.json();
+            }finally{clearTimeout(t);}
+          }
+          for(const chain of terms){
+            const raw=await get(base+'/stores?search='+encodeURIComponent(chain));
+            const stores=(Array.isArray(raw)?raw:raw.items||[]).filter(s=>new RegExp('^'+chain.replace('-','[- ]')+'\\b','i').test(String(s.name||''))&&!s.delistedAt&&s.id!=null);
+            if(!stores.length)throw Error(chain+': no stores found');
+            let tested=0,priced=0,nonempty=0;
+            for(const store of stores.slice(0,3)){
+              for(const term of queries){
+                const data=await get(base+'/items?search='+encodeURIComponent(term)+'&storeIds='+encodeURIComponent(store.id)+'&skip=0&take=100');
+                const rows=Array.isArray(data)?data:data.items||[];
+                const found=rows.filter(x=>Number(x.storeItems?.[0]?.price)>0).length;
+                console.log('PRODUCT_SEARCH',JSON.stringify({chain,store:store.name,term,returned:rows.length,priced:found}));
+                tested++;priced+=found;if(rows.length)nonempty++;
+                await sleep(150);
+              }
+            }
+            console.log('CHAIN_RESULT',JSON.stringify({chain,stores:stores.length,tested,nonempty,priced}));
+            if(!nonempty||!priced)throw Error(chain+': no usable priced product results');
+          }
+          NODE
+      - name: Verify no duplicated YAML tail
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('.github/workflows/k-market-supermarket-mass-audit.yml').read_text()
+          assert s.count("name: Upload audit report")==1
+          assert s.count("const ean=priced.filter")==1
+          assert s.count("NODE")==2
+          print("K-market workflow structural checks passed")
+          PY
