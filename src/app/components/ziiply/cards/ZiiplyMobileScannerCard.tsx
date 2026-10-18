@@ -171,9 +171,12 @@ export default function ZiiplyMobileScannerCard({
   }, [storeLocation?.verified, storeLocation?.name]);
 
 
-  // EAN scanning always stays active. A discount hint needs BOTH an orange
-  // sticker-shaped region and barcode-like dark/light vertical transitions in
-  // that same region. Packaging color alone is never sufficient.
+  // Never infer a discount sticker from packaging color alone.
+  // A sticker hint may only be enabled by the scanner after it has verified
+  // BOTH the orange sticker region and a non-standard discount barcode.
+  // Until that signal is wired, normal EAN decoding remains uninterrupted.
+  const redStickerCandidateV864 = false;
+
   const hasSelectionResults = selectionResults.length > 1;
 
   function getSelectionName(result: ZiiplyMobileScannerSelectionResult) {
