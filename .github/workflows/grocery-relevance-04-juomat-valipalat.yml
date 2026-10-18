@@ -1,0 +1,35 @@
+name: Grocery relevance 04-juomat-valipalat
+on:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check S and K production search
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const stores=[["S","s-products","292"],["K","k-products","3221"]];
+          const terms=["mehu","limsa","vesi","tee","kaakao","rahka","viili","keksi","suklaa","jäätelö"];
+          let failures=0,checks=0;
+          for(const [chain,route,store] of stores){
+            for(const term of terms){
+              checks++;
+              try{
+                const url="https://ziiply.vercel.app/api/"+route+"?store="+store+"&search="+encodeURIComponent(term);
+                const response=await fetch(url,{signal:AbortSignal.timeout(25000)});
+                if(!response.ok)throw Error("HTTP "+response.status);
+                const body=await response.json();
+                const items=body.items||[];
+                const top=items.slice(0,10).map(x=>x.name);
+                console.log(JSON.stringify({chain,term,count:items.length,top}));
+                if(!items.length){failures++;console.error("EMPTY",chain,term);}
+                if(top.some(n=>!n||typeof n!=="string")){failures++;console.error("INVALID_NAME",chain,term);}
+                if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara","nakki"].includes(term)&&top.slice(0,5).some(n=>/dreamies|sheba|vitakraft|carnilove|whiskas|pedigree|koirille|kissoille/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term);}
+              }catch(e){failures++;console.error("ERROR",chain,term,String(e));}
+            }
+          }
+          console.log("SUMMARY",JSON.stringify({group:"04-juomat-valipalat",checks,failures}));
+          if(failures)process.exitCode=1;
+          NODE
