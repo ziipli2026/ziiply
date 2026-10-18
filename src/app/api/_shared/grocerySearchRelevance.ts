@@ -56,6 +56,15 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       tomaatti:/^(?:[\w-]+ )?(?:luomu |kotimainen )?tomaatti(?:\s|$)/,
     };
     const canonical=ALIASES[q]||q;
+    if(["omena","appelsiini","päärynä","viinirypäle","paprika","mansikka","sipuli","salaatti"].includes(canonical)){
+      const processed=/mehu|juoma|smoothie|hillo|sose|pyree|kiisseli|jogurtti|rahka|kakku|piirak|pitko|leipä|pesto|kastike|chips|sipsi|mauste|jäätelö|vanukas|karkki|makeinen|tee|muro|mysli|patukka|suklaa|puuro|ateria|leikkele|juusto|makkara|silli|silakka|salaattijuusto|majoneesi|lelu|nukke|saippua|öljy/;
+      const fresh=/\b(?:tuore|luomu|kotimainen|kotimaista|suomi|irto|pakattu|pakkaamaton|vihreä|punainen|keltainen|siemenetön|1lk|2lk)\b|\b\d+(?:[,.]\d+)?\s?(?:kg|g|kpl)\b/;
+      const exact=new RegExp("(?:^| )"+canonical+"(?: |$)");
+      if(exact.test(name)&&!processed.test(name))value+=420;
+      if(fresh.test(name)&&!processed.test(name)&&name.includes(canonical))value+=180;
+      if(processed.test(name))value-=340;
+      if(canonical==="viinirypäle"&&/rypäle/.test(name)&&!/mehu|viini|hillo|vanukas/.test(name))value+=250;
+    }
     if(produce[canonical]){
       const prepared=/smoothie|patukka|puuro|pihvi|leipä|sämpylä|tikku|keitto|kastike|pesto|seos|salaatti|pakaste|mehu|pizza|pasta|mauste|jogurtti|rahka|pyree|sose|lastenruoka|välipala|wok|gratiini|kuivattu|aurinkokuivattu|paseerattu|murska|tölkki|säilyke|hilloke|levite|gnocchi|ranskanperuna/.test(name);
       if(produce[canonical].test(name)&&!prepared)value+=120;
