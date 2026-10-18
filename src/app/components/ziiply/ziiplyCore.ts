@@ -3453,6 +3453,18 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\bjauheliha\b/.test(source) && !/\bjauheliha\b/.test(candidate)) return false;
   if (/\bjauheliha\b/.test(source) && /\b(?:jauhelihapihvi|pihvi|pyorykka|burger|kastike|ateria)\b/.test(candidate)) return false;
 
+  // Ground meat with a stated fat percentage must only match the same percentage.
+  // Read the original name because normalization removes the percent sign.
+  const groundMeatFat = (name: string): number | null => {
+    if (!/jauheliha/i.test(name)) return null;
+    const match = name.match(/\b(\d+(?:[,.]\d+)?)\s*%/);
+    return match ? Number(match[1].replace(",", ".")) : null;
+  };
+  const sourceGroundMeatFat = groundMeatFat(sourceName);
+  const candidateGroundMeatFat = groundMeatFat(candidateName);
+  if (sourceGroundMeatFat !== candidateGroundMeatFat &&
+      (sourceGroundMeatFat !== null || candidateGroundMeatFat !== null)) return false;
+
   // Preserve explicit milk fat percentage. "1 % maito" is not just any milk.
   const milkFat = (name: string) => {
     if (!/\bmaito\b/.test(name)) return null;
