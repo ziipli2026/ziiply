@@ -1,3 +1,4 @@
+import {verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
 import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
@@ -1635,6 +1636,13 @@ out.rows=out.rows.map(row=>{
 out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
 if(/_42AV_KCM/i.test(out.leaflet))out.rows=out.rows.map(repairPrintedCard);
 out.rows=out.rows.map(row=>row.debugPrintedPriceBasis?{...row,spatialResolved:row.debugPrintedPriceBasis,percentageOffer:null}:row);
+// Final, strictly publisher-owned typography proofs supersede inferred unit-rate
+// arithmetic. They never merge rows or borrow an identical product's price.
+out.rows=out.rows.map(row=>{
+ const printed=verifiedOwnedPublisherOverprint(row);
+ return printed?{...row,debugReplacedConflictingPrice:row.spatialResolved,
+  spatialResolved:printed,percentageOffer:null}:row;
+});
 return out;
 }
 
