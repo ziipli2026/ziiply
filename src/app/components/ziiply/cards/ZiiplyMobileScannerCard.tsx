@@ -582,7 +582,7 @@ export default function ZiiplyMobileScannerCard({
           {onCaptureDiscountSticker && redStickerCandidateV864 && !cameraOverlay && !loading && (
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.20),inset_0_0_12px_rgba(255,230,165,0.10)] transition-all duration-200"
+              className="ziiply-sticker-lock pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.20),inset_0_0_12px_rgba(255,230,165,0.10)] transition-[left,top,width,height] duration-300 ease-out"
               style={{
                 left: `${Math.max(4, Math.min(96 - Math.min(stickerBounds.width, 55), stickerBounds.left))}%`,
                 top: `${Math.max(4, Math.min(96 - Math.min(stickerBounds.height, 55), stickerBounds.top))}%`,
@@ -595,6 +595,21 @@ export default function ZiiplyMobileScannerCard({
               </span>
             </div>
           )}
+
+          <style>{`
+            @keyframes ziiply-sticker-lock-on {
+              0% { transform: scale(1.24); opacity: 0.55; }
+              65% { transform: scale(0.97); opacity: 1; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            .ziiply-sticker-lock {
+              transform-origin: center;
+              animation: ziiply-sticker-lock-on 550ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .ziiply-sticker-lock { animation: none; }
+            }
+          `}</style>
 
           {/* V593: palauteväläys vain kameraruudun/skanneri-ikkunan sisällä */}
           <div
