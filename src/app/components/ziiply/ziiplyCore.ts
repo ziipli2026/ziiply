@@ -3430,13 +3430,16 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\bsalaatti\b/.test(source) && /\b(?:niistaja|nenaimuri|nosefrida|salaatinkastike|salaattikulho|salaattiottimet)\b/.test(candidate)) return false;
   if (/\b(?:kananmuna|kananmunat)\b/.test(source) && !/\b(?:kananmuna|kananmunat|munia|munat)\b/.test(candidate)) return false;
   if (/\bbanaani\b/.test(source) && !/\b(?:banaani|banaanit)\b/.test(candidate)) return false;
-  // A requested egg pack count must not silently become a larger pack.
-  const requestedEggCount = /\\b(?:kananmuna|kananmunat|munat)\\b/.test(source)
-    ? sourceName.match(/\\b(\\d+)\\s*(?:kpl|kpl\\.|pcs)\\b/i)?.[1] : undefined;
-  if (requestedEggCount) {
-    const eggPack = candidateName.match(/\\b(?:[a-z]{1,2}\\s*)?(\\d{1,2})\\s*(?:kpl|kpl\\.|pcs)?\\b/i);
-    if (!eggPack || Number(eggPack[1]) !== Number(requestedEggCount)) return false;
+  // Match egg pack counts explicitly; M24 means 24 eggs, not size M.
+  const eggRequest = /\\b(?:kananmuna|kananmunat|munat)\\b/.test(source);
+  const eggCount = eggRequest ? sourceName.match(/\\b(\\d+)\\s*(?:kpl|pcs)\\b/i)?.[1] : undefined;
+  if (eggCount) {
+    const countMatch = candidateName.match(/\\b(?:[smlx]{1,3}\\s*)?(\\d{1,2})\\s*(?:kpl|pcs)?\\b/i);
+    if (!countMatch || Number(countMatch[1]) !== Number(eggCount)) return false;
   }
+  // Butter is not butter-flavoured pastry, potatoes, spread or dough.
+  if (/\\bvoi\\b/.test(source) && !/\\b(?:voi|voita)\\b/.test(candidate)) return false;
+  if (/\\bvoi\\b/.test(source) && /\\b(?:taikina|pakastetaikina|piparkakku|peruna|grilliperuna|kastike|leivonna|margariini|levite|flora)\\b/.test(candidate)) return false;
   const fresh = ["banaani","omena","appelsiini","paaryna","kurkku","tomaatti","porkkana","peruna","sipuli","paprika"];
   const isProcessedProduce = (name: string) =>
     /mehu|juoma|jogurtti|majo|majoneesi|mauste|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|saippua|kosmetiikka|paseerattu|murska|jauhettu|kuivattu|sailyke|salaatinkastike/.test(name);
