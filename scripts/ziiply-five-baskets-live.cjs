@@ -13,7 +13,10 @@ const fallbackQueries={
   "banaani 1kg":["banaani","banaanit"],
   "naudan jauheliha 400g":["naudan jauheliha","nauta jauheliha","jauheliha 400g"],
   "kurkku 1kpl":["kurkku"],
-  "salaatti 1kpl":["salaatti","keräsalaatti"]
+  "salaatti 1kpl":["salaatti","keräsalaatti"],
+  "wc-paperi 8rll":["wc-paperi","vessapaperi","toalettipaperi","wc paperi","8 rullaa"],
+  "talouspaperi 4rll":["talouspaperi","talouspyyhe","4 rullaa"],
+  "roskapussi 30l":["roskapussi","jätepussi","roskapussit","30 l"]
 };
 async function search(chain,term){
   const url=new URL('/api/'+(chain==='S'?'s-products':'k-products'),base);
