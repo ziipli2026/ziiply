@@ -174,7 +174,7 @@ export function category(t:string){
   if(/little kids|lastenruo|\bpiltti\b/.test(s)) return "Lastenruoat";
   if(/proteiinivaa|maksalaatik|kiusaus|kiusauk|burger|kebab|härkis|härkäpapumursk|gold\s*&\s*green|suosikkisalaat|pizza|ateria|keitto|keitot|valmisruoka|wrap|caesar|taco-salaat|kiissel|välipala|lihis/.test(s)) return "Valmisruoka";
   if(/(?:^|[^a-zåäö])kana(?:[^a-zåäö]|$)|kananpoika|kananpoj|kananuget|kanapuik|kanaransk|kanatuotte|broiler|nauta|naudan|ulkoilee|poron|sika|porsaa|porsas|jauheliha|makkara|nakki|meetvursti|palviro|savusaunapalvi|pekoni|kinkku|kokoliha|leikkele|fileepih|fileesuikale|liha/.test(s)) return "Liha & makkarat";
-  if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
+  if(/(?:\\bkala\\b|kalafile|kalapuik|kalapihv|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu)/.test(s)) return "Kala";
   if(/skyr|maito|juusto|jogur|rahka|kerma|voi\b|margariin|raejuusto|viili|piim|kefir|pirtelö|pirtelo|proteiinivaaht|vanukas|vanukka|mousse|grana padano|creme fraiche|crème fraiche|smetana/.test(s)) return "Maitotuotteet";
   if(/kahvi|espresso|\btee\b|\bteet\b/.test(s)) return "Kahvi & tee";
   if(/pinaatti|rucola|avokado|kurpitsa|punajuuri/.test(s)) return "Hevi";
