@@ -504,7 +504,7 @@ export default function ZiiplyMobileScannerCard({
           {/* Alennustarran kohdistusikkuna: keskimmäinen 40 %.
               Ulkopuoli himmennetään kevyesti; EAN-skanneri toimii
               edelleen koko kamerakuvalla, eikä overlay ota kosketuksia. */}
-          {onCaptureDiscountSticker && !cameraOverlay && (
+          {onCaptureDiscountSticker && redStickerCandidateV864 && !cameraOverlay && !loading && (
             <div
               aria-hidden="true"
               className="pointer-events-none absolute left-[30%] top-[30%] z-[12] h-[40%] w-[40%] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.28),inset_0_0_16px_rgba(255,230,165,0.13)]"
