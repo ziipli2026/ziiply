@@ -10,7 +10,7 @@ function helper(name, next) {
   return source.slice(start, end);
 }
 const ctx = vm.createContext({});
-const helpers = helper("isValidGtin", "getEan") + "\n" + helper("getEan", "fixEncoding") + "\n" + helper("fixEncoding", "normalize").split("\ntype RuoanhintaStore")[0];
+const helpers = helper("isValidGtin", "getEan") + "\n" + helper("getEan", "fixEncoding") + "\n" + helper("fixEncoding", "normalize").split("\ntype RuoanhintaStore")[0] + "\n" + helper("normalize", "lidlSearchScore") + "\n" + helper("lidlSearchScore", "resolveRuoanhintaLidlStoreId");
 const compiled = ts.transpileModule(helpers, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText;
 vm.runInContext(compiled, ctx);
 assert.equal(ctx.isValidGtin("6410405082657"), true);
@@ -21,6 +21,13 @@ assert.equal(ctx.getEan({ean:"bad",gtin:"6410405082657"}),"6410405082657");
 assert.equal(ctx.getEan({ean:"6410405082651",barcode:"96385074"}),"96385074");
 assert.equal(ctx.getEan({externalId:"6410405082657"}),undefined);
 assert.equal(ctx.fixEncoding("MÃ¤Ã¤rÃ¤"),"Määrä");
+const score = (name, query, brand = "") => ctx.lidlSearchScore({name, brandName:brand},query);
+assert(score("Maito 1 l","maito") > score("Maitosuklaa 100 g","maito"));
+assert(score("Maito","maito") > score("Maito 1 l","maito"));
+assert(score("Rasvaton maito 1 l","rasvaton maito") > score("Maito 1 l","rasvaton maito"));
+assert(score("Valio rasvaton maito 1 l","valio rasvaton maito") > score("Maito 1 l","valio rasvaton maito"));
+assert(score("Maito 1 l","maito") > score("Maitokahvi 1 l","maito"));
+assert.equal(score("Juusto 500 g","maito"),0);
 assert.match(source,/\.filter\(\(product\) => getPrice\(product\) > 0\)/);
 assert.match(source,/comparisonPriceUnit: product\.storeItems\?\.\[0\]\?\.comparisonPriceUnit/);
 assert.match(source,/priceVerified: false/);
