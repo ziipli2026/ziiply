@@ -16,7 +16,11 @@ jobs:
           node-version: '22'
       - name: Verify parser syntax
         run: node --check src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js
+      - name: Install isolated TypeScript test dependency
+        run: npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
       - name: Previously approved Citymarket regressions
+        env:
+          NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
         run: |
           node --test \
             tests/kcitymarket-publisher-image-binding.test.cjs \
