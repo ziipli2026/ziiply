@@ -161,7 +161,32 @@ export async function GET(request: Request) {
         return Array.isArray(body.items) ? body.items as RuoanhintaProduct[] : [];
       } catch { return [] as RuoanhintaProduct[]; }
     }));
-    const sourceItems = [...new Map([...primaryItems, ...extraResponses.flat(), ...breadFallbackResponses.flat()].map(item => [item.id, item])).values()];
+    // When the upstream literal search returns too few products, broaden the
+    // retrieval independently of product matching. Fetch additional pages so
+    // an early page of unrelated items cannot hide a valid product.
+    const lowCoverage = primaryItems.filter(product => getPrice(product) > 0).length < 10;
+    const searchWords = normalizedSearch.split(/\s+/).filter(Boolean);
+    const genericFallbackTerms = lowCoverage
+      ? [...new Set([
+          searchWords[0],
+          searchWords.length > 1 ? searchWords.slice(1).join(" ") : "",
+          // A compact product name may have a size suffix (e.g. 30l).
+          searchWords.find(word => /^\d+(?:[,.]\d+)?(?:l|ml|kg|g|rll|rl)$/.test(word)) || "",
+        ].filter(term => term && term !== normalizedSearch))]
+      : [];
+    const genericFallbackResponses = await Promise.all(genericFallbackTerms.map(async term => {
+      const pages = await Promise.all([0, 100, 200].map(async skip => {
+        try {
+          const url = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${storeId}&skip=${skip}&take=100`;
+          const result = await fetch(url, {headers:{accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(6500)});
+          if (!result.ok) return [] as RuoanhintaProduct[];
+          const body = await result.json();
+          return Array.isArray(body.items) ? body.items as RuoanhintaProduct[] : [];
+        } catch { return [] as RuoanhintaProduct[]; }
+      }));
+      return pages.flat();
+    }));
+    const sourceItems = [...new Map([...primaryItems, ...extraResponses.flat(), ...breadFallbackResponses.flat(), ...genericFallbackResponses.flat()].map(item => [item.id, item])).values()];
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
