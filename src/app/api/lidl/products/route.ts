@@ -65,6 +65,21 @@ function normalize(value: unknown) {
     .trim();
 }
 
+// Rank by whole search tokens. Substrings inside unrelated words must not win.
+function lidlSearchScore(product: RuoanhintaProduct, search: string) {
+  const query = normalize(search);
+  const name = normalize(fixEncoding(product.name || ""));
+  const brand = normalize(fixEncoding(product.brandName || ""));
+  const terms = query.split(" ").filter(Boolean);
+  if (!terms.length || !name) return 0;
+  const words = new Set((name + " " + brand).split(" ").filter(Boolean));
+  const matched = terms.filter((term) => words.has(term)).length;
+  if (!matched) return 0;
+  const exact = name === query || (brand + " " + name).trim() === query;
+  const prefix = name.startsWith(query + " ") || name.startsWith(query);
+  return matched * 100 + (matched === terms.length ? 200 : 0) + (exact ? 500 : 0) + (prefix ? 100 : 0);
+}
+
 async function resolveRuoanhintaLidlStoreId(storeName: string, city: string, address: string) {
   const queries = [address, storeName, city, "Lidl"].map((value) => String(value || "").trim()).filter(Boolean);
   const seen = new Map<string, RuoanhintaStore>();
@@ -156,6 +171,7 @@ export async function GET(request: Request) {
     const sourceItems: RuoanhintaProduct[] = Array.isArray(data?.items) ? data.items : [];
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
+      .sort((a, b) => lidlSearchScore(b, search) - lidlSearchScore(a, search))
       .map((product) => ({
         id: product.id,
         name: fixEncoding(product.name),
