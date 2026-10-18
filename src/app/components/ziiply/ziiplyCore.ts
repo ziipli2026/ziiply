@@ -3447,7 +3447,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/appelsiinimehu/.test(source) &&
       (!/appelsiinimehu/.test(candidate) || /(?:mehujuoma|juomatiiviste|nektari)/.test(candidate))) return false;
   if (/(?:pähkin|pahkin|nut mix|nuts)/.test(source) &&
-      /(?:hedelm|fruit mix|fruit and nut)/.test(candidate) &&
+      /(?:hedelm|karpalo|rusina|kuivattu marja|kuivatut marjat|cranberr|raisin|fruit mix|fruit and nut)/.test(candidate) &&
       !/(?:hedelm|fruit)/.test(source)) return false;
   // Pasta shapes must not be substituted with unrelated 500 g staples.
   if (/\b(?:spagetti|spaghetti)\b/.test(source) &&
