@@ -30,6 +30,7 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
     if(categoryMatch)value+=35;
     if(rule.weak.test(name))value-=28;
     if(pet)value-=250;
+    if(q==="lohi"&&/eväsleipä|täytetty|voileipä|patonki|kolmari|remou/.test(name))value-=160;
     if(/\b(salaatti|wrap|pizza|pasta-ateria|kakku|patukka|makeinen)\b/.test(name))value-=8;
     // Exact grocery produce and staple goods must outrank flavour mentions.
     // Only broad one-word searches use this boost, never brand/model searches.
@@ -53,10 +54,12 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
     if(canonical==="leipä"){
       // Finnish ä is not a JavaScript \\b word character; do not use \\b
       // to recognize bread terms or a manufacturer's name as bread.
-      const notBread=/leipätiku|leipätikku|grissini|nutella|leipäveitsi|leipävuoka|leipäjuusto|leipäsiirappi|leipämallas|leipämauste|leipäkassi|leipälastu|leipälevite|wiener|kakku|pulla|leivos|voirinkeli|voipehmopala/;
+      const notBread=/rahkaunelma|rahkapiirakka|unelmatorttu|pikkumunkki|juustorinkeli|kanelikranssi|munkki|piirakka|torttu|leipätiku|leipätikku|grissini|nutella|leipäveitsi|leipävuoka|leipäjuusto|leipäsiirappi|leipämallas|leipämauste|leipäkassi|leipälastu|leipälevite|wiener|kakku|pulla|leivos|voirinkeli|voipehmopala/;
       const actualBread=/(?:^|\\s)(?:ruisleipä|paahtoleipä|täysjyväleipä|näkkileipä|hapankorppu|limppu|ruispalat|rouhepalat|sämpylä|patonki|viipaleet|leipä)(?=$|[\\s,.-])/u;
       if(actualBread.test(name)&&!notBread.test(name))value+=160;
       if(notBread.test(name))value-=350;
+      // A bakery brand containing "Leipä" is not itself proof of bread.
+      if(/^(?:kartanon|pekan) leipä /.test(name)&&!/(rouhepalat|ruispalat|ruisleipä|paahtoleipä|sämpylä|limppu|viipaleet)/.test(name))value-=130;
     }
     if(canonical==="broileri"){
       if(/broiler/.test(name)&&!/wrap|patonki|pizza|salaatti|voileipä|kolmari/.test(name))value+=60;
