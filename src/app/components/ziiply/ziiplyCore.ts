@@ -3603,7 +3603,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   const looseProduce = ["banaani", "omena", "appelsiini", "paaryna", "tomaatti", "paprika", "porkkana", "peruna", "sipuli"];
   const requestedLoose = looseProduce.find(item => source.startsWith(item + " ") && sourceSize?.unitGroup === "weight");
   const looseCandidate = Boolean(requestedLoose) && !candidateSize &&
-    new RegExp("(?:^|\\\\s)" + requestedLoose + "(?:$|\\\\s)").test(candidate) &&
+    new RegExp("(?:^|\\s)" + requestedLoose + "(?:$|\\s)").test(candidate) &&
     !/(?:mehu|juoma|kastike|murska|pyree|sose|sailyke|kuivattu|jauhe|keitto|mauste|salaatti|pasta|karkki|jogurtti|rahka|pakaste|siemen|taimi)/.test(candidate);
   if (!looseCandidate && Boolean(sourceSize) !== Boolean(candidateSize)) return false;
   if (!looseCandidate && sourceSize && candidateSize && (sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
