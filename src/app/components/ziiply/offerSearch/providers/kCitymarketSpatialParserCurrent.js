@@ -1367,7 +1367,8 @@ if(!spatialResolved&&nr&&expected&&Number(expected)>0&&Number(expected)<Number(n
 
 // Last-resort same-row arithmetic fallback: expectedSingle is computed only from this row's
 // package size and printed unit rate. Use it only when no normal price exists and no owner survived.
-if(!spatialResolved&&!nr&&expected&&Number(expected)>=.20&&Number(expected)<=30){
+const explicitBundleOffer=/(?:\b\d+\s*[x×]\s*\d+\s*[- ]?pack\b|\b\d+\s*[x×]\s*\d+\b)/i.test(String(title)+" "+String(around?.map?.(x=>x.text).join(" ")||""));
+if(!spatialResolved&&!nr&&!explicitBundleOffer&&expected&&Number(expected)>=.20&&Number(expected)<=30){
  spatialResolved={value:Number(Number(expected).toFixed(2)),quantity:null,unit:null,source:"same-row-expected-single-safe",sanity:"pass",confidence:"high",auditRatio:1};
 }
 // Prefer the printed price directly after this title when its own sale unit is KG.
