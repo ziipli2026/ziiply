@@ -350,7 +350,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
         <main className="absolute inset-0 z-10 overflow-hidden">
-          <div className="absolute left-[8%] top-[13.4%] z-20 max-w-[48%]">
+          <div className="absolute left-[13.5%] top-[13.4%] z-20 max-w-[48%]">
             <div className="flex h-[2.2rem] items-center">
               <div className="shrink-0 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
               {loading ? <RetroMopedOverlay /> : null}
