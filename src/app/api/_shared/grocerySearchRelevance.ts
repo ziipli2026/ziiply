@@ -92,8 +92,14 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
     }
     if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara"].includes(canonical)){
       const animalFood=/almo nature|lily.s kitchen|brit premium|hau-hau|kattovit|rokka lihaisa|mush kana|monge|miamor|encore|dokas|koiramo|crave|prima\s?dog|pedigree|whiskas|sheba|carnilove|vitakraft|lemmik|koirille|kissoille|koiran|kissan|täysrehu|täysravinto|puruluu|pentu(?:lle|jen)/.test(name+" "+category);
-      if(animalFood)value-=450;
-      const prepared=/pizza|wrap|patonki|panini|salaatti|pasta|risotto|sushi|gyoza|pyttipannu|keitto|fond|dumpling|kastike|quesadilla|ohukainen|mauste|eväsleipä|ateria|ragu|kebab|täytetty|burger|nakki|leipä/.test(name);
+      if(animalFood)value-=650;
+      // Do not confuse an ingredient's flavour with the ingredient itself.
+      if(canonical==="naudanliha"&&/naudanlihan?maku|naudanliha\s?sose|nuudeli|lastenruoka|piltti|fond/.test(name))value-=280;
+      if(canonical==="kana"&&/ciabatta|rieska|focaccia|nuudeliruukku|perunavuoka|tacobowl|rouhe|lauch?antaimakkara|lauantaimakkara|riisipata|kana-pekoni/.test(name))value-=180;
+      if(canonical==="katkarapu"&&/nuudeli|sulatejuusto|skagen|herkku|carbonara|riisinuudeli|vegaaninen|snacks/.test(name))value-=140;
+      if(canonical==="tonnikala"&&/onigiri|gourmet perle|gourmet gold/.test(name))value-=180;
+      if(canonical==="kalkkuna"&&/makupala|herkkuliuska|perfect fit|bare immune|bare sensitive|oscar herkku/.test(name))value-=350;
+      const prepared=/pizza|wrap|patonki|panini|ciabatta|rieska|focaccia|nuudeli|perunavuoka|riisipata|rouhe|salaatti|pasta|risotto|sushi|gyoza|pyttipannu|keitto|fond|dumpling|kastike|quesadilla|ohukainen|mauste|eväsleipä|ateria|ragu|kebab|täytetty|burger|nakki|leipä/.test(name);
       if(prepared)value-=125;
       if(canonical==="jauheliha"&&/jauheliha/.test(name)&&!prepared)value+=210;
       if(canonical==="naudanliha"&&/naudanliha/.test(name)&&!prepared)value+=160;
@@ -102,7 +108,7 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       if(canonical==="kalkkuna"&&/kalkkuna/.test(name)&&!prepared)value+=155;
       if(canonical==="tonnikala"&&/tonnikala/.test(name)&&!prepared)value+=180;
       if(canonical==="katkarapu"&&/katkarapu/.test(name)&&!prepared)value+=160;
-      if(canonical==="seiti"&&/seiti/.test(name)&&!prepared)value+=170;
+      if(canonical==="seiti"&&/seiti/.test(name)&&!prepared&&!animalFood)value+=170;
       if(canonical==="makkara"&&/makkara/.test(name)&&!animalFood)value+=135;
     }
     if(canonical==="broileri"){
