@@ -19,12 +19,13 @@ export const MEAT_SEARCH_ALIASES: Record<string, string[]> = {
  * These expand candidates only: callers must still validate category and package size.
  */
 export const BASKET_SEARCH_ALIASES: Record<string, string[]> = {
+  "päärynä 1kg": ["päärynä", "conference"],
   "kananmuna 10kpl": ["kananmuna", "kananmunat"],
   "banaani 1kg": ["banaani"],
   "omena 1kg": ["omena"],
-  "appelsiini 1kg": ["appelsiini"],
-  "tomaatti 500g": ["tomaatti"],
-  "paprika 500g": ["paprika"],
+  "appelsiini 1kg": ["appelsiini", "navel", "appelsiini irto"],
+  "tomaatti 500g": ["tomaatti", "tomaatti irto"],
+  "paprika 500g": ["paprika", "punainen paprika", "paprika vihreä"],
   "ruokakerma 2dl": ["ruokakerma"],
   "juusto 1kg": ["juusto"],
   "parsakaali 400g": ["parsakaali"],
@@ -33,7 +34,7 @@ export const BASKET_SEARCH_ALIASES: Record<string, string[]> = {
   "kidneypavut 380g": ["kidneypavut", "kidneypapu"],
   "kikherneet 380g": ["kikherne", "kikherneet"],
   "kurkkusalaatti 400g": ["kurkkusalaatti"],
-  "perunalastut 200g": ["perunalastut", "sipsit"],
+  "perunalastut 200g": ["perunalastut", "sipsit", "perunalastu"],
   "pakasteherneet 200g": ["pakasteherneet", "herne pakaste"],
   "ranskalaiset perunat 500g": ["ranskanperunat", "ranskalaiset pakaste"],
   "porsaan ulkofile 500g": ["porsaan ulkofile"],
