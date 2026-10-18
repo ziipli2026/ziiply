@@ -104,6 +104,19 @@ jobs:
           const { createRequire } = await import('node:module');
           const require = createRequire(import.meta.url);
           const core = require('./.tmp-comparison-functional/ziiplyCore.js');
+          const mustReject = [
+            ['Arla 1% maito 1l', 'Koivulan Tilan maito 1l'],
+            ['Arla 1% maito 1l', 'Arla 3% maito 1l'],
+            ['HK Viljaporsaan jauheliha 10% 400g', 'Pirkka suomalainen kanan jauheliha 400g'],
+            ['Atria Kanan jauheliha 800 g', 'DIBO lammas raakapakastettu jauhelihapihvi 800g pakaste'],
+          ];
+          for(const [source,candidate] of mustReject){
+            if(core.isComparisonAttributeCompatible(source,candidate)){
+              console.error('FAIL semantic counterpart',JSON.stringify({source,candidate}));
+              process.exit(1);
+            }
+            console.log('PASS semantic counterpart rejection',JSON.stringify({source,candidate}));
+          }
           const terms=['maito','jauheliha','kananmuna'];
           let total=0,errors=[];
           async function load(chain,term){
