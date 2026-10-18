@@ -21,7 +21,10 @@ jobs:
           const file = fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx', 'utf8');
           assert(!file.includes('tuotetta / ${visibleStores.length} kauppaa'), 'Basket count subtitle still visible');
           assert(file.includes('"flex-1 basis-0"'), 'Cards must have equal flex basis');
-          assert(file.includes('absolute bottom-[1.8rem] left-5 right-5'), 'Debug must be at paper bottom');
+          assert(file.includes('absolute bottom-[0.4rem] right-5'), 'Debug must be at paper bottom');
+          assert(file.includes('open:w-[calc(100%-2.5rem)]'), 'Debug must expand only when opened');
+          assert(file.includes('ml-[0.5rem]'), 'Title must leave the Pvm line visible');
+          assert(file.includes('pb-[2.5rem]'), 'Cards must use paper height');
           assert(file.includes('pt-[4.1rem]'), 'Title is not aligned with paper header');
           for (const count of [2,3,4]) {
             const available = 600 - 45 - 67 - (count - 1) * 6;
