@@ -1,0 +1,36 @@
+name: K-chain EAN field diagnostic
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect EAN fields in K-chain search responses (read-only)
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          const base='https://api.ruoanhinta.fi/api';
+          const output={timestamp:new Date().toISOString(),mode:'read-only',chains:{}};
+          for(const chain of ['K-Market','K-Supermarket']){
+            const stores=await (await fetch(base+'/stores?search='+encodeURIComponent(chain))).json();
+            const list=Array.isArray(stores)?stores:stores.items||[];
+            const store=list.find(x=>String(x.name||'').startsWith(chain)&&!x.delistedAt);
+            if(!store)throw Error('No store: '+chain);
+            const res=await fetch(base+'/items?search=maito&storeIds='+encodeURIComponent(store.id)+'&skip=0&take=10');
+            if(!res.ok)throw Error(chain+' HTTP '+res.status);
+            const data=await res.json();
+            const rows=Array.isArray(data)?data:data.items||[];
+            const samples=rows.slice(0,5).map(x=>({name:x.name,keys:Object.keys(x),identifiers:Object.fromEntries(Object.entries(x).filter(([k])=>/ean|gtin|barcode|code|external|id/i.test(k))),storeItemKeys:Object.keys(x.storeItems?.[0]||{})}));
+            output.chains[chain]={store:store.name,returned:rows.length,samples};
+            console.log(chain+' returned '+rows.length+' samples '+JSON.stringify(samples));
+          }
+          writeFileSync('k-chain-ean-diagnostic.json',JSON.stringify(output,null,2));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k-chain-ean-diagnostic
+          path: k-chain-ean-diagnostic.json
