@@ -1,0 +1,51 @@
+name: Ziiply comparison full regression
+on:
+  workflow_dispatch:
+jobs:
+  comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Compile app and comparison types
+        run: npx tsc --noEmit --pretty false
+      - name: Run existing comparison price-unit audit
+        run: node scripts/audit-comparison-price-units-20261002.cjs
+      - name: Run existing comparison test scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t scripts < <(find scripts -maxdepth 2 -type f \( -iname '*compar*test*.cjs' -o -iname '*compar*regression*.cjs' -o -iname '*compar*audit*.cjs' -o -iname '*compar*test*.mjs' \) | sort)
+          printf 'Found %s comparison scripts\n' "${#scripts[@]}"
+          for script in "${scripts[@]}"; do
+            echo "::group::$script"
+            node "$script"
+            echo "::endgroup::"
+          done
+      - name: Verify current comparison search contracts
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const page = fs.readFileSync('src/app/page.tsx','utf8');
+          const card = fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileCompareSelectionCard.tsx','utf8');
+          const assert = (ok, msg) => { if (!ok) { console.error('FAIL',msg); process.exitCode=1; } else console.log('PASS',msg); };
+          const fn = page.slice(page.indexOf('function fetchAlternativesForMatch('),page.indexOf('async function loadAlternatives('));
+          assert(fn.length > 2000, 'alternative search function exists');
+          assert(fn.includes('productGroupGate(sourceName, product.name)'), 'both chain searches apply product-group gate');
+          assert((fn.match(/isCheapestAttributeCompatible\(sourceName, product.name\)/g)||[]).length >= 2, 'S and K preserve key attributes and pack size');
+          assert((fn.match(/isAllowedByQualityMode\(/g)||[]).length >= 2, 'S and K apply quality/brand rules');
+          assert(fn.includes('alternativeKStoreId'), 'K alternatives target selected store');
+          assert(page.includes('const comparisonSourceEan = normalizeEan(item.ean || item.product?.ean);'), 'basket EAN takes priority');
+          assert(page.includes('return alternatives.filter((candidate) =>'), 'menu results have final compatibility gate');
+          assert(card.includes('filterComparisonAlternatives('), 'UI filters alternative brands');
+          assert(card.includes('return data.price;'), 'line price is not multiplied by quantity twice');
+          assert(page.includes('price: Math.round(match.price * 100)'), 'euro-to-cent conversion happens at comparison boundary');
+          if (process.exitCode) process.exit(process.exitCode);
+          console.log('SAFE_SUMMARY comparison contracts passed');
+          NODE
