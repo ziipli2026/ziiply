@@ -25,7 +25,7 @@ jobs:
           assert(file.includes('open:w-[calc(100%-2.5rem)]'), 'Debug must expand only when opened');
           assert(file.includes('left-[8%] top-[13.4%]'), 'Title must sit left of the Pvm line');
           assert(file.includes('top-[22%] bottom-[7%]'), 'Cards must fill the marked paper region');
-          assert(file.includes('pt-[4.1rem]'), 'Title is not aligned with paper header');
+          assert(file.includes('absolute inset-0 z-10 overflow-hidden'), 'Paper layout must use absolute positioning');
           for (const count of [2,3,4]) {
             const available = 600 - 45 - 67 - (count - 1) * 6;
             const height = available / count;
