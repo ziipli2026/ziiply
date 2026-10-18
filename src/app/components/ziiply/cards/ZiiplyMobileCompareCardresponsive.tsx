@@ -61,6 +61,43 @@ function formatEuro(value?: number | null) {
   return `${euros.toFixed(2).replace(".", ",")} €`;
 }
 
+// Repair only proven 100x cent-price mismatches from legacy comparison matches.
+// Preserve already-correct matches, quantities and unrelated price units.
+function normalizeComparisonStorePrices(store: ZiiplyCompareStore): ZiiplyCompareStore {
+  if (!store.matches?.length) return store;
+  let correction = 0;
+  let changed = false;
+  const matches = store.matches.map((entry) => {
+    const match = entry as {
+      price?: number;
+      quantity?: number;
+      product?: { price?: number; priceAmountUnit?: string; storeItems?: Array<{ price?: number }> };
+    };
+    const product = match?.product;
+    const raw = Number(product?.storeItems?.[0]?.price ?? product?.price);
+    const quantity = Number(match?.quantity ?? 1);
+    const actual = Number(match?.price);
+    if (
+      product?.priceAmountUnit === "cent" &&
+      Number.isFinite(raw) && raw > 0 &&
+      Number.isFinite(quantity) && quantity > 0 &&
+      Number.isFinite(actual) &&
+      Math.abs(actual - raw * quantity * 100) < 0.001
+    ) {
+      const corrected = Math.round(raw * quantity);
+      correction += actual - corrected;
+      changed = true;
+      return { ...match, price: corrected };
+    }
+    return entry;
+  });
+  return changed ? {
+    ...store,
+    matches,
+    totalPrice: typeof store.totalPrice === "number" ? Math.max(0, store.totalPrice - correction) : store.totalPrice,
+  } : store;
+}
+
 function getCheapestStore(stores: ZiiplyCompareStore[]) {
   return [...stores]
     .filter((store) => typeof store.totalPrice === "number")
@@ -283,7 +320,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   if (!open) return null;
 
-  const visibleStores = stores;
+  const visibleStores = stores.map(normalizeComparisonStorePrices);
   // V780: kun valitut kaupat tunnetaan, näytä heti oikeat lopullisen muotoiset kortit.
   // Lataus täydentää niihin vain hinnat/määrät ym.; vanhaa erillistä skeleton-korttia käytetään vain jos kauppoja ei vielä tunneta.
   const showSkeleton = visibleStores.length === 0;
