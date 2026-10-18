@@ -3430,11 +3430,37 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   }
   if (/\bvoi\b/.test(source) && !/\bvoi\b/.test(candidate)) return false;
   if (/\bpasta\b/.test(source) && /\b(karkki|makeinen|haribo)\b/.test(candidate)) return false;
-  const meat = ["kana","broileri","porsas","sika","nauta","kalkkuna","lammas"];
-  const meats = (name: string) => meat.filter((m) => new RegExp("\\b" + m + "[a-z]*").test(name));
-  const sourceMeat = meats(source);
-  const candidateMeat = meats(candidate);
-  if (sourceMeat.length && candidateMeat.length && !sourceMeat.some((m) => candidateMeat.includes(m) || (m === "kana" && candidateMeat.includes("broileri")) || (m === "broileri" && candidateMeat.includes("kana")) || (m === "porsas" && candidateMeat.includes("sika")) || (m === "sika" && candidateMeat.includes("porsas")))) return false;
+
+  // Identify meat species from names before selecting the cheapest product.
+  // Only compare the same species. Chicken/broiler and pork/pig are synonyms,
+  // but beef, pork, chicken, turkey and lamb are never interchangeable.
+  const meatSpecies = (name: string): string[] => {
+    const found = new Set<string>();
+    if (/\b(?:kana(?:n)?|broiler(?:i|in)?|broilerin)\b/.test(name)) found.add("chicken");
+    if (/\b(?:pors(?:as|aan|asta)?|viljapors\w*|sika(?:n)?|poss(?:u|un)?)\b/.test(name)) found.add("pork");
+    if (/\b(?:nauta(?:n)?|naud(?:an)?|harka(?:n)?|sonni(?:n)?)\b/.test(name)) found.add("beef");
+    if (/\b(?:kalkkuna(?:n)?)\b/.test(name)) found.add("turkey");
+    if (/\b(?:lammas|lampaan|lammasta)\b/.test(name)) found.add("lamb");
+    return [...found].sort();
+  };
+  const sourceSpecies = meatSpecies(source);
+  const targetSpecies = meatSpecies(candidate);
+  if (sourceSpecies.length && (targetSpecies.length !== sourceSpecies.length ||
+      sourceSpecies.some((species, i) => species !== targetSpecies[i]))) return false;
+
+  // A plain ground-meat item must not be replaced by a ready-made patty.
+  if (/\bjauheliha\b/.test(source) && !/\bjauheliha\b/.test(candidate)) return false;
+  if (/\bjauheliha\b/.test(source) && /\b(?:jauhelihapihvi|pihvi|pyorykka|burger|kastike|ateria)\b/.test(candidate)) return false;
+
+  // Preserve explicit milk fat percentage. "1 % maito" is not just any milk.
+  const milkFat = (name: string) => {
+    if (!/\bmaito\b/.test(name)) return null;
+    const match = name.match(/\b(\d+(?:[,.]\d+)?)\s*%/);
+    return match ? Number(match[1].replace(",", ".")) : null;
+  };
+  const sourceMilkFat = milkFat(source);
+  if (sourceMilkFat !== null && milkFat(candidate) !== sourceMilkFat) return false;
+
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
   if (sourceSize && (!candidateSize || sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
@@ -3452,6 +3478,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\bab.piima\b/.test(source) !== /\bab.piima\b/.test(candidate)) return false;
   return !isHardRejectedAlternative(sourceName, candidateName);
 }
+
 
 export function pickCheapestCompatibleComparisonProduct<T extends { name: string; price: number }>(
   sourceName: string,
