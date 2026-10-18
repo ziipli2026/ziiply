@@ -47,6 +47,8 @@ jobs:
           git show FETCH_HEAD:publications/43AV/parser-evidence.json > /tmp/43av-evidence.json
           git show FETCH_HEAD:publications/43AV/publisher-responses.json > /tmp/43av-responses.json
           git show FETCH_HEAD:publications/43AV/leaflet.pdf > /tmp/43av-leaflet.pdf
+      - name: Install PDF inspection tools
+        run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
       - name: Inspect original printed PDF page 7
         run: |
           pdfinfo /tmp/43av-leaflet.pdf | grep -E 'Pages:|Page size:'
