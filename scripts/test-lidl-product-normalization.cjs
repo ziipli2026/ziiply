@@ -33,4 +33,12 @@ assert.equal(score("Juusto 500 g","maito"),0);
 assert.match(source,/\.filter\(\(product\) => getPrice\(product\) > 0\)/);
 assert.match(source,/comparisonPriceUnit: product\.storeItems\?\.\[0\]\?\.comparisonPriceUnit/);
 assert.match(source,/priceVerified: false/);
+// Source contract: do not fabricate pack sizes or €/kg, €/l values.
+assert.match(source,/comparisonPrice: product\.storeItems\?\.\[0\]\?\.comparisonPrice \?\? undefined/);
+assert.match(source,/comparisonPriceUnit: product\.storeItems\?\.\[0\]\?\.comparisonPriceUnit \?\? undefined/);
+assert.match(source,/price: getPrice\(product\)/);
+assert.doesNotMatch(source,/comparisonPrice:\s*(?:getPrice\(product\)|(?:Math\.)?round\()/);
+assert.doesNotMatch(source,/packSize:\s*(?:parseFloat|Number)\(/);
+assert.match(source,/\.sort\(\(a, b\) => lidlSearchScore\(b, search\) - lidlSearchScore\(a, search\)\)/);
+
 console.log("Lidl product search GTIN, source, encoding and price contract: PASS");
