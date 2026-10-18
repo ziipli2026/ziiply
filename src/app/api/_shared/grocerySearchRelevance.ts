@@ -13,6 +13,10 @@ const RULES: Record<string, {strong: RegExp; secondary?: RegExp; weak: RegExp}> 
   porkkana: {strong:/\bporkkana\b/,weak:/porkkana[- ]?(leipä|sämpylä|mehu|kakku)/},
   tomaatti: {strong:/\btomaatti\b/,weak:/tomaatti[- ]?(kastike|pizza|pasta|keitto)/},
   leipä: {strong:/\b(leipä|ruisleipä|paahtoleipä|limppu)\b/,weak:/\b(leipomo|leipäveitsi|leipäkori)\b/},
+  vesi: {strong:/\b(kivennäisvesi|lähdevesi|juomavesi|mineraalivesi)\b|(?:^|\\s)vesi(?:\\s|$)/,weak:/vesi[- ]?(ilmapallo|maitotutti|pistooli|lelu)|vesimeloni/},
+  kaakao: {strong:/kaakao(jauhe|juoma|maito)|(?:^|\\s)kaakao(?:\\s|$)/,weak:/kaakao[- ]?(keksi|muro|vanilja|vohveli|banaani|vadelma)|shampoo|hoitoaine/},
+  rahka: {strong:/(?:^|\\s)rahka(?:\\s|$)|maitorahka|proteiinirahka/,weak:/rahka[- ]?(pulla|piirakka|kakku|kranssi)|hillopitko|täytepulla/},
+  suklaa: {strong:/suklaa(levy|patukka|konvehti)|(?:^|\\s)suklaa(?:\\s|$)/,weak:/suklaa[- ]?(kakku|jäätelö|rahka|muffinssi|levite|keksi|riisi|kaura|banaani)|suklaa-appelsiini/},
   broileri: {strong:/\b(broileri|broilerin|broilerifilee|broilerisuikale)\b/,weak:/wrap|pizza|patonki|salaatti|pasta|keitto/},
 };
 const ALIASES: Record<string,string> = {kahvit:"kahvi",jogurtit:"jogurtti",maidot:"maito",lohet:"lohi",banaanit:"banaani",perunat:"peruna",porkkanat:"porkkana",tomaatit:"tomaatti",leivät:"leipä",broilerit:"broileri"};
@@ -60,6 +64,22 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       if(notBread.test(name))value-=350;
       // A bakery brand containing "Leipä" is not itself proof of bread.
       if(/^(?:kartanon|pekan|laitilan) leipä /.test(name)&&!/(rouhepalat|ruispalat|ruisleipä|paahtoleipä|sämpylä|limppu|viipaleet)/.test(name))value-=130;
+    }
+    if(canonical==="vesi"){
+      if(/vesi-ilmapallo|vesi-maitotutti|vesi- ja maitotutti|vesipistooli|vesilelu|vesimeloni/.test(name))value-=300;
+      if(/lähdevesi|kivennäisvesi|mineraalivesi|juomavesi|vitaminoitu vesi|vitaminisoitu vesi/.test(name))value+=170;
+    }
+    if(canonical==="kaakao"){
+      if(/kaakaojauhe|kaakaojuoma|kaakaojuomajauhe|juomakaakao|tumma kaakao|raakakaakao|flow-kaakao/.test(name))value+=180;
+      if(/keksi|muro|vohveli|ohukainen|pulla|puuro|välipala|shampoo|hoitoaine|suihkugeeli/.test(name))value-=180;
+    }
+    if(canonical==="rahka"){
+      if(/maitorahka|pehmeä rahka|proteiinirahka|(?:^|\\s)rahka(?:\\s|$)/.test(name)&&!/pulla|piirakka|kakku|kranssi|hillopitko|ohukainen/.test(name))value+=160;
+      if(/pulla|piirakka|kakku|kranssi|hillopitko|leivos|täyte/.test(name))value-=200;
+    }
+    if(canonical==="suklaa"){
+      if(/suklaalevy|suklaapatukka|maitosuklaa|tummasuklaa|tumma suklaa|valkosuklaa|konvehti|suklaa \\d{2,3}\s?g/.test(name))value+=190;
+      if(/kakku|jäätelö|levite|muffinssi|keksi|rahkalettu|riisipala|kaurapala|pikkuleipä|täyte/.test(name))value-=170;
     }
     if(canonical==="broileri"){
       if(/broiler/.test(name)&&!/wrap|patonki|pizza|salaatti|voileipä|kolmari/.test(name))value+=60;
