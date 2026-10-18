@@ -111,6 +111,8 @@ jobs:
             ['HK Viljaporsaan jauheliha 10% 400g', 'Pirkka suomalainen kanan jauheliha 400g'],
             ['HK Viljaporsaan jauheliha 10% 400g', 'Pirkka suomalainen porsaan jauheliha 12% 400g'],
             ['Pirkka suomalainen porsaan jauheliha 12% 400g', 'HK Viljaporsaan jauheliha 10% 400g'],
+            ['Tammiston nauta-sika jauheliha', 'Snellman 400g Kunnon sika-nauta jauheliha'],
+            ['Snellman 400g Kunnon sika-nauta jauheliha', 'Tammiston nauta-sika jauheliha'],
             ['Atria Kanan jauheliha 800 g', 'DIBO lammas raakapakastettu jauhelihapihvi 800g pakaste'],
           ];
           for(const [source,candidate] of mustReject){
