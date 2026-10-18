@@ -3451,7 +3451,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
       ?? candidateName.match(/\b(\d{1,2})\s*(?:kpl|pcs)\b/i);
     // Egg weight in grams is descriptive, not the requested package size.
     // A 10-egg pack may weigh 530g or 580g; compare its count instead.
-    return Boolean(eggPack) && Number(eggPack[1]) === Number(eggCount)
+    return eggPack !== null && Number(eggPack[1]) === Number(eggCount)
       && /\b(?:kananmuna|kananmunat|munat)\b/.test(candidate)
       && !/(?:valkuainen|leikkuri|koiran|kissan|mousse)/.test(candidate);
   }
