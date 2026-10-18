@@ -555,6 +555,25 @@ export default function ZiiplyMobileScannerCard({
             aria-hidden="true"
           />
 
+          {/* Only show the framing window after a possible discount sticker
+              has been detected; normal EAN scanning remains unobstructed. */}
+          {onCaptureDiscountSticker && redStickerCandidateV864 && !cameraOverlay && !loading && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.20),inset_0_0_12px_rgba(255,230,165,0.10)] transition-all duration-200"
+              style={{
+                left: `${Math.max(4, Math.min(96 - Math.min(stickerBounds.width, 55), stickerBounds.left))}%`,
+                top: `${Math.max(4, Math.min(96 - Math.min(stickerBounds.height, 55), stickerBounds.top))}%`,
+                width: `${Math.min(stickerBounds.width, 55)}%`,
+                height: `${Math.min(stickerBounds.height, 55)}%`,
+              }}
+            >
+              <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/55 px-2 py-1 text-[11px] font-semibold text-amber-100">
+                Alennustarra tähän
+              </span>
+            </div>
+          )}
+
           {/* V593: palauteväläys vain kameraruudun/skanneri-ikkunan sisällä */}
           <div
             className={[
