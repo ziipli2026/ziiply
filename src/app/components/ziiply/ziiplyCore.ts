@@ -3428,8 +3428,8 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
     const token = new RegExp("\\b" + item + "\\b");
     if (token.test(source) && !processed.test(source) && (!token.test(candidate) || processed.test(candidate))) return false;
   }
-  if (/\bvoi\\b/.test(source) && !/\bvoi\\b/.test(candidate)) return false;
-  if (/\bpasta\\b/.test(source) && /\b(karkki|makeinen|haribo)\b/.test(candidate)) return false;
+  if (/\bvoi\b/.test(source) && !/\bvoi\b/.test(candidate)) return false;
+  if (/\bpasta\b/.test(source) && /\b(karkki|makeinen|haribo)\b/.test(candidate)) return false;
   const meat = ["kana","broileri","porsas","sika","nauta","kalkkuna","lammas"];
   const meats = (name: string) => meat.filter((m) => new RegExp("\\b" + m + "[a-z]*").test(name));
   const sourceMeat = meats(source);
