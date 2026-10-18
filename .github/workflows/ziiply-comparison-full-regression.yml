@@ -149,7 +149,15 @@ jobs:
                 else {
                   const sizePattern=/\b\d+(?:[,.]\d+)?\s*(?:kg|g|l|ml)\b/i;
                   const sameSizeCandidates=target.filter(p=>sizePattern.test(p.name)===sizePattern.test(product.name));
-                  unmatchedAudit.push({term,direction,source:product.name,sourceHasSize:sizePattern.test(product.name),candidateCount:target.length,sameSizeNameCount:sameSizeCandidates.length});
+                  const lexicalTokens=name=>new Set(name.toLowerCase().replace(/[^a-zåäö0-9]+/g,' ').split(' ').filter(t=>t.length>=3&&!/^(?:400|300|500|600|700|800|100|200)$/.test(t)));
+                  const sourceTokens=lexicalTokens(product.name);
+                  const nearby=target.map(p=>{
+                    const tokens=lexicalTokens(p.name);
+                    const shared=[...sourceTokens].filter(t=>tokens.has(t)).length;
+                    const overlap=shared/Math.max(1,Math.min(sourceTokens.size,tokens.size));
+                    return {name:p.name,price:p.price,overlap:Number(overlap.toFixed(3)),compatible:core.isComparisonAttributeCompatible(product.name,p.name)};
+                  }).filter(p=>p.overlap>=0.25).sort((a,b)=>b.overlap-a.overlap).slice(0,3);
+                  unmatchedAudit.push({term,direction,source:product.name,sourceHasSize:sizePattern.test(product.name),candidateCount:target.length,sameSizeNameCount:sameSizeCandidates.length,nearby});
                 }
               }
               total+=matched;
@@ -174,6 +182,7 @@ jobs:
           }
           console.log('UNMATCHED_AUDIT_SUMMARY',JSON.stringify({count:unmatchedAudit.length,missingSourceSize:unmatchedAudit.filter(x=>!x.sourceHasSize).length,byTerm:Object.fromEntries(terms.map(t=>[t,unmatchedAudit.filter(x=>x.term===t).length])),byProductKind:grouped}));
           for(const row of unmatchedAudit.filter(x=>classifyUnmatched(x)==='plain_milk'||classifyUnmatched(x)==='plain_ground_meat'||classifyUnmatched(x)==='plain_eggs').slice(0,35))console.log('UNMATCHED_CORE_PRODUCT',JSON.stringify(row));
+          console.log('UNMATCHED_CORE_NEARBY_COUNT',JSON.stringify({withCandidates:unmatchedAudit.filter(x=>['plain_milk','plain_ground_meat','plain_eggs'].includes(classifyUnmatched(x))&&x.nearby.length).length}));
           for(const row of unmatchedAudit.slice(0,35))console.log('UNMATCHED_AUDIT_SAMPLE',JSON.stringify(row));
           if(!total)errors.push('No compatible cross-chain matches in any tested family');
           if(errors.length){console.error('LIVE_COUNTERPART_ISSUES',JSON.stringify(errors));process.exit(1);}
