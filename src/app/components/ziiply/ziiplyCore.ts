@@ -3458,6 +3458,8 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
     // Require both species and cut/type; reject cartoon-character pasta.
     [/porsaan ulkofile/, /(?:porsaan?\s+ulkofile|porsas\s+ulkofile|ulkofile\s+(?:porsaan|porsas|sika)|viljaporsaan?\s+ulkofile|pork\s+loin)/],
     [/naudan jauheliha/, /(?:(?:naudan?|nauta)\s+jauheliha|jauheliha\s+(?:naudan?|nauta)|beef\s+mince)/],
+    [/ruisjauho/, /(?:ruisjauho|ruisjauhot|rye flour)/],
+    [/vehnäjauho|vehnajauho/, /(?:vehnäjauho|vehnajauho|wheat flour)/],
     [/ruokakerma/, /(?:ruokakerma|ruoanvalmistuskerma|kasviruoka|kaurakerma)/],
     [/(?:^|\s)juusto(?:\s|$)/, /(?:juusto|emmental|edam|gouda|cheddar)/],
     [/parsakaali/, /(?:parsakaali|broccoli)/],
