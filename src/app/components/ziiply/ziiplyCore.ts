@@ -3429,6 +3429,9 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\b(?:nestesaippua|saippua)\b/.test(source) && !/\b(?:nestesaippua|kasisaippua|kasienpesuneste|saippua)\b/.test(candidate)) return false;
   if (/\b(?:nestesaippua|saippua)\b/.test(source) && /\b(?:pesuvoide|suihkugeeli|shampoo|astianpesuaine)\b/.test(candidate)) return false;
   if (/\bshampoo\b/.test(source) && !/\b(?:shampoo|sampoo)\b/.test(candidate)) return false;
+  // A weight match alone does not make an unrelated food a biscuit.
+  if (/\b(?:kaurakeksi|keksi|keksit)\b/.test(source) &&
+      !/\b(?:kaurakeksi|keksi|keksit|keksia|cookies|biscuit)\b/.test(candidate)) return false;
   // Reject misleading cross-category substitutes in basket comparisons.
   // A named product category must remain the same, not merely share a word.
   if (/\b(?:voi|voita)\b/.test(source) && !/\b(?:voi|voita)\b/.test(candidate)) return false;
