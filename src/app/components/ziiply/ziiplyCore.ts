@@ -3584,7 +3584,17 @@ export function pickCheapestCompatibleComparisonProduct<T extends { name: string
   sourceName: string,
   candidates: T[],
 ): T | undefined {
-  return candidates
-    .filter((candidate) => Number(candidate.price) > 0 && isComparisonAttributeCompatible(sourceName, candidate.name))
-    .sort((a, b) => a.price - b.price)[0];
+  const compatible = candidates.filter(
+    (candidate) => Number(candidate.price) > 0 && isComparisonAttributeCompatible(sourceName, candidate.name),
+  );
+  // For generic nuts, compare ordinary nuts first. Flavoured snack nuts
+  // are fallback options only when no plain nuts are available.
+  if (/(?:pähkin|pahkin|nut mix|nuts)/.test(normalize(sourceName)) &&
+      !/(?:chili|wasabi|mauste|suola|salted|spicy)/.test(normalize(sourceName))) {
+    const plain = compatible.filter((candidate) =>
+      !/(?:chili|wasabi|maust|spicy|bbq|barbecue|sourcream|hunaja|honey|suklaa|chocolate)/.test(normalize(candidate.name)),
+    );
+    if (plain.length) return plain.sort((a, b) => a.price - b.price)[0];
+  }
+  return compatible.sort((a, b) => a.price - b.price)[0];
 }
