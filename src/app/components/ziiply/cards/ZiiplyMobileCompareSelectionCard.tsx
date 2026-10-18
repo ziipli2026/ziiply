@@ -356,14 +356,14 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   if (requestId === alternativeRequestRef.current) setAlternativeMenu({ key, mode, items: [], loading: false });
                                 }
                               }}
-                              className={`min-h-[2.05rem] rounded-[0.72rem] border-2 px-1.5 py-1 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
+                              className={`min-h-[2.35rem] min-w-0 rounded-[0.72rem] border-2 px-1 py-1 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
                                 active
                                   ? "border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] text-[#fff6d7]"
                                   : "border-[#876b37] bg-[#efe1bd] text-[#28402a]"
                               }`}
                               title={label}
                             >
-                              <div className="text-[0.57rem] font-black uppercase leading-[1.08] tracking-[0.025em]">
+                              <div className="break-words text-[0.68rem] font-black leading-[1.15] tracking-normal">
                                 {active ? "✓ " : ""}
                                 {mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : mode === "same_brand" ? getProductBrandExample(item) : label}
                               </div>
@@ -387,10 +387,10 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   });
                                   setAlternativeMenu(null);
                                 }}
-                                className="mb-1.5 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-3 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-3 py-2.5 text-left last:mb-0"
+                                className="mb-1.5 grid w-full min-w-0 grid-cols-[minmax(0,1fr)_4.5rem] items-center gap-2 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-2.5 py-2 text-left last:mb-0"
                               >
-                                <span className="line-clamp-3 min-w-0 whitespace-normal break-words text-[0.69rem] font-black leading-[1.2] text-[#28402a]">{getItemName(alternative)}</span>
-                                <span className="text-right text-[0.67rem] font-black text-[#3e301c]">{formatComparePrice(alternative.price ?? alternative.product?.price)}</span>
+                                <span className="line-clamp-3 min-w-0 whitespace-normal break-words text-[0.79rem] font-black leading-[1.25] text-[#28402a]">{getItemName(alternative)}</span>
+                                <span className="whitespace-nowrap text-right text-[0.76rem] font-black text-[#3e301c]">{formatComparePrice(alternative.price ?? alternative.product?.price)}</span>
                               </button>
                             ))}
                           </div>
