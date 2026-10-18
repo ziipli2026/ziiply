@@ -1656,7 +1656,8 @@ if(out.rows.some(r=>r.page===7&&/VITAMIINIVEDET 1,5 l\/pl/i.test(r.title||''))){
   if(!sport&&!vitamin)return row;
   const printed=sport?5:3.7,quantity=sport?3:2;
   const evidence=[row.debugCardPrice,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean);
-  const hasGlyph=evidence.some(e=>Math.abs(Number(e.value)-printed)<.005);
+  const hasGlyph=evidence.some(e=>Math.abs(Number(e.value)-printed)<.005)||
+   (sport&&(row.debugNearbyBoxes||[]).some(b=>String(b.text).trim()==='5'&&Number(b.height)>=.10&&Math.abs(Number(b.left)-Number(row.debugCardAnchor?.left))<.025));
   const ownedRate=sport?2.16:.97;
   if(!hasGlyph||Math.abs(Number(row.unitPrice?.min)-ownedRate)>.005)return row;
   return {...row,spatialResolved:{value:printed,quantity,unit:'PL',
