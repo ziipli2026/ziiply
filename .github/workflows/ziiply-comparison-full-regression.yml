@@ -241,11 +241,17 @@ jobs:
               await capture(stage);
             }else snapshots.push({stage,skipped:'No visible matching control'});
           }
+          const stages=['search-card','cart-card','compare-card'];
+          const opened=stages.filter(stage=>snapshots.some(s=>s.stage===stage&&Array.isArray(s.controls)));
+          const skipped=stages.filter(stage=>!opened.includes(stage));
+          const coverage={opened,skipped,allViewsReached:skipped.length===0};
+          writeFileSync('comparison-ui-artifacts/interaction-coverage.json',JSON.stringify(coverage,null,2));
+          console.log('INTERACTION_COVERAGE',JSON.stringify(coverage));
           writeFileSync('comparison-ui-artifacts/interaction-discovery.json',JSON.stringify({snapshots,errors},null,2));
           console.log('INTERACTION_DISCOVERY',JSON.stringify(snapshots.map(s=>({stage:s.stage,skipped:s.skipped,controls:s.controls?.slice(0,18)}))));
           await browser.close();
           if(errors.length)throw Error('Browser errors: '+errors.join('; '));
-          console.log('SAFE_SUMMARY exploratory mobile navigation completed; skipped stages are NOT verified end-to-end');
+          console.log('SAFE_SUMMARY navigation discovery only; views reached:',opened.length,'/',stages.length,'; skipped views are NOT verified');
           NODE
       - name: Upload mobile UI screenshot
         if: always()
