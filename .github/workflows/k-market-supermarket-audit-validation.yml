@@ -1,0 +1,32 @@
+name: Validate K-market audit workflow syntax
+on:
+  push:
+    branches: [fix/k-market-supermarket-audit-workflow]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate embedded audit JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/k-market-supermarket-mass-audit.yml').read_text()
+          start=text.index("          node --input-type=module <<'NODE'")+len("          node --input-type=module <<'NODE'")
+          end=text.index("\n          NODE",start)
+          Path('/tmp/k-market-audit.mjs').write_text("\n".join(line[10:] for line in text[start:end].splitlines())+"\n")
+          PY
+          node --check /tmp/k-market-audit.mjs
+      - name: Verify no duplicated YAML tail
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('.github/workflows/k-market-supermarket-mass-audit.yml').read_text()
+          assert s.count("name: Upload audit report")==1
+          assert s.count("const ean=priced.filter")==1
+          assert s.count("NODE")==2
+          print("K-market workflow structural checks passed")
+          PY
