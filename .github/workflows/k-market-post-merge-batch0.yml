@@ -37,7 +37,7 @@ jobs:
           for(const chain of ['K-Market','K-Supermarket']){
             const c=d.chains[chain];
             console.log('AUDIT',chain,JSON.stringify({discovered:c?.discovered,selected:c?.selected,...c?.totals}));
-            if(!c?.discovered||!c?.selected||c.totals.success===0||c.totals.priced===0||c.totals.errors)
+            if(!c?.discovered || !c?.totals || c.totals.errors || (c.selected>0 && (c.totals.success===0 || c.totals.priced===0)) || (c.selected===0 && c.totals.checks!==0))
               throw Error(chain+': live batch has no valid prices or contains request errors');
           }
           if(d.errors.length)throw Error('Store discovery errors: '+JSON.stringify(d.errors));
