@@ -3452,6 +3452,21 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/(?:pähkin|pahkin|nut mix|nuts)/.test(source) &&
       /(?:hedelm|karpalo|rusina|kuivattu marja|kuivatut marjat|cranberr|raisin|fruit mix|fruit and nut)/.test(candidate) &&
       !/(?:hedelm|fruit)/.test(source)) return false;
+  // A matching pack size cannot substitute a different grocery category.
+  // Keep these guards shared by live basket comparison and relevance auditing.
+  const requiredFamilies: Array<[RegExp, RegExp]> = [
+    [/ruokakerma/, /(?:ruokakerma|ruoanvalmistuskerma|kasviruoka|kaurakerma)/],
+    [/(?:^|\s)juusto(?:\s|$)/, /(?:juusto|emmental|edam|gouda|cheddar)/],
+    [/parsakaali/, /(?:parsakaali|broccoli)/],
+    [/kurkkusalaatti/, /kurkkusalaatti/],
+    [/(?:^|\s)sampyla(?:t|a)?(?:\s|$)/, /(?:sampyla|sampylat|sampylä)/],
+    [/kikherne/, /(?:kikherne|chickpea|garbanzo)/],
+    [/kidneypavu/, /(?:kidneypavu|kidneybean|kidney bean)/],
+    [/laktoositon maito/, /(?:maito|milk)/],
+  ];
+  for (const [request, allowed] of requiredFamilies) {
+    if (request.test(source) && !allowed.test(candidate)) return false;
+  }
   // Basket 5: package weight alone must never establish a food category.
   if (/(?:pakastepizza|pakastepitsa)/.test(source) &&
       !/(?:pizza|pitsa)/.test(candidate)) return false;
