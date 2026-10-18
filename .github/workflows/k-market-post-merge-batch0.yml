@@ -1,4 +1,4 @@
-name: K-market post-merge live mass audit sample
+name: K-market post-merge live mass audit batches 1-4
 on:
   push:
     branches: [audit/k-market-batch0-after-merge]
@@ -8,6 +8,11 @@ jobs:
   live-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        batch: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - name: Extract and syntax-check production audit script
@@ -22,7 +27,7 @@ jobs:
           node --check /tmp/k-market-audit.mjs
       - name: Run real production audit code against first 30 stores per chain
         env:
-          AUDIT_BATCH: '0'
+          AUDIT_BATCH: ${{ matrix.batch }}
         run: node /tmp/k-market-audit.mjs
       - name: Summarize report and assert live data integrity
         run: |
@@ -41,6 +46,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: k-market-post-merge-batch0
+          name: k-market-post-merge-batch-${{ matrix.batch }}
           path: k-market-supermarket-audit.json
           if-no-files-found: warn
