@@ -19,6 +19,14 @@ jobs:
           repo=os.environ['GH_REPOSITORY']
           base='https://api.github.com/repos/'+repo
           headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','User-Agent':'Ziiply-audit-summary'}
+          class SafeArtifactRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,req,fp,code,msg,headers,newurl):
+                  redirected=super().redirect_request(req,fp,code,msg,headers,newurl)
+                  if redirected:
+                      redirected.remove_header('Authorization')
+                      redirected.remove_header('Accept')
+                  return redirected
+          opener=urllib.request.build_opener(SafeArtifactRedirect())
           def api(path):
               req=urllib.request.Request(base+path,headers=headers)
               with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)
@@ -44,7 +52,7 @@ jobs:
           issues=[]
           for batch,a in sorted(selected.items()):
               req=urllib.request.Request(a['archive_download_url'],headers=headers)
-              with urllib.request.urlopen(req,timeout=40) as r:raw=r.read()
+              with opener.open(req,timeout=40) as r:raw=r.read()
               with zipfile.ZipFile(io.BytesIO(raw)) as z:
                   data=json.loads(z.read('k-market-supermarket-audit.json'))
               if data.get('errors'):issues.append({'batch':batch,'errors':data['errors']})
