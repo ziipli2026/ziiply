@@ -30,6 +30,7 @@ try {
  for(const [i,{ean}] of rows.entries()){
   try{
    const response=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(ean)+'.json?fields=code,product_name,nutriments,allergens_tags,traces_tags,labels_tags,ingredients_analysis_tags',{headers:{'User-Agent':'Ziiply/1.0 (https://ziiply.fi; nutrition research)'}});
+   if(response.status===404){notFound++;await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'not_found') ON CONFLICT(ean) DO UPDATE SET status='not_found',attempted_at=now(),error=NULL",[ean]);continue;}
    if(!response.ok)throw Error('HTTP '+response.status);
    const data=await response.json();
    if(data.status!==1||!data.product){notFound++;await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'not_found') ON CONFLICT(ean) DO UPDATE SET status='not_found',attempted_at=now(),error=NULL",[ean]);continue;}
@@ -45,4 +46,5 @@ ON CONFLICT (ean) DO UPDATE SET product_name=EXCLUDED.product_name,kcal_100g=EXC
   if(i<rows.length-1)await sleep(4200); // <= 15 product reads per minute
  }
  console.log(JSON.stringify({attempted:rows.length,matched,notFound,failed}));
+ if(failed>0)console.warn('Transient lookup failures will retry after 24 hours');
 }finally{await pool.end()}
