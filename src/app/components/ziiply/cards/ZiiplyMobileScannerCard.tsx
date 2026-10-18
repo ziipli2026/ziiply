@@ -171,11 +171,67 @@ export default function ZiiplyMobileScannerCard({
   }, [storeLocation?.verified, storeLocation?.name]);
 
 
-  // Never infer a discount sticker from packaging color alone.
-  // A sticker hint may only be enabled by the scanner after it has verified
-  // BOTH the orange sticker region and a non-standard discount barcode.
-  // Until that signal is wired, normal EAN decoding remains uninterrupted.
-  const redStickerCandidateV864 = false;
+  // EAN scanning always stays active. A discount hint needs BOTH an orange
+  // sticker-shaped region and barcode-like dark/light vertical transitions in
+  // that same region. Packaging color alone is never sufficient.
+  const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
+  useEffect(() => {
+    if (!onCaptureDiscountSticker) return;
+    let hits = 0;
+    const timer = window.setInterval(() => {
+      if (loading || cameraOverlay || manualInputOpen || flashState !== "idle" || selectionResults.length > 1) {
+        hits = 0;
+        setRedStickerCandidateV864(false);
+        return;
+      }
+      const video = document.getElementById(regionId)?.querySelector("video");
+      if (!video || video.readyState < 2 || !video.videoWidth) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 96;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+      try {
+        ctx.drawImage(video, 0, 0, 128, 96);
+        const data = ctx.getImageData(0, 0, 128, 96).data;
+        const orange = (x: number, y: number) => {
+          const i = (y * 128 + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          return r > 125 && g > 48 && g < r * 0.79 && b < g * 0.83;
+        };
+        // Detect a bounded orange patch in the center, not a scene-wide
+        // orange/red package. Inspect its interior for barcode-like stripes.
+        let count = 0, minX = 128, maxX = 0, minY = 96, maxY = 0;
+        for (let y = 18; y < 78; y += 2) for (let x = 24; x < 104; x += 2) {
+          if (!orange(x, y)) continue;
+          count++;
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        }
+        const bounded = count >= 90 && count <= 650 && maxX - minX >= 18 && maxY - minY >= 12 &&
+          minX > 26 && maxX < 102 && minY > 20 && maxY < 76;
+        let barcodeRows = 0;
+        if (bounded) {
+          for (let y = minY + 2; y <= maxY - 2; y += 3) {
+            let transitions = 0, previous = false;
+            for (let x = minX + 2; x <= maxX - 2; x++) {
+              const i = (y * 128 + x) * 4;
+              const dark = data[i] + data[i + 1] + data[i + 2] < 230;
+              if (x > minX + 2 && dark !== previous) transitions++;
+              previous = dark;
+            }
+            if (transitions >= 10) barcodeRows++;
+          }
+        }
+        hits = bounded && barcodeRows >= 3 ? Math.min(3, hits + 1) : 0;
+        setRedStickerCandidateV864(hits >= 2);
+      } catch {
+        hits = 0;
+        setRedStickerCandidateV864(false);
+      }
+    }, 550);
+    return () => window.clearInterval(timer);
+  }, [regionId, onCaptureDiscountSticker, loading, cameraOverlay, manualInputOpen, flashState, selectionResults.length]);
 
   const hasSelectionResults = selectionResults.length > 1;
 
