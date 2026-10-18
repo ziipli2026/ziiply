@@ -10,6 +10,11 @@ const forbiddenMatches=[
   ['päärynä 1kg','Havi päärynä pöytäkynttilä 1kpl/7x12cm'],
   ['porsaan ulkofile 500g','Melissa Pipsa Possu kuviopasta 500g'],
   ['ruisjauho 1kg','K-Menu tomaattiketsuppi 1kg'],
+  ['porkkana 1kg','Valiojogurtti 1kg porkkanakakku laktoositon'],
+  ['kurkkusalaatti 400g','Felix kurkkusalaatti 380g'],
+  ['perunalastut 200g','Oikia Tavis Timo perunalastut 250g'],
+  ['roskapussi 30l','Sanka-Bioska biojätekassi 30l 15kpl'],
+  ['porsaan ulkofile 500g','Pirkka suomalainen porsaan ulkofilee n.1,2kg'],
 ];
 const requiredMatches=[
   ['ruisjauho 1kg','Coop ruisjauho 1 kg'],
