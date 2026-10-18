@@ -213,8 +213,18 @@ export default function ZiiplyMobileCompareSelectionCard({
     if (!scroller) return;
     // Allow the last product to rise above the viewport only while its alternatives are open.
     const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-    const target = scroller.scrollTop + offset + Math.min(72, row.getBoundingClientRect().height * 0.38);
-    scroller.scrollTo({ top: target, behavior: "smooth" });
+    const menu = row.querySelector("[data-compare-alternatives]") as HTMLElement | null;
+    // Keep the opened result list visible in the embedded comparison card.
+    // The old fixed scroll offset could move the menu below the clipped viewport.
+    const viewport = scroller.getBoundingClientRect();
+    const targetRect = (menu || row).getBoundingClientRect();
+    const topOverflow = targetRect.top - viewport.top;
+    const bottomOverflow = targetRect.bottom - viewport.bottom;
+    if (topOverflow < 0) {
+      scroller.scrollTo({ top: Math.max(0, scroller.scrollTop + topOverflow - 8), behavior: "smooth" });
+    } else if (bottomOverflow > 0) {
+      scroller.scrollTo({ top: scroller.scrollTop + bottomOverflow + 8, behavior: "smooth" });
+    }
   }, [alternativeMenu]);
 
   if (!open) return null;
@@ -315,7 +325,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                           );
                         })}
                         {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className={`col-span-3 min-h-0 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 ${alternativeMenu.loading || alternativeMenu.items.length === 0 ? "py-0.5" : "h-[11.5rem] overflow-y-auto overscroll-contain [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"}`}>
+                          <div data-compare-alternatives className={`col-span-3 min-h-0 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 ${alternativeMenu.loading || alternativeMenu.items.length === 0 ? "py-0.5" : "max-h-[min(11.5rem,36dvh)] overflow-y-auto overscroll-contain [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"}`}>
                             {alternativeMenu.loading ? (
                               <div className="py-1 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
                             ) : alternativeMenu.items.length === 0 ? (
