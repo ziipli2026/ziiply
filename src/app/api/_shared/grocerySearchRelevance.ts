@@ -22,7 +22,7 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
   if(!rule)return items;
   const score=(item:T)=>{
     const name=fold(item.name), category=fold(item.category);
-    const pet=/lemmik|koira|kissa|koirille|kissoille|dog\b|cat\b|\blatz\b|\bpolar pet\b|\bprimadog\b|\bpedigree\b|\bwhiskas\b|\bpurina\b|\bcarnilove\b/.test(name+" "+category);
+    const pet=/lemmik|koira|kissa|koirille|kissoille|dog\b|cat\b|\blatz\b|\bpolar pet\b|\bprimadog\b|\bpedigree\b|\bwhiskas\b|\bpurina\b|\bcarnilove\b|\bvitakraft\b/.test(name+" "+category);
     const categoryMatch=category.includes(q)||category.includes(ALIASES[q]||q);
     let value=0;
     if(rule.strong.test(name))value+=30;
@@ -51,8 +51,12 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       if(/patukka|mysli|kastike|salaatti|jogurttirusina/.test(name))value-=100;
     }
     if(canonical==="leipä"){
-      if(/\b(leipä|ruisleipä|paahtoleipä|limppu|rouhepalat|viipaleet|ruispalat|täysjyväleipä)\b/.test(name)&&!/kakku|pulla|wiener|leivos|leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipälastu|leipätiku|leipätiku|leipätikku|leipäveitsi|leipämauste|leipäkassi|leipälevite|grissini|nutella|grissini|nutella/.test(name))value+=90;
-      if(/kakku|pulla|wiener|leivos|leipäjuusto|leipävuoka|leipäsiirappi|leipämallas|leipälastu|leipätikku|leipäveitsi|leipämauste|leipäkassi|leipälevite/.test(name))value-=200;
+      // Finnish ä is not a JavaScript \\b word character; do not use \\b
+      // to recognize bread terms or a manufacturer's name as bread.
+      const notBread=/leipätiku|leipätikku|grissini|nutella|leipäveitsi|leipävuoka|leipäjuusto|leipäsiirappi|leipämallas|leipämauste|leipäkassi|leipälastu|leipälevite|wiener|kakku|pulla|leivos|voirinkeli|voipehmopala/;
+      const actualBread=/(?:^|\\s)(?:ruisleipä|paahtoleipä|täysjyväleipä|näkkileipä|hapankorppu|limppu|ruispalat|rouhepalat|sämpylä|patonki|viipaleet|leipä)(?=$|[\\s,.-])/u;
+      if(actualBread.test(name)&&!notBread.test(name))value+=160;
+      if(notBread.test(name))value-=350;
     }
     if(canonical==="broileri"){
       if(/broiler/.test(name)&&!/wrap|patonki|pizza|salaatti|voileipä|kolmari/.test(name))value+=60;
