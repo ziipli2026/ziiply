@@ -199,31 +199,47 @@ export default function ZiiplyMobileScannerCard({
           const r = data[i], g = data[i + 1], b = data[i + 2];
           return r > 125 && g > 48 && g < r * 0.79 && b < g * 0.83;
         };
-        // Detect a bounded orange patch in the center, not a scene-wide
-        // orange/red package. Inspect its interior for barcode-like stripes.
-        let count = 0, minX = 128, maxX = 0, minY = 96, maxY = 0;
-        for (let y = 18; y < 78; y += 2) for (let x = 24; x < 104; x += 2) {
-          if (!orange(x, y)) continue;
-          count++;
-          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-        }
-        const bounded = count >= 90 && count <= 650 && maxX - minX >= 18 && maxY - minY >= 12 &&
-          minX > 26 && maxX < 102 && minY > 20 && maxY < 76;
+        // Only the CENTER 40% of the live camera image is eligible for a
+        // discount-sticker hint. Distant shelf products at the edges are ignored.
+        // The candidate itself must cover a meaningful part of this window.
+        const roi = { left: 38, right: 90, top: 29, bottom: 67 };
+        let bounded = false;
         let barcodeRows = 0;
-        if (bounded) {
-          for (let y = minY + 2; y <= maxY - 2; y += 3) {
-            let transitions = 0, previous = false;
-            for (let x = minX + 2; x <= maxX - 2; x++) {
-              const i = (y * 128 + x) * 4;
-              const dark = data[i] + data[i + 1] + data[i + 2] < 230;
-              if (x > minX + 2 && dark !== previous) transitions++;
-              previous = dark;
+        for (let top = roi.top; top <= roi.bottom - 24 && !bounded; top += 3) {
+          for (let left = roi.left; left <= roi.right - 32 && !bounded; left += 3) {
+            let orangePixels = 0;
+            let orangeLeft = 32, orangeRight = 0, orangeTop = 24, orangeBottom = 0;
+            for (let y = 0; y < 24; y += 2) for (let x = 0; x < 32; x += 2) {
+              if (!orange(left + x, top + y)) continue;
+              orangePixels++;
+              orangeLeft = Math.min(orangeLeft, x);
+              orangeRight = Math.max(orangeRight, x);
+              orangeTop = Math.min(orangeTop, y);
+              orangeBottom = Math.max(orangeBottom, y);
             }
-            if (transitions >= 10) barcodeRows++;
+            // Reject small distant objects and large uniform orange packages.
+            // Require a sticker-sized orange area in BOTH dimensions.
+            if (orangePixels < 72 || orangePixels > 152 ||
+                orangeRight - orangeLeft < 20 || orangeBottom - orangeTop < 14) continue;
+            let stripeRows = 0;
+            for (let y = top + 3; y < top + 21; y += 2) {
+              let transitions = 0, previous = false;
+              for (let x = left + 2; x < left + 30; x++) {
+                const i = (y * 128 + x) * 4;
+                const dark = data[i] + data[i + 1] + data[i + 2] < 230;
+                if (x > left + 2 && dark !== previous) transitions++;
+                previous = dark;
+              }
+              if (transitions >= 9) stripeRows++;
+            }
+            if (stripeRows >= 5) {
+              bounded = true;
+              barcodeRows = stripeRows;
+            }
           }
         }
-        hits = bounded && barcodeRows >= 3 ? Math.min(3, hits + 1) : 0;
+        // A visual stripe pattern is NOT proof of an actual GS1 barcode.
+        hits = bounded && barcodeRows >= 5 ? Math.min(3, hits + 1) : 0;
         setRedStickerCandidateV864(hits >= 2);
       } catch {
         hits = 0;
