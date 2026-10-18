@@ -63,7 +63,11 @@ fs.writeFileSync('basket-reports/basket-'+n+'.json',JSON.stringify(report,null,2
 const summary=['# Basket '+n+': '+title,'','| # | Search | Prisma Hyvinkää | K-Citymarket Hyvinkää |','|---|---|---|---|',...report.rows.map(r=>'| '+r.index+' | '+r.query+' | '+(r.stores.S.chosen||'NO MATCH')+' | '+(r.stores.K.chosen||'NO MATCH')+' |'),'','S: '+JSON.stringify(report.S),'K: '+JSON.stringify(report.K),'Warnings: '+report.warnings.length,'Errors: '+report.errors.length,'','This tests live product search and shared matching rules; it does not automate the production cart UI.'].join('\n');
 if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary+'\n');
 console.log('BASKET_SUMMARY',JSON.stringify({basket:n,title,S:report.S,K:report.K,cheapestComplete:report.cheapestComplete,warnings:report.warnings,errors:report.errors}));
-if(!report.S.complete||!report.K.complete){\n  console.error('INCOMPLETE_BASKET',JSON.stringify({S:report.S,K:report.K,warnings:report.warnings}));\n  process.exitCode=1;\n}\nif(report.errors.length)process.exitCode=1;
+if(!report.S.complete||!report.K.complete){
+  console.error('INCOMPLETE_BASKET',JSON.stringify({S:report.S,K:report.K,warnings:report.warnings}));
+  process.exitCode=1;
+}
+if(report.errors.length)process.exitCode=1;
 
 }
 main().catch(e=>{console.error(e);process.exitCode=1});
