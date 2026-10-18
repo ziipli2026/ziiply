@@ -1,0 +1,26 @@
+name: Tokmanni SPAR normal-price safety
+on:
+  workflow_dispatch:
+    inputs:
+      test_ref:
+        description: Branch containing SPAR safety scripts
+        required: true
+        default: fix/tokmanni-spar-normal-price-safety
+        type: string
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out test branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.test_ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check normal-price and barcode safety
+        run: node scripts/tokmanni-spar-normal-price-safety-check.mjs
+      - name: Check existing SPAR grocery routing
+        run: node scripts/tokmanni-spar-route-wiring-check.mjs
+      - name: Audit live milk coffee and egg results
+        run: node scripts/tokmanni-spar-live-search-audit.mjs
