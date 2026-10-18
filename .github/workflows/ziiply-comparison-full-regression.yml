@@ -173,6 +173,45 @@ jobs:
           }
           console.log('SAFE_SUMMARY basket coverage, price-unit and quantity contracts passed');
           NODE
+      - name: Install mobile browser for UI smoke test
+        run: |
+          npm install --no-save --package-lock=false --legacy-peer-deps --ignore-scripts --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - name: Capture mobile production UI and check browser errors
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import { mkdirSync } from 'node:fs';
+          mkdirSync('comparison-ui-artifacts',{recursive:true});
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
+          const errors=[];
+          page.on('pageerror',error=>errors.push(String(error)));
+          const response=await page.goto('https://ziiply.vercel.app/',{waitUntil:'domcontentloaded',timeout:45000});
+          await page.waitForTimeout(4500);
+          await page.screenshot({path:'comparison-ui-artifacts/mobile-home.png',fullPage:true});
+          const result=await page.evaluate(()=>({
+            title:document.title,
+            bodyText:document.body?.innerText?.slice(0,1200)||'',
+            viewportWidth:innerWidth,
+            documentWidth:document.documentElement.scrollWidth,
+            buttons:[...document.querySelectorAll('button')].map(x=>x.innerText.trim()).filter(Boolean).slice(0,35)
+          }));
+          console.log('MOBILE_UI',JSON.stringify({http:response?.status(),...result,pageErrors:errors}));
+          await browser.close();
+          if(!response?.ok())throw Error('Production landing HTTP failure');
+          if(!result.bodyText.trim())throw Error('Production landing rendered empty page');
+          if(errors.length)throw Error('Uncaught browser errors: '+errors.join('; '));
+          console.log('SAFE_SUMMARY mobile production render and browser error smoke passed');
+          NODE
+      - name: Upload mobile UI screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparison-mobile-ui-screenshot
+          path: comparison-ui-artifacts/
+          if-no-files-found: ignore
       - name: Verify current comparison search contracts
         shell: bash
         run: |
