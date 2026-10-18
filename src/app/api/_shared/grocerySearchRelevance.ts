@@ -22,7 +22,7 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
   if(!rule)return items;
   const score=(item:T)=>{
     const name=fold(item.name), category=fold(item.category);
-    const pet=/lemmik|koira|kissa|koirille|kissoille|dog\b|cat\b|\blatz\b|\bpolar pet\b|\bprimadog\b|\bpedigree\b|\bwhiskas\b|\bpurina\b|\bcarnilove\b|\bvitakraft\b|\bdreamies\b/.test(name+" "+category);
+    const pet=/lemmik|koira|kissa|koirille|kissoille|dog\b|cat\b|\blatz\b|\bpolar pet\b|\bprimadog\b|\bpedigree\b|\bwhiskas\b|\bpurina\b|\bcarnilove\b|\bvitakraft\b|\bdreamies\b|\bsheba\b/.test(name+" "+category);
     const categoryMatch=category.includes(q)||category.includes(ALIASES[q]||q);
     let value=0;
     if(rule.strong.test(name))value+=30;
