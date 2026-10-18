@@ -178,6 +178,7 @@ export default function ZiiplyMobileScannerCard({
   const [stickerBounds, setStickerBounds] = useState({ left: 30, top: 30, width: 40, height: 40 });
   const stickerHasPositionRef = useRef(false);
   const stickerTrackCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const stickerLastSeenRef = useRef(0);
   const [stickerLockExpanded, setStickerLockExpanded] = useState(true);
   useEffect(() => {
     if (!redStickerCandidateV864) {
@@ -204,6 +205,7 @@ export default function ZiiplyMobileScannerCard({
     const timer = window.setInterval(() => {
       if (loading || cameraOverlay || manualInputOpen || flashState !== "idle" || selectionResults.length > 1) {
         hits = 0;
+        stickerLastSeenRef.current = 0;
         setRedStickerCandidateV864(false);
         return;
       }
@@ -295,65 +297,75 @@ export default function ZiiplyMobileScannerCard({
             }
           }
         }
-        // A visual stripe pattern is NOT proof of an actual GS1 barcode.
-        hits = bounded && barcodeRows >= 5 ? Math.min(3, hits + 1) : 0;
-        if (bounded) stickerTrackCenterRef.current = candidateCenter;
-        else stickerTrackCenterRef.current = null;
-        if (hits >= 2) {
-          // Estimate the sticker's outer silhouette, allowing dark barcode
-          // stripes and text to interrupt its orange surface. Do not flood
-          // fill from multiple seeds: that merged unrelated package colors.
-          const cx = candidateCenter.x, cy = candidateCenter.y;
-          const x0 = Math.max(8, cx - 38), x1 = Math.min(120, cx + 38);
-          const y0 = Math.max(8, cy - 34), y1 = Math.min(88, cy + 34);
-          const rowCounts: number[] = [], colCounts: number[] = [];
-          for (let y = y0; y <= y1; y++) {
-            let n = 0;
-            for (let x = x0; x <= x1; x++) if (orange(x, y)) n++;
-            rowCounts.push(n);
+        // Partial sticker tracking: detect orange regions in small tiles, even
+        // before the entire barcode enters the camera view.
+        const tile = 4, cols = 32, rows = 24;
+        const mask = new Uint8Array(cols * rows);
+        for (let gy = 0; gy < rows; gy++) for (let gx = 0; gx < cols; gx++) {
+          let count = 0;
+          for (let dy = 0; dy < tile; dy++) for (let dx = 0; dx < tile; dx++) {
+            if (orange(gx * tile + dx, gy * tile + dy)) count++;
           }
-          for (let x = x0; x <= x1; x++) {
-            let n = 0;
-            for (let y = y0; y <= y1; y++) if (orange(x, y)) n++;
-            colCounts.push(n);
+          if (count >= 6) mask[gy * cols + gx] = 1;
+        }
+        const seen = new Uint8Array(cols * rows);
+        let bestPartial: { x: number; y: number; left: number; top: number; right: number; bottom: number } | null = null;
+        let bestPartialScore = -Infinity;
+        for (let i = 0; i < mask.length; i++) {
+          if (!mask[i] || seen[i]) continue;
+          const queue = [i]; seen[i] = 1;
+          let minX = cols, maxX = 0, minY = rows, maxY = 0, count = 0;
+          for (let head = 0; head < queue.length; head++) {
+            const k = queue[head], x = k % cols, y = Math.floor(k / cols);
+            count++;
+            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+            for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+              const nx = x + dx, ny = y + dy, nk = ny * cols + nx;
+              if (nx < 0 || nx >= cols || ny < 0 || ny >= rows || seen[nk] || !mask[nk]) continue;
+              seen[nk] = 1; queue.push(nk);
+            }
           }
-          // Locate contiguous bands around the barcode candidate. Permit
-          // short gaps caused by printed black barcode bars and lettering.
-          const band = (counts: number[], center: number, threshold: number) => {
-            let left = Math.max(0, Math.min(counts.length - 1, center));
-            let right = left;
-            let gaps = 0;
-            while (left > 0 && gaps < 4) {
-              left--;
-              gaps = counts[left] >= threshold ? 0 : gaps + 1;
-            }
-            gaps = 0;
-            while (right < counts.length - 1 && gaps < 4) {
-              right++;
-              gaps = counts[right] >= threshold ? 0 : gaps + 1;
-            }
-            return [Math.min(counts.length - 1, left + 3), Math.max(0, right - 3)];
-          };
-          const [lx, rx] = band(colCounts, cx - x0, 7);
-          const [ty, by] = band(rowCounts, cy - y0, 9);
-          const minX = x0 + lx, maxX = x0 + rx;
-          const minY = y0 + ty, maxY = y0 + by;
-          if (maxX - minX >= 20 && maxY - minY >= 15) {
-            const pad = 4;
-            const left = Math.max(2, minX - pad), top = Math.max(2, minY - pad);
-            const right = Math.min(126, maxX + pad), bottom = Math.min(94, maxY + pad);
-            const next = { left: left / 128 * 100, top: top / 96 * 100,
-              width: (right - left) / 128 * 100, height: (bottom - top) / 96 * 100 };
-            if (!stickerHasPositionRef.current) {
-              // Start the lock animation at the actual detected sticker position.
-              stickerHasPositionRef.current = true;
-              setStickerBounds(next);
-            } else setStickerBounds(prev => {
-              const distance = Math.abs(prev.left - next.left) + Math.abs(prev.top - next.top) +
-                Math.abs(prev.width - next.width) + Math.abs(prev.height - next.height);
-              if (distance < 3) return prev;
-              // Smooth normal movement and damp isolated detection jumps.
-              const alpha = distance > 55 ? 0.14 : 0.30;
+          const width = (maxX - minX + 1) * tile, height = (maxY - minY + 1) * tile;
+          if (count < 4 || width < 8 || height < 8 || width > 82 || height > 72) continue;
+          const x = (minX + maxX + 1) * tile / 2, y = (minY + maxY + 1) * tile / 2;
+          const last = stickerTrackCenterRef.current;
+          const distance = last ? Math.hypot(x - last.x, y - last.y) : Math.hypot(x - 64, y - 48);
+          // Strongly prefer continuity with the same orange sticker.
+          const score = Math.min(count, 90) * 0.3 - distance * (last ? 2.4 : 0.18);
+          if (score > bestPartialScore) {
+            bestPartialScore = score;
+            bestPartial = { x, y, left: minX * tile, top: minY * tile,
+              right: (maxX + 1) * tile, bottom: (maxY + 1) * tile };
+          }
+        }
+        const partial = bestPartial as { x: number; y: number; left: number; top: number; right: number; bottom: number } | null;
+        const last = stickerTrackCenterRef.current;
+        const nearbyPartial = partial && (!last || Math.hypot(partial.x - last.x, partial.y - last.y) < 35);
+        const detected = bounded && barcodeRows >= 5;
+        const target = detected
+          ? { x: candidateCenter.x, y: candidateCenter.y,
+              left: Math.max(0, candidateCenter.x - 21), right: Math.min(128, candidateCenter.x + 21),
+              top: Math.max(0, candidateCenter.y - 18), bottom: Math.min(96, candidateCenter.y + 18) }
+          : nearbyPartial ? partial : null;
+        if (target) {
+          stickerLastSeenRef.current = Date.now();
+          stickerTrackCenterRef.current = { x: target.x, y: target.y };
+          // Early partial observations use a larger loose frame. As the
+          // barcode becomes visible, tighten the frame smoothly.
+          const pad = detected ? 4 : 12;
+          const left = Math.max(1, target.left - pad);
+          const top = Math.max(1, target.top - pad);
+          const right = Math.min(127, target.right + pad);
+          const bottom = Math.min(95, target.bottom + pad);
+          const next = { left: left / 128 * 100, top: top / 96 * 100,
+            width: (right - left) / 128 * 100, height: (bottom - top) / 96 * 100 };
+          if (!stickerHasPositionRef.current) {
+            stickerHasPositionRef.current = true;
+            setStickerBounds(next);
+          } else {
+            setStickerBounds(prev => {
+              const alpha = detected ? 0.48 : 0.36;
               return {
                 left: prev.left + (next.left - prev.left) * alpha,
                 top: prev.top + (next.top - prev.top) * alpha,
@@ -363,12 +375,15 @@ export default function ZiiplyMobileScannerCard({
             });
           }
         }
-        setRedStickerCandidateV864(hits >= 2);
+        // Hold through brief missed frames instead of flickering away.
+        const visible = Date.now() - stickerLastSeenRef.current < 1100;
+        if (!visible) stickerTrackCenterRef.current = null;
+        setRedStickerCandidateV864(visible);
       } catch {
         hits = 0;
         setRedStickerCandidateV864(false);
       }
-    }, 550);
+    }, 180);
     return () => window.clearInterval(timer);
   }, [regionId, onCaptureDiscountSticker, loading, cameraOverlay, manualInputOpen, flashState, selectionResults.length]);
 
