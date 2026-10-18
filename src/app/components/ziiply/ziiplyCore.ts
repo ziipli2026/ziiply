@@ -3422,6 +3422,13 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
+  // Broad K-search fallback may return hundreds of products sharing only
+  // the package size. Keep the requested hygiene/cleaning product family.
+  if (/\bastianpesuaine\b/.test(source) && !/\b(?:astianpesuaine|tiskiaine|kasitiskiaine)\b/.test(candidate)) return false;
+  if (/\bpyykinpesuneste\b/.test(source) && !/\b(?:pyykinpesuneste|nestemainen pyykinpesuaine|pyykinpesuaine)\b/.test(candidate)) return false;
+  if (/\b(?:nestesaippua|saippua)\b/.test(source) && !/\b(?:nestesaippua|kasisaippua|kasienpesuneste|saippua)\b/.test(candidate)) return false;
+  if (/\b(?:nestesaippua|saippua)\b/.test(source) && /\b(?:pesuvoide|suihkugeeli|shampoo|astianpesuaine)\b/.test(candidate)) return false;
+  if (/\bshampoo\b/.test(source) && !/\b(?:shampoo|sampoo)\b/.test(candidate)) return false;
   // Reject misleading cross-category substitutes in basket comparisons.
   // A named product category must remain the same, not merely share a word.
   if (/\b(?:voi|voita)\b/.test(source) && !/\b(?:voi|voita)\b/.test(candidate)) return false;
