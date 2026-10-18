@@ -30,6 +30,8 @@ jobs:
                 if(term==="kana"&&first.some(n=>/oscar herkku|hhc täysravint|cesar senior|cesar classics|dagsmark|latz|koiran|kissan|täysravint/i.test(n))){failures++;console.error("PET_FOOD_KANA_TOP3",chain,term);}
                 if(term==="katkarapu"&&first.some(n=>/katkarapusips/i.test(n))){failures++;console.error("SNACKS_KATKARAPU_TOP3",chain,term);}
                 if(term==="naudanliha"&&first.some(n=>/piltti|semper|lovemade|naudanlihasose|lastenruoka/i.test(n))){failures++;console.error("BABY_FOOD_NAUDANLIHA_TOP3",chain,term);}
+                if(term==="naudanliha"&&!first.some(n=>/entrecote|ulkofilee|sisäfilee|lehtipihvi|paisti|pihvi/i.test(n))){failures++;console.error("RAW_BEEF_MISSING_TOP3",chain,term);}
+                if(term==="sianliha"&&top.slice(0,10).some(n=>/lego|minecraft/i.test(n))){failures++;console.error("TOY_IN_PORK_TOP10",chain,term);}
                 if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara","nakki"].includes(term)&&top.slice(0,Math.min(2,top.length)).some(n=>/dreamies|sheba|vitakraft|carnilove|whiskas|pedigree|koirille|kissoille|täysrehu|täysravinto/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term);}
               }catch(e){failures++;console.error("ERROR",chain,term,String(e));}
             }
