@@ -47,6 +47,10 @@ jobs:
             {name:'Arla laktoositon rasvaton piimä 500 ml',price:0.85},
           ];
           check('cheapest equivalent preserves attributes',core.pickCheapestCompatibleComparisonProduct(source,products)?.name,'Pirkka laktoositon rasvaton piimä 1 l');
+          check('fresh milk cannot become UHT',core.isComparisonAttributeCompatible('Valio rasvaton maito 1 l','Valio rasvaton maito 1 l UHT'),false);
+          check('UHT milk cannot become fresh',core.isComparisonAttributeCompatible('Valio rasvaton maito 1 l UHT','Valio rasvaton maito 1 l'),false);
+          check('potato cannot become tomato',core.isComparisonAttributeCompatible('Peruna Suomi','Terttutomaatti'),false);
+          check('same fresh milk is compatible',core.isComparisonAttributeCompatible('Valio rasvaton maito 1 l','Pirkka rasvaton maito 1 l'),true);
           check('wrong product group rejected',core.isComparisonAttributeCompatible(source,products[3].name),false);
           check('wrong package rejected',core.isComparisonAttributeCompatible(source,products[4].name),false);
           check('missing lactose-free rejected',core.isComparisonAttributeCompatible(source,products[0].name),false);
