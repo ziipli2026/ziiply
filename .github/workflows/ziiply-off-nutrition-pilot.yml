@@ -7,16 +7,20 @@ on:
       limit:
         description: 'EAN codes to test (1-100)'
         required: true
-        default: '100'
+        default: '20'
         type: choice
-        options: ['5', '20', '50', '100']
+        options: ['5', '20', '50']
 jobs:
   pilot:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     concurrency:
-      group: ziiply-off-nutrition-import
+      group: ziiply-off-nutrition-shard-${{ matrix.shard }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,7 +31,7 @@ jobs:
       - name: Import isolated OFF nutrition records
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '100' }}
+        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '20' }} --shard=${{ matrix.shard }}
       - name: Verify import coverage
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
