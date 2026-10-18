@@ -244,32 +244,54 @@ export default function ZiiplyMobileScannerCard({
         // A visual stripe pattern is NOT proof of an actual GS1 barcode.
         hits = bounded && barcodeRows >= 5 ? Math.min(3, hits + 1) : 0;
         if (hits >= 2) {
-          // Find the connected orange sticker surface around the verified
-          // barcode patch. Use its actual extent, not a fixed-size overlay.
-          const visited = new Uint8Array(128 * 96);
-          const queue: number[] = [];
+          // Estimate the sticker's outer silhouette, allowing dark barcode
+          // stripes and text to interrupt its orange surface. Do not flood
+          // fill from multiple seeds: that merged unrelated package colors.
           const cx = candidateCenter.x, cy = candidateCenter.y;
-          for (let y = cy - 10; y <= cy + 10; y++) for (let x = cx - 14; x <= cx + 14; x++) {
-            if (orange(x, y)) { const k = y * 128 + x; visited[k] = 1; queue.push(k); }
+          const x0 = Math.max(8, cx - 38), x1 = Math.min(120, cx + 38);
+          const y0 = Math.max(8, cy - 34), y1 = Math.min(88, cy + 34);
+          const rowCounts: number[] = [], colCounts: number[] = [];
+          for (let y = y0; y <= y1; y++) {
+            let n = 0;
+            for (let x = x0; x <= x1; x++) if (orange(x, y)) n++;
+            rowCounts.push(n);
           }
-          let minX = 128, maxX = 0, minY = 96, maxY = 0, found = 0;
-          for (let head = 0; head < queue.length && head < 5000; head++) {
-            const k = queue[head], x = k % 128, y = Math.floor(k / 128);
-            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-            minY = Math.min(minY, y); maxY = Math.max(maxY, y); found++;
-            for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-              const nx = x + dx, ny = y + dy, nk = ny * 128 + nx;
-              if (nx < 4 || nx >= 124 || ny < 4 || ny >= 92 || visited[nk]) continue;
-              visited[nk] = 1;
-              if (orange(nx, ny)) queue.push(nk);
+          for (let x = x0; x <= x1; x++) {
+            let n = 0;
+            for (let y = y0; y <= y1; y++) if (orange(x, y)) n++;
+            colCounts.push(n);
+          }
+          // Locate contiguous bands around the barcode candidate. Permit
+          // short gaps caused by printed black barcode bars and lettering.
+          const band = (counts: number[], center: number, threshold: number) => {
+            let left = Math.max(0, Math.min(counts.length - 1, center));
+            let right = left;
+            let gaps = 0;
+            while (left > 0 && gaps < 4) {
+              left--;
+              gaps = counts[left] >= threshold ? 0 : gaps + 1;
             }
-          }
-          if (found >= 100 && maxX - minX >= 20 && maxY - minY >= 14) {
-            const pad = 5;
-            const left = Math.max(4, minX - pad), top = Math.max(4, minY - pad);
-            const right = Math.min(124, maxX + pad), bottom = Math.min(92, maxY + pad);
-            setStickerBounds({ left: left / 128 * 100, top: top / 96 * 100,
-              width: (right - left) / 128 * 100, height: (bottom - top) / 96 * 100 });
+            gaps = 0;
+            while (right < counts.length - 1 && gaps < 4) {
+              right++;
+              gaps = counts[right] >= threshold ? 0 : gaps + 1;
+            }
+            return [Math.min(counts.length - 1, left + 3), Math.max(0, right - 3)];
+          };
+          const [lx, rx] = band(colCounts, cx - x0, 7);
+          const [ty, by] = band(rowCounts, cy - y0, 9);
+          const minX = x0 + lx, maxX = x0 + rx;
+          const minY = y0 + ty, maxY = y0 + by;
+          if (maxX - minX >= 20 && maxY - minY >= 15) {
+            const pad = 4;
+            const left = Math.max(2, minX - pad), top = Math.max(2, minY - pad);
+            const right = Math.min(126, maxX + pad), bottom = Math.min(94, maxY + pad);
+            const next = { left: left / 128 * 100, top: top / 96 * 100,
+              width: (right - left) / 128 * 100, height: (bottom - top) / 96 * 100 };
+            setStickerBounds(prev =>
+              Math.abs(prev.left - next.left) + Math.abs(prev.top - next.top) +
+              Math.abs(prev.width - next.width) + Math.abs(prev.height - next.height) < 2
+                ? prev : next);
           }
         }
         setRedStickerCandidateV864(hits >= 2);
