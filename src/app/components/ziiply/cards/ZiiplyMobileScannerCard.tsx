@@ -539,7 +539,8 @@ export default function ZiiplyMobileScannerCard({
           {onCaptureDiscountSticker && redStickerCandidateV864 && !cameraOverlay && !loading && (
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.28),inset_0_0_16px_rgba(255,230,165,0.13)] transition-all duration-200"\n              style={{ left: `${stickerBounds.left}%`, top: `${stickerBounds.top}%`, width: `${stickerBounds.width}%`, height: `${stickerBounds.height}%` }}
+              className="pointer-events-none absolute z-[12] rounded-lg border-2 border-amber-200/90 shadow-[0_0_0_100vmax_rgba(0,0,0,0.28),inset_0_0_16px_rgba(255,230,165,0.13)] transition-all duration-200"
+              style={{ left: `${stickerBounds.left}%`, top: `${stickerBounds.top}%`, width: `${stickerBounds.width}%`, height: `${stickerBounds.height}%` }}
             >
               <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/55 px-2 py-1 text-[11px] font-semibold text-amber-100">
                 Alennustarra tähän
