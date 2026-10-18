@@ -350,12 +350,11 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
         <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[4.2rem] pt-[4.1rem]">
-          <div className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
+          <div className="relative z-20 mb-1 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
             <div className="flex h-[2.2rem] items-center">
               <div className="shrink-0 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
               {loading ? <RetroMopedOverlay /> : null}
             </div>
-            <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
           </div>
           {/* Diagnostic only: does not alter product matching, prices or category rules. */}
           <details className="absolute bottom-[1.8rem] left-5 right-5 z-30 rounded-lg border border-[#9d824c] bg-[#fff9e8] p-2 text-[11px] text-[#352b1b]">
@@ -484,7 +483,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     key={store.id}
                     className={cx(
                       "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 pt-2 pb-0.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
-                      "flex-1",
+                      "flex-1 basis-0",
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
