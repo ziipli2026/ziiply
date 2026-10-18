@@ -177,10 +177,12 @@ export default function ZiiplyMobileScannerCard({
   const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
   const [stickerBounds, setStickerBounds] = useState({ left: 30, top: 30, width: 40, height: 40 });
   const stickerHasPositionRef = useRef(false);
+  const stickerTrackCenterRef = useRef<{ x: number; y: number } | null>(null);
   const [stickerLockExpanded, setStickerLockExpanded] = useState(true);
   useEffect(() => {
     if (!redStickerCandidateV864) {
       stickerHasPositionRef.current = false;
+      stickerTrackCenterRef.current = null;
       setStickerLockExpanded(true);
       return;
     }
@@ -237,13 +239,16 @@ export default function ZiiplyMobileScannerCard({
         // discount-sticker hint. Distant shelf products at the edges are ignored.
         // The candidate itself must cover a meaningful part of this window.
         const roi = { left: 38, right: 90, top: 29, bottom: 67 };
+        // Evaluate all candidate patches rather than accepting the first
+        // top-left match. Track the closest verified candidate across frames.
         let bounded = false;
         let barcodeRows = 0;
         let candidateCenter = { x: 64, y: 48 };
-        for (let top = roi.top; top <= roi.bottom - 24 && !bounded; top += 3) {
-          for (let left = roi.left; left <= roi.right - 32 && !bounded; left += 3) {
-            let orangePixels = 0;
-            let orangeLeft = 32, orangeRight = 0, orangeTop = 24, orangeBottom = 0;
+        let bestScore = -Infinity;
+        const last = stickerTrackCenterRef.current;
+        for (let top = roi.top; top <= roi.bottom - 24; top += 2) {
+          for (let left = roi.left; left <= roi.right - 32; left += 2) {
+            let orangePixels = 0, orangeLeft = 32, orangeRight = 0, orangeTop = 24, orangeBottom = 0;
             for (let y = 0; y < 24; y += 2) for (let x = 0; x < 32; x += 2) {
               if (!orange(left + x, top + y)) continue;
               orangePixels++;
@@ -252,8 +257,6 @@ export default function ZiiplyMobileScannerCard({
               orangeTop = Math.min(orangeTop, y);
               orangeBottom = Math.max(orangeBottom, y);
             }
-            // Reject small distant objects and large uniform orange packages.
-            // Require a sticker-sized orange area in BOTH dimensions.
             if (orangePixels < 72 || orangePixels > 152 ||
                 orangeRight - orangeLeft < 20 || orangeBottom - orangeTop < 14) continue;
             let stripeRows = 0;
@@ -267,15 +270,22 @@ export default function ZiiplyMobileScannerCard({
               }
               if (transitions >= 9) stripeRows++;
             }
-            if (stripeRows >= 5) {
+            if (stripeRows < 5) continue;
+            const x = left + 16, y = top + 12;
+            const distance = last ? Math.hypot(x - last.x, y - last.y) : Math.hypot(x - 64, y - 48);
+            const score = stripeRows * 4 + orangePixels * 0.1 - distance * (last ? 1.5 : 0.15);
+            if (score > bestScore) {
+              bestScore = score;
               bounded = true;
               barcodeRows = stripeRows;
-              candidateCenter = { x: left + 16, y: top + 12 };
+              candidateCenter = { x, y };
             }
           }
         }
         // A visual stripe pattern is NOT proof of an actual GS1 barcode.
         hits = bounded && barcodeRows >= 5 ? Math.min(3, hits + 1) : 0;
+        if (bounded) stickerTrackCenterRef.current = candidateCenter;
+        else stickerTrackCenterRef.current = null;
         if (hits >= 2) {
           // Estimate the sticker's outer silhouette, allowing dark barcode
           // stripes and text to interrupt its orange surface. Do not flood
