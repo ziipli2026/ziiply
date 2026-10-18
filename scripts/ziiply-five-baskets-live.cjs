@@ -9,6 +9,7 @@ const [title,terms]=baskets[n-1];
 const base='https://ziiply.vercel.app';
 const report={basket:n,title,checkedAt:new Date().toISOString(),rows:[],warnings:[],errors:[]};
 const fallbackQueries={
+  "ranskalaiset perunat 500g":["ranskalaiset 500g","ranskanperunat 500g","Oolannin uunirapeat ranskalaiset","ranskalaiset pakaste"],
   "pakasteherneet 200g":["pakasteherneet","herneet pakaste","herne 200g","Apetit herne"],
   "maissi 340g":["maissinjyvät 340g","säilykemaissi","maissinjyvät","maissi säilyke"],
   "kananmuna 10kpl":["kananmuna","kananmunat","munat 10"],
