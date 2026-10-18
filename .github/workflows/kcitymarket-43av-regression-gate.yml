@@ -49,4 +49,4 @@ jobs:
       - name: Replay current parser against frozen 43AV publisher source
         run: node scripts/citymarket/replay-43av.mjs
       - name: Verify 43AV price ownership and multibuy
-        run: node --test tests/kcitymarket-43av-archive-gate.test.cjs
+        run: node --test tests/kcitymarket-43av-archive-gate.test.cjs tests/kcitymarket-43av-full-audit.test.cjs
