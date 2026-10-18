@@ -10,4 +10,7 @@ export const MEAT_SEARCH_ALIASES: Record<string, string[]> = {
   viinirypäle: ['rypäle', 'siemenetön'],
   paprika: ['punainen paprika', 'paprika vihreä'],
   mansikka: ['mansikka 250g', 'mansikka 500g'],
+  roskapussi: ['jätepussi', 'roskapussit', 'roskapussi 30l'],
+  'roskapussi 30l': ['roskapussi', 'jätepussi', 'jätepussi 30l'],
+  roskapussit: ['roskapussi', 'jätepussi'],
 };
