@@ -108,6 +108,8 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       if(canonical==="naudanliha" && /bresaola|lihavalmiste|semper|piltti|lovemade|sose|jerky|ilmakuivattu/.test(name)) value-=400;
       if(canonical==="sianliha" && /lego|minecraft|lelu/.test(name)) value-=800;
       if(canonical==="naudanliha"&&/naudanliha/.test(name)&&!prepared)value+=160;
+      if(canonical==="sianliha" && /porsaan|porsas|possun|sian/.test(name) && /ulkofilee|sisäfilee|lehtipihvi|kyljys|kassler|pihvi|paisti|ribsit|kylkiviipale/.test(name)) value+=460;
+      if(canonical==="sianliha" && /lihavalmiste|kastike|ateria|säilyke/.test(name)) value-=350;
       if(canonical==="sianliha"&&/sianliha/.test(name)&&!prepared)value+=160;
       if(canonical==="kana"&&/kana(?:n|filee|suikale|rinta|koipi|leike)?/.test(name)&&!prepared&&!animalFood)value+=145;
       if(canonical==="kalkkuna"&&/kalkkuna/.test(name)&&!prepared)value+=155;
