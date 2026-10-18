@@ -1,6 +1,7 @@
 import { recipeProductCompatible } from "@/app/components/ziiply/justiina/recipeSearch";
 import { NextResponse } from "next/server";
 import { rankGrocerySearchResults } from "../_shared/grocerySearchRelevance";
+import { MEAT_SEARCH_ALIASES } from "../_shared/grocerySearchExpansion";
 import { fetchSKaupatNormalProductsV220 } from "@/app/components/ziiply/offerSearch/providers/skaupatProvider";
 import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
@@ -137,8 +138,20 @@ export async function GET(request: Request) {
       cache: "no-store",
     });
 
+    if (!response.ok) throw new Error("Upstream HTTP " + response.status);
+    const additionalTerms = MEAT_SEARCH_ALIASES[normalizedSearch] || [];
+    const extraResponses = await Promise.all(additionalTerms.map(async (term) => {
+      try {
+        const extraUrl = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${storeId}&skip=0&take=80`;
+        const result = await fetch(extraUrl, {headers:{accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(6500)});
+        if (!result.ok) return [];
+        const body = await result.json();
+        return Array.isArray(body.items) ? body.items as RuoanhintaProduct[] : [];
+      } catch { return [] as RuoanhintaProduct[]; }
+    }));
     const data = await response.json();
-    const sourceItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    const primaryItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    const sourceItems = [...new Map([...primaryItems,...extraResponses.flat()].map(item=>[item.id,item])).values()];
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
