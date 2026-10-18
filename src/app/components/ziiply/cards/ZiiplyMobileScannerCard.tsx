@@ -327,7 +327,22 @@ export default function ZiiplyMobileScannerCard({
             }
           }
           const width = (maxX - minX + 1) * tile, height = (maxY - minY + 1) * tile;
-          if (count < 4 || width < 8 || height < 8 || width > 82 || height > 72) continue;
+          // Orange tint alone is never a sticker. Require a compact, fairly
+          // filled region and dark barcode-like transitions next to it.
+          const fill = count / ((maxX - minX + 1) * (maxY - minY + 1));
+          if (count < 9 || width < 12 || height < 12 || width > 70 || height > 60 || fill < 0.38) continue;
+          let barcodeEvidence = 0;
+          for (let yy = Math.max(0, minY * tile - 5); yy < Math.min(96, (maxY + 1) * tile + 5); yy += 3) {
+            let transitions = 0, prevDark = false;
+            for (let xx = Math.max(0, minX * tile - 5); xx < Math.min(128, (maxX + 1) * tile + 5); xx++) {
+              const j = (yy * 128 + xx) * 4;
+              const dark = data[j] + data[j + 1] + data[j + 2] < 230;
+              if (xx > Math.max(0, minX * tile - 5) && dark !== prevDark) transitions++;
+              prevDark = dark;
+            }
+            if (transitions >= 7) barcodeEvidence++;
+          }
+          if (barcodeEvidence < 2) continue;
           const x = (minX + maxX + 1) * tile / 2, y = (minY + maxY + 1) * tile / 2;
           const last = stickerTrackCenterRef.current;
           const distance = last ? Math.hypot(x - last.x, y - last.y) : Math.hypot(x - 64, y - 48);
@@ -375,7 +390,7 @@ export default function ZiiplyMobileScannerCard({
           }
         }
         // Hold through brief missed frames instead of flickering away.
-        const visible = Date.now() - stickerLastSeenRef.current < 1100;
+        const visible = Date.now() - stickerLastSeenRef.current < 650;
         if (!visible) stickerTrackCenterRef.current = null;
         setRedStickerCandidateV864(visible);
       } catch {
