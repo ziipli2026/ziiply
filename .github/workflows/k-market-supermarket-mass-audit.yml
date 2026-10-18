@@ -1,21 +1,32 @@
 name: K-Market and K-Supermarket mass audit
 on:
   workflow_dispatch:
+    inputs:
+      batch:
+        description: 'Erä 0–9 (käynnistä erät erikseen)'
+        required: true
+        default: '0'
+        type: choice
+        options: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 permissions:
   contents: read
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 18
     steps:
       - name: Audit stores and product searches (read-only)
         shell: bash
+        env:
+          AUDIT_BATCH: ${{ inputs.batch }}
         run: |
           node --input-type=module <<'NODE'
           import {writeFileSync} from 'node:fs';
           const base='https://api.ruoanhinta.fi/api';
           const terms=['K-Market','K-Supermarket'];
-          const searches=['maito','jauheliha','kahvi','leipä','kananmuna','banaani','juusto','lohi'];
+          const searches=['maito','jauheliha','kahvi','leipä'];
+          const batch=Number(process.env.AUDIT_BATCH||0);
+          const batchSize=30;
           const result={timestamp:new Date().toISOString(),mode:'read-only',chains:{},errors:[]};
           const sleep=ms=>new Promise(r=>setTimeout(r,ms));
           async function json(url) {
@@ -45,7 +56,8 @@ jobs:
                 stores.push({id,name:s.name,city:s.city,externalId:s.externalId});
               }
             }catch(e){result.errors.push({chain,stage:'discovery',error:String(e)});}
-            const report={discovered:stores.length,stores:stores.map(s=>({...s,checks:[]})),totals:{checks:0,success:0,empty:0,errors:0,priced:0,ean:0}};
+            const selected=stores.slice(batch*batchSize,(batch+1)*batchSize);
+            const report={discovered:stores.length,batch,batchSize,batchStart:batch*batchSize,selected:selected.length,remaining:Math.max(0,stores.length-(batch+1)*batchSize),stores:selected.map(s=>({...s,checks:[]})),totals:{checks:0,success:0,empty:0,errors:0,priced:0,ean:0}};
             result.chains[chain]=report;
             console.log(chain+' stores discovered: '+stores.length);
             // Eight search terms per store. Sequential with short delay to avoid overloading the upstream.
@@ -79,6 +91,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: k-market-supermarket-audit
+          name: k-market-supermarket-audit-batch-${{ inputs.batch }}
           path: k-market-supermarket-audit.json
           if-no-files-found: warn
