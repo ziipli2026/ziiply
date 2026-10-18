@@ -12,7 +12,8 @@ test('Actual provider preserves original PDF card identities through title clean
   './kCitymarket42AVTitleCleanup.js':await import(path.join(base,'kCitymarket42AVTitleCleanup.js')),
   'next/cache':{unstable_cache:fn=>fn},
   '@neondatabase/serverless':{neon:()=>{throw Error('No database allowed in frozen replay');}},
-  './kCitymarketPublisherImages':{}
+  './kCitymarketPublisherImages':{},
+  '../publicationStore':{}
  };
  const source=fs.readFileSync(path.join(base,'kCitymarketProvider.ts'),'utf8')
   .replace('async function fetchKCitymarketOffersFresh(', 'export async function fetchKCitymarketOffersFresh(');
