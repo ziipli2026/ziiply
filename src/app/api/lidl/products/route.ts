@@ -21,7 +21,8 @@ type RuoanhintaProduct = {
 };
 
 function getPrice(product: RuoanhintaProduct) {
-  return product.storeItems?.[0]?.price || 0;
+  const price = product.storeItems?.[0]?.price;
+  return typeof price === "number" && Number.isFinite(price) && price > 0 ? price : 0;
 }
 
 function isValidGtin(value: unknown) {
@@ -170,7 +171,7 @@ export async function GET(request: Request) {
     const data = await response.json();
     const sourceItems: RuoanhintaProduct[] = Array.isArray(data?.items) ? data.items : [];
     const items = sourceItems
-      .filter((product) => getPrice(product) > 0)
+      .filter((product) => getPrice(product) > 0 && lidlSearchScore(product, search) > 0)
       .sort((a, b) => lidlSearchScore(b, search) - lidlSearchScore(a, search))
       .map((product) => ({
         id: product.id,
