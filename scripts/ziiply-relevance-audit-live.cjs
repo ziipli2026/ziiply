@@ -193,6 +193,9 @@ function alternativeUnitPrices(term,products){
  return products.flatMap(p=>{
   const size=core.parseMetricSize(p.name),cents=priceCents(p);
   if(!size||size.unitGroup!==requested.unitGroup||!size.amount||cents===null)return [];
+  // An approximate-weight listing may expose €/kg instead of a package total.
+  // Never derive a package unit price from it without verified pricing semantics.
+  if(/(?:^|\\s)(?:n\\.|noin|ca\\.?|approx\\.?|~)\\s*\\d/i.test(p.name))return [];
   // Normalize only the size token for category/attribute validation.
   // Do not treat approximate-weight meat as a fixed-price basket substitute.
   const normalizedName=p.name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i,requested.label);
@@ -218,6 +221,10 @@ async function run(){
       rejectedSamples:compatible.length?[]:products.slice(0,5).map(p=>p.name),
       // Diagnose unavailable package sizes without treating them as basket-price matches.
       alternativeUnitPrices:compatible.length?[]:alternativeUnitPrices(term,products),
+      approximateWeightExcluded:compatible.length?[]:products
+        .filter(p=>/(?:^|\\s)(?:n\\.|noin|ca\\.?|approx\\.?|~)\\s*\\d/i.test(p.name))
+        .filter(p=>core.parseMetricSize(p.name)?.unitGroup===core.parseMetricSize(term)?.unitGroup)
+        .slice(0,8).map(p=>({name:p.name,reason:'Approximate package weight; price basis unverified'})),
       requestedSize:core.parseMetricSize(term),
       availableSizes:compatible.length?[]:products
         .filter(p=>core.parseMetricSize(p.name)?.unitGroup===core.parseMetricSize(term)?.unitGroup)
