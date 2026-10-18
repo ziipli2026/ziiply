@@ -109,6 +109,8 @@ jobs:
             ['Koivulan Tilan maito 1l', 'Arla 1% maito 1l'],
             ['Arla 1% maito 1l', 'Arla 3% maito 1l'],
             ['HK Viljaporsaan jauheliha 10% 400g', 'Pirkka suomalainen kanan jauheliha 400g'],
+            ['HK Viljaporsaan jauheliha 10% 400g', 'Pirkka suomalainen porsaan jauheliha 12% 400g'],
+            ['Pirkka suomalainen porsaan jauheliha 12% 400g', 'HK Viljaporsaan jauheliha 10% 400g'],
             ['Atria Kanan jauheliha 800 g', 'DIBO lammas raakapakastettu jauhelihapihvi 800g pakaste'],
           ];
           for(const [source,candidate] of mustReject){
