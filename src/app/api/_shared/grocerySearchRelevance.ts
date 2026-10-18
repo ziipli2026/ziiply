@@ -17,6 +17,15 @@ const RULES: Record<string, {strong: RegExp; secondary?: RegExp; weak: RegExp}> 
   kaakao: {strong:/kaakao(jauhe|juoma|maito)|(?:^|\\s)kaakao(?:\\s|$)/,weak:/kaakao[- ]?(keksi|muro|vanilja|vohveli|banaani|vadelma)|shampoo|hoitoaine/},
   rahka: {strong:/(?:^|\\s)rahka(?:\\s|$)|maitorahka|proteiinirahka/,weak:/rahka[- ]?(pulla|piirakka|kakku|kranssi)|hillopitko|täytepulla/},
   suklaa: {strong:/suklaa(levy|patukka|konvehti)|(?:^|\\s)suklaa(?:\\s|$)/,weak:/suklaa[- ]?(kakku|jäätelö|rahka|muffinssi|levite|keksi|riisi|kaura|banaani)|suklaa-appelsiini/},
+  jauheliha: {strong:/jauheliha/,weak:/pizza|mauste|ohukainen|quesadilla/},
+  naudanliha: {strong:/naudanliha|naudanlihan/,weak:/fond|pyttipannu|keitto|ragu|kebab|jerky|nakki/},
+  sianliha: {strong:/sianliha|sianlihan/,weak:/dumpling|kastike|ateria/},
+  kana: {strong:/(?:^|\\s)kana(?:\\s|$)|kanan|kanasuikale|kanafilee/,weak:/wrap|panini|pizza|pasta|salaatti|patonki|risotto|sushi|gyoza/},
+  kalkkuna: {strong:/kalkkuna|kalkkunan/,weak:/koira|kissa|lemmik|puruluu/},
+  tonnikala: {strong:/tonnikala/,weak:/sushi|salaatti|wrap|pizza|pasta|eväsleipä/},
+  katkarapu: {strong:/katkarapu/,weak:/salaatti|pasta|keitto|patonki|leipä|sushi/},
+  seiti: {strong:/seiti|seitifilee|seitipala/,weak:/koira|kissa|lemmik/},
+  makkara: {strong:/makkara/,weak:/koira|kissa|lemmik/},
   broileri: {strong:/\b(broileri|broilerin|broilerifilee|broilerisuikale)\b/,weak:/wrap|pizza|patonki|salaatti|pasta|keitto/},
 };
 const ALIASES: Record<string,string> = {kahvit:"kahvi",jogurtit:"jogurtti",maidot:"maito",lohet:"lohi",banaanit:"banaani",perunat:"peruna",porkkanat:"porkkana",tomaatit:"tomaatti",leivät:"leipä",broilerit:"broileri"};
@@ -80,6 +89,21 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
     if(canonical==="suklaa"){
       if(/suklaalevy|suklaapatukka|maitosuklaa|tummasuklaa|tumma suklaa|valkosuklaa|konvehti|suklaa \\d{2,3}\s?g/.test(name))value+=190;
       if(/kakku|jäätelö|levite|muffinssi|keksi|rahkalettu|riisipala|kaurapala|pikkuleipä|täyte/.test(name))value-=170;
+    }
+    if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara"].includes(canonical)){
+      const animalFood=/almo nature|lily.s kitchen|brit premium|hau-hau|kattovit|rokka lihaisa|mush kana|monge|miamor|encore|dokas|koiramo|crave|prima\s?dog|pedigree|whiskas|sheba|carnilove|vitakraft|lemmik|koirille|kissoille|koiran|kissan|täysrehu|täysravinto|puruluu|pentu(?:lle|jen)/.test(name+" "+category);
+      if(animalFood)value-=450;
+      const prepared=/pizza|wrap|patonki|panini|salaatti|pasta|risotto|sushi|gyoza|pyttipannu|keitto|fond|dumpling|kastike|quesadilla|ohukainen|mauste|eväsleipä|ateria|ragu|kebab|täytetty|burger|nakki|leipä/.test(name);
+      if(prepared)value-=125;
+      if(canonical==="jauheliha"&&/jauheliha/.test(name)&&!prepared)value+=210;
+      if(canonical==="naudanliha"&&/naudanliha/.test(name)&&!prepared)value+=160;
+      if(canonical==="sianliha"&&/sianliha/.test(name)&&!prepared)value+=160;
+      if(canonical==="kana"&&/kana(?:n|filee|suikale|rinta|koipi|leike)?/.test(name)&&!prepared)value+=145;
+      if(canonical==="kalkkuna"&&/kalkkuna/.test(name)&&!prepared)value+=155;
+      if(canonical==="tonnikala"&&/tonnikala/.test(name)&&!prepared)value+=180;
+      if(canonical==="katkarapu"&&/katkarapu/.test(name)&&!prepared)value+=160;
+      if(canonical==="seiti"&&/seiti/.test(name)&&!prepared)value+=170;
+      if(canonical==="makkara"&&/makkara/.test(name)&&!animalFood)value+=135;
     }
     if(canonical==="broileri"){
       if(/broiler/.test(name)&&!/wrap|patonki|pizza|salaatti|voileipä|kolmari/.test(name))value+=60;
