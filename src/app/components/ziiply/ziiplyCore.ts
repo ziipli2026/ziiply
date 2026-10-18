@@ -1167,9 +1167,8 @@ export function hasExactNormalizedWord(value: string, word: string) {
 export function parseMetricSize(value: string) {
   // Canned goods may show gross/drained weight as 340/285 g.
   // Use the first (gross) weight when comparing package sizes.
-  const text = normalize(value)
-    .replace(/(\d),(\d)/g, "$1.$2")
-    .replace(/\b(\d+)\s*\/\s*\d+\s*(kg|g)\b/g, "$1$2");
+  const text = normalize(value.replace(/\b(\d+)\s*\/\s*\d+\s*(kg|g)\b/gi, "$1$2"))
+    .replace(/(\d),(\d)/g, "$1.$2");
   const match = text.match(/\b(\d+(?:\.\d+)?)\s?(kg|g|l|dl|cl|ml)\b/);
 
   if (!match) return null;
