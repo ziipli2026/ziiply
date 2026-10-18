@@ -16,7 +16,7 @@ const fallbackQueries={
   "salaatti 1kpl":["salaatti","keräsalaatti"],
   "wc-paperi 8rll":["wc-paperi","vessapaperi","toalettipaperi","wc paperi","8 rullaa"],
   "talouspaperi 4rll":["talouspaperi","talouspyyhe","4 rullaa"],
-  "roskapussi 30l":["roskapussi","jätepussi","roskapussit","30 l"]
+  "roskapussi 30l":["roskapussi","roskapussit","jätepussi","jätepussit","jätesäkki","roskapussi 30","jätepussi 30","sulkijanauhapussi"]
 };
 async function search(chain,term){
   const url=new URL('/api/'+(chain==='S'?'s-products':'k-products'),base);
