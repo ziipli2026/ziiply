@@ -13,6 +13,8 @@ const RULES: Record<string, {strong: RegExp; secondary?: RegExp; weak: RegExp}> 
   porkkana: {strong:/\bporkkana\b/,weak:/porkkana[- ]?(leipä|sämpylä|mehu|kakku)/},
   tomaatti: {strong:/\btomaatti\b/,weak:/tomaatti[- ]?(kastike|pizza|pasta|keitto)/},
   leipä: {strong:/\b(leipä|ruisleipä|paahtoleipä|limppu)\b/,weak:/\b(leipomo|leipäveitsi|leipäkori)\b/},
+  limsa: {strong:/limonadi|virvoitusjuoma|cola|kokis|pepsi|sprite|fanta|jaffa/,weak:/karkki|makeinen|tiiviste|esanssi/},
+  mehu: {strong:/mehu|täysmehu|tuoremehu/,weak:/kivennäisvesi|virvoitusjuoma|mehujuoma/},
   vesi: {strong:/\b(kivennäisvesi|lähdevesi|juomavesi|mineraalivesi)\b|(?:^|\\s)vesi(?:\\s|$)/,weak:/vesi[- ]?(ilmapallo|maitotutti|pistooli|lelu)|vesimeloni/},
   kaakao: {strong:/kaakao(jauhe|juoma|maito)|(?:^|\\s)kaakao(?:\\s|$)/,weak:/kaakao[- ]?(keksi|muro|vanilja|vohveli|banaani|vadelma)|shampoo|hoitoaine/},
   rahka: {strong:/(?:^|\\s)rahka(?:\\s|$)|maitorahka|proteiinirahka/,weak:/rahka[- ]?(pulla|piirakka|kakku|kranssi)|hillopitko|täytepulla/},
@@ -74,7 +76,18 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       // A bakery brand containing "Leipä" is not itself proof of bread.
       if(/^(?:kartanon|pekan|laitilan) leipä /.test(name)&&!/(rouhepalat|ruispalat|ruisleipä|paahtoleipä|sämpylä|limppu|viipaleet)/.test(name))value-=130;
     }
+    if(canonical==="limsa"){
+      if(/limonadi|virvoitusjuoma|cola|pepsi|sprite|fanta|jaffa/.test(name))value+=170;
+      if(/makeinen|karkki|esanssi|tiiviste/.test(name))value-=180;
+    }
+    if(canonical==="mehu"){
+      if(/täysmehu|tuoremehu|hedelmämehu|mehu/.test(name)&&!/kivennäisvesi|virvoitusjuoma/.test(name))value+=130;
+      if(/mehu-kivennäisvesi|mehuvirvoitus|mehujuoma/.test(name))value-=170;
+    }
     if(canonical==="vesi"){
+      if(/vesikauha|vesiastia|vesipyssy|vesileikki|vesikrassi|vesiletku|vesipullo|vesikannu|vesipistooli|vesilelu/.test(name))value-=500;
+      if(/kivennäisvesi|lähdevesi|mineraalivesi|juomavesi|hiilihapotettu vesi|maustettu vesi/.test(name))value+=280;
+
       if(/vesi-ilmapallo|vesi-maitotutti|vesi- ja maitotutti|vesipistooli|vesilelu|vesimeloni/.test(name))value-=300;
       if(/lähdevesi|kivennäisvesi|mineraalivesi|juomavesi|vitaminoitu vesi|vitaminisoitu vesi/.test(name))value+=170;
     }
@@ -87,6 +100,8 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       if(/pulla|piirakka|kakku|kranssi|hillopitko|leivos|täyte/.test(name))value-=200;
     }
     if(canonical==="suklaa"){
+      if(/välipalapatukka|energiapatukka|kaurapuffi|jäätelö|grand dessert|digestive|keksi|rahka/.test(name))value-=350;
+      if(/suklaalevy|maitosuklaa|tumma suklaa|tummasuklaa|konvehti/.test(name)&&!/patukka|jäätelö|keksi|dessert/.test(name))value+=200;
       if(/suklaalevy|suklaapatukka|maitosuklaa|tummasuklaa|tumma suklaa|valkosuklaa|konvehti|suklaa \\d{2,3}\s?g/.test(name))value+=190;
       if(/kakku|jäätelö|levite|muffinssi|keksi|rahkalettu|riisipala|kaurapala|pikkuleipä|täyte/.test(name))value-=170;
     }
