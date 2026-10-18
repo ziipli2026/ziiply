@@ -179,6 +179,7 @@ export default function ZiiplyMobileScannerCard({
   const stickerHasPositionRef = useRef(false);
   const stickerTrackCenterRef = useRef<{ x: number; y: number } | null>(null);
   const stickerLastSeenRef = useRef(0);
+  const stickerBarcodeSeenRef = useRef(0);
   const [stickerLockExpanded, setStickerLockExpanded] = useState(true);
   useEffect(() => {
     if (!redStickerCandidateV864) {
@@ -206,6 +207,7 @@ export default function ZiiplyMobileScannerCard({
       if (loading || cameraOverlay || manualInputOpen || flashState !== "idle" || selectionResults.length > 1) {
         hits = 0;
         stickerLastSeenRef.current = 0;
+        stickerBarcodeSeenRef.current = 0;
         setRedStickerCandidateV864(false);
         return;
       }
@@ -355,8 +357,14 @@ export default function ZiiplyMobileScannerCard({
           }
         }
         const partial = bestPartial as { x: number; y: number; left: number; top: number; right: number; bottom: number } | null;
-        const nearbyPartial = partial && (!last || Math.hypot(partial.x - last.x, partial.y - last.y) < 35);
         const detected = bounded && barcodeRows >= 5;
+        // Orange regions alone must never acquire the overlay. A barcode-like
+        // candidate opens a short tracking window; partial sticker geometry
+        // can then keep the frame moving without requiring perfect stripes.
+        if (detected) stickerBarcodeSeenRef.current = Date.now();
+        const trackingBarcode = Date.now() - stickerBarcodeSeenRef.current < 1400;
+        const nearbyPartial = partial && trackingBarcode && last &&
+          Math.hypot(partial.x - last.x, partial.y - last.y) < 35;
         const target = detected
           ? { x: candidateCenter.x, y: candidateCenter.y,
               left: Math.max(0, candidateCenter.x - 21), right: Math.min(128, candidateCenter.x + 21),
