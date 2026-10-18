@@ -3443,6 +3443,12 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   // JS word boundaries do not recognize ä as a word character: match Finnish nut stems directly.
   if (/(?:pähkin|pahkin|nut mix|nuts)/.test(source) &&
       !/(?:pähkin|pahkin|nut mix|nuts|cashew|manteli|pistaasi)/.test(candidate)) return false;
+  // Do not equate juice drinks with juice, or nut-and-fruit mixes with plain nuts.
+  if (/appelsiinimehu/.test(source) &&
+      (!/appelsiinimehu/.test(candidate) || /(?:mehujuoma|juomatiiviste|nektari)/.test(candidate))) return false;
+  if (/(?:pähkin|pahkin|nut mix|nuts)/.test(source) &&
+      /(?:hedelmäsekoitus|hedelmä-|hedelmä ja|hedelmä &|fruit mix|fruit and nut)/.test(candidate) &&
+      !/(?:hedelmä|fruit)/.test(source)) return false;
   // Pasta shapes must not be substituted with unrelated 500 g staples.
   if (/\b(?:spagetti|spaghetti)\b/.test(source) &&
       !/\b(?:spagetti|spaghetti)\b/.test(candidate)) return false;
