@@ -30,13 +30,14 @@ try {
  await pool.query('CREATE TABLE IF NOT EXISTS public.ziiply_off_lookup_status (ean text PRIMARY KEY, status text NOT NULL, attempted_at timestamptz NOT NULL DEFAULT now(), error text)');
  const {rows}=await pool.query(`
  SELECT p.ean FROM public.ziiply_ean_products p
- WHERE p.ean ~ '^[0-9]{8,14}
+ WHERE p.ean ~ '^[0-9]{8,14}$'
+ AND right(p.ean,1)::int=$2
  AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition n WHERE n.ean=p.ean)
  AND NOT EXISTS (
- SELECT 1 FROM public.ziiply_off_import_attempts a
+ SELECT 1 FROM public.ziiply_off_lookup_status a
  WHERE a.ean=p.ean AND (
  a.status IN ('found','not_found')
- OR (a.status='error' AND (a.attempts>=3 OR a.last_attempt_at > now()-interval '1 day'))
+ OR (a.status='error' AND a.attempted_at > now()-interval '1 day')
  ))
  ORDER BY p.ean LIMIT $1`,[limit,shard]);
  let matched=0,notFound=0,failed=0;
