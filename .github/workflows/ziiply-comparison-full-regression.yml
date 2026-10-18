@@ -101,6 +101,8 @@ jobs:
         shell: bash
         run: |
           node <<'NODE'
+          const { createRequire } = await import('node:module');
+          const require = createRequire(import.meta.url);
           const core = require('./.tmp-comparison-functional/ziiplyCore.js');
           const terms=['maito','jauheliha','kananmuna'];
           let total=0,errors=[];
