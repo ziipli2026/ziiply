@@ -1,0 +1,31 @@
+name: K-chain EAN fix verification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify EAN counts against live K-chain responses
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.ruoanhinta.fi/api';
+          for(const chain of ['K-Market','K-Supermarket']){
+            const r=await fetch(base+'/stores?search='+encodeURIComponent(chain));
+            if(!r.ok)throw Error('Store API '+r.status);
+            const data=await r.json();
+            const stores=Array.isArray(data)?data:data.items||[];
+            const store=stores.find(s=>String(s.name||'').startsWith(chain)&&!s.delistedAt);
+            if(!store)throw Error('No store for '+chain);
+            const q=await fetch(base+'/items?search=maito&storeIds='+encodeURIComponent(store.id)+'&skip=0&take=100');
+            if(!q.ok)throw Error('Items API '+q.status);
+            const response=await q.json();
+            const rows=Array.isArray(response)?response:response.items||[];
+            const priced=rows.filter(x=>Number(x.storeItems?.[0]?.price)>0);
+            const ean=priced.filter(x=>new RegExp('^[0-9]{8,14}$').test(String(x.ean??'')));
+            console.log('EAN VERIFY '+JSON.stringify({chain,store:store.name,returned:rows.length,priced:priced.length,ean:ean.length,sample:ean.slice(0,3).map(x=>({name:x.name,ean:x.ean}))}));
+            if(!priced.length||!ean.length)throw Error(chain+' has no priced EAN results');
+          }
+          NODE
