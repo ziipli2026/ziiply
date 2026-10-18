@@ -1,0 +1,84 @@
+name: K-Market and K-Supermarket mass audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Audit stores and product searches (read-only)
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          const base='https://api.ruoanhinta.fi/api';
+          const terms=['K-Market','K-Supermarket'];
+          const searches=['maito','jauheliha','kahvi','leipä','kananmuna','banaani','juusto','lohi'];
+          const result={timestamp:new Date().toISOString(),mode:'read-only',chains:{},errors:[]};
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          async function json(url) {
+            for(let attempt=0;attempt<3;attempt++){
+              const controller=new AbortController();
+              const timer=setTimeout(()=>controller.abort(),18000);
+              try {
+                const response=await fetch(url,{headers:{accept:'application/json','user-agent':'Ziiply-Audit/1.0'},signal:controller.signal});
+                if(response.status===429||response.status===503){await sleep(1200*(attempt+1));continue;}
+                if(!response.ok)throw Error('HTTP '+response.status);
+                return await response.json();
+              }finally{clearTimeout(timer);}
+            }
+            throw Error('retry exhausted');
+          }
+          for(const chain of terms){
+            const stores=[];
+            try{
+              const data=await json(base+'/stores?search='+encodeURIComponent(chain));
+              const rows=Array.isArray(data)?data:(data.items||[]);
+              const seen=new Set();
+              for(const s of rows){
+                if(!new RegExp('^'+chain.replace('-','[- ]')+'\\b','i').test(String(s.name||''))||s.delistedAt)continue;
+                const id=s.id;
+                if(id==null||seen.has(String(id)))continue;
+                seen.add(String(id));
+                stores.push({id,name:s.name,city:s.city,externalId:s.externalId});
+              }
+            }catch(e){result.errors.push({chain,stage:'discovery',error:String(e)});}
+            const report={discovered:stores.length,stores:stores.map(s=>({...s,checks:[]})),totals:{checks:0,success:0,empty:0,errors:0,priced:0,ean:0}};
+            result.chains[chain]=report;
+            console.log(chain+' stores discovered: '+stores.length);
+            // Eight search terms per store. Sequential with short delay to avoid overloading the upstream.
+            for(const store of report.stores){
+              for(const term of searches){
+                report.totals.checks++;
+                try{
+                  const data=await json(base+'/items?search='+encodeURIComponent(term)+'&storeIds='+encodeURIComponent(store.id)+'&skip=0&take=100');
+                  const rows=Array.isArray(data)?data:(data.items||[]);
+                  const priced=rows.filter(x=>Number(x.storeItems?.[0]?.price)>0);
+                  const ean=priced.filter(x=>/^\\d{8,14}$/.test(String(x.ean||x.gtin||x.eanCode||x.barcode||x.externalId||'')));
+                  report.totals.success++;
+                  if(!priced.length)report.totals.empty++;
+                  report.totals.priced+=priced.length;report.totals.ean+=ean.length;
+                  store.checks.push({term,returned:rows.length,priced:priced.length,ean:ean.length,sample:priced.slice(0,2).map(x=>({name:x.name,price:x.storeItems?.[0]?.price}))});
+                }catch(e){
+                  report.totals.errors++;
+                  store.checks.push({term,error:String(e)});
+                }
+                await sleep(110);
+              }
+              console.log(chain+' '+store.name+' '+store.checks.filter(c=>c.error).length+' errors');
+            }
+            console.log(chain+' totals '+JSON.stringify(report.totals));
+          }
+          writeFileSync('k-market-supermarket-audit.json',JSON.stringify(result,null,2));
+          console.log('AUDIT SUMMARY '+JSON.stringify(Object.fromEntries(Object.entries(result.chains).map(([k,v])=>[k,{discovered:v.discovered,...v.totals}]))));
+          if(result.errors.length||Object.values(result.chains).some(c=>!c.discovered||c.totals.errors))process.exitCode=1;
+          NODE
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k-market-supermarket-audit
+          path: k-market-supermarket-audit.json
+          if-no-files-found: warn
