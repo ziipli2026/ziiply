@@ -3455,7 +3455,9 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/(?:ranskalaiset perunat|ranskanperunat|ranskalaiset)/.test(source) &&
       !/(?:ranskanperun|ranskalais|french fries)/.test(candidate)) return false;
   if (/pakasteherne/.test(source) &&
-      (!/(?:herne|peas)/.test(candidate) || !/(?:pakaste|frozen)/.test(candidate))) return false;
+      (!/(?:herne|peas)/.test(candidate) ||
+       !/(?:pakaste|frozen)/.test(candidate) ||
+       /(?:herne[- ]maissi|herne[- ]porkkana|maissi[- ]herne|porkkana[- ]herne|herne[- ]paprika|mixed vegetables|kasvissekoitus)/.test(candidate))) return false;
   if (/tonnikala/.test(source) && !/tonnikala/.test(candidate)) return false;
   if (/(?:^|\s)maissi(?:\s|$)/.test(source) &&
       (!/(?:maissinjyv|maissi|sweetcorn)/.test(candidate) ||
