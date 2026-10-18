@@ -124,6 +124,7 @@ jobs:
           }
           const terms=['maito','jauheliha','kananmuna'];
           let total=0,errors=[];
+          const unmatchedAudit=[];
           async function load(chain,term){
             const url=new URL('/api/'+(chain==='S'?'s-products':'k-products'),'https://ziiply.vercel.app');
             url.searchParams.set('search',term);
@@ -145,11 +146,18 @@ jobs:
                   if(!picked||picked.price!==Math.min(...compatible.map(p=>p.price)))errors.push(term+' '+direction+' wrong cheapest '+product.name);
                   else {matched++;if(matched<=2)console.log('EXAMPLE',JSON.stringify({direction,source:product.name,match:picked.name,price:picked.price}));}
                 }else if(picked)errors.push(term+' '+direction+' incompatible '+product.name);
+                else {
+                  const sizePattern=/\b\d+(?:[,.]\d+)?\s*(?:kg|g|l|ml)\b/i;
+                  const sameSizeCandidates=target.filter(p=>sizePattern.test(p.name)===sizePattern.test(product.name));
+                  unmatchedAudit.push({term,direction,source:product.name,sourceHasSize:sizePattern.test(product.name),candidateCount:target.length,sameSizeNameCount:sameSizeCandidates.length});
+                }
               }
               total+=matched;
               console.log('COVERAGE',JSON.stringify({term,direction,sourceCount:source.length,targetCount:target.length,matched}));
             }
           }
+          console.log('UNMATCHED_AUDIT_SUMMARY',JSON.stringify({count:unmatchedAudit.length,missingSourceSize:unmatchedAudit.filter(x=>!x.sourceHasSize).length,byTerm:Object.fromEntries(terms.map(t=>[t,unmatchedAudit.filter(x=>x.term===t).length]))}));
+          for(const row of unmatchedAudit.slice(0,35))console.log('UNMATCHED_AUDIT_SAMPLE',JSON.stringify(row));
           if(!total)errors.push('No compatible cross-chain matches in any tested family');
           if(errors.length){console.error('LIVE_COUNTERPART_ISSUES',JSON.stringify(errors));process.exit(1);}
           console.log('SAFE_SUMMARY verified live counterpart choices:',total);
