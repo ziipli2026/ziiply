@@ -25,6 +25,11 @@ jobs:
                 const top=items.slice(0,10).map(x=>x.name);
                 console.log(JSON.stringify({chain,term,count:items.length,top}));
                 if(!items.length){failures++;console.error("EMPTY",chain,term);}
+                const freshTerms=["omena","appelsiini","päärynä","viinirypäle","paprika","mansikka","sipuli","kurkku","kesäkurpitsa"];
+                const processed=/mehu|juoma|smoothie|hillo|sose|piirak|pitko|kakku|pesto|kastike|chips|sipsi|jogurtti|rahka|makkara|juusto|jäätelö|vanukas|makeinen|karkki|lelu|nukke|majo|salaatti-/i;
+                if(freshTerms.includes(term)&&!top.slice(0,5).some(n=>n.toLocaleLowerCase("fi").includes(term)&&!processed.test(n))){
+                  failures++;console.error("FRESH_PRODUCE_MISSING_TOP5",chain,term);
+                }
                 if(top.some(n=>!n||typeof n!=="string")){failures++;console.error("INVALID_NAME",chain,term);}
                 if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara","nakki"].includes(term)&&top.slice(0,5).some(n=>/dreamies|sheba|vitakraft|carnilove|whiskas|pedigree|koirille|kissoille/i.test(n))){failures++;console.error("PET_FOOD_TOP5",chain,term);}
               }catch(e){failures++;console.error("ERROR",chain,term,String(e));}
