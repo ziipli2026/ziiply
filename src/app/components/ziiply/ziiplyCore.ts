@@ -3460,6 +3460,10 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (/\bvoi\b/.test(source) && !/\bvoi\b/.test(candidate)) return false;
   if (/\bpasta\b/.test(source) && /\b(karkki|makeinen|haribo)\b/.test(candidate)) return false;
 
+  // Beef mince must not match beef/pork or beef/chicken mixtures.
+  if (/\b(?:naudan|nauta)\s+jauheliha\b/.test(source) &&
+      /\b(?:nauta|naudan)[-\s]+(?:viljapossu|sika|porsas|kana|broileri)\b/.test(candidate)) return false;
+
   // Identify meat species from names before selecting the cheapest product.
   // Only compare the same species. Chicken/broiler and pork/pig are synonyms,
   // but beef, pork, chicken, turkey and lamb are never interchangeable.
@@ -3490,8 +3494,9 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   };
   const sourceGroundMeatFat = groundMeatFat(sourceName);
   const candidateGroundMeatFat = groundMeatFat(candidateName);
-  if (sourceGroundMeatFat !== candidateGroundMeatFat &&
-      (sourceGroundMeatFat !== null || candidateGroundMeatFat !== null)) return false;
+  // An unspecified fat percentage accepts any fat percentage; an explicit
+  // requested percentage must match exactly.
+  if (sourceGroundMeatFat !== null && sourceGroundMeatFat !== candidateGroundMeatFat) return false;
 
   // Preserve explicit milk fat percentage. "1 % maito" is not just any milk.
   const milkFat = (name: string) => {
