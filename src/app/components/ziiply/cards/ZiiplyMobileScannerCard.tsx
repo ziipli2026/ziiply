@@ -176,9 +176,11 @@ export default function ZiiplyMobileScannerCard({
   // that same region. Packaging color alone is never sufficient.
   const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
   const [stickerBounds, setStickerBounds] = useState({ left: 30, top: 30, width: 40, height: 40 });
+  const stickerHasPositionRef = useRef(false);
   const [stickerLockExpanded, setStickerLockExpanded] = useState(true);
   useEffect(() => {
     if (!redStickerCandidateV864) {
+      stickerHasPositionRef.current = false;
       setStickerLockExpanded(true);
       return;
     }
@@ -319,7 +321,11 @@ export default function ZiiplyMobileScannerCard({
             const right = Math.min(126, maxX + pad), bottom = Math.min(94, maxY + pad);
             const next = { left: left / 128 * 100, top: top / 96 * 100,
               width: (right - left) / 128 * 100, height: (bottom - top) / 96 * 100 };
-            setStickerBounds(prev => {
+            if (!stickerHasPositionRef.current) {
+              // Start the lock animation at the actual detected sticker position.
+              stickerHasPositionRef.current = true;
+              setStickerBounds(next);
+            } else setStickerBounds(prev => {
               const distance = Math.abs(prev.left - next.left) + Math.abs(prev.top - next.top) +
                 Math.abs(prev.width - next.width) + Math.abs(prev.height - next.height);
               if (distance < 3) return prev;
