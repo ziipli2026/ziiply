@@ -104,6 +104,9 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       const prepared=/pizza|wrap|patonki|panini|ciabatta|rieska|focaccia|nuudeli|perunavuoka|riisipata|rouhe|salaatti|pasta|risotto|sushi|gyoza|pyttipannu|keitto|fond|dumpling|kastike|quesadilla|ohukainen|mauste|eväsleipä|ateria|ragu|kebab|täytetty|burger|nakki|leipä/.test(name);
       if(prepared)value-=125;
       if(canonical==="jauheliha"&&/jauheliha/.test(name)&&!prepared)value+=210;
+      if(canonical==="naudanliha" && /entrecote|ulkofilee|sisäfilee|lehtipihvi|paisti|pihvi/.test(name)) value+=500;
+      if(canonical==="naudanliha" && /bresaola|lihavalmiste|semper|piltti|lovemade|sose|jerky|ilmakuivattu/.test(name)) value-=400;
+      if(canonical==="sianliha" && /lego|minecraft|lelu/.test(name)) value-=800;
       if(canonical==="naudanliha"&&/naudanliha/.test(name)&&!prepared)value+=160;
       if(canonical==="sianliha"&&/sianliha/.test(name)&&!prepared)value+=160;
       if(canonical==="kana"&&/kana(?:n|filee|suikale|rinta|koipi|leike)?/.test(name)&&!prepared&&!animalFood)value+=145;
