@@ -65,6 +65,7 @@ export type ZiiplyMobileCompareSelectionCardProps = {
   onSelectMatchAlternative?: (storeId: string, match: unknown, alternative: unknown) => void | Promise<void>;
   onResetMatchMode?: (storeId: string, match: unknown) => void | Promise<void>;
   onClose?: () => void;
+  onDebugAlternatives?: (event: { storeId: string; mode: string; source: unknown; candidates: unknown[]; error?: string }) => void;
   className?: string;
 };
 
@@ -197,6 +198,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   onShareStore,
   onChangeMatchMode,
   onSelectMatchAlternative,
+  onDebugAlternatives,
   onClose,
   className = "",
 }: ZiiplyMobileCompareSelectionCardProps) {
@@ -293,6 +295,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   const result = await onChangeMatchMode(store.id, item, mode);
                                   if (requestId !== alternativeRequestRef.current) return;
                                   setAlternativeMenu({ key, mode, items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [], loading: false });
+                                  onDebugAlternatives?.({ storeId: store.id, mode, source: item, candidates: Array.isArray(result) ? result : [] });
                                 } catch {
                                   if (requestId === alternativeRequestRef.current) setAlternativeMenu({ key, mode, items: [], loading: false });
                                 }
