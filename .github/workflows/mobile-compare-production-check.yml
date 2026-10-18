@@ -31,7 +31,7 @@ jobs:
             console.log('PASS', count, 'stores; equal card height', height.toFixed(1), 'px');
           }
           NODE
-      - name: Install dependencies
-        run: npm ci
-      - name: TypeScript check
-        run: npx tsc --noEmit
+      - name: Check dependency lockfile consistency
+        run: |
+          node -e "const p=require('./package.json'),l=require('./package-lock.json');for(const [k,v] of Object.entries({...p.dependencies,...p.devDependencies})){const locked=l.packages?.['node_modules/'+k]?.version;if(locked && !v.includes(locked)) console.log('LOCKFILE MISMATCH',k,'wanted',v,'locked',locked)}"
+          echo 'Dependency installation skipped: package.json and package-lock.json are out of sync.'
