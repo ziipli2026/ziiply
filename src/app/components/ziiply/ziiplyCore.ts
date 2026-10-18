@@ -3609,7 +3609,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (!looseCandidate && sourceSize && candidateSize && (sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
   const group = (name: string) => {
     if (/\bpiima\b/.test(name)) return "piima";
-    if (/\bmaito\b/.test(name)) return "maito";
+    if (/\bmaito\b/.test(name) || (/\blaktoositon\b/.test(source) && /\bmaitojuoma\b/.test(name) && !/(?:kahvi|kaakao|suklaa|makuinen|maustettu|proteiinijuoma|pirtelo)/.test(name))) return "maito";
     if (/\bjogurtti\b/.test(name)) return "jogurtti";
     return "";
   };
