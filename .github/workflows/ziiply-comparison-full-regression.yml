@@ -59,6 +59,43 @@ jobs:
           if(failures) process.exit(1);
           console.log('SAFE_SUMMARY functional cross-chain counterpart regression passed');
           NODE
+      - name: Live S and K product-search smoke test
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base = 'https://ziiply.vercel.app';
+          const cases = [
+            ['S','634976534','maito'],
+            ['K','N183','maito'],
+            ['S','634976534','jauheliha'],
+            ['K','N183','jauheliha'],
+            ['S','634976534','kananmuna'],
+            ['K','N183','kananmuna'],
+          ];
+          const problems = [];
+          for (const [chain,store,term] of cases) {
+            const endpoint = chain === 'S' ? 's-products' : 'k-products';
+            const url = new URL('/api/'+endpoint,base);
+            url.searchParams.set('store',store);
+            url.searchParams.set('search',term);
+            try {
+              const response = await fetch(url,{signal:AbortSignal.timeout(25000)});
+              const body = await response.json();
+              const items = Array.isArray(body.items) ? body.items : Array.isArray(body.products) ? body.products : [];
+              const names = items.slice(0,5).map(x=>String(x.name||''));
+              console.log(JSON.stringify({chain,store,term,http:response.status,count:items.length,top:names}));
+              if(!response.ok) problems.push(chain+' '+term+' HTTP '+response.status);
+              else if(!items.length) problems.push(chain+' '+term+' empty results (check store ID and upstream)');
+            } catch(error) {
+              problems.push(chain+' '+term+' '+String(error));
+            }
+          }
+          if(problems.length) {
+            console.error('LIVE_SEARCH_ISSUES',JSON.stringify(problems));
+            process.exit(1);
+          }
+          console.log('SAFE_SUMMARY live S/K search smoke passed');
+          NODE
       - name: Verify current comparison search contracts
         shell: bash
         run: |
