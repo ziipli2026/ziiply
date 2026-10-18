@@ -1,7 +1,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const rows=JSON.parse(fs.readFileSync('/tmp/43av-evidence.json','utf8')).rows;
+const rows=JSON.parse(fs.readFileSync('/tmp/43av-replayed.json','utf8')).rows;
 const offers=JSON.parse(fs.readFileSync('/tmp/43av-leaflet.json','utf8')).rows;
 const find=(title,page)=>rows.find(x=>x.page===page&&x.title.includes(title));
 test('43AV source archive exists and has expected issue',()=>{
