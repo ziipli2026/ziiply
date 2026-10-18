@@ -3645,8 +3645,8 @@ export function estimateEquivalentQuantityCost(
   if (!requested || !candidate || requested.unitGroup !== candidate.unitGroup ||
       requested.amount <= 0 || candidate.amount <= 0 ||
       !Number.isSafeInteger(verifiedPackageCents) || verifiedPackageCents <= 0) return null;
-  if (/(?:^|\\s)(?:n\\.|noin|ca\\.?|approx\\.?|~)\\s*\\d/i.test(candidateName)) return null;
-  const normalizedCandidate = candidateName.replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b/i,requested.label);
+  if (/(?:^|\s)(?:n\.|noin|ca\.?|approx\.?|~)\s*\d/i.test(candidateName)) return null;
+  const normalizedCandidate = candidateName.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i,requested.label);
   if (!isComparisonAttributeCompatible(requestedName, normalizedCandidate)) return null;
   return {
     unitPriceCents: Math.round(verifiedPackageCents * 1000 / candidate.amount),
