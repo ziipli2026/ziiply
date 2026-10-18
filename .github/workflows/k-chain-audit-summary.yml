@@ -1,0 +1,71 @@
+name: K-chain audit final summary
+on:
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Summarize latest completed K-chain mass audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request,zipfile,io,collections
+          repo=os.environ['GH_REPOSITORY']
+          base='https://api.github.com/repos/'+repo
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','User-Agent':'Ziiply-audit-summary'}
+          def api(path):
+              req=urllib.request.Request(base+path,headers=headers)
+              with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)
+          runs=api('/actions/workflows/k-market-supermarket-mass-audit.yml/runs?event=workflow_dispatch&per_page=30')['workflow_runs']
+          runs=[r for r in runs if r['status']=='completed' and r['conclusion']=='success']
+          if not runs:raise SystemExit('No successful completed mass audit found')
+          run=runs[0]
+          artifacts=[]
+          page=1
+          while True:
+              batch=api('/actions/runs/'+str(run['id'])+'/artifacts?per_page=100&page='+str(page))['artifacts']
+              artifacts+=batch
+              if len(batch)<100:break
+              page+=1
+          selected={}
+          for a in artifacts:
+              if a['name'].startswith('k-market-supermarket-audit-batch-') and not a['expired']:
+                  selected[int(a['name'].split('-')[-1])]=a
+          if len(selected)!=25:raise SystemExit('Expected 25 reports, got '+str(len(selected)))
+          totals=collections.defaultdict(lambda:collections.Counter())
+          stores=collections.defaultdict(set)
+          empty_stores=collections.defaultdict(list)
+          issues=[]
+          for batch,a in sorted(selected.items()):
+              req=urllib.request.Request(a['archive_download_url'],headers=headers)
+              with urllib.request.urlopen(req,timeout=40) as r:raw=r.read()
+              with zipfile.ZipFile(io.BytesIO(raw)) as z:
+                  data=json.loads(z.read('k-market-supermarket-audit.json'))
+              if data.get('errors'):issues.append({'batch':batch,'errors':data['errors']})
+              for chain,report in data['chains'].items():
+                  totals[chain].update(report['totals'])
+                  for store in report['stores']:
+                      sid=str(store['id'])
+                      if sid in stores[chain]:issues.append({'batch':batch,'duplicate':sid,'chain':chain})
+                      stores[chain].add(sid)
+                      if any(c.get('priced',0)==0 for c in store['checks']):
+                          empty_stores[chain].append({'name':store['name'],'id':sid,'emptyTerms':[c.get('term') for c in store['checks'] if c.get('priced',0)==0]})
+          result={'run_id':run['id'],'url':run['html_url'],'batches':len(selected),'chains':{},'issues':issues}
+          for chain in sorted(totals):
+              result['chains'][chain]={'unique_stores':len(stores[chain]),'totals':dict(totals[chain]),'stores_with_empty_searches':empty_stores[chain]}
+          with open('k-chain-final-summary.json','w') as f:json.dump(result,f,ensure_ascii=False,indent=2)
+          print('FINAL SUMMARY '+json.dumps({k:{'stores':v['unique_stores'],**v['totals'],'stores_with_empty_searches':len(v['stores_with_empty_searches'])} for k,v in result['chains'].items()},ensure_ascii=False))
+          print('ISSUES '+str(len(issues)))
+          if issues:raise SystemExit('Issues detected; inspect report')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k-chain-final-summary
+          path: k-chain-final-summary.json
