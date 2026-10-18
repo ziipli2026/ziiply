@@ -23,8 +23,8 @@ jobs:
           assert(file.includes('"flex-1 basis-0"'), 'Cards must have equal flex basis');
           assert(file.includes('absolute bottom-[0.4rem] right-5'), 'Debug must be at paper bottom');
           assert(file.includes('open:w-[calc(100%-2.5rem)]'), 'Debug must expand only when opened');
-          assert(file.includes('ml-[0.5rem]'), 'Title must leave the Pvm line visible');
-          assert(file.includes('pb-[2.5rem]'), 'Cards must use paper height');
+          assert(file.includes('left-[8%] top-[13.4%]'), 'Title must sit left of the Pvm line');
+          assert(file.includes('top-[22%] bottom-[7%]'), 'Cards must fill the marked paper region');
           assert(file.includes('pt-[4.1rem]'), 'Title is not aligned with paper header');
           for (const count of [2,3,4]) {
             const available = 600 - 45 - 67 - (count - 1) * 6;
