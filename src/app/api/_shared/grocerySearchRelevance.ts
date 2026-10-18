@@ -93,6 +93,8 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
     if(["jauheliha","naudanliha","sianliha","kana","kalkkuna","tonnikala","katkarapu","seiti","makkara"].includes(canonical)){
       const animalFood=/almo nature|lily.s kitchen|brit premium|hau-hau|kattovit|rokka lihaisa|mush kana|monge|miamor|encore|dokas|koiramo|crave|prima\s?dog|pedigree|whiskas|sheba|carnilove|vitakraft|lemmik|koirille|kissoille|koiran|kissan|täysrehu|täysravinto|puruluu|pentu(?:lle|jen)/.test(name+" "+category);
       if(animalFood)value-=650;
+      if(/oscar herkku|hhc täysravint|cesar senior|cesar classics|dagsmark|latz tasty|best friend bilanx|bilanx/.test(name))value-=700;
+      if(canonical==="katkarapu"&&/katkarapusips|katkarapu[- ]?snack|katkarapukeksi/.test(name))value-=400;
       // Do not confuse an ingredient's flavour with the ingredient itself.
       if(canonical==="naudanliha"&&/naudanlihan?maku|naudanliha\s?sose|nuudeli|lastenruoka|piltti|fond/.test(name))value-=280;
       if(canonical==="kana"&&/ciabatta|rieska|focaccia|nuudeliruukku|perunavuoka|tacobowl|rouhe|lauch?antaimakkara|lauantaimakkara|riisipata|kana-pekoni/.test(name))value-=180;
@@ -104,7 +106,7 @@ export function rankGrocerySearchResults<T extends {name?: string|null; category
       if(canonical==="jauheliha"&&/jauheliha/.test(name)&&!prepared)value+=210;
       if(canonical==="naudanliha"&&/naudanliha/.test(name)&&!prepared)value+=160;
       if(canonical==="sianliha"&&/sianliha/.test(name)&&!prepared)value+=160;
-      if(canonical==="kana"&&/kana(?:n|filee|suikale|rinta|koipi|leike)?/.test(name)&&!prepared)value+=145;
+      if(canonical==="kana"&&/kana(?:n|filee|suikale|rinta|koipi|leike)?/.test(name)&&!prepared&&!animalFood)value+=145;
       if(canonical==="kalkkuna"&&/kalkkuna/.test(name)&&!prepared)value+=155;
       if(canonical==="tonnikala"&&/tonnikala/.test(name)&&!prepared)value+=180;
       if(canonical==="katkarapu"&&/katkarapu/.test(name)&&!prepared)value+=160;
