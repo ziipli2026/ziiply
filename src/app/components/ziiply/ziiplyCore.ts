@@ -3459,8 +3459,8 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
     const match = name.match(/\b(\d+(?:[,.]\d+)?)\s*%/);
     return match ? Number(match[1].replace(",", ".")) : null;
   };
-  const sourceMilkFat = milkFat(source);
-  if (sourceMilkFat !== null && milkFat(candidate) !== sourceMilkFat) return false;
+  const sourceMilkFat = milkFat(sourceName);
+  if (sourceMilkFat !== null && milkFat(candidateName) !== sourceMilkFat) return false;
 
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
