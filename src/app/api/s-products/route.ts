@@ -183,7 +183,14 @@ export async function GET(request: Request) {
     // Prisma's prices. Preserve the existing path for working stores (Kommila).
     let recipeFallback: {attempted:boolean;matchedCount:number;error?:string}|undefined;
     const noRecipeMatches=Boolean(recipeIngredient)&&!items.some(item=>recipeProductCompatible(recipeIngredient,item));
-    if ((items.length === 0 || noRecipeMatches) && storeName && /^(prisma|s[ -]?market)/i.test(storeName)) {
+    // The Ruoanhinta 340 g search returns unrelated meals, while S-kaupat
+    // lists canned corn as "340/285 g". Retry the selected store's own feed
+    // when the upstream results have no canned-corn match.
+    const missingCannedCorn=/^(?:maissi 340g|maissinjyvät 340g|säilykemaissi|maissinjyvät|maissi säilyke)$/i.test(normalizedSearch) &&
+      !items.some(item=>/\b(?:maissi|maissinjyv)/i.test(item.name) &&
+        /(?:340\s*\/?\s*285|340\s*g)/i.test(item.name) &&
+        !/(?:kana|ateria|bistro|pizza|pitsa|salaatti)/i.test(item.name));
+    if ((items.length === 0 || noRecipeMatches || missingCannedCorn) && storeName && /^(prisma|s[ -]?market)/i.test(storeName)) {
       try {
         const fallbackItems = await fetchSKaupatNormalProductsV220(search, storeName);
         const matched=recipeIngredient?fallbackItems.filter(item=>recipeProductCompatible(recipeIngredient,item)):fallbackItems;
