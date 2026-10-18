@@ -195,7 +195,7 @@ function alternativeUnitPrices(term,products){
   if(!size||size.unitGroup!==requested.unitGroup||!size.amount||cents===null)return [];
   // Normalize only the size token for category/attribute validation.
   // Do not treat approximate-weight meat as a fixed-price basket substitute.
-  const normalizedName=p.name.replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b/i,requested.label);
+  const normalizedName=p.name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i,requested.label);
   if(!core.isComparisonAttributeCompatible(term,normalizedName))return [];
   return [{name:p.name,packageCents:cents,unitPriceCents:Math.round(cents*1000/size.amount),
    unit:size.unitGroup==='weight'?'kg':'l',size:size.label,
