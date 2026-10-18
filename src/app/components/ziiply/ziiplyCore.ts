@@ -1214,19 +1214,6 @@ export function getBrandMatchScore(sourceName: string, targetName: string) {
 }
 
 export function getSizeMatchScore(sourceName: string, targetName: string) {
-  const processed = /\\b(mehu|juoma|jogurtti|majo|majoneesi|mauste|mausteseos|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|pasta.ateria)\\b/;
-  const fresh = ["banaani","omena","appelsiini","paaryna","kurkku","tomaatti","porkkana","peruna","sipuli","paprika"];
-  for (const item of fresh) {
-    const token = new RegExp("\\\\b" + item + "\\\\b");
-    if (token.test(source) && !processed.test(source) && (!token.test(candidate) || processed.test(candidate))) return false;
-  }
-  if (/\\bvoi\\b/.test(source) && !/\\bvoi\\b/.test(candidate)) return false;
-  if (/\\bpasta\\b/.test(source) && /\\b(karkki|makeinen|haribo)\\b/.test(candidate)) return false;
-  const meat = ["kana","broileri","porsas","sika","nauta","kalkkuna","lammas"];
-  const meats = (name: string) => meat.filter((m) => new RegExp("\\\\b" + m + "[a-z]*").test(name));
-  const sourceMeat = meats(source);
-  const candidateMeat = meats(candidate);
-  if (sourceMeat.length && candidateMeat.length && !sourceMeat.some((m) => candidateMeat.includes(m) || (m === "kana" && candidateMeat.includes("broileri")) || (m === "broileri" && candidateMeat.includes("kana")) || (m === "porsas" && candidateMeat.includes("sika")) || (m === "sika" && candidateMeat.includes("porsas")))) return false;
   const sourceSize = parseMetricSize(sourceName);
   const targetSize = parseMetricSize(targetName);
 
@@ -3435,6 +3422,19 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
+  const processed = /\\b(mehu|juoma|jogurtti|majo|majoneesi|mauste|mausteseos|yrttiseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|rahka|sipsi|chips|pasta.ateria)\\b/;
+  const fresh = ["banaani","omena","appelsiini","paaryna","kurkku","tomaatti","porkkana","peruna","sipuli","paprika"];
+  for (const item of fresh) {
+    const token = new RegExp("\\\\b" + item + "\\\\b");
+    if (token.test(source) && !processed.test(source) && (!token.test(candidate) || processed.test(candidate))) return false;
+  }
+  if (/\\bvoi\\b/.test(source) && !/\\bvoi\\b/.test(candidate)) return false;
+  if (/\\bpasta\\b/.test(source) && /\\b(karkki|makeinen|haribo)\\b/.test(candidate)) return false;
+  const meat = ["kana","broileri","porsas","sika","nauta","kalkkuna","lammas"];
+  const meats = (name: string) => meat.filter((m) => new RegExp("\\\\b" + m + "[a-z]*").test(name));
+  const sourceMeat = meats(source);
+  const candidateMeat = meats(candidate);
+  if (sourceMeat.length && candidateMeat.length && !sourceMeat.some((m) => candidateMeat.includes(m) || (m === "kana" && candidateMeat.includes("broileri")) || (m === "broileri" && candidateMeat.includes("kana")) || (m === "porsas" && candidateMeat.includes("sika")) || (m === "sika" && candidateMeat.includes("porsas")))) return false;
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
   if (sourceSize && (!candidateSize || sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
