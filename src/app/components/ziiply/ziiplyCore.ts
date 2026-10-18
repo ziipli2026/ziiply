@@ -3436,7 +3436,11 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   if (eggCount) {
     const eggPack = candidateName.match(/\b(?:[smlx]{1,3}(?:\/[smlx]{1,3})?\s*)(\d{1,2})\b/i)
       ?? candidateName.match(/\b(\d{1,2})\s*(?:kpl|pcs)\b/i);
-    if (!eggPack || Number(eggPack[1]) !== Number(eggCount)) return false;
+    // Egg weight in grams is descriptive, not the requested package size.
+    // A 10-egg pack may weigh 530g or 580g; compare its count instead.
+    return Boolean(eggPack) && Number(eggPack[1]) === Number(eggCount)
+      && /\b(?:kananmuna|kananmunat|munat)\b/.test(candidate)
+      && !/(?:valkuainen|leikkuri|koiran|kissan|mousse)/.test(candidate);
   }
   // Compare pure butter with pure butter, not prepared foods or blends.
   if (/\bvoi\b/.test(source) && /(?:taikina|piparkakku|peruna|grilliperuna|kastike|leivonna|margariini|levite|flora|voi-tilli)/.test(candidate)) return false;
