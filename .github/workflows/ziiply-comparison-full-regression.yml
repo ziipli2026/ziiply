@@ -119,6 +119,14 @@ jobs:
             ['Snellman 400g Kunnon sika-nauta jauheliha', 'Tammiston nauta-sika jauheliha'],
             ['Atria Kanan jauheliha 800 g', 'DIBO lammas raakapakastettu jauhelihapihvi 800g pakaste'],
           ];
+          const mustAccept = [
+            ['Arla Cafe Maito 1L laktoositon UHT', 'Arla Cafe Maito 1L laktoositon UHT'],
+            ['Arla Cafe maito 0,5l UHT laktoositon', 'Arla Cafe maito 0,5l UHT laktoositon'],
+          ];
+          for(const [source,candidate] of mustAccept){
+            if(!core.isComparisonAttributeCompatible(source,candidate))throw Error('Exact counterpart rejected: '+source);
+            console.log('PASS exact counterpart',JSON.stringify({source,candidate}));
+          }
           for(const [source,candidate] of mustReject){
             if(core.isComparisonAttributeCompatible(source,candidate)){
               console.error('FAIL semantic counterpart',JSON.stringify({source,candidate}));
