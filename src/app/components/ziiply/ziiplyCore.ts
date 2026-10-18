@@ -3228,6 +3228,22 @@ function isBreadComparisonCompatible(sourceName: string, candidateName: string):
     }
   }
 
+  // Fresh produce must never match drinks, condiments or other processed products.
+  const freshGroups: Record<string, RegExp> = {
+    banaani: /\\bbanaani\\b/,
+    omena: /\\bomena\\b/,
+    appelsiini: /\\bappelsiini\\b/,
+    kurkku: /\\bkurkku\\b/,
+    peruna: /\\bperuna\\b/,
+    paprika: /\\bpaprika\\b/,
+    tomaatti: /\\btomaatti\\b/,
+    porkkana: /\\bporkkana\\b/,
+    paaryna: /\\bpaaryna\\b/,
+    sipuli: /\\bsipuli\\b/,
+  };
+  const processedProduce = /\\b(mehu|juoma|jogurtti|majo|majoneesi|mauste|mausteseos|kastike|karkki|makeinen|sose|hillo|keitto|pyree|smoothie|limonadi|cola|tee|rahka|sipsi|chips|salaatinkastike)\\b/;
+  const freshGroup = Object.keys(freshGroups).find((key) => freshGroups[key].test(source) && !processedProduce.test(source));
+  if (freshGroup && (!freshGroups[freshGroup].test(candidate) || processedProduce.test(candidate))) return false;
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
   if (sourceSize && candidateSize && sourceSize.unitGroup === candidateSize.unitGroup) {
