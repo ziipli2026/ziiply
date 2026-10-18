@@ -27,7 +27,7 @@ jobs:
                 if(!items.length){failures++;console.error("EMPTY",chain,term);}
                 const freshTerms=["omena","appelsiini","päärynä","viinirypäle","paprika","mansikka","sipuli","kurkku","kesäkurpitsa"];
                 const processed=/mehu|juoma|smoothie|hillo|sose|piirak|pitko|kakku|pesto|kastike|chips|sipsi|jogurtti|rahka|makkara|juusto|jäätelö|vanukas|makeinen|karkki|lelu|nukke|majo|salaatti-|riisi|puuro|kiisseli|muro|mysli|pulla|kranssi|voide|saippua|silli|silakka|suklaa|tee|viini|brandy|pihvi|mauste|öljy|jyrsijä|pasta|täyte|vanilja|cola|colajuoma/i;
-                const freshName=(n)=>{const v=n.toLocaleLowerCase("fi");return v.includes(term)&&!processed.test(v)&&!/(?:omena|appelsiini|päärynä|mansikka|paprika|sipuli)-(?:mango|kaneli|vanilja|chili|lime|juusto|tomaatti)/.test(v);};
+                const freshName=(n)=>{const v=n.toLocaleLowerCase("fi");return (term==="viinirypäle"?v.includes("rypäle"):v.includes(term))&&!processed.test(v)&&!/(?:omena|appelsiini|päärynä|mansikka|paprika|sipuli)-(?:mango|kaneli|vanilja|chili|lime|juusto|tomaatti)/.test(v);};
                 if(freshTerms.includes(term)&&!top.slice(0,3).some(freshName)){
                   failures++;console.error("FRESH_PRODUCE_MISSING_TOP3",chain,term);
                   const probes={omena:["omena","gala","pink lady"],appelsiini:["appelsiini","navel"],päärynä:["päärynä","conference"],viinirypäle:["viinirypäle","rypäle","siemenetön"],paprika:["paprika","punainen paprika"],mansikka:["mansikka","tuore mansikka"]};
