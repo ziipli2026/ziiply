@@ -171,55 +171,11 @@ export default function ZiiplyMobileScannerCard({
   }, [storeLocation?.verified, storeLocation?.name]);
 
 
-  // Ordinary EAN/UPC decoding gets priority. Discount-sticker hints are delayed
-  // and require a compact, saturated RED patch near the camera aim area.
-  // Large red/orange product packaging must never trigger the hint.
-  const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
-  useEffect(() => {
-    if (!onCaptureDiscountSticker) return;
-    const startedAt = Date.now();
-    let consecutive = 0;
-    const timer = window.setInterval(() => {
-      if (Date.now() - startedAt < 2000 || loading || flashState !== "idle" || cameraOverlay || manualInputOpen || selectionResults.length > 1) {
-        consecutive = 0;
-        setRedStickerCandidateV864(false);
-        return;
-      }
-      const video = document.getElementById(regionId)?.querySelector("video");
-      if (!video || video.readyState < 2 || !video.videoWidth) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = 64;
-      canvas.height = 48;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      if (!ctx) return;
-      try {
-        ctx.drawImage(video, 0, 0, 64, 48);
-        const pixels = ctx.getImageData(0, 0, 64, 48).data;
-        let red = 0;
-        let orange = 0;
-        let centerRed = 0;
-        for (let y = 0; y < 48; y++) {
-          for (let x = 0; x < 64; x++) {
-            const i = (y * 64 + x) * 4;
-            const [r, g, b] = [pixels[i], pixels[i + 1], pixels[i + 2]];
-            const isRed = r > 105 && r > g * 1.9 && r > b * 1.9 && g < 110 && b < 105;
-            if (isRed) {
-              red++;
-              if (x >= 17 && x < 47 && y >= 12 && y < 36) centerRed++;
-            } else if (r > 105 && r > g * 1.2 && g > b * 1.3) orange++;
-          }
-        }
-        // 64x48 image: reject scene-wide red/orange packaging and off-center patches.
-        const candidate = red >= 35 && red <= 330 && centerRed >= 28 && centerRed / red >= 0.55 && orange < 240;
-        consecutive = candidate ? Math.min(4, consecutive + 1) : 0;
-        setRedStickerCandidateV864(consecutive >= 3);
-      } catch {
-        consecutive = 0;
-        setRedStickerCandidateV864(false);
-      }
-    }, 1200);
-    return () => window.clearInterval(timer);
-  }, [regionId, onCaptureDiscountSticker, loading, flashState, cameraOverlay, manualInputOpen, selectionResults.length]);
+  // Never infer a discount sticker from packaging color alone.
+  // A sticker hint may only be enabled by the scanner after it has verified
+  // BOTH the orange sticker region and a non-standard discount barcode.
+  // Until that signal is wired, normal EAN decoding remains uninterrupted.
+  const redStickerCandidateV864 = false;
 
   const hasSelectionResults = selectionResults.length > 1;
 
