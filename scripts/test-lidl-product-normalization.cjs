@@ -5,7 +5,7 @@ const ts = require("typescript");
 const source = fs.readFileSync("src/app/api/lidl/products/route.ts", "utf8");
 function helper(name, next) {
   const start = source.indexOf("function " + name + "(");
-  const end = source.indexOf("\nfunction " + next + "(", start);
+  const end = source.indexOf("\nfunction " + next + "(", start) >= 0\n    ? source.indexOf("\nfunction " + next + "(", start)\n    : source.indexOf("\nasync function " + next + "(", start);
   assert(start >= 0 && end > start, "missing helper: " + name);
   return source.slice(start, end);
 }
