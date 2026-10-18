@@ -147,7 +147,21 @@ export async function GET(request: Request) {
     }));
     const data = await response.json();
     const primaryItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
-    const sourceItems = [...new Map([...primaryItems,...extraResponses.flat()].map(item=>[item.id,item])).values()];
+    // Only when a generic bread search returns no priced items, retry two
+    // narrower bread queries. Do not expand nonempty results or other categories.
+    const breadFallbackTerms = normalizedSearch === "leipä" && ![...primaryItems, ...extraResponses.flat()].some(product => getPrice(product) > 0)
+      ? ["ruisleipä", "paahtoleipä"]
+      : [];
+    const breadFallbackResponses = await Promise.all(breadFallbackTerms.map(async (term) => {
+      try {
+        const url = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${storeId}&skip=0&take=80`;
+        const result = await fetch(url, { headers: { accept: "application/json" }, cache: "no-store", signal: AbortSignal.timeout(6500) });
+        if (!result.ok) return [] as RuoanhintaProduct[];
+        const body = await result.json();
+        return Array.isArray(body.items) ? body.items as RuoanhintaProduct[] : [];
+      } catch { return [] as RuoanhintaProduct[]; }
+    }));
+    const sourceItems = [...new Map([...primaryItems, ...extraResponses.flat(), ...breadFallbackResponses.flat()].map(item => [item.id, item])).values()];
 
     const items = sourceItems
       .filter((product) => getPrice(product) > 0)
