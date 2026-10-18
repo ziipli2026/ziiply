@@ -30,7 +30,7 @@ jobs:
           ];
           const assert=require('node:assert/strict');
           const errors=[],rows=[];
-          const cents=p=>Math.round(Number(p)*100);
+          const cents=p=>Math.round(Number(p));
           const fetchProducts=async(chain,term)=>{
             const url=new URL('/api/'+(chain==='S'?'s-products':'k-products'),'https://ziiply.vercel.app');
             url.searchParams.set('store',chain==='S'?'292':'N183');
@@ -41,7 +41,9 @@ jobs:
             const body=await res.json();
             return (body.items||[]).filter(p=>p.name&&Number.isFinite(Number(p.price))&&Number(p.price)>0);
           };
-          const valid=(term,name)=>name.toLocaleLowerCase('fi').includes(term==='viinirypäle'?'rypäle':term);
+          const invalid=/mehu|juoma|majoneesi|majo|mauste|karkki|makeinen|pesto|kastike|smoothie|hillo|sose|pyree|jogurtti|rahka|vanukas|patukka|lelu|saippua|jäätelö|chips|sipsi|keitto|muro|mysli/i;
+          const freshTerms=new Set(['banaani','omena','appelsiini','päärynä','kurkku','tomaatti','porkkana','peruna','sipuli','paprika']);
+          const valid=(term,name)=>name.toLocaleLowerCase('fi').includes(term)&&(!freshTerms.has(term)||!invalid.test(name));
           for(const [term,qty] of basket){
             try{
               const [s,k]=await Promise.all([fetchProducts('S',term),fetchProducts('K',term)]);
@@ -55,6 +57,7 @@ jobs:
               if(sTotal!==null)assert.equal(sTotal,sUnit*qty);
               if(kTotal!==null)assert.equal(kTotal,kUnit*qty);
               if(counterpart&&!core.isComparisonAttributeCompatible(source.name,counterpart.name))throw Error('incompatible counterpart');
+              if(counterpart&&freshTerms.has(term)&&!valid(term,counterpart.name))throw Error('processed product selected as fresh counterpart: '+counterpart.name);
               if(counterpart){
                 const compatible=k.filter(p=>core.isComparisonAttributeCompatible(source.name,p.name));
                 assert.equal(kUnit,Math.min(...compatible.map(p=>cents(p.price))),'not cheapest compatible');
