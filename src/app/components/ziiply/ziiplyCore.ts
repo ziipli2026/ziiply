@@ -3632,6 +3632,29 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
 }
 
 
+// A comparison-only estimate, never a checkout or basket total.
+// The caller must supply a verified *package total* in cents. Do not pass
+// variable-weight items, €/kg source prices, or unverified price semantics.
+export function estimateEquivalentQuantityCost(
+  requestedName: string,
+  candidateName: string,
+  verifiedPackageCents: number,
+): { unitPriceCents: number; equivalentCostCents: number; unit: "kg" | "l" } | null {
+  const requested = parseMetricSize(requestedName);
+  const candidate = parseMetricSize(candidateName);
+  if (!requested || !candidate || requested.unitGroup !== candidate.unitGroup ||
+      requested.amount <= 0 || candidate.amount <= 0 ||
+      !Number.isSafeInteger(verifiedPackageCents) || verifiedPackageCents <= 0) return null;
+  if (/(?:^|\\s)(?:n\\.|noin|ca\\.?|approx\\.?|~)\\s*\\d/i.test(candidateName)) return null;
+  const normalizedCandidate = candidateName.replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b/i,requested.label);
+  if (!isComparisonAttributeCompatible(requestedName, normalizedCandidate)) return null;
+  return {
+    unitPriceCents: Math.round(verifiedPackageCents * 1000 / candidate.amount),
+    equivalentCostCents: Math.round(verifiedPackageCents * requested.amount / candidate.amount),
+    unit: requested.unitGroup === "weight" ? "kg" : "l",
+  };
+}
+
 export function pickCheapestCompatibleComparisonProduct<T extends { name: string; price: number }>(
   sourceName: string,
   candidates: T[],
