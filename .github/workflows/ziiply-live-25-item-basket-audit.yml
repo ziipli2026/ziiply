@@ -17,7 +17,9 @@ jobs:
       - name: Test 25 real product families in S and K
         shell: bash
         run: |
-          node <<'NODE'
+          node --input-type=module <<'NODE'
+          const {createRequire}=await import('node:module');
+          const require=createRequire(import.meta.url);
           const core=require('./.tmp-live-basket/ziiplyCore.js');
           const basket=[
             ['maito',2],['kananmuna',1],['voi',2],['juusto',1],['jogurtti',3],
