@@ -119,7 +119,7 @@ export async function GET(request: Request) {
     "makkarat": "makkara",
     "nakit": "nakki",
   };
-  const upstreamSearch = singularByPlural[normalizedSearch] || search;
+  const upstreamSearch = normalizedSearch === "limsa" ? "limonadi" : (singularByPlural[normalizedSearch] || search);
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
     upstreamSearch
