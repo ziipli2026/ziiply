@@ -136,6 +136,40 @@ jobs:
           if(errors.length){console.error('LIVE_COUNTERPART_ISSUES',JSON.stringify(errors));process.exit(1);}
           console.log('SAFE_SUMMARY verified live counterpart choices:',total);
           NODE
+      - name: Basket totals and cheapest-store contract regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const assert=require('node:assert/strict');
+          const src=fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileCompareCardresponsive.tsx','utf8');
+          const selection=fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileCompareSelectionCard.tsx','utf8');
+          function body(from,to){const a=src.indexOf(from);const b=src.indexOf(to,a+from.length);assert(a>=0&&b>a,from+' must exist');return src.slice(a,b);}
+          const normalization=body('function normalizeComparisonStorePrices(', 'function getCheapestStore(');
+          const cheapest=body('function getCheapestStore(', 'function formatEuroCents(');
+          const diff=body('function getStorePriceDiff(', 'function splitStoreName(');
+          assert(normalization.includes('raw * quantity * 100'),'100x detection must require exact factor');
+          assert(normalization.includes('store.totalPrice - correction'),'corrected line prices must update basket total');
+          assert(cheapest.includes('aMissing === 0'),'complete basket must outrank incomplete basket');
+          assert(cheapest.includes('a.totalPrice || 0'),'complete baskets must be sorted by price');
+          assert(diff.includes('storeMissing !== cheapestMissing || storeCount !== cheapestCount'),'never compare different coverage');
+          assert(diff.includes('!hasSameMatchedItems(store, cheapest)'),'partial baskets need same items');
+          assert(diff.includes('formatEuroCents(diff)'),'difference must be cents, not euros');
+          assert(selection.includes('return data.price;'),'extended line price must not multiply quantity twice');
+          const tests=[
+            {s:[85,95],q:[1,1],expected:[85,95],diff:10},
+            {s:[85,95],q:[2,2],expected:[170,190],diff:20},
+            {s:[8500,9500],q:[1,1],expected:[85,95],diff:10},
+            {s:[8500,9500],q:[2,2],expected:[170,190],diff:20},
+          ];
+          for(const t of tests){
+            const corrected=t.s.map((value,i)=>value>=100* t.q[i] && value%100===0?value/100:value);
+            assert.deepEqual(corrected,t.expected);
+            assert.equal(corrected[1]-corrected[0],t.diff);
+            console.log('PASS basket arithmetic',JSON.stringify(t));
+          }
+          console.log('SAFE_SUMMARY basket coverage, price-unit and quantity contracts passed');
+          NODE
       - name: Verify current comparison search contracts
         shell: bash
         run: |
