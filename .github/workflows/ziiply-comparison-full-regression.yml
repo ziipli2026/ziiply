@@ -205,6 +205,48 @@ jobs:
           if(errors.length)throw Error('Uncaught browser errors: '+errors.join('; '));
           console.log('SAFE_SUMMARY mobile production render and browser error smoke passed');
           NODE
+      - name: Mobile comparison interaction discovery
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import { mkdirSync,writeFileSync } from 'node:fs';
+          mkdirSync('comparison-ui-artifacts',{recursive:true});
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+          const errors=[];
+          page.on('pageerror',e=>errors.push(String(e)));
+          await page.goto('https://ziiply.vercel.app/',{waitUntil:'domcontentloaded',timeout:45000});
+          await page.waitForTimeout(2500);
+          const snapshots=[];
+          async function capture(stage){
+            const data=await page.evaluate(()=>({
+              text:document.body?.innerText?.slice(0,2400)||'',
+              controls:[...document.querySelectorAll('button,[role="button"],input')].filter(e=>e.getBoundingClientRect().width>0).map(e=>({label:(e.innerText||e.getAttribute('aria-label')||e.getAttribute('placeholder')||'').trim().slice(0,90),type:e.tagName})).slice(0,65)
+            }));
+            snapshots.push({stage,...data});
+            await page.screenshot({path:'comparison-ui-artifacts/'+stage+'.png',fullPage:true});
+          }
+          await capture('interaction-start');
+          // Click only clearly named, visible controls; never submit checkout or change saved data.
+          for(const [stage,pattern] of [
+            ['search-card',/^(Haku|Hae|Justiina)$/i],
+            ['cart-card',/^(Ostoskori|Ostoslista|Kori)$/i],
+            ['compare-card',/^(Vertaa|Vertailu|Vertaile)$/i],
+          ]){
+            const candidate=page.getByRole('button',{name:pattern}).first();
+            if(await candidate.isVisible().catch(()=>false)){
+              await candidate.click({timeout:5000}).catch(e=>snapshots.push({stage,error:String(e)}));
+              await page.waitForTimeout(900);
+              await capture(stage);
+            }else snapshots.push({stage,skipped:'No visible matching control'});
+          }
+          writeFileSync('comparison-ui-artifacts/interaction-discovery.json',JSON.stringify({snapshots,errors},null,2));
+          console.log('INTERACTION_DISCOVERY',JSON.stringify(snapshots.map(s=>({stage:s.stage,skipped:s.skipped,controls:s.controls?.slice(0,18)}))));
+          await browser.close();
+          if(errors.length)throw Error('Browser errors: '+errors.join('; '));
+          console.log('SAFE_SUMMARY exploratory mobile navigation completed; skipped stages are NOT verified end-to-end');
+          NODE
       - name: Upload mobile UI screenshot
         if: always()
         uses: actions/upload-artifact@v4
