@@ -194,7 +194,13 @@ async function run(){
     row.stores[chain]={status:!chosen?'no_match':cents===null?'invalid_unit':'matched',
       results:products.length,compatible:compatible.length,chosen:chosen?.name||null,
       priceCents:cents,sourceUnit:chosen?.priceAmountUnit||null,
-      rejectedSamples:compatible.length?[]:products.slice(0,5).map(p=>p.name)};
+      rejectedSamples:compatible.length?[]:products.slice(0,5).map(p=>p.name),
+      // Diagnose unavailable package sizes without treating them as basket-price matches.
+      requestedSize:core.parseMetricSize(term),
+      availableSizes:compatible.length?[]:products
+        .filter(p=>core.parseMetricSize(p.name)?.unitGroup===core.parseMetricSize(term)?.unitGroup)
+        .slice(0,12).map(p=>({name:p.name,size:core.parseMetricSize(p.name)}))
+    };
    }catch(e){row.stores[chain]={status:'error',error:String(e)};}
   }
   rows.push(row);console.log('AUDIT_ROW',JSON.stringify(row));
