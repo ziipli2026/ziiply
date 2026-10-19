@@ -1,0 +1,32 @@
+name: Lidl and SPAR joint release checks
+on:
+  workflow_dispatch:
+jobs:
+  lidl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/lidl-product-search-normalization
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Lidl normalization regression
+        run: node scripts/test-lidl-product-normalization.cjs
+  spar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/tokmanni-spar-normal-price-safety
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: SPAR normal price and EAN regression
+        run: node scripts/tokmanni-spar-normal-price-safety-check.mjs
+      - name: SPAR category wiring
+        run: node scripts/tokmanni-spar-route-wiring-check.mjs
+      - name: SPAR live source audit
+        run: node scripts/tokmanni-spar-live-search-audit.mjs
