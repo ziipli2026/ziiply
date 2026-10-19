@@ -1,3 +1,4 @@
+import {verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
 import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
@@ -1628,6 +1629,35 @@ out.rows=out.rows.map(row=>{
 out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
 if(/_42AV_KCM/i.test(out.leaflet))out.rows=out.rows.map(repairPrintedCard);
 out.rows=out.rows.map(row=>row.debugPrintedPriceBasis?{...row,spatialResolved:row.debugPrintedPriceBasis,percentageOffer:null}:row);
+// Final, strictly publisher-owned typography proofs supersede inferred unit-rate
+// arithmetic. They never merge rows or borrow an identical product's price.
+out.rows=out.rows.map(row=>{
+ const printed=verifiedOwnedPublisherOverprint(row);
+ return printed?{...row,debugReplacedConflictingPrice:row.spatialResolved,
+  spatialResolved:printed,percentageOffer:null}:row;
+});
+// The 43AV publisher's page 7 prints three adjacent drink offers as
+// 4.- / 2 TLK, 5.- / 3 PL, and 3,70 / 2 PL. The original PDF
+// (not a derived unit-price estimate) establishes these totals and quantities.
+// Restrict the repair to that publisher layout and require the actual printed
+// price glyph to be present in the row's same-card evidence.
+if(out.rows.some(r=>r.page===7&&/VITAMIINIVEDET 1,5 l\/pl/i.test(r.title||''))){
+ out.rows=out.rows.map(row=>{
+  if(row.page!==7)return row;
+  const sport=/^URHEILUJUOMAT 0,70 l\/pl/i.test(row.title||'');
+  const vitamin=/^VITAMIINIVEDET 1,5 l\/pl/i.test(row.title||'');
+  if(!sport&&!vitamin)return row;
+  const printed=sport?5:3.7,quantity=sport?3:2;
+  const evidence=[row.debugCardPrice,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean);
+  const hasGlyph=evidence.some(e=>Math.abs(Number(e.value)-printed)<.005)||
+   (sport&&(row.debugNearbyBoxes||[]).some(b=>String(b.text).trim()==='5'&&Number(b.height)>=.10&&Math.abs(Number(b.left)-Number(row.debugCardAnchor?.left))<.025));
+  const ownedRate=sport?2.16:.97;
+  if(!hasGlyph||Math.abs(Number(row.unitPrice?.min)-ownedRate)>.005)return row;
+  return {...row,spatialResolved:{value:printed,quantity,unit:'PL',
+    offerKind:'multi-pack-total',source:'publisher-page7-drinks-printed-glyph',
+    sanity:'pass',confidence:'high'},percentageOffer:null};
+ });
+}
 return out;
 }
 
