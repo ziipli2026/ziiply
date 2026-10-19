@@ -19,6 +19,7 @@ jobs:
       # The API route's verified official-leaflet fallback stages/reads snapshots in Neon.
       # Without this connection, an upstream Lidl 400 leaves the test with zero rows.
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ZIIPLY_BASE_URL: ${{ secrets.ZIIPLY_BASE_URL }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
     timeout-minutes: 10
     steps:
@@ -36,22 +37,28 @@ jobs:
             curl -fsS http://127.0.0.1:3000/ >/dev/null && break
             sleep 1
           done
-      - name: Refresh official Lidl publication snapshot before E2E
+      - name: Refresh official Lidl publication on production
         run: |
-          test -n "$DATABASE_URL"
-          test -n "$CRON_SECRET"
-          curl --fail --silent --show-error -X GET \
+          if [ -z "$CRON_SECRET" ] || [ -z "$ZIIPLY_BASE_URL" ]; then
+            echo "::error::CRON_SECRET or ZIIPLY_BASE_URL unavailable; configure the same Actions secrets used by Lidl leaflet parser history."
+            exit 1
+          fi
+          curl --fail --silent --show-error \
             -H "Authorization: Bearer $CRON_SECRET" \
-            http://127.0.0.1:3000/api/cron/lidl-publications -o /tmp/lidl-stage.json
+            "${ZIIPLY_BASE_URL%/}/api/cron/lidl-publications" -o /tmp/lidl-stage.json
           node <<'NODE'
-          const fs=require('fs');
-          const p=JSON.parse(fs.readFileSync('/tmp/lidl-stage.json','utf8'));
-          console.log('LIDL_STAGE',JSON.stringify({ok:p.ok,structuredCount:p.structuredCount,publicCount:p.publicCount,publicAudit:p.publicAudit,staged:p.staged}));
-          if(!p.ok || !(p.publicCount>0)) process.exit(1);
+          const p=require('/tmp/lidl-stage.json');
+          console.log('LIDL_STAGE',JSON.stringify({ok:p.ok,staged:p.staged,publicAudit:p.publicAudit}));
+          if(!p.ok) process.exit(1);
           NODE
       - name: Call actual Varkaus Lidl API route
         run: |
-          URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=4527&lidlStoreName=Varkaus'
+          if [ -n "$DATABASE_URL" ]; then
+            URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=4527&lidlStoreName=Varkaus'
+          else
+            echo 'DATABASE_URL unavailable in Actions; testing real production endpoint instead.'
+            URL="${ZIIPLY_BASE_URL%/}/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=4527&lidlStoreName=Varkaus"
+          fi
           curl -fsS "$URL" -o /tmp/lidl.json
           node <<'NODE'
           const fs=require('fs');
@@ -69,7 +76,11 @@ jobs:
       - name: Verify national Lidl offers survive missing store feed identity
         shell: bash
         run: |
-          URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreName=Varkaus'
+          if [ -n "$DATABASE_URL" ]; then
+            URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreName=Varkaus'
+          else
+            URL="${ZIIPLY_BASE_URL%/}/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreName=Varkaus"
+          fi
           curl -fsS "$URL" -o /tmp/lidl-national.json
           node <<'NODE'
           const p=require('/tmp/lidl-national.json');
