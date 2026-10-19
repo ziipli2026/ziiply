@@ -30,7 +30,11 @@ jobs:
         run: node --test tests/k-offer-tab-policy.test.cjs
       - name: Run Citymarket category regression
         run: node --test tests/kcitymarket-category-regression.test.cjs
+      - name: Install isolated TypeScript for display regression
+        run: npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
       - name: Run Citymarket multibuy display regression
+        env:
+          NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
         run: node --test tests/kcitymarket-multibuy-display.test.cjs
       - name: Verify permanently archived Citymarket sources offline
         shell: bash
