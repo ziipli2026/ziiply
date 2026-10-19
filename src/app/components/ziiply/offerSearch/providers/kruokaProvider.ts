@@ -727,9 +727,8 @@ export async function fetchKruokaOffers(
     // for other active publications. Do not discard their offers solely because the
     // separate publication->stores lookup is incomplete.
     for (const id of resolvedPublications.ids) allowed.add(id);
-    if (acceptDominantAsChainPublication && dominant) {
-      allowed.add(dominant.publicationPublicId);
-    }
+    // A high offer count alone does not prove a publication belongs to this store.
+    // Only store-scoped fronts or verified publication->stores membership may allow it.
 
     for (const publicationId of publicationIds) {
       const offerCount = offers.filter(o => String(o.publicationPublicId ?? "") === publicationId).length;
