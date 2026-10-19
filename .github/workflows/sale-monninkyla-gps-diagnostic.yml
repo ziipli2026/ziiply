@@ -1,0 +1,37 @@
+name: Sale Monninkyla GPS diagnostic
+on:
+  workflow_dispatch:
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Compare live store-search responses and store identities
+        run: |
+          node <<'NODE'
+          const base='https://ziiply.vercel.app';
+          const cases=[
+            ['name', '/api/store-search?search='+encodeURIComponent('Sale Monninkylä')],
+            ['sale', '/api/store-search?search=Sale'],
+            ['gps-search', '/api/store-search?search=GPS&gps=1&lat=60.494119&lon=25.541885&latitude=60.494119&longitude=25.541885&debug=1'],
+          ];
+          const rows=[];
+          for(const [label,path] of cases){
+            const res=await fetch(base+path,{cache:'no-store'});
+            const raw=await res.text();let data={};try{data=JSON.parse(raw)}catch{}
+            const items=Array.isArray(data.items)?data.items:[];
+            const matches=items.filter(x=>/monninkyl|sale|pornainen/i.test(JSON.stringify(x))).slice(0,35);
+            console.log('SALE_GPS_DIAG',JSON.stringify({label,status:res.status,total:items.length,debug:data.debug??null,matches:matches.map(x=>({id:x.id,externalId:x.externalId,name:x.name,chain:x.chain,type:x.type,lat:x.latitude,lon:x.longitude,distanceKm:x.distanceKm})),responseHead:res.ok?undefined:raw.slice(0,250)}));
+            rows.push({label,ok:res.ok,items,matches});
+          }
+          const direct=rows[0];
+          const named=direct.matches.filter(x=>/sale\s+monninkyl/i.test(String(x.name||'')));
+          if(!named.length) {console.error('FAIL: Sale Monninkyla missing from direct store search');process.exitCode=2}
+          else if(named.some(x=>!Number.isFinite(Number(x.latitude))||!Number.isFinite(Number(x.longitude)))){console.error('FAIL: Sale Monninkyla lacks valid coordinates');process.exitCode=2}
+          else console.log('PASS: Sale Monninkyla direct search includes coordinates');
+          console.log('NOTE: GPS coordinates in this diagnostic are a reference probe, not verified store coordinates. Browser Kaupassa state is NOT tested.');
+          NODE
