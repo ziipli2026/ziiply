@@ -2,11 +2,12 @@ import { neon } from "@neondatabase/serverless";
 
 type Offer = Record<string, unknown>;
 const str = (v: unknown, n = 180) => String(v ?? "").trim().slice(0,n);
+const hasImageUrl = (v: unknown) => /^https:\/\//i.test(str(v, 1000));
 const ean = (v: unknown) => { const s = str(v,32).replace(/\D/g,""); return /^\d{8,14}$/.test(s) ? s : ""; };
 
 export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promise<void> {
   if (!process.env.DATABASE_URL) return;
-  const rows = offers.filter(o => !str(o.imageUrl) && str(o.imageData, 101).length <= 100 && str(o.title || o.name) && str(o.id || o.offerId || o.productId)).map(o => ({
+  const rows = offers.filter(o => !hasImageUrl(o.imageUrl) && str(o.imageData, 101).length <= 100 && str(o.title || o.name) && str(o.id || o.offerId || o.productId)).map(o => ({
     chain: str(o.chain || o.storeType || o.source,60),
     publication: str(o.publicationId || o.publication || o.sourceUrl || o.source,160),
     product_id: str(o.id || o.offerId || o.productId,160),
