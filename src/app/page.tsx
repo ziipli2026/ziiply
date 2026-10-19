@@ -24339,6 +24339,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   item.product?.pictureUrl,
                 checked: Boolean(checkedCartItems[String(key)]),
                 ziiplyOriginalCartItemV793: (item as any).ziiplyOriginalCartItemV793,
+                ziiplyOriginalProductName: String((item as any).ziiplyOriginalCartItemV793?.name || (item as any).ziiplyOriginalCartItemV793?.product?.name || ""),
+                // The replacement's confirmed package price is comparison-only metadata.
+                // Do not change the real basket row price or totals.
+                ziiplyVerifiedPackageCents: (() => {
+                  const raw = Number(item.price);
+                  if (!Number.isFinite(raw) || raw <= 0 || (item as any).ziiplyPricePendingWeight || (item.product as any)?.ziiplyPricePendingWeight) return undefined;
+                  const cents = Math.round(raw * 100);
+                  return Number.isSafeInteger(cents) && Math.abs(cents / 100 - raw) < 0.000001 ? cents : undefined;
+                })(),
                 ziiplyIsSubstituteV793: Boolean((item as any).ziiplyOriginalCartItemV793) &&
                   (normalizeEan(item.ean) !== normalizeEan((item as any).ziiplyOriginalCartItemV793.ean) ||
                    normalize(String(item.name || "")) !== normalize(String((item as any).ziiplyOriginalCartItemV793.name || ""))),
