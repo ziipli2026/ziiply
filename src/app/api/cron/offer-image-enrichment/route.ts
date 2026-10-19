@@ -262,7 +262,6 @@ export async function GET(req: Request) {
     while (titleGroupIndex < groupedTitles.length) {
       const group = groupedTitles[titleGroupIndex++];
       for (const item of group) {
-  for (const item of noEan) {
     const title = String(item.title || "");
     if (!title || uncertain(title)) {
       ambiguous++;
