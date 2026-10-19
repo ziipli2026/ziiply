@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: test/lidl-spar-integration-current-main
+          ref: test/lidl-spar-integration-main-oct19
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
