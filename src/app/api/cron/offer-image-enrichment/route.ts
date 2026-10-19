@@ -291,6 +291,6 @@ export async function GET(req: Request) {
     VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous})`;
   return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,needsReview,stats,
     coverage:{discovered,ready,pending,needsReview,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
-    warning: ambiguous > 0 ? "Some offers have no unique verified image match; they remain queued for later retry." : null
+    warning: needsReview > 0 ? "Some offers need better identity data or manual review; they are excluded from automatic retries until their product identity improves." : null
   });
 }
