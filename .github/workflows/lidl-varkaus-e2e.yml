@@ -52,7 +52,7 @@ jobs:
           for(const x of rows.slice(0,40)) console.log('RESULT',JSON.stringify({id:x.id,title:x.title,name:x.name,category:x.category,price:x.price,priceText:x.priceText,campaignType:x.campaignType,source:x.source}));
           const offerRows=rows.filter(x=>x.campaignType!=='campaign');
           const campaignRows=rows.filter(x=>x.campaignType==='campaign');
-          const nationalLeafletOffers=offerRows.filter(x=>String(x.source||'')==='verified-official-leaflet');
+          const nationalLeafletOffers=offerRows.filter(x=>['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
           console.log('TAB_AUDIT',JSON.stringify({offers:offerRows.length,campaigns:campaignRows.length,nationalLeafletOffers:nationalLeafletOffers.length}));
           if(!p.ok || p.provider!=='lidl' || p.storeKey!=='4527' || rows.length===0 || offerRows.length===0 || nationalLeafletOffers.length===0) process.exit(1);
           NODE
