@@ -139,6 +139,8 @@ export async function GET(req: Request) {
               THEN NULL ELSE ziiply_offer_image_queue.image_url END,
             image_source=CASE WHEN ziiply_offer_image_queue.status='ready'
               THEN NULL ELSE ziiply_offer_image_queue.image_source END,
+            attempts=CASE WHEN ziiply_offer_image_queue.status='ready'
+              THEN 0 ELSE ziiply_offer_image_queue.attempts END,
             title=EXCLUDED.title,
             ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
             status=CASE WHEN ziiply_offer_image_queue.status='ready' THEN 'pending'
@@ -153,7 +155,8 @@ export async function GET(req: Request) {
                 OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
                   AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
               THEN now() ELSE ziiply_offer_image_queue.next_attempt_at END,
-            last_error=CASE WHEN ziiply_offer_image_queue.status='needs_review'
+            last_error=CASE WHEN ziiply_offer_image_queue.status='ready' THEN NULL
+              WHEN ziiply_offer_image_queue.status='needs_review'
               AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
                 OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
                   AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
