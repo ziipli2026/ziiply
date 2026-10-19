@@ -163,7 +163,7 @@ export async function GET(req: Request) {
       }
       }
     };
-    await Promise.all(Array.from({ length: Math.min(4, publications.length) }, () => importPublications()));
+    await Promise.all(Array.from({ length: Math.min(8, publications.length) }, () => importPublications()));
   } catch (error) {
     backfillError = error instanceof Error ? error.message : "unknown";
     console.warn("[offer-image-enrichment] staged backfill skipped",backfillError);
@@ -227,7 +227,7 @@ export async function GET(req: Request) {
       }
     }
   };
-  await Promise.all(Array.from({length: Math.min(4,groupedMatches.length)}, () => enrichMatchGroups()));
+  await Promise.all(Array.from({length: Math.min(8,groupedMatches.length)}, () => enrichMatchGroups()));
   // No-EAN offers: exact normalized title + a single image candidate only.
   // Do not guess from broad leaflet descriptions or multi-product offers.
   const noEan = await db`SELECT chain,publication,product_id,title
@@ -351,7 +351,7 @@ export async function GET(req: Request) {
       }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(4, groupedTitles.length) }, () => enrichTitleGroups()));
+  await Promise.all(Array.from({ length: Math.min(8, groupedTitles.length) }, () => enrichTitleGroups()));
   const retry = await db`UPDATE ziiply_offer_image_queue SET
     attempts=attempts+1, next_attempt_at=now()+make_interval(hours => LEAST(168, POWER(2, LEAST(attempts,7))::int)),
     updated_at=now() WHERE (chain,publication,product_id) IN (
