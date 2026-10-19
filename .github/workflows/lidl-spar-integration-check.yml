@@ -1,0 +1,26 @@
+name: Lidl SPAR integrated code checks
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - test/lidl-spar-integration
+jobs:
+  integrated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated TypeScript compiler
+        run: npm install --no-save --no-package-lock --prefix /tmp/ziiply-integration-test typescript@5.9.3
+      - name: Expose compiler
+        run: echo "NODE_PATH=/tmp/ziiply-integration-test/node_modules" >> "$GITHUB_ENV"
+      - name: Lidl regression on combined source
+        run: node scripts/test-lidl-product-normalization.cjs
+      - name: SPAR normal price safety on combined source
+        run: node scripts/tokmanni-spar-normal-price-safety-check.mjs
+      - name: SPAR route wiring on combined source
+        run: node scripts/tokmanni-spar-route-wiring-check.mjs
+      - name: SPAR live source availability
+        run: node scripts/tokmanni-spar-live-search-audit.mjs
