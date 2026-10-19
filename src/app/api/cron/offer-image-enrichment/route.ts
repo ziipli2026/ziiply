@@ -169,7 +169,7 @@ export async function GET(req: Request) {
         SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=q.product_id
           AND (length(COALESCE(o.value->>'imageData',''))>100
-            OR COALESCE(o.value->>'imageUrl','') LIKE 'https://%')
+            OR COALESCE(o.value->>'imageUrl','') ~* '^https://[^ /?#]+\\.[^ /?#]+')
       )`;
   // Only exact EAN joins are permitted: fuzzy title searches must never auto-publish an image.
   const matches = await db`
@@ -205,14 +205,14 @@ export async function GET(req: Request) {
     await db`UPDATE ziiply_offer_publications p SET offers=(
       SELECT COALESCE(jsonb_agg(CASE
         WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
-          AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%' AND length(COALESCE(o.value->>'imageData',''))<=100
+          AND COALESCE(o.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+' AND length(COALESCE(o.value->>'imageData',''))<=100
         THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${image}::text),true)
         ELSE o.value END ORDER BY o.ordinality)
       FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality))
       WHERE p.chain=${row.chain} AND p.publication_id=${row.publication}
       AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
-        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
+        AND COALESCE(o.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+'
         AND length(COALESCE(o.value->>'imageData',''))<=100)`;
     enriched++;
       }
@@ -328,7 +328,7 @@ export async function GET(req: Request) {
     await db`UPDATE ziiply_offer_publications p SET offers=(
       SELECT COALESCE(jsonb_agg(CASE
         WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
-          AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
+          AND COALESCE(o.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+'
           AND length(COALESCE(o.value->>'imageData',''))<=100
         THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${images[0]}::text),true)
         ELSE o.value END ORDER BY o.ordinality)
@@ -336,7 +336,7 @@ export async function GET(req: Request) {
       WHERE p.chain=${item.chain} AND p.publication_id=${item.publication}
       AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
-        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
+        AND COALESCE(o.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+'
         AND length(COALESCE(o.value->>'imageData',''))<=100)`;
     titleEnriched++;
       }
@@ -366,10 +366,10 @@ export async function GET(req: Request) {
   const stagedImageCoverage = await db`SELECT p.chain,p.publication_id AS publication,
     jsonb_array_length(p.offers)::int AS total,
     (SELECT COUNT(*)::int FROM jsonb_array_elements(p.offers) AS o(value)
-      WHERE COALESCE(o.value->>'imageUrl','') LIKE 'https://%'
+      WHERE COALESCE(o.value->>'imageUrl','') ~* '^https://[^ /?#]+\\.[^ /?#]+'
         OR length(COALESCE(o.value->>'imageData','')) > 100) AS with_image,
     (SELECT COUNT(*)::int FROM jsonb_array_elements(p.offers) AS o(value)
-      WHERE COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
+      WHERE COALESCE(o.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+'
         AND length(COALESCE(o.value->>'imageData','')) <= 100) AS missing_image
     FROM ziiply_offer_publications p
     WHERE p.valid_until >= CURRENT_DATE - INTERVAL '2 days'
@@ -384,10 +384,10 @@ export async function GET(req: Request) {
     FROM ziiply_offer_publications p
     CROSS JOIN LATERAL (
       SELECT COUNT(*) FILTER (WHERE
-        COALESCE(o.value->>'imageUrl','') LIKE 'https://%'
+        COALESCE(o.value->>'imageUrl','') ~* '^https://[^ /?#]+\\.[^ /?#]+'
         OR length(COALESCE(o.value->>'imageData','')) > 100)::int AS with_image,
       COUNT(*) FILTER (WHERE
-        COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
+        COALESCE(o.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+'
         AND length(COALESCE(o.value->>'imageData','')) <= 100)::int AS missing_image
       FROM jsonb_array_elements(p.offers) AS o(value)
     ) images
