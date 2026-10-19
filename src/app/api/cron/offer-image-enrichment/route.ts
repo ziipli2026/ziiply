@@ -181,6 +181,21 @@ export async function GET(req: Request) {
       AND length(q.ean) BETWEEN 8 AND 14 AND p.image_url LIKE 'https://%'
     ORDER BY q.next_attempt_at ASC LIMIT 100`;
   let enriched = 0;
+  // Different publications can be enriched concurrently. Keep rows within
+  // each publication sequential to avoid concurrent JSONB updates on one row.
+  const matchGroups = new Map<string, typeof matches>();
+  for (const row of matches) {
+    const groupKey = JSON.stringify([row.chain,row.publication]);
+    const group = matchGroups.get(groupKey) ?? [];
+    group.push(row);
+    matchGroups.set(groupKey,group);
+  }
+  const groupedMatches = [...matchGroups.values()];
+  let matchGroupIndex = 0;
+  const enrichMatchGroups = async () => {
+    while (matchGroupIndex < groupedMatches.length) {
+      const group = groupedMatches[matchGroupIndex++];
+      for (const row of group) {
   for (const row of matches) {
     const image = validUrl(row.imageUrl);
     if (!image) continue;
@@ -200,7 +215,10 @@ export async function GET(req: Request) {
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
         AND COALESCE(o.value->>'imageUrl','')='')`;
     enriched++;
-  }
+      }
+    }
+  };
+  await Promise.all(Array.from({length: Math.min(4,groupedMatches.length)}, () => enrichMatchGroups()));
   // No-EAN offers: exact normalized title + a single image candidate only.
   // Do not guess from broad leaflet descriptions or multi-product offers.
   const noEan = await db`SELECT chain,publication,product_id,title
