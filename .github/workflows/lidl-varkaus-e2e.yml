@@ -7,6 +7,7 @@ on:
       - '.github/workflows/lidl-varkaus-e2e.yml'
       - 'src/app/api/offers/search/**'
       - 'src/app/components/ziiply/offerSearch/providers/lidlProvider.ts'
+      - 'src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts'
       - 'src/app/components/ziiply/offerSearch/lidlPublicationConfig.ts'
       - 'src/app/components/ziiply/offerSearch/publicationStore.ts'
   workflow_dispatch:
