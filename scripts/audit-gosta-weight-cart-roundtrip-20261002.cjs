@@ -3,7 +3,7 @@ const fs=require("node:fs");
 const vm=require("node:vm");
 const page=fs.readFileSync("src/app/page.tsx","utf8");
 const mobile=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCard.tsx","utf8");
-const start=mobile.indexOf("function isPendingWeightPriceV794(");
+const start=mobile.indexOf("function parseConfirmedWeightPriceV794(");
 const end=mobile.indexOf("\nfunction ",mobile.indexOf("function readCartItemPriceForTotalV8(",start)+10);
 assert(start>=0&&end>start);
 let code=mobile.slice(start,end).replaceAll(": ZiiplyMobileCartItem","").replace("const normalizeTotalPrice = (value: number) =>","const normalizeTotalPrice = (value) =>").replace(/: number\b/g,"").replaceAll("(item as any)","item");
