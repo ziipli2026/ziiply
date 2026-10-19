@@ -52,23 +52,27 @@ export async function POST(req: Request) {
         ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
         status=CASE
           WHEN ziiply_offer_image_queue.status='needs_review'
-            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+            AND ((NULLIF(EXCLUDED.ean,'') IS NOT NULL AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean)
+              OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
           THEN 'pending'
           ELSE ziiply_offer_image_queue.status
         END,
         attempts=CASE
           WHEN ziiply_offer_image_queue.status='needs_review'
-            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+            AND ((NULLIF(EXCLUDED.ean,'') IS NOT NULL AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean)
+              OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
           THEN 0 ELSE ziiply_offer_image_queue.attempts
         END,
         next_attempt_at=CASE
           WHEN ziiply_offer_image_queue.status='needs_review'
-            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+            AND ((NULLIF(EXCLUDED.ean,'') IS NOT NULL AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean)
+              OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
           THEN now() ELSE ziiply_offer_image_queue.next_attempt_at
         END,
         last_error=CASE
           WHEN ziiply_offer_image_queue.status='needs_review'
-            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+            AND ((NULLIF(EXCLUDED.ean,'') IS NOT NULL AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean)
+              OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
           THEN NULL ELSE ziiply_offer_image_queue.last_error
         END,
         updated_at=now()`;
