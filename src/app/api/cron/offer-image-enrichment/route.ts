@@ -377,13 +377,18 @@ export async function GET(req: Request) {
   const stagedCoverageTotals = await db`SELECT p.chain,
     COUNT(*)::int AS publications,
     COALESCE(SUM(jsonb_array_length(p.offers)),0)::int AS total,
-    COALESCE(SUM((SELECT COUNT(*) FROM jsonb_array_elements(p.offers) AS o(value)
-      WHERE length(COALESCE(o.value->>'imageUrl','')) > 0
-        OR length(COALESCE(o.value->>'imageData','')) > 100)),0)::int AS with_image,
-    COALESCE(SUM((SELECT COUNT(*) FROM jsonb_array_elements(p.offers) AS o(value)
-      WHERE length(COALESCE(o.value->>'imageUrl','')) = 0
-        AND length(COALESCE(o.value->>'imageData','')) <= 100)),0)::int AS missing_image
+    COALESCE(SUM(images.with_image),0)::int AS with_image,
+    COALESCE(SUM(images.missing_image),0)::int AS missing_image
     FROM ziiply_offer_publications p
+    CROSS JOIN LATERAL (
+      SELECT COUNT(*) FILTER (WHERE
+        length(COALESCE(o.value->>'imageUrl','')) > 0
+        OR length(COALESCE(o.value->>'imageData','')) > 100)::int AS with_image,
+      COUNT(*) FILTER (WHERE
+        length(COALESCE(o.value->>'imageUrl','')) = 0
+        AND length(COALESCE(o.value->>'imageData','')) <= 100)::int AS missing_image
+      FROM jsonb_array_elements(p.offers) AS o(value)
+    ) images
     WHERE p.valid_until >= CURRENT_DATE - INTERVAL '2 days'
       AND jsonb_typeof(p.offers)='array'
     GROUP BY p.chain ORDER BY p.chain`;
