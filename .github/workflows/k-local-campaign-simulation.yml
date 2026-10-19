@@ -44,6 +44,24 @@ jobs:
           }
           NODE
           node k-campaign-source-probe.mjs
+      - name: Verify selected K-Market source isolation
+        shell: bash
+        run: |
+          cat > verify-k-store-isolation.mts <<'NODE'
+          import { fetchKruokaOffers, getLastKruokaPipelineDebugV49 } from './src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts';
+          for (const storeName of ['K-Market Hakalantori', 'K-Market Etu-Lyötty']) {
+            const rows = await fetchKruokaOffers('__ziiply_all_offers__', {} as any, {storeName,kStoreName:storeName});
+            const debug = getLastKruokaPipelineDebugV49();
+            const active = new Set((debug?.kSupermarketPublicationResolverDebug?.publications ?? []).filter(p => p.active).map(p => String(p.id)));
+            const returned = (debug?.publicationPipeline ?? []).filter(p => p.returned > 0);
+            const unrelated = returned.filter(p => !active.has(p.publicationId));
+            console.log('K_STORE_ISOLATION ' + JSON.stringify({storeName,count:rows.length,active:[...active],returned,unrelated,error:debug?.error}));
+            if (debug?.error || unrelated.length) throw Error(storeName + ': unverified publication returned offers');
+            if (storeName === 'K-Market Hakalantori' && rows.length === 0) throw Error('Hakalantori offers missing');
+            if (storeName === 'K-Market Etu-Lyötty' && rows.length > 0 && returned.length === 0) throw Error('Etu-Lyötty returned untraceable offers');
+          }
+          NODE
+          npx --yes tsx verify-k-store-isolation.mts
       - name: Live K-local campaign probe
         shell: bash
         run: |
