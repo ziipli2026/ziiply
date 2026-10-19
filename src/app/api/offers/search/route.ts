@@ -947,17 +947,15 @@ export async function GET(request: Request) {
       return chain === "k" || chain.startsWith("k ");
     });
 
-    // The approved Citymarket snapshot already contains display-ready offers.
-    // Never delay the user response for optional category/image services or queues.
-    const imageEnrichedResults = isKCitymarketV19 && !baseResults.length && !sMarketResults.length
-      ? results
-      : await enrichOfferImagesBestEffort(
-          await enrichOfferCategoriesFromNeon(results) as unknown as Record<string, unknown>[]
-        );
-    if (!isKCitymarketV19) {
-      void queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
-        console.warn("[Ziiply offers] optional image queue failed", error));
-    }
+    // Enrichment is source-agnostic: Citymarket snapshots must not bypass
+    // category enrichment or image lookup merely because their rows are cached.
+    // Preserve every offer row; enrichment only adds metadata/image fields.
+    const categoryEnrichedResults = await enrichOfferCategoriesFromNeon(results) as unknown as Record<string, unknown>[];
+    const imageEnrichedResults = await enrichOfferImagesBestEffort(categoryEnrichedResults);
+    // Queue missing images for every chain, including the approved Citymarket
+    // snapshot. This runs best-effort and must never block the search response.
+    void queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
+      console.warn("[Ziiply offers] optional image queue failed", error));
     return NextResponse.json(
       {
         ok: true,
