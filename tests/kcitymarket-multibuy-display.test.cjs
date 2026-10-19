@@ -9,7 +9,9 @@ function extract(start,end){const a=src.indexOf(start),b=src.indexOf(end,a);asse
 const normalize=extract("function normalizePrice(price: unknown) {","function getNumericPrice").replace("price: unknown","price");
 const display=extract("function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {","function splitOfferDisplayPrice(value: string) {").replace("offer: ZiiplyMobileOfferSearchItem","offer");
 const split=extract("function splitOfferDisplayPrice(value: string) {","function getNormalPrice").replace("value: string","value");
-const ctx={};vm.runInNewContext(normalize+display+split+"\nthis.getOfferPrice=getOfferPrice;this.splitOfferDisplayPrice=splitOfferDisplayPrice;",ctx);
+const ts=require("typescript");
+const compiled=ts.transpileModule(normalize+display+split,{compilerOptions:{target:ts.ScriptTarget.ES2021,module:ts.ModuleKind.None}}).outputText.replace(/^export\s+/gm,"");
+const ctx={};vm.runInNewContext(compiled+"\nthis.getOfferPrice=getOfferPrice;this.splitOfferDisplayPrice=splitOfferDisplayPrice;",ctx);
 const cases=[
  [{price:10,offerQuantity:3,offerUnit:"KPL"},"10,00 € / 3 KPL"],
  [{price:10,unitPrice:13.13,offerQuantity:3,offerUnit:"kpl"},"10,00 € / 3 kpl"],
