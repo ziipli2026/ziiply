@@ -30,6 +30,11 @@ type LocalProgress = { stage: string; storeName: string; storeId: string | null;
 const localCache = new Map<string, { rows: Row[]; startedAt: number; finishedAt: number; running: boolean; progress: LocalProgress; promise?: Promise<void> }>();
 const LOCAL_TTL = 15 * 60_000;
 const FAILED_RETRY_TTL = 60 * 60_000;
+const isActiveOffer = (row: Row, at=Date.now()) => {
+  const from=Date.parse(String(row.validFrom??""));
+  const until=Date.parse(String(row.validUntil??""));
+  return Number.isFinite(from)&&Number.isFinite(until)&&from<=at&&at<=until;
+};
 export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalProgress & { running: boolean; cachedRows: number } {
   const entry = localCache.get(normalize(selectedStoreName));
   return entry ? { ...entry.progress, publicationIds: [...entry.progress.publicationIds], running: entry.running, cachedRows: entry.rows.length } :
@@ -74,11 +79,7 @@ export function normalizeTjekPackagePrice(row: Row): Row {
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const rows = (await readPublishedSnapshot(normalize(selectedStoreName))) ?? [];
   const now = Date.now();
-  return rows.filter(row => {
-    const start = Date.parse(String(row.validFrom ?? ""));
-    const end = Date.parse(String(row.validUntil ?? ""));
-    return Number.isFinite(start) && Number.isFinite(end) && start <= now && now <= end;
-  }).map(normalizeTjekPackagePrice);
+  return rows.filter(row => isActiveOffer(row,now)).map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
@@ -109,8 +110,10 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   entry.progress.storeId = storeId; entry.progress.stage = "discovering-publications";
   const fronts=await tjek("fronts",{businessIds:[BUSINESS],localBusinessIds:[storeId],coordinates:store.coordinates});
   const now=Date.now();
+  // Prepare upcoming publications too; the reader still exposes only currently valid offers.
+  const horizon=now+3*24*60*60*1000;
   const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front => front && typeof front==="object" && Array.isArray((front as Row).publications) ? (front as Row).publications as Row[] : [])
-    .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
+    .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=horizon&&now<=until;});
   entry.progress.publicationIds = publications.map(p => String(p.id ?? "")).filter(Boolean);
   entry.progress.stage = publications.length ? "reading-pages" : "no-active-publications";
   const seen=new Set<string>();
@@ -143,7 +146,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const price=app??member??regular??numeric(offer.fromPrice);
         const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
         const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
-        if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now)continue;
+        if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>horizon||until<now)continue;
         const qty=numeric(offer.pieceCountFrom);
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
