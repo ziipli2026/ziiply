@@ -1,0 +1,81 @@
+name: K-Citymarket 43AV and historical regression gate
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/citymarket-43av-approved-port-20261019]
+permissions:
+  contents: read
+jobs:
+  historical-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify parser syntax
+        run: node --check src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js
+      - name: Install isolated TypeScript test dependency
+        run: npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
+      - name: Previously approved Citymarket regressions
+        env:
+          NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
+        run: |
+          node --test \
+            tests/kcitymarket-publisher-image-binding.test.cjs \
+            tests/kcitymarket-approved-publication.test.mjs \
+            tests/kcitymarket-owned-normal-price.test.mjs \
+            tests/kcitymarket-42av-printed-transactions.test.mjs \
+            tests/kcitymarket-category-regression.test.cjs \
+            tests/kcitymarket-wrapped-percentage.test.mjs \
+            tests/kcitymarket-multibuy-display.test.cjs \
+            tests/kcitymarket-leaflet-candidates.test.cjs \
+            tests/kcitymarket-43av-category-regression.test.cjs \
+            tests/kcitymarket-owned-publisher-overprints.test.mjs
+      - name: Existing leaflet images
+        run: node scripts/citymarket/verify-images.mjs
+  leaflet-43av:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch immutable 43AV publisher archive
+        run: |
+          git fetch --depth=1 origin archive/citymarket-publications
+          git show FETCH_HEAD:publications/43AV/leaflet.json > /tmp/43av-leaflet.json
+          git show FETCH_HEAD:publications/43AV/parser-evidence.json > /tmp/43av-evidence.json
+          git show FETCH_HEAD:publications/43AV/publisher-responses.json > /tmp/43av-responses.json
+          git show FETCH_HEAD:publications/43AV/leaflet.pdf > /tmp/43av-leaflet.pdf
+      - name: Install PDF inspection tools
+        run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
+      - name: Inspect original printed PDF page 7
+        run: |
+          pdfinfo /tmp/43av-leaflet.pdf | grep -E 'Pages:|Page size:'
+          echo '--- PAGE 7 PDF PRINTED TEXT ---'
+          pdftotext -f 7 -l 7 -layout /tmp/43av-leaflet.pdf - | tail -n 110
+          echo '--- PAGE 7 WORD COORDINATES ---'
+          pdftotext -f 7 -l 7 -bbox-layout /tmp/43av-leaflet.pdf /tmp/43av-p7.html
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          class Words(HTMLParser):
+              def __init__(self): super().__init__(); self.box=None; self.words=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='word': self.box=dict(attrs)
+              def handle_data(self,data):
+                  if self.box is not None and data.strip():
+                      b=self.box; self.words.append((float(b.get('ymin',0)),float(b.get('xmin',0)),data.strip()))
+              def handle_endtag(self,tag):
+                  if tag=='word': self.box=None
+          p=Words();p.feed(open('/tmp/43av-p7.html').read())
+          for y,x,t in sorted(p.words):
+              if any(w in t.lower() for w in ('vitamiini','urheilu','sport','vitamin','0,97','2,16','1,45','1,50','1,70','3,70')):
+                  near=[f'{v}@{xx:.0f}' for yy,xx,v in p.words if abs(yy-y)<35]
+                  print(f'y={y:.0f} x={x:.0f} {t}: '+ ' '.join(near[:35]))
+          PY
+      - name: Replay current parser against frozen 43AV publisher source
+        run: node scripts/citymarket/replay-43av.mjs
+      - name: Inspect page 7 price ownership
+        run: node scripts/citymarket/audit-43av-page7.mjs
+      - name: Verify 43AV price ownership and multibuy
+        run: node --test tests/kcitymarket-43av-archive-gate.test.cjs tests/kcitymarket-43av-full-audit.test.cjs
