@@ -1,0 +1,27 @@
+name: Scanner store-state source audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/scanner-store-state-source-audit.yml'
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print state transitions and GPS wiring
+        run: |
+          python3 - <<'PY'
+          import re
+          p='src/app/page.tsx'
+          lines=open(p).read().splitlines()
+          pats=[r'scannerInStoreRefV828',r'scannerStoreCheckDoneRefV791',r'confirmPhysicalScannerStoreV818',r'scannerStorePromptV828',r'storeLocation=',r'getCurrentPosition',r'watchPosition',r'GPS',r'Kaupassa']
+          matches=[i for i,l in enumerate(lines) if any(re.search(x,l) for x in pats)]
+          print('MATCH_COUNT',len(matches))
+          for i in matches[:170]:
+            print(f'LINE {i+1}: '+lines[i][:350])
+          print('ASSIGNMENTS')
+          for i,l in enumerate(lines):
+            if re.search(r'(scannerInStoreRefV828|scannerStoreCheckDoneRefV791)\.current\s*=',l):
+              print(f'LINE {i+1}: '+l[:300])
+          PY
