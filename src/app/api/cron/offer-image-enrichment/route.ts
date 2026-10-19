@@ -84,6 +84,7 @@ export async function GET(req: Request) {
   // Backfill staged publications independently of user searches. A bounded
   // sample is scanned each run; existing ready images remain untouched.
   let discovered = 0;
+  let backfillError: string | null = null;
   try {
     // Scan a larger rolling window so a burst of recent publications cannot
     // permanently starve other active publications. Queue inserts are idempotent.
@@ -137,7 +138,8 @@ export async function GET(req: Request) {
       }
     }
   } catch (error) {
-    console.warn("[offer-image-enrichment] staged backfill skipped",error instanceof Error ? error.message : "unknown");
+    backfillError = error instanceof Error ? error.message : "unknown";
+    console.warn("[offer-image-enrichment] staged backfill skipped",backfillError);
   }
   // Existing embedded leaflet images take precedence over queue candidates.
   // Clean up stale queue rows from older runs that only checked imageUrl.
@@ -309,6 +311,7 @@ export async function GET(req: Request) {
     VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous})`;
   return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,needsReview,stats,
     coverage:{discovered,ready,pending,needsReview,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
-    warning: needsReview > 0 ? "Some offers need better identity data or manual review; they are excluded from automatic retries until their product identity improves." : null
+    backfillError,
+    warning: backfillError ? "Staged publication backfill failed; queue coverage may be incomplete." : needsReview > 0 ? "Some offers need better identity data or manual review; they are excluded from automatic retries until their product identity improves." : null
   });
 }
