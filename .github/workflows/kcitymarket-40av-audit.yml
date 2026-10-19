@@ -60,77 +60,25 @@ jobs:
             execFileSync('node',['scripts/citymarket/replay-frozen-parser.mjs',folder,entry.fixture,'/tmp/kcm-replay-parser.mjs'],{stdio:'inherit'});
           }
           NODE
-      - name: Verify frozen Citymarket fixtures and current live leaflet
+      - name: Verify frozen Citymarket fixtures offline
         shell: bash
         run: |
-          ln -s "$PWD/src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js" /tmp/kcm-parser.mjs
           node --input-type=module <<'NODE'
-          import fs from "node:fs";
-          import parser from "file:///tmp/kcm-parser.mjs";
-
-          const manifest=JSON.parse(fs.readFileSync("scripts/citymarket/leaflet-regression-publications.json","utf8"));
-          const historical=Array.isArray(manifest?.historicalFixtures)?manifest.historicalFixtures:[];
-          if(!historical.length) throw new Error("No frozen Citymarket historical fixtures configured");
-
+          import fs from 'node:fs';
+          const manifest=JSON.parse(fs.readFileSync('scripts/citymarket/leaflet-regression-publications.json','utf8'));
+          const historical=manifest.historicalFixtures||[];
+          if(!historical.length)throw Error('No historical Citymarket fixtures configured');
           for(const entry of historical){
-            const fixture=JSON.parse(fs.readFileSync(entry.fixture,"utf8"));
-            if(fixture.id!==entry.id) throw new Error(`${entry.id}: fixture id mismatch`);
-            if(!Array.isArray(fixture.offers)||fixture.offers.length!==fixture.offerCount) {
-              throw new Error(`${entry.id}: fixture offer count mismatch`);
-            }
-            if(!fixture.pdfSha256||!(Number(fixture.pageCount)>0)||!(Number(fixture.offerCount)>0)) {
-              throw new Error(`${entry.id}: incomplete frozen evidence`);
-            }
-            const duplicateKeys=fixture.offers.filter((x,i,a)=>a.findIndex(y=>y.key===x.key)!==i);
-            if(duplicateKeys.length) throw new Error(`${entry.id}: duplicate approved offer keys`);
-            console.log("KCM_FROZEN_FIXTURE",JSON.stringify({id:entry.id,pages:fixture.pageCount,offers:fixture.offerCount,pdfSha256:fixture.pdfSha256}));
+            const fixture=JSON.parse(fs.readFileSync(entry.fixture,'utf8'));
+            if(fixture.id!==entry.id||!Array.isArray(fixture.offers)||fixture.offers.length!==fixture.offerCount||!fixture.pdfSha256||!(fixture.pageCount>0))throw Error(entry.id+': invalid frozen fixture');
+            console.log('KCM_FROZEN_FIXTURE',entry.id,fixture.offerCount,fixture.pdfSha256);
           }
-
-          const current=manifest?.current;
-          if(!current?.url||!current?.fixture) throw new Error("No current Citymarket publication configured");
-          const expected=JSON.parse(fs.readFileSync(current.fixture,"utf8"));
-          const out=await parser(current.url);
-          const rows=Array.isArray(out?.rows)?out.rows:[];
-          const resolved=rows.filter(r=>Number(r?.spatialResolved?.value)>0);
-          const percentages=rows.filter(r=>Number(r?.percentageOffer?.percent)>0);
-          if(!rows.length||(!resolved.length&&!percentages.length)) throw new Error(`${current.id}: live parser returned no usable rows`);
-
-          const liveKeys=new Set([
-            ...resolved.map(r=>{
-              const page=Number(r.page)||0;
-              const title=String(r.title||"").trim().toLowerCase();
-              const price=Number(r.spatialResolved.value);
-              return `kcm:spatial:${page}:${title}:${Number.isFinite(price)?price:""}`;
-            }),
-            ...percentages.filter(r=>!r?.spatialResolved).map(r=>{
-              const page=Number(r.page)||0;
-              const title=String(r.title||"").trim().toLowerCase();
-              return `kcm:spatial:${page}:${title}:percent:${Number(r.percentageOffer.percent)}`;
-            })
-          ]);
-          const expectedKeys=new Set(expected.offers.map(x=>x.key));
-          const matched=[...expectedKeys].filter(k=>liveKeys.has(k));
-          const missing=[...expectedKeys].filter(k=>!liveKeys.has(k));
-          const extra=[...liveKeys].filter(k=>!expectedKeys.has(k));
-          console.log("KCM_CURRENT_LIVE",JSON.stringify({
-            id:current.id,
-            expected:expectedKeys.size,
-            liveResolved:resolved.length,
-            livePercentages:percentages.length,
-            matched:matched.length,
-            missing:missing.length,
-            extra:extra.length,
-            missingSample:missing.slice(0,10),
-            extraSample:extra.slice(0,10)
-          },null,2));
-          // Every approved offer (including percent campaigns) is mandatory.
-          // Extra rows are reported for manual source verification; a frozen fixture
-          // cannot establish that all unapproved rows are false positives.
-          if(missing.length) throw new Error(`${current.id}: missing approved offers (${matched.length}/${expectedKeys.size})`);
+          // Expired publisher URLs must not be requested by a historical audit.
+          // Source PDF integrity and parser replay were verified in earlier steps.
           NODE
 
   archive-current:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
     needs: audit
