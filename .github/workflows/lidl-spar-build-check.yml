@@ -1,6 +1,9 @@
 name: Lidl SPAR combined TypeScript and build
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - test/lidl-spar-integration-current
 jobs:
   build:
     runs-on: ubuntu-latest
