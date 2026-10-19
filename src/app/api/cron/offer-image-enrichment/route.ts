@@ -48,7 +48,30 @@ export async function POST(req: Request) {
       await db`INSERT INTO ziiply_offer_image_queue (chain,publication,product_id,ean,title)
         VALUES (${chain},${publication},${productId},${eanOf(raw.ean)},${title})
         ON CONFLICT (chain,publication,product_id) DO UPDATE SET
-        title=EXCLUDED.title, ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean), updated_at=now()`;
+        title=EXCLUDED.title,
+        ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
+        status=CASE
+          WHEN ziiply_offer_image_queue.status='needs_review'
+            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+          THEN 'pending'
+          ELSE ziiply_offer_image_queue.status
+        END,
+        attempts=CASE
+          WHEN ziiply_offer_image_queue.status='needs_review'
+            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+          THEN 0 ELSE ziiply_offer_image_queue.attempts
+        END,
+        next_attempt_at=CASE
+          WHEN ziiply_offer_image_queue.status='needs_review'
+            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+          THEN now() ELSE ziiply_offer_image_queue.next_attempt_at
+        END,
+        last_error=CASE
+          WHEN ziiply_offer_image_queue.status='needs_review'
+            AND (NULLIF(EXCLUDED.ean,'') IS NOT NULL OR EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title)
+          THEN NULL ELSE ziiply_offer_image_queue.last_error
+        END,
+        updated_at=now()`;
       queued++;
     }
   }
@@ -263,10 +286,11 @@ export async function GET(req: Request) {
   await db`ALTER TABLE ziiply_offer_image_runs ADD COLUMN IF NOT EXISTS ambiguous INTEGER NOT NULL DEFAULT 0`;
   const pending = Number(stats.find(row => row.status === "pending")?.count ?? 0);
   const ready = Number(stats.find(row => row.status === "ready")?.count ?? 0);
+  const needsReview = Number(stats.find(row => row.status === "needs_review")?.count ?? 0);
   await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready,title_enriched,ambiguous)
     VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous})`;
-  return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,stats,
-    coverage:{discovered,ready,pending,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
+  return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,needsReview,stats,
+    coverage:{discovered,ready,pending,needsReview,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
     warning: ambiguous > 0 ? "Some offers have no unique verified image match; they remain queued for later retry." : null
   });
 }
