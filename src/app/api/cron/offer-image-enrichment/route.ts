@@ -316,8 +316,12 @@ export async function GET(req: Request) {
       variants.push(titleTokens.slice(1).join(" "));
       if (titleTokens[1].length >= 4) searchTokens.push(titleTokens[1]);
     }
+    // Compact identity prefilter narrows the EAN search before the candidate cap.
+    // The strict normalized-title comparison below remains the final verifier.
+    const compactVariants = [...new Set(variants.map(v => v.replace(/[^a-z0-9åäö]/g, "")))];
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url ~* '^https://[^ /?#]+\\.[^ /?#]+'
+      AND regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') = ANY(${compactVariants})
       AND (
         lower(name) LIKE ${searchTokens[0] + '%'} OR lower(name) LIKE ${'% ' + searchTokens[0] + ' %'}
         OR lower(name) LIKE ${(searchTokens[1] ?? '__NO_MATCH__') + '%'}
