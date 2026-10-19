@@ -212,7 +212,8 @@ export async function GET(req: Request) {
       WHERE p.chain=${row.chain} AND p.publication_id=${row.publication}
       AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
-        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%')`;
+        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
+        AND length(COALESCE(o.value->>'imageData',''))<=100)`;
     enriched++;
       }
     }
@@ -335,7 +336,8 @@ export async function GET(req: Request) {
       WHERE p.chain=${item.chain} AND p.publication_id=${item.publication}
       AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
-        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%')`;
+        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
+        AND length(COALESCE(o.value->>'imageData',''))<=100)`;
     titleEnriched++;
       }
     }
