@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 // Live source audit only: never writes product data or publishes prices.
-const terms = ["maito", "kahvi", "kananmuna"];
+const terms = ["maito", "kahvi", "kananmuna", "kananmunat", "munat", "munia"];
 const ticket = "klevu-15488592134928913";
 const groceryEvidence = {
   maito: /(?:^|\s)(?:kevytmaito|täysmaito|rasvaton maito|maitojuoma|laktoositon maito|luomumaito|kondensoitu maito)(?:\s|$)/i,
   kahvi: /(?:kahvi|coffee|café|espresso)/i,
   kananmuna: /(?:kananmunat|kananmunia|kananmunapak|kananmuna\s+\d|kananmunia\s+\d|munia\s+\d)/i,
+  kananmunat: /(?:kananmunat|kananmunia|kananmunapak|kananmuna\s+\d|munia\s+\d)/i,
+  munat: /(?:kananmunat|kananmunia|kananmunapak|kananmuna\s+\d|munia\s+\d)/i,
+  munia: /(?:kananmunat|kananmunia|kananmunapak|kananmuna\s+\d|munia\s+\d)/i,
 };
 let failures = 0;
+let eggCandidates = 0;
 for (const term of terms) {
   const url = new URL("https://eucs11.ksearchnet.com/cloud-search/n-search/search");
   for (const [key, value] of Object.entries({
@@ -32,11 +36,13 @@ for (const term of terms) {
     }));
     const groceryCandidates = relevant.filter(item => groceryEvidence[term].test(String(item?.name || "")) && !/(?:leikkuri|automaatti|keitin|puhdistus|sukat|seinämaali)/i.test(String(item?.name || "")));
     console.log(JSON.stringify({ term, total: items.length, nameMatches: relevant.length, groceryCandidateCount: groceryCandidates.length, groceryExamples: groceryCandidates.slice(0,5).map(item => item.name), examples: rows }));
-    if (!groceryCandidates.length) { console.error("NO_GROCERY_CANDIDATES " + term); failures++; }
+    if (["kananmuna", "kananmunat", "munat", "munia"].includes(term)) eggCandidates += groceryCandidates.length;
+    else if (!groceryCandidates.length) { console.error("NO_GROCERY_CANDIDATES " + term); failures++; }
     if (!items.length) { console.error("NO_SOURCE_RESULTS " + term); failures++; }
   } catch (error) {
     console.error("SOURCE_ERROR " + term + " " + String(error));
     failures++;
   }
 }
+if (!eggCandidates) { console.error("NO_EGG_PRODUCTS_ACROSS_VARIANTS"); failures++; }
 if (failures) { console.error("Live source audit incomplete: " + failures + " failed queries"); process.exitCode = 1; }
