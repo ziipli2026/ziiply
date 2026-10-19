@@ -6,7 +6,7 @@ const ean = (v: unknown) => { const s = str(v,32).replace(/\D/g,""); return /^\d
 
 export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promise<void> {
   if (!process.env.DATABASE_URL) return;
-  const rows = offers.filter(o => !str(o.imageUrl) && !str(o.imageData) && str(o.title || o.name) && str(o.id || o.offerId)).map(o => ({
+  const rows = offers.filter(o => !str(o.imageUrl) && str(o.imageData, 101).length <= 100 && str(o.title || o.name) && str(o.id || o.offerId)).map(o => ({
     chain: str(o.chain || o.storeType || o.source,60),
     publication: str(o.publicationId || o.publication || o.sourceUrl || o.source,160),
     product_id: str(o.id || o.offerId,160),
@@ -27,7 +27,7 @@ export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promis
     return ["tai","ja","sekä","valikoima","lajitelma"].some(token => words.includes(token))
       || /(?:\b\d+[,.]?\d*\s*%|\b\d+[,.]\d{2}\s*\/\s*(?:kg|l)\b|tuotteet tasarahalla)/i.test(title);
   };
-  const uniqueRows = [...new Map(eligibleRows.filter(row => !ambiguous(row.title)).map(row => [[row.chain,row.publication,row.product_id].join('|'),row])).values()];
+  const uniqueRows = [...new Map(eligibleRows.filter(row => row.ean || !ambiguous(row.title)).map(row => [[row.chain,row.publication,row.product_id].join('|'),row])).values()];
   try {
     const sql = neon(process.env.DATABASE_URL);
     await sql`CREATE TABLE IF NOT EXISTS ziiply_offer_image_queue (
