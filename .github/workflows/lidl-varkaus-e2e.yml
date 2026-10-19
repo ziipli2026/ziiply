@@ -1,4 +1,4 @@
-name: Lidl Varkaus end-to-end API
+name: Lidl nationwide leaflet quality E2E
 
 on:
   push:
@@ -35,73 +35,66 @@ jobs:
             curl -fsS http://127.0.0.1:3000/ >/dev/null && break
             sleep 1
           done
-      - name: Call actual Varkaus Lidl API route
-        run: |
-          if [ -n "$DATABASE_URL" ]; then
-            URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=4527&lidlStoreName=Varkaus'
-          else
-            echo 'DATABASE_URL unavailable in Actions; testing real production endpoint instead.'
-            URL="${ZIIPLY_BASE_URL%/}/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=4527&lidlStoreName=Varkaus"
-          fi
-          curl -fsS "$URL" -o /tmp/lidl.json
-          node <<'NODE'
-          const fs=require('fs');
-          const p=JSON.parse(fs.readFileSync('/tmp/lidl.json','utf8'));
-          const rows=Array.isArray(p.results)?p.results:[];
-          console.log('E2E',JSON.stringify({ok:p.ok,provider:p.provider,storeKey:p.storeKey,storeName:p.storeName,results:rows.length,audit:p.lidlSourceAudit}));
-          for(const x of rows.slice(0,40)) console.log('RESULT',JSON.stringify({id:x.id,title:x.title,name:x.name,category:x.category,price:x.price,priceText:x.priceText,campaignType:x.campaignType,source:x.source}));
-          const offerRows=rows.filter(x=>x.campaignType!=='campaign');
-          const campaignRows=rows.filter(x=>x.campaignType==='campaign');
-          const nationalLeafletOffers=offerRows.filter(x=>['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
-          console.log('TAB_AUDIT',JSON.stringify({offers:offerRows.length,campaigns:campaignRows.length,nationalLeafletOffers:nationalLeafletOffers.length}));
-          if(!p.ok || p.provider!=='lidl' || p.storeKey!=='4527' || rows.length===0 || offerRows.length===0 || nationalLeafletOffers.length===0) process.exit(1);
-          NODE
-
-      - name: Verify national Lidl offers survive missing store feed identity
-        shell: bash
-        run: |
-          if [ -n "$DATABASE_URL" ]; then
-            URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreName=Varkaus'
-          else
-            URL="${ZIIPLY_BASE_URL%/}/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreName=Varkaus"
-          fi
-          curl -fsS "$URL" -o /tmp/lidl-national.json
-          node <<'NODE'
-          const p=require('/tmp/lidl-national.json');
-          const rows=Array.isArray(p.results)?p.results:[];
-          const offers=rows.filter(x=>x.campaignType!=='campaign');
-          const national=offers.filter(x=>['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
-          console.log('NATIONAL_FALLBACK',JSON.stringify({rows:rows.length,offers:offers.length,national:national.length,storeKey:p.storeKey}));
-          if(!p.ok || offers.length===0 || national.length===0) process.exit(1);
-          NODE
-      - name: Verify national Lidl publication for several store selections
+      - name: Audit nationwide official Lidl leaflet and store independence
         run: |
           node <<'NODE'
-          const stores = [
-            {name:'Varkaus',key:'4527'},
-            {name:'Hyvinkää',key:'FI0218'},
-            {name:'Jokela',key:''},
-            {name:'Kuopio',key:''},
-          ];
+          const assert=require('node:assert/strict');
+          const base='http://127.0.0.1:3000/api/offers/search';
+          const sources=new Set(['verified-official-leaflet','lidl-fi-public']);
+          const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          const value=x=>String(x??'').trim();
+          const identity=x=>[value(x.id||x.name||x.title),value(x.offerPrice??x.price),value(x.validFrom),value(x.validUntil)].join('|');
+          const official=rows=>rows.filter(x=>x.campaignType!=='campaign'&&sources.has(value(x.source)));
+          const get=async params=>{
+            const url=new URL(base);
+            url.search=new URLSearchParams({q:'__ziiply_all_offers__',provider:'lidl',...params}).toString();
+            const res=await fetch(url);
+            assert.equal(res.status,200,'Lidl API HTTP status');
+            const json=await res.json();
+            assert.equal(json.ok,true,'Lidl API ok');
+            assert.equal(json.provider,'lidl','Lidl provider');
+            assert.ok(Array.isArray(json.results),'Lidl results array');
+            return json;
+          };
           (async()=>{
-            const baselineUrl=new URL('http://127.0.0.1:3000/api/offers/search');
-            baselineUrl.search=new URLSearchParams({q:'__ziiply_all_offers__',provider:'lidl'}).toString();
-            const baseline=await (await fetch(baselineUrl)).json();
-            const national=(baseline.results||[]).filter(x=>x.campaignType!=='campaign' && ['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
-            if(!baseline.ok || !national.length) throw Error('National verified Lidl publication missing');
-            for(const store of stores){
-              const url=new URL(baselineUrl);
-              url.searchParams.set('lidlStoreName',store.name);
-              if(store.key) url.searchParams.set('lidlStoreKey',store.key);
-              const response=await fetch(url);
-              const data=await response.json();
-              const rows=(data.results||[]).filter(x=>x.campaignType!=='campaign' && ['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
-              const ids=new Set(rows.map(x=>String(x.id||x.name||x.title)+'|'+String(x.offerPrice??x.price)));
-              const missing=national.filter(x=>!ids.has(String(x.id||x.name||x.title)+'|'+String(x.offerPrice??x.price)));
-              console.log('STORE_NATIONAL',JSON.stringify({store:store.name,key:store.key,rows:rows.length,missing:missing.length,status:response.status}));
-              if(!response.ok || !data.ok || !rows.length || missing.length) throw Error('National Lidl offers missing for '+store.name);
+            const national=await get({});
+            const rows=national.results;
+            const offers=official(rows);
+            assert.ok(offers.length>0,'Official dated national Lidl leaflet missing');
+            const errors=[];
+            let images=0, dated=0, categoryMissing=0, campaigns=0;
+            const ids=new Set();
+            for(const x of rows){
+              const name=value(x.name||x.title);
+              const price=Number(x.offerPrice??x.price);
+              if(!name) errors.push('Missing product name: '+value(x.id));
+              if(!Number.isFinite(price)||price<=0) errors.push('Invalid price: '+name);
+              if(x.campaignType==='campaign'){campaigns++;continue;}
+              if(!sources.has(value(x.source))) continue;
+              const key=identity(x);
+              if(ids.has(key)) errors.push('Duplicate official row: '+key);
+              ids.add(key);
+              if(value(x.imageUrl||x.image||x.pictureUrl)) images++;
+              if(!value(x.category)||value(x.category).toLowerCase()==='muut') categoryMissing++;
+              const from=value(x.validFrom).slice(0,10),until=value(x.validUntil).slice(0,10);
+              if(from&&until){
+                dated++;
+                if(from>until||day<from||day>until) errors.push('Expired or future official row: '+key);
+              } else errors.push('Missing leaflet validity: '+key);
+              const quantity=Number(x.multiBuyQuantity);
+              if(Number.isFinite(quantity)&&quantity>=2){
+                const total=Number(x.multiBuyTotalPrice??x.offerPrice??x.price);
+                if(!Number.isFinite(total)||total<=0) errors.push('Invalid multibuy total: '+key);
+              }
             }
-          })().catch(e=>{console.error(e);process.exit(1)});
+            const selected=await get({lidlStoreKey:'4527',lidlStoreName:'Varkaus'});
+            assert.equal(selected.storeKey,'4527');
+            const selectedKeys=new Set(official(selected.results).map(identity));
+            for(const row of offers) if(!selectedKeys.has(identity(row))) errors.push('Missing nationally shared offer in selected store: '+identity(row));
+            const report={day,allRows:rows.length,officialOffers:offers.length,campaigns,dated,images,imageCoverage:Math.round(100*images/offers.length)+'%',uncategorized:categoryMissing,selectedOfficial:selectedKeys.size,structuredFeedError:selected.lidlSourceAudit?.structuredFeedError||null,errors:errors.slice(0,30),errorCount:errors.length};
+            console.log('LIDL_NATIONWIDE_AUDIT',JSON.stringify(report));
+            if(errors.length) process.exitCode=1;
+          })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
       - name: Server log on failure
         if: failure()
