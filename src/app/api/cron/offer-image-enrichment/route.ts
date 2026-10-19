@@ -349,6 +349,16 @@ export async function GET(req: Request) {
       ORDER BY next_attempt_at LIMIT 100
     ) RETURNING product_id`;
   const stats = await db`SELECT status,COUNT(*)::int AS count FROM ziiply_offer_image_queue GROUP BY status`;
+  // Per-publication counts make the national/local image queues independently auditable.
+  // This endpoint is already protected by CRON_SECRET.
+  const publicationStats = await db`SELECT chain,publication,
+    COUNT(*)::int AS total,
+    COUNT(*) FILTER (WHERE status='ready')::int AS ready,
+    COUNT(*) FILTER (WHERE status='pending')::int AS pending,
+    COUNT(*) FILTER (WHERE status='needs_review')::int AS needs_review
+    FROM ziiply_offer_image_queue
+    GROUP BY chain,publication
+    ORDER BY COUNT(*) DESC,chain,publication LIMIT 50`;
   const runAt = new Date().toISOString();
   await db`CREATE TABLE IF NOT EXISTS ziiply_offer_image_runs (
     run_at TIMESTAMPTZ PRIMARY KEY, discovered INTEGER NOT NULL,
@@ -369,7 +379,7 @@ export async function GET(req: Request) {
     VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous},${needsReview},${backfillError})`;
   return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,needsReview,stats,
     coverage:{discovered,ready,pending,needsReview,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
-    backfillError,
+    backfillError,publicationStats,
     warning: backfillError ? "Staged publication backfill failed; queue coverage may be incomplete." : needsReview > 0 ? "Some offers need better identity data or manual review; they are excluded from automatic retries until their product identity improves." : null
   });
 }
