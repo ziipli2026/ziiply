@@ -380,7 +380,7 @@ export async function GET(req: Request) {
     updated_at=now() WHERE (chain,publication,product_id) IN (
       SELECT chain,publication,product_id FROM ziiply_offer_image_queue
       WHERE status='pending' AND next_attempt_at<=now()
-      ORDER BY next_attempt_at LIMIT 100
+      ORDER BY next_attempt_at,chain,publication,product_id LIMIT 500
     ) RETURNING product_id`;
   const stats = await db`SELECT status,COUNT(*)::int AS count FROM ziiply_offer_image_queue GROUP BY status`;
   // Per-publication counts make the national/local image queues independently auditable.
