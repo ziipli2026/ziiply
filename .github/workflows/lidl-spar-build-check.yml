@@ -12,11 +12,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install without modifying tracked lockfile
-        run: npm install --ignore-scripts --no-package-lock --no-audit --no-fund
-      - name: Dependency manifest consistency (informational)
-        continue-on-error: true
-        run: npm ci --ignore-scripts --dry-run --no-audit --no-fund
+      - name: Clean dependency install (required)
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: TypeScript typecheck
         run: npx tsc --noEmit
       - name: Next production build
