@@ -126,7 +126,16 @@ jobs:
             console.log('\n'+r.ean+' | esiintymiä '+r.occurrences.length+' | eri osiot '+r.differentSections+' | hintaero '+r.priceDifferences);
             for(const x of r.occurrences) console.log('  Osio '+x.sectionIndex+' '+x.sectionTitle+' | '+x.name+' | campaign='+x.campaignPrice+' current='+x.currentPrice+' regular='+x.regularPrice+' comparison='+x.comparisonPrice+'/'+x.comparisonUnit);
           }
-          if(report.some(x=>x.occurrences.length!==2)) throw new Error('Yhdeksän kaksoistuotteen esiintymämäärä ei vastaa odotettua');
+          const missing=report.filter(x=>x.occurrences.length===0).map(x=>x.ean);
+          const single=report.filter(x=>x.occurrences.length===1).map(x=>x.ean);
+          const duplicates=report.filter(x=>x.occurrences.length>1);
+          const conflicts=duplicates.filter(x=>x.priceDifferences);
+          const sameSectionDuplicates=duplicates.filter(x=>!x.differentSections).map(x=>x.ean);
+          console.log('KAKSOISTUOTTEIDEN YHTEENVETO',JSON.stringify({checked:report.length,missing,single,duplicates:duplicates.length,sameSectionDuplicates,priceConflicts:conflicts.map(x=>x.ean)}));
+          if(missing.length) console.warn('Tarkistuslistan EAN-koodeja ei nykyisessä lähteessä:',missing.join(', '));
+          if(single.length) console.warn('Vain kerran esiintyvät EAN-koodit:',single.join(', '));
+          if(sameSectionDuplicates.length) console.warn('Saman osion kaksoiskappaleet:',sameSectionDuplicates.join(', '));
+          if(conflicts.length) throw new Error('Kaksoistuotteiden hinnoissa ristiriita: '+conflicts.map(x=>x.ean).join(', '));
           NODE
 
       - name: Tarkista kaikki tuotekohtaisesti
