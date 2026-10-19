@@ -1,4 +1,4 @@
-name: Lidl SPAR combined TypeScript and build
+name: Lidl SPAR combined TypeScript and build (PR 226)
 on:
   workflow_dispatch:
   push:
