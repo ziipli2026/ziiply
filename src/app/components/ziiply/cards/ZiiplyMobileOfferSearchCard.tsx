@@ -462,7 +462,17 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
     return `kcm-national:${String(source.sourceUrl || "")}:${String(source.id)}:${String(source.campaignType || (offer as any)?.campaignType || "offer")}`;
   }
 
-  if (ean) return `ean:${ean}`;
+  // Never collapse offers across independent publications or providers.
+  // An EAN identifies a product, not a unique promotion.
+  const sourceIdentity = [
+    String(source?.source ?? source?.provider ?? "unknown"),
+    String(source?.sourceUrl ?? ""),
+    String(source?.debug?.publicationId ?? source?.publicationId ?? ""),
+    String(source?.storeId ?? source?.storeName ?? ""),
+    String(source?.campaignType ?? offer.campaignType ?? "offer"),
+  ].join("|");
+  if (ean) return `ean:${sourceIdentity}:${ean}`;
+
 
   const visibleName = normalizeOfferCardKeyV13(getOfferName(offer))
     .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
@@ -475,10 +485,10 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
   // V15: final visible-card dedupe.
   // Use what the user actually sees: normalized visible product name + visible price.
   // Do not include store/category/source/id because those can differ for the same S-kaupat offer.
-  if (visibleName && visiblePrice) return `visible:${visibleName}|${visiblePrice}`;
+  if (visibleName && visiblePrice) return `visible:${sourceIdentity}:${visibleName}|${visiblePrice}`;
 
   const root = getOfferCardTitleRootV13(offer);
-  return root ? `root:${root}` : "";
+  return root ? `root:${sourceIdentity}:${root}` : "";
 }
 
 function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
@@ -520,7 +530,7 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
     // Fallback vain tuotteille, joilta EAN puuttuu.
     const root = getOfferCardTitleRootV13(item);
     const price = normalizeOfferCardKeyV13(item.offerPrice ?? item.price ?? "");
-    const rootKey = root && price ? `${root}|${price}` : "";
+    const rootKey = root && price ? `${String(source?.source ?? source?.provider ?? "unknown")}|${String(source?.sourceUrl ?? "")}|${String(source?.storeId ?? source?.storeName ?? "")}|${String(source?.campaignType ?? item.campaignType ?? "offer")}|${root}|${price}` : "";
 
     if ((key && seen.has(key)) || (rootKey && seenRoots.has(rootKey))) continue;
 
