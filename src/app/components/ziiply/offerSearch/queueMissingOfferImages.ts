@@ -6,10 +6,10 @@ const ean = (v: unknown) => { const s = str(v,32).replace(/\D/g,""); return /^\d
 
 export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promise<void> {
   if (!process.env.DATABASE_URL) return;
-  const rows = offers.filter(o => !str(o.imageUrl) && str(o.imageData, 101).length <= 100 && str(o.title || o.name) && str(o.id || o.offerId)).map(o => ({
+  const rows = offers.filter(o => !str(o.imageUrl) && str(o.imageData, 101).length <= 100 && str(o.title || o.name) && str(o.id || o.offerId || o.productId)).map(o => ({
     chain: str(o.chain || o.storeType || o.source,60),
     publication: str(o.publicationId || o.publication || o.sourceUrl || o.source,160),
-    product_id: str(o.id || o.offerId,160),
+    product_id: str(o.id || o.offerId || o.productId,160),
     ean: ean(o.ean || o.gtin || o.barcode),
     title: str(o.title || o.name,300),
   })).filter(o => o.chain && o.publication && o.product_id);
