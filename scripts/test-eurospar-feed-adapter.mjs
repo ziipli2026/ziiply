@@ -17,6 +17,13 @@ for(const row of rows){
 }
 console.log('PASS EUROSPAR adapter:',rows.length,'offers, store/date gates, multi-buy and kg prices');
 
+const card=fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx','utf8');
+const start=card.indexOf('function getNormalPrice(');
+const end=card.indexOf('\n}',start)+2;
+assert.ok(start>=0&&end>start);
+const formatterSource=stripTypeScriptTypes(card.slice(start,end));
+const formatNormal=new Function('normalizePrice',formatterSource+'; return getNormalPrice;')(v=>v==null?'':String(v));
+
 // Historical 42/26 product-specific assertions apply only to that publication.
 // New weekly PDFs contain different products; generic adapter checks above
 // and below continue to run for every publication.
@@ -29,12 +36,6 @@ if (feed.issue === '42/26') {
    ['vaasan munariisi',null,'2,25–2,67'],
    ['valio profeel',null,'5,76–5,96'],
   ];
-  const card=fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx','utf8');
-  const start=card.indexOf('function getNormalPrice(');
-  const end=card.indexOf('\n}',start)+2;
-  assert.ok(start>=0&&end>start);
-  const formatterSource=stripTypeScriptTypes(card.slice(start,end));
-  const formatNormal=new Function('normalizePrice',formatterSource+'; return getNormalPrice;')(v=>v==null?'':String(v));
   for(const [prefix,normalPrice,text] of expectedBundles){
    const row=rows.find(r=>r.title.startsWith(prefix));assert.ok(row,prefix);
    assert.equal(row.normalPrice,normalPrice,prefix);
