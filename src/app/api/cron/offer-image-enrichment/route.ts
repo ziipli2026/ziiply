@@ -307,16 +307,19 @@ export async function GET(req: Request) {
     run_at TIMESTAMPTZ PRIMARY KEY, discovered INTEGER NOT NULL,
     enriched INTEGER NOT NULL, retried INTEGER NOT NULL,
     pending INTEGER NOT NULL, ready INTEGER NOT NULL,
-    title_enriched INTEGER NOT NULL DEFAULT 0, ambiguous INTEGER NOT NULL DEFAULT 0
+    title_enriched INTEGER NOT NULL DEFAULT 0, ambiguous INTEGER NOT NULL DEFAULT 0,
+    needs_review INTEGER NOT NULL DEFAULT 0, backfill_error TEXT
   )`;
   // Safe additive migration for databases created by earlier versions.
   await db`ALTER TABLE ziiply_offer_image_runs ADD COLUMN IF NOT EXISTS title_enriched INTEGER NOT NULL DEFAULT 0`;
   await db`ALTER TABLE ziiply_offer_image_runs ADD COLUMN IF NOT EXISTS ambiguous INTEGER NOT NULL DEFAULT 0`;
+  await db`ALTER TABLE ziiply_offer_image_runs ADD COLUMN IF NOT EXISTS needs_review INTEGER NOT NULL DEFAULT 0`;
+  await db`ALTER TABLE ziiply_offer_image_runs ADD COLUMN IF NOT EXISTS backfill_error TEXT`;
   const pending = Number(stats.find(row => row.status === "pending")?.count ?? 0);
   const ready = Number(stats.find(row => row.status === "ready")?.count ?? 0);
   const needsReview = Number(stats.find(row => row.status === "needs_review")?.count ?? 0);
-  await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready,title_enriched,ambiguous)
-    VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous})`;
+  await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready,title_enriched,ambiguous,needs_review,backfill_error)
+    VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous},${needsReview},${backfillError})`;
   return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,needsReview,stats,
     coverage:{discovered,ready,pending,needsReview,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
     backfillError,
