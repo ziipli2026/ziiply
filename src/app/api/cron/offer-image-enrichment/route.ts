@@ -133,14 +133,22 @@ export async function GET(req: Request) {
           FROM jsonb_to_recordset(${JSON.stringify(batch)}::jsonb)
           AS r(chain text,publication text,product_id text,title text,ean text)
           ON CONFLICT(chain,publication,product_id) DO UPDATE SET
+            -- A staged offer can lose its image on a later leaflet import.
+            -- Reopen stale ready rows so they can be restored to the publication.
+            image_url=CASE WHEN ziiply_offer_image_queue.status='ready'
+              THEN NULL ELSE ziiply_offer_image_queue.image_url END,
+            image_source=CASE WHEN ziiply_offer_image_queue.status='ready'
+              THEN NULL ELSE ziiply_offer_image_queue.image_source END,
             title=EXCLUDED.title,
             ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
-            status=CASE WHEN ziiply_offer_image_queue.status='needs_review'
+            status=CASE WHEN ziiply_offer_image_queue.status='ready' THEN 'pending'
+              WHEN ziiply_offer_image_queue.status='needs_review'
               AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
                 OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
                   AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
               THEN 'pending' ELSE ziiply_offer_image_queue.status END,
-            next_attempt_at=CASE WHEN ziiply_offer_image_queue.status='needs_review'
+            next_attempt_at=CASE WHEN ziiply_offer_image_queue.status='ready' THEN now()
+              WHEN ziiply_offer_image_queue.status='needs_review'
               AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
                 OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
                   AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
