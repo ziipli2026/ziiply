@@ -14035,7 +14035,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
     ].filter((name) => name && !name.startsWith("Valitse ensin"));
     const selectedName = selectedNames.length === 1 ? selectedNames[0] : "";
-    const intendedName = cartTarget?.name || selectedName || selectedNames[0] || "";
+    // V860: an explicitly selected shop wins over stale basket history.
+    const intendedName = selectedName || selectedNames[0] || cartTarget?.name || "";
     setScannerLocationStatusV855(intendedName?{name:intendedName,verified:false,checking:true}:null);
 
     if (!intendedName) {
@@ -14845,6 +14846,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         (distance(store) ?? Infinity) <= 0.05
       );
       const verified = Boolean(fresh && nearest.km <= 0.05 && !competitor);
+      // V860: GPS verification at scanner open is authoritative for this scanner
+      // session. Do not make the first barcode scan repeat GPS and overwrite it.
+      // Unknown/failed GPS leaves the session undecided for scanner fallback.
+      if (verified) {
+        scannerStoreCheckDoneRefV791.current = true;
+        scannerInStoreRefV828.current = true;
+        scannerConfirmedStoreNameRefV828.current = nearestName;
+      }
       setScannerLocationStatusV855({
         name: verified ? nearestName : fallbackName,
         verified,
