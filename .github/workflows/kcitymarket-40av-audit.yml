@@ -9,6 +9,7 @@ on:
       - "tests/fixtures/citymarket/**"
       - "tests/kcitymarket-category-regression.test.cjs"
       - "tests/kcitymarket-multibuy-display.test.cjs"
+      - "tests/kcitymarket-43av-category-regression.test.cjs"
       - "src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
