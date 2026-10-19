@@ -14,6 +14,10 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    env:
+      # The API route's verified official-leaflet fallback stages/reads snapshots in Neon.
+      # Without this connection, an upstream Lidl 400 leaves the test with zero rows.
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
