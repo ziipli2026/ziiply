@@ -6,7 +6,13 @@ const mobile=fs.readFileSync("src/app/components/ziiply/cards/ZiiplyMobileCartCa
 const start=mobile.indexOf("function parseConfirmedWeightPriceV794(");
 const end=mobile.indexOf("\nfunction ",mobile.indexOf("function readCartItemPriceForTotalV8(",start)+10);
 assert(start>=0&&end>start);
-let code=mobile.slice(start,end).replaceAll(": ZiiplyMobileCartItem","").replace("const normalizeTotalPrice = (value: number) =>","const normalizeTotalPrice = (value) =>").replace(/: number\b/g,"").replaceAll("(item as any)","item");
+let code=mobile.slice(start,end)
+  .replaceAll(": ZiiplyMobileCartItem","")
+  .replaceAll(": unknown","")
+  .replaceAll(": number | null","")
+  .replace("const normalizeTotalPrice = (value: number) =>","const normalizeTotalPrice = (value) =>")
+  .replace(/: number\b/g,"")
+  .replaceAll("(item as any)","item");
 const ctx={};vm.runInNewContext(code+"\nthis.price=readCartItemPriceForTotalV8;",ctx);
 assert.match(page,/const savedCart = window\.localStorage\.getItem\("ziiply-cart-v1"\)/);
 assert.match(page,/Array\.isArray\(parsed\?\.items\)/);
