@@ -781,7 +781,11 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
 
   const promise = fetchOfferSearchResults(ZIIPLY_GOSTA_MASTER_QUERY_V156, context)
     .then((results) => {
-      const cleaned = cleanZiiplyGostaOfferResultsV146(results);
+      // A source-owned Citymarket publication is authoritative: do not let
+      // generic title/price heuristics remove its rows before tab splitting.
+      const cleaned = isKCitymarketContextV179(context)
+        ? dedupeZiiplyGostaOfferResultsV146(results)
+        : cleanZiiplyGostaOfferResultsV146(results);
       const identity = (item: ZiiplyGostaOfferLike) => {
         const source = (item as any).__sourceOfferSearchResult ?? item;
         return [String(source?.debug?.publicationId ?? ""), String(source?.offerId ?? ""), String((item as any).campaignType ?? "offer")].join("|");
