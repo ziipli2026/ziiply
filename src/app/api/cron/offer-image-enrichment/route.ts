@@ -325,7 +325,10 @@ export async function GET(req: Request) {
       )
       AND (${amount ?? ''} = '' OR regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') LIKE ${'%' + (amount ?? '') + '%'})
       ORDER BY lower(name),ean
-      LIMIT 1500`;
+      LIMIT 1501`;
+    // If the candidate cap is hit, additional exact matches may have
+    // conflicting images. Never publish a possibly incomplete match set.
+    const candidateSetTruncated = matches.length > 1500;
     const exact = matches.filter(row => {
       const candidate = normalize(row.name);
       const sizeMatches = !amount || candidate.split(" ").includes(amount);
@@ -334,9 +337,9 @@ export async function GET(req: Request) {
     // Multiple EAN rows may describe the same product and share one identical
     // image. A single verified image is safe; conflicting images are not.
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
-    if (images.length !== 1 || exact.length === 0) {
+    if (candidateSetTruncated || images.length !== 1 || exact.length === 0) {
       ambiguous++;
-      if (exact.length === 0) {
+      if (exact.length === 0 && !candidateSetTruncated) {
         // The EAN image bank grows over time: retry missing exact matches daily
         // rather than leaving them permanently in manual review.
         await db`UPDATE ziiply_offer_image_queue SET
@@ -347,7 +350,7 @@ export async function GET(req: Request) {
           AND product_id=${item.product_id} AND status='pending'`;
       } else {
         await db`UPDATE ziiply_offer_image_queue SET status='needs_review',
-          last_error='Conflicting verified image candidates',
+          last_error=${candidateSetTruncated ? 'Title candidate limit reached; incomplete image verification' : 'Conflicting verified image candidates'},
           updated_at=now()
           WHERE chain=${item.chain} AND publication=${item.publication}
           AND product_id=${item.product_id} AND status='pending'`;
