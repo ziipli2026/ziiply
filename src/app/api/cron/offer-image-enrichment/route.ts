@@ -205,14 +205,14 @@ export async function GET(req: Request) {
     await db`UPDATE ziiply_offer_publications p SET offers=(
       SELECT COALESCE(jsonb_agg(CASE
         WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
-          AND COALESCE(o.value->>'imageUrl','')='' AND length(COALESCE(o.value->>'imageData',''))<=100
+          AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%' AND length(COALESCE(o.value->>'imageData',''))<=100
         THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${image}::text),true)
         ELSE o.value END ORDER BY o.ordinality)
       FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality))
       WHERE p.chain=${row.chain} AND p.publication_id=${row.publication}
       AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${row.productId}
-        AND COALESCE(o.value->>'imageUrl','')='')`;
+        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%')`;
     enriched++;
       }
     }
@@ -327,7 +327,7 @@ export async function GET(req: Request) {
     await db`UPDATE ziiply_offer_publications p SET offers=(
       SELECT COALESCE(jsonb_agg(CASE
         WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
-          AND COALESCE(o.value->>'imageUrl','')=''
+          AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%'
           AND length(COALESCE(o.value->>'imageData',''))<=100
         THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${images[0]}::text),true)
         ELSE o.value END ORDER BY o.ordinality)
@@ -335,7 +335,7 @@ export async function GET(req: Request) {
       WHERE p.chain=${item.chain} AND p.publication_id=${item.publication}
       AND EXISTS (SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
-        AND COALESCE(o.value->>'imageUrl','')='')`;
+        AND COALESCE(o.value->>'imageUrl','') NOT LIKE 'https://%')`;
     titleEnriched++;
       }
     }
