@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - test/lidl-spar-integration-current
+      - test/lidl-spar-integration-current2
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: test/lidl-spar-integration-current
+          ref: test/lidl-spar-integration-current2
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
