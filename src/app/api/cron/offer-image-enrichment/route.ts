@@ -236,7 +236,9 @@ export async function GET(req: Request) {
     }
     const words = normalize(cleanIdentity(title)).split(" ");
     const firstWord = words[0];
-    if (firstWord.length < 4) {
+    // Short established brands such as HK can still be matched by their
+    // complete normalized product name; arbitrary short titles cannot.
+    if (firstWord.length < 4 && !(firstWord === "hk" && words.length >= 3)) {
       ambiguous++;
       await db`UPDATE ziiply_offer_image_queue SET status='needs_review',
         last_error='Insufficient title tokens for safe image matching',
