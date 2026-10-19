@@ -19,6 +19,7 @@ jobs:
       # The API route's verified official-leaflet fallback stages/reads snapshots in Neon.
       # Without this connection, an upstream Lidl 400 leaves the test with zero rows.
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +36,19 @@ jobs:
             curl -fsS http://127.0.0.1:3000/ >/dev/null && break
             sleep 1
           done
+      - name: Refresh official Lidl publication snapshot before E2E
+        run: |
+          test -n "$DATABASE_URL"
+          test -n "$CRON_SECRET"
+          curl --fail --silent --show-error -X GET \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            http://127.0.0.1:3000/api/cron/lidl-publications -o /tmp/lidl-stage.json
+          node <<'NODE'
+          const fs=require('fs');
+          const p=JSON.parse(fs.readFileSync('/tmp/lidl-stage.json','utf8'));
+          console.log('LIDL_STAGE',JSON.stringify({ok:p.ok,structuredCount:p.structuredCount,publicCount:p.publicCount,publicAudit:p.publicAudit,staged:p.staged}));
+          if(!p.ok || !(p.publicCount>0)) process.exit(1);
+          NODE
       - name: Call actual Varkaus Lidl API route
         run: |
           URL='http://127.0.0.1:3000/api/offers/search?q=__ziiply_all_offers__&provider=lidl&lidlStoreKey=4527&lidlStoreName=Varkaus'
