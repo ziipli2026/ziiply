@@ -171,10 +171,24 @@ export async function GET(req: Request) {
   };
   for (const item of noEan) {
     const title = String(item.title || "");
-    if (!title || uncertain(title)) { ambiguous++; continue; }
+    if (!title || uncertain(title)) {
+      ambiguous++;
+      await db`UPDATE ziiply_offer_image_queue SET status='needs_review',
+        last_error='Ambiguous leaflet title; waiting for better product identity',
+        updated_at=now() WHERE chain=${item.chain} AND publication=${item.publication}
+        AND product_id=${item.product_id} AND status='pending'`;
+      continue;
+    }
     const words = normalize(cleanIdentity(title)).split(" ");
     const firstWord = words[0];
-    if (firstWord.length < 4) { ambiguous++; continue; }
+    if (firstWord.length < 4) {
+      ambiguous++;
+      await db`UPDATE ziiply_offer_image_queue SET status='needs_review',
+        last_error='Insufficient title tokens for safe image matching',
+        updated_at=now() WHERE chain=${item.chain} AND publication=${item.publication}
+        AND product_id=${item.product_id} AND status='pending'`;
+      continue;
+    }
     // Search by both the brand/name token and package amount. Exact full-name
     // verification below still decides whether an image can be published.
     const amount = words.find(word => /^[0-9]+(?:kg|ml|g|l)$/.test(word));
@@ -204,7 +218,14 @@ export async function GET(req: Request) {
     // Multiple EAN rows may describe the same product and share one identical
     // image. A single verified image is safe; conflicting images are not.
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
-    if (images.length !== 1 || exact.length === 0) { ambiguous++; continue; }
+    if (images.length !== 1 || exact.length === 0) {
+      ambiguous++;
+      await db`UPDATE ziiply_offer_image_queue SET status='needs_review',
+        last_error=${exact.length === 0 ? 'No exact product/image match' : 'Conflicting verified image candidates'},
+        updated_at=now() WHERE chain=${item.chain} AND publication=${item.publication}
+        AND product_id=${item.product_id} AND status='pending'`;
+      continue;
+    }
     await db`UPDATE ziiply_offer_image_queue SET image_url=${images[0]},
       image_source='ean-bank-exact-title',status='ready',updated_at=now()
       WHERE chain=${item.chain} AND publication=${item.publication}
