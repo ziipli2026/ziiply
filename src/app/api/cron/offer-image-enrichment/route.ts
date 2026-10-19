@@ -359,6 +359,20 @@ export async function GET(req: Request) {
     FROM ziiply_offer_image_queue
     GROUP BY chain,publication
     ORDER BY COUNT(*) DESC,chain,publication LIMIT 50`;
+  // Measure actual staged offers, not just queued items: publisher images
+  // and embedded imageData count as covered even when never queued.
+  const stagedImageCoverage = await db`SELECT p.chain,p.publication_id AS publication,
+    jsonb_array_length(p.offers)::int AS total,
+    (SELECT COUNT(*)::int FROM jsonb_array_elements(p.offers) AS o(value)
+      WHERE length(COALESCE(o.value->>'imageUrl','')) > 0
+        OR length(COALESCE(o.value->>'imageData','')) > 100) AS with_image,
+    (SELECT COUNT(*)::int FROM jsonb_array_elements(p.offers) AS o(value)
+      WHERE length(COALESCE(o.value->>'imageUrl','')) = 0
+        AND length(COALESCE(o.value->>'imageData','')) <= 100) AS missing_image
+    FROM ziiply_offer_publications p
+    WHERE p.valid_until >= CURRENT_DATE - INTERVAL '2 days'
+      AND jsonb_typeof(p.offers)='array'
+    ORDER BY p.parsed_at DESC,p.chain,p.publication_id LIMIT 100`;
   const runAt = new Date().toISOString();
   await db`CREATE TABLE IF NOT EXISTS ziiply_offer_image_runs (
     run_at TIMESTAMPTZ PRIMARY KEY, discovered INTEGER NOT NULL,
@@ -379,7 +393,7 @@ export async function GET(req: Request) {
     VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous},${needsReview},${backfillError})`;
   return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,needsReview,stats,
     coverage:{discovered,ready,pending,needsReview,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
-    backfillError,publicationStats,
+    backfillError,publicationStats,stagedImageCoverage,
     warning: backfillError ? "Staged publication backfill failed; queue coverage may be incomplete." : needsReview > 0 ? "Some offers need better identity data or manual review; they are excluded from automatic retries until their product identity improves." : null
   });
 }
