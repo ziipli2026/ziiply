@@ -2,7 +2,14 @@ import { neon } from "@neondatabase/serverless";
 
 type Offer = Record<string, unknown>;
 const str = (v: unknown, n = 180) => String(v ?? "").trim().slice(0,n);
-const hasImageUrl = (v: unknown) => /^https:\/\//i.test(str(v, 1000));
+const hasImageUrl = (v: unknown) => {
+  try {
+    const url = new URL(str(v, 1000));
+    return url.protocol === "https:" && Boolean(url.hostname)
+      && !/^(localhost|127\\.|10\\.|192\\.168\\.|169\\.254\\.)/i.test(url.hostname)
+      && !url.hostname.endsWith(".local");
+  } catch { return false; }
+};
 const ean = (v: unknown) => { const s = str(v,32).replace(/\D/g,""); return /^\d{8,14}$/.test(s) ? s : ""; };
 
 export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promise<void> {
