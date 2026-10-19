@@ -62,10 +62,12 @@ export async function GET(req: Request) {
   // sample is scanned each run; existing ready images remain untouched.
   let discovered = 0;
   try {
+    // Scan a larger rolling window so a burst of recent publications cannot
+    // permanently starve other active publications. Queue inserts are idempotent.
     const publications = await db`SELECT chain,publication_id,offers
       FROM ziiply_offer_publications
       WHERE valid_until >= CURRENT_DATE - INTERVAL '2 days'
-      ORDER BY parsed_at DESC LIMIT 12`;
+      ORDER BY parsed_at ASC LIMIT 100`;
     for (const publication of publications) {
       const offers = Array.isArray(publication.offers) ? publication.offers : [];
       const candidates = offers.map((raw: unknown,index: number) => {
@@ -79,7 +81,8 @@ export async function GET(req: Request) {
           image: validUrl(row.imageUrl) || (typeof row.imageData === 'string' && row.imageData.length > 100 ? 'embedded-image' : ''),
         };
       }).filter(row => row.title && !row.image);
-      const unique = [...new Map(candidates.map(row => [row.productId,row])).values()].slice(0,300);
+      // Do not silently drop offers after the first 300 in a publication.
+      const unique = [...new Map(candidates.map(row => [row.productId,row])).values()];
       for (let offset=0; offset<unique.length; offset+=100) {
         const batch = unique.slice(offset,offset+100).map(row => ({
           chain:row.chain,publication:row.publication,product_id:row.productId,title:row.title,ean:row.ean
