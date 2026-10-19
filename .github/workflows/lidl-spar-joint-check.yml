@@ -11,8 +11,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-      - run: npm ci --ignore-scripts
+      - name: Install isolated TypeScript compiler
+        run: npm install --no-save --no-package-lock --prefix /tmp/ziiply-lidl-test typescript@5.9.3
+      - name: Expose isolated compiler
+        run: echo "NODE_PATH=/tmp/ziiply-lidl-test/node_modules" >> "$GITHUB_ENV"
       - name: Lidl normalization regression
         run: node scripts/test-lidl-product-normalization.cjs
   spar:
