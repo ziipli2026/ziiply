@@ -263,6 +263,37 @@
         "kcm:spatial:20:5. wok-kastikkeet 120 g 1. (8,33/kg) ps:2.79": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#10c9bb8f25daa7a92d2b",
         "kcm:spatial:20:salsat 340 g:2.29": "/citymarket-leaflets/d4ed93636535e2d5aa929ce5f4e41ea6640ea9316857e97d6abfe791c3a1c3cd/images.svg#154ca0d96af173c48977"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/85q4cjo_tarjouslehti_43AV_KCM/index.html": {
+      "pdfSha256": "93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b",
+      "pageCount": 18,
+      "offerCount": 35,
+      "images": {
+        "kcm:spatial:1:sininen lenkkimakkarat 500–580 g:4": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#6acff40457f8e5b2e4fe",
+        "kcm:spatial:2:luumu 500 g italia (2,58/kg) plommon:1.29": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#d5e278abe9c388fe2249",
+        "kcm:spatial:3:rapeat maatiaispossun nugetit 200 g:1.59": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#751b9078e769bce6a963",
+        "kcm:spatial:3:juustoraasteet 200 g:2.99": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#3041848bae9f491fc226",
+        "kcm:spatial:3:mainio kiovan kana ja muusi 320 g:2.15": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#daaf66d65b49fd63925b",
+        "kcm:spatial:4:viilu kanalastut 180 g (16,61/kg):2.99": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#fadce4d52795af64d340",
+        "kcm:spatial:4:kypsät jättikatkaravun- pyrstöt 29–33 kpl/200 g:9": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#344d1ea5987b02a500cb",
+        "kcm:spatial:4:aito nakki 360 g:3.79": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#14100a822958b927852c",
+        "kcm:spatial:4:possutuotteet 300–350 g:4.39": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#b300f22d3a01c84660d9",
+        "kcm:spatial:4:nopeat kananugetit tai kanapuikot dipillä 218 g (13,72/kg):2.99": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#62fd69ec80d6761fbfb5",
+        "kcm:spatial:5:kananpojan paneroidut fileepalat ja kana- ranskikset 250–380 g pakaste (10,50–15,96/kg) panerade kycklingfilébitar och kycklingpommes:3.99": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#25e2d0322f2d9941d248",
+        "kcm:spatial:5:rehti lihaisat kuorettomat nakit 280 g:3.8": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#a572bcda9ca6a1183608",
+        "kcm:spatial:5:peruna&keittokasvis 750 g:3.5": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#45b462c27ee3d4509e7d",
+        "kcm:spatial:5:keitot 300 g 3 (8,33/kg):5": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#90c8ebd002b079a2cead",
+        "kcm:spatial:5:isot burgerit 220–245 g:10": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#3d8e8f7d5464bf7c7012",
+        "kcm:spatial:5:parmigiano reggiano parmesan 150 g:4.99": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#56da835081776da2d15d",
+        "kcm:spatial:6:domino crunchy herkuttelukeksit 150 g (16,67/kg):5": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#bad7b3deb2f6adcad7d2",
+        "kcm:spatial:6:keksilevitteet 380–400 g (11,23–11,82/kg) kexpålägg 49:4.49": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#3e441d724d36dbbce8a9",
+        "kcm:spatial:7:urheilujuomat 0,70 l/pl:5": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#2a7c8a621a8856471ce5",
+        "kcm:spatial:7:energiajuomat 0,5 l/tlk:1.85": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#d4beaa457498262fe66c",
+        "kcm:spatial:7:vitamiinivedet 1,5 l/pl:3.7": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#d7a0816104496b3a28ed",
+        "kcm:spatial:8:wc-paperi 24 rl:6.9": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#253df0dabfb4193e2f80",
+        "kcm:spatial:13:wc-raikastintikut 5 x 9,5 g:5.5": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#9ea101ba2fc19f94f315",
+        "kcm:spatial:13:foliovuoat kansineen 0,4–1,5 l:3": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#8e8f230f6c1067efe3ac"
+      }
     }
   }
 }
