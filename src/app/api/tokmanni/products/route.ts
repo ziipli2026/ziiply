@@ -97,19 +97,17 @@ function mapKlevuProduct(item: any, index: number) {
   // A Klevu SKU is not necessarily a retail barcode: never publish it as EAN.
   const ean = "";
   const name = clean(item?.name);
-  // Justiina is a normal-price search. Prefer oldPrice when Klevu exposes a
-  // discounted salePrice; otherwise the current/base price is the normal price.
+  // Klevu's price is the undiscounted reference when salePrice differs.
+  // Live source samples show oldPrice/basePrice can both equal the sale price.
   const salePrice = numberPrice(item?.salePrice);
   const oldPrice = numberPrice(item?.oldPrice);
   const basePrice = numberPrice(item?.basePrice);
   const currentPrice = numberPrice(item?.price);
-  // Do not mistake a discounted sale price for the normal shelf price.
-  const discounted = salePrice > 0 && ((oldPrice > salePrice) || (basePrice > salePrice));
-  const price = discounted
-    ? Math.max(oldPrice, basePrice)
-    : (basePrice || currentPrice || salePrice);
-  // A lone salePrice cannot establish a regular price when no base/current price exists.
-  if (salePrice > 0 && !oldPrice && !basePrice && !currentPrice) return null;
+  const price = currentPrice > 0
+    ? currentPrice
+    : (salePrice > 0 && Math.max(oldPrice, basePrice) > salePrice
+      ? Math.max(oldPrice, basePrice)
+      : (!salePrice ? (basePrice || oldPrice) : 0));
   if (!name || !(price > 0)) return null;
 
   return {
