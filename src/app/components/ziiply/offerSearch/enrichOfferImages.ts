@@ -9,13 +9,20 @@ export async function enrichOfferImagesBestEffort<T extends Offer>(offers: T[]):
   if (!missing.length) return offers;
   try {
     const sql = neon(process.env.DATABASE_URL);
-    const keys = [...new Set(missing.map(key))].slice(0,100);
-    const rows = await sql`
-      SELECT chain,publication,product_id AS "productId",image_url AS "imageUrl"
-      FROM ziiply_offer_image_queue
-      WHERE status='ready' AND image_url LIKE 'https://%'
-      AND (chain || '|' || publication || '|' || product_id) = ANY(${keys})`;
-    const verified = new Map(rows.map(r => [[r.chain,r.publication,r.productId].join("|"),String(r.imageUrl)]));
+    const keys = [...new Set(missing.map(key))];
+    const verified = new Map<string,string>();
+    // Query every missing offer, not only the first 100 cards in a large leaflet.
+    for (let offset = 0; offset < keys.length; offset += 100) {
+      const batch = keys.slice(offset, offset + 100);
+      const rows = await sql`
+        SELECT chain,publication,product_id AS "productId",image_url AS "imageUrl"
+        FROM ziiply_offer_image_queue
+        WHERE status='ready' AND image_url LIKE 'https://%'
+        AND (chain || '|' || publication || '|' || product_id) = ANY(${batch})`;
+      for (const row of rows) {
+        verified.set([row.chain,row.publication,row.productId].join("|"),String(row.imageUrl));
+      }
+    }
     return offers.map(o => {
       if (str(o.imageUrl) || str(o.imageData)) return o;
       const url = verified.get(key(o));
