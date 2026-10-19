@@ -238,7 +238,7 @@ export async function GET(req: Request) {
       OR NOT EXISTS (
         SELECT 1 FROM ziiply_ean_products ep
         WHERE ep.ean=ziiply_offer_image_queue.ean
-          AND ep.image_url LIKE 'https://%'
+          AND ep.image_url ~* '^https://[^ /?#]+\\.[^ /?#]+'
       )
     )
     ORDER BY next_attempt_at LIMIT 100`;
