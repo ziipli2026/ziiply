@@ -91,7 +91,13 @@ jobs:
           npx --yes tsx offer-card-regression.mts
       - name: Prisma and Cittari cart multi-buy regression
         run: node scripts/audit-gosta-cart-multibuy-20261001.cjs
-      - name: Simulate two selected stores and failure isolation
+      # Snapshot-backed tests require a database with active store publications.
+      # Never mistake an unconfigured runner for an empty production feed.
+      - name: Explain snapshot integration prerequisites
+        if: ${{ env.CITYMARKET_SNAPSHOT_TEST_ENABLED != 'true' }}
+        run: echo "::warning::Live Citymarket snapshot checks skipped; configure CITYMARKET_SNAPSHOT_TEST_ENABLED=true and DATABASE_URL for a populated read-only test database."
+      - name: Simulate two selected stores and failure isolation (live snapshot only)
+        if: ${{ env.CITYMARKET_SNAPSHOT_TEST_ENABLED == 'true' }}
         shell: bash
         run: |
           cat > citymarket-test-1.mts <<'NODE'
@@ -124,7 +130,8 @@ jobs:
           NODE
           npx --yes tsx citymarket-test-2.mts
 
-      - name: Simulate Gosta Citymarket tabs and category navigation
+      - name: Simulate Gosta Citymarket tabs and category navigation (live snapshot only)
+        if: ${{ env.CITYMARKET_SNAPSHOT_TEST_ENABLED == 'true' }}
         shell: bash
         run: |
           cat > citymarket-test-3.mts <<'NODE'
