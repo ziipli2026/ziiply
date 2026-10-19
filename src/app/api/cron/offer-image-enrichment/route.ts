@@ -291,6 +291,7 @@ export async function GET(req: Request) {
       SELECT COALESCE(jsonb_agg(CASE
         WHEN COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
           AND COALESCE(o.value->>'imageUrl','')=''
+          AND length(COALESCE(o.value->>'imageData',''))<=100
         THEN jsonb_set(o.value,'{imageUrl}',to_jsonb(${images[0]}::text),true)
         ELSE o.value END ORDER BY o.ordinality)
       FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality))
