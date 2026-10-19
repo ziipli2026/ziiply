@@ -74,6 +74,35 @@ jobs:
           console.log('NATIONAL_FALLBACK',JSON.stringify({rows:rows.length,offers:offers.length,national:national.length,storeKey:p.storeKey}));
           if(!p.ok || offers.length===0 || national.length===0) process.exit(1);
           NODE
+      - name: Verify national Lidl publication for several store selections
+        run: |
+          node <<'NODE'
+          const stores = [
+            {name:'Varkaus',key:'4527'},
+            {name:'Hyvinkää',key:'FI0218'},
+            {name:'Jokela',key:''},
+            {name:'Kuopio',key:''},
+          ];
+          (async()=>{
+            const baselineUrl=new URL('http://127.0.0.1:3000/api/offers/search');
+            baselineUrl.search=new URLSearchParams({q:'__ziiply_all_offers__',provider:'lidl'}).toString();
+            const baseline=await (await fetch(baselineUrl)).json();
+            const national=(baseline.results||[]).filter(x=>x.campaignType!=='campaign' && ['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
+            if(!baseline.ok || !national.length) throw Error('National verified Lidl publication missing');
+            for(const store of stores){
+              const url=new URL(baselineUrl);
+              url.searchParams.set('lidlStoreName',store.name);
+              if(store.key) url.searchParams.set('lidlStoreKey',store.key);
+              const response=await fetch(url);
+              const data=await response.json();
+              const rows=(data.results||[]).filter(x=>x.campaignType!=='campaign' && ['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
+              const ids=new Set(rows.map(x=>String(x.id||x.name||x.title)+'|'+String(x.offerPrice??x.price)));
+              const missing=national.filter(x=>!ids.has(String(x.id||x.name||x.title)+'|'+String(x.offerPrice??x.price)));
+              console.log('STORE_NATIONAL',JSON.stringify({store:store.name,key:store.key,rows:rows.length,missing:missing.length,status:response.status}));
+              if(!response.ok || !data.ok || !rows.length || missing.length) throw Error('National Lidl offers missing for '+store.name);
+            }
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
       - name: Server log on failure
         if: failure()
         run: cat /tmp/ziiply.log || true
