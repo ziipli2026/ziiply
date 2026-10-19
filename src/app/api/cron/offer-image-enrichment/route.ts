@@ -196,7 +196,6 @@ export async function GET(req: Request) {
     while (matchGroupIndex < groupedMatches.length) {
       const group = groupedMatches[matchGroupIndex++];
       for (const row of group) {
-  for (const row of matches) {
     const image = validUrl(row.imageUrl);
     if (!image) continue;
     await db`UPDATE ziiply_offer_image_queue SET image_url=${image},image_source='ean-bank',
