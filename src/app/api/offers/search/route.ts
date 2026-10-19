@@ -69,7 +69,7 @@ import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNation
 import { fetchKCitymarketSelectedStoreOffers, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
-import { fetchLidlPublicCampaignOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
+import { fetchLidlPublicCampaignOffers, fetchLidlPublicLeafletOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
 import { addVerifiedLidlWeek40Leaflet } from "../../../components/ziiply/offerSearch/providers/lidlWeek40Leaflet";
 import { readActivePublicationOffers } from "../../../components/ziiply/offerSearch/publicationStore";
 import { LIDL_NATIONAL_PUBLICATION_CHAIN } from "../../../components/ziiply/offerSearch/lidlPublicationConfig";
@@ -633,6 +633,21 @@ export async function GET(request: Request) {
       } catch (error) {
         console.warn("[Ziiply offers] Lidl staged national publication unavailable", error);
       }
+      // A missing national publication must not hide currently verified public
+      // Lidl.fi offers. Fetch the dated official source directly as a read-only
+      // fallback; never invent rows or relabel them as manually verified.
+      let directPublicLeaflet: UnknownRecord[] = [];
+      if (staged.length === 0) {
+        try {
+          const publicFeed = await fetchLidlPublicLeafletOffers({ date: todayFi });
+          directPublicLeaflet = publicFeed.offers.map((offer) => ({
+            ...(offer as unknown as UnknownRecord),
+            storeKey, storeName, storeLabel: storeName, shopName: storeName,
+          }));
+        } catch (error) {
+          console.warn("[Ziiply offers] Lidl direct official leaflet unavailable", error);
+        }
+      }
       // Fill manual verified-leaflet rows from the staged official Lidl.fi image when
       // product identity is strong: same normalized product key + same price + overlapping validity.
       // This keeps real Lidl imagery and never borrows an image by category alone.
@@ -668,7 +683,7 @@ export async function GET(request: Request) {
       // photographed/verified rows plus exact first-party Lidl data. Do not split
       // this by transport source: some real leaflet rows are supplied by Lidl Plus.
       // The previous source-based split incorrectly cut the leaflet from 25 to 13.
-      const combined = dedupe([...imageEnriched, ...staged]);
+      const combined = dedupe([...imageEnriched, ...staged, ...directPublicLeaflet]);
 
       // Lidl has two Gösta tabs just like Prisma/Citymarket:
       // 1) "Tarjoukset" = the dated paper/public leaflet publication
