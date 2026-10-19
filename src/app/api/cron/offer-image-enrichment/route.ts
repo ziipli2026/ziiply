@@ -35,6 +35,7 @@ export async function POST(req: Request) {
   const db = sql(); await schema(db);
   let queued = 0, ready = 0;
   for (const raw of body.items as Candidate[]) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
     const chain = text(raw.chain, 60), publication = text(raw.publication, 160), productId = text(raw.productId, 160), title = text(raw.title, 300);
     if (!chain || !publication || !productId || !title) continue;
     const image = validUrl(raw.imageUrl);
