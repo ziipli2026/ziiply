@@ -21,12 +21,13 @@ type RuoanhintaProduct = {
 };
 
 function getPrice(product: RuoanhintaProduct) {
-  return product.storeItems?.[0]?.price || 0;
+  const price = product.storeItems?.[0]?.price;
+  return typeof price === "number" && Number.isFinite(price) && price > 0 ? price : 0;
 }
 
 function isValidGtin(value: unknown) {
   const digits = String(value ?? "").trim();
-  if (!/^(?:\\d{8}|\\d{12}|\\d{13}|\\d{14})$/.test(digits)) return false;
+  if (!/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits)) return false;
   const body = digits.slice(0, -1);
   const expected = Number(digits.at(-1));
   const sum = [...body].reverse().reduce((total, digit, index) =>
@@ -63,6 +64,21 @@ function normalize(value: unknown) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+// Rank by whole search tokens. Substrings inside unrelated words must not win.
+function lidlSearchScore(product: RuoanhintaProduct, search: string) {
+  const query = normalize(search);
+  const name = normalize(fixEncoding(product.name || ""));
+  const brand = normalize(fixEncoding(product.brandName || ""));
+  const terms = query.split(" ").filter(Boolean);
+  if (!terms.length || !name) return 0;
+  const words = new Set((name + " " + brand).split(" ").filter(Boolean));
+  const matched = terms.filter((term) => words.has(term)).length;
+  if (!matched) return 0;
+  const exact = name === query || (brand + " " + name).trim() === query;
+  const prefix = name.startsWith(query + " ") || name.startsWith(query);
+  return matched * 100 + (matched === terms.length ? 200 : 0) + (exact ? 500 : 0) + (prefix ? 100 : 0);
 }
 
 async function resolveRuoanhintaLidlStoreId(storeName: string, city: string, address: string) {
@@ -155,7 +171,8 @@ export async function GET(request: Request) {
     const data = await response.json();
     const sourceItems: RuoanhintaProduct[] = Array.isArray(data?.items) ? data.items : [];
     const items = sourceItems
-      .filter((product) => getPrice(product) > 0)
+      .filter((product) => getPrice(product) > 0 && lidlSearchScore(product, search) > 0)
+      .sort((a, b) => lidlSearchScore(b, search) - lidlSearchScore(a, search))
       .map((product) => ({
         id: product.id,
         name: fixEncoding(product.name),
