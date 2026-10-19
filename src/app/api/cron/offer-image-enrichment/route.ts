@@ -86,12 +86,20 @@ export async function GET(req: Request) {
   let discovered = 0;
   let backfillError: string | null = null;
   try {
-    // Scan a larger rolling window so a burst of recent publications cannot
-    // permanently starve other active publications. Queue inserts are idempotent.
+    // Rotate through all active publications rather than always selecting the
+    // oldest 100. Each four-hour cron slot advances by one page.
+    const publicationCountRows = await db`SELECT COUNT(*)::int AS count
+      FROM ziiply_offer_publications
+      WHERE valid_until >= CURRENT_DATE - INTERVAL '2 days'`;
+    const publicationCount = Number(publicationCountRows[0]?.count ?? 0);
+    const pageCount = Math.max(1, Math.ceil(publicationCount / 100));
+    const slot = Math.floor(Date.now() / (4 * 60 * 60 * 1000));
+    const publicationOffset = (slot % pageCount) * 100;
     const publications = await db`SELECT chain,publication_id,offers
       FROM ziiply_offer_publications
       WHERE valid_until >= CURRENT_DATE - INTERVAL '2 days'
-      ORDER BY parsed_at ASC LIMIT 100`;
+      ORDER BY parsed_at ASC, chain ASC, publication_id ASC
+      LIMIT 100 OFFSET ${publicationOffset}`;
     for (const publication of publications) {
       const offers = Array.isArray(publication.offers) ? publication.offers : [];
       const candidates = offers.map((raw: unknown,index: number) => {
