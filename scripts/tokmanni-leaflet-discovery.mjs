@@ -2,8 +2,30 @@
 import {writeFileSync} from "node:fs";
 
 const SOURCE="https://www.tokmanni.fi/tarjouslehti";
-const response=await fetch(SOURCE,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)});
-if(!response.ok)throw new Error("Tokmanni leaflet hub HTTP "+response.status);
+const retryable=new Set([408,425,429,500,502,503,504]);
+async function fetchOfficialHub(url,attempts=4){
+  let lastError;
+  for(let attempt=1;attempt<=attempts;attempt++){
+    try{
+      const response=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Mozilla/5.0 (compatible; ZiiplyOfferAudit/1.0)"},redirect:"follow",signal:AbortSignal.timeout(20000)});
+      if(response.ok)return response;
+      lastError=new Error("HTTP "+response.status+" "+response.statusText);
+      if(!retryable.has(response.status))break;
+    }catch(error){
+      lastError=error;
+    }
+    if(attempt<attempts){
+      console.warn("Tokmanni official hub retry "+attempt+"/"+attempts+": "+String(lastError?.cause?.code||lastError?.message||lastError));
+      await new Promise(resolve=>setTimeout(resolve,Math.min(1000*2**(attempt-1),8000)));
+    }
+  }
+  const reason=String(lastError?.cause?.code||lastError?.message||lastError||"unknown");
+  console.error("Tokmanni official leaflet source unavailable after "+attempts+" attempts: "+reason);
+  process.exitCode=1;
+  return null;
+}
+const response=await fetchOfficialHub(SOURCE);
+if(!response)process.exit(1);
 const html=await response.text();
 const decode=s=>String(s??"").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#x27;|&#39;/g,"'").replace(/&lt;/g,"<").replace(/&gt;/g,">");
 const strip=s=>decode(String(s??"").replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim());
