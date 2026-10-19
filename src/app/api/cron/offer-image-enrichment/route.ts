@@ -228,11 +228,19 @@ export async function GET(req: Request) {
     }
   };
   await Promise.all(Array.from({length: Math.min(8,groupedMatches.length)}, () => enrichMatchGroups()));
-  // No-EAN offers: exact normalized title + a single image candidate only.
+  // Offers without a usable EAN-bank image: exact normalized title + one image candidate only.
   // Do not guess from broad leaflet descriptions or multi-product offers.
   const noEan = await db`SELECT chain,publication,product_id,title
     FROM ziiply_offer_image_queue WHERE status='pending'
-    AND (ean IS NULL OR ean='') AND next_attempt_at<=now()
+    AND next_attempt_at<=now()
+    AND (
+      ean IS NULL OR ean=''
+      OR NOT EXISTS (
+        SELECT 1 FROM ziiply_ean_products ep
+        WHERE ep.ean=ziiply_offer_image_queue.ean
+          AND ep.image_url LIKE 'https://%'
+      )
+    )
     ORDER BY next_attempt_at LIMIT 100`;
   let titleEnriched = 0, ambiguous = 0;
   const normalize = (v: unknown) => String(v ?? "").toLocaleLowerCase("fi")
