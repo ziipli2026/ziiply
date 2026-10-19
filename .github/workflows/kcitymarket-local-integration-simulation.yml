@@ -96,6 +96,10 @@ jobs:
         run: |
           cat > citymarket-test-1.mts <<'NODE'
           import { fetchKCitymarketSelectedStoreOffers } from './src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts';
+          if (!process.env.DATABASE_URL) {
+            console.error('CITYMARKET_SNAPSHOT_PREREQUISITE_MISSING: DATABASE_URL is not configured for this GitHub Actions job. The provider reads Neon snapshots only; it does not fetch live Tjek offers. Configure a read-only test database connection or run a separate deterministic provider test.');
+            process.exit(1);
+          }
           const a=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Hyvinkää');
           const b=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Vantaa Jumbo');
           const unknown=await fetchKCitymarketSelectedStoreOffers('K-Citymarket Ei Ole Olemassa');
