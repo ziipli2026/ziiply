@@ -61,7 +61,7 @@
 // - API-polku säilyy: src/app/api/offers/search/route.ts
 // ============================================================================
 
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
@@ -969,8 +969,10 @@ export async function GET(request: Request) {
     const imageEnrichedResults = await enrichOfferImagesBestEffort(categoryEnrichedResults);
     // Queue missing images for every chain, including the approved Citymarket
     // snapshot. This runs best-effort and must never block the search response.
-    void queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
-      console.warn("[Ziiply offers] optional image queue failed", error));
+    after(async () => {
+      await queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
+        console.warn("[Ziiply offers] optional image queue failed", error));
+    });
     return NextResponse.json(
       {
         ok: true,
