@@ -70,7 +70,7 @@ jobs:
           const p=require('/tmp/lidl-national.json');
           const rows=Array.isArray(p.results)?p.results:[];
           const offers=rows.filter(x=>x.campaignType!=='campaign');
-          const national=offers.filter(x=>String(x.source||'')==='verified-official-leaflet');
+          const national=offers.filter(x=>['verified-official-leaflet','lidl-fi-public'].includes(String(x.source||'')));
           console.log('NATIONAL_FALLBACK',JSON.stringify({rows:rows.length,offers:offers.length,national:national.length,storeKey:p.storeKey}));
           if(!p.ok || offers.length===0 || national.length===0) process.exit(1);
           NODE
