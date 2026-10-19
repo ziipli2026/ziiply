@@ -332,10 +332,22 @@ export async function GET(req: Request) {
     const images = [...new Set(exact.map(row => validUrl(row.image_url)))];
     if (images.length !== 1 || exact.length === 0) {
       ambiguous++;
-      await db`UPDATE ziiply_offer_image_queue SET status='needs_review',
-        last_error=${exact.length === 0 ? 'No exact product/image match' : 'Conflicting verified image candidates'},
-        updated_at=now() WHERE chain=${item.chain} AND publication=${item.publication}
-        AND product_id=${item.product_id} AND status='pending'`;
+      if (exact.length === 0) {
+        // The EAN image bank grows over time: retry missing exact matches daily
+        // rather than leaving them permanently in manual review.
+        await db`UPDATE ziiply_offer_image_queue SET
+          attempts=attempts+1, next_attempt_at=now()+INTERVAL '24 hours',
+          last_error='No exact product/image match; retry scheduled',
+          updated_at=now()
+          WHERE chain=${item.chain} AND publication=${item.publication}
+          AND product_id=${item.product_id} AND status='pending'`;
+      } else {
+        await db`UPDATE ziiply_offer_image_queue SET status='needs_review',
+          last_error='Conflicting verified image candidates',
+          updated_at=now()
+          WHERE chain=${item.chain} AND publication=${item.publication}
+          AND product_id=${item.product_id} AND status='pending'`;
+      }
       continue;
     }
     await db`UPDATE ziiply_offer_image_queue SET image_url=${images[0]},
