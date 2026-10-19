@@ -104,7 +104,11 @@ export async function GET(req: Request) {
       WHERE valid_until >= CURRENT_DATE - INTERVAL '2 days'
       ORDER BY parsed_at ASC, chain ASC, publication_id ASC
       LIMIT 100 OFFSET ${publicationOffset}`;
-    for (const publication of publications) {
+    // Import independent publications in parallel with bounded concurrency.
+    let publicationIndex = 0;
+    const importPublications = async () => {
+      while (publicationIndex < publications.length) {
+        const publication = publications[publicationIndex++];
       const offers = Array.isArray(publication.offers) ? publication.offers : [];
       const candidates = offers.map((raw: unknown,index: number) => {
         const row = raw && typeof raw === "object" ? raw as Record<string,unknown> : {};
@@ -148,7 +152,9 @@ export async function GET(req: Request) {
             updated_at=now()`;
         discovered += batch.length;
       }
-    }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(4, publications.length) }, () => importPublications()));
   } catch (error) {
     backfillError = error instanceof Error ? error.message : "unknown";
     console.warn("[offer-image-enrichment] staged backfill skipped",backfillError);
