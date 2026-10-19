@@ -87,6 +87,9 @@ function textOf(src:string){
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
+  if(/(?:mustikkagranola|\bgranola\b)/.test(s)) return "Kuivatuotteet";
+  if(/(?:wc[- ]?raikastintik|kahvinkeittimen\s+puhdistusaine)/.test(s)) return "Kodinhoito";
+  if(/(?:kreikkalaiset\s+jogurtit|\bjogurtit\b)/.test(s)) return "Maitotuotteet";
   // General product-form classification, independent of leaflet issue or chain.
   if(/(?:rypäle(?:et|itä)?|viinirypäle)/.test(s)) return "Hevi";
   if(/(?:kasvovoide|kasvoseerumi|collagen lifter|hyaluron expert|triple active|\bexpert\b.*\blifter\b)/.test(s)) return "Hygienia & kosmetiikka";
