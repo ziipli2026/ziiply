@@ -10,7 +10,7 @@ let code=mobile.slice(start,end).replaceAll(": ZiiplyMobileCartItem","").replace
 const ctx={};vm.runInNewContext(code+"\nthis.price=readCartItemPriceForTotalV8;",ctx);
 assert.match(page,/const savedCart = window\.localStorage\.getItem\("ziiply-cart-v1"\)/);
 assert.match(page,/Array\.isArray\(parsed\?\.items\)/);
-assert.match(page,/setCart\(restoredItems\)/);
+assert.match(page,/setCart\(safeRestoredItems\)/);
 function roundtrip(items){const storage=JSON.stringify({version:2,savedAt:12345,items});const parsed=JSON.parse(storage);return Array.isArray(parsed)?parsed:parsed.items;}
 const pending={id:"weight-1",name:"Irtomyynti",price:0,source:"offer",product:{ziiplyWeightOffer:true,ziiplyPricePendingWeight:true,comparisonPrice:12.90,comparisonPriceUnit:"kg"}};
 const restoredPending=roundtrip([pending])[0];
