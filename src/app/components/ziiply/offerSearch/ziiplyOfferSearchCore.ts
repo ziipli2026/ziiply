@@ -867,8 +867,9 @@ export async function warmZiiplyGostaOfferCacheV182(
   // do not issue a second network request when preparing the campaign tab.
   const masterResults = await fetchGostaMasterOfferResultsV156(context);
   preparedGostaAllV803(context, masterResults);
-  const campaigns = masterResults.filter((item) => (item as any)?.campaignType === "campaign");
-  const offers = masterResults.filter((item) => (item as any)?.campaignType !== "campaign");
+  const prepared = preparedGostaAllV803(context, masterResults);
+  const campaigns = prepared.filter((item) => (item as any)?.campaignType === "campaign");
+  const offers = prepared.filter((item) => (item as any)?.campaignType !== "campaign");
   return { offers, campaigns };
 }
 
@@ -925,9 +926,10 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   // CMS campaigns and discounted-master offers are independent tab datasets.
   // The same EAN must survive once in each tab, not dedupe across tabs.
   const sourceTab = anyItem?.campaignType === "campaign" ? "campaign" : "offer";
+  const sourceOffer = anyItem?.__sourceOfferSearchResult ?? anyItem;
+  const origin = [sourceOffer?.source ?? sourceOffer?.provider ?? "unknown", sourceOffer?.sourceUrl ?? "", sourceOffer?.debug?.publicationId ?? sourceOffer?.publicationId ?? "", sourceOffer?.storeId ?? sourceOffer?.storeName ?? ""].map(String).join("|");
   // Tjek rows already carry a stable, publication-specific offer identity. Do not
   // collapse different leaflet offers just because their shortened names/prices match.
-  const sourceOffer = anyItem?.__sourceOfferSearchResult ?? anyItem;
   if ((sourceOffer?.provider === "kcitymarket-local" || sourceOffer?.source === "K-Citymarket kauppakohtainen julkaisu" || sourceOffer?.source === "etarjouslehdet") && sourceOffer?.offerId) {
     return `${sourceTab}:tjek:${normalizeGostaCoreText(sourceOffer.storeId || anyItem.storeId || "")}:${String(sourceOffer.debug?.publicationId || "")}:${String(sourceOffer.offerId)}`;
   }
@@ -936,7 +938,7 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   if (sourceOffer?.source === "K-Citymarket tarjouslehti" && String(sourceOffer.id || "").startsWith("kcm:spatial:")) {
     return `${sourceTab}:kcm-national:${String(sourceOffer.id)}`;
   }
-  if (ean) return `${sourceTab}:ean:${ean}`;
+  if (ean) return `${sourceTab}:${origin}:ean:${ean}`;
 
   const title =
     item?.title || item?.name || item?.productName || "";
@@ -944,9 +946,9 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   const store = normalizeGostaCoreText(item?.storeLabel || "");
   const price = normalizeGostaCoreText(item?.priceText || "");
 
-  if (title3) return `${sourceTab}:title3:${title3}|price:${price}|store:${store}`;
+  if (title3) return `${sourceTab}:${origin}:title3:${title3}|price:${price}|store:${store}`;
 
-  return `${sourceTab}:${normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"))}`;
+  return `${sourceTab}:${origin}:${normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"))}`;
 }
 
 export function dedupeZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]) {
