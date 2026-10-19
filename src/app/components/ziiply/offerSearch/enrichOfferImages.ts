@@ -2,10 +2,10 @@ import { neon } from "@neondatabase/serverless";
 
 type Offer = Record<string, unknown>;
 const str = (v: unknown, n=180) => String(v ?? "").trim().slice(0,n);
-const key = (o: Offer) => [str(o.chain || o.storeType || o.source,60),str(o.publicationId || o.publication || o.sourceUrl || o.source,160),str(o.id || o.offerId,160)].join("|");
+const key = (o: Offer) => [str(o.chain || o.storeType || o.source,60),str(o.publicationId || o.publication || o.sourceUrl || o.source,160),str(o.id || o.offerId || o.productId,160)].join("|");
 export async function enrichOfferImagesBestEffort<T extends Offer>(offers: T[]): Promise<T[]> {
   if (!process.env.DATABASE_URL || !offers.length) return offers;
-  const missing = offers.filter(o => !str(o.imageUrl) && str(o.imageData, 101).length <= 100 && str(o.id || o.offerId));
+  const missing = offers.filter(o => !str(o.imageUrl) && str(o.imageData, 101).length <= 100 && str(o.id || o.offerId || o.productId));
   if (!missing.length) return offers;
   try {
     const sql = neon(process.env.DATABASE_URL);
