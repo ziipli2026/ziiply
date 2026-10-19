@@ -2,7 +2,14 @@ import { neon } from "@neondatabase/serverless";
 
 type Offer = Record<string, unknown>;
 const str = (v: unknown, n=180) => String(v ?? "").trim().slice(0,n);
-const hasImageUrl = (v: unknown) => /^https:\/\//i.test(str(v, 1000));
+const hasImageUrl = (v: unknown) => {
+  try {
+    const url = new URL(str(v, 1000));
+    return url.protocol === "https:" && Boolean(url.hostname)
+      && !/^(localhost|127\\.|10\\.|192\\.168\\.|169\\.254\\.)/i.test(url.hostname)
+      && !url.hostname.endsWith(".local");
+  } catch { return false; }
+};
 const key = (o: Offer) => [str(o.chain || o.storeType || o.source,60),str(o.publicationId || o.publication || o.sourceUrl || o.source,160),str(o.id || o.offerId || o.productId,160)].join("|");
 export async function enrichOfferImagesBestEffort<T extends Offer>(offers: T[]): Promise<T[]> {
   if (!process.env.DATABASE_URL || !offers.length) return offers;
