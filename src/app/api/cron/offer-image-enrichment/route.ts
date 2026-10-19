@@ -234,11 +234,18 @@ export async function GET(req: Request) {
   await db`CREATE TABLE IF NOT EXISTS ziiply_offer_image_runs (
     run_at TIMESTAMPTZ PRIMARY KEY, discovered INTEGER NOT NULL,
     enriched INTEGER NOT NULL, retried INTEGER NOT NULL,
-    pending INTEGER NOT NULL, ready INTEGER NOT NULL
+    pending INTEGER NOT NULL, ready INTEGER NOT NULL,
+    title_enriched INTEGER NOT NULL DEFAULT 0, ambiguous INTEGER NOT NULL DEFAULT 0
   )`;
+  // Safe additive migration for databases created by earlier versions.
+  await db`ALTER TABLE ziiply_offer_image_runs ADD COLUMN IF NOT EXISTS title_enriched INTEGER NOT NULL DEFAULT 0`;
+  await db`ALTER TABLE ziiply_offer_image_runs ADD COLUMN IF NOT EXISTS ambiguous INTEGER NOT NULL DEFAULT 0`;
   const pending = Number(stats.find(row => row.status === "pending")?.count ?? 0);
   const ready = Number(stats.find(row => row.status === "ready")?.count ?? 0);
-  await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready)
-    VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready})`;
-  return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,stats});
+  await db`INSERT INTO ziiply_offer_image_runs(run_at,discovered,enriched,retried,pending,ready,title_enriched,ambiguous)
+    VALUES (${runAt}::timestamptz,${discovered},${enriched},${retry.length},${pending},${ready},${titleEnriched},${ambiguous})`;
+  return NextResponse.json({ok:true,runAt,discovered,enriched,titleEnriched,ambiguous,retried:retry.length,pending,ready,stats,
+    coverage:{discovered,ready,pending,ambiguous,matchedByEan:enriched,matchedByExactTitle:titleEnriched},
+    warning: ambiguous > 0 ? "Some offers have no unique verified image match; they remain queued for later retry." : null
+  });
 }
