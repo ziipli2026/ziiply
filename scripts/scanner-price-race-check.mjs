@@ -221,7 +221,7 @@ assert.match(addResultV838, /if \(isPhysicalBarcodeScanV815 && scannerExistingIt
 assert.match(addResultV838, /!checkedCartItems\[collectionKeyV814\]/);
 assert.match(addResultV838, /setCheckedCartItems/);
 assert.match(addResultV838, /setEanMessage\("Tuote kerätty\."\)/);
-assert.match(addResultV838, /setEanScannerMessage\("✓ Kerätty"\)/);
+assert.match(addResultV838, /setEanScannerMessage\("✓"\)/);
 
 {
   let quantity = 3;
