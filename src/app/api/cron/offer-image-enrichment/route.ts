@@ -324,6 +324,7 @@ export async function GET(req: Request) {
         OR lower(name) LIKE ${'% ' + (searchTokens[1] ?? '__NO_MATCH__') + ' %'}
       )
       AND (${amount ?? ''} = '' OR regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') LIKE ${'%' + (amount ?? '') + '%'})
+      ORDER BY lower(name),ean
       LIMIT 1500`;
     const exact = matches.filter(row => {
       const candidate = normalize(row.name);
