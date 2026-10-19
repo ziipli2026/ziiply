@@ -18,7 +18,7 @@ export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promis
   // Price/unit-price annotations belong to the offer, not the product identity.
   const looksLikeLeafletAnnotation = (title: string) =>
     /(?:\b\d+[,.]\d{2}\s*\/\s*(?:kg|l)\b|\b\d+\s*%|\btuotteet\s+tasarahalla\b|\bFörvaringslådor\b)/i.test(title);
-  const eligibleRows = rows.filter(row => !looksLikeLeafletAnnotation(row.title));
+  const eligibleRows = rows.filter(row => row.ean || !looksLikeLeafletAnnotation(row.title));
   if (!eligibleRows.length) return;
   // Skip obvious multi-product leaflet headings and OCR-merged descriptions.
   // These do not identify a unique SKU and must not acquire a guessed image.
