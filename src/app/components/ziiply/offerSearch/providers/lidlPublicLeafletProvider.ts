@@ -43,12 +43,12 @@ const SEEDS = [
   "/c/lidl-plus/",
   "/c/template_sales_campaigns/",
   "/c/tarjouslehdet/",
-  "/h/vihannekset/h10095593",
-  "/h/lihat/h10095752",
+  "/h/hedelmaet-ja-vihannekset/h10071012",
+  "/h/lihat-ja-makkarat/h10071016",
   "/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
   "/h/kuivatuotteet/h10096095",
   "/h/valmisateriat/h10097147",
-  "/h/paistopiste-leivaet-ja-leivonnaiset/h10096086",
+  "/h/paistopiste-leipaet-ja-leivonnaiset/h10096086",
 ];
 
 const HEADERS = {
