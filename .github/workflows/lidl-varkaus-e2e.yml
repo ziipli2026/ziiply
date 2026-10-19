@@ -19,7 +19,6 @@ jobs:
       # The API route's verified official-leaflet fallback stages/reads snapshots in Neon.
       # Without this connection, an upstream Lidl 400 leaves the test with zero rows.
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      CRON_SECRET: ${{ secrets.CRON_SECRET }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -36,20 +35,6 @@ jobs:
             curl -fsS http://127.0.0.1:3000/ >/dev/null && break
             sleep 1
           done
-      - name: Refresh official Lidl publication locally
-        run: |
-          if [ -z "$DATABASE_URL" ] || [ -z "$CRON_SECRET" ]; then
-            echo "::error::DATABASE_URL or CRON_SECRET unavailable to Lidl workflow"
-            exit 1
-          fi
-          curl --fail --silent --show-error \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "http://127.0.0.1:3000/api/cron/lidl-publications" -o /tmp/lidl-stage.json
-          node <<'NODE'
-          const p=require('/tmp/lidl-stage.json');
-          console.log('LIDL_STAGE',JSON.stringify({ok:p.ok,staged:p.staged,publicAudit:p.publicAudit}));
-          if(!p.ok) process.exit(1);
-          NODE
       - name: Call actual Varkaus Lidl API route
         run: |
           if [ -n "$DATABASE_URL" ]; then
