@@ -1,22 +1,31 @@
-name: Lidl SPAR combined TypeScript and build (PR 227)
+name: Lidl SPAR combined TypeScript and build
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - test/lidl-spar-integration-current2
+      - main
+    paths:
+      - 'src/app/api/lidl/products/route.ts'
+      - 'src/app/api/tokmanni/products/route.ts'
+      - 'scripts/test-lidl-product-normalization.cjs'
+      - 'scripts/tokmanni-spar-normal-price-safety-check.mjs'
+      - 'package-lock.json'
+      - '.github/workflows/lidl-spar-build-check.yml'
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: test/lidl-spar-integration-current
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Clean dependency install (required)
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Lidl normalization regression
+        run: node scripts/test-lidl-product-normalization.cjs
+      - name: SPAR normal price regression
+        run: node scripts/tokmanni-spar-normal-price-safety-check.mjs
       - name: TypeScript typecheck
         run: npx tsc --noEmit
       - name: Next production build
