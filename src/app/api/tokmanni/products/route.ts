@@ -27,16 +27,6 @@ function absoluteUrl(href: string) {
   try { return new URL(href, TOKMANNI_SEARCH_URL).href; } catch { return ""; }
 }
 
-function eanFromProductUrl(productUrl: string) {
-  try {
-    const pathname = new URL(productUrl).pathname.replace(/\/+$/, "");
-    const match = pathname.match(/-(\d{8,14})$/);
-    return match?.[1] || "";
-  } catch {
-    return "";
-  }
-}
-
 function first(block: string, patterns: RegExp[]) {
   for (const re of patterns) {
     const match = block.match(re);
@@ -46,8 +36,10 @@ function first(block: string, patterns: RegExp[]) {
 }
 
 function numberPrice(value: unknown) {
-  const match = String(value ?? "").replace(/\s/g, "").match(/(\d+(?:[.,]\d{1,2})?)/);
-  return match ? Number(match[1].replace(",", ".")) : 0;
+  const raw = String(value ?? "").trim().replace(/\s/g, "").replace(/€/g, "");
+  if (!/^\d+(?:[.,]\d{1,2})?$/.test(raw)) return 0;
+  const price = Number(raw.replace(",", "."));
+  return Number.isFinite(price) && price > 0 ? price : 0;
 }
 
 function productBlocks(html: string) {
@@ -80,7 +72,8 @@ function mapProduct(block: string, index: number) {
     || block.match(/(?:src|data-src)=["']([^"']+)["'][^>]*class=["'][^"']*product-image-photo/i);
 
   const productUrl = absoluteUrl(decodeEntities(hrefMatch?.[1] || ""));
-  const ean = eanFromProductUrl(productUrl);
+  // Product URL suffixes may be internal IDs, not verified GTINs.
+  const ean = "";
 
   return {
     id: 761000000 + index,
@@ -101,17 +94,20 @@ const KLEVU_SEARCH_URL = "https://eucs11.ksearchnet.com/cloud-search/n-search/se
 const KLEVU_TICKET = "klevu-15488592134928913";
 
 function mapKlevuProduct(item: any, index: number) {
-  const ean = clean(item?.sku);
+  // A Klevu SKU is not necessarily a retail barcode: never publish it as EAN.
+  const ean = "";
   const name = clean(item?.name);
-  // Justiina is a normal-price search. Prefer oldPrice when Klevu exposes a
-  // discounted salePrice; otherwise the current/base price is the normal price.
+  // Klevu's price is the undiscounted reference when salePrice differs.
+  // Live source samples show oldPrice/basePrice can both equal the sale price.
   const salePrice = numberPrice(item?.salePrice);
   const oldPrice = numberPrice(item?.oldPrice);
   const basePrice = numberPrice(item?.basePrice);
   const currentPrice = numberPrice(item?.price);
-  const price = oldPrice > salePrice && salePrice > 0
-    ? oldPrice
-    : basePrice || currentPrice || salePrice;
+  const price = currentPrice > 0
+    ? currentPrice
+    : (salePrice > 0 && Math.max(oldPrice, basePrice) > salePrice
+      ? Math.max(oldPrice, basePrice)
+      : (!salePrice ? (basePrice || oldPrice) : 0));
   if (!name || !(price > 0)) return null;
 
   return {
