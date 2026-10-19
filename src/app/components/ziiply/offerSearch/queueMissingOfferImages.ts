@@ -46,7 +46,24 @@ export async function queueMissingOfferImagesBestEffort(offers: Offer[]): Promis
       AS r(chain text,publication text,product_id text,ean text,title text)
       ON CONFLICT (chain,publication,product_id) DO UPDATE SET
         ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
-        title=EXCLUDED.title,updated_at=now()`;
+        title=EXCLUDED.title,
+        status=CASE WHEN ziiply_offer_image_queue.status='needs_review' AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
+          OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
+            AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
+          THEN 'pending' ELSE ziiply_offer_image_queue.status END,
+        attempts=CASE WHEN ziiply_offer_image_queue.status='needs_review' AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
+          OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
+            AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
+          THEN 0 ELSE ziiply_offer_image_queue.attempts END,
+        next_attempt_at=CASE WHEN ziiply_offer_image_queue.status='needs_review' AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
+          OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
+            AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
+          THEN now() ELSE ziiply_offer_image_queue.next_attempt_at END,
+        last_error=CASE WHEN ziiply_offer_image_queue.status='needs_review' AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
+          OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
+            AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
+          THEN NULL ELSE ziiply_offer_image_queue.last_error END,
+        updated_at=now()`;
     }
   } catch (error) {
     console.warn("[offer-image-enrichment] queue:", error instanceof Error ? error.message : "unknown");
