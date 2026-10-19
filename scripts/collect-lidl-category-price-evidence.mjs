@@ -154,8 +154,17 @@ for(const product of api.out){
 
 for(const source of urls){
   const observedAt=new Date().toISOString();
-  const res=await fetch(source,{headers:{"user-agent":"ZiiplyLidlResearch/1.0",accept:"text/html"},signal:AbortSignal.timeout(15000)});
-  if(!res.ok) throw new Error(`${res.status} ${source}`);
+  let res;
+  try {
+    res=await fetch(source,{headers:{"user-agent":"ZiiplyLidlResearch/1.0",accept:"text/html"},signal:AbortSignal.timeout(15000)});
+  } catch (error) {
+    console.error("LIDL_PAGE_SKIPPED",JSON.stringify({source,error:String(error)}));
+    continue;
+  }
+  if(!res.ok) {
+    console.error("LIDL_PAGE_SKIPPED",JSON.stringify({source,status:res.status}));
+    continue;
+  }
   const html=await res.text();
   const products=structuredProducts(html);
   const text=decode(html);
