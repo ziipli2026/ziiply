@@ -247,6 +247,21 @@ export async function GET(req: Request) {
     const noisyOfferText = /(?:\b\d+[,.]?\d*\s*%|\b\d+[,.]\d{2}\s*\/\s*(?:kg|l)\b|tuotteet tasarahalla|\bkuivaruoat\b|\bmärkäruoat\b|\bvirvoitusjuomat\b|\bvalikoima\b|\bateriat\s+\d+\s*kk\b)/i.test(v);
     return hasMultipleOfferOptions || otherSlash || noisyOfferText;
   };
+  // Process different publications concurrently, while keeping updates to
+  // each publication's JSONB offers sequential to prevent lost updates.
+  const titleGroups = new Map<string, typeof noEan>();
+  for (const item of noEan) {
+    const groupKey = JSON.stringify([item.chain,item.publication]);
+    const group = titleGroups.get(groupKey) ?? [];
+    group.push(item);
+    titleGroups.set(groupKey,group);
+  }
+  const groupedTitles = [...titleGroups.values()];
+  let titleGroupIndex = 0;
+  const enrichTitleGroups = async () => {
+    while (titleGroupIndex < groupedTitles.length) {
+      const group = groupedTitles[titleGroupIndex++];
+      for (const item of group) {
   for (const item of noEan) {
     const title = String(item.title || "");
     if (!title || uncertain(title)) {
@@ -323,7 +338,10 @@ export async function GET(req: Request) {
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=${item.product_id}
         AND COALESCE(o.value->>'imageUrl','')='')`;
     titleEnriched++;
-  }
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(4, groupedTitles.length) }, () => enrichTitleGroups()));
   const retry = await db`UPDATE ziiply_offer_image_queue SET
     attempts=attempts+1, next_attempt_at=now()+make_interval(hours => LEAST(168, POWER(2, LEAST(attempts,7))::int)),
     updated_at=now() WHERE (chain,publication,product_id) IN (
