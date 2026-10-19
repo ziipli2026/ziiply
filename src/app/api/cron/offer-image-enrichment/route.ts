@@ -114,7 +114,25 @@ export async function GET(req: Request) {
           SELECT chain,publication,product_id,title,ean
           FROM jsonb_to_recordset(${JSON.stringify(batch)}::jsonb)
           AS r(chain text,publication text,product_id text,title text,ean text)
-          ON CONFLICT(chain,publication,product_id) DO NOTHING`;
+          ON CONFLICT(chain,publication,product_id) DO UPDATE SET
+            title=EXCLUDED.title,
+            ean=COALESCE(NULLIF(EXCLUDED.ean,''),ziiply_offer_image_queue.ean),
+            status=CASE WHEN ziiply_offer_image_queue.status='needs_review'
+              AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
+                OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
+                  AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
+              THEN 'pending' ELSE ziiply_offer_image_queue.status END,
+            next_attempt_at=CASE WHEN ziiply_offer_image_queue.status='needs_review'
+              AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
+                OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
+                  AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
+              THEN now() ELSE ziiply_offer_image_queue.next_attempt_at END,
+            last_error=CASE WHEN ziiply_offer_image_queue.status='needs_review'
+              AND (EXCLUDED.title IS DISTINCT FROM ziiply_offer_image_queue.title
+                OR (NULLIF(EXCLUDED.ean,'') IS NOT NULL
+                  AND EXCLUDED.ean IS DISTINCT FROM ziiply_offer_image_queue.ean))
+              THEN NULL ELSE ziiply_offer_image_queue.last_error END,
+            updated_at=now()`;
         discovered += batch.length;
       }
     }
