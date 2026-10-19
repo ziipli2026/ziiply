@@ -85,6 +85,7 @@
 // V44: irrottaa tuoterivin kentät omiksi absoluuttisiksi paperikoordinaateiksi ja siirtää nimikkeet, määrän, miinuksen, hinnat sekä footerin linjaan taustakuvan kanssa.
 
 import React from "react";
+import { estimateEquivalentQuantityCost } from "../ziiplyCore";
 
 export type ZiiplyMobileCartItem = {
   id?: string | number;
@@ -885,6 +886,24 @@ export default function ZiiplyMobileCartCard({
                             ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
                             : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.72rem] font-bold text-[#3f321f] decoration-[1.5px]" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : price || "—"}
                     </div>
+                    {item.ziiplyIsSubstituteV793 &&
+                      typeof item.ziiplyOriginalProductName === "string" &&
+                      Number.isSafeInteger(item.ziiplyVerifiedPackageCents) &&
+                      item.ziiplyVerifiedPackageCents > 0 &&
+                      (() => {
+                        const estimate = estimateEquivalentQuantityCost(
+                          item.ziiplyOriginalProductName,
+                          getName(item),
+                          item.ziiplyVerifiedPackageCents,
+                        );
+                        return estimate ? (
+                          <div className="ml-[3.62rem] mt-1 text-[0.65rem] leading-tight text-[#286443]"
+                            title="Laskennallinen vertailuhinta, ei kassalla maksettava hinta">
+                            Vertailuhinta: {(estimate.equivalentCostCents / 100).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                            <span className="block">Laskennallinen – pakkaushinta säilyy ennallaan</span>
+                          </div>
+                        ) : null;
+                      })()}
                     {item.ziiplyIsSubstituteV793 && onRestoreOriginalItem && (
                       <button type="button" onClick={() => onRestoreOriginalItem(item)}
                         className="relative ml-[3.62rem] mt-[2.58rem] mb-1 text-left text-[0.65rem] font-bold text-[#286443] underline underline-offset-2">
