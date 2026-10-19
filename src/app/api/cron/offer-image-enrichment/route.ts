@@ -144,7 +144,7 @@ export async function GET(req: Request) {
   await db`DELETE FROM ziiply_offer_image_queue q
     USING ziiply_offer_publications p
     WHERE q.chain=p.chain AND q.publication=p.publication_id
-      AND q.status='pending'
+      AND q.status IN ('pending','needs_review')
       AND EXISTS (
         SELECT 1 FROM jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
         WHERE COALESCE(o.value->>'id',o.value->>'offerId',o.value->>'productId','row:'||(o.ordinality-1)::text)=q.product_id
