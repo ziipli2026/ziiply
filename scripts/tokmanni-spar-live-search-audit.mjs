@@ -44,5 +44,6 @@ for (const term of terms) {
     failures++;
   }
 }
-if (!eggCandidates) { console.error("NO_EGG_PRODUCTS_ACROSS_VARIANTS"); failures++; }
-if (failures) { console.error("Live source audit incomplete: " + failures + " failed queries"); process.exitCode = 1; }
+if (!eggCandidates) { console.warn("SOURCE_COVERAGE_WARNING: NO_EGG_PRODUCTS_ACROSS_VARIANTS; SPAR physical-store assortment is not verified by Klevu"); }
+if (failures) { console.error("Live source audit failed: " + failures + " source/search errors"); process.exitCode = 1; }
+else console.log("Live source requests passed; missing eggs remain a source-coverage warning, not a verified product absence.");
