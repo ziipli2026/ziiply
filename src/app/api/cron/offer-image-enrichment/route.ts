@@ -187,7 +187,7 @@ export async function GET(req: Request) {
     FROM ziiply_offer_image_queue q
     JOIN ziiply_ean_products p ON p.ean=q.ean
     WHERE q.status='pending' AND q.next_attempt_at<=now()
-      AND length(q.ean) BETWEEN 8 AND 14 AND p.image_url LIKE 'https://%'
+      AND length(q.ean) BETWEEN 8 AND 14 AND p.image_url ~* '^https://[^ /?#]+\\.[^ /?#]+'
     ORDER BY q.next_attempt_at ASC LIMIT 100`;
   let enriched = 0;
   // Different publications can be enriched concurrently. Keep rows within
@@ -314,7 +314,7 @@ export async function GET(req: Request) {
       if (titleTokens[1].length >= 4) searchTokens.push(titleTokens[1]);
     }
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
-      WHERE image_url LIKE 'https://%'
+      WHERE image_url ~* '^https://[^ /?#]+\\.[^ /?#]+'
       AND (
         lower(name) LIKE ${searchTokens[0] + '%'} OR lower(name) LIKE ${'% ' + searchTokens[0] + ' %'}
         OR lower(name) LIKE ${(searchTokens[1] ?? '__NO_MATCH__') + '%'}
