@@ -39,6 +39,25 @@ test('API through final price rendering retains all source offers and hides prod
  const rows=mapped.map(row=>({id:row.id,title:row.title,tab:row.campaignType,display:cards.getOfferPrice(row),layout:cards.splitOfferDisplayPrice(cards.getOfferPrice(row)),source:row.__sourceOfferSearchResult}));
  const counts={input:offers.length+campaigns.length,api:apiRows,core:result.results.length,clean:clean.length,cards:rows.length,offers:rows.filter(r=>r.tab!=='campaign').length,campaigns:rows.filter(r=>r.tab==='campaign').length,apiCalls,externalCalls:externalCalls.length};
  assert.equal(apiRows,544);assert.equal(rows.length,544);assert.equal(counts.offers,89);assert.equal(counts.campaigns,455);assert.equal(externalCalls.length,0);
+ // Regression: both independent publication streams must survive every client stage.
+ // A product EAN is not a promotion identity; even identical names/prices/EANs
+ // must survive if the origin or publication differs.
+ const sameProduct={ean:'6410000000001',title:'TESTITUOTE 500 g',price:1.29,campaignType:'offer'};
+ const distinctSources=[
+  {...sameProduct,__sourceOfferSearchResult:{...sameProduct,source:'K-Citymarket tarjouslehti',sourceUrl:'https://example.test/national',id:'kcm:spatial:1:sample:1.29'}},
+  {...sameProduct,campaignType:'campaign',__sourceOfferSearchResult:{...sameProduct,campaignType:'campaign',source:'K-Citymarket kauppakohtainen julkaisu',provider:'kcitymarket-local',storeId:'fe95rtb',offerId:'offer-1',debug:{publicationId:'publication-1'}}},
+  {...sameProduct,campaignType:'campaign',__sourceOfferSearchResult:{...sameProduct,campaignType:'campaign',source:'K-Citymarket kauppakohtainen julkaisu',provider:'kcitymarket-local',storeId:'fe95rtb',offerId:'offer-2',debug:{publicationId:'publication-1'}}},
+ ];
+ const preserved=core.dedupeZiiplyGostaOfferResultsV146(distinctSources);
+ assert.equal(preserved.length,3,'Independent Citymarket publications/offers were merged');
+ assert.equal(preserved.filter(x=>x.campaignType==='campaign').length,2);
+ const audit=core.getZiiplyKruokaDebugV174?.(context);
+ if(audit?.kOfferMasterTabAuditV1){
+  assert.deepEqual(audit.kOfferMasterTabAuditV1.beforeClean,audit.kOfferMasterTabAuditV1.afterClean,'Master tab lost source offers');
+ }
+ if(audit?.kOfferPreparedTabAuditV1){
+  assert.deepEqual(audit.kOfferPreparedTabAuditV1.before,audit.kOfferPreparedTabAuditV1.after,'Prepared tab lost source offers');
+ }
  const prices=rows.filter(r=>r.tab!=='campaign').map(r=>({title:r.title,display:r.display,layout:r.layout}));
  const React=require(root+'/node_modules/react');
  const {renderToStaticMarkup}=require(root+'/node_modules/react-dom/server');
