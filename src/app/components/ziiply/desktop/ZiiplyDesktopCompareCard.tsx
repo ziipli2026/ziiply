@@ -9,7 +9,7 @@ export type DesktopCompareStore = {
 };
 type Props = {
   open?: boolean; stores: DesktopCompareStore[]; title?: string; subtitle?: string; loading?: boolean;
-  onSelectStore?: (storeId: string) => void; onBack?: () => void; onBackToCart?: () => void;
+  onSelectStore?: (storeId: string) => void; onSaveStoreList?: (storeId: string) => void; onBack?: () => void; onBackToCart?: () => void;
   onClose?: () => void; items?: unknown[];
   onAcceptWeightProposal?: (storeId: string, rowId: string) => void;
   onRejectWeightProposal?: (storeId: string, rowId: string) => void;
@@ -27,7 +27,7 @@ const euro = (cents?: number | null) =>
 
 export default function ZiiplyDesktopCompareCard({
   open = true, stores, title = "Halpuusvertailu", subtitle = "Kauppakohtaiset hinnat ja ostoskorit",
-  loading = false, onSelectStore, onBack, onBackToCart, onClose, items = [],
+  loading = false, onSelectStore, onSaveStoreList, onBack, onBackToCart, onClose, items = [],
   onChangeMatchMode, onSelectMatchAlternative, onAcceptWeightProposal, onRejectWeightProposal,
 }: Props) {
   const [expanded, setExpanded] = useState<string[]>([]);
@@ -77,6 +77,10 @@ export default function ZiiplyDesktopCompareCard({
                   {rows.filter(row=>row.weightProposal).map(row=>{const proposal=row.weightProposal!;const grams=proposal.gramsPerItem*Number(row.quantity||1);const cents=Math.round(proposal.pricePerKgCents*grams/1000);return <div key={row.id||row.name} className="mx-3 mb-3 rounded-xl border-2 border-amber-600 bg-amber-50 p-3 text-sm text-[#3d2415]"><strong>Vaihdetaanko tuoreeseen silakkafileeseen?</strong><p className="mt-1">{proposal.name} · {euro(proposal.pricePerKgCents)}/kg · {grams} g · arvio {euro(cents)}</p><p className="mt-1 text-xs">Painotuote hyväksytään erikseen. Lopullinen hinta määräytyy punnitun painon mukaan.</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={()=>onAcceptWeightProposal?.(store.id,String(row.id||""))} className="rounded-lg bg-[#17633c] px-3 py-2 font-bold text-white">Hyväksy vaihtoehto</button><button type="button" onClick={()=>onRejectWeightProposal?.(store.id,String(row.id||""))} className="rounded-lg border border-[#806c4a] px-3 py-2 font-bold">Ei vaihdeta</button></div></div>})}
                   <div className="flex shrink-0 items-center justify-start px-4 pb-3 pt-1">
                     <button type="button" aria-expanded={isOpen} onClick={()=>toggle(store.id)} className="rounded-xl border-2 border-[#536b4d] bg-[#f1e3c1] px-4 py-1.5 font-serif text-sm font-black italic text-[#214d36]">{isOpen ? "Sulje valinnat" : "Muuta valintoja"}</button>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-2 px-4 pb-3">
+                    <button type="button" onClick={()=>onSaveStoreList?.(store.id)} disabled={!rows.length||loading} className="flex-1 rounded-xl border-2 border-[#536b4d] bg-[#f1e3c1] px-3 py-2 text-xs font-black text-[#214d36] disabled:opacity-50">☷ Tallenna ostoslistaan</button>
+                    <button type="button" onClick={()=>onSelectStore?.(store.id)} disabled={!rows.some(row=>row.price!=null)||loading} className="flex-1 rounded-xl border-2 border-[#536b4d] bg-[#e0ebd1] px-3 py-2 text-xs font-black text-[#214d36] disabled:opacity-50">🛒 Siirrä ostoskoriin</button>
                   </div>
                   {isOpen && (
                     <div data-desktop-compare-products-scroll className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
