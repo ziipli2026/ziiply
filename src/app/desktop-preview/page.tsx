@@ -589,9 +589,9 @@ export default function DesktopPreviewPage() {
         const proposal=row.weightProposal;
         const perItem=Number(proposal.pricePerKgCents)*Number(proposal.gramsPerItem)/100000;
         if(!Number.isFinite(perItem)||perItem<=0)return row;
-        return {...row,name:String(proposal.name)+" (painotuote, arvio "+proposal.gramsPerItem+" g)",price:perItem,match:"name" as const,weightEstimate:true,weightProposal:null,ean:row.ean};
+        return {...row,name:String(proposal.name),price:perItem,match:"name" as const,weightEstimate:true,weightGramsPerItem:Number(proposal.gramsPerItem),weightPricePerKgCents:Number(proposal.pricePerKgCents),weightProposal:null,ean:String(proposal.ean||"")};
       });
-      return {...current,[storeId]:{...result,rows,total:rows.reduce((n:number,row:any)=>n+(row.price??0)*Number(row.quantity||1),0),missing:rows.filter((row:any)=>row.price==null).length}};
+      return {...current,[storeId]:{...result,rows,total:Math.round(rows.reduce((n:number,row:any)=>n+(row.price??0)*Number(row.quantity||1),0)*100)/100,missing:rows.filter((row:any)=>row.price==null).length}};
     });
   }
 
@@ -2046,7 +2046,7 @@ export default function DesktopPreviewPage() {
   open
   onAcceptWeightProposal={acceptDesktopWeightProposal}
   onRejectWeightProposal={rejectDesktopWeightProposal}
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:row.weightEstimate?Number(row.price)*100:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
   items={cartItems}
   onChangeMatchMode={desktopChangeCompareMatchMode}
   onSelectMatchAlternative={desktopSelectCompareAlternative}
