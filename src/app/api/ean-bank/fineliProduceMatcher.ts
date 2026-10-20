@@ -10,7 +10,6 @@ const approvedBrands = new Set(["","pirkka","kotimaista","coop","xtra","rainbow"
 const qualifiers = new Set([
   "suomalainen","suomalaiset","kotimainen","kotimaiset","ulkomainen",
   "tuore","tuoreet","luomu","1lk","1","lk","irto","nippu","pussi",
-  "kesäporkkana","porkkananippu",
 ]);
 const forbidden = /(?:mehu|sose|keitto|kakku|piirakka|pihvi|salaatti|sekoitus|pakaste|kuivatt|keitetty|paistettu|grilli|marinoit|viipale|kuutio|raaste|öljy|jauhe|säilyke|herkku|patukka|lastenruoka|pesto|hillo|marmeladi|juoma|kastike)/i;
 
