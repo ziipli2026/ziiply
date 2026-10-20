@@ -18,6 +18,13 @@ console.log("BEFORE",JSON.stringify(before));
 if(!before.length)throw new Error("No active K-Citymarket approved publication in database");
 const offers=await fetchKCitymarketOffers();
 console.log("ENRICHED",JSON.stringify({offers:offers.length,withImage:offers.filter(o=>!!o.imageUrl).length}));
+const imageFormats:Record<string,number>={};
+for(const offer of offers){
+ const value=String(offer.imageUrl??"").trim();
+ const kind=!value?"empty":/^https:\/\//i.test(value)?"https":/^http:\/\//i.test(value)?"http":/^data:image\//i.test(value)?"data-image":value.startsWith("/")?"relative":value.slice(0,24);
+ imageFormats[kind]=(imageFormats[kind]||0)+1;
+}
+console.log("IMAGE_FORMATS",JSON.stringify(imageFormats));
 const imagePatch: Record<string,string> = {};
 for (const offer of offers) {
   const id=String(offer.id||"");
