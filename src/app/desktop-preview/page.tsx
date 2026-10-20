@@ -1004,6 +1004,30 @@ export default function DesktopPreviewPage() {
       if(/laktoositon/.test(x)!==/laktoositon/.test(y))return false;
       return true;
     }
+    // Product identity and formulation must remain the same even in "cheapest" mode.
+    const sodaKind=(v:string)=>{
+      if(/\b(cola|kokis|coca cola|pepsi)\b/.test(v))return "cola";
+      if(/\b(jaffa|appelsiinilimonadi|appelsiini limonadi)\b/.test(v))return "jaffa";
+      return null;
+    };
+    const sourceSoda=sodaKind(x),candidateSoda=sodaKind(y);
+    if(sourceSoda||candidateSoda){
+      if(sourceSoda!==candidateSoda)return false;
+      const sugarFree=(v:string)=>/\b(sokeriton|sokerittom|zero|light|diet|ei lisättyä sokeria|ilman sokeria)\b/.test(v);
+      if(sugarFree(x)!==sugarFree(y))return false;
+      const caffeineFree=(v:string)=>/\b(kofeiiniton|caffeine free)\b/.test(v);
+      if(caffeineFree(x)!==caffeineFree(y))return false;
+    }
+    const milkKind=(v:string)=>{
+      if(!/\b(maito|maitojuoma)\b/.test(v))return null;
+      if(/\b(kevytmaito|kevyt maito)\b/.test(v))return "kevyt";
+      if(/\b(täysmaito|täys maito)\b/.test(v))return "täys";
+      if(/\b(rasvaton maito|rasvatonmaito)\b/.test(v))return "rasvaton";
+      return "muu";
+    };
+    const sourceMilk=milkKind(x),candidateMilk=milkKind(y);
+    if((sourceMilk||candidateMilk)&&sourceMilk!==candidateMilk)return false;
+    if((sourceMilk||candidateMilk)&&(/\b(laktoositon)\b/.test(x)!==/\b(laktoositon)\b/.test(y)))return false;
     const attributes=[
       /laktoositon/,/vähälaktoosinen/,/gluteeniton/,/rasvaton/,/kevyt/,/täysmaito/,
       /kofeiiniton/,/papu(?:kahvi)?/,/suodatin(?:kahvi)?/,/pika(?:kahvi)?/,
