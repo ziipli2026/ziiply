@@ -1,3 +1,4 @@
+import { fineliRawProduceName } from "./fineliProduceMatcher";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -73,19 +74,7 @@ export async function GET(request: NextRequest) {
         LIMIT 1
       `;
       if (rows[0]) {
-        // Conservative fresh-produce aliases: brand may be a retailer's produce label.
-        // No substring matching: carrot cake, soup, frozen mixes and prepared
-        // vegetables must never inherit raw-carrot nutrition.
-        const produceAliases: Record<string, string> = {
-          "porkkana": "PORKKANA",
-          "porkkana ulkomainen": "PORKKANA",
-          "kotimaista porkkana 500 g": "PORKKANA",
-          "kotimaista porkkana 1 kg": "PORKKANA",
-          "pirkka suomalainen kesäporkkana 500g 1lk": "PORKKANA",
-          "kotimaista porkkananippu": "PORKKANA",
-        };
-        const produceName = String(rows[0].name || "").trim().toLocaleLowerCase("fi-FI");
-        const mappedProduceName = produceAliases[produceName] || null;
+        const mappedProduceName = fineliRawProduceName(String(rows[0].name || ""), String(rows[0].brand || ""));
         // Prefer verified EAN-specific Open Food Facts data. Fineli is only a
         // generic-food fallback for an unbranded, exact-name, unique match.
         // Never write inferred nutrition into the EAN or OFF master tables.
@@ -114,7 +103,9 @@ export async function GET(request: NextRequest) {
               AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean = ${ean})
             LIMIT 1
           `;
-          if (matched[0]) nutrition = { source: matched[0].source, ...matched[0].data };
+          const specific = matched.find((item) => item.source === "open-food-facts");
+          const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
+          if (selected) nutrition = { source: selected.source, ...selected.data };
         } catch (error) {
           // EAN scanning must remain available even if nutrition tables are unavailable.
           console.warn("EAN nutrition lookup unavailable", error instanceof Error ? error.message : String(error));
