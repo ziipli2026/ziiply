@@ -29,6 +29,9 @@ export type ZiiplyCompareSelectionItem = {
   cheapestPrice?: number;
   price?: number | string;
   quantity?: number;
+  weightEstimate?: boolean;
+  weightGramsPerItem?: number;
+  weightPricePerKgCents?: number;
   qualityMode?: "cheapest" | "same_quality" | "own_brands" | "same_brand";
   matchType?: "ean" | "name" | "manual";
   isMissingComparisonItem?: boolean;
@@ -262,7 +265,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             {getItemName(item)}
                           </div>
                           <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
-                            #{index + 1} · {getItemQuantity(item)} kpl{missing ? " · Ei löytynyt tästä kaupasta" : ""}
+                            #{index + 1} · {item.weightEstimate && Number.isFinite(Number(item.weightGramsPerItem)) ? `${getItemQuantity(item)*Number(item.weightGramsPerItem)} g (arvio) · ${(Number(item.weightPricePerKgCents)/100).toFixed(2).replace(".",",")} €/kg` : `${getItemQuantity(item)} kpl`}{missing ? " · Ei löytynyt tästä kaupasta" : ""}
                           </div>
                           {!missing && item.matchType === "name" ? (
                             <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.06em] text-[#8a4f20]">
