@@ -1013,6 +1013,20 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
             });
             if(new Set(compound.map(([,image])=>image)).size===1)candidates=compound;
           }
+          // Generic beverage headlines omit the brands visible on the Tjek card.
+          // Only use a single matching branded card; never choose between two.
+          if(!candidates.length && (wanted.has("virvoitusjuomat")||wanted.has("energiajuomat"))){
+            const beverage= wanted.has("virvoitusjuomat")?"virvoitusjuomat":"energiajuomat";
+            const possible=[...photos.entries()].filter(([name])=>{
+              const found=tokens(name);
+              const sizes=packageSizes(name);
+              if(!found.has(beverage))return false;
+              if(wantedSize && sizes.length && !sizes.includes(wantedSize))return false;
+              // Do not match a generic label to an unrelated product category.
+              return true;
+            });
+            if(possible.length===1)candidates=possible;
+          }
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
           else if(unique.length>1)ambiguous++;
