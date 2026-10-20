@@ -44,8 +44,18 @@ if(Object.keys(imagePatch).length){
     RETURNING publication_id
   `;
   if(updated.length!==1) throw new Error("Image-only update did not reach the approved publication");
+  console.log("PATCH_IDS",Object.keys(imagePatch).length);
 }
 
+const diagnostics=await sql`
+ SELECT
+  (SELECT count(*)::int FROM jsonb_array_elements(p.offers) o WHERE ${JSON.stringify(imagePatch)}::jsonb ? (o->>'id')) AS matching_ids,
+  (SELECT count(*)::int FROM jsonb_array_elements(p.offers) o WHERE coalesce(o->>'imageUrl','') ~* '^https://') AS valid_urls,
+  (SELECT count(*)::int FROM jsonb_array_elements(p.offers) o WHERE coalesce(o->>'imageUrl','') <> '') AS nonempty_urls
+ FROM ziiply_offer_publications p
+ WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
+`;
+console.log("PATCH_DIAGNOSTICS",JSON.stringify(diagnostics));
 const after=await read();
 console.log("AFTER",JSON.stringify(after));
 if(after[0]?.total!==before[0]?.total)throw new Error("Offer count changed unexpectedly");
