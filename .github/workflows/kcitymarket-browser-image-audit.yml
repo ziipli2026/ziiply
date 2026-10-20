@@ -13,10 +13,10 @@ jobs:
         with:
           node-version: '24'
       - name: Install dependencies
-        run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+        run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund playwright
       - name: Install Playwright Chromium
         run: npx --yes playwright install --with-deps chromium
       - name: Test actual image decode in Chromium
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: npx --yes --package=tsx --package=playwright tsx scripts/ziiply-kcitymarket-browser-image-audit.mts
+        run: npx --yes tsx scripts/ziiply-kcitymarket-browser-image-audit.mts
