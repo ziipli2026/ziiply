@@ -1,6 +1,8 @@
 name: Ziiply offer image coverage audit
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '40 4,12,20 * * *'
 jobs:
   audit:
     runs-on: ubuntu-latest
