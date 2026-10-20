@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { neon } from "@neondatabase/serverless";
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL secret missing");
 const sql=neon(process.env.DATABASE_URL);
@@ -18,11 +20,11 @@ for(const [i,offer] of offers.entries()){
  const raw=String(offer.imageUrl??"").trim();
  if(!raw){failures.push(title+": missing image URL");continue;}
  let url:URL;
- try{url=new URL(raw);}catch{failures.push(title+": invalid image URL");continue;}
+ try{url=new URL(raw,"https://ziiply.vercel.app");}catch{failures.push(title+": invalid image URL");continue;}
  if(url.protocol!=="https:"){failures.push(title+": non-HTTPS image URL");continue;}
  const fragment=decodeURIComponent(url.hash.slice(1));
  url.hash="";
- const key=url.toString();
+ const key=url.pathname.startsWith("/citymarket-leaflets/") ? url.pathname : url.toString();
  const record=urls.get(key)??{url:key,fragments:new Set<string>()};
  if(fragment)record.fragments.add(fragment);
  urls.set(key,record);
@@ -34,6 +36,18 @@ async function worker(){
  while(next<entries.length){
   const item=entries[next++];
   try{
+   const local=item.url.startsWith("/citymarket-leaflets/");
+   if(local){
+    const file=resolve("public","."+item.url);
+    if(!file.startsWith(resolve("public/citymarket-leaflets")+"/"))throw Error("Unsafe asset path");
+    const body=await readFile(file,"utf8");
+    if(!/<svg\\b/i.test(body))throw Error("Invalid local SVG");
+    for(const fragment of item.fragments){
+     if(!body.includes('id="'+fragment+'"')&&!body.includes("id=\'"+fragment+"\'"))throw Error("Missing SVG symbol #"+fragment);
+    }
+    checked.push({url:item.url,status:200,type:"image/svg+xml (repository asset)",fragments:item.fragments.size});
+    continue;
+   }
    const response=await fetch(item.url,{signal:AbortSignal.timeout(15000),headers:{"User-Agent":"Ziiply-image-audit/1.0","Accept":"image/*,*/*"}});
    const type=response.headers.get("content-type")??"";
    if(!response.ok){failures.push(item.url+": HTTP "+response.status);continue;}
