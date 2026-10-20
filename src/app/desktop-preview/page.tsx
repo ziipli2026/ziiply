@@ -1212,7 +1212,19 @@ export default function DesktopPreviewPage() {
     completeNotebookRestore(items,"replace");
   }
   const [notebookPriceRefreshId,setNotebookPriceRefreshId]=useState(0);
+  const notebookPriceDebugRef=useRef<any[]>([]);
+  const [notebookPriceDebugCount,setNotebookPriceDebugCount]=useState(0);
+  function logNotebookPrice(event:string,details:Record<string,unknown>={}){
+    notebookPriceDebugRef.current=[...notebookPriceDebugRef.current,{at:new Date().toISOString(),event,...details}].slice(-500);
+    setNotebookPriceDebugCount(notebookPriceDebugRef.current.length);
+  }
+  function downloadNotebookPriceDebug(){
+    const report={version:"desktop-notebook-price-debug-v1",exportedAt:new Date().toISOString(),selectedStores:Object.values(selectedStores).map((store:any)=>({name:store.name,id:store.id,externalId:store.externalId,kind:storeKind(store)})),cart:cartItems.map((item:any)=>({name:item.name||item.title,ean:item.ean||item.product?.ean,storeName:item.storeName,price:item.price,priceNeedsRefresh:item.priceNeedsRefresh,quantity:item.quantity,source:item.source})),events:notebookPriceDebugRef.current};
+    const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);const anchor=document.createElement("a");anchor.href=url;anchor.download="ziiply-ostoskorin-hintahaku-debug-"+new Date().toISOString().replace(/[:.]/g,"-")+".json";anchor.click();URL.revokeObjectURL(url);
+  }
   function completeNotebookRestore(items:any[],mode:"merge"|"replace"){
+    notebookPriceDebugRef.current=[];setNotebookPriceDebugCount(0);
     setNotebookPriceRefreshId(id=>id+1);
     if(mode==="merge"){
       setCartItems(current=>{
@@ -1240,21 +1252,25 @@ export default function DesktopPreviewPage() {
     const eligibleStores=selected.filter(store=>["sHyper","sLocal","kHyper","kLocal","spar"].includes(storeKind(store)));
     let cancelled=false;
     const pending=cartItems.filter(item=>!isDesktopMemoItem(item)&&!item?.ziiplyWeightLabel&&!item?.product?.ziiplyWeightLabel&&(item.priceNeedsRefresh||desktopCartPrice(item.price)==null));
-    if(!pending.length||!eligibleStores.length)return;
+    logNotebookPrice("restore_search_start",{cartCount:cartItems.length,pending:pending.length,selectedStores:eligibleStores.map(s=>({name:s.name,id:s.id,externalId:s.externalId,kind:storeKind(s)}))});
+    if(!pending.length||!eligibleStores.length){logNotebookPrice("restore_search_skipped",{reason:!eligibleStores.length?"no_supported_store":"no_pending_products"});return;}
     setDesktopCartPricesChecked(false);
     void Promise.all(pending.map(async item=>{
       const name=String(item.name||item.title||"").trim();
       const ean=String(item.ean||item.product?.ean||"").trim();
       const store=eligibleStores.find(s=>String(s.name||"")===String(item.storeName||""))||(eligibleStores.length===1?eligibleStores[0]:null);
-      if(!name||!store)return null;
+      if(!name||!store){logNotebookPrice("product_skipped",{name,ean,reason:!name?"missing_name":"store_not_selected",storedStore:item.storeName});return null;}
+      logNotebookPrice("product_search_start",{name,ean,store:store.name,storeId:store.id,kind:storeKind(store)});
       const isS=["sHyper","sLocal"].includes(storeKind(store));
       try{
         const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
         const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+        logNotebookPrice("product_search_result",{name,ean,store:store.name,candidateCount:candidates.length,candidates:candidates.slice(0,12).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),matched:matched?{name:matched.name,ean:matched.ean,priceCents:matched.price}:null});
         return {key:desktopCartKey(item),name,ean,storeName:String(store.name||""),price:matched&&Number(matched.price)>0?Number(matched.price)/100:null};
-      }catch{return {key:desktopCartKey(item),name,ean,storeName:String(store.name||""),price:null}}
+      }catch(error){logNotebookPrice("product_search_error",{name,ean,store:store.name,error:String(error)});return {key:desktopCartKey(item),name,ean,storeName:String(store.name||""),price:null}}
     })).then(results=>{
-      if(cancelled)return;
+      if(cancelled){logNotebookPrice("restore_search_cancelled");return;}
+      logNotebookPrice("restore_search_finished",{searched:results.length,priced:results.filter(result=>result?.price!=null).length});
       const updates=new Map(results.filter((result):result is NonNullable<typeof result>=>result!==null).map(result=>[result.key,result]));
       setCartItems(current=>current.map(item=>{
         const update=updates.get(desktopCartKey(item));
@@ -1927,7 +1943,8 @@ export default function DesktopPreviewPage() {
  </div>)}
  </div>
  <div className="absolute left-[65px] top-[72px] z-10 flex items-center gap-[70px]"><button onClick={()=>{setCartOpen(false);setNotebookOpen(true)}} title="Ostoslistat" aria-label="Ostoslistat" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[49px] w-[49px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#624522" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="12" y="9" width="39" height="48" rx="5" fill="#fff4d3"/><path d="M22 9v48M27 20h17M27 30h17M27 40h13" stroke="#906b3d"/><rect x="7" y="16" width="10" height="35" rx="3" fill="#d4ae69"/><path d="M9 24h7M9 33h7M9 42h7" stroke="#fff1cb"/></svg></button><button disabled={!cartItems.length} onClick={shareDesktopCart} title="Lähetä ostoskori" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[49px] w-[49px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#624522" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="16" width="50" height="34" rx="5" fill="#fff3d1"/><path d="m9 19 23 18 23-18" strokeWidth="3"/><path d="m10 47 17-15m27 15L37 32" stroke="#b18a4d"/><path d="M40 8h15m-5-5 5 5-5 5" stroke="#28644b" strokeWidth="3"/></svg></button><button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} title="Osta" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[52px] w-[52px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#58381b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 26 Q9 13 22 12 H45 Q55 13 55 26 V49 H9Z" fill="#c99b51"/><path d="M11 27 Q12 17 23 16 H44 Q52 17 53 27" fill="#e6c17d"/><rect x="21" y="6" width="26" height="12" rx="3" fill="#a97735"/><rect x="25" y="8" width="18" height="7" rx="1" fill="#fff0b6"/><path d="M29 12h10" stroke="#68451f"/><path d="M12 28H52" strokeWidth="2.5"/><rect x="15" y="32" width="34" height="15" rx="3" fill="#e6bc72"/><g fill="#8b5d2a" stroke="#553617" strokeWidth="1"><circle cx="21" cy="36" r="2.2"/><circle cx="30" cy="36" r="2.2"/><circle cx="39" cy="36" r="2.2"/><circle cx="21" cy="43" r="2.2"/><circle cx="30" cy="43" r="2.2"/><circle cx="39" cy="43" r="2.2"/></g><path d="M8 49h48v9H8z" fill="#91632f"/><rect x="13" y="51" width="38" height="4" rx="1" fill="#dcb878"/><path d="M13 22h38" stroke="#fff0b5" strokeWidth="1.4"/><path d="M9 49h46" stroke="#5a391c" strokeWidth="2.5"/></svg></button></div>
- <div className="absolute left-[570px] top-[88px] z-10"><button disabled={!cartItems.length} onClick={()=>{void openDesktopComparison()}} className="rounded-[16px] border-[3px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-6 py-1 font-serif text-[clamp(18px,1.5vw,26px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button></div>
+ <button type="button" onClick={downloadNotebookPriceDebug} title="Tallenna ostoskorin hintahaun DEBUG JSON" className="absolute bottom-[12px] right-[25px] z-30 rounded-lg border-2 border-[#75562c] bg-[#fff2cc] px-3 py-1 text-[12px] font-black text-[#4b3821] shadow-md">DEBUG · Tallenna ({notebookPriceDebugCount})</button>
+  <div className="absolute left-[570px] top-[88px] z-10"><button disabled={!cartItems.length} onClick={()=>{void openDesktopComparison()}} className="rounded-[16px] border-[3px] border-[#548067] bg-gradient-to-b from-[#fff7df] to-[#dfc999] px-6 py-1 font-serif text-[clamp(18px,1.5vw,26px)] font-black italic text-[#24543c] shadow-md disabled:opacity-40">Halpuusvertailu</button></div>
  <div className="absolute right-[300px] top-[84px] z-10 flex w-[190px] items-center justify-center gap-[18px]"><button onClick={clearDesktopCart} disabled={!cartItems.length} title="Tyhjennä kori" aria-label="Tyhjennä kori" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 32 32" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 9h18M12 9V6h8v3M9 9l1.5 18h11L23 9M14 14v9M18 14v9"/></svg></button><button onClick={()=>setCartOpen(false)} title="Sulje ostoskori" aria-label="Sulje ostoskori" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40 text-[48px] font-bold leading-none">×</button></div>
  <div className="absolute right-[70px] top-[58px] z-10 flex w-[230px] flex-col items-center text-center font-serif font-black text-[#174c3a]" aria-label="Ostoskorin yhteishinta">{desktopCartPricesChecked&&!desktopCompareLoading&&cartItems.some((p:any)=>desktopCartPrice(p.price)==null)&&<span className="absolute bottom-full mb-2 w-[310px] whitespace-nowrap text-center text-[clamp(16px,1.2vw,21px)] font-bold leading-tight text-[#8b4e35]">Osa tuotteista ilman hintaa</span>}<span className="text-[clamp(17px,1.5vw,25px)]">Yhteensä</span><span className="whitespace-nowrap text-[clamp(23px,2.1vw,37px)]">{cartItems.reduce((sum:number,p:any)=>sum+(desktopCartPrice(p.price)||0)*Number(p.quantity||1),0).toFixed(2).replace(".",",")} €</span></div>
 
