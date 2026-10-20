@@ -1,0 +1,19 @@
+name: Fineli EAN matching regression
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/app/api/ean-bank/**'
+      - 'scripts/ziiply-fineli-produce-regression.mts'
+      - '.github/workflows/ziiply-fineli-matcher.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+      - run: npx tsx scripts/ziiply-fineli-produce-regression.mts
+      - run: npx tsc --noEmit
