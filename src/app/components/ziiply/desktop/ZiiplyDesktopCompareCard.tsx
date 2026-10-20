@@ -11,11 +11,14 @@ type Props = {
   open?: boolean; stores: DesktopCompareStore[]; title?: string; subtitle?: string; loading?: boolean;
   onSelectStore?: (storeId: string) => void; onBack?: () => void; onBackToCart?: () => void;
   onClose?: () => void; items?: unknown[];
+  onAcceptWeightProposal?: (storeId: string, rowId: string) => void;
+  onRejectWeightProposal?: (storeId: string, rowId: string) => void;
   onChangeMatchMode?: (storeId: string, match: unknown, mode: "cheapest" | "same_quality" | "own_brands" | "same_brand") => unknown[] | void | Promise<unknown[] | void>;
   onSelectMatchAlternative?: (storeId: string, match: unknown, alternative: unknown) => void | Promise<void>;
 };
 type MatchRow = {
   id?: string; name?: string; quantity?: number; price?: number | null;
+  weightProposal?: {name:string;pricePerKgCents:number;gramsPerItem:number} | null;
   isMissingComparisonItem?: boolean; product?: {name?: string; image?: string; imageUrl?: string};
   image?: string; imageUrl?: string; cartItem?: {image?: string; imageUrl?: string; product?: {image?: string; imageUrl?: string}};
 };
@@ -25,7 +28,7 @@ const euro = (cents?: number | null) =>
 export default function ZiiplyDesktopCompareCard({
   open = true, stores, title = "Halpuusvertailu", subtitle = "Kauppakohtaiset hinnat ja ostoskorit",
   loading = false, onSelectStore, onBack, onBackToCart, onClose, items = [],
-  onChangeMatchMode, onSelectMatchAlternative,
+  onChangeMatchMode, onSelectMatchAlternative, onAcceptWeightProposal, onRejectWeightProposal,
 }: Props) {
   const [expanded, setExpanded] = useState<string[]>([]);
   if (!open) return null;
@@ -71,6 +74,7 @@ export default function ZiiplyDesktopCompareCard({
                       {diff !== null && diff > 0 && <div className="text-xs font-bold text-[#76684e]">+{euro(diff)} kalliimpi</div>}
                     </div>
                   </div>
+                  {rows.filter(row=>row.weightProposal).map(row=>{const proposal=row.weightProposal!;const grams=proposal.gramsPerItem*Number(row.quantity||1);const cents=Math.round(proposal.pricePerKgCents*grams/1000);return <div key={row.id||row.name} className="mx-3 mb-3 rounded-xl border-2 border-amber-600 bg-amber-50 p-3 text-sm text-[#3d2415]"><strong>Vaihdetaanko tuoreeseen silakkafileeseen?</strong><p className="mt-1">{proposal.name} · {euro(proposal.pricePerKgCents)}/kg · {grams} g · arvio {euro(cents)}</p><p className="mt-1 text-xs">Painotuote hyväksytään erikseen. Lopullinen hinta määräytyy punnitun painon mukaan.</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={()=>onAcceptWeightProposal?.(store.id,String(row.id||""))} className="rounded-lg bg-[#17633c] px-3 py-2 font-bold text-white">Hyväksy vaihtoehto</button><button type="button" onClick={()=>onRejectWeightProposal?.(store.id,String(row.id||""))} className="rounded-lg border border-[#806c4a] px-3 py-2 font-bold">Ei vaihdeta</button></div></div>})}
                   <div className="flex shrink-0 items-center justify-start px-4 pb-3 pt-1">
                     <button type="button" aria-expanded={isOpen} onClick={()=>toggle(store.id)} className="rounded-xl border-2 border-[#536b4d] bg-[#f1e3c1] px-4 py-1.5 font-serif text-sm font-black italic text-[#214d36]">{isOpen ? "Sulje valinnat" : "Muuta valintoja"}</button>
                   </div>
