@@ -8,8 +8,22 @@ const publications=manifest.publications as Record<string,PublicationImages>;
 export function getKCitymarketPublisherImage(sourceUrl:string,offerId:string):string|null{
   const publication=publications[sourceUrl];
   if(!publication)return null;
-  const image=publication.images[offerId];
-  return image?.startsWith("/citymarket-leaflets/"+publication.pdfSha256+"/images.svg#")?image:null;
+  const valid=(value:string|undefined)=>value?.startsWith("/citymarket-leaflets/"+publication.pdfSha256+"/images.svg#")?value:null;
+  const exact=valid(publication.images[offerId]);
+  if(exact)return exact;
+  // PDF parser may move a card to another page or change its price/ID.
+  // Match only an identical normalized product title within this SAME leaflet.
+  // Reject duplicate titles and conflicting images; never match by category alone.
+  const titleFromId=(id:string)=>{
+    const match=/^kcm:spatial:\\d+:(.+):[^:]+$/.exec(id);
+    return match?.[1]?.normalize("NFKC").toLowerCase().replace(/\\s+/g," ").trim()??"";
+  };
+  const wanted=titleFromId(offerId);
+  if(!wanted)return null;
+  const candidates=Object.entries(publication.images)
+    .filter(([id])=>titleFromId(id)===wanted)
+    .map(([,value])=>valid(value)).filter((value):value is string=>!!value);
+  return candidates.length===1?candidates[0]:null;
 }
 
 /**
