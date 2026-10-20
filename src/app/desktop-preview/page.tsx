@@ -925,11 +925,23 @@ export default function DesktopPreviewPage() {
             const price=matched?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
             const alternative=matched?null:desktopFindPackageAlternative(candidates,name,ean);
-            // A loose fresh fish item priced per kilogram is only an opt-in
-            // proposal, never an automatic package-size or EAN match.
-            const weightProposal=!matched&&/\bsilakkafilee\b/i.test(name)&&desktopPackageSize(name)!==null
-              ?candidates.find((p:any)=>/^tuore silakkafilee$/i.test(String(p.name||"").trim())&&Number(p.price)>0&&desktopPackageSize(String(p.name||""))===null)
-              :null;
+            // Fresh fish fillets can be sold loose or in a bulk counter pack (e.g. n5kg).
+            // Only propose a same-species, unprocessed fillet with a verified kg price;
+            // never silently replace a packaged item or offer canned/marinated/frozen fish.
+            const fishFilletSpecies=(value:string)=>{
+              const normalized=String(value||"").toLocaleLowerCase("fi");
+              const species=normalized.match(/\b(silakka|lohi|kirjolohi|kuha|ahven|siika|muikku|turska|seiti|hauki)filee\b/);
+              return species?.[1]||null;
+            };
+            const originalSpecies=fishFilletSpecies(name);
+            const weightProposal=!matched&&originalSpecies&&desktopPackageSize(name)!==null
+              ?candidates.find((p:any)=>{
+                const candidateName=String(p.name||"").toLocaleLowerCase("fi");
+                const bulkCounterPack=/\bn\s*\d+(?:[.,]\d+)?\s*kg\b/.test(candidateName);
+                const loose=desktopPackageSize(candidateName)===null;
+                const excluded=/\b(pakaste|pakastettu|säilyke|purkki|marinoitu|marinadi|maustettu|savustettu|savu|pihvi|pyörykkä|silli|etikka|kastike)\b/.test(candidateName);
+                return fishFilletSpecies(candidateName)===originalSpecies&&!excluded&&(loose||bulkCounterPack)&&Number(p.price)>0;
+              }):null;
             return {cartItemId:String(item.id||""),name:matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative,weightProposal:weightProposal?{name:String(weightProposal.name),pricePerKgCents:Number(weightProposal.price),ean:String(weightProposal.ean||""),gramsPerItem:desktopPackageSize(name)}:null};
           }catch(error){logCompareAudit("product_search_error",{store:store.name,name,ean,error:String(error)});desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
