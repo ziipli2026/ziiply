@@ -578,6 +578,15 @@ export default function DesktopPreviewPage() {
   const [desktopCompareResults,setDesktopCompareResults]=useState<Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>({});
   const [desktopCompareError,setDesktopCompareError]=useState("");
   const desktopCompareAuditRef=useRef<any[]>([]);
+  const forceComparisonSearchRef=useRef(false);
+  function forceComparisonSearch(){
+    if(desktopCompareLoading)return;
+    forceComparisonSearchRef.current=true;
+    desktopCompareCache.current.clear();
+    desktopOriginalComparison.current=null;
+    try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}
+    void openDesktopComparison();
+  }
   const [desktopCompareAuditCount,setDesktopCompareAuditCount]=useState(0);
   function logCompareAudit(event:string,details:Record<string,unknown>={}){
     desktopCompareAuditRef.current=[...desktopCompareAuditRef.current,{at:new Date().toISOString(),event,...details}].slice(-1200);
@@ -854,7 +863,10 @@ export default function DesktopPreviewPage() {
     const mustRecompare=desktopComparisonEdited.current || (()=>{try{return window.localStorage.getItem(desktopComparisonEditedKey)===key}catch{return false}})();
     if(mustRecompare){desktopCompareCache.current.delete(key);desktopOriginalComparison.current=null;try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
     const memoryFresh=Date.now()-desktopCompareCacheTime.current<24*60*60*1000;
-    const cached=mustRecompare?null:((memoryFresh?(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)):null)||desktopReadSavedComparison(key));
+    const forced=forceComparisonSearchRef.current;
+    forceComparisonSearchRef.current=false;
+    if(forced)logCompareAudit("comparison_force_search",{cacheBypassed:true});
+    const cached=(mustRecompare||forced)?null:((memoryFresh?(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)):null)||desktopReadSavedComparison(key));
     if(cached){logCompareAudit("comparison_cache_used",{stores:Object.entries(cached).map(([id,v]:any)=>({id,store:v.store?.name,priced:v.rows?.filter((x:any)=>x.price!=null).length||0,total:v.rows?.length||0}))});desktopDebug(`Välimuistista vertailu: ${Object.entries(cached).map(([id,v]:any)=>`${id}: ${v.rows?.filter((x:any)=>x.price!=null).length||0}/${v.rows?.length||0} hintaa`).join(" | ")}`);desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
@@ -1980,6 +1992,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+{desktopCompareNotice&&<button type="button" onClick={forceComparisonSearch} disabled={desktopCompareLoading} className="fixed bottom-5 right-[285px] z-[250] rounded-xl border-2 border-[#75562c] bg-[#e5f0d6] px-4 py-2 text-sm font-black text-[#264d35] shadow-xl disabled:opacity-50" title="Ohita vertailun välimuisti ja hae kaikkien valittujen kauppojen hinnat uudelleen">{desktopCompareLoading?"Haetaan…":"Pakota vertailuhaku"}</button>}
 {desktopCompareNotice&&<button type="button" onClick={downloadCompareAudit} className="fixed bottom-5 right-5 z-[250] rounded-xl border-2 border-[#75562c] bg-[#f2ead5] px-4 py-2 text-sm font-black text-[#264d35] shadow-xl" title="Tallenna vertailun kauppakohtaiset haut ja hakuvirheet">Vertailu DEBUG · Tallenna ({desktopCompareAuditCount})</button>}
 {desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
