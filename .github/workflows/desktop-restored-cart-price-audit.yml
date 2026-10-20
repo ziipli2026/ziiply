@@ -1,0 +1,48 @@
+name: Desktop restored cart live price audit
+on:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - '.github/workflows/desktop-restored-cart-price-audit.yml'
+  workflow_dispatch:
+jobs:
+  live-price-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check fresh price searches without saved prices
+        env:
+          BASE_URL: https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app
+        run: |
+          node <<'NODE'
+          const assert=require('node:assert/strict');
+          const store='634976534';
+          const items=[
+            {name:'Kotimaista Silakkafilee MSC 250 g'},
+            {name:'Xtra väkiviinaetikka 750 ml'},
+            {name:'JOZO 1kg Hieno suola jodioitu'},
+            {name:'Sokeriherne 150g'}
+          ];
+          const norm=s=>String(s||'').toLocaleLowerCase('fi').replace(/[^a-zåäö0-9]+/g,' ').trim().replace(/\s+/g,' ');
+          const size=s=>{const m=String(s).toLowerCase().replace(/,/g,'.').match(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml)\b/);return m?Number(m[1])*(m[2]==='kg'||m[2]==='l'?1000:m[2]==='dl'?100:1):null};
+          let bad=0;
+          for(const item of items){
+            const url=new URL('/api/s-products',process.env.BASE_URL);
+            url.searchParams.set('search',item.name);url.searchParams.set('store',store);url.searchParams.set('storeName','Prisma Hyvinkää');
+            const response=await fetch(url,{headers:{accept:'application/json'}});
+            const body=await response.text();
+            console.log('REQUEST',item.name,'HTTP',response.status,'BODY_BYTES',body.length);
+            if(!response.ok){console.log('HTTP_ERROR',body.slice(0,500));bad++;continue;}
+            let data;try{data=JSON.parse(body)}catch{console.log('NON_JSON',body.slice(0,250));bad++;continue;}
+            const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+            const scored=products.map(p=>({name:p.name||p.title,ean:p.ean||p.gtin,price:p.price,unit:p.storeItems?.[0]?.price,source:data?.source,sameSize:size(p.name||p.title)===size(item.name),sameName:norm(p.name||p.title)===norm(item.name)}));
+            console.log('CANDIDATES',JSON.stringify(scored.slice(0,12)));
+            const exact=scored.filter(p=>p.sameName&&p.sameSize);
+            if(!exact.length){console.log('NO_EXACT_PRODUCT_MATCH',item.name);bad++;continue;}
+            const p=exact[0];const cents=data?.source==='s-kaupat-normal-v220'?Math.round(Number(p.price??p.unit)*100):Number(p.price??p.unit);
+            console.log('EXACT_MATCH',JSON.stringify({name:p.name,ean:p.ean,priceCents:cents,euros:cents/100}));
+            if(!Number.isFinite(cents)||cents<=0){bad++;console.log('INVALID_PRICE');}
+          }
+          console.log('AUDIT_FINISHED',JSON.stringify({items:items.length,failed:bad}));
+          assert.equal(bad,0,'Some fresh live price searches failed or had no exact product match');
+          NODE
