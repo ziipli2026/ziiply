@@ -747,11 +747,11 @@ export default function DesktopPreviewPage() {
     // Keep ground/whole spices distinct and avoid vinegar essences or flavoured vinegars.
     const stapleIdentity=(value:string)=>{
       const v=String(value).toLocaleLowerCase("fi").replace(/,/g,".");
-      if(/\\bväkiviinaetikka\\b/.test(v)&&!/\\b(etikkaliuos|etikkaesanssi|maustettu|omenaviini|valkoviini|punaviini)\\b/.test(v))return "väkiviinaetikka";
+      if(/\bväkiviinaetikka\b/.test(v)&&!/\b(etikkaliuos|etikkaesanssi|maustettu|omenaviini|valkoviini|punaviini)\b/.test(v))return "väkiviinaetikka";
       const spices=["maustepippuri","valkopippuri","mustapippuri","viherpippuri","paprikajauhe","kaneli","kardemumma","kurkuma","kumina","juustokumina","oregano","basilika","timjami","rosmariini","tilli"];
-      const spice=spices.find(w=>new RegExp("\\b"+w+"\\b").test(v));
-      if(!spice||/\\b(sekoitus|mausteseos|aromi|suola|öljy|kastike)\\b/.test(v))return null;
-      const form=/\\b(jauhettu|jauhe|rouhittu|rouhe)\\b/.test(v)?"jauhe":/\\b(kokonainen|kokonaiset)\\b/.test(v)?"kokonainen":"määrittelemätön";
+      const spice=spices.find(w=>new RegExp("\b"+w+"\b").test(v));
+      if(!spice||/\b(sekoitus|mausteseos|aromi|suola|öljy|kastike)\b/.test(v))return null;
+      const form=/\b(jauhettu|jauhe|rouhittu|rouhe)\b/.test(v)?"jauhe":/\b(kokonainen|kokonaiset)\b/.test(v)?"kokonainen":"määrittelemätön";
       return spice+":"+form;
     };
     const sourceStaple=stapleIdentity(name);
