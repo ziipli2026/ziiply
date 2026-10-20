@@ -3,8 +3,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '40 * * * *'
+    - cron: '5,20,35,50 * * * *'
 permissions:
   contents: read
+concurrency:
+  group: kcitymarket-image-refresh
+  cancel-in-progress: false
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -16,7 +20,14 @@ jobs:
           node-version: '24'
       - name: Install dependencies
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+      - name: Check current approved leaflet without external fetch
+        id: check
+        if: github.event_name == 'schedule' && github.event.schedule != '40 * * * *'
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: npx --yes tsx scripts/ziiply-kcitymarket-image-check.mts
       - name: Enrich approved Cittari publication images directly in Neon
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '40 * * * *' || steps.check.outputs.run_heavy == 'true'
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         run: npx --yes tsx scripts/ziiply-kcitymarket-image-refresh.mts
