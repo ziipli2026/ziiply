@@ -795,7 +795,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     : [];
   if(stored.length){
     const { correctPreparedCitymarketPrices }=await import("./kCitymarketPreparedPriceCorrections");
-    const prepared=correctPreparedCitymarketPrices(stored);
+    const prepared=normalizeKCitymarketOfferImages(correctPreparedCitymarketPrices(stored));
     if(prepared.every(offer=>Boolean(offer.imageUrl)))return prepared;
     // Existing approved snapshots must not bypass the image enrichment pipeline.
     // Only fill image URLs; preserve every original offer, price and metadata.
@@ -861,7 +861,17 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
 function normalizeKCitymarketImageUrl(image:unknown,sourceUrl:unknown):string|undefined{
  const raw=String(image??"").trim();
  if(!raw)return undefined;
- if(/^https:\/\//i.test(raw))return raw;
+ // PDF-extracted SVG sprites are hosted by Ziiply, never by the leaflet publisher.
+ if(raw.startsWith("/citymarket-leaflets/"))return "https://ziiply.fi"+raw;
+ if(/^https:\/\//i.test(raw)){
+  try{
+   const url=new URL(raw);
+   if(url.pathname.startsWith("/citymarket-leaflets/") &&
+     (url.hostname==="kcm-tarjouslehdet.k-ruoka.fi"||url.hostname==="kcm-lehdet.k-ruoka.fi"))
+    return "https://ziiply.fi"+url.pathname+url.search+url.hash;
+  }catch{return undefined;}
+  return raw;
+ }
  if(!raw.startsWith("/"))return undefined;
  const source=String(sourceUrl??"");
  if(!/^https:\/\//i.test(source))return undefined;
