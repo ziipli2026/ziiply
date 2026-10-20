@@ -606,13 +606,17 @@ export default function DesktopPreviewPage() {
   const desktopComparisonEdited=useRef(false);
   const desktopOriginalComparison=useRef<{key:string;results:Record<string,any>}|null>(null);
   const desktopComparisonEditedKey="ziiply-desktop-comparison-edited-v1";
-  const desktopCompareStorageKey="ziiply-desktop-comparison-cache-v2";
+  const desktopCompareStorageKey="ziiply-desktop-comparison-cache-v3";
+  const desktopCompareCacheTtlMs=5*60*1000;
+  function desktopComparisonComplete(results:Record<string,any>){
+    return Object.values(results).every((result:any)=>Array.isArray(result?.rows)&&result.rows.length>0&&result.rows.every((row:any)=>Number.isFinite(Number(row.price))&&Number(row.price)>0));
+  }
   function desktopReadSavedComparison(key:string){
     try{
       const raw=window.localStorage.getItem(desktopCompareStorageKey);
       if(!raw)return null;
       const saved=JSON.parse(raw);
-      return saved?.key===key&&Number.isFinite(saved?.savedAt)&&Date.now()-saved.savedAt<24*60*60*1000&&saved?.results&&typeof saved.results==="object"?saved.results:null;
+      return saved?.key===key&&Number.isFinite(saved?.savedAt)&&Date.now()-saved.savedAt<desktopCompareCacheTtlMs&&saved?.results&&typeof saved.results==="object"&&desktopComparisonComplete(saved.results)?saved.results:null;
     }catch{return null}
   }
   function desktopSaveComparison(key:string,results:Record<string,any>){
@@ -880,12 +884,12 @@ export default function DesktopPreviewPage() {
     // Muokattua vertailukoria ei koskaan saa käyttää uuden avauksen lähteenä.
     const mustRecompare=desktopComparisonEdited.current || (()=>{try{return window.localStorage.getItem(desktopComparisonEditedKey)===key}catch{return false}})();
     if(mustRecompare){desktopCompareCache.current.delete(key);desktopOriginalComparison.current=null;try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
-    const memoryFresh=Date.now()-desktopCompareCacheTime.current<24*60*60*1000;
+    const memoryFresh=Date.now()-desktopCompareCacheTime.current<desktopCompareCacheTtlMs;
     const forced=forceComparisonSearchRef.current;
     forceComparisonSearchRef.current=false;
     if(forced)logCompareAudit("comparison_force_search",{cacheBypassed:true});
     const cached=(mustRecompare||forced)?null:((memoryFresh?(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)):null)||desktopReadSavedComparison(key));
-    if(cached){logCompareAudit("comparison_cache_used",{stores:Object.entries(cached).map(([id,v]:any)=>({id,store:v.store?.name,priced:v.rows?.filter((x:any)=>x.price!=null).length||0,total:v.rows?.length||0}))});desktopDebug(`Välimuistista vertailu: ${Object.entries(cached).map(([id,v]:any)=>`${id}: ${v.rows?.filter((x:any)=>x.price!=null).length||0}/${v.rows?.length||0} hintaa`).join(" | ")}`);desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
+    if(cached&&desktopComparisonComplete(cached)){logCompareAudit("comparison_cache_used",{stores:Object.entries(cached).map(([id,v]:any)=>({id,store:v.store?.name,priced:v.rows?.filter((x:any)=>x.price!=null).length||0,total:v.rows?.length||0}))});desktopDebug(`Välimuistista vertailu: ${Object.entries(cached).map(([id,v]:any)=>`${id}: ${v.rows?.filter((x:any)=>x.price!=null).length||0}/${v.rows?.length||0} hintaa`).join(" | ")}`);desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
