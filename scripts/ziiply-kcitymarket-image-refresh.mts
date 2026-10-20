@@ -26,13 +26,15 @@ for(const offer of offers){
 }
 console.log("IMAGE_FORMATS",JSON.stringify(imageFormats));
 const imagePatch: Record<string,string> = {};
-const publisherBase="https://kcm-tarjouslehdet.k-ruoka.fi/85q4cjo_tarjouslehti_43AV_KCM/index.html";
+const publisherBase="https://kcm-tarjouslehdet.k-ruoka.fi/";
 const normalizedImage=(value:unknown):string=>{
  const raw=String(value??"").trim();
  if(!raw)return "";
+ if(raw.startsWith("/citymarket-leaflets/"))return "https://ziiply.fi"+raw;
  try{
    const url=new URL(raw,publisherBase);
    if(url.protocol!=="https:")return "";
+   if(url.pathname.startsWith("/citymarket-leaflets/") && (url.hostname==="kcm-tarjouslehdet.k-ruoka.fi"||url.hostname==="kcm-lehdet.k-ruoka.fi"))return "https://ziiply.fi"+url.pathname+url.search+url.hash;
    // Only accept publisher-relative paths, or existing HTTPS links.
    if(!/^https:\/\//i.test(raw)&&!raw.startsWith("/"))return "";
    return url.href;
@@ -50,7 +52,7 @@ if(Object.keys(imagePatch).length){
     UPDATE ziiply_offer_publications AS p SET offers=(
       SELECT jsonb_agg(
         CASE
-          WHEN COALESCE(offer.value->>'imageUrl','') !~* '^https://'
+          WHEN (COALESCE(offer.value->>'imageUrl','') !~* '^https://' OR (COALESCE(offer.value->>'imageUrl','') LIKE 'https://kcm-tarjouslehdet.k-ruoka.fi/citymarket-leaflets/%') OR (COALESCE(offer.value->>'imageUrl','') LIKE 'https://kcm-lehdet.k-ruoka.fi/citymarket-leaflets/%'))
             AND COALESCE(${JSON.stringify(imagePatch)}::jsonb ->> (offer.value->>'id'),'') ~* '^https://'
           THEN jsonb_set(offer.value,'{imageUrl}',
             to_jsonb(${JSON.stringify(imagePatch)}::jsonb ->> (offer.value->>'id')),true)
