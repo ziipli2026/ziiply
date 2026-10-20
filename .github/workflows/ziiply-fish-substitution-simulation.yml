@@ -1,0 +1,41 @@
+name: Ziiply fish substitution simulation
+on:
+  workflow_dispatch:
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simulate comparison substitution rules
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const assert=require('node:assert/strict');
+          const source=fs.readFileSync('src/app/desktop-preview/page.tsx','utf8');
+          assert(source.includes('const fishFilletSpecies='),'General fish fillet matcher missing');
+          assert(source.includes('bulkCounterPack'),'Bulk counter pack handling missing');
+          assert(source.includes('weightProposal=!matched&&originalSpecies'),'Weight proposal not wired into comparison');
+          assert(source.includes('weightGramsPerItem:Number(proposal.gramsPerItem)'),'Accepted weight not saved');
+          const species=value=>String(value).toLocaleLowerCase('fi').match(/\b(silakka|lohi|kirjolohi|kuha|ahven|siika|muikku|turska|seiti|hauki)filee\b/)?.[1]||null;
+          const packageSize=name=>{const m=[...String(name).toLowerCase().replace(/,/g,'.').matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml)\b/g)].at(-1);return m?Number(m[1])*(m[2]==='kg'||m[2]==='l'?1000:m[2]==='dl'?100:1):null};
+          const eligible=(original,candidate,price)=>{const n=candidate.toLocaleLowerCase('fi');return !!species(original)&&species(n)===species(original)&&!(/\b(pakaste|pakastettu|säilyke|purkki|marinoitu|marinadi|maustettu|savustettu|savu|pihvi|pyörykkä|silli|etikka|kastike)\b/.test(n))&&(packageSize(n)===null||/\bn\s*\d+(?:[.,]\d+)?\s*kg\b/.test(n))&&price>0};
+          const original='Kotimaista Silakkafilee MSC 250 g';
+          const tests=[
+            ['Prisma Hätälä n5kg',eligible(original,'Hätälä Silakkafilee MSC n5kg',1390),true],
+            ['K-Citymarket tuore',eligible(original,'Tuore silakkafilee',1495),true],
+            ['Silakkasäilyke',eligible(original,'Silakkafilee säilyke',1390),false],
+            ['Marinoitu silakka',eligible(original,'Marinoitu silakkafilee',1390),false],
+            ['Pakastettu silakka',eligible(original,'Pakastettu silakkafilee',1390),false],
+            ['Väärä kalalaji',eligible(original,'Tuore lohifilee',1390),false],
+            ['Hinnaton',eligible(original,'Hätälä Silakkafilee MSC n5kg',0),false],
+          ];
+          for(const [name,actual,expected] of tests){assert.equal(actual,expected,name);console.log('PASS',name);}
+          const grams=3*packageSize(original);
+          assert.equal(grams,750);
+          assert.equal(Math.round(1390*grams/1000),1043);
+          assert.equal(Math.round(1495*grams/1000),1121);
+          console.log('PASS 750 g: Prisma 10,43 €, K-Citymarket 11,21 €');
+          console.log('PASS source integration markers');
+          NODE
