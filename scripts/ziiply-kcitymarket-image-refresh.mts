@@ -47,6 +47,13 @@ if(Object.keys(imagePatch).length){
   console.log("PATCH_IDS",Object.keys(imagePatch).length);
 }
 
+const keyDiagnostics=await sql`
+ SELECT jsonb_agg(jsonb_build_object('id',o.value->>'id','title',o.value->>'title','price',o.value->>'price') ORDER BY o.ordinality) AS rows
+ FROM ziiply_offer_publications p, jsonb_array_elements(p.offers) WITH ORDINALITY o(value,ordinality)
+ WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
+`;
+const storedRows=(keyDiagnostics[0]?.rows??[]) as Array<{id?:string,title?:string,price?:number}>;
+console.log("ID_AUDIT",JSON.stringify({stored:storedRows.length,fetch:offers.length,storedIdSample:storedRows.slice(0,3).map(x=>x.id),fetchIdSample:offers.slice(0,3).map(x=>x.id),fetchWithImageWithoutId:offers.filter(x=>x.imageUrl&&!x.id).length,fetchWithImageAndId:offers.filter(x=>x.imageUrl&&x.id).length,missingStoredIdMatches:offers.filter(x=>x.imageUrl&&!storedRows.some(y=>y.id===x.id)).slice(0,6).map(x=>({id:x.id,title:x.title,price:x.price}))}));
 const diagnostics=await sql`
  SELECT
   (SELECT count(*)::int FROM jsonb_array_elements(p.offers) o WHERE ${JSON.stringify(imagePatch)}::jsonb ? (o->>'id')) AS matching_ids,
