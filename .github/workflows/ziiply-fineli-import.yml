@@ -1,0 +1,26 @@
+name: Fineli - ravintoarvojen tuonti Neoniin
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install database dependency
+        run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+      - name: Download official Fineli open data package 2
+        run: |
+          curl --fail --location --retry 3 --silent --show-error https://fineli.fi/fineli/content/file/49 -o fineli.zip
+          mkdir -p fineli-data
+          unzip -q fineli.zip -d fineli-data
+          find fineli-data -maxdepth 3 -name 'foodname_FI.csv' -print
+      - name: Import Fineli reference nutrition without modifying EAN products
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: npx --yes tsx scripts/ziiply-fineli-import.mts fineli-data
