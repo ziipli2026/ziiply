@@ -41,7 +41,7 @@ async function worker(){
     const file=resolve("public","."+item.url);
     if(!file.startsWith(resolve("public/citymarket-leaflets")+"/"))throw Error("Unsafe asset path");
     const body=await readFile(file,"utf8");
-    if(!/<svg\\b/i.test(body))throw Error("Invalid local SVG");
+    if(!/<svg\b/i.test(body))throw Error("Invalid local SVG");
     for(const fragment of item.fragments){
      if(!body.includes('id="'+fragment+'"')&&!body.includes("id=\'"+fragment+"\'"))throw Error("Missing SVG symbol #"+fragment);
     }
