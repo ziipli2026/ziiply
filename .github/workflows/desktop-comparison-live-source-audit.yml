@@ -1,5 +1,11 @@
 name: Desktop comparison live source audit
 on:
+  push:
+    branches:
+      - preview/legacy-desktop-ui
+    paths:
+      - '.github/workflows/desktop-comparison-live-source-audit.yml'
+      - 'scripts/desktop-comparison-live-source-audit.cjs'
   workflow_dispatch:
 jobs:
   audit:
