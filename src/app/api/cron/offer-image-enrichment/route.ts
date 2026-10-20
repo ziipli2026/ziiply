@@ -316,6 +316,9 @@ export async function GET(req: Request) {
     }
     // Compact identity prefilter narrows the EAN search before the candidate cap.
     // The strict normalized-title comparison below remains the final verifier.
+    // The SQL compact filter can match a name with extra spaces inside a
+    // package unit (e.g. "500 g"), so the final verifier must use the same
+    // normalization instead of rejecting that valid candidate.
     const compactVariants = [...new Set(variants.map(v => v.replace(/[^a-z0-9åäö]/g, "")))];
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url ~* '^https://[^ /?#]+\\.[^ /?#]+'
@@ -330,7 +333,7 @@ export async function GET(req: Request) {
     const candidateSetTruncated = matches.length > 1500;
     const exact = matches.filter(row => {
       const candidate = normalize(row.name);
-      const sizeMatches = !amount || candidate.split(" ").includes(amount);
+      const sizeMatches = !amount || candidate.replace(/\s+/g, "").includes(amount);
       return variants.includes(candidate) && sizeMatches && validUrl(row.image_url);
     });
     // Multiple EAN rows may describe the same product and share one identical
