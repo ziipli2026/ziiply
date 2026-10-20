@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/kcitymarket-cache",
-      "schedule": "15 0,4,8,12,16,20 * * *"
+      "schedule": "15 * * * *"
     },
     {
       "path": "/api/cron/kcitymarket-cache",
@@ -59,7 +59,7 @@
     },
     {
       "path": "/api/cron/offer-image-enrichment",
-      "schedule": "25 */4 * * *"
+      "schedule": "25 * * * *"
     },
     {
       "path": "/api/cron/kcitymarket-campaign-refresh",
