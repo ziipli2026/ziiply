@@ -265,7 +265,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             {getItemName(item)}
                           </div>
                           <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
-                            #{index + 1} · {item.weightEstimate && Number.isFinite(Number(item.weightGramsPerItem)) ? `${getItemQuantity(item)*Number(item.weightGramsPerItem)} g (arvio) · ${(Number(item.weightPricePerKgCents)/100).toFixed(2).replace(".",",")} €/kg · VAAKATUOTE` : `${getItemQuantity(item)} kpl`}{missing ? " · Ei löytynyt tästä kaupasta" : ""}
+                            #{index + 1} · {item.weightEstimate && Number.isFinite(Number(item.weightGramsPerItem)) ? `${getItemQuantity(item)*Number(item.weightGramsPerItem)} g (arvio) · ${(Number(item.weightPricePerKgCents)/100).toFixed(2).replace(".",",")} €/kg · VAAKATUOTE · HINTA-ARVIO` : `${getItemQuantity(item)} kpl`}{missing ? " · Ei löytynyt tästä kaupasta" : ""}
                           </div>
                           {!missing && item.weightEstimate ? (
                             <div className="mt-0.5 text-[0.61rem] font-black uppercase tracking-[0.07em] text-[#8a4f20]">
@@ -285,7 +285,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                         className="whitespace-nowrap text-right text-[0.98rem] font-black italic text-[#3e301c]"
                         style={{ fontFamily: serifFont }}
                       >
-                        {formatComparePrice(price)}{item.weightEstimate && !missing ? " (arvio)" : ""}
+                        {formatComparePrice(price)}
                       </div>
                     </div>
 
