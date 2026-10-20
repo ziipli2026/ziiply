@@ -73,6 +73,19 @@ export async function GET(request: NextRequest) {
         LIMIT 1
       `;
       if (rows[0]) {
+        // Conservative fresh-produce aliases: brand may be a retailer's produce label.
+        // No substring matching: carrot cake, soup, frozen mixes and prepared
+        // vegetables must never inherit raw-carrot nutrition.
+        const produceAliases: Record<string, string> = {
+          "porkkana": "PORKKANA",
+          "porkkana ulkomainen": "PORKKANA",
+          "kotimaista porkkana 500 g": "PORKKANA",
+          "kotimaista porkkana 1 kg": "PORKKANA",
+          "pirkka suomalainen kesäporkkana 500g 1lk": "PORKKANA",
+          "kotimaista porkkananippu": "PORKKANA",
+        };
+        const produceName = String(rows[0].name || "").trim().toLocaleLowerCase("fi-FI");
+        const mappedProduceName = produceAliases[produceName] || null;
         // Prefer verified EAN-specific Open Food Facts data. Fineli is only a
         // generic-food fallback for an unbranded, exact-name, unique match.
         // Never write inferred nutrition into the EAN or OFF master tables.
@@ -93,8 +106,9 @@ export async function GET(request: NextRequest) {
                      'estimated', true
                    ) AS data
             FROM public.ziiply_fineli_foods f
-            WHERE lower(btrim(f.name_fi)) = lower(btrim(${String(rows[0].name || "")}))
-              AND NULLIF(btrim(${String(rows[0].brand || "")}), '') IS NULL
+            WHERE (lower(btrim(f.name_fi)) = lower(btrim(${String(rows[0].name || "")})) AND NULLIF(btrim(${String(rows[0].brand || "")}), '') IS NULL
+                   OR f.name_fi = ${mappedProduceName})
+              AND (NULLIF(btrim(${String(rows[0].brand || "")}), '') IS NULL OR ${mappedProduceName} IS NOT NULL)
               AND (SELECT count(*) FROM public.ziiply_fineli_foods f2
                    WHERE lower(btrim(f2.name_fi)) = lower(btrim(f.name_fi))) = 1
               AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean = ${ean})
