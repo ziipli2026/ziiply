@@ -780,7 +780,7 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   const until=shiftIsoDate(start,active.kind==="AV"?2:3);
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
-  const enriched=await enrichKCitymarketPublicationImages(offers,active);
+  const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
   return storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:start,
     validUntil:until,parsedAt:new Date().toISOString(),offers:enriched});
 }
@@ -800,7 +800,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     // Existing approved snapshots must not bypass the image enrichment pipeline.
     // Only fill image URLs; preserve every original offer, price and metadata.
     const active=getActiveKCitymarketPeriod();
-    const enriched=await enrichKCitymarketPublicationImages(prepared,active);
+    const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(prepared,active));
     if(enriched.some((offer,i)=>offer.imageUrl && !prepared[i]?.imageUrl)){
       try{
         await storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:active.startDate,
@@ -851,12 +851,30 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   } catch(error) {
     console.warn("[K-Citymarket] snapshot seed failed",error);
   }
-  const result=await enrichKCitymarketPublicationImages(dated,active);
+  const result=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(dated,active));
   try {
     await storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:active.startDate,
       validUntil:shiftIsoDate(active.startDate,active.kind==="AV"?2:3),parsedAt:new Date().toISOString(),offers:result});
   } catch(error) {console.warn("[K-Citymarket] enriched image persistence failed",error);}
   return result;
+}
+function normalizeKCitymarketImageUrl(image:unknown,sourceUrl:unknown):string|undefined{
+ const raw=String(image??"").trim();
+ if(!raw)return undefined;
+ if(/^https:\/\//i.test(raw))return raw;
+ if(!raw.startsWith("/"))return undefined;
+ const source=String(sourceUrl??"");
+ if(!/^https:\/\//i.test(source))return undefined;
+ try{
+  const url=new URL(raw,source);
+  return url.protocol==="https:"?url.href:undefined;
+ }catch{return undefined;}
+}
+function normalizeKCitymarketOfferImages(offers:CitymarketOffer[]):CitymarketOffer[]{
+ return offers.map(offer=>{
+  const url=normalizeKCitymarketImageUrl(offer.imageUrl,offer.sourceUrl);
+  return url?{...offer,imageUrl:url}:offer;
+ });
 }
 async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],active:KCitymarketPeriod):Promise<CitymarketOffer[]>{
   // Track exact publication-image coverage before optional catalogue/Tjek
@@ -1003,6 +1021,7 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
       }),
     };
     console.info("[K-Citymarket] national Tjek image-only enrichment",{total:result.length,tjekImages:photos.size,matched,exact,similar,ambiguous,unmatched});
+    if(unmatched)console.info("[K-Citymarket] unmatched national image offers",nationalPhotoMatchAudit?.examples);
     return result;
   }catch(error){
     console.warn("[K-Citymarket] optional national Tjek image enrichment unavailable",error);
