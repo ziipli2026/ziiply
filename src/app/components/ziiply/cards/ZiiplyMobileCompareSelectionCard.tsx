@@ -267,6 +267,11 @@ export default function ZiiplyMobileCompareSelectionCard({
                           <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
                             #{index + 1} · {item.weightEstimate && Number.isFinite(Number(item.weightGramsPerItem)) ? `${getItemQuantity(item)*Number(item.weightGramsPerItem)} g (arvio) · ${(Number(item.weightPricePerKgCents)/100).toFixed(2).replace(".",",")} €/kg · VAAKATUOTE` : `${getItemQuantity(item)} kpl`}{missing ? " · Ei löytynyt tästä kaupasta" : ""}
                           </div>
+                          {!missing && item.weightEstimate ? (
+                            <div className="mt-0.5 text-[0.61rem] font-black uppercase tracking-[0.07em] text-[#8a4f20]">
+                              VAAKATUOTE · Lopullinen hinta määräytyy punnitun painon mukaan
+                            </div>
+                          ) : null}
                           {!missing && item.matchType === "name" ? (
                             <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.06em] text-[#8a4f20]">
                               Vastaava tuote
