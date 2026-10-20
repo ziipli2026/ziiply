@@ -1004,36 +1004,50 @@ export default function DesktopPreviewPage() {
       if(/laktoositon/.test(x)!==/laktoositon/.test(y))return false;
       return true;
     }
-    // Product identity and formulation must remain the same even in "cheapest" mode.
-    const sodaKind=(v:string)=>{
-      if(/\b(cola|kokis|coca cola|pepsi)\b/.test(v))return "cola";
-      if(/\b(jaffa|appelsiinilimonadi|appelsiini limonadi)\b/.test(v))return "jaffa";
-      return null;
-    };
-    const sourceSoda=sodaKind(x),candidateSoda=sodaKind(y);
-    if(sourceSoda||candidateSoda){
-      if(sourceSoda!==candidateSoda)return false;
-      const sugarFree=(v:string)=>/\b(sokeriton|sokerittom|zero|light|diet|ei lisättyä sokeria|ilman sokeria)\b/.test(v);
-      if(sugarFree(x)!==sugarFree(y))return false;
-      const caffeineFree=(v:string)=>/\b(kofeiiniton|caffeine free)\b/.test(v);
-      if(caffeineFree(x)!==caffeineFree(y))return false;
-    }
-    const milkKind=(v:string)=>{
-      if(!/\b(maito|maitojuoma)\b/.test(v))return null;
-      if(/\b(kevytmaito|kevyt maito)\b/.test(v))return "kevyt";
-      if(/\b(täysmaito|täys maito)\b/.test(v))return "täys";
-      if(/\b(rasvaton maito|rasvatonmaito)\b/.test(v))return "rasvaton";
-      return "muu";
-    };
-    const sourceMilk=milkKind(x),candidateMilk=milkKind(y);
-    if((sourceMilk||candidateMilk)&&sourceMilk!==candidateMilk)return false;
-    if((sourceMilk||candidateMilk)&&(/\b(laktoositon)\b/.test(x)!==/\b(laktoositon)\b/.test(y)))return false;
     const attributes=[
       /laktoositon/,/vähälaktoosinen/,/gluteeniton/,/rasvaton/,/kevyt/,/täysmaito/,
       /kofeiiniton/,/papu(?:kahvi)?/,/suodatin(?:kahvi)?/,/pika(?:kahvi)?/,
       /luomu/,/maustamaton/,/sokeriton/,/täysjyvä/
     ];
     return attributes.every(re=>re.test(x)===re.test(y));
+  }
+
+  // Shared category and attribute gate for all three comparison buttons.
+  // Category metadata is authoritative when available; unknown categories fall back
+  // to bidirectional product-group matching and conservative descriptive tokens.
+  function desktopCompareCategoryCompatible(source:any,candidate:any){
+    const sourceName=String(source?.name||source?.title||"");
+    const candidateName=String(candidate?.name||candidate?.title||"");
+    if(!sourceName||!candidateName)return false;
+    const category=(p:any)=>String(p?.categoryId||p?.category?.id||p?.categoryName||p?.category||p?.product?.category||"").trim().toLocaleLowerCase("fi");
+    const a=category(source),b=category(candidate);
+    if(a&&b&&a!==b)return false;
+    if(!productGroupGate(sourceName,candidateName)||!productGroupGate(candidateName,sourceName))return false;
+    const normalize=(v:string)=>v.toLocaleLowerCase("fi").replace(/[-–]/g," ").replace(/[^a-zåäö0-9 ]/g," ").replace(/\s+/g," ").trim();
+    const modifiers=[
+      ["sugar_free",/\b(sokeriton|sokerittom\w*|zero|light|diet)\b/g],
+      ["lactose_free",/\b(laktoositon|laktoosittom\w*)\b/g],
+      ["gluten_free",/\b(gluteeniton|gluteenittom\w*)\b/g],
+      ["caffeine_free",/\b(kofeiiniton|kofeiinittom\w*)\b/g],
+      ["fat_free",/\b(rasvaton|rasvattom\w*)\b/g],
+      ["low_fat",/\b(kevyt|vähärasvainen|kevytmaito)\b/g],
+      ["full_fat",/\b(täysmaito|täysrasvainen)\b/g],
+      ["organic",/\b(luomu|organic)\b/g],
+      ["wholegrain",/\b(täysjyvä|täysjyväinen)\b/g],
+      ["flavoured",/\b(maustettu|maustamaton)\b/g]
+    ] as const;
+    const x=normalize(sourceName),y=normalize(candidateName);
+    if(modifiers.some(([,pattern])=>{const re=new RegExp(pattern.source,"g");return re.test(x)!==new RegExp(pattern.source,"g").test(y)}))return false;
+    // When category metadata is absent, retain the distinctive product-type terms
+    // instead of trusting the first matching search result.
+    if(!a||!b){
+      const tokens=(v:string)=>normalize(v).replace(/\b\d+(?:\s*[x×]\s*\d+)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt)\b/g," ").split(" ").filter(t=>t.length>=4&&!/^\d+$/.test(t));
+      const xWords=tokens(sourceName),yWords=tokens(candidateName);
+      const xCore=xWords.slice(1).filter(t=>!modifiers.some(([,p])=>new RegExp(p.source).test(t)));
+      const yCore=yWords.slice(1).filter(t=>!modifiers.some(([,p])=>new RegExp(p.source).test(t)));
+      if(xCore.length&&yCore.length&&!xCore.some(t=>yCore.includes(t)))return false;
+    }
+    return true;
   }
 
   async function desktopChangeCompareMatchMode(storeId:string, match:any, mode:"cheapest"|"same_quality"|"own_brands"|"same_brand") {
@@ -1049,7 +1063,7 @@ export default function DesktopPreviewPage() {
         const extra=await Promise.all(desktopCheapestSearchQueries(name).map(async query=>desktopFindCompareCandidates(query,"",store,isS)));
         products.push(...extra.flat());
       }
-      const candidates=products.filter((product:any)=>mode==="cheapest"&&desktopIsFilterCoffee(name)?desktopIsFilterCoffee(String(product.name||"")):productGroupGate(name,product.name)).map((product:any,index:number)=>({
+      const candidates=products.filter((product:any)=>desktopCompareCategoryCompatible({...cartItem,name},product)&&desktopCheapestCompatible(name,String(product.name||""))).map((product:any,index:number)=>({
         ...product,id:String(product.id||product.ean||index),name:product.name,
         price:Number(product.price),product:{...(product.product||{}),id:product.id||product.ean||index,name:product.name,ean:product.ean},
         sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false
@@ -1058,7 +1072,7 @@ export default function DesktopPreviewPage() {
       const ownBrand=kind==="spar"?/(^|\s)(spar|eurospar|first price)(\s|$)/i:kind==="lidl"?/(^|\s)(milbona|cien|chef select|pikok|combino)(\s|$)/i:isS?/(^|\s)(coop|xtra|kotimaista)(\s|$)/i:/(^|\s)(pirkka|k-menu)(\s|$)/i;
       let filtered=candidates;
       if(mode==="own_brands")filtered=candidates.filter((p:any)=>ownBrand.test(p.name));
-      if(mode==="same_brand")filtered=candidates.filter((p:any)=>p.name.toLocaleLowerCase("fi").includes(originalBrand));
+      if(mode==="same_brand")filtered=candidates.filter((p:any)=>String(p.brandName||p.brand||p.name).toLocaleLowerCase("fi").includes(originalBrand));
       filtered=filtered.sort((a:any,b:any)=>Number(a.price)-Number(b.price));
       if(mode==="cheapest"){
         const compatible=filtered.filter((p:any)=>desktopCheapestCompatible(name,p.name));
