@@ -15,7 +15,7 @@ jobs:
           BASE_URL: https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app
         run: |
           node <<'NODE'
-          const assert=require('node:assert/strict');
+          import assert from 'node:assert/strict';
           const store='634976534';
           const items=[
             {name:'Kotimaista Silakkafilee MSC 250 g'},
