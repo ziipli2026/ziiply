@@ -584,7 +584,7 @@ export default function DesktopPreviewPage() {
       const rows=result.rows.map((row:any)=>{
         if(String(row.cartItemId)!==rowId||!row.weightProposal)return row;
         const proposal=row.weightProposal;
-        const perItem=Math.round(Number(proposal.pricePerKgCents)*Number(proposal.gramsPerItem)/1000)/100;
+        const perItem=Number(proposal.pricePerKgCents)*Number(proposal.gramsPerItem)/100000;
         if(!Number.isFinite(perItem)||perItem<=0)return row;
         return {...row,name:String(proposal.name)+" (painotuote, arvio "+proposal.gramsPerItem+" g)",price:perItem,match:"name" as const,weightEstimate:true,weightProposal:null,ean:row.ean};
       });
