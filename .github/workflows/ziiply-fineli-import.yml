@@ -16,10 +16,18 @@ jobs:
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
       - name: Download official Fineli open data package 2
         run: |
-          curl --fail --location --retry 3 --silent --show-error https://fineli.fi/fineli/content/file/49 -o fineli.zip
           mkdir -p fineli-data
-          unzip -q fineli.zip -d fineli-data
-          find fineli-data -maxdepth 3 -name 'foodname_FI.csv' -print
+          if curl --fail --location --retry 2 --silent --show-error --max-time 35 https://fineli.fi/fineli/content/file/49 -o fineli.zip; then
+            echo "SOURCE=official Fineli Peruspaketti 2" >> "$GITHUB_STEP_SUMMARY"
+            unzip -q fineli.zip -d fineli-data
+          else
+            echo "::warning::Fineli download blocked (403); falling back to an older public Fineli Rel16 archive. This is NOT the current 4232-food dataset."
+            echo "SOURCE=archived Fineli Rel16 from mafredri/fineli-sql; NOT current official release" >> "$GITHUB_STEP_SUMMARY"
+            curl --fail --location --retry 3 --silent --show-error https://codeload.github.com/mafredri/fineli-sql/zip/refs/heads/master -o fineli-archive.zip
+            unzip -q fineli-archive.zip '*/data/Fineli_Rel16_open/*' -d fineli-data
+          fi
+          test -n "$(find fineli-data -name 'foodname_FI.csv' -print -quit)"
+          test -n "$(find fineli-data -name 'component_value.csv' -print -quit)"
       - name: Import Fineli reference nutrition without modifying EAN products
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
