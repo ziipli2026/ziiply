@@ -304,17 +304,15 @@ export async function GET(req: Request) {
         AND product_id=${item.product_id} AND status='pending'`;
       continue;
     }
-    // Search by both the brand/name token and package amount. Exact full-name
-    // verification below still decides whether an image can be published.
+    // The compact full-name prefilter handles punctuation and spacing variants.
+    // Final matching still requires an exact normalized title and package size.
     const amount = words.find(word => /^[0-9]+(?:kg|ml|g|l)$/.test(word));
     const normalizedTitle = normalize(cleanIdentity(title));
     const brandTokens = new Set(["arla","fazer","hk","atria","valio","vaasan","kalaneuvos","kariniemen","pingo"]);
     const titleTokens = normalizedTitle.split(" ");
     const variants = [normalizedTitle];
-    const searchTokens = [firstWord];
     if (brandTokens.has(titleTokens[0]) && titleTokens.length > 1) {
       variants.push(titleTokens.slice(1).join(" "));
-      if (titleTokens[1].length >= 4) searchTokens.push(titleTokens[1]);
     }
     // Compact identity prefilter narrows the EAN search before the candidate cap.
     // The strict normalized-title comparison below remains the final verifier.
