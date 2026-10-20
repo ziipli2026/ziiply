@@ -73,7 +73,39 @@ export async function GET(request: NextRequest) {
         LIMIT 1
       `;
       if (rows[0]) {
-        return NextResponse.json({ ok: true, product: rows[0] });
+        // Prefer verified EAN-specific Open Food Facts data. Fineli is only a
+        // generic-food fallback for an unbranded, exact-name, unique match.
+        // Never write inferred nutrition into the EAN or OFF master tables.
+        let nutrition: Record<string, unknown> | null = null;
+        try {
+          const matched = await sql`
+            SELECT 'open-food-facts' AS source, to_jsonb(o) AS data
+            FROM public.ziiply_off_nutrition o
+            WHERE o.ean = ${ean}
+            UNION ALL
+            SELECT 'fineli-generic' AS source,
+                   jsonb_build_object(
+                     'fineliId', f.fineli_id,
+                     'foodName', f.name_fi,
+                     'nutrients', f.nutrients,
+                     'source', f.source,
+                     'sourceUrl', f.source_url,
+                     'estimated', true
+                   ) AS data
+            FROM public.ziiply_fineli_foods f
+            WHERE lower(btrim(f.name_fi)) = lower(btrim(${String(rows[0].name || "")}))
+              AND NULLIF(btrim(${String(rows[0].brand || "")}), '') IS NULL
+              AND (SELECT count(*) FROM public.ziiply_fineli_foods f2
+                   WHERE lower(btrim(f2.name_fi)) = lower(btrim(f.name_fi))) = 1
+              AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean = ${ean})
+            LIMIT 1
+          `;
+          if (matched[0]) nutrition = { source: matched[0].source, ...matched[0].data };
+        } catch (error) {
+          // EAN scanning must remain available even if nutrition tables are unavailable.
+          console.warn("EAN nutrition lookup unavailable", error instanceof Error ? error.message : String(error));
+        }
+        return NextResponse.json({ ok: true, product: { ...rows[0], nutrition } });
       }
 
       const verifiedLidl = VERIFIED_LIDL_EAN_BY_CODE.get(ean);
