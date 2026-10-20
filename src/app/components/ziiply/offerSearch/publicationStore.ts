@@ -38,9 +38,28 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
     VALUES (${candidate.chain}, ${candidate.id}, ${candidate.validFrom}::date,
       ${candidate.validUntil}::date, ${candidate.parsedAt}::timestamptz,
       ${JSON.stringify(candidate.offers)}::jsonb, ${approvalState})
-    ON CONFLICT (chain, publication_id) DO NOTHING
-    RETURNING publication_id`;
-  const outcome = result.length ? "stored" : "unchanged";
+    ON CONFLICT (chain, publication_id) DO UPDATE SET offers = (
+      SELECT COALESCE(jsonb_agg(
+        CASE
+          WHEN COALESCE(existing.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+'
+            AND length(COALESCE(existing.value->>'imageData','')) <= 100
+            AND COALESCE(incoming.value->>'imageUrl','') ~* '^https://[^ /?#]+\\.[^ /?#]+'
+          THEN jsonb_set(existing.value, '{imageUrl}', incoming.value->'imageUrl', true)
+          ELSE existing.value
+        END ORDER BY existing.ordinality), '[]'::jsonb)
+      FROM jsonb_array_elements(ziiply_offer_publications.offers)
+        WITH ORDINALITY AS existing(value, ordinality)
+      LEFT JOIN LATERAL (
+        SELECT candidate.value
+        FROM jsonb_array_elements(EXCLUDED.offers) AS candidate(value)
+        WHERE COALESCE(candidate.value->>'id',candidate.value->>'offerId',candidate.value->>'productId','')
+          = COALESCE(existing.value->>'id',existing.value->>'offerId',existing.value->>'productId','')
+          AND COALESCE(existing.value->>'id',existing.value->>'offerId',existing.value->>'productId','') <> ''
+        LIMIT 1
+      ) incoming ON true
+    )
+    RETURNING (xmax = 0) AS inserted`;
+  const outcome = result[0]?.inserted ? "stored" : "unchanged";
   if (outcome === "stored") {
     await queueMissingOfferImagesBestEffort(candidate.offers.map((offer, index) => {
       const row = offer && typeof offer === "object" ? offer as Record<string, unknown> : {};
