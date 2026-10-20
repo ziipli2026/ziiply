@@ -1,0 +1,16 @@
+name: Desktop comparison substitution regression
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - 'src/app/desktop-preview/page.tsx'
+      - 'scripts/desktop-comparison-substitution-test.cjs'
+      - '.github/workflows/desktop-comparison-substitution.yml'
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test real comparison helper and safety guards
+        run: node scripts/desktop-comparison-substitution-test.cjs
