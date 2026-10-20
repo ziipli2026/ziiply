@@ -26,9 +26,21 @@ for(const offer of offers){
 }
 console.log("IMAGE_FORMATS",JSON.stringify(imageFormats));
 const imagePatch: Record<string,string> = {};
+const publisherBase="https://kcm-tarjouslehdet.k-ruoka.fi/85q4cjo_tarjouslehti_43AV_KCM/index.html";
+const normalizedImage=(value:unknown):string=>{
+ const raw=String(value??"").trim();
+ if(!raw)return "";
+ try{
+   const url=new URL(raw,publisherBase);
+   if(url.protocol!=="https:")return "";
+   // Only accept publisher-relative paths, or existing HTTPS links.
+   if(!/^https:\/\//i.test(raw)&&!raw.startsWith("/"))return "";
+   return url.href;
+ }catch{return "";}
+};
 for (const offer of offers) {
   const id=String(offer.id||"");
-  const imageUrl=String(offer.imageUrl||"").trim();
+  const imageUrl=normalizedImage(offer.imageUrl);
   if (id && /^https:\/\//i.test(imageUrl)) imagePatch[id]=imageUrl;
 }
 if(Object.keys(imagePatch).length){
@@ -74,5 +86,5 @@ const after=await read();
 console.log("AFTER",JSON.stringify(after));
 if(after[0]?.total!==before[0]?.total)throw new Error("Offer count changed unexpectedly");
 if(after[0]?.with_image < before[0]?.with_image)throw new Error("Image coverage decreased");
-if(after[0]?.with_image < offers.filter(o=>Boolean(o.imageUrl)).length) throw new Error("Enriched image URLs were not persisted; check DB update");
+if(after[0]?.with_image < offers.filter(o=>Boolean(normalizedImage(o.imageUrl))).length) throw new Error("Enriched image URLs were not persisted; check DB update");
 console.log("RESULT",JSON.stringify({total:after[0].total,withImage:after[0].with_image,missing:after[0].total-after[0].with_image}));
