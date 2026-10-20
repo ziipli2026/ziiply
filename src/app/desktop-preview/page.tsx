@@ -577,6 +577,9 @@ export default function DesktopPreviewPage() {
   const [desktopCartPricesChecked,setDesktopCartPricesChecked]=useState(false);
   const [desktopCompareResults,setDesktopCompareResults]=useState<Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>({});
   const [desktopCompareError,setDesktopCompareError]=useState("");
+  function rejectDesktopWeightProposal(storeId:string,rowId:string){
+    setDesktopCompareResults(current=>{const result=current[storeId];if(!result)return current;return {...current,[storeId]:{...result,rows:result.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,weightProposal:null}:row)}};});
+  }
   function acceptDesktopWeightProposal(storeId:string,rowId:string){
     desktopComparisonEdited.current=true;
     setDesktopCompareResults(current=>{
@@ -2038,9 +2041,11 @@ export default function DesktopPreviewPage() {
   <button type="button" onClick={forceComparisonSearch} disabled={desktopCompareLoading} className="rounded-xl border-2 border-[#75562c] bg-[#e5f0d6] px-4 py-2 text-sm font-black text-[#264d35] shadow-xl disabled:opacity-50" title="Ohita vertailun välimuisti ja hae kauppakohtaiset hinnat uudelleen">{desktopCompareLoading?"Haetaan vertailuhintoja…":"Pakota vertailuhaku"}</button>
   <button type="button" onClick={downloadCompareAudit} className="rounded-xl border-2 border-[#75562c] bg-[#f2ead5] px-4 py-2 text-sm font-black text-[#264d35] shadow-xl" title="Tallenna vertailun kauppakohtaiset haut ja hakuvirheet">Vertailu DEBUG · Tallenna ({desktopCompareAuditCount})</button>
 </div>}
-{desktopCompareNotice&&Object.entries(desktopCompareResults).flatMap(([storeId,result])=>result.rows.filter((row:any)=>row.weightProposal).map((row:any)=><div key={storeId+"-"+row.cartItemId} className="mx-4 my-2 rounded-xl border border-amber-500 bg-amber-50 p-3 text-sm text-amber-950"><strong>{result.store?.name}: tuore silakkafilee kilohinnalla</strong><div>{(row.weightProposal.pricePerKgCents/100).toFixed(2).replace(".",",")} €/kg · {row.weightProposal.gramsPerItem*row.quantity} g · arvio {(Math.round(row.weightProposal.pricePerKgCents*row.weightProposal.gramsPerItem*row.quantity/1000)/100).toFixed(2).replace(".",",")} €</div><div>Ei sama pakkaus; hyväksy painotuote erikseen. Todellinen kassahinta määräytyy punnitun painon mukaan.</div><button type="button" className="mt-2 rounded-lg bg-amber-800 px-4 py-2 font-bold text-white" onClick={()=>acceptDesktopWeightProposal(storeId,String(row.cartItemId))}>Hyväksy painotuote vertailuun</button></div>))}
+
 {desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
+  onAcceptWeightProposal={acceptDesktopWeightProposal}
+  onRejectWeightProposal={rejectDesktopWeightProposal}
   stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
   items={cartItems}
   onChangeMatchMode={desktopChangeCompareMatchMode}
