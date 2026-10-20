@@ -322,12 +322,9 @@ export async function GET(req: Request) {
     const matches = await db`SELECT ean,name,image_url FROM ziiply_ean_products
       WHERE image_url ~* '^https://[^ /?#]+\\.[^ /?#]+'
       AND regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') = ANY(${compactVariants})
-      AND (
-        lower(name) LIKE ${searchTokens[0] + '%'} OR lower(name) LIKE ${'% ' + searchTokens[0] + ' %'}
-        OR lower(name) LIKE ${(searchTokens[1] ?? '__NO_MATCH__') + '%'}
-        OR lower(name) LIKE ${'% ' + (searchTokens[1] ?? '__NO_MATCH__') + ' %'}
-      )
-      AND (${amount ?? ''} = '' OR regexp_replace(lower(name), '[^a-z0-9åäö]', '', 'g') LIKE ${'%' + (amount ?? '') + '%'})
+      -- Compact exact identity already limits candidates to the complete
+      -- product name; token-prefix and amount filters can only exclude
+      -- legitimate spelling/spacing variants at this point.
       ORDER BY lower(name),ean
       LIMIT 1501`;
     // If the candidate cap is hit, additional exact matches may have
