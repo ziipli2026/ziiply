@@ -633,7 +633,7 @@ export function getActiveKCitymarketPeriod(now=new Date()):KCitymarketPeriod{
   if(day<=2) return periodFromStart(shiftIsoDate(clock.date,-day),"AV");
   return periodFromStart(shiftIsoDate(clock.date,3-day),"LV");
 }
-function getNextKCitymarketPeriod(now=new Date()):KCitymarketPeriod|null{
+export function getNextKCitymarketPeriod(now=new Date()):KCitymarketPeriod|null{
   const clock=helsinkiClock(now);
   if(clock.hour<15) return null;
   if(clock.weekday==="Wed") return periodFromStart(shiftIsoDate(clock.date,1),"LV");
