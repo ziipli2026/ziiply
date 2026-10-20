@@ -778,8 +778,11 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   }));
   const start=active.startDate;
   const until=shiftIsoDate(start,active.kind==="AV"?2:3);
+  // Background cron enriches image URLs before writing the snapshot.
+  // This is the same image-only pipeline used for a missing-image fallback.
+  const enriched=await enrichKCitymarketPublicationImages(offers,active);
   return storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:start,
-    validUntil:until,parsedAt:new Date().toISOString(),offers});
+    validUntil:until,parsedAt:new Date().toISOString(),offers:enriched});
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
