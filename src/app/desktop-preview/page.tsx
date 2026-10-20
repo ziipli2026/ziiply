@@ -924,7 +924,7 @@ export default function DesktopPreviewPage() {
             const alternative=matched?null:desktopFindPackageAlternative(candidates,name,ean);
             // A loose fresh fish item priced per kilogram is only an opt-in
             // proposal, never an automatic package-size or EAN match.
-            const weightProposal=!matched&&/\\bsilakkafilee\\b/i.test(name)&&desktopPackageSize(name)!==null
+            const weightProposal=!matched&&/\bsilakkafilee\b/i.test(name)&&desktopPackageSize(name)!==null
               ?candidates.find((p:any)=>/^tuore silakkafilee$/i.test(String(p.name||"").trim())&&Number(p.price)>0&&desktopPackageSize(String(p.name||""))===null)
               :null;
             return {cartItemId:String(item.id||""),name:matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative,weightProposal:weightProposal?{name:String(weightProposal.name),pricePerKgCents:Number(weightProposal.price),ean:String(weightProposal.ean||""),gramsPerItem:desktopPackageSize(name)}:null};
