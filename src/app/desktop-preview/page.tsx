@@ -743,6 +743,18 @@ export default function DesktopPreviewPage() {
       .replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2);
     const sourceWords=tokens(name);
     if(sourceWords.length<2)return null;
+    // Pantry staples can be equivalent across brands and retail package sizes.
+    // Keep ground/whole spices distinct and avoid vinegar essences or flavoured vinegars.
+    const stapleIdentity=(value:string)=>{
+      const v=String(value).toLocaleLowerCase("fi").replace(/,/g,".");
+      if(/\\bväkiviinaetikka\\b/.test(v)&&!/\\b(etikkaliuos|etikkaesanssi|maustettu|omenaviini|valkoviini|punaviini)\\b/.test(v))return "väkiviinaetikka";
+      const spices=["maustepippuri","valkopippuri","mustapippuri","viherpippuri","paprikajauhe","kaneli","kardemumma","kurkuma","kumina","juustokumina","oregano","basilika","timjami","rosmariini","tilli"];
+      const spice=spices.find(w=>new RegExp("\\b"+w+"\\b").test(v));
+      if(!spice||/\\b(sekoitus|mausteseos|aromi|suola|öljy|kastike)\\b/.test(v))return null;
+      const form=/\\b(jauhettu|jauhe|rouhittu|rouhe)\\b/.test(v)?"jauhe":/\\b(kokonainen|kokonaiset)\\b/.test(v)?"kokonainen":"määrittelemätön";
+      return spice+":"+form;
+    };
+    const sourceStaple=stapleIdentity(name);
     const sourceBrand=sourceWords[0];
     const sourceEan=normalizeEan(ean);
     return candidates.map((p:any)=>{
@@ -751,9 +763,10 @@ export default function DesktopPreviewPage() {
       const overlap=sourceWords.filter(w=>words.includes(w)).length;
       const sameBrand=words[0]===sourceBrand || tokens(String(p.brandName||p.brand||"")).includes(sourceBrand);
       const sameProduct=sourceWords.every(w=>words.includes(w));
-      return {p,size,sameBrand,sameProduct,overlap};
+      const sameStaple=Boolean(sourceStaple&&stapleIdentity(String(p.name||""))===sourceStaple);
+      return {p,size,sameBrand,sameProduct,sameStaple,overlap};
     }).filter(x=>x.size!==null&&x.size!==sourceSize&&Number(x.p.price)>0
-      &&normalizeEan(String(x.p.ean||""))!==sourceEan&&x.sameBrand&&x.sameProduct)
+      &&normalizeEan(String(x.p.ean||""))!==sourceEan&&(x.sameStaple||(x.sameBrand&&x.sameProduct)))
       .sort((a,b)=>Math.abs(Number(a.size)-sourceSize)-Math.abs(Number(b.size)-sourceSize)
         ||Number(a.size)-Number(b.size)||Number(a.p.price)-Number(b.p.price))[0]?.p||null;
   }
