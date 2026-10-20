@@ -577,6 +577,16 @@ export default function DesktopPreviewPage() {
   const [desktopCartPricesChecked,setDesktopCartPricesChecked]=useState(false);
   const [desktopCompareResults,setDesktopCompareResults]=useState<Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>({});
   const [desktopCompareError,setDesktopCompareError]=useState("");
+  const desktopCompareAuditRef=useRef<any[]>([]);
+  const [desktopCompareAuditCount,setDesktopCompareAuditCount]=useState(0);
+  function logCompareAudit(event:string,details:Record<string,unknown>={}){
+    desktopCompareAuditRef.current=[...desktopCompareAuditRef.current,{at:new Date().toISOString(),event,...details}].slice(-1200);
+    setDesktopCompareAuditCount(desktopCompareAuditRef.current.length);
+  }
+  function downloadCompareAudit(){
+    const report={version:"ziiply-desktop-comparison-debug-v1",exportedAt:new Date().toISOString(),mode:betweenMode,scope:storeCompareScope,loading:desktopCompareLoading,error:desktopCompareError,selectedStores:Object.values(selectedStores).map((store:any)=>({name:store.name,id:store.id,externalId:store.externalId,kind:storeKind(store)})),cart:cartItems.map((item:any)=>({name:item.name||item.title,ean:item.ean||item.product?.ean,quantity:item.quantity,price:item.price,storeName:item.storeName})),results:Object.entries(desktopCompareResults).map(([id,result])=>({id,store:result.store?.name,missing:result.missing,total:result.total,rows:result.rows})),events:desktopCompareAuditRef.current};
+    const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-vertailuhinnat-debug-"+new Date().toISOString().replace(/[:.]/g,"-")+".json";a.click();URL.revokeObjectURL(url);
+  }
   const desktopCompareCache=useRef<Map<string,Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>>(new Map());
   const desktopCompareCacheTime=useRef(0);
   const desktopCompareIdentity=JSON.stringify([betweenMode,storeCompareScope,Object.values(selectedStores).sort((a:any,b:any)=>String(a.id).localeCompare(String(b.id))).map((store:any)=>[store.id,store.externalId,store.name]),cartItems.map((item:any)=>[item.id,item.ean,item.product?.ean,item.name,item.title,item.quantity,item.source,Boolean(item.product?.ziiplyWeightLabel)])]);
@@ -748,6 +758,8 @@ export default function DesktopPreviewPage() {
   }
 
   async function openDesktopComparison(){
+    desktopCompareAuditRef.current=[];setDesktopCompareAuditCount(0);
+    logCompareAudit("comparison_start",{cartCount:cartItems.length,mode:betweenMode,scope:storeCompareScope});
     setDesktopDebugLines([]);
     desktopDebug(`Vertailu käynnistyy: tila=${betweenMode}, korissa=${cartItems.length}, kauppanäkymä=${storeMode}`);
     desktopDebug(`Tavaratalot-valinnat: ${Object.values(allStoreSelections.hyper).map((x:any)=>`${x.name} [${x.id}]`).join(" | ")||"EI VALINTAA"}`);
@@ -843,24 +855,26 @@ export default function DesktopPreviewPage() {
     if(mustRecompare){desktopCompareCache.current.delete(key);desktopOriginalComparison.current=null;try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}}
     const memoryFresh=Date.now()-desktopCompareCacheTime.current<24*60*60*1000;
     const cached=mustRecompare?null:((memoryFresh?(desktopOriginalComparison.current?.key===key?desktopOriginalComparison.current.results:desktopCompareCache.current.get(key)):null)||desktopReadSavedComparison(key));
-    if(cached){desktopDebug(`Välimuistista vertailu: ${Object.entries(cached).map(([id,v]:any)=>`${id}: ${v.rows?.filter((x:any)=>x.price!=null).length||0}/${v.rows?.length||0} hintaa`).join(" | ")}`);desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
+    if(cached){logCompareAudit("comparison_cache_used",{stores:Object.entries(cached).map(([id,v]:any)=>({id,store:v.store?.name,priced:v.rows?.filter((x:any)=>x.price!=null).length||0,total:v.rows?.length||0}))});desktopDebug(`Välimuistista vertailu: ${Object.entries(cached).map(([id,v]:any)=>`${id}: ${v.rows?.filter((x:any)=>x.price!=null).length||0}/${v.rows?.length||0} hintaa`).join(" | ")}`);desktopCompareCache.current.set(key,cached);desktopOriginalComparison.current={key,results:cached};setDesktopCompareResults(structuredClone(cached));setDesktopCompareLoading(false);return}
     setDesktopCompareLoading(true);setDesktopCompareResults({});
     try{
       const results=await Promise.all(selected.map(async store=>{
         const kind=storeKind(store);const isS=kind==="sHyper"||kind==="sLocal";
         desktopDebug(`Kauppahaku alkaa: ${store.name}, id=${store.id}, externalId=${store.externalId}, ketju=${kind}, tuotteita=${eligible.length}`);
+        logCompareAudit("store_search_start",{store:store.name,id:store.id,externalId:store.externalId,kind,items:eligible.length});
         const rows=await Promise.all(eligible.map(async item=>{
           const name=String(item.name||item.title||"").trim();
           const ean=String(item.ean||item.product?.ean||"").trim();
           try{
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            logCompareAudit("product_search_result",{store:store.name,storeId:store.id,externalId:store.externalId,kind,name,ean,candidateCount:candidates.length,exactEanCandidates:candidates.filter((p:any)=>ean&&normalizeEan(p.ean)===normalizeEan(ean)).slice(0,12).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),candidates:candidates.slice(0,15).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),matched:matched?{name:matched.name,ean:matched.ean,priceCents:matched.price}:null,reason:matched?"matched":candidates.length?"no_compatible_match":"no_candidates"});
             desktopDebug(`${store.name}: ${name} EAN=${ean||"-"} → ehdokkaita=${candidates.length}, osuma=${matched?`${matched.name} (${matched.price}c)`:"EI"}, ehdokkaat=${candidates.slice(0,3).map((p:any)=>`${p.name} (${p.price}c)`).join(" | ")||"-"}`);
             const price=matched?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
             const alternative=matched?null:desktopFindPackageAlternative(candidates,name,ean);
             return {cartItemId:String(item.id||""),name:matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative};
-          }catch(error){desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
+          }catch(error){logCompareAudit("product_search_error",{store:store.name,name,ean,error:String(error)});desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         desktopDebug(`Kauppahaku valmis: ${store.name}, hinnat=${rows.filter(x=>x.price!=null).length}/${rows.length}`);
         return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
@@ -1966,6 +1980,7 @@ export default function DesktopPreviewPage() {
 </div>
 </div>}
 {desktopCheckoutOpen&&<div className="fixed inset-0 z-[140] grid place-items-center bg-[#172e23]/65 p-5"><div className="w-full max-w-[530px] rounded-[25px] border-[3px] border-[#967344] bg-[#fff4d6] p-7 text-center shadow-2xl"><h2 className="font-serif text-[30px] font-black italic text-[#174c3a]">Osta</h2><p className="mt-4 text-[17px] text-[#59482f]">Ostotoiminto ei ole vielä käytettävissä desktop-esikatselussa. Ostoskori säilyy tallessa.</p><button onClick={()=>setDesktopCheckoutOpen(false)} className="mt-6 rounded-full bg-[#315d45] px-7 py-3 font-bold text-white">Takaisin ostoskoriin</button></div></div>}
+{desktopCompareNotice&&<button type="button" onClick={downloadCompareAudit} className="fixed bottom-5 right-5 z-[250] rounded-xl border-2 border-[#75562c] bg-[#f2ead5] px-4 py-2 text-sm font-black text-[#264d35] shadow-xl" title="Tallenna vertailun kauppakohtaiset haut ja hakuvirheet">Vertailu DEBUG · Tallenna ({desktopCompareAuditCount})</button>}
 {desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
   stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
