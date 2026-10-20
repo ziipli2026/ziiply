@@ -6,6 +6,22 @@ if (!process.env.DATABASE_URL) {
   process.exit(2);
 }
 const sql = neon(process.env.DATABASE_URL);
+// Diagnose empty results before treating them as zero offers. A successful
+// connection alone does not prove that this is the application's database.
+const [dbInfo] = await sql`SELECT current_database() AS database_name,
+  current_schema() AS schema_name, current_user AS database_user`;
+const [tableInfo] = await sql`SELECT
+  COUNT(*)::int AS all_publications,
+  COUNT(*) FILTER (WHERE valid_until >= CURRENT_DATE - INTERVAL '2 days')::int AS recent_publications,
+  COUNT(*) FILTER (WHERE jsonb_typeof(offers)='array')::int AS array_publications,
+  MAX(parsed_at) AS newest_parse,
+  MAX(valid_until) AS latest_valid_until
+  FROM ziiply_offer_publications`;
+const queueInfo = await sql`SELECT status, COUNT(*)::int AS count
+  FROM ziiply_offer_image_queue GROUP BY status ORDER BY status`;
+const recent = await sql`SELECT chain,publication_id AS publication,parsed_at,valid_until,
+  CASE WHEN jsonb_typeof(offers)='array' THEN jsonb_array_length(offers) ELSE NULL END AS offer_count
+  FROM ziiply_offer_publications ORDER BY parsed_at DESC NULLS LAST LIMIT 15`;
 const rows = await sql`
   SELECT p.chain, p.publication_id AS publication, p.parsed_at,
     jsonb_array_length(p.offers)::int AS total,
@@ -20,6 +36,8 @@ const rows = await sql`
 const report = {
   checkedAt: new Date().toISOString(),
   source: "ziiply_offer_publications (active and recently expired)",
+  diagnostics: { database: dbInfo.database_name, schema: dbInfo.schema_name,
+    publicationTable: tableInfo, queueByStatus: queueInfo, latestPublications: recent },
   publications: rows.map(r => ({
     chain:r.chain, publication:r.publication, parsedAt:r.parsed_at,
     total:Number(r.total), withImage:Number(r.with_image),
@@ -35,6 +53,20 @@ for (const r of report.publications) {
 report.byChain=[...groups.values()];
 mkdirSync("image-coverage-reports",{recursive:true});
 writeFileSync("image-coverage-reports/coverage.json",JSON.stringify(report,null,2)+"\n");
-const md=["# Ziiply offer image coverage",`Checked: ${report.checkedAt}`,"","## By chain","| Chain | Publications | Offers | With image | Missing |","|---|---:|---:|---:|---:|",...report.byChain.map(x=>`| ${x.chain} | ${x.publications} | ${x.total} | ${x.withImage} | ${x.missingImage} |`),"","## Per publication","| Chain | Publication | Offers | With image | Missing |","|---|---|---:|---:|---:|",...report.publications.map(x=>`| ${x.chain} | ${String(x.publication).replace(/\\|/g,"/")} | ${x.total} | ${x.withImage} | ${x.missingImage} |`)];
+const md=["# Ziiply offer image coverage",`Checked: ${report.checkedAt}`,
+  "","## Database diagnostics",
+  `Database: ${dbInfo.database_name}; schema: ${dbInfo.schema_name}`,
+  `All publication rows: ${tableInfo.all_publications}; recent: ${tableInfo.recent_publications}; arrays: ${tableInfo.array_publications}`,
+  `Newest parsed: ${tableInfo.newest_parse ?? "none"}; latest valid until: ${tableInfo.latest_valid_until ?? "none"}`,
+  `Queue: ${queueInfo.map(q => q.status + "=" + q.count).join(", ") || "empty"}`,
+  "","### Latest publications",
+  "| Chain | Publication | Parsed | Valid until | Offers |",
+  "|---|---|---|---|---:|",
+  ...recent.map(x=>`| ${x.chain} | ${x.publication} | ${x.parsed_at ?? ""} | ${x.valid_until ?? ""} | ${x.offer_count ?? "not array"} |`),
+  "","## By chain","| Chain | Publications | Offers | With image | Missing |","|---|---:|---:|---:|---:|",...report.byChain.map(x=>`| ${x.chain} | ${x.publications} | ${x.total} | ${x.withImage} | ${x.missingImage} |`),"","## Per publication","| Chain | Publication | Offers | With image | Missing |","|---|---|---:|---:|---:|",...report.publications.map(x=>`| ${x.chain} | ${String(x.publication).replace(/\\|/g,"/")} | ${x.total} | ${x.withImage} | ${x.missingImage} |`)];
 writeFileSync("image-coverage-reports/coverage.md",md.join("\n")+"\n");
 console.log(md.join("\n"));
+if (!rows.length) {
+  console.error("DIAGNOSTIC: No recent array publications matched. Review the database, validity dates, and latest publications above.");
+  process.exitCode = 1;
+}
