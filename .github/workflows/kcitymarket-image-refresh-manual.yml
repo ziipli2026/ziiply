@@ -1,0 +1,34 @@
+name: K-Citymarket - kuvien paivitys
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger production Cittari image enrichment
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ZIIPLY_BASE_URL: ${{ secrets.ZIIPLY_BASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$CRON_SECRET" || { echo "::error::CRON_SECRET missing"; exit 1; }
+          test -n "$ZIIPLY_BASE_URL" || { echo "::error::ZIIPLY_BASE_URL missing"; exit 1; }
+          curl --fail --silent --show-error --max-time 170 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "${ZIIPLY_BASE_URL%/}/api/cron/kcitymarket-cache" > /tmp/kcitymarket-image-refresh.json
+          node <<'NODE'
+          const fs=require('fs');
+          const j=JSON.parse(fs.readFileSync('/tmp/kcitymarket-image-refresh.json','utf8'));
+          const a=j.activeImages||{};
+          console.log('K-Citymarket publication:',j.active?.period||'unknown');
+          console.log('Stored offers:',a.total??'unknown');
+          console.log('Offers with image:',a.withImage??'unknown');
+          console.log('Offers missing image:',a.missingImage??'unknown');
+          if(!j.ok){console.error('Cron errors:',j.errors||j.error);process.exit(1);}
+          if(a.error){console.error('Image coverage query failed:',a.error);process.exit(1);}
+          if(typeof a.total!=='number'||typeof a.withImage!=='number'){console.error('Production did not report image coverage');process.exit(1);}
+          if(a.missingImage>0)console.log('Images remain missing; follow up required.');
+          NODE
