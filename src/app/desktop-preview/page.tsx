@@ -628,8 +628,14 @@ export default function DesktopPreviewPage() {
   // Cross-chain comparison: search without store-specific brands, then verify milk type and volume.
   function desktopCompareSearchTerms(name:string):string[]{
     const base=name.trim();
-    const withoutBrand=base.replace(/^(?:kotimaista|coop|xtra|pirkka|k-menu)\s+/i,"").trim();
-    const terms=[base,withoutBrand];
+    const withoutBrand=base.replace(/^(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu)\s+/i,"").trim();
+    const withoutSize=withoutBrand.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
+    // A chain-specific brand or package suffix must not hide a matching product.
+    // Search with the product type as well, but leave equivalence validation to the matcher.
+    const keyWords=withoutSize.split(/\s+/).filter(w=>w.length>=4);
+    const key=keyWords.find(w=>/sokeriherne/i.test(w))?.replace(/sokeriherneet$/i,"sokeriherne")
+      ||(keyWords.length===1?keyWords[0]:"");
+    const terms=[base,withoutBrand,withoutSize,key];
     if(/\bkevyt\s*maito\b/i.test(withoutBrand))terms.push("kevytmaito","kevyt maito");
     return [...new Set(terms.filter(Boolean))];
   }
