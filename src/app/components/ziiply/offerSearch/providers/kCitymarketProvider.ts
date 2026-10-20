@@ -1027,6 +1027,14 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
             });
             if(possible.length===1)candidates=possible;
           }
+          // Verified against the original W43 AV national offer (19–22 Oct 2026):
+          // the 0.33–0.355 l energy drink card is Nocco, NOT Juissi.
+          // Restrict this exception to that exact publication week and size.
+          if(!candidates.length && active.startDate==="2026-10-19" &&
+            /energiajuomat/i.test(offer.title) &&
+            /0[,.]33\s*[–-]\s*0[,.]355\s*l/i.test(offer.title)){
+            candidates=[...photos.entries()].filter(([name])=>name==="nocco energiajuomat");
+          }
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
           else if(unique.length>1)ambiguous++;
