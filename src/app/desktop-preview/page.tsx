@@ -731,7 +731,10 @@ export default function DesktopPreviewPage() {
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
     const sourceEan=normalizeEan(ean);
-    if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&desktopPackageCompatible(name,String(p.name||""))&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b)}
+    if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&desktopPackageCompatible(name,String(p.name||""))&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
+      // EAN-tunnistetulle tuotteelle ei saa käyttää eri tuotteen nimellä tai pakkauskoolla arvattua hintaa.
+      return null;
+    }
     const sameSize=candidates.filter((p:any)=>desktopPackageCompatible(name,String(p.name||"")));
     // K prices come from a third-party feed, not live K-Ruoka availability.
     // Never treat a fuzzy name/size match as proof that this exact EAN is sold in the selected K store.
