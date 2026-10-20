@@ -1,0 +1,20 @@
+name: Ziiply GPS arrival simulation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/app/components/ziiply/location/ziiplyArrivalSequence.ts'
+      - 'scripts/test-ziiply-arrival-sequence.cjs'
+      - '.github/workflows/ziiply-gps-arrival-simulation.yml'
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci --ignore-scripts
+      - name: Simulate GPS and time progression
+        run: node scripts/test-ziiply-arrival-sequence.cjs
