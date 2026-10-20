@@ -766,8 +766,8 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
 
 // The scheduled warmer is the only path that may parse a publisher leaflet.
 // Persist the complete, validated offers before they become visible to shoppers.
-export async function persistKCitymarketOfferPublication(now=new Date()){
-  const active=getActiveKCitymarketPeriod(now);
+export async function persistKCitymarketOfferPublication(now=new Date(), period?:KCitymarketPeriod){
+  const active=period??getActiveKCitymarketPeriod(now);
   const payload=await readCachedPeriod(active);
   if(!payload.offers.length)throw new Error("Empty Citymarket publication must not be stored");
   const fallback=kCitymarketDefaultValidityV15(active);
