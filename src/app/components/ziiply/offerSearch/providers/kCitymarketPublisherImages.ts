@@ -15,8 +15,8 @@ export function getKCitymarketPublisherImage(sourceUrl:string,offerId:string):st
   // Match only an identical normalized product title within this SAME leaflet.
   // Reject duplicate titles and conflicting images; never match by category alone.
   const titleFromId=(id:string)=>{
-    const match=/^kcm:spatial:\\d+:(.+):[^:]+$/.exec(id);
-    return match?.[1]?.normalize("NFKC").toLowerCase().replace(/\\s+/g," ").trim()??"";
+    const match=/^kcm:spatial:\d+:(.+):[^:]+$/.exec(id);
+    return match?.[1]?.normalize("NFKC").toLowerCase().replace(/\s+/g," ").trim()??"";
   };
   const wanted=titleFromId(offerId);
   if(!wanted)return null;
