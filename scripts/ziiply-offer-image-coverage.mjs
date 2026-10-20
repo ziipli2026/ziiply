@@ -17,8 +17,12 @@ const [tableInfo] = await sql`SELECT
   MAX(parsed_at) AS newest_parse,
   MAX(valid_until) AS latest_valid_until
   FROM ziiply_offer_publications`;
-const queueInfo = await sql`SELECT status, COUNT(*)::int AS count
-  FROM ziiply_offer_image_queue GROUP BY status ORDER BY status`;
+// The queue table is created by the enrichment endpoint, and may not exist
+// in this database yet. Do not fail the read-only coverage audit for that.
+const [queueTable] = await sql`SELECT to_regclass('public.ziiply_offer_image_queue') IS NOT NULL AS exists`;
+const queueInfo = queueTable.exists
+  ? await sql`SELECT status, COUNT(*)::int AS count FROM public.ziiply_offer_image_queue GROUP BY status ORDER BY status`
+  : [];
 const recent = await sql`SELECT chain,publication_id AS publication,parsed_at,valid_until,
   CASE WHEN jsonb_typeof(offers)='array' THEN jsonb_array_length(offers) ELSE NULL END AS offer_count
   FROM ziiply_offer_publications ORDER BY parsed_at DESC NULLS LAST LIMIT 15`;
@@ -37,7 +41,7 @@ const report = {
   checkedAt: new Date().toISOString(),
   source: "ziiply_offer_publications (active and recently expired)",
   diagnostics: { database: dbInfo.database_name, schema: dbInfo.schema_name,
-    publicationTable: tableInfo, queueByStatus: queueInfo, latestPublications: recent },
+    publicationTable: tableInfo, queueTableExists: queueTable.exists, queueByStatus: queueInfo, latestPublications: recent },
   publications: rows.map(r => ({
     chain:r.chain, publication:r.publication, parsedAt:r.parsed_at,
     total:Number(r.total), withImage:Number(r.with_image),
@@ -58,7 +62,7 @@ const md=["# Ziiply offer image coverage",`Checked: ${report.checkedAt}`,
   `Database: ${dbInfo.database_name}; schema: ${dbInfo.schema_name}`,
   `All publication rows: ${tableInfo.all_publications}; recent: ${tableInfo.recent_publications}; arrays: ${tableInfo.array_publications}`,
   `Newest parsed: ${tableInfo.newest_parse ?? "none"}; latest valid until: ${tableInfo.latest_valid_until ?? "none"}`,
-  `Queue: ${queueInfo.map(q => q.status + "=" + q.count).join(", ") || "empty"}`,
+  `Queue table exists: ${queueTable.exists}; queue: ${queueInfo.map(q => q.status + "=" + q.count).join(", ") || "empty"}`,
   "","### Latest publications",
   "| Chain | Publication | Parsed | Valid until | Offers |",
   "|---|---|---|---|---:|",
