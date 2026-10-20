@@ -747,17 +747,29 @@ export default function DesktopPreviewPage() {
       return da-db||Number(a.price)-Number(b.price);
     })[0]||null;
   }
+  function desktopStrictCompareIdentity(source:string,candidate:string):boolean{
+    // Cross-chain substitution: never use package size alone to identify a product.
+    const words=(value:string)=>String(value).toLocaleLowerCase("fi")
+      .replace(/^(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu)\s+/i,"")
+      .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ")
+      .replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>=3&&w!=="msc");
+    const sourceWords=words(source),candidateWords=words(candidate);
+    if(!sourceWords.length||!candidateWords.length)return false;
+    return sourceWords.every(w=>candidateWords.some(c=>c===w||(w.length>=6&&c.length>=6&&w.slice(0,6)===c.slice(0,6))));
+  }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
-    // Alkuperäisen korin EAN on ensisijainen: Halvin-valinta kuuluu vain muokattuun vertailukoriin.
     const sourceEan=normalizeEan(ean);
-    if(sourceEan){const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan&&desktopPackageCompatible(name,String(p.name||""))&&Number(p?.price)>0);if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
-      // EAN-tunnistetulle tuotteelle ei saa käyttää eri tuotteen nimellä tai pakkauskoolla arvattua hintaa.
-      return null;
+    if(sourceEan){
+      const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan
+        &&desktopPackageCompatible(name,String(p.name||""))&&Number(p?.price)>0);
+      if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
-    const sameSize=candidates.filter((p:any)=>desktopPackageCompatible(name,String(p.name||"")));
-    // K prices come from a third-party feed, not live K-Ruoka availability.
-    // Never treat a fuzzy name/size match as proof that this exact EAN is sold in the selected K store.
-    const compatible=sameSize.filter((p:any)=>isComparisonAttributeCompatible(name,String(p.name||"")));
+    // Unlike the original cart price lookup, the comparison may use a verified
+    // equivalent from another chain. Reject unrelated products and package sizes.
+    const compatible=candidates.filter((p:any)=>Number(p?.price)>0
+      &&desktopPackageCompatible(name,String(p.name||""))
+      &&isComparisonAttributeCompatible(name,String(p.name||""))
+      &&desktopStrictCompareIdentity(name,String(p.name||"")));
     const sourceOwn=/^(?:pirkka|k-menu|coop|xtra|kotimaista|rainbow)\b/i.test(name);
     const ownRe=isS?/^(?:coop|xtra|kotimaista|rainbow)\b/i:/^(?:pirkka|k-menu)\b/i;
     const own=compatible.filter((p:any)=>ownRe.test(p.name));
