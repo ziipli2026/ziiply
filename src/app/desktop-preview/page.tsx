@@ -1211,7 +1211,9 @@ export default function DesktopPreviewPage() {
     if(cartItems.length){setPendingNotebookRestore(items);return;}
     completeNotebookRestore(items,"replace");
   }
+  const [notebookPriceRefreshId,setNotebookPriceRefreshId]=useState(0);
   function completeNotebookRestore(items:any[],mode:"merge"|"replace"){
+    setNotebookPriceRefreshId(id=>id+1);
     if(mode==="merge"){
       setCartItems(current=>{
         const next=[...current];
@@ -1231,6 +1233,40 @@ export default function DesktopPreviewPage() {
     setNotebookOpen(false);setCartOpen(true);
     flashCartNotice(mode==="merge"?"Ostelusvihko yhdistetty ostoskoriin":"Ostelusvihko palautettu ostoskoriin");
   }
+  // Refresh restored notebook prices silently against the selected store, never from saved stale prices.
+  useEffect(()=>{
+    if(!notebookPriceRefreshId)return;
+    const selected=Object.values(selectedStores) as any[];
+    const eligibleStores=selected.filter(store=>["sHyper","sLocal","kHyper","kLocal","spar"].includes(storeKind(store)));
+    let cancelled=false;
+    const pending=cartItems.filter(item=>!isDesktopMemoItem(item)&&!item?.ziiplyWeightLabel&&!item?.product?.ziiplyWeightLabel&&(item.priceNeedsRefresh||desktopCartPrice(item.price)==null));
+    if(!pending.length||!eligibleStores.length)return;
+    setDesktopCartPricesChecked(false);
+    void Promise.all(pending.map(async item=>{
+      const name=String(item.name||item.title||"").trim();
+      const ean=String(item.ean||item.product?.ean||"").trim();
+      const store=eligibleStores.find(s=>String(s.name||"")===String(item.storeName||""))||(eligibleStores.length===1?eligibleStores[0]:null);
+      if(!name||!store)return null;
+      const isS=["sHyper","sLocal"].includes(storeKind(store));
+      try{
+        const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
+        const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+        return {key:desktopCartKey(item),name,ean,storeName:String(store.name||""),price:matched&&Number(matched.price)>0?Number(matched.price)/100:null};
+      }catch{return {key:desktopCartKey(item),name,ean,storeName:String(store.name||""),price:null}}
+    })).then(results=>{
+      if(cancelled)return;
+      const updates=new Map(results.filter((result):result is NonNullable<typeof result>=>result!==null).map(result=>[result.key,result]));
+      setCartItems(current=>current.map(item=>{
+        const update=updates.get(desktopCartKey(item));
+        if(!update||String(item.name||item.title||"").trim()!==update.name||String(item.ean||item.product?.ean||"").trim()!==update.ean)return item;
+        return {...item,price:update.price,storeName:update.storeName,priceCheckedAt:update.price!==null?Date.now():undefined,priceNeedsRefresh:update.price===null};
+      }));
+      setDesktopCartPricesChecked(true);
+    });
+    return()=>{cancelled=true};
+  // Run once per notebook restore; do not restart when asynchronous price updates arrive.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[notebookPriceRefreshId]);
   function saveCartToNotebook(){desktopRememberPrices(cartItems);const name=saveListName.trim()||"Ostelusvihko";persistSavedLists([{id:String(Date.now()),name,createdAt:new Date().toISOString(),items:cartItems.map(desktopNotebookItem)},...savedLists]);setSaveListOpen(false);flashCartNotice(`Tallennettu Ostelusvihkoon: ${name}`)}
 
   function desktopCartPrice(value:any):number|null{if(value==null||value==="")return null;const normalized=String(value).replace(/\s/g,"").replace("€","").replace(",",".");const price=Number(normalized);return Number.isFinite(price)&&price>=0?price:null}
