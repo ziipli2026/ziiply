@@ -21674,7 +21674,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onAddFromNotebook={() => void pasteFromClipboardToSearch()}
                   onScan={() => openDesktopScanner()}
                   onGostaSearch={handleGostaOfferSearch}
-                  onJustiinaSearch={handleJustiinaProductSearch}
+                  onJustiinaSearch={handleMainNormalSearch}
                   chips={instantSearchSuggestions.map((suggestion) => ({
                     id: suggestion.label,
                     label: suggestion.label,
