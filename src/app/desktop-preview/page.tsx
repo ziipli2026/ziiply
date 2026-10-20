@@ -577,6 +577,15 @@ export default function DesktopPreviewPage() {
   const [desktopCartPricesChecked,setDesktopCartPricesChecked]=useState(false);
   const [desktopCompareResults,setDesktopCompareResults]=useState<Record<string,{store:any;rows:Array<{cartItemId:string;name:string;quantity:number;price:number|null;match:"ean"|"name"|"none"}>;total:number;missing:number}>>({});
   const [desktopCompareError,setDesktopCompareError]=useState("");
+  function rejectDesktopPackageProposal(storeId:string,rowId:string){
+    setDesktopCompareResults(current=>{const result=current[storeId];if(!result)return current;return {...current,[storeId]:{...result,rows:result.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,packageAlternative:null}:row)}};});
+  }
+  function acceptDesktopPackageProposal(storeId:string,rowId:string){
+    const result=desktopCompareResults[storeId];
+    const row=(result?.rows||[]).find((entry:any)=>String(entry.cartItemId)===rowId) as any;
+    if(!row?.packageAlternative)return;
+    void desktopSelectCompareAlternative(storeId,{id:rowId},{...row.packageAlternative,comparisonSelectionMode:"manual"});
+  }
   function rejectDesktopWeightProposal(storeId:string,rowId:string){
     setDesktopCompareResults(current=>{const result=current[storeId];if(!result)return current;return {...current,[storeId]:{...result,rows:result.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,weightProposal:null}:row)}};});
   }
@@ -1052,7 +1061,7 @@ export default function DesktopPreviewPage() {
     const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),ean:String(alternative?.ean||alternative?.product?.ean||""),price:priceCents/100,image:String(alternative?.pictureUrl||alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
     setDesktopCompareResults(current=>{
       const existing=current[storeId];if(!existing)return current;
-      const updatedRows=existing.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const,qualityMode:String(alternative?.comparisonSelectionMode||"cheapest")}:row);
+      const updatedRows=existing.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const,ean:String(alternative?.ean||alternative?.product?.ean||""),packageAlternative:null,qualityMode:String(alternative?.comparisonSelectionMode||"cheapest")}:row);
       return {...current,[storeId]:{...existing,rows:updatedRows,total:updatedRows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:updatedRows.filter((row:any)=>row.price==null).length}};
     });
     flashCartNotice("Tuotevaihtoehto päivitetty vertailuun.");
@@ -2074,6 +2083,8 @@ export default function DesktopPreviewPage() {
 
 {desktopCompareNotice&&<ZiiplyDesktopCompareCard
   open
+  onAcceptPackageProposal={acceptDesktopPackageProposal}
+  onRejectPackageProposal={rejectDesktopPackageProposal}
   onAcceptWeightProposal={acceptDesktopWeightProposal}
   onRejectWeightProposal={rejectDesktopWeightProposal}
   stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:row.weightEstimate?Number(row.price)*100:Math.round(row.price*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
