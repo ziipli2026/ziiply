@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { PostHogProvider } from "./components/PostHogProvider";
+import ZiiplyWakeUp from "./components/ZiiplyWakeUp";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,6 +42,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <PostHogProvider>
+          <ZiiplyWakeUp />
           {children}
           <Analytics />
         </PostHogProvider>
