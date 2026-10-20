@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { warmKCitymarketOfferCache, persistKCitymarketOfferPublication } from "@/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { warmKCitymarketOfferCache, persistKCitymarketOfferPublication, getNextKCitymarketPeriod } from "@/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 
 export const dynamic = "force-dynamic";
@@ -19,13 +19,20 @@ export async function GET(request: Request) {
     const result = await warmKCitymarketOfferCache(startedAt);
     // Publish a durable snapshot only after the current leaflet has parsed successfully.
     // A failure keeps the previous approved edition untouched.
-    if (result.active) {
+    // Persist both the active leaflet and the verified upcoming leaflet in
+    // parallel. A failed upcoming parse is never published as a substitute.
+    const nextPeriod = result.next ? getNextKCitymarketPeriod(startedAt) : null;
+    const snapshots = [
+      ...(result.active ? [{ label: "active", period: undefined }] : []),
+      ...(nextPeriod ? [{ label: "next", period: nextPeriod }] : []),
+    ];
+    await Promise.all(snapshots.map(async ({ label, period }) => {
       try {
-        await persistKCitymarketOfferPublication(startedAt);
+        await persistKCitymarketOfferPublication(startedAt, period);
       } catch (error) {
-        result.errors.push("snapshot: " + (error instanceof Error ? error.message : String(error)));
+        result.errors.push(label + " snapshot: " + (error instanceof Error ? error.message : String(error)));
       }
-    }
+    }));
     // A successful active leaflet must not mask a failed next-period warm-up.
     // warmKCitymarketOfferCache records failures for both attempted periods.
     const activeOk = Boolean(result.active);
