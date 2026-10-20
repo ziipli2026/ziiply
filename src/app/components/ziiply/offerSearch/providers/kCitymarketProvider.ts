@@ -947,6 +947,7 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
         .map(match=>match[0].replace(/\s+/g,"").replace(",","."));
     };
     const packageMatch=(value:string)=>packageSizes(value)[0]||"";
+    const wordIsDistinctive=(word:string)=>word.length>=11 && !["virvoitusjuomat","energiajuomat"].includes(word);
     const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma","sis","pantit","pantti"]);
     const tokens=(value:string)=>{
       const cleaned=repair(value)
@@ -999,6 +1000,18 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
           // Prefer explicitly matching pack sizes over unspecified Tjek sizes.
           if(wantedSize && candidates.some(([name])=>packageSizes(name).includes(wantedSize))){
             candidates=candidates.filter(([name])=>packageSizes(name).includes(wantedSize));
+          }
+          // Compound Tjek cards can contain two separately parsed leaflet offers.
+          // Accept only one unambiguous image with all distinctive words present.
+          if(!candidates.length && wanted.size>=1){
+            const compound=[...photos.entries()].filter(([name])=>{
+              const found=tokens(name);
+              const sizes=packageSizes(name);
+              if(wantedSize && sizes.length && !sizes.includes(wantedSize))return false;
+              return [...wanted].every(word=>found.has(word)) &&
+                (wanted.size>=2 || (wordIsDistinctive([...wanted][0]) && found.size<=7));
+            });
+            if(new Set(compound.map(([,image])=>image)).size===1)candidates=compound;
           }
           const unique=[...new Set(candidates.map(([,image])=>image))];
           if(unique.length===1){url=unique[0];similar++;}
