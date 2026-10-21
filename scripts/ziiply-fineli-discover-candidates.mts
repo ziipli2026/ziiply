@@ -52,7 +52,7 @@ for (;;) {
 }
 console.log(JSON.stringify({scanned,eligible,inserted,pages,batchSize,pendingReview:true,autoApproved:0}));
 
-const discoveryFiles = ["fineli-raw-vegetable-candidates.sql","fineli-fresh-berry-candidates.sql","fineli-fresh-fruit-fungi-candidates.sql","fineli-stone-fruit-candidates.sql","fineli-fresh-herb-candidates.sql"];
+const discoveryFiles = ["fineli-raw-vegetable-candidates.sql","fineli-fresh-berry-candidates.sql","fineli-fresh-fruit-fungi-candidates.sql","fineli-stone-fruit-candidates.sql","fineli-fresh-herb-candidates.sql","fineli-nuts-candidates.sql","fineli-seeds-candidates.sql","fineli-grains-candidates.sql","fineli-pantry-candidates.sql"];
 let nextFile = 0;
 const groupResults: { file: string; eligible: number; inserted: number }[] = [];
 const groupFailures: string[] = [];
