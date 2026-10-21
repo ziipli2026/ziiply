@@ -27,3 +27,5 @@ jobs:
           NODE_PATH: /tmp/ziiply-category-test/node_modules
       - name: Read-only live S and K store search smoke test
         run: node scripts/test-desktop-live-store-search.mjs
+        env:
+          ZIIPLY_TEST_BASE_URL: https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app
