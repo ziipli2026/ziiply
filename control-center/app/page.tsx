@@ -1,4 +1,5 @@
 import {neon} from "@neondatabase/serverless";
+import {citymarketPreflightStatus,type PreflightRun} from "./citymarketPreflight";
 
 export const dynamic="force-dynamic";
 
@@ -17,9 +18,13 @@ type ScanStats={events_24h:number;unresolved_24h:number;unknown_24h:number;no_pr
 
 async function load(){
   const url=process.env.DATABASE_URL;
-  if(!url)return {error:"DATABASE_URL puuttuu",runs:[] as Row[],pubs:[] as Pub[],history:[] as HistoryRow[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats};
+  if(!url)return {error:"DATABASE_URL puuttuu",preflights:[] as PreflightRun[],runs:[] as Row[],pubs:[] as Pub[],history:[] as HistoryRow[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats};
   try{
     const sql=neon(url);
+    // Dedicated history: busy unrelated chains must not push the first preview attempt out of the 300-row general log.
+    const preflights=await sql`SELECT checked_at::text,source,ok,offer_count,outcome,details
+      FROM ziiply_publication_run_log WHERE source IN ('k-citymarket-cache','k-citymarket-preflight','k-citymarket-source-audit')
+      AND checked_at>NOW()-INTERVAL '14 days' ORDER BY checked_at DESC,id DESC LIMIT 1500`;
     const runs=await sql`SELECT checked_at::text AS checked_at,chain,source,ok,offer_count,outcome
       FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days'
       ORDER BY checked_at DESC,id DESC LIMIT 300`;
@@ -51,8 +56,8 @@ async function load(){
     let scan:ScanStats={events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0};
     try { const rows=await sql`SELECT COUNT(*)::int events_24h,COUNT(*) FILTER(WHERE outcome IN ('unresolved','not_found','no_match'))::int unresolved_24h,COUNT(*) FILTER(WHERE outcome IN ('unknown','ean_unknown'))::int unknown_24h,COUNT(*) FILTER(WHERE outcome IN ('no_price','added_without_price'))::int no_price_24h,COUNT(*) FILTER(WHERE outcome IN ('chain_mismatch','wrong_chain'))::int chain_mismatch_24h FROM ziiply_ean_scan_event_log WHERE created_at>NOW()-INTERVAL '24 hours'`; if(rows[0]) scan=rows[0] as ScanStats; } catch { /* scanner event table is created lazily */ }
     const eanStats={...(ean[0] as EanStats),lidl_price_rows:Number(eanPrice[0]?.price_rows??0),lidl_price_eans:Number(eanPrice[0]?.price_eans??0),lidl_fresh_prices:Number(eanPrice[0]?.fresh_prices??0),lidl_verified_prices:Number(eanPrice[0]?.verified_prices??0),lidl_stale_prices:Number(eanPrice[0]?.stale_prices??0)};
-    return {error:null,runs:runs as Row[],pubs:pubs as Pub[],ean:eanStats,scan,history:history as HistoryRow[]};
-  }catch(e){return {error:e instanceof Error?e.message:"Tietokantavirhe",runs:[] as Row[],pubs:[] as Pub[],history:[] as HistoryRow[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats}}
+    return {error:null,preflights:preflights as PreflightRun[],runs:runs as Row[],pubs:pubs as Pub[],ean:eanStats,scan,history:history as HistoryRow[]};
+  }catch(e){return {error:e instanceof Error?e.message:"Tietokantavirhe",preflights:[] as PreflightRun[],runs:[] as Row[],pubs:[] as Pub[],history:[] as HistoryRow[],ean:null,scan:{events_24h:0,unresolved_24h:0,unknown_24h:0,no_price_24h:0,chain_mismatch_24h:0} as ScanStats}}
 }
 
 function state(rows:Row[]){
@@ -77,6 +82,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const requestedView=(await searchParams).view;
   const view=requestedView==="publications"?"publications":requestedView==="data"?"data":"overview";
   const d=await load();
+  const citymarketPreflight=citymarketPreflightStatus(d.preflights);
   const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim())&&!["future-publication-discovery","s-kaupat-protocol"].includes(r.source))}));
   const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const currentPubs=[...d.pubs.reduce((m,p)=>{const k=`${p.chain}::${p.valid_from}::${p.valid_until}`;const prev=m.get(k);if(!prev||p.parsed_at>prev.parsed_at)m.set(k,p);return m},new Map<string,Pub>()).values()];
@@ -370,6 +376,20 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     </>}
+    {view==="publications"&&<section aria-label="Citymarket esitarkastus" style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:14,padding:18,marginBottom:18}}>
+      <h2 style={{margin:"0 0 12px",fontSize:19}}>Citymarket – esitarkastus</h2>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:14}}><thead><tr>{["Tila","Lehti","Ensimmäinen automaattiajo","Viimeisin tarkistus","Tarjouksia","Tarkastuksen tulos"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody><tr>
+        <td style={{padding:8,fontWeight:800}}>{dot(citymarketPreflight.level)} {citymarketPreflight.label}</td>
+        <td style={{padding:8,whiteSpace:"nowrap"}}>{citymarketPreflight.issue} · {citymarketPreflight.start}</td>
+        <td style={{padding:8}}>{citymarketPreflight.first?new Date(citymarketPreflight.first).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"Ei kirjattua ajoa"}</td>
+        <td style={{padding:8}}>{citymarketPreflight.latest?new Date(citymarketPreflight.latest).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"—"}</td>
+        <td style={{padding:8}}>{citymarketPreflight.count??"—"}</td>
+        <td style={{padding:8}}>{citymarketPreflight.errors.length?citymarketPreflight.errors.join(" · "):citymarketPreflight.latest?"Automaattinen rakenne- ja hintakenttien tarkistus. Koko lehden vertailu alkuperäiseen PDF:ään on erillinen hyväksyntä.":"Seuranta alkaa ensimmäisen automaattisen ennakkoparseriajon jälkeen."}
+          {Object.keys(citymarketPreflight.quality).length>0&&<div style={{marginTop:6}}>Hinnattomia: {String(citymarketPreflight.quality.missing_prices??0)} · Kuvattomia: {String(citymarketPreflight.quality.missing_images??0)} · Tuoteryhmä puuttuu / Muut: {String(citymarketPreflight.quality.missing_categories??0)}</div>}
+          <div style={{marginTop:6}}>Lähdeaineisto: {citymarketPreflight.archive==="source-archive-captured"?"PDF ja parserin lähdeaineisto arkistoitu":citymarketPreflight.archive==="source-archive-failed"?"Arkistointi epäonnistui":citymarketPreflight.archive==="source-archive-review-needed"?"Arkistoitu, parserin tuloksessa tarkistettavaa":citymarketPreflight.archive}</div>
+        </td>
+      </tr></tbody></table></div>
+    </section>}
     {view==="publications"&&<><section style={{padding:18,background:"#eef6ff",border:"1px solid #cbdff5",borderRadius:14,marginBottom:18,fontSize:14,lineHeight:1.6}}><strong>Mitä tämä sivu kertoo?</strong><p style={{margin:"8px 0 0"}}>Näet, onnistuivatko automaattiset tarkistukset, puuttuuko tarjouksista tietoja ja onko seuraava tarjousjakso valmiina. Tulevan lehden etsintä on eri tarkistus kuin nykyisten tarjousten haku: etsinnän virhe ei yksin tarkoita, että nykyiset tarjoukset ovat väärin.</p></section><section style={{padding:18,background:"#eef6ff",border:"1px solid #cbdff5",borderRadius:14,marginBottom:18,fontSize:14,lineHeight:1.6}}><strong>Näin tulkitset tiedot</strong><p style={{margin:"8px 0 0"}}>Hyväksytty = järjestelmä on merkinnyt jakson hyväksytyksi. Odottaa hyväksyntää = tiedot on käsitelty, mutta hyväksyntä puuttuu. Tuoteryhmä tai kuva löytyy = kenttä on täytetty; sen sisällön oikeellisuutta ei tällä mittarilla tarkisteta. Määrän väheneminen voi johtua myös erikokoisista tarjousjaksoista. Julkaisuvaraston laatutiedot painottuvat tällä hetkellä Lidliin; ne eivät kata kaikkien kauppojen asiakasnäkymiä.</p></section>
     <section style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:14,marginBottom:18}}>
       {statusCard("Tulevien lehtien tarkistukset onnistuneet",futureDiscoveryHealthy+" / "+futureDiscovery.length,futureDiscoveryErrors||futureDiscoveryMissing||futureDiscoveryStale?"yellow":"green","Onnistunut tarkistus viimeisen 8 päivän aikana")}
@@ -593,5 +613,5 @@ function coverage(label:string,value:number,total:number){const pct=total?Math.r
 function metricCard(label:string,value:number,state:string){return <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:18}}><div style={{fontSize:13,color:"#667085"}}>{dot(state)} {label}</div><div style={{fontSize:30,fontWeight:900,marginTop:8}}>{value.toLocaleString("fi-FI")}</div></article>}
 function metric(label:string,value:number){return <div style={{display:"flex",justifyContent:"space-between",padding:"11px 0",borderBottom:"1px solid #edf0f2"}}><span>{label}</span><b>{value.toLocaleString("fi-FI")}</b></div>}
 function explainApproval(value:string){return ({approved:"Hyväksytty",candidate:"Odottaa hyväksyntää","image-verified":"Kuvasta tarkistettu aineisto"} as Record<string,string>)[value]??"Muu tila: "+value}
-function explainSource(value:string){return ({"s-prisma-hyvinkaa":"Prisma Hyvinkään tarjoushaku","k-citymarket-cache":"Citymarketin tarjousvälimuisti","k-supermarket-jokela":"K-Supermarket Jokelan tarjoushaku","k-market-hakalantori":"K-Market Hakalantorin tarjoushaku","eurospar-validated-feed":"Eurosparin validoitu tarjousaineisto","official-lidl-combined":"Lidlin virallisten tarjousjaksojen käsittely","s-kaupat-protocol":"S-kauppojen rajapinnan yhteystarkistus","future-publication-discovery":"Tulevan tarjouslehden etsintä"} as Record<string,string>)[value]??value}
+function explainSource(value:string){return ({"s-prisma-hyvinkaa":"Prisma Hyvinkään tarjoushaku","k-citymarket-cache":"Citymarketin tarjousvälimuisti","k-citymarket-preflight":"Citymarket – esitarkastus","k-citymarket-source-audit":"Citymarketin lähdearkiston tarkistus","k-supermarket-jokela":"K-Supermarket Jokelan tarjoushaku","k-market-hakalantori":"K-Market Hakalantorin tarjoushaku","eurospar-validated-feed":"Eurosparin validoitu tarjousaineisto","official-lidl-combined":"Lidlin virallisten tarjousjaksojen käsittely","s-kaupat-protocol":"S-kauppojen rajapinnan yhteystarkistus","future-publication-discovery":"Tulevan tarjouslehden etsintä"} as Record<string,string>)[value]??value}
 function explainOutcome(value:string){return ({"active-cache-ok":"Nykyisen tarjousvälimuistin tarkistus onnistui","parser-health-ok":"Tarjousaineiston käsittely onnistui","validated-feed-ok":"Validoidun tarjousaineiston tarkistus onnistui","candidate-staging-completed":"Tarjousjaksojen käsittely valmistui","protocol-verified":"Rajapinnan yhteystarkistus onnistui","future-discovery-http-error":"Tulevan lehden etsintä epäonnistui verkkopyynnön virheeseen","future-publication-not-yet-found":"Tulevaa lehteä ei vielä löytynyt","future-publication-found":"Tuleva tarjouslehti löytyi"} as Record<string,string>)[value]??"Tekninen tulos: "+value}

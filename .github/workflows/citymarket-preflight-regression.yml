@@ -1,0 +1,27 @@
+name: Citymarket advance preflight regression
+on:
+  push:
+    paths:
+      - 'control-center/**'
+      - 'src/app/components/ziiply/offerSearch/citymarketPreflight.ts'
+      - 'src/app/api/cron/kcitymarket-cache/route.ts'
+      - 'tests/citymarket-preflight.test.cjs'
+      - '.github/workflows/citymarket-preflight-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+      - name: Advance status and failure recovery regressions
+        run: node --test tests/citymarket-preflight.test.cjs
+      - name: Type check application and Control Center
+        run: |
+          npx tsc --noEmit --pretty false
+          npx tsc --noEmit --pretty false -p control-center/tsconfig.json

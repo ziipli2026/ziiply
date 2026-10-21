@@ -23,7 +23,7 @@ jobs:
           }
       - name: Keep S-group out of publication rollover alerts
         run: |
-          grep -Fq 'const publicationPipeline=CHAINS.filter(ch=>ch.key!=="S").map(ch=>{' control-center/app/page.tsx || {
+          grep -Eq 'const publicationPipeline=CHAINS\.filter\(ch=>ch\.key(!=="S"|==="Lidl")\)\.map\(ch=>\{' control-center/app/page.tsx || {
             echo "::error::S-group must be monitored by source health/data age, not publication rollover state."
             exit 1
           }

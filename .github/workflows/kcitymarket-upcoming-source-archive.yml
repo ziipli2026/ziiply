@@ -1,6 +1,11 @@
 name: K-Citymarket advance raw archive
 on:
   workflow_dispatch:
+  push:
+    branches: [main, fix/citymarket-preflight]
+    paths:
+      - .github/workflows/kcitymarket-upcoming-source-archive.yml
+      - scripts/citymarket/capture-preflight.mjs
   schedule:
     - cron: '20,50 12,13 * * 0,3'
 permissions:
@@ -17,8 +22,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install database client
+        run: npm install --prefix /tmp/kcm-audit-deps --no-package-lock --ignore-scripts --no-audit --no-fund @neondatabase/serverless@1.0.2
+      - name: Link isolated database client
+        run: ln -s /tmp/kcm-audit-deps/node_modules node_modules
       - name: Fetch and validate upcoming publication
         id: capture
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         shell: bash
         run: |
           set -euo pipefail
@@ -42,15 +53,22 @@ jobs:
             WEEK=$(TZ=Europe/Helsinki date +%V)
           fi
           ID="${WEEK}${KIND}"
-          node scripts/citymarket/export-leaflet.mjs "$ENTRY" "/tmp/kcm-archive/$ID"
+          if [ "$KIND" = AV ]; then
+            START=$(TZ=Europe/Helsinki date -d "next monday" +%F)
+          else
+            START=$(TZ=Europe/Helsinki date -d "tomorrow" +%F)
+          fi
+          PERIOD="${START}-W$((10#$WEEK))-${KIND}"
+          set +e
+          node scripts/citymarket/capture-preflight.mjs "$PERIOD" "/tmp/kcm-archive/$ID"
+          RESULT=$?
+          set -e
+          echo "audit_exit=$RESULT" >> "$GITHUB_OUTPUT"
           node --input-type=module -e '
             import fs from "node:fs";
-            const [id,folder]=process.argv.slice(1);
-            const m=JSON.parse(fs.readFileSync(folder+"/archive-manifest.json","utf8"));
-            if(!m.publisherUrl.toUpperCase().includes("_"+id+"_KCM"))throw Error("Wrong leaflet: "+m.publisherUrl);
-            if(!m.pageCount||!m.offerCount||!m.pdfSha256)throw Error("Incomplete archive");
-            console.log("Archive validated:",id,m.pageCount,m.offerCount);
-          ' "$ID" "/tmp/kcm-archive/$ID"
+            const report=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+            if(report.sourceVerified!==true)throw Error("Source identity/checksum not verified; do not archive under requested issue");
+          ' "/tmp/kcm-archive/$ID/preflight-report.json"
           echo "id=$ID" >> "$GITHUB_OUTPUT"
           echo "ready=true" >> "$GITHUB_OUTPUT"
       - name: Save immutable source to archive branch
@@ -74,3 +92,13 @@ jobs:
           git add "publications/$LEAFLET_ID"
           git commit -m "Archive original K-Citymarket $LEAFLET_ID publication"
           git push origin HEAD:archive/citymarket-publications
+      - name: Retain run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: citymarket-preflight-${{ github.run_id }}
+          path: /tmp/kcm-archive/
+          if-no-files-found: warn
+      - name: Enforce automatic audit result
+        if: always() && steps.capture.outputs.audit_exit != ''
+        run: test "${{ steps.capture.outputs.audit_exit }}" = 0
