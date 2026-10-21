@@ -13,7 +13,7 @@ function load(path) {
     module: moduleObj, exports: moduleObj.exports,
     require: (name) => load('src/app/components/' + name.replace(/^\.\//, '') + '.ts'),
     window: {}, Date, AbortController, AbortSignal,
-    setTimeout, clearTimeout, fetch: (...args) => fakeFetch(...args),
+    setTimeout, clearTimeout, Response, fetch: (...args) => fakeFetch(...args),
   });
   return moduleObj.exports;
 }
@@ -31,9 +31,10 @@ const { fetchZiiplyRecoverableOfferSearch } = load('src/app/components/ziiply/zi
   await assert.rejects(pending, /aborted/);
   assert.equal(signal.aborted, true);
   assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 60_000), 0);
-  fakeFetch = async () => ({ ok: true });
+  fakeFetch = async () => new Response(JSON.stringify({ items: [1] }), { status: 200, headers: { 'content-type': 'application/json' } });
   const response = await fetchZiiplyRecoverableOfferSearch('/api/offers/search?q=test2');
   assert.equal(response.ok, true);
+  assert.equal((await response.json()).items[0], 1);
   assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 60_000), 0);
   console.log('PASS: actual offer fetch is cancelled on stale wake and successful fetch is deregistered');
 })().catch(error => { console.error(error); process.exitCode = 1; });
