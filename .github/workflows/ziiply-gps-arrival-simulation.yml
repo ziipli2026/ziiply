@@ -16,6 +16,7 @@ on:
       - 'src/app/page.tsx'
       - 'scripts/test-ziiply-recoverable-offer-fetch.cjs'
       - 'scripts/test-ziiply-visible-search-recovery.cjs'
+      - 'scripts/test-ziiply-wake-lifecycle.cjs'
       - '.github/workflows/ziiply-gps-arrival-simulation.yml'
 jobs:
   simulate:
@@ -41,3 +42,5 @@ jobs:
         run: node scripts/test-ziiply-recoverable-offer-fetch.cjs
       - name: Simulate visible Gosta and Justiina loading recovery
         run: node scripts/test-ziiply-visible-search-recovery.cjs
+      - name: Simulate actual browser wake event lifecycle
+        run: node scripts/test-ziiply-wake-lifecycle.cjs

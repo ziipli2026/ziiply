@@ -42,6 +42,7 @@ export default function ZiiplyWakeUp() {
       const kind = classifyZiiplyWake(idleMs, lastWake ? now - lastWake : Number.POSITIVE_INFINITY);
       if (!kind) return;
       lastWake = now;
+      lastActivity = now;
       recoverZiiplyStalledRequests(now);
       const detail: WakeDetail = { kind, reason, idleMs, at: now };
       dispatch(detail);

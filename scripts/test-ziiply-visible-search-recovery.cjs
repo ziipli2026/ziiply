@@ -1,13 +1,12 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const { stripTypeScriptTypes } = require('node:module');
+const ts = require('typescript');
 const source = fs.readFileSync('src/app/components/ziiplyRequestRecovery.ts', 'utf8');
-const registryCode = stripTypeScriptTypes(source).replace(/^export /gm, '');
+const registryCode = ts.transpileModule(source, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText;
 const page = fs.readFileSync('src/app/page.tsx', 'utf8');
-const wake = fs.readFileSync('src/app/components/ZiiplyWakeUp.tsx', 'utf8');
-assert.match(wake, /lastWake = now;\s+recoverZiiplyStalledRequests\(now\);/,
-  'both light and full wakes must recover stale searches');
 for (const [name, registration, sequence, setter] of [
   ['Gösta', 'unregisterOfferRecovery', 'gostaOfferSearchRequestSeqRefV551', 'setLoadingOffers'],
   ['Justiina', 'unregisterProductRecovery', 'activeNormalSearchRequestRefV441', 'setLoadingNormal'],
@@ -18,7 +17,7 @@ for (const [name, registration, sequence, setter] of [
   const operationCode = page.slice(start, end);
   assert.match(page, new RegExp(`finally \\{\\s+${registration}\\(\\);`));
   const state = { loading: true };
-  const context = vm.createContext({ Date, state });
+  const context = vm.createContext({ Date, state, exports: {} });
   vm.runInContext(`${registryCode}
     const ${sequence} = { current: 1 };
     const requestSeqV551 = 1, normalSearchRequestIdV441 = 1;
