@@ -1,0 +1,39 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('typescript');
+const vm = require('node:vm');
+const cache = {};
+function load(path) {
+  if (cache[path]) return cache[path].exports;
+  const source = fs.readFileSync(path, 'utf8');
+  const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const moduleObj = { exports: {} };
+  cache[path] = moduleObj;
+  vm.runInNewContext(code, {
+    module: moduleObj, exports: moduleObj.exports,
+    require: (name) => load('src/app/components/' + name.replace(/^\.\//, '') + '.ts'),
+    window: {}, Date, AbortController, AbortSignal,
+    setTimeout, clearTimeout, fetch: (...args) => fakeFetch(...args),
+  });
+  return moduleObj.exports;
+}
+let fakeFetch;
+const registry = load('src/app/components/ziiplyRequestRecovery.ts');
+const { fetchZiiplyRecoverableOfferSearch } = load('src/app/components/ziiply/ziiplyRecoverableOfferFetch.ts');
+(async () => {
+  let signal;
+  fakeFetch = (_, options) => {
+    signal = options.signal;
+    return new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true }));
+  };
+  const pending = fetchZiiplyRecoverableOfferSearch('/api/offers/search?q=test');
+  assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 31_000), 1);
+  await assert.rejects(pending, /aborted/);
+  assert.equal(signal.aborted, true);
+  assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 60_000), 0);
+  fakeFetch = async () => ({ ok: true });
+  const response = await fetchZiiplyRecoverableOfferSearch('/api/offers/search?q=test2');
+  assert.equal(response.ok, true);
+  assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 60_000), 0);
+  console.log('PASS: actual offer fetch is cancelled on stale wake and successful fetch is deregistered');
+})().catch(error => { console.error(error); process.exitCode = 1; });
