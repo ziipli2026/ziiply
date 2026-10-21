@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
                        WHEN f.name_fi ILIKE '%KUORINEEN%' THEN '100 g kuorineen punnittua tuotetta'
                        ELSE '100 g syötävää osaa'
                      END,
-                     'source', f.source,
+                     'sourceAttribution', f.source,
                      'sourceUrl', f.source_url,
                      'estimated', true,
                      'confidence', m.confidence,
