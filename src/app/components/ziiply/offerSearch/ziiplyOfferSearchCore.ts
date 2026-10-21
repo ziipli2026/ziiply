@@ -1,3 +1,4 @@
+import { fetchZiiplyRecoverableOfferSearch } from "../ziiplyRecoverableOfferFetch";
 // ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V178_KCITYMARKET_BRANCH
 // Revision: V178-KCITYMARKET-BRANCH
@@ -713,10 +714,7 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   // A single request must read the existing server-side weekly leaflet cache.
   // Repeating the request while Tjek is running can restart work on another
   // serverless instance and prevent the mobile offer list from ever opening.
-  const response = await fetch(`/api/offers/search?${params.toString()}`, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(20000),
-  });
+  const response = await fetchZiiplyRecoverableOfferSearch(`/api/offers/search?${params.toString()}`);
   const clonedForDebugV174 = response.clone();
   try {
     const payloadV174 = await clonedForDebugV174.json();
