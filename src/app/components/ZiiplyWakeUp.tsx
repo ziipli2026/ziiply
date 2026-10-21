@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { classifyZiiplyWake } from './ziiplyWakePolicy';
 
 type WakeDetail = {
   kind: 'light' | 'full';
@@ -15,9 +16,6 @@ declare global {
     'ziiply:wake': CustomEvent<WakeDetail>;
   }
 }
-const LIGHT_MS = 30_000;
-const FULL_MS = 5 * 60_000;
-const MIN_RECHECK_MS = 15_000;
 
 /**
  * Resume notification, not a page reload.
@@ -40,9 +38,9 @@ export default function ZiiplyWakeUp() {
       const now = Date.now();
       const idleMs = Math.max(0, now - Math.min(lastActivity, hiddenSince ?? now));
       hiddenSince = null;
-      if (idleMs < LIGHT_MS || now - lastWake < MIN_RECHECK_MS) return;
+      const kind = classifyZiiplyWake(idleMs, lastWake ? now - lastWake : Number.POSITIVE_INFINITY);
+      if (!kind) return;
       lastWake = now;
-      const kind: WakeDetail['kind'] = idleMs >= FULL_MS ? 'full' : 'light';
       const detail: WakeDetail = { kind, reason, idleMs, at: now };
       dispatch(detail);
       // Probe the origin without navigating or touching cart/offer caches.
@@ -90,7 +88,7 @@ export default function ZiiplyWakeUp() {
     const onOnline = () => resume('online');
     const onActivity = () => {
       const now = Date.now();
-      if (now - lastActivity >= LIGHT_MS) resume('activity');
+      if (now - lastActivity >= 30_000) resume('activity');
       lastActivity = now;
     };
     document.addEventListener('visibilitychange', visibility);
