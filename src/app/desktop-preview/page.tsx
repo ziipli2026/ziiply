@@ -1038,9 +1038,9 @@ export default function DesktopPreviewPage() {
     ] as const;
     const x=normalize(sourceName),y=normalize(candidateName);
     if(modifiers.some(([,pattern])=>{const re=new RegExp(pattern.source,"g");return re.test(x)!==new RegExp(pattern.source,"g").test(y)}))return false;
-    // When category metadata is absent, retain the distinctive product-type terms
+    // Even within the same broad category, retain distinctive product-type terms
     // instead of trusting the first matching search result.
-    if(!a||!b){
+    {
       const tokens=(v:string)=>normalize(v).replace(/\b\d+(?:\s*[x×]\s*\d+)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt)\b/g," ").split(" ").filter(t=>t.length>=4&&!/^\d+$/.test(t));
       const xWords=tokens(sourceName),yWords=tokens(candidateName);
       const xCore=xWords.slice(1).filter(t=>!modifiers.some(([,p])=>new RegExp(p.source).test(t)));
