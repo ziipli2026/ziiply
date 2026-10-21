@@ -1,0 +1,17 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('typescript');
+const vm = require('node:vm');
+const src = fs.readFileSync('src/app/components/ziiplyWakePolicy.ts', 'utf8');
+const code = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+const testModule = { exports: {} };
+vm.runInNewContext(code, { module: testModule, exports: testModule.exports });
+const { classifyZiiplyWake: wake } = testModule.exports;
+assert.equal(wake(0, Infinity), null);
+assert.equal(wake(29999, Infinity), null);
+assert.equal(wake(30000, Infinity), 'light');
+assert.equal(wake(299999, Infinity), 'light');
+assert.equal(wake(300000, Infinity), 'full');
+assert.equal(wake(3600000, 14999), null);
+assert.equal(wake(3600000, 15000), 'full');
+console.log('PASS: wake idle-time simulation and duplicate suppression');
