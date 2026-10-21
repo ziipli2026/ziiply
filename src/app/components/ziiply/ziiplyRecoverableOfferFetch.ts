@@ -1,4 +1,4 @@
-import { registerZiiplyRecoverableRequest } from './ziiplyRequestRecovery';
+import { registerZiiplyRecoverableRequest } from '../ziiplyRequestRecovery';
 
 let nextRequestId = 0;
 
