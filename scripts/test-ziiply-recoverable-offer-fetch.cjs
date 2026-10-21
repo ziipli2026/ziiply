@@ -7,7 +7,7 @@ function load(path) {
   path = require('node:path').resolve(path);
   if (cache[path]) return cache[path].exports;
   const source = fs.readFileSync(path, 'utf8');
-  const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText;
   const moduleObj = { exports: {} };
   cache[path] = moduleObj;
   vm.runInNewContext(code, {

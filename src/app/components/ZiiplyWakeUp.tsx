@@ -42,7 +42,7 @@ export default function ZiiplyWakeUp() {
       const kind = classifyZiiplyWake(idleMs, lastWake ? now - lastWake : Number.POSITIVE_INFINITY);
       if (!kind) return;
       lastWake = now;
-      if (kind === 'full') recoverZiiplyStalledRequests(now);
+      recoverZiiplyStalledRequests(now);
       const detail: WakeDetail = { kind, reason, idleMs, at: now };
       dispatch(detail);
       // Probe the origin without navigating or touching cart/offer caches.

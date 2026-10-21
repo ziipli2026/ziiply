@@ -3,7 +3,7 @@ const fs=require('node:fs');
 const ts=require('typescript');
 const vm=require('node:vm');
 const source=fs.readFileSync('src/app/components/ziiplyRequestRecovery.ts','utf8');
-const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+const js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS}}).outputText;
 const testModule={exports:{}};
 vm.runInNewContext(js,{module:testModule,exports:testModule.exports});
 const {registerZiiplyRecoverableRequest:register,recoverZiiplyStalledRequests:recover}=testModule.exports;

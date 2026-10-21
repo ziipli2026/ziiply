@@ -694,6 +694,7 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
 import ZiiplyMobileFuelView from "./components/ziiply/mobile/ZiiplyMobileFuelView";
@@ -11781,6 +11782,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function searchOffers(termOverride?: string, refreshLocalCitymarketV804 = false) {
     const requestSeqV551 = ++gostaOfferSearchRequestSeqRefV551.current;
+    const unregisterOfferRecovery = registerZiiplyRecoverableRequest('gosta-visible-search', {
+      kind: 'offer-search', startedAt: Date.now(),
+      abort: () => {
+        if (requestSeqV551 !== gostaOfferSearchRequestSeqRefV551.current) return;
+        ++gostaOfferSearchRequestSeqRefV551.current;
+        setLoadingOffers(false);
+      },
+    });
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
     const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
@@ -12158,6 +12167,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setOfferSearchResults(offerSearchCoreResult.results);
       setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
+      if (requestSeqV551 !== gostaOfferSearchRequestSeqRefV551.current) return;
       // A wake-up can deliberately abort a stalled request. Keep prior offers,
       // release the spinner in finally, and do not show a misleading error toast.
       if (!(error instanceof Error && error.name === "AbortError")) {
@@ -12166,6 +12176,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         showCartToast("Tarjoushaku ei onnistunut");
       }
     } finally {
+      unregisterOfferRecovery();
       if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
         setLoadingOffers(false);
       }
@@ -12555,6 +12566,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
+    const unregisterProductRecovery = registerZiiplyRecoverableRequest('justiina-visible-search', {
+      kind: 'product-search', startedAt: Date.now(),
+      abort: () => {
+        if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+        ++activeNormalSearchRequestRefV441.current;
+        setLoadingNormal(false);
+      },
+    });
 
     setLoadingNormal(true);
     setNormalSearchAttempted(true);
@@ -12631,6 +12650,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
 
         for (const searchQuery of searchQueries) {
+          if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
           const withinChainS = storeCompareScope === "within_chain" && withinChain === "S";
           const withinChainK = storeCompareScope === "within_chain" && withinChain === "K";
           const betweenSingleK = storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && selectedChains.k && !selectedChains.s;
@@ -12896,6 +12916,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if(recipeContext&&recipeContext.runId!==mobileRecipeRunRef.current)return;
       if(recipeIngredient)appendRecipeDebug("recipe-ranked-results",{ingredient:recipeIngredient,products:unique});
 
+      if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
       setEanCache((prev) => {
         const next = { ...prev };
 
@@ -12988,6 +13009,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setSearchPanelOpen(true);
       }
     } finally {
+      unregisterProductRecovery();
       if (normalSearchRequestIdV441 === activeNormalSearchRequestRefV441.current) {
         setLoadingNormal(false);
       }
