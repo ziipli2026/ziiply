@@ -11,7 +11,11 @@ const cases=[
 ["sama ominaisuus",p("Coop Cola Zero 1,5 l","limonadi"),p("Pirkka Cola Zero 1,5 l","limonadi"),true],
 ["laktoositon/tavallinen",p("Valio kevytmaito laktoositon 1 l","maito"),p("Arla kevytmaito 1 l","maito"),false],
 ["sama maito",p("Valio kevytmaito laktoositon 1 l","maito"),p("Arla kevytmaito laktoositon 1 l","maito"),true],
-["eri pakkauskoko",p("Coop Cola 1,5 l","limonadi"),p("Pirkka Cola 0,5 l","limonadi"),false]
+["eri pakkauskoko",p("Coop Cola 1,5 l","limonadi"),p("Pirkka Cola 0,5 l","limonadi"),false],
+["sama laaja kategoria mutta eri juoma",p("Coop Cola 1,5 l","virvoitusjuomat"),p("Pirkka Appelsiinilimonadi 1,5 l","virvoitusjuomat"),false],
+["sama laaja kategoria mutta eri ruoka",p("Valio kevytmaito 1 l","maitotuotteet"),p("Arla jogurtti 1 l","maitotuotteet"),false],
+["sama tuotetyyppi eri brändi",p("Valio kevytmaito 1 l","maitotuotteet"),p("Arla kevytmaito 1 l","maitotuotteet"),true],
+["eri tuotetyyppi ilman kategoriaa",p("Coop Cola 1,5 l",""),p("Pirkka Appelsiinilimonadi 1,5 l",""),false]
 ];
 let failures=0;for(const [label,a,b,expected] of cases){const actual=check(a,b)&&pack(a.name,b.name);const ok=actual===expected;console.log((ok?"PASS":"FAIL")+" "+label+" expected="+expected+" actual="+actual);if(!ok)failures++}
 const modeBlock=source.slice(source.indexOf("async function desktopChangeCompareMatchMode"),source.indexOf("async function desktopSelectCompareAlternative"));
