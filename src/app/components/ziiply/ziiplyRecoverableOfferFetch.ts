@@ -14,9 +14,8 @@ export async function fetchZiiplyRecoverableOfferSearch(url: string): Promise<Re
     kind: 'offer-search',
     startedAt: Date.now(),
     abort: () => controller.abort(),
-    // The existing offer search UI owns retries; never restart server leaflet parsing
-    // or touch the basket from a background wake-up.
-    recover: () => window.dispatchEvent(new CustomEvent('ziiply:offer-search-interrupted')),
+    // Existing search callers receive AbortError and can release their loading state.
+    // Never restart server leaflet parsing or touch basket prices from a wake-up.
   });
   try {
     return await fetch(url, { cache: 'no-store', signal: controller.signal });
