@@ -17,6 +17,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
+      # Only the TypeScript transpiler is needed by this isolated simulation.
+      # Do not use npm ci: the app's package-lock is currently out of sync.
+      - run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund --legacy-peer-deps typescript@5
       - name: Simulate cheapest, own-brand and same-brand category matching
         run: node scripts/test-desktop-category-modes.cjs
