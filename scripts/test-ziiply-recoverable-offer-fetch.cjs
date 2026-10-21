@@ -31,6 +31,22 @@ const { fetchZiiplyRecoverableOfferSearch } = load('src/app/components/ziiply/zi
   await assert.rejects(pending, /aborted/);
   assert.equal(signal.aborted, true);
   assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 60_000), 0);
+  // Headers arrive, but the body stalls: recovery must still abort the stream.
+  fakeFetch = (_, options) => {
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"items":'));
+        options.signal.addEventListener('abort', () => controller.error(new Error('body-aborted')), { once: true });
+      },
+    });
+    return Promise.resolve(new Response(stream, { status: 200 }));
+  };
+  const stalledBody = fetchZiiplyRecoverableOfferSearch('/api/offers/search?q=stalled-body');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 31_000), 1);
+  await assert.rejects(stalledBody, /body-aborted|abort/i);
+  assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 60_000), 0);
+
   fakeFetch = async () => new Response(JSON.stringify({ items: [1] }), { status: 200, headers: { 'content-type': 'application/json' } });
   const response = await fetchZiiplyRecoverableOfferSearch('/api/offers/search?q=test2');
   assert.equal(response.ok, true);
