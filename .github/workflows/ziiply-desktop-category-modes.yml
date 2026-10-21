@@ -19,6 +19,8 @@ jobs:
           cache: npm
       # Only the TypeScript transpiler is needed by this isolated simulation.
       # Do not use npm ci: the app's package-lock is currently out of sync.
-      - run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund --legacy-peer-deps typescript@5
+      - run: npm install --prefix /tmp/ziiply-category-test --no-save --ignore-scripts --no-audit --no-fund typescript@5
       - name: Simulate cheapest, own-brand and same-brand category matching
         run: node scripts/test-desktop-category-modes.cjs
+        env:
+          NODE_PATH: /tmp/ziiply-category-test/node_modules
