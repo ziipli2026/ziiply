@@ -88,6 +88,18 @@ export async function GET(request: NextRequest) {
                      'fineliId', f.fineli_id,
                      'foodName', f.name_fi,
                      'nutrients', f.nutrients,
+                     'per', 100,
+                     'perUnit', 'g',
+                     'weightBasis', CASE
+                       WHEN f.name_fi ILIKE '%KIVINEEN%' THEN 'with_peel_and_stone'
+                       WHEN f.name_fi ILIKE '%KUORINEEN%' THEN 'with_peel'
+                       ELSE 'edible_portion'
+                     END,
+                     'weightBasisLabel', CASE
+                       WHEN f.name_fi ILIKE '%KIVINEEN%' THEN '100 g kuorineen ja kivineen punnittua tuotetta'
+                       WHEN f.name_fi ILIKE '%KUORINEEN%' THEN '100 g kuorineen punnittua tuotetta'
+                       ELSE '100 g syötävää osaa'
+                     END,
                      'source', f.source,
                      'sourceUrl', f.source_url,
                      'estimated', true,
@@ -102,7 +114,7 @@ export async function GET(request: NextRequest) {
           `;
           const specific = matched.find((item) => item.source === "open-food-facts");
           const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
-          if (selected) nutrition = { source: selected.source, ...selected.data };
+          if (selected) nutrition = { ...selected.data, source: selected.source };
         } catch (error) {
           // EAN scanning must remain available even if nutrition tables are unavailable.
           console.warn("EAN nutrition lookup unavailable", error instanceof Error ? error.message : String(error));
