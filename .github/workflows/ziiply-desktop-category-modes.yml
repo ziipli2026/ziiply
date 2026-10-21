@@ -1,0 +1,22 @@
+name: Ziiply desktop category comparison simulation
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - preview/legacy-desktop-ui
+    paths:
+      - src/app/desktop-preview/page.tsx
+      - scripts/test-desktop-category-modes.cjs
+      - .github/workflows/ziiply-desktop-category-modes.yml
+jobs:
+  category-comparison:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Simulate cheapest, own-brand and same-brand category matching
+        run: node scripts/test-desktop-category-modes.cjs
