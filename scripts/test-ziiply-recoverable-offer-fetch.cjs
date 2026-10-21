@@ -11,7 +11,7 @@ function load(path) {
   cache[path] = moduleObj;
   vm.runInNewContext(code, {
     module: moduleObj, exports: moduleObj.exports,
-    require: (name) => load('src/app/components/' + name.replace(/^\.\//, '') + '.ts'),
+    require: (name) => load(require('node:path').resolve(require('node:path').dirname(path), name) + '.ts'),
     window: {}, Date, AbortController, AbortSignal,
     setTimeout, clearTimeout, Response, fetch: (...args) => fakeFetch(...args),
   });
