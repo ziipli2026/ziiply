@@ -13,6 +13,7 @@ on:
       - 'scripts/test-ziiply-request-recovery.cjs'
       - 'src/app/components/ziiply/ziiplyRecoverableOfferFetch.ts'
       - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - 'src/app/page.tsx'
       - 'scripts/test-ziiply-recoverable-offer-fetch.cjs'
       - '.github/workflows/ziiply-gps-arrival-simulation.yml'
 jobs:
