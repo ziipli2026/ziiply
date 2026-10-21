@@ -695,6 +695,7 @@
 
 "use client";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
+import { evaluateZiiplyArrival, initialZiiplyArrivalState, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
 import ZiiplyMobileFuelView from "./components/ziiply/mobile/ZiiplyMobileFuelView";
@@ -4798,6 +4799,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerStorePromptV828, setScannerStorePromptV828] = useState<{ storeName: string; seconds: number } | null>(null);
   const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
   const scannerLocationSessionV856 = useRef(0);
+  const liveArrivalStateRefV864 = useRef(initialZiiplyArrivalState());
+  const liveArrivalLastFixAtRefV864 = useRef(0);
+  const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
+  const liveArrivalDecisionRefV864 = useRef<ReturnType<typeof evaluateZiiplyArrival> | null>(null);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
@@ -11665,8 +11670,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             if (!city || cancelled) return;
 
-            gpsCoordsLatestRefV137.current = nextCoords;
-            setGpsCoordsV320(nextCoords);
+            // Fresh coordinates are published by the independent V864 sampler.
 
             setUsingOwnLocation(true);
             setGpsErrorMessage("");
@@ -11679,8 +11683,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 gpsPollLastAppliedCoordsRefV137.current = nextCoords;
                 gpsPollLastAppliedAtRefV90.current = Date.now();
               }
-            } else {
-              setGpsCoordsV320(nextCoords);
             }
 
             if (cancelled) return;
@@ -11724,6 +11726,50 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
   }, [usingOwnLocation]);
 
+
+  // V864: lightweight fresh samples are independent of slow store/API searches.
+  // Keep sampling after parking and while the scanner is open; resume immediately.
+  useEffect(() => {
+    if (!usingOwnLocation || typeof navigator === "undefined" || !navigator.geolocation) return;
+    let disposed = false;
+    let pending = false;
+    let deadline: ReturnType<typeof setTimeout> | null = null;
+    let request = 0;
+    const sample = () => {
+      if (disposed || document.hidden || pending || gpsUserDisabledRefV306.current) return;
+      pending = true;
+      const current = ++request;
+      const finish = (position: GeolocationPosition | null) => {
+        if (disposed || current !== request) return;
+        ++request;
+        pending = false;
+        if (deadline) clearTimeout(deadline);
+        liveArrivalHandlerRefV864.current(position);
+      };
+      deadline = setTimeout(() => finish(null), 4500);
+      navigator.geolocation.getCurrentPosition(finish, () => finish(null),
+        {enableHighAccuracy:true,maximumAge:0,timeout:4000});
+    };
+    const resume = () => {
+      if (document.hidden) {
+        ++request; pending = false;
+        if (deadline) clearTimeout(deadline);
+        return;
+      }
+      sample();
+    };
+    sample();
+    const timer = setInterval(sample, ZIIPLY_PARKED_SAMPLE_MS);
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("focus", sample);
+    return () => {
+      disposed = true; ++request;
+      clearInterval(timer);
+      if (deadline) clearTimeout(deadline);
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("focus", sample);
+    };
+  }, [usingOwnLocation]);
 
   // V737_RESUME_REFRESH_AFTER_LONG_BACKGROUND:
   // Jos sovellus on ollut pitkään taustalla, pidä nykyinen vakaa näkymä näkyvissä
@@ -14033,7 +14079,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (scannerStoreCheckDoneRefV791.current) {
       const confirmedName = normalize(scannerConfirmedStoreNameRefV828.current);
       const stillMatchesCurrentStore = !confirmedName || currentSelectedScannerNamesV832.some((name) => normalize(name) === confirmedName);
-      if (stillMatchesCurrentStore) return scannerInStoreRefV828.current;
+      if (stillMatchesCurrentStore && Date.now() - liveArrivalLastFixAtRefV864.current <= 30000) return scannerInStoreRefV828.current;
       // V832: store context changed while scanner stayed open. Never inherit
       // the previous store's collection permission into the new store.
       scannerStoreCheckDoneRefV791.current = false;
@@ -14082,9 +14128,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Never use its cached coordinates (or a cached distance) to silently reject
     // collection. Request a fresh fix for this scanner session instead.
     const scannerNotInStoreV858 = () => {
-      scannerStoreCheckDoneRefV791.current = true;
+      scannerStoreCheckDoneRefV791.current = false;
       scannerInStoreRefV828.current = false;
-      scannerConfirmedStoreNameRefV828.current = intendedName;
+      scannerConfirmedStoreNameRefV828.current = "";
       setScannerLocationStatusV855({name:intendedName,verified:false,checking:false});
       return false;
     };
@@ -14106,6 +14152,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         { enableHighAccuracy: true, maximumAge: 0, timeout: 4000 },
       );
     });
+    liveArrivalHandlerRefV864.current(freshScannerPositionV854);
+    const liveDecisionV864 = liveArrivalDecisionRefV864.current;
+    if (liveDecisionV864?.status === "in-store" && liveDecisionV864.isSelectedStore &&
+        Date.now() - liveArrivalLastFixAtRefV864.current <= 10000) return true;
     if (!freshScannerPositionV854 ||
         Date.now() - freshScannerPositionV854.timestamp > 10000 ||
         !Number.isFinite(freshScannerPositionV854.coords.accuracy) ||
@@ -14133,7 +14183,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (freshIntendedDistanceV854 != null &&
         freshIntendedDistanceV854 <= 0.05 &&
         !freshCompetitorV854 &&
-        freshScannerPositionV854.coords.accuracy <= 35) {
+        freshScannerPositionV854.coords.accuracy <= 35 &&
+        liveDecisionV864?.status === "in-store" && liveDecisionV864.isSelectedStore) {
       scannerStoreCheckDoneRefV791.current = true;
       scannerInStoreRefV828.current = true;
       scannerConfirmedStoreNameRefV828.current = intendedName;
@@ -14824,71 +14875,72 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalClosing(false);
   }
 
-  // V857: resolve the visible scanner store against a fresh GPS fix, including multi-chain selections.
-  // The status indicator is informational only and never grants permission to collect/add products.
-  function checkScannerLocationOnOpenV856() {
-    const session = ++scannerLocationSessionV856.current;
+  // V864: the same arrival samples drive the scanner and current coordinates.
+  // A weak/failed fix is undecided, never a permanent "not in store" answer.
+  liveArrivalHandlerRefV864.current = (position) => {
+    const now = Date.now();
+    if (!position || now - position.timestamp > 10000 ||
+        position.timestamp > now + 1000 ||
+        !Number.isFinite(position.coords.accuracy) || position.coords.accuracy <= 0 || position.coords.accuracy > 50 ||
+        !Number.isFinite(position.coords.latitude) || !Number.isFinite(position.coords.longitude)) {
+      if (now - liveArrivalLastFixAtRefV864.current <= 30000) return;
+      liveArrivalStateRefV864.current = initialZiiplyArrivalState();
+      liveArrivalDecisionRefV864.current = null;
+      scannerStoreCheckDoneRefV791.current = false;
+      scannerInStoreRefV828.current = false;
+      if (eanScannerOpen) setScannerLocationStatusV855(current => current ? {...current, verified:false, checking:true} : null);
+      return;
+    }
+    if (position.timestamp <= liveArrivalLastFixAtRefV864.current) return;
+    if (position.timestamp - liveArrivalLastFixAtRefV864.current > 30000)
+      liveArrivalStateRefV864.current = initialZiiplyArrivalState();
+    liveArrivalLastFixAtRefV864.current = position.timestamp;
     const names = [
       selectedChains.s ? String(activeStores.sStoreName || "").trim() : "",
       selectedChains.k ? String(activeStores.kStoreName || "").trim() : "",
       selectedChains.lidl ? String(selectedLidlStoreV750?.name || "").trim() : "",
       selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
     ].filter(name => name && !name.startsWith("Valitse ensin"));
-    const fallbackName = names[0] || "";
-    const stores = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
-    const selectedCandidates = stores.filter(store =>
-      names.some(name => normalize(String(store.name || "")) === normalize(name))
-    );
-    setScannerLocationStatusV855(fallbackName ? {name:fallbackName,verified:false,checking:true} : null);
-    if (!fallbackName || !usingOwnLocation || typeof navigator === "undefined" || !navigator.geolocation) {
-      setScannerLocationStatusV855(fallbackName ? {name:fallbackName,verified:false,checking:false} : null);
-      return;
+    const unique = new Map<string, {id:string;name:string;latitude:number;longitude:number}>();
+    for (const store of buildGpsStoreCandidatePoolFromAllAreasV40(foundStores)) {
+      const name = String(store.name || "").trim();
+      const latitude = getStoreCoordinateV320(store, ["latitude","lat","y"]);
+      const longitude = getStoreCoordinateV320(store, ["longitude","lng","lon","x"]);
+      if (!name || latitude == null || longitude == null) continue;
+      const id = normalize(name);
+      if (!unique.has(id)) unique.set(id, {id,name,latitude,longitude});
     }
-    if (!selectedCandidates.length) {
-      setScannerLocationStatusV855({name:fallbackName,verified:false,checking:false});
-      return;
-    }
+    const decision = evaluateZiiplyArrival(liveArrivalStateRefV864.current, {
+      at:position.timestamp, latitude:position.coords.latitude, longitude:position.coords.longitude,
+      accuracyMeters:position.coords.accuracy,
+      speedKmh:typeof position.coords.speed === "number" && Number.isFinite(position.coords.speed) && position.coords.speed >= 0
+        ? position.coords.speed * 3.6 : null,
+    }, [...unique.values()], names.map(name => normalize(name)));
+    liveArrivalStateRefV864.current = decision.state;
+    liveArrivalDecisionRefV864.current = decision;
+    // Publish fixes before the expensive store search's 60/120-second throttle.
+    const coords = {latitude:position.coords.latitude,longitude:position.coords.longitude};
+    gpsCoordsLatestRefV137.current = coords;
+    setGpsCoordsV320(coords);
+    if (!eanScannerOpen) return;
+    const verified = decision.status === "in-store" && decision.isSelectedStore;
+    scannerStoreCheckDoneRefV791.current = verified;
+    scannerInStoreRefV828.current = verified;
+    scannerConfirmedStoreNameRefV828.current = verified ? decision.store!.name : "";
+    setScannerLocationStatusV855({
+      name:decision.store?.name || names[0] || "",
+      verified, checking:decision.status === "checking" || decision.status === "near-store" || decision.status === "uncertain",
+    });
+  };
+
+  function checkScannerLocationOnOpenV856() {
+    const session = ++scannerLocationSessionV856.current;
+    if (!usingOwnLocation || typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(position => {
-      if (scannerLocationSessionV856.current !== session) return;
-      const fresh = Date.now() - position.timestamp <= 10000 && position.coords.accuracy <= 35;
-      const point = {latitude:position.coords.latitude,longitude:position.coords.longitude};
-      const distance = (store:StoreSearchItem) => {
-        const latitude=getStoreCoordinateV320(store,["latitude","lat","y"]);
-        const longitude=getStoreCoordinateV320(store,["longitude","lng","lon","x"]);
-        return latitude==null||longitude==null?null:calculateDistanceKmV320(point,{latitude,longitude});
-      };
-      const ranked = selectedCandidates
-        .map(store => ({store,km:distance(store)}))
-        .filter((item): item is {store:StoreSearchItem;km:number} => item.km != null)
-        .sort((a,b) => a.km-b.km);
-      const nearest = ranked[0];
-      if (!nearest) {
-        setScannerLocationStatusV855({name:fallbackName,verified:false,checking:false});
-        return;
-      }
-      const nearestName = String(nearest.store.name || fallbackName);
-      const competitor = stores.some(store =>
-        normalize(String(store.name || "")) !== normalize(nearestName) &&
-        (distance(store) ?? Infinity) <= 0.05
-      );
-      const verified = Boolean(fresh && nearest.km <= 0.05 && !competitor);
-      // V860: GPS verification at scanner open is authoritative for this scanner
-      // session. Do not make the first barcode scan repeat GPS and overwrite it.
-      // Unknown/failed GPS leaves the session undecided for scanner fallback.
-      if (verified) {
-        scannerStoreCheckDoneRefV791.current = true;
-        scannerInStoreRefV828.current = true;
-        scannerConfirmedStoreNameRefV828.current = nearestName;
-      }
-      setScannerLocationStatusV855({
-        name: verified ? nearestName : fallbackName,
-        verified,
-        checking:false
-      });
-    },()=>{
-      if(scannerLocationSessionV856.current===session)
-        setScannerLocationStatusV855({name:fallbackName,verified:false,checking:false});
-    },{enableHighAccuracy:true,maximumAge:0,timeout:4000});
+      if (scannerLocationSessionV856.current === session) liveArrivalHandlerRefV864.current(position);
+    }, () => {
+      if (scannerLocationSessionV856.current === session) liveArrivalHandlerRefV864.current(null);
+    }, {enableHighAccuracy:true,maximumAge:0,timeout:4000});
   }
 
   function openEanModal() {
@@ -14906,10 +14958,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
-    checkScannerLocationOnOpenV856();
     scannerStoreCheckDoneRefV791.current = false;
     scannerInStoreRefV828.current = false;
     scannerConfirmedStoreNameRefV828.current = "";
+    setScannerLocationStatusV855(current => current ? {...current,verified:false,checking:true} : null);
+    checkScannerLocationOnOpenV856();
     // Mobiilin SCAN-nappi avaa aina uuden ZiiplyMobileScannerCard-näkymän heti.
     // Kamera käynnistetään perässä, mutta renderi ei saa jäädä riippumaan
     // startEanCameraScannerin asynkronisesta onnistumisesta.

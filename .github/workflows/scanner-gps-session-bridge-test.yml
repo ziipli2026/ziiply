@@ -4,31 +4,21 @@ on:
   push:
     paths:
       - 'src/app/page.tsx'
+      - 'src/app/components/ziiply/location/ziiplyArrivalSequence.ts'
+      - 'scripts/test-scanner-live-arrival.cjs'
       - '.github/workflows/scanner-gps-session-bridge-test.yml'
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check GPS to scanner session contract
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Simulate GPS arrival and scanner sessions
         run: |
-          node <<'NODE'
-          const assert=require('node:assert/strict');
-          const fs=require('node:fs');
-          const s=fs.readFileSync('src/app/page.tsx','utf8');
-          const open=s.split('function checkScannerLocationOnOpenV856()')[1]?.split('function openEanModal()')[0];
-          const confirm=s.split('async function confirmPhysicalScannerStoreV818()')[1]?.split('async function searchScannerEnteredEanV830')[0];
-          assert(open&&confirm,'scanner location and confirmation functions exist');
-          const gps=open.split('const verified = Boolean(')[1]?.split('setScannerLocationStatusV855({')[0];
-          assert(gps,'GPS verification branch exists');
-          assert.match(gps,/if \(verified\) \{/);
-          assert.match(gps,/scannerStoreCheckDoneRefV791\.current = true/);
-          assert.match(gps,/scannerInStoreRefV828\.current = true/);
-          assert.match(gps,/scannerConfirmedStoreNameRefV828\.current = nearestName/);
-          assert.match(confirm,/if \(scannerStoreCheckDoneRefV791\.current\)/);
-          assert.match(confirm,/if \(stillMatchesCurrentStore\) return scannerInStoreRefV828\.current/);
-          assert.match(confirm,/const intendedName = selectedName \|\| selectedNames\[0\] \|\| cartTarget\?\.name \|\| ""/);
-          console.log('PASS: scanner-open GPS verification persists in scanner session');
-          console.log('PASS: subsequent scanner scan reuses same confirmed store');
-          console.log('PASS: selected store takes priority over cart history');
-          NODE
+          node scripts/test-ziiply-arrival-sequence.cjs
+          node scripts/test-scanner-live-arrival.cjs
+          node scripts/scanner-price-race-check.mjs

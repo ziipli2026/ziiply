@@ -67,7 +67,10 @@ export function evaluateZiiplyArrival(
     if(sample.at-state.tripStartedAt>=ZIIPLY_TRIP_CONFIRM_MS)state.tripConfirmed=true;
     state.stoppedAt=null;state.lastStationarySampleAt=null;state.lastStationaryPosition=null;
     state.arrivalStoreId=null;
-  }else if(speed!==null&&speed<=ZIIPLY_PARKED_SPEED_KMH&&valid){
+  }else if(valid && ((speed!==null && Number.isFinite(speed) && speed>=0 && speed<=ZIIPLY_PARKED_SPEED_KMH)
+    // Safari may supply null speed even at rest. Require repeated stable fixes.
+    || (speed===null && (!state.lastStationaryPosition
+      || ziiplyDistanceMeters(state.lastStationaryPosition,sample)<=25)))){
     state.tripStartedAt=null;
     if(state.lastStationarySampleAt===null || sample.at-state.lastStationarySampleAt>=ZIIPLY_PARKED_SAMPLE_MS){
       const drift=state.lastStationaryPosition?ziiplyDistanceMeters(state.lastStationaryPosition,sample):0;
