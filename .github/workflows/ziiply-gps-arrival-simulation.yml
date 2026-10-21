@@ -25,6 +25,8 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci --ignore-scripts
+      - name: Check TypeScript compilation
+        run: npx tsc --noEmit
       - name: Simulate GPS and time progression
         run: node scripts/test-ziiply-arrival-sequence.cjs
       - name: Simulate browser wake-up after idle
