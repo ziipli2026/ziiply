@@ -5,6 +5,9 @@ on:
     paths:
       - 'src/app/components/ziiply/location/ziiplyArrivalSequence.ts'
       - 'scripts/test-ziiply-arrival-sequence.cjs'
+      - 'src/app/components/ziiplyWakePolicy.ts'
+      - 'src/app/components/ZiiplyWakeUp.tsx'
+      - 'scripts/test-ziiply-wake-policy.cjs'
       - '.github/workflows/ziiply-gps-arrival-simulation.yml'
 jobs:
   simulate:
@@ -18,3 +21,5 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Simulate GPS and time progression
         run: node scripts/test-ziiply-arrival-sequence.cjs
+      - name: Simulate browser wake-up after idle
+        run: node scripts/test-ziiply-wake-policy.cjs
