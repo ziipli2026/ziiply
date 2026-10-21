@@ -12158,9 +12158,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setOfferSearchResults(offerSearchCoreResult.results);
       setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
-      console.error("[Ziiply offers] API search failed", error);
-      // V529: älä tyhjennä onnistuneita vanhoja tuloksia virheessäkään, jotta Gösta ei välähdä tyhjäksi.
-      showCartToast("Tarjoushaku ei onnistunut");
+      // A wake-up can deliberately abort a stalled request. Keep prior offers,
+      // release the spinner in finally, and do not show a misleading error toast.
+      if (!(error instanceof Error && error.name === "AbortError")) {
+        console.error("[Ziiply offers] API search failed", error);
+        // V529: preserve previous successful results on transient failures.
+        showCartToast("Tarjoushaku ei onnistunut");
+      }
     } finally {
       if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
         setLoadingOffers(false);
