@@ -53,5 +53,9 @@ const { fetchZiiplyRecoverableOfferSearch } = load('src/app/components/ziiply/zi
   assert.equal(response.ok, true);
   assert.equal((await response.json()).items[0], 1);
   assert.equal(registry.recoverZiiplyStalledRequests(Date.now() + 60_000), 0);
+  fakeFetch = async () => new Response(null, { status: 204 });
+  const emptyResponse = await fetchZiiplyRecoverableOfferSearch('/api/offers/search?q=empty');
+  assert.equal(emptyResponse.status, 204);
+  assert.equal(await emptyResponse.text(), '');
   console.log('PASS: actual offer fetch is cancelled on stale wake and successful fetch is deregistered');
 })().catch(error => { console.error(error); process.exitCode = 1; });
