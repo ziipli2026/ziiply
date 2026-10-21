@@ -7,6 +7,7 @@ on:
     paths:
       - src/app/desktop-preview/page.tsx
       - scripts/test-desktop-category-modes.cjs
+      - scripts/test-desktop-live-store-search.mjs
       - .github/workflows/ziiply-desktop-category-modes.yml
 jobs:
   category-comparison:
@@ -24,3 +25,5 @@ jobs:
         run: node scripts/test-desktop-category-modes.cjs
         env:
           NODE_PATH: /tmp/ziiply-category-test/node_modules
+      - name: Read-only live S and K store search smoke test
+        run: node scripts/test-desktop-live-store-search.mjs
