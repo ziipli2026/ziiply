@@ -91,12 +91,14 @@ export async function GET(request: NextRequest) {
                      'per', 100,
                      'perUnit', 'g',
                      'weightBasis', CASE
-                       WHEN f.name_fi ILIKE '%KIVINEEN%' THEN 'with_peel_and_stone'
+                       WHEN f.name_fi ILIKE '%KIVINEEN%' AND f.name_fi ILIKE '%KUORINEEN%' THEN 'with_peel_and_stone'
+                       WHEN f.name_fi ILIKE '%KIVINEEN%' THEN 'with_stone'
                        WHEN f.name_fi ILIKE '%KUORINEEN%' THEN 'with_peel'
                        ELSE 'edible_portion'
                      END,
                      'weightBasisLabel', CASE
-                       WHEN f.name_fi ILIKE '%KIVINEEN%' THEN '100 g kuorineen ja kivineen punnittua tuotetta'
+                       WHEN f.name_fi ILIKE '%KIVINEEN%' AND f.name_fi ILIKE '%KUORINEEN%' THEN '100 g kuorineen ja kivineen punnittua tuotetta'
+                       WHEN f.name_fi ILIKE '%KIVINEEN%' THEN '100 g kivineen punnittua tuotetta'
                        WHEN f.name_fi ILIKE '%KUORINEEN%' THEN '100 g kuorineen punnittua tuotetta'
                        ELSE '100 g syötävää osaa'
                      END,
