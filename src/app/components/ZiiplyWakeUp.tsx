@@ -8,6 +8,7 @@ type WakeDetail = {
   idleMs: number;
   at: number;
   location?: { latitude: number; longitude: number; accuracyMeters: number };
+  networkReady?: boolean;
 };
 declare global {
   interface WindowEventMap {
@@ -28,7 +29,7 @@ export default function ZiiplyWakeUp() {
     let lastActivity = Date.now();
     let hiddenSince: number | null = document.hidden ? Date.now() : null;
     let lastWake = 0;
-    let pendingLocation: number | null = null;
+    let probeController: AbortController | null = null;
     let disposed = false;
 
     const dispatch = (detail: WakeDetail) => {
@@ -44,14 +45,27 @@ export default function ZiiplyWakeUp() {
       const kind: WakeDetail['kind'] = idleMs >= FULL_MS ? 'full' : 'light';
       const detail: WakeDetail = { kind, reason, idleMs, at: now };
       dispatch(detail);
+      // Probe the origin without navigating or touching cart/offer caches.
+      // A previously suspended browser may have a stale connection.
+      probeController?.abort();
+      const controller = new AbortController();
+      probeController = controller;
+      void fetch('/favicon.ico', { method: 'HEAD', cache: 'no-store', signal: controller.signal })
+        .then(response => {
+          if (!disposed && !controller.signal.aborted)
+            dispatch({ ...detail, reason: 'network-resumed', networkReady: response.ok });
+        })
+        .catch(() => {
+          if (!disposed && !controller.signal.aborted)
+            dispatch({ ...detail, reason: 'network-resumed', networkReady: false });
+        });
       // Full wake silently probes current location if the browser already has permission.
       // Never prompt for permission simply because the app became visible.
       if (kind !== 'full' || !navigator.geolocation || !navigator.permissions) return;
       void navigator.permissions.query({ name: 'geolocation' }).then(permission => {
         if (disposed || permission.state !== 'granted' || document.hidden) return;
-        pendingLocation = navigator.geolocation.getCurrentPosition(
+        navigator.geolocation.getCurrentPosition(
           position => {
-            pendingLocation = null;
             if (disposed || document.hidden) return;
             dispatch({
               ...detail, reason: 'gps-resumed',
@@ -62,9 +76,9 @@ export default function ZiiplyWakeUp() {
               },
             });
           },
-          () => { pendingLocation = null; },
+          () => {},
           { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 },
-        ) as unknown as number;
+        );
       }).catch(() => {});
     };
     const visibility = () => {
@@ -93,10 +107,7 @@ export default function ZiiplyWakeUp() {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('pointerdown', onActivity);
       window.removeEventListener('keydown', onActivity);
-      if (pendingLocation !== null && navigator.geolocation) {
-        // getCurrentPosition cannot be cancelled; disposed guards its callback.
-        pendingLocation = null;
-      }
+      probeController?.abort();
     };
   }, []);
   return null;
