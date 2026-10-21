@@ -28,6 +28,8 @@ export async function fetchZiiplyRecoverableOfferSearch(url: string): Promise<Re
     // callers work without modification.
     const body = await response.arrayBuffer();
     // 204/205/304 responses must not have a body in the Response constructor.
+    // An opaque response has status 0 and cannot be reconstructed this way.
+    if (response.type === 'opaque' || response.status === 0) return response;
     return new Response([204, 205, 304].includes(response.status) ? null : body, {
       status: response.status,
       statusText: response.statusText,
