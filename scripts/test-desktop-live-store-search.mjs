@@ -7,11 +7,12 @@ const stores=[
   {chain:"K",path:"/api/k-products",store:"N183",storeName:"K-Citymarket Hyvinkää"}
 ];
 const searches=["kevytmaito","jogurtti","kahvi","cola"];
-let failed=0,seen=0;
+let failed=0,seen=0,blocked=0;
 for(const st of stores)for(const search of searches){
  const u=new URL(st.path,base);u.searchParams.set("search",search);u.searchParams.set("store",st.store);if(st.chain==="S")u.searchParams.set("storeName",st.storeName);
  try{
   const response=await fetch(u,{headers:{accept:"application/json"},signal:AbortSignal.timeout(25000)});
+  if(response.status===401||response.status===403){blocked++;console.log("BLOCKED "+st.chain+" "+search+": HTTP "+response.status+" (preview authentication; search not tested)");continue;}
   if(!response.ok)throw Error("HTTP "+response.status);
   const data=await response.json();
   const items=Array.isArray(data)?data:Array.isArray(data.products)?data.products:Array.isArray(data.items)?data.items:null;
@@ -22,5 +23,6 @@ for(const st of stores)for(const search of searches){
   if(!priced.length)throw Error("No priced products returned");
  }catch(e){failed++;console.error("FAIL "+st.chain+" "+search+": "+e.message)}
 }
-console.log("Live store search summary: priced products="+seen+", failed queries="+failed);
+console.log("Live store search summary: priced products="+seen+", failed queries="+failed+", authentication-blocked queries="+blocked);
 assert.equal(failed,0,"Live store searches failed; inspect log (availability/network/store identifiers may need checking)");
+if(blocked>0){console.log("SKIPPED LIVE VERIFICATION: Vercel authentication blocked "+blocked+" queries. No live search result has been verified.");process.exitCode=2;}
