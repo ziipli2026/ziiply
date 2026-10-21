@@ -1,3 +1,4 @@
+import { cleanRecipeQuery, normalizeRecipeCategoryQuery, recipeCategory, recipeCategoryRejection } from "./recipeCategories";
 import { inferRecipeProtein, proteinProductRejection, type RecipeProteinRequirement } from "./recipeProtein";
 type RecipeContext={sourceLine?:string;proteinRequirement?:RecipeProteinRequirement|null;wholeSpice?:boolean};
 /** Recipe-only canonicalization. Preserve the ingredient type before looking at price. */
@@ -150,13 +151,16 @@ function cleanName(input: string): string {
  .replace(/\s+(?:rasvaa|lohkoina|kuutioina|pieninä kuutioina)$/g,"").replace(/\s+/g," ").trim();
 }
 export function recipeProductSearchTerm(input: string): string | null {
- const name=cleanName(input);
+ const name=cleanName(cleanRecipeQuery(input));
+ if(recipeCategory(name))return normalizeRecipeCategoryQuery(name);
  if(!/sipulikeittoaine|salaattisekoit/.test(name)&&/(?:laatikko|keitto|piirakka|pannukakku|korvapuusti|salaatti|kanapasta|tonnikalapasta|linssicurry)/.test(name))return name;
  if(!name||/^(?:vesi|vettä|veden|pastan keitinvet|keitinvet)/.test(name))return null;
  return kinds.find(x=>x.pattern.test(name))?.term||name;
 }
 export function classifyRecipeIngredient(input: string): RecipeFoodGroup | null {
- const term=recipeProductSearchTerm(input);const kind=kinds.find(x=>x.term===term);
+ const term=recipeProductSearchTerm(input);const category=recipeCategory(input);
+ if(category&&term)return {ingredient:term,searchTerm:term,mainGroup:category.label,subGroup:category.label};
+ const kind=kinds.find(x=>x.term===term);
  return kind?{ingredient:kind.term,searchTerm:kind.term,mainGroup:kind.group,subGroup:kind.group}:null;
 }
 /** Unknown ingredients require a literal match, never an arbitrary cheapest item. */
@@ -165,11 +169,14 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
  if(/nelson garden|kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
- const protein=context?.proteinRequirement||inferRecipeProtein(input);
+ const categoryIntent=recipeCategory(term);
+ const categoryRejection=recipeCategoryRejection(term,product);
+ if(categoryRejection)return categoryRejection;
+ const protein=categoryIntent?null:context?.proteinRequirement||inferRecipeProtein(input);
  if(protein)return proteinProductRejection(protein,product);
  const kind=kinds.find(x=>x.term===term);
  if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
- if(!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
+ if(!categoryIntent&&!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
  if(term==="sokeri"){
    const sugarName=/(?:^|[\s-])(?:sokeri|taloussokeri|hienosokeri|kidesokeri|ruokosokeri|fariinisokeri|palasokeri|raesokeri|siro)(?=$|[\s\d-])/i.test(name);
    if(!sugarName)return "actual_sugar_product_required";

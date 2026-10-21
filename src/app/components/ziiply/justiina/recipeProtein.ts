@@ -1,3 +1,4 @@
+import { recipeCategory } from "./recipeCategories";
 /** Preparation and storage are separate: a retail tray may contain fresh raw meat. */
 export type RecipeProteinRequirement={family:"fish"|"meat";species:string;processing:"raw"|"cooked"|"smoked"|"cured"|"canned";storage:"fresh"|"frozen"|"prefer_fresh";marinated:boolean;unseasoned:boolean;marinade?:string|null;cut:string|null;searchTerm:string;basis:string};
 const species:Array<{id:string;family:"fish"|"meat";pattern:RegExp;query:string}>=[
@@ -26,6 +27,7 @@ function identity(name:string){
  return species.find(x=>x.pattern.test(name));
 }
 export function inferRecipeProtein(name:string,instructions="",sourceLine=name):RecipeProteinRequirement|null{
+ if(recipeCategory(name))return null;
  const input=name.toLocaleLowerCase("fi"),food=identity(input);if(!food||meal.test(input))return null;
  const clauses=instructions.toLocaleLowerCase("fi").split(/[.!?\n]/).filter(x=>food.pattern.test(x)||(food.family==="fish"&&/\bkala/.test(x))||(food.family==="meat"&&/\bliha/.test(x)));
  const context=clauses.join(" ");
