@@ -29,7 +29,7 @@ jobs:
       - name: Fetch and validate upcoming publication
         id: capture
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         shell: bash
         run: |
           set -euo pipefail
