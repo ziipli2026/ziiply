@@ -4,6 +4,7 @@ const ts = require('typescript');
 const vm = require('node:vm');
 const cache = {};
 function load(path) {
+  path = require('node:path').resolve(path);
   if (cache[path]) return cache[path].exports;
   const source = fs.readFileSync(path, 'utf8');
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
