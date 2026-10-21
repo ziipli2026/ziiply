@@ -1,6 +1,6 @@
 // Read-only smoke test against live Ziiply store search endpoints.
 // No database writes, no cart mutations, and no deployments.
-const assert=require("node:assert/strict");
+import assert from "node:assert/strict";
 const base=process.env.ZIIPLY_TEST_BASE_URL||"https://ziiply.fi";
 const stores=[
   {chain:"S",path:"/api/s-products",store:"634976534",storeName:"Prisma Hyvinkää"},
