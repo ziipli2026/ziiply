@@ -1,0 +1,20 @@
+name: Fuel photo recovery regression
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/lib/fuelPhotoLearning.ts'
+      - 'src/lib/fuelPhotoRecovery.ts'
+      - 'tests/fuel-photo-recovery.test.cjs'
+      - '.github/workflows/fuel-photo-recovery-regression.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node tests/fuel-photo-recovery.test.cjs

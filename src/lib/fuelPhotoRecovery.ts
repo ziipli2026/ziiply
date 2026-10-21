@@ -22,3 +22,9 @@ export function recoveryConsensus(readings:RecoveryReading[]):Record<string,numb
  }
  return Object.keys(result).length?result:null;
 }
+
+/** Stop early only after every observed ordinary fuel has two agreeing readings. */
+export function recoveryComplete(readings:RecoveryReading[],recovered:Record<string,number>|null):boolean{
+ const expected=new Set(readings.flatMap(r=>[...r.visible,...Object.keys(r.prices)]).filter(k=>fuelKeys.includes(k as typeof fuelKeys[number])));
+ return expected.size>0 && recovered!==null && [...expected].every(key=>recovered[key]!=null);
+}
