@@ -9,6 +9,8 @@ on:
       - 'src/app/components/ZiiplyWakeUp.tsx'
       - 'scripts/test-ziiply-wake-policy.cjs'
       - 'scripts/test-ziiply-wake-stalled-requests.cjs'
+      - 'src/app/components/ziiplyRequestRecovery.ts'
+      - 'scripts/test-ziiply-request-recovery.cjs'
       - '.github/workflows/ziiply-gps-arrival-simulation.yml'
 jobs:
   simulate:
@@ -26,3 +28,5 @@ jobs:
         run: node scripts/test-ziiply-wake-policy.cjs
       - name: Simulate stalled request recovery contract
         run: node scripts/test-ziiply-wake-stalled-requests.cjs
+      - name: Simulate registered stalled search recovery
+        run: node scripts/test-ziiply-request-recovery.cjs
