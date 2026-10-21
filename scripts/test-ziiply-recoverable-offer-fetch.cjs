@@ -14,7 +14,7 @@ function load(path) {
     module: moduleObj, exports: moduleObj.exports,
     require: (name) => load(require('node:path').resolve(require('node:path').dirname(path), name) + '.ts'),
     window: {}, Date, AbortController, AbortSignal,
-    setTimeout, clearTimeout, Response, fetch: (...args) => fakeFetch(...args),
+    setTimeout, clearTimeout, Response, ReadableStream, TextEncoder, fetch: (...args) => fakeFetch(...args),
   });
   return moduleObj.exports;
 }
