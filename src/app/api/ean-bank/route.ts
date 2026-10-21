@@ -1,4 +1,3 @@
-import { fineliRawProduceName } from "./fineliProduceMatcher";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -74,7 +73,6 @@ export async function GET(request: NextRequest) {
         LIMIT 1
       `;
       if (rows[0]) {
-        const mappedProduceName = fineliRawProduceName(String(rows[0].name || ""), String(rows[0].brand || ""));
         // Prefer verified EAN-specific Open Food Facts data. Fineli is only a
         // generic-food fallback for an unbranded, exact-name, unique match.
         // Never write inferred nutrition into the EAN or OFF master tables.
@@ -92,14 +90,13 @@ export async function GET(request: NextRequest) {
                      'nutrients', f.nutrients,
                      'source', f.source,
                      'sourceUrl', f.source_url,
-                     'estimated', true
+                     'estimated', true,
+                     'confidence', m.confidence,
+                     'matchMethod', m.match_method
                    ) AS data
-            FROM public.ziiply_fineli_foods f
-            WHERE (lower(btrim(f.name_fi)) = lower(btrim(${String(rows[0].name || "")})) AND NULLIF(btrim(${String(rows[0].brand || "")}), '') IS NULL
-                   OR f.name_fi = ${mappedProduceName})
-              AND (NULLIF(btrim(${String(rows[0].brand || "")}), '') IS NULL OR ${mappedProduceName} IS NOT NULL)
-              AND (SELECT count(*) FROM public.ziiply_fineli_foods f2
-                   WHERE lower(btrim(f2.name_fi)) = lower(btrim(f.name_fi))) = 1
+            FROM public.ziiply_ean_fineli_matches m
+            JOIN public.ziiply_fineli_foods f ON f.fineli_id = m.fineli_id
+            WHERE m.ean = ${ean} AND m.approved = true
               AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean = ${ean})
             LIMIT 1
           `;
