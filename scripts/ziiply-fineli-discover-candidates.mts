@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
 import { fineliRawProduceName } from "../src/app/api/ean-bank/fineliProduceMatcher";
 
@@ -50,3 +51,42 @@ for (;;) {
   inserted += result.length;
 }
 console.log(JSON.stringify({scanned,eligible,inserted,pages,batchSize,pendingReview:true,autoApproved:0}));
+
+const discoveryFiles = ["fineli-raw-vegetable-candidates.sql","fineli-fresh-berry-candidates.sql","fineli-fresh-fruit-fungi-candidates.sql","fineli-stone-fruit-candidates.sql","fineli-fresh-herb-candidates.sql"];
+let nextFile = 0;
+const groupResults: { file: string; eligible: number; inserted: number }[] = [];
+const groupFailures: string[] = [];
+await Promise.all(Array.from({ length: 3 }, async () => {
+  for (;;) {
+    const file = discoveryFiles[nextFile++];
+    if (!file) return;
+    try {
+      const query = await readFile(new URL("./sql/" + file, import.meta.url), "utf8");
+      const rows = await sql.query(query);
+      let groupInserted = 0;
+      for (let offset = 0; offset < rows.length; offset += batchSize) {
+        const payload = rows.slice(offset, offset + batchSize).map(p => ({
+          ean: String(p.ean), fineli_id: Number(p.fineli_id),
+          evidence: { productName: p.name, brand: p.brand, fineliName: p.name_fi,
+            ruleFile: file, rule: "group discovery; manual review required" },
+        }));
+        const saved = await sql`
+          INSERT INTO public.ziiply_ean_fineli_candidates(ean,fineli_id,method,confidence,status,evidence)
+          SELECT c.ean,c.fineli_id,'parallel_group_discovery','review_required','pending',c.evidence
+          FROM jsonb_to_recordset(${JSON.stringify(payload)}::jsonb)
+            AS c(ean text,fineli_id integer,evidence jsonb)
+          JOIN public.ziiply_fineli_foods f ON f.fineli_id=c.fineli_id
+          WHERE NOT EXISTS(SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=c.ean)
+            AND NOT EXISTS(SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean=c.ean)
+          ON CONFLICT(ean,fineli_id) DO NOTHING RETURNING ean
+        `;
+        groupInserted += saved.length;
+      }
+      groupResults.push({ file, eligible: rows.length, inserted: groupInserted });
+    } catch (error) {
+      groupFailures.push(file + ": " + (error instanceof Error ? error.message : String(error)));
+    }
+  }
+}));
+console.log(JSON.stringify({ groups: groupResults, failures: groupFailures, concurrency: 3, batchSize, autoApproved: 0 }));
+if (groupFailures.length) throw new Error("Fineli group discovery failed: " + groupFailures.join("; "));
