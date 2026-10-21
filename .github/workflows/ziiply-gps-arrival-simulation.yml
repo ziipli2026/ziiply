@@ -11,6 +11,9 @@ on:
       - 'scripts/test-ziiply-wake-stalled-requests.cjs'
       - 'src/app/components/ziiplyRequestRecovery.ts'
       - 'scripts/test-ziiply-request-recovery.cjs'
+      - 'src/app/components/ziiply/ziiplyRecoverableOfferFetch.ts'
+      - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - 'scripts/test-ziiply-recoverable-offer-fetch.cjs'
       - '.github/workflows/ziiply-gps-arrival-simulation.yml'
 jobs:
   simulate:
@@ -30,3 +33,5 @@ jobs:
         run: node scripts/test-ziiply-wake-stalled-requests.cjs
       - name: Simulate registered stalled search recovery
         run: node scripts/test-ziiply-request-recovery.cjs
+      - name: Simulate real offer fetch wake cancellation
+        run: node scripts/test-ziiply-recoverable-offer-fetch.cjs
