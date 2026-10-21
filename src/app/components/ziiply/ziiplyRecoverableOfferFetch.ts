@@ -27,7 +27,8 @@ export async function fetchZiiplyRecoverableOfferSearch(url: string): Promise<Re
     // Reconstitute a standard Response so existing .clone() and .json()
     // callers work without modification.
     const body = await response.arrayBuffer();
-    return new Response(body, {
+    // 204/205/304 responses must not have a body in the Response constructor.
+    return new Response([204, 205, 304].includes(response.status) ? null : body, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
