@@ -336,6 +336,11 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       <div style={{textAlign:"right"}}><div style={{fontSize:19,fontWeight:850}}>{dot(overall[0])} {overall[1]}</div><div style={{fontSize:11,color:"#667085",marginTop:5}}>Päivitetty {new Date().toLocaleString("fi-FI")}</div></div>
     </header>
 
+    <section style={{padding:"14px 18px",background:"#fff",border:"1px solid #cbd5e1",borderRadius:12,marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap"}}>
+      <div><strong>K-Citymarket – valtakunnallinen tarjouslehti</strong><div style={{fontSize:13,color:"#64748b",marginTop:4}}>Manuaalinen parseriajo nykyisellä GitHub Actions -työnkululla. Ei muuta automaattisia ajoja.</div></div>
+      <a href="https://github.com/ziipli2026/ziiply/actions/workflows/kcitymarket-manual-current-leaflet.yml" target="_blank" rel="noopener noreferrer" style={{display:"inline-block",padding:"11px 16px",borderRadius:9,background:"#1d4ed8",color:"#fff",fontWeight:800,textDecoration:"none"}}>Avaa manuaaliajo ↗</a>
+    </section>
+
     <nav aria-label="Control Center -näkymät" style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:20}}>{([{id:"overview",label:"Yleiskatsaus"},{id:"publications",label:"Tarjousten päivitykset"},{id:"data",label:"Tuotteet ja skanneri"}] as const).map(tab=><a key={tab.id} href={tab.id==="overview"?"/":"/?view="+tab.id} aria-current={view===tab.id?"page":undefined} style={{padding:"12px 18px",borderRadius:12,textDecoration:"none",fontWeight:800,background:view===tab.id?"#0f172a":"#fff",color:view===tab.id?"#fff":"#334155",border:"1px solid #cbd5e1"}}>{tab.label}</a>)}</nav>
     {view!=="data"&&<section aria-label="Citymarket esitarkastus" style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:14,padding:18,marginBottom:18}}>
       <h2 style={{margin:"0 0 12px",fontSize:19}}>Citymarket – ennakkoparserointi SU ja KE</h2>
