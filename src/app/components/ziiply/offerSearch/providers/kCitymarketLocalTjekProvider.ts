@@ -105,8 +105,11 @@ export async function refreshKCitymarketSelectedStoreSnapshot(selectedStoreName:
     entry.rows = entry.rows.map(normalizeTjekPackagePrice);
     // Do not silently replace a richer, still-valid publication snapshot with a
     // suspiciously small result from the same publication set.
-    const previous = await readPublishedSnapshot(key);
-    const previousIds = localCache.get(key)?.progress.publicationIds ?? [];
+    // Read the prior snapshot without overwriting the live refresh progress in localCache.
+    const sql = neon(process.env.DATABASE_URL);
+    const previousRows = await sql`SELECT offers, publication_ids FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = ${key} AND valid_until > NOW() LIMIT 1`;
+    const previous = Array.isArray(previousRows[0]?.offers) ? previousRows[0].offers as Row[] : null;
+    const previousIds = Array.isArray(previousRows[0]?.publication_ids) ? previousRows[0].publication_ids as string[] : [];
     if (previous && previous.length >= 5 && entry.rows.length < Math.ceil(previous.length * 0.5)
       && previousIds.some(id => entry.progress.publicationIds.includes(id))) {
       throw new Error(`Tjek campaign coverage regression: ${entry.rows.length}/${previous.length} offers; previous snapshot preserved`);
