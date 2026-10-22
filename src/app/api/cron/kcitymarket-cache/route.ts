@@ -9,10 +9,14 @@ export const maxDuration = 120;
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
-  if (!secret) {
+  const manualSecret = process.env.KCITYMARKET_MANUAL_SECRET;
+  const authorization = request.headers.get("authorization");
+  const authorized = (Boolean(secret) && authorization === `Bearer ${secret}`) ||
+    (Boolean(manualSecret) && authorization === `Bearer ${manualSecret}`);
+  if (!secret && !manualSecret) {
     return NextResponse.json({ ok: false, error: "Cron unavailable" }, { status: 503 });
   }
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!authorized) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
