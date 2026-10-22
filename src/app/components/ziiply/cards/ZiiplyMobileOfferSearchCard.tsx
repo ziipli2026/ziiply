@@ -237,6 +237,8 @@
 // - Page hoitaa varsinaisen haun ja roskaosumien suodatuksen; kortti vain renderöi annetut tarjoukset.
 
 import React from "react";
+import CitymarketFailureNotice from "./CitymarketFailureNotice";
+import type { CitymarketAvailabilityNotice } from "../offerSearch/citymarketAvailability";
 
 export type ZiiplyMobileOfferSearchItem = {
   id?: string | number;
@@ -278,6 +280,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   selectedStoreName?: string;
   storeTraceV787?: unknown;
   kruokaDebug?: {
+    citymarketNotice?: CitymarketAvailabilityNotice | null;
     localTjekDebug?: { running?: boolean | null; stage?: string | null } | null;
     deploy?: {
       gitCommitSha?: string | null;
@@ -1428,6 +1431,7 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           ) : null}
 
+          {!loading && selectedOfferChainV39 === "K" && <CitymarketFailureNotice notice={kruokaDebug?.citymarketNotice} />}
           {selectedOfferChainV39 && !showLandingView ? (
             <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9d8350] bg-[#fff4d3]/86 p-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
               <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

@@ -694,6 +694,7 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import CitymarketFailureNotice from "./components/ziiply/cards/CitymarketFailureNotice";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
@@ -22530,6 +22531,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   />
                 </div>
 
+                {!loadingOffers && activeResult === "offers" && (!gostaSelectedOfferChainRefV547.current || gostaSelectedOfferChainRefV547.current === "K") && <CitymarketFailureNotice notice={gostaKruokaDebugV550?.citymarketNotice} />}
                 <ZiiplySearchCard
                   className="z-20"
                   value={input}

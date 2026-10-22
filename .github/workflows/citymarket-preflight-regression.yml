@@ -6,6 +6,10 @@ on:
       - 'src/app/components/ziiply/offerSearch/citymarketPreflight.ts'
       - 'src/app/api/cron/kcitymarket-cache/route.ts'
       - 'tests/citymarket-preflight.test.cjs'
+      - 'tests/citymarket-availability.test.cjs'
+      - 'src/app/components/ziiply/offerSearch/citymarketAvailability.ts'
+      - 'src/app/components/ziiply/cards/CitymarketFailureNotice.tsx'
+      - 'src/app/api/offers/search/route.ts'
       - '.github/workflows/citymarket-preflight-regression.yml'
   workflow_dispatch:
 permissions:
@@ -20,7 +24,7 @@ jobs:
           node-version: '22'
       - run: npm install --ignore-scripts --no-audit --no-fund --legacy-peer-deps
       - name: Advance status and failure recovery regressions
-        run: node --test tests/citymarket-preflight.test.cjs
+        run: node --test tests/citymarket-preflight.test.cjs tests/citymarket-availability.test.cjs
       - name: Type check application and Control Center
         run: |
           npx tsc --noEmit --pretty false

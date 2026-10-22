@@ -1,3 +1,4 @@
+import { getCitymarketFailureNotice, type CitymarketAvailabilityNotice } from "../../../components/ziiply/offerSearch/citymarketAvailability";
 // ============================================================================
 // ZIIPLY_OFFERS_SEARCH_ROUTE_V20_KCITYMARKET_HTML_DIAGNOSTIC
 // Revision: V20-KCITYMARKET-HTML-DIAGNOSTIC
@@ -900,6 +901,7 @@ export async function GET(request: Request) {
     const offerSourceDiagnostics: OfferSearchDiagnosticsV38 = { failures: [] };
     const baseResults = isKCitymarketV19 ? [] : await searchZiiplyOffers(q, context, offerSourceDiagnostics);
 
+    let citymarketNotice: CitymarketAvailabilityNotice | null = null;
     let citymarketResults: UnknownRecord[] = [];
     let citymarketNationalCount = 0;
     let citymarketLocalCount = 0;
@@ -907,10 +909,12 @@ export async function GET(request: Request) {
     if (isKCitymarketV19) {
       try {
         const fetched = await fetchKCitymarketOffers();
+        if (!fetched.length) citymarketNotice = await getCitymarketFailureNotice();
         citymarketResults = (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer));
         citymarketNationalCount = citymarketResults.length;
       } catch (error) {
         console.warn("[Ziiply offers V19] K-Citymarket national fetch failed", error);
+        citymarketNotice = await getCitymarketFailureNotice();
       }
       // Local and national sources must be independently fault-tolerant.
       try {
@@ -980,6 +984,7 @@ export async function GET(request: Request) {
         context,
         results: imageEnrichedResults,
         sourceFailures: offerSourceDiagnostics.failures,
+        citymarketNotice,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;

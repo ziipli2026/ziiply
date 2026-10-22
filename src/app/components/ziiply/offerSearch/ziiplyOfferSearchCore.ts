@@ -1,3 +1,4 @@
+import { citymarketFailureNotice, type CitymarketAvailabilityNotice } from "./citymarketAvailability";
 import { fetchZiiplyRecoverableOfferSearch } from "../ziiplyRecoverableOfferFetch";
 // ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V178_KCITYMARKET_BRANCH
@@ -626,6 +627,7 @@ export type ZiiplyKruokaDebugV174 = {
   productMapProducts?: number | null;
   activeOffers?: number | null;
   error?: string | null;
+  citymarketNotice?: CitymarketAvailabilityNotice | null;
 };
 
 let lastZiiplyKruokaDebugV174: ZiiplyKruokaDebugV174 | null = null;
@@ -714,7 +716,20 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   // A single request must read the existing server-side weekly leaflet cache.
   // Repeating the request while Tjek is running can restart work on another
   // serverless instance and prevent the mobile offer list from ever opening.
-  const response = await fetchZiiplyRecoverableOfferSearch(`/api/offers/search?${params.toString()}`);
+  let response: Response;
+  try {
+    response = await fetchZiiplyRecoverableOfferSearch(`/api/offers/search?${params.toString()}`);
+  } catch (error) {
+    if (!isKCitymarketContextV179(context) || (error instanceof Error && error.name === "AbortError")) throw error;
+    lastZiiplyKruokaDebugV174 = { citymarketNotice: citymarketFailureNotice(null) };
+    if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
+    return [];
+  }
+  if (!response.ok && isKCitymarketContextV179(context)) {
+    lastZiiplyKruokaDebugV174 = { citymarketNotice: citymarketFailureNotice(null) };
+    if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
+    return [];
+  }
   const clonedForDebugV174 = response.clone();
   try {
     const payloadV174 = await clonedForDebugV174.json();
@@ -723,14 +738,16 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
       ? {
           ...(payloadV174.kruokaDebug ? { ...payloadV174.kruokaDebug } : {}),
           ...(deployV184 ? { deploy: deployV184 } : {}),
+          citymarketNotice: payloadV174.citymarketNotice ?? null,
           ...(payloadV174.sEvidenceRouteV228 ? { sEvidenceRouteV228: payloadV174.sEvidenceRouteV228 } : {}),
           ...(payloadV174.kOfferStageAuditV1 ? { kOfferStageAuditV1: payloadV174.kOfferStageAuditV1 } : {}),
         }
       : null;
     if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
   } catch {
-    lastZiiplyKruokaDebugV174 = null;
-    if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, null);
+    lastZiiplyKruokaDebugV174 = isKCitymarketContextV179(context) ? { citymarketNotice: citymarketFailureNotice(null) } : null;
+    if (contextKey) ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
+    if (isKCitymarketContextV179(context)) return [];
   }
     const parsedResults = await parseOfferSearchResponse(response);
   // Citymarket has two independent publication sources. The tab is defined by
