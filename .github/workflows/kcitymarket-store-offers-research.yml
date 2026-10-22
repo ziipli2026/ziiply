@@ -131,7 +131,7 @@ jobs:
               try{
                 const pageResponse=await fetch(storePage,{signal:AbortSignal.timeout(15000)});
                 const html=await pageResponse.text();
-                console.log("CITYMARKET_TJEK_STORE_PAGE "+JSON.stringify({storeId:store.id,status:pageResponse.status,finalUrl:pageResponse.url,title:html.match(/<title[^>]*>([^<]*)/i)?.[1]??null,publicationLinks:[...html.matchAll(/(?:paged-publications|publication-viewer|publications)\\/[^"'\\s<>]+/gi)].slice(0,10).map(m=>m[0]),mentionsPublication:/publication/i.test(html)}));
+                console.log("CITYMARKET_TJEK_STORE_PAGE "+JSON.stringify({storeId:store.id,status:pageResponse.status,finalUrl:pageResponse.url,title:html.match(/<title[^>]*>([^<]*)/i)?.[1]??null,publicationLinks:html.split(/["\x27\s<>]+/).filter(value=>value.includes("paged-publications")||value.includes("publication-viewer")||value.includes("publications/")).slice(0,10),mentionsPublication:html.includes("publication")}));
               }catch(error){console.log("CITYMARKET_TJEK_STORE_PAGE_ERROR "+JSON.stringify({storeId:store.id,error:String(error)}));}
 
               for(const [variant,params] of [
