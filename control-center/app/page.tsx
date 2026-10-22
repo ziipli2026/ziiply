@@ -137,7 +137,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   // Latest result per monitored SPAR/Tokmanni source. An older success must
   // never mask a newer failed run; a missing run is not a green signal.
   const sparTokmanniRuns=d.runs.filter(r=>/^(tokmanni(?:-spar)?|spar|eurospar)(?::|$)/i.test(r.chain.trim()));
-  const sparTokmanniLatest=[...new Map(sparTokmanniRuns.map(r=>[r.chain+"::"+r.source,r])).values()];
+  const sparTokmanniLatest=[...sparTokmanniRuns.reduce((m,r)=>{const key=r.chain+"::"+r.source;const prev=m.get(key);if(!prev||r.checked_at>prev.checked_at)m.set(key,r);return m},new Map<string,Row>()).values()];
   const sparTokmanniFailures=sparTokmanniLatest.filter(r=>!r.ok);
   const sparTokmanniMissing=sparTokmanniLatest.length===0;
   const latestRun=d.runs[0];
