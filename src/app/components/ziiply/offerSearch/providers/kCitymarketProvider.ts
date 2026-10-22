@@ -93,7 +93,7 @@ export function category(t:string){
   if (/(?:pensasmustik|naposteluhedelm|tuore(?:et)?\s+marj)/.test(s)) return "Hevi";
   if (/(?:kanan\s+ohuet?\s+fileeleik|kanan\s+fileeleik|naudan\s+fileepihv)/.test(s)) return "Liha & makkarat";
   if (/(?:halloumi|halloum|manchego|feta(?:juusto)?|vuohenmaitojuusto)/.test(s)) return "Maitotuotteet";
-  if (/(?:sinisimpuk|simpuk(?:ka|at)).test(s)) return "Kala";
+  if (/(?:sinisimpuk|simpuk(?:ka|at))/.test(s)) return "Kala";
   if (/(?:macarons|macaron|domino\s+crunchy)/.test(s)) return "Makeiset & keksit";
   if (/(?:spritz|sparkling|virvoitusjuoma|alkoholiton\s+olut)/.test(s)) return "Juomat";
   if (/(?:juustokakku|kakku\s+400\s*g)/.test(s)) return "Leipomo";
