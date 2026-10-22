@@ -132,8 +132,8 @@ jobs:
                 const pageResponse=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(id)+"/1",{headers:{Accept:"application/json"},signal:AbortSignal.timeout(15000)});
                 const page=pageResponse.ok?await pageResponse.json():{};
                 const hotspots=Array.isArray(page.hotspots)?page.hotspots:[];
-                const ids=[...new Set(hotspots.map(h=>String(h?.offer?.id||"")).filter(Boolean))];
-                console.log("CITYMARKET_TJEK_PUBLICATION_PAGE "+JSON.stringify({storeId:store.id,publicationId:id,http:pageResponse.status,hotspotCount:hotspots.length,offerCount:ids.length,sampleOfferIds:ids.slice(0,5),verifiedLocalOffers:false}));
+                const ids=[...new Set(hotspots.map(h=>String(h?.offer?.id??h?.offerId??h?.offerPublicId??"")).filter(Boolean))];
+                console.log("CITYMARKET_TJEK_PUBLICATION_PAGE "+JSON.stringify({storeId:store.id,publicationId:id,http:pageResponse.status,hotspotCount:hotspots.length,offerCount:ids.length,unrecognizedHotspots:hotspots.filter(h=>!String(h?.offer?.id??h?.offerId??h?.offerPublicId??"")).length,sampleOfferIds:ids.slice(0,5),verifiedLocalOffers:false}));
               }
             }
           })().catch(error=>{console.error("CITYMARKET_TJEK_PROBE_ERROR",String(error));process.exitCode=1;});
