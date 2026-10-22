@@ -65,7 +65,9 @@ def parse_pages(pages,digest):
    restrictions=[s['text'].strip() for s in spans if s['text'].strip().startswith('Enintään') and t['x']<=s['bbox'][0]<t['x']+.25*p['width'] and wy+whole['size']*.6<s['bbox'][1]<wy+whole['size']+15]
    offer_price=int(whole['text'])+int(cents[0]['text'])/100
    offers.append({'id':f'eurospar:{issue_id}:{page_number}:{ti+1}','name':name.lower(),'category':category(name),'offerPrice':offer_price,'priceBasis':'multi-buy-total' if q else 'per-kg' if kilo else 'single-unit','multiUnit':{'quantity':int(q[1]),'unit':q[2]} if q else None,'normalPrice':normal[1] if normal else None,'normalUnit':normal[2] if normal else None,'unitPrice':unit[1] if unit else None,'unitPriceUnit':unit[2] if unit else None,'size':size[1] if size else None,'packCount':None,'discountPercent':None,'restriction':' '.join(restrictions) or None,'isWeightedProduct':kilo,'offerUnit':'kg' if kilo else None,'eans':[],'identityStatus':'leaflet-only','identityReason':'Publisher PDF; EAN not inferred','chain':'EUROSPAR','storeType':'EUROSPAR','source':'EUROSPAR tarjouslehti','issue':issue_id,'validFrom':validity['from'],'validTo':validity['to'],'stores':stores,'page':page_number,'sourceEvidence':{'pdfSha256':digest,'heading':[t['x'],t['y']],'price':list(whole['bbox'])}})
-  if len(used)!=len(titles):raise ValueError(f'Incomplete PDF coverage: {len(used)}/{len(titles)} product headings')
+  if len(used)!=len(titles):
+   unmatched=[{'name':t['name'],'x':round(t['x'],1),'y':round(t['y'],1)} for i,t in enumerate(titles) if i not in used]
+   raise ValueError(f'Incomplete PDF coverage on page {page_number}: {len(used)}/{len(titles)} product headings; unmatched={json.dumps(unmatched,ensure_ascii=False)}')
  if not offers:raise ValueError('No publisher offers')
  return {'issue':issue_id,'validity':validity,'stores':stores,'offers':offers}
 
