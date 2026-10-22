@@ -84,9 +84,9 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   // and every row must independently identify the same store (N183).
   const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
   const primary = isHyvinkaa
-    ? (await readPublishedSnapshot("k ruoka k citymarket hyvinkaa") ?? [])
+    ? (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
         .filter(row => String(row.storeId ?? "") === "N183"
-          && String((row.debug as Row | undefined)?.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+          && String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
           && normalize(row.storeName) === "k citymarket hyvinkaa"
           && isActiveOffer(row, now))
     : [];
