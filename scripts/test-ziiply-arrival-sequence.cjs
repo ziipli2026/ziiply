@@ -37,4 +37,27 @@ for(const elapsed of [20*60*1000,24*60*60*1000]){
 }
 assert.equal(m.shouldFetchZiiplyCartPrice({hasPrice:false,event:'new-item',inStore:false,storeConfirmed:false}),true);
 assert.equal(m.shouldFetchZiiplyCartPrice({hasPrice:true,event:'confirmed-store-arrival',inStore:true,storeConfirmed:true,activeStoreId:'prisma',priceStoreId:'prisma'}),true);
+
+const offset=(meters)=>meters/111195;
+state=m.initialZiiplyArrivalState();
+let near=m.evaluateZiiplyArrival(state,{at:0,speedKmh:0,latitude:store.latitude+offset(15),longitude:store.longitude,accuracyMeters:12},[store],['prisma']);
+assert.equal(near.status,'near-store','15 m from store should be nearby before parking confirmation');
+assert.equal(near.showArrivalMessage,false,'do not announce confirmed arrival prematurely');
+state=near.state;
+for(const t of [5000,10000,15000,20000]){
+ near=m.evaluateZiiplyArrival(state,{at:t,speedKmh:0,latitude:store.latitude+offset(15),longitude:store.longitude,accuracyMeters:12},[store],['prisma']);
+ state=near.state;
+}
+assert.equal(near.status,'in-store','15 m away with good GPS should confirm after 20 seconds');
+assert.equal(near.showArrivalMessage,true);
+assert.equal(m.shouldFetchZiiplyCartPrice({hasPrice:true,event:'confirmed-store-arrival',inStore:true,storeConfirmed:true,activeStoreId:'prisma',priceStoreId:'other'}),true,'reprice cart for arrived store');
+state=m.initialZiiplyArrivalState();
+let poor=m.evaluateZiiplyArrival(state,{at:0,speedKmh:0,latitude:store.latitude+offset(15),longitude:store.longitude,accuracyMeters:80},[store],['prisma']);
+assert.equal(poor.status,'uncertain','80m GPS uncertainty must not confirm store');
+assert.equal(poor.showArrivalMessage,false);
+state=m.initialZiiplyArrivalState();
+const away=m.evaluateZiiplyArrival(state,{at:0,speedKmh:0,latitude:store.latitude+offset(300),longitude:store.longitude,accuracyMeters:8},[store],['prisma']);
+assert.equal(away.store,null,'300m away must not claim a shop');
+console.log('PASS: 15m approach, uncertain GPS, distant location and arrival cart repricing');
+
 console.log('PASS: simulated GPS, arrival and cart cache rules');
