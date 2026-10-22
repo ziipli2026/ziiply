@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {neon} from '@neondatabase/serverless';
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL required: EUROSPAR refresh must be reported to Control Center');
 const sql=neon(process.env.DATABASE_URL);
+await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log (id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), chain TEXT NOT NULL, source TEXT NOT NULL, ok BOOLEAN NOT NULL, offer_count INTEGER NOT NULL, outcome TEXT NOT NULL, details JSONB NOT NULL DEFAULT '{}'::jsonb)`;
 let ok=false,count=0,error='';
 const result=spawnSync(process.execPath,['scripts/eurospar-feed-refresh.mjs'],{encoding:'utf8',timeout:240000,maxBuffer:8*1024*1024});
 process.stdout.write(result.stdout||'');process.stderr.write(result.stderr||'');
