@@ -11,7 +11,7 @@ const CHAINS=[
 ];
 
 type HistoryRow={chain:string;source:string;total:number;succeeded:number;days:number;previous_total:number;previous_succeeded:number;previous_days:number};
-type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;checked_at:string};
+type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;details?:{error?:string;runUrl?:string};checked_at:string};
 type Pub={chain:string;publication_id:string;valid_from:string;valid_until:string;parsed_at:string;approval_state:string;offer_count:number;missing_price:number;missing_image:number;missing_category:number};
 type EanStats={total:number;with_image:number;classified:number;seen_24h:number;missing_image:number;missing_category:number;stale_30d:number;lidl_price_rows:number;lidl_price_eans:number;lidl_fresh_prices:number;lidl_verified_prices:number;lidl_stale_prices:number};
 type ScanStats={events_24h:number;unresolved_24h:number;unknown_24h:number;no_price_24h:number;chain_mismatch_24h:number};
@@ -26,7 +26,7 @@ async function load(){
     preflights=await sql`SELECT checked_at::text,source,ok,offer_count,outcome,details
       FROM ziiply_publication_run_log WHERE source IN ('k-citymarket-cache','k-citymarket-preflight','k-citymarket-source-audit')
       AND checked_at>NOW()-INTERVAL '14 days' ORDER BY checked_at DESC,id DESC LIMIT 1500` as PreflightRun[];
-    const runs=await sql`SELECT checked_at::text AS checked_at,chain,source,ok,offer_count,outcome
+    const runs=await sql`SELECT checked_at::text AS checked_at,chain,source,ok,offer_count,outcome,details
       FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days'
       ORDER BY checked_at DESC,id DESC LIMIT 300`;
     const history=await sql`SELECT chain,source,
@@ -63,6 +63,8 @@ async function load(){
 
 function state(rows:Row[]){
   if(!rows.length)return ["gray","EI DATAA"];
+  const refresh=rows.find(r=>r.source==="eurospar-publication-refresh");
+  if(refresh&&!refresh.ok)return ["red","EUROSPAR-PÄIVITYS EPÄONNISTUI"];
   const a=rows[0];
   if(!a.ok)return ["red","VIRHE"];
   const ageH=(Date.now()-new Date(a.checked_at).getTime())/3600000;
@@ -84,6 +86,14 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const view=requestedView==="publications"?"publications":requestedView==="data"?"data":"overview";
   const d=await load();
   const citymarketPreflights=citymarketPreflightSchedule(d.preflights);
+  // Dedicated refresh history cannot be displaced by busy unrelated sources.
+  if(process.env.DATABASE_URL){
+    try{
+      const refresh=await neon(process.env.DATABASE_URL)`SELECT checked_at::text,chain,source,ok,offer_count,outcome,details FROM ziiply_publication_run_log WHERE source='eurospar-publication-refresh' ORDER BY checked_at DESC,id DESC LIMIT 40` as Row[];
+      d.runs=[...d.runs.filter(r=>r.source!=="eurospar-publication-refresh"),...refresh].sort((a,b)=>b.checked_at.localeCompare(a.checked_at));
+      if(!refresh.length)d.runs.unshift({chain:"TOKMANNI-SPAR",source:"eurospar-publication-refresh",ok:false,offer_count:0,outcome:"eurospar-refresh-unreported",checked_at:new Date().toISOString()});
+    }catch{d.runs.unshift({chain:"TOKMANNI-SPAR",source:"eurospar-publication-refresh",ok:false,offer_count:0,outcome:"eurospar-refresh-unreported",checked_at:new Date().toISOString()});}
+  }
   const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim())&&!["future-publication-discovery","s-kaupat-protocol"].includes(r.source))}));
   const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const currentPubs=[...d.pubs.reduce((m,p)=>{const k=`${p.chain}::${p.valid_from}::${p.valid_until}`;const prev=m.get(k);if(!prev||p.parsed_at>prev.parsed_at)m.set(k,p);return m},new Map<string,Pub>()).values()];
@@ -241,11 +251,11 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const sourceCountCrashes=sourceHealth.filter(s=>!["s-kaupat-protocol","future-publication-discovery"].includes(s.source)&&s.delta!==null&&s.delta<=-75);
   const silentSources=sourceHealth.filter(s=>s.ageH>48);
   const criticallySilentSources=sourceHealth.filter(s=>s.ageH>72);
-  const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=!latest?"gray":!latest.ok||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.key,latest,lastOk,ageH,okAgeH,level};});
+  const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=card.runs.some(r=>r.source==="eurospar-publication-refresh"&&!r.ok&&r===card.runs.find(x=>x.source===r.source))?"red":!latest?"gray":!latest.ok||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.key,latest,lastOk,ageH,okAgeH,level};});
   const missingMonitoring=cards.filter(c=>c.runs.length===0);
   const attention=[
     ...activeCandidates.map(p=>({level:"red",title:p.chain+": aktiivinen candidate",detail:p.publication_id+" · "+p.offer_count+" tarjousta · "+p.valid_from+"–"+p.valid_until})),
-    ...currentFailures.map(r=>({level:"red",title:r.chain+": viimeisin ajo epäonnistui",detail:r.source+" · "+r.offer_count+" · "+r.outcome})),
+    ...currentFailures.map(r=>({level:"red",title:r.chain+": viimeisin ajo epäonnistui",detail:explainSource(r.source)+" · "+explainOutcome(r.outcome)+(r.details?.error?" · "+r.details.error:"")})),
     ...staleRuns.map(r=>({level:"yellow",title:r.chain+": health-ajo vanhentunut",detail:r.source+" · "+new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})})),
     ...expiringToday.map(p=>({level:"yellow",title:p.chain+": julkaisu päättyy tänään",detail:p.publication_id+" · "+p.offer_count+" tarjousta"})),
     ...overlappingApproved.map(p=>({level:"yellow",title:p.chain+": useita aktiivisia approved-julkaisuja",detail:p.publication_id+" · "+p.offer_count+" tarjousta"})),
@@ -540,7 +550,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
       <h2 style={{marginTop:0}}>Automaattiset tarkistukset tietolähteittäin</h2>
-      {sourceHealth.length===0?<div style={{color:"#667085"}}>Ei health-lähteitä 14 vrk ajalta.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Lähde","Viimeisin ajo","Ikä","Tarjouksia","Muutos","5 viimeistä","Peräkkäisiä epäonnistumisia","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{sourceHealth.map(r=><tr key={r.chain+"::"+r.source}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{explainSource(r.source)}</td><td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8}}>{r.ageH.toLocaleString("fi-FI")} h</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"—":r.delta===null?"—":(r.delta>0?"+":"")+r.delta.toLocaleString("fi-FI")+" %"}</td><td style={{padding:8,whiteSpace:"nowrap"}}>{r.history.map((h,i)=><span key={i} title={new Date(h.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+h.outcome}>{h.ok?"🟢":"🔴"}</span>)}</td><td style={{padding:8,fontWeight:r.streak?800:400}}>{r.streak||"—"}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}</td></tr>)}</tbody></table></div>}
+      {sourceHealth.length===0?<div style={{color:"#667085"}}>Ei health-lähteitä 14 vrk ajalta.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Lähde","Viimeisin ajo","Ikä","Tarjouksia","Muutos","5 viimeistä","Peräkkäisiä epäonnistumisia","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{sourceHealth.map(r=><tr key={r.chain+"::"+r.source}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{explainSource(r.source)}</td><td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8}}>{r.ageH.toLocaleString("fi-FI")} h</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"—":r.delta===null?"—":(r.delta>0?"+":"")+r.delta.toLocaleString("fi-FI")+" %"}</td><td style={{padding:8,whiteSpace:"nowrap"}}>{r.history.map((h,i)=><span key={i} title={new Date(h.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+h.outcome}>{h.ok?"🟢":"🔴"}</span>)}</td><td style={{padding:8,fontWeight:r.streak?800:400}}>{r.streak||"—"}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}{r.details?.error&&<div>{r.details.error}</div>}{r.details?.runUrl&&<a href={r.details.runUrl}>GitHub-ajo</a>}</td></tr>)}</tbody></table></div>}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
@@ -577,7 +587,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
           <thead><tr>{["Aika","Ketju","Lähde","Tulos","Määrä","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
           <tbody>{d.runs.slice(0,80).map((r,i)=><tr key={i}>
             <td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8,fontWeight:700}}>{r.chain}</td><td style={{padding:8}}>{explainSource(r.source)}</td>
-            <td style={{padding:8}}>{r.ok?"🟢":"🔴"}</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}</td>
+            <td style={{padding:8}}>{r.ok?"🟢":"🔴"}</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}{r.details?.error&&<div>{r.details.error}</div>}{r.details?.runUrl&&<a href={r.details.runUrl}>GitHub-ajo</a>}</td>
           </tr>)}</tbody>
         </table></div>
       </article>
@@ -616,5 +626,5 @@ function coverage(label:string,value:number,total:number){const pct=total?Math.r
 function metricCard(label:string,value:number,state:string){return <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:18}}><div style={{fontSize:13,color:"#667085"}}>{dot(state)} {label}</div><div style={{fontSize:30,fontWeight:900,marginTop:8}}>{value.toLocaleString("fi-FI")}</div></article>}
 function metric(label:string,value:number){return <div style={{display:"flex",justifyContent:"space-between",padding:"11px 0",borderBottom:"1px solid #edf0f2"}}><span>{label}</span><b>{value.toLocaleString("fi-FI")}</b></div>}
 function explainApproval(value:string){return ({approved:"Hyväksytty",candidate:"Odottaa hyväksyntää","image-verified":"Kuvasta tarkistettu aineisto"} as Record<string,string>)[value]??"Muu tila: "+value}
-function explainSource(value:string){return ({"s-prisma-hyvinkaa":"Prisma Hyvinkään tarjoushaku","k-citymarket-cache":"Citymarketin tarjousvälimuisti","k-citymarket-preflight":"Citymarket – esitarkastus","k-citymarket-source-audit":"Citymarketin lähdearkiston tarkistus","k-supermarket-jokela":"K-Supermarket Jokelan tarjoushaku","k-market-hakalantori":"K-Market Hakalantorin tarjoushaku","eurospar-validated-feed":"Eurosparin validoitu tarjousaineisto","official-lidl-combined":"Lidlin virallisten tarjousjaksojen käsittely","s-kaupat-protocol":"S-kauppojen rajapinnan yhteystarkistus","future-publication-discovery":"Tulevan tarjouslehden etsintä"} as Record<string,string>)[value]??value}
-function explainOutcome(value:string){return ({"active-cache-ok":"Nykyisen tarjousvälimuistin tarkistus onnistui","parser-health-ok":"Tarjousaineiston käsittely onnistui","validated-feed-ok":"Validoidun tarjousaineiston tarkistus onnistui","candidate-staging-completed":"Tarjousjaksojen käsittely valmistui","protocol-verified":"Rajapinnan yhteystarkistus onnistui","future-discovery-http-error":"Tulevan lehden etsintä epäonnistui verkkopyynnön virheeseen","future-publication-not-yet-found":"Tulevaa lehteä ei vielä löytynyt","future-publication-found":"Tuleva tarjouslehti löytyi"} as Record<string,string>)[value]??"Tekninen tulos: "+value}
+function explainSource(value:string){return ({"eurospar-publication-refresh":"EUROSPAR – uuden lehden haku ja parserointi","s-prisma-hyvinkaa":"Prisma Hyvinkään tarjoushaku","k-citymarket-cache":"Citymarketin tarjousvälimuisti","k-citymarket-preflight":"Citymarket – esitarkastus","k-citymarket-source-audit":"Citymarketin lähdearkiston tarkistus","k-supermarket-jokela":"K-Supermarket Jokelan tarjoushaku","k-market-hakalantori":"K-Market Hakalantorin tarjoushaku","eurospar-validated-feed":"Eurosparin validoitu tarjousaineisto","official-lidl-combined":"Lidlin virallisten tarjousjaksojen käsittely","s-kaupat-protocol":"S-kauppojen rajapinnan yhteystarkistus","future-publication-discovery":"Tulevan tarjouslehden etsintä"} as Record<string,string>)[value]??value}
+function explainOutcome(value:string){return ({"eurospar-refresh-ok":"EUROSPAR-lehden haku ja parserointi onnistuivat","eurospar-refresh-failed":"EUROSPAR-lehden haku tai parserointi epäonnistui","eurospar-refresh-unreported":"EUROSPAR-päivityksen tulos puuttuu – onnistumista ei ole vahvistettu","active-cache-ok":"Nykyisen tarjousvälimuistin tarkistus onnistui","parser-health-ok":"Tarjousaineiston käsittely onnistui","validated-feed-ok":"Validoidun tarjousaineiston tarkistus onnistui","candidate-staging-completed":"Tarjousjaksojen käsittely valmistui","protocol-verified":"Rajapinnan yhteystarkistus onnistui","future-discovery-http-error":"Tulevan lehden etsintä epäonnistui verkkopyynnön virheeseen","future-publication-not-yet-found":"Tulevaa lehteä ei vielä löytynyt","future-publication-found":"Tuleva tarjouslehti löytyi"} as Record<string,string>)[value]??"Tekninen tulos: "+value}
