@@ -103,6 +103,14 @@ export async function refreshKCitymarketSelectedStoreSnapshot(selectedStoreName:
       throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
     }
     entry.rows = entry.rows.map(normalizeTjekPackagePrice);
+    // Do not silently replace a richer, still-valid publication snapshot with a
+    // suspiciously small result from the same publication set.
+    const previous = await readPublishedSnapshot(key);
+    const previousIds = localCache.get(key)?.progress.publicationIds ?? [];
+    if (previous && previous.length >= 5 && entry.rows.length < Math.ceil(previous.length * 0.5)
+      && previousIds.some(id => entry.progress.publicationIds.includes(id))) {
+      throw new Error(`Tjek campaign coverage regression: ${entry.rows.length}/${previous.length} offers; previous snapshot preserved`);
+    }
     await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
     entry.progress.stage = "complete";
     return entry.rows;
