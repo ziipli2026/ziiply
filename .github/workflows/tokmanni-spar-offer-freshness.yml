@@ -15,6 +15,7 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/eurospar-feed.json"
       - "scripts/tokmanni-leaflet-discovery.mjs"
       - "scripts/eurospar-feed-refresh.mjs"
+      - "scripts/run-eurospar-refresh.mjs"
       - "scripts/eurospar-pdf-parser.py"
       - "scripts/test-eurospar-pdf-parser.py"
       - "scripts/test-eurospar-feed-adapter.mjs"
@@ -29,6 +30,7 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/eurospar-feed.json"
       - "scripts/tokmanni-leaflet-discovery.mjs"
       - "scripts/eurospar-feed-refresh.mjs"
+      - "scripts/run-eurospar-refresh.mjs"
       - "scripts/eurospar-pdf-parser.py"
       - "scripts/test-eurospar-pdf-parser.py"
       - "scripts/test-eurospar-feed-adapter.mjs"
@@ -54,7 +56,11 @@ jobs:
       - run: python scripts/test-eurospar-pdf-parser.py
       - run: node --check scripts/eurospar-feed-refresh.mjs
       - run: node scripts/tokmanni-leaflet-discovery.mjs
-      - run: node scripts/eurospar-feed-refresh.mjs
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Refresh EUROSPAR and report result to Control Center
+        run: node scripts/run-eurospar-refresh.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: Promote validated EUROSPAR feed
         run: |
           if [ -f eurospar-feed.generated.json ]; then
