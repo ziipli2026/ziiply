@@ -35,7 +35,7 @@ const sample=(elapsed,{lat=60,lon=25,speed=null,accuracy=8,age=0}={})=>{
 };
 sample(0);assert.equal(context.scannerInStoreRefV828.current,false);
 for(const t of [5000,10000,15000]){sample(t);assert.equal(context.scannerInStoreRefV828.current,false);}
-sample(20000);assert.equal(context.scannerInStoreRefV828.current,true,'stable null-speed Safari fixes confirm arrival after 20 seconds');
+sample(20000);assert.equal(context.scannerInStoreRefV828.current,true,'stable null-speed Safari fixes confirm arrival after 10 seconds');
 assert.equal(ui.name,'Sale');assert.equal(ui.verified,true,'duplicate store rows must not create ambiguity');
 sample(25000,{accuracy:150});assert.equal(context.scannerInStoreRefV828.current,true,'brief indoor loss preserves confirmation');
 now=1051000;context.liveArrivalHandlerRefV864.current(null);
@@ -71,4 +71,4 @@ assert.equal(calls,1);success({});timer();assert.equal(calls,2,'sample again eve
 const late=success;hidden=true;listeners.visibilitychange();late({});assert.equal(handlerCalls,1,'hidden-session callback is ignored');
 hidden=false;listeners.visibilitychange();assert.equal(calls,3,'resume requests fresh location immediately');
 cleanup();success({});assert.equal(handlerCalls,1,'unmounted callback is ignored');
-console.log('PASS: five-second polling, 20-second parking, null speed, retries, indoor GPS loss, departure, stale fixes, ambiguity and resume');
+console.log('PASS: five-second polling, 10-second parking, null speed, retries, indoor GPS loss, departure, stale fixes, ambiguity and resume');
