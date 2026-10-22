@@ -126,7 +126,11 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front => front && typeof front==="object" && Array.isArray((front as Row).publications) ? (front as Row).publications as Row[] : [])
     .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=horizon&&now<=until;});
   entry.progress.publicationIds = publications.map(p => String(p.id ?? "")).filter(Boolean);
-  entry.progress.stage = publications.length ? "reading-pages" : "no-active-publications";
+  entry.progress.stage = publications.length ? "reading-pages" : "source-unavailable";
+  if (!publications.length) {
+    entry.progress.error = `Tjek ei palauttanut kauppakohtaisia julkaisuja myymälälle ${String(store.name)} (storeId=${storeId}). Tarjousten määrää ei voida vahvistaa; aiempi aineisto säilytetään.`;
+    throw new Error(entry.progress.error);
+  }
   const seen=new Set<string>();
   const failedOfferIds=new Set<string>();
   let completedPublications=0;
@@ -140,7 +144,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       const payload=await response.json() as Row;
       entry.progress.pages++;
       const hotspots=Array.isArray(payload.hotspots)?payload.hotspots:[];
-      const ids=[...new Set(hotspots.map(h=>h && typeof h==="object" ? String((h as Row).offer && typeof (h as Row).offer==="object" ? ((h as Row).offer as Row).id??"" : "") : "").filter(Boolean))];
+      const ids=[...new Set(hotspots.map(h=>h && typeof h==="object" ? String(((h as Row).offer && typeof (h as Row).offer==="object" ? ((h as Row).offer as Row).id : null) ?? (h as Row).offerId ?? (h as Row).offerPublicId ?? "") : "").filter(Boolean))];
       const freshIds=ids.filter(id=>!seen.has(id));
       entry.progress.offerIds += freshIds.length;
       freshIds.forEach(id=>seen.add(id));
