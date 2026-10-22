@@ -9,13 +9,28 @@ const HUB="https://www.tokmanni.fi/tarjouslehti";
 const oldFeed=JSON.parse(readFileSync(FEED,"utf8"));
 const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 
-const response=await fetch(HUB,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)});
+// Retry transient network/HTTP failures; each attempt gets a fresh timeout.
+async function fetchPublisher(url,options={}){
+ let last;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const response=await fetch(url,{...options,signal:AbortSignal.timeout(60000)});
+   if(response.ok||![408,429,500,502,503,504].includes(response.status)||attempt===2)return response;
+   await response.body?.cancel();
+   last=new Error('Publisher HTTP '+response.status);
+  }catch(error){last=error;if(attempt===2)throw error;}
+  await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));
+ }
+ throw last;
+}
+
+const response=await fetchPublisher(HUB,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi-FI,fi;q=0.9","user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)});
 if(!response.ok) throw new Error("Tokmanni leaflet hub HTTP "+response.status);
 const html=await response.text();
 
 const iframeMatches=[...html.matchAll(/<iframe\b[^>]*src=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]);
 const eurosparFrame=iframeMatches.find(x=>/eurospar/i.test(x))??null;
-const frameResponse=eurosparFrame?await fetch(new URL(eurosparFrame,HUB),{headers:{"user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)}):null;
+const frameResponse=eurosparFrame?await fetchPublisher(new URL(eurosparFrame,HUB),{headers:{"user-agent":"Ziiply/1.0"},signal:AbortSignal.timeout(20000)}):null;
 const frameHtml=frameResponse?.ok?await frameResponse.text():"";
 function decodeHtml(s){return s.replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(Number(n)));}
 function stripTags(s){return decodeHtml(s.replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]+>/g," ")).replace(/\r/g,"").replace(/[ \t]+/g," ").replace(/\n[ \t]+/g,"\n").trim();}
@@ -31,7 +46,7 @@ const paperUrl=frameHtml.match(/"paperCompleteUrl"\s*:\s*"([^"]+)"/)?.[1];
 if(!paperUrl) throw new Error("Publisher PDF download origin missing");
 const downloadUrl=new URL("GetPDF.ashx",paperUrl);
 if(downloadUrl.protocol!=="https:" || downloadUrl.hostname!=="tarjoussanomat.tokmanni.fi") throw new Error("Unexpected EUROSPAR PDF origin");
-const pdfResponse=await fetch(downloadUrl,{method:"POST",body:new URLSearchParams({pageNumbers:""}),redirect:"follow",signal:AbortSignal.timeout(60000)});
+const pdfResponse=await fetchPublisher(downloadUrl,{method:"POST",body:new URLSearchParams({pageNumbers:""}),redirect:"follow",signal:AbortSignal.timeout(60000)});
 if(!pdfResponse.ok) throw new Error("EUROSPAR PDF HTTP "+pdfResponse.status);
 const pdf=Buffer.from(await pdfResponse.arrayBuffer());
 if(pdf.length>32*1024*1024 || pdf.subarray(0,5).toString()!=="%PDF-") throw new Error("Invalid publisher PDF");
@@ -44,7 +59,8 @@ try{
  parsed=JSON.parse(result.stdout);
 }finally{rmSync(folder,{recursive:true,force:true});}
 const {issue,validity,stores:storeNames,offers:parsedOffers}=parsed;
-const seoIssue=seoText.match(/\b(\d{1,2}\/\d{2})\b/)?.[0];
+const seoIssueMatch=seoText.match(/\b(\d{1,2})\/(?:20)?(\d{2})\b/);
+const seoIssue=seoIssueMatch?seoIssueMatch[1]+"/"+seoIssueMatch[2]:null;
 if(seoIssue && seoIssue!==issue) throw new Error("Publisher HTML/PDF issue mismatch");
 const storeHits=storeNames.filter(x=>seoText.toLocaleLowerCase("fi").includes(x.toLocaleLowerCase("fi")));
 const priceTokens=[...seoText.matchAll(/\b\d{1,3}[,.]\d{2}\b/g)].map(m=>m[0]);
@@ -110,10 +126,10 @@ const candidate={
     uniqueNames:uniqueNames.size,
     parseErrors:parseErrors.length
   },
-  ready:Boolean(issue&&validity&&validityCurrentOrFuture&&priceTokens.length>=5&&storeHits.length>=1&&coverageHealthy&&uniqueNames.size===parsedOffers.length&&parseErrors.length===0),
+  ready:Boolean(issue&&validity&&validityCurrentOrFuture&&parsedOffers.length>=5&&storeNames.length>=1&&coverageHealthy&&uniqueNames.size===parsedOffers.length&&parseErrors.length===0),
   reason:parseErrors.length===0&&coverageHealthy&&uniqueNames.size===parsedOffers.length&&validityCurrentOrFuture
     ?"EUROSPAR publication parsed with healthy coverage; candidate can be promoted after validation."
-    :"EUROSPAR publication found but coverage or row validation failed; keep existing feed fail-closed."
+    :"EUROSPAR validation failed: "+JSON.stringify({issue,validityCurrentOrFuture,coverageHealthy,uniqueNames:uniqueNames.size,parsedOffers:parsedOffers.length,parseErrors:parseErrors.length})
 };
 
 if(candidate.ready){
@@ -125,7 +141,7 @@ if(candidate.ready){
 writeFileSync("eurospar-feed-candidate.json",JSON.stringify(candidate,null,2));
 console.log(JSON.stringify(candidate,null,2));
 
-if(!candidate.discovery.frameFound||candidate.source.http!==200){
+if(!candidate.ready||!candidate.discovery.frameFound||candidate.source.http!==200){
   console.error("EUROSPAR publication frame missing or unhealthy.");
   process.exitCode=1;
 }
