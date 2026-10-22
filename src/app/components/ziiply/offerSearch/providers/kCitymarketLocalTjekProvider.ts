@@ -174,8 +174,9 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       if (!Array.isArray(payload.hotspots)) throw new Error("Invalid Tjek page: hotspots missing");
       const hotspots=payload.hotspots;
       const ids=[...new Set(hotspots.map(h=>{ if(!h||typeof h!=="object")return ""; const hotspot=h as Row; const offer=hotspot.offer; return String(offer && typeof offer==="object" ? (offer as Row).id??"" : hotspot.offerId??hotspot.offerPublicId??""); }).filter(Boolean))];
-      const missingIds=hotspots.length-ids.length;
-      if(missingIds>0)console.warn("[K-Citymarket] Tjek hotspots without recognized offer ID",{publicationId,page,hotspots:hotspots.length,uniqueOfferIds:ids.length});
+      const missingIds=hotspots.filter(h=>!h||typeof h!=="object"||!((h as Row).offer && typeof (h as Row).offer==="object" && ((h as Row).offer as Row).id) && !(h as Row)?.offerId && !(h as Row)?.offerPublicId).length;
+      console.info("[K-Citymarket] Tjek page coverage",{storeId,publicationId,page,hotspots:hotspots.length,uniqueOfferIds:ids.length,unrecognizedHotspots:missingIds});
+      if(missingIds>0)console.warn("[K-Citymarket] Tjek hotspots without recognized offer ID",{publicationId,page,hotspots:hotspots.length,uniqueOfferIds:ids.length,unrecognizedHotspots:missingIds});
       const freshIds=ids.filter(id=>!seen.has(id));
       entry.progress.offerIds += freshIds.length;
       freshIds.forEach(id=>seen.add(id));
@@ -211,6 +212,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
           category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
       }
       }
+      console.info("[K-Citymarket] Tjek page parsed",{storeId,publicationId,page,acceptedTotal:entry.rows.length,offerIdsTotal:entry.progress.offerIds,failedOfferRequests:failedOfferIds.size});
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();
       if(hotspots.length===0)break;
       if(page===100)pageLimitReached=true;
