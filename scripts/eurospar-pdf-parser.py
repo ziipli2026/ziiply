@@ -20,9 +20,10 @@ def parse(filename):
 
 def parse_pages(pages,digest):
  text=' '.join(p['text'] for p in pages)
- issue=re.search(r'EUROSPAR\s+(\d{1,2}/\d{2})',text)
+ issue=re.search(r'EUROSPAR\s+(\d{1,2})/(?:20)?(\d{2})\b',text)
  dates=re.findall(r'(\d{1,2})\.\s*[–-]\s*(\d{1,2})\.(\d{1,2})\.(20\d{2})',text)
  if not issue or not dates or len(set(dates))!=1:raise ValueError('Missing or conflicting publisher issue/validity')
+ issue_id=issue[1]+'/'+issue[2]
  a,b,m,y=map(int,dates[0]);validity={'from':f'{y:04}-{m:02}-{a:02}','to':f'{y:04}-{m:02}-{b:02}'}
  store_lines=[line for p in pages for line in p['text'].splitlines() if line.count('|')>=2]
  stores=list(dict.fromkeys(part.strip().title() for line in store_lines for part in line.split('|') if part.strip()))
@@ -30,7 +31,7 @@ def parse_pages(pages,digest):
  offers=[]
  for page_number,p in enumerate(pages,1):
   spans=p['spans']
-  headings=sorted([s for s in spans if ('-Bd' in s['font'] or 'Bold' in s['font']) and 'Digital' not in s['font'] and 7<=s['size']<=12 and p['height']*.14<s['bbox'][1]<p['height']*.92 and re.search(r'[A-ZÅÄÖ]{3}',s['text'])],key=lambda s:(s['bbox'][1],s['bbox'][0]))
+  headings=sorted([s for s in spans if ('-Bd' in s['font'] or 'Bold' in s['font']) and 'Digital' not in s['font'] and '|' not in s['text'] and 7<=s['size']<=12 and 0<s['bbox'][1]<p['height']*.92 and re.search(r'[A-ZÅÄÖ]{3}',s['text'])],key=lambda s:(s['bbox'][1],s['bbox'][0]))
   titles=[]
   for h in headings:
    prev=next((t for t in reversed(titles) if abs(t['x']-h['bbox'][0])<3 and 0<h['bbox'][1]-t['lastY']<18),None)
@@ -45,7 +46,7 @@ def parse_pages(pages,digest):
    if len(cents)!=1:raise ValueError('Ambiguous publisher price cents')
    candidates=[(wy-t['lastY']+abs(wx-t['x'])*.2,i) for i,t in enumerate(titles) if -.025*p['width']<wx-t['x']<.25*p['width'] and 0<wy-t['lastY']<.4*p['height']]
    candidates.sort()
-   if not candidates:raise ValueError('Price without product heading')
+   if not candidates:raise ValueError(f'Price without product heading: page {page_number}, {whole}')
    if len(candidates)>1 and candidates[1][0]-candidates[0][0]<10:raise ValueError('Ambiguous price ownership')
    ti=candidates[0][1]
    if ti in used:raise ValueError('Multiple prices assigned to one product')
@@ -63,9 +64,9 @@ def parse_pages(pages,digest):
    kilo=any(s['text'].strip().lower()=='kilo' and 'Digital' in s['font'] and abs(s['bbox'][0]-wx)<whole['size'] and wy<s['bbox'][1]<wy+whole['size'] for s in spans)
    restrictions=[s['text'].strip() for s in spans if s['text'].strip().startswith('Enintään') and t['x']<=s['bbox'][0]<t['x']+.25*p['width'] and wy+whole['size']*.6<s['bbox'][1]<wy+whole['size']+15]
    offer_price=int(whole['text'])+int(cents[0]['text'])/100
-   offers.append({'id':f'eurospar:{issue[1]}:{page_number}:{ti+1}','name':name.lower(),'category':category(name),'offerPrice':offer_price,'priceBasis':'multi-buy-total' if q else 'per-kg' if kilo else 'single-unit','multiUnit':{'quantity':int(q[1]),'unit':q[2]} if q else None,'normalPrice':normal[1] if normal else None,'normalUnit':normal[2] if normal else None,'unitPrice':unit[1] if unit else None,'unitPriceUnit':unit[2] if unit else None,'size':size[1] if size else None,'packCount':None,'discountPercent':None,'restriction':' '.join(restrictions) or None,'isWeightedProduct':kilo,'offerUnit':'kg' if kilo else None,'eans':[],'identityStatus':'leaflet-only','identityReason':'Publisher PDF; EAN not inferred','chain':'EUROSPAR','storeType':'EUROSPAR','source':'EUROSPAR tarjouslehti','issue':issue[1],'validFrom':validity['from'],'validTo':validity['to'],'stores':stores,'page':page_number,'sourceEvidence':{'pdfSha256':digest,'heading':[t['x'],t['y']],'price':list(whole['bbox'])}})
+   offers.append({'id':f'eurospar:{issue_id}:{page_number}:{ti+1}','name':name.lower(),'category':category(name),'offerPrice':offer_price,'priceBasis':'multi-buy-total' if q else 'per-kg' if kilo else 'single-unit','multiUnit':{'quantity':int(q[1]),'unit':q[2]} if q else None,'normalPrice':normal[1] if normal else None,'normalUnit':normal[2] if normal else None,'unitPrice':unit[1] if unit else None,'unitPriceUnit':unit[2] if unit else None,'size':size[1] if size else None,'packCount':None,'discountPercent':None,'restriction':' '.join(restrictions) or None,'isWeightedProduct':kilo,'offerUnit':'kg' if kilo else None,'eans':[],'identityStatus':'leaflet-only','identityReason':'Publisher PDF; EAN not inferred','chain':'EUROSPAR','storeType':'EUROSPAR','source':'EUROSPAR tarjouslehti','issue':issue_id,'validFrom':validity['from'],'validTo':validity['to'],'stores':stores,'page':page_number,'sourceEvidence':{'pdfSha256':digest,'heading':[t['x'],t['y']],'price':list(whole['bbox'])}})
   if len(used)!=len(titles):raise ValueError(f'Incomplete PDF coverage: {len(used)}/{len(titles)} product headings')
  if not offers:raise ValueError('No publisher offers')
- return {'issue':issue[1],'validity':validity,'stores':stores,'offers':offers}
+ return {'issue':issue_id,'validity':validity,'stores':stores,'offers':offers}
 
 if __name__=='__main__':print(json.dumps(parse(sys.argv[1]),ensure_ascii=False))
