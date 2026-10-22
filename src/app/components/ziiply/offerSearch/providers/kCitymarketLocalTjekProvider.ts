@@ -173,7 +173,9 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       entry.progress.pages++;
       if (!Array.isArray(payload.hotspots)) throw new Error("Invalid Tjek page: hotspots missing");
       const hotspots=payload.hotspots;
-      const ids=[...new Set(hotspots.map(h=>h && typeof h==="object" ? String((h as Row).offer && typeof (h as Row).offer==="object" ? ((h as Row).offer as Row).id??"" : "") : "").filter(Boolean))];
+      const ids=[...new Set(hotspots.map(h=>{ if(!h||typeof h!=="object")return ""; const hotspot=h as Row; const offer=hotspot.offer; return String(offer && typeof offer==="object" ? (offer as Row).id??"" : hotspot.offerId??hotspot.offerPublicId??""); }).filter(Boolean))];
+      const missingIds=hotspots.length-ids.length;
+      if(missingIds>0)console.warn("[K-Citymarket] Tjek hotspots without recognized offer ID",{publicationId,page,hotspots:hotspots.length,uniqueOfferIds:ids.length});
       const freshIds=ids.filter(id=>!seen.has(id));
       entry.progress.offerIds += freshIds.length;
       freshIds.forEach(id=>seen.add(id));
