@@ -834,6 +834,9 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
           },
         };
       }
+      // An empty master result is not a usable cached publication. Keep only
+      // in-flight deduplication so the next user request can recover immediately.
+      if (cleaned.length === 0) ziiplyGostaMasterCacheV156.delete(contextKey);
       return cleaned;
     })
     .catch((error) => {
