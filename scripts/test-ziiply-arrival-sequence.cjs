@@ -20,9 +20,9 @@ assert.equal(step(20000,30).state.tripConfirmed,false);
 assert.equal(step(60000,30).state.tripConfirmed,true,'60-second trip');
 assert.equal(step(65000,0).radar,'white');
 assert.equal(step(70000,0).radar,'white');
-assert.equal(step(75000,0).radar,'white');
+assert.equal(step(75000,0).radar,'green');
 const arrived=step(85000,0);
-assert.equal(arrived.radar,'green','parked 20 seconds');
+assert.equal(arrived.radar,'green','parked 10 seconds');
 assert.equal(arrived.askStoreChange,true,'GPS store differs from selected');
 assert.equal(arrived.showArrivalMessage,true);
 assert.equal(step(90000,0).showArrivalMessage,false,'do not repeat arrival');
@@ -44,11 +44,11 @@ let near=m.evaluateZiiplyArrival(state,{at:0,speedKmh:0,latitude:store.latitude+
 assert.equal(near.status,'near-store','15 m from store should be nearby before parking confirmation');
 assert.equal(near.showArrivalMessage,false,'do not announce confirmed arrival prematurely');
 state=near.state;
-for(const t of [5000,10000,15000,20000]){
+for(const t of [5000,10000]){
  near=m.evaluateZiiplyArrival(state,{at:t,speedKmh:0,latitude:store.latitude+offset(15),longitude:store.longitude,accuracyMeters:12},[store],['prisma']);
  state=near.state;
 }
-assert.equal(near.status,'in-store','15 m away with good GPS should confirm after 20 seconds');
+assert.equal(near.status,'in-store','15 m away with good GPS should confirm after 10 seconds');
 assert.equal(near.showArrivalMessage,true);
 assert.equal(m.shouldFetchZiiplyCartPrice({hasPrice:true,event:'confirmed-store-arrival',inStore:true,storeConfirmed:true,activeStoreId:'prisma',priceStoreId:'other'}),true,'reprice cart for arrived store');
 state=m.initialZiiplyArrivalState();
