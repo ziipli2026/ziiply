@@ -828,6 +828,13 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   if (sourceOffer?.source === "K-Citymarket tarjouslehti" && String(sourceOffer.id || "").startsWith("kcm:spatial:")) {
     return `${sourceTab}:kcm-national:${String(sourceOffer.id)}`;
   }
+  // Preserve source-specific product identities before fuzzy EAN/title matching.
+  // Different sources and different product IDs are never duplicates, even if
+  // their first words and prices happen to match.
+  const sourceName = normalizeGostaCoreText(String(sourceOffer?.source ?? sourceOffer?.provider ?? "unknown"));
+  const sourceStore = normalizeGostaCoreText(String(sourceOffer?.storeId ?? anyItem?.storeId ?? anyItem?.storeLabel ?? ""));
+  const sourceId = String(sourceOffer?.id ?? sourceOffer?.offerId ?? "").trim();
+  if (sourceId) return `${sourceTab}:source:${sourceName}:store:${sourceStore}:id:${sourceId}`;
   if (ean) return `${sourceTab}:ean:${ean}`;
 
   const title =
