@@ -187,7 +187,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const price=app??member??regular??numeric(offer.fromPrice);
         const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
         const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
-        if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now)continue;
+        if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now){ console.warn("[K-Citymarket] rejected Tjek offer", {publicationId,id,missingTitle:!title,invalidPrice:price==null||price<=0,invalidDates:!Number.isFinite(from)||!Number.isFinite(until),inactive:from>now||until<now}); continue; }
         const qty=numeric(offer.pieceCountFrom);
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
