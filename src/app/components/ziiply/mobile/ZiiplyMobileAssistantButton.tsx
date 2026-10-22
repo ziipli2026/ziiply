@@ -58,8 +58,8 @@ export default function ZiiplyMobileAssistantButton({
       onClick={onClick}
       aria-pressed={active}
       className={[
-        "group relative flex min-w-0 flex-col items-center overflow-hidden rounded-[1.45rem] border-[3px] p-2 text-center transition active:scale-[0.98]",
-        featured ? "min-h-[168px]" : "min-h-[152px]",
+        "group relative flex min-w-0 flex-col items-center overflow-hidden rounded-[clamp(0.7rem,3vw,1.45rem)] border-2 p-1 min-[390px]:p-2 text-center transition active:scale-[0.98]",
+        featured ? "min-h-[140px] min-[390px]:min-h-[168px]" : "min-h-[140px] min-[390px]:min-h-[152px]",
         theme.frame,
         theme.glow,
         active ? "ring-4 ring-[#0a7f3a]/20" : "ring-1 ring-white/70",
@@ -70,7 +70,7 @@ export default function ZiiplyMobileAssistantButton({
       <div
         className={[
           "relative z-10 mb-1 overflow-hidden rounded-full border-[3px] border-[#f7e7c4] bg-[#314633]",
-          featured ? "h-[86px] w-[86px]" : "h-[76px] w-[76px]",
+          featured ? "h-[clamp(55px,18vw,86px)] w-[clamp(55px,18vw,86px)]" : "h-[clamp(52px,17vw,76px)] w-[clamp(52px,17vw,76px)]",
           "shadow-[0_7px_0_rgba(65,45,20,0.18)]",
         ].join(" ")}
       >
@@ -88,7 +88,7 @@ export default function ZiiplyMobileAssistantButton({
       <div
         className={[
           "relative z-10 leading-none",
-          featured ? "text-[23px]" : "text-[20px]",
+          featured ? "text-[clamp(15px,4.7vw,23px)]" : "text-[clamp(15px,4.3vw,20px)]",
           "font-black",
           theme.label,
         ].join(" ")}
@@ -96,7 +96,7 @@ export default function ZiiplyMobileAssistantButton({
         {name}
       </div>
 
-      <div className="relative z-10 mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#1e2f2a]">
+      <div className="relative z-10 mt-1 break-words text-[clamp(9px,2.7vw,12px)] font-black uppercase tracking-normal min-[390px]:tracking-[0.08em] text-[#1e2f2a]">
         {title}
       </div>
 
