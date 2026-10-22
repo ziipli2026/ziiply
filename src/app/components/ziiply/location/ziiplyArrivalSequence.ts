@@ -7,7 +7,7 @@ export const ZIIPLY_TRIP_SPEED_KMH = 20;
 export const ZIIPLY_TRIP_CONFIRM_MS = 60_000;
 export const ZIIPLY_STORE_RADIUS_METERS = 50;
 export const ZIIPLY_PARKED_SPEED_KMH = 5;
-export const ZIIPLY_PARKED_CONFIRM_MS = 20_000;
+export const ZIIPLY_PARKED_CONFIRM_MS = 10_000;
 export const ZIIPLY_PARKED_SAMPLE_MS = 5_000;
 
 export type ZiiplyArrivalSample = {
