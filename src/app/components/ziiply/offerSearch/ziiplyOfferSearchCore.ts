@@ -331,25 +331,29 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   }
 
   const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
-  // V182: EUROSPAR provider already emits Ziiply's authoritative category.
-  // Preserve it instead of reclassifying leaflet titles with generic regexes.
-  const isEurospar =
-    storeType === "eurospar" ||
-    source.includes("eurospar tarjouslehti") ||
+  // EUROSPAR/Tokmanni leaflet categories are parser hints, not authoritative.
+  // Run the same shared product-form and category rules used by other chains,
+  // without letting a stale parser category (including "Muut") win first.
+  const isEurospar = storeType === "eurospar" || source.includes("eurospar tarjouslehti") ||
     normalizeGostaCoreText(sourceItem?.chain || anyItem?.chain || "") === "eurospar";
-  if (isEurospar) {
-    // Provider output is already in Ziiply's canonical taxonomy. Do not run it
-    // through title-based classification or text normalization that may alter
-    // punctuation such as "&".
+  const isTokmanni = source === "tokmanni-viikkotarjoukset" || source === "tokmanni viikkotarjoukset";
+  if (isEurospar || isTokmanni) {
+    const titleBased = getOfferCategoryV106({
+      ...sourceItem,
+      category: "",
+      categoryName: "",
+      categoryPath: "",
+      breadcrumbs: "",
+      department: "",
+      mainCategory: "",
+      productGroup: "",
+      subCategory: "",
+      taxonomy: "",
+      hierarchy: "",
+    });
+    if (titleBased && titleBased !== "Muut") return titleBased;
     const providerCategory = String(sourceItem?.category || "").trim();
-    if (providerCategory) return providerCategory;
-  }
-
-  // Tokmanni weekly offers carry canonical product-form categories. Use the
-  // same supplier result for mobile cards, desktop counts and category filters.
-  if (source === "tokmanni-viikkotarjoukset" || source === "tokmanni viikkotarjoukset") {
-    const category = String(sourceItem?.category || "").trim();
-    if (GOSTA_CATEGORY_LABELS_V136.includes(category)) return category;
+    return GOSTA_CATEGORY_LABELS_V136.includes(providerCategory) ? providerCategory : "Muut";
   }
 
   // V184: Lidl provider also emits Ziiply's canonical category. Preserve the
