@@ -1,0 +1,24 @@
+name: Citymarket availability notice
+on:
+  push:
+    paths:
+      - 'src/app/desktop-preview/page.tsx'
+      - 'src/app/api/offers/**'
+      - 'src/app/components/ziiply/offerSearch/citymarketAvailability.ts'
+      - 'src/app/components/ziiply/cards/CitymarketFailureNotice.tsx'
+      - 'tests/citymarket-availability.test.cjs'
+      - '.github/workflows/citymarket-availability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+      - run: node --test tests/citymarket-availability.test.cjs
+      - run: npx tsc --noEmit --pretty false

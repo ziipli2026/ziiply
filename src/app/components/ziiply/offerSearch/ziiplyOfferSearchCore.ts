@@ -1,3 +1,4 @@
+import type { CitymarketAvailabilityNotice } from "./citymarketAvailability";
 // ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V178_KCITYMARKET_BRANCH
 // Revision: V178-KCITYMARKET-BRANCH
@@ -536,6 +537,7 @@ export type ZiiplyKruokaDebugV174 = {
   productMapHttp?: number | null;
   productMapProducts?: number | null;
   activeOffers?: number | null;
+  citymarketNotice?: CitymarketAvailabilityNotice | null;
   error?: string | null;
 };
 
@@ -638,6 +640,7 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
         ? {
             ...(payloadV174.kruokaDebug ? { ...payloadV174.kruokaDebug } : {}),
             ...(deployV184 ? { deploy: deployV184 } : {}),
+            citymarketNotice: payloadV174.citymarketNotice ?? null,
             ...(payloadV174.sEvidenceRouteV228 ? { sEvidenceRouteV228: payloadV174.sEvidenceRouteV228 } : {}),
             ...(payloadV174.kOfferStageAuditV1 ? { kOfferStageAuditV1: payloadV174.kOfferStageAuditV1 } : {}),
             ...(payloadV174.imageEnrichmentAudit ? { imageEnrichmentAudit: payloadV174.imageEnrichmentAudit } : {}),

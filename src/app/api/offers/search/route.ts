@@ -1,3 +1,4 @@
+import { getCitymarketFailureNotice, type CitymarketAvailabilityNotice } from "../../../components/ziiply/offerSearch/citymarketAvailability";
 // ============================================================================
 // ZIIPLY_OFFERS_SEARCH_ROUTE_V20_KCITYMARKET_HTML_DIAGNOSTIC
 // Revision: V20-KCITYMARKET-HTML-DIAGNOSTIC
@@ -879,6 +880,7 @@ export async function GET(request: Request) {
     // Muut K-kaupat jatkavat täysin nykyisellä searchZiiplyOffers-polulla.
     const baseResults = isKCitymarketV19 ? [] : await searchZiiplyOffers(q, context);
 
+    let citymarketNotice: CitymarketAvailabilityNotice | null = null;
     let citymarketResults: UnknownRecord[] = [];
     let citymarketNationalCount = 0;
     let citymarketLocalCount = 0;
@@ -889,7 +891,8 @@ export async function GET(request: Request) {
         citymarketResults = (fetched as unknown as UnknownRecord[]).filter(offer => offerMatchesQuery(q, offer));
         citymarketNationalCount = citymarketResults.length;
       } catch (error) {
-        throw error;
+        console.warn("[Citymarket] Leaflet unavailable; keep independent web campaigns", error);
+        citymarketNotice = await getCitymarketFailureNotice();
       }
       // Local and national sources must be independently fault-tolerant.
       try {
@@ -955,6 +958,7 @@ export async function GET(request: Request) {
         query: q,
         context,
         results: imageEnrichedResults,
+        citymarketNotice,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
