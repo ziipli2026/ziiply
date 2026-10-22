@@ -77,9 +77,26 @@ export function normalizeTjekPackagePrice(row: Row): Row {
     priceBasis: "package-total", priceText: price.toFixed(2).replace(".", ",") + " € / pkt (" + quantity + " kpl)"};
 }
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
-  const rows = (await readPublishedSnapshot(normalize(selectedStoreName))) ?? [];
+  const key = normalize(selectedStoreName);
   const now = Date.now();
-  return rows.filter(row => isActiveOffer(row,now)).map(normalizeTjekPackagePrice);
+  // K-Ruoka's verified store-scoped offers take precedence over optional Tjek.
+  // The alternate key is accepted only for the explicitly verified Hyvinkaa store,
+  // and every row must independently identify the same store (N183).
+  const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
+  const primary = isHyvinkaa
+    ? (await readPublishedSnapshot("k ruoka k citymarket hyvinkaa") ?? [])
+        .filter(row => String(row.storeId ?? "") === "N183"
+          && String((row.debug as Row | undefined)?.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+          && normalize(row.storeName) === "k citymarket hyvinkaa"
+          && isActiveOffer(row, now))
+    : [];
+  const fallback = (await readPublishedSnapshot(key) ?? [])
+    .filter(row => isActiveOffer(row, now)
+      && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
+        && normalize(row.storeName) === "k citymarket hyvinkaa")));
+  // Use Tjek only if the verified store feed is unavailable. Never let an
+  // obsolete Tjek publication replace current K-Ruoka store campaigns.
+  return (primary.length ? primary : fallback).map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
