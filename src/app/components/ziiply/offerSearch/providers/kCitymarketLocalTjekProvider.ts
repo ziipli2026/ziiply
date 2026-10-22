@@ -89,9 +89,9 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
   // The verified K-Ruoka N183 store feed is primary; Tjek is only a fallback.
   const primary = isHyvinkaa
-    ? (await readPublishedSnapshot("k ruoka k citymarket hyvinkaa") ?? [])
+    ? (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
         .filter(row => String(row.storeId ?? "") === "N183"
-          && String((row.debug as Row | undefined)?.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+          && String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
           && normalize(row.storeName) === "k citymarket hyvinkaa"
           && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now)
     : [];
