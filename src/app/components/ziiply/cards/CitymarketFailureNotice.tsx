@@ -1,9 +1,9 @@
 import type { CitymarketAvailabilityNotice } from "../offerSearch/citymarketAvailability";
 export default function CitymarketFailureNotice({ notice, campaignsAvailable = false }: { notice?: CitymarketAvailabilityNotice | null; campaignsAvailable?: boolean }) {
   if (!notice) return null;
-  return <div role="alert" className="my-2 shrink-0 rounded-xl border-2 border-amber-700 bg-amber-50 p-3 text-sm font-bold leading-snug text-amber-950">
-    <p>Tarjouslehteä ei saatu ladattua. {notice.reason ? `Citymarketin ilmoitus: ${notice.reason}` : "Tarkempi syy ei ole tiedossa."}</p>
-    {campaignsAvailable && <p className="mt-2">Verkkosivujen tarjoukset löydät Kampanjat-välilehdeltä.</p>}
-    {notice.sourceUrl && <a href={notice.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block underline">Citymarketin häiriöilmoitus</a>}
-  </div>;
+  return <p role="status" className="mx-auto my-2 max-w-[48rem] px-2 text-center text-[0.85rem] font-semibold leading-relaxed text-[#68451f]">
+    {notice.reason ? `Tarjouslehti ei ole saatavilla. Citymarketin ilmoittama syy: ${notice.reason}` : "Tarjouslehteä ei saatu haettua. Häiriön tarkempi syy ei ole tiedossa."}{" "}
+    {campaignsAvailable ? "Kaupan omat tarjoukset voit katsoa Kampanjat-välilehdeltä. " : ""}
+    {notice.sourceUrl && <a href={notice.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Lähde: Citymarket</a>}
+  </p>;
 }

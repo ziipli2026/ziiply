@@ -1405,9 +1405,7 @@ export default function ZiiplyMobileOfferSearchCard({
               <div className="whitespace-nowrap text-[clamp(0.84rem,4vw,1.02rem)] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 {selectedStoreDisplayNameV56}
               </div>
-              <div className="mt-0.5 whitespace-nowrap text-[clamp(0.55rem,2.55vw,0.68rem)] font-extrabold italic leading-tight text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
-                {kruokaDebug?.citymarketNotice && selectedOfferChainV39 === "K" && contentTab === "offers" ? "Tarjouslehti ei ole saatavilla" : selectedStoreOfferLineV41}
-              </div>
+              {!loading && selectedOfferChainV39 === "K" && contentTab === "offers" && kruokaDebug?.citymarketNotice ? <CitymarketFailureNotice campaignsAvailable={hasCampaigns} notice={kruokaDebug.citymarketNotice} /> : <div className="mt-0.5 whitespace-nowrap text-[clamp(0.55rem,2.55vw,0.68rem)] font-extrabold italic leading-tight text-[#6d5d3f]" style={{ fontFamily: serifFont }}>{selectedStoreOfferLineV41}</div>}
 
               {showLandingView ? (
                 <div className="mt-2 rounded-[0.82rem] border-[2px] border-[#174c2c] bg-[#fff8d9]/92 px-1.5 py-1.5">
@@ -1431,7 +1429,6 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           ) : null}
 
-          {!loading && selectedOfferChainV39 === "K" && contentTab === "offers" && <CitymarketFailureNotice campaignsAvailable={hasCampaigns} notice={kruokaDebug?.citymarketNotice} />}
           {selectedOfferChainV39 && !showLandingView ? (
             <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9d8350] bg-[#fff4d3]/86 p-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
               <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -1563,9 +1560,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 <span className="block h-full w-[42%] animate-[ziiplyOfferSearchBar_1.1s_ease-in-out_infinite] rounded-full bg-[#1b7c3d]" />
               </div>
             </div>
-          ) : selectedOfferChainV39 === "K" && contentTab === "offers" && kruokaDebug?.citymarketNotice && !hasVisibleOffers ? (
-            <p className="px-3 py-4 text-center font-bold text-[#59401e]">Yritä tarjouslehden hakua myöhemmin uudelleen.</p>
-          ) : showLandingView ? (
+          ) : selectedOfferChainV39 === "K" && contentTab === "offers" && kruokaDebug?.citymarketNotice && !hasVisibleOffers ? null : showLandingView ? (
             <div className="mt-[0.18rem] min-h-0 flex-1 overflow-hidden rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3 py-2.5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               {visibleCategorySuggestions.length > 0 ? (
                 <div className="min-h-0 h-full overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
