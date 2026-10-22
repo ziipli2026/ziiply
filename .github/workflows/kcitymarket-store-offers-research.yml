@@ -135,7 +135,7 @@ jobs:
                 try{
                   const alternative=await data("fronts",params);
                   const pubs=(Array.isArray(alternative)?alternative:[]).flatMap(f=>Array.isArray(f?.publications)?f.publications:[]);
-                  console.log("CITYMARKET_TJEK_FRONTS_VARIANT "+JSON.stringify({storeId:store.id,variant,shape:summarize(alternative),publications:pubs.map(p=>({id:p.id,validFrom:p.validFrom,validUntil:p.validUntil,localBusinessIds:p.localBusinessIds})).slice(0,25)}));
+                  console.log("CITYMARKET_TJEK_FRONTS_VARIANT "+JSON.stringify({storeId:store.id,variant,shape:summarize(alternative),publicationParents:(Array.isArray(alternative)?alternative:[]).filter(f=>Array.isArray(f?.publications)&&f.publications.length).map(f=>({business:f.business,category:f.category,publicationIds:f.publications.map(p=>p.id)})).slice(0,40),publications:pubs.map(p=>({id:p.id,validFrom:p.validFrom,validUntil:p.validUntil,localBusinessIds:p.localBusinessIds})).slice(0,25)}));
                 }catch(error){console.log("CITYMARKET_TJEK_FRONTS_VARIANT_ERROR "+JSON.stringify({storeId:store.id,variant,error:String(error)}));}
               }
               const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front=>Array.isArray(front.publications)?front.publications:[]);
