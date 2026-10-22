@@ -126,6 +126,14 @@ jobs:
               const fronts=await data("fronts",{businessIds:[businessId],localBusinessIds:[store.id],coordinates:store.coordinates});
               const summarize=(value)=>({type:Array.isArray(value)?"array":typeof value,length:Array.isArray(value)?value.length:null,keys:value&&typeof value==="object"?Object.keys(value).slice(0,30):[],sample:Array.isArray(value)?value.slice(0,3).map(item=>({keys:item&&typeof item==="object"?Object.keys(item):[],id:item?.id,validFrom:item?.validFrom,validUntil:item?.validUntil,publications:item?.publications?.length,publication:item?.publication?.id,localBusinessIds:item?.localBusinessIds})):null});
               console.log("CITYMARKET_TJEK_FRONTS_RAW_SHAPE "+JSON.stringify({storeId:store.id,fronts:summarize(fronts)}));
+              console.log("CITYMARKET_TJEK_SELECTED_STORE_BUSINESS "+JSON.stringify({storeId:store.id,storeName:store.name,businessId,frontsBusiness:(Array.isArray(fronts)?fronts:[]).map(f=>({name:f?.business?.name,publicId:f?.business?.publicId,publicationCount:f?.publications?.length??0}))}));
+              const storePage=origin+"K-Citymarket/kaupat/"+encodeURIComponent(store.id);
+              try{
+                const pageResponse=await fetch(storePage,{signal:AbortSignal.timeout(15000)});
+                const html=await pageResponse.text();
+                console.log("CITYMARKET_TJEK_STORE_PAGE "+JSON.stringify({storeId:store.id,status:pageResponse.status,finalUrl:pageResponse.url,title:html.match(/<title[^>]*>([^<]*)/i)?.[1]??null,publicationLinks:[...html.matchAll(/(?:paged-publications|publication-viewer|publications)\\/[^"'\\s<>]+/gi)].slice(0,10).map(m=>m[0]),mentionsPublication:/publication/i.test(html)}));
+              }catch(error){console.log("CITYMARKET_TJEK_STORE_PAGE_ERROR "+JSON.stringify({storeId:store.id,error:String(error)}));}
+
               for(const [variant,params] of [
                 ["store-only",{localBusinessIds:[store.id]}],
                 ["business-only",{businessIds:[businessId]}],
