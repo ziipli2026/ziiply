@@ -702,7 +702,7 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   }
 
   const isTokmanniSelection = Boolean(context?.tokmanniStoreId || context?.tokmanniStoreName);
-  if (isTokmanniSelection) {
+  if (isTokmanniSelection && !isEurosparSelection) {
     params.set("provider", "tokmanni");
     params.set("tokmanniStoreName", String(context?.tokmanniStoreName || "Tokmanni"));
   }
