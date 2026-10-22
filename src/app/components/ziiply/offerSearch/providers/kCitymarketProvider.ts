@@ -787,7 +787,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const stored=await readActivePublicationOffers<CitymarketOffer>("K-Citymarket");
   if(stored.length){
     const { correctPreparedCitymarketPrices }=await import("./kCitymarketPreparedPriceCorrections");
-    return correctPreparedCitymarketPrices(stored);
+    return correctPreparedCitymarketPrices(stored).map(offer => ({...offer, category: category(offer.title)}));
   }
   throw new Error("Valmis viikkolehtiaineisto puuttuu");
   // Migration safety: do not break desktop or mobile when the first snapshot
