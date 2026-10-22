@@ -84,10 +84,25 @@ export function normalizeTjekPackagePrice(row: Row): Row {
     priceBasis: "package-total", priceText: price.toFixed(2).replace(".", ",") + " € / pkt (" + quantity + " kpl)"};
 }
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
-  const saved = await readPublishedSnapshot(normalize(selectedStoreName));
-  if (!saved) throw new Error("Kampanja-aineisto ei ole valmis. Yritä myöhemmin uudelleen.");
+  const key = normalize(selectedStoreName);
   const now = Date.now();
-  return saved.filter(row => Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now).map(normalizeTjekPackagePrice);
+  const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
+  // The verified K-Ruoka N183 store feed is primary; Tjek is only a fallback.
+  const primary = isHyvinkaa
+    ? (await readPublishedSnapshot("k ruoka k citymarket hyvinkaa") ?? [])
+        .filter(row => String(row.storeId ?? "") === "N183"
+          && String((row.debug as Row | undefined)?.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+          && normalize(row.storeName) === "k citymarket hyvinkaa"
+          && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now)
+    : [];
+  const fallback = primary.length ? [] : (await readPublishedSnapshot(key) ?? [])
+    .filter(row => Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now
+      && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
+        && normalize(row.storeName) === "k citymarket hyvinkaa")));
+  if (!primary.length && !fallback.length) {
+    throw new Error("Kauppakohtaisia voimassa olevia tarjouksia ei ole saatavilla.");
+  }
+  return (primary.length ? primary : fallback).map(normalizeTjekPackagePrice);
 }
 
 /** Explicit background-job entry point. The interactive request never starts this. */
