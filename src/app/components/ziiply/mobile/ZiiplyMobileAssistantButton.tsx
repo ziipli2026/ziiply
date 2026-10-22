@@ -58,8 +58,8 @@ export default function ZiiplyMobileAssistantButton({
       onClick={onClick}
       aria-pressed={active}
       className={[
-        "group relative flex min-w-0 flex-col items-center overflow-hidden rounded-[1.45rem] border-[3px] p-2 text-center transition active:scale-[0.98]",
-        featured ? "min-h-[168px]" : "min-h-[152px]",
+        "group relative flex min-w-0 flex-col items-center overflow-hidden rounded-[1.45rem] border-[3px] p-2 max-[389px]:border-2 max-[389px]:p-1 text-center transition active:scale-[0.98]",
+        featured ? "min-h-[168px] max-[389px]:min-h-[142px]" : "min-h-[152px] max-[389px]:min-h-[142px]",
         theme.frame,
         theme.glow,
         active ? "ring-4 ring-[#0a7f3a]/20" : "ring-1 ring-white/70",
@@ -70,7 +70,7 @@ export default function ZiiplyMobileAssistantButton({
       <div
         className={[
           "relative z-10 mb-1 overflow-hidden rounded-full border-[3px] border-[#f7e7c4] bg-[#314633]",
-          featured ? "h-[86px] w-[86px]" : "h-[76px] w-[76px]",
+          featured ? "h-[86px] w-[86px] max-[389px]:h-[58px] max-[389px]:w-[58px]" : "h-[76px] w-[76px] max-[389px]:h-[54px] max-[389px]:w-[54px]",
           "shadow-[0_7px_0_rgba(65,45,20,0.18)]",
         ].join(" ")}
       >
@@ -88,7 +88,7 @@ export default function ZiiplyMobileAssistantButton({
       <div
         className={[
           "relative z-10 leading-none",
-          featured ? "text-[23px]" : "text-[20px]",
+          featured ? "text-[23px] max-[389px]:text-[17px]" : "text-[20px] max-[389px]:text-[17px]",
           "font-black",
           theme.label,
         ].join(" ")}
@@ -96,11 +96,11 @@ export default function ZiiplyMobileAssistantButton({
         {name}
       </div>
 
-      <div className="relative z-10 mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#1e2f2a]">
+      <div className="relative z-10 mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#1e2f2a] max-[389px]:text-[9px] max-[389px]:tracking-normal">
         {title}
       </div>
 
-      <div className="relative z-10 mt-1 line-clamp-2 text-[11px] font-bold leading-tight text-[#687285]">
+      <div className="relative z-10 mt-1 line-clamp-2 text-[11px] max-[389px]:text-[10px] font-bold leading-tight text-[#687285]">
         {subtitle}
       </div>
     </button>
