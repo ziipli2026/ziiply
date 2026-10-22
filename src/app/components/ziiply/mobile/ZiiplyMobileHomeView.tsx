@@ -17,13 +17,12 @@ type Props = {
 export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant }: Props) {
   return (
     <main
-      className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 sm:hidden"
+      className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)] sm:hidden"
       style={{
         background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, rgba(233,243,240,0) 100%)",
       }}
     >
-      <div className="flex min-h-0 flex-1 flex-col justify-end"
-        style={{ paddingTop: "clamp(12px, 10dvh, 130px)" }}>
+      <div className="flex min-h-0 flex-1 flex-col justify-end pt-[clamp(12px,10dvh,130px)] max-[389px]:justify-start max-[389px]:pt-4">
         <header className="flex shrink-0 flex-col items-center text-center">
           <img
             src="/ziiplylogo_mobile.png"
@@ -33,18 +32,18 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
             draggable={false}
             className="h-[clamp(54px,10dvh,94px)] w-[clamp(54px,10dvh,94px)] object-contain"
           />
-          <h1 className="mt-1 max-w-[390px] text-[clamp(24px,6.5vw,36px)] font-black leading-[1.04] tracking-[-0.045em] text-[#050b2b]">
+          <h1 className="mt-1 max-w-[390px] text-[clamp(24px,6.5vw,36px)] max-[389px]:text-[clamp(22px,6vw,27px)] font-black leading-[1.04] tracking-[-0.045em] text-[#050b2b]">
             <span className="block">Viilaa ruokakorisi</span>
             <span className="block">huokeammaks</span>
           </h1>
-          <p className="mt-2 max-w-[390px] text-[clamp(13px,3.6vw,17px)] font-bold leading-[1.17] text-[#686d5c]">
+          <p className="mt-2 max-w-[390px] text-[clamp(13px,3.6vw,17px)] max-[389px]:text-[12px] font-bold leading-[1.17] text-[#686d5c]">
             Gösta, Justiina ja Arvo auttavat arjen<br className="hidden min-[370px]:block" /> valinnoissa
           </p>
         </header>
 
         <section
           aria-label="Ziiplyn avustajat"
-          className="mt-[clamp(10px,2dvh,24px)] grid shrink-0 grid-cols-3 gap-2 rounded-[2rem] bg-[#f8f5ed]/95 p-2 pb-3 ring-1 ring-[#fffaf0]/95"
+          className="mt-[clamp(10px,2dvh,24px)] grid shrink-0 grid-cols-3 gap-2 rounded-[2rem] max-[389px]:gap-1 max-[389px]:rounded-2xl max-[389px]:p-1.5 bg-[#f8f5ed]/95 p-2 pb-3 ring-1 ring-[#fffaf0]/95"
         >
           <ZiiplyMobileAssistantButton
             assistant="gosta"
