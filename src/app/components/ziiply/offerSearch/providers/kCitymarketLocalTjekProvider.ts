@@ -218,6 +218,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
     throw new Error(entry.progress.error);
   }
   if(completedPublications!==publications.length)throw new Error(`Only ${completedPublications}/${publications.length} Tjek publications read`);
+  if(entry.progress.offerIds >= 5 && entry.rows.length < Math.ceil(entry.progress.offerIds / 2)) throw new Error(`Tjek campaign scan incomplete: accepted ${entry.rows.length} of ${entry.progress.offerIds} offer IDs; previous snapshot preserved`);
   entry.progress.accepted = entry.rows.length;
 }
 
