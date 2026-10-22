@@ -94,9 +94,20 @@ export async function refreshKCitymarketCampaignCache(storeName: string) {
   if (entry.progress.publicationIds.length === 0 || entry.rows.length === 0) {
     throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
   }
+  // A successful HTTP scan is not proof of a complete campaign catalogue.
+  // Never replace a healthy snapshot with a suddenly tiny partial publication.
+  const previous = await readPublishedSnapshot(key);
+  const previousActive = (previous ?? []).filter(row => isActiveOffer(row)).length;
+  const currentActive = entry.rows.filter(row => isActiveOffer(row)).length;
+  if (previousActive >= 5 && currentActive < Math.max(3, Math.floor(previousActive * 0.5))) {
+    throw new Error(`Tjek campaign coverage regression: ${currentActive} active rows vs ${previousActive} previously; previous snapshot preserved`);
+  }
+  if (entry.progress.offerIds >= 5 && entry.rows.length < Math.max(3, Math.floor(entry.progress.offerIds * 0.2))) {
+    throw new Error(`Tjek campaign detail coverage incomplete: ${entry.rows.length}/${entry.progress.offerIds}; previous snapshot preserved`);
+  }
   entry.rows = entry.rows.map(normalizeTjekPackagePrice);
   await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
-  return {count: entry.rows.length, pages: entry.progress.pages};
+  return {count: entry.rows.length, activeCount: currentActive, discoveredOfferIds: entry.progress.offerIds, pages: entry.progress.pages};
 }
 async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; progress: LocalProgress }): Promise<void> {
   const wanted=normalize(selectedStoreName);
