@@ -514,9 +514,10 @@ export function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): strin
   if (/\b(?:lasagne\w*|mikroateria\w*|burgeri\w*)\b/.test(title)) return "Valmisruoka";
   if (/\b(?:cookie\w*|brownie\w*)\b/.test(title)) return "Makeiset & keksit";
 
-  // Compound product names and food forms take precedence over brand-based guesses.
-  if (/(?:viineri\\w*|patonki\\w*|riisipiirak\\w*|marjapiirak\\w*|ruisviipale\\w*)/.test(title)) return "Leipomo";
-  if (/(?:lenkit\\b|lenkkimakkar\\w*|siniset lenkit|pikkuprinssi)/.test(title)) return "Liha & makkarat";
+  // Product forms in compound names outrank vague brand or ingredient matches.
+  // Match suffixes inside compounds (valkosipulivoipatonki, vaniljaviineri).
+  if (/(?:viineri\w*|patonki\w*|riisipiirak\w*|marjapiirak\w*|ruisviipale\w*)/.test(title)) return "Leipomo";
+  if (/(?:lenkit\b|lenkkimakkar\w*|siniset lenkit|pikkuprinssi)/.test(title)) return "Liha & makkarat";
 
   // Product-form precedence: frozen products must beat cookie words first.
   // A name such as "piparkakkujäätelö" is still Pakasteet.
