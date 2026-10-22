@@ -134,6 +134,12 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const publicationScheduleObservations=[...new Map(d.pubs.filter(p=>p.approval_state==="approved"&&/^(K-SUPERMARKET|K-MARKET|TOKMANNI-SPAR|EUROSPAR|SPAR)/i.test(p.chain)).map(p=>[p.chain+"::"+p.publication_id+"::"+p.valid_from,p])).values()].map(p=>({chain:p.chain,publication:p.publication_id,validFrom:p.valid_from,weekday:fiWeekday(p.valid_from),parsedAt:p.parsed_at,unexpected:!expectedStartDays[/^(EUROSPAR|SPAR)/i.test(p.chain)?"TOKMANNI-SPAR":p.chain]?.includes(fiWeekday(p.valid_from))}));
   const unexpectedPublicationDays=publicationScheduleObservations.filter(p=>p.unexpected);
   const learnedWeekdays=[...new Set(unexpectedPublicationDays.map(p=>p.chain+"::"+p.weekday))];
+  // Latest result per monitored SPAR/Tokmanni source. An older success must
+  // never mask a newer failed run; a missing run is not a green signal.
+  const sparTokmanniRuns=d.runs.filter(r=>/^(tokmanni(?:-spar)?|spar|eurospar)(?::|$)/i.test(r.chain.trim()));
+  const sparTokmanniLatest=[...new Map(sparTokmanniRuns.map(r=>[r.chain+"::"+r.source,r])).values()];
+  const sparTokmanniFailures=sparTokmanniLatest.filter(r=>!r.ok);
+  const sparTokmanniMissing=sparTokmanniLatest.length===0;
   const latestRun=d.runs[0];
   const activeCoverageEnd=activePubs.reduce((max,p)=>p.valid_until>max?p.valid_until:max,todayFi); const nextApproved=currentPubs.filter(p=>p.approval_state==="approved"&&p.valid_from>activeCoverageEnd).sort((a,b)=>a.valid_from.localeCompare(b.valid_from))[0];
   const overlappingApproved=activePubs.filter((p,i,a)=>!CHAINS.find(ch=>ch.key==="Lidl")!.match(p.chain.trim())&&a.some((q,j)=>j!==i&&q.chain===p.chain&&q.publication_id!==p.publication_id));
@@ -259,6 +265,10 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
 
     <nav aria-label="Control Center -näkymät" style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:20}}>{([{id:"overview",label:"Yleiskatsaus"},{id:"publications",label:"Tarjouslehdet ja parserit"},{id:"data",label:"Tuotedata ja järjestelmä"}] as const).map(tab=><a key={tab.id} href={tab.id==="overview"?"/":"/?view="+tab.id} aria-current={view===tab.id?"page":undefined} style={{padding:"12px 18px",borderRadius:12,textDecoration:"none",fontWeight:800,background:view===tab.id?"#0f172a":"#fff",color:view===tab.id?"#fff":"#334155",border:"1px solid #cbd5e1"}}>{tab.label}</a>)}</nav>
     {d.error&&<div style={{background:"#fee4e2",border:"1px solid #fecdca",padding:16,borderRadius:12,marginBottom:16}}>🔴 {d.error}</div>}
+    {(sparTokmanniFailures.length>0||sparTokmanniMissing)&&<div role="alert" style={{background:"#fff1f0",border:"2px solid #d92d20",padding:18,borderRadius:12,marginBottom:18,color:"#912018"}}>
+      <div style={{fontWeight:900,fontSize:18}}>🔴 SPAR / TOKMANNI — {sparTokmanniMissing?"HAUN SEURANTATIETO PUUTTUU":"TARJOUSHAUSSA VIRHE"}</div>
+      {sparTokmanniMissing?<p style={{marginBottom:0}}>SPARin ja Tokmannin hakujen onnistumista ei voida vahvistaa: ajolokia ei löydy. Ei saa tulkita vihreäksi.</p>:sparTokmanniFailures.map(r=><div key={r.chain+"::"+r.source} style={{marginTop:9}}><strong>{r.chain} / {r.source}</strong> — {r.outcome||"Haku epäonnistui"} · {r.checked_at} · tarjouksia {r.offer_count}</div>)}
+    </div>}
 
     <section style={{display:"grid",gridTemplateColumns:"minmax(0,1.45fr) minmax(320px,.55fr)",gap:14,marginBottom:18}}>
       <article style={{background:overall[0]==="red"?"#fff1f0":overall[0]==="yellow"?"#fff8e6":"#ecfdf3",border:overall[0]==="red"?"1px solid #fecdca":overall[0]==="yellow"?"1px solid #fedf89":"1px solid #abefc6",borderRadius:20,padding:22}}>
