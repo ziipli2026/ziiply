@@ -6,7 +6,7 @@ function load(file,imports={}){
   const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};new Function('require','module','exports',code)(name=>{if(name in imports)return imports[name];throw Error('Unexpected import '+name)},module,module.exports);return module.exports;
 }
-const {expectedCitymarketPreflight:expected,citymarketPreflightStatus:status}=load('control-center/app/citymarketPreflight.ts');
+const {expectedCitymarketPreflight:expected,citymarketPreflightStatus:status,citymarketPreflightSchedule:schedule}=load('control-center/app/citymarketPreflight.ts');
 const period='2026-10-22-W43-LV';
 const raw=(date,next=null,errors=[])=>({checked_at:date,source:'k-citymarket-cache',ok:true,offer_count:34,outcome:'cache-warm-partial-or-failed',details:{active:{period:'2026-10-19-W43-AV',offers:34},next,errors}});
 test('Finnish preview window changes at 15:00; handles winter and ISO week year rollover',()=>{
@@ -24,7 +24,7 @@ test('active AV success cannot mask the first failed LV attempt; preserve earlie
 });
 test('previous leaflet success is not reused for new preview; no data is visible',()=>{
   const result=status([raw('2026-10-18T13:00:00Z',{period:'2026-10-19-W43-AV',offers:35})],new Date('2026-10-21T14:00:00Z'));
-  assert.equal(result.level,'gray');assert.equal(result.count,null);
+  assert.equal(result.level,'red');assert.equal(result.count,null);
 });
 test('automatic success remains pending printed PDF review; full review is independently required',()=>{
   const run=raw('2026-10-21T13:00:00Z',{period,offers:89});
@@ -56,4 +56,21 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     assert.equal(records.at(-1).details.pdfReview,'pending');
   }finally{if(previous===undefined)delete process.env.DATABASE_URL;else process.env.DATABASE_URL=previous;}
+});
+
+test('Sunday and Wednesday are both shown, and a completely missing run goes red after deadline',()=>{
+ const rows=schedule([],new Date('2026-10-22T02:00:00Z'));
+ assert.equal(rows.length,2);
+ assert.equal(rows[0].issue,'43AV');assert.equal(rows[0].previewDate,'2026-10-18');
+ assert.equal(rows[1].issue,'43LV');assert.equal(rows[1].previewDate,'2026-10-21');
+ assert.ok(rows.every(r=>r.level==='red'&&r.label==='ENNAKKOPARSERIN AJO PUUTTUU'));
+ assert.equal(status([],new Date('2026-10-21T12:20:00Z')).level,'gray');
+ assert.equal(status([],new Date('2026-10-21T12:31:00Z')).level,'red');
+});
+test('Thursday active-period errors update the same Wednesday row after rollover',()=>{
+ const first=raw('2026-10-21T12:10:00Z',null,['next '+period+': HTTP 403']);
+ const active=raw('2026-10-22T01:15:00Z',null,['active '+period+': HTTP 403']);active.details.active=null;
+ const result=schedule([active,first],new Date('2026-10-22T02:00:00Z'))[1];
+ assert.equal(result.level,'red');assert.equal(result.first,first.checked_at);
+ assert.equal(result.latest,active.checked_at);assert.match(result.errors[0],/^active /);
 });
