@@ -505,14 +505,14 @@ export function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): strin
   // Shared category-level product-form rules (all non-official providers).
   // Specific forms precede broad ingredient/brand matches; never classify
   // peanut butter as dairy or a pastry as fish because of substrings.
-  if (/\\b(?:peruna[- ]sipulisekoitus|pakastevihanne\\w*|pakastettu\\w*)\\b/.test(title)) return "Pakasteet";
-  if (/\\b(?:viineri\\w*|patonki\\w*|ruisviipale\\w*|leipa\\w*|leivonnais\\w*)\\b/.test(title)) return "Leipomo";
-  if (/\\b(?:maapahkinavoi\\w*|liemikuutio\\w*|maustekurk\\w*|suolakurk\\w*|popcorn\\w*)\\b/.test(title)) return "Kuivatuotteet";
-  if (/\\b(?:lenkki\\w*|meetvurst\\w*|pekoni\\w*|palviliha\\w*|palvit\\w*|porsaan\\w*|sisafilee\\w*)\\b/.test(title)) return "Liha & makkarat";
-  if (/\\b(?:pirtelo\\w*)\\b/.test(title)) return "Maitotuotteet";
-  if (/\\b(?:persimoni\\w*|kurpitsa\\w*|sipuli\\w*)\\b/.test(title)) return "Hevi";
-  if (/\\b(?:lasagne\\w*|mikroateria\\w*|burgeri\\w*)\\b/.test(title)) return "Valmisruoka";
-  if (/\\b(?:cookie\\w*|brownie\\w*)\\b/.test(title)) return "Makeiset & keksit";
+  if (/\b(?:peruna[- ]sipulisekoitus|pakastevihanne\w*|pakastettu\w*)\b/.test(title)) return "Pakasteet";
+  if (/\b(?:viineri\w*|patonki\w*|ruisviipale\w*|leipa\w*|leivonnais\w*)\b/.test(title)) return "Leipomo";
+  if (/\b(?:maapahkinavoi\w*|liemikuutio\w*|maustekurk\w*|suolakurk\w*|popcorn\w*)\b/.test(title)) return "Kuivatuotteet";
+  if (/\b(?:lenkki\w*|meetvurst\w*|pekoni\w*|palviliha\w*|palvit\w*|porsaan\w*|sisafilee\w*)\b/.test(title)) return "Liha & makkarat";
+  if (/\b(?:pirtelo\w*)\b/.test(title)) return "Maitotuotteet";
+  if (/\b(?:persimoni\w*|kurpitsa\w*|sipuli\w*)\b/.test(title)) return "Hevi";
+  if (/\b(?:lasagne\w*|mikroateria\w*|burgeri\w*)\b/.test(title)) return "Valmisruoka";
+  if (/\b(?:cookie\w*|brownie\w*)\b/.test(title)) return "Makeiset & keksit";
 
   // Product-form precedence: frozen products must beat cookie words first.
   // A name such as "piparkakkujäätelö" is still Pakasteet.
