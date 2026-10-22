@@ -1,1 +1,24 @@
 
+name: K-Citymarket manual parser
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run current Citymarket parser
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$CRON_SECRET" || { echo "CRON_SECRET missing"; exit 1; }
+          curl --fail-with-body --show-error --max-time 150 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://ziiply.vercel.app/api/cron/kcitymarket-cache
+
