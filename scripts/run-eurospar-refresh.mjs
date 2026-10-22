@@ -13,7 +13,16 @@ try{
  if(!candidate.ready)throw Error(candidate.reason||'Candidate validation failed');
  const feed=JSON.parse(readFileSync('eurospar-feed.generated.json','utf8'));
  count=feed.offers.length;ok=true;
-}catch(e){error=String(e).slice(-2500);}
+}catch(e){
+ const raw=String(e);
+ const coverage=raw.match(/Incomplete PDF coverage(?: on page (\d+))?: (\d+)\/(\d+) product headings(?:; unmatched=(\[[^\n]*\]))?/);
+ if(coverage){
+  const [,page,matched,total,unmatched]=coverage;
+  let names='';
+  try{names=(JSON.parse(unmatched||'[]')).map(x=>x.name).filter(Boolean).join(', ');}catch{}
+  error='EUROSPAR PDF: '+(Number(total)-Number(matched))+' tuotetta jäi ilman luotettavaa hintayhdistelmää ('+matched+'/'+total+(page?', sivu '+page:'')+').'+(names?' Tarkista: '+names+'.':'')+' Vanhaa tarjousaineistoa ei korvattu. Katso GitHub-ajon loki.';
+ }else error=raw.slice(-1500);
+}
 const runUrl=`https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 await sql`INSERT INTO ziiply_publication_run_log(chain,source,ok,offer_count,outcome,details)
  VALUES ('TOKMANNI-SPAR','eurospar-publication-refresh',${ok},${count},${ok?'eurospar-refresh-ok':'eurospar-refresh-failed'},${JSON.stringify({error,runUrl})}::jsonb)`;
