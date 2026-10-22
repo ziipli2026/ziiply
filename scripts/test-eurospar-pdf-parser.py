@@ -49,3 +49,13 @@ try:run(broken)
 except ValueError:pass
 else:raise AssertionError('Missing price cents accepted')
 print('PASS EUROSPAR 42/26: 15 source prices, multi-buys, categories, dates, spatial reorder and fail-closed cents')
+
+# Current 43/2026 leaflet: store footer is not a product; top-row products count.
+current=json.loads(Path('data/eurospar/43-2026-pdf-spans.json').read_text())
+r=parser.parse_pages(current['pages'],current['pdfSha256'])
+assert r['issue']=='43/26' and len(r['offers'])==35
+assert r['validity']=={'from':'2026-10-22','to':'2026-10-25'}
+assert not any('|' in o['name'] for o in r['offers'])
+for token,price in [('viljaporsaan fileepihvit',6.99),('kasslerpala',10.99),('kirjolohifilee',12.99)]:
+ assert len([o for o in r['offers'] if token in o['name'] and o['offerPrice']==price])==1
+print('PASS EUROSPAR 43/2026: 35 offers, footer exclusion, top row and full year')
