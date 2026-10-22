@@ -525,14 +525,14 @@ export default function ZiiplyMobileScannerCard({
           <ScannerCorner className="right-5 top-5 rotate-90" />
           <ScannerCorner className="bottom-5 left-5 -rotate-90" />
           <ScannerCorner className="bottom-5 right-5 rotate-180" />
-          {storeLocation?.name && (
+          {storeLocation?.name && (storeLocation.verified || storeLocation.checking) && /(?:market|prisma|lidl|tokmanni|spar|sale|alepa|k-extra)/i.test(storeLocation.name) && (
             <div
               role="status"
               aria-live="polite"
               className="pointer-events-none absolute left-1/2 top-[4%] z-[36] flex w-[88%] -translate-x-1/2 items-center justify-center px-1 text-center text-[13px] font-extrabold leading-snug text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.98),0_0_9px_rgba(0,0,0,0.98)]"
             >
               <span className="absolute left-[calc(22%-6px)] top-[-0.75rem]" aria-label={storeLocation.verified ? "GPS online" : storeLocation.checking ? "GPS tarkistaa" : "GPS offline"}>
-                <svg aria-hidden="true" viewBox="0 0 24 24" className={["h-[18px] w-[18px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]",storeLocation.verified?"text-emerald-300":storeLocation.checking?"animate-pulse text-amber-300":"text-stone-200"].join(" ")} fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round">
+                <svg aria-hidden="true" viewBox="0 0 24 24" className={["h-[18px] w-[18px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]",storeLocation.verified?"text-emerald-300":storeLocation.checking?"animate-pulse text-amber-300":"text-transparent"].join(" ")} fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2.5 8.8a15 15 0 0 1 19 0" />
                   <path d="M6.2 12.5a9.2 9.2 0 0 1 11.6 0" />
                   <path d="M9.8 16.1a4.1 4.1 0 0 1 4.4 0" />
