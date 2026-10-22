@@ -1,0 +1,24 @@
+name: Report automation health
+on:
+  workflow_run:
+    workflows: ["*"]
+    types: [in_progress, completed]
+permissions:
+  contents: read
+jobs:
+  report:
+    if: github.event.workflow_run.name != 'Report automation health' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: node scripts/report-workflow-health.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
