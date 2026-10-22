@@ -86,6 +86,17 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
+  // 43LV: product-form precedence, not leaflet-specific names or prices.
+  // Apply to parser output before broad fallback taxonomy.
+  if (/(?:valosarj|valoketju|led[- ]?sarj|ajastinval)/.test(s)) return "Koti & vapaa-aika";
+  if (/(?:paiva[- ]? ja yo(?:voide)?|päivä[- ]? ja yövoide|paivavoide|yovoide|voide\s+tuplapakkaus|ihonhoitotuotteet|nurme\s+tuotteet)/.test(s)) return "Hygienia & kosmetiikka";
+  if (/(?:pensasmustik|naposteluhedelm|tuore(?:et)?\s+marj)/.test(s)) return "Hevi";
+  if (/(?:kanan\s+ohuet?\s+fileeleik|kanan\s+fileeleik|naudan\s+fileepihv)/.test(s)) return "Liha & makkarat";
+  if (/(?:halloumi|halloum|manchego|feta(?:juusto)?|vuohenmaitojuusto)/.test(s)) return "Maitotuotteet";
+  if (/(?:sinisimpuk|simpuk(?:ka|at))/ .test(s)) return "Kala";
+  if (/(?:macarons|macaron|domino\s+crunchy)/.test(s)) return "Makeiset & keksit";
+  if (/(?:spritz|sparkling|virvoitusjuoma|alkoholiton\s+olut)/.test(s)) return "Juomat";
+  if (/(?:juustokakku|kakku\s+400\s*g)/.test(s)) return "Leipomo";
   if(/\b(?:ruukut\s+ja\s+kulhot|(?:ruoka|ateria)kulhot?)\b/.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/.test(s)) return "Valmisruoka";
   if(/(?:mustikkagranola|\bgranola\b)/.test(s)) return "Kuivatuotteet";
   if(/(?:wc[- ]?raikastintik|kahvinkeittimen\s+puhdistusaine)/.test(s)) return "Kodinhoito";
