@@ -148,6 +148,16 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front => front && typeof front==="object" && Array.isArray((front as Row).publications) ? (front as Row).publications as Row[] : [])
     .filter((p, index, all) => all.findIndex(other => other.id === p.id) === index)
     .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
+  if (!publications.length) {
+    // The upstream Tjek fronts API may return an empty list even when the store
+    // exists. Never present this as "0 campaigns" or publish an empty snapshot.
+    const frontCount=fronts.length;
+    const discovered=(fronts as Row[]).reduce((count,front)=>count+(Array.isArray(front.publications)?front.publications.length:0),0);
+    const message=`Tjek ei palauttanut voimassa olevia kauppakohtaisia julkaisuja myymälälle ${String(store.name)} (storeId=${storeId}; fronts=${frontCount}; publications=${discovered}). Kaupan tarjousten määrää ei voitu vahvistaa. Aiempi tarjousaineisto säilytetään.`;
+    entry.progress.stage = "source-unavailable";
+    entry.progress.error = message;
+    throw new Error(message);
+  }
   entry.progress.publicationIds = publications.map(p => String(p.id ?? "")).filter(Boolean);
   entry.progress.stage = publications.length ? "reading-pages" : "no-active-publications";
   const failedOfferIds=new Set<string>();
