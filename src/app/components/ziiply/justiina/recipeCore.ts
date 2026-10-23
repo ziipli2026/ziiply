@@ -24,6 +24,8 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   // When a fish recipe explicitly offers fillets, retain that alternative's own amount.
   const alternative=clean.split(/\s+tai\s+/i);
   const filletAlternative=alternative.length>1&&alternative.every(x=>/silak|kirjoloh|loh(?:i|ta)/i.test(x))?alternative.find(x=>/file/i.test(x)):undefined;
+  // Keep ordinary alternatives as one ingredient, retaining the original choices
+  // for later product selection rather than creating two shopping-list entries.
   clean=filletAlternative||alternative[0];
   const trailing=clean.match(/^(.+?)\s+(\d+(?:[,.]\d+)?(?:\s*\/\s*\d+)?)\s*(kg|g|l|dl|cl|ml|rkl|tl|kpl)\s*$/i);
   if(!measurement.test(clean)&&trailing)clean=trailing[2]+" "+trailing[3]+" "+trailing[1];
@@ -48,7 +50,7 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   name=name.replace(/^(?:ripaus|tilkka|loraus|hyppysellinen|maun mukaan|iso|pieni|keskikokoinen)\s+/i,"").replace(/^\(\d+(?:[,.]\d+)?\s*(?:kg|g|dl|ml)\)\s*/,"");
   if(amount!==null&&!unit&&/^(?:keitettyä.*kananmun|kananmun|mun[ai]|sipul|punasipul|valkosipulinkyn|laakerinleh|kokonaista maustepippur)/i.test(name))unit="kpl";
   if(!Number.isFinite(amount)||amount===0)amount=null;
-  return {id,name:name.trim(),amount,unit,uncertain:amount===null||!unit||alternative.length>1||/[?]/.test(line),atHome:false,sourceLine:clean};
+  return {id,name:name.trim(),amount,unit,uncertain:amount===null||!unit||alternative.length>1||/[?]/.test(line),atHome:false,sourceLine:alternative.length>1&&!filletAlternative?line:clean};
 }
 export function parseRecipeText(text: string): RecipeDraft {
   // Plain pasted lists and one-line "Title: amount ingredient" recipes are accepted.
