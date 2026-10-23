@@ -28,9 +28,9 @@ export async function GET(request: NextRequest) {
     if (verified.length < 5) {
       // Missing verified N183 offers must remain a visible failure in monitoring.
       // Report Tjek success separately; never turn the combined source green.
-      return NextResponse.json({ok:false,degraded:true,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",probe,tjek,activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
+      return NextResponse.json({ok:false,degraded:true,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",probe,tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
     }
-    return NextResponse.json({ok:true,degraded:false,tjek,activeCount:active.length,verifiedKruokaCount:verified.length});
+    return NextResponse.json({ok:true,degraded:false,tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length});
   } catch (error) {
     await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:false,count:0,outcome:"store-campaign-refresh-failed",details:{error:error instanceof Error?error.message:String(error)}}).catch(()=>undefined);
     return NextResponse.json({ok:false,error:error instanceof Error ? error.message : String(error)},{status:502});
