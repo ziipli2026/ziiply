@@ -11,6 +11,8 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+      - name: Verify candidate guards
+        run: node scripts/test-fineli-candidate-guards.cjs
       - name: Discover review-only matches
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
