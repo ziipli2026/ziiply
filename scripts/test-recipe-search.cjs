@@ -49,5 +49,12 @@ assert.equal(core.recipeProductCompatible('laktoositonta juustokermaa',{name:'Ju
 assert.equal(core.recipeProductCompatible('esikeitettyjä punaisia linssejä',{name:'Punainen linssi kuivattu 400 g'}),false);
 assert.equal(core.recipeProductCompatible('tuoretta inkivääriä',{name:'Inkivääri jauhettu 13 g'}),false);
 assert.equal(core.recipeProductCompatible('mysteeriraaka-aine',{name:'Maito 1 l'}),false);
+assert.equal(core.recipeProductCompatible('tuoreita keittojuureksia',{name:'Pirkka keittojuurekset 200g pakaste'}),false);
+assert.equal(core.recipeProductCompatible('tuoreita keittojuureksia',{name:'Pirkka keittojuurekset 300 g'}),true);
+assert.equal(core.recipeProductCompatible('persiljaa hienonnettuna',{name:'Meira Persilja 9g pussi mauste'}),false);
+assert.equal(core.recipeProductCompatible('persiljaa hienonnettuna',{name:'Persilja ruukku'}),true);
+assert.equal(core.recipeRetailPackageCount(core.parseRecipeIngredient('300 g keittojuureksia'),{name:'Keittojuurekset 200 g'}),2);
+assert.equal(core.recipeRetailPackageCount(core.parseRecipeIngredient('300 g keittojuureksia'),{name:'Keittojuurekset 500 g'}),1);
+
 if(process.env.RECIPE_AUDIT_OUTPUT)fs.writeFileSync(process.env.RECIPE_AUDIT_OUTPUT,JSON.stringify(report,null,2));
 console.log('PASS: 10 recipes, '+report.reduce((n,r)=>n+r.searches,0)+' simulated product selections; adversarial products and quantity regressions');
