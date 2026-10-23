@@ -63,6 +63,7 @@ try {
   })).catch(() => ({}));
   const second = await page.goto(destination, { waitUntil: "domcontentloaded", timeout: 45000 }).catch(() => null);
   const offerNavigationUrl = page.url();
+  const storeNavigationStatus = second?.status() ?? null;
   await page.waitForTimeout(9000);
   await Promise.race([Promise.allSettled([...pendingResponses]), page.waitForTimeout(15000)]);
   const offerTitle = await page.title();
@@ -90,7 +91,7 @@ try {
   const n183Candidates = apiOfferCandidates.filter(item => item.storeId === "N183");
   const report = {
     storeHttp: first?.status() ?? null, storeTitle,
-    offerHttp: second?.status() ?? null, offerTitle,
+    offerHttp: storeNavigationStatus, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
     links, navigationIsStoreScoped, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
