@@ -815,6 +815,15 @@ export default function DesktopPreviewPage() {
   function desktopFindPackageAlternative(candidates:any[],name:string,ean:string){
     const sourceSize=desktopPackageSize(name);
     if(sourceSize===null)return null;
+    // Package alternatives must use the same physical unit type. A 500 ml
+    // bottle is not a substitute for a 500 g packet based on the number alone.
+    const metricKind=(value:string)=>{
+      const units=[...String(value).matchAll(/\d+(?:[.,]\d+)?\s*(kg|g|l|dl|ml)\b/gi)];
+      const unit=units[units.length-1]?.[1]?.toLowerCase();
+      return unit==="kg"||unit==="g"?"mass":unit?"volume":"";
+    };
+    const sourceKind=metricKind(name);
+    if(!sourceKind)return null;
     // Require the same manufacturer/brand AND the same product identity; weight alone is not sufficient.
     const tokens=(value:string)=>String(value).toLocaleLowerCase("fi")
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/g," ")
@@ -843,7 +852,8 @@ export default function DesktopPreviewPage() {
       const sameProduct=sourceWords.every(w=>words.includes(w));
       const sameStaple=Boolean(sourceStaple&&stapleIdentity(String(p.name||""))===sourceStaple);
       return {p,size,sameBrand,sameProduct,sameStaple,overlap};
-    }).filter(x=>x.size!==null&&x.size!==sourceSize&&desktopReliableComparePrice(x.p)
+    }).filter(x=>x.size!==null&&x.size!==sourceSize&&metricKind(String(x.p.name||""))===sourceKind
+      &&desktopReliableComparePrice(x.p)
       &&isComparisonAttributeCompatible(name,String(x.p.name||""))
       &&normalizeEan(String(x.p.ean||""))!==sourceEan&&(x.sameStaple||(x.sameBrand&&x.sameProduct)))
       .sort((a,b)=>Math.abs(Number(a.size)-sourceSize)-Math.abs(Number(b.size)-sourceSize)
