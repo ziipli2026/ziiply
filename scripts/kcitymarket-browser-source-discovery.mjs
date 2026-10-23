@@ -70,7 +70,10 @@ try {
   // snapshot of the set against a timeout.
   const inspectionDeadline = Date.now() + 15000;
   while (pendingResponses.size && Date.now() < inspectionDeadline) {
-    await Promise.race([Promise.allSettled([...pendingResponses]), page.waitForTimeout(500)]);
+    await Promise.race([
+      Promise.allSettled([...pendingResponses]),
+      page.waitForTimeout(Math.min(500, inspectionDeadline - Date.now())),
+    ]);
   }
   const offerTitle = await page.title();
   const pageEvidence = await page.locator("body").innerText().then(s => ({
