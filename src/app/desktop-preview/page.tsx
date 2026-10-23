@@ -591,28 +591,39 @@ export default function DesktopPreviewPage() {
     const proposed=row.packageAlternative;
     const sourceSize=desktopPackageSize(sourceName);
     const proposedSize=desktopPackageSize(String(proposed.name||""));
-    const sourceUnit=/\b(?:kg|g)\b/i.test(sourceName)?"mass":/\b(?:l|dl|ml)\b/i.test(sourceName)?"volume":"";
-    const proposedUnit=/\b(?:kg|g)\b/i.test(String(proposed.name||""))?"mass":/\b(?:l|dl|ml)\b/i.test(String(proposed.name||""))?"volume":"";
+    const metricKind=(value:string)=>{
+      const units=[...value.matchAll(/\d+(?:[.,]\d+)?\s*(kg|g|l|dl|ml)\b/gi)];
+      const unit=units[units.length-1]?.[1]?.toLowerCase();
+      return unit==="kg"||unit==="g"?"mass":unit?"volume":"";
+    };
+    const sourceUnit=metricKind(sourceName);
+    const proposedUnit=metricKind(String(proposed.name||""));
     if(!sourceSize||!proposedSize||sourceUnit!==proposedUnit||!sourceUnit
       ||!isComparisonAttributeCompatible(sourceName,String(proposed.name||""))
       ||!desktopReliableComparePrice(proposed)){
       flashCartNotice("Pakkausvaihtoehdon määrää tai hintaa ei voitu varmistaa.");
       return;
     }
-    const packagesPerItem=Math.ceil(sourceSize/proposedSize);
+    const sourceQuantity=Number(original?.quantity||1);
+    if(!Number.isInteger(sourceQuantity)||sourceQuantity<1){
+      flashCartNotice("Ostoskorin määrää ei voitu vahvistaa.");
+      return;
+    }
+    const packagesTotal=Math.ceil(sourceSize*sourceQuantity/proposedSize);
     const packagePrice=Number(proposed.price)/100;
+    const packagesPerItem=packagesTotal/sourceQuantity;
     desktopComparisonEdited.current=true;
     setDesktopCompareResults(current=>{
       const existing=current[storeId];if(!existing)return current;
       const rows=existing.rows.map((entry:any)=>String(entry.cartItemId)===rowId
         ?{...entry,name:String(proposed.name),ean:String(proposed.ean||""),price:packagePrice*packagesPerItem,
-          match:"name" as const,packageCountPerItem:packagesPerItem,
+          match:"name" as const,packageCountPerItem:packagesPerItem,packageCountTotal:packagesTotal,
           packageAlternative:null,qualityMode:"package_adjusted"}:entry);
       return {...current,[storeId]:{...existing,rows,
         total:rows.reduce((sum:number,entry:any)=>sum+(entry.price??0)*Number(entry.quantity||1),0),
         missing:rows.filter((entry:any)=>entry.price==null).length}};
     });
-    flashCartNotice("Pakkausvaihtoehto lisätty: "+packagesPerItem+" pakkausta / ostoskorin tuote.");
+    flashCartNotice("Pakkausvaihtoehto lisätty: "+packagesTotal+" pakkausta yhteensä.");
   }
   function rejectDesktopWeightProposal(storeId:string,rowId:string){
     setDesktopCompareResults(current=>{const result=current[storeId];if(!result)return current;return {...current,[storeId]:{...result,rows:result.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,weightProposal:null}:row)}};});
