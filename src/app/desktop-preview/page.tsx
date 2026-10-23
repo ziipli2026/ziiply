@@ -1150,6 +1150,20 @@ export default function DesktopPreviewPage() {
     const chosen=desktopCompareResults[storeId];if(!chosen)return;
     const rowId=String(match?.id||match?.cartItemId||"");
     if(!rowId||!chosen.rows.some((row:any)=>String(row.cartItemId)===rowId)){flashCartNotice("Vertailutuotetta ei löytynyt. Avaa vertailu uudelleen.");return}
+    const originalItem=cartItems.find(item=>String(item.id||"")===rowId);
+    const originalName=String(originalItem?.name||originalItem?.title||"");
+    const alternativeName=String(alternative?.name||"");
+    // The displayed comparison row may already contain a substitute name.
+    // Always validate against the original basket product before accepting a
+    // manual/cheapest suggestion. Different pack sizes need a separate
+    // quantity-adjusted proposal flow, not a direct price replacement.
+    if(!originalName||!alternativeName
+      ||!desktopPackageCompatible(originalName,alternativeName)
+      ||!isComparisonAttributeCompatible(originalName,alternativeName)
+      ||!desktopStrictCompareIdentity(originalName,alternativeName)){
+      flashCartNotice("Vaihtoehto ei vastaa alkuperäistä tuotetta tai pakkauskokoa. Valitse yhteensopiva tuote.");
+      return;
+    }
     const priceCents=Number(alternative?.price);
     if(!desktopReliableComparePrice(alternative)){flashCartNotice("Valitun vaihtoehdon hintaa ei voi vahvistaa. Painotuote tarvitsee luotettavan kilohinnan ja määrän.");return}
     desktopComparisonEdited.current=true;
