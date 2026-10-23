@@ -8,13 +8,14 @@ const observations = [];
 const seen = new Set();
 const pendingResponses = new Set();
 page.on("response", response => {
-  const task = inspectResponse(response);
+  const task = inspectResponse(response).catch(error => { console.warn("KRUOKA_RESPONSE_INSPECTION_ERROR", String(error)); });
   pendingResponses.add(task);
   task.finally(() => pendingResponses.delete(task));
 });
 async function inspectResponse(response) {
   const url = response.url();
-  // Offer APIs may use a different host than the K-Ruoka storefront.\n  if (!/^https:\/\//i.test(url)) return;
+  // Offer APIs may use a different host than the K-Ruoka storefront.
+  if (!/^https:\/\//i.test(url)) return;
   const type = response.headers()["content-type"] || "";
   if (!/json|graphql/i.test(type) && !/tarjou|offer|campaign|benefit|categor/i.test(new URL(url).pathname)) return;
   const parsed = new URL(url);
