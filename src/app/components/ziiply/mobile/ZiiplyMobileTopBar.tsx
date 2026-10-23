@@ -558,6 +558,12 @@ export default function ZiiplyMobileTopBar({
                   />
                 )}
 
+                {panel.id === "calendar" && panel.onClick && (
+                  <span aria-hidden="true" className="pointer-events-none absolute right-[5px] top-[5px] z-20 flex h-[13px] w-[13px] items-center justify-center rounded-[4px] border border-[#9b793f]/40 bg-[#fff8e2]/90 text-[11px] font-black leading-none text-[#745326] shadow-sm">
+                    ›
+                  </span>
+                )}
+
                 <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
                   <div className="flex items-center justify-center gap-[3px]">
                     {panel.graphic}
