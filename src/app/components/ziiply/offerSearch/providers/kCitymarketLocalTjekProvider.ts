@@ -87,7 +87,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   const key = normalize(selectedStoreName);
   const now = Date.now();
   const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
-  // The verified K-Ruoka N183 store feed is primary; Tjek is only a fallback.
+  // Keep verified K-Ruoka N183 offers independently of local Tjek.
   const primary = isHyvinkaa
     ? (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
         .filter(row => String(row.storeId ?? "") === "N183"
@@ -95,14 +95,14 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           && normalize(row.storeName) === "k citymarket hyvinkaa"
           && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now)
     : [];
-  const fallback = primary.length ? [] : (await readPublishedSnapshot(key) ?? [])
+  // K-Ruoka N183 and local Tjek are independent sources.
+  // A new leaflet must not hide existing valid store campaigns.
+  const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
+  const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
     .filter(row => Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
-  if (!primary.length && !fallback.length) {
-    throw new Error("Kauppakohtaisia voimassa olevia tarjouksia ei ole saatavilla.");
-  }
-  return (primary.length ? primary : fallback).map(normalizeTjekPackagePrice);
+  return [...primary, ...fallback].map(normalizeTjekPackagePrice);
 }
 
 /** Explicit background-job entry point. The interactive request never starts this. */
