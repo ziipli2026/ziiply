@@ -1,0 +1,23 @@
+name: Ziiply four EAN basket live comparison
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  four-ean-basket:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Simulate four EAN searches for Prisma and K-Citymarket
+        run: node scripts/ziiply-four-ean-live.cjs
+      - name: Upload comparison report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: four-ean-comparison-report
+          path: basket-reports/four-ean-comparison.json
+          if-no-files-found: warn
