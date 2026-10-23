@@ -47,7 +47,7 @@ async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
   if (!process.env.DATABASE_URL) return null;
   try {
     const sql = neon(process.env.DATABASE_URL);
-    const rows = await sql`SELECT offers, publication_ids, updated_at FROM public.ziiply_kcitymarket_tjek_snapshots WHERE (store_key = ${key} OR regexp_replace(lower(store_key), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(${key}), '[^a-z0-9]+', '', 'g')) AND valid_until > NOW() ORDER BY CASE WHEN store_key = ${key} THEN 0 ELSE 1 END, updated_at DESC LIMIT 1`;
+    const rows = await sql`SELECT offers, publication_ids, updated_at FROM public.ziiply_kcitymarket_tjek_snapshots WHERE (store_key = ${key} OR regexp_replace(lower(store_key), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(${key}), '[^a-z0-9]+', '', 'g')) ORDER BY CASE WHEN store_key = ${key} THEN 0 ELSE 1 END, updated_at DESC LIMIT 1`;
     if (!Array.isArray(rows[0]?.offers)) return null;
     const offers = rows[0].offers as Row[];
     localCache.set(key, { rows: offers, startedAt: 0, finishedAt: Date.now(), running: false,
