@@ -11,8 +11,8 @@ const rows = await sql`
 `;
 const unsafe = /(?:koiran|koiralle|koirille|kissan|kissalle|kissoille|lemmik|levite|tuorejuusto|monivilja|quinoa|nuudeli|long drink|suklaa|patukka|juustoperun)/i;
 const preparation = ['paistettu','keitetty','kypsennetty','savustettu','kuivattu','pakaste','kuorittu','jauhettu'];
-const flags = (product, food) => {
-  const issues = [];
+const flags = (product: string, food: string): string[] => {
+  const issues: string[] = [];
   if (unsafe.test(product)) issues.push('product_category_mismatch');
   if (/juustokastikkeella|juustoperunoilla/.test(product) && !/kastike|peruna/.test(food)) issues.push('prepared_meal_vs_ingredient');
   if (/gluteeniton/.test(product) && !/gluteeniton/.test(food)) issues.push('gluten_free_mismatch');
