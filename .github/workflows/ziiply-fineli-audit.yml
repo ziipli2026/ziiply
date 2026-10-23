@@ -19,9 +19,11 @@ jobs:
         run: |
           mkdir -p fineli-audit
           npx tsx scripts/ziiply-fineli-audit-pending.mts | tee fineli-audit/pending-review.jsonl
+      - name: Export separate review CSV files
+        run: node scripts/ziiply-fineli-export-review.cjs fineli-audit
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         with:
           name: fineli-pending-review
-          path: fineli-audit/pending-review.jsonl
+          path: fineli-audit/
           retention-days: 30
