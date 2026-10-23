@@ -203,14 +203,27 @@ for (;;) {
     // single-word overlap against multi-ingredient/recipe Fineli foods.
     // Block unsafe ingredient-only and nutrition-incompatible suggestions.
     // A broad token overlap is insufficient evidence for a finished food.
-    const riskyProduct = /(?:jogurtti|rahka|vanukas|välipalapatukka|patukka|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|täytteinen|maustettu)/i.test(unbranded);
-    if (riskyProduct) return [];
-    const rawOrCooked = /(?:paistettu|keitetty|kypsennetty|savustettu|kuivattu|pakaste)/i;
-    const productPreparation = unbranded.match(rawOrCooked)?.[0]?.toLowerCase();
+    // Conservative review-only discovery: exclude pet foods, multi-ingredient
+    // products and nutritional variants that token overlap cannot establish.
+    const unsafeProduct = /(?:koiran|koiralle|kissan|kissalle|lemmik|juustokastik|juustoperun|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|jogurtti|rahka|vanukas|patukka|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|täytteinen|maustettu|lihapiirakka|pasteija)/i.test(unbranded);
+    if (unsafeProduct) return [];
+    const preparationTerms = ["paistettu","keitetty","kypsennetty","savustettu","kuivattu","pakaste","kuorittu","jauhettu"];
+    const prep = (s: string) => preparationTerms.filter(term => s.toLowerCase().includes(term));
+    const productPrep = prep(unbranded);
+    const containsDifferentPreparation = (foodName: string) =>
+      prep(foodName).some(term => !productPrep.includes(term));
+    const foodIsPet = /(?:koiran|koiralle|kissan|kissalle|lemmik)/i;
+    const productIsGlutenFree = /gluteeniton/i.test(unbranded);
+    const productFat = unbranded.match(/(\\d+(?:[.,]\\d+)?)\\s*%/);
+    const fatMismatch = (foodName: string) => {
+      const fineliFat = foodName.match(/RASVAA\\s*(\\d+(?:[.,]\\d+)?)\\s*%/i);
+      if (productFat && fineliFat) return Math.abs(Number(productFat[1].replace(",","."))-Number(fineliFat[1].replace(",","."))) > 0.1;
+      return false;
+    };
     const ranked = [...hits.values()].map(entry => {
       const overlap = entry.tokens.filter(t => tokens.includes(t)).length;
       return { ...entry, overlap, coverage: overlap / entry.tokens.length };
-    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && (!rawOrCooked.test(entry.name) || (productPreparation != null && entry.name.toLowerCase().includes(productPreparation))))
+    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)))
       .sort((a,b) => b.overlap-a.overlap || b.coverage-a.coverage || a.id-b.id)
       .slice(0,2);
     return ranked.map(entry => ({ ean: String(product.ean), fineli_id: entry.id,
