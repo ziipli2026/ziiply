@@ -841,11 +841,21 @@ export default function DesktopPreviewPage() {
   function desktopHasExplicitPackage(name:string):boolean{
     return /\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl)\b/i.test(String(name));
   }
+  function desktopReliableComparePrice(product:any):boolean{
+    const cents=Number(product?.price);
+    if(!Number.isFinite(cents)||cents<=0)return false;
+    // Variable-weight store EANs can carry a tiny placeholder/unit price.
+    // Never treat e.g. 8, 15 or 21 cents as the total price of a produce item.
+    // A verified weight and per-kg price are needed for a proper estimate.
+    const ean=normalizeEan(String(product?.ean||product?.product?.ean||""));
+    if(/^2[0-9]/.test(ean)&&cents<50)return false;
+    return true;
+  }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     const sourceEan=normalizeEan(ean);
     if(sourceEan){
       const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan
-        &&(desktopPackageCompatible(name,String(p.name||"")) || (!desktopHasExplicitPackage(name) && !desktopHasExplicitPackage(String(p.name||""))))&&Number(p?.price)>0);
+        &&(desktopPackageCompatible(name,String(p.name||"")) || (!desktopHasExplicitPackage(name) && !desktopHasExplicitPackage(String(p.name||""))))&&desktopReliableComparePrice(p));
       if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
     // Unlike the original cart price lookup, the comparison may use a verified
@@ -856,7 +866,7 @@ export default function DesktopPreviewPage() {
     if(sourceHerb && !/kuivatt|mauste|jauhe|purkki|pussi/i.test(name)){
       const freshHerbs=candidates.filter((p:any)=>{
         const candidate=String(p.name||"").toLocaleLowerCase("fi");
-        return Number(p.price)>0
+        return desktopReliableComparePrice(p)
           &&new RegExp("\\b"+sourceHerb+"\\b","i").test(candidate)
           &&!/kuivatt|mauste|jauhe|purkki|pussi|levite|kastike|salaatti|filee|broiler|kana|juusto|krutonki|grissini|kalafile|pasta|risotto/i.test(candidate)
           &&(!desktopHasExplicitPackage(name)||desktopPackageCompatible(name,candidate))
@@ -864,7 +874,7 @@ export default function DesktopPreviewPage() {
       });
       if(freshHerbs.length)return freshHerbs.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
-    const compatible=candidates.filter((p:any)=>Number(p?.price)>0
+    const compatible=candidates.filter((p:any)=>desktopReliableComparePrice(p)
       &&desktopPackageCompatible(name,String(p.name||""))
       &&isComparisonAttributeCompatible(name,String(p.name||""))
       &&desktopStrictCompareIdentity(name,String(p.name||"")));
