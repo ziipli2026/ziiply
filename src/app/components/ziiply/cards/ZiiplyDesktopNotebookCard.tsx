@@ -10,7 +10,7 @@ type Props={open:boolean;lists:DesktopSavedList[];currentCartCount:number;opened
 export default function ZiiplyDesktopNotebookCard({open,lists,currentCartCount,openedListId,onToggleList,onSaveCurrentCart,onRestoreList,onDeleteList,onClose}:Props){
 const [recipes,setRecipes]=React.useState<Recipe[]>([]);
 const selectSavedRecipe=(recipe:Recipe)=>{
-  const source=[recipe.title||"Resepti","4 annosta","Ainekset:",recipe.ingredients||"","Valmistus:",recipe.instructions||""].join("\\n").replace(/\\\\n/g,"\\n");
+  const source=[recipe.title||"Resepti","4 annosta","Ainekset:",recipe.ingredients||"","Valmistus:",recipe.instructions||""].join("\n").replace(/\\n/g,"\n");
   const draft=parseRecipeText(source);
   const servings=String(draft.servings||4);
   try{
