@@ -1151,7 +1151,7 @@ export default function DesktopPreviewPage() {
     const rowId=String(match?.id||match?.cartItemId||"");
     if(!rowId||!chosen.rows.some((row:any)=>String(row.cartItemId)===rowId)){flashCartNotice("Vertailutuotetta ei löytynyt. Avaa vertailu uudelleen.");return}
     const priceCents=Number(alternative?.price);
-    if(!Number.isFinite(priceCents)||priceCents<=0){flashCartNotice("Valitun vaihtoehdon hinta ei ole kelvollinen.");return}
+    if(!desktopReliableComparePrice(alternative)){flashCartNotice("Valitun vaihtoehdon hintaa ei voi vahvistaa. Painotuote tarvitsee luotettavan kilohinnan ja määrän.");return}
     desktopComparisonEdited.current=true;
     try{const eligible=cartItems.filter(x=>String(x.source||"").toLowerCase()!=="offer"&&!x?.product?.ziiplyWeightLabel&&!resolvePriceWeightLabel(String(x.ean||x.product?.ean||"")));const selected=(Object.values(selectedStores) as any[]).filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));const key=JSON.stringify([[...selected].sort((a,b)=>String(a.id).localeCompare(String(b.id))).map(x=>[x.id,x.externalId,x.name]),eligible.map(x=>[x.id,x.ean,x.product?.ean,x.name,x.title,x.quantity,x.source])]);window.localStorage.setItem(desktopComparisonEditedKey,key)}catch{}
     const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),ean:String(alternative?.ean||alternative?.product?.ean||""),price:priceCents/100,image:String(alternative?.pictureUrl||alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
