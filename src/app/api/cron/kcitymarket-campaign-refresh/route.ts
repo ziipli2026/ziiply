@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({error:"Unauthorized"},{status:401});
   }
   try {
-    const probe = await probeKCitymarketStoreOffers({storeId:"k-citymarket-hyvinkaa",endpoint:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa"});
+    const verifiedBefore = await fetchVerifiedKCitymarketHyvinkaaOffers();
+    const probe = await probeKCitymarketStoreOffers({storeId:"k-citymarket-hyvinkaa",endpoint:"https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa"}).catch(error => ({status:"HTTP_ERROR",httpStatus:null,diagnostic:String(error)}));
     // Tjek is an independent fallback: its failure must never prevent checking the verified K-Ruoka snapshot.
     const tjek = await refreshKCitymarketCampaignCache("K-Citymarket Hyvinkää")
       .then(result => ({ok:true as const,result,error:null as string|null}))
@@ -20,10 +21,10 @@ export async function GET(request: NextRequest) {
     const active = await fetchKCitymarketSelectedStoreOffers("K-Citymarket Hyvinkää");
     const verified = await fetchVerifiedKCitymarketHyvinkaaOffers();
     await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:verified.length>=5,count:verified.length,outcome:verified.length>=5?"store-campaigns-available":"store-campaigns-missing",details:{kRuokaProbeStatus:probe.status,kRuokaHttpStatus:probe.httpStatus,tjekRows:tjek.result?.count ?? 0,tjekOk:tjek.ok,tjekError:tjek.error,verifiedKruokaRows:verified.length,displayedRows:active.length}}).catch(()=>undefined);
-    if (active.length < 5) {
-      return NextResponse.json({ok:false,error:"Store campaigns unavailable: refreshed Tjek but verified K-Ruoka feed is missing or expired",tjek,activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
+    if (verified.length < 5) {
+      return NextResponse.json({ok:false,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",tjek,activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
     }
-    return NextResponse.json({ok:true,...result,activeCount:active.length,verifiedKruokaCount:verified.length});
+    return NextResponse.json({ok:true,tjek,activeCount:active.length,verifiedKruokaCount:verified.length,verifiedBeforeCount:verifiedBefore.length});
   } catch (error) {
     await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:false,count:0,outcome:"store-campaign-refresh-failed",details:{error:error instanceof Error?error.message:String(error)}}).catch(()=>undefined);
     return NextResponse.json({ok:false,error:error instanceof Error ? error.message : String(error)},{status:502});
