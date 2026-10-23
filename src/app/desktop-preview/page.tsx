@@ -818,11 +818,14 @@ export default function DesktopPreviewPage() {
     const stem=(word:string)=>word.replace(/(eet|eiden|iden|ien|et|en|ja|jä|t)$/u,"");
     const sourceWords=tokens(source),candidateWords=tokens(candidate);
     if(!sourceWords.length||!candidateWords.length)return false;
+    // Distinct named varieties are not interchangeable even when a generic noun matches.
+    // Preserve qualifiers such as valko-/mauste-/musta- in compound food names.
     const matches=(a:string,b:string)=>a===b||(a.length>=5&&b.length>=5&&stem(a)===stem(b))
       ||(a.length>=7&&b.length>=7&&a.slice(0,6)===b.slice(0,6));
     // Do not infer equivalence from a shared generic modifier or package size.
     // Every source identity token must have a counterpart, with inflection tolerance.
-    return sourceWords.every(w=>candidateWords.some(c=>matches(w,c)));
+    return sourceWords.every(w=>candidateWords.some(c=>matches(w,c)))
+      &&candidateWords.every(w=>sourceWords.some(c=>matches(w,c)));
   }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     const sourceEan=normalizeEan(ean);
