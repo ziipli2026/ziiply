@@ -31,4 +31,18 @@ run('Parked near other store requests change',[
 run('Unreliable GPS cannot confirm arrival',[
  sample(0,60.63,24.86,0,70),sample(5000,60.63,24.86,0,70),sample(10000,60.63,24.86,0,70)
 ],r=>{assert.equal(r.status,'uncertain');assert.equal(r.showArrivalMessage,false)});
+
+run('Brief stop by store then drive away must not prompt',[
+ sample(0,60.63,24.86,0),sample(5000,60.63,24.86,0),
+ sample(7000,60.63,24.86,30),sample(12000,60.63,24.86,35)
+],r=>{assert.equal(r.showArrivalMessage,false);assert.equal(r.askStoreChange,false);assert.equal(r.radar,'white')});
+run('Two adjacent stores within GPS accuracy must remain uncertain',[
+ sample(0,60.6304,24.86,0,15),sample(5000,60.6304,24.86,0,15),
+ sample(10000,60.6304,24.86,0,15)
+],r=>{assert.equal(r.status,'uncertain');assert.equal(r.showArrivalMessage,false);assert.equal(r.askStoreChange,false);assert.equal(r.radar,'white')});
+run('GPS signal recovery needs a fresh stationary confirmation',[
+ sample(0,60.63,24.86,0),sample(5000,60.63,24.86,0),
+ sample(6000,60.63,24.86,0,90),sample(11000,60.63,24.86,0),
+ sample(16000,60.63,24.86,0)
+],r=>{assert.equal(r.showArrivalMessage,false);assert.equal(r.radar,'white')});
 console.log('All arrival scenarios passed');
