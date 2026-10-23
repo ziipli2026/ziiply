@@ -205,7 +205,7 @@ for (;;) {
     // A broad token overlap is insufficient evidence for a finished food.
     // Conservative review-only discovery: exclude pet foods, multi-ingredient
     // products and nutritional variants that token overlap cannot establish.
-    const unsafeProduct = /(?:koiran|koiralle|kissan|kissalle|lemmik|juustokastik|juustoperun|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|jogurtti|rahka|vanukas|patukka|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|täytteinen|maustettu|lihapiirakka|pasteija)/i.test(unbranded);
+    const unsafeProduct = /(?:koiran|koiralle|kissan|kissalle|lemmik|koirille|kissoille|koiran|koiralle|kissan|kissalle|lemmik|juustokastik|juustoperun|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|jogurtti|rahka|vanukas|patukka|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|täytteinen|maustettu|lihapiirakka|pasteija)/i.test(unbranded);
     if (unsafeProduct) return [];
     const preparationTerms = ["paistettu","keitetty","kypsennetty","savustettu","kuivattu","pakaste","kuorittu","jauhettu"];
     const prep = (s: string) => preparationTerms.filter(term => s.toLowerCase().includes(term));
@@ -215,6 +215,9 @@ for (;;) {
     const foodIsPet = /(?:koiran|koiralle|kissan|kissalle|lemmik)/i;
     const productIsGlutenFree = /gluteeniton/i.test(unbranded);
     const productIsLactoseFree = /laktoositon/i.test(unbranded);
+    const productIsFatFree = /rasvaton/i.test(unbranded);
+    const productIsLight = /(?:kevyt|light)/i.test(unbranded);
+    const productIsUnsweetened = /(?:makeuttamaton|sokeroimaton)/i.test(unbranded);
     const productFat = unbranded.match(/(\d+(?:[.,]\d+)?)\s*%/);
     const fatMismatch = (foodName: string) => {
       const fineliFat = foodName.match(/RASVAA\s*(\d+(?:[.,]\d+)?)\s*%/i);
@@ -226,7 +229,7 @@ for (;;) {
     const ranked = [...hits.values()].map(entry => {
       const overlap = entry.tokens.filter(t => tokens.includes(t)).length;
       return { ...entry, overlap, coverage: overlap / entry.tokens.length };
-    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)) && (!productIsLactoseFree || /laktoositon/i.test(entry.name)))
+    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && (!productIsFatFree || /rasvaton/i.test(entry.name)) && (!productIsLight || /(?:kevyt|light)/i.test(entry.name)) && (!productIsUnsweetened || /(?:makeuttamaton|sokeroimaton)/i.test(entry.name)) && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)) && (!productIsLactoseFree || /laktoositon/i.test(entry.name)))
       .sort((a,b) => b.overlap-a.overlap || b.coverage-a.coverage || a.id-b.id)
       .slice(0,2);
     return ranked.map(entry => ({ ean: String(product.ean), fineli_id: entry.id,
