@@ -37,6 +37,15 @@ const flags = (product: string, food: string): string[] => {
   if (p && f && Math.abs(Number(p[1].replace(',','.'))-Number(f[1].replace(',','.'))) > 0.1) issues.push('fat_percentage_mismatch');
   return issues;
 };
+// Review-only priority tiers; these do not imply verified nutrition equivalence.
+const reviewPriority = (product: string, food: string, decision: string): string => {
+  if (decision !== 'MANUAL_REVIEW') return decision;
+  const p = product.toLowerCase(), f = food.toLowerCase();
+  const simple = /^(?:omena|banaani|porkkana|peruna|sipuli|valkosipuli|kurkku|tomaatti|paprika|appelsiini|sitruuna|lime|päärynä|siika|lohi|kirjolohi|maksa|kaurahiutale|vehnäjauho)/i;
+  const disqualify = /maustettu|kastike|ateria|valmis|täyte|seos|sekoitus|jauheliha|pihvi|makkara|pasta|pizza|pitsa|pinsa|keitto|salaatti|leipä|juusto|rasvaa|kevyt|laktoositon|gluteeniton/i;
+  if (simple.test(p) && !disqualify.test(p) && !disqualify.test(f)) return 'PRIORITY_SIMPLE_REVIEW';
+  return 'COMPOSITION_REVIEW';
+};
 const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free']);
 let flagged=0;
 let conflicts=0;
@@ -49,7 +58,7 @@ const review = rows.map(r=>{
   const conflict=issues.some(issue=>!needsVerification.has(issue));
   if(conflict) conflicts++;
   else if(issues.length) verifyOnly++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'};
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW')};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
 for(const row of review) console.log(JSON.stringify(row));
