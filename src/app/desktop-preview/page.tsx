@@ -800,14 +800,21 @@ export default function DesktopPreviewPage() {
     })[0]||null;
   }
   function desktopStrictCompareIdentity(source:string,candidate:string):boolean{
-    // Cross-chain substitution: never use package size alone to identify a product.
-    const words=(value:string)=>String(value).toLocaleLowerCase("fi")
-      .replace(/^(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu)\s+/i,"")
-      .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ")
-      .replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>=3&&w!=="msc");
-    const sourceWords=words(source),candidateWords=words(candidate);
+    // Compare the product identity, not retail-chain brand labels or grammatical endings.
+    // Attribute and package compatibility are checked separately before this helper.
+    const tokens=(value:string)=>String(value).toLocaleLowerCase("fi")
+      .replace(/^(?:(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu|eldorado|first price)\\s+)+/i,"")
+      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\\b/gi," ")
+      .replace(/[^a-zåäö0-9 ]/g," ").split(/\\s+/)
+      .filter(w=>w.length>=3&&!["msc","luomu","suomi","suomalainen"].includes(w));
+    const stem=(word:string)=>word.replace(/(eet|eiden|iden|ien|et|en|ja|jä|t)$/u,"");
+    const sourceWords=tokens(source),candidateWords=tokens(candidate);
     if(!sourceWords.length||!candidateWords.length)return false;
-    return sourceWords.every(w=>candidateWords.some(c=>c===w||(w.length>=6&&c.length>=6&&w.slice(0,6)===c.slice(0,6))));
+    const matches=(a:string,b:string)=>a===b||(a.length>=5&&b.length>=5&&stem(a)===stem(b))
+      ||(a.length>=7&&b.length>=7&&a.slice(0,6)===b.slice(0,6));
+    // Do not infer equivalence from a shared generic modifier or package size.
+    // Every source identity token must have a counterpart, with inflection tolerance.
+    return sourceWords.every(w=>candidateWords.some(c=>matches(w,c)));
   }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     const sourceEan=normalizeEan(ean);
