@@ -63,6 +63,27 @@ jobs:
           ];
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n')+'\n');
           NODE
-      - name: Report investigation outcome
+      - name: Validate N183 source discovery result
         if: always()
-        run: echo 'K-Ruoka browser source discovery finished; inspect the preceding KRUOKA_BROWSER_DISCOVERY line for verified API evidence.'
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = 'artifacts/kruoka-n183-browser-discovery.json';
+          if (!fs.existsSync(path)) {
+            console.error('KRUOKA_N183_SOURCE_UNVERIFIED: discovery artifact missing');
+            process.exit(1);
+          }
+          const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (report.failed || !report.storeContextConfirmed || !report.n183CandidateCount) {
+            console.error('KRUOKA_N183_SOURCE_UNVERIFIED', JSON.stringify({
+              failed: Boolean(report.failed),
+              storeContextConfirmed: Boolean(report.storeContextConfirmed),
+              n183CandidateCount: report.n183CandidateCount ?? 0,
+              error: report.error ?? null,
+            }));
+            process.exit(1);
+          }
+          console.log('KRUOKA_N183_CANDIDATES_FOUND', report.n183CandidateCount,
+            'Import not implemented; candidates require independent verification.');
+          NODE
