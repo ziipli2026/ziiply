@@ -6,6 +6,7 @@ on:
       - 'src/app/components/ziiply/location/ziiplyArrivalSequence.ts'
       - 'scripts/test-ziiply-arrival-scenarios.cjs'
       - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
+      - 'src/app/components/ziiply/mobile/MobileStorePickerModal.tsx'
       - '.github/workflows/ziiply-arrival-simulation.yml'
 jobs:
   arrival-simulation:
