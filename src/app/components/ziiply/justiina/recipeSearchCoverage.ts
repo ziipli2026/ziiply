@@ -5,6 +5,15 @@ import type { RecipeIngredient } from './recipeCore';
 export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredient | null): string[] {
   if (!ingredient) return [];
   const term = (ingredient.searchTerm || query).toLowerCase().trim();
+  // Search every explicitly offered alternative, but keep one ingredient/cart line.
+  // The parser retains the original source line when it contains "tai".
+  const source=String(ingredient.sourceLine||"");
+  const alternatives=source.split(/\s+tai\s+/i);
+  if(alternatives.length>1){
+    const stripAmount=(value:string)=>value.replace(/^\s*(?:\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt|pss|prk|rkl|tl)\s+)?/i,"").trim();
+    const variants=alternatives.map(stripAmount).filter(Boolean);
+    return [...new Set([query,...variants])];
+  }
   const categoryQueries=recipeCategoryQueries(term);
   if(categoryQueries.length)return categoryQueries;
   if (term === 'sokeri') return [...new Set([query, 'taloussokeri', 'hienosokeri', 'ruokosokeri', 'fariinisokeri'])];
