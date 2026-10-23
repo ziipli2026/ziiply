@@ -240,7 +240,7 @@ export type SearchIntent = {
   ownBrandFriendly?: boolean;
 };
 
-export const MAX_ITEMS = 50; // Temporary media basket comparison test
+export const MAX_ITEMS = 8;
 export const ALTERNATIVES_AUTO_CLOSE_MS = 12000;
 export const PRICE_HISTORY_STORAGE_KEY = "ziiply-price-history-v1";
 export const RECENT_CART_ITEMS_STORAGE_KEY = "ziiply-recent-cart-items-v1";
