@@ -12,4 +12,14 @@ const percent = /(\d+(?:[.,]\d+)?)\s*%/;
 assert.equal(percent.exec('jogurtti 10%')[1],'10');
 assert.equal(percent.exec('jauheliha 9,5%')[1],'9,5');
 assert.ok(source.includes('const productFat = withoutBlendRatio.match(/(\\d+(?:[.,]\\d+)?)\\s*%/)'), 'numeric percent parser must use blend-ratio-safe input');
+for (const term of [
+  'const withoutBlendRatio =',
+  'const unverifiedMinceFat =',
+  'const incompatibleCategory =',
+  '!unverifiedMinceFat(entry.name)',
+  '!incompatibleCategory(entry.name)'
+]) assert.ok(source.includes(term), 'missing category guard: ' + term);
+const ratio = /\b\d+(?:[.,]\d+)?\s*%\s*\/\s*\d+(?:[.,]\d+)?\s*%/g;
+assert.equal('nauta-sika jauheliha (50%/50%)'.replace(ratio,'' ).match(percent), null, 'species ratio must not be read as fat');
+assert.equal('sika-nauta jauheliha 23%'.replace(ratio,'').match(percent)[1], '23', 'actual fat percentage must remain');
 console.log('Fineli candidate guard regression OK');
