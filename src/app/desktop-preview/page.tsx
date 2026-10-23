@@ -913,8 +913,9 @@ export default function DesktopPreviewPage() {
   function desktopVerifiedKgPriceCents(product:any):number|null{
     // Only accept an explicitly labelled €/kg unit price, never the ordinary
     // product.price field or an unlabelled numeric unit price.
-    const label=String(product?.unitPrice||product?.product?.unitPrice||"").trim();
+    const label=String(product?.unitPrice||product?.product?.unitPrice||"").trim().replace(/\u00a0/g," ");
     const match=label.match(/(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*\/\s*kg\b/i)
+      ||label.match(/(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*\/\s*1\s*kg\b/i)
       ||label.match(/\bkg\s*[:=]\s*(\d+(?:[.,]\d+)?)\s*(?:€|eur)\b/i);
     if(!match)return null;
     const euros=Number(match[1].replace(",","."));
@@ -1107,6 +1108,7 @@ export default function DesktopPreviewPage() {
                 const loose=desktopPackageSize(candidateName)===null;
                 const excluded=/\b(pakaste|pakastettu|säilyke|purkki|marinoitu|marinadi|maustettu|savustettu|savu|pihvi|pyörykkä|silli|etikka|kastike)\b/.test(candidateName);
                 const produceCompatible=Boolean(originalProduce&&produceKind(candidateName)===originalProduce
+                  &&desktopPackageSize(candidateName)===null
                   &&!(/\b(pakaste|pakastettu|sose|raaste|mehu|keittojuures|kuorittu|esikypsennetty)\b/.test(candidateName))
                   &&(!/\b(pesty|pestyt)\b/.test(name)||/\b(pesty|pestyt)\b/.test(candidateName))
                   &&(!/\b(multaporkkana|multa)\b/.test(name)||/\b(multaporkkana|multa)\b/.test(candidateName)));
