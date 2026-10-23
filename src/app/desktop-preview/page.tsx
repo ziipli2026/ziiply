@@ -808,7 +808,10 @@ export default function DesktopPreviewPage() {
       const last=matches[matches.length-1];
       if(!last)return null;
       const amount=Number(last[1]),unit=last[2];
-      return {kind:unit==="kg"||unit==="g"?"mass":unit==="kpl"?"count":"volume",amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1)};
+      const prefix=String(name).toLocaleLowerCase("fi").replace(/,/g,".").slice(0,last.index||0);
+      const multi=prefix.match(/(\d+)\s*[x×]\s*$/);
+      const count=multi?Number(multi[1]):1;
+      return {kind:unit==="kg"||unit==="g"?"mass":unit==="kpl"?"count":"volume",amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1)*count};
     };
     // A multi-pack is not the same retail unit as a single pack of its component size.
     const multipack=(name:string)=>String(name).toLocaleLowerCase("fi")
