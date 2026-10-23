@@ -103,8 +103,11 @@ const nutrientSanity = (product: string, nutrients: any): string[] => {
 };
 // Report how often an actual dairy fat nutrient comparison was possible.
 const dairyCoverage = (product: string, nutrients: any): string => {
-  if (!/maito|kerma|jogurtti|viili|rahka|juusto|voi/.test(product)) return 'NOT_DAIRY';
-  const label = product.match(/(?:rasvaa?\\s*)?(\\d+(?:[.,]\\d+)?)\\s*%/);
+  // Use whole-word dairy terms: substring matching "voi" incorrectly matches "virvoitusjuoma".
+  const isDairy = /\\b(?:maito\\w*|kerma\\w*|jogurtti\\w*|viili\\w*|rahka\\w*|juusto\\w*|raejuusto\\w*|piimä\\w*|voi)\\b/i.test(product);
+  if (!isDairy) return 'NOT_DAIRY';
+  // Accept explicit fat labels such as "2%", "1,5 %" and "rasvaa 3,5%"; don't read package size as fat.
+  const label = product.match(/(?:rasvaa?\\s*)?(\\d+(?:[.,]\\d+)?)\\s*%/i);
   if (!label) return 'NO_PRODUCT_FAT_LABEL';
   const fat = nutrients?.FAT?.value;
   if (fat === null || fat === undefined || !Number.isFinite(Number(fat))) return 'NO_FINELI_FAT_VALUE';
