@@ -1,3 +1,4 @@
+import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 import { warmKCitymarketOfferCache, persistKCitymarketOfferPublication, getNextKCitymarketPeriod } from "@/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { readActivePublicationOffers } from "@/app/components/ziiply/offerSearch/publicationStore";
@@ -52,6 +53,26 @@ export async function GET(request: Request) {
     const nextAttempted = result.next !== null || result.errors.some((error) => error.startsWith("next "));
     const nextOk = !nextAttempted || Boolean(result.next);
     const ok = activeOk && nextOk && result.errors.length === 0 && preflight?.ok !== false;
+    // Audit selected-store campaigns independently of the national leaflet.
+    // The leaflet's success must not turn the local-campaign status green.
+    if (process.env.DATABASE_URL) {
+      try {
+        const sql = neon(process.env.DATABASE_URL);
+        const rows = await sql`SELECT offers FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = 'k-ruoka k citymarket hyvinkaa' ORDER BY updated_at DESC LIMIT 1`;
+        const offers = Array.isArray(rows[0]?.offers) ? rows[0].offers as Record<string,unknown>[] : [];
+        const active = offers.filter(row => row.storeId === "N183"
+          && (row.sourceScope === "SELECTED_STORE_WEB_OFFERS" || (row.debug as Record<string,unknown> | undefined)?.sourceScope === "SELECTED_STORE_WEB_OFFERS")
+          && Number.isFinite(Date.parse(String(row.validFrom ?? "")))
+          && Date.parse(String(row.validFrom)) <= startedAt.getTime()
+          && Date.parse(String(row.validUntil ?? "")) >= startedAt.getTime());
+        await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:active.length>0,count:active.length,
+          outcome:active.length>0?"verified-store-campaigns-active":"verified-store-campaigns-expired-or-missing",
+          details:{storeId:"N183",storedRows:offers.length,source:"K-Ruoka selected store snapshot"}});
+      } catch (error) {
+        await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:false,count:0,
+          outcome:"store-campaign-audit-error",details:{error:String(error)}}).catch(()=>undefined);
+      }
+    }
     await recordPublicationRun({ chain: "K", source: "k-citymarket-cache", ok, count: result.active?.offers ?? 0, outcome: ok ? (nextAttempted ? "active-and-next-cache-ok" : "active-cache-ok") : "cache-warm-partial-or-failed", details: { activeImages, active: result.active, next: result.next, errors: result.errors.slice(0, 10), activeOk, nextAttempted, nextOk } }).catch(() => undefined);
 
     return NextResponse.json(
