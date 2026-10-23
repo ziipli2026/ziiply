@@ -74,7 +74,14 @@ try {
     storeNameInMarkup: /K-Citymarket Hyvinkää/i.test(document.documentElement.outerHTML),
     selectedStoreKeys: Object.keys(localStorage).filter(k => /store|kauppa|shop/i.test(k)).slice(0,20),
   })).catch(() => ({}));
-  const offerCards = await page.locator("main article, main [data-testid*=offer], main [class*=Offer], main [class*=offer]").count().catch(() => 0);
+  // The page can render offers without an obvious JSON response. Record a
+  // small, non-personal diagnostic sample of visible offer-card text as well.
+  const offerCardSelector = "main article, main [data-testid*=offer], main [class*=Offer], main [class*=offer]";
+  const offerCards = await page.locator(offerCardSelector).count().catch(() => 0);
+  const visibleOfferSamples = await page.locator(offerCardSelector).evaluateAll(nodes =>
+    nodes.slice(0, 8).map(node => (node.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 180))
+      .filter(text => /€|tarjous|plussa/i.test(text))
+  ).catch(() => []);
   const apiOfferCandidates = candidates.flatMap(item => item.samples.map(sample => ({endpoint:item.endpoint,storeId:sample.storeId || null,offerId:sample.offerId || null,hasPrice:Boolean(sample.price),hasValidity:Boolean(sample.validFrom && sample.validUntil)})));
   const n183Candidates = apiOfferCandidates.filter(item => item.storeId === "N183");
   const report = {
@@ -82,7 +89,7 @@ try {
     offerHttp: second?.status() ?? null, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
-    links, pageEvidence, context, offerCards, requests: observations, candidates,
+    links, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
     apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length,
     storeContextConfirmed: Boolean((pageEvidence.storeIdN183InPage || context.storeMarkerInMarkup) && pageEvidence.hyvinkaa && !pageEvidence.otherStore),
     verifiedStoreOffers: false,
