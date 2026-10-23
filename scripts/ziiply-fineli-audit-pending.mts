@@ -21,6 +21,7 @@ const flags = (product, food) => {
   for (const term of preparation) if (food.includes(term) && !product.includes(term) && !(term === 'pakaste' && /pakastekasvis/.test(food))) issues.push('preparation_'+term);
   for (const term of ['gluteeniton','laktoositon','rasvaton','makeuttamaton','sokeroimaton']) if (product.includes(term) && !food.includes(term)) issues.push('attribute_'+term);
   if (/kevyt/.test(product) && /rasvaton/.test(food)) issues.push('light_vs_fat_free');
+  if (/jauheliha/.test(product) && /\d+(?:[.,]\d+)?\s*%/.test(product) && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/.test(food)) issues.push('mince_fat_percentage_unverified');
   const p = product.match(/(\d+(?:[.,]\d+)?)\s*%/);
   const f = food.match(/rasvaa\s*(\d+(?:[.,]\d+)?)\s*%/);
   if (p && f && Math.abs(Number(p[1].replace(',','.'))-Number(f[1].replace(',','.'))) > 0.1) issues.push('fat_percentage_mismatch');
@@ -32,7 +33,7 @@ const review = rows.map(r=>{
   const food=String(r.fineli_name??'').toLowerCase();
   const issues=flags(product,food);
   if(issues.length) flagged++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:issues.length?'REJECT_REVIEW':'MANUAL_REVIEW'};
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:issues.length?'FLAGGED_FOR_REVIEW':'MANUAL_REVIEW'};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,manual_review:review.length-flagged,modified:0}));
 for(const row of review) console.log(JSON.stringify(row));
