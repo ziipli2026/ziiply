@@ -525,7 +525,7 @@ export default function ZiiplyMobileScannerCard({
           <ScannerCorner className="right-5 top-5 rotate-90" />
           <ScannerCorner className="bottom-5 left-5 -rotate-90" />
           <ScannerCorner className="bottom-5 right-5 rotate-180" />
-          {storeLocation?.name && (storeLocation.verified || storeLocation.checking) && /(?:market|prisma|lidl|tokmanni|spar|sale|alepa|k-extra)/i.test(storeLocation.name) && (
+          {storeLocation?.name && storeLocation.verified && /(?:market|prisma|lidl|tokmanni|spar|sale|alepa|k-extra)/i.test(storeLocation.name) && (
             <div
               role="status"
               aria-live="polite"
