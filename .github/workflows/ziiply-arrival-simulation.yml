@@ -38,3 +38,24 @@ jobs:
             if(Object.values(checks).some(v=>!v))process.exitCode=1;
           })();
           NODE
+  offer-warmup-code-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify real offer warmup shares master cache and campaign results
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const src=fs.readFileSync('src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts','utf8');
+          const warm=src.match(/export async function warmZiiplyGostaOfferCacheV182\([\s\S]*?\n\}/)?.[0];
+          assert.ok(warm,'warmup function exists');
+          assert.match(warm,/fetchGostaMasterOfferResultsV156\(context\)/,'warmup uses same master request');
+          assert.match(warm,/preparedGostaAllV803\(context, masterResults\)/,'warmup prepares result');
+          assert.match(warm,/campaignType === "campaign"/,'warmup includes campaigns');
+          assert.match(src,/ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156 = 5 \* 60 \* 1000/,'five minute TTL');
+          assert.match(src,/ziiplyGostaMasterCacheV156\.get\(contextKey\)/,'master reads cached result');
+          console.log('PASS actual offer warmup implementation shares master cache, prepares campaigns, and has 5-minute TTL');
+          NODE
