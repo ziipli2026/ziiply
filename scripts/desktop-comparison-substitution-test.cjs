@@ -23,6 +23,8 @@ assert(pick.includes("desktopPackageCompatible("),"Package size must be checked"
 assert(pick.includes("isComparisonAttributeCompatible("),"Attributes must be checked");
 assert(pick.includes("desktopStrictCompareIdentity("),"Identity must be checked");
 assert(pick.includes("if(exact.length)return"),"Exact EAN must take priority");
+assert(pick.includes("!desktopHasExplicitPackage(name)"),"Exact EAN must not bypass explicit package counts");
+assert(source.includes("function desktopHasExplicitPackage("),"Explicit package guard must exist");
 console.log("PASS: comparison matcher guards");
 
 const packageStart=source.indexOf("  function desktopPackageCompatible(");
