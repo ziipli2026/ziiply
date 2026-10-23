@@ -50,7 +50,7 @@ try {
    )
  ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 ELSE 1 END, p.ean
  LIMIT $1`,[limit,shard,refreshIncomplete]);
- let matched=0,notFound=0,failed=0,refreshed=0;
+ let matched=0,notFound=0,failed=0,refreshed=0,newRecords=0,withoutNutrition=0;
  for(const [i,{ean,previously_imported}] of rows.entries()){
   try{
    await reserveApiSlot();
@@ -62,14 +62,19 @@ try {
    const p=data.product,n=p.nutriments||{},labels=tags(p.labels_tags),analysis=tags(p.ingredients_analysis_tags);
    // null means unknown, not false. Ingredient-derived claims are not verified free-from certifications.
    const dietary={gluten_free:has(labels,'gluten-free')?true:null,lactose_free:has(labels,'lactose-free')?true:null,dairy_free:has(labels,'dairy-free')?true:null,vegan:has(labels,'vegan')?true:has(analysis,'non-vegan')?false:null,vegetarian:has(labels,'vegetarian')?true:has(analysis,'non-vegetarian')?false:null};
+   if(!Object.values(n).some((v)=>v!==null&&v!==undefined&&v!=='')){withoutNutrition++;}
    await pool.query(`INSERT INTO public.ziiply_off_nutrition (ean,product_name,kcal_100g,kj_100g,fat_100g,saturated_fat_100g,carbohydrates_100g,sugars_100g,fiber_100g,proteins_100g,salt_100g,allergens,traces,labels,dietary,source_url,fetched_at)
 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,now())
 ON CONFLICT (ean) DO UPDATE SET product_name=EXCLUDED.product_name,kcal_100g=COALESCE(EXCLUDED.kcal_100g,ziiply_off_nutrition.kcal_100g),kj_100g=COALESCE(EXCLUDED.kj_100g,ziiply_off_nutrition.kj_100g),fat_100g=COALESCE(EXCLUDED.fat_100g,ziiply_off_nutrition.fat_100g),saturated_fat_100g=COALESCE(EXCLUDED.saturated_fat_100g,ziiply_off_nutrition.saturated_fat_100g),carbohydrates_100g=COALESCE(EXCLUDED.carbohydrates_100g,ziiply_off_nutrition.carbohydrates_100g),sugars_100g=COALESCE(EXCLUDED.sugars_100g,ziiply_off_nutrition.sugars_100g),fiber_100g=COALESCE(EXCLUDED.fiber_100g,ziiply_off_nutrition.fiber_100g),proteins_100g=COALESCE(EXCLUDED.proteins_100g,ziiply_off_nutrition.proteins_100g),salt_100g=COALESCE(EXCLUDED.salt_100g,ziiply_off_nutrition.salt_100g),allergens=EXCLUDED.allergens,traces=EXCLUDED.traces,labels=EXCLUDED.labels,dietary=EXCLUDED.dietary,source_url=EXCLUDED.source_url,fetched_at=now()`,[ean,p.product_name||null,num(n['energy-kcal_100g']),num(n['energy-kj_100g']),num(n.fat_100g),num(n['saturated-fat_100g']),num(n.carbohydrates_100g),num(n.sugars_100g),num(n.fiber_100g),num(n.proteins_100g),num(n.salt_100g),tags(p.allergens_tags),tags(p.traces_tags),labels,JSON.stringify(dietary),'https://world.openfoodfacts.org/product/'+ean]);
    await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'found') ON CONFLICT(ean) DO UPDATE SET status='found',attempted_at=now(),error=NULL",[ean]);
-   matched++;if(previously_imported)refreshed++;
+   matched++;if(previously_imported)refreshed++;else newRecords++;
   }catch(error){failed++;console.error(ean,error.message);await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status,error) VALUES($1,'error',$2) ON CONFLICT(ean) DO UPDATE SET status='error',attempted_at=now(),error=EXCLUDED.error",[ean,String(error.message).slice(0,300)]);}
   // API starts are globally spaced across all shards.
  }
- console.log(JSON.stringify({shard,attempted:rows.length,matched,refreshed,notFound,failed}));
+ const total=await pool.query('SELECT count(*)::int AS total FROM public.ziiply_off_nutrition');
+ const report={shard,attempted:rows.length,newRecords,matched,refreshed,notFound,failed,withoutNutrition,total:total.rows[0].total};
+ console.log('OFF_IMPORT_REPORT',JSON.stringify(report));
+ if(rows.length>0&&newRecords===0)console.warn('::warning::OFF import added ZERO new products; inspected '+rows.length+' EANs, not found '+notFound+', errors '+failed+', refreshed '+refreshed);
+ if(failed>0&&failed===rows.length)throw Error('OFF import failed for every attempted EAN');
  if(failed>0)console.warn('Transient lookup failures will retry after 24 hours');
 }finally{await pool.end()}
