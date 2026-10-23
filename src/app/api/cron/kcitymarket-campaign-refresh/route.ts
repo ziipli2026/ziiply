@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     if (verified.length < 5) {
       // Missing verified N183 offers must remain a visible failure in monitoring.
       // Report Tjek success separately; never turn the combined source green.
-      return NextResponse.json({ok:false,degraded:true,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",tjek,activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
+      return NextResponse.json({ok:false,degraded:true,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",tjek,activeCount:active.length,verifiedKruokaCount:verified.length},{status:tjek.ok ? 200 : 503});
     }
     return NextResponse.json({ok:true,degraded:false,tjek,activeCount:active.length,verifiedKruokaCount:verified.length});
   } catch (error) {
