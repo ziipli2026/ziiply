@@ -2,7 +2,7 @@ name: K-Ruoka N183 browser source discovery
 on:
   workflow_dispatch:
   schedule:
-    - cron: '25 3 * * *'
+    - cron: '25 */3 * * *'
 permissions:
   contents: read
 jobs:
@@ -20,3 +20,6 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Discover K-Ruoka live network source
         run: node scripts/kcitymarket-browser-source-discovery.mjs
+      - name: Report investigation outcome
+        if: always()
+        run: echo 'K-Ruoka browser source discovery finished; inspect the preceding KRUOKA_BROWSER_DISCOVERY line for verified API evidence.'
