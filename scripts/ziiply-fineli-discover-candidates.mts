@@ -229,7 +229,8 @@ for (;;) {
       return false;
     };
     // Generic Fineli mince descriptions cannot verify an explicitly labelled fat percentage.
-    const unverifiedMinceFat = (foodName: string) => /jauheliha/i.test(unbranded) && productFat && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/i.test(foodName);\n    // Exclude category mismatches before writing pending proposals.
+    const unverifiedMinceFat = (foodName: string) => /jauheliha/i.test(unbranded) && productFat && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/i.test(foodName);
+    // Exclude category mismatches before writing pending proposals.
     const incompatibleCategory = (foodName: string) => {
       const p = unbranded.toLowerCase();
       const f = foodName.toLowerCase();
