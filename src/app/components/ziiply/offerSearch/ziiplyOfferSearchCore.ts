@@ -637,7 +637,9 @@ export function getLastZiiplyKruokaDebugV174(
   context?: ZiiplyGostaOfferSearchContextV152,
 ): ZiiplyKruokaDebugV174 | null {
   const contextKey = buildOfferSearchContextKeyV152(context);
-  const debug = contextKey && ziiplyKruokaDebugByContextV183.has(contextKey)
+  // A selected store must never inherit another store's last debug response.
+  // Only callers without a store context may use the global fallback.
+  const debug = contextKey
     ? ziiplyKruokaDebugByContextV183.get(contextKey) ?? null
     : lastZiiplyKruokaDebugV174;
   return debug ? { ...debug } : null;
