@@ -46,7 +46,7 @@ async function inspectResponse(response) {
 }
 try {
   const store = "https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa";
-  const first = await page.goto(store, { waitUntil: "domcontentloaded", timeout: 45000 });
+  const first = await page.goto(store, { waitUntil: "domcontentloaded", timeout: 45000 }).catch(error => { console.warn("KRUOKA_STORE_NAVIGATION_ERROR", String(error)); return null; });
   await page.waitForTimeout(5000);
   const storeTitle = await page.title();
   const links = await page.locator("a[href]").evaluateAll(anchors => anchors.map(a => ({ text: (a.textContent || "").trim().slice(0,80), href: a.getAttribute("href") })).filter(x => /tarjou|edut|etuja/i.test(x.text + " " + x.href)).slice(0,20));
@@ -86,4 +86,9 @@ try {
   await fs.mkdir("artifacts", { recursive: true });
   await fs.writeFile("artifacts/kruoka-n183-browser-discovery.json", JSON.stringify(report, null, 2));
   console.log("KRUOKA_BROWSER_DISCOVERY " + JSON.stringify(report));
+} catch (error) {
+  await fs.mkdir("artifacts", { recursive: true });
+  await fs.writeFile("artifacts/kruoka-n183-browser-discovery.json", JSON.stringify({ failed: true, error: String(error), requests: observations, candidates }, null, 2));
+  console.error("KRUOKA_BROWSER_DISCOVERY_FAILED", String(error));
+  process.exitCode = 1;
 } finally { await browser.close(); }
