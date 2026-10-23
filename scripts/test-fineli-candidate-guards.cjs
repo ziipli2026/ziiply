@@ -11,5 +11,5 @@ for (const name of ['siika savustettu','paprika keltainen','herne kuivattu']) as
 const percent = /(\d+(?:[.,]\d+)?)\s*%/;
 assert.equal(percent.exec('jogurtti 10%')[1],'10');
 assert.equal(percent.exec('jauheliha 9,5%')[1],'9,5');
-assert.ok(source.includes('const productFat = unbranded.match(/(\\d+(?:[.,]\\d+)?)\\s*%/)'),'numeric percent parser must not be double-escaped');
+assert.ok(source.includes('const productFat = withoutBlendRatio.match(/(\\d+(?:[.,]\\d+)?)\\s*%/)'), 'numeric percent parser must use blend-ratio-safe input');
 console.log('Fineli candidate guard regression OK');
