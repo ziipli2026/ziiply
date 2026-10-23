@@ -218,7 +218,9 @@ for (;;) {
     const productIsFatFree = /rasvaton/i.test(unbranded);
     const productIsLight = /(?:kevyt|light)/i.test(unbranded);
     const productIsUnsweetened = /(?:makeuttamaton|sokeroimaton)/i.test(unbranded);
-    // Species blend ratios (50%/50%) are not fat percentages.\n    const withoutBlendRatio = unbranded.replace(/\b\d+(?:[.,]\d+)?\s*%\s*\/\s*\d+(?:[.,]\d+)?\s*%/g, "");\n    const productFat = withoutBlendRatio.match(/(\d+(?:[.,]\d+)?)\s*%/);
+    // Species blend ratios (50%/50%) are not fat percentages.
+    const withoutBlendRatio = unbranded.replace(/\b\d+(?:[.,]\d+)?\s*%\s*\/\s*\d+(?:[.,]\d+)?\s*%/g, "");
+    const productFat = withoutBlendRatio.match(/(\d+(?:[.,]\d+)?)\s*%/);
     const fatMismatch = (foodName: string) => {
       const fineliFat = foodName.match(/RASVAA\s*(\d+(?:[.,]\d+)?)\s*%/i);
       if (/RASVATON/i.test(foodName) && productFat && Number(productFat[1].replace(",",".")) > 0.5) return true;
@@ -226,7 +228,8 @@ for (;;) {
       if (productFat && fineliFat) return Math.abs(Number(productFat[1].replace(",","."))-Number(fineliFat[1].replace(",","."))) > 0.1;
       return false;
     };
-    // Generic Fineli mince descriptions cannot verify an explicitly labelled fat percentage.\n    const unverifiedMinceFat = (foodName: string) => /jauheliha/i.test(unbranded) && productFat && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/i.test(foodName);\n    // Exclude category mismatches before writing pending proposals.
+    // Generic Fineli mince descriptions cannot verify an explicitly labelled fat percentage.
+    const unverifiedMinceFat = (foodName: string) => /jauheliha/i.test(unbranded) && productFat && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/i.test(foodName);\n    // Exclude category mismatches before writing pending proposals.
     const incompatibleCategory = (foodName: string) => {
       const p = unbranded.toLowerCase();
       const f = foodName.toLowerCase();
