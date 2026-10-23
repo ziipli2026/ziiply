@@ -2925,8 +2925,8 @@ function KauppiasMobileTopBar({
                   </div>
 
                   {panel.id === "calendar" && (
-                    <span className="absolute right-[5px] top-1/2 flex h-[16px] w-[16px] -translate-y-1/2 items-center justify-center rounded-full border border-[#7f6230] bg-[radial-gradient(circle_at_35%_30%,#fffdf0_0%,#e8d298_52%,#0d4d3f_100%)] text-[11px] font-black text-white shadow-[0_1px_4px_rgba(75,52,16,0.26)]">
-                      ›
+                    <span aria-hidden="true" className="pointer-events-none absolute right-[3px] top-[3px] text-[10px] font-black leading-none text-[#806337]">
+                      ↗
                     </span>
                   )}
                 </div>
