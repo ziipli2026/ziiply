@@ -260,6 +260,6 @@ export function recipeFishFreshnessTier(input:string,product:{name?:string;categ
 export function prioritizeRecipeFishProducts<T extends {name?:string;category?:string}>(input:string,products:T[],context?:RecipeContext):T[] {
  const term=recipeProductSearchTerm(input);
  const salt=/suola/.test(term||"");
- const herb=term==="tilli"&&!/kuivatt/i.test(input);
+ const herb=["tilli","persilja","basilika","korianteri","timjami","oregano"].includes(term||"")&&/tuore|hienonnet/i.test(input+" "+String(context?.sourceLine||""))&&!/kuivatt/i.test(input);
  return products.map((product,index)=>({product,index,tier:herb?(/mauste|kuivatt|purkki|^caabgbaak/i.test((product.name||"")+" "+(product.category||""))||/^caabgbaak/i.test(product.category||"")?2:/pakast/i.test((product.name||"")+" "+(product.category||""))?1:0):salt&&/karke/i.test(input)?(/karkea|coarse/i.test(product.name||"")?0:/hieno|fine/i.test(product.name||"")?2:1):recipeFishFreshnessTier(input,product,context)})).sort((a,b)=>a.tier-b.tier||a.index-b.index).map(x=>x.product);
 }
