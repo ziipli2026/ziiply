@@ -50,8 +50,12 @@ try {
   await page.waitForTimeout(5000);
   const storeTitle = await page.title();
   const links = await page.locator("a[href]").evaluateAll(anchors => anchors.map(a => ({ text: (a.textContent || "").trim().slice(0,80), href: a.getAttribute("href") })).filter(x => /tarjou|edut|etuja/i.test(x.text + " " + x.href)).slice(0,20));
-  const offerLink = links.find(x => /tarjoushaku/.test(x.href || ""));
+  // Prefer an explicitly store-scoped URL; a generic search can show another shop.
+  const storeSpecificLinks = links.filter(x => /tarjou|edut/i.test(x.text + " " + x.href));
+  const offerLink = storeSpecificLinks.find(x => /k-citymarket-hyvinkaa|N183/i.test(x.href || ""))
+    ?? storeSpecificLinks.find(x => /tarjoushaku/.test(x.href || ""));
   const destination = offerLink ? new URL(offerLink.href, store).href : "https://www.k-ruoka.fi/kauppa/tarjoushaku";
+  const navigationIsStoreScoped = /k-citymarket-hyvinkaa|N183/i.test(new URL(destination).href);
   // A store page may link to a generic offer search that defaults to another shop.
   // Capture the actual store identity before and after navigation.
   const beforeOfferStore = await page.locator("body").innerText().then(t => ({
@@ -92,7 +96,7 @@ try {
     offerHttp: second?.status() ?? null, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
-    links, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
+    links, navigationIsStoreScoped, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
     apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length,
     storeContextConfirmed: Boolean((pageEvidence.storeIdN183InPage || context.storeMarkerInMarkup) && pageEvidence.hyvinkaa && !pageEvidence.otherStore),
     verifiedStoreOffers: false,
