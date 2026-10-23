@@ -88,18 +88,17 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     })});
   };
   return <><style>{`@keyframes recipe-switch-nudge{0%,58%,100%{transform:translateX(0)}72%{transform:translateX(-12px)}86%{transform:translateX(0)}}`}</style><div className="relative mt-4 w-full min-w-0 shrink-0">{hasRecipe&&<div className="absolute bottom-full left-2 mb-0.5 flex items-center gap-1.5 whitespace-nowrap text-[10px] leading-tight"><span className="font-semibold text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span><button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista valittu resepti hakukortista" className="font-bold text-[#923c2f]">Tyhjennä ×</button></div>}<section aria-label="Justiinan resepti" onClickCapture={dismissSwitchHint} onChangeCapture={dismissSwitchHint} className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
-    {draft&&<div className="flex min-w-0 items-center gap-3">
-      <div className="min-w-0 flex-1">
-        {hasRecipe?<button type="button" onClick={()=>setDetailsOpen(true)} title="Avaa reseptin ainekset ja valmistusohje" aria-label={`Avaa resepti ${draft.title}`} className="flex w-full min-w-0 items-center gap-3 rounded-lg border border-[#e3c98f] bg-[#fff5d9] px-3 py-3 text-left transition hover:bg-[#ffedbc]">
-          <span aria-hidden="true" className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border-2 border-[#b89959] bg-[#fffdf5] text-[25px] shadow-sm">✉<span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-[#fff5d9] bg-[#d07a35]"/></span>
-          <span className="min-w-0 flex-1"><strong className="block truncate font-serif text-[18px] leading-tight text-[#174c3a]">{draft.title}</strong><span className="mt-1 block text-[11px] font-semibold text-[#806844]">Avaa resepti ja ainekset →</span></span>
-        </button>:<div className="min-h-[44px] px-1 py-3 text-[12px] text-[#333]">ei valittua reseptiä</div>}
-      </div>
-      <div className="grid w-[166px] shrink-0 grid-cols-2 gap-1.5">
-        <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-9 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-1 text-[11px] font-bold text-white disabled:opacity-40">Hae</button>
+    {draft&&<div className="flex w-full min-w-0 flex-col gap-2">
+      {hasRecipe?<button type="button" onClick={()=>setDetailsOpen(true)} title="Avaa reseptin ainekset ja valmistusohje" aria-label={`Avaa resepti ${draft.title}`} className="flex w-full min-w-0 items-center gap-3 rounded-lg border border-[#e3c98f] bg-[#fff5d9] px-3 py-2 text-left transition hover:bg-[#ffedbc]">
+        <span aria-hidden="true" className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border-2 border-[#b89959] bg-[#fffdf5] text-2xl shadow-sm">✉<span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-[#fff5d9] bg-[#d07a35]"/></span>
+        <span className="min-w-0 flex-1"><strong className="block truncate font-serif text-[16px] leading-tight text-[#174c3a]">{draft.title}</strong><span className="block text-[10px] font-semibold text-[#806844]">Näytä resepti →</span></span>
+        <span className="shrink-0 rounded-full border border-[#b89959] bg-[#fffdf5] px-2 py-1 text-[11px] font-bold text-[#174c3a]">{target||original||4} hlö</span>
+      </button>:<div className="min-h-[36px] px-1 py-2 text-[12px] text-[#333]">ei valittua reseptiä</div>}
+      <div className="grid w-full min-w-0 grid-cols-[1fr_auto_1fr_1fr] gap-1.5">
+        <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-9 min-w-0 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-2 text-[11px] font-bold text-white disabled:opacity-40">Hae</button>
         <label className="flex h-9 items-center justify-center rounded-md border border-[#b89959] bg-[#fffdf5] px-1 text-[11px]"><input aria-label="Henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-8 min-w-0 bg-transparent text-center text-[11px] outline-none"/>hlö</label>
-        <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="flex h-9 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[11px] font-bold text-[#27412a]">{editing?"Sulje":hasRecipe?"Muokkaa":"Luo resepti"}</button>
-        <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-9 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[11px] font-bold text-[#27412a]">{hasRecipe?"Vaihda":"Lisää"}</button>
+        <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="flex h-9 min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[11px] font-bold text-[#27412a]">{editing?"Sulje":hasRecipe?"Muokkaa":"Luo resepti"}</button>
+        <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-9 min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[11px] font-bold text-[#27412a]">{hasRecipe?"Vaihda":"Lisää"}</button>
       </div>
     </div>}
     {detailsOpen&&draft&&typeof document!=="undefined"&&createPortal(<div className="fixed inset-0 z-[9998] flex items-center justify-center bg-[#17352a]/40 p-6" onClick={()=>setDetailsOpen(false)}>
