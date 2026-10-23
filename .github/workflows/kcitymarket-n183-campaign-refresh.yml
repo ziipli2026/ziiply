@@ -1,0 +1,27 @@
+name: K-Citymarket N183 campaign refresh
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kcitymarket-n183-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Refresh and verify N183 store campaigns
+        env:
+          KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "::error::KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
+          curl --fail-with-body --show-error --max-time 270 --retry 2 --retry-delay 5 \
+            -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
+            "https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh"
