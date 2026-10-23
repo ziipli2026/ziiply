@@ -9,6 +9,14 @@ const rows = await sql`
   WHERE method='category_token_overlap' AND status='pending'
   ORDER BY ean,fineli_id
 `;
+// Nutrition is attached as read-only evidence, never as an approval decision.
+const nutrientRows = await sql`
+  SELECT c.ean, c.fineli_id, f.nutrients
+  FROM public.ziiply_ean_fineli_candidates c
+  LEFT JOIN public.ziiply_fineli_foods f ON f.fineli_id = c.fineli_id
+  WHERE c.method='category_token_overlap' AND c.status='pending'
+`;
+const nutrientByPair = new Map(nutrientRows.map(r => [String(r.ean)+'|'+String(r.fineli_id),r.nutrients ?? null]));
 const unsafe = /(?:koiran|koiralle|koirille|kissan|kissalle|kissoille|lemmik|levite|tuorejuusto|monivilja|quinoa|nuudeli|long drink|suklaa|patukka|juustoperun)/i;
 const preparation = ['paistettu','keitetty','kypsennetty','savustettu','kuivattu','pakaste','kuorittu','jauhettu'];
 const flags = (product: string, food: string): string[] => {
@@ -90,7 +98,7 @@ const review = rows.map(r=>{
   const conflict=issues.some(issue=>!needsVerification.has(issue));
   if(conflict) conflicts++;
   else if(issues.length) verifyOnly++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW')};
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrientByPair.get(String(r.ean)+'|'+String(r.fineli_id)) ?? null};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
 for(const row of review) console.log(JSON.stringify(row));
