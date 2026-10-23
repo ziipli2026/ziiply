@@ -215,9 +215,9 @@ for (;;) {
     const foodIsPet = /(?:koiran|koiralle|kissan|kissalle|lemmik)/i;
     const productIsGlutenFree = /gluteeniton/i.test(unbranded);
     const productIsLactoseFree = /laktoositon/i.test(unbranded);
-    const productFat = unbranded.match(/(\\d+(?:[.,]\\d+)?)\\s*%/);
+    const productFat = unbranded.match(/(\d+(?:[.,]\d+)?)\s*%/);
     const fatMismatch = (foodName: string) => {
-      const fineliFat = foodName.match(/RASVAA\\s*(\\d+(?:[.,]\\d+)?)\\s*%/i);
+      const fineliFat = foodName.match(/RASVAA\s*(\d+(?:[.,]\d+)?)\s*%/i);
       if (/RASVATON/i.test(foodName) && productFat && Number(productFat[1].replace(",",".")) > 0.5) return true;
       if (/RASVATON/i.test(unbranded) && fineliFat && Number(fineliFat[1].replace(",",".")) > 0.5) return true;
       if (productFat && fineliFat) return Math.abs(Number(productFat[1].replace(",","."))-Number(fineliFat[1].replace(",","."))) > 0.1;
