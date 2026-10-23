@@ -8,18 +8,12 @@ const refreshIncomplete=process.argv.includes('--refresh-incomplete');
 const progressEvery=1;
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL is required');
 const pool=new Pool({connectionString:process.env.DATABASE_URL,connectionTimeoutMillis:12000,query_timeout:30000});
-// Serialize API request starts across all GitHub jobs through Neon.
+// Single-process pacing; GitHub runs one shard at a time to avoid cross-run DB locks.
+let nextApiAt=0;
 async function reserveApiSlot(){
- const client=await pool.connect();
- try {
-  await client.query('BEGIN');
-  await client.query('SELECT pg_advisory_xact_lock(681274, 901)');
-  await client.query("CREATE TABLE IF NOT EXISTS public.ziiply_off_rate_limit (id integer PRIMARY KEY, next_at timestamptz NOT NULL)");
-  await client.query("INSERT INTO public.ziiply_off_rate_limit(id,next_at) VALUES(1,now()) ON CONFLICT(id) DO NOTHING");
-  await client.query("SELECT pg_sleep(GREATEST(0,EXTRACT(EPOCH FROM (next_at-now())))) FROM public.ziiply_off_rate_limit WHERE id=1");
-  await client.query("UPDATE public.ziiply_off_rate_limit SET next_at=clock_timestamp()+interval '4.2 seconds' WHERE id=1");
-  await client.query('COMMIT');
- }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
+ const delay=Math.max(0,nextApiAt-Date.now());
+ if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+ nextApiAt=Date.now()+4200;
 }
 const num=x=>x==null||x===''||!Number.isFinite(Number(x))?null:Number(x);
 const tags=x=>Array.isArray(x)?x.filter(v=>typeof v==='string'): [];
