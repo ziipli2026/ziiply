@@ -558,13 +558,7 @@ export default function ZiiplyMobileTopBar({
                   />
                 )}
 
-                {panel.id === "calendar" && panel.onClick && (
-                  <span aria-hidden="true" className="pointer-events-none absolute right-[5px] top-[5px] z-20 flex h-[13px] w-[13px] items-center justify-center rounded-[4px] border border-[#9b793f]/40 bg-[#fff8e2]/90 text-[11px] font-black leading-none text-[#745326] shadow-sm">
-                    ›
-                  </span>
-                )}
-
-                <div className="relative z-10 flex h-full min-w-0 flex-col items-center justify-center text-center leading-none">
+<div className="relative z-10 flex h-full min-w-0 flex-col items-center justify-center text-center leading-none">
                   <div className="flex min-w-0 items-center justify-center gap-[3px] max-[389px]:flex-col max-[389px]:gap-[1px]">
                     {panel.graphic}
                     <div className="text-[10px] font-black uppercase tracking-[0.045em] max-[389px]:text-[8px] max-[389px]:tracking-normal">
@@ -576,6 +570,9 @@ export default function ZiiplyMobileTopBar({
                     <span className="text-[19px] font-black leading-none tracking-[-0.05em] text-[#041b19] max-[389px]:text-[16px]">
                       {panel.value}
                     </span>
+                    {panel.id === "calendar" && panel.onClick && (
+                      <span aria-hidden="true" className="ml-[2px] self-center text-[13px] font-black leading-none text-[#806337] max-[389px]:text-[10px]">›</span>
+                    )}
                     {panel.unit && (
                       <span className="pb-[1px] text-[8px] font-black leading-none opacity-80 max-[389px]:text-[7px]">
                         {panel.unit}
