@@ -1107,7 +1107,13 @@ export default function DesktopPreviewPage() {
             const recipeGrams=Number.isFinite(recipeAmount)&&recipeAmount>0
               ?recipeUnit==="kg"?recipeAmount*1000:recipeUnit==="g"?recipeAmount:null
               :null;
-            const comparisonGrams=recipeGrams??desktopPackageSize(name);
+            // Recipe amounts describe the whole selected serving count, while the
+            // comparison subtotal multiplies row.price by cart quantity.
+            // Split the recipe weight across cart units to avoid counting it twice.
+            const cartQuantity=Number(item.quantity||1);
+            const comparisonGrams=recipeGrams!==null
+              ?recipeGrams/(Number.isFinite(cartQuantity)&&cartQuantity>0?cartQuantity:1)
+              :desktopPackageSize(name);
             const weightProposal=!matched&&(originalSpecies||originalProduce)&&comparisonGrams!==null
               ?candidates.find((p:any)=>{
                 const candidateName=String(p.name||"").toLocaleLowerCase("fi");
