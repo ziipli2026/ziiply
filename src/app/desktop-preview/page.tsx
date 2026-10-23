@@ -788,11 +788,18 @@ export default function DesktopPreviewPage() {
   // Never attach a different package's price to the original cart product.
   // Unknown package sizes are not proof of equivalence.
   function desktopPackageSize(name:string):number|null{
-    const matches=[...String(name).toLocaleLowerCase("fi").replace(/,/g,".").matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml)\b/g)];
+    const normalized=String(name).toLocaleLowerCase("fi").replace(/,/g,".");
+    const matches=[...normalized.matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml)\b/g)];
     if(!matches.length)return null;
     const match=matches[matches.length-1];
     const n=Number(match[1]);const unit=match[2];
-    return n*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1);
+    const perUnit=n*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1);
+    // 4 x 28 g contains 112 g, not 28 g. Count only the multipack
+    // immediately associated with the selected metric amount.
+    const prefix=normalized.slice(0,match.index||0);
+    const countMatch=prefix.match(/(\d+)\s*[x×]\s*$/);
+    const count=countMatch?Number(countMatch[1]):1;
+    return Number.isFinite(perUnit*count)&&count>0?perUnit*count:null;
   }
   function desktopPackageCompatible(source:string,candidate:string):boolean{
     // Grams and millilitres must never be treated as interchangeable.
