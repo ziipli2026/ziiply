@@ -76,6 +76,15 @@ export function normalizeTjekPackagePrice(row: Row): Row {
   return {...row, offerQuantity: null, offerUnit: "pkt", packageCount: quantity,
     priceBasis: "package-total", priceText: price.toFixed(2).replace(".", ",") + " € / pkt (" + quantity + " kpl)"};
 }
+/** Verified K-Ruoka N183 offers only; never count Tjek fallback as K-Ruoka success. */
+export async function fetchVerifiedKCitymarketHyvinkaaOffers(): Promise<Row[]> {
+  const now = Date.now();
+  return (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
+    .filter(row => String(row.storeId ?? "") === "N183"
+      && String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+      && normalize(row.storeName) === "k citymarket hyvinkaa"
+      && isActiveOffer(row, now));
+}
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const key = normalize(selectedStoreName);
   const now = Date.now();
