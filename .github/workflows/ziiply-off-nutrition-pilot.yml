@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       limit:
-        description: 'EAN codes to test (1-100)'
+        description: 'EAN codes per shard (1-10)'
         required: true
-        default: '20'
+        default: '10'
         type: choice
-        options: ['5', '20', '50']
+        options: ['5', '10']
 jobs:
   pilot:
     strategy:
@@ -20,7 +20,7 @@ jobs:
       group: ziiply-off-nutrition-shard-${{ matrix.shard }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,7 +33,7 @@ jobs:
       - name: Import isolated OFF nutrition records
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '20' }} --shard=${{ matrix.shard }}
+        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '10' }} --shard=${{ matrix.shard }}
       - name: Verify import coverage
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
