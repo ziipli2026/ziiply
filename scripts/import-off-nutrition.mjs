@@ -5,6 +5,7 @@ const {Pool}=pg;
 const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--shard='))?.split('=')[1]||0)));
 const limit=Math.min(200,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||100)));
 const refreshIncomplete=process.argv.includes('--refresh-incomplete');
+const progressEvery=10;
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL is required');
 const pool=new Pool({connectionString:process.env.DATABASE_URL});
 // Serialize API request starts across all GitHub jobs through Neon.
@@ -49,6 +50,7 @@ try {
    )
  ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 ELSE 1 END, p.ean
  LIMIT $1`,[limit,shard,refreshIncomplete]);
+ console.log('OFF_SELECTED',JSON.stringify({shard,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
  let matched=0,notFound=0,failed=0,refreshed=0,newRecords=0,withoutNutrition=0;
  for(const [i,{ean,previously_imported}] of rows.entries()){
   try{
@@ -68,6 +70,7 @@ ON CONFLICT (ean) DO UPDATE SET product_name=EXCLUDED.product_name,kcal_100g=COA
    await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'found') ON CONFLICT(ean) DO UPDATE SET status='found',attempted_at=now(),error=NULL",[ean]);
    matched++;if(previously_imported)refreshed++;else newRecords++;
   }catch(error){failed++;console.error(ean,error.message);await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status,error) VALUES($1,'error',$2) ON CONFLICT(ean) DO UPDATE SET status='error',attempted_at=now(),error=EXCLUDED.error",[ean,String(error.message).slice(0,300)]);}
+  if((i+1)%progressEvery===0||i===rows.length-1)console.log('OFF_PROGRESS',JSON.stringify({shard,processed:i+1,selected:rows.length,matched,newRecords,notFound,failed,refreshed}));
   // API starts are globally spaced across all shards.
  }
  const total=await pool.query('SELECT count(*)::int AS total FROM public.ziiply_off_nutrition');
