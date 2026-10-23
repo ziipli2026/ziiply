@@ -27,13 +27,19 @@ const flags = (product, food) => {
   if (p && f && Math.abs(Number(p[1].replace(',','.'))-Number(f[1].replace(',','.'))) > 0.1) issues.push('fat_percentage_mismatch');
   return issues;
 };
+const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free']);
 let flagged=0;
+let conflicts=0;
+let verifyOnly=0;
 const review = rows.map(r=>{
   const product=String(r.product_name??'').toLowerCase();
   const food=String(r.fineli_name??'').toLowerCase();
   const issues=flags(product,food);
   if(issues.length) flagged++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:issues.length?'FLAGGED_FOR_REVIEW':'MANUAL_REVIEW'};
+  const conflict=issues.some(issue=>!needsVerification.has(issue));
+  if(conflict) conflicts++;
+  else if(issues.length) verifyOnly++;
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'};
 });
-console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,manual_review:review.length-flagged,modified:0}));
+console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
 for(const row of review) console.log(JSON.stringify(row));
