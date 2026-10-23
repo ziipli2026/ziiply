@@ -4,7 +4,8 @@ const source = fs.readFileSync('scripts/ziiply-fineli-discover-candidates.mts','
 for (const term of ['const unsafeProduct =','const containsDifferentPreparation =','const fatMismatch =','const productIsGlutenFree =','const productIsLactoseFree =','const productIsFatFree =','const productIsLight =','const productIsUnsweetened =','autoApproved:0']) assert.ok(source.includes(term),term);
 const unsafeMatch = source.match(/const unsafeProduct = (\/[^\n]+\/i)\.test\(unbranded\)/);
 assert.ok(unsafeMatch,'unsafe-product filter must exist');
-const unsafe = eval(unsafeMatch[1]);
+const unsafePattern = unsafeMatch[1];
+const unsafe = new RegExp(unsafePattern.slice(1,-2),'i');
 for (const name of ['koiran annosrasia naudan maksa','paprika kasvipohjainen levite','riisi-quinoa-moniviljaseos','pekoni nuudeli','kreikkalainen jogurtti 10%','suklaa välipalapatukka']) assert.equal(unsafe.test(name),true,name);
 for (const name of ['siika savustettu','paprika keltainen','herne kuivattu']) assert.equal(unsafe.test(name),false,name);
 const percent = /(\d+(?:[.,]\d+)?)\s*%/;
