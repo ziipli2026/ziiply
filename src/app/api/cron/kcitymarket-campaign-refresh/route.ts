@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     if (active.length < 5) {
       return NextResponse.json({ok:false,error:"Store campaigns unavailable: refreshed Tjek but verified K-Ruoka feed is missing or expired",...result,activeCount:active.length},{status:503});
     }
-    return NextResponse.json({ok:true,activeCount:active.length,...result});
+    return NextResponse.json({ok:true,...result,activeCount:active.length});
   } catch (error) {
     return NextResponse.json({ok:false,error:error instanceof Error ? error.message : String(error)},{status:502});
   }
