@@ -112,6 +112,9 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
+  // This updater owns Tjek snapshots ONLY. Never allow an alternate K-Ruoka
+  // store label to overwrite the independently collected verified N183 feed.
+  if (key.startsWith("k ruoka ")) throw new Error("Tjek refresh cannot write a K-Ruoka snapshot key");
   const entry = {rows: [] as Row[], progress: {stage: "starting", storeName,
     storeId: null as string | null, publicationIds: [] as string[], pages: 0,
     offerIds: 0, accepted: 0, error: null as string | null,
