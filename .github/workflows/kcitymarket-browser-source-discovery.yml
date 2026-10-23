@@ -32,6 +32,37 @@ jobs:
           path: artifacts/kruoka-n183-browser-discovery.json
           if-no-files-found: warn
           retention-days: 14
+      - name: Publish N183 evidence summary
+        if: always()
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = 'artifacts/kruoka-n183-browser-discovery.json';
+          const report = fs.existsSync(path) ? JSON.parse(fs.readFileSync(path,'utf8')) : {failed:true,error:'No discovery artifact'};
+          const lines = [
+            '## K-Ruoka N183 source investigation',
+            '',
+            '| Check | Result |',
+            '| --- | --- |',
+            '| Store page HTTP | ' + (report.storeHttp ?? 'unknown') + ' |',
+            '| Offer page HTTP | ' + (report.offerHttp ?? 'unknown') + ' |',
+            '| N183 context confirmed | ' + Boolean(report.storeContextConfirmed) + ' |',
+            '| N183 API candidate count | ' + (report.n183CandidateCount ?? 0) + ' |',
+            '| Visible offer cards | ' + (report.offerCards ?? 0) + ' |',
+            '| Verified store offers | ' + Boolean(report.verifiedStoreOffers) + ' |',
+            '| Diagnostic failed | ' + Boolean(report.failed) + ' |',
+            '',
+            'This workflow is discovery only; it does not import or refresh store offers.',
+            '',
+            '### Candidate endpoints',
+            ...((report.candidates || []).slice(0,10).map(c => '- ' + c.endpoint)),
+            '',
+            '### Rendered offer samples',
+            ...((report.visibleOfferSamples || []).slice(0,5).map(v => '- ' + String(v).replace(/[|\r\n]/g,' ').slice(0,180))),
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n')+'\n');
+          NODE
       - name: Report investigation outcome
         if: always()
         run: echo 'K-Ruoka browser source discovery finished; inspect the preceding KRUOKA_BROWSER_DISCOVERY line for verified API evidence.'
