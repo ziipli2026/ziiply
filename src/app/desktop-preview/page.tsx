@@ -1376,7 +1376,7 @@ export default function DesktopPreviewPage() {
     };
     window.addEventListener("ziiply-recipe-servings-changed",handleRecipeServingsChanged);
     return()=>window.removeEventListener("ziiply-recipe-servings-changed",handleRecipeServingsChanged);
-  },[]);
+  },[flashCartNotice]);
   function resumeDesktopVoiceList() {
     const resolve = desktopVoiceWaitRef.current;
     desktopVoiceWaitRef.current = null;
