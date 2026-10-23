@@ -101,6 +101,15 @@ const nutrientSanity = (product: string, nutrients: any): string[] => {
   }
   return issues;
 };
+// Report how often an actual dairy fat nutrient comparison was possible.
+const dairyCoverage = (product: string, nutrients: any): string => {
+  if (!/maito|kerma|jogurtti|viili|rahka|juusto|voi/.test(product)) return 'NOT_DAIRY';
+  const label = product.match(/(?:rasvaa?\\s*)?(\\d+(?:[.,]\\d+)?)\\s*%/);
+  if (!label) return 'NO_PRODUCT_FAT_LABEL';
+  const fat = nutrients?.FAT?.value;
+  if (fat === null || fat === undefined || !Number.isFinite(Number(fat))) return 'NO_FINELI_FAT_VALUE';
+  return 'FAT_COMPARED';
+};
 const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free','dairy_fat_percentage_unverified','dairy_fat_nutrient_discrepancy','fineli_nutrients_missing']);
 let flagged=0;
 let conflicts=0;
@@ -114,7 +123,12 @@ const review = rows.map(r=>{
   const conflict=issues.some(issue=>!needsVerification.has(issue));
   if(conflict) conflicts++;
   else if(issues.length) verifyOnly++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients};
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients,dairy_fat_coverage:dairyCoverage(product,nutrients)};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
+const dairyCoverageCounts = review.reduce((counts: Record<string,number>,row) => {
+  counts[row.dairy_fat_coverage] = (counts[row.dairy_fat_coverage] ?? 0) + 1;
+  return counts;
+}, {});
+console.log(JSON.stringify({mode:'dairy_fat_coverage',...dairyCoverageCounts}));
 for(const row of review) console.log(JSON.stringify(row));
