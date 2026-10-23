@@ -14,9 +14,9 @@ page.on("response", response => {
 });
 async function inspectResponse(response) {
   const url = response.url();
-  if (!/^https:\/\/(?:[^/]+\.)?(?:k-ruoka\.fi|keskofiles\.com)\//i.test(url)) return;
+  // Offer APIs may use a different host than the K-Ruoka storefront.\n  if (!/^https:\/\//i.test(url)) return;
   const type = response.headers()["content-type"] || "";
-  if (!/json|graphql/i.test(type) && !/tarjou|offer|campaign|benefit/i.test(new URL(url).pathname)) return;
+  if (!/json|graphql/i.test(type) && !/tarjou|offer|campaign|benefit|categor/i.test(new URL(url).pathname)) return;
   const parsed = new URL(url);
   // Drop all query parameters, which may contain tokens or user identifiers.
   const key = response.status() + " " + parsed.origin + parsed.pathname;
