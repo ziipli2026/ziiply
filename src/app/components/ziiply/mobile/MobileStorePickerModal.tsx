@@ -12,6 +12,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
+import { warmZiiplyGostaOfferCacheV182 } from "../offerSearch/ziiplyOfferSearchCore";
 
 export type MobileStorePickerChain = "S" | "K";
 
@@ -168,6 +169,14 @@ export default function MobileStorePickerModal({
                     event.preventDefault();
                     event.stopPropagation();
                     onSelectStore(store);
+                    // Warm the same master cache used by the visible Gösta search.
+                    // A failed prefetch must not interrupt the store selection.
+                    if (store.name) {
+                      const context = chain === "S"
+                        ? { sStoreId: store.id, sStoreName: store.name }
+                        : { kStoreId: store.id, kStoreName: store.name };
+                      void warmZiiplyGostaOfferCacheV182(context).catch(() => undefined);
+                    }
                   }}
                   className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-[1rem] border px-3 py-2 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${styles.row}`}
                 >
