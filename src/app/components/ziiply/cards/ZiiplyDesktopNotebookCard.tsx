@@ -6,8 +6,8 @@ import { useDesktopVoiceInput } from "../desktop/justiina/useDesktopVoiceInput";
 type Item={title?:string;name?:string;quantity?:number;[key:string]:any};
 export type DesktopSavedList={id:string;name:string;createdAt:string;items:Item[]};
 type Recipe={id:string;title:string;ingredients:string;instructions:string;createdAt:string};
-type Props={open:boolean;lists:DesktopSavedList[];currentCartCount:number;openedListId:string|null;onToggleList:(id:string)=>void;onSaveCurrentCart:()=>void;onRestoreList:(list:DesktopSavedList)=>void;onDeleteList:(id:string)=>void;onClose:()=>void};
-export default function ZiiplyDesktopNotebookCard({open,lists,currentCartCount,openedListId,onToggleList,onSaveCurrentCart,onRestoreList,onDeleteList,onClose}:Props){
+type Props={recipePickerOnly?:boolean;open:boolean;lists:DesktopSavedList[];currentCartCount:number;openedListId:string|null;onToggleList:(id:string)=>void;onSaveCurrentCart:()=>void;onRestoreList:(list:DesktopSavedList)=>void;onDeleteList:(id:string)=>void;onClose:()=>void};
+export default function ZiiplyDesktopNotebookCard({open,recipePickerOnly=false,lists,currentCartCount,openedListId,onToggleList,onSaveCurrentCart,onRestoreList,onDeleteList,onClose}:Props){
 const [recipes,setRecipes]=React.useState<Recipe[]>([]);
 const selectSavedRecipe=(recipe:Recipe)=>{
   const source=[recipe.title||"Resepti","4 annosta","Ainekset:",recipe.ingredients||"","Valmistus:",recipe.instructions||""].join("\n").replace(/\\n/g,"\n");
@@ -129,7 +129,7 @@ const saveRecipes=(next:Recipe[])=>{try{localStorage.setItem("ziiply-desktop-vih
 const [cardBounds,setCardBounds]=React.useState<{top:number;bottom:number}|null>(null);
 React.useLayoutEffect(()=>{if(!open)return;const update=()=>{const row=document.querySelector("[data-desktop-card-row]");if(!row)return;const box=row.getBoundingClientRect();const css=getComputedStyle(row);const top=Math.round(box.top+parseFloat(css.paddingTop||"0"));const bottom=Math.round(box.bottom-parseFloat(css.paddingBottom||"0"));setCardBounds({top,bottom});};update();window.addEventListener("resize",update);window.addEventListener("scroll",update,true);return()=>{window.removeEventListener("resize",update);window.removeEventListener("scroll",update,true)};},[open]);
 if(!open)return null;
-if(focusRecipes)return <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[#17352a]/35 p-5">
+if(recipePickerOnly||focusRecipes)return <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[#17352a]/35 p-5">
   <section role="dialog" aria-modal="true" aria-label="Vaihda resepti" className="flex max-h-[min(75dvh,680px)] w-[min(650px,calc(100vw-32px))] flex-col overflow-hidden rounded-[26px] border-[3px] border-[#76502e] bg-[#fff6d9] p-5 shadow-[0_30px_90px_rgba(20,40,31,.35)]">
     <div className="mb-4 flex shrink-0 items-center justify-between gap-3"><h2 className="font-serif text-2xl font-black text-[#174c3a]">Valitse resepti</h2><button type="button" onClick={()=>{setFocusRecipes(false);onClose()}} aria-label="Sulje reseptin valinta" className="grid h-10 w-10 place-items-center rounded-full border-2 border-[#76502e] bg-[#a56c34] text-2xl font-black text-white">×</button></div>
     <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
