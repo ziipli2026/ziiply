@@ -23,6 +23,8 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Probe N183 product API separately from blocked storefront
+        id: api_probe
+        continue-on-error: true
         shell: bash
         run: |
           node - <<'NODE'
@@ -38,9 +40,9 @@ jobs:
             endpoint
           ], {encoding:'utf8',maxBuffer:2*1024*1024,timeout:22000});
           const output = result.stdout || '';
-          const status = output.match(/__STATUS__(\\d+)/)?.[1] || 'unknown';
-          const type = output.match(/__TYPE__([^\\n]+)/)?.[1] || 'unknown';
-          const json = output.slice(0,output.lastIndexOf('\\n__STATUS__'));
+          const status = output.match(/__STATUS__(\d+)/)?.[1] || 'unknown';
+          const type = output.match(/__TYPE__([^\n]+)/)?.[1] || 'unknown';
+          const json = output.includes('__STATUS__') ? output.slice(0,output.lastIndexOf('__STATUS__')) : output;
           let shape = null;
           try {
             const body = JSON.parse(json);
@@ -55,6 +57,7 @@ jobs:
           if (status !== '200' || !shape) process.exitCode=1;
           NODE
       - name: Discover K-Ruoka live network source
+        if: always()
         run: node scripts/kcitymarket-browser-source-discovery.mjs
       - name: Upload K-Ruoka API discovery evidence
         if: always()
