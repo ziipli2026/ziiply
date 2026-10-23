@@ -35,7 +35,11 @@ try {
  FROM public.ziiply_ean_products p
  LEFT JOIN public.ziiply_off_nutrition n ON n.ean=p.ean
  LEFT JOIN public.ziiply_off_lookup_status a ON a.ean=p.ean
- WHERE p.ean ~ '^[0-9]{8,14}
+ WHERE p.ean ~ '^[0-9]{8,14}$'
+   AND p.ean !~ '^2[0-9]{12}$'
+   AND length(trim(coalesce(p.name,''))) > 2
+   AND lower(p.name) !~ '(play-doh|ryhmä hau|bloomables|flexfigs|lelu|lelut|pehmolelu|figuuri|palapeli|lautapeli|värityskirja|askartelu|paristo|patteri|pesuaine|shampoo|saippua|hammastahna|wc-paperi|talouspaperi|vaippa|roskapussi|astianpesu|pyykinpesu|kissanhiekka|koiranruoka|kissanruoka|lemmikin|olut|siideri|lonkero|viini|vodka)'
+   AND right(p.ean,1)::int=$2
    AND (
      (n.ean IS NULL AND (
        a.ean IS NULL
