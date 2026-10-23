@@ -1317,11 +1317,12 @@ export default function DesktopPreviewPage() {
     return recipeRetailPackageCount(ingredient,{...product,name:String(product.name||product.title||product.productName||"")});
   }
   function addRecipeSelectionToCart(product:any) {
+    const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
     const count=selectedRecipePackageCount(product);
     appendDesktopRecipeDebug("cart_selection",{step:recipeSearchStepRef.current,ingredient:recipeSearchItemsRef.current[recipeSearchStepRef.current]||null,product,packageCount:count,cartQuantity:count??1,usedDefaultQuantity:count===null});
     // Unknown package sizes (e.g. salt measured in teaspoons) default to one
     // retail package. The shopper can change the quantity in the cart.
-    addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1});
+    addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1,__recipeIngredient:ingredient?{...ingredient}:null});
     justiinaAddedDuringSelectionRef.current=true;
     resumeDesktopVoiceList();
   }
