@@ -829,7 +829,7 @@ export default function DesktopPreviewPage() {
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/g," ")
       .replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2);
     const sourceWords=tokens(name);
-    if(sourceWords.length<2)return null;
+    if(sourceWords.length<1)return null;
     // Pantry staples can be equivalent across brands and retail package sizes.
     // Keep ground/whole spices distinct and avoid vinegar essences or flavoured vinegars.
     const stapleIdentity=(value:string)=>{
@@ -849,7 +849,7 @@ export default function DesktopPreviewPage() {
       const words=tokens(String(p.name||""));
       const overlap=sourceWords.filter(w=>words.includes(w)).length;
       const sameBrand=words[0]===sourceBrand || tokens(String(p.brandName||p.brand||"")).includes(sourceBrand);
-      const sameProduct=sourceWords.every(w=>words.includes(w));
+      const sameProduct=sourceWords.every(w=>words.includes(w)) && words.every(w=>sourceWords.includes(w));
       const sameStaple=Boolean(sourceStaple&&stapleIdentity(String(p.name||""))===sourceStaple);
       return {p,size,sameBrand,sameProduct,sameStaple,overlap};
     }).filter(x=>x.size!==null&&x.size!==sourceSize&&metricKind(String(x.p.name||""))===sourceKind
