@@ -1,9 +1,12 @@
+import { recipeCategoryQueries } from "./recipeCategories";
 import type { RecipeIngredient } from './recipeCore';
 
 /** Supplement noisy ingredient searches even when the first query has a match. */
 export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredient | null): string[] {
   if (!ingredient) return [];
   const term = (ingredient.searchTerm || query).toLowerCase().trim();
+  const categoryQueries=recipeCategoryQueries(term);
+  if(categoryQueries.length)return categoryQueries;
   if (term === 'sokeri') return [...new Set([query, 'taloussokeri', 'hienosokeri', 'ruokosokeri', 'fariinisokeri'])];
   const aliases: Record<string, string[]> = {
     'punainen linssi esikeitetty': ['linssi'],
