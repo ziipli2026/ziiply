@@ -190,6 +190,12 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  if(produceTerms.includes(term)&&category.includes("/")&&!/^(?:hedelmat-ja-vihannekset|pakasteet\/(?:vihannes|peruna|marja))/.test(category)&&!(term==="inkivääri"&&/^mausteet-ja-maustaminen/.test(category)))return "produce_category_required";
  if(produceTerms.includes(term)&&/^ca[a-z]+$/.test(category)&&!/^caaaa|^caabq|^caabgbaak/.test(category))return "produce_category_required";
  if(term==="maissi pakaste"&&!/pakast/.test(name+" "+category))return "frozen_vegetable_required";
+ // Recipe amounts affect the shopping quantity, not whether a product is a valid ingredient.
+ // An explicitly fresh ingredient must not silently become a frozen or dried product.
+ const recipeSource=(requirement+" "+String(context?.sourceLine||"").toLocaleLowerCase("fi"));
+ const explicitlyFresh=/\btuore(?:tta|ita|et|en|ita)?\b/.test(recipeSource);
+ if(explicitlyFresh&&/pakast|kuivatt/.test(name+" "+category))return "fresh_ingredient_required";
+
  if(["ruokaöljy","rypsiöljy","oliiviöljy"].includes(term)&&/basilika|chili|valkosipuli|sitruuna|yrtti|tryffeli/.test(name)&&!/basilika|chili|valkosipuli|sitruuna|yrtti|tryffeli/.test(requirement))return "plain_oil_required";
  if(term==="voi"&&(/sips|chips|peruna|mun[aa]|levite|flora|rasvaseos/.test(name)||category.includes("/")&&!/\/voit$/.test(category)))return "butter_product_required";
  const spiceTerms=["suola","merisuola","maustepippuri","mustapippuri","valkopippuri","laakerinlehti","curry","juustokumina","kardemumma","kaneli","oregano","paprikajauhe","basilika","timjami","korianteri","persilja","chilihiutale","pizzamauste","välimeren yrttiseos","sormisuola"];
@@ -211,6 +217,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
    const productDried=/kuivatt|jauhett|\bjauh\b|mauste|purkki|\bpussi\b|meira|santa maria|\b\d+(?:[,.]\d+)?\s*g\b/.test(name)&&!/tuore|ruukku|rkk|pakast/.test(name)||/^caabgbaak/.test(category)||category.includes("/mauste");
    if(dried&&(!productDried||/liquid/.test(name)))return "dried_or_ground_ingredient_required";
    if(/tuore/.test(requirement)&&productDried)return "fresh_ingredient_required";
+   if(/hienonnet/.test(recipeSource)&&productDried)return "fresh_or_raw_frozen_herb_required";
  }
  if(term==="tilli"){
    if(/sips|perunalastu|oliivi|creme fraiche|ranskankerma|peruna|valmisruoka/.test(name+" "+category))return "herb_product_required";
