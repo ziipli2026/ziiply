@@ -1,6 +1,8 @@
 name: Citymarket store offers research
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '10 */2 * * *'
   push:
     branches: [main]
     paths:
