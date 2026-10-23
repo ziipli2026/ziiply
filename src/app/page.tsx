@@ -2890,7 +2890,7 @@ function KauppiasMobileTopBar({
                 <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
 
-                <div className={`relative z-10 grid h-full grid-cols-[auto_minmax(0,1fr)] items-center gap-[3px] text-left leading-none ${panel.id === "calendar" ? "pr-[19px]" : ""}`}>
+                <div className="relative z-10 grid h-full grid-cols-[auto_minmax(0,1fr)] items-center gap-[3px] text-left leading-none">
                   <div className="flex items-center justify-center">
                     {panel.graphic}
                   </div>
@@ -2925,7 +2925,7 @@ function KauppiasMobileTopBar({
                   </div>
 
                   {panel.id === "calendar" && (
-                    <span aria-hidden="true" className="pointer-events-none absolute right-[2px] top-1/2 z-20 flex h-[13px] w-[13px] -translate-y-1/2 items-center justify-center rounded-full border border-[#006e32] bg-[linear-gradient(155deg,#7aff78_0%,#2bd844_42%,#079c30_78%,#00752b_100%)] text-[10px] font-black leading-none text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),0_1px_2px_rgba(0,67,28,0.35)]">
+                    <span aria-hidden="true" className="pointer-events-none absolute right-[1px] top-1/2 z-20 flex h-[11px] w-[11px] -translate-y-1/2 items-center justify-center rounded-full border border-[#07843c] bg-transparent text-[11px] font-black leading-none text-[#07843c]">
                       ›
                     </span>
                   )}
