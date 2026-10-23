@@ -60,10 +60,10 @@ try {
   try{
    await reserveApiSlot();
    const response=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(ean)+'.json?fields=code,product_name,nutriments,allergens_tags,traces_tags,labels_tags,ingredients_analysis_tags',{signal:AbortSignal.timeout(15000),headers:{'User-Agent':'Ziiply/1.0 (https://ziiply.fi; nutrition research)'}});
-   if(response.status===404){notFound++;if(previously_imported)continue;await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'not_found') ON CONFLICT(ean) DO UPDATE SET status='not_found',attempted_at=now(),error=NULL",[ean]);continue;}
+   if(response.status===404){notFound++;if(!previously_imported)await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'not_found') ON CONFLICT(ean) DO UPDATE SET status='not_found',attempted_at=now(),error=NULL",[ean]);throw Error('OFF_NOT_FOUND '+ean);}
    if(!response.ok)throw Error('HTTP '+response.status);
    const data=await response.json();
-   if(data.status!==1||!data.product){notFound++;if(previously_imported)continue;await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'not_found') ON CONFLICT(ean) DO UPDATE SET status='not_found',attempted_at=now(),error=NULL",[ean]);continue;}
+   if(data.status!==1||!data.product){notFound++;if(!previously_imported)await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'not_found') ON CONFLICT(ean) DO UPDATE SET status='not_found',attempted_at=now(),error=NULL",[ean]);throw Error('OFF_NOT_FOUND '+ean);}
    const p=data.product,n=p.nutriments||{},labels=tags(p.labels_tags),analysis=tags(p.ingredients_analysis_tags);
    // null means unknown, not false. Ingredient-derived claims are not verified free-from certifications.
    const dietary={gluten_free:has(labels,'gluten-free')?true:null,lactose_free:has(labels,'lactose-free')?true:null,dairy_free:has(labels,'dairy-free')?true:null,vegan:has(labels,'vegan')?true:has(analysis,'non-vegan')?false:null,vegetarian:has(labels,'vegetarian')?true:has(analysis,'non-vegetarian')?false:null};
@@ -73,8 +73,16 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,now())
 ON CONFLICT (ean) DO UPDATE SET product_name=EXCLUDED.product_name,kcal_100g=COALESCE(EXCLUDED.kcal_100g,ziiply_off_nutrition.kcal_100g),kj_100g=COALESCE(EXCLUDED.kj_100g,ziiply_off_nutrition.kj_100g),fat_100g=COALESCE(EXCLUDED.fat_100g,ziiply_off_nutrition.fat_100g),saturated_fat_100g=COALESCE(EXCLUDED.saturated_fat_100g,ziiply_off_nutrition.saturated_fat_100g),carbohydrates_100g=COALESCE(EXCLUDED.carbohydrates_100g,ziiply_off_nutrition.carbohydrates_100g),sugars_100g=COALESCE(EXCLUDED.sugars_100g,ziiply_off_nutrition.sugars_100g),fiber_100g=COALESCE(EXCLUDED.fiber_100g,ziiply_off_nutrition.fiber_100g),proteins_100g=COALESCE(EXCLUDED.proteins_100g,ziiply_off_nutrition.proteins_100g),salt_100g=COALESCE(EXCLUDED.salt_100g,ziiply_off_nutrition.salt_100g),allergens=EXCLUDED.allergens,traces=EXCLUDED.traces,labels=EXCLUDED.labels,dietary=EXCLUDED.dietary,source_url=EXCLUDED.source_url,fetched_at=now()`,[ean,p.product_name||null,num(n['energy-kcal_100g']),num(n['energy-kj_100g']),num(n.fat_100g),num(n['saturated-fat_100g']),num(n.carbohydrates_100g),num(n.sugars_100g),num(n.fiber_100g),num(n.proteins_100g),num(n.salt_100g),tags(p.allergens_tags),tags(p.traces_tags),labels,JSON.stringify(dietary),'https://world.openfoodfacts.org/product/'+ean]);
    await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status) VALUES($1,'found') ON CONFLICT(ean) DO UPDATE SET status='found',attempted_at=now(),error=NULL",[ean]);
    matched++;if(previously_imported)refreshed++;else newRecords++;
-  }catch(error){failed++;console.error(ean,error.message);await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status,error) VALUES($1,'error',$2) ON CONFLICT(ean) DO UPDATE SET status='error',attempted_at=now(),error=EXCLUDED.error",[ean,String(error.message).slice(0,300)]);}finally{
-   if((i+1)%progressEvery===0||i===rows.length-1)console.log('OFF_PROGRESS',JSON.stringify({shard,processed:i+1,selected:rows.length,matched,newRecords,notFound,failed,refreshed}));
+  }catch(error){
+   const missing=String(error.message).startsWith('OFF_NOT_FOUND ');
+   if(!missing){
+    failed++;
+    console.error('::error::OFF_FATAL',JSON.stringify({shard,ean,error:String(error.message)}));
+    try{await pool.query("INSERT INTO public.ziiply_off_lookup_status(ean,status,error) VALUES($1,'error',$2) ON CONFLICT(ean) DO UPDATE SET status='error',attempted_at=now(),error=EXCLUDED.error",[ean,String(error.message).slice(0,300)]);}catch(logError){console.error('OFF_ERROR_LOG_FAILED',logError.message);}
+   }else console.error('::error::OFF_NOT_FOUND',JSON.stringify({shard,ean}));
+   throw error;
+  }finally{
+   console.log('OFF_PROGRESS',JSON.stringify({shard,processed:i+1,selected:rows.length,matched,newRecords,notFound,failed,refreshed}));
   }
   // API starts are globally spaced across all shards.
  }
