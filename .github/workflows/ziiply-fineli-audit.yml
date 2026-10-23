@@ -1,0 +1,19 @@
+name: Fineli pending audit
+on:
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Preflight
+        run: node scripts/test-fineli-candidate-guards.cjs
+      - name: Dependencies
+        run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+      - name: Read-only audit
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: npx tsx scripts/ziiply-fineli-audit-pending.mts
